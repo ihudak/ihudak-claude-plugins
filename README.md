@@ -15,14 +15,23 @@ Ivan Gudak's private Claude Code plugin marketplace.
 
 ### 1. Add this marketplace to Claude Code (once)
 
-```
-/add-marketplace ihudak/claude-marketplace
+```bash
+claude plugin marketplace add ihudak/claude-marketplace
 ```
 
-### 2. Install a plugin
+### 2. Install plugins
 
+```bash
+claude plugin install dev-workflows@ihudak-plugins
+claude plugin install engineering-practices@ihudak-plugins
+claude plugin install productivity@ihudak-plugins
+claude plugin install planning@ihudak-plugins
 ```
-/install dev-workflows
+
+### 3. Update after new releases
+
+```bash
+claude plugin marketplace update ihudak-plugins
 ```
 
 ## Adding new plugins

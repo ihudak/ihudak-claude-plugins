@@ -1,6 +1,6 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "claude-marketplace",
+  "name": "ihudak-plugins",
   "description": "Ivan Gudak's private Claude Code plugin marketplace — productivity and workflow tools",
   "owner": {
     "name": "Ivan Gudak",

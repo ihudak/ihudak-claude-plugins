@@ -326,7 +326,17 @@ Invoke `docs-style-checker` on the files written in Phase 6:
 
 Act on the return:
 
-- **`status: NOT_CONFIGURED`** — no linter detected. Proceed to Phase 7; `doc-reviewer` will still check correctness/completeness.
+- **`status: NOT_CONFIGURED`** — no repo linter detected. Fall back to `dt-style-checker` (Dynatrace corporate style guide):
+
+  → Agent (subagent_type: "general-purpose"):
+    > "Read and adopt the system prompt at `~/.claude/agents/dt-style-checker.md`
+    > (fall back to `~/.claude/plugins/data/dt-style-guide@ihudak-claude-plugins/agents/dt-style-checker.md` if absent).
+    > Then run the style check for this brief:
+    >
+    > files:    [absolute paths of every file written or modified in Phase 6]
+    > doc_type: product-docs"
+
+  Act on the `dt-style-checker` return identically to `docs-style-checker` (OK → Phase 7, VIOLATIONS_FOUND → `doc-fixer` + one re-run, ERROR → ask user). If `dt-style-checker` is also unavailable (agent file not found), proceed to Phase 7; `doc-reviewer` will still check correctness/completeness.
 - **`status: OK`** — linter ran, zero violations. Proceed to Phase 7.
 - **`status: VIOLATIONS_FOUND`** — invoke `doc-fixer` with the violations treated as per their severity. After `doc-fixer` completes, re-run the linter once:
 

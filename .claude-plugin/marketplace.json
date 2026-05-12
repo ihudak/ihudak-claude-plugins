@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "dev-workflows",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": "Five slash commands — /impl (help / dispatcher), /impl:code, /impl:docs, /impl:jira:docs, /impl:jira:epics — plus /vuln and /upgrade, with Opus-backed planning, code review, product-docs review, and Epic review. Fifteen reusable subagents (risk-planner, code-review, doc-reviewer, epic-reviewer, test-baseline, test-writer, review-fixer, doc-fixer, docs-style-checker, doc-planner, doc-location-finder, jira-reader, code-diff-summarizer, code-scanner, impl-maintenance) and three notification / context hooks.",
       "author": {
         "name": "Ivan Gudak",
@@ -18,6 +18,18 @@
       "category": "development",
       "source": "./plugins/dev-workflows",
       "homepage": "https://github.com/ihudak/ihudak-claude-plugins/tree/main/plugins/dev-workflows"
+    },
+    {
+      "name": "dt-style-guide",
+      "version": "0.1.0",
+      "description": "Dynatrace corporate style guide checker and writing-aid skill. Enforces terminology, trademarks, voice/tone, grammar, formatting, and inclusive-language rules from styleguide.dynatrace.com. Includes a style-checker agent (fallback when no repo linter exists), a writing-aid skill loadable by any agent, vendored reference docs, and a refresh command.",
+      "author": {
+        "name": "Ivan Gudak",
+        "email": "ivan.gudak@dynatrace.com"
+      },
+      "category": "writing",
+      "source": "./plugins/dt-style-guide",
+      "homepage": "https://github.com/ihudak/ihudak-claude-plugins/tree/main/plugins/dt-style-guide"
     },
     {
       "name": "obsidian-llm-wiki",

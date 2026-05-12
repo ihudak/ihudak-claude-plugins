@@ -222,7 +222,7 @@ For each new Epic, emit a markdown file under the resolved output directory (def
 - ...
 ```
 
-Create the output directory if missing (`mkdir -p`). Write every Epic file before proceeding to Phase 7.
+Create the output directory if missing (`mkdir -p`). Write every Epic file before proceeding to Phase 6.7.
 
 Traceability: every claim in each Epic must be traceable to the `jira-reader` handoff (Jira key + which item type — VI goal, existing Epic summary, Story theme) or a `code-scanner` output (`evidence.path` + symbols). Do not invent content the sources don't contain.
 
@@ -234,9 +234,44 @@ Traceability: every claim in each Epic must be traceable to the `jira-reader` ha
 
 ---
 
+## Phase 6.7 — Dynatrace style check
+
+Invoke `dt-style-checker` on the files written in Phase 6. Unlike `/impl:jira:docs`, this does NOT use `docs-style-checker` (no repo linter for vault content). Instead, the Dynatrace corporate style guide checker validates terminology, trademarks, voice/tone, and inclusive language.
+
+→ Agent (subagent_type: "general-purpose"):
+  > "Read and adopt the system prompt at `~/.claude/agents/dt-style-checker.md`
+  > (fall back to `~/.claude/plugins/data/dt-style-guide@ihudak-claude-plugins/agents/dt-style-checker.md` if absent).
+  > Then run the style check for this brief:
+  >
+  > files:    [absolute paths of every Epic file written in Phase 6]
+  > doc_type: epic"
+
+Act on the return:
+
+- **`status: OK`** — zero violations. Proceed to Phase 7.
+- **`status: VIOLATIONS_FOUND`** — invoke `doc-fixer` with the violations treated as per their severity. After `doc-fixer` completes, re-run `dt-style-checker` once:
+
+  → Agent (subagent_type: "general-purpose"):
+    > "Read and adopt the system prompt at `~/.claude/agents/doc-fixer.md`
+    > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-fixer.md` if absent).
+    > Then fix the style violations for this brief:
+    >
+    > Task description: [Epic drafting for <JIRA_KEY>]
+    > Reviewer or style-checker output: [paste full dt-style-checker output]
+    > Project root: [resolved $VAULT_PATH]
+    > Severities to fix: MAJOR only"
+
+  If violations remain after the re-run, proceed to Phase 7 — the remaining findings (mostly MINOR/NIT for epics) are informational and will appear in the Phase 9 report.
+
+- **`status: ERROR`** — surface the error reason. Proceed to Phase 7 regardless (style check is not a gate for Epics, but a quality enhancement).
+
+If `dt-style-checker` is unavailable (agent file not found), proceed directly to Phase 7. The style check is optional but recommended.
+
+---
+
 ## Phase 7 — Epic review gate
 
-Invoke `epic-reviewer` (Opus). This reviewer is Epic-specific — scope clarity, acceptance-criteria testability, non-duplication of existing Epics. Unlike `/impl:jira:docs`, there is **no** `docs-style-checker` step here. Epic drafts are vault-internal and not subject to product-docs prose linting.
+Invoke `epic-reviewer` (Opus). This reviewer is Epic-specific — scope clarity, acceptance-criteria testability, non-duplication of existing Epics. `docs-style-checker` is NOT used here (no repo linter for vault content); Dynatrace corporate style is handled by the Phase 6.7 `dt-style-checker` step above.
 
 → Agent (subagent_type: "general-purpose", model: "opus"):
   > "Read and adopt the system prompt at `~/.claude/agents/epic-reviewer.md`
@@ -380,6 +415,9 @@ MODERATE — vault-internal Epic drafting for a single VI
 ### Epic review verdict
 [PASS | PASS WITH RECOMMENDATIONS | BLOCK] — [1-line summary of findings applied / deferred]
 
+### Dynatrace style check (Phase 6.7)
+[OK | VIOLATIONS_FOUND (N fixed, M remaining) | ERROR (reason) | SKIPPED (dt-style-checker unavailable)] — [1-line summary]
+
 ### Documentation (Agent 1)
 - [file updated] — [what was added/changed] OR "no update required (reason)"
 
@@ -422,4 +460,4 @@ The vault has uncommitted changes. `/impl:jira:epics` never commits — vault gi
 - ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
 - ALWAYS produce the Phase 9 report as the final output
 - ALL written claims must be traceable to Jira keys (from `jira-reader`) or code paths (from `code-scanner`); do not invent content the sources don't contain
-- NEVER run `docs-style-checker` — Epic drafts are vault-internal and not subject to product-docs prose linting (enforced by absence of a Phase 6.7; `/impl:jira:docs` has that phase, this command doesn't)
+- NEVER run `docs-style-checker` — Epic drafts are vault-internal and not subject to product-docs prose linting. Dynatrace corporate style is checked via `dt-style-checker` in Phase 6.7 instead.

@@ -99,7 +99,7 @@ Return this exact shape (no preamble, no chatter):
 - NEVER modify files. The reviewer reads; the caller (via `doc-fixer`) writes.
 - NEVER return a PASS verdict if a BLOCKER finding exists.
 - NEVER skip a dimension silently — either report findings or say "N/A — reason".
-- NEVER flag a style / prose nitpick above MINOR. Epic drafts are vault-internal; corporate style compliance is not this reviewer's job. (That is `doc-reviewer`'s concern, in a different workflow.)
+- NEVER flag a style / prose nitpick above MINOR. Epic drafts are vault-internal; corporate style compliance is handled separately by `dt-style-checker` (Phase 6.7 of `/impl:jira:epics`) — this reviewer focuses on content quality, not style.
 - NEVER treat the absence of a `code-scanner` output as a finding. The user may have opted out of code examination in Phase 1; in that case the "References" dimension is evaluated on Jira links alone.
 - NEVER invent a duplicate-Epic finding without a concrete overlap. Name the existing Epic key(s) and the overlapping scope bullet(s) explicitly in the observation.
 - NEVER recommend running tests. Epic drafts have no test suite and no build step; `epic-reviewer` verdicts gate the Phase 8 maintenance step only.

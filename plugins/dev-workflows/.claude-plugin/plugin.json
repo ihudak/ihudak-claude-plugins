@@ -1,6 +1,6 @@
 {
   "name": "dev-workflows",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Structured /impl, /vuln, /upgrade commands with Opus-backed planning, code review, and security-remediation workflows",
   "author": {
     "name": "Ivan Gudak",

@@ -1,0 +1,9 @@
+{
+  "name": "dt-style-guide",
+  "version": "0.1.0",
+  "description": "Dynatrace corporate style guide — vendored terminology, trademarks, voice/tone, grammar, and formatting rules with a checker agent, a writing-aid skill, and a refresh command. Acts as a fallback when no repo-configured prose linter (Vale) is available.",
+  "author": {
+    "name": "Ivan Gudak",
+    "email": "ivan.gudak@dynatrace.com"
+  }
+}

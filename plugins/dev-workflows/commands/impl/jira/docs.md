@@ -376,7 +376,7 @@ Invoke `doc-reviewer` (Opus). The reviewer is **product-docs-only**; Epic drafts
   > Jira directory path:    [$VAULT_PATH/jira-products/<JIRA_KEY>/]
   > Diff summaries:         [array of code-diff-summarizer outputs from Phase 5]
   > doc-planner checklist:  [the full YAML from Phase 5.7]
-  > docs-style-checker report: [the violations output from Phase 6.7, or 'status: NOT_CONFIGURED']"
+  > style-check report: [the violations output from Phase 6.7 — from docs-style-checker or dt-style-checker (fallback), or 'status: NOT_CONFIGURED' if neither ran]"
 
 Act on the verdict:
 

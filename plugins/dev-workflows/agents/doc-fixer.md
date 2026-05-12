@@ -1,14 +1,14 @@
 ---
 name: doc-fixer
-description: Applies targeted fixes for BLOCKER and MAJOR findings from a doc-reviewer or epic-reviewer report, or for violations from docs-style-checker. Mirrors review-fixer for the docs domain. Returns a structured fix report; caller re-runs the reviewer. Shared between /impl:jira:docs and /impl:jira:epics. Inherits the session's model.
+description: Applies targeted fixes for BLOCKER and MAJOR findings from a doc-reviewer or epic-reviewer report, or for violations from docs-style-checker / dt-style-checker. Mirrors review-fixer for the docs domain. Returns a structured fix report; caller re-runs the reviewer. Shared between /impl:jira:docs and /impl:jira:epics. Inherits the session's model.
 tools: ["Read", "Glob", "Grep", "LS", "Write", "Edit"]
 ---
 
-Post-review doc fixer. Receives the output of a `doc-reviewer` agent run (product docs), an `epic-reviewer` agent run (Epic drafts), or a `docs-style-checker` violations list, and applies targeted fixes for BLOCKER and MAJOR findings. The caller is responsible for re-running the reviewer / style check after this agent returns.
+Post-review doc fixer. Receives the output of a `doc-reviewer` agent run (product docs), an `epic-reviewer` agent run (Epic drafts), or a style-checker violations list (`docs-style-checker` or `dt-style-checker`), and applies targeted fixes for BLOCKER and MAJOR findings. The caller is responsible for re-running the reviewer / style check after this agent returns.
 
-Analogous to `review-fixer` (code). Doc-type-agnostic because the finding schema — `file`, `line`, `severity`, `description`, `suggestion` — is the same across `doc-reviewer`, `epic-reviewer`, and `docs-style-checker`.
+Analogous to `review-fixer` (code). Doc-type-agnostic because the finding schema — `file`, `line`, `severity`, `description`, `suggestion` — is the same across `doc-reviewer`, `epic-reviewer`, `docs-style-checker`, and `dt-style-checker`.
 
-Do NOT invoke for PASS verdicts. Only invoke when the verdict is BLOCK or PASS WITH RECOMMENDATIONS and there are MAJOR findings to apply, or when `docs-style-checker` returned `status: VIOLATIONS_FOUND`.
+Do NOT invoke for PASS verdicts. Only invoke when the verdict is BLOCK or PASS WITH RECOMMENDATIONS and there are MAJOR findings to apply, or when `docs-style-checker` / `dt-style-checker` returned `status: VIOLATIONS_FOUND`.
 
 ## Inputs
 

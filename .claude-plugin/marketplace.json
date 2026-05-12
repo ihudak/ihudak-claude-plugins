@@ -21,8 +21,8 @@
     },
     {
       "name": "dt-style-guide",
-      "version": "0.1.0",
-      "description": "Dynatrace corporate style guide checker and writing-aid skill. Enforces terminology, trademarks, voice/tone, grammar, formatting, and inclusive-language rules from styleguide.dynatrace.com. Includes a style-checker agent (fallback when no repo linter exists), a writing-aid skill loadable by any agent, vendored reference docs, and a refresh command.",
+      "version": "0.2.0",
+      "description": "Dynatrace corporate style guide checker and writing-aid plugin. Enforces terminology, trademarks, voice/tone, grammar, formatting, and inclusive-language rules from styleguide.dynatrace.com. Includes /dt-review-pr (review PR doc changes), /dt-review-docs (review files/directories with optional --fix), /dt-style-refresh (update vendored rules), a dt-style-checker agent, a dt-doc-fixer agent, a dt-style-rules skill, and vendored reference docs. Acts as a fallback for dev-workflows when no repo-configured prose linter is available.",
       "author": {
         "name": "Ivan Gudak",
         "email": "ivan.gudak@dynatrace.com"

@@ -85,11 +85,15 @@ context matters. For example:
 ### 5. Output
 
 ```yaml
-status:     OK | VIOLATIONS_FOUND | ERROR
-checker:    dt-style-guide
-violations: [<array of violation records>]
-error:      <only when status == ERROR: one-line reason>
+status:         OK | VIOLATIONS_FOUND | ERROR
+checker:        dt-style-guide
+checker_source: dt-style-checker
+violations:     [<array of violation records>]
+error:          <only when status == ERROR: one-line reason>
 ```
+
+The `checker_source` field lets consumers distinguish this output from `docs-style-checker`
+(which returns `linter:` instead). Both checkers share the same violation schema.
 
 - `status: OK` — all files checked, zero violations found.
 - `status: VIOLATIONS_FOUND` — at least one violation found.

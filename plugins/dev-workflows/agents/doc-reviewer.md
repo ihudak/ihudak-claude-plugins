@@ -20,7 +20,7 @@ The caller passes a structured brief:
 - **Jira directory path** — `<vault_path>/jira-products/<JIRA_KEY>/` so the reviewer can cross-check claims.
 - **Diff summaries** — the array of `code-diff-summarizer` outputs from Phase 5.
 - **`doc-planner` checklist** — the full YAML checklist from Phase 5.7 (review against plan).
-- **`docs-style-checker` report** — the violations list from Phase 6.7 (or `status: NOT_CONFIGURED`).
+- **Style-check report** — the violations list from Phase 6.7 (from `docs-style-checker` or `dt-style-checker` as fallback, or `status: NOT_CONFIGURED` if neither ran). Both checkers use the same violation schema.
 
 Refuse to review without the written file paths, the `doc-planner` checklist, and the diff summaries. These three are the review ground truth.
 
@@ -45,7 +45,7 @@ Refuse to review without the written file paths, the `doc-planner` checklist, an
 | Snippets | Snippets proposed for `reuse` in the checklist are referenced via the repo's include syntax, not inlined. Snippets proposed for `extract` exist as new files in the repo's idiomatic snippet directory and are referenced from the target page. |
 | Actionability | Examples are runnable; commands copyable verbatim; external links resolve (best-effort — link-resolution failure on a CDN during review is not itself a BLOCKER unless the link is demonstrably wrong). |
 | Source traceability | Every factual claim cites the originating Jira key (e.g. `[[<JIRA_KEY>]]`) and/or PR URL inline. When the claim comes only from imported Jira content (no PR was resolved), a Jira-key citation alone is sufficient. |
-| Style-check follow-through | Any unresolved `docs-style-checker` violations above MINOR are reflected as BLOCKER or MAJOR findings here. Do NOT re-lint — trust the style-checker's output. If `docs-style-checker` returned `status: NOT_CONFIGURED`, skip this dimension ("N/A — no repo-configured linter"). |
+| Style-check follow-through | Any unresolved style-check violations (from `docs-style-checker` or `dt-style-checker`) above MINOR are reflected as BLOCKER or MAJOR findings here. Do NOT re-lint — trust the style-checker's output. If the style-check report is `status: NOT_CONFIGURED`, skip this dimension ("N/A — no style checker ran"). |
 
 ## Output
 

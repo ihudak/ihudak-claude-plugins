@@ -6,6 +6,8 @@
     "name": "Ivan Gudak",
     "email": "ivan.gudak@dynatrace.com"
   },
+  "homepage": "https://github.com/ihudak/ihudak-claude-plugins/tree/main/plugins/obsidian-llm-wiki",
+  "repository": "https://github.com/ihudak/ihudak-claude-plugins",
   "license": "MIT",
   "keywords": [
     "obsidian",

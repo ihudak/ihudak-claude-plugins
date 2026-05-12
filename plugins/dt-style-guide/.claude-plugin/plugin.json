@@ -5,5 +5,9 @@
   "author": {
     "name": "Ivan Gudak",
     "email": "ivan.gudak@dynatrace.com"
-  }
+  },
+  "homepage": "https://github.com/ihudak/ihudak-claude-plugins/tree/main/plugins/dt-style-guide",
+  "repository": "https://github.com/ihudak/ihudak-claude-plugins",
+  "license": "MIT",
+  "keywords": ["dynatrace", "style-guide", "terminology", "voice-and-tone", "documentation", "linting", "writing"]
 }

@@ -7,6 +7,7 @@ Ivan Gudak's private Claude Code plugin marketplace.
 | Plugin | Description |
 |--------|-------------|
 | [dev-workflows](plugins/dev-workflows/) | `/impl` (dispatcher), `/impl:code`, `/impl:docs`, `/impl:jira:docs`, `/impl:jira:epics`, `/vuln`, `/upgrade` — Opus-backed planning, code review, product-docs review, Epic review, vulnerability remediation, dependency upgrades |
+| [dt-style-guide](plugins/dt-style-guide/) | Dynatrace corporate style guide enforcement: `/dt-review-pr`, `/dt-review-docs`, `/dt-style-refresh`, and sub-agents used by `dev-workflows` for style checking Epics and feature docs |
 | [obsidian-llm-wiki](plugins/obsidian-llm-wiki/) | Eight slash commands for compiling Obsidian vault knowledge into a persistent, cross-referenced wiki; supports Claude Code and GitHub Copilot |
 
 ## Installation
@@ -21,6 +22,7 @@ claude plugin marketplace add ivan-gudak/ihudak-claude-plugins
 
 ```bash
 claude plugin install dev-workflows@ihudak-plugins
+claude plugin install dt-style-guide@ihudak-plugins
 claude plugin install obsidian-llm-wiki@ihudak-plugins
 ```
 

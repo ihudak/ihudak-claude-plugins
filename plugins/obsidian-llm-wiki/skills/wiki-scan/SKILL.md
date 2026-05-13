@@ -12,9 +12,7 @@ allowed-tools: Read Write Edit Glob Grep Bash
 
 Read `skills/wiki-schema/SKILL.md` fully before proceeding.
 
-Both forms invoke this skill identically:
-- Claude Code: `/wiki-scan [directory]`
-- Copilot: `wiki-scan: [directory]`
+Invoke with: `/wiki-scan [directory]`
 
 If no directory argument is given, scan all Layer 1 directories plus `.raw/`.
 

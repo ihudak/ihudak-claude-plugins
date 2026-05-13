@@ -3,8 +3,7 @@
 LLM Wiki pattern for an active Obsidian vault, inspired by Andrej Karpathy's approach
 to building a persistent, compounding knowledge base with an LLM. Compiles knowledge
 from meetings, projects, daily notes, and raw sources into a cross-referenced wiki at
-`wiki/`. Supports both **Claude Code** (slash commands) and **GitHub Copilot**
-(natural language prefixes) as first-class agents.
+`wiki/`. Supports both **Claude Code** and **GitHub Copilot** as first-class agents.
 
 ---
 
@@ -135,7 +134,7 @@ export VAULT_PATH="/mnt/c/Users/<YourWindowsUsername>/path/to/obsidian_vault"
 
 ### Part C — Vault Integration (one-time, commit to vault repo)
 
-After completing Parts A and B, run `/wiki-init` (Claude Code) or `wiki-init:` (Copilot).
+After completing Parts A and B, run `/wiki-init`.
 This command handles the entire vault integration automatically:
 
 - Creates the `.raw/` inbox
@@ -158,7 +157,10 @@ git push
 
 ## Usage
 
-### Claude Code — Slash Commands
+### Commands
+
+Both Copilot and Claude Code use the same `/wiki-*` slash commands with identical
+behaviour.
 
 | Command | Description |
 |---------|-------------|
@@ -169,20 +171,9 @@ git push
 | `/wiki-lint` | Run a wiki health check and produce a lint report |
 | `/wiki-hot` | Manually refresh the hot cache |
 | `/wiki-tags-refresh` | Sync wiki tags with `.obsidian/copilot/tag-index.md` |
+| `/wiki-task <description>` | Create a single task from natural language (effort, tags, priority, dates) |
+| `/wiki-tasks-extract [wiki-path]` | Batch-extract tasks from wiki content after ingest |
 | `/wiki-init` | Initialize vault integration (first run or after plugin update) |
-
-### GitHub Copilot — Natural Language Prefixes
-
-| Prefix | Description |
-|--------|-------------|
-| `wiki-ingest: @filepath` | Ingest one source file into the wiki |
-| `wiki-scan: [directory]` | Scan directory for unprocessed files |
-| `wiki-query: <question>` | Answer from the compiled wiki |
-| `wiki-save:` | Save current conversation as a wiki page |
-| `wiki-lint:` | Run wiki health check |
-| `wiki-hot:` | Manually refresh the hot cache |
-| `wiki-tags-refresh:` | Sync wiki tags |
-| `wiki-init:` | Initialize vault integration (first run or after plugin update) |
 
 Both agents produce identical output and write to the same wiki files. Switching
 between Claude Code and Copilot mid-project is seamless.
@@ -229,7 +220,7 @@ gives the agent instant context at session start without re-reading hundreds of 
   session end (Stop hook), re-read after context compaction (PostCompact hook).
 - **Copilot**: read via standing instruction in `AGENTS.md` before every wiki operation.
 
-Use `/wiki-hot` (or `wiki-hot:`) to manually refresh the cache at any time.
+Use `/wiki-hot` to manually refresh the cache at any time.
 
 ### Semantic Search
 
@@ -245,7 +236,7 @@ The wiki only uses tags from `.obsidian/copilot/tag-index.md`. When ingest encou
 a concept that needs a tag not in the index, it records `tag-needed: <proposed>` in
 `_log.md` rather than inventing a tag.
 
-Run `/wiki-tags-refresh` (or `wiki-tags-refresh:`) after heavy ingest sessions to:
+Run `/wiki-tags-refresh` after heavy ingest sessions to:
 
 1. Scan all wiki page frontmatter for tags in use
 2. Diff against `tag-index.md`

@@ -13,9 +13,7 @@ allowed-tools: Read Write Edit Glob Grep Bash
 
 Read `skills/wiki-schema/SKILL.md` fully before proceeding.
 
-Both forms invoke this skill identically:
-- Claude Code: `/wiki-ingest @filepath`
-- Copilot: `wiki-ingest: @filepath`
+Invoke with: `/wiki-ingest @filepath`
 
 ---
 
@@ -53,7 +51,7 @@ Do not skim. Read every section.
 
 | Path prefix | Type | What to extract |
 |---|---|---|
-| `Meetings/` | Meeting note | Decisions made, technologies discussed, action items (flag them — do NOT create tasks directly), people present, open questions |
+| `Meetings/` | Meeting note | Decisions made, technologies discussed, action items (flag them — do NOT create tasks directly; `/wiki-tasks-extract` consumes these flags later), people present, open questions |
 | `Daily/` | Daily note | `## Notes` and `## Worklog` sections only. Skip all Dataview/Obsidian Tasks query blocks — those are not content |
 | `Projects/` | Project file | Tech stack, decisions, key links, patterns discovered, status |
 | `Customers/` | Customer note | Use cases, pain points, customer context, integrations mentioned |
@@ -71,7 +69,8 @@ If available: `npx defuddle parse "<filepath>" --md` and use that output.
 If not: read the file directly.
 
 **Action items from meeting notes**: flag them in the log entry as
-`action-item: <description>` but do NOT create tasks. The user creates tasks via `/task`.
+`action-item: <description>` but do NOT create tasks. The user creates tasks via
+`/wiki-task` or extracts them in batch via `/wiki-tasks-extract`.
 
 ---
 

@@ -14,9 +14,7 @@ allowed-tools: Read Write Edit Glob Grep Bash
 
 Read `skills/wiki-schema/SKILL.md` fully before proceeding.
 
-Both forms invoke this skill identically:
-- Claude Code: `/wiki-tags-refresh`
-- Copilot: `wiki-tags-refresh:`
+Invoke with: `/wiki-tags-refresh`
 
 ---
 

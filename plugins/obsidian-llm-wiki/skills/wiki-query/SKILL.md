@@ -13,9 +13,7 @@ allowed-tools: Read Glob Grep Bash
 
 Read `skills/wiki-schema/SKILL.md` fully before proceeding.
 
-Both forms invoke this skill identically:
-- Claude Code: `/wiki-query <question>`
-- Copilot: `wiki-query: <question>`
+Invoke with: `/wiki-query <question>`
 
 ---
 

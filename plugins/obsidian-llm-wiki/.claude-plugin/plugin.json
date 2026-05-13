@@ -1,7 +1,7 @@
 {
   "name": "obsidian-llm-wiki",
-  "version": "0.1.0",
-  "description": "LLM Wiki pattern for an active Obsidian vault. Compiles knowledge from meetings, projects, daily notes, and raw sources into a persistent, cross-referenced wiki at wiki/. Supports both Claude Code (slash commands) and GitHub Copilot (natural language prefixes).",
+  "version": "0.3.0",
+  "description": "LLM Wiki pattern for an active Obsidian vault. Eleven slash commands (wiki-init, wiki-ingest, wiki-scan, wiki-query, wiki-save, wiki-lint, wiki-hot, wiki-tags-refresh, wiki-schema, wiki-task, wiki-tasks-extract) compile knowledge from meetings, projects, daily notes, and raw sources into a persistent, cross-referenced wiki at wiki/. Includes task management: create individual tasks from natural language and batch-extract tasks from wiki content. Supports both Claude Code and GitHub Copilot as first-class agents.",
   "author": {
     "name": "Ivan Gudak",
     "email": "ivan.gudak@dynatrace.com"

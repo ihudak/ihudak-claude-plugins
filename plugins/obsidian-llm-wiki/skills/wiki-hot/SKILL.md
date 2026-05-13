@@ -12,9 +12,7 @@ allowed-tools: Read Write Glob Grep Bash
 
 Read `skills/wiki-schema/SKILL.md` fully before proceeding.
 
-Both forms invoke this skill identically:
-- Claude Code: `/wiki-hot`
-- Copilot: `wiki-hot:`
+Invoke with: `/wiki-hot`
 
 ---
 

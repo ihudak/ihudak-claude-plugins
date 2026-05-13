@@ -13,9 +13,7 @@ allowed-tools: Read Write Edit Glob Grep Bash
 
 Read `skills/wiki-schema/SKILL.md` fully before proceeding.
 
-Both forms invoke this skill identically:
-- Claude Code: `/wiki-lint`
-- Copilot: `wiki-lint:`
+Invoke with: `/wiki-lint`
 
 ---
 

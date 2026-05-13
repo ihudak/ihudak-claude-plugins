@@ -2,8 +2,8 @@
 
 LLM Wiki pattern for an active Obsidian vault. Compiles knowledge from meetings,
 projects, daily notes, and raw sources into a persistent, cross-referenced wiki at
-`wiki/`. Supports both Claude Code (slash commands) and GitHub Copilot
-(natural language prefixes). Wiki sessions from both agents accumulate into the same
+`wiki/`. Works with both Claude Code and GitHub Copilot via unified `/wiki-*` slash
+commands. Wiki sessions from both agents accumulate into the same
 wiki — switching between them mid-project is seamless.
 
 ---
@@ -29,6 +29,8 @@ with `skills/` (which are relative to this plugin's installation directory).
 | `/wiki-lint` | Run wiki health check, produce lint report |
 | `/wiki-hot` | Manually refresh the hot cache |
 | `/wiki-tags-refresh` | Sync wiki tags with vault's tag-index.md |
+| `/wiki-task <description>` | Create a single task from natural language (effort, tags, priority, dates) |
+| `/wiki-tasks-extract [wiki-path]` | Batch-extract tasks from wiki content after ingest |
 | `/wiki-init` | Initialize vault integration (first run or after plugin update) |
 
 ---
@@ -51,9 +53,9 @@ The wiki layer reads these directories. It never modifies them.
 The only directory wiki may clean up is `.raw/` — by moving processed files to
 `.raw/_processed/YYYY-MM/` after successful ingest.
 
-The existing task system (`/task`, `/impl`, etc.) is completely separate. Wiki
-operations do not create tasks, do not touch `Tasks.md`, and do not modify project
-files in `Projects/`.
+Two commands — `/wiki-task` and `/wiki-tasks-extract` — intentionally write outside
+the wiki directory (to `Projects/` files and `Tasks.md`). These are the only wiki
+commands allowed to modify files outside `wiki/` and `.raw/`.
 
 ---
 

@@ -2,9 +2,9 @@
 
 LLM Wiki pattern for an active Obsidian vault. Compiles knowledge from meetings,
 projects, daily notes, and raw sources into a persistent, cross-referenced wiki at
-`wiki/`. Supports both Claude Code (slash commands) and GitHub Copilot
-(natural language prefixes). Wiki sessions from both agents accumulate into the same
-wiki — switching between them mid-project is seamless.
+`wiki/`. Supports both Claude Code and GitHub Copilot as first-class agents. Wiki
+sessions from both agents accumulate into the same wiki — switching between them
+mid-project is seamless.
 
 ---
 
@@ -18,18 +18,16 @@ with `skills/` (which are relative to this plugin's installation directory).
 
 ---
 
-## CRITICAL — Hot Cache Rule (Copilot has no hooks)
+## Hot Cache — Automatic via Hooks
 
-**SESSION START — any wiki operation**: read `wiki/hot.md` first if it exists.
-Silently absorb the context — do not announce it, do not summarise it back to the user.
+`wiki/hot.md` is managed automatically by plugin hooks:
+- **SessionStart** — hot.md is read silently and injected as context
+- **Stop** — the agent is prompted to update hot.md before ending the session
 
-**SESSION END — after any wiki work**: always run `wiki-hot:` before finishing the session.
-This persists the session context so the next session starts warm. Copilot has no Stop
-hook; if this step is skipped, the next session starts cold with no recent context.
-
-Claude Code handles both automatically via SessionStart and Stop hooks.
-Copilot relies entirely on this standing instruction and the user explicitly running
-`wiki-hot:` at the end.
+No manual steps needed. Note: Claude Code also re-injects hot.md after context
+compaction (PostCompact hook); Copilot CLI has no equivalent — hot cache context
+may be lost during automatic compaction.
+To force a hot cache refresh mid-session, run `/wiki-hot`.
 
 ---
 
@@ -41,44 +39,27 @@ cross-linking rules, and file formats.
 
 ---
 
-## Natural Language Prefixes
+## Commands
 
-All commands are invoked as natural language prefixes. Use the exact prefix to trigger
-the correct workflow.
+| Slash command | Description |
+|---------------|-------------|
+| `/wiki-ingest @filepath` | Ingest one source file into the wiki |
+| `/wiki-scan [directory]` | Scan directory for unprocessed files, batch-ingest new/changed |
+| `/wiki-query <question>` | Answer from the compiled wiki with citations |
+| `/wiki-save` | Save current conversation as a wiki page |
+| `/wiki-lint` | Run wiki health check, produce lint report |
+| `/wiki-hot` | Manually refresh the hot cache |
+| `/wiki-tags-refresh` | Sync wiki tags with vault's tag-index.md |
+| `/wiki-task <description>` | Create a single task from natural language (effort, tags, priority, dates) |
+| `/wiki-tasks-extract [wiki-path]` | Batch-extract tasks from wiki content after ingest |
+| `/wiki-init` | Initialize or re-initialize vault integration (first run or after plugin update) |
 
-| Prefix | Skill | Description |
-|--------|-------|-------------|
-| `wiki-ingest: @filepath` | wiki-ingest | Ingest one source file into the wiki |
-| `wiki-scan: [directory]` | wiki-scan | Scan directory for unprocessed files, batch-ingest new/changed |
-| `wiki-query: <question>` | wiki-query | Answer from the compiled wiki with citations |
-| `wiki-save:` | wiki-save | Save current conversation as a wiki page |
-| `wiki-lint:` | wiki-lint | Run wiki health check, produce lint report |
-| `wiki-hot:` | wiki-hot | Manually refresh the hot cache |
-| `wiki-tags-refresh:` | wiki-tags-refresh | Sync wiki tags with vault's tag-index.md |
-| `wiki-init:` | wiki-init | Initialize or re-initialize vault integration (first run or after plugin update) |
+Both Copilot and Claude Code use the same `/wiki-*` slash commands with identical
+behaviour. No agent-specific forms are needed.
 
-When the user types any of these prefixes, read the corresponding skill file fully
+When the user types any of these commands, read the corresponding skill file fully
 before executing. Skill files are at `skills/<skill-name>/SKILL.md` relative to the
 plugin installation directory.
-
----
-
-## Command Equivalence
-
-Every natural language prefix has an identical Claude Code slash command. Both produce
-the same output and operate on the same wiki files. There is no behavioural difference
-except that Claude Code also auto-updates hot.md at session start/end via hooks.
-
-| Copilot prefix | Claude Code slash command |
-|----------------|--------------------------|
-| `wiki-ingest:` | `/wiki-ingest` |
-| `wiki-scan:` | `/wiki-scan` |
-| `wiki-query:` | `/wiki-query` |
-| `wiki-save:` | `/wiki-save` |
-| `wiki-lint:` | `/wiki-lint` |
-| `wiki-hot:` | `/wiki-hot` |
-| `wiki-tags-refresh:` | `/wiki-tags-refresh` |
-| `wiki-init:` | `/wiki-init` |
 
 ---
 
@@ -92,9 +73,9 @@ The wiki layer reads these directories. It never modifies them.
 The only directory wiki may clean up is `.raw/` — by moving processed files to
 `.raw/_processed/YYYY-MM/` after successful ingest.
 
-The existing task system (`task:` / `/task`, `tags-refresh`) is completely separate.
-Wiki operations do not create tasks, do not touch `Tasks.md`, and do not modify project
-files in `Projects/Products/`.
+Two commands — `/wiki-task` and `/wiki-tasks-extract` — intentionally write outside
+the wiki directory (to `Projects/` files and `Tasks.md`). These are the only wiki
+commands allowed to modify files outside `wiki/` and `.raw/`.
 
 ---
 
@@ -102,4 +83,4 @@ files in `Projects/Products/`.
 
 Only use tags from `.obsidian/copilot/tag-index.md`. Never invent new tags. If a
 concept needs a tag that does not exist, flag it with `tag-needed: <proposed>` in the
-log entry and let the user approve it via `wiki-tags-refresh:`.
+log entry and let the user approve it via `/wiki-tags-refresh`.

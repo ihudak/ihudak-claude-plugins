@@ -253,8 +253,10 @@ Wiki operations **never** write to or delete files in:
 The only directory wiki may modify (besides `wiki/`) is `.raw/`, where it
 archives processed files to `.raw/_processed/YYYY-MM/`.
 
-Wiki operations do not create tasks, do not touch `Tasks.md`, and do not modify any
-project files outside `wiki/`.
+Wiki operations write only to `wiki/` and `.raw/`.
+
+**Exception**: `/wiki-task` and `/wiki-tasks-extract` intentionally write to `Projects/`
+files and `Tasks.md`. These are the only wiki commands allowed outside `wiki/` and `.raw/`.
 
 ---
 

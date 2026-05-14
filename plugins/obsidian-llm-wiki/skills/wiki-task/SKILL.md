@@ -6,7 +6,7 @@ description: >
   and people references. Previews the formatted task for user approval before inserting.
   Replaces the legacy "task:" prefix. Triggers on: wiki-task, create task, add task,
   new task.
-allowed-tools: Read Write Edit Glob Grep Bash
+allowed-tools: Read Write Edit Glob Grep Bash AskUser
 ---
 
 # wiki-task

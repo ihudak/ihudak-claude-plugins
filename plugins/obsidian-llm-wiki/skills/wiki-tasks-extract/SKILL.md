@@ -7,7 +7,7 @@ description: >
   them using wiki-task format rules. Invoke after wiki-ingest or wiki-scan has processed
   meeting transcripts or documents. Triggers on: wiki-tasks-extract, extract tasks from
   wiki, harvest tasks, find action items.
-allowed-tools: Read Write Edit Glob Grep Bash
+allowed-tools: Read Write Edit Glob Grep Bash AskUser
 ---
 
 # wiki-tasks-extract

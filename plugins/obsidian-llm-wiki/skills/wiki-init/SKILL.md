@@ -229,14 +229,13 @@ idempotent merge anchors — they allow safe re-runs without duplicating content
 The vault has a compiled knowledge base at `wiki/` managed by the
 `obsidian-llm-wiki` Copilot plugin.
 
-### CRITICAL — Hot Cache Rule (Copilot has no hooks)
+### Hot Cache — Automatic via Hooks
 
-**START of any wiki operation**: read `wiki/hot.md` first if it exists.
-Silently absorb it as session context — do not announce it.
+`wiki/hot.md` is managed automatically by plugin hooks:
+- **SessionStart** — hot.md is read silently and injected as context
+- **Stop** — the agent is prompted to update hot.md before ending the session
 
-**END of every wiki session**: run `/wiki-hot` before finishing. This saves session
-context so the next session starts warm. There are no automatic hooks in Copilot;
-skipping this means the next session starts cold.
+No manual steps needed. To force a hot cache refresh mid-session, run `/wiki-hot`.
 
 ### Wiki Commands
 

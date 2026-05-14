@@ -195,7 +195,7 @@ Daily-note tasks are hard to reschedule.
 
 Before inserting a task, confirm:
 
-- [ ] Target file has `#task` in frontmatter tags (project files only; not applicable to Tasks.md)
+- [ ] Target file has `task` in frontmatter `tags` array (project files only; not applicable to Tasks.md)
 - [ ] Target file has `archived: false` or no `archived` field (project files only)
 - [ ] Inserting into `### Tasks` section, not an archive section
 - [ ] All tags come from `tag-index.md` (skip this check if tag-index.md is absent)

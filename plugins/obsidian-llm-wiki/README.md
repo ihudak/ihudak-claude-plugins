@@ -89,7 +89,7 @@ or the `/plugin` command, then install:
 /plugin install obsidian-llm-wiki@ihudak-plugins
 ```
 
-Plugin installs to `~/.claude/plugins/data/obsidian-llm-wiki-ihudak-plugins/`.
+Plugin installs to `~/.claude/plugins/data/obsidian-llm-wiki@ihudak-claude-plugins/`.
 Hooks activate automatically: session start reads `hot.md`, session end updates it.
 
 #### Claude Code (local / development)
@@ -140,6 +140,8 @@ This command handles the entire vault integration automatically:
 - Creates the `.raw/` inbox
 - Bootstraps `wiki/` with skeleton files (`_index.md`, `_log.md`, `_manifest.json`, `hot.md`)
 - Copies the wiki schema into `.obsidian/copilot/wiki-schema.md`
+- Bootstraps `.obsidian/copilot/tag-index.md` from template (if absent)
+- Syncs `.obsidian/copilot/task-creation-rules.md` from plugin source
 - Merges the wiki block into `CLAUDE.md` and `.github/copilot-instructions.md` idempotently
 
 **Re-run `/wiki-init` after every plugin update** to keep the schema and instruction files in sync.
@@ -148,6 +150,7 @@ Then commit the vault changes:
 
 ```bash
 git add .raw/.gitkeep wiki/ .obsidian/copilot/wiki-schema.md \
+        .obsidian/copilot/tag-index.md .obsidian/copilot/task-creation-rules.md \
         CLAUDE.md .github/copilot-instructions.md
 git commit -m "Add obsidian-llm-wiki integration"
 git push

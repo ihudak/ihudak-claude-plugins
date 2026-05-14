@@ -59,15 +59,19 @@ matching in Step 7.
 Read `<wiki-path>/_log.md`. Extract every line matching:
 
 ```
-action-item: <description>
+- Action items flagged: <description>
 ```
 
 For each, record:
 - The description text
-- The source file mentioned in the surrounding log entry
-  (the log format is `## <date> — <source-file>` followed by bullet points)
+- The source file from the log entry heading
+  (the log format is `## [YYYY-MM-DD] ingest | <source-file>` followed by bullet points)
 - The date from the log entry heading
 - Any surrounding context (decisions, people mentioned, technologies)
+
+Skip any action item that appears in a previous `tasks-extract` log entry
+(heading format: `## [YYYY-MM-DD] tasks-extract | ...`). This prevents
+re-extraction on subsequent runs.
 
 These are **high-confidence** candidates — the ingest process already
 identified them as action items.
@@ -164,12 +168,24 @@ to minimise file reads/writes.
 
 ---
 
-## Step 8 — Mark processed items in the log
+## Step 8 — Append extraction record to the log
 
-For each action-item from Phase A that was successfully created as a task,
-update `<wiki-path>/_log.md`: change `action-item:` to `action-item-done:`.
+Append a new entry at the TOP of `<wiki-path>/_log.md` (newest first).
+Do **not** modify any existing log entries — `_log.md` is append-only.
 
-This prevents re-extraction on subsequent runs.
+```markdown
+## [YYYY-MM-DD] tasks-extract | <wiki-path>
+- Tasks created: N (in M files)
+- From Phase A (flagged action items): X
+- From Phase B (wiki content scan): Y
+- Skipped (duplicates): D
+- Skipped (rejected by user): R
+- Source action items processed: "<description1>", "<description2>", ...
+```
+
+The `Source action items processed` line lists the Phase A descriptions that
+were turned into tasks. Subsequent runs of `/wiki-tasks-extract` read previous
+`tasks-extract` entries to identify already-processed action items and skip them.
 
 Do **not** modify wiki pages for Phase B items — those were implicit
 extractions, not structured flags.
@@ -189,7 +205,7 @@ Created: N tasks
 Skipped (duplicates): X
 Skipped (rejected): Y
 
-Action items marked as processed in _log.md: Z
+Log entry appended to _log.md (tasks-extract record)
 ```
 
 List the full text of each created task with its target file for reference.

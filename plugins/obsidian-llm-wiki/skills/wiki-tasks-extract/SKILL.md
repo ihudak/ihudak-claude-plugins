@@ -149,6 +149,8 @@ Present the full list and ask the user to:
 - **Select** — approve/reject/modify individual candidates
 - **Cancel** — abort without creating any tasks
 
+Use AskUser for the approval interaction.
+
 ---
 
 ## Step 7 — Create approved tasks

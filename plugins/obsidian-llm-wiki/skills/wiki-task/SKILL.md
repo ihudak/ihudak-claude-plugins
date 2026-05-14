@@ -177,7 +177,7 @@ Present the formatted task to the user along with:
 - The section where it will be inserted
 - The parsed fields (effort, priority, dates, tags) so they can verify
 
-Ask the user for approval. The user may:
+Use AskUser to get approval. The user may:
 - **Approve** — proceed to insert
 - **Modify** — adjust fields, re-preview
 - **Cancel** — abort without writing
@@ -193,7 +193,7 @@ Read the target file. Find the correct section heading:
 Insert the task line at the **end** of the existing tasks in that section
 (before the next heading or end of file). Do not reorder existing tasks.
 
-Use the Edit tool to insert the line.
+Use the `Edit` tool to insert the line.
 
 ---
 

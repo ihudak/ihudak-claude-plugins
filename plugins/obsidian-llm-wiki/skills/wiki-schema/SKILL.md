@@ -33,10 +33,10 @@ to or delete files from:
 
 These are Layer 1 — read-only knowledge sources. The wiki reads them; it never modifies them.
 
-The wiki includes two task-management commands — `/wiki-task` and
-`/wiki-tasks-extract` — that intentionally write outside the wiki directory
-(to `Projects/` files and `Tasks.md`). These are the only wiki commands
-allowed to modify files outside `wiki/` and `.raw/`.
+The wiki layer includes two task-management commands (`/wiki-task` and
+`/wiki-tasks-extract`) that intentionally write outside the wiki directory — to
+`Projects/` and `Tasks.md`. These commands follow the task-creation rules in
+`_shared/task-rules.md`. All other wiki operations remain wiki-directory-only.
 
 ---
 

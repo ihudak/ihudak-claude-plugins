@@ -136,12 +136,13 @@ mechanism that keeps the vault schema up to date after plugin updates.
 
 ---
 
-## Step 4a — Bootstrap tag-index.md
+## Step 4a — Bootstrap tag-index.md (if absent)
 
-Read `skills/_shared/tag-index-template.md` fully.
+Check whether `${VAULT}/.obsidian/copilot/tag-index.md` exists.
 
-If `${VAULT}/.obsidian/copilot/tag-index.md` does **not** exist, write the template
-content to that path. If it already exists, **skip** — never overwrite the user's tag index.
+- **If it exists**: skip — never overwrite a user's tag vocabulary.
+- **If it does not exist**: read `skills/_shared/tag-index-template.md` fully and
+  write the template content to `${VAULT}/.obsidian/copilot/tag-index.md`.
 
 ---
 
@@ -149,8 +150,9 @@ content to that path. If it already exists, **skip** — never overwrite the use
 
 Read `skills/_shared/task-rules.md` fully.
 
-Write the full content to `${VAULT}/.obsidian/copilot/task-creation-rules.md`.
-**Always overwrite** — same sync mechanism as wiki-schema.
+Write the content to `${VAULT}/.obsidian/copilot/task-creation-rules.md`. **Always
+overwrite** — the plugin's `_shared/task-rules.md` is the canonical source.
+This keeps the vault copy in sync after plugin updates, just like wiki-schema.
 
 ---
 
@@ -294,10 +296,10 @@ Skeleton files (skip = already existed)
   _manifest.json     [created | skipped]
   hot.md             [created | skipped]
 
-Schema sync
-  .obsidian/copilot/wiki-schema.md   [synced | skipped — .obsidian/copilot/ not found]
-  .obsidian/copilot/tag-index.md     [created | skipped — already exists]
-  .obsidian/copilot/task-creation-rules.md  [synced | skipped — .obsidian/copilot/ not found]
+Schema & rules sync
+  .obsidian/copilot/wiki-schema.md           [synced | skipped — .obsidian/copilot/ not found]
+  .obsidian/copilot/tag-index.md             [created from template | skipped — already exists]
+  .obsidian/copilot/task-creation-rules.md   [synced | skipped — .obsidian/copilot/ not found]
 
 Instruction file merges
   CLAUDE.md                          [section added | section updated | skipped — not found]
@@ -305,12 +307,13 @@ Instruction file merges
 ──────────────────────────────────────────────────
 ```
 
-If `.github/copilot-instructions.md` was touched, append:
+Then always print the session workflow:
 
 ```
-Copilot session workflow:
-  SESSION START  — hot cache loads automatically via AGENTS.md standing instruction
-  SESSION END    — run `/wiki-hot` to save context before closing Copilot
+Session workflow:
+  SESSION START  — hot cache loads automatically via hooks (SessionStart)
+  SESSION END    — hot cache updates automatically via hooks (Stop)
+  MANUAL REFRESH — run `/wiki-hot` to force a hot cache refresh mid-session
   AFTER UPDATE   — run `/wiki-init` to sync wiki-schema.md with the new plugin version
 ```
 

@@ -9,5 +9,5 @@
   "homepage": "https://github.com/ihudak/ihudak-claude-plugins/tree/main/plugins/dev-workflows",
   "repository": "https://github.com/ihudak/ihudak-claude-plugins",
   "license": "MIT",
-  "keywords": ["impl", "vuln", "upgrade", "development", "workflow", "security", "dependencies"]
+  "keywords": ["impl", "vuln", "upgrade", "development", "workflow", "security", "dependencies", "guidelines", "api-review"]
 }

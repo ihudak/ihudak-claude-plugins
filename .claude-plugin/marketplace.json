@@ -10,7 +10,7 @@
     {
       "name": "dev-workflows",
       "version": "1.2.0",
-      "description": "Five slash commands — /impl (help / dispatcher), /impl:code, /impl:docs, /impl:jira:docs, /impl:jira:epics — plus /vuln and /upgrade, with Opus-backed planning, code review, product-docs review, and Epic review. Fifteen reusable subagents (risk-planner, code-review, doc-reviewer, epic-reviewer, test-baseline, test-writer, review-fixer, doc-fixer, docs-style-checker, doc-planner, doc-location-finder, jira-reader, code-diff-summarizer, code-scanner, impl-maintenance) and three notification / context hooks.",
+      "description": "Five slash commands — /impl (help / dispatcher), /impl:code, /impl:docs, /impl:jira:docs, /impl:jira:epics — plus /vuln and /upgrade, with Opus-backed planning, code review, product-docs review, and Epic review. Seventeen reusable subagents (risk-planner, code-review, doc-reviewer, epic-reviewer, test-baseline, test-writer, review-fixer, doc-fixer, docs-style-checker, doc-planner, doc-location-finder, jira-reader, code-diff-summarizer, code-scanner, impl-maintenance, guideline-reviewer, api-guideline-reviewer) and three notification / context hooks.",
       "author": {
         "name": "Ivan Gudak",
         "email": "ivan.gudak@dynatrace.com"

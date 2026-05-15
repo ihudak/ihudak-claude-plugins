@@ -56,5 +56,4 @@ Do NOT edit `~/.claude/claude-config/` — that repo is retired and will be dele
 ## Git
 
 - `origin` → `git@github-ig.com:ihudak/ihudak-claude-plugins.git`
-- `dynatrace` → `git@github.com:ivan-gudak/ihudak-claude-plugins.git`
 - Default branch: `main`

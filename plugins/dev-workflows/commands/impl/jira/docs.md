@@ -116,8 +116,8 @@ choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
 Invoke `jira-reader` with `depth: full`:
 
 → Agent (subagent_type: "general-purpose"):
-  > "Read and adopt the system prompt at `~/.claude/agents/jira-reader.md`
-  > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/jira-reader.md` if absent).
+  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/jira-reader.md`
+  > (fall back to `~/.claude/agents/jira-reader.md` if installed at user level).
   > Then return the structured handoff for this brief:
   >
   > vault_path: [resolved $VAULT_PATH]
@@ -153,8 +153,8 @@ Spawn `code-diff-summarizer` instances in **batches of up to 4 concurrent agents
 For each repo, in the same Agent message:
 
 → Agent (subagent_type: "general-purpose"):
-  > "Read and adopt the system prompt at `~/.claude/agents/code-diff-summarizer.md`
-  > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/code-diff-summarizer.md` if absent).
+  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/code-diff-summarizer.md`
+  > (fall back to `~/.claude/agents/code-diff-summarizer.md` if installed at user level).
   > Then summarise this repo's PRs for the brief:
   >
   > repo_path:   <repos_base>/<repo>
@@ -193,8 +193,8 @@ choices: ["Proceed with Jira-only content (Recommended — writer/planner draw f
 Invoke `doc-location-finder`:
 
 → Agent (subagent_type: "general-purpose"):
-  > "Read and adopt the system prompt at `~/.claude/agents/doc-location-finder.md`
-  > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-location-finder.md` if absent).
+  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-location-finder.md`
+  > (fall back to `~/.claude/agents/doc-location-finder.md` if installed at user level).
   > Then find write target(s) for the brief:
   >
   > repo_root:       [cwd's git root, resolved in Phase 0]
@@ -227,8 +227,8 @@ The confirmed target list (from any of the three paths above) is the **authorita
 Invoke `doc-planner`:
 
 → Agent (subagent_type: "general-purpose"):
-  > "Read and adopt the system prompt at `~/.claude/agents/doc-planner.md`
-  > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-planner.md` if absent).
+  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-planner.md`
+  > (fall back to `~/.claude/agents/doc-planner.md` if installed at user level).
   > Then produce the documentation checklist for the brief:
   >
   > jira_reader_handoff: [paste full YAML from Phase 3]
@@ -317,8 +317,8 @@ No external CLI calls; all git operations are local.
 Invoke `docs-style-checker` on the files written in Phase 6:
 
 → Agent (subagent_type: "general-purpose"):
-  > "Read and adopt the system prompt at `~/.claude/agents/docs-style-checker.md`
-  > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/docs-style-checker.md` if absent).
+  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/docs-style-checker.md`
+  > (fall back to `~/.claude/agents/docs-style-checker.md` if installed at user level).
   > Then run the style check for this brief:
   >
   > repo_root: [cwd's git root]
@@ -329,8 +329,8 @@ Act on the return:
 - **`status: NOT_CONFIGURED`** — no repo linter detected. Fall back to `dt-style-checker` (Dynatrace corporate style guide):
 
   → Agent (subagent_type: "general-purpose"):
-    > "Read and adopt the system prompt at `~/.claude/agents/dt-style-checker.md`
-    > (fall back to `~/.claude/plugins/data/dt-style-guide@ihudak-claude-plugins/agents/dt-style-checker.md` if absent).
+    > "Read and adopt the system prompt at `~/.claude/plugins/data/dt-style-guide@ihudak-claude-plugins/agents/dt-style-checker.md`
+    > (fall back to `~/.claude/agents/dt-style-checker.md` if installed at user level).
     > Then run the style check for this brief:
     >
     > files:    [absolute paths of every file written or modified in Phase 6]
@@ -341,8 +341,8 @@ Act on the return:
 - **`status: VIOLATIONS_FOUND`** — invoke `doc-fixer` with the violations treated as per their severity. After `doc-fixer` completes, re-run the linter once:
 
   → Agent (subagent_type: "general-purpose"):
-    > "Read and adopt the system prompt at `~/.claude/agents/doc-fixer.md`
-    > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-fixer.md` if absent).
+    > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-fixer.md`
+    > (fall back to `~/.claude/agents/doc-fixer.md` if installed at user level).
     > Then fix the style violations for this brief:
     >
     > Task description: [doc writing for <JIRA_KEY>]
@@ -367,8 +367,8 @@ Act on the return:
 Invoke `doc-reviewer` (Opus). The reviewer is **product-docs-only**; Epic drafts go through `epic-reviewer` in `/impl:jira:epics`.
 
 → Agent (subagent_type: "general-purpose", model: "opus"):
-  > "Read and adopt the system prompt at `~/.claude/agents/doc-reviewer.md`
-  > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-reviewer.md` if absent).
+  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-reviewer.md`
+  > (fall back to `~/.claude/agents/doc-reviewer.md` if installed at user level).
   > Then review the written product documentation for this brief:
   >
   > Task description: [one-paragraph summary of the feature and <JIRA_KEY>]
@@ -389,8 +389,8 @@ Act on the verdict:
 - **PASS WITH RECOMMENDATIONS** — invoke `doc-fixer` for MAJOR findings only:
 
   → Agent (subagent_type: "general-purpose"):
-    > "Read and adopt the system prompt at `~/.claude/agents/doc-fixer.md`
-    > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-fixer.md` if absent).
+    > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-fixer.md`
+    > (fall back to `~/.claude/agents/doc-fixer.md` if installed at user level).
     > Then fix the review findings for this brief:
     >
     > Task description: [doc writing for <JIRA_KEY>]
@@ -462,8 +462,8 @@ Then spawn all four Phase 4-style maintenance agents in a **single Agent message
 > Return: what was changed and why, OR 'no update required'."
 
 **Agent 4 — Session maintenance** (general-purpose):
-> "Read and adopt the system prompt at `~/.claude/agents/impl-maintenance.md`
-> (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/impl-maintenance.md` if absent).
+> "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/impl-maintenance.md`
+> (fall back to `~/.claude/agents/impl-maintenance.md` if installed at user level).
 > Then analyse this session and return a Lessons Learned report.
 >
 > Session handoff:

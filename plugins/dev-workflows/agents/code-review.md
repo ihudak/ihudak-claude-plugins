@@ -23,7 +23,7 @@ The caller passes a structured brief:
   possible.
 - **Classification** - `SIGNIFICANT` or `HIGH-RISK` (with the reason).
 - **Plan** - the risk-weighted plan that was approved (produced by the
-  `risk-planner` system prompt at `~/.claude/agents/risk-planner.md`, or a
+  `risk-planner` system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/risk-planner.md`, or a
   user-approved equivalent).
 - **Diff** - `git diff` or a file-by-file list of changes. MANDATORY.
 - **Project root** - absolute path so files can be opened.

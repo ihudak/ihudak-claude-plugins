@@ -104,8 +104,8 @@ choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
 Invoke `jira-reader` with `depth: vi-plus-epics`. This depth is specifically designed for Epic writing: richer than `vi-only` so themes extracted for `code-scanner` aren't starved of context, but lighter than `full` so the agent doesn't read dozens of already-closed child Stories.
 
 → Agent (subagent_type: "general-purpose"):
-  > "Read and adopt the system prompt at `~/.claude/agents/jira-reader.md`
-  > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/jira-reader.md` if absent).
+  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/jira-reader.md`
+  > (fall back to `~/.claude/agents/jira-reader.md` if installed at user level).
   > Then return the structured handoff for this brief:
   >
   > vault_path: [resolved $VAULT_PATH]
@@ -147,8 +147,8 @@ Spawn `code-scanner` instances in **batches of up to 4 concurrent agents** per A
 For each repo in the batch:
 
 → Agent (subagent_type: "general-purpose"):
-  > "Read and adopt the system prompt at `~/.claude/agents/code-scanner.md`
-  > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/code-scanner.md` if absent).
+  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/code-scanner.md`
+  > (fall back to `~/.claude/agents/code-scanner.md` if installed at user level).
   > Then scan this repo for the brief:
   >
   > repo_path:   <repos_base>/<repo>
@@ -239,8 +239,8 @@ Traceability: every claim in each Epic must be traceable to the `jira-reader` ha
 Invoke `dt-style-checker` on the files written in Phase 6. Unlike `/impl:jira:docs`, this does NOT use `docs-style-checker` (no repo linter for vault content). Instead, the Dynatrace corporate style guide checker validates terminology, trademarks, voice/tone, and inclusive language.
 
 → Agent (subagent_type: "general-purpose"):
-  > "Read and adopt the system prompt at `~/.claude/agents/dt-style-checker.md`
-  > (fall back to `~/.claude/plugins/data/dt-style-guide@ihudak-claude-plugins/agents/dt-style-checker.md` if absent).
+  > "Read and adopt the system prompt at `~/.claude/plugins/data/dt-style-guide@ihudak-claude-plugins/agents/dt-style-checker.md`
+  > (fall back to `~/.claude/agents/dt-style-checker.md` if installed at user level).
   > Then run the style check for this brief:
   >
   > files:    [absolute paths of every Epic file written in Phase 6]
@@ -252,8 +252,8 @@ Act on the return:
 - **`status: VIOLATIONS_FOUND`** — invoke `doc-fixer` with the violations treated as per their severity. After `doc-fixer` completes, re-run `dt-style-checker` once:
 
   → Agent (subagent_type: "general-purpose"):
-    > "Read and adopt the system prompt at `~/.claude/agents/doc-fixer.md`
-    > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-fixer.md` if absent).
+    > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-fixer.md`
+    > (fall back to `~/.claude/agents/doc-fixer.md` if installed at user level).
     > Then fix the style violations for this brief:
     >
     > Task description: [Epic drafting for <JIRA_KEY>]
@@ -274,8 +274,8 @@ If `dt-style-checker` is unavailable (agent file not found), proceed directly to
 Invoke `epic-reviewer` (Opus). This reviewer is Epic-specific — scope clarity, acceptance-criteria testability, non-duplication of existing Epics. `docs-style-checker` is NOT used here (no repo linter for vault content); Dynatrace corporate style is handled by the Phase 6.7 `dt-style-checker` step above.
 
 → Agent (subagent_type: "general-purpose", model: "opus"):
-  > "Read and adopt the system prompt at `~/.claude/agents/epic-reviewer.md`
-  > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/epic-reviewer.md` if absent).
+  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/epic-reviewer.md`
+  > (fall back to `~/.claude/agents/epic-reviewer.md` if installed at user level).
   > Then review the Epic drafts for this brief:
   >
   > Task description: [one-paragraph: VI key, VI goal, number of Epics drafted]
@@ -294,8 +294,8 @@ Act on the verdict (same shape as `/impl:jira:docs` Phase 7):
 - **PASS WITH RECOMMENDATIONS** — invoke `doc-fixer` for MAJOR findings only:
 
   → Agent (subagent_type: "general-purpose"):
-    > "Read and adopt the system prompt at `~/.claude/agents/doc-fixer.md`
-    > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-fixer.md` if absent).
+    > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-fixer.md`
+    > (fall back to `~/.claude/agents/doc-fixer.md` if installed at user level).
     > Then fix the review findings for this brief:
     >
     > Task description: [Epic drafting for <JIRA_KEY>]
@@ -366,8 +366,8 @@ Then spawn all four maintenance agents in a **single Agent message**. They are i
 > Return: what was changed and why, OR 'no update required'."
 
 **Agent 4 — Session maintenance** (general-purpose):
-> "Read and adopt the system prompt at `~/.claude/agents/impl-maintenance.md`
-> (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/impl-maintenance.md` if absent).
+> "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/impl-maintenance.md`
+> (fall back to `~/.claude/agents/impl-maintenance.md` if installed at user level).
 > Then analyse this session and return a Lessons Learned report.
 >
 > Session handoff:

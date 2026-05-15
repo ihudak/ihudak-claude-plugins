@@ -32,8 +32,8 @@ For each vulnerability token:
 
    - **Baseline agent** (once per batch, not per CVE) — invoke via `general-purpose` with
      the test-baseline system prompt loaded from file:
-     > "Read and adopt the system prompt at `~/.claude/agents/test-baseline.md`
-     > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md` if absent).
+     > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md`
+     > (fall back to `~/.claude/agents/test-baseline.md` if installed at user level).
      > Then run in **capture** mode and return the structured baseline result."
      >
      > If neither path exists, warn the user to run `install.sh` and skip the baseline step.
@@ -86,8 +86,8 @@ For CVEs classified `MODERATE`, fix one at a time:
 3. **Verify** — Build the project. (Tests come after — see step 5 below.)
 4. **Run tests** — Re-run the test suite.
 5. **Compare** — Invoke `general-purpose` with the test-baseline system prompt in **verify** mode, passing the baseline captured in Research step 3:
-   > "Read and adopt the system prompt at `~/.claude/agents/test-baseline.md`
-   > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md` if absent).
+   > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md`
+   > (fall back to `~/.claude/agents/test-baseline.md` if installed at user level).
    > Run in **verify** mode. Baseline: [paste the captured baseline block]."
 
    If `Regressions` or `Missing from run` lists any tests: present them clearly and ask the user to choose — proceed anyway, revert, or investigate further.
@@ -104,8 +104,8 @@ For CVEs classified `SIGNIFICANT` or `HIGH-RISK`, fix one at a time:
 2. **Plan with Opus** — Invoke `general-purpose` with `model: "opus"` override and the risk-planner system prompt loaded from file. The planner will do its own usage-site scan — the Detect agent only returned declaration paths, not import sites.
 
    → Agent (subagent_type: "general-purpose", model: "opus"):
-     > "Read and adopt the system prompt at `~/.claude/agents/risk-planner.md`
-     > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/risk-planner.md` if absent).
+     > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/risk-planner.md`
+     > (fall back to `~/.claude/agents/risk-planner.md` if installed at user level).
      > Then produce the risk-weighted plan for:
      >
      > Task description: Remediate [CVE-ID] in [repo name]. Upgrade [library] from [current version] to [target version]. [One-line CVE description.]
@@ -125,8 +125,8 @@ For CVEs classified `SIGNIFICANT` or `HIGH-RISK`, fix one at a time:
 4. **Opus code review** — Capture the full diff for this CVE fix. Use `git add -N . && git diff` (this includes intent-to-add untracked new files; unlike bare `git diff`, it won't produce an empty diff for implementations that only create new files). Then invoke `general-purpose` with `model: "opus"` override and the code-review system prompt loaded from file:
 
    → Agent (subagent_type: "general-purpose", model: "opus"):
-     > "Read and adopt the system prompt at `~/.claude/agents/code-review.md`
-     > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/code-review.md` if absent).
+     > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/code-review.md`
+     > (fall back to `~/.claude/agents/code-review.md` if installed at user level).
      > Then produce the Opus code review for this brief, focusing especially on security, dependency risk, migration (library API changes), and rollback:
      >
      > Task description: Remediate [CVE-ID] — upgrade [library] from [current] to [target].
@@ -144,8 +144,8 @@ For CVEs classified `SIGNIFICANT` or `HIGH-RISK`, fix one at a time:
    **Review-fixer sub-step** (for BLOCK and PASS WITH RECOMMENDATIONS):
 
    → Agent (subagent_type: "general-purpose"):
-     > "Read and adopt the system prompt at `~/.claude/agents/review-fixer.md`
-     > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/review-fixer.md` if absent).
+     > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/review-fixer.md`
+     > (fall back to `~/.claude/agents/review-fixer.md` if installed at user level).
      > Then fix the review findings for this brief:
      >
      > Task description: Remediate [CVE-ID] — upgrade [library] from [current] to [target].
@@ -158,8 +158,8 @@ For CVEs classified `SIGNIFICANT` or `HIGH-RISK`, fix one at a time:
 6. **Build & run tests** — Build the project; re-run the test suite.
 
 7. **Compare** — Invoke `general-purpose` with the test-baseline system prompt in **verify** mode, passing the baseline captured in Round A of research step 3:
-   > "Read and adopt the system prompt at `~/.claude/agents/test-baseline.md`
-   > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md` if absent).
+   > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md`
+   > (fall back to `~/.claude/agents/test-baseline.md` if installed at user level).
    > Run in **verify** mode. Baseline: [paste the captured baseline block]."
 
    Act on the verify report:
@@ -221,8 +221,8 @@ Honor the user's choice.
 After all CVEs in the batch have been processed (fixed, committed, and PRed — or explicitly skipped), invoke the session-maintenance agent:
 
 → Agent (subagent_type: "general-purpose"):
-  > "Read and adopt the system prompt at `~/.claude/agents/impl-maintenance.md`
-  > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/impl-maintenance.md` if absent).
+  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/impl-maintenance.md`
+  > (fall back to `~/.claude/agents/impl-maintenance.md` if installed at user level).
   > Then analyse this session and return a Lessons Learned report.
   >
   > Session handoff:

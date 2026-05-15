@@ -174,8 +174,8 @@ Then spawn all four Phase 4 agents. They are independent and can run in any orde
 > Return: what was changed and why, OR 'no update required'."
 
 **Agent 4 — Session maintenance** (general-purpose):
-> "Read and adopt the system prompt at `~/.claude/agents/impl-maintenance.md`
-> (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/impl-maintenance.md` if absent).
+> "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/impl-maintenance.md`
+> (fall back to `~/.claude/agents/impl-maintenance.md` if installed at user level).
 > Then analyse this session and return a Lessons Learned report.
 >
 > Session handoff:

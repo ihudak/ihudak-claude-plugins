@@ -101,10 +101,8 @@ system prompt from file" instruction — this routing is independent of whether
 user-level agent auto-discovery is active in the current session.
 
 → Agent (subagent_type: "general-purpose", model: "opus"):
-  > "Read and adopt the system prompt at `~/.claude/agents/risk-planner.md`
-  > (the user-level agent installed by the dev-workflows plugin; fall back to
-  > `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/risk-planner.md` if the install path is
-  > absent). Then produce the risk-weighted plan described in that prompt for
+  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/risk-planner.md`
+  > (fall back to `~/.claude/agents/risk-planner.md` if installed at user level). Then produce the risk-weighted plan described in that prompt for
   > the following brief:
   >
   > Task description: [substitute full description]
@@ -167,9 +165,8 @@ Placed **after** branch creation (Pre-Phase 3), **before** any file edits. The `
 Invoke the `test-baseline` agent in capture mode:
 
 → Agent (subagent_type: "general-purpose"):
-  > "Read and adopt the system prompt at `~/.claude/agents/test-baseline.md`
-  > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md` if the
-  > install path is absent). Then run the agent in the following mode:
+  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md`
+  > (fall back to `~/.claude/agents/test-baseline.md` if installed at user level). Then run the agent in the following mode:
   >
   > Mode: capture
   > Project root: [absolute path of the current working directory]"
@@ -197,11 +194,11 @@ Store the returned `## Test Baseline` block verbatim — it will be passed to `t
 
 Runs after Phase 3A step 5 completes (all code changes written), before the outcome-verification step.
 
-1. **Invoke `test-writer` agent** (see `~/.claude/agents/test-writer.md` or `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-writer.md`):
+1. **Invoke `test-writer` agent** (see `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-writer.md`):
 
    → Agent (subagent_type: "general-purpose"):
-     > "Read and adopt the system prompt at `~/.claude/agents/test-writer.md`
-     > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-writer.md` if absent).
+     > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-writer.md`
+     > (fall back to `~/.claude/agents/test-writer.md` if installed at user level).
      > Then write tests for this brief:
      >
      > Task description: [substitute full description]
@@ -223,8 +220,8 @@ Runs after Phase 3A step 5 completes (all code changes written), before the outc
 4. **Invoke `test-baseline` in verify mode** against the baseline captured in Pre-Phase 3.5:
 
    → Agent (subagent_type: "general-purpose"):
-     > "Read and adopt the system prompt at `~/.claude/agents/test-baseline.md`
-     > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md` if absent).
+     > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md`
+     > (fall back to `~/.claude/agents/test-baseline.md` if installed at user level).
      > Then run the agent in the following mode:
      >
      > Mode: verify
@@ -257,8 +254,8 @@ Use the currently selected model or Sonnet for implementation itself. Opus is re
 4a. **Invoke `test-writer` agent** (inserted before diff capture so the Opus review sees code and tests together — test adequacy is already a review dimension in `code-review.md`):
 
    → Agent (subagent_type: "general-purpose"):
-     > "Read and adopt the system prompt at `~/.claude/agents/test-writer.md`
-     > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-writer.md` if absent).
+     > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-writer.md`
+     > (fall back to `~/.claude/agents/test-writer.md` if installed at user level).
      > Then write tests for this brief:
      >
      > Task description: [substitute full description]
@@ -279,9 +276,8 @@ Use the currently selected model or Sonnet for implementation itself. Opus is re
    instruction so the routing works independently of agent auto-discovery.
 
    → Agent (subagent_type: "general-purpose", model: "opus"):
-     > "Read and adopt the system prompt at `~/.claude/agents/code-review.md`
-     > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/code-review.md` if the
-     > install path is absent). Then produce the Opus code review for this brief:
+     > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/code-review.md`
+     > (fall back to `~/.claude/agents/code-review.md` if installed at user level). Then produce the Opus code review for this brief:
      >
      > Task description: [substitute full description]
      > Classification: [SIGNIFICANT | HIGH-RISK] — reason: [from Phase 1.5]
@@ -298,8 +294,8 @@ Use the currently selected model or Sonnet for implementation itself. Opus is re
    **Review-fixer sub-step** (for BLOCK and PASS WITH RECOMMENDATIONS):
 
    → Agent (subagent_type: "general-purpose"):
-     > "Read and adopt the system prompt at `~/.claude/agents/review-fixer.md`
-     > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/review-fixer.md` if absent).
+     > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/review-fixer.md`
+     > (fall back to `~/.claude/agents/review-fixer.md` if installed at user level).
      > Then fix the review findings for this brief:
      >
      > Task description: [substitute full description]
@@ -370,8 +366,8 @@ Then spawn all four agents. They are independent and can run in any order — sp
 > Return: what was changed and why, OR 'no update required'."
 
 **Agent 4 — Session maintenance** (general-purpose):
-> "Read and adopt the system prompt at `~/.claude/agents/impl-maintenance.md`
-> (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/impl-maintenance.md` if absent).
+> "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/impl-maintenance.md`
+> (fall back to `~/.claude/agents/impl-maintenance.md` if installed at user level).
 > Then analyse this session and return a Lessons Learned report.
 >
 > Session handoff:

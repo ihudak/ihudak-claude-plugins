@@ -71,8 +71,8 @@ All changes are left **uncommitted** on the current branch.
 7. **Opus planning for SIGNIFICANT / HIGH-RISK components** — For every component flagged `SIGNIFICANT` or `HIGH-RISK`, invoke `general-purpose` with `model: "opus"` override and the risk-planner system prompt loaded from file. The planner will do its own usage-site scan; the caller does not pre-compute that. Run all Opus planning agents in parallel.
 
    → Agent (subagent_type: "general-purpose", model: "opus"):
-     > "Read and adopt the system prompt at `~/.claude/agents/risk-planner.md`
-     > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/risk-planner.md` if absent).
+     > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/risk-planner.md`
+     > (fall back to `~/.claude/agents/risk-planner.md` if installed at user level).
      > Then produce the risk-weighted plan for:
      >
      > Task description: Upgrade [component] from [current version] to [target version] in this repo.
@@ -131,8 +131,8 @@ All changes are left **uncommitted** on the current branch.
 2. **Capture baseline tests** — Invoke `general-purpose` with the test-baseline system prompt loaded from file:
 
    → Agent (subagent_type: "general-purpose"):
-     > "Read and adopt the system prompt at `~/.claude/agents/test-baseline.md`
-     > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md` if absent).
+     > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md`
+     > (fall back to `~/.claude/agents/test-baseline.md` if installed at user level).
      > Then run in **capture** mode in [project root] and return the structured baseline result."
      >
      > If neither path exists, warn the user to run `install.sh` and skip the baseline step.
@@ -162,8 +162,8 @@ All changes are left **uncommitted** on the current branch.
    a. Capture the diff for this component (and the companion-upgrade diffs applied in step 4). Use `git add -N . && git diff` to include any newly-created untracked files.
    b. Spawn the reviewer — `general-purpose` with `model: "opus"` override and the code-review system prompt loaded from file:
       → Agent (subagent_type: "general-purpose", model: "opus"):
-        > "Read and adopt the system prompt at `~/.claude/agents/code-review.md`
-        > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/code-review.md` if absent).
+        > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/code-review.md`
+        > (fall back to `~/.claude/agents/code-review.md` if installed at user level).
         > Then produce the Opus code review for this brief, focusing on migration order, breaking API changes, missed usage sites, dependency risk, rollback:
         >
         > Task description: Upgrade [component] from [current] to [target] and any companion upgrades applied alongside it.
@@ -180,8 +180,8 @@ All changes are left **uncommitted** on the current branch.
       **Review-fixer sub-step** (for BLOCK and PASS WITH RECOMMENDATIONS):
 
       → Agent (subagent_type: "general-purpose"):
-        > "Read and adopt the system prompt at `~/.claude/agents/review-fixer.md`
-        > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/review-fixer.md` if absent).
+        > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/review-fixer.md`
+        > (fall back to `~/.claude/agents/review-fixer.md` if installed at user level).
         > Then fix the review findings for this brief:
         >
         > Task description: Upgrade [component] from [current] to [target].
@@ -196,8 +196,8 @@ All changes are left **uncommitted** on the current branch.
 7. **Test** — Run full test suite.
 
 8. **Compare** — Invoke `general-purpose` with the test-baseline system prompt in **verify** mode, passing the baseline captured in Phase 2 prep step 2:
-   > "Read and adopt the system prompt at `~/.claude/agents/test-baseline.md`
-   > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md` if absent).
+   > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md`
+   > (fall back to `~/.claude/agents/test-baseline.md` if installed at user level).
    > Run in **verify** mode. Baseline: [paste the captured baseline block]."
 
    Act on the verify report:
@@ -210,8 +210,8 @@ After all components: print the summary table (Output section). Then invoke the 
 ### Post-batch maintenance
 
 → Agent (subagent_type: "general-purpose"):
-  > "Read and adopt the system prompt at `~/.claude/agents/impl-maintenance.md`
-  > (fall back to `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/impl-maintenance.md` if absent).
+  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/impl-maintenance.md`
+  > (fall back to `~/.claude/agents/impl-maintenance.md` if installed at user level).
   > Then analyse this session and return a Lessons Learned report.
   >
   > Session handoff:

@@ -102,7 +102,7 @@ indicate something that needs to be done but was not flagged as an
 For each candidate, record:
 - The extracted action text
 - The source wiki page
-- The source file referenced in the wiki page's frontmatter (`source:` field)
+- The source file referenced in the wiki page's frontmatter (`source-file:` field)
 - Surrounding context
 
 **Important**: Do not extract observations, facts, or decisions that are

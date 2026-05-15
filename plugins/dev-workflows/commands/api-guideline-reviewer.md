@@ -1,3 +1,9 @@
+---
+name: api-guideline-reviewer
+description: Review OpenAPI specification files against Dynatrace REST API and IAM permission naming guidelines. Checks version consistency, naming conventions, IAM scope format, HTTP status codes, and schema composition.
+allowed-tools: Read Bash Glob Grep WebFetch
+---
+
 Review OpenAPI specification files for compliance with Dynatrace REST API and IAM permission naming guidelines: $ARGUMENTS
 
 Read the full review instructions from the agent file:

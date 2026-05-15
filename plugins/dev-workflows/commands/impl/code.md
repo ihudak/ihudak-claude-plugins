@@ -1,3 +1,9 @@
+---
+name: impl:code
+description: End-to-end code implementation workflow. Classifies task risk, creates a branch, plans (Opus for SIGNIFICANT/HIGH-RISK), implements, writes tests, runs Opus code review, and performs post-session maintenance.
+allowed-tools: Read Edit Write Bash Glob Grep Task WebFetch LS
+---
+
 Implement the following: $ARGUMENTS
 
 If the argument starts with `@`, treat it as a path to a markdown file. Resolve relative to the current working directory. Read its full content and use it as the description. Echo `📄 Reading prompt from \`<file>\`…` before proceeding. If the file cannot be read, stop and report the error immediately.

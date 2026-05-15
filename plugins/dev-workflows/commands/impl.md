@@ -1,3 +1,9 @@
+---
+name: impl
+description: Help and dispatcher for /impl variants. Prints available subcommands (/impl:code, /impl:docs, /impl:jira:docs, /impl:jira:epics) and usage guidance. Does not run any workflow itself.
+allowed-tools: Read Glob
+---
+
 `/impl` is a help / dispatcher command, not an implementation workflow. It never executes any implementation, does not branch, does not run tests, does not invoke agents, and does not touch git state.
 
 Your task: print the message below to the user, interpolating `$ARGUMENTS` into the "You invoked" line so they can see what the dispatcher received (if `$ARGUMENTS` is empty, render the line as `/impl  (no arguments passed)`). Do not classify, do not read project files, do not invoke any subagent, do not propose a plan — just print the message and stop.

@@ -1,3 +1,9 @@
+---
+name: upgrade
+description: Component upgrade workflow. Upgrades libraries, frameworks, runtimes, or build tools to specified or latest versions. Plans with Opus for complex upgrades, runs code review, and verifies with tests.
+allowed-tools: Read Edit Write Bash Glob Grep Task WebFetch LS
+---
+
 Upgrade components: $ARGUMENTS
 
 Each token is one of: `component:1.2.3` (exact), `component:minor` (latest patch on current minor), `component:latest` (latest stable), `component:lts` (latest LTS), or bare `component` (latest compatible with everything else).

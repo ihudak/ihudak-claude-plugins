@@ -1,3 +1,9 @@
+---
+name: impl:jira:docs
+description: Jira-driven feature-documentation workflow. Reads a Value Increment hierarchy from exported markdown, resolves PR diffs in parallel, synthesises product documentation, and gates on style-check and Opus doc review.
+allowed-tools: Read Edit Write Bash Glob Grep Task WebFetch LS
+---
+
 Generate product documentation for the Jira Value Increment: $ARGUMENTS
 
 `/impl:jira:docs` is the **Jira-driven feature-documentation** workflow. Given a Jira Value Increment key, it reads the full Jira hierarchy from pre-exported markdown in the user's Obsidian vault, resolves PR URLs to local git repos, runs parallel PR-diff summaries, synthesises product documentation, runs style-check + Opus review gates, and writes the output to the current working directory (a product docs repository).

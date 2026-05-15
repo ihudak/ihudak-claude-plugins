@@ -1,3 +1,9 @@
+---
+name: impl:jira:epics
+description: Jira-driven Epic-writing workflow. Reads a Value Increment and existing Epics from exported markdown, optionally scans code repos, drafts child Epic definitions, and gates on dt-style-checker and Opus epic-reviewer.
+allowed-tools: Read Edit Write Bash Glob Grep Task WebFetch LS
+---
+
 Draft child Epics for the Jira Value Increment: $ARGUMENTS
 
 `/impl:jira:epics` is the **Jira-driven Epic-writing** workflow. Given a Value Increment key, it reads the VI plus its existing Epics from pre-exported markdown in the user's Obsidian vault, optionally scans code repos to identify reusable capabilities and gaps, drafts child Epic definitions as markdown files under the vault, and gates the result on an Opus review.

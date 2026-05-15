@@ -1,3 +1,9 @@
+---
+name: impl:docs
+description: One-shot documentation editing workflow. Minor edits, formatting, and small updates to existing pages. No branch, no tests, no code review. Uses doc-reviewer and doc-fixer for quality gates.
+allowed-tools: Read Edit Write Bash Glob Grep Task WebFetch LS
+---
+
 Implement the following doc edit: $ARGUMENTS
 
 If the argument starts with `@`, treat it as a path to a markdown file. Resolve relative to the current working directory. Read its full content and use it as the description. Echo `📄 Reading prompt from \`<file>\`…` before proceeding. If the file cannot be read, stop and report the error immediately.

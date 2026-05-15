@@ -1,3 +1,9 @@
+---
+name: vuln
+description: Security vulnerability fix workflow. Researches CVEs via NVD, applies dependency and code fixes one at a time, runs Opus code review, and verifies with tests.
+allowed-tools: Read Edit Write Bash Glob Grep Task WebFetch LS
+---
+
 Fix security vulnerabilities: $ARGUMENTS
 
 Each argument token is either `JIRA-ID:CVE-ID` (e.g. `MGD-2423:CVE-2023-46604`) or a bare `CVE-ID` (e.g. `CVE-2023-46604`). Parse and filter each token, research all CVEs first, then fix them one at a time.

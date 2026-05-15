@@ -121,7 +121,7 @@ The orchestrator MUST execute these steps in order:
 4. **Opus code review** of the completed implementation. This is a dedicated
    `code-review` sub-agent invocation pinned to Opus. It MUST cover every item
    in the §6 checklist. Tests MUST NOT be run until this review completes.
-5. **Run tests** (build + test suite).
+5. **Run tests** (build + test suite per the executor / fixer workflow).
 6. **Apply review fixes** — fixes flagged by the Opus review may be implemented
    by the currently selected model **or** Sonnet (no Opus required for the fix
    edits themselves).
@@ -158,15 +158,25 @@ model_routing:
 ```
 
 The `phase` field used to resume an executor/fixer after the Opus review is
-completed is **`verify-resume`** (harmonised across workflows). The
-executor/fixer must accept this value and run all remaining steps (verify
-tests; for the fixer also commit + PR).
+completed is **`verify-resume`** (harmonised across `/upgrade` and `/vuln`
+workflows). The executor/fixer must accept this value and run all remaining
+steps (verify tests; for the fixer also commit + PR).
 
 For SIMPLE/MODERATE the `planning_model` and `review_model` fields MAY be omitted
 or set to `current_model`.
 
 Sub-agents that receive a `model_routing` block:
 
+- Research / planning sub-agents (NVD lookup, detect, compatibility checks):
+  use the `planning_model` if present (orchestrator should invoke them with
+  the corresponding `task` tool `model:` arg).
+- Executor / fixer sub-agents: **do not run tests** until the orchestrator
+  has confirmed the Opus review has completed (when classification is
+  SIGNIFICANT/HIGH-RISK). The orchestrator achieves this by invoking the
+  executor/fixer **without** the build+test phase first (apply changes only),
+  then running the review, then invoking the executor/fixer again to run tests.
+  Equivalently, the orchestrator may invoke a single combined call with a
+  `gate_tests_on_review: true` flag — both styles are acceptable.
 - `risk-planner`, `code-review`, `epic-reviewer`: the orchestrator pins these to
   the §2 fallback chain via the `task` tool's `model:` argument. They receive
   the `model_routing` block for context validation and reporting.

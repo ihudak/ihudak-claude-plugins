@@ -4,6 +4,35 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.2.0] — 2026-05-15
+
+### Added
+- **`guideline-reviewer` agent.** Reviews code and UI for compliance with
+  Dynatrace Experience Standards (GUIDElines). Covers component usage
+  (AppHeader, DataTable, FilterField, etc.), accessibility/WCAG compliance,
+  terminology, settings patterns, and permissions. Reference docs in
+  `references/guidelines/`.
+- **`api-guideline-reviewer` agent.** Reviews OpenAPI specification files
+  against Dynatrace REST API and IAM permission naming guidelines. Two-pass
+  review (comprehensive analysis + detailed verification) checking version
+  consistency, required elements, naming conventions, IAM scope format,
+  HTTP status codes, and schema composition. Reference docs in
+  `references/api-guidelines/` (REST API guidelines, permission guidelines,
+  and an OpenAPI template).
+- **`check_guidelines.py` script** in `references/guidelines/` — automated
+  checklist generator for GUIDEline reviews.
+- **`checklist-template.md`** in `references/guidelines/` — structured
+  review template.
+
+### Changed
+- `plugin.json` keywords expanded.
+- `marketplace.json` description updated (15 → 17 agents).
+- **Model routing reference (`references/model-routing/classification.md`)
+  expanded** from 92 to 265 lines — now includes model fallback chain,
+  `model_routing` handoff block format, `task` tool delegation pattern,
+  mandatory code-review checklist verdicts, and reporting section (synced
+  from Copilot CLI port).
+
 ## [1.1.0] — 2026-05-10
 
 `plugin.json` and `marketplace.json` declare `1.1.0`. The work landed across seven increments:

@@ -31,7 +31,7 @@ Additionally:
 
 ## Agents
 
-Fifteen reusable subagents (invoked internally by the commands). The four Opus-backed agents are explicit; the rest inherit the session's model.
+Seventeen reusable subagents (invoked internally by the commands). The four Opus-backed agents are explicit; the rest inherit the session's model.
 
 | Agent | Model | Description |
 |-------|-------|-------------|
@@ -50,6 +50,8 @@ Fifteen reusable subagents (invoked internally by the commands). The four Opus-b
 | `code-diff-summarizer` | inherits | Resolves a single repo's PR diffs and returns a doc-focused summary. GitHub uses the `gh` CLI when available; Bitbucket Cloud / Server + GitHub-fallback use local-git strategies (branch search, merge-commit grep, Jira-key commit grep). Designed for parallel invocation (caller caps at 4 concurrent). |
 | `code-scanner` | inherits | Scans a single code repo for existing capabilities and gaps against a set of themes from a Value Increment / Epic. Pure filesystem search; no HTTPS. `refresh.pull` defaults to `true` (capability scans target the default-branch tip). Designed for parallel invocation (caller caps at 4 concurrent). |
 | `impl-maintenance` | inherits | Post-session lessons-learned analyst. Reads the session handoff, scans CLAUDE.md rules / hooks / reference docs / agents, and returns a structured Lessons Learned report with actionable suggestions. Suggest-only; does NOT write files. |
+| `guideline-reviewer` | inherits | Reviews Dynatrace app code and UI for compliance with Dynatrace Experience Standards (GUIDElines). Checks AppHeader, DataTable, FilterField, Connections, Permissions, Settings, Dashboards, accessibility/WCAG, terminology, and Grail naming. |
+| `api-guideline-reviewer` | inherits | Reviews OpenAPI specification files against Dynatrace REST API and IAM permission naming guidelines. Checks version consistency, required elements, naming conventions, IAM scope format, HTTP status codes, and schema composition. |
 
 Opus gates (`risk-planner`, `code-review`, `doc-reviewer`, `epic-reviewer`) declare `model: opus` in their frontmatter **and** the caller passes `model: "opus"` on the `Agent` tool call — belt-and-braces so the override is in force regardless of user-agent discovery.
 

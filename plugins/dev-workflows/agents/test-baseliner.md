@@ -1,5 +1,5 @@
 ---
-name: test-baseline
+name: test-baseliner
 description: Run the full test suite and return structured results for regression comparison. Operates in two modes — "capture" (run tests, record baseline) and "verify" (run tests again, diff against a provided baseline, return a structured regression report). Inherits the main session's model — does not require Opus.
 tools: ["Bash", "Read", "Glob", "LS"]
 ---

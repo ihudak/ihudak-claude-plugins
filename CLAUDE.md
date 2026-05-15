@@ -108,11 +108,11 @@ in their prompt; they do not re-read the file.
 /impl:code           → /impl → [risk-planner@Opus plan critique] → [code-review@Opus] → review-fixer → test-writer → tests → impl-maintenance
 /impl                → dispatcher / help page; does not run a workflow
 /impl:docs           → /impl:docs → [doc-reviewer] → [doc-fixer] → impl-maintenance
-/impl:jira:docs      → /impl:jira:docs → jira-reader → [code-diff-summarizer×N (parallel)] → [doc-location-finder] → [doc-planner] → writing → [docs-style-checker → dt-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [doc-fixer] → impl-maintenance
+/impl:jira:docs      → /impl:jira:docs → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [doc-planner] → writing → [docs-style-checker → dt-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [doc-fixer] → impl-maintenance
 /impl:jira:epics     → /impl:jira:epics → jira-reader → [code-scanner×N (parallel, optional)] → writing → [dt-style-checker] → [doc-fixer] → [epic-reviewer@Opus] → [doc-fixer] → impl-maintenance
 /vuln                → vuln-research → vuln-fixer → [code-review@Opus] → review-fixer → tests → impl-maintenance
 /upgrade             → upgrade-planner → upgrade-executor → [code-review@Opus] → review-fixer → tests → impl-maintenance
-                      └── test-baseline      (used by upgrade-executor, vuln-fixer, and /impl:code)
+                      └── test-baseliner      (used by upgrade-executor, vuln-fixer, and /impl:code)
                       └── test-writer        (used by /impl:code only)
                       └── risk-planner       (used by /impl:code plan critique)
                       └── code-review        (used by /impl:code, /vuln, /upgrade)
@@ -137,7 +137,7 @@ Key invariants enforced by all three code-oriented commands:
 
 Key invariants for `/impl:code` specifically:
 
-- Test baseline captured **before** any source edits, using `test-baseline`
+- Test baseline captured **before** any source edits, using `test-baseliner`
 - `test-writer` writes tests for **new or changed behaviour** — mandatory for code changes
 - If no test framework is detected, surface that explicitly — test-writing is never silently skipped
 - Full test suite is verified against the captured baseline before the workflow is considered complete
@@ -145,7 +145,7 @@ Key invariants for `/impl:code` specifically:
 Key invariants for `/impl:docs`:
 
 - **No branch creation by default** — it works on the current branch unless the user requests one
-- **No `test-baseline`, no `test-writer`, no `code-review`** — docs-only phases only
+- **No `test-baseliner`, no `test-writer`, no `code-review`** — docs-only phases only
 - `doc-reviewer` performs comprehensive review: links, headings, wikilinks, style, completeness
 - BLOCKER findings trigger a fix cycle via `doc-fixer` (max one fix + one re-review); CONCERNs are recorded and may be fixed inline
 - Mixed code + docs changes must use `/impl:code` instead
@@ -195,7 +195,7 @@ Use the same pattern for any other plugin in this marketplace.
 These notes complement the user-scope Claude guidance. They add only the
 marketplace-specific behaviors that are easy to forget during workflow edits.
 
-- **Goal-Driven Execution** maps directly onto the existing `test-baseline` → implementation → `test-writer` → re-run flow enforced by `dev-workflows`. Frame each command invocation as a verifiable goal up front so the test gates have a concrete target to check.
+- **Goal-Driven Execution** maps directly onto the existing `test-baseliner` → implementation → `test-writer` → re-run flow enforced by `dev-workflows`. Frame each command invocation as a verifiable goal up front so the test gates have a concrete target to check.
 - **Surgical Changes** applies in both directions when you edit command docs, agent prompts, hook declarations, or `references/model-routing/classification.md`: if you remove a `model_routing` field, phase, or workflow edge, remove every cross-reference to it in the same change. Stale references between commands and agents silently break the workflow.
 
 ## Git

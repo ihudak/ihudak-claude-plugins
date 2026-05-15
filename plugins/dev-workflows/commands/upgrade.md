@@ -100,8 +100,8 @@ All changes are left **uncommitted** on the current branch.
    task(
      agent_type: "general-purpose",
      description: "Capture test baseline",
-     prompt: "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md`
-     (fall back to `~/.claude/agents/test-baseline.md` if installed at user level).
+     prompt: "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseliner.md`
+     (fall back to `~/.claude/agents/test-baseliner.md` if installed at user level).
 
      Mode: capture
      Project root: [absolute repo path]"

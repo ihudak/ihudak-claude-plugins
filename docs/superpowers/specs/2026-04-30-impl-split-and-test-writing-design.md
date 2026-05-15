@@ -78,7 +78,7 @@ plugins/dev-workflows/agents/
   doc-location-finder.md  ← finds existing/new target paths in a docs repo
   docs-style-checker.md   ← runs Vale / project lint; emits violations for doc-fixer
   jira-reader.md          ← reads Jira markdown hierarchy from vault
-  code-diff-summarizer.md ← summarizes PR diffs per repo (parallel, use case A)
+  diff-summarizer.md ← summarizes PR diffs per repo (parallel, use case A)
   code-scanner.md         ← scans code for reuse/gaps (parallel, use case B)
 ```
 
@@ -200,7 +200,7 @@ All existing phases from the current `impl.md` (which becomes `commands/impl/cod
 Placed **after** branch creation (Pre-Phase 3), **before** any file edits. The `.5` numbering signals "inserted between step 3 and step 4 of the existing ordering" — it is its own phase, not a sub-step of Pre-Phase 3's branch-creation steps.
 
 ```
-→ Agent (subagent_type: "dev-workflows:test-baseline"):
+→ Agent (subagent_type: "dev-workflows:test-baseliner"):
   Mode: capture
   Project root: [absolute path]
 ```
@@ -217,10 +217,10 @@ Store the returned `## Test Baseline` block. If `Framework: not detected`, note 
    choices: ["Specify test command to use", "Skip tests for this run (document why in the final report — Phase 5 of the inherited /impl:code workflow)", "Cancel"]
    ```
 3. Run linters/builds.
-4. Invoke `test-baseline` in verify mode against the captured baseline.
+4. Invoke `test-baseliner` in verify mode against the captured baseline.
 5. **Fix loop** — if regressions or new test failures are reported:
-   - The **session model** (not a subagent) applies fixes using the `test-baseline` verify report as the authoritative list of regressions. No `review-fixer`-style indirection is used here — the scope is narrow and the context is already fully in-session.
-   - After each fix attempt, re-capture the diff (`git add -N . && git diff`) and re-run `test-baseline` in verify mode against the **original** baseline (never re-baseline mid-loop).
+   - The **session model** (not a subagent) applies fixes using the `test-baseliner` verify report as the authoritative list of regressions. No `review-fixer`-style indirection is used here — the scope is narrow and the context is already fully in-session.
+   - After each fix attempt, re-capture the diff (`git add -N . && git diff`) and re-run `test-baseliner` in verify mode against the **original** baseline (never re-baseline mid-loop).
    - Cap at **2 fix attempts**. If regressions remain, surface to user with `choices: ["Investigate further", "Accept regressions and proceed", "Cancel"]`.
 
 #### For SIGNIFICANT/HIGH-RISK (inside Phase 3B):
@@ -356,7 +356,7 @@ From the `jira-reader` handoff `pull_requests` list:
 
 ### Phase 5 — Parallel diff summarization
 
-Spawn `code-diff-summarizer` instances **in batches of up to 4 concurrent agents** (single Agent message per batch). Wait for all instances in a batch to return before spawning the next batch. If fewer than 4 repos remain, the final batch is smaller.
+Spawn `diff-summarizer` instances **in batches of up to 4 concurrent agents** (single Agent message per batch). Wait for all instances in a batch to return before spawning the next batch. If fewer than 4 repos remain, the final batch is smaller.
 
 Rationale: Claude Code's practical parallel-subagent limit is ~4–5; going above that causes silent serialisation or rate-limiting. Capping at 4 makes runtime deterministic and keeps handoff latency predictable.
 
@@ -600,7 +600,7 @@ Standard structure plus:
 
 ## 8. Agent: `test-writer.md`
 
-> **Note on agent frontmatter conventions (applies to §§8–14).** The `**Tools:**` and `**Model:**` lines in each agent spec below are documentation shorthand. The actual agent files placed in `plugins/dev-workflows/agents/` MUST use YAML frontmatter matching the existing in-repo style (see `agents/risk-planner.md`, `agents/code-review.md`, `agents/test-baseline.md`):
+> **Note on agent frontmatter conventions (applies to §§8–14).** The `**Tools:**` and `**Model:**` lines in each agent spec below are documentation shorthand. The actual agent files placed in `plugins/dev-workflows/agents/` MUST use YAML frontmatter matching the existing in-repo style (see `agents/risk-planner.md`, `agents/code-review.md`, `agents/test-baseliner.md`):
 >
 > ```yaml
 > ---
@@ -622,7 +622,7 @@ Standard structure plus:
 **Inputs:** Task description, plan, diff (`git diff` output), project root, baseline snapshot.
 
 **Steps:**
-1. Detect framework (same logic as `test-baseline`). If not detected: return "not detected" report immediately.
+1. Detect framework (same logic as `test-baseliner`). If not detected: return "not detected" report immediately.
 2. Map changed behavior from diff — identify new functions, changed logic, new branches, new API surface. Skip: pre-existing untested code, renames, comment-only changes.
 3. Discover test patterns from 2–3 representative test files (naming, assertions, fixtures).
 4. Write tests covering new/changed behavior only. Follow existing style exactly.
@@ -732,7 +732,7 @@ Standard structure plus:
 ```yaml
 repo_root:         <absolute path to docs repo root>
 feature_summary:   <2–4 sentences from jira-reader themes + VI goal>
-diff_highlights:   <optional: key filenames/areas from code-diff-summarizer outputs to seed topical search>
+diff_highlights:   <optional: key filenames/areas from diff-summarizer outputs to seed topical search>
 ```
 
 **Process:**
@@ -772,7 +772,7 @@ If multiple targets are returned, the caller prompts the user to accept all, or 
 **Inputs:**
 ```yaml
 jira_reader_handoff:    <full YAML from jira-reader>
-diff_summaries:         <array of code-diff-summarizer outputs>
+diff_summaries:         <array of diff-summarizer outputs>
 write_targets:          <confirmed list from doc-location-finder + user>
 screenshots:            [<array of user-provided image paths, possibly empty>]
 repo_root:              <absolute path>
@@ -972,7 +972,7 @@ depth:      full | vi-plus-epics | vi-only
 
 **PR URL formats to parse:**
 
-Three host categories are recognised; anything else is recorded with `host: other` and is surfaced later by `code-diff-summarizer` as `unresolved`.
+Three host categories are recognised; anything else is recorded with `host: other` and is surfaced later by `diff-summarizer` as `unresolved`.
 
 - **Cloud GitHub** (`host: github_cloud`) — hostname exactly `github.com`:
   ```
@@ -1039,7 +1039,7 @@ themes:
 
 ---
 
-## 13. Agent: `code-diff-summarizer.md`
+## 13. Agent: `diff-summarizer.md`
 
 **Purpose:** Reads a single code repository's PR diff and returns a documentation-focused summary. Designed for parallel invocation — one instance per repo, capped at 4 concurrent (see §6 Phase 5 / §7 Phase 5).
 
@@ -1162,7 +1162,7 @@ search_hints:
 refresh:
   switch_to_default_branch: true
   pull: true   # default true — capability scans target present-day code and want the
-               # default-branch tip. (Asymmetry with code-diff-summarizer, which keeps
+               # default-branch tip. (Asymmetry with diff-summarizer, which keeps
                # pull: false because it targets historical merged commits. See §13.)
 ```
 
@@ -1194,7 +1194,7 @@ gap_summary: |
   <1–2 paragraphs: what needs to be implemented from scratch>
 ```
 
-`PARTIAL` is returned when some themes completed successfully but at least one failed (e.g. permission error on a sub-tree, file-read error, timeout). Failing themes are marked `classification: error` in the `capability_map` with a one-line reason; the overall scan is not aborted. This mirrors `code-diff-summarizer`'s `PARTIAL` status so callers have a consistent recovery pattern.
+`PARTIAL` is returned when some themes completed successfully but at least one failed (e.g. permission error on a sub-tree, file-read error, timeout). Failing themes are marked `classification: error` in the `capability_map` with a one-line reason; the overall scan is not aborted. This mirrors `diff-summarizer`'s `PARTIAL` status so callers have a consistent recovery pattern.
 
 ---
 
@@ -1205,7 +1205,7 @@ gap_summary: |
 | `$VAULT_PATH` unset | "Set to detected path (Recommended)", "Enter manually", "Cancel" |
 | Jira key dir not found | "Re-enter key", "Cancel" |
 | Repo missing under `/repos/` | "Skip and continue without its PRs", "I'll clone it — wait", "Cancel", "Use different /repos path" |
-| `git fetch` failed, `git pull --ff-only` refused, or any other refresh failure (status `REFRESH_BLOCKED` from `code-diff-summarizer` / `code-scanner`) | "Continue with current local state", "Skip this repo", "Cancel" |
+| `git fetch` failed, `git pull --ff-only` refused, or any other refresh failure (status `REFRESH_BLOCKED` from `diff-summarizer` / `code-scanner`) | "Continue with current local state", "Skip this repo", "Cancel" |
 | Working tree dirty in a repo the agent tried to refresh (status `DIRTY_TREE`) | "Stash changes and retry this repo", "Skip this repo", "Cancel" |
 | `unresolved_prs` returned (some, not all) | "Show candidates and let me pick", "Skip this PR", "Skip this repo", "Cancel" |
 | **All PRs across all repos unresolved** after every strategy (incl. Strategy 4 cross-key grep) | `["Proceed with Jira-only content (Recommended — writer/planner draw from jira-reader output; final report notes missing PR content)", "Review candidates one by one", "Cancel"]`. Presented **once** as an aggregate gate rather than per-PR, to avoid N clicks on a big VI. If selected, the writer and planner run without any diff summaries and the Phase 9 report lists every skipped PR with its unresolved reason. |

@@ -38,7 +38,7 @@ Refuse to run without all three fields.
 
 ## PR URL formats to parse
 
-Three host categories are recognised; anything else is recorded with `host: other` and surfaced later by `code-diff-summarizer` as `unresolved`.
+Three host categories are recognised; anything else is recorded with `host: other` and surfaced later by `diff-summarizer` as `unresolved`.
 
 - **Cloud GitHub** (`host: github_cloud`) — hostname exactly `github.com`:
   ```

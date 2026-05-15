@@ -162,16 +162,16 @@ Before writing any file:
 
 Placed **after** branch creation (Pre-Phase 3), **before** any file edits. The `.5` numbering signals "inserted between step 3 and step 4 of the existing ordering" — it is its own phase, not a sub-step of Pre-Phase 3's branch-creation steps.
 
-Invoke the `test-baseline` agent in capture mode:
+Invoke the `test-baseliner` agent in capture mode:
 
 → Agent (subagent_type: "general-purpose"):
-  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md`
-  > (fall back to `~/.claude/agents/test-baseline.md` if installed at user level). Then run the agent in the following mode:
+  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseliner.md`
+  > (fall back to `~/.claude/agents/test-baseliner.md` if installed at user level). Then run the agent in the following mode:
   >
   > Mode: capture
   > Project root: [absolute path of the current working directory]"
 
-Store the returned `## Test Baseline` block verbatim — it will be passed to `test-baseline` again in verify mode at Phase 3.5 and to `test-writer` as the baseline snapshot. If `Framework: not detected`, note it in session memory but continue — Phase 3.5 will surface the missing-framework case to the user explicitly.
+Store the returned `## Test Baseline` block verbatim — it will be passed to `test-baseliner` again in verify mode at Phase 3.5 and to `test-writer` as the baseline snapshot. If `Framework: not detected`, note it in session memory but continue — Phase 3.5 will surface the missing-framework case to the user explicitly.
 
 ---
 
@@ -217,11 +217,11 @@ Runs after Phase 3A step 5 completes (all code changes written), before the outc
 
 3. **Run linters and builds.** Use the project's standard lint/build commands as discovered in Phase 2A exploration. Do not run the full test suite here — that is step 4.
 
-4. **Invoke `test-baseline` in verify mode** against the baseline captured in Pre-Phase 3.5:
+4. **Invoke `test-baseliner` in verify mode** against the baseline captured in Pre-Phase 3.5:
 
    → Agent (subagent_type: "general-purpose"):
-     > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md`
-     > (fall back to `~/.claude/agents/test-baseline.md` if installed at user level).
+     > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseliner.md`
+     > (fall back to `~/.claude/agents/test-baseliner.md` if installed at user level).
      > Then run the agent in the following mode:
      >
      > Mode: verify
@@ -229,8 +229,8 @@ Runs after Phase 3A step 5 completes (all code changes written), before the outc
      > Project root: [absolute path]"
 
 5. **Fix loop** — if the verify report lists regressions or new failures:
-   - The **session model** (not a subagent) applies fixes. No `review-fixer`-style indirection is used here — the scope is narrow and the context is already fully in-session. Use the `test-baseline` verify report as the authoritative list of what broke.
-   - After each fix attempt, re-capture the diff (`git add -N . && git diff`) and re-run `test-baseline` in verify mode against the **original** baseline (never re-baseline mid-loop — a mid-loop re-baseline would silently absorb a regression as the new normal).
+   - The **session model** (not a subagent) applies fixes. No `review-fixer`-style indirection is used here — the scope is narrow and the context is already fully in-session. Use the `test-baseliner` verify report as the authoritative list of what broke.
+   - After each fix attempt, re-capture the diff (`git add -N . && git diff`) and re-run `test-baseliner` in verify mode against the **original** baseline (never re-baseline mid-loop — a mid-loop re-baseline would silently absorb a regression as the new normal).
    - Cap at **2 fix attempts**. If regressions remain after the second attempt, surface to the user:
      ```
      choices: ["Investigate further", "Accept regressions and proceed (document in Phase 5 report)", "Cancel"]
@@ -304,7 +304,7 @@ Use the currently selected model or Sonnet for implementation itself. Opus is re
      > Severities to fix: BLOCKER and MAJOR"
 
    Wait for the fix report. Re-capture the diff after the fixer completes.
-8. **Run Phase 3.5 (post-review).** After the review gate clears (non-BLOCK verdict), run the Phase 3.5 sequence (lint/build, `test-baseline` verify, fix loop) — **not before**. This preserves the invariant "NEVER run tests for SIGNIFICANT / HIGH-RISK before Opus review returns non-BLOCK". The fix loop inside Phase 3.5 applies fixes via the session model; if the fixes are non-trivial **and** the reviewer was NOT down-classified in step 7, re-invoke the Opus code review on the delta after Phase 3.5 completes. If the reviewer WAS down-classified, skip the re-review.
+8. **Run Phase 3.5 (post-review).** After the review gate clears (non-BLOCK verdict), run the Phase 3.5 sequence (lint/build, `test-baseliner` verify, fix loop) — **not before**. This preserves the invariant "NEVER run tests for SIGNIFICANT / HIGH-RISK before Opus review returns non-BLOCK". The fix loop inside Phase 3.5 applies fixes via the session model; if the fixes are non-trivial **and** the reviewer was NOT down-classified in step 7, re-invoke the Opus code review on the delta after Phase 3.5 completes. If the reviewer WAS down-classified, skip the re-review.
 9. Verify the outcome matches the approved plan and the review verdict.
 10. Proceed to Phase 4.
 

@@ -18,7 +18,7 @@ The caller passes a structured brief:
 - **Task description** — one-paragraph summary of the feature being documented and the VI key.
 - **Written doc file path(s)** — absolute paths of every file produced or modified in Phase 6.
 - **Jira directory path** — `<vault_path>/jira-products/<JIRA_KEY>/` so the reviewer can cross-check claims.
-- **Diff summaries** — the array of `code-diff-summarizer` outputs from Phase 5.
+- **Diff summaries** — the array of `diff-summarizer` outputs from Phase 5.
 - **`doc-planner` checklist** — the full YAML checklist from Phase 5.7 (review against plan).
 - **Style-check report** — the violations list from Phase 6.7 (from `docs-style-checker` or `dt-style-checker` as fallback, or `status: NOT_CONFIGURED` if neither ran). Both checkers use the same violation schema.
 

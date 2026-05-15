@@ -6,7 +6,7 @@ tools: ["Read", "Glob", "Grep", "LS", "Bash"]
 
 Scan a single code repo for existing capabilities and gaps relative to a set of themes. One instance per repo; the caller (the `/impl:jira:epics` command) spawns up to 4 concurrent instances per batch.
 
-**Distinction from `code-diff-summarizer`.** That agent reads *merged PR diffs* for features already implemented; this agent reads *present-day code* for features being scoped. There are no PRs to diff — just filesystem search to understand what exists and what needs to be built.
+**Distinction from `diff-summarizer`.** That agent reads *merged PR diffs* for features already implemented; this agent reads *present-day code* for features being scoped. There are no PRs to diff — just filesystem search to understand what exists and what needs to be built.
 
 ## Inputs
 
@@ -23,7 +23,7 @@ search_hints:
 refresh:
   switch_to_default_branch: true
   pull: true   # default true — capability scans target present-day code and want the
-               # default-branch tip. (Asymmetry with code-diff-summarizer, which keeps
+               # default-branch tip. (Asymmetry with diff-summarizer, which keeps
                # pull: false because it targets historical merged commits.)
 ```
 
@@ -79,7 +79,7 @@ gap_summary: |
 ```
 
 - `status: OK` — every theme was scanned and classified (including classifications of `absent`, which is a legitimate scan result, not a failure).
-- `status: PARTIAL` — scan completed but at least one theme has `classification: error`. Failing themes do NOT abort the scan; this mirrors `code-diff-summarizer`'s `PARTIAL` status for consistent caller recovery.
+- `status: PARTIAL` — scan completed but at least one theme has `classification: error`. Failing themes do NOT abort the scan; this mirrors `diff-summarizer`'s `PARTIAL` status for consistent caller recovery.
 - `status: EMPTY` — scan ran cleanly but every theme classified as `absent`. This is not an error; it's informative data for the Epic writer.
 - `status: REPO_MISSING` / `DIRTY_TREE` / `REFRESH_BLOCKED` — prep step failed; no scan performed.
 

@@ -58,7 +58,7 @@ Ask about:
   ```
   choices: ["fetch only (Recommended)", "fetch + pull default branch", "no refresh", "Other… (describe)"]
   ```
-  The `fetch only` default matches the `code-diff-summarizer` default (`refresh.fetch: true, refresh.pull: false`) — historical PR diffs don't need the current branch tip, and pulling risks moving HEAD away from the merge commit we want to reach.
+  The `fetch only` default matches the `diff-summarizer` default (`refresh.fetch: true, refresh.pull: false`) — historical PR diffs don't need the current branch tip, and pulling risks moving HEAD away from the merge commit we want to reach.
 - **Repos base path**. Detect `/repos` first (`[ -d /repos ]`). Ask:
   ```
   choices: ["Use /repos (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]
@@ -95,7 +95,7 @@ Present a concise plan:
 - Output filename / path under cwd (from Phase 1)
 - `<repos_base>` and the repos that will be examined (inferred from the `jira-reader` output in Phase 3; if Phase 3 hasn't run yet, list "TBD — resolved after Jira read")
 - PR filter (MERGED only / all / specific)
-- Parallelism plan (up to 4 `code-diff-summarizer` instances per batch; up to 4 repos per Agent message)
+- Parallelism plan (up to 4 `diff-summarizer` instances per batch; up to 4 repos per Agent message)
 - Write context + whether branching will happen
 - Screenshots provided (count + paths, or "none")
 
@@ -146,15 +146,15 @@ From the `jira-reader` handoff `pull_requests` list:
 
 ## Phase 5 — Parallel diff summarisation
 
-Spawn `code-diff-summarizer` instances in **batches of up to 4 concurrent agents** per Agent message. Wait for each batch to complete before spawning the next. If fewer than 4 repos remain, the final batch is smaller.
+Spawn `diff-summarizer` instances in **batches of up to 4 concurrent agents** per Agent message. Wait for each batch to complete before spawning the next. If fewer than 4 repos remain, the final batch is smaller.
 
 **Rationale:** Claude Code's practical parallel-subagent limit is ~4–5; going above that causes silent serialisation or rate-limiting. Capping at 4 makes runtime deterministic.
 
 For each repo, in the same Agent message:
 
 → Agent (subagent_type: "general-purpose"):
-  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/code-diff-summarizer.md`
-  > (fall back to `~/.claude/agents/code-diff-summarizer.md` if installed at user level).
+  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/diff-summarizer.md`
+  > (fall back to `~/.claude/agents/diff-summarizer.md` if installed at user level).
   > Then summarise this repo's PRs for the brief:
   >
   > repo_path:   <repos_base>/<repo>
@@ -199,7 +199,7 @@ Invoke `doc-location-finder`:
   >
   > repo_root:       [cwd's git root, resolved in Phase 0]
   > feature_summary: [2–4 sentences combining jira-reader themes + value_increment.goal]
-  > diff_highlights: [key filenames / symbols from the code-diff-summarizer per_pr summaries]"
+  > diff_highlights: [key filenames / symbols from the diff-summarizer per_pr summaries]"
 
 Handle the return:
 
@@ -232,7 +232,7 @@ Invoke `doc-planner`:
   > Then produce the documentation checklist for the brief:
   >
   > jira_reader_handoff: [paste full YAML from Phase 3]
-  > diff_summaries:       [paste array of code-diff-summarizer outputs from Phase 5]
+  > diff_summaries:       [paste array of diff-summarizer outputs from Phase 5]
   > write_targets:        [paste confirmed list from Phase 5.5]
   > screenshots:          [user-provided paths from Phase 1, possibly empty]
   > repo_root:            [cwd's git root]"
@@ -374,7 +374,7 @@ Invoke `doc-reviewer` (Opus). The reviewer is **product-docs-only**; Epic drafts
   > Task description: [one-paragraph summary of the feature and <JIRA_KEY>]
   > Written doc file paths: [absolute paths of every file written in Phase 6]
   > Jira directory path:    [$VAULT_PATH/jira-products/<JIRA_KEY>/]
-  > Diff summaries:         [array of code-diff-summarizer outputs from Phase 5]
+  > Diff summaries:         [array of diff-summarizer outputs from Phase 5]
   > doc-planner checklist:  [the full YAML from Phase 5.7]
   > style-check report: [the violations output from Phase 6.7 — from docs-style-checker or dt-style-checker (fallback), or 'status: NOT_CONFIGURED' if neither ran]"
 

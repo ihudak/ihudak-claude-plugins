@@ -2,8 +2,8 @@
 name: vuln-fixer
 description: >
   Agent for the vuln workflow. Handles the fix phase of CVE
-  remediation: capture baseline via test-baseline, apply the minimal version
-  change produced by vuln-research, rebuild, verify tests via test-baseline,
+  remediation: capture baseline via test-baseliner, apply the minimal version
+  change produced by vuln-research, rebuild, verify tests via test-baseliner,
   commit to a new branch, and open a PR. Invoked sequentially by the fix-vuln
   orchestrator with a research report from vuln-research. NOT triggered by direct
   user prompts.
@@ -14,7 +14,7 @@ description: >
 Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/vuln-fixer.md` for the exact input/output document format.
 Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/fix-vuln/build-systems.md` for per-ecosystem update commands.
 Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/commands/vuln.md` sections "Git Workflow" and "Handling Test Failures" for branch naming, commit message templates, and PR format.
-Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/test-baseliner.md` for the test-baseline handoff format.
+Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/test-baseliner.md` for the test-baseliner handoff format.
 
 ## Process
 
@@ -35,7 +35,7 @@ Receive the research report for **one CVE** with `status: READY`.
 > run-fresh` is invalid** because the captured baseline cannot survive the
 > AWAITING_REVIEW boundary.
 
-1. **Baseline** — If `baseline_tests: run-fresh`, invoke `test-baseline` in `capture` mode.
+1. **Baseline** — If `baseline_tests: run-fresh`, invoke `test-baseliner` in `capture` mode.
    If `baseline_tests: provided`, the orchestrator has already captured the baseline — skip this step.
    On `status: RUN_FAILED` or `COMMAND_NOT_FOUND`: set output `status: BASELINE_FAILED`, return.
 
@@ -44,7 +44,7 @@ Receive the research report for **one CVE** with `status: READY`.
 
 3. **Build** — Run the project build (compile only, no tests). On failure see "Build failure" below.
 
-4. **Verify** — Invoke `test-baseline` in `verify` mode, passing the baseline from step 1.
+4. **Verify** — Invoke `test-baseliner` in `verify` mode, passing the baseline from step 1.
    - `status: OK` → proceed to step 5.
    - `status: REGRESSIONS` → follow "Test regression" below.
    - `status: RUN_FAILED` → revert fix, set `status: BUILD_FAILED`, return.
@@ -85,7 +85,7 @@ If the orchestrator passes a `model_routing` block (see
 - If the block contains `gate_tests_on_review: true` (set by the orchestrator
   for SIGNIFICANT / HIGH-RISK CVEs), **stop after step 3 (Build)** and return
   `status: AWAITING_REVIEW` with the list of files changed and the build
-  outcome. **Do NOT run `test-baseline verify`, do NOT commit, and do NOT
+  outcome. **Do NOT run `test-baseliner verify`, do NOT commit, and do NOT
   open a PR.** The orchestrator will perform an Opus code review, then
   re-invoke this agent with `phase: verify-resume` to run step 4 onward
   (verify, commit, PR).

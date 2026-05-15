@@ -12,7 +12,7 @@ Not a writer — this agent plans; the main command writes.
 
 ```yaml
 jira_reader_handoff:    <full YAML from jira-reader; see agents/jira-reader.md output schema>
-diff_summaries:         <array of code-diff-summarizer outputs; one entry per repo>
+diff_summaries:         <array of diff-summarizer outputs; one entry per repo>
 write_targets:          <confirmed list from doc-location-finder + user; each has kind, section, path, rationale>
 screenshots:            [<array of user-provided absolute image paths; possibly empty>]
 repo_root:              <absolute path to the docs repo root>
@@ -33,7 +33,7 @@ For each write target:
 
    Not every target needs every topic. For `extend-existing`, pick only the topics the existing page doesn't already cover.
 
-2. **Map topics to sources.** Each topic records which `jira-reader` keys and/or which `code-diff-summarizer` PR URLs back it up, for the Phase 6 writer's traceability requirement. A topic with no source attribution is a candidate gap (see step 7).
+2. **Map topics to sources.** Each topic records which `jira-reader` keys and/or which `diff-summarizer` PR URLs back it up, for the Phase 6 writer's traceability requirement. A topic with no source attribution is a candidate gap (see step 7).
 
 3. **Plan frontmatter updates.**
    - `changelog:` — append a dated entry naming the Jira key and a 1-line change summary. Create the field if it doesn't exist on an extended page. This is mandatory on every target.

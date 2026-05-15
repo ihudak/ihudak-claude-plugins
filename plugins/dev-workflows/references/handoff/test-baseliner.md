@@ -1,4 +1,4 @@
-# test-baseline Handoff Format
+# test-baseliner Handoff Format
 
 ## Input
 
@@ -12,7 +12,7 @@ baseline:                  # required only for mode: verify
   passing_tests:           # may be [] if only count was available
     - com.example.FooTest#testCreate
     - com.example.BarTest#testLogin
-model_routing:             # optional; informational only — test-baseline
+model_routing:             # optional; informational only — test-baseliner
   classification: SIGNIFICANT  # ignores routing and runs under whichever
   # model the caller selected. See `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md` for the model-routing block schema.
 ```

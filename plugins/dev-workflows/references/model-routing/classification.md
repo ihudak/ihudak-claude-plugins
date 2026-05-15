@@ -182,7 +182,7 @@ Sub-agents that receive a `model_routing` block:
   the `model_routing` block for context validation and reporting.
 - `doc-fixer`, `doc-location-finder`, `doc-planner`, `docs-style-checker`,
   `doc-reviewer`: receive the block for reporting; behaviour is unchanged.
-- `test-baseline`, `impl-maintenance`: receive the block for reporting only;
+- `test-baseliner`, `impl-maintenance`: receive the block for reporting only;
   behaviour is unchanged.
 
 ---

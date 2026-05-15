@@ -3,7 +3,7 @@ name: upgrade-executor
 description: >
   Agent for the upgrade workflow. Handles Phase 2 (execution) for a single
   component: apply the upgrade plan produced by upgrade-planner, run the build,
-  verify tests via test-baseline, and auto-fix any test code breakage caused by
+  verify tests via test-baseliner, and auto-fix any test code breakage caused by
   the new version's API changes. Invoked sequentially by the /upgrade command orchestrator.
   NOT triggered by direct user prompts. Leaves all changes uncommitted on the
   current branch.
@@ -13,7 +13,7 @@ description: >
 
 Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/upgrade-executor.md` for the exact input/output document format.
 Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/upgrade/ecosystems.md` for per-ecosystem update commands.
-Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/test-baseliner.md` for the test-baseline handoff format.
+Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/test-baseliner.md` for the test-baseliner handoff format.
 
 ## Process
 
@@ -31,7 +31,7 @@ Receive one upgrade plan with `status: READY`.
 
 2. **Build** — Run the project build (compile only). On failure see "Build failure" below.
 
-3. **Verify** — Invoke `test-baseline` in `verify` mode, passing the `baseline` from the input handoff.
+3. **Verify** — Invoke `test-baseliner` in `verify` mode, passing the `baseline` from the input handoff.
    - `status: OK` → all green, proceed to step 4.
    - `status: REGRESSIONS` → follow "Test regression" below.
    - `status: RUN_FAILED` → revert all changes, set `status: BUILD_FAILED`.
@@ -69,7 +69,7 @@ If the orchestrator passes a `model_routing` block (see
 - If the block contains `gate_tests_on_review: true` (set by the orchestrator
   for SIGNIFICANT / HIGH-RISK upgrades), **stop after step 2 (Build)** and
   return `status: AWAITING_REVIEW` with the list of files changed and the
-  build outcome. **Do NOT run `test-baseline verify`.** The orchestrator will
+  build outcome. **Do NOT run `test-baseliner verify`.** The orchestrator will
   perform an Opus code review, then re-invoke this agent with
   `phase: verify-resume` to run step 3 onward.
 - For SIMPLE / MODERATE classification (or no `model_routing` block), proceed

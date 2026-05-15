@@ -16,7 +16,7 @@ baseline:                    # The orchestrator (upgrade/SKILL.md Phase 2 Step 1
                              # cannot survive the AWAITING_REVIEW boundary).
   passing_count: 142
   passing_tests:             # REQUIRED — full list of passing test IDs so
-                             # test-baseline verify can detect regressions
+                             # test-baseliner verify can detect regressions
                              # exactly. Also required on phase: verify-resume.
     - com.example.OrderTest#testCreate
     - com.example.UserTest#testLogin

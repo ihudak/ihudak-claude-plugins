@@ -106,7 +106,7 @@ task(
 
 ### SIGNIFICANT / HIGH-RISK path
 
-1. **Capture baseline at the orchestrator** using the existing `test-baseline` agent. Keep the full baseline block (`passing_count` and `passing_tests`).
+1. **Capture baseline at the orchestrator** using the existing `test-baseliner` agent. Keep the full baseline block (`passing_count` and `passing_tests`).
 2. **Invoke `vuln-fixer` with review gating enabled**:
 
 ```

@@ -31,12 +31,12 @@ These design choices were agreed before applying fixes. Each fix below must hono
 | Q3 | Namespaced-command file layout | Directory form: `commands/impl/code.md` → `/impl:code`. (Cross-platform safe; avoids `:` in filenames.) |
 | Q3b | `/impl` alias mechanism | `impl.md` contains the full content of `impl:code.md` duplicated verbatim, with a `<!-- KEEP IN SYNC WITH commands/impl/code.md -->` marker. |
 | Q4 | `/impl:code` no-test-framework on SIGNIFICANT/HIGH-RISK | Mirror the SIMPLE/MODERATE prompt: `choices: ["Specify test command", "Skip tests (document why)", "Cancel"]`, asked before Opus review. |
-| Q5 | Parallel spawn cap | Cap at **4** in parallel for `code-diff-summarizer` / `code-scanner`; queue the rest. |
+| Q5 | Parallel spawn cap | Cap at **4** in parallel for `diff-summarizer` / `code-scanner`; queue the rest. |
 | Q6 | `doc-reviewer` model | **Opus** (mirrors `code-review` gate role). |
 | Q7 | `preload-context` hook scope | `/impl:code` = full context; `/impl:docs` = none; `/impl:jira:docs` + `/impl:jira:epics` = inject `$VAULT_PATH` + `/repos` base only (no git branch context unless cwd is in a git repo). |
 | Q8 | `jira-reader` depth for Epic writing | Introduce new `depth: vi-plus-epics` — reads the index + VI + existing Epic `.md` files linked to the VI (not Stories/Sub-tasks). Used by `/impl:jira:epics`. |
 | Q9 | `<KEY>-comments.md` / `attachments/` | Ignore by default; no user-facing toggle. |
-| Q10 | GitHub PR support via `gh` | Add `gh`-based resolution for `github.com` URLs as a second code path in `code-diff-summarizer`. Bitbucket stays pure-local-git. |
+| Q10 | GitHub PR support via `gh` | Add `gh`-based resolution for `github.com` URLs as a second code path in `diff-summarizer`. Bitbucket stays pure-local-git. |
 | Q10b | GitHub repo layout | GitHub repos also expected under `/repos/<name>`; same escalation rules if missing. |
 | Q11 | Cloud-without-CLI behaviour | Graceful fallback to local-git strategies (branch search, merge-commit grep) — keeps the command useful even when no CLI is installed. |
 | Q12 | Bitbucket Cloud CLI | **Deferred.** Atlassian's official `acli` does not support Bitbucket at time of writing (verified against ACLI v1.3.15). Bitbucket Cloud URLs use local-git strategies for now. Third-party CLIs (Appfire BCCLI, community `bkt`) are noted as future options but not adopted in this iteration. |
@@ -62,10 +62,10 @@ The spec is well thought-through, but has several concrete technical errors that
 ### C1. Strategy 1 PR-ref resolution does not work on a default Bitbucket clone
 
 - **Status:** Fixed (2026-05-08)
-- **Spec section(s):** 13 (`code-diff-summarizer`)
+- **Spec section(s):** 13 (`diff-summarizer`)
 - **Resolution:** Section 13 PR-resolution block rewritten to flag Strategy 1 as "optimistic; usually absent" and explicitly note fall-through behavior. Strategies 2/3 are now called out as the real workhorse; runtime refspec configuration is explicitly forbidden (explicit user opt-in only).
 
-Section 13, `code-diff-summarizer`, Strategy 1 says:
+Section 13, `diff-summarizer`, Strategy 1 says:
 
 > Try `git rev-parse refs/pull-requests/<pr_id>/from`. If present, use as head.
 
@@ -80,7 +80,7 @@ I verified on a representative self-hosted Bitbucket Server clone: `refs/pull-re
 ### C2. Strategy 3 merge-commit grep regex is wrong
 
 - **Status:** Fixed (2026-05-08)
-- **Spec section(s):** 13 (`code-diff-summarizer`, Strategy 3)
+- **Spec section(s):** 13 (`diff-summarizer`, Strategy 3)
 - **Resolution:** Strategy 3 regex replaced with `git log --all -E --grep="[Pp]ull[ _-]?[Rr]equest[ _-]?#?<pr_id>\b"` (ERE mode). A parenthetical calls out the previous broken pattern so future readers don't re-introduce it. Matches the real `Pull request #<PR_ID>: …` format on both Bitbucket and GitHub merge commits.
 
 Section 13, Strategy 3 says:
@@ -188,16 +188,16 @@ Section 4, "SIGNIFICANT/HIGH-RISK" sub-path:
 
 - **Status:** Fixed (2026-05-08)
 - **Spec section(s):** 4 (Insertion 2 — SIMPLE/MODERATE)
-- **Resolution:** §4 Insertion 2 SIMPLE/MODERATE step 5 rewritten as a "Fix loop" block: session model applies fixes (no subagent indirection), diff is re-captured each attempt, `test-baseline` verify runs against the **original** baseline (no mid-loop re-baselining), cap of 2 attempts, then existing choices prompt.
+- **Resolution:** §4 Insertion 2 SIMPLE/MODERATE step 5 rewritten as a "Fix loop" block: session model applies fixes (no subagent indirection), diff is re-captured each attempt, `test-baseliner` verify runs against the **original** baseline (no mid-loop re-baselining), cap of 2 attempts, then existing choices prompt.
 
 Section 4:
 
-> 4. Invoke `test-baseline` in verify mode against the captured baseline.
+> 4. Invoke `test-baseliner` in verify mode against the captured baseline.
 > 5. If regressions or new test failures: fix, re-run verify (max 2 attempts).
 
 Who does the fix? The session model or a subagent? Is it silent ("just fix it") or guided ("here are regressions, invoke the fixer")? For Phase 3B there's an explicit `review-fixer` invocation pattern. Phase 3.5 needs the equivalent.
 
-**Fix:** Specify that the fix loop is performed by the **session model** (no subagent indirection for SIMPLE/MODERATE), using the `test-baseline` verify report as the authoritative list of regressions. Each fix attempt re-captures a fresh diff and re-runs verify. Cap at 2 attempts, after which the user is prompted with the existing choice set.
+**Fix:** Specify that the fix loop is performed by the **session model** (no subagent indirection for SIMPLE/MODERATE), using the `test-baseliner` verify report as the authoritative list of regressions. Each fix attempt re-captures a fresh diff and re-runs verify. Cap at 2 attempts, after which the user is prompted with the existing choice set.
 
 ---
 
@@ -209,7 +209,7 @@ Who does the fix? The session model or a subagent? Is it silent ("just fix it") 
 
 Both Phase 5 blocks say:
 
-> spawn one `code-diff-summarizer` instance per repo simultaneously (single Agent message, all in parallel).
+> spawn one `diff-summarizer` instance per repo simultaneously (single Agent message, all in parallel).
 
 Claude Code has practical parallel-subagent limits (typically 4–5). A realistically-sized VI could easily touch 5+ repos.
 
@@ -221,13 +221,13 @@ Claude Code has practical parallel-subagent limits (typically 4–5). A realisti
 
 - **Status:** Fixed (2026-05-08)
 - **Spec section(s):** 9 (`doc-reviewer.md` frontmatter), 8/10/12/13/14 (other new agents)
-- **Resolution:** All six new-agent sections (§8 test-writer, §9 doc-reviewer, §10 doc-fixer, §12 jira-reader, §13 code-diff-summarizer, §14 code-scanner) now carry an explicit `**Model:**` line. §9 `doc-reviewer` declares `opus` with rationale mirroring `code-review`'s gate role. The other five inherit session model with a one-line rationale.
+- **Resolution:** All six new-agent sections (§8 test-writer, §9 doc-reviewer, §10 doc-fixer, §12 jira-reader, §13 diff-summarizer, §14 code-scanner) now carry an explicit `**Model:**` line. §9 `doc-reviewer` declares `opus` with rationale mirroring `code-review`'s gate role. The other five inherit session model with a one-line rationale.
 
 All existing Opus-backed quality gates (`code-review`, `risk-planner`) declare `model: opus` in frontmatter. Section 9 for `doc-reviewer` doesn't.
 
 **Fix (per Q6):**
 - `doc-reviewer.md` frontmatter: `model: opus`.
-- For the other new agents (`test-writer`, `doc-fixer`, `jira-reader`, `code-diff-summarizer`, `code-scanner`): explicitly state in each section that they inherit the session model (no `model:` override). State the rationale once in Section 3.
+- For the other new agents (`test-writer`, `doc-fixer`, `jira-reader`, `diff-summarizer`, `code-scanner`): explicitly state in each section that they inherit the session model (no `model:` override). State the rationale once in Section 3.
 
 ---
 
@@ -318,10 +318,10 @@ Each item directory contains `<KEY>-comments.md` and often `attachments/`. Spec 
 
 ---
 
-### m3. `code-diff-summarizer` output field: `repo` is a name or a path?
+### m3. `diff-summarizer` output field: `repo` is a name or a path?
 
 - **Status:** Fixed (2026-05-08)
-- **Spec section(s):** 13 (`code-diff-summarizer`)
+- **Spec section(s):** 13 (`diff-summarizer`)
 - **Resolution:** §13 output block now documents `repo: <short repo name — the basename of repo_path>` and adds a new `repo_path: <absolute path as received in input>` field so callers can reference the source tree. §14 `code-scanner` output updated symmetrically.
 
 Input is `repo_path` (absolute); output is `repo: <repo name>`. Fine, but readers may expect symmetry.
@@ -333,8 +333,8 @@ Input is `repo_path` (absolute); output is `repo: <repo name>`. Fine, but reader
 ### m4. `refresh.pull` asymmetry between diff-summarizer (false) and code-scanner (true)
 
 - **Status:** Fixed (2026-05-08)
-- **Spec section(s):** 13 (`code-diff-summarizer`), 14 (`code-scanner`)
-- **Resolution:** Both agent `refresh:` YAML blocks now carry an inline comment explaining the asymmetry: `code-diff-summarizer.pull: false` because diffs target historical merged commits (pulling risks moving HEAD away from the merge target); `code-scanner.pull: true` because capability scans target present-day default-branch code.
+- **Spec section(s):** 13 (`diff-summarizer`), 14 (`code-scanner`)
+- **Resolution:** Both agent `refresh:` YAML blocks now carry an inline comment explaining the asymmetry: `diff-summarizer.pull: false` because diffs target historical merged commits (pulling risks moving HEAD away from the merge target); `code-scanner.pull: true` because capability scans target present-day default-branch code.
 
 **Fix:** Add a one-line rationale in Section 13 and Section 14: "diff summaries target historical merged PRs and need no current-branch state → `pull: false`; capability scans target present-day code and want the default-branch tip → `pull: true`."
 
@@ -388,10 +388,10 @@ Existing `impl-maintenance` refers to commands `/impl | /vuln | /upgrade`. After
 
 ---
 
-### m9. DECLINED / OPEN PRs for `code-diff-summarizer`
+### m9. DECLINED / OPEN PRs for `diff-summarizer`
 
 - **Status:** Fixed (2026-05-08)
-- **Spec section(s):** 13 (`code-diff-summarizer`)
+- **Spec section(s):** 13 (`diff-summarizer`)
 - **Resolution:** §13 now has a "Note on non-MERGED PRs" paragraph: for OPEN/DECLINED/UNKNOWN PRs, expect a high unresolved rate (DECLINED PRs often have no merge commit → Strategy 3 fails; feature branches may be deleted after decline → Strategy 2 fails). `aggregate_summary` is directed to call out the unresolved count so doc writers know what's missing.
 
 Default filter is MERGED-only (good). But if user picks "all PRs", a DECLINED PR may have no merge commit (Strategy 3 fails) and may not have an extant branch (Strategy 2 fails).
@@ -450,9 +450,9 @@ Q3 resolved to directory form (`commands/impl/code.md`), so the `:` in filenames
 
 - **Status:** Fixed (2026-05-08)
 - **Spec section(s):** 14 (`code-scanner`)
-- **Resolution:** §14 output enum now `OK | PARTIAL | REPO_MISSING | DIRTY_TREE | REFRESH_BLOCKED | EMPTY`. New paragraph defines PARTIAL ("some themes completed successfully but at least one failed") and specifies per-theme `classification: error` with a one-line reason, mirroring `code-diff-summarizer`'s PARTIAL semantics for a consistent caller recovery pattern.
+- **Resolution:** §14 output enum now `OK | PARTIAL | REPO_MISSING | DIRTY_TREE | REFRESH_BLOCKED | EMPTY`. New paragraph defines PARTIAL ("some themes completed successfully but at least one failed") and specifies per-theme `classification: error` with a one-line reason, mirroring `diff-summarizer`'s PARTIAL semantics for a consistent caller recovery pattern.
 
-`code-scanner` output: `status: OK | REPO_MISSING | DIRTY_TREE | REFRESH_BLOCKED | EMPTY` — missing `PARTIAL` which `code-diff-summarizer` has.
+`code-scanner` output: `status: OK | REPO_MISSING | DIRTY_TREE | REFRESH_BLOCKED | EMPTY` — missing `PARTIAL` which `diff-summarizer` has.
 
 **Fix:** Add `PARTIAL` to the status enum in Section 14, defined as "some themes scanned, some failed (e.g. permission error, file not readable)". Include how to communicate per-theme failures in the output.
 
@@ -461,7 +461,7 @@ Q3 resolved to directory form (`commands/impl/code.md`), so the `:` in filenames
 ### n5. Bitbucket host hardcoding
 
 - **Status:** Fixed (2026-05-08) — subsequently generalised further in A1 below (this initial fix kept a single-host assumption; A1 removed all internal-hostname leakage).
-- **Spec section(s):** 12 (`jira-reader` URL formats), 13 (`code-diff-summarizer` resolver selection), 17 (out of scope + prerequisites)
+- **Spec section(s):** 12 (`jira-reader` URL formats), 13 (`diff-summarizer` resolver selection), 17 (out of scope + prerequisites)
 - **Resolution:** §12 now documents two recognised URL formats (Bitbucket + GitHub) with an explicit assumption about the (then-unspecified) self-hosted Bitbucket Server host. §13 has a new "Resolver selection by host" table routing per-PR to Bitbucket local-git or GitHub `gh`-CLI paths; a new "GitHub resolver (via `gh` CLI)" subsection spells out the `gh pr view --json` → `git fetch` → `git diff` flow. §17 drops the old "Handling non-Bitbucket PR URL formats (deferred)" line, replaced with a narrower statement about non-target Bitbucket Server hosts and non-GitHub Git hosts. New "Environment prerequisites" subsection documents `gh auth login` and recommends the ihudak/ai-containers environment.
 
 PR URL hostname was hardcoded to a single self-hosted Bitbucket Server instance. Section 17 deferred non-Bitbucket formats, but this needed to be an explicit assumption.
@@ -538,7 +538,7 @@ Before applying the changes, the proposed design signals were verified against a
 | Section | Change |
 |---|---|
 | §2 | Added 1-sentence role clarification (Q29) |
-| §3 | Agent listing grew from 6 agents to 10 (4 new in this wave): existing `test-writer`, `doc-reviewer`, `doc-fixer`, `jira-reader`, `code-diff-summarizer`, `code-scanner`; new `epic-reviewer`, `doc-planner`, `doc-location-finder`, `docs-style-checker` |
+| §3 | Agent listing grew from 6 agents to 10 (4 new in this wave): existing `test-writer`, `doc-reviewer`, `doc-fixer`, `jira-reader`, `diff-summarizer`, `code-scanner`; new `epic-reviewer`, `doc-planner`, `doc-location-finder`, `docs-style-checker` |
 | §6 | Phase 0 gained docs-repo detection (Q14); Phase 1 gained screenshot prompt (Q21); new Phase 5.5 invokes `doc-location-finder` (Q16); new Phase 5.7 invokes `doc-planner` (Q17); Phase 6 rewritten with frontmatter/snippet/screenshot handling (Q20, Q21); Phase 6.5 enhanced with fetch-main + CONTRIBUTION parsing (Q15); new Phase 6.7 invokes `docs-style-checker` (Q25); Phase 7 product-docs-specific (Q18); invariants updated |
 | §7 | Phase 0 vault-required (Q22); Phase 1 default output `jira-drafts/<VI-KEY>/<slug>.md` with rationale (Q23); Phase 6.5 deleted (Q24); Phase 7 uses `epic-reviewer` (Q18); invariants rewritten |
 | §9 | Rewritten as product-docs-only reviewer (Q18) |
@@ -567,9 +567,9 @@ For completeness — these are strong points worth preserving:
 - Clean separation of concerns across the five commands; motivation in Section 2 is convincing.
 - The Obsidian vault / git-repo / plain-dir detection in Section 11 is pragmatic and correct (confirmed `$VAULT_PATH` has `.obsidian/`, so the walk-up logic works there).
 - Read-only constraints on `jira-products/` and `_archive/` prevent accidental corruption of the export artifacts.
-- Reuse of existing `test-baseline` and Phase 4 maintenance agents across commands is good design hygiene.
+- Reuse of existing `test-baseliner` and Phase 4 maintenance agents across commands is good design hygiene.
 - Escalation table (Section 15) covers the realistic failure modes.
-- Parallel `code-diff-summarizer` / `code-scanner` design maps well to the real data (the test VI we used for grounding spans 2+ repos).
+- Parallel `diff-summarizer` / `code-scanner` design maps well to the real data (the test VI we used for grounding spans 2+ repos).
 
 
 ---
@@ -596,7 +596,7 @@ For completeness — these are strong points worth preserving:
 |---|---|
 | W6-m1 | §6 Phase 4: `status_marker` → `status` (matches the `jira-reader` output schema's `pull_requests[].status` field; disambiguates from top-level agent `status`). |
 | W6-m2 | §5 `/impl:docs`: Phase 4 handoff now sets `change_type: docs` (was the only command missing it; aligns with `/impl:jira:docs` and `/impl:jira:epics`). |
-| W6-m3 | §15: added `DIRTY_TREE` row; clarified `REFRESH_BLOCKED` mapping to both `code-diff-summarizer` and `code-scanner`. |
+| W6-m3 | §15: added `DIRTY_TREE` row; clarified `REFRESH_BLOCKED` mapping to both `diff-summarizer` and `code-scanner`. |
 | W6-m4 | §6 Phase 5: "Section 13 escalation rules" → "Section 15" (rules live in §15, not §13). |
 | W6-m5 | §14 `code-scanner`: explicitly emits `REFRESH_BLOCKED` on `git pull --ff-only` failure (was in the output status enum but not produced by any process step). |
 | W6-m6 | §7 Phase 7: explicit note that there is **no** `docs-style-checker` step for Epics (prevents implementers from copy-pasting the docs flow). |
@@ -609,7 +609,7 @@ For completeness — these are strong points worth preserving:
 | W6-n1 | §7 Phase 0: "Change to `<VAULT_PATH>` and retry (Recommended)" → "Cancel and re-run after `cd <VAULT_PATH>`" (both original choices cancelled; removed contradictory "Recommended" + "Default = Cancel"). |
 | W6-n2 | §6 Phase 6 Jira-key example: `[[JIRA-1127]]` → `[[<JIRA_KEY>]]` (the last internal-looking identifier; the prior sanitisation sweep missed it). |
 | W6-n3 | §4: "Phase 5 report" → "the final report — Phase 5 of the inherited /impl:code workflow" (clarifies the cross-reference to inherited behaviour). |
-| W6-n4 | Tracker arithmetic: "6 to 9 new agents" → "6 to 10 (4 new)" with all 10 named (existing 6: `test-writer`, `doc-reviewer`, `doc-fixer`, `jira-reader`, `code-diff-summarizer`, `code-scanner`; new 4: `epic-reviewer`, `doc-planner`, `doc-location-finder`, `docs-style-checker`). |
+| W6-n4 | Tracker arithmetic: "6 to 9 new agents" → "6 to 10 (4 new)" with all 10 named (existing 6: `test-writer`, `doc-reviewer`, `doc-fixer`, `jira-reader`, `diff-summarizer`, `code-scanner`; new 4: `epic-reviewer`, `doc-planner`, `doc-location-finder`, `docs-style-checker`). |
 
 **Final state after Wave 6:** 0 BLOCKERs, 0 MAJORs, 0 MINORs, 0 NITs from the audit. 0 internal identifiers, 0 repo-specific paths, 0 internal Jira keys leaking. Status-to-escalation coverage: every non-OK status emitted by any agent is handled either at the caller (Phase 5.5 / 5.7 / etc.) or in §15.
 
@@ -662,7 +662,7 @@ For completeness — these are strong points worth preserving:
 | W7-m2 | §16 Success criterion 1 required a passing test on every `/impl:code` run, contradicting the §4-specified "Skip tests" branch available when no test framework is detected. | Criterion 1 rewritten to acknowledge the Skip path as a valid alternative outcome, provided the skip decision is logged in the Phase 5 report with user-provided rationale. |
 | W7-m3 | §3 `impl.md` alias pattern said both "the drift risk is managed by the `KEEP IN SYNC` marker plus the CHANGELOG entry" **and** "CI should diff and fail on drift" — these are inconsistent, and no CI workflow is scoped in §3. | Dropped the "CI should" claim. Added a sentence noting CI enforcement is a plausible future enhancement but out of scope here. |
 | W7-m4 | §12 "Ignored by default" only mentioned lowercase `attachments/`, but real exports use both `attachments/` and `Attachments/` (case varies by item creation date). | Clarified "case-insensitive match (real exports use both spellings)". |
-| W7-m5 | §4 "Pre-Phase 3.5" heading placed the new test-baseline phase between Pre-Phase 3 (branch creation) and Phase 3A (implementation), but the `.5` suffix was ambiguous — could read as a sub-step of Pre-Phase 3 rather than its own phase. | Heading expanded to "Pre-Phase 3.5 (between Pre-Phase 3 and Phase 3A/3B): Capture test baseline" with a one-sentence clarification that the `.5` means "inserted between 3 and 4 of the existing ordering — its own phase". |
+| W7-m5 | §4 "Pre-Phase 3.5" heading placed the new test-baseliner phase between Pre-Phase 3 (branch creation) and Phase 3A (implementation), but the `.5` suffix was ambiguous — could read as a sub-step of Pre-Phase 3 rather than its own phase. | Heading expanded to "Pre-Phase 3.5 (between Pre-Phase 3 and Phase 3A/3B): Capture test baseline" with a one-sentence clarification that the `.5` means "inserted between 3 and 4 of the existing ordering — its own phase". |
 
 #### NIT
 

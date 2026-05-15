@@ -4,6 +4,31 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.2.1] — 2026-05-15
+
+### Added
+- **`upgrade-planner` agent.** Dedicated sub-agent for analysing a project and
+  producing a versioned, step-by-step upgrade plan with risk annotations.
+- **`upgrade-executor` agent.** Dedicated sub-agent that executes an approved
+  upgrade plan step-by-step, running builds/tests after each step.
+- **`vuln-research` agent.** Dedicated sub-agent for vulnerability triage —
+  reads advisories, assesses exploitability, and recommends fix vs mitigate.
+- **`vuln-fixer` agent.** Dedicated sub-agent that applies vulnerability
+  remediation (dependency bumps, code patches) and verifies the fix.
+- **Nine handoff reference docs** under `references/handoff/` for sub-agents
+  that receive delegated work: code-scanner, diff-summarizer,
+  impl-maintenance, jira-reader, test-baseliner, upgrade-executor,
+  upgrade-planner, vuln-fixer, vuln-research.
+
+### Changed
+- `/upgrade` command refactored to delegate planning and execution to the new
+  `upgrade-planner` and `upgrade-executor` agents via the `task` tool.
+- `/vuln` command refactored to delegate research and remediation to the new
+  `vuln-research` and `vuln-fixer` agents via the `task` tool.
+- `CLAUDE.md` expanded from 60 → 204 lines: added skill taxonomy table,
+  orchestrator/sub-agent relationship diagram, model-routing contract,
+  key invariants, test requirements, update procedures, and guardrails.
+
 ## [1.2.0] — 2026-05-15
 
 ### Added

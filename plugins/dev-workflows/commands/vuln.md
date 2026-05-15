@@ -1,249 +1,228 @@
 Fix security vulnerabilities: $ARGUMENTS
 
-Each argument token is either `JIRA-ID:CVE-ID` (e.g. `MGD-2423:CVE-2023-46604`) or a bare `CVE-ID` (e.g. `CVE-2023-46604`). Parse and filter each token (steps 1–2), then research all CVEs in two parallel rounds (step 3) before applying fixes sequentially (steps 5 onward).
+Each argument token is either `JIRA-ID:CVE-ID` (e.g. `MGD-2423:CVE-2023-46604`) or a bare `CVE-ID` (e.g. `CVE-2023-46604`). Parse and filter each token, research all CVEs first, then fix them one at a time.
 
 Reference files (read when needed):
-- Build system detection: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/fix-vuln/build-systems.md`
+- Build-system detection and update commands: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/fix-vuln/build-systems.md`
 - NVD API usage: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/fix-vuln/nvd-api.md`
 - Model routing: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md`
+- Research handoff: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/vuln-research.md`
+- Fixer handoff: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/vuln-fixer.md`
+- Test baseline handoff: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/test-baseliner.md`
 
 ---
 
-## Workflow
+## Step 0 — Classify & Route (mandatory)
 
-For each vulnerability token:
+Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md`. Classify **per CVE**, based on the size of the required repository change — not the CVE category alone.
 
-1. **Parse** — Extract JIRA-ID (optional) and CVE-ID.
-   - `JIRA-ID:CVE-ID` format when the part before `:` matches `[A-Z]+-\d+`
-   - Bare CVE-ID otherwise
-   - Determine NOJIRA placeholder once: scan `git log --oneline -50` and `git branch -a` for patterns like `NOJIRA`. Use it in branch names where applicable; omit entirely if history is ambiguous.
+Default heuristics:
 
-2. **Filter** — Skip non-CVE IDs (CWE-*, OWASP `\d{4}:A\d{2}`). Warn and continue.
+| Required fix (from research output) | Classification |
+|---|---|
+| Patch or same-major minor bump, no source-code changes expected | `MODERATE` |
+| Major version bump, or code changes required to adopt the new version | `SIGNIFICANT` |
+| Major bump of a security-critical library, or code changes in auth/session/token/permission/payment/audit paths | `HIGH-RISK` |
 
-3. **Research — two sequential rounds:**
-
-   **Round A (parallel — no package name needed):**
-
-   Spawn all of the following simultaneously in a single message:
-
-   - **NVD agent per CVE-ID** (general-purpose, needs WebFetch/WebSearch):
-     > "Fetch CVE details for [CVE-ID] using the NVD API. Reference: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/fix-vuln/nvd-api.md`.
-     > Return: affected package name, vulnerable version range, minimum safe version, one-line CVE description."
-
-   - **Baseline agent** (once per batch, not per CVE) — invoke via `general-purpose` with
-     the test-baseline system prompt loaded from file:
-     > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md`
-     > (fall back to `~/.claude/agents/test-baseline.md` if installed at user level).
-     > Then run in **capture** mode and return the structured baseline result."
-     >
-     > If neither path exists, warn the user to run `install.sh` and skip the baseline step.
-
-   **Wait for all Round A agents to complete before proceeding.**
-
-   **Round B (parallel — package names now known):**
-
-   For each CVE where the NVD agent returned a package name, spawn a Detect agent. Skip any CVE where NVD failed, flag it individually, and do not block the rest of the batch.
-
-   - **Detect agent per CVE** (general-purpose, needs Read/Glob/Grep/LS tools):
-     > "Scan this repository for the dependency [package name returned by NVD for CVE-ID].
-     > Check all build and manifest files: pom.xml, build.gradle, build.gradle.kts, package.json, requirements.txt, go.mod, Cargo.toml, *.csproj, Gemfile, composer.json.
-     > Reference: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/fix-vuln/build-systems.md`.
-     > Return: current version in use, file paths where the dependency appears."
-
-   **Wait for all Round B agents to complete before proceeding.**
-
-4. **Merge research results** — Combine the agent outputs: CVE details, current library version, safe target version. For each CVE, confirm a fix is needed (current version falls within the vulnerable range). Skip with a warning if the library is not found in the repo. Log NVD-failed CVEs as unresolved.
-
-5. **Classify each CVE fix** — For every CVE that requires a fix, apply the routing rules from `references/model-routing/classification.md`. Decide based on the ACTUAL change required, not the CVE's CVSS score.
-
-   | Condition on the fix | Classification |
-   |---|---|
-   | Same-major version bump (e.g. `2.14.1 → 2.14.3`, `2.14.x → 2.15.0`), library used as a drop-in, no consumer-code change expected | `MODERATE` |
-   | Major version bump (e.g. `2.x → 3.x`), OR the new version has documented API changes that will require code edits, OR the library is used in security-sensitive code paths (auth, crypto, session, payment) | `SIGNIFICANT` / `HIGH-RISK` |
-
-   If unsure, err toward `SIGNIFICANT`. Print the classification and the reason before touching files.
-
-6. **Version** — Safe target version is the minimum safe version returned by the NVD agent. If ambiguous, use the lowest fixed version in the CVE's affected range.
-
-7. **Baseline** — Already captured by the Baseline agent in step 3. Do not re-run the test suite.
+Because the required fix is not known up front, start with a provisional `MODERATE` routing block for research, then finalize the classification from the research report **before** fix application begins.
 
 ---
 
-## Sequential fix — MODERATE path
+## Step 1 — Prepare
 
-For CVEs classified `MODERATE`, fix one at a time:
-
-1. **Create branch** — Before touching any file:
-   - Run `git status --porcelain`. If dirty, ask:
-     ```
-     choices: ["Stash changes and continue (Recommended)", "Proceed anyway — pre-existing changes will appear in the diff and PR", "Cancel"]
-     ```
-     If Stash: `git stash push -m "pre-fix stash"`. If Cancel: skip this CVE.
-   - Determine branch name (see **Git Workflow** section below for naming rules).
-   - Run `git checkout -b <branch-name>`. If the branch already exists, append `-<7-char-sha>`.
-
-2. **Fix** — Apply the minimal version change (patch/minor).
-3. **Verify** — Build the project. (Tests come after — see step 5 below.)
-4. **Run tests** — Re-run the test suite.
-5. **Compare** — Invoke `general-purpose` with the test-baseline system prompt in **verify** mode, passing the baseline captured in Research step 3:
-   > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md`
-   > (fall back to `~/.claude/agents/test-baseline.md` if installed at user level).
-   > Run in **verify** mode. Baseline: [paste the captured baseline block]."
-
-   If `Regressions` or `Missing from run` lists any tests: present them clearly and ask the user to choose — proceed anyway, revert, or investigate further.
-6. **Commit & PR** — See the Git Workflow section.
+1. **Parse** — Extract Jira ID (optional) and CVE ID from each token.
+2. **Determine NOJIRA placeholder** — Scan recent branch names and commit history for `NOJIRA` / `NO-JIRA`; use the project convention when a Jira ID is missing.
+3. **Filter** — Skip non-CVE IDs (`CWE-*`, OWASP patterns) with a warning.
+4. **Snapshot repo context** — Note the repo path and, when obvious, the primary ecosystem so the research agent can disambiguate detection.
 
 ---
 
-## Sequential fix — SIGNIFICANT / HIGH-RISK path
+## Step 2 — Research (parallel)
 
-For CVEs classified `SIGNIFICANT` or `HIGH-RISK`, fix one at a time:
+Invoke one research task per valid CVE. Use a single agent message for the batch.
 
-1. **Create branch** — Same rules as the MODERATE path step 1: clean-tree check → stash/proceed/cancel → `git checkout -b <branch-name>`.
+```
+task(
+  agent_type: "general-purpose",
+  description: "Research CVE",
+  # Re-run with model: "claude-opus-4.7" for HIGH-RISK CVEs after the provisional pass,
+  # and for SIGNIFICANT CVEs when the major-bump surface is non-trivial.
+  prompt: "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/vuln-research.md`
+  (fall back to `~/.claude/agents/vuln-research.md` if installed at user level).
 
-2. **Plan with Opus** — Invoke `general-purpose` with `model: "opus"` override and the risk-planner system prompt loaded from file. The planner will do its own usage-site scan — the Detect agent only returned declaration paths, not import sites.
+  Handoff format: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/vuln-research.md`
 
-   → Agent (subagent_type: "general-purpose", model: "opus"):
-     > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/risk-planner.md`
-     > (fall back to `~/.claude/agents/risk-planner.md` if installed at user level).
-     > Then produce the risk-weighted plan for:
-     >
-     > Task description: Remediate [CVE-ID] in [repo name]. Upgrade [library] from [current version] to [target version]. [One-line CVE description.]
-     > Classification: [SIGNIFICANT | HIGH-RISK] — reason: [from step 5]
-     > Codebase summary: Detect agent found the dependency declared in: [list of declaration file paths from step 3]. Current version: [current]. Target version: [target].
-     > Constraints: keep breaking changes out of consumer code if avoidable; if unavoidable, enumerate them.
-     > Current state: branch = [git branch], uncommitted = [git status --short summary]
-     >
-     > Before writing the plan, grep the repo for import sites and usage patterns of this library to understand the blast radius of a version bump / API change."
+  ## Vuln Research Request
+  repo: [absolute repo path]
+  cves:
+    - id: [CVE-ID]
+      jira: [optional Jira key]
+  ecosystem_hint: [optional]
+  model_routing:
+    classification: MODERATE
+    ..."
+)
+```
 
-   **If the risk-planner returns a `### Re-classification` section** instead of a full plan (it decided the CVE fix is actually `MODERATE` on inspection — e.g. a drop-in patch bump with no consumer-code change), surface it and ask `choices: ["Accept revised classification (Recommended)", "Override and keep HIGH-RISK path", "Cancel"]`. If accepted, fall back to the MODERATE path for this CVE. If overridden, re-invoke with the complete brief plus a note that the classification is intentional. Do not send a delta-only re-invocation.
+Collect all reports:
+- `READY` → candidate for fixing
+- `NOT_IN_REPO` → notify and skip
+- `LOOKUP_FAILED` → warn and offer retry or skip
+- `SKIP_NON_CVE` → already filtered; no further action
 
-   Otherwise, present the plan to the user and ask for approval before touching files.
+Finalize the per-CVE classification from the research output. If the finalized class is `HIGH-RISK`, re-run `vuln-research` on Opus for a confirmation pass. If it is `SIGNIFICANT`, re-run on Opus when the major bump or breaking-change surface is non-trivial.
 
-3. **Apply the fix** — With current model or Sonnet. Version bump + any code changes per the plan. No tests yet.
+---
 
-4. **Opus code review** — Capture the full diff for this CVE fix. Use `git add -N . && git diff` (this includes intent-to-add untracked new files; unlike bare `git diff`, it won't produce an empty diff for implementations that only create new files). Then invoke `general-purpose` with `model: "opus"` override and the code-review system prompt loaded from file:
+## Step 3 — Fix (sequential)
 
-   → Agent (subagent_type: "general-purpose", model: "opus"):
-     > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/code-review.md`
-     > (fall back to `~/.claude/agents/code-review.md` if installed at user level).
-     > Then produce the Opus code review for this brief, focusing especially on security, dependency risk, migration (library API changes), and rollback:
-     >
-     > Task description: Remediate [CVE-ID] — upgrade [library] from [current] to [target].
-     > Classification: [SIGNIFICANT | HIGH-RISK]
-     > Plan: [paste risk-planner plan]
-     > Diff: [paste git diff]
-     > Project root: [absolute path]"
+Process `READY` CVEs one at a time to avoid conflicting edits to the same dependency files.
 
-5. **Act on the return:**
-   - **`### Re-classification` section** — the reviewer decided the change is actually `MODERATE`. Surface it and ask `choices: ["Accept revised classification (Recommended)", "Override and keep BLOCK-gated review", "Cancel"]`. If accepted, treat as an implicit PASS and proceed to step 6; do NOT re-invoke code-review on fix deltas. Record the revised classification for the PR body.
-   - **BLOCK** — invoke the review-fixer agent (see Review-fixer sub-step below). If `Stop condition flag` is `CLEAR`, re-run the Opus review on the updated diff (one re-review only). If the second verdict is still BLOCK, stop: surface the remaining blockers to the user and ask `choices: ["Investigate further", "Revert this CVE fix and skip it", "Cancel"]`. Do not run tests until the verdict is not BLOCK.
-   - **PASS WITH RECOMMENDATIONS** — invoke the review-fixer agent for MAJOR findings (see Review-fixer sub-step below). MINOR / NIT may be deferred; note them in the PR description.
-   - **PASS** — proceed.
+### SIMPLE / MODERATE path
 
-   **Review-fixer sub-step** (for BLOCK and PASS WITH RECOMMENDATIONS):
+Invoke `vuln-fixer` with `baseline_tests: run-fresh`:
 
-   → Agent (subagent_type: "general-purpose"):
-     > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/review-fixer.md`
-     > (fall back to `~/.claude/agents/review-fixer.md` if installed at user level).
-     > Then fix the review findings for this brief:
-     >
-     > Task description: Remediate [CVE-ID] — upgrade [library] from [current] to [target].
-     > Review output: [paste the full code-review agent output]
-     > Project root: [absolute path]
-     > Severities to fix: BLOCKER and MAJOR"
+```
+task(
+  agent_type: "general-purpose",
+  description: "Fix CVE",
+  prompt: "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/vuln-fixer.md`
+  (fall back to `~/.claude/agents/vuln-fixer.md` if installed at user level).
 
-   Wait for the fix report. Re-capture the diff after the fixer completes.
+  Handoff format: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/vuln-fixer.md`
 
-6. **Build & run tests** — Build the project; re-run the test suite.
+  ## Vuln Fix Request
+  repo: [absolute repo path]
+  phase: full
+  baseline_tests: run-fresh
+  jira_placeholder: [NOJIRA or omit]
+  model_routing:
+    classification: [MODERATE]
+    gate_tests_on_review: false
 
-7. **Compare** — Invoke `general-purpose` with the test-baseline system prompt in **verify** mode, passing the baseline captured in Round A of research step 3:
-   > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseline.md`
-   > (fall back to `~/.claude/agents/test-baseline.md` if installed at user level).
-   > Run in **verify** mode. Baseline: [paste the captured baseline block]."
+  [paste the single READY research report verbatim]"
+)
+```
 
-   Act on the verify report:
-   - If `Regressions` or `Missing from run` lists any tests: present them clearly and ask the user to choose — proceed anyway, revert, or investigate further
-   - If `Comparison status: invalid`: warn the user and ask for manual review before continuing
-   - If fixes were applied in response to failures, re-run tests; if the fixes were non-trivial AND the reviewer was NOT down-classified in step 5, re-invoke the Opus review on the delta. If it was down-classified, skip the re-review.
+### SIGNIFICANT / HIGH-RISK path
 
-8. **Commit & PR** — See the Git Workflow section. Include the review verdict in the PR body.
+1. **Capture baseline at the orchestrator** using the existing `test-baseline` agent. Keep the full baseline block (`passing_count` and `passing_tests`).
+2. **Invoke `vuln-fixer` with review gating enabled**:
+
+```
+task(
+  agent_type: "general-purpose",
+  description: "Apply CVE fix before review",
+  prompt: "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/vuln-fixer.md`
+  (fall back to `~/.claude/agents/vuln-fixer.md` if installed at user level).
+
+  ## Vuln Fix Request
+  repo: [absolute repo path]
+  phase: full
+  baseline_tests: provided
+  baseline_passing: [captured count]
+  baseline:
+    passing_tests:
+      - [captured test ids]
+  jira_placeholder: [NOJIRA or omit]
+  model_routing:
+    classification: [SIGNIFICANT | HIGH-RISK]
+    gate_tests_on_review: true
+
+  [paste the single READY research report verbatim]"
+)
+```
+
+3. **If the fixer returns `AWAITING_REVIEW`**, run Opus code review before tests:
+   - Capture the diff with `git add -N . && git diff`
+   - Invoke `code-review` on Opus with the CVE summary, the research handoff, the fixer output, and the diff
+   - If review returns `BLOCK` or `PASS WITH RECOMMENDATIONS`, invoke `review-fixer` for `BLOCKER` and `MAJOR` findings, then re-run the Opus review once
+   - If the second verdict is still `BLOCK`, stop and escalate; do not continue to tests, commit, or PR
+
+4. **Resume the fixer after review** — Re-invoke `vuln-fixer` with `phase: verify-resume`, the same baseline block, and the original research report re-supplied verbatim.
+
+---
+
+## Step 4 — Summarise
+
+After all CVEs are processed, print a result table:
+
+```
+| CVE            | Library         | Change         | Class        | Result  | PR  |
+|----------------|-----------------|----------------|--------------|---------|-----|
+| CVE-2023-46604 | activemq-broker | 5.15.5→5.15.16 | MODERATE     | OK      | #42 |
+| CVE-2024-99999 | (not in repo)   | —              | —            | SKIP    | —   |
+```
+
+Append a `### Model Routing` section summarising the per-CVE classification, why it was chosen, the models used, and any Opus review verdicts.
+
+Then invoke `impl-maintenance` with a compact session handoff covering the CVEs fixed, notable regressions, workarounds, and overall outcome.
+
+---
+
+## Handling Test Failures
+
+If the fix causes previously-green tests to fail and a quick investigation does not reveal an obvious fix:
+
+- Present the failing tests clearly.
+- Ask the user whether to:
+  1. apply the fix anyway and flag the failures in the PR description,
+  2. revert the fix, or
+  3. investigate further.
+- Honor the user's choice.
 
 ---
 
 ## Git Workflow
 
-**Branch naming** (match project convention from `git log --oneline -50`):
+### Branch naming
+
+Inspect recent git history and existing branches to match the project's naming convention.
 
 - With Jira ID: `fix/JIRA-ID-CVE-XXXX-XXXXX`
-- Without Jira ID: `fix/NOJIRA-CVE-XXXX-XXXXX` (or `fix/CVE-XXXX-XXXXX` if project omits placeholders)
+- Without Jira ID: `fix/NOJIRA-CVE-XXXX-XXXXX` (or `fix/CVE-XXXX-XXXXX` if the project omits placeholders)
 
-**Commit message** (match project style):
+### Commit message
 
+Use the project's existing style. Default template:
+
+**With Jira ID:**
 ```
 fix(deps): upgrade <library> to <version> to remediate <CVE-ID>
 
-[Resolves <JIRA-ID>]
+Resolves <JIRA-ID>
 Fixes <CVE-ID> - <one-line CVE description>
 
 Vulnerable range: <range>
 Safe version: <version>
-Classification: <MODERATE | SIGNIFICANT | HIGH-RISK>
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 ```
 
-Omit the `Resolves` line when there is no Jira ID.
+**Without Jira ID:**
+```
+fix(deps): upgrade <library> to <version> to remediate <CVE-ID>
 
-**PR:**
+Fixes <CVE-ID> - <one-line CVE description>
+
+Vulnerable range: <range>
+Safe version: <version>
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+```
+
+### PR
+
 - Base branch: `main` (fallback: `master`)
 - Title: `fix(deps): <library> upgrade to remediate <CVE-ID>` (append ` [<JIRA-ID>]` when present)
-- Body: CVE summary, vulnerable range, version change made, classification, test results (pass count before vs. after). For SIGNIFICANT / HIGH-RISK: paste the Opus review verdict and any deferred MINOR / NIT findings.
-
----
-
-## Handling Test Failures After Fix
-
-If the fix causes previously-green tests to fail and a quick investigation reveals no obvious fix:
-
-Present the failing tests and ask:
-```
-"These tests were passing before. Would you like me to:
-(1) Apply the fix anyway and flag the failures in the PR description
-(2) Revert the fix
-(3) Investigate further"
-```
-
-Honor the user's choice.
-
----
-
-## Post-batch maintenance
-
-After all CVEs in the batch have been processed (fixed, committed, and PRed — or explicitly skipped), invoke the session-maintenance agent:
-
-→ Agent (subagent_type: "general-purpose"):
-  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/impl-maintenance.md`
-  > (fall back to `~/.claude/agents/impl-maintenance.md` if installed at user level).
-  > Then analyse this session and return a Lessons Learned report.
-  >
-  > Session handoff:
-  > - Command run: /vuln
-  > - What was done: [summary: N CVEs processed — list each CVE-ID, library, classification, outcome (fixed/skipped/blocked)]
-  > - Key events: [BLOCK reviews and their reason, test regressions, workarounds needed, NVD lookup failures, Detect failures, missing reference docs — or 'none']
-  > - Workarounds used: [manual steps not automated — or 'none']
-  > - Overall result: [N fixed, N skipped, N blocked]
-  > - Project root: [absolute path]"
-
-Include the Lessons Learned report in the final batch summary.
+- Body: CVE summary, vulnerable range, version change made, classification, and test results (pass count before vs. after)
 
 ---
 
 ## Invariants (always enforced)
 
-- NEVER skip classification (step 5 of the research phase) — every CVE fix must be labelled
-- NEVER use Opus for a MODERATE fix unless the user explicitly requests it
-- NEVER run the test suite on a SIGNIFICANT / HIGH-RISK fix before the Opus code review returns a non-BLOCK verdict
-- NEVER touch any file before creating and checking out the per-CVE branch
-- ALWAYS check for a clean working tree before branching; stash or get explicit user consent if dirty
-- ALWAYS include the classification in the commit message and PR body
-- ALWAYS compare against the Baseline agent's results — a regression is only real vs. the pre-change baseline
-- AFTER one review-fixer pass + one re-review, if verdict is still BLOCK: stop and surface to user — do NOT loop
+- ALWAYS classify **per CVE** after research
+- NEVER use Opus for a `MODERATE` fix unless the user explicitly asks for it
+- NEVER run tests for a `SIGNIFICANT` / `HIGH-RISK` CVE before the Opus review returns a non-BLOCK verdict
+- ALWAYS pass the captured baseline block back to `vuln-fixer` on `phase: verify-resume`
+- NEVER push directly to `main` / `master`

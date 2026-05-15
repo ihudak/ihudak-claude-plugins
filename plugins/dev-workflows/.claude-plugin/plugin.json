@@ -1,7 +1,7 @@
 {
   "name": "dev-workflows",
-  "version": "1.2.0",
-  "description": "Structured /impl, /vuln, /upgrade commands with Opus-backed planning, code review, and security-remediation workflows",
+  "version": "1.2.1",
+  "description": "Nine slash commands — /impl (help / dispatcher), /impl:code, /impl:docs, /impl:jira:docs, /impl:jira:epics, /vuln, /upgrade, /api-guideline-reviewer, and /guideline-reviewer — with Opus-backed planning, code review, product-docs review, and Epic review. Twenty-one reusable subagents (risk-planner, code-review, doc-reviewer, epic-reviewer, test-baseline, test-writer, review-fixer, doc-fixer, docs-style-checker, doc-planner, doc-location-finder, jira-reader, code-diff-summarizer, code-scanner, impl-maintenance, guideline-reviewer, api-guideline-reviewer, upgrade-planner, upgrade-executor, vuln-research, vuln-fixer) and three notification / context hooks.",
   "author": {
     "name": "Ivan Gudak",
     "email": "ivan.gudak@dynatrace.com"

@@ -34,9 +34,11 @@ That count reflects the original bootstrap layout. The live `dev-workflows`
 workflow now relies on a larger set of helper agents and workflow roles; see
 the taxonomy and workflow map below.
 
-**Internal path convention:** all paths inside command/agent/hook files use
-`~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/` as the root prefix.
-This is where Claude Code installs the plugin's content.
+**Internal reference convention:**
+- Agents are invoked by `subagent_type` (`<plugin>:<agent>`, e.g. `dev-workflows:risk-planner`) — never by reading the agent file. Claude Code loads the agent body as its system prompt and honours its `model:` frontmatter.
+- Inside **agent** and **skill** bodies (and `hooks.json` / MCP / monitor configs), reference bundled files via `${CLAUDE_PLUGIN_ROOT}/...`. This variable does NOT expand in slash-command bodies.
+- Slash **commands** that need bundled reference content (e.g. model-routing classification) invoke a skill that resolves `${CLAUDE_PLUGIN_ROOT}` on their behalf (see the `model-routing` skill).
+Do NOT hardcode `~/.claude/plugins/data/...@.../` paths — that directory holds only empty per-plugin state; installed content lives under `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`.
 
 **When editing `dev-workflows`:** update the files in `plugins/dev-workflows/` directly.
 Do NOT edit `~/.claude/claude-config/` — that repo is retired and will be deleted.
@@ -54,7 +56,7 @@ Do NOT edit `~/.claude/claude-config/` — that repo is retired and will be dele
 - Agent `.md` files must start with YAML frontmatter (`---`) containing at minimum `name` and `description`.
 - Hook scripts must exit 0 — they must never block Claude.
 - `hooks.json` `matcher` field (for PostToolUse) goes at the entry level, not inside the hook object.
-- All paths in plugin content use `~/.claude/plugins/data/<plugin>@ihudak-claude-plugins/` — never hardcode `~/.claude/` subdirectories directly.
+- Plugin content references bundled files via `${CLAUDE_PLUGIN_ROOT}` (agents/skills/hooks) or the `model-routing` skill (commands); never hardcode `~/.claude/plugins/data/...@.../` paths (see the Internal reference convention above).
 - MIT license applies to all plugins unless a plugin directory has its own LICENSE file.
 
 ## Command, agent, and skill taxonomy

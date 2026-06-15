@@ -29,7 +29,7 @@ flowchart TD
     P0 --> P1{"Phase 1:<br/>Any ambiguity?"}
     P1 -->|Yes| Q["Ask user with choices<br/>last choice: Other..."]
     Q --> P1
-    P1 -->|No| C["Phase 1.5: Classify task<br/>SIMPLE / MODERATE / SIGNIFICANT / HIGH-RISK"]
+    P1 -->|No| C["Phase 1.5: Classify task via model-routing skill<br/>SIMPLE / MODERATE / SIGNIFICANT / HIGH-RISK"]
 
     C -->|SIMPLE / MODERATE| E1["Explore codebase<br/>read-only subagent"]
     E1 --> SP["Phase 2A: Standard plan"]
@@ -110,7 +110,7 @@ Additionally:
 
 ## Agents
 
-Seventeen reusable subagents (invoked internally by the commands). The four Opus-backed agents are explicit; the rest inherit the session's model.
+Twenty-one reusable subagents (invoked internally by the commands). The four Opus-backed agents are explicit; the rest inherit the session's model.
 
 | Agent | Model | Description |
 |-------|-------|-------------|
@@ -121,6 +121,10 @@ Seventeen reusable subagents (invoked internally by the commands). The four Opus
 | `test-baseliner` | inherits | Runs the test suite in `capture` or `verify` mode; `verify` diffs against a prior baseline and returns a structured regression report. Framework detection: Maven, Gradle, npm, pytest, Makefile. |
 | `test-writer` | inherits | Writes tests for new or changed behaviour based on a diff. Never runs tests. Framework detection mirrors `test-baseliner`; returns "not detected" immediately if no framework is configured. |
 | `review-fixer` | inherits | Applies BLOCKER / MAJOR findings from a `code-review` report; returns a structured fix report with a `Stop condition flag` so callers know whether to re-review. Used by `/impl:code`, `/vuln`, `/upgrade`. |
+| `upgrade-planner` | inherits | Phase-1 compatibility planner for `/upgrade`: detects the component, resolves the target version (exact/minor/latest/lts/bare), and verifies compatibility with other components. Returns a structured upgrade plan or a conflict report. |
+| `upgrade-executor` | inherits | Phase-2 executor for `/upgrade`: applies the plan for one component, runs the build, verifies tests via `test-baseliner`, and auto-fixes test-code breakage from the new version's API changes. |
+| `vuln-research` | inherits | Read-only research phase of `/vuln`: NVD lookup, library detection, current-version discovery, and minimum-safe-version resolution. No side effects. |
+| `vuln-fixer` | inherits | Fix phase of `/vuln`: captures a baseline, applies the minimal version bump, rebuilds, verifies tests, commits to a branch, and opens a PR. |
 | `doc-fixer` | inherits | Applies BLOCKER / MAJOR findings from a `doc-reviewer`, `epic-reviewer`, or `docs-style-checker` report. Shared between `/impl:jira:docs` and `/impl:jira:epics`. Returns the same `Stop condition flag` contract as `review-fixer`. |
 | `docs-style-checker` | inherits | Runs the docs repo's project-configured prose linter (Vale via `.vale.ini`, `package.json` `*:lint` / `lint:*` script, markdownlint, or remark) on files written by `/impl:jira:docs` Phase 6 and emits findings for `doc-fixer`. |
 | `doc-planner` | inherits | Synthesises Jira data + per-repo diff summaries + confirmed write targets into a documentation checklist the writer follows and `doc-reviewer` checks against. Detects the repo's `image_policy` (`local` / `cdn_upload_required` / `ambiguous`). |
@@ -132,7 +136,7 @@ Seventeen reusable subagents (invoked internally by the commands). The four Opus
 | `guideline-reviewer` | inherits | Reviews Dynatrace app code and UI for compliance with Dynatrace Experience Standards (GUIDElines). Checks AppHeader, DataTable, FilterField, Connections, Permissions, Settings, Dashboards, accessibility/WCAG, terminology, and Grail naming. |
 | `api-guideline-reviewer` | inherits | Reviews OpenAPI specification files against Dynatrace REST API and IAM permission naming guidelines. Checks version consistency, required elements, naming conventions, IAM scope format, HTTP status codes, and schema composition. |
 
-Opus gates (`risk-planner`, `code-review`, `doc-reviewer`, `epic-reviewer`) declare `model: opus` in their frontmatter **and** the caller passes `model: "opus"` on the `Agent` tool call — belt-and-braces so the override is in force regardless of user-agent discovery.
+Agents are dispatched by `subagent_type` (e.g. `dev-workflows:risk-planner`). Claude Code loads each agent's file body as its system prompt and honours its `model:` frontmatter — so the four Opus gates (`risk-planner`, `code-review`, `doc-reviewer`, `epic-reviewer`) run on Opus automatically, with no caller-side `model` override or file-path reference.
 
 ## Hooks
 

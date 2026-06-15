@@ -89,7 +89,7 @@ or the `/plugin` command, then install:
 /plugin install obsidian-llm-wiki@ihudak-plugins
 ```
 
-Plugin installs to `~/.claude/plugins/data/obsidian-llm-wiki@ihudak-claude-plugins/`.
+Plugin content installs under `~/.claude/plugins/cache/<marketplace>/obsidian-llm-wiki/<version>/`; persistent plugin state (if any) lives under `~/.claude/plugins/data/obsidian-llm-wiki-<marketplace>/`.
 Hooks activate automatically: session start reads `hot.md`, session end updates it.
 
 #### Claude Code (local / development)

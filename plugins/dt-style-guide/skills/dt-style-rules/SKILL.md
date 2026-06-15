@@ -20,7 +20,7 @@ for post-hoc style checking.
 
 Read the reference docs from:
 ```
-~/.claude/plugins/data/dt-style-guide@ihudak-claude-plugins/references/
+${CLAUDE_PLUGIN_ROOT}/references/
 ```
 
 Apply the rules below while writing. The full reference docs provide

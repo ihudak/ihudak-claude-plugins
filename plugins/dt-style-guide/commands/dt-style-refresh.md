@@ -41,10 +41,8 @@ For each reference file:
 
 ### 3. Write updated files
 
-Write updated reference docs to:
-```
-~/.claude/plugins/data/dt-style-guide@ihudak-claude-plugins/references/
-```
+Write updated reference docs to the plugin's installed `references/` directory
+(the directory containing `terminology.md`, `word-list.md`, etc.).
 
 ### 4. Report changes
 

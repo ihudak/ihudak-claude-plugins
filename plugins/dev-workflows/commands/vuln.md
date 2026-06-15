@@ -49,16 +49,9 @@ Invoke one research task per valid CVE. Use a single agent message for the batch
 
 ```
 task(
-  agent_type: "general-purpose",
+  agent_type: "dev-workflows:vuln-research",
   description: "Research CVE",
-  # Re-run with model: "claude-opus-4.7" for HIGH-RISK CVEs after the provisional pass,
-  # and for SIGNIFICANT CVEs when the major-bump surface is non-trivial.
-  prompt: "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/vuln-research.md`
-  (fall back to `~/.claude/agents/vuln-research.md` if installed at user level).
-
-  Handoff format: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/vuln-research.md`
-
-  ## Vuln Research Request
+  prompt: "## Vuln Research Request
   repo: [absolute repo path]
   cves:
     - id: [CVE-ID]
@@ -90,14 +83,9 @@ Invoke `vuln-fixer` with `baseline_tests: run-fresh`:
 
 ```
 task(
-  agent_type: "general-purpose",
+  agent_type: "dev-workflows:vuln-fixer",
   description: "Fix CVE",
-  prompt: "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/vuln-fixer.md`
-  (fall back to `~/.claude/agents/vuln-fixer.md` if installed at user level).
-
-  Handoff format: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/vuln-fixer.md`
-
-  ## Vuln Fix Request
+  prompt: "## Vuln Fix Request
   repo: [absolute repo path]
   phase: full
   baseline_tests: run-fresh
@@ -117,12 +105,9 @@ task(
 
 ```
 task(
-  agent_type: "general-purpose",
+  agent_type: "dev-workflows:vuln-fixer",
   description: "Apply CVE fix before review",
-  prompt: "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/vuln-fixer.md`
-  (fall back to `~/.claude/agents/vuln-fixer.md` if installed at user level).
-
-  ## Vuln Fix Request
+  prompt: "## Vuln Fix Request
   repo: [absolute repo path]
   phase: full
   baseline_tests: provided

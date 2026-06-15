@@ -121,10 +121,8 @@ choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
 
 Invoke `jira-reader` with `depth: full`:
 
-→ Agent (subagent_type: "general-purpose"):
-  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/jira-reader.md`
-  > (fall back to `~/.claude/agents/jira-reader.md` if installed at user level).
-  > Then return the structured handoff for this brief:
+→ Agent (subagent_type: "dev-workflows:jira-reader"):
+  > "Return the structured handoff for this brief:
   >
   > vault_path: [resolved $VAULT_PATH]
   > jira_key:   [resolved <JIRA_KEY>]
@@ -158,10 +156,8 @@ Spawn `diff-summarizer` instances in **batches of up to 4 concurrent agents** pe
 
 For each repo, in the same Agent message:
 
-→ Agent (subagent_type: "general-purpose"):
-  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/diff-summarizer.md`
-  > (fall back to `~/.claude/agents/diff-summarizer.md` if installed at user level).
-  > Then summarise this repo's PRs for the brief:
+→ Agent (subagent_type: "dev-workflows:diff-summarizer"):
+  > "Summarise this repo's PRs for the brief:
   >
   > repo_path:   <repos_base>/<repo>
   > pr_refs:     [ ... full PR entries from jira-reader handoff, filtered to this repo ... ]
@@ -198,10 +194,8 @@ choices: ["Proceed with Jira-only content (Recommended — writer/planner draw f
 
 Invoke `doc-location-finder`:
 
-→ Agent (subagent_type: "general-purpose"):
-  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-location-finder.md`
-  > (fall back to `~/.claude/agents/doc-location-finder.md` if installed at user level).
-  > Then find write target(s) for the brief:
+→ Agent (subagent_type: "dev-workflows:doc-location-finder"):
+  > "Find write target(s) for the brief:
   >
   > repo_root:       [cwd's git root, resolved in Phase 0]
   > feature_summary: [2–4 sentences combining jira-reader themes + value_increment.goal]
@@ -232,10 +226,8 @@ The confirmed target list (from any of the three paths above) is the **authorita
 
 Invoke `doc-planner`:
 
-→ Agent (subagent_type: "general-purpose"):
-  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-planner.md`
-  > (fall back to `~/.claude/agents/doc-planner.md` if installed at user level).
-  > Then produce the documentation checklist for the brief:
+→ Agent (subagent_type: "dev-workflows:doc-planner"):
+  > "Produce the documentation checklist for the brief:
   >
   > jira_reader_handoff: [paste full YAML from Phase 3]
   > diff_summaries:       [paste array of diff-summarizer outputs from Phase 5]
@@ -322,10 +314,8 @@ No external CLI calls; all git operations are local.
 
 Invoke `docs-style-checker` on the files written in Phase 6:
 
-→ Agent (subagent_type: "general-purpose"):
-  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/docs-style-checker.md`
-  > (fall back to `~/.claude/agents/docs-style-checker.md` if installed at user level).
-  > Then run the style check for this brief:
+→ Agent (subagent_type: "dev-workflows:docs-style-checker"):
+  > "Run the style check for this brief:
   >
   > repo_root: [cwd's git root]
   > files:     [absolute paths of every file written or modified in Phase 6]"
@@ -334,10 +324,8 @@ Act on the return:
 
 - **`status: NOT_CONFIGURED`** — no repo linter detected. Fall back to `dt-style-checker` (Dynatrace corporate style guide):
 
-  → Agent (subagent_type: "general-purpose"):
-    > "Read and adopt the system prompt at `~/.claude/plugins/data/dt-style-guide@ihudak-claude-plugins/agents/dt-style-checker.md`
-    > (fall back to `~/.claude/agents/dt-style-checker.md` if installed at user level).
-    > Then run the style check for this brief:
+  → Agent (subagent_type: "dt-style-guide:dt-style-checker"):
+    > "Run the style check for this brief:
     >
     > files:    [absolute paths of every file written or modified in Phase 6]
     > doc_type: product-docs"
@@ -346,10 +334,8 @@ Act on the return:
 - **`status: OK`** — linter ran, zero violations. Proceed to Phase 7.
 - **`status: VIOLATIONS_FOUND`** — invoke `doc-fixer` with the violations treated as per their severity. After `doc-fixer` completes, re-run the linter once:
 
-  → Agent (subagent_type: "general-purpose"):
-    > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-fixer.md`
-    > (fall back to `~/.claude/agents/doc-fixer.md` if installed at user level).
-    > Then fix the style violations for this brief:
+  → Agent (subagent_type: "dev-workflows:doc-fixer"):
+    > "Fix the style violations for this brief:
     >
     > Task description: [doc writing for <JIRA_KEY>]
     > Reviewer or style-checker output: [paste full docs-style-checker output]
@@ -372,10 +358,8 @@ Act on the return:
 
 Invoke `doc-reviewer` (Opus). The reviewer is **product-docs-only**; Epic drafts go through `epic-reviewer` in `/impl:jira:epics`.
 
-→ Agent (subagent_type: "general-purpose", model: "opus"):
-  > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-reviewer.md`
-  > (fall back to `~/.claude/agents/doc-reviewer.md` if installed at user level).
-  > Then review the written product documentation for this brief:
+→ Agent (subagent_type: "dev-workflows:doc-reviewer"):
+  > "Review the written product documentation for this brief:
   >
   > Task description: [one-paragraph summary of the feature and <JIRA_KEY>]
   > Written doc file paths: [absolute paths of every file written in Phase 6]
@@ -394,10 +378,8 @@ Act on the verdict:
 
 - **PASS WITH RECOMMENDATIONS** — invoke `doc-fixer` for MAJOR findings only:
 
-  → Agent (subagent_type: "general-purpose"):
-    > "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/doc-fixer.md`
-    > (fall back to `~/.claude/agents/doc-fixer.md` if installed at user level).
-    > Then fix the review findings for this brief:
+  → Agent (subagent_type: "dev-workflows:doc-fixer"):
+    > "Fix the review findings for this brief:
     >
     > Task description: [doc writing for <JIRA_KEY>]
     > Reviewer or style-checker output: [paste full doc-reviewer output]
@@ -467,10 +449,8 @@ Then spawn all four Phase 4-style maintenance agents in a **single Agent message
 > If YES: apply minimal, additive, scoped changes only — do not rewrite sections wholesale.
 > Return: what was changed and why, OR 'no update required'."
 
-**Agent 4 — Session maintenance** (general-purpose):
-> "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/impl-maintenance.md`
-> (fall back to `~/.claude/agents/impl-maintenance.md` if installed at user level).
-> Then analyse this session and return a Lessons Learned report.
+**Agent 4 — Session maintenance** (dev-workflows:impl-maintenance):
+> "Analyse this session and return a Lessons Learned report.
 >
 > Session handoff:
 > - Command run: /impl:jira:docs

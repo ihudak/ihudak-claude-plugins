@@ -35,15 +35,9 @@ All changes are left **uncommitted** on the current branch.
 
    ```
    task(
-     agent_type: "general-purpose",
+     agent_type: "dev-workflows:upgrade-planner",
      description: "Plan component upgrade",
-     # Add model: "claude-opus-4.7" for SIGNIFICANT / HIGH-RISK planning when routing requires it.
-     prompt: "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/upgrade-planner.md`
-     (fall back to `~/.claude/agents/upgrade-planner.md` if installed at user level).
-
-     Handoff format: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/upgrade-planner.md`
-
-     ## Upgrade Plan Request
+     prompt: "## Upgrade Plan Request
      repo: [absolute repo path]
      component: [component name]
      target: [exact | minor | latest | lts | bare]
@@ -69,13 +63,9 @@ All changes are left **uncommitted** on the current branch.
 
    ```
    task(
-     agent_type: "general-purpose",
-     model: "claude-opus-4.7",
+     agent_type: "dev-workflows:risk-planner",
      description: "Plan risky upgrade",
-     prompt: "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/risk-planner.md`
-     (fall back to `~/.claude/agents/risk-planner.md` if installed at user level).
-
-     Task description: Upgrade [component] from [current] to [target] in this repo.
+     prompt: "Task description: Upgrade [component] from [current] to [target] in this repo.
      Classification: [SIGNIFICANT | HIGH-RISK] — reason: [routing trigger]
      Upgrade plan: [paste the READY planner handoff]
      Current state: branch = [git branch], uncommitted = [git status --short summary]
@@ -104,12 +94,9 @@ All changes are left **uncommitted** on the current branch.
 
    ```
    task(
-     agent_type: "general-purpose",
+     agent_type: "dev-workflows:test-baseliner",
      description: "Capture test baseline",
-     prompt: "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/test-baseliner.md`
-     (fall back to `~/.claude/agents/test-baseliner.md` if installed at user level).
-
-     Mode: capture
+     prompt: "Mode: capture
      Project root: [absolute repo path]"
    )
    ```
@@ -122,14 +109,9 @@ All changes are left **uncommitted** on the current branch.
 
    ```
    task(
-     agent_type: "general-purpose",
+     agent_type: "dev-workflows:upgrade-executor",
      description: "Execute component upgrade",
-     prompt: "Read and adopt the system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/upgrade-executor.md`
-     (fall back to `~/.claude/agents/upgrade-executor.md` if installed at user level).
-
-     Handoff format: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/upgrade-executor.md`
-
-     ## Upgrade Execution Request
+     prompt: "## Upgrade Execution Request
      repo: [absolute repo path]
      phase: full
      baseline:

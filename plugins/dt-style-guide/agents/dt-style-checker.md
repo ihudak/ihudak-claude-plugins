@@ -35,7 +35,7 @@ doc_type:  epic | prd | ard | product-docs | general
 
 Read ALL files from:
 ```
-~/.claude/plugins/data/dt-style-guide@ihudak-claude-plugins/references/
+${CLAUDE_PLUGIN_ROOT}/references/
 ```
 
 Expected files: `terminology.md`, `word-list.md`, `voice-and-tone.md`, `grammar.md`,
@@ -46,7 +46,7 @@ If the references directory is missing or empty, return:
 status: ERROR
 checker: dt-style-guide
 violations: []
-error: "Reference docs not found at ~/.claude/plugins/data/dt-style-guide@ihudak-claude-plugins/references/"
+error: "Reference docs not found at ${CLAUDE_PLUGIN_ROOT}/references/"
 ```
 
 ### 2. Read input files

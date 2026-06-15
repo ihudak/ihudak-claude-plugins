@@ -15,7 +15,7 @@ repo_inventory:            # snapshot of key version info from build files
   spring-boot: "3.1.4"
   hibernate: "6.2.0"
   gradle: "8.4"
-model_routing:             # optional; echoed back in output. See `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md` for the model-routing block schema
+model_routing:             # optional; echoed back in output. See `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` for the model-routing block schema
   classification: SIGNIFICANT
 ```
 

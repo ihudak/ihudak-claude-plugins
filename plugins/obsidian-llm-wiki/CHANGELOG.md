@@ -18,7 +18,7 @@ Versions follow semver at the plugin level.
 - Ported from standalone Claude Code config to marketplace plugin format.
 - Skills use SKILL.md with YAML frontmatter.
 - Orchestrator skills declare `allowed-tools:` in frontmatter.
-- Path references use `~/.claude/plugins/data/obsidian-llm-wiki@ihudak-claude-plugins/`.
+- Path references use `${CLAUDE_PLUGIN_ROOT}/` (agents/skills/hooks) or `~/.claude/plugins/cache/<marketplace>/obsidian-llm-wiki/<version>/` (installed content).
 - Hooks: `SessionStart`, `PostCompact`, and `Stop` via `hooks.json`.
 
 ## [0.1.0]

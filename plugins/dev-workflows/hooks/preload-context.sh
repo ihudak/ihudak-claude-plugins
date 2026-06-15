@@ -45,7 +45,7 @@ emit_model_routing() {
     echo "  SIGNIFICANT / HIGH-RISK -> plan with risk-planner (Opus), code-review (Opus)"
     echo "  BEFORE running tests. Invoke via Agent(subagent_type: general-purpose,"
     echo "  model: opus) + prompt to read the plugin-installed agents/<name>.md."
-    echo "  Full rules: ~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md"
+    echo "  Full rules: invoke the model-routing skill (loads references/model-routing/classification.md)"
 }
 
 emit_git_full() {

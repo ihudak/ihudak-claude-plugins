@@ -8,19 +8,11 @@ Fix security vulnerabilities: $ARGUMENTS
 
 Each argument token is either `JIRA-ID:CVE-ID` (e.g. `MGD-2423:CVE-2023-46604`) or a bare `CVE-ID` (e.g. `CVE-2023-46604`). Parse and filter each token, research all CVEs first, then fix them one at a time.
 
-Reference files (read when needed):
-- Build-system detection and update commands: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/fix-vuln/build-systems.md`
-- NVD API usage: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/fix-vuln/nvd-api.md`
-- Model routing: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md`
-- Research handoff: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/vuln-research.md`
-- Fixer handoff: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/vuln-fixer.md`
-- Test baseline handoff: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/test-baseliner.md`
-
 ---
 
 ## Step 0 — Classify & Route (mandatory)
 
-Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md`. Classify **per CVE**, based on the size of the required repository change — not the CVE category alone.
+Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the classification rules, then classify **per CVE**, based on the size of the required repository change — not the CVE category alone.
 
 Default heuristics:
 

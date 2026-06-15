@@ -12,8 +12,6 @@ Key distinction from `/impl:jira:docs`: the VI being Epic-ized is **not yet impl
 
 `/impl:jira:epics` **never branches**, **never commits**, and only writes inside `$VAULT_PATH`. Vault git hygiene is the user's responsibility — they may or may not have the vault under version control.
 
-Reference: model-routing rules live at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md`. The classification step below follows that file verbatim. The Opus gate (`epic-reviewer`) is independent of the four-level classification.
-
 ---
 
 ## Phase 0 — Load
@@ -77,7 +75,7 @@ No branching context is shown — this command never branches.
 
 ## Phase 1.5 — Classify
 
-Epic writing is typically **MODERATE** (bounded scope, single VI, vault-internal output). State the classification and a one-sentence reason.
+Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the classification rules, then classify the task as exactly one of: `SIMPLE`, `MODERATE`, `SIGNIFICANT`, or `HIGH-RISK`. Epic writing is typically **MODERATE** (bounded scope, single VI, vault-internal output). State the classification and a one-sentence reason.
 
 MODERATE → no Opus planning; `epic-reviewer` gate is mandatory.
 

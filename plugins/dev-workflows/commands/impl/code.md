@@ -8,8 +8,6 @@ Implement the following: $ARGUMENTS
 
 If the argument starts with `@`, treat it as a path to a markdown file. Resolve relative to the current working directory. Read its full content and use it as the description. Echo `📄 Reading prompt from \`<file>\`…` before proceeding. If the file cannot be read, stop and report the error immediately.
 
-Reference: model-routing rules live at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md`. The classification step below, and any Opus-gated steps, follow that file verbatim.
-
 ---
 
 ## Phase 0 — Load the description
@@ -42,7 +40,7 @@ If **nothing** is ambiguous, skip directly to Phase 1.5.
 
 ## Phase 1.5 — Classify task complexity
 
-Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md`. Classify the task as exactly one of:
+Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the classification rules, then classify the task as exactly one of:
 
 - **SIMPLE** — local, trivial, clearly reversible; no mandatory Opus steps
 - **MODERATE** — bounded scope, few files, clear requirements; no mandatory Opus steps

@@ -23,7 +23,7 @@ kb_context: >
   Used httpx-oauth library. Encountered redirect_uri mismatch issues on localhost;
   resolved by normalising the URI before hashing for state param verification.
 model_routing:             # optional; echo in output if present.
-  classification: SIGNIFICANT  # See `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md` for the full model-routing schema.
+  classification: SIGNIFICANT  # See `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` for the full model-routing schema.
 ```
 
 **change_type guide:**

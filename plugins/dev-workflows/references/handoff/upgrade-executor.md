@@ -23,7 +23,7 @@ baseline:                    # The orchestrator (upgrade/SKILL.md Phase 2 Step 1
 model_routing:               # optional; set by orchestrator for SIGNIFICANT / HIGH-RISK
   classification: SIGNIFICANT
   gate_tests_on_review: true # if true: stop after Build, return AWAITING_REVIEW
-  # full schema: see ~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md §4
+  # full schema: see ${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md §4
 
 ## Upgrade Plan: spring-boot
 status: READY

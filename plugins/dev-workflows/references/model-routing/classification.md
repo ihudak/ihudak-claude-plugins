@@ -63,7 +63,7 @@ when the change is **production-critical, security-critical, or data-irreversibl
 > repo (API renames, signature changes, deprecation removals, behaviour
 > adaptations). Escalate to HIGH-RISK when a major bump targets a
 > security-critical library (auth/authn frameworks, crypto, deserializers,
-> JWT, OAuth, session libs). See `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/commands/vuln.md`
+> JWT, OAuth, session libs). See `${CLAUDE_PLUGIN_ROOT}/commands/vuln.md`
 > "Step 0 — Classify & Route" for the full vulnerability rubric.
 >
 > **For `/impl` and `/upgrade` orchestrators**, the standard rubric in §1.1

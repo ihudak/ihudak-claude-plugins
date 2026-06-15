@@ -14,7 +14,7 @@ baseline:                  # required only for mode: verify
     - com.example.BarTest#testLogin
 model_routing:             # optional; informational only — test-baseliner
   classification: SIGNIFICANT  # ignores routing and runs under whichever
-  # model the caller selected. See `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md` for the model-routing block schema.
+  # model the caller selected. See `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` for the model-routing block schema.
 ```
 
 ## Output — capture mode

@@ -79,7 +79,7 @@ one alternative that was rejected and the reason.]
 ## Planning discipline
 
 - **Cite the criterion.** The classification reason must reference a concrete
-  bullet from `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md`
+  bullet from `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md`
   (absolute path, since the agent's working directory is the caller's project,
   not this repo), not a vibe. Use `Read` to open it if needed.
 - **Minimise scope.** Suggest the smallest change that meets the acceptance

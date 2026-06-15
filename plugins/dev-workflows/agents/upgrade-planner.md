@@ -11,10 +11,10 @@ description: >
 
 # upgrade-planner — Upgrade Compatibility Agent
 
-Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/upgrade-planner.md` for the exact input/output document format.
-Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/upgrade/ecosystems.md` for detection patterns and registry query commands.
-Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/upgrade/compatibility.md` for known compatibility constraints.
-Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/upgrade/lts-sources.md` when resolving `lts` targets.
+Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/upgrade-planner.md` for the exact input/output document format.
+Read `${CLAUDE_PLUGIN_ROOT}/references/upgrade/ecosystems.md` for detection patterns and registry query commands.
+Read `${CLAUDE_PLUGIN_ROOT}/references/upgrade/compatibility.md` for known compatibility constraints.
+Read `${CLAUDE_PLUGIN_ROOT}/references/upgrade/lts-sources.md` when resolving `lts` targets.
 
 ## Process
 
@@ -23,7 +23,7 @@ Receive a single upgrade request (one component, one target spec).
 1. **Detect** — Locate the component in the repo using `references/upgrade/ecosystems.md`.
    If not found: set `status: NOT_FOUND`, return immediately.
 
-2. **Resolve target version** — Apply the version resolution rules from `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/commands/upgrade.md`
+2. **Resolve target version** — Apply the version resolution rules from `${CLAUDE_PLUGIN_ROOT}/commands/upgrade.md`
    ("Version resolution" section) for the given target spec (exact / minor / latest / lts / bare).
 
 3. **Compatibility check** — For the resolved target version, verify compatibility against:
@@ -49,7 +49,7 @@ Receive a single upgrade request (one component, one target spec).
 ## Model Routing
 
 If the orchestrator passes a `model_routing` block (see
-`~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md` §4), record it in the output
+`${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §4), record it in the output
 `plan` record so the executor and the final report can quote it. This agent
 itself runs under whichever model the orchestrator selected when invoking
 it via the `task` tool's `model:` argument — for SIGNIFICANT / HIGH-RISK

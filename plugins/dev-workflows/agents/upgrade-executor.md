@@ -11,9 +11,9 @@ description: >
 
 # upgrade-executor — Upgrade Execution Agent
 
-Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/upgrade-executor.md` for the exact input/output document format.
-Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/upgrade/ecosystems.md` for per-ecosystem update commands.
-Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/test-baseliner.md` for the test-baseliner handoff format.
+Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/upgrade-executor.md` for the exact input/output document format.
+Read `${CLAUDE_PLUGIN_ROOT}/references/upgrade/ecosystems.md` for per-ecosystem update commands.
+Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md` for the test-baseliner handoff format.
 
 ## Process
 
@@ -63,7 +63,7 @@ Receive one upgrade plan with `status: READY`.
 ## Model Routing
 
 If the orchestrator passes a `model_routing` block (see
-`~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md` §4):
+`${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §4):
 
 - Record it in the output summary record.
 - If the block contains `gate_tests_on_review: true` (set by the orchestrator

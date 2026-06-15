@@ -23,7 +23,7 @@ The caller passes a structured brief:
   possible.
 - **Classification** - `SIGNIFICANT` or `HIGH-RISK` (with the reason).
 - **Plan** - the risk-weighted plan that was approved (produced by the
-  `risk-planner` system prompt at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/agents/risk-planner.md`, or a
+  `risk-planner` system prompt at `${CLAUDE_PLUGIN_ROOT}/agents/risk-planner.md`, or a
   user-approved equivalent).
 - **Diff** - `git diff` or a file-by-file list of changes. MANDATORY.
 - **Project root** - absolute path so files can be opened.
@@ -52,7 +52,7 @@ Refuse to review without a diff - ask the caller to produce one.
 
 If, after reading the diff, you conclude the task does NOT actually meet the
 SIGNIFICANT / HIGH-RISK criteria from
-`~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md` (absolute
+`${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` (absolute
 path — your working directory is the caller's project, not this repo; use
 `Read` to open the file if needed), return a short `### Re-classification`
 section INSTEAD of the full dimension-by-dimension report. State the level

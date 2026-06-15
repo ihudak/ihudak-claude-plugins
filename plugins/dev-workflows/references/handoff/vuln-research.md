@@ -11,7 +11,7 @@ cves:
   - id: CVE-2024-12345    # bare CVE, no Jira
 ecosystem_hint: java      # optional; helps when auto-detection is ambiguous
 model_routing:            # optional; if present, echo back in output.
-  classification: SIGNIFICANT      # See `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md` for the full model-routing schema.
+  classification: SIGNIFICANT      # See `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` for the full model-routing schema.
   # The orchestrator MUST re-invoke this agent under Opus for HIGH-RISK
   # CVEs, and SHOULD re-invoke for SIGNIFICANT CVEs involving a major bump
   # or non-trivial breaking-change surface (per the `/vuln` command Step 0).

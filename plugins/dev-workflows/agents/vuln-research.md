@@ -11,9 +11,9 @@ description: >
 
 # vuln-research — CVE Research Agent
 
-Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/vuln-research.md` for the exact input/output document format.
-Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/fix-vuln/nvd-api.md` for NVD REST API details.
-Read `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/fix-vuln/build-systems.md` for per-ecosystem library detection.
+Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/vuln-research.md` for the exact input/output document format.
+Read `${CLAUDE_PLUGIN_ROOT}/references/fix-vuln/nvd-api.md` for NVD REST API details.
+Read `${CLAUDE_PLUGIN_ROOT}/references/fix-vuln/build-systems.md` for per-ecosystem library detection.
 
 ## Process
 
@@ -45,7 +45,7 @@ For each CVE in the input handoff:
 ## Model Routing
 
 If the orchestrator passes a `model_routing` block (see
-`~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md` §4), record it in the research
+`${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §4), record it in the research
 report so the fixer and final report can quote it. This agent runs under
 whichever model the orchestrator selected via the `task` tool's `model:`
 argument. The orchestrator **MUST** re-invoke this agent under Opus for

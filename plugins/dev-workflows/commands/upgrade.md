@@ -10,15 +10,6 @@ Each token is one of: `component:1.2.3` (exact), `component:minor` (latest patch
 
 `component` can be a library, framework, language runtime, build tool, or path like `.github/workflows`.
 
-Reference files (read when needed):
-- Ecosystem detection and update commands: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/upgrade/ecosystems.md`
-- LTS lookup sources: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/upgrade/lts-sources.md`
-- Compatibility constraints: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/upgrade/compatibility.md`
-- Model routing: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md`
-- Planner handoff: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/upgrade-planner.md`
-- Executor handoff: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/upgrade-executor.md`
-- Test baseline handoff: `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/handoff/test-baseliner.md`
-
 All changes are left **uncommitted** on the current branch.
 
 ---
@@ -57,7 +48,7 @@ All changes are left **uncommitted** on the current branch.
    - `NOT_FOUND` → warn and skip
    - `CONFLICT` → surface `conflict_details` and ranked `alternatives`; do not proceed until the conflict is resolved or the component is skipped
 
-5. **Classify each READY component** — Apply `references/model-routing/classification.md` using the actual resolved change, related upgrades, and planner findings. Print one classification line per component. When in doubt, escalate to `SIGNIFICANT`.
+5. **Classify each READY component** — Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the classification rules, then apply them using the actual resolved change, related upgrades, and planner findings. Print one classification line per component. When in doubt, escalate to `SIGNIFICANT`.
 
 6. **Risk plan for SIGNIFICANT / HIGH-RISK components** — For every component classified `SIGNIFICANT` or `HIGH-RISK`, invoke `risk-planner` on Opus before execution:
 

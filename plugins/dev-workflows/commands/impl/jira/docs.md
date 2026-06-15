@@ -10,8 +10,6 @@ Generate product documentation for the Jira Value Increment: $ARGUMENTS
 
 For small one-off doc edits, use `/impl:docs`. For writing child Epic drafts from a VI, use `/impl:jira:epics`.
 
-Reference: model-routing rules live at `~/.claude/plugins/data/dev-workflows@ihudak-claude-plugins/references/model-routing/classification.md`. The classification step below follows that file verbatim. Opus gates (`doc-reviewer`) are independent of the four-level classification.
-
 ---
 
 ## Phase 0 — Load and dispatch
@@ -87,7 +85,7 @@ Also display (for user context):
 
 ## Phase 1.5 — Classify
 
-Jira-driven feature docs are typically **SIGNIFICANT** (large blast radius if wrong — published documentation). State the classification and a one-sentence reason.
+Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the classification rules, then classify the task as exactly one of: `SIMPLE`, `MODERATE`, `SIGNIFICANT`, or `HIGH-RISK`. Jira-driven feature docs are typically **SIGNIFICANT** (large blast radius if wrong — published documentation). State the classification and a one-sentence reason.
 
 SIGNIFICANT → no Opus planning (the Jira hierarchy + diff summaries *are* the plan); `doc-reviewer` gate is mandatory.
 

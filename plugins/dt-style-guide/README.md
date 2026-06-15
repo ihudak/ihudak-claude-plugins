@@ -92,9 +92,8 @@ Dynatrace style guide. Optionally applies safe automatic fixes.
 Fetches the latest rules from `styleguide.dynatrace.com` and updates the
 vendored reference docs. Run when the style guide has been updated.
 
-> **Note:** `/dt-style-refresh` updates the **runtime** copy at
-> `~/.claude/plugins/data/dt-style-guide@ihudak-claude-plugins/references/`.
-> These changes are lost on the next plugin reinstall. To persist updates,
+> **Note:** Vendored rules live under the plugin's own `references/` directory (resolved at runtime via `${CLAUDE_PLUGIN_ROOT}/references/`).
+> `/dt-style-refresh` updates the runtime copy; these changes are lost on the next plugin reinstall. To persist updates,
 > copy the refreshed files back into the plugin source at
 > `plugins/dt-style-guide/references/` and commit.
 

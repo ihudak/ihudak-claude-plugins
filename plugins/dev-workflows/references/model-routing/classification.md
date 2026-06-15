@@ -76,11 +76,11 @@ when the change is **production-critical, security-critical, or data-irreversibl
 
 Use the first model in this list that is available in the environment:
 
-1. `claude-opus-4.7`
-2. `claude-opus-4.6`
-3. `claude-opus-4.5`
-4. `claude-sonnet-4.6` (fallback only — note in the report that no Opus was available)
-5. `claude-sonnet-4.5` (further fallback — note "no Opus or Sonnet 4.6 available")
+1. `claude-opus-4-8`
+2. `claude-opus-4-7`
+3. `claude-opus-4-6`
+4. `claude-sonnet-4-6` (fallback only — note in the report that no Opus was available)
+5. `claude-sonnet-4-5` (further fallback — note "no Opus or Sonnet 4.6 available")
 
 Sonnet 4.5 is the floor; if no model in the list is available, abort the
 SIGNIFICANT/HIGH-RISK gates and ask the user how to proceed rather than
@@ -144,17 +144,17 @@ sub-agent it invokes. Format:
 model_routing:
   classification: SIMPLE | MODERATE | SIGNIFICANT | HIGH-RISK
   reason: <one-line justification citing the §1 trigger that applied>
-  current_model: <e.g. claude-opus-4.7>      # the model the orchestrator is running
-  planning_model: <e.g. claude-opus-4.7>     # only set for SIGNIFICANT/HIGH-RISK
-  review_model:   <e.g. claude-opus-4.7>     # only set for SIGNIFICANT/HIGH-RISK
-  implementation_model: <e.g. claude-sonnet-4.6 or current_model>
+  current_model: <e.g. claude-opus-4-8>      # the model the orchestrator is running
+  planning_model: <e.g. claude-opus-4-8>     # only set for SIGNIFICANT/HIGH-RISK
+  review_model:   <e.g. claude-opus-4-8>     # only set for SIGNIFICANT/HIGH-RISK
+  implementation_model: <e.g. claude-sonnet-4-6 or current_model>
   fixes_model:    <same as implementation_model>
   opus_available: true | false
   gate_tests_on_review: true | false   # optional; default false. Only meaningful for SIGNIFICANT/HIGH-RISK.
                                        # When true, the executor/fixer sub-agent stops after the build,
                                        # returns status: AWAITING_REVIEW, and waits for a follow-up call
                                        # with phase: verify-resume to run tests / commit / PR.
-  notes: <optional — e.g. "Opus 4.7 unavailable, fell back to 4.6">
+  notes: <optional — e.g. "Opus 4.8 unavailable, fell back to 4.6">
 ```
 
 The `phase` field used to resume an executor/fixer after the Opus review is
@@ -194,7 +194,7 @@ The CLI's `task` tool accepts an explicit `model:` override. Use it like this:
 ```
 task(
   agent_type: "risk-planner"  | "code-review" | "general-purpose",
-  model:      "claude-opus-4.7",   # or the highest available per §2
+  model:      "claude-opus-4-8",   # or the highest available per §2
   prompt:     "<full self-contained context — sub-agent has no memory>",
   description:"Opus planning critique" | "Opus code review",
   mode:       "sync"               # always sync for plan/review gates

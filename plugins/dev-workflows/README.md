@@ -143,7 +143,7 @@ Agents are dispatched by `subagent_type` (e.g. `dev-workflows:risk-planner`). Cl
 | Hook | Trigger | Description |
 |------|---------|-------------|
 | `notify-done` | Stop | Desktop notification when Claude Code finishes a turn. |
-| `preload-context` | UserPromptSubmit | Matches `/impl`, `/impl:code`, `/impl:docs`, `/impl:jira:docs`, `/impl:jira:epics`, `/vuln`, `/upgrade` (with at least one non-flag argument), then routes: full git context + model-routing reminder for `/impl:code`, `/vuln`, `/upgrade`; `$VAULT_PATH` + `<repos_base>` + git branch (only if cwd is a git repo) for the two `/impl:jira:*` commands; silent pass-through for `/impl` (dispatcher only) and `/impl:docs` (user manages git manually). |
+| `preload-context` | UserPromptSubmit | Matches `/impl`, `/impl:code`, `/impl:docs`, `/impl:jira:docs`, `/impl:jira:epics`, `/vuln`, `/upgrade` (with at least one non-flag argument), then routes: full git context + model-routing reminder for `/impl:code`, `/vuln`, `/upgrade`; `$VAULT_PATH` + `$REPOS_PATH` + git branch (only if cwd is a git repo) for the two `/impl:jira:*` commands; silent pass-through for `/impl` (dispatcher only) and `/impl:docs` (user manages git manually). |
 | `test-notify` | PostToolUse:Bash | Parses test-command output and sends a desktop notification with pass/fail counts. |
 
 ## Environment prerequisites
@@ -155,11 +155,11 @@ These commands run fine on a bare host, but they depend on a few external tools 
 - **`vale`** (optional but recommended) — when the target docs repo has `.vale.ini`, `docs-style-checker` invokes `vale` so the local check matches what the repo's CI runs. If `vale` is not on PATH, the agent falls back to the repo's `package.json` `*:lint` script (or similar). If neither is available, style checks are skipped and Opus `doc-reviewer` is the only style gate.
 - **`dt-style-guide` plugin** (optional companion) — when `docs-style-checker` finds no repo-configured linter, `/impl:jira:docs` falls back to `dt-style-checker` from the `dt-style-guide` plugin (Dynatrace corporate style guide). `/impl:jira:epics` always uses `dt-style-checker` as its primary style gate (vault content has no repo linter). Both plugins are independently installable — without `dt-style-guide`, the fallback is skipped gracefully.
 - **Recommended environment: [ihudak/ai-containers](https://github.com/ihudak/ai-containers).** The commands work best inside the AI Container, which:
-  - Mounts `/repos` with the relevant code repositories already cloned, so the default `<repos_base>` just works.
+  - Mounts every repository and the Obsidian vault under a single `/workspace` umbrella (`/workspace/<repo>`, vault at `/workspace/obsidian`), so the default `$REPOS_PATH` (`/workspace`) and exported `VAULT_PATH` just work. Repos are located by matching each PR's slug against `git remote get-url origin`, so a clone's directory name need not equal the slug.
   - Installs `gh` automatically.
   - Mounts `~/.config/gh` from the host, so `gh auth login` on the host is sufficient — no re-auth inside the container.
 
-  Outside the AI Container the commands still function; the user manages `<repos_base>`, `gh` installation, and `gh auth login` themselves.
+  Outside the AI Container the commands still function; set `$REPOS_PATH` (single dir or colon-separated list) to wherever your clones live, and manage `gh` installation and `gh auth login` yourself.
 
 ## Reference docs
 

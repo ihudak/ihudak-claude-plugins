@@ -104,3 +104,5 @@ one alternative that was rejected and the reason.]
 - NEVER blur the classification: if the task turns out to be SIMPLE / MODERATE
   on inspection, say so explicitly and return; the caller will fall back to
   the normal path.
+- NEVER recommend "skip the style check" as a valid disposition. Style checks are mandatory in the docs workflows; a missing linter falls back to `dt-style-checker`, never to nothing.
+- NEVER recommend silently resolving a Jira-vs-source discrepancy — neither "trust the description over the code" nor "trust the code over the description". When source and description disagree, the discrepancy MUST be escalated to the user per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.

@@ -33,7 +33,7 @@ style guide. Works with Bitbucket-style merge commits (finds PRs by number in
 
 ```
 /dt-review-pr 9089
-/dt-review-pr 9089 --repo /repos/dynatrace-docs
+/dt-review-pr 9089 --repo /workspace/dynatrace-docs
 /dt-review-pr alexander-huetter/noissue-improve-managed-docs
 /dt-review-pr my-branch --doc-type product-docs
 ```

@@ -11,12 +11,15 @@ Versions follow semver at the plugin level.
   `image_policy` is `cdn_upload_required`, screenshots awaiting manual CDN upload
   were staged under `/tmp/<JIRA_KEY>-screenshots/`. `/tmp` is in-image and
   ephemeral, so the staged files were lost on container restart — before the user
-  had uploaded them. Staging now defaults to a git-ignored directory inside the
-  repo, `<repo_root>/.dt-screenshot-staging/<JIRA_KEY>/`: the repo is a bind mount
-  so the files persist, and the writer appends the directory to
-  `.git/info/exclude` so it never enters version control. Affects `doc-planner`
-  (the `staging` path it computes) and the `/impl:jira:docs` Phase 6 writer step,
-  Phase 9 report, and invariants.
+  had uploaded them. Staging now targets the ticket's **persistent Obsidian project
+  folder** under `$VAULT_PATH` (always host-mounted), resolved by the command as a
+  directory under `$VAULT_PATH/Projects/` whose name starts with `<JIRA_KEY>` (its
+  `Doc screenshots/` or `Attachments/` subfolder); when no project folder is found
+  the command asks for a persistent directory. The command passes the resolved
+  `screenshot_staging_dir` to `doc-planner`. Neither the docs repo (which may be a
+  docker repo-volume, not on the host) nor `/tmp` is used. Affects `doc-planner` and
+  the `/impl:jira:docs` Phase 1 resolution, Phase 6 writer step, Phase 9 report, and
+  invariants.
 
 ## [1.5.0] — 2026-06-16
 

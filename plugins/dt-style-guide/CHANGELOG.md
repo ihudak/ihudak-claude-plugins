@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1
+
+- Fixed agent/skill/command references to use `${CLAUDE_PLUGIN_ROOT}` instead of the
+  non-resolving `~/.claude/plugins/data/...@.../` path convention; `dt-style-checker`
+  is now invoked by `subagent_type` where called cross-plugin.
+
 ## 0.2.0
 
 - Added `/dt-review-pr` command — reviews doc changes from a pull request

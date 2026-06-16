@@ -4,6 +4,13 @@ All notable changes to the **obsidian-llm-wiki** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [0.3.1]
+
+### Fixed
+- Corrected README/CHANGELOG install-path references to point at the actual
+  `~/.claude/plugins/cache/<marketplace>/...` location (was the non-resolving
+  `~/.claude/plugins/data/...@.../` form).
+
 ## [0.3.0]
 
 ### Added

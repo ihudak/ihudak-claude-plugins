@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "dev-workflows",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "description": "Nine slash commands — /impl (help / dispatcher), /impl:code, /impl:docs, /impl:jira:docs, /impl:jira:epics, /vuln, /upgrade, /api-guideline-reviewer, and /guideline-reviewer — with Opus-backed planning, code review, product-docs review, and Epic review. Twenty-one reusable subagents (risk-planner, code-review, doc-reviewer, epic-reviewer, test-baseliner, test-writer, review-fixer, doc-fixer, docs-style-checker, doc-planner, doc-location-finder, jira-reader, diff-summarizer, code-scanner, impl-maintenance, guideline-reviewer, api-guideline-reviewer, upgrade-planner, upgrade-executor, vuln-research, vuln-fixer) and three notification / context hooks.",
       "author": {
         "name": "Ivan Gudak",
@@ -21,7 +21,7 @@
     },
     {
       "name": "dt-style-guide",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "description": "Dynatrace corporate style guide checker and writing-aid plugin. Enforces terminology, trademarks, voice/tone, grammar, formatting, and inclusive-language rules from styleguide.dynatrace.com. Includes /dt-review-pr (review PR doc changes), /dt-review-docs (review files/directories with optional --fix), /dt-style-refresh (update vendored rules), a dt-style-checker agent, a dt-doc-fixer agent, a dt-style-rules skill, and vendored reference docs. Acts as a fallback for dev-workflows when no repo-configured prose linter is available.",
       "author": {
         "name": "Ivan Gudak",
@@ -33,7 +33,7 @@
     },
     {
       "name": "obsidian-llm-wiki",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "description": "LLM Wiki pattern for an active Obsidian vault. Ten slash commands (/wiki-init, /wiki-ingest, /wiki-scan, /wiki-query, /wiki-save, /wiki-lint, /wiki-hot, /wiki-tags-refresh, /wiki-task, /wiki-tasks-extract) compile knowledge from meetings, projects, daily notes, and raw sources into a persistent, cross-referenced wiki at wiki/, with integrated task management via Obsidian Tasks. Supports Claude Code and GitHub Copilot as first-class agents with session-continuity hooks.",
       "author": {
         "name": "Ivan Gudak",

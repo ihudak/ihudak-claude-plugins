@@ -79,9 +79,20 @@ Replace the hardcoded `/repos` default and the "detect-then-ask" UX with
 5. **Environment variable rename.** `REPOS_BASE` → `REPOS_PATH`, with default
    `/workspace`, for consistency with the sibling marketplace.
 
-This is robust against slug ≠ directory name (e.g. PR slug `cluster` vs a clone
-named `cluster-foundation`) and against multiple local clones of the same
-upstream — neither of which the old `<repos_base>/<slug>` lookup handled.
+Because matching is by **upstream URL**, not directory name, this is robust in
+two cases the old `<repos_base>/<slug>` lookup mishandled:
+
+- **Clone directory name ≠ slug** — a clone checked out into a directory whose
+  name differs from the repo slug still resolves, because the match is on
+  `git remote get-url origin`, not on `basename`.
+- **Multiple clones of the *same* upstream** — e.g. `cluster` and `cluster-repo`
+  both pointing at `…/rx/cluster.git` — are disambiguated by the preference
+  order above.
+
+Note this is distinct from two *different* repositories that merely share a name
+prefix: `cluster` (`…/rx/cluster.git`) and `cluster-foundation`
+(`…/rx/cluster-foundation.git`) are separate upstreams, and the last-path-segment
+match resolves each unambiguously (`cluster` ≠ `cluster-foundation`).
 
 ## Files to change
 
@@ -117,15 +128,16 @@ already established during design:
   - The dominant repo `cluster` (65 of ~80 PR references) is mounted at
     `/workspace/cluster` and resolves by git-remote slug
     (`ssh://…/rx/cluster.git` → `cluster`). ✓
-  - Secondary repos referenced by the VI — `appfw-spec`, `dynatrace-docs`,
-    `semantic-dictionary`, `oneagent-protocols`, `installer-activegate`,
-    `guidelines` — are **not mounted** → their PRs are skipped via the existing
-    missing-repo escalation (`Skip and continue without its PRs`).
-  - ⚠️ **`dynatrace-docs` (the docs write target) is not mounted in this
-    container** (only `cluster-openapi-docs` is). With the fix applied the
-    workflow still runs, but there is no docs repo to write into; the user must
-    mount `dynatrace-docs` (e.g. via `REPOS`/`EXTRA_MOUNTS`) to actually produce
-    product documentation. This is an environment/data gap, not a plugin bug.
+  - The docs write target `dynatrace-docs` is mounted at
+    `/workspace/dynatrace-docs` (`ssh://…/sus/dynatrace-docs.git` →
+    `dynatrace-docs`) and carries docs-repo signals (`.docstack`, `.vale.ini`,
+    `.vale`), so `doc-location-finder` and the docs-write phase have a real
+    target. ✓
+  - Secondary repos referenced by the VI — `appfw-spec`, `semantic-dictionary`,
+    `oneagent-protocols`, `installer-activegate`, `guidelines` — are **not
+    mounted** → their PRs are skipped via the existing missing-repo escalation
+    (`Skip and continue without its PRs`). This is an expected per-run scope
+    decision, not a plugin bug.
 - **`/impl` (code) trace:** `/impl:code` operates on the current working
   directory's repo, not a repo scan, so it has no `/repos` dependency. Running it
   from `/workspace/cluster` finds the PRODUCT-14902 implementation surface. It

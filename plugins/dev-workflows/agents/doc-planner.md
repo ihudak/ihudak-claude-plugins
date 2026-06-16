@@ -15,6 +15,7 @@ jira_reader_handoff:    <full YAML from jira-reader; see agents/jira-reader.md o
 diff_summaries:         <array of diff-summarizer outputs; one entry per repo>
 write_targets:          <confirmed list from doc-location-finder + user; each has kind, section, path, rationale>
 screenshots:            [<array of user-provided absolute image paths; possibly empty>]
+screenshot_staging_dir: <absolute dir the command resolved for cdn_upload_required staging — a persistent Obsidian project folder under $VAULT_PATH; null when no screenshots were provided>
 repo_root:              <absolute path to the docs repo root>
 ```
 
@@ -62,7 +63,7 @@ For each write target:
 
 6. **Plan screenshot placement per target.** For each user-provided screenshot that belongs on this target:
    - `image_policy: local` → set `dest` to an absolute path under `<page-dir>/img/` (or the detected idiomatic directory).
-   - `image_policy: cdn_upload_required` → set `staging` to an absolute path under `<repo_root>/.dt-screenshot-staging/<JIRA_KEY>/` (a git-ignored directory inside the repo — it persists across container restarts because the repo is a bind mount, but it is never committed). Do NOT use `/tmp` — that is ephemeral and the staged files would be lost before the user uploads them. Populate `upload_note` with a 1-line instruction referencing the repo's image-management process (as inferred from `CONTRIBUTION.md`, `CONTRIBUTING.md`, or sibling page conventions).
+   - `image_policy: cdn_upload_required` → set `staging` to an absolute path under the caller-provided `screenshot_staging_dir` (the persistent Obsidian project folder; e.g. `<screenshot_staging_dir>/<original-filename>`). NEVER place it inside `repo_root` and NEVER use `/tmp` — both are lost on container restart for repo-volume mounts / in-image `/tmp`, whereas `$VAULT_PATH` is always host-mounted. Populate `upload_note` with a 1-line instruction referencing the repo's image-management process (as inferred from `CONTRIBUTION.md`, `CONTRIBUTING.md`, or sibling page conventions).
    - `image_policy: ambiguous` → leave both `dest` and `staging` null; the writer prompts the user at Phase 6.
    - In all cases, populate `alt` with a proposed alt-text derived from the feature summary and the image filename.
 
@@ -105,7 +106,7 @@ checklist:
         # When image_policy == local:
         dest:        <absolute path under <page-dir>/img/ or the detected idiomatic directory>
         # When image_policy == cdn_upload_required:
-        staging:     <absolute path under <repo_root>/.dt-screenshot-staging/<JIRA_KEY>/ — a git-ignored dir; persistent but never committed>
+        staging:     <absolute path under the caller-provided screenshot_staging_dir (persistent Obsidian project folder); NOT inside the repo, never /tmp>
         upload_note: <1-line instruction for the user, e.g. "Upload via <repo's image-management process>; replace placeholder URL in page">
         # When image_policy == ambiguous: both dest and staging are null; the writer prompts the user at Phase 6.
         alt:         <proposed alt-text>
@@ -123,7 +124,7 @@ gaps:
 
 - NEVER write or modify files. This agent plans; the writer writes.
 - NEVER copy screenshots anywhere — only compute `dest` / `staging` paths and record them. The writer performs the actual file moves.
-- For `image_policy == cdn_upload_required`, the `staging` path MUST be a git-ignored directory inside `repo_root` (default `<repo_root>/.dt-screenshot-staging/<JIRA_KEY>/`) so it persists across container restarts yet never enters version control — the writer is responsible for adding it to `.git/info/exclude`. NEVER use `/tmp` (ephemeral — files lost on restart) and NEVER stage into a tracked/committed path.
+- For `image_policy == cdn_upload_required`, the `staging` path MUST be under the caller-provided `screenshot_staging_dir` (a persistent Obsidian project folder under `$VAULT_PATH`, which is always host-mounted). NEVER stage inside `repo_root` (a repo mounted as a docker repo-volume is not on the host and is lost on restart) and NEVER use `/tmp` (in-image, ephemeral). If `screenshot_staging_dir` is null while a screenshot needs cdn staging, emit a gap with `recommended_action: "ask user"`.
 - NEVER propose `dest` inside the repo when `image_policy == cdn_upload_required`, even as a fallback — the whole point of that policy is that local image files would break the repo's image-management invariant.
 - NEVER strip unknown YAML frontmatter fields from the `other` updates. If the target page has fields you don't recognise, leave them alone.
 - NEVER fabricate sources. Every `topics[].sources` entry must correspond to a Jira key in the `jira_reader_handoff` or a PR URL in `diff_summaries`.

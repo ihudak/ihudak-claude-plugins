@@ -104,13 +104,17 @@ start of every invocation. Standalone review commands (`/api-guideline-reviewer`
 and `/guideline-reviewer`) are exempt. Agents receive the `model_routing` block
 in their prompt; they do not re-read the file.
 
+## Source-truth reference
+
+`plugins/dev-workflows/references/source-truth.md` is the **single source of truth** for the Implementation-vs-Description discrepancy-escalation protocol. It is consulted by `doc-planner`, `doc-reviewer`, and `release-notes-writer` to verify user-visible claims (option lists, UI labels, menu paths, defaults, counts, mode names) against the shipped source code, and defines the escalation protocol when Jira and source disagree (Phase 5.8 in `/impl:jira:docs`).
+
 ## `dev-workflows` workflow relationships
 
 ```
 /impl:code           → /impl → [risk-planner@Opus plan critique] → [code-review@Opus] → review-fixer → test-writer → tests → impl-maintenance
 /impl                → dispatcher / help page; does not run a workflow
 /impl:docs           → /impl:docs → [doc-reviewer] → [doc-fixer] → impl-maintenance
-/impl:jira:docs      → /impl:jira:docs → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [doc-planner] → writing → [docs-style-checker → dt-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [doc-fixer] → impl-maintenance
+/impl:jira:docs      → /impl:jira:docs → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [doc-planner] → [discrepancy-escalation (Phase 5.8)] → writing → [docs-style-checker → dt-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [doc-fixer] → impl-maintenance
 /impl:jira:epics     → /impl:jira:epics → jira-reader → [code-scanner×N (parallel, optional)] → writing → [dt-style-checker] → [doc-fixer] → [epic-reviewer@Opus] → [doc-fixer] → impl-maintenance
 /impl:jira:release-notes → /impl:jira:release-notes → jira-reader → [diff-summarizer×N (parallel, optional)] → [release-notes-writer] → [dt-style-checker → dt-doc-fixer (optional)] → write draft (paste into Jira)
 /vuln                → vuln-research → vuln-fixer → [code-review@Opus] → review-fixer → tests → impl-maintenance
@@ -163,8 +167,10 @@ Key invariants for `/impl:jira`:
 - Branch policy: walk up cwd for `.obsidian/` → `obsidian` (never branch); else `git rev-parse` → `git_repo` (branch opt-in) or `plain_dir` (never branch). User override is allowed at plan approval
 - `doc-location-finder` (docs flow) identifies write targets before writing begins
 - `doc-planner` (docs flow) synthesizes Jira + diffs into a documentation checklist
-- `docs-style-checker` + `doc-fixer` lint prose after writing, before the review gate; if no repo linter exists, fall back to `dt-style-checker` when installed
+- `docs-style-checker` + `doc-fixer` lint prose after writing, before the review gate; style check is mandatory — falls back to `dt-style-checker`; `NOT_CONFIGURED` only when nothing is available
 - For epics, `dt-style-checker` is the primary style checker; skip gracefully if `dt-style-guide` is not installed
+- Jira-vs-source discrepancies are escalated in Phase 5.8 (never auto-resolved); `doc-planner` records both `jira_phrasing` and `source_phrasing` without choosing
+- A bug-report draft (`<KEY>-implementation-gaps.md`) is written to the vault project folder for `document-as-jira` / `skip-and-report` decisions
 - Review gate is `doc-reviewer` (docs flow) or `epic-reviewer@Opus` (epics flow); `doc-fixer` resolves BLOCKERs; cap at one fix cycle plus one re-review
 - Sub-agents return `DIRTY_TREE` / `REFRESH_BLOCKED` when they cannot refresh repos — never fail silently
 - Every written claim must cite the originating Jira key (`[[KEY]]`) plus PR URL (docs flow) or file path (epics flow)

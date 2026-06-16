@@ -9,7 +9,8 @@ Summarise a single code repository's PR diff(s) from a documentation-consumer's 
 ## Inputs
 
 ```yaml
-repo_path:   <absolute, e.g. /repos/<repo-name>>
+repo_path:   <absolute path to a local clone, e.g. /workspace/<repo-name>>
+repo_url_slug: <repo slug from the PR URL, e.g. "cluster"; optional>
 pr_refs:
   - url:         <full PR URL>
     host:        github_cloud | bitbucket_cloud | bitbucket_server | other
@@ -32,6 +33,12 @@ refresh:
 ```
 
 Refuse to run without `repo_path` and at least one element in `pr_refs`.
+
+When `repo_url_slug` is provided, before summarising run
+`git -C <repo_path> remote get-url origin`, strip a trailing `.git`, and compare
+the URL's last path segment to `repo_url_slug`. On mismatch, return
+`status: REPO_MISSING` with a note naming both slugs — do NOT summarise the wrong
+repository. When `repo_url_slug` is absent, trust `repo_path` as given.
 
 ## Resolver selection by host
 

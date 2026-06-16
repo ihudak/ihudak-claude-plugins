@@ -3,7 +3,8 @@
 ## Input
 
 ```yaml
-repo_path: /repos/<repo-name>
+repo_path: <absolute, e.g. /workspace/<repo-name>>
+repo_url_slug: <repo slug from PR URL; optional, enables upstream cross-check>
 pr_refs:
   - url:         <full PR URL — used as identifier only, never fetched>
     pr_id:       <numeric id as string>

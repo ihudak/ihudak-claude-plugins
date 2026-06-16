@@ -155,7 +155,7 @@ Key invariants for `/impl:docs`:
 Key invariants for `/impl:jira`:
 
 - Subcommand dispatch is explicit: `/impl:jira:docs`, `/impl:jira:epics`; bare `/impl:jira` must dispatch intentionally
-- **Zero external API calls** — PR URLs from Jira exports are identifiers only; no `gh`, no Bitbucket REST API, no HTTPS fetch to Bitbucket; all resolution is local `git` against clones under `/repos/`
+- **Zero external API calls** — PR URLs from Jira exports are identifiers only; no `gh`, no Bitbucket REST API, no HTTPS fetch to Bitbucket; all resolution is local `git` against clones discovered under `$REPOS_PATH` (default `/workspace`), matched by `git remote get-url origin` slug
 - `jira-reader` is strictly read-only — it never modifies vault files
 - Parallel agent invocation: all diff summarizers (docs flow) or code scanners (epics flow) are launched in a **single response**
 - Branch setup happens **before** writing output files — never after

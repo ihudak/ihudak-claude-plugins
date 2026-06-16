@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2
+
+- Updated `/dt-review-pr` `--repo` examples from `/repos/dynatrace-docs` to
+  `/workspace/dynatrace-docs` to match the AI container's single-umbrella mount
+  layout.
+
 ## 0.2.1
 
 - Fixed agent/skill/command references to use `${CLAUDE_PLUGIN_ROOT}` instead of the

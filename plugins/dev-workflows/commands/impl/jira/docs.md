@@ -248,7 +248,8 @@ Invoke `doc-planner`:
   > write_targets:        [paste confirmed list from Phase 5.5]
   > screenshots:          [user-provided paths from Phase 1, possibly empty]
   > screenshot_staging_dir: [resolved <screenshot_staging_dir> from Phase 1, or null]
-  > repo_root:            [cwd's git root]"
+  > repo_root:            [cwd's git root]
+  > code_repos:           [the Phase-4 resolved {slug, path} map; [] if none resolved]"
 
 Handle the `status` and `gaps`:
 
@@ -263,6 +264,32 @@ Present the checklist (with any gaps + dispositions):
 ```
 choices: ["Approve & write (Recommended)", "Adjust (describe)", "Cancel"]
 ```
+
+---
+
+## Phase 5.8 — Discrepancy analysis & user decision
+
+Run this phase when the `doc-planner` handoff contains any `verification_warnings` with `finding: CONTRADICTED`, `NOT_FOUND`, or `AMBIGUOUS`. If there are none, skip to Phase 6.
+
+1. **Present the analysis table** (informational, before asking):
+   ```
+   | # | Claim | Jira phrasing | Source phrasing | Source location | Verdict |
+   ```
+   One row per warning. Use `Source phrasing: "(not verifiable)"` for `no-source-evidence` entries.
+
+2. **Batch decision:**
+   ```
+   choices: ["Decide per discrepancy (Recommended)", "Document ALL as source suggests", "Document ALL as Jira claims (drafts a bug report)", "Skip ALL and report (drafts a bug report)", "Cancel", "Other… (describe)"]
+   ```
+
+3. **Per-discrepancy** (if "Decide per discrepancy"): for each warning, show claim + Jira phrasing + source phrasing + location, then:
+   ```
+   choices: ["Document as source suggests", "Document as Jira claims (adds an intentional-discrepancy marker + bug-report draft)", "Skip this claim and report it", "Cancel", "Other… (describe)"]
+   ```
+
+4. **Record `discrepancy_decisions[]`** keyed by `number` (claim, jira_phrasing, source_phrasing, source_location, decision ∈ {document-as-source, document-as-jira, skip-and-report}, rationale). Set `bug_report_destination` to the ticket's vault project folder (resolved exactly like the release-notes destination in `/impl:jira:release-notes` — `find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"`; ask if none) when any decision is `document-as-jira` or `skip-and-report`.
+
+Pass `discrepancy_decisions` to Phase 6.
 
 ---
 
@@ -285,6 +312,14 @@ For each target in the confirmed write-target list:
      ```
      Apply the chosen branch.
 6. **Traceability** — every claim must cite the originating Jira key (e.g. `[[<JIRA_KEY>]]`) and/or PR URL inline. When a claim comes only from imported Jira content (no PR resolved), cite the Jira key alone.
+
+7. **Apply discrepancy decisions** (from Phase 5.8), per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.4–§7.6:
+   - `document-as-source` → use the source phrasing verbatim.
+   - `document-as-jira` → use the Jira phrasing AND insert immediately before the affected prose:
+     `<!-- intentional-discrepancy: Jira <JIRA_KEY> describes "<jira_phrasing>" but the source at <source_location> currently has "<source_phrasing>". User decision: document Jira phrasing pending implementation. See <JIRA_KEY>-implementation-gaps.md gap #<n>. -->`
+     Strongly recommend committing to a branch (Phase 6.5); the Phase 9 report MUST flag "do NOT merge this docs PR until the gaps are resolved". The plugin does NOT open a PR (zero-external-API invariant).
+   - `skip-and-report` → omit the claim from the docs.
+   - When any decision is `document-as-jira`/`skip-and-report`, write `<bug_report_destination>/<JIRA_KEY>-implementation-gaps.md` using the §7.5 format (vault project folder; never `/tmp`; never the docs repo).
 
 Write to cwd. Branch and commit policy is governed by the write context (Phase 0 step 4):
 
@@ -327,6 +362,8 @@ No external CLI calls; all git operations are local.
 
 ## Phase 6.7 — Style check (before reviewer)
 
+**Mandatory:** the orchestrator MUST dispatch `docs-style-checker` and act on its return — never skip on its own judgement of which linters are installed.
+
 Invoke `docs-style-checker` on the files written in Phase 6:
 
 → Agent (subagent_type: "dev-workflows:docs-style-checker"):
@@ -364,7 +401,7 @@ Act on the return:
 
 - **`status: ERROR`** — surface the error reason and ask:
   ```
-  choices: ["Proceed to review without style check", "Cancel and fix locally"]
+  choices: ["Proceed to doc-reviewer (style check unavailable — doc-reviewer still runs)", "Cancel and fix locally"]
   ```
 
 ---
@@ -381,7 +418,8 @@ Invoke `doc-reviewer` (Opus). The reviewer is **product-docs-only**; Epic drafts
   > Jira directory path:    [$VAULT_PATH/jira-products/<JIRA_KEY>/]
   > Diff summaries:         [array of diff-summarizer outputs from Phase 5]
   > doc-planner checklist:  [the full YAML from Phase 5.7]
-  > style-check report: [the violations output from Phase 6.7 — from docs-style-checker or dt-style-checker (fallback), or 'status: NOT_CONFIGURED' if neither ran]"
+  > style-check report: [the violations output from Phase 6.7 — from docs-style-checker or dt-style-checker (fallback), or 'status: NOT_CONFIGURED' if neither ran]
+  > code_repos:         [the Phase-4 resolved {slug, path} map; [] if none resolved]"
 
 Act on the verdict:
 
@@ -527,6 +565,9 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 
 ### Screenshots to upload manually
 [Only populated when any target used image_policy: cdn_upload_required (or the user selected "Stage for manual upload" under the ambiguous branch). For each staged screenshot: src (original user-provided path), staging path under <screenshot_staging_dir> (the persistent Obsidian project folder), the target page it belongs on, the proposed alt-text, and the upload_note from the planner. Omit this section entirely when no screenshots were staged.]
+
+### Implementation gaps (Jira vs source)
+[Populated when Phase 5.8 produced any document-as-jira / skip-and-report decision. List each gap (claim, decision) and: "Bug-report draft written to <path>. If docs were branched, DO NOT merge the PR until these gaps are resolved." Omit when there were no discrepancies.]
 
 ### Skipped items
 [Gaps the planner flagged with recommended_action: "skip with note in final report" — one line each; or "none"]

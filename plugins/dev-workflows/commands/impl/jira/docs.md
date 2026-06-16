@@ -266,7 +266,7 @@ For each target in the confirmed write-target list:
 4. **Reuse snippets** per the checklist: for snippets listed under `snippets.reuse`, use the repo's include syntax rather than inlining content. For snippets listed under `snippets.extract`, create the new snippet file in the repo's idiomatic `_snippets/` location and reference it from the target page.
 5. **Place screenshots** per each target's `image_policy`:
    - **`local`** → copy each user-provided `src` to the planner's `dest` path (typically `<page-dir>/img/` or the detected idiomatic directory). Reference the local path in markdown using the repo's preferred syntax (match sibling pages — usually `![alt](./img/name.png)` or similar).
-   - **`cdn_upload_required`** → **do NOT copy user-provided screenshots into the repo.** Stage them at the planner's `staging` path (`/tmp/<JIRA_KEY>-screenshots/`). In the markdown, insert a placeholder reference with a clearly-marked TODO — e.g. `![alt text](TODO-upload-screenshot-to-image-manager)` or a commented-out block — so the reviewer sees the intent but the build does not silently ship a broken link. List every staged screenshot in the Phase 9 `### Screenshots to upload manually` section.
+   - **`cdn_upload_required`** → **do NOT copy user-provided screenshots into the repo's tracked tree.** Stage them at the planner's `staging` path (`<repo_root>/.dt-screenshot-staging/<JIRA_KEY>/`) — a git-ignored directory inside the repo that persists across container restarts but is never committed. Before copying, ensure the directory is excluded from version control: append its path to `<repo_root>/.git/info/exclude` if not already present. Do NOT use `/tmp` — it is ephemeral and the staged files would be lost on restart, before the user uploads them. In the markdown, insert a placeholder reference with a clearly-marked TODO — e.g. `![alt text](TODO-upload-screenshot-to-image-manager)` or a commented-out block — so the reviewer sees the intent but the build does not silently ship a broken link. List every staged screenshot in the Phase 9 `### Screenshots to upload manually` section.
    - **`ambiguous`** → ask the user at this step, per target:
      ```
      choices: ["Use local path <page-dir>/img/ (Recommended if this repo uses local images)", "Stage for manual upload to the repo's image-management tool", "Skip this screenshot", "Other… (describe)"]
@@ -514,7 +514,7 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 - [top suggestions from impl-maintenance agent, or "no suggestions — routine session"]
 
 ### Screenshots to upload manually
-[Only populated when any target used image_policy: cdn_upload_required (or the user selected "Stage for manual upload" under the ambiguous branch). For each staged screenshot: src (original user-provided path), staging path under /tmp/<JIRA_KEY>-screenshots/, the target page it belongs on, the proposed alt-text, and the upload_note from the planner. Omit this section entirely when no screenshots were staged.]
+[Only populated when any target used image_policy: cdn_upload_required (or the user selected "Stage for manual upload" under the ambiguous branch). For each staged screenshot: src (original user-provided path), staging path under <repo_root>/.dt-screenshot-staging/<JIRA_KEY>/, the target page it belongs on, the proposed alt-text, and the upload_note from the planner. Omit this section entirely when no screenshots were staged.]
 
 ### Skipped items
 [Gaps the planner flagged with recommended_action: "skip with note in final report" — one line each; or "none"]
@@ -549,4 +549,4 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 - ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
 - ALWAYS produce the Phase 9 report as the final output
 - ALL written claims must be traceable to Jira keys or PR diffs; if only Jira is available, cite the Jira key alone
-- For `image_policy: cdn_upload_required`, NEVER copy user-provided screenshots into the repo — stage at `/tmp/<JIRA_KEY>-screenshots/` and surface in the Phase 9 `### Screenshots to upload manually` section
+- For `image_policy: cdn_upload_required`, NEVER copy user-provided screenshots into the repo's tracked tree — stage at the git-ignored `<repo_root>/.dt-screenshot-staging/<JIRA_KEY>/` (persistent across restarts; added to `.git/info/exclude`; never `/tmp`) and surface in the Phase 9 `### Screenshots to upload manually` section

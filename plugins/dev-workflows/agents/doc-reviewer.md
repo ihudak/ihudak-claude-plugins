@@ -20,7 +20,7 @@ The caller passes a structured brief:
 - **Jira directory path** — `<vault_path>/jira-products/<JIRA_KEY>/` so the reviewer can cross-check claims.
 - **Diff summaries** — the array of `diff-summarizer` outputs from Phase 5.
 - **`doc-planner` checklist** — the full YAML checklist from Phase 5.7 (review against plan).
-- **Style-check report** — the violations list from Phase 6.7 (from `docs-style-checker` or `dt-style-checker` as fallback, or `status: NOT_CONFIGURED` if neither ran). Both checkers use the same violation schema.
+- **Style-check report** — the merged violations list from Phase 6.7 (`docs-style-checker` now chains the repo's primary linter + a complementary `dt-style-checker` semantic pass; each violation carries a `source: primary|complementary` tag), or `status: NOT_CONFIGURED` if no check could run. Same violation schema regardless of source.
 - **Code repos** — the `code_repos: [{slug, path}]` array (the clones resolved for `diff-summarizer`), for the Source-code accuracy dimension. May be empty.
 
 Refuse to review without the written file paths, the `doc-planner` checklist, and the diff summaries. These three are the review ground truth.

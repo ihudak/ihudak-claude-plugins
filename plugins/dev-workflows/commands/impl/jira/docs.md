@@ -364,6 +364,8 @@ No external CLI calls; all git operations are local.
 
 **Mandatory:** the orchestrator MUST dispatch `docs-style-checker` and act on its return — never skip on its own judgement of which linters are installed.
 
+`docs-style-checker` runs the chain **internally**: the repo's primary linter (Vale, etc.) AND — when the `dt-style-guide` plugin is installed — `dt-style-checker` as a complementary semantic / cross-page-consistency pass, merging and deduping both finding sets. The two are complementary, not redundant (Vale: lexical at scale + frontmatter; `dt-style-checker`: engineer jargon, cross-page label consistency, subject-verb agreement, plural/singular label mismatch). The command does NOT invoke `dt-style-checker` separately — the agent already did.
+
 Invoke `docs-style-checker` on the files written in Phase 6:
 
 → Agent (subagent_type: "dev-workflows:docs-style-checker"):
@@ -374,16 +376,8 @@ Invoke `docs-style-checker` on the files written in Phase 6:
 
 Act on the return:
 
-- **`status: NOT_CONFIGURED`** — no repo linter detected. Fall back to `dt-style-checker` (Dynatrace corporate style guide):
-
-  → Agent (subagent_type: "dt-style-guide:dt-style-checker"):
-    > "Run the style check for this brief:
-    >
-    > files:    [absolute paths of every file written or modified in Phase 6]
-    > doc_type: product-docs"
-
-  Act on the `dt-style-checker` return identically to `docs-style-checker` (OK → Phase 7, VIOLATIONS_FOUND → `doc-fixer` + one re-run, ERROR → ask user). If `dt-style-checker` is also unavailable (agent file not found), proceed to Phase 7; `doc-reviewer` will still check correctness/completeness.
-- **`status: OK`** — linter ran, zero violations. Proceed to Phase 7.
+- **`status: NOT_CONFIGURED`** — neither a repo linter NOR the `dt-style-checker` complementary pass was available (the agent already tried both). Proceed to Phase 7; `doc-reviewer` will still check correctness/completeness.
+- **`status: OK`** — the chain ran (primary and/or complementary), zero merged violations. Proceed to Phase 7.
 - **`status: VIOLATIONS_FOUND`** — invoke `doc-fixer` with the violations treated as per their severity. After `doc-fixer` completes, re-run the linter once:
 
   → Agent (subagent_type: "dev-workflows:doc-fixer"):

@@ -8,10 +8,11 @@
 
 Add a standalone `/impl:jira:release-notes` command that generates a customer-facing
 release-notes draft for a Value Increment (or any Jira ticket) from a pre-exported
-Jira markdown hierarchy, optionally grounded in PR diffs, rendered in the
-dynatrace-docs `{{#context}}` / `{{#internal-note}}` block format, and written to a
-persistent destination for the user to paste into Jira (where existing automation
-emits it into the docs repo).
+Jira markdown hierarchy, optionally grounded in PR diffs, rendered as the
+dynatrace-docs authored release-notes body (`{{#context}}` label + `### title` + prose —
+no `{{#internal-note}}` metadata, no Jira IDs), and written to a persistent destination
+for the user to paste into Jira's release-notes field (where existing automation adds the
+metadata wrapper and emits it into the docs repo).
 
 The Claude marketplace currently has **no** release-notes capability. The Copilot
 sibling (dev-workflows 1.5.0) bundles release-notes generation *inside*
@@ -33,7 +34,7 @@ because release notes are frequently needed independently of product documentati
 |---|---|
 | Standalone vs bundled | **Standalone command** (`/impl:jira:release-notes`) |
 | Input source | **Jira content + optional PR diffs** (diff-grounding flag) |
-| Output format & destination | **dynatrace-docs `{{#context}}`/`{{#internal-note}}` block** → persistent destination (Obsidian project folder default / custom / stdout / skip); pasted into Jira |
+| Output format & destination | **dynatrace-docs authored body** (`{{#context}}` label + `### title` + prose; no `{{#internal-note}}`, no IDs) → persistent destination (Obsidian project folder default / custom / stdout / skip); pasted into Jira |
 | Quality gate | **Light `dt-style-checker`** (+ optional `dt-doc-fixer` safe fixes); skip if `dt-style-guide` absent |
 | Dedicated agent | Yes — a bounded `release-notes-writer` agent renders the block |
 | Docs-flow correction | Include — stop treating release notes as a repo write target |
@@ -57,9 +58,13 @@ A new orchestrator command + one bounded agent; everything else is reused.
   items), an optional array of `diff-summarizer` outputs, and the resolved release
   versions. Inherits the session model (MODERATE).
 - **Output:** a `release_notes_block` — `target_format: dynatrace-docs-release-notes-v1`,
-  one entry per declared release version, each with a rendered `{{#context}}` block
-  (feature title + clean user-facing prose) and a `{{#internal-note}}` block (author
-  from reporter/assignee). Plus a single combined rendered draft string.
+  one entry per declared release version, each rendered as the **authored body only**:
+  a `{{#context}}<label>{{/context}}` category line, an `### <Feature title>` headline,
+  and a 2–4 sentence customer-facing prose paragraph. **No `{{#internal-note}}` block and
+  no Jira ticket metadata** — the dynatrace-docs Jira automation generates that wrapper
+  (Ticket URL, assignee, status, release versions) from the ticket the draft is pasted
+  into, as confirmed by the real `managed/_snippets/release-notes/.../feature-updates.md`
+  format in the docs repo. Plus a single combined rendered draft string.
 - **Hard rules:** clean customer-facing prose only; **never** embed Jira IDs/keys **or**
   Bitbucket/GitHub PR URLs anywhere in the draft. The draft is placed into the ticket's
   dedicated Jira release-notes field, so the docs automation already knows the ticket ID

@@ -45,7 +45,7 @@ Ask about:
   choices: ["Use $VAULT_PATH/jira-drafts/<JIRA_KEY>/ (Recommended)", "Use a different path under $VAULT_PATH (you'll be prompted)", "Cancel", "Other… (describe)"]
   ```
 
-- **Code examination on/off** (default ON). If ON, ask which repos under `<repos_base>` to scan:
+- **Code examination on/off** (default ON). If ON, ask which repos under `$REPOS_PATH` to scan:
   ```
   choices: ["Scan repos referenced by sibling/parent Epics under this VI (Recommended — auto-derived)", "Let me list the repos manually (you'll be prompted)", "Turn code scan off — produce Epic drafts from Jira content alone", "Other… (describe)"]
   ```
@@ -57,16 +57,16 @@ Ask about:
   ```
   The `fetch + pull default branch` default matches `code-scanner`'s default (`refresh.switch_to_default_branch: true, refresh.pull: true`) — capability scans target present-day code and want the default-branch tip. This is deliberately different from `/impl:jira:docs`, which keeps `pull: false` because historical merged commits must not move.
 
-- **Repos base path** (only if code scan is ON). Detect `/repos` first. Ask:
+- **Repos search base (`$REPOS_PATH`)** (only if code scan is ON). Read `${REPOS_PATH:-/workspace}` (the container mounts every repo under `/workspace`). `$REPOS_PATH` may be a single directory or a colon-separated list. Ask:
   ```
-  choices: ["Use /repos (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]
+  choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]
   ```
-  If "different path", take free-text input and validate that at least one directory exists under it. Record the resolved path as `<repos_base>`.
+  If "different path", take free-text input (single dir or colon-separated list) and validate that at least one directory exists under it. Record the resolved value as `$REPOS_PATH`. Individual clones are located in Phase 4 by matching their `git remote` against each repo slug — not by assuming a `<base>/<slug>` directory name.
 
 Also display (for user context):
 - Resolved cwd absolute path
 - Resolved output directory
-- Resolved `<repos_base>` (or "N/A — code scan off")
+- Resolved `$REPOS_PATH` (or "N/A — code scan off")
 - Resolved `$VAULT_PATH` and `<JIRA_KEY>`
 
 No branching context is shown — this command never branches.
@@ -126,11 +126,11 @@ If code scan is ON:
 
 1. Derive the repo list:
    - **Auto-derived** (Phase 1 default) — walk the `jira-reader` `linked_items` filtered to `type == Epic`; for each Epic `.md` file (already read during Phase 3), collect repo names from its `## Pull Requests` section URLs. Dedupe. If the auto-derived list is empty, fall back to asking the user.
-   - **Manual list** — prompt for a free-text list of repo short names (one per line or space-separated). Validate each is a directory under `<repos_base>`.
+   - **Manual list** — prompt for a free-text list of repo short names (one per line or space-separated). Resolve each against the `$REPOS_PATH` slug→clone map built in step 2 below.
 
-2. For each resolved repo, check `<repos_base>/<repo>` exists. Escalate missing repos per §15:
+2. Build a slug→clone map. For each top-level directory under each entry of `$REPOS_PATH`, run `timeout 5 git -C <dir> remote get-url origin 2>/dev/null`, strip a trailing `.git`, and take the URL's last path segment as that clone's slug. Skip directories with no `.git` or whose `git remote` call fails/times out. Resolve each in-scope repo slug against the map: one match → use it; multiple matches → auto-prefer basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last (show candidates at plan approval); zero matches → escalate per §15:
    ```
-   choices: ["Skip and continue without this repo's scan", "I'll clone it — wait", "Cancel", "Use different /repos path", "Other… (describe)"]
+   choices: ["Skip and continue without this repo's scan", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo", "Other… (describe)"]
    ```
 
 3. If the final resolved repo list is empty (every repo was skipped or missing), escalate per §15 "Use case B with no repos derivable":
@@ -151,7 +151,8 @@ For each repo in the batch:
 → Agent (subagent_type: "dev-workflows:code-scanner"):
   > "Scan this repo for the brief:
   >
-  > repo_path:   <repos_base>/<repo>
+  > repo_path:     <resolved absolute path for this repo from Phase 4>
+  > repo_url_slug: <repo slug, e.g. "cluster">
   > capability_themes:
   >   [paste the themes array from jira-reader, plus any VI-goal-derived themes]
   > context: |
@@ -398,7 +399,7 @@ MODERATE — vault-internal Epic drafting for a single VI
 - ...
 
 ### Repos scanned
-- <repos_base>/<repo-1> — [status: OK | PARTIAL | EMPTY | DIRTY_TREE | REFRESH_BLOCKED; N themes classified present, M partial, K absent, E error]
+- <repo-1> (<resolved repo_path>) — [status: OK | PARTIAL | EMPTY | DIRTY_TREE | REFRESH_BLOCKED; N themes classified present, M partial, K absent, E error]
 - ...
 - _or_ "N/A — code scan off"
 

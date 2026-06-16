@@ -132,9 +132,22 @@ Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent messag
   > diff_summaries:      [the Phase 5 array, or omit when diff grounding was off]
   > release_versions:    [parsed list, or [] ]
   > context_label_hint:  [user hint if any, else null]
-  > model_routing:       [the block from Phase 1.5]"
+  > model_routing:       [the block from Phase 1.5]
+  > code_repos:          [the Phase-4 resolved {slug, path} map when diff grounding is on; omit otherwise]"
 
 If `status: PARTIAL`, surface each `gaps` entry with `recommended_action: "ask user"` and let the user supply the label/prose or accept a `<!-- TODO -->` marker.
+
+When `release-notes-writer` returns `gaps[]` entries that have `jira_phrasing` and `source_phrasing` (source-truth discrepancies), present the discrepancy table and per-claim prompt as in `/impl:jira:docs` Phase 5.8:
+
+1. Show the analysis table (claim, Jira phrasing, source phrasing, location).
+2. Ask:
+   ```
+   choices: ["Decide per discrepancy (Recommended)", "Document ALL as source suggests", "Document ALL as Jira claims (drafts a bug report)", "Skip ALL and report (drafts a bug report)", "Cancel", "Other… (describe)"]
+   ```
+3. Apply the decision to the draft prose: `document-as-source` → use source phrasing; `document-as-jira` → use Jira phrasing (no marker in release notes prose — the gap is recorded only in the gaps file); `skip-and-report` → omit the claim.
+4. For `document-as-jira` or `skip-and-report`: resolve `bug_report_destination` using `find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<JIRA_KEY>*"` (same as the release-notes destination resolution). Write/append `<bug_report_destination>/<JIRA_KEY>-implementation-gaps.md` using the §7.5 format from `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`.
+
+Pass `code_repos` (the Phase-4 resolved map) to the writer when diff-grounding is on.
 
 ---
 

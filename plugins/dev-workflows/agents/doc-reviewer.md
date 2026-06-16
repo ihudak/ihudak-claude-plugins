@@ -21,6 +21,7 @@ The caller passes a structured brief:
 - **Diff summaries** — the array of `diff-summarizer` outputs from Phase 5.
 - **`doc-planner` checklist** — the full YAML checklist from Phase 5.7 (review against plan).
 - **Style-check report** — the violations list from Phase 6.7 (from `docs-style-checker` or `dt-style-checker` as fallback, or `status: NOT_CONFIGURED` if neither ran). Both checkers use the same violation schema.
+- **Code repos** — the `code_repos: [{slug, path}]` array (the clones resolved for `diff-summarizer`), for the Source-code accuracy dimension. May be empty.
 
 Refuse to review without the written file paths, the `doc-planner` checklist, and the diff summaries. These three are the review ground truth.
 
@@ -46,6 +47,7 @@ Refuse to review without the written file paths, the `doc-planner` checklist, an
 | Actionability | Examples are runnable; commands copyable verbatim; external links resolve (best-effort — link-resolution failure on a CDN during review is not itself a BLOCKER unless the link is demonstrably wrong). |
 | Source traceability | Every factual claim cites the originating Jira key (e.g. `[[<JIRA_KEY>]]`) and/or PR URL inline. When the claim comes only from imported Jira content (no PR was resolved), a Jira-key citation alone is sufficient. |
 | Style-check follow-through | Any unresolved style-check violations (from `docs-style-checker` or `dt-style-checker`) above MINOR are reflected as BLOCKER or MAJOR findings here. Do NOT re-lint — trust the style-checker's output. If the style-check report is `status: NOT_CONFIGURED`, skip this dimension ("N/A — no style checker ran"). |
+| Source-code accuracy | Spot-check 3–5 user-visible claims per file (option lists, labels, counts, defaults, menu paths) against `code_repos` using `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §3 techniques. **An unmarked claim contradicted by source — or absent from source when repos are available — is a BLOCKER** (customer-facing wrongness). A claim immediately preceded by a valid `<!-- intentional-discrepancy ... -->` marker is a recorded gap, NOT a BLOCKER. A claim that cannot be verified (no/partial `code_repos`) is a MAJOR with a "not verifiable" note — never a BLOCKER. |
 
 ## Output
 
@@ -105,6 +107,8 @@ Return this exact shape (no preamble, no chatter):
 
 ## Hard rules
 
+- NEVER raise a BLOCKER on a claim that carries a valid `<!-- intentional-discrepancy ... -->` marker — it is a user-acknowledged gap (see source-truth.md §7.6). Note it as a recorded gap instead.
+- NEVER raise a Source-code-accuracy BLOCKER when `code_repos` is empty/partial — downgrade to MAJOR "not verifiable".
 - NEVER modify files. The reviewer reads; the caller (via `doc-fixer`) writes.
 - NEVER return a PASS verdict if a BLOCKER finding exists.
 - NEVER skip a dimension silently — either report findings or say "N/A — reason".

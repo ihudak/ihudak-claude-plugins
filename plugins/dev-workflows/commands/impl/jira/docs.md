@@ -8,7 +8,7 @@ Generate product documentation for the Jira Value Increment: $ARGUMENTS
 
 `/impl:jira:docs` is the **Jira-driven feature-documentation** workflow. Given a Jira Value Increment key, it reads the full Jira hierarchy from pre-exported markdown in the user's Obsidian vault, resolves PR URLs to local git repos, runs parallel PR-diff summaries, synthesises product documentation, runs style-check + Opus review gates, and writes the output to the current working directory (a product docs repository).
 
-For small one-off doc edits, use `/impl:docs`. For writing child Epic drafts from a VI, use `/impl:jira:epics`.
+For small one-off doc edits, use `/impl:docs`. For writing child Epic drafts from a VI, use `/impl:jira:epics`. For release notes, use `/impl:jira:release-notes` — this command never writes release-notes / what's-new pages, because those are generated from Jira by the docs team's automation.
 
 ---
 
@@ -433,9 +433,9 @@ Then spawn all four Phase 4-style maintenance agents in a **single Agent message
 > [paste change summary block]
 >
 > Scan for README.md, CHANGELOG.md, docs/, or any .md files in the project root or an adjacent docs tree.
-> Determine if *other* documentation needs updating as a consequence of this write (e.g., an index page, a cross-referenced overview, a changelog entry in the repo root, a release-notes file).
+> Determine if *other* documentation needs updating as a consequence of this write (e.g., an index page, a cross-referenced overview, a changelog entry in the repo root). Do NOT touch release-notes / what's-new pages — those are generated from Jira by automation.
 > - Skip if: the edit is confined to the intended target pages with no inbound cross-references.
-> - Update if: new page requires an index/sidebar entry, new sections require inbound cross-links, new snippet file needs a release-notes mention.
+> - Update if: new page requires an index/sidebar entry, new sections require inbound cross-links.
 > If an update is warranted: apply minimal edits to the relevant section(s).
 > Return: file updated and what changed, OR 'no update required (reason)'."
 

@@ -39,7 +39,7 @@ Refuse to run without `repo_root` and a non-empty `feature_summary`.
    - **`new-page-in-existing-section`** — the topic is new but its section/folder already exists (e.g. a new "how-to" under `…/configure/`). `path` is the proposed new file's absolute path.
    - **`new-section`** — no adjacent content exists; a new folder + index page is justified. `path` is the proposed new file's absolute path (typically an `index.md` or the repo's equivalent).
 
-5. **Return multiple targets when the feature has multiple natural homes.** A single feature can straddle a Settings reference page, a How-to guide, and a What's New/Release Notes entry. Emit one target per natural home, each with its own kind and rationale. Cross-linking intent between targets is captured in `linked_from`.
+5. **Return multiple targets when the feature has multiple natural homes.** A single feature can straddle a Settings reference page and a How-to guide. Emit one target per natural home, each with its own kind and rationale. Cross-linking intent between targets is captured in `linked_from`. NEVER propose a What's New / release-notes path (e.g. `_content/whats-new/...`, `_snippets/release-notes/...`, `_data/release-notes/...`) as a target — those are generated from Jira by automation; release notes are produced by the `/impl:jira:release-notes` command.
 
 6. **Identify inbound cross-links.** For each target, scan for 1–3 pages that should cross-link *to* this target (e.g. a product overview that lists all features, a sidebar/nav file that enumerates sections). Record their absolute paths in `linked_from`. If none is obvious, return `linked_from: []`.
 

@@ -313,11 +313,15 @@ This command makes **zero external API calls** and **never writes into the docs 
   choices: ["MERGED only (Recommended)", "All PRs (MERGED + OPEN + DECLINED)", "Specific list (you'll be prompted)", "Other… (describe)"]
   ```
 
-- **Output destination**:
+- **Output destination.** First resolve the ticket's persistent Obsidian project folder (the durable home where the user keeps project work — NOT `jira-products/`, which is regenerated on every Jira import):
+  ```bash
+  find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<JIRA_KEY>*" 2>/dev/null | head -1
   ```
-  choices: ["Write to $VAULT_PATH/jira-products/<JIRA_KEY>/<JIRA_KEY>-release-notes.md (Recommended — persistent)", "Write to a different absolute path (you'll be prompted)", "Print to screen only", "Skip writing", "Other… (describe)"]
+  Then ask (the default uses the resolved `<project-dir>` when found):
   ```
-  The default is persistent (survives container restart, unlike `/tmp`). NEVER offer or accept a path inside a docs repo.
+  choices: ["Write to <project-dir>/<JIRA_KEY>-release-notes.md (Recommended — persistent project folder)", "Write to a different absolute path (you'll be prompted)", "Print to screen only", "Skip writing", "Other… (describe)"]
+  ```
+  When no project folder is found (e.g. a non-`PRODUCT-` ticket), drop the first choice and make "Write to a different absolute path" the recommended one. The default is persistent under `$VAULT_PATH` (always host-mounted; survives container restart, unlike `/tmp`). NEVER offer or accept a path inside a docs repo or under `jira-products/`.
 
 - **Style check** (default ON when the `dt-style-guide` plugin is installed):
   ```

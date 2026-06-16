@@ -3,7 +3,7 @@
 # /impl:jira:docs, /impl:jira:epics, /vuln, /upgrade and routes per spec §3:
 #   • /impl:code, /vuln, /upgrade       → full (model-routing + git status +
 #                                         recent commits + small-repo directory listing)
-#   • /impl:jira:docs, /impl:jira:epics → $VAULT_PATH + <repos_base> default
+#   • /impl:jira:docs, /impl:jira:epics → $VAULT_PATH + $REPOS_PATH default
 #                                         + git branch only if cwd is inside
 #                                         a git repo (no model-routing,
 #                                         no full status/log, no directory listing)
@@ -87,14 +87,14 @@ case "$cmd" in
         # /impl:jira:docs and /impl:jira:epics. Catches bare /impl:jira too
         # (the regex allows it as a spec-intentional over-match) — handled
         # identically since any path into the :jira branch needs the same
-        # vault/repos_base context.
+        # vault/repos_path context.
         echo "=== Auto-injected project context (Jira workflow) ==="
         if [[ -n "${VAULT_PATH:-}" ]]; then
             echo "VAULT_PATH: $VAULT_PATH"
         else
             echo "VAULT_PATH: (not set — the command will ask in Phase 1)"
         fi
-        echo "repos_base: ${REPOS_BASE:-/repos} (default — the command will confirm or ask)"
+        echo "repos_path: ${REPOS_PATH:-/workspace} (default — the command will confirm or ask)"
         emit_git_branch_if_repo
         ;;
     impl:code|vuln|upgrade)

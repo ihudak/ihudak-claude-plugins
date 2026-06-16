@@ -4,6 +4,29 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.6.0] — 2026-06-16
+
+### Added
+- **`/impl:jira:release-notes` command.** Standalone Jira-driven release-notes
+  drafting: reads a VI (or any ticket) from the vault, optionally grounds the prose
+  in merged PR diffs (reusing `$REPOS_PATH` resolution + `diff-summarizer`), and
+  renders the dynatrace-docs authored release-notes body — a `{{#context}}` label,
+  an `### title`, and customer-facing prose. The draft carries **no Jira IDs, no PR
+  links, and no `{{#internal-note}}` block**; it is pasted into the ticket's Jira
+  release-notes field, where the docs team's automation adds the metadata wrapper.
+  Light `dt-style-checker` gate (optional; skipped if `dt-style-guide` is absent).
+  Never branches, commits, or writes into the docs repo; the default destination is
+  persistent.
+- **`release-notes-writer` agent** + handoff reference — renders the
+  `release_notes_block` (one entry per declared release version).
+
+### Fixed
+- **Docs flow no longer treats release notes as a repo write target.** `doc-planner`
+  and `doc-location-finder` previously proposed "What's New / Release Notes" pages as
+  documentation targets, but those pages are generated from Jira by automation — a
+  manual write would be overwritten. Both now exclude release-notes / what's-new paths,
+  and `/impl:jira:docs` defers release notes to `/impl:jira:release-notes`.
+
 ## [1.5.1] — 2026-06-16
 
 ### Fixed

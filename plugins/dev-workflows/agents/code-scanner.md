@@ -11,7 +11,8 @@ Scan a single code repo for existing capabilities and gaps relative to a set of 
 ## Inputs
 
 ```yaml
-repo_path:   <absolute, e.g. /repos/<repo-name>>
+repo_path:   <absolute path to a local clone, e.g. /workspace/<repo-name>>
+repo_url_slug: <repo slug from the source URL, e.g. "cluster"; optional>
 capability_themes:
   - <short phrase, e.g. "Auto-update scheduling" or "Config UI for rate limits">
 context: |
@@ -28,6 +29,12 @@ refresh:
 ```
 
 Refuse to run without `repo_path`, at least one entry in `capability_themes`, and a `context`.
+
+When `repo_url_slug` is provided, before scanning run
+`git -C <repo_path> remote get-url origin`, strip a trailing `.git`, and compare
+the URL's last path segment to `repo_url_slug`. On mismatch, return
+`status: REPO_MISSING` with a note naming both slugs. When `repo_url_slug` is
+absent, trust `repo_path` as given.
 
 ## Process
 

@@ -4,6 +4,20 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.5.1] — 2026-06-16
+
+### Fixed
+- **`/impl:jira:docs` screenshot staging is now persistent.** When a docs repo's
+  `image_policy` is `cdn_upload_required`, screenshots awaiting manual CDN upload
+  were staged under `/tmp/<JIRA_KEY>-screenshots/`. `/tmp` is in-image and
+  ephemeral, so the staged files were lost on container restart — before the user
+  had uploaded them. Staging now defaults to a git-ignored directory inside the
+  repo, `<repo_root>/.dt-screenshot-staging/<JIRA_KEY>/`: the repo is a bind mount
+  so the files persist, and the writer appends the directory to
+  `.git/info/exclude` so it never enters version control. Affects `doc-planner`
+  (the `staging` path it computes) and the `/impl:jira:docs` Phase 6 writer step,
+  Phase 9 report, and invariants.
+
 ## [1.5.0] — 2026-06-16
 
 ### Changed (breaking for orchestrators that hardcode `/repos/`)

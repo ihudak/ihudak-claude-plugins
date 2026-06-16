@@ -62,7 +62,7 @@ For each write target:
 
 6. **Plan screenshot placement per target.** For each user-provided screenshot that belongs on this target:
    - `image_policy: local` → set `dest` to an absolute path under `<page-dir>/img/` (or the detected idiomatic directory).
-   - `image_policy: cdn_upload_required` → set `staging` to an absolute path under `/tmp/<JIRA_KEY>-screenshots/` (NEVER inside the repo). Populate `upload_note` with a 1-line instruction referencing the repo's image-management process (as inferred from `CONTRIBUTION.md`, `CONTRIBUTING.md`, or sibling page conventions).
+   - `image_policy: cdn_upload_required` → set `staging` to an absolute path under `<repo_root>/.dt-screenshot-staging/<JIRA_KEY>/` (a git-ignored directory inside the repo — it persists across container restarts because the repo is a bind mount, but it is never committed). Do NOT use `/tmp` — that is ephemeral and the staged files would be lost before the user uploads them. Populate `upload_note` with a 1-line instruction referencing the repo's image-management process (as inferred from `CONTRIBUTION.md`, `CONTRIBUTING.md`, or sibling page conventions).
    - `image_policy: ambiguous` → leave both `dest` and `staging` null; the writer prompts the user at Phase 6.
    - In all cases, populate `alt` with a proposed alt-text derived from the feature summary and the image filename.
 
@@ -105,7 +105,7 @@ checklist:
         # When image_policy == local:
         dest:        <absolute path under <page-dir>/img/ or the detected idiomatic directory>
         # When image_policy == cdn_upload_required:
-        staging:     <absolute path under /tmp/<JIRA_KEY>-screenshots/ — NOT inside the repo>
+        staging:     <absolute path under <repo_root>/.dt-screenshot-staging/<JIRA_KEY>/ — a git-ignored dir; persistent but never committed>
         upload_note: <1-line instruction for the user, e.g. "Upload via <repo's image-management process>; replace placeholder URL in page">
         # When image_policy == ambiguous: both dest and staging are null; the writer prompts the user at Phase 6.
         alt:         <proposed alt-text>
@@ -123,7 +123,7 @@ gaps:
 
 - NEVER write or modify files. This agent plans; the writer writes.
 - NEVER copy screenshots anywhere — only compute `dest` / `staging` paths and record them. The writer performs the actual file moves.
-- NEVER stage screenshots *inside* the repo when `image_policy == cdn_upload_required`. The `staging` path MUST be outside `repo_root` (typically `/tmp/<JIRA_KEY>-screenshots/`).
+- For `image_policy == cdn_upload_required`, the `staging` path MUST be a git-ignored directory inside `repo_root` (default `<repo_root>/.dt-screenshot-staging/<JIRA_KEY>/`) so it persists across container restarts yet never enters version control — the writer is responsible for adding it to `.git/info/exclude`. NEVER use `/tmp` (ephemeral — files lost on restart) and NEVER stage into a tracked/committed path.
 - NEVER propose `dest` inside the repo when `image_policy == cdn_upload_required`, even as a fallback — the whole point of that policy is that local image files would break the repo's image-management invariant.
 - NEVER strip unknown YAML frontmatter fields from the `other` updates. If the target page has fields you don't recognise, leave them alone.
 - NEVER fabricate sources. Every `topics[].sources` entry must correspond to a Jira key in the `jira_reader_handoff` or a PR URL in `diff_summaries`.

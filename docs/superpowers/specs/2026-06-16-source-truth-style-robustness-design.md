@@ -1,4 +1,4 @@
-# Design: Discrepancy escalation + style-check robustness (Copilot v1.7.0–v1.8.0 port)
+# Design: Discrepancy escalation + style-check robustness (Copilot v1.7.0–v1.8.1 port)
 
 **Date:** 2026-06-16
 **Status:** Approved (design); pending implementation plan
@@ -112,6 +112,21 @@ Contents:
   `technique: no-source-evidence` warning per user-visible claim.
 - **Port the v1.7.1 fix:** do not emit a frontmatter update whose only change is the
   `changelog` field on an otherwise-unchanged page (drop changelog-only updates).
+- **Changelog entries carry no Jira key (Copilot v1.8.1, "Q2").** Change the
+  `changelog` template from `"<YYYY-MM-DD> <1-line summary, ref <JIRA_KEY>>"` to a
+  customer-readable `"<YYYY-MM-DD> <1-line summary>"`, and update step-3 wording from
+  "naming the Jira key" accordingly. The changelog field is reader-visible prose
+  ("what changed on this page"); traceability is carried by the commit message and the
+  file diff, not the page. (Verifiable: across dynatrace-docs's 5500+ existing entries,
+  fewer than 5 cite an issue key.)
+- **Cross-product minimal-touch (Copilot v1.8.1, "Q4").** Strengthen the parity-reference
+  rule: a reciprocal "minimal touch" on product X's page, for a feature shipped by
+  product Y, MUST be a one-line pointer + cross-link to Y's dedicated page — NEVER a copy
+  of Y's implementation detail (throttling rules, enum values, precedence, etc.). Plan
+  such `topics[].notes` as: "Add a one-line cross-link to `<other-product-page#anchor>`;
+  do NOT inline implementation detail that belongs on `<other-product-page>`." Example:
+  noting on `oneagent-update` that update windows are shared with ActiveGate is fine;
+  copying the per-pool ActiveGate throttling rule onto the OneAgent page is not.
 
 ### `commands/impl/jira/docs.md` — new Phase 5.8 (Discrepancy analysis & decision)
 Runs after `doc-planner` (5.7) when there are `CONTRADICTED` / `NOT_FOUND` /
@@ -177,7 +192,7 @@ Runs after `doc-planner` (5.7) when there are `CONTRADICTED` / `NOT_FOUND` /
 | `agents/docs-style-checker.md` | A | ERROR/NOT_CONFIGURED → dt-style-checker fallback |
 | `commands/impl/docs.md` | A | add mandatory style phase |
 | `references/source-truth.md` (new) | B | analyst-not-arbiter policy + escalation protocol |
-| `agents/doc-planner.md` | B | `code_repos`; `verification_warnings` v2 (jira+source phrasing, no auto-correct); v1.7.1 changelog-only-frontmatter fix |
+| `agents/doc-planner.md` | B | `code_repos`; `verification_warnings` v2 (jira+source phrasing, no auto-correct); v1.7.1 changelog-only-frontmatter fix; v1.8.1 no-Jira-key-in-changelog (Q2) + cross-product minimal-touch (Q4) |
 | `commands/impl/jira/docs.md` | A+B | Phase 6.7 mandatory; new Phase 5.8; thread `code_repos`; writer applies decisions + marker + bug-report draft + branch/flag |
 | `agents/doc-reviewer.md` | B | Source-code accuracy dimension + `code_repos`; marker-aware severity |
 | `agents/release-notes-writer.md` | B | `code_repos`; record discrepancies in `gaps[]` (jira+source phrasing) |
@@ -213,7 +228,8 @@ Runs after `doc-planner` (5.7) when there are `CONTRADICTED` / `NOT_FOUND` /
   `dt-style-checker`; `NOT_CONFIGURED` only when nothing is available. Style check is
   mandatory in both docs commands.
 - `doc-planner` records both `jira_phrasing` and `source_phrasing` and never
-  auto-corrects topic notes; changelog-only frontmatter updates are dropped.
+  auto-corrects topic notes; changelog-only frontmatter updates are dropped; changelog
+  entries carry no Jira key; cross-product parity touches are one-line pointers only.
 - `/impl:jira:docs` Phase 5.8 presents a discrepancy table and records
   `discrepancy_decisions[]`; the writer applies them (source / jira+marker / skip)
   and emits `<KEY>-implementation-gaps.md` when warranted.

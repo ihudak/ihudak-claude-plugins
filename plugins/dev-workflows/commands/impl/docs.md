@@ -60,7 +60,7 @@ choices: ["Re-run under /impl:jira:docs (for Jira-sourced feature documentation)
 
 State the classification and a one-line reason, then proceed to Phase 2A.
 
-*(There is no Phase 2B, Phase 3B, Phase 3.5, or Opus review in this command. Phase numbering is kept aligned with `/impl:code` to make cross-referencing straightforward; the A-suffix on Phase 2A below is retained for symmetry, not because a Phase 2B exists for docs.)*
+*(There is no Phase 2B, Phase 3B, or Opus review in this command. A mandatory Phase 3.5 style check runs after Phase 3. Phase numbering is kept aligned with `/impl:code` to make cross-referencing straightforward; the A-suffix on Phase 2A below is retained for symmetry, not because a Phase 2B exists for docs.)*
 
 ---
 
@@ -133,10 +133,10 @@ After writing the edits and before Phase 4, dispatch `docs-style-checker` on the
   > files:     [the files edited in Phase 3]
 
 - `VIOLATIONS_FOUND` → apply safe fixes via `doc-fixer` (one fix cycle), then re-run once.
-- `OK` / `NOT_CONFIGURED` → proceed to Phase 4 (NOT_CONFIGURED means no primary linter AND no `dt-style-guide` fallback — recorded, not silently ignored).
+- `OK` / `NOT_CONFIGURED` → proceed to Phase 4 (NOT_CONFIGURED means no primary linter AND `dt-style-guide` not installed — recorded, not silently ignored).
 - `ERROR` → surface the reason; proceed to Phase 4 (the edit is small and user-managed).
 
-Never skip this phase on your own judgement of which linters are installed — `docs-style-checker` already falls back to `dt-style-checker` when Vale is absent.
+Never skip this phase on your own judgement of which linters are installed. `docs-style-checker` runs the chain internally: the primary linter PLUS `dt-style-checker` as a complementary semantic pass when the `dt-style-guide` plugin is installed (and as the fallback when the primary linter fails) — so the semantic / cross-page class is never silently dropped just because Vale exists.
 
 ---
 

@@ -22,10 +22,10 @@ The command receives its input via `$ARGUMENTS`. Accepted formats:
 |---|---|---|
 | PR number | `9089` | Finds merge commit or remote branch for that PR |
 | Branch name | `alexander-huetter/noissue-improve-managed-docs` | Diffs the branch against `main` |
-| `--repo <path>` | `--repo /repos/dynatrace-docs` | Override the repo path (default: current working directory) |
+| `--repo <path>` | `--repo /workspace/dynatrace-docs` | Override the repo path (default: current working directory) |
 | `--doc-type <type>` | `--doc-type product-docs` | Passed to dt-style-checker for severity calibration (default: `product-docs`) |
 
-Arguments can be combined: `9089 --repo /repos/dynatrace-docs`.
+Arguments can be combined: `9089 --repo /workspace/dynatrace-docs`.
 
 If no arguments are provided, ask the user for a PR number or branch name.
 

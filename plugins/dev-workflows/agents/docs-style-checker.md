@@ -23,13 +23,21 @@ Refuse to run without `repo_root` and at least one entry in `files`.
 
 ## Detection order (first match wins)
 
+> **Hard rule before anything else:** if a detected primary linter (Vale / project lint script / markdownlint / remark) ERRORS at runtime (missing binary, non-zero exit with no parseable output, timeout), the agent MUST attempt the `dt-style-checker` fallback (step 5) before returning `status: ERROR`. "Some check is better than no check." Only return `ERROR` if the primary linter AND the `dt-style-checker` fallback both fail.
+
 1. **Vale via `.vale.ini`** — if `<repo_root>/.vale.ini` exists, run `vale --output=JSON <files>` from the repo root. Parse the JSON output into finding records. Set `linter: vale`.
 
 2. **Project-specific lint script** — if `<repo_root>/package.json` has a script matching `*:lint` or `lint:*` that covers markdown (e.g. `docs:lint`, `site:lint`, `lint:md`, or any repo-local convention), run it. Parse stderr/stdout for line-level violations. If the script lints the whole tree, filter violations to the target files only. Set `linter: yarn:<script>` (or `npm:<script>`, matching the project's package manager hint).
 
 3. **Generic markdown linter** — if `<repo_root>/.markdownlint.json(c)` or `<repo_root>/.remarkrc*` exists AND the corresponding binary is available on PATH, run it on the target files. Set `linter: markdownlint` or `linter: remark`.
 
-4. **Nothing configured** — return `status: NOT_CONFIGURED`, `violations: []`. The main command treats this as a no-op and proceeds straight to Phase 7 (doc-reviewer is still the correctness gate).
+4. **No primary linter configured** — go to step 5 (dt-style-checker fallback). Return `status: NOT_CONFIGURED` ONLY when no primary linter is configured AND the `dt-style-guide` plugin is not installed.
+
+5. **`dt-style-checker` fallback (always tried as a final attempt — on primary-linter ERROR or when nothing is configured).** Invoke the `dt-style-guide:dt-style-checker` agent on the input `files`. Map its return into this agent's schema:
+   - violations → `status: VIOLATIONS_FOUND`, `linter: dt-style-checker`, `violations: <mapped>`.
+   - zero violations → `status: OK`, `linter: dt-style-checker`.
+   - the fallback itself errored → `status: ERROR`, `linter: dt-style-checker` (only NOW return ERROR).
+   When the fallback ran because the primary linter failed, prefix `error:` accordingly: `"primary linter '<vale|...>' failed (<reason>); dt-style-checker fallback ran"` (OK/VIOLATIONS_FOUND) or `"...; dt-style-checker fallback also failed (<reason>)"` (ERROR). If the `dt-style-guide` plugin is not installed and no primary linter exists, return `status: NOT_CONFIGURED`.
 
 ## Violation schema
 
@@ -59,16 +67,16 @@ The plugin does NOT promote a linter MINOR into BLOCKER. The linter's own severi
 
 ```yaml
 status:     OK | NOT_CONFIGURED | VIOLATIONS_FOUND | ERROR
-linter:     vale | yarn:<script> | npm:<script> | markdownlint | remark | none
+linter:     vale | yarn:<script> | npm:<script> | markdownlint | remark | none | dt-style-checker
 command:    <exact command line executed, or null>
 violations: [<array of the schema above; empty if status == OK or NOT_CONFIGURED>]
 error:      <only when status == ERROR: one-line reason, e.g. "vale not on PATH" or "yarn docs:lint exited 2 with unparseable output">
 ```
 
 - `status: OK` — linter ran, produced zero violations.
-- `status: NOT_CONFIGURED` — no linter detected.
+- `status: NOT_CONFIGURED` — no primary linter configured AND `dt-style-guide` not installed (the fallback was unavailable).
 - `status: VIOLATIONS_FOUND` — linter ran, produced ≥ 1 violation.
-- `status: ERROR` — a detected linter failed to run (missing binary, non-zero exit with no parseable output, timeout). The main command will surface this to the user and may continue to Phase 7 without a style check.
+- `status: ERROR` — the primary linter failed AND the `dt-style-checker` fallback also failed. Only reached when no check of any kind could run.
 
 ## Hard rules
 
@@ -78,4 +86,4 @@ error:      <only when status == ERROR: one-line reason, e.g. "vale not on PATH"
 - NEVER fabricate a `command` value — if no linter was detected, `command: null`.
 - NEVER output a partially filled violation record (missing `file` or `line`). Drop such records from the output and note the count in `error` if it seems suspicious.
 - Cap the run at 2 minutes total. If the linter has not finished, kill it and return `status: ERROR` with reason `linter timed out after 2 minutes`.
-- If the linter emits warnings about its own configuration (e.g. "Vale: no styles found") rather than content, return `status: ERROR` with the reason; the main command should not pretend the check passed.
+- If the linter emits warnings about its own configuration (e.g. "Vale: no styles found") rather than content, return `status: ERROR` with the reason; the main command should not pretend the check passed — but still attempt the dt-style-checker fallback first per the hard rule above.

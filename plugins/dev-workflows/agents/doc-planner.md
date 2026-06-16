@@ -16,6 +16,7 @@ diff_summaries:         <array of diff-summarizer outputs; one entry per repo>
 write_targets:          <confirmed list from doc-location-finder + user; each has kind, section, path, rationale>
 screenshots:            [<array of user-provided absolute image paths; possibly empty>]
 screenshot_staging_dir: <absolute dir the command resolved for cdn_upload_required staging — a persistent Obsidian project folder under $VAULT_PATH; null when no screenshots were provided>
+code_repos:             <array of {slug, path} for source-truth verification; the clones resolved for diff-summarizer; [] when unavailable>
 repo_root:              <absolute path to the docs repo root>
 ```
 
@@ -37,7 +38,7 @@ For each write target:
 2. **Map topics to sources.** Each topic records which `jira-reader` keys and/or which `diff-summarizer` PR URLs back it up, for the Phase 6 writer's traceability requirement. A topic with no source attribution is a candidate gap (see step 7).
 
 3. **Plan frontmatter updates.**
-   - `changelog:` — append a dated entry naming the Jira key and a 1-line change summary. Create the field if it doesn't exist on an extended page. This is mandatory on every target.
+   - `changelog:` — append a dated entry with a customer-readable 1-line change summary and NO Jira key. Create the field if it doesn't exist on an extended page. This is mandatory on every target. The Jira reference is carried by the commit message and the file diff, not by the reader-visible page (verified against the repo convention — fewer than 5 of dynatrace-docs's 5500+ entries cite an issue key).
    - `published` — creation date for new pages only.
    - `meta.generation`, `readtime` — if present on adjacent pages, include. Estimate `readtime` from approximate word count.
    - `tags` — merge, don't duplicate existing values.
@@ -83,6 +84,8 @@ For each write target:
    - `"mark TODO in draft"` — the writer emits a `<!-- TODO: … -->` marker in the output.
    - `"skip with note in final report"` — the gap is recorded in the Phase 9 `### Skipped items` section.
 
+9. **Source-truth verification (per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`).** For every user-visible claim the checklist would put in a topic `notes:` (option lists, UI labels, menu paths, defaults, counts, mode names), verify it against `code_repos` using the techniques in source-truth.md §3. Record results in `verification_warnings[]` (schema below). **Do NOT rewrite the topic notes to match source** — preserve the original (Jira) phrasing; the orchestrator + user resolve discrepancies in `/impl:jira:docs` Phase 5.8. When `code_repos` is empty/omitted, emit one entry per user-visible claim with `finding: NOT_FOUND`, `technique: no-source-evidence`, `source_phrasing: "(not verifiable)"`.
+
 ## Output — the documentation checklist
 
 ```yaml
@@ -95,7 +98,7 @@ checklist:
         sources: [<Jira key | PR URL>, ...]
         notes:   <optional 1-line guidance for the writer>
     frontmatter_updates:
-      changelog: {action: append, entry: "<YYYY-MM-DD> <1-line summary, ref <JIRA_KEY>>"}
+      changelog: {action: append, entry: "<YYYY-MM-DD> <customer-readable 1-line summary; NO Jira key>"}
       other:     {<field>: <value>, ...}   # only fields needing change
     snippets:
       reuse:   [<relative snippet path>]
@@ -116,12 +119,23 @@ checklist:
 gaps:
   - description: <what's missing from inputs>
     recommended_action: <"ask user" | "mark TODO in draft" | "skip with note in final report">
+verification_warnings:        # source-truth findings; resolved by the orchestrator in Phase 5.8
+  - number:          <stable index, 1-based>
+    claim:           <short label, e.g. "Target version preset list">
+    jira_phrasing:   <verbatim phrasing from the Jira/description source>
+    source_phrasing: <verbatim phrasing from the code, or "(not verifiable)">
+    source_location: <file:line checked, or null>
+    technique:       <schema-json | datasource-class | constant | openapi | ui-source | test-fallback | menu-builder | no-source-evidence>
+    finding:         VERIFIED | CONTRADICTED | NOT_FOUND | AMBIGUOUS
 ```
 
 `status: PARTIAL` is returned when the checklist is usable but at least one gap has `recommended_action: "ask user"` or the image policy is `ambiguous` for at least one target — the caller must surface those to the user before approval.
 
 ## Hard rules
 
+- NEVER include a Jira key inside `frontmatter_updates.changelog.entry`. The changelog is reader-visible "what changed on this page" prose; traceability is the commit message's job.
+- NEVER propose a changelog-only frontmatter update on a page with no other planned change: if a target's `topics:` is empty AND `frontmatter_updates.other:` is empty AND the only change is `frontmatter_updates.changelog`, drop the target from the checklist entirely (a changelog entry with no corresponding content change is meaningless).
+- NEVER let a cross-product "minimal touch" parity reference introduce content specific to the OTHER product's implementation. When extending product X's page about a feature shipped by product Y, plan `topics[].notes` as a one-line cross-link to Y's dedicated page — do NOT inline Y's implementation detail (throttling rules, enum values, precedence). Example: noting on `oneagent-update` that update windows are shared with ActiveGate is fine; copying the per-pool ActiveGate throttling rule onto the OneAgent page is not.
 - NEVER write or modify files. This agent plans; the writer writes.
 - NEVER copy screenshots anywhere — only compute `dest` / `staging` paths and record them. The writer performs the actual file moves.
 - For `image_policy == cdn_upload_required`, the `staging` path MUST be under the caller-provided `screenshot_staging_dir` (a persistent Obsidian project folder under `$VAULT_PATH`, which is always host-mounted). NEVER stage inside `repo_root` (a repo mounted as a docker repo-volume is not on the host and is lost on restart) and NEVER use `/tmp` (in-image, ephemeral). If `screenshot_staging_dir` is null while a screenshot needs cdn staging, emit a gap with `recommended_action: "ask user"`.

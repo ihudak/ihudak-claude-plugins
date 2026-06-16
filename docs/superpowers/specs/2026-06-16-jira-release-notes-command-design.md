@@ -58,10 +58,13 @@ A new orchestrator command + one bounded agent; everything else is reused.
   versions. Inherits the session model (MODERATE).
 - **Output:** a `release_notes_block` — `target_format: dynatrace-docs-release-notes-v1`,
   one entry per declared release version, each with a rendered `{{#context}}` block
-  (feature title + user-facing prose, citing `[[KEY]]`) and a `{{#internal-note}}`
-  block (author from reporter/assignee). Plus a single combined rendered draft string.
-- **Hard rules:** user-facing prose only; **never** embed Bitbucket/GitHub PR URLs in
-  the notes (cite the public Jira key only); never write files (the command writes).
+  (feature title + clean user-facing prose) and a `{{#internal-note}}` block (author
+  from reporter/assignee). Plus a single combined rendered draft string.
+- **Hard rules:** clean customer-facing prose only; **never** embed Jira IDs/keys **or**
+  Bitbucket/GitHub PR URLs anywhere in the draft. The draft is placed into the ticket's
+  dedicated Jira release-notes field, so the docs automation already knows the ticket ID
+  and adds any ID-based references itself — our prose must not. (Our internal Jira is not
+  public; IDs never belong in customer-facing notes.) Never write files (the command writes).
 
 ## Pipeline (command phases)
 
@@ -85,7 +88,9 @@ A new orchestrator command + one bounded agent; everything else is reused.
 6. **Optional diff grounding.** If on, resolve repos via `$REPOS_PATH` (git-remote
    slug match) and run `diff-summarizer` in batches of ≤4. Missing repos use the
    existing escalation (skip / clone-wait / specify path).
-7. **Render.** `release-notes-writer` produces the `release_notes_block` + combined draft.
+7. **Render.** `release-notes-writer` produces the `release_notes_block` + combined draft —
+   clean customer-facing prose with **no Jira IDs and no PR links** (traceability to the
+   source ticket is implicit: the draft is pasted into that ticket's Jira release-notes field).
 8. **Optional style gate.** `dt-style-checker` on the draft prose; `dt-doc-fixer`
    applies safe fixes. Skip gracefully if `dt-style-guide` is absent.
 9. **Write + report.** Write the draft to the destination (**never** into the
@@ -153,7 +158,9 @@ conflict, **merge the staging fix first**, then base this feature on the result.
   export, written to a persistent destination, with zero external API calls.
 - Diff grounding is optional and reuses `$REPOS_PATH` resolution + `diff-summarizer`.
 - The style gate runs when `dt-style-guide` is present and skips cleanly when absent.
-- No PR URLs appear inside release-notes prose; every claim cites a Jira `[[KEY]]`.
+- No Jira IDs/keys and no PR URLs appear anywhere in the release-notes draft; the draft
+  is placed into the ticket's dedicated Jira release-notes field, where the docs
+  automation associates the source ID.
 - The docs flow no longer proposes release-notes/what's-new pages as repo write targets.
 - `grep` confirms the command, agent, and handoff exist; manifests are valid JSON with
   consistent `1.6.0` versions.

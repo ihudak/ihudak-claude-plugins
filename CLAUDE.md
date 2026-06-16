@@ -112,6 +112,7 @@ in their prompt; they do not re-read the file.
 /impl:docs           → /impl:docs → [doc-reviewer] → [doc-fixer] → impl-maintenance
 /impl:jira:docs      → /impl:jira:docs → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [doc-planner] → writing → [docs-style-checker → dt-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [doc-fixer] → impl-maintenance
 /impl:jira:epics     → /impl:jira:epics → jira-reader → [code-scanner×N (parallel, optional)] → writing → [dt-style-checker] → [doc-fixer] → [epic-reviewer@Opus] → [doc-fixer] → impl-maintenance
+/impl:jira:release-notes → /impl:jira:release-notes → jira-reader → [diff-summarizer×N (parallel, optional)] → [release-notes-writer] → [dt-style-checker → dt-doc-fixer (optional)] → write draft (paste into Jira)
 /vuln                → vuln-research → vuln-fixer → [code-review@Opus] → review-fixer → tests → impl-maintenance
 /upgrade             → upgrade-planner → upgrade-executor → [code-review@Opus] → review-fixer → tests → impl-maintenance
                       └── test-baseliner      (used by upgrade-executor, vuln-fixer, and /impl:code)
@@ -168,6 +169,15 @@ Key invariants for `/impl:jira`:
 - Sub-agents return `DIRTY_TREE` / `REFRESH_BLOCKED` when they cannot refresh repos — never fail silently
 - Every written claim must cite the originating Jira key (`[[KEY]]`) plus PR URL (docs flow) or file path (epics flow)
 - Writes never touch `_archive/` and never write outside cwd unless the user provides an explicit absolute path
+
+Key invariants for `/impl:jira:release-notes`:
+
+- **Zero external API calls** — PR URLs are identifiers only; all resolution is local `git` against clones under `$REPOS_PATH`
+- `jira-reader` is read-only
+- The draft is the **authored body only** — a `{{#context}}` label, `### title`, and customer-facing prose; NEVER a Jira ID/key, a PR link, or a `{{#internal-note}}` block (the docs automation adds the metadata wrapper)
+- NEVER writes into a docs repo; the default destination is persistent (never `/tmp`)
+- Light gate only — `dt-style-checker` (optional, skipped if `dt-style-guide` absent); no Opus review, no tests, no branch, no commit
+- Diff grounding is opt-in; when on, it reuses `$REPOS_PATH` resolution + `diff-summarizer`
 
 ## Test-writing requirement for code changes
 

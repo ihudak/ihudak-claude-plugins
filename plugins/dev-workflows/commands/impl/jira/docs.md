@@ -63,11 +63,11 @@ Ask about:
   choices: ["fetch only (Recommended)", "fetch + pull default branch", "no refresh", "Other… (describe)"]
   ```
   The `fetch only` default matches the `diff-summarizer` default (`refresh.fetch: true, refresh.pull: false`) — historical PR diffs don't need the current branch tip, and pulling risks moving HEAD away from the merge commit we want to reach.
-- **Repos base path**. Detect `/repos` first (`[ -d /repos ]`). Ask:
+- **Repos search base (`$REPOS_PATH`)**. Read `${REPOS_PATH:-/workspace}` (the container mounts every repo under `/workspace`). `$REPOS_PATH` may be a single directory or a colon-separated list. Ask:
   ```
-  choices: ["Use /repos (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]
+  choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]
   ```
-  If "different path", take free-text input and validate that at least one directory exists under it. Record the resolved path as `<repos_base>`.
+  If "different path", take free-text input (single dir or colon-separated list) and validate that at least one directory exists under it. Record the resolved value as `$REPOS_PATH`. Individual clones are located in Phase 4 by matching their `git remote` against each PR's repo slug — not by assuming a `<base>/<slug>` directory name.
 - **Screenshots**:
   ```
   choices: ["No screenshots needed", "I'll provide screenshot paths (you'll be prompted)", "Cancel", "Other… (describe)"]
@@ -78,7 +78,7 @@ Also display (for user context):
 - Resolved cwd absolute path
 - Write context (`obsidian` / `docs_repo` / `non_docs_repo` / `plain_dir`)
 - Whether branching will happen (only when context is `docs_repo` — confirmed at plan approval)
-- Resolved `<repos_base>`
+- Resolved `$REPOS_PATH`
 - Resolved `$VAULT_PATH` and `<JIRA_KEY>`
 
 ---
@@ -97,7 +97,7 @@ Present a concise plan:
 
 - Resolved `<JIRA_KEY>` and the `$VAULT_PATH/jira-products/<JIRA_KEY>/` path
 - Output filename / path under cwd (from Phase 1)
-- `<repos_base>` and the repos that will be examined (inferred from the `jira-reader` output in Phase 3; if Phase 3 hasn't run yet, list "TBD — resolved after Jira read")
+- `$REPOS_PATH` and the slug→clone resolution for the repos that will be examined (inferred from the `jira-reader` output in Phase 3; if Phase 3 hasn't run yet, list "TBD — resolved after Jira read")
 - PR filter (MERGED only / all / specific)
 - Parallelism plan (up to 4 `diff-summarizer` instances per batch; up to 4 repos per Agent message)
 - Write context + whether branching will happen
@@ -136,12 +136,16 @@ From the `jira-reader` handoff `pull_requests` list:
 
 1. Filter by `status` per the Phase 1 PR-status setting (default: MERGED only). This is the `pull_requests[].status` field, NOT the top-level `jira-reader` `status`.
 2. Group the remaining PRs by `repo` (short repo name).
-3. For each unique `repo`, check that `<repos_base>/<repo>` exists as a directory.
-4. If any repos are missing, escalate using the §15 rules:
-   ```
-   choices: ["Skip and continue without its PRs", "I'll clone it — wait", "Cancel", "Use different /repos path"]
-   ```
-   List the missing repos explicitly. "Skip" removes that repo's PRs from scope; "I'll clone it — wait" pauses the run until the user confirms the clone is done, then re-checks existence; "Use different /repos path" re-prompts for `<repos_base>` and re-validates.
+3. Build a slug→clone map. For each top-level directory under each entry of `$REPOS_PATH`, run `timeout 5 git -C <dir> remote get-url origin 2>/dev/null`, strip a trailing `.git`, and take the URL's last path segment as that clone's slug. Skip directories with no `.git` or whose `git remote` call fails/times out. Result: `<slug> → [<absolute path>, ...]`.
+4. Resolve each unique in-scope `repo` slug against the map:
+   - **One match** — use that absolute path as `repo_path`.
+   - **Multiple matches** (e.g. `cluster` and `cluster-repo`, both pointing at the same upstream) — auto-prefer basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last; show all candidates at plan approval so the user can override.
+   - **Zero matches** — escalate using the §15 rules:
+     ```
+     choices: ["Skip and continue without its PRs", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]
+     ```
+     List the unresolved slugs explicitly. "Skip" removes that repo's PRs from scope; "I'll clone it — wait" pauses until the user confirms the clone is present under `$REPOS_PATH`, then re-runs step 3; "Specify a different absolute path" records the path directly as `repo_path` for that slug.
+   Record the resolution as `repo_slug → repo_path` for Phase 5.
 5. If any PRs had `host: other` (unsupported host), record them as `unresolved` and carry them into the Phase 9 report; do not block.
 
 ---
@@ -157,7 +161,8 @@ For each repo, in the same Agent message:
 → Agent (subagent_type: "dev-workflows:diff-summarizer"):
   > "Summarise this repo's PRs for the brief:
   >
-  > repo_path:   <repos_base>/<repo>
+  > repo_path:     <resolved absolute path for this repo from Phase 4>
+  > repo_url_slug: <repo slug, e.g. "cluster">
   > pr_refs:     [ ... full PR entries from jira-reader handoff, filtered to this repo ... ]
   > context:    |
   >   [1–2 sentences: VI goal + themes relevant to this repo]
@@ -479,7 +484,7 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 - Themes: [2–4 bullet points from jira-reader]
 
 ### Repos analysed
-- <repos_base>/<repo-1> — [N PRs in scope, M resolved, K unresolved]
+- <repo-1> (<resolved repo_path>) — [N PRs in scope, M resolved, K unresolved]
 - ...
 
 ### PRs in scope

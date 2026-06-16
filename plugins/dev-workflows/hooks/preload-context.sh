@@ -34,7 +34,7 @@ except Exception:
 # `/impl --help` doesn't inject noise on every misfire. The first capture group
 # holds the full command token (e.g. "impl", "impl:code", "impl:jira:docs") —
 # see spec §3 "Hook scope" for the normative regex.
-if [[ ! "$prompt" =~ ^/(impl(:(code|docs|jira(:(docs|epics))?))?|vuln|upgrade)[[:space:]]+[^[:space:]-] ]]; then
+if [[ ! "$prompt" =~ ^/(impl(:(code|docs|jira(:(docs|epics|release-notes))?))?|vuln|upgrade)[[:space:]]+[^[:space:]-] ]]; then
     exit 0
 fi
 cmd="${BASH_REMATCH[1]}"

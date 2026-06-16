@@ -86,9 +86,12 @@ A new orchestrator command + one bounded agent; everything else is reused.
 5. **Phase-1 questions:**
    - Diff grounding on/off (default off). If on: `$REPOS_PATH` (default `/workspace`,
      confirm/override) + PR-status filter (default MERGED only).
-   - Destination: auto-discovered Obsidian project folder (default; e.g.
-     `$VAULT_PATH/jira-products/<JIRA_KEY>/<JIRA_KEY>-release-notes.md`) / custom
-     absolute path / stdout / skip.
+   - Destination: the ticket's persistent Obsidian **project folder** (default —
+     resolved as a directory under `$VAULT_PATH/Projects/` whose name starts with
+     `<JIRA_KEY>`, writing `<project-dir>/<JIRA_KEY>-release-notes.md`; this is where
+     the user already keeps release notes) / custom absolute path / stdout / skip.
+     NOT `jira-products/`, which is regenerated on every Jira import. When no project
+     folder is found, ask for a path.
    - Style check on/off (default on if `dt-style-guide` installed).
 6. **Optional diff grounding.** If on, resolve repos via `$REPOS_PATH` (git-remote
    slug match) and run `diff-summarizer` in batches of ≤4. Missing repos use the

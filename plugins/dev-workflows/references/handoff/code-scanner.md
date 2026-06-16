@@ -3,7 +3,8 @@
 ## Input
 
 ```yaml
-repo_path: /repos/<repo-name>
+repo_path: <absolute, e.g. /workspace/<repo-name>>
+repo_url_slug: <repo slug from source URL; optional, enables upstream cross-check>
 capability_themes:
   - <short phrase>
 context: |

@@ -20,6 +20,7 @@ diff_summaries:      <optional array of diff-summarizer outputs; omit when diff-
 release_versions:    [<parsed version strings, e.g. "Managed (344)", "SaaS (344)">]
 context_label_hint:  <optional category labels; null otherwise>
 model_routing:       <standard block>
+code_repos:          <optional array of {slug, path}; provided when diff-grounding is on>
 ```
 
 Refuse to run without `jira_reader_handoff`.
@@ -57,12 +58,15 @@ Refuse to run without `jira_reader_handoff`.
 
    Concatenate entries (blank-line separated) into `combined_rendered`.
 
+5. **Source-truth check (when `code_repos` is provided).** Verify the specific option/label/count claims the draft makes against the source (per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §3). Do NOT auto-resolve: when a claim is contradicted, record a `gaps[]` entry with `field: prose`, `jira_phrasing`, `source_phrasing`, `source_location`, and `recommended_action: "ask user"`. Keep the draft prose in the Jira phrasing for now; the command resolves it.
+
 ## Output
 
 Return YAML exactly as defined in `${CLAUDE_PLUGIN_ROOT}/references/handoff/release-notes-writer.md`.
 
 ## Hard rules
 
+- When code_repos is provided, NEVER silently emit a claim the source contradicts; record it in gaps[] for the command to escalate.
 - NEVER write or modify files. This agent renders; the command writes.
 - NEVER include a Jira ID/key (e.g. `PRODUCT-14902`, `[[KEY]]`, or a browse URL)
   anywhere in `context_label`, `feature_title`, `prose`, or `rendered`. The draft is

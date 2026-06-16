@@ -4,6 +4,28 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [1.5.0] — 2026-06-16
+
+### Changed (breaking for orchestrators that hardcode `/repos/`)
+- **`/impl:jira:*` repo discovery is now `$REPOS_PATH`-based.** The old fixed
+  `<repos_base>/<slug>` directory lookup (default `/repos`) is replaced by a scan
+  rooted at `$REPOS_PATH` (default `/workspace`; colon-separated list supported)
+  that maps each PR's repo-URL slug to an absolute local clone by matching
+  `git remote get-url origin`. Multiple clones of one upstream are disambiguated
+  by the preference order `<slug>-repo` > `<slug>_repo` > `<slug>_fast` >
+  alphabetically last. This matches the container's `/workspace` umbrella layout
+  (every repo and the Obsidian vault mounted under `/workspace`).
+- **`diff-summarizer` / `code-scanner` inputs.** `repo_path` is now any absolute
+  path (no longer assumed `/repos/<name>`), and a new optional `repo_url_slug`
+  enables an upstream cross-check — on mismatch the agent returns `REPO_MISSING`
+  instead of summarising the wrong repo.
+- **`preload-context.sh`.** Emits `repos_path: ${REPOS_PATH:-/workspace}`
+  (previously `repos_base: ${REPOS_BASE:-/repos}`).
+
+### Migration notes
+- If your clones still live under `/repos`, set `REPOS_PATH=/repos` to preserve
+  the old base. The slug→clone match by `git remote` works regardless of base.
+
 ## [1.4.0] — 2026-06-15
 
 ### Changed

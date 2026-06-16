@@ -120,7 +120,23 @@ choices: ["Approve & implement now (Recommended)", "Revise plan", "Cancel"]
 6. **Do NOT run tests.** This command has no test phase — validation checks are all that's expected.
 7. **Do NOT create a branch or commit.** The user manages git manually for doc edits.
 8. Verify the outcome matches the approved plan.
-9. Proceed to Phase 4.
+9. Proceed to Phase 3.5.
+
+---
+
+## Phase 3.5 — Style check (mandatory)
+
+After writing the edits and before Phase 4, dispatch `docs-style-checker` on the changed file(s):
+
+→ Agent (subagent_type: "dev-workflows:docs-style-checker"):
+  > repo_root: [cwd's git root]
+  > files:     [the files edited in Phase 3]
+
+- `VIOLATIONS_FOUND` → apply safe fixes via `doc-fixer` (one fix cycle), then re-run once.
+- `OK` / `NOT_CONFIGURED` → proceed to Phase 4 (NOT_CONFIGURED means no primary linter AND no `dt-style-guide` fallback — recorded, not silently ignored).
+- `ERROR` → surface the reason; proceed to Phase 4 (the edit is small and user-managed).
+
+Never skip this phase on your own judgement of which linters are installed — `docs-style-checker` already falls back to `dt-style-checker` when Vale is absent.
 
 ---
 
@@ -241,6 +257,7 @@ The working tree has uncommitted changes. `/impl:docs` never commits — you man
 
 ## Invariants (always enforced)
 
+- ALWAYS run Phase 3.5 (style check) after editing — `docs-style-checker` falls back to `dt-style-checker`; never skip style on tool-absence judgement
 - NEVER create a git branch (the user manages git manually)
 - NEVER run tests (this command has no test phase)
 - NEVER invoke Opus (no planning agent, no review agent — docs edits are always SIMPLE or MODERATE)

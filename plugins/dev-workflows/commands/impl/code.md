@@ -161,7 +161,7 @@ user-level agent auto-discovery is active in the current session.
   > "Produce the risk-weighted plan for the following brief:
   >
   > Task description: [substitute full description]
-  > Classification: [SIGNIFICANT | HIGH-RISK] — reason: [the criterion from Phase 1.5]
+  > Classification: [SIGNIFICANT | HIGH-RISK] — reason: [the criterion from Phase 1.5, or the multi-source floor from Pre-Phase 2 when fan_out]
   > Codebase summary: [paste the Phase 1.7 multi-source summary if fan_out, else the Explore agent's output]
   > Constraints: [any from clarification, plus runtime/version/deadline known]
   > Current state: branch = [git branch], uncommitted = [git status --short summary]"
@@ -171,7 +171,7 @@ user-level agent auto-discovery is active in the current session.
 1. A full plan in the risk-weighted format (the normal case).
 2. A short `### Re-classification` section, if the planner decided on inspection that the task is actually `SIMPLE` or `MODERATE`.
 
-**If the return contains `### Re-classification`:** surface it to the user, ask for confirmation of the revised level with a `choices` prompt (`["Accept revised classification (Recommended)", "Override and stay SIGNIFICANT/HIGH-RISK", "Cancel"]`). If the user accepts, **fall back to Phase 2A** (standard plan) using the Explore summary already captured above — do not re-run Explore. If the user overrides, re-invoke risk-planner with an additional constraint stating the classification is intentional; do not down-classify again. If the user cancels, stop and summarize.
+**If the return contains `### Re-classification`:** surface it to the user, ask for confirmation of the revised level with a `choices` prompt (`["Accept revised classification (Recommended)", "Override and stay SIGNIFICANT/HIGH-RISK", "Cancel"]`). If the user accepts, **fall back to Phase 2A** (standard plan) using the codebase context already captured above — the Phase 1.7 **multi-source codebase summary** when `fan_out = true`, otherwise the Explore summary — and do not re-run exploration. Accepting here is the user exercising the **plan-approval override** of the multi-source SIGNIFICANT floor (Pre-Phase 2); that is the sanctioned way to leave the fan_out floor. If the user overrides, re-invoke risk-planner with an additional constraint stating the classification is intentional; do not down-classify again. If the user cancels, stop and summarize.
 
 **If the return is a full plan:** present it to the user verbatim and ask:
 

@@ -33,7 +33,7 @@ flowchart TD
     P1 -->|No| C["Phase 1.5: Classify task via model-routing skill<br/>SIMPLE / MODERATE / SIGNIFICANT / HIGH-RISK"]
 
     C --> SCALE{"Pre-Phase 2:<br/>Multi-source input?<br/>(multi-repo or any folder)"}
-    SCALE -->|No| C2["Use Phase 1.5 class"]
+    SCALE -->|No| C2["Use Phase 1.5 classification"]
     SCALE -->|Yes| FLOOR["Floor at SIGNIFICANT<br/>(overridable at approval)"]
     FLOOR --> F17["Phase 1.7: fan-out scan<br/>jira-reader + code-scanner xN (cap 4)<br/>→ synthesize summary"]
     F17 --> E2

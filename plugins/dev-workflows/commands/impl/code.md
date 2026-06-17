@@ -82,6 +82,33 @@ Set `fan_out = (repo_count > 1) OR has_ticket_folder OR has_spec_folder`.
 
 ---
 
+## Phase 1.7 — Multi-source exploration (only when `fan_out = true`)
+
+Runs after Pre-Phase 2 and replaces the single Phase 2B exploration subagent for multi-source input. Follows `classification.md` §8.
+
+1. **Read Jira ticket folders.** For each Jira ticket folder, invoke `jira-reader` (read-only):
+
+   → Agent (subagent_type: "dev-workflows:jira-reader"):
+     > "Read the exported Jira hierarchy at <ticket-folder absolute path> and return the structured handoff: linked items, PR URLs (identifiers only — no fetching), and capability themes."
+
+   Run multiple `jira-reader` calls sequentially (it is fast and read-only). Collect the themes and PR references.
+
+2. **Read spec/design folders inline.** Read each spec-folder `.md` and fold its content into the themes and primary description.
+
+3. **Fan out `code-scanner` — one per repo, single response, cap 4 concurrent.** Spawn all repo scanners in **one** message (batch in groups of 4 if there are more than 4 repos). For each code repo:
+
+   → Agent (subagent_type: "dev-workflows:code-scanner"):
+     > "repo_path: <absolute repo path>
+     >  capability_themes: <themes from steps 1–2 + the implementation spec>
+     >  context: <3–5 sentences: the implementation goal and what the change must accomplish>
+     >  search_hints: <symbols/paths/keywords derived from the spec, if any>"
+
+   Wait for all scanners in the batch to return. A scanner returning `DIRTY_TREE`/`REFRESH_BLOCKED` is surfaced, not hidden.
+
+4. **Synthesize.** Combine the `jira-reader` output, all `code-scanner` reports, and the spec into a single **multi-source codebase summary** (per-repo: relevant files, existing capabilities, gaps; plus the cross-repo picture and the Jira themes/PR references). This summary is the codebase context for Phase 2B — do **not** also run the single Explore subagent.
+
+---
+
 ## Phase 2A — Standard Plan (SIMPLE / MODERATE only)
 
 **Codebase exploration** — Before writing the plan, spawn an exploration subagent to map the relevant parts of the codebase:
@@ -123,7 +150,7 @@ choices: ["Approve & implement now (Recommended)", "Revise plan", "Cancel"]
 
 ## Phase 2B — Opus-planned (SIGNIFICANT / HIGH-RISK)
 
-**Codebase exploration** — same exploration subagent call as Phase 2A (same prompt, same fallback rule).
+**Codebase exploration** — If Phase 1.7 ran (`fan_out = true`), use its **multi-source codebase summary** as the codebase context and skip the single Explore subagent. Otherwise, run the same exploration subagent call as Phase 2A (same prompt, same fallback rule).
 
 Once the file map is returned, delegate planning to Opus. Invoke via
 `general-purpose` with an explicit `model: "opus"` override and a "read the
@@ -135,7 +162,7 @@ user-level agent auto-discovery is active in the current session.
   >
   > Task description: [substitute full description]
   > Classification: [SIGNIFICANT | HIGH-RISK] — reason: [the criterion from Phase 1.5]
-  > Codebase summary: [paste the Explore agent's output]
+  > Codebase summary: [paste the Phase 1.7 multi-source summary if fan_out, else the Explore agent's output]
   > Constraints: [any from clarification, plus runtime/version/deadline known]
   > Current state: branch = [git branch], uncommitted = [git status --short summary]"
 
@@ -465,3 +492,8 @@ Output a structured report — do NOT ask any closing confirmation:
 - ALWAYS pass `Change type: code` in the Phase 4 change summary block (scopes the four maintenance agents' suggestions to code-change territory — docs / Jira variants use `docs`)
 - AFTER one review-fixer pass + one re-review, if verdict is still BLOCK: stop and surface to user — do NOT loop
 - AFTER two Phase 3.5 fix-loop attempts, if regressions remain: stop and surface to user — do NOT loop
+- ALWAYS classify each `@path` input by inspection (Phase 0) — never by matching the path string
+- WHEN `fan_out` is true (multi-repo or any directory input): floor classification at SIGNIFICANT (overridable at plan approval), run Phase 1.7, and feed its synthesized summary to the planner instead of the single Explore subagent
+- ALWAYS fan out `code-scanner` one-per-repo in a single response, capped at 4 concurrent — never sequentially
+- NEVER silently skip a referenced `@dir` that is missing or unrecognized — surface it and ask (classification.md §8.4)
+- Scanning agents (`jira-reader`, `code-scanner`) inherit the session model; escalate a single scanner to Opus only when one repo slice is oversized

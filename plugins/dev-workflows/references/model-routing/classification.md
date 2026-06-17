@@ -29,6 +29,7 @@ Every task MUST be classified into exactly one of:
 - Concurrency, caching, transactions, locking, retries, idempotency, async/queue processing.
 - Payment, billing, audit, compliance, PII, or other security-sensitive logic.
 - Changes touching **more than 3–5 non-test files**.
+- **Multi-source input** — `/impl:code` was given more than one code repository, or any directory input (an exported Jira ticket folder, or a spec/design folder). Large multi-source briefs are cross-cutting by nature; this floors the task at `SIGNIFICANT`. See §8 for the fan-out scan this triggers. The floor is overridable at plan approval if the user judges the work genuinely smaller than its input footprint.
 - Unclear requirements, large unknowns, or otherwise high blast radius.
 
 `HIGH-RISK` is the same list with an additional severity multiplier — pick it
@@ -264,3 +265,54 @@ The orchestrator's final report MUST include a `### Model Routing` section:
 
 For SIMPLE/MODERATE tasks the verdict list MAY be omitted; the classification
 and reason are still required.
+
+---
+
+## 8. Large-input scan fan-out
+
+When a scanning step must digest more than a single working tree, a single
+explorer subagent on a weak session model comprehends it poorly. This section
+is the shared policy for that case. It is consulted by `/impl:code` and
+generalizes the pattern `/impl:jira:epics` already uses.
+
+### 8.1 Trigger (input shape, not measured volume)
+
+Fan out when **any** of these structural facts hold for the invocation:
+
+- more than one code repository is referenced;
+- an exported Jira ticket folder is supplied;
+- a spec/design folder is supplied.
+
+Counting files or bytes is explicitly **not** used — the trigger is the shape
+of the input, which is cheap to detect and easy to explain. A single repo with
+inline/`@file` text only does **not** trigger fan-out; the caller keeps its
+normal single-explorer path.
+
+### 8.2 The fan-out pattern
+
+1. `jira-reader` reads each ticket folder (read-only) → themes, PR references
+   (identifiers only), linked items.
+2. Spec/design folders are read inline and folded into the themes.
+3. `code-scanner` is fanned out **one instance per repository, in a single
+   response, capped at 4 concurrent**. Each instance receives the themes and
+   its own repo path; it returns capabilities, gaps, and relevant files.
+4. The orchestrator synthesizes the `jira-reader` output, all scanner reports,
+   and the spec into one codebase summary that feeds the Opus planner.
+
+### 8.3 Model routing inside the fan-out
+
+- `jira-reader` and `code-scanner` **inherit the session model** — each handles
+  a bounded slice, so even a Sonnet-pinned session copes.
+- Because the trigger floors the task at `SIGNIFICANT` (§1.1), synthesis and
+  planning run on the strongest available reasoning model via `risk-planner`
+  (§2 chain). That is where the "more powerful model for the scan/plan step"
+  requirement is satisfied — no separate synthesis-model knob is introduced.
+- **Optional escalation:** if a single repo slice is itself oversized, the
+  orchestrator MAY pin that one `code-scanner` to Opus via the `task` tool
+  `model:` override. This is optional and judgment-based, not threshold-driven.
+
+### 8.4 Honesty
+
+A referenced directory that is missing, or is neither a recognized folder type
+nor a git repository, MUST be surfaced to the user — never silently skipped
+(mirrors the `REFRESH_BLOCKED` honesty rule used by the `/impl:jira:*` flows).

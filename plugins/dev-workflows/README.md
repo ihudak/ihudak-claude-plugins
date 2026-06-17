@@ -7,7 +7,7 @@ Five Claude Code slash commands for structured implementation, one-shot doc edit
 | Command | Description |
 |---------|-------------|
 | `/impl [args]` | Help / dispatcher — prints a summary of the `/impl:*` variants plus `/vuln` / `/upgrade` under "Related commands", then stops. Does NOT run any workflow. If you land here from muscle memory, re-invoke with the right variant. |
-| `/impl:code <description>` | Structured code implementation: classify → plan (Opus for SIGNIFICANT / HIGH-RISK) → branch → capture test baseline → implement → write and verify tests → Opus review → verify baseline → document. |
+| `/impl:code <description \| @paths>` | Structured code implementation: load + classify multi-source input (spec file/folder, Jira ticket folder, one or more repos) → classify risk → fan-out scan when multi-source → plan (Opus for SIGNIFICANT / HIGH-RISK) → branch → capture test baseline → implement → write and verify tests → Opus review → verify baseline → document. |
 | `/impl:docs <description>` | One-shot doc editing (single-file additions, README tweaks, Obsidian notes, formatting). No branch, no tests, no code review, no commit. Always SIMPLE or MODERATE. |
 | `/impl:jira:docs <VI-KEY>` | Jira-driven feature documentation. Reads the pre-exported Jira hierarchy from the vault, resolves PR URLs to local repos, runs parallel PR-diff summaries, synthesises docs, runs `docs-style-checker` (Vale-missing falls back to `dt-style-checker` — mandatory) + Opus `doc-reviewer` gates, writes into the current docs repo. Jira-vs-source discrepancies are escalated to the user (Phase 5.8) with a bug-report draft. |
 | `/impl:jira:epics <VI-KEY>` | Jira-driven Epic drafting. Reads the Value Increment + its existing Epics, optionally scans code repos for reusable capabilities and gaps, drafts one markdown file per new Epic under the vault, gated by Opus `epic-reviewer`. Never branches or commits. |
@@ -26,20 +26,26 @@ All four `/impl:*` workflow commands classify tasks as SIMPLE / MODERATE / SIGNI
 ```mermaid
 flowchart TD
     A["User runs /impl:code &lt;description&gt;"] --> H["preload-context hook injects<br/>model routing + git context"]
-    H --> P0["Phase 0: Load description<br/>inline text or @markdown file"]
+    H --> P0["Phase 0: Load + classify inputs<br/>inline text, @file, spec/Jira folders, repos"]
     P0 --> P1{"Phase 1:<br/>Any ambiguity?"}
     P1 -->|Yes| Q["Ask user with choices<br/>last choice: Other..."]
     Q --> P1
     P1 -->|No| C["Phase 1.5: Classify task via model-routing skill<br/>SIMPLE / MODERATE / SIGNIFICANT / HIGH-RISK"]
 
-    C -->|SIMPLE / MODERATE| E1["Explore codebase<br/>read-only subagent"]
+    C --> SCALE{"Pre-Phase 2:<br/>Multi-source input?<br/>(multi-repo or any folder)"}
+    SCALE -->|No| C2["Use Phase 1.5 class"]
+    SCALE -->|Yes| FLOOR["Floor at SIGNIFICANT<br/>(overridable at approval)"]
+    FLOOR --> F17["Phase 1.7: fan-out scan<br/>jira-reader + code-scanner xN (cap 4)<br/>→ synthesize summary"]
+    F17 --> E2
+
+    C2 -->|SIMPLE / MODERATE| E1["Explore codebase<br/>read-only subagent"]
     E1 --> SP["Phase 2A: Standard plan"]
     SP --> AP{"User approves plan?"}
     AP -->|Revise| SP
     AP -->|Cancel| STOP1["Stop + summarize"]
     AP -->|Approve| BR["Pre-Phase 3: Clean tree check<br/>stash/proceed/cancel if dirty<br/>create feature branch"]
 
-    C -->|SIGNIFICANT / HIGH-RISK| E2["Explore codebase<br/>read-only subagent"]
+    C2 -->|SIGNIFICANT / HIGH-RISK| E2["Explore codebase (read-only)<br/>or use Phase 1.7 fan-out summary"]
     E2 --> RP["Phase 2B: Opus risk-planner"]
     RP --> RC{"Planner reclassifies?"}
     RC -->|Accepted| SP
@@ -130,9 +136,9 @@ Twenty-one reusable subagents (invoked internally by the commands). The four Opu
 | `docs-style-checker` | inherits | Runs the docs repo's project-configured prose linter (Vale via `.vale.ini`, `package.json` `*:lint` / `lint:*` script, markdownlint, or remark) on files written by `/impl:jira:docs` Phase 6 and emits findings for `doc-fixer`. |
 | `doc-planner` | inherits | Synthesises Jira data + per-repo diff summaries + confirmed write targets into a documentation checklist the writer follows and `doc-reviewer` checks against. Detects the repo's `image_policy` (`local` / `cdn_upload_required` / `ambiguous`). |
 | `doc-location-finder` | inherits | Finds the write target(s) in a docs repo — `extend-existing`, `new-page-in-existing-section`, or `new-section` — with confidence scoring. Never writes content. |
-| `jira-reader` | inherits | Reads the pre-exported Jira markdown hierarchy (VI, Epics, Stories, Sub-tasks, Research, RFA) from `$VAULT_PATH/jira-products/<KEY>/`. Three depths (`full`, `vi-plus-epics`, `vi-only`). Parses PR URLs and classifies hosts (`github_cloud`, `bitbucket_cloud`, `bitbucket_server`, `other`). Read-only. |
+| `jira-reader` | inherits | Reads the pre-exported Jira markdown hierarchy (VI, Epics, Stories, Sub-tasks, Research, RFA) from `$VAULT_PATH/jira-products/<KEY>/`. Three depths (`full`, `vi-plus-epics`, `vi-only`). Parses PR URLs and classifies hosts (`github_cloud`, `bitbucket_cloud`, `bitbucket_server`, `other`). Read-only. Used by `/impl:jira:docs`, `/impl:jira:epics`, `/impl:jira:release-notes`, and `/impl:code` (multi-source input). |
 | `diff-summarizer` | inherits | Resolves a single repo's PR diffs and returns a doc-focused summary. GitHub uses the `gh` CLI when available; Bitbucket Cloud / Server + GitHub-fallback use local-git strategies (branch search, merge-commit grep, Jira-key commit grep). Designed for parallel invocation (caller caps at 4 concurrent). |
-| `code-scanner` | inherits | Scans a single code repo for existing capabilities and gaps against a set of themes from a Value Increment / Epic. Pure filesystem search; no HTTPS. `refresh.pull` defaults to `true` (capability scans target the default-branch tip). Designed for parallel invocation (caller caps at 4 concurrent). |
+| `code-scanner` | inherits | Scans one repo for existing capabilities and gaps relative to themes (from an Epic or an implementation spec). Fanned out one-per-repo, cap 4 concurrent. Used by `/impl:jira:epics` and `/impl:code` (multi-source fan-out). |
 | `impl-maintenance` | inherits | Post-session lessons-learned analyst. Reads the session handoff, scans CLAUDE.md rules / hooks / reference docs / agents, and returns a structured Lessons Learned report with actionable suggestions. Suggest-only; does NOT write files. |
 | `guideline-reviewer` | inherits | Reviews Dynatrace app code and UI for compliance with Dynatrace Experience Standards (GUIDElines). Checks AppHeader, DataTable, FilterField, Connections, Permissions, Settings, Dashboards, accessibility/WCAG, terminology, and Grail naming. |
 | `api-guideline-reviewer` | inherits | Reviews OpenAPI specification files against Dynatrace REST API and IAM permission naming guidelines. Checks version consistency, required elements, naming conventions, IAM scope format, HTTP status codes, and schema composition. |

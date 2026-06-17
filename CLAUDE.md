@@ -97,6 +97,7 @@ knowledge. Keep those roles separate so workflows stay predictable.
 - The mandatory Opus code-review checklist
 - The `model_routing` YAML handoff block shared between commands and agents
 - The `phase: verify-resume` protocol for review-gated verification
+- The large-input scan fan-out policy (§8): the input-shape trigger, the `jira-reader → parallel code-scanner (cap 4) → Opus synthesis` pattern, and the SIGNIFICANT floor it imposes
 
 All top-level commands that dispatch helper agents (`/impl`, `/impl:docs`,
 `/impl:jira:*`, `/vuln`, `/upgrade`) must load and follow this file at the
@@ -111,7 +112,7 @@ in their prompt; they do not re-read the file.
 ## `dev-workflows` workflow relationships
 
 ```
-/impl:code           → /impl → [risk-planner@Opus plan critique] → [code-review@Opus] → review-fixer → test-writer → tests → impl-maintenance
+/impl:code           → /impl → [Pre-Phase 2 scale assessment] → (multi-source? → [jira-reader → code-scanner×N (parallel, cap 4)] → synthesis) → [risk-planner@Opus plan critique] → [code-review@Opus] → review-fixer → test-writer → tests → impl-maintenance
 /impl                → dispatcher / help page; does not run a workflow
 /impl:docs           → /impl:docs → [doc-reviewer] → [doc-fixer] → impl-maintenance
 /impl:jira:docs      → /impl:jira:docs → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [doc-planner] → [discrepancy-escalation (Phase 5.8)] → writing → [docs-style-checker → dt-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [doc-fixer] → impl-maintenance
@@ -129,6 +130,8 @@ in their prompt; they do not re-read the file.
                       └── doc-planner        (used by /impl:jira:docs)
                       └── docs-style-checker (used by /impl:jira:docs)
                       └── epic-reviewer      (used by /impl:jira:epics)
+                      └── code-scanner       (used by /impl:jira:epics and /impl:code multi-source fan-out)
+                      └── jira-reader        (used by /impl:jira:* and /impl:code multi-source fan-out)
 /api-guideline-reviewer → standalone command; reviews OpenAPI specs against Dynatrace REST API + IAM guidance
 /guideline-reviewer     → standalone command; reviews code/UI against Dynatrace Experience Standards
 ```
@@ -148,6 +151,9 @@ Key invariants for `/impl:code` specifically:
 - `test-writer` writes tests for **new or changed behaviour** — mandatory for code changes
 - If no test framework is detected, surface that explicitly — test-writing is never silently skipped
 - Full test suite is verified against the captured baseline before the workflow is considered complete
+- Multi-source input (more than one repo, or any directory input — Jira ticket folder or spec folder) floors classification at SIGNIFICANT (overridable at plan approval) and triggers the Phase 1.7 fan-out scan
+- The fan-out runs `jira-reader` + per-repo `code-scanner` (single response, cap 4 concurrent); its synthesized summary feeds the planner instead of the single Explore subagent
+- A referenced directory that is missing or unrecognized is surfaced, never silently skipped
 
 Key invariants for `/impl:docs`:
 

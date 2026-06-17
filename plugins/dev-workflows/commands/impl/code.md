@@ -6,13 +6,25 @@ allowed-tools: Read Edit Write Bash Glob Grep Task WebFetch LS
 
 Implement the following: $ARGUMENTS
 
-If the argument starts with `@`, treat it as a path to a markdown file. Resolve relative to the current working directory. Read its full content and use it as the description. Echo `📄 Reading prompt from \`<file>\`…` before proceeding. If the file cannot be read, stop and report the error immediately.
-
 ---
 
-## Phase 0 — Load the description
+## Phase 0 — Load and classify inputs
 
-If `@file` syntax: read the file, confirm `"Loaded prompt from <filename.md> (N lines)."`, note any embedded images as "referenced image: <path>". Otherwise use the inline text verbatim.
+`$ARGUMENTS` may contain free-text prose plus **zero or more `@path` tokens** (today's single-`@file` form is a subset). Resolve each `@path` relative to the current working directory. Classify each `@path` — and the current working directory — **by inspection, not by matching the path string**:
+
+| Detected as | Recognition rule | Handling |
+|---|---|---|
+| **Spec file** | a single `.md` file | read fully; use as the description/spec |
+| **Spec folder** | a directory containing `prompt.md` and/or a `*-design.md` | read all `.md` specs within; fold into the description |
+| **Jira ticket folder** | a directory containing a `*-index.md`, or ticket-key subdirectories each containing a `KEY.md` | hand to `jira-reader` in Phase 1.7 |
+| **Code repo** | a directory where `git -C <path> rev-parse --is-inside-work-tree` succeeds (includes the cwd) | scan target in Phase 1.7 |
+
+Rules:
+- The **primary description** is: the spec file if one was given → else the spec-folder design doc → else the inline prose. Echo `📄 Reading prompt from <file>…` (or `from inline text`) and confirm `"Loaded prompt (N lines)."`.
+- Multiple inputs of the same kind are allowed.
+- A referenced `@dir` that is missing, or is neither a recognized folder type nor a git repo, MUST be surfaced to the user immediately (do not silently skip) — then ask whether to continue without it or stop. This mirrors `classification.md` §8.4.
+- Note any embedded images as "referenced image: <path>".
+- If a single `@file` cannot be read, stop and report the error immediately.
 
 ---
 
@@ -53,6 +65,20 @@ Then choose the branch:
 
 - **SIMPLE / MODERATE** → continue to Phase 2A (standard planning)
 - **SIGNIFICANT / HIGH-RISK** → continue to Phase 2B (Opus-planned)
+
+---
+
+## Pre-Phase 2 — Input scale assessment
+
+From the Phase 0 classification, compute:
+- `repo_count` = number of code repos (cwd + referenced git-repo dirs)
+- `has_ticket_folder` = any Jira ticket folder present
+- `has_spec_folder` = any spec/design folder present
+
+Set `fan_out = (repo_count > 1) OR has_ticket_folder OR has_spec_folder`.
+
+- **`fan_out = true`** → the input is multi-source. Per `classification.md` §1.1 this floors the classification at **SIGNIFICANT** (raise it now if Phase 1.5 chose SIMPLE/MODERATE). Announce: `"Multi-source input detected (<facts>) — flooring at SIGNIFICANT; this is overridable at plan approval."` Then run **Phase 1.7** (fan-out scan) and continue on the SIGNIFICANT/HIGH-RISK branch (Phase 2B).
+- **`fan_out = false`** → unchanged behavior; skip Phase 1.7 and proceed to Phase 2A or 2B exactly as the Phase 1.5 classification directs (the single-explorer path).
 
 ---
 

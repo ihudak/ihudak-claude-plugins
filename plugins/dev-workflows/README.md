@@ -117,7 +117,7 @@ Additionally:
 
 ## Agents
 
-Twenty-one reusable subagents (invoked internally by the commands). The four Opus-backed agents are explicit; the rest inherit the session's model.
+Twenty-two reusable subagents (invoked internally by the commands). The four Opus-backed agents are explicit; the rest inherit the session's model.
 
 | Agent | Model | Description |
 |-------|-------|-------------|
@@ -137,6 +137,7 @@ Twenty-one reusable subagents (invoked internally by the commands). The four Opu
 | `doc-planner` | inherits | Synthesises Jira data + per-repo diff summaries + confirmed write targets into a documentation checklist the writer follows and `doc-reviewer` checks against. Detects the repo's `image_policy` (`local` / `cdn_upload_required` / `ambiguous`). |
 | `doc-location-finder` | inherits | Finds the write target(s) in a docs repo — `extend-existing`, `new-page-in-existing-section`, or `new-section` — with confidence scoring. Never writes content. |
 | `jira-reader` | inherits | Reads the pre-exported Jira markdown hierarchy (VI, Epics, Stories, Sub-tasks, Research, RFA) from `$VAULT_PATH/jira-products/<KEY>/`. Three depths (`full`, `vi-plus-epics`, `vi-only`). Parses PR URLs and classifies hosts (`github_cloud`, `bitbucket_cloud`, `bitbucket_server`, `other`). Read-only. Used by `/impl:jira:docs`, `/impl:jira:epics`, `/impl:jira:release-notes`, and `/impl:code` (multi-source input). |
+| `release-notes-writer` | inherits | Renders the dynatrace-docs authored release-notes body for a Jira VI or ticket: a `{{#context}}` label, `### title`, and customer-facing prose — one entry per declared release version. Emits no Jira IDs, no PR links, and no `{{#internal-note}}` block. Does not write files; returns the draft to the caller. Used by `/impl:jira:release-notes`. |
 | `diff-summarizer` | inherits | Resolves a single repo's PR diffs and returns a doc-focused summary. GitHub uses the `gh` CLI when available; Bitbucket Cloud / Server + GitHub-fallback use local-git strategies (branch search, merge-commit grep, Jira-key commit grep). Designed for parallel invocation (caller caps at 4 concurrent). |
 | `code-scanner` | inherits | Scans one repo for existing capabilities and gaps relative to themes (from an Epic or an implementation spec). Fanned out one-per-repo, cap 4 concurrent. Used by `/impl:jira:epics` and `/impl:code` (multi-source fan-out). |
 | `impl-maintenance` | inherits | Post-session lessons-learned analyst. Reads the session handoff, scans CLAUDE.md rules / hooks / reference docs / agents, and returns a structured Lessons Learned report with actionable suggestions. Suggest-only; does NOT write files. |
@@ -150,7 +151,7 @@ Agents are dispatched by `subagent_type` (e.g. `dev-workflows:risk-planner`). Cl
 | Hook | Trigger | Description |
 |------|---------|-------------|
 | `notify-done` | Stop | Desktop notification when Claude Code finishes a turn. |
-| `preload-context` | UserPromptSubmit | Matches `/impl`, `/impl:code`, `/impl:docs`, `/impl:jira:docs`, `/impl:jira:epics`, `/vuln`, `/upgrade` (with at least one non-flag argument), then routes: full git context + model-routing reminder for `/impl:code`, `/vuln`, `/upgrade`; `$VAULT_PATH` + `$REPOS_PATH` + git branch (only if cwd is a git repo) for the two `/impl:jira:*` commands; silent pass-through for `/impl` (dispatcher only) and `/impl:docs` (user manages git manually). |
+| `preload-context` | UserPromptSubmit | Matches `/impl`, `/impl:code`, `/impl:docs`, `/impl:jira:docs`, `/impl:jira:epics`, `/impl:jira:release-notes`, `/vuln`, `/upgrade` (with at least one non-flag argument), then routes: full git context + model-routing reminder for `/impl:code`, `/vuln`, `/upgrade`; `$VAULT_PATH` + `$REPOS_PATH` + git branch (only if cwd is a git repo) for all three `/impl:jira:*` commands; silent pass-through for `/impl` (dispatcher only) and `/impl:docs` (user manages git manually). |
 | `test-notify` | PostToolUse:Bash | Parses test-command output and sends a desktop notification with pass/fail counts. |
 
 ## Environment prerequisites
@@ -172,12 +173,16 @@ These commands run fine on a bare host, but they depend on a few external tools 
 
 `references/` contains the vendored reference docs the commands consult:
 
-- `references/model-routing/classification.md` — four-level complexity taxonomy and routing rules
+- `references/model-routing/classification.md` — four-level complexity taxonomy, model fallback chain, and fan-out policy
+- `references/source-truth.md` — implementation-vs-description discrepancy-escalation protocol (consulted by `doc-planner`, `doc-reviewer`, `release-notes-writer`)
 - `references/fix-vuln/nvd-api.md` — NVD API shape, safe-version derivation
 - `references/fix-vuln/build-systems.md` — build system detection rules
 - `references/upgrade/ecosystems.md` — ecosystem detection and update commands
 - `references/upgrade/compatibility.md` — compatibility constraints and known migrations
 - `references/upgrade/lts-sources.md` — LTS lookup sources
+- `references/handoff/` — per-agent handoff schemas (`code-scanner`, `diff-summarizer`, `impl-maintenance`, `jira-reader`, `release-notes-writer`, `test-baseliner`, `upgrade-executor`, `upgrade-planner`, `vuln-fixer`, `vuln-research`)
+- `references/api-guidelines/` — Dynatrace REST API and IAM permission naming guidelines (consulted by `api-guideline-reviewer`)
+- `references/guidelines/` — Dynatrace Experience Standards reference docs and checklist template (consulted by `guideline-reviewer`)
 
 ## License
 

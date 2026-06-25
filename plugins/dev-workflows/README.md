@@ -14,7 +14,7 @@ Six Claude Code slash commands for structured implementation, one-shot doc edits
 | `/impl:jira:epics <VI-KEY>` | Jira-driven Epic drafting. Reads the Value Increment + its existing Epics, optionally scans code repos for reusable capabilities and gaps, drafts one markdown file per new Epic under the vault, gated by Opus `epic-reviewer`. Never branches or commits. |
 | `/impl:jira:release-notes <KEY>` | Jira-driven release-notes drafting. Reads the ticket from the vault, optionally grounds in merged PR diffs, renders the dynatrace-docs authored release-notes body (`{{#context}}` + title + prose; no IDs, no `{{#internal-note}}`), runs a light `dt-style-checker` gate, and writes a persistent draft to paste into Jira. Never branches, commits, or writes into the docs repo. |
 
-All four `/impl:*` workflow commands classify tasks as SIMPLE / MODERATE / SIGNIFICANT / HIGH-RISK before acting (the `/impl` dispatcher does not — it prints help and stops). The three code-oriented commands (`/impl:code`, `/vuln`, `/upgrade`) also:
+All five `/impl:*` workflow commands classify tasks as SIMPLE / MODERATE / SIGNIFICANT / HIGH-RISK before acting (the `/impl` dispatcher does not — it prints help and stops). The three code-oriented commands (`/impl:code`, `/vuln`, `/upgrade`) also:
 - Create a feature branch before touching any file
 - Route SIGNIFICANT / HIGH-RISK work through Opus for planning and post-implementation review
 - Gate the test run on the review verdict (no tests until BLOCK is cleared)

@@ -1,0 +1,4 @@
+# Managed-docs default owners unioned into managed/_content/** pages.
+# Public marketplace ships only ivan.gudak (PII). Add the remaining managed
+# owners when this plugin moves to the internal Dynatrace repo.
+ivan.gudak

@@ -4,11 +4,12 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
-## 1.9.0
+## [1.9.0] — 2026-06-25
 
-- feat: `/impl:docs:profile` — scans a docs repo and writes/refreshes `.dev-workflows/docs-profile.yml` + CLAUDE.md guidance as a reviewable PR (consumed by `/impl:jira:docs`).
-- feat: model-routing SSOT §2.1 — mid-tier Sonnet detection chain (`claude-sonnet-4-6` → `claude-sonnet-4-5`), pinned via `model:` so detection never inherits an Opus session.
-- feat: `references/dynatrace-docs/docs-profile-schema.md` — the docs-profile schema.
+### Added
+- **`/impl:docs:profile` command.** Scans a docs repo and writes/refreshes `.dev-workflows/docs-profile.yml` + CLAUDE.md guidance as a reviewable PR; consumed by `/impl:jira:docs`.
+- **model-routing SSOT §2.1 — mid-tier Sonnet chain.** Mid-tier Sonnet detection chain (`claude-sonnet-4-6` → `claude-sonnet-4-5`), pinned via `model:` so detection never inherits an Opus session.
+- **`references/dynatrace-docs/docs-profile-schema.md`.** The docs-profile schema.
 
 ## [1.8.0] — 2026-06-25
 

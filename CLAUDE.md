@@ -28,7 +28,7 @@ plugins/
 ## Active plugin: dev-workflows
 
 `plugins/dev-workflows/` contains three commands (`/impl`, `/vuln`, `/upgrade`),
-five agents, three hooks, and reference docs.
+five agents, four hooks, and reference docs.
 
 That count reflects the original bootstrap layout. The live `dev-workflows`
 workflow now relies on a larger set of helper agents and workflow roles; see

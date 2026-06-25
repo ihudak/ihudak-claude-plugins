@@ -50,7 +50,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 
 Profiling is **SIGNIFICANT** — it is a cross-cutting synthesis of the whole repository whose output (`docs-profile.yml`) steers every later `/impl:jira:docs` run, so a wrong profile has a large blast radius. State the classification and a one-line reason.
 
-Record a `model_routing` block per §4, resolving each model against the fallback chains:
+Record a `model_routing` block modeled on §4 (a profiling command does no implementation/fix edits, so those fields are N/A), resolving each model against the fallback chains:
 
 ```yaml
 model_routing:
@@ -59,7 +59,7 @@ model_routing:
   current_model: <the model this orchestrator is running under>
   detection_model: <§2.1 mid-tier Sonnet chain: claude-sonnet-4-6, fallback claude-sonnet-4-5>
   planning_model: <§2 powerful chain: claude-opus-4-8 … fallback Sonnet 4.6/4.5>
-  review_model: <same as planning_model — the synthesis itself is the Opus step>
+  review_model: <same as planning_model — conceptually the synthesis_model; the synthesis step runs on the §2 Opus chain>
   opus_available: true | false
   notes: <any §2.1/§2 degradation, e.g. "Opus unavailable; synthesis fell back to claude-sonnet-4-6">
 ```
@@ -72,7 +72,7 @@ The detection phase (Phase 2) pins its subagent to `detection_model` (the §2.1 
 
 Dispatch a **read-only** detection subagent **pinned to the §2.1 mid-tier chain** via the `task` tool's `model:` override — `claude-sonnet-4-6`, fallback `claude-sonnet-4-5`; record the model actually used as `detection_model` in the `model_routing` block. Detection is mechanical repo scanning, so it must NOT inherit the session model (an Opus session would otherwise burn Opus on a cheap step, per §2.1).
 
-→ Agent (subagent_type: "dev-workflows:code-scanner", model: `<detection_model — §2.1: claude-sonnet-4-6, fallback claude-sonnet-4-5>`):
+→ Agent (subagent_type: "general-purpose", model: `<detection_model — §2.1: claude-sonnet-4-6, fallback claude-sonnet-4-5>`):
   > "Read-only detection scan for a docs-profile. Do NOT write or edit any file — return a structured detection report only.
   >
   > repo_root: <resolved git root from Phase 0>
@@ -98,7 +98,7 @@ Dispatch a **read-only** detection subagent **pinned to the §2.1 mid-tier chain
 
 On the §2 powerful chain (`planning_model`), turn the detection report into a draft `docs-profile.yml`. This synthesis is the SIGNIFICANT reasoning step, so it runs on the strongest available reasoning model (Opus), pinned via the `task` tool's `model:` override — not the §2.1 detection chain.
 
-→ Agent (subagent_type: "dev-workflows:risk-planner", model: `<planning_model — §2 chain: claude-opus-4-8, fallback per §2>`):
+→ Agent (subagent_type: "general-purpose", model: `<planning_model — §2 chain: claude-opus-4-8, fallback per §2>`):
   > "Synthesise a docs-profile from a detection report. This is a planning/synthesis task, not a code change — return the drafted YAML + drafted CLAUDE.md additions, nothing else; do not write files.
   >
   > Schema (the draft MUST conform exactly): `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/docs-profile-schema.md`

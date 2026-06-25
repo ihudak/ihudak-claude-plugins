@@ -98,6 +98,24 @@ the `task` tool's `model` argument.
 
 ---
 
+## 2.1 Mid-tier ("detection / throughput") fallback chain
+
+Some steps are deliberately **not** reasoning-heavy — mechanical detection,
+repo scanning, transcription, formatting. Pin these to the strongest **Sonnet**
+model available via the `task` tool's `model:` override; do **not** let them
+inherit the session model (an Opus session would otherwise run "cheap" steps on
+Opus, defeating the point).
+
+Use the first available:
+
+1. `claude-sonnet-4-6` (latest Sonnet)
+2. `claude-sonnet-4-5` (fallback — note the degradation in the report)
+
+If neither Sonnet is available, fall back to the session model and announce it.
+Record the chosen model as `detection_model:` in the `model_routing` block.
+
+---
+
 ## 3. Routing rules
 
 ### 3.1 SIMPLE / MODERATE
@@ -149,6 +167,7 @@ model_routing:
   planning_model: <e.g. claude-opus-4-8>     # only set for SIGNIFICANT/HIGH-RISK
   review_model:   <e.g. claude-opus-4-8>     # only set for SIGNIFICANT/HIGH-RISK
   implementation_model: <e.g. claude-sonnet-4-6 or current_model>
+  detection_model: <e.g. claude-sonnet-4-6>  # mid-tier steps (§2.1); never the session model
   fixes_model:    <same as implementation_model>
   opus_available: true | false
   gate_tests_on_review: true | false   # optional; default false. Only meaningful for SIGNIFICANT/HIGH-RISK.

@@ -27,7 +27,7 @@ plugins/
 
 ## Active plugin: dev-workflows
 
-`plugins/dev-workflows/` contains three commands (`/impl`, `/vuln`, `/upgrade`),
+`plugins/dev-workflows/` contains three commands (`/impl`, `/vuln`, `/upgrade`) plus a growing set of `/impl:*` subcommands (including `/impl:docs:profile`),
 five agents, four hooks, and reference docs.
 
 That count reflects the original bootstrap layout. The live `dev-workflows`
@@ -115,6 +115,7 @@ in their prompt; they do not re-read the file.
 /impl:code           → /impl → [Pre-Phase 2 scale assessment] → (multi-source? → [jira-reader → code-scanner×N (parallel, cap 4)] → synthesis) → [risk-planner@Opus plan critique] → [code-review@Opus] → review-fixer → test-writer → tests → impl-maintenance
 /impl                → dispatcher / help page; does not run a workflow
 /impl:docs           → /impl:docs → [doc-reviewer] → [doc-fixer] → impl-maintenance
+/impl:docs:profile   → scans docs repo → writes/refreshes .dev-workflows/docs-profile.yml + CLAUDE.md guidance → PR
 /impl:jira:docs      → /impl:jira:docs → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [doc-planner] → [discrepancy-escalation (Phase 5.8)] → writing → [docs-style-checker → dt-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [doc-fixer] → impl-maintenance
 /impl:jira:epics     → /impl:jira:epics → jira-reader → [code-scanner×N (parallel, optional)] → writing → [dt-style-checker] → [doc-fixer] → [epic-reviewer@Opus] → [doc-fixer] → impl-maintenance
 /impl:jira:release-notes → /impl:jira:release-notes → jira-reader → [diff-summarizer×N (parallel, optional)] → [release-notes-writer] → [dt-style-checker → dt-doc-fixer (optional)] → write draft (paste into Jira)

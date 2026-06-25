@@ -1,6 +1,6 @@
 # dev-workflows
 
-Five Claude Code slash commands for structured implementation, one-shot doc edits, Jira-driven feature documentation and Epic drafting, vulnerability remediation, and dependency upgrades — with Opus-backed risk planning, post-implementation code review, test regression detection, and prose-style / Opus doc review gates.
+Six Claude Code slash commands for structured implementation, one-shot doc edits, docs-repo profile scanning, Jira-driven feature documentation and Epic drafting, vulnerability remediation, and dependency upgrades — with Opus-backed risk planning, post-implementation code review, test regression detection, and prose-style / Opus doc review gates.
 
 ## Commands
 
@@ -9,6 +9,7 @@ Five Claude Code slash commands for structured implementation, one-shot doc edit
 | `/impl [args]` | Help / dispatcher — prints a summary of the `/impl:*` variants plus `/vuln` / `/upgrade` under "Related commands", then stops. Does NOT run any workflow. If you land here from muscle memory, re-invoke with the right variant. |
 | `/impl:code <description \| @paths>` | Structured code implementation: load + classify multi-source input (spec file/folder, Jira ticket folder, one or more repos) → classify risk → fan-out scan when multi-source → plan (Opus for SIGNIFICANT / HIGH-RISK) → branch → capture test baseline → implement → write and verify tests → Opus review → verify baseline → document. |
 | `/impl:docs <description>` | One-shot doc editing (single-file additions, README tweaks, Obsidian notes, formatting). No branch, no tests, no code review, no commit. Always SIMPLE or MODERATE. |
+| `/impl:docs:profile` | Scans a docs repo and writes/refreshes its docs-profile (`.dev-workflows/docs-profile.yml` + CLAUDE.md guidance) as a reviewable PR. Consumed by `/impl:jira:docs`. |
 | `/impl:jira:docs <VI-KEY>` | Jira-driven feature documentation. Reads the pre-exported Jira hierarchy from the vault, resolves PR URLs to local repos, runs parallel PR-diff summaries, synthesises docs, runs `docs-style-checker` (Vale-missing falls back to `dt-style-checker` — mandatory) + Opus `doc-reviewer` gates, writes into the current docs repo. Jira-vs-source discrepancies are escalated to the user (Phase 5.8) with a bug-report draft. |
 | `/impl:jira:epics <VI-KEY>` | Jira-driven Epic drafting. Reads the Value Increment + its existing Epics, optionally scans code repos for reusable capabilities and gaps, drafts one markdown file per new Epic under the vault, gated by Opus `epic-reviewer`. Never branches or commits. |
 | `/impl:jira:release-notes <KEY>` | Jira-driven release-notes drafting. Reads the ticket from the vault, optionally grounds in merged PR diffs, renders the dynatrace-docs authored release-notes body (`{{#context}}` + title + prose; no IDs, no `{{#internal-note}}`), runs a light `dt-style-checker` gate, and writes a persistent draft to paste into Jira. Never branches, commits, or writes into the docs repo. |
@@ -151,7 +152,7 @@ Agents are dispatched by `subagent_type` (e.g. `dev-workflows:risk-planner`). Cl
 | Hook | Trigger | Description |
 |------|---------|-------------|
 | `notify-done` | Stop | Desktop notification when Claude Code finishes a turn. |
-| `preload-context` | UserPromptSubmit | Matches `/impl`, `/impl:code`, `/impl:docs`, `/impl:jira:docs`, `/impl:jira:epics`, `/impl:jira:release-notes`, `/vuln`, `/upgrade` (with at least one non-flag argument), then routes: full git context + model-routing reminder for `/impl:code`, `/vuln`, `/upgrade`; `$VAULT_PATH` + `$REPOS_PATH` + git branch (only if cwd is a git repo) for all three `/impl:jira:*` commands; silent pass-through for `/impl` (dispatcher only) and `/impl:docs` (user manages git manually). |
+| `preload-context` | UserPromptSubmit | Matches `/impl`, `/impl:code`, `/impl:docs`, `/impl:docs:profile`, `/impl:jira:docs`, `/impl:jira:epics`, `/impl:jira:release-notes`, `/vuln`, `/upgrade` (with at least one non-flag argument), then routes: full git context + model-routing reminder for `/impl:code`, `/vuln`, `/upgrade`; `$VAULT_PATH` + `$REPOS_PATH` + git branch (only if cwd is a git repo) for all three `/impl:jira:*` commands; silent pass-through for `/impl` (dispatcher only) and `/impl:docs` (user manages git manually). |
 | `test-notify` | PostToolUse:Bash | Parses test-command output and sends a desktop notification with pass/fail counts. |
 | `changelog-owners-reminder` | PostToolUse:Edit\|Write\|MultiEdit | Warn-only `systemMessage` reminder when a dynatrace-docs content page is edited without a `changelog:` entry dated today, or (managed pages) without the required owners. Skips the changelog check for brand-new pages. Always exits 0. |
 

@@ -1,5 +1,5 @@
 {
-  "description": "dev-workflows plugin hooks — completion notification, git context injection, and test-run notification",
+  "description": "dev-workflows plugin hooks — completion notification, git context injection, test-run notification, and dynatrace-docs frontmatter reminder",
   "hooks": {
     "Stop": [
       {
@@ -28,6 +28,15 @@
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/test-notify.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/changelog-owners-reminder.sh"
           }
         ]
       }

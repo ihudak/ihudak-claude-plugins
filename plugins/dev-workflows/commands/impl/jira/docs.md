@@ -117,13 +117,13 @@ Ask about:
   choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]
   ```
   If "different path", take free-text input (single dir or colon-separated list) and validate that at least one directory exists under it. Record the resolved value as `$REPOS_PATH`. Individual clones are located in Phase 4 by matching their `git remote` against each PR's repo slug — not by assuming a `<base>/<slug>` directory name.
-- **Screenshots**:
+- **Screenshots** — ask only whether images are wanted; the candidate list itself is built later in **Phase 5.6** (by which point `specs_dir`, the `jira-reader` `attachments[]`, and the resolved repos are all available):
   ```
-  choices: ["No screenshots needed", "I'll provide screenshot paths (you'll be prompted)", "Cancel", "Other… (describe)"]
+  choices: ["Yes — include screenshots (you'll pick the sources in Phase 5.6) (Recommended)", "No screenshots needed", "Cancel", "Other… (describe)"]
   ```
-  If "provide paths", take free-text accepting any absolute filesystem path (vault, `/tmp`, home, the docs repo). Accept multiple paths (one per line or space-separated). Validate each exists and has an image extension (`.png|.jpg|.jpeg|.gif|.svg|.webp`). The downstream `doc-planner` (Phase 5.7) detects the repo's `image_policy` and decides per screenshot whether the writer will copy it locally or stage it for manual upload.
+  Record the answer as `images_wanted` (true/false). When `false`, Phase 5.6 is skipped and `screenshots[]` stays empty. The downstream `doc-planner` (Phase 5.7) detects the repo's `image_policy` and decides per screenshot whether the writer will copy it locally or stage it for manual upload.
 
-  **Resolve `<screenshot_staging_dir>` (only when screenshots were provided).** For the `cdn_upload_required` case the staged copies must live somewhere that survives a container restart — `$VAULT_PATH` is always host-mounted, the docs repo (often a docker repo-volume) and `/tmp` are not. Find the ticket's persistent Obsidian project folder:
+  **Resolve `<screenshot_staging_dir>` (only when `images_wanted` is true).** For the `cdn_upload_required` case the staged copies must live somewhere that survives a container restart — `$VAULT_PATH` is always host-mounted, the docs repo (often a docker repo-volume) and `/tmp` are not. Find the ticket's persistent Obsidian project folder:
   ```bash
   find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<JIRA_KEY>*" 2>/dev/null | head -1
   ```
@@ -162,7 +162,7 @@ Present a concise plan:
 - PR filter (MERGED only / all / specific)
 - Parallelism plan (up to 4 `diff-summarizer` instances per batch; up to 4 repos per Agent message)
 - Write context + whether branching will happen
-- Screenshots provided (count + paths, or "none")
+- Screenshots: `images_wanted` (yes/no, from Phase 1). When yes, the candidate list is gathered and confirmed in Phase 5.6 (specs scan + Jira `attachments[]` + manual paths) — list "candidates resolved in Phase 5.6".
 - Target space(s): the resolved `target_spaces` (`[saas]` / `[managed]` / `[saas, managed]`). State whether it came from the `space_constraint` argument (and that the other space's render is left unchanged) or from the Phase 4.5 auto-determination the user confirmed. If Phase 4.5 hasn't run yet (auto-determine, `space_constraint = none`), list "TBD — determined and confirmed in Phase 4.5".
 
 Ask:
@@ -312,6 +312,38 @@ The confirmed target list (from any of the three paths above) is the **authorita
 
 ---
 
+## Phase 5.6 — Image candidates
+
+**Skip this phase entirely when `images_wanted` is `false`** (Phase 1) — `screenshots[]` stays empty and Phase 5.7 receives no images.
+
+When `images_wanted` is `true`, build a **merged, deduped candidate list** from three sources (by this point Phase 0's `specs_dir`, the Phase 3 `jira-reader` `attachments[]`, and the Phase 4 resolved repos are all in hand):
+
+1. **Recursive scan of `<specs_dir>`** — when Phase 0 resolved a `specs_dir` (not `none`), recursively scan it for image files across the spec root, `epics/`, and `spec/`:
+   ```bash
+   find "<specs_dir>" \( -path "*/epics/*" -o -path "*/spec/*" -o -path "<specs_dir>/*" \) \
+     -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.gif" -o -iname "*.svg" -o -iname "*.webp" \) 2>/dev/null
+   ```
+   When `specs_dir` is `none`, this source contributes nothing.
+2. **`jira-reader` `attachments[]`** — the image paths enumerated under the VI's `attachments/` dirs (Phase 3 handoff `attachments[].path`). May be empty.
+3. **Manual paths** — the user-provided "I'll provide screenshot paths" option (free text, see the `choices` below).
+
+**Dedupe** by resolved absolute path (collapse mixed separators / trailing-slash differences); when the same image appears in more than one source, keep one entry and note its origins. Present the deduped candidates, then ask:
+```
+"Found <N> candidate image(s): <count> from specs scan, <count> from Jira attachments. How would you like to source screenshots?"
+choices: ["Use all auto-discovered + add manual paths (Recommended)", "Use all auto-discovered only", "Select a subset (you'll pick per candidate)", "Provide screenshot paths manually only (you'll be prompted)", "No images after all", "Other… (describe)"]
+```
+- **Use all auto-discovered + add manual** → take every deduped candidate, then prompt for additional free-text absolute paths to append.
+- **Use all auto-discovered only** → take every deduped candidate; no manual prompt.
+- **Select a subset** → present the deduped candidates and let the user pick which to keep.
+- **Provide screenshot paths manually only** → ignore the auto-discovered candidates; take free text only.
+- **No images after all** → set `images_wanted = false` semantics for this run; leave `screenshots[]` empty and skip the rest of this phase.
+
+For any **manual** free-text paths, accept any absolute filesystem path (vault, `/tmp`, home, the docs repo); accept multiple (one per line or space-separated). Validate each path exists and has an image extension (`.png|.jpg|.jpeg|.gif|.svg|.webp`); drop and report any that don't.
+
+The selected paths populate the existing **`screenshots[]`** passed to `doc-planner` in Phase 5.7 — the downstream placement machinery (per-screenshot `dest`/`staging`/`upload_note`, `image_policy`) is unchanged.
+
+---
+
 ## Phase 5.7 — Plan the documentation
 
 Invoke `doc-planner`:
@@ -322,7 +354,7 @@ Invoke `doc-planner`:
   > jira_reader_handoff: [paste full YAML from Phase 3]
   > diff_summaries:       [paste array of diff-summarizer outputs from Phase 5]
   > write_targets:        [paste confirmed list from Phase 5.5]
-  > screenshots:          [user-provided paths from Phase 1, possibly empty]
+  > screenshots:          [selected candidate paths from Phase 5.6, possibly empty]
   > screenshot_staging_dir: [resolved <screenshot_staging_dir> from Phase 1, or null]
   > repo_root:            [cwd's git root]
   > code_repos:           [the Phase-4 resolved {slug, path} map; [] if none resolved]
@@ -374,6 +406,28 @@ Pass `discrepancy_decisions` to Phase 6.
 
 ---
 
+## Phase 6.2 — CDN image handoff
+
+Run this phase only when, in the Phase 5.7 `doc-planner` return, **any** screenshot has `image_policy: cdn_upload_required` — **or** the user picked "Stage for manual upload" under an `ambiguous` target in Phase 6. (When the only image policy in play is `local`, skip this phase: local images are copied into the repo at Phase 6 with no handoff needed.)
+
+1. **List each affected image** so the decision is informed — one row per image:
+   - target page / anchor it belongs on (from the planner's per-screenshot placement);
+   - proposed alt text;
+   - the planner's `upload_note`.
+
+2. **Ask how to handle the upload:**
+   ```
+   choices: ["Upload now — I'll paste the CDN links (Recommended)", "Defer — stage with TODO placeholders + Phase 9 list", "Cancel", "Other… (describe)"]
+   ```
+
+   - **Upload now** → collect one CDN URL per image (prompt per image, or one URL per line in image order). Validate each pasted value looks like a URL (e.g. starts with `http://` / `https://`); re-prompt for any that don't. Record `cdn_urls[<image>]`. Phase 6 then writes the **real CDN URL** into each markdown image reference instead of a TODO placeholder. Nothing is staged and the Phase 9 "Screenshots to upload manually" section stays empty for these images.
+   - **Defer** → the existing async behavior: stage each image under `<screenshot_staging_dir>` (the ticket's persistent Obsidian project folder resolved in Phase 1), Phase 6 inserts the `TODO-upload` placeholder reference, and every staged image is listed in the Phase 9 `### Screenshots to upload manually` section.
+   - **Cancel** → stop and summarise.
+
+   Record the decision as `cdn_handoff_decision ∈ {upload-now, defer}` and carry it (with any `cdn_urls`) into Phase 6.
+
+---
+
 ## Phase 6 — Write documentation
 
 The main command writes the markdown following the `doc-planner` checklist. The writer is NOT a separate subagent — it's the orchestrating command with full context from Phases 3–5.7 already loaded.
@@ -386,7 +440,9 @@ For each target in the confirmed write-target list:
 4. **Reuse snippets** per the checklist: for snippets listed under `snippets.reuse`, use the repo's include syntax rather than inlining content. For snippets listed under `snippets.extract`, create the new snippet file in the repo's idiomatic `_snippets/` location and reference it from the target page.
 5. **Place screenshots** per each target's `image_policy`:
    - **`local`** → copy each user-provided `src` to the planner's `dest` path (typically `<page-dir>/img/` or the detected idiomatic directory). Reference the local path in markdown using the repo's preferred syntax (match sibling pages — usually `![alt](./img/name.png)` or similar).
-   - **`cdn_upload_required`** → **do NOT copy user-provided screenshots into the repo.** Stage them at the planner's `staging` path, which lives under `<screenshot_staging_dir>` — the ticket's persistent Obsidian project folder resolved in Phase 1 (e.g. `…/Projects/…/<JIRA_KEY> - <name>/Doc screenshots/`). `$VAULT_PATH` is always host-mounted, so the staged files survive a container restart (the docs repo and `/tmp` may not). Create the staging directory if it does not exist. If `<screenshot_staging_dir>` was skipped/null, prompt the user for a persistent directory now. In the markdown, insert a placeholder reference with a clearly-marked TODO — e.g. `![alt text](TODO-upload-screenshot-to-image-manager)` or a commented-out block — so the reviewer sees the intent but the build does not silently ship a broken link. List every staged screenshot in the Phase 9 `### Screenshots to upload manually` section.
+   - **`cdn_upload_required`** → **do NOT copy user-provided screenshots into the repo.** Branch on the Phase 6.2 `cdn_handoff_decision`:
+     - **`upload-now`** → reference the **real CDN URL** the user pasted in Phase 6.2 (`cdn_urls[<image>]`) directly in the markdown image reference — e.g. `![alt text](<pasted CDN URL>)`. Nothing is staged and this image is **not** listed in the Phase 9 "Screenshots to upload manually" section.
+     - **`defer`** → the existing async behavior. Stage the image at the planner's `staging` path, which lives under `<screenshot_staging_dir>` — the ticket's persistent Obsidian project folder resolved in Phase 1 (e.g. `…/Projects/…/<JIRA_KEY> - <name>/Doc screenshots/`). `$VAULT_PATH` is always host-mounted, so the staged files survive a container restart (the docs repo and `/tmp` may not). Create the staging directory if it does not exist. If `<screenshot_staging_dir>` was skipped/null, prompt the user for a persistent directory now. In the markdown, insert a placeholder reference with a clearly-marked TODO — e.g. `![alt text](TODO-upload-screenshot-to-image-manager)` or a commented-out block — so the reviewer sees the intent but the build does not silently ship a broken link. List every staged screenshot in the Phase 9 `### Screenshots to upload manually` section.
    - **`ambiguous`** → ask the user at this step, per target:
      ```
      choices: ["Use local path <page-dir>/img/ (Recommended if this repo uses local images)", "Stage for manual upload to the repo's image-management tool", "Skip this screenshot", "Other… (describe)"]
@@ -639,7 +695,7 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 - [top suggestions from impl-maintenance agent, or "no suggestions — routine session"]
 
 ### Screenshots to upload manually
-[Only populated when any target used image_policy: cdn_upload_required (or the user selected "Stage for manual upload" under the ambiguous branch). For each staged screenshot: src (original user-provided path), staging path under <screenshot_staging_dir> (the persistent Obsidian project folder), the target page it belongs on, the proposed alt-text, and the upload_note from the planner. Omit this section entirely when no screenshots were staged.]
+[Only populated for the **Defer** path of Phase 6.2 — i.e. a target used image_policy: cdn_upload_required (or the user selected "Stage for manual upload" under the ambiguous branch) AND the user chose "Defer — stage with TODO placeholders" at the Phase 6.2 CDN handoff. For each staged screenshot: src (original user-provided path), staging path under <screenshot_staging_dir> (the persistent Obsidian project folder), the target page it belongs on, the proposed alt-text, and the upload_note from the planner. Omit this section entirely when no screenshots were staged — including when the user chose "Upload now" in Phase 6.2 (those images carry real CDN URLs in the markdown and need no manual step).]
 
 ### Implementation gaps (Jira vs source)
 [Populated when Phase 5.8 produced any document-as-spec / skip-and-report decision. List each gap (claim, decision) and: "Bug-report draft written to <path>. If docs were branched, DO NOT merge the PR until these gaps are resolved." Omit when there were no discrepancies.]

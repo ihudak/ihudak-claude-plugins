@@ -325,7 +325,8 @@ Invoke `doc-planner`:
   > screenshots:          [user-provided paths from Phase 1, possibly empty]
   > screenshot_staging_dir: [resolved <screenshot_staging_dir> from Phase 1, or null]
   > repo_root:            [cwd's git root]
-  > code_repos:           [the Phase-4 resolved {slug, path} map; [] if none resolved]"
+  > code_repos:           [the Phase-4 resolved {slug, path} map; [] if none resolved]
+  > specs_dir:            [resolved <specs_dir> from Phase 0, or null]"
 
 Handle the `status` and `gaps`:
 
@@ -345,25 +346,29 @@ choices: ["Approve & write (Recommended)", "Adjust (describe)", "Cancel"]
 
 ## Phase 5.8 — Discrepancy analysis & user decision
 
-Run this phase when the `doc-planner` handoff contains any `verification_warnings` with `finding: CONTRADICTED`, `NOT_FOUND`, or `AMBIGUOUS`. If there are none, skip to Phase 6.
+Run this phase when the `doc-planner` handoff contains any `verification_warnings` with `finding: CONTRADICTED`, `NOT_FOUND`, `AMBIGUOUS`, or verdict `SPEC-VS-JIRA`. If there are none, skip to Phase 6.
+
+This phase is **three-way** when a spec was provided (Phase 0 resolved `specs_dir` and Phase 5.7 passed it to `doc-planner`): it compares the **Jira** narrative, the **Spec** (authoritative "intended"), and the **Code** ("actual"), per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7. When no spec was provided, the planner emits `spec_phrasing: "(no spec)"`; the **Spec phrasing** column simply renders `(no spec)` and the run behaves exactly as the original Jira-vs-code two-way protocol.
 
 1. **Present the analysis table** (informational, before asking):
    ```
-   | # | Claim | Jira phrasing | Source phrasing | Source location | Verdict |
+   | # | Claim | Jira phrasing | Spec phrasing | Source (code) phrasing | Source location | Verdict |
    ```
-   One row per warning. Use `Source phrasing: "(not verifiable)"` for `no-source-evidence` entries.
+   One row per warning. The **Spec phrasing** cell reads `(no spec)` when no spec was provided. Use `Source (code) phrasing: "(not verifiable)"` for `no-source-evidence` entries. The **Verdict** carries the §4.2 finding (`CONTRADICTED`, `NOT_FOUND`, `AMBIGUOUS`) or `SPEC-VS-JIRA` (the spec differs from the Jira narrative; recommended action "Document as intended (spec)").
 
 2. **Batch decision:**
    ```
-   choices: ["Decide per discrepancy (Recommended)", "Document ALL as source suggests", "Document ALL as Jira claims (drafts a bug report)", "Skip ALL and report (drafts a bug report)", "Cancel", "Other… (describe)"]
+   choices: ["Decide per discrepancy (Recommended)", "Document ALL as intended (spec)", "Document ALL as actual (code)", "Skip ALL and report (drafts a bug report)", "Cancel", "Other… (describe)"]
    ```
+   "Document ALL as intended (spec)" uses the `spec_phrasing` (or the Jira phrasing when it is `(no spec)`).
 
-3. **Per-discrepancy** (if "Decide per discrepancy"): for each warning, show claim + Jira phrasing + source phrasing + location, then:
+3. **Per-discrepancy** (if "Decide per discrepancy"): for each warning, show claim + Jira phrasing + Spec phrasing + Source (code) phrasing + location, then:
    ```
-   choices: ["Document as source suggests", "Document as Jira claims (adds an intentional-discrepancy marker + bug-report draft)", "Skip this claim and report it", "Cancel", "Other… (describe)"]
+   choices: ["Document as intended (spec)", "Document as actual (code)", "Skip this claim and report it", "Cancel", "Other… (describe)"]
    ```
+   "Document as intended (spec)" describes the agreed contract — the `spec_phrasing` (or the Jira phrasing when it is `(no spec)`) — and, when the code lags the intended phrasing, adds an intentional-discrepancy marker + bug-report draft. "Document as actual (code)" matches what shipped. "Skip this claim and report it" omits the claim but still records the gap in the bug-report draft.
 
-4. **Record `discrepancy_decisions[]`** keyed by `number` (claim, jira_phrasing, source_phrasing, source_location, decision ∈ {document-as-source, document-as-jira, skip-and-report}, rationale). Set `bug_report_destination` to the ticket's vault project folder (resolved exactly like the release-notes destination in `/impl:jira:release-notes` — `find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"`; ask if none) when any decision is `document-as-jira` or `skip-and-report`.
+4. **Record `discrepancy_decisions[]`** keyed by `number` (claim, jira_phrasing, spec_phrasing, source_phrasing, source_location, decision ∈ {document-as-spec, document-as-code, skip-and-report}, rationale). `spec_phrasing` is recorded verbatim (`(no spec)` when none was provided). Set `bug_report_destination` to the ticket's vault project folder (resolved exactly like the release-notes destination in `/impl:jira:release-notes` — `find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"`; ask if none) when any decision is `document-as-spec` (where the code lags the intended phrasing) or `skip-and-report`.
 
 Pass `discrepancy_decisions` to Phase 6.
 

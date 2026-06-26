@@ -34,7 +34,9 @@ Refuse to run without all three fields.
 
 3. **Extract capability themes.** Collect 2–4 short bullets summarising recurring topics across the items read. Themes may be sparse for `depth: vi-only`; callers that need richer themes should request `vi-plus-epics` or `full`.
 
-**Ignored by default:** sibling `<KEY>-comments.md` files and `attachments/` sub-directories (case-insensitive — real exports use both lowercase `attachments/` and capitalised `Attachments/` depending on when the Jira item was created). Rationale: comments and image attachments are occasionally useful for decision-history context but are noisy, rarely authoritative for user-facing docs, and easy to revisit manually when needed. Keeping them out of the default read path also keeps this agent fast on large VIs. No user-facing toggle is provided.
+**Ignored by default:** sibling `<KEY>-comments.md` files and `attachments/` sub-directory **content** (case-insensitive — real exports use both lowercase `attachments/` and capitalised `Attachments/` depending on when the Jira item was created). Rationale: comments and image attachments are occasionally useful for decision-history context but are noisy, rarely authoritative for user-facing docs, and easy to revisit manually when needed. Keeping their content out of the default read path also keeps this agent fast on large VIs. No user-facing toggle is provided.
+
+**Image enumeration (attachments only):** For each linked item read at the current depth, enumerate image files (extensions `.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`, case-insensitive) under that item's `attachments/` or `Attachments/` directory using directory listing — do NOT read file content. Collect the results into the `attachments[]` output field. If no `attachments/` directory exists or no image files are present, the field is an empty list. This enumeration is filename-listing only and does not slow the agent.
 
 ## PR URL formats to parse
 
@@ -106,13 +108,16 @@ pull_requests:
     branch_to:   <target branch, from Branch: line>
 themes:
   - <2–4 short bullet points summarising recurring topics across items>
+attachments:            # image files found under the VI's attachments/ dirs (paths only, not read)
+  - path:   <absolute path to the image file>
+    item:   <the Jira key whose folder it was found under>
 ```
 
 ## Hard rules
 
 - NEVER modify files under `<vault_path>`. This agent is read-only.
 - NEVER fabricate items not present in the index or in the linked `.md` files. If the index table is empty, return `status: EMPTY`.
-- NEVER read sibling `<KEY>-comments.md` or `attachments/` by default.
+- NEVER read sibling `<KEY>-comments.md` files or the **content** of files under `attachments/`. Enumerating image filenames under `attachments/` (for the `attachments[]` output field) is permitted and required — listing paths is not reading content.
 - NEVER attempt to reach out over HTTPS to Jira or any git host. This agent operates purely on pre-exported markdown in the vault.
 - If the index header schema doesn't match the expected 5-column form, return `status: EMPTY` with a schema-mismatch message; do NOT try to parse rows with a guessed column layout.
 - For `depth: vi-only`, NEVER look for `<vault_path>/jira-products/<LINKED_KEY>/<LINKED_KEY>.md` — that path does not exist. Linked items live under the VI's own export directory.

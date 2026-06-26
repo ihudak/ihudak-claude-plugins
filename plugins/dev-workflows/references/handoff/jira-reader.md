@@ -54,6 +54,11 @@ themes:
   - <short phrase, 5–10 words, summarising a recurring capability topic>
   # 2–4 items
 
+attachments:            # image files found under the VI's attachments/ dirs (paths only, not read)
+  - path:   <absolute path to the image file>
+    item:   <the Jira key whose folder it was found under>
+  # empty list when no attachments/ directories exist or no image files are present
+
 notes: |
   <optional: any parse warnings, skipped items, etc.>
 ```

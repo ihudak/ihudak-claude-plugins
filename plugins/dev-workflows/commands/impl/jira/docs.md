@@ -395,12 +395,12 @@ For each target in the confirmed write-target list:
 6. **Traceability** — every claim must cite the originating Jira key (e.g. `[[<JIRA_KEY>]]`) and/or PR URL inline. When a claim comes only from imported Jira content (no PR resolved), cite the Jira key alone.
 
 7. **Apply discrepancy decisions** (from Phase 5.8), per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.4–§7.6:
-   - `document-as-source` → use the source phrasing verbatim.
-   - `document-as-jira` → use the Jira phrasing AND insert immediately before the affected prose:
-     `<!-- intentional-discrepancy: Jira <JIRA_KEY> describes "<jira_phrasing>" but the source at <source_location> currently has "<source_phrasing>". User decision: document Jira phrasing pending implementation. See <JIRA_KEY>-implementation-gaps.md gap #<n>. -->`
+   - `document-as-code` → use the source phrasing verbatim.
+   - `document-as-spec` → use the intended (spec) phrasing AND insert immediately before the affected prose:
+     `<!-- intentional-discrepancy: <JIRA_KEY> intends "<spec_phrasing>" (spec; "<jira_phrasing>" per Jira when no spec) but the source at <source_location> currently has "<source_phrasing>". User decision: document intended phrasing pending implementation. See <JIRA_KEY>-implementation-gaps.md gap #<n>. -->`
      Strongly recommend committing to a branch (Phase 6.5); the Phase 9 report MUST flag "do NOT merge this docs PR until the gaps are resolved". The plugin does NOT open a PR (zero-external-API invariant).
    - `skip-and-report` → omit the claim from the docs.
-   - When any decision is `document-as-jira`/`skip-and-report`, write `<bug_report_destination>/<JIRA_KEY>-implementation-gaps.md` using the §7.5 format (vault project folder; never `/tmp`; never the docs repo).
+   - When any decision is `document-as-spec`/`skip-and-report`, write `<bug_report_destination>/<JIRA_KEY>-implementation-gaps.md` using the §7.5 format (vault project folder; never `/tmp`; never the docs repo).
 
 Write to the resolved `docs_repo_path` (Phase 0). Branch and commit policy is governed by the write context (Phase 0 step 7):
 
@@ -642,7 +642,7 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 [Only populated when any target used image_policy: cdn_upload_required (or the user selected "Stage for manual upload" under the ambiguous branch). For each staged screenshot: src (original user-provided path), staging path under <screenshot_staging_dir> (the persistent Obsidian project folder), the target page it belongs on, the proposed alt-text, and the upload_note from the planner. Omit this section entirely when no screenshots were staged.]
 
 ### Implementation gaps (Jira vs source)
-[Populated when Phase 5.8 produced any document-as-jira / skip-and-report decision. List each gap (claim, decision) and: "Bug-report draft written to <path>. If docs were branched, DO NOT merge the PR until these gaps are resolved." Omit when there were no discrepancies.]
+[Populated when Phase 5.8 produced any document-as-spec / skip-and-report decision. List each gap (claim, decision) and: "Bug-report draft written to <path>. If docs were branched, DO NOT merge the PR until these gaps are resolved." Omit when there were no discrepancies.]
 
 ### Skipped items
 [Gaps the planner flagged with recommended_action: "skip with note in final report" — one line each; or "none"]

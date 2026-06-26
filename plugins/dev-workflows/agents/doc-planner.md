@@ -17,6 +17,7 @@ write_targets:          <confirmed list from doc-location-finder + user; each ha
 screenshots:            [<array of user-provided absolute image paths; possibly empty>]
 screenshot_staging_dir: <absolute dir the command resolved for cdn_upload_required staging — a persistent Obsidian project folder under $VAULT_PATH; null when no screenshots were provided>
 code_repos:             <array of {slug, path} for source-truth verification; the clones resolved for diff-summarizer; [] when unavailable>
+specs_dir:              <absolute path to the VI's spec folder (PRODUCT-NNNN*), or null; the authoritative intended-behavior source>
 repo_root:              <absolute path to the docs repo root>
 ```
 
@@ -84,7 +85,12 @@ For each write target:
    - `"mark TODO in draft"` — the writer emits a `<!-- TODO: … -->` marker in the output.
    - `"skip with note in final report"` — the gap is recorded in the Phase 9 `### Skipped items` section.
 
-9. **Source-truth verification (per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`).** For every user-visible claim the checklist would put in a topic `notes:` (option lists, UI labels, menu paths, defaults, counts, mode names), verify it against `code_repos` using the techniques in source-truth.md §3. Record results in `verification_warnings[]` (schema below). **Do NOT rewrite the topic notes to match source** — preserve the original (Jira) phrasing; the orchestrator + user resolve discrepancies in `/impl:jira:docs` Phase 5.8. When `code_repos` is empty/omitted, emit one entry per user-visible claim with `finding: NOT_FOUND`, `technique: no-source-evidence`, `source_phrasing: "(not verifiable)"`.
+9. **Source-truth verification (per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`).** For every user-visible claim the checklist would put in a topic `notes:` (option lists, UI labels, menu paths, defaults, counts, mode names), establish the **intended** phrasing, then verify it against `code_repos` using the techniques in source-truth.md §3. Record results in `verification_warnings[]` (schema below). **Do NOT rewrite the topic notes to match source** — preserve the original (intended) phrasing; the orchestrator + user resolve discrepancies in `/impl:jira:docs` Phase 5.8.
+
+   - **When `specs_dir` is non-null, the spec markdown is the authoritative "intended" source** (source-truth.md §3.0, §4.2). Read the spec tree **selectively** via the `spec-markdown` technique: the VI spec (`PRODUCT-<key>*.md` or `specification.md` at the spec-dir root), `epics/epic-*.md`, and each `epics/<epic>/requirements.md` + `design.md` (these four classes are authoritative intended); treat `tasks.md` only as a secondary "planned" signal; **ignore** `idea.md`, `prompt.md`, and any rendered HTML mirrors. Capture each user-visible claim's intended phrasing from the spec into `spec_phrasing`. When no spec covers a given claim, fall back to the Jira phrasing as that claim's intended source. Then verify intended-vs-**code** via the §3 techniques as usual. A spec phrasing that differs from the Jira narrative (regardless of whether code matches the spec) is recorded as `finding: SPEC-VS-JIRA` (the spec is authoritative; the Jira ticket is the side that drifted).
+   - **When `specs_dir` is null/empty, behave as today** (two-way Jira-vs-code): the intended phrasing is the Jira phrasing, and set `spec_phrasing: "(no spec)"` on every entry.
+
+   When `code_repos` is empty/omitted, emit one entry per user-visible claim with `finding: NOT_FOUND`, `technique: no-source-evidence`, `source_phrasing: "(not verifiable)"` (and `spec_phrasing: "(no spec)"` when `specs_dir` is also null).
 
 ## Output — the documentation checklist
 
@@ -123,11 +129,14 @@ verification_warnings:        # source-truth findings; resolved by the orchestra
   - number:          <stable index, 1-based>
     claim:           <short label, e.g. "Target version preset list">
     jira_phrasing:   <verbatim phrasing from the Jira/description source>
+    spec_phrasing:   <verbatim phrasing from the spec markdown, or "(no spec)">
     source_phrasing: <verbatim phrasing from the code, or "(not verifiable)">
     source_location: <file:line checked, or null>
-    technique:       <schema-json | datasource-class | constant | openapi | ui-source | test-fallback | menu-builder | no-source-evidence>
-    finding:         VERIFIED | CONTRADICTED | NOT_FOUND | AMBIGUOUS
+    technique:       <schema-json | datasource-class | constant | openapi | ui-source | test-fallback | menu-builder | spec-markdown | no-source-evidence>
+    finding:         VERIFIED | CONTRADICTED | NOT_FOUND | AMBIGUOUS | SPEC-VS-JIRA
 ```
+
+`finding: SPEC-VS-JIRA` flags a spec-vs-Jira drift — the spec markdown differs from the Jira narrative (regardless of whether the code matches the spec). The spec is authoritative, so this verdict surfaces that the Jira ticket should be updated to match the spec. It can only occur when `specs_dir` is non-null; when no spec was provided, `spec_phrasing` is `"(no spec)"` and `SPEC-VS-JIRA` never appears.
 
 `status: PARTIAL` is returned when the checklist is usable but at least one gap has `recommended_action: "ask user"` or the image policy is `ambiguous` for at least one target — the caller must surface those to the user before approval.
 

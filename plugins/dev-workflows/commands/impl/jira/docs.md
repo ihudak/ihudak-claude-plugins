@@ -22,26 +22,62 @@ For small one-off doc edits, use `/impl:docs`. For writing child Epic drafts fro
 
 2. **Resolve `<JIRA_KEY>`** from `$ARGUMENTS`. Validate that `$VAULT_PATH/jira-products/<JIRA_KEY>/` exists. If not, stop with an error naming the missing directory.
 
-3. **Docs-repo detection.** This command writes feature documentation into a product docs repository; running it outside such a repository is almost always a mistake. Detect signals in cwd's git root:
+3. **Resolve the docs repo (cwd-preferred).** This command writes feature documentation into a product docs repository; running it outside such a repository is almost always a mistake. The **docs signals** checked throughout this step are:
    - `package.json` with any script matching `*:start`, `*:build`, `*:lint`, `docs:*`, or
    - any of `.docstack/`, `mkdocs.yml`, `docusaurus.config.js`, `antora.yml`, `.vale.ini`, `DOCUMENTATION-GUIDELINES.md`, or
    - a `_snippets/` directory at any level under the repo root.
 
-   If ≥ 1 signal is present → proceed silently.
-   If 0 signals are present → ask:
-   ```
-   "No product-docs-repo signals detected in this working tree. The signals I checked:
-    - package.json scripts matching *:start, *:build, *:lint, docs:*
-    - .docstack/, mkdocs.yml, docusaurus.config.js, antora.yml, .vale.ini, DOCUMENTATION-GUIDELINES.md
-    - any _snippets/ directory under the repo root
-    None were found. Proceed anyway?"
-   choices: ["Proceed — I confirm this is a docs repo", "Cancel — switch to a docs repo first"]
-   ```
-   Default = Cancel.
+   Resolve `docs_repo_path` in this order:
 
-4. **Classify write context** for later branch/write decisions. Walk up from cwd looking for `.obsidian/`; if found, context = `obsidian`. Else if `git rev-parse --show-toplevel` succeeds AND at least one docs signal from step 3 is present, context = `docs_repo`. Else if `git rev-parse --show-toplevel` succeeds with no docs signals, context = `non_docs_repo` (step 3 has already asked the user; their confirmation promotes this to `docs_repo` behaviour). Else context = `plain_dir`.
+   - **(a) cwd with signals (preserves today's behavior).** Resolve cwd's git root (`git rev-parse --show-toplevel`). If it succeeds **and** ≥ 1 docs signal is present there → `docs_repo_path` = that git root and proceed silently. This keeps every downstream phase that assumes cwd correct.
+   - **(b) Search for a dynatrace-docs clone.** Else, look under `${REPOS_PATH:-/workspace}` (single dir or colon-separated list) for a `dynatrace-docs` checkout: a top-level directory either named `dynatrace-docs`, or a git root that contains both `dynatrace/_content` and `managed/docstack.jsonc`. If exactly one matches → `docs_repo_path` = that path. If several match, list them and ask which to use (`choices` array, recommended first, last item `"Other… (describe)"`).
+   - **(c) Ask.** Else, ask:
+     ```
+     "No product-docs-repo signals in this working tree and no dynatrace-docs clone found under ${REPOS_PATH:-/workspace}. The signals I checked in cwd:
+      - package.json scripts matching *:start, *:build, *:lint, docs:*
+      - .docstack/, mkdocs.yml, docusaurus.config.js, antora.yml, .vale.ini, DOCUMENTATION-GUIDELINES.md
+      - any _snippets/ directory under the repo root
+      Where should I write the documentation?"
+     choices: ["Use cwd anyway — I confirm this is a docs repo (Recommended)", "Enter the docs repo path", "Cancel — switch to a docs repo first", "Other… (describe)"]
+     ```
+     "Use cwd anyway" sets `docs_repo_path` = cwd's git root (or cwd if not a git tree) and carries the user's confirmation forward. "Enter the docs repo path" takes a free-text absolute path and validates it exists.
 
-   Record the resolved context — it drives Phase 6.5 (branch setup) and Phase 6 write rules.
+   **Confirm writeable.** Once `docs_repo_path` is resolved, run `test -w <docs_repo_path>`. If it fails, stop with the named error `REPO_NOT_WRITEABLE: <docs_repo_path> is not writeable.`
+
+4. **Recognize dynatrace-docs.** Set `is_dynatrace_docs` = `true` when the resolved `docs_repo_path` contains **both** `managed/docstack.jsonc` and `dynatrace/_content/` and — when a git remote is available (`git -C <docs_repo_path> remote get-url origin`) — its slug (last path segment, trailing `.git` stripped) is `dynatrace-docs`. Directory name alone is **not** sufficient; the signals decide.
+
+5. **Resolve the profile** (record `profile_source`). The profile steers all later phases' conventions. Resolve in this order:
+   - **(a) In-repo profile →** `in-repo`. If `<docs_repo_path>/.dev-workflows/docs-profile.yml` exists, load it. `profile_source: in-repo`.
+   - **(b) dynatrace-docs built-in default →** `built-in`. Else, if `is_dynatrace_docs`, load `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/docs-profile.default.yml`. `profile_source: built-in`.
+   - **(c) Custom repo, no profile →** `generated`. Else (a custom docs repo with no profile), run **inline on-demand profiling**: invoke the `/impl:docs:profile` flow against `docs_repo_path` (Skill tool, `skill: "dev-workflows:impl:docs:profile"`, with `docs_repo_path` as its argument) and wait for it to write `<docs_repo_path>/.dev-workflows/docs-profile.yml`. Then load that file. `profile_source: generated`. If the user cancels profiling (it produces no profile), stop with the named error `PROFILE_REQUIRED: a docs-profile is required to write into a custom docs repo; run /impl:docs:profile or switch to a profiled repo.`
+
+   Hold the loaded profile for later phases.
+
+6. **Discover the specs dir.** Specs are additive context, not a prerequisite. Under `${REPOS_PATH:-/workspace}` (single dir or colon-separated list), look for a sibling directory whose detected **vis-root** (a `specifications/` or `vis/` subdirectory) contains a folder matching `<JIRA_KEY>*` (prefix match; tolerate mixed `-`/`_` separators and a trailing slug, e.g. `PRODUCT-14902-foo` or `PRODUCT_14902_foo`):
+   - **Found →** record `specs_dir` = the matching `<JIRA_KEY>*` folder's absolute path.
+   - **Not found →** `specs_dir: none`; **proceed** (do NOT stop — specs are optional).
+   - **Multiple candidate sibling repos match →** list them and ask which to use:
+     ```
+     choices: ["<first candidate> (Recommended)", "<other candidates…>", "None — proceed without specs", "Other… (describe)"]
+     ```
+
+7. **Classify write context** for later branch/write decisions — computed against the resolved `docs_repo_path` (not necessarily cwd). Walk up from `docs_repo_path` looking for `.obsidian/`; if found, context = `obsidian`. Else if `git -C <docs_repo_path> rev-parse --show-toplevel` succeeds AND at least one docs signal from step 3 is present, context = `docs_repo`. Else if it succeeds with no docs signals, context = `non_docs_repo` (step 3 has already asked the user; their confirmation promotes this to `docs_repo` behaviour). Else context = `plain_dir`.
+
+   Record the resolved context — it drives Phase 6.5 (branch setup) and Phase 6 write rules. When `docs_repo_path` differs from cwd, record **both** and note that the writing phases (Increments 2–3) consume `docs_repo_path`, not cwd, for every write.
+
+### Readiness
+
+Before clarification, show a readiness table summarizing what Phase 0 resolved:
+
+| Item | Resolved |
+|---|---|
+| Vault + Jira | `$VAULT_PATH` ok; `jira-products/<JIRA_KEY>/` ok |
+| Docs repo | `<docs_repo_path>` (`is_dynatrace_docs`: yes/no) — write context `<obsidian \| docs_repo \| non_docs_repo \| plain_dir>` |
+| Profile | `profile_source`: `<in-repo \| built-in \| generated>` |
+| Specs | `<specs_dir>` or `none` |
+| Code repos | resolved later in Phase 4 (slug→clone match under `$REPOS_PATH`) |
+
+All discovery defaults to `/workspace` (`${REPOS_PATH:-/workspace}`); on a host, or when a path is missing, the command asks rather than guessing.
 
 ---
 
@@ -321,7 +357,7 @@ For each target in the confirmed write-target list:
    - `skip-and-report` → omit the claim from the docs.
    - When any decision is `document-as-jira`/`skip-and-report`, write `<bug_report_destination>/<JIRA_KEY>-implementation-gaps.md` using the §7.5 format (vault project folder; never `/tmp`; never the docs repo).
 
-Write to cwd. Branch and commit policy is governed by the write context (Phase 0 step 4):
+Write to the resolved `docs_repo_path` (Phase 0). Branch and commit policy is governed by the write context (Phase 0 step 7):
 
 | Write context | Branch | Commit |
 |---|---|---|

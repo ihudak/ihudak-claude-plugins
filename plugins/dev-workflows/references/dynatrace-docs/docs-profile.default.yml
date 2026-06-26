@@ -1,0 +1,55 @@
+# Built-in default profile for dynatrace-docs (dev-workflows).
+# Used by /impl:jira:docs when the resolved docs repo is recognized as
+# dynatrace-docs and no in-repo .dev-workflows/docs-profile.yml is present.
+# An in-repo profile, if present, overrides this file.
+schema_version: 1
+repo:
+  name: dynatrace-docs
+spaces:
+  - id: saas
+    content_root: dynatrace/_content
+    snippet_root: dynatrace/_snippets
+    base_path: /docs
+  - id: managed
+    content_root: managed/_content
+    snippet_root: managed/_snippets
+    base_path: /managed
+dev_servers:
+  concurrent: false
+  servers:
+    - space: saas
+      command: "pnpm dynatrace:start"
+      port: 4000
+      base_path: /docs
+    - space: managed
+      command: "pnpm managed:start"
+      port: 4001
+      base_path: /managed
+commands:
+  lint: "pnpm dynatrace:lint"
+  format: "pnpm prettier -w"
+  commit_hook: "husky pre-commit -> lint-staged -> pnpm prettier -w"
+cross_space_override:
+  manifest: managed/docstack.jsonc
+  mechanism: "the managed manifest pulls an allowlist of ../dynatrace/_content/... pages; last-write-wins by path silently shadows a managed/_content override"
+  rule: "to make a managed/_content override win, add the shared dynatrace path to the allowlist block's `ignore`"
+shared_registries:
+  - files: [schema-ids.yml, schema-mappings.yml]
+    when: "renaming/retitling/creating a settings-schema page under dynatrace/_content/dynatrace-api/environment-api/settings/schemas/"
+    rule: "update the `text:` entry in BOTH files in lock-step"
+tokens:
+  latest_tag: "{{tag kind='latest'}}"
+  gen3_settings_breadcrumb: "::app-settings::"
+  project_conditionals: "{{#if project='saas'}}…{{/if}} / project='managed' / project='classic'"
+internal_links:
+  convention: "[text](<postid>); postid comes from target frontmatter; verify it exists before linking"
+branch_naming:
+  pattern: "<initials>/<JIRA-KEY>-<short-slug>"
+frontmatter:
+  owned_by_skill: dynatrace-docs-frontmatter
+  changelog_guidelines: references/dynatrace-docs/changelog-guidelines.md
+  managed_owners: references/dynatrace-docs/managed-owners.txt
+images:
+  policy: "CDN-hosted; the user uploads to CDN and supplies links; docs reference the URLs; never commit binaries"
+prerequisites:
+  - "a dev server may need a working .docstack toolchain (e.g. an axios>=1.16 shim) before `*:start` boots"

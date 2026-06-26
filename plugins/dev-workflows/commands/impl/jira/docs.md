@@ -6,6 +6,8 @@ allowed-tools: Read Edit Write Bash Glob Grep Task WebFetch LS
 
 Generate product documentation for the Jira Value Increment: $ARGUMENTS
 
+Signature: `PRODUCT-NNNN [saas|managed]`. The optional second token is a **space constraint**, not a target list. When you pass `saas` or `managed`, the command documents **only that space** and leaves the OTHER space's rendered output unchanged (SaaS pages stay as they are when you pass `managed`, and vice-versa). When you omit it, the command **determines the applicable space(s)** from the Jira hierarchy and the resolved repos, then confirms with you. `both` is intentionally NOT an accepted value — omit the argument to cover both spaces.
+
 `/impl:jira:docs` is the **Jira-driven feature-documentation** workflow. Given a Jira Value Increment key, it reads the full Jira hierarchy from pre-exported markdown in the user's Obsidian vault, resolves PR URLs to local git repos, runs parallel PR-diff summaries, synthesises product documentation, runs style-check + Opus review gates, and writes the output to the current working directory (a product docs repository).
 
 For small one-off doc edits, use `/impl:docs`. For writing child Epic drafts from a VI, use `/impl:jira:epics`. For release notes, use `/impl:jira:release-notes` — this command never writes release-notes / what's-new pages, because those are generated from Jira by the docs team's automation.
@@ -65,6 +67,16 @@ For small one-off doc edits, use `/impl:docs`. For writing child Epic drafts fro
 
    Record the resolved context — it drives Phase 6.5 (branch setup) and Phase 6 write rules. When `docs_repo_path` differs from cwd, record **both** and note that the writing phases (Increments 2–3) consume `docs_repo_path`, not cwd, for every write.
 
+8. **Parse the optional space constraint.** Read `$ARGUMENTS` as `<JIRA_KEY> [space]` — the same `$ARGUMENTS` already split for `<JIRA_KEY>` in step 2; the optional second whitespace-separated token is the space constraint.
+   - **No second token** → `space_constraint = none`. Phase 4.5 will determine and confirm the applicable space(s).
+   - **Second token is `saas` or `managed`** (case-insensitive) → `space_constraint = <space>`. This is a deliberate scoping decision by the user, so Phase 4.5 skips its determination step and records `target_spaces = [space_constraint]` directly.
+   - **Second token present but not `saas`/`managed`** (e.g. `both`, a typo, or extra free text) → do NOT silently guess. Reject it and ask:
+     ```
+     "'<token>' is not a valid space constraint. The constraint scopes the run to a single space; to cover both, omit the argument and let the command determine the applicable space(s). How would you like to proceed?"
+     choices: ["Drop the constraint — auto-determine (Recommended)", "saas", "managed", "Cancel"]
+     ```
+     "Drop the constraint" → `space_constraint = none`. "saas"/"managed" → `space_constraint = <choice>`. "Cancel" → stop.
+
 ### Readiness
 
 Before clarification, show a readiness table summarizing what Phase 0 resolved:
@@ -75,6 +87,7 @@ Before clarification, show a readiness table summarizing what Phase 0 resolved:
 | Docs repo | `<docs_repo_path>` (`is_dynatrace_docs`: yes/no) — write context `<obsidian \| docs_repo \| non_docs_repo \| plain_dir>` |
 | Profile | `profile_source`: `<in-repo \| built-in \| generated>` |
 | Specs | `<specs_dir>` or `none` |
+| Space constraint | `<space_constraint>` (`saas` \| `managed` \| `none` → auto-determine in Phase 4.5) |
 | Code repos | resolved later in Phase 4 (slug→clone match under `$REPOS_PATH`) |
 
 All discovery defaults to `/workspace` (`${REPOS_PATH:-/workspace}`); on a host, or when a path is missing, the command asks rather than guessing.
@@ -127,6 +140,7 @@ Also display (for user context):
 - Whether branching will happen (only when context is `docs_repo` — confirmed at plan approval)
 - Resolved `$REPOS_PATH`
 - Resolved `$VAULT_PATH` and `<JIRA_KEY>`
+- Space scope — show `space_constraint` (Phase 0 step 8): `saas`/`managed` means `target_spaces` is already fixed to that single space; `none` means the applicable space(s) are auto-determined and confirmed in Phase 4.5 (after the Jira read and repo resolution). Once Phase 4.5 has run, the resolved `target_spaces` is the authoritative value displayed here.
 
 ---
 
@@ -149,6 +163,7 @@ Present a concise plan:
 - Parallelism plan (up to 4 `diff-summarizer` instances per batch; up to 4 repos per Agent message)
 - Write context + whether branching will happen
 - Screenshots provided (count + paths, or "none")
+- Target space(s): the resolved `target_spaces` (`[saas]` / `[managed]` / `[saas, managed]`). State whether it came from the `space_constraint` argument (and that the other space's render is left unchanged) or from the Phase 4.5 auto-determination the user confirmed. If Phase 4.5 hasn't run yet (auto-determine, `space_constraint = none`), list "TBD — determined and confirmed in Phase 4.5".
 
 Ask:
 ```
@@ -194,6 +209,31 @@ From the `jira-reader` handoff `pull_requests` list:
      List the unresolved slugs explicitly. "Skip" removes that repo's PRs from scope; "I'll clone it — wait" pauses until the user confirms the clone is present under `$REPOS_PATH`, then re-runs step 3; "Specify a different absolute path" records the path directly as `repo_path` for that slug.
    Record the resolution as `repo_slug → repo_path` for Phase 5.
 5. If any PRs had `host: other` (unsupported host), record them as `unresolved` and carry them into the Phase 9 report; do not block.
+
+---
+
+## Phase 4.5 — Determine applicable space(s)
+
+Resolve `target_spaces` — one of `[saas]`, `[managed]`, or `[saas, managed]`. This is the set of spaces the documentation will cover; the constraint semantics that *protect* the other space (`{{#if project='…'}}` conditionals or override-copies + `managed/docstack.jsonc` `ignore` allowlisting) are Increment 3, so this increment only carries `target_spaces` forward.
+
+- **If `space_constraint` is set** (`saas` or `managed`, from Phase 0 step 8) → set `target_spaces = [space_constraint]` and skip the determination below. Print:
+  ```
+  Constrained to <space_constraint> (the other space's render is left unchanged — see Increment 3 techniques).
+  ```
+
+- **If `space_constraint` is `none`** → run a **first-pass determination** from cheap signals already in hand, then confirm with the user:
+  1. **Jira text/labels** — scan the `jira-reader` handoff (VI + linked Epics: summaries, descriptions, labels, components) for explicit "SaaS", "Managed", or "both" mentions. Explicit wording is the strongest signal.
+  2. **Resolved-repo leaning** — use the Phase-4 `repo_slug → repo_path` map as a **hint, not authority**: cluster/Managed-oriented repos (e.g. names containing `cluster`, `managed`, `server`, `appliance`) lean `managed`; SaaS-service repos lean `saas`. A mix of both leans `[saas, managed]`.
+  3. **Specs presence/name** — if `specs_dir` was resolved in Phase 0, a `saas`/`managed` hint in its name reinforces the guess; absence is neutral.
+
+  Form a best-guess `target_spaces` from these signals (when they conflict or are silent, default the guess to `both saas and managed` — under-scoping silently drops a space, which is worse than over-scoping). **Confirm with the user**, ordering the recommended (auto-detected) option first:
+  ```
+  "Determined applicable space(s): <auto-detected> — from [signals that drove it]. Confirm or override:"
+  choices: ["<auto-detected> (Recommended)", "saas only", "managed only", "both saas and managed", "Other… (describe)"]
+  ```
+  Map the confirmed choice to `target_spaces`: "saas only" → `[saas]`, "managed only" → `[managed]`, "both saas and managed" → `[saas, managed]`; "Other… (describe)" takes free text and resolves to one of the three. Record the confirmed `target_spaces`.
+
+The authoritative determination (from full diff/spec analysis rather than these cheap signals) is refined in Increment 2; here `target_spaces` is a confirmed best guess that threads through Phases 1 and 2 and the writing phases.
 
 ---
 

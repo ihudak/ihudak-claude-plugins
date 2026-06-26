@@ -142,10 +142,10 @@ When `release-notes-writer` returns `gaps[]` entries that have `jira_phrasing` a
 1. Show the analysis table (claim, Jira phrasing, source phrasing, location).
 2. Ask:
    ```
-   choices: ["Decide per discrepancy (Recommended)", "Document ALL as source suggests", "Document ALL as Jira claims (drafts a bug report)", "Skip ALL and report (drafts a bug report)", "Cancel", "Other… (describe)"]
+   choices: ["Decide per discrepancy (Recommended)", "Document ALL as actual (code)", "Document ALL as intended (Jira)", "Skip ALL and report (drafts a bug report)", "Cancel", "Other… (describe)"]
    ```
-3. Apply the decision to the draft prose: `document-as-source` → use source phrasing; `document-as-jira` → use Jira phrasing (no marker in release notes prose — the gap is recorded only in the gaps file); `skip-and-report` → omit the claim.
-4. For `document-as-jira` or `skip-and-report`: resolve `bug_report_destination` using `find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<JIRA_KEY>*"` (same as the release-notes destination resolution). Write/append `<bug_report_destination>/<JIRA_KEY>-implementation-gaps.md` using the §7.5 format from `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`.
+3. Apply the decision to the draft prose: `document-as-code` → use source phrasing; `document-as-spec` → use Jira phrasing (no marker in release notes prose — the gap is recorded only in the gaps file); `skip-and-report` → omit the claim.
+4. For `document-as-spec` or `skip-and-report`: resolve `bug_report_destination` using `find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<JIRA_KEY>*"` (same as the release-notes destination resolution). Write/append `<bug_report_destination>/<JIRA_KEY>-implementation-gaps.md` using the §7.5 format from `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`, setting `Spec phrasing:` to `(no spec)` (this flow has no spec).
 
 Pass `code_repos` (the Phase-4 resolved map) to the writer when diff-grounding is on.
 

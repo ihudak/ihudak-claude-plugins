@@ -358,7 +358,9 @@ Invoke `doc-planner`:
   > screenshot_staging_dir: [resolved <screenshot_staging_dir> from Phase 1, or null]
   > repo_root:            [cwd's git root]
   > code_repos:           [the Phase-4 resolved {slug, path} map; [] if none resolved]
-  > specs_dir:            [resolved <specs_dir> from Phase 0, or null]"
+  > specs_dir:            [resolved <specs_dir> from Phase 0, or null]
+  > profile:              [the docs-profile loaded in Phase 0 — drives space routing + the multi-space write strategy]
+  > target_spaces:        [the resolved target_spaces from Phase 4.5: [saas] | [managed] | [saas, managed]]"
 
 Handle the `status` and `gaps`:
 
@@ -403,6 +405,39 @@ This phase is **three-way** when a spec was provided (Phase 0 resolved `specs_di
 4. **Record `discrepancy_decisions[]`** keyed by `number` (claim, jira_phrasing, spec_phrasing, source_phrasing, source_location, decision ∈ {document-as-spec, document-as-code, skip-and-report}, rationale). `spec_phrasing` is recorded verbatim (`(no spec)` when none was provided). Set `bug_report_destination` to the ticket's vault project folder (resolved exactly like the release-notes destination in `/impl:jira:release-notes` — `find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"`; ask if none) when any decision is `document-as-spec` (where the code lags the intended phrasing) or `skip-and-report`.
 
 Pass `discrepancy_decisions` to Phase 6.
+
+---
+
+## Phase 5.9 — Write-strategy approval (multi-space safety)
+
+Run this phase when the `doc-planner` checklist contains **any** target whose
+`write_strategy.strategy` is `conditional` or `override-copy` (i.e. at least one
+shared page needs cross-space protection). If every target is `plain`, skip to
+Phase 6 — there is nothing to protect.
+
+The mechanics are defined in
+`${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/multi-space-writing.md`; this
+phase only confirms the per-page **strategy choice** before Phase 6 writes.
+
+1. **Present the recommended strategies** (informational, before asking) — one
+   row per non-`plain` target:
+   ```
+   | # | Page (target_path) | space_scope | rendered_in | Recommended | For space | Rationale |
+   ```
+   `Recommended` is `write_strategy.strategy`; `For space` is `write_strategy.target_space`. Remind the user of the invariant: a `conditional` edits the shared file in place but leaves the protected space's *render* unchanged; an `override-copy` duplicates the page into the other space and allowlists it in `cross_space_override`'s `ignore`.
+
+2. **Batch decision:**
+   ```
+   choices: ["Accept all recommended (Recommended)", "Decide per page", "Cancel", "Other… (describe)"]
+   ```
+
+3. **Per page** (if "Decide per page"): for each non-`plain` target, show the row and:
+   ```
+   choices: ["Conditional — edit shared page in place ({{#if project='…'}})", "Override-copy — separate page in the other space + docstack ignore", "Cancel", "Other… (describe)"]
+   ```
+   The default/recommended choice is the planner's `write_strategy.strategy`, listed first.
+
+4. **Record `write_strategies[]`** keyed by `target_path`: `{target_path, strategy ∈ {conditional, override-copy, plain}, target_space, rationale}`. Targets the planner marked `plain` are carried through as `plain` without prompting. Pass `write_strategies` to Phase 6.
 
 ---
 

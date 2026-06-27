@@ -539,7 +539,9 @@ Run this phase only when write context = `docs_repo` (or `non_docs_repo` after u
    ```
    Fallback default when no convention is found: `docs/<jira-key>-<slug>`.
 
-5. **Create the branch.** `git switch -c <name>`.
+5. **Create or adopt the branch, and record handoff anchors.** Record `base_branch` = the base resolved in step 1 (the Phase 8.5 squash uses it).
+   - **Normal case** (`profile_source` is `in-repo` or `built-in`, or a custom repo whose profiling did not create a branch): `git switch -c <name>` from `base_branch`.
+   - **Inline-profiling case** (`profile_source: generated`): Phase 0's `/impl:docs:profile` already ran `git switch -c <profile-branch>` and committed `.dev-workflows/docs-profile.yml`, so HEAD is already on that branch. Do NOT create a new branch — rename it with `git branch -m <name>`. Record `profile_commit` = the commit that introduced the profile config: `git log --diff-filter=A --format=%H -- .dev-workflows/docs-profile.yml | head -1`. Phase 8.5 squashes the docs commits onto `profile_commit`, keeping the profile-config commit as a distinct first commit. (Per `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md` §1.)
 
 No external CLI calls; all git operations are local.
 
@@ -749,6 +751,38 @@ Collect all four summaries for the Phase 9 report.
 
 ---
 
+## Phase 8.5 — Finish & handoff
+
+Run this phase only when Phase 6 wrote + committed in a git repo (write context `docs_repo`, or `non_docs_repo` confirmed at Phase 0) — i.e. a branch with this run's commits exists. Skip otherwise (nothing to hand off). Mechanics: `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md`.
+
+### Step 1 — Squash (always)
+
+Fold the run into clean history before handoff:
+1. Stage the run's uncommitted docs-repo edits — Phase 8 Agent 1 (doc index / cross-links) and Agent 3 (`CLAUDE.md`) may have edited without committing; the Phase 6.5 clean-tree check means everything uncommitted is this run's work.
+2. Compute the squash base: if Phase 6.5 recorded `profile_commit` (inline-profiling run), base = `profile_commit` (keeps the profile-config commit as a distinct first commit → two commits); otherwise base = `git merge-base <base_branch> HEAD` (one commit).
+3. `git add` the docs-repo changes → `git reset --soft <squash-base>` → one `git commit`. The message follows `profile.commit_convention` when present (dynatrace-docs: `<JIRA-KEY> <summary>`); for a repo with no such field, infer from recent `git log` / `CONTRIBUTING`, else fall back to `<JIRA_KEY> <summary>`. NEVER put the Jira key in a reader-visible changelog — the commit message carries traceability.
+
+### Step 2 — Offer push
+
+```
+choices: ["Push <branch> to origin now", "Skip — I'll push later", "Cancel"]
+```
+- **Push** → `git push -u origin <branch>`; report the result. (`git push` is git-protocol, not a REST API — the zero-external-API invariant is preserved.)
+- **Skip** → "Branch `<branch>` ready with N commit(s). Push when ready."
+- **Cancel** → stop and summarise.
+
+### Step 3 — Copy-paste PR draft (always; no API)
+
+Per `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md` §4–§5:
+1. **Detect the host** from the docs repo's `git remote get-url origin` (Bitbucket Cloud / Bitbucket Server / GitHub / other).
+2. **Compose the draft**: title (per `commit_convention`); body — what was documented, the output files, the Phase 6.8 render-verification summary, deferred style/review/render items, a link to the Jira VI. When Phase 5.8 recorded any `document-as-spec` / `skip-and-report` decision, prepend a banner: `> ⚠ DO NOT MERGE until <JIRA_KEY>-implementation-gaps.md is resolved.`
+3. **Write + show**: write `<JIRA_KEY>-pr-draft.md` to the vault project folder (`find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"`; ask if none) AND print it.
+4. **Host footer**: Bitbucket → "open a PR in the web UI and paste the title + body"; GitHub → additionally offer `gh pr create --title "<title>" --body-file <pr-draft path>` that the user may run; other → "open a PR and paste the title + body". The plugin never opens the PR itself.
+
+Carry the squash result, push outcome, and PR-draft path into the Phase 9 report.
+
+---
+
 ## Phase 9 — Final Report
 
 Output a structured report — do NOT ask any closing confirmation:
@@ -816,7 +850,7 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 - [list any]
 
 ### Git state
-[If branching happened: "Branch <name> created with N commits. Push when ready." If no branching: "Working tree has uncommitted changes. /impl:jira:docs writes but does not commit in non-git contexts."]
+[When Phase 8.5 ran: "Branch <name> — squashed to N commit(s); pushed to origin: <yes/no>; PR draft: <pr-draft path>." When Phase 8.5 was skipped (no branch/commits): "Working tree has uncommitted changes. /impl:jira:docs writes but does not commit in non-git contexts."]
 ```
 
 ---

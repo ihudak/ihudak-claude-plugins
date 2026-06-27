@@ -194,6 +194,7 @@ These commands run fine on a bare host, but they depend on a few external tools 
 - `references/guidelines/` — Dynatrace Experience Standards reference docs and checklist template (consulted by `guideline-reviewer`)
 - `references/dynatrace-docs/multi-space-writing.md` — how `/impl:jira:docs` writes across the SaaS and Managed spaces while protecting the other space's render (conditional vs override-copy, docstack `ignore`, shared-registries lock-step, token correctness)
 - `references/dynatrace-docs/render-verification.md` — how `/impl:jira:docs` Phase 6.8 verifies the written docs build and render (build-vs-boot, sequential dev-server smoke-check, the cross-space render-unchanged invariant, pages-to-visit table)
+- `references/finish-and-handoff.md` — how `/impl:jira:docs` Phase 8.5 finishes a run (squash, opt-in push, host-aware copy-paste PR draft) and how Phase 6.5 adopts an inline-profiling branch
 - `references/dynatrace-docs/changelog-guidelines.md` — dynatrace-docs changelog writing rules + managed owners policy (consulted by the `dynatrace-docs-frontmatter` skill)
 - `references/dynatrace-docs/managed-owners.txt` — managed-docs owner IDs unioned into `managed/_content/**` pages (read by the skill and the `changelog-owners-reminder` hook)
 

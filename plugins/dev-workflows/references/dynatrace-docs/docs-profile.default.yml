@@ -16,6 +16,7 @@ spaces:
     base_path: /managed
 dev_servers:
   concurrent: false
+  readiness_timeout_seconds: 120
   servers:
     - space: saas
       command: "pnpm dynatrace:start"

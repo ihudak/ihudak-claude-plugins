@@ -1,6 +1,6 @@
 {
   "name": "dev-workflows",
-  "version": "1.11.0",
+  "version": "1.12.0",
   "description": "Eleven slash commands — /impl (help / dispatcher), /impl:code, /impl:docs, /impl:docs:profile, /impl:jira:docs, /impl:jira:epics, /impl:jira:release-notes, /vuln, /upgrade, /api-guideline-reviewer, and /guideline-reviewer — with Opus-backed planning, code review, product-docs review, and Epic review. /impl:jira:docs Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in dynatrace-docs default → on-demand /impl:docs:profile) and the VI's specs dir under /workspace; Phase 4.5 determines/confirms applicable space(s); optional saas|managed constraint scopes the run to one space. Twenty-two reusable subagents (risk-planner, code-review, doc-reviewer, epic-reviewer, test-baseliner, test-writer, review-fixer, doc-fixer, docs-style-checker, doc-planner, doc-location-finder, jira-reader, release-notes-writer, diff-summarizer, code-scanner, impl-maintenance, guideline-reviewer, api-guideline-reviewer, upgrade-planner, upgrade-executor, vuln-research, vuln-fixer) and four hooks (notifications, context injection, and a dynatrace-docs frontmatter reminder).",
   "author": {
     "name": "Ivan Gudak",

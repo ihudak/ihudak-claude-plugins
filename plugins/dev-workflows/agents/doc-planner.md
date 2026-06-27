@@ -19,6 +19,8 @@ screenshot_staging_dir: <absolute dir the command resolved for cdn_upload_requir
 code_repos:             <array of {slug, path} for source-truth verification; the clones resolved for diff-summarizer; [] when unavailable>
 specs_dir:              <absolute path to the VI's spec folder (PRODUCT-NNNN*), or null; the authoritative intended-behavior source>
 repo_root:              <absolute path to the docs repo root>
+profile:                <the resolved docs-profile (built-in dynatrace-docs default, in-repo, or generated); supplies spaces[], cross_space_override, shared_registries, tokens>
+target_spaces:          <the run's resolved space set: [saas] | [managed] | [saas, managed]>
 ```
 
 Refuse to run without `jira_reader_handoff`, `write_targets`, and `repo_root`.
@@ -92,6 +94,17 @@ For each write target:
 
    When `code_repos` is empty/omitted, emit one entry per user-visible claim with `finding: NOT_FOUND`, `technique: no-source-evidence`, `source_phrasing: "(not verifiable)"` (and `spec_phrasing: "(no spec)"` when `specs_dir` is also null).
 
+10. **Recommend a per-target multi-space write strategy** (per `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/multi-space-writing.md`). For each write target:
+    - Determine its **home space** by matching `target_path` against each `profile.spaces[].content_root`/`snippet_root` prefix.
+    - Determine `rendered_in` and `space_scope`: a page is **`shared`** when `profile.cross_space_override` pulls its home `content_root` into another space's render (in dynatrace-docs, a `saas`-home page under `dynatrace/_content` is pulled into the Managed render, so `rendered_in: [saas, managed]`); otherwise **`single`** (`rendered_in: [<home space>]`).
+    - Recommend `write_strategy.strategy`:
+      - **`plain`** — no protection needed: a `single` page whose home space is in `target_spaces`, OR a `[saas, managed]` run whose planned content is identical for every space the page renders in.
+      - **`conditional`** — the page is `shared` and the planned change is localized (a single added block, localized wording, or one differing value) AND it must NOT alter the render of a space outside `target_spaces` (or must differ per space within a both-spaces run). The shared source is edited in place; the delta is wrapped in `{{#if project='<target_space>'}}…{{/if}}`.
+      - **`override-copy`** — the page is `shared` and the divergence is structural (new sections, large rewrite). The page is copied into the destination space's `content_root` and the shared path is added to `cross_space_override`'s `ignore` allowlist.
+    - Set `write_strategy.target_space` to the space the change is **for**: for `conditional`, the `project='…'` value of the wrapped delta; for `override-copy`, the destination space the copy lands in; for `plain`, the page's home space.
+    - Set `write_strategy.rationale` to a 1-line justification grounded in the divergence you estimated (used by Phase 5.9's table).
+    - This recommendation is **advisory** — the orchestrator presents it for approval/override in Phase 5.9 before any write. Do NOT write files.
+
 ## Output — the documentation checklist
 
 ```yaml
@@ -99,6 +112,12 @@ status:   OK | PARTIAL
 checklist:
   - target_path: <absolute path>
     kind:        extend-existing | new-page-in-existing-section | new-section
+    space_scope: shared | single          # shared = rendered in >1 space (per profile.cross_space_override); single = its home space only
+    rendered_in: [<space id>, ...]         # the spaces this page's render appears in
+    write_strategy:                        # advisory; approved/overridden in /impl:jira:docs Phase 5.9
+      strategy:    conditional | override-copy | plain
+      rationale:   <1-line justification grounded in the estimated divergence>
+      target_space: <space id>             # conditional → the {{#if project='<target_space>'}} value; override-copy → the destination space the copy lands in; plain → the home space
     topics:
       - name:    <"How to use" | "Setup" | "Reference" | "Migration" | etc.>
         sources: [<Jira key | PR URL>, ...]
@@ -154,3 +173,4 @@ verification_warnings:        # source-truth findings; resolved by the orchestra
 - NEVER decide a topic is "done" without naming at least one source. If a topic has no source, it is a gap.
 - If `repo_root` looks wrong (no markdown files, no frontmatter conventions, no `_snippets/` sibling of candidate target directories), note it in `gaps` with `recommended_action: "ask user"`.
 - NEVER propose a release-notes / what's-new path as a `target_path` (e.g. `_snippets/release-notes/...`, `_content/whats-new/...`, `_data/release-notes/...`). Those pages are generated from Jira by the docs team's automation; a manual write would be overwritten. Release notes are produced by the `/impl:jira:release-notes` command.
+- NEVER pick `override-copy` over `conditional` to "play it safe" — an override-copy duplicates a whole page and must then be maintained in two places. Recommend `override-copy` ONLY for genuinely structural divergence; localized deltas are `conditional`. The user can still override either way in Phase 5.9. NEVER write files or perform the copy/`ignore` edit yourself — Phase 6 does that.

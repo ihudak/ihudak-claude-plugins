@@ -467,7 +467,17 @@ Run this phase only when, in the Phase 5.7 `doc-planner` return, **any** screens
 
 The main command writes the markdown following the `doc-planner` checklist. The writer is NOT a separate subagent — it's the orchestrating command with full context from Phases 3–5.7 already loaded.
 
+Multi-space safety is governed by `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/multi-space-writing.md`. Before writing, resolve **per-space routing** for each target:
+- Determine the target's **home space** by matching `target_path` against each `profile.spaces[].content_root`/`snippet_root` prefix.
+- A target whose home space is **not** in `target_spaces` is a routing error — stop and surface it (it should not occur once Phase 4.5/5.5 honored `target_spaces`); the one legitimate write outside `target_spaces` is an `override-copy` destination (step 0 below).
+- Apply the **approved `write_strategy`** for the target (from Phase 5.9 `write_strategies[]`; absent ⇒ `plain`).
+
 For each target in the confirmed write-target list:
+
+0. **Apply the approved write strategy** (per `write_strategies[<target_path>]` and `multi-space-writing.md`):
+   - **`plain`** → write the page in its home space's `content_root` as usual (steps 1–7 below). No cross-space action.
+   - **`conditional`** → edit the **shared source page in place** in its home space and wrap the per-space delta in `{{#if project='<target_space>'}}…{{/if}}` (project value from `profile.tokens.project_conditionals`). The protected space's render does not change because the wrapped content is excluded for it. Continue with steps 1–7 for the edited content.
+   - **`override-copy`** → copy the page into `profile.spaces[]` `content_root` of `write_strategy.target_space` at the **same relative path** under that `content_root` (`<home content_root>/<rel>` → `<dest content_root>/<rel>`), edit the copy for the destination space (steps 1–7), then make the override win: add the **shared source path** to the override manifest's `ignore` allowlist per `profile.cross_space_override.rule` (for dynatrace-docs: add `../dynatrace/_content/<rel>` to the `ignore` block of `managed/docstack.jsonc`). Leave the home-space source untouched so its render is unchanged.
 
 1. **Preserve any existing YAML frontmatter** on pages being extended. Never strip unknown fields.
 2. **Add or update** the `changelog:` field per the planner's checklist (append a new dated entry naming the Jira key and a 1-line change summary). Create the field if it doesn't exist on an extended page.
@@ -492,6 +502,9 @@ For each target in the confirmed write-target list:
      Strongly recommend committing to a branch (Phase 6.5); the Phase 9 report MUST flag "do NOT merge this docs PR until the gaps are resolved". The plugin does NOT open a PR (zero-external-API invariant).
    - `skip-and-report` → omit the claim from the docs.
    - When any decision is `document-as-spec`/`skip-and-report`, write `<bug_report_destination>/<JIRA_KEY>-implementation-gaps.md` using the §7.5 format (vault project folder; never `/tmp`; never the docs repo).
+
+8. **Shared-registries lock-step** (per `profile.shared_registries` and `multi-space-writing.md` §5). If any write **renames, retitles, or creates** a page matching a `shared_registries[].when` condition (for dynatrace-docs: a settings-schema page under `dynatrace/_content/dynatrace-api/environment-api/settings/schemas/`), update **every** file in that entry's `files` list together per its `rule` (for dynatrace-docs: the `text:` entry in BOTH `schema-ids.yml` and `schema-mappings.yml`, in lock-step). Stage all of them in the same commit.
+9. **Token-correctness validation** (per `profile.tokens` and `multi-space-writing.md` §6). On every file written or edited in this phase, validate before handing off to the style/review gates: every `{{#if project='…'}}` has a matching `{{/if}}`; each `project='…'` value is a known space/edition (`saas`, `managed`, `classic`, `latest`); `{{tag kind='latest'}}` and `::app-settings::` are spelled exactly and used only in a space that supports them. Fix malformed or space-inappropriate tokens now; do not defer them to Phase 6.7.
 
 Write to the resolved `docs_repo_path` (Phase 0). Branch and commit policy is governed by the write context (Phase 0 step 7):
 

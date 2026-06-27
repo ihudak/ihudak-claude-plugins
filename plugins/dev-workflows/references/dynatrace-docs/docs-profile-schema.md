@@ -49,6 +49,7 @@ internal_links:
   convention: "[text](<postid>); postid comes from target frontmatter; verify it exists before linking"
 branch_naming:
   pattern: "<initials>/<JIRA-KEY>-<short-slug>"
+commit_convention: "<JIRA-KEY> <summary>"     # Phase 8.5 squash commit message format
 frontmatter:                          # pointers only — NOT a re-spec
   owned_by_skill: dynatrace-docs-frontmatter
   changelog_guidelines: references/dynatrace-docs/changelog-guidelines.md
@@ -63,5 +64,6 @@ prerequisites:
 - `spaces[]` is required and non-empty. A single-space repo has one entry and omits `cross_space_override`.
 - `dev_servers.concurrent: false` means the consumer must start servers sequentially.
 - `dev_servers.readiness_timeout_seconds` is optional (default 120) — how many seconds Phase 6.8 polls a booted server for readiness before falling back to the manual table.
+- `commit_convention` is optional — the squash commit-message format Phase 8.5 uses. When absent, the consumer infers it from recent `git log` / `CONTRIBUTING`, else falls back to `<JIRA_KEY> <summary>`.
 - `cross_space_override` and `shared_registries` are present only when detected (multi-space / docstack repos).
 - `frontmatter.*` are pointers; never copy the rules here.

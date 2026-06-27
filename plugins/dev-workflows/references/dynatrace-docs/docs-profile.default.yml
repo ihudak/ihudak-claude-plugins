@@ -46,6 +46,7 @@ internal_links:
   convention: "[text](<postid>); postid comes from target frontmatter; verify it exists before linking"
 branch_naming:
   pattern: "<initials>/<JIRA-KEY>-<short-slug>"
+commit_convention: "<JIRA-KEY> <summary>"
 frontmatter:
   owned_by_skill: dynatrace-docs-frontmatter
   changelog_guidelines: references/dynatrace-docs/changelog-guidelines.md

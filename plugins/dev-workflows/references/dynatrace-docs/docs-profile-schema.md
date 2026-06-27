@@ -19,6 +19,7 @@ spaces:                               # one entry per rendered space
     base_path: /managed
 dev_servers:
   concurrent: false                   # cannot run two spaces at once
+  readiness_timeout_seconds: 120      # optional; seconds to poll a booted server for readiness (default 120)
   servers:
     - space: saas
       command: "pnpm dynatrace:start"
@@ -61,5 +62,6 @@ prerequisites:
 ## Field rules
 - `spaces[]` is required and non-empty. A single-space repo has one entry and omits `cross_space_override`.
 - `dev_servers.concurrent: false` means the consumer must start servers sequentially.
+- `dev_servers.readiness_timeout_seconds` is optional (default 120) — how many seconds Phase 6.8 polls a booted server for readiness before falling back to the manual table.
 - `cross_space_override` and `shared_registries` are present only when detected (multi-space / docstack repos).
 - `frontmatter.*` are pointers; never copy the rules here.

@@ -31,7 +31,7 @@ For small one-off doc edits, use `/impl:docs`. For writing child Epic drafts fro
 
    Resolve `docs_repo_path` in this order:
 
-   - **(a) cwd with signals (preserves today's behavior).** Resolve cwd's git root (`git rev-parse --show-toplevel`). If it succeeds **and** ≥ 1 docs signal is present there → `docs_repo_path` = that git root and proceed silently. This keeps every downstream phase that assumes cwd correct.
+   - **(a) cwd with signals (preserves today's behavior).** Run `git rev-parse --show-toplevel` from cwd to resolve the git root. If it succeeds **and** ≥ 1 docs signal is present there → `docs_repo_path` = that git root and proceed silently. This keeps every downstream phase that assumes cwd correct.
    - **(b) Search for a dynatrace-docs clone.** Else, look under `${REPOS_PATH:-/workspace}` (single dir or colon-separated list) for a `dynatrace-docs` checkout: a top-level directory either named `dynatrace-docs`, or a git root that contains both `dynatrace/_content` and `managed/docstack.jsonc`. If exactly one matches → `docs_repo_path` = that path. If several match, list them and ask which to use (`choices` array, recommended first, last item `"Other… (describe)"`).
    - **(c) Ask.** Else, ask:
      ```
@@ -42,7 +42,7 @@ For small one-off doc edits, use `/impl:docs`. For writing child Epic drafts fro
       Where should I write the documentation?"
      choices: ["Use cwd anyway — I confirm this is a docs repo (Recommended)", "Enter the docs repo path", "Cancel — switch to a docs repo first", "Other… (describe)"]
      ```
-     "Use cwd anyway" sets `docs_repo_path` = cwd's git root (or cwd if not a git tree) and carries the user's confirmation forward. "Enter the docs repo path" takes a free-text absolute path and validates it exists.
+     "Use cwd anyway" sets `docs_repo_path` = the git root of cwd (or cwd itself if not a git tree) and carries the user's confirmation forward. "Enter the docs repo path" takes a free-text absolute path and validates it exists.
 
    **Confirm writeable.** Once `docs_repo_path` is resolved, run `test -w <docs_repo_path>`. If it fails, stop with the named error `REPO_NOT_WRITEABLE: <docs_repo_path> is not writeable.`
 
@@ -51,9 +51,17 @@ For small one-off doc edits, use `/impl:docs`. For writing child Epic drafts fro
 5. **Resolve the profile** (record `profile_source`). The profile steers all later phases' conventions. Resolve in this order:
    - **(a) In-repo profile →** `in-repo`. If `<docs_repo_path>/.dev-workflows/docs-profile.yml` exists, load it. `profile_source: in-repo`.
    - **(b) dynatrace-docs built-in default →** `built-in`. Else, if `is_dynatrace_docs`, load `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/docs-profile.default.yml`. `profile_source: built-in`.
-   - **(c) Custom repo, no profile →** `generated`. Else (a custom docs repo with no profile), run **inline on-demand profiling**: invoke the `/impl:docs:profile` flow against `docs_repo_path` (Skill tool, `skill: "dev-workflows:impl:docs:profile"`, with `docs_repo_path` as its argument) and wait for it to write `<docs_repo_path>/.dev-workflows/docs-profile.yml`. Then load that file. `profile_source: generated`. If the user cancels profiling (it produces no profile), stop with the named error `PROFILE_REQUIRED: a docs-profile is required to write into a custom docs repo; run /impl:docs:profile or switch to a profiled repo.`
+   - **(c) Custom repo, no profile →** `generated`. Else (a custom docs repo with no profile), run **inline on-demand profiling**: invoke the `/impl:docs:profile` flow against `docs_repo_path` (Skill tool, `skill: "dev-workflows:impl:docs:profile"`, with `docs_repo_path --inline` as its arguments — the `--inline` token tells profiling to skip its branch-naming prompt and standalone PR-draft handoff, since this command owns the single branch + PR draft) and wait for it to write `<docs_repo_path>/.dev-workflows/docs-profile.yml`. Then load that file. `profile_source: generated`. If the user cancels profiling (it produces no profile), stop with the named error `PROFILE_REQUIRED: a docs-profile is required to write into a custom docs repo; run /impl:docs:profile or switch to a profiled repo.`
 
    Hold the loaded profile for later phases.
+
+   **In-repo-profile-not-on-base guard.** When `profile_source: in-repo`, confirm the profile is committed on the base branch before relying on a docs branch cut from it. Resolve the base (`git -C <docs_repo_path> symbolic-ref --short refs/remotes/origin/HEAD`; fall back to `main`, then `master`) and run `git -C <docs_repo_path> cat-file -e <base>:.dev-workflows/docs-profile.yml`:
+   - **exit 0 (present on base)** → proceed (the common case — the profile was merged earlier).
+   - **non-zero (absent on base)** → the profile is only in the working tree / on an unmerged branch, so the docs branch Phase 6.5 cuts from `<base>` will not include it. Warn and ask:
+     ```
+     choices: ["Proceed — the run uses the in-memory profile; I'll merge the profile PR separately", "Cancel — merge the profile PR first, then re-run", "Other… (describe)"]
+     ```
+   Skip this check for `profile_source: built-in` (no profile file) and `generated` (the inline profiling branch is adopted by Phase 6.5, so the profile rides the single docs branch — a base check would false-fire).
 
 6. **Discover the specs dir.** Specs are additive context, not a prerequisite. Under `${REPOS_PATH:-/workspace}` (single dir or colon-separated list), look for a sibling directory whose detected **vis-root** (a `specifications/` or `vis/` subdirectory) contains a folder matching `<JIRA_KEY>*` (prefix match; tolerate mixed `-`/`_` separators and a trailing slug, e.g. `PRODUCT-14902-foo` or `PRODUCT_14902_foo`):
    - **Found →** record `specs_dir` = the matching `<JIRA_KEY>*` folder's absolute path.
@@ -102,7 +110,7 @@ Group questions where possible; use `choices` arrays; the last choice in every a
 
 Ask about:
 
-- **Output filename / sub-path under cwd** (default: `<KEY>-<slug>.md`; the `doc-location-finder` in Phase 5.5 may override this per target).
+- **Output filename / sub-path under the resolved `docs_repo_path`** (Phase 0) (default: `<KEY>-<slug>.md`; the `doc-location-finder` in Phase 5.5 may override this per target).
 - **PR status filter**:
   ```
   choices: ["MERGED only (Recommended)", "All PRs (MERGED + OPEN + DECLINED)", "Specific list (you'll be prompted)", "Other… (describe)"]
@@ -157,7 +165,7 @@ SIGNIFICANT → no Opus planning (the Jira hierarchy + diff summaries *are* the 
 Present a concise plan:
 
 - Resolved `<JIRA_KEY>` and the `$VAULT_PATH/jira-products/<JIRA_KEY>/` path
-- Output filename / path under cwd (from Phase 1)
+- Output filename / path under the resolved `docs_repo_path` (from Phase 1)
 - `$REPOS_PATH` and the slug→clone resolution for the repos that will be examined (inferred from the `jira-reader` output in Phase 3; if Phase 3 hasn't run yet, list "TBD — resolved after Jira read")
 - PR filter (MERGED only / all / specific)
 - Parallelism plan (up to 4 `diff-summarizer` instances per batch; up to 4 repos per Agent message)
@@ -287,7 +295,7 @@ Invoke `doc-location-finder`:
 → Agent (subagent_type: "dev-workflows:doc-location-finder"):
   > "Find write target(s) for the brief:
   >
-  > repo_root:       [cwd's git root, resolved in Phase 0]
+  > repo_root:       [the resolved docs_repo_path (Phase 0)]
   > feature_summary: [2–4 sentences combining jira-reader themes + value_increment.goal]
   > diff_highlights: [key filenames / symbols from the diff-summarizer per_pr summaries]"
 
@@ -356,7 +364,7 @@ Invoke `doc-planner`:
   > write_targets:        [paste confirmed list from Phase 5.5]
   > screenshots:          [selected candidate paths from Phase 5.6, possibly empty]
   > screenshot_staging_dir: [resolved <screenshot_staging_dir> from Phase 1, or null]
-  > repo_root:            [cwd's git root]
+  > repo_root:            [the resolved docs_repo_path (Phase 0)]
   > code_repos:           [the Phase-4 resolved {slug, path} map; [] if none resolved]
   > specs_dir:            [resolved <specs_dir> from Phase 0, or null]
   > profile:              [the docs-profile loaded in Phase 0 — drives space routing + the multi-space write strategy]
@@ -465,6 +473,8 @@ Run this phase only when, in the Phase 5.7 `doc-planner` return, **any** screens
 
 ## Phase 6 — Write documentation
 
+**Execution order with Phase 6.5 (branch setup).** When branching applies — write context `docs_repo` (or confirmed `non_docs_repo`) **and** the user opted into branching at plan approval — **Phase 6.5 runs *before* this phase**: it creates (or, for an inline-profiling run, renames) the branch off the base, and this phase then writes and commits onto that branch. Follow this execution order, not the numeric phase order (the `6.2`/`6`/`6.5`/`6.7`/`6.8` cluster is pending a monotonic renumber). For `obsidian`/`plain_dir` or no-branch runs, no branch is created and this phase writes in place without committing.
+
 The main command writes the markdown following the `doc-planner` checklist. The writer is NOT a separate subagent — it's the orchestrating command with full context from Phases 3–5.7 already loaded.
 
 Multi-space safety is governed by `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/multi-space-writing.md`. Before writing, resolve **per-space routing** for each target:
@@ -558,7 +568,7 @@ Invoke `docs-style-checker` on the files written in Phase 6:
 → Agent (subagent_type: "dev-workflows:docs-style-checker"):
   > "Run the style check for this brief:
   >
-  > repo_root: [cwd's git root]
+  > repo_root: [the resolved docs_repo_path (Phase 0)]
   > files:     [absolute paths of every file written or modified in Phase 6]"
 
 Act on the return:
@@ -572,7 +582,7 @@ Act on the return:
     >
     > Task description: [doc writing for <JIRA_KEY>]
     > Reviewer or style-checker output: [paste full docs-style-checker output]
-    > Project root: [cwd's git root]
+    > Project root: [the resolved docs_repo_path (Phase 0)]
     > Severities to fix: BLOCKER and MAJOR"
 
   If violations remain after the re-run:
@@ -669,7 +679,7 @@ Act on the verdict:
     >
     > Task description: [doc writing for <JIRA_KEY>]
     > Reviewer or style-checker output: [paste full doc-reviewer output]
-    > Project root: [cwd's git root]
+    > Project root: [the resolved docs_repo_path (Phase 0)]
     > Severities to fix: BLOCKER and MAJOR"
 
   MINOR / NIT findings are deferred to the Phase 9 report.
@@ -684,7 +694,7 @@ Cap: one fix cycle + one re-review maximum.
 
 First gather the change context:
 
-a. Run `git diff --stat` against the base branch (if branching happened at Phase 6.5) or against HEAD (if no branching) and capture the list of changed files.
+a. Run `git -C <docs_repo_path> diff --stat` against the base branch (if branching happened at Phase 6.5) or against HEAD (if no branching) and capture the list of changed files.
 b. Compose a **change summary block**:
 
 ```
@@ -745,7 +755,7 @@ Then spawn all four Phase 4-style maintenance agents in a **single Agent message
 > - Workarounds used: [manual steps not automated by the workflow — or 'none']
 > - Review verdict: [PASS | PASS WITH RECOMMENDATIONS | BLOCK]
 > - Test result: N/A (no tests in /impl:jira:docs)
-> - Project root: [cwd's git root]"
+> - Project root: [the resolved docs_repo_path (Phase 0)]"
 
 Collect all four summaries for the Phase 9 report.
 
@@ -862,7 +872,7 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 - GitHub URLs may use the `gh` CLI for head/base SHA resolution; no direct REST calls outside `gh`
 - NEVER write inside `_archive/` — that path is read-only by convention
 - NEVER write inside `jira-products/` — that path is re-created from scratch on every Jira import; writes there will be lost
-- NEVER write outside cwd unless the user provides an explicit absolute path at Phase 5.5
+- NEVER write product documentation outside the resolved `docs_repo_path` (Phase 0); the only other writes are to the ticket's vault project folder under `$VAULT_PATH` (the `<JIRA_KEY>-implementation-gaps.md` bug-report draft, the `<JIRA_KEY>-pr-draft.md`, and screenshot staging) — never anywhere else.
 - ALWAYS escalate missing repos before proceeding — never silent skip
 - ALWAYS invoke `docs-style-checker` (Phase 6.7) before `doc-reviewer` (Phase 7)
 - ALWAYS invoke `doc-reviewer` before Phase 8 maintenance

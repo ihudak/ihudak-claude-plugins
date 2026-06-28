@@ -18,11 +18,7 @@ The caller passes a **compact session handoff**:
 
 - **Command run** — which command variant executed this session. One of
   `/implement`, `/document` (direct mode), `/document` (Jira mode), `/epics`,
-  `/vuln`, `/upgrade`. For backward compatibility (e.g. replaying
-  handoffs archived from earlier plugin versions), accept the legacy values
-  `/implement`, `/document` (direct), `/document` (Jira), `/epics` and
-  internally map them to the corresponding new verbs, noting the mapping in
-  the report's `### Session summary`. This field scopes any "Command workflow
+  `/vuln`, `/upgrade`. This field scopes any "Command workflow
   improvements" suggestions to the right command.
 - **What was done** — 1-paragraph summary (classification, component/CVE/task, scope)
 - **Key events** — things that went unexpectedly: BLOCK reviews, test regressions,

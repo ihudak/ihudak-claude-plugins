@@ -182,14 +182,14 @@ model_routing:
   planning_model:  <§2 powerful chain: claude-opus-4-8 … fallback Sonnet per §2>   # doc-planner (5.7)
   review_model:    <§2 powerful chain>     # doc-reviewer (frontmatter-pinned; recorded here, no override added)
   implementation_model: <= planning_model>  # the doc-writer subagent (Phase 6.3) — now a delegated, Opus-pinned writer
-  fixes_model: <= detection_model>         # doc-fixer (6.7 / 7) runs on the detection chain
+  fixes_model: <= detection_model>         # doc-fixer (6.4 / 7) runs on the detection chain
   opus_available: <true if a §2 Opus model resolved, else false>
   notes: <any §2 / §2.1 fallback or degradation>
 ```
 
 Each subagent dispatch below cites which chain it uses (the §9 role→chain map): `doc-planner` → `planning_model`; `jira-reader`, `diff-summarizer`, `doc-location-finder`, `docs-style-checker`, `doc-fixer`, and the Phase 8 maintenance agents → `detection_model`; `doc-reviewer` keeps its own frontmatter Opus pin (recorded as `review_model`, no override added).
 
-**Orchestration advisory (window-focused).** `doc-planner` (5.7) and `doc-writer` (6) run on the §2 Opus chain regardless of session; only coordination + the interactive gates (4.5, 5.8 decision, 5.9, 6.2) run on `current_model`. So:
+**Orchestration advisory (window-focused).** `doc-planner` (5.7) and `doc-writer` (6.3) run on the §2 Opus chain regardless of session; only coordination + the interactive gates (4.5, 5.8 decision, 5.9, 6.1) run on `current_model`. So:
 
 - **`current_model` is on the §2 chain** → no advisory.
 - **`current_model` is NOT on the §2 chain and `opus_available: true`** → the heavy synthesis + writing are already on Opus; the residual risk is the orchestrator's **context window** on a **large multi-repo ticket**. Offer relaunch **only** in that case:
@@ -556,7 +556,7 @@ The writing is delegated to the **`doc-writer`** subagent (pinned to the §2 Opu
   > handoff_file: [absolute path of the temp handoff file from step 1]"
 
 3. **Handle the return.**
-   - **`status: DONE`** — record `files_written` + `notes` for Phases 6.7 / 6.8 / 7 / 8. Then **commit** per the branch/commit policy below.
+   - **`status: DONE`** — record `files_written` + `notes` for Phases 6.4 / 6.5 / 7 / 8. Then **commit** per the branch/commit policy below.
    - **`status: BLOCKED`** — surface the named gap to the user:
      ```
      choices: ["Provide the missing input (you'll be prompted)", "Cancel"]

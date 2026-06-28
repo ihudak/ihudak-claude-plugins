@@ -335,3 +335,50 @@ normal single-explorer path.
 A referenced directory that is missing, or is neither a recognized folder type
 nor a git repository, MUST be surfaced to the user — never silently skipped
 (mirrors the `REFRESH_BLOCKED` honesty rule used by the `/impl:jira:*` flows).
+
+---
+
+## 9. Per-step routing for multi-phase authoring pipelines
+
+The `/impl:jira:*` authoring pipelines (`commands/impl/jira/docs.md` now;
+`commands/impl/jira/epics.md` later) run a long sequence of phases — some
+judgment-heavy, some mechanical. They MUST NOT let every step inherit the
+session model. Apply this policy, resolving each model against the §2 (Opus)
+and §2.1 (Sonnet) fallback chains.
+
+### 9.1 Principle
+
+- **Judgment-heavy authoring / synthesis** steps run on the §2 reasoning (Opus)
+  chain — escalate to Opus even when the session is Sonnet.
+- **Mechanical detection / throughput / fix** steps run on the §2.1 detection
+  (Sonnet) chain — de-escalate off the session model even when the session is
+  Opus (otherwise an Opus session burns Opus on cheap work).
+- **Orchestrator-executed** judgment steps — the inline prose writing and the
+  interactive gates, plus the orchestration itself — run on the session model
+  and CANNOT be overridden from inside a running command. Handle them with an
+  **advisory** (recommend relaunching on the §2 chain), never an override.
+
+### 9.2 Role → chain map
+
+| Role | Chain |
+|------|-------|
+| Synthesis / planner (e.g. `doc-planner`) | §2 reasoning (Opus) |
+| Reader / summarizer / locator / style-checker / fixer / maintenance (`jira-reader`, `diff-summarizer`, `doc-location-finder`, `docs-style-checker`, `doc-fixer`, maintenance agents) | §2.1 detection (Sonnet) |
+| Domain reviewer (`doc-reviewer`, `epic-reviewer`) | §2 review (Opus) — usually already frontmatter-pinned; the orchestrator records it and adds **no** override |
+| Inline writer + interactive gates (the orchestrator itself) | session model → §9.1 advisory |
+
+### 9.3 No-Opus degradation
+
+When no Opus model is available (per §2), run the reasoning / review roles on the
+Sonnet floor, **skip** the relaunch advisory (there is nothing to relaunch onto),
+and announce the degradation in the `model_routing` record and the final report —
+the same rule as §2.
+
+### 9.4 Reconciliation with §8.3
+
+§8.3's "`jira-reader` / `code-scanner` inherit the session model" is the
+conservative default for the `/impl:code` large-input **fan-out**. Authoring
+pipelines that route per this section pin **`jira-reader`** to the detection
+chain (reading pre-exported markdown is mechanical — an Opus session should not
+pay for it). `code-scanner` remains governed by §8.3 when invoked under the
+large-input fan-out trigger.

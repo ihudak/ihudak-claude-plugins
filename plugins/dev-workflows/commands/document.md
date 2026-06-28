@@ -21,7 +21,7 @@ For small one-off doc edits, use direct mode (below). For writing child Epic dra
 - **Jira mode** — the first token matches a JiraID (`^[A-Z][A-Z0-9]+-[0-9]+`), optionally followed by `saas` | `managed`. Run **Mode A** below. If the token is JiraID-shaped but no ticket folder exists under `$VAULT_PATH/jira-products/<KEY>`, ask: `choices: ["Re-enter the Jira key", "Treat the text as a direct edit instead", "Cancel"]`.
 - **Direct mode** — anything else (a leading `@file` token, or free-text prose). Run **Mode B** below.
 
-Echo the detected mode, then proceed to that mode's phases. The two modes share the same `docs-style-checker` / `doc-reviewer` / `doc-fixer` agents and the Phase 9 report shape.
+Echo the detected mode, then proceed to that mode's phases. The two modes share the same `docs-style-checker` / `doc-reviewer` / `doc-fixer` agents (each mode emits its own final report).
 
 ---
 

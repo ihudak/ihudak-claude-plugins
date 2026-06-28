@@ -311,7 +311,7 @@ path and file a bug against the implementation team for the missing rename.
 When `doc-planner` (or any sub-agent doing source verification) emits one
 or more `verification_warnings` with finding `CONTRADICTED`, `NOT_FOUND`,
 or `AMBIGUOUS`, the orchestrator MUST follow this protocol before
-proceeding to Phase 6 (writing).
+proceeding to Phase 6.3 (writing).
 
 The protocol is **three-way** when a spec was provided — it compares the
 **Jira** narrative, the **Spec** (authoritative "intended"), and the **Code**
@@ -406,7 +406,7 @@ discrepancy_decisions:
     rationale:        <user text>
 ```
 
-Pass this record to Phase 6 (writer). The writer:
+Pass this record to Phase 6.3 (writer). The writer:
 
 - For `document-as-spec` decisions: use the intended phrasing verbatim in the
   docs — the `spec_phrasing` when a spec was provided, the `jira_phrasing`

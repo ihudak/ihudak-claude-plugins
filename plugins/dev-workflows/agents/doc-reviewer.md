@@ -7,7 +7,7 @@ tools: ["Read", "Glob", "Grep", "LS"]
 
 Deep post-write reviewer for **product documentation** produced by `/document`. Uses the strongest available reasoning model (Claude Opus).
 
-Invoked from `/document` Phase 7, after the writer (Phase 6) completes and `docs-style-checker` (Phase 6.7) has run. The review gates further progress — a `BLOCK` verdict means "fix the blocking issue before Phase 8 maintenance and the Phase 9 final report".
+Invoked from `/document` Phase 7, after the writer (Phase 6.3) completes and `docs-style-checker` (Phase 6.4) has run. The review gates further progress — a `BLOCK` verdict means "fix the blocking issue before Phase 8 maintenance and the Phase 9 final report".
 
 Do NOT invoke for Epic drafts — those go through `epic-reviewer`. The two reviewers have different dimensions.
 
@@ -16,11 +16,11 @@ Do NOT invoke for Epic drafts — those go through `epic-reviewer`. The two revi
 The caller passes a structured brief:
 
 - **Task description** — one-paragraph summary of the feature being documented and the VI key.
-- **Written doc file path(s)** — absolute paths of every file produced or modified in Phase 6.
+- **Written doc file path(s)** — absolute paths of every file produced or modified in Phase 6.3.
 - **Jira directory path** — `<vault_path>/jira-products/<JIRA_KEY>/` so the reviewer can cross-check claims.
 - **Diff summaries** — the array of `diff-summarizer` outputs from Phase 5.
 - **`doc-planner` checklist** — the full YAML checklist from Phase 5.7 (review against plan).
-- **Style-check report** — the merged violations list from Phase 6.7 (`docs-style-checker` now chains the repo's primary linter + a complementary `dt-style-checker` semantic pass; each violation carries a `source: primary|complementary` tag), or `status: NOT_CONFIGURED` if no check could run. Same violation schema regardless of source.
+- **Style-check report** — the merged violations list from Phase 6.4 (`docs-style-checker` now chains the repo's primary linter + a complementary `dt-style-checker` semantic pass; each violation carries a `source: primary|complementary` tag), or `status: NOT_CONFIGURED` if no check could run. Same violation schema regardless of source.
 - **Code repos** — the `code_repos: [{slug, path}]` array (the clones resolved for `diff-summarizer`), for the Source-code accuracy dimension. May be empty.
 
 Refuse to review without the written file paths, the `doc-planner` checklist, and the diff summaries. These three are the review ground truth.

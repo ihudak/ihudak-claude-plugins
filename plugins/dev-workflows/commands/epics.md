@@ -207,7 +207,7 @@ The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1
   >
   > handoff_file: [absolute path of the temp handoff file from step 1]"
 
-3. **Handle the return.** `status: DONE` → record `files_written` for Phase 6.7 onward. `status: BLOCKED` → surface the named gap:
+3. **Handle the return.** `status: DONE` → record `files_written` for Phase 6.1 onward. `status: BLOCKED` → surface the named gap:
    ```
    choices: ["Provide the missing input (you'll be prompted)", "Cancel"]
    ```
@@ -215,7 +215,7 @@ The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1
 
 ---
 
-## Phase 6.7 — Dynatrace style check
+## Phase 6.1 — Dynatrace style check
 
 Invoke `dt-style-checker` on the files written in Phase 6. Unlike `/document` (Jira mode), this does NOT use `docs-style-checker` (no repo linter for vault content). Instead, the Dynatrace corporate style guide checker validates terminology, trademarks, voice/tone, and inclusive language.
 
@@ -248,7 +248,7 @@ If `dt-style-checker` is unavailable (agent file not found), proceed directly to
 
 ## Phase 7 — Epic review gate
 
-Invoke `epic-reviewer` (Opus). This reviewer is Epic-specific — scope clarity, acceptance-criteria testability, non-duplication of existing Epics. `docs-style-checker` is NOT used here (no repo linter for vault content); Dynatrace corporate style is handled by the Phase 6.7 `dt-style-checker` step above.
+Invoke `epic-reviewer` (Opus). This reviewer is Epic-specific — scope clarity, acceptance-criteria testability, non-duplication of existing Epics. `docs-style-checker` is NOT used here (no repo linter for vault content); Dynatrace corporate style is handled by the Phase 6.1 `dt-style-checker` step above.
 
 → Agent (subagent_type: "dev-workflows:epic-reviewer"):
   > "Review the Epic drafts for this brief:
@@ -393,7 +393,7 @@ MODERATE — vault-internal Epic drafting for a single VI
 ### Epic review verdict
 [PASS | PASS WITH RECOMMENDATIONS | BLOCK] — [1-line summary of findings applied / deferred]
 
-### Dynatrace style check (Phase 6.7)
+### Dynatrace style check (Phase 6.1)
 [OK | VIOLATIONS_FOUND (N fixed, M remaining) | ERROR (reason) | SKIPPED (dt-style-checker unavailable)] — [1-line summary]
 
 ### Documentation (Agent 1)
@@ -440,4 +440,4 @@ The vault has uncommitted changes. `/epics` never commits — vault git manageme
 - ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
 - ALWAYS produce the Phase 9 report as the final output
 - ALL written claims must be traceable to Jira keys (from `jira-reader`) or code paths (from `code-scanner`); do not invent content the sources don't contain
-- NEVER run `docs-style-checker` — Epic drafts are vault-internal and not subject to product-docs prose linting. Dynatrace corporate style is checked via `dt-style-checker` in Phase 6.7 instead.
+- NEVER run `docs-style-checker` — Epic drafts are vault-internal and not subject to product-docs prose linting. Dynatrace corporate style is checked via `dt-style-checker` in Phase 6.1 instead.

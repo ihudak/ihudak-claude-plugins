@@ -1,12 +1,12 @@
 # Multi-space writing (dynatrace-docs)
 
-How `/document` Phase 6 writes documentation across more than one space
+How `/document` Phase 6.3 writes documentation across more than one space
 (SaaS + Managed in dynatrace-docs) while honoring the `saas`/`managed`
 constraint — i.e. changing one space's documentation **without altering the
 other space's rendered output**.
 
 This is the single source of truth for the mechanics. The command (Phase 5.9,
-Phase 6) and `doc-planner` both cite it; neither inlines these rules.
+Phase 6.3) and `doc-planner` both cite it; neither inlines these rules.
 
 All paths and rules below come from the resolved `profile` (the built-in
 dynatrace-docs default, an in-repo `.dev-workflows/docs-profile.yml`, or a
@@ -113,5 +113,5 @@ Before the style/review gates, validate the tokens the write emitted, per
   (`{{tag kind='latest'}}`) and `profile.tokens.gen3_settings_breadcrumb`
   (`::app-settings::`) are spelled exactly and used in a space that supports them.
 
-Flag malformed or space-inappropriate tokens for fixing **before** Phase 6.7
+Flag malformed or space-inappropriate tokens for fixing **before** Phase 6.4
 (style check) and Phase 7 (`doc-reviewer`).

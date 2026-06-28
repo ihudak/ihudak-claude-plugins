@@ -1,20 +1,20 @@
 ---
 name: docs-profile
-description: Scan a documentation repository and write/refresh a machine-readable docs-profile (.dev-workflows/docs-profile.yml) plus complementary CLAUDE.md guidance, as a reviewable PR. Captures spaces, dev-servers, cross-space override/shadowing, shared registries, gen3/Classic tokens, links, branch-naming, images, and prerequisites; defers changelog/owners to the dynatrace-docs-frontmatter skill. Bootstraps or refreshes the profile that /impl:jira:docs consumes.
+description: Scan a documentation repository and write/refresh a machine-readable docs-profile (.dev-workflows/docs-profile.yml) plus complementary CLAUDE.md guidance, as a reviewable PR. Captures spaces, dev-servers, cross-space override/shadowing, shared registries, gen3/Classic tokens, links, branch-naming, images, and prerequisites; defers changelog/owners to the dynatrace-docs-frontmatter skill. Bootstraps or refreshes the profile that /document consumes.
 allowed-tools: Read Edit Write Bash Glob Grep Task LS
 ---
 
 Profile the documentation repository: $ARGUMENTS
 
-`$ARGUMENTS` is an optional repo path (default: the current working directory), optionally followed by `--inline`. The `--inline` token is passed when `/impl:jira:docs` invokes this flow inline (its Phase 0 case (c)); it switches this command to **inline mode** — see Phase 5 step 1, step 2, step 6, and Phase 6.
+`$ARGUMENTS` is an optional repo path (default: the current working directory), optionally followed by `--inline`. The `--inline` token is passed when `/document` (Jira mode) invokes this flow inline (its Phase 0 case (c)); it switches this command to **inline mode** — see Phase 5 step 1, step 2, step 6, and Phase 6.
 
-`/impl:docs:profile` **bootstraps or refreshes** the machine-readable docs-profile that `/impl:jira:docs` consumes. It scans a documentation repository, synthesises a `.dev-workflows/docs-profile.yml` (and complementary CLAUDE.md guidance) that conforms to `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/docs-profile-schema.md`, then writes the result as a **reviewable PR** — branch + commit + a drafted PR message. It never pushes or auto-merges.
+`/docs-profile` **bootstraps or refreshes** the machine-readable docs-profile that `/document` (Jira mode) consumes. It scans a documentation repository, synthesises a `.dev-workflows/docs-profile.yml` (and complementary CLAUDE.md guidance) that conforms to `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/docs-profile-schema.md`, then writes the result as a **reviewable PR** — branch + commit + a drafted PR message. It never pushes or auto-merges.
 
 The command is **generic** — it works on any docs repo — but produces a richer profile when it detects a multi-space / docstack repo (it then populates `cross_space_override` and `shared_registries`; a single-space repo omits them).
 
 It does **not** re-specify changelog or owners rules. Those are owned by the `dynatrace-docs-frontmatter` skill (+ `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/changelog-guidelines.md`, `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/managed-owners.txt`); the profile's `frontmatter:` fields are **pointers only**.
 
-For one-off doc edits use `/impl:docs`; for Jira-driven feature documentation use `/impl:jira:docs`.
+For one-off doc edits use direct mode; for Jira-driven feature documentation use `/document` (Jira mode).
 
 ---
 
@@ -48,14 +48,14 @@ For one-off doc edits use `/impl:docs`; for Jira-driven feature documentation us
 
 Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md`. Slash-command bodies cannot expand `${CLAUDE_PLUGIN_ROOT}` themselves, so the skill is what makes the policy text available.
 
-Profiling is **SIGNIFICANT** — it is a cross-cutting synthesis of the whole repository whose output (`docs-profile.yml`) steers every later `/impl:jira:docs` run, so a wrong profile has a large blast radius. State the classification and a one-line reason.
+Profiling is **SIGNIFICANT** — it is a cross-cutting synthesis of the whole repository whose output (`docs-profile.yml`) steers every later `/document` run, so a wrong profile has a large blast radius. State the classification and a one-line reason.
 
 Record a `model_routing` block modeled on §4 (a profiling command does no implementation/fix edits, so those fields are N/A), resolving each model against the fallback chains:
 
 ```yaml
 model_routing:
   classification: SIGNIFICANT
-  reason: "cross-cutting synthesis of the whole docs repo; output steers all later /impl:jira:docs runs"
+  reason: "cross-cutting synthesis of the whole docs repo; output steers all later /document runs"
   current_model: <the model this orchestrator is running under>
   detection_model: <§2.1 mid-tier Sonnet chain: claude-sonnet-4-6, fallback claude-sonnet-4-5>
   planning_model: <§2 powerful chain: claude-opus-4-8 … fallback Sonnet 4.6/4.5>
@@ -160,7 +160,7 @@ Record the final, confirmed `docs-profile.yml` and CLAUDE.md additions, and tag 
 
 Produce a reviewable PR in the **target repo** (never the plugin). **Never push or auto-merge** unless the user explicitly asks.
 
-1. **Resolve the branch name.** **Inline mode** (`--inline`): skip the prompt and the confirmation entirely — use the deterministic name `dev-workflows/docs-profile-bootstrap`; `/impl:jira:docs` Phase 6.5 renames it to the docs-branch convention. **Standalone** (default):
+1. **Resolve the branch name.** **Inline mode** (`--inline`): skip the prompt and the confirmation entirely — use the deterministic name `dev-workflows/docs-profile-bootstrap`; `/document` (Jira mode) Phase 6.5 renames it to the docs-branch convention. **Standalone** (default):
    - If the repo documents a branch-naming convention (detected in Phase 2 / confirmed in Phase 4), fill its placeholders and use it.
    - Else use `<initials>/NOISSUE-docs-profile`. Derive `<initials>` from `git -C <repo-root> config user.name`; if it is empty or initials are unclear, ask:
      ```
@@ -187,13 +187,13 @@ Produce a reviewable PR in the **target repo** (never the plugin). **Never push 
    git -C <repo-root> commit -m "docs: add/refresh .dev-workflows/docs-profile.yml"
    ```
 
-6. **Draft the PR message.** **Inline mode** (`--inline`): skip this step — control returns to `/impl:jira:docs`, which owns the single PR draft (its Phase 8.5). **Standalone:** Detect the host (`git -C <repo-root> remote get-url origin`) and draft a copy-paste-ready PR title + body for Bitbucket or GitHub (whichever the remote indicates). Title e.g. `docs: bootstrap docs-profile for /impl:jira:docs`; body summarising the profile (spaces, dev-servers, cross-space override, tokens, branch-naming, images, prerequisites) and the CLAUDE.md additions. **Do not push, do not open the PR via any CLI** — present the branch name + the drafted message for the user to push and open themselves.
+6. **Draft the PR message.** **Inline mode** (`--inline`): skip this step — control returns to `/document` (Jira mode), which owns the single PR draft (its Phase 8.5). **Standalone:** Detect the host (`git -C <repo-root> remote get-url origin`) and draft a copy-paste-ready PR title + body for Bitbucket or GitHub (whichever the remote indicates). Title e.g. `docs: bootstrap docs-profile for /document`; body summarising the profile (spaces, dev-servers, cross-space override, tokens, branch-naming, images, prerequisites) and the CLAUDE.md additions. **Do not push, do not open the PR via any CLI** — present the branch name + the drafted message for the user to push and open themselves.
 
 ---
 
 ## Phase 6 — Final report
 
-**Inline mode** (`--inline`): skip this report — control returns to `/impl:jira:docs`, which produces the consolidated report (its Phase 9). The rest of this section is the standalone report.
+**Inline mode** (`--inline`): skip this report — control returns to `/document` (Jira mode), which produces the consolidated report (its Phase 9). The rest of this section is the standalone report.
 
 Output a structured report — do NOT ask any closing confirmation:
 
@@ -201,7 +201,7 @@ Output a structured report — do NOT ask any closing confirmation:
 ## Docs-profile Report
 
 ### Classification
-SIGNIFICANT — cross-cutting synthesis of the whole docs repo; output steers all later /impl:jira:docs runs
+SIGNIFICANT — cross-cutting synthesis of the whole docs repo; output steers all later /document runs
 
 ### Target repo
 <resolved git root>  (single-space | multi-space / docstack)

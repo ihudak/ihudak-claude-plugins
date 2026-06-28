@@ -30,7 +30,7 @@ it presents the discrepancy and asks the user. The user has context the plugin
 doesn't (PM intent, sprint planning, agreed scope, customer expectations).
 
 **When a spec is provided, the spec markdown is the authoritative "intended"
-source.** Some runs (notably `/impl:jira:docs`) pass an implementation spec —
+source.** Some runs (notably `/document`) pass an implementation spec —
 the Value Increment spec, its child Epic specs, and the synthesised
 `requirements.md` / `design.md`. When that spec is present, *it* defines the
 intended behaviour: it is the agreed, current contract for what should ship.

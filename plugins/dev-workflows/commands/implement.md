@@ -261,7 +261,7 @@ Runs after Phase 3A step 5 completes (all code changes written), before the outc
 
 2. **Handle `Framework: not detected`.** If the `test-writer` report shows `Framework: not detected`, ask the user:
    ```
-   choices: ["Specify test command to use", "Skip tests for this run (document why in the final report — Phase 5 of the inherited /impl:code workflow)", "Cancel"]
+   choices: ["Specify test command to use", "Skip tests for this run (document why in the final report — Phase 5 of the inherited /implement workflow)", "Cancel"]
    ```
    - **Specify test command** → take free-text, use it as the test runner for step 4 below; continue.
    - **Skip tests** → take free-text rationale; record it in the Phase 5 `### Deferred items` section; skip steps 3–5 of Phase 3.5 and proceed to Phase 3A step 7 (Verify outcome).
@@ -314,7 +314,7 @@ Use the currently selected model or Sonnet for implementation itself. Opus is re
 
    If the `test-writer` report shows `Framework: not detected`, ask the user **before** invoking Opus review (mirrors the SIMPLE/MODERATE branch — keeps the Opus-review input deterministic):
    ```
-   choices: ["Specify test command to use", "Skip tests for this run (document why in the final report — Phase 5 of the inherited /impl:code workflow)", "Cancel"]
+   choices: ["Specify test command to use", "Skip tests for this run (document why in the final report — Phase 5 of the inherited /implement workflow)", "Cancel"]
    ```
    Record the choice. A "Skip" decision must be explicit and logged in the Phase 5 report.
 
@@ -414,7 +414,7 @@ Then spawn all four agents. They are independent and can run in any order — sp
 > "Analyse this session and return a Lessons Learned report.
 >
 > Session handoff:
-> - Command run: /impl:code
+> - Command run: /implement
 > - What was done: [one-paragraph summary of the implementation]
 > - Key events: [BLOCK reviews encountered and their reason, test regressions, workarounds, unexpected ambiguities — or 'none']
 > - Workarounds used: [manual steps not automated by the workflow — or 'none']
@@ -488,7 +488,7 @@ Output a structured report — do NOT ask any closing confirmation:
 - ALWAYS spawn Phase 4 agents in a single message — never sequentially
 - ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
 - ALWAYS produce the Phase 5 report as the final output
-- ALWAYS pass `Command run: /impl:code` in the Phase 4 Agent 4 session handoff
+- ALWAYS pass `Command run: /implement` in the Phase 4 Agent 4 session handoff
 - ALWAYS pass `Change type: code` in the Phase 4 change summary block (scopes the four maintenance agents' suggestions to code-change territory — docs / Jira variants use `docs`)
 - AFTER one review-fixer pass + one re-review, if verdict is still BLOCK: stop and surface to user — do NOT loop
 - AFTER two Phase 3.5 fix-loop attempts, if regressions remain: stop and surface to user — do NOT loop

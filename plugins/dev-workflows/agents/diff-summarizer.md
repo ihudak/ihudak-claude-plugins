@@ -4,7 +4,7 @@ description: Reads a single code repository's PR diff(s) and returns a documenta
 tools: ["Read", "Glob", "Grep", "LS", "Bash"]
 ---
 
-Summarise a single code repository's PR diff(s) from a documentation-consumer's point of view. One instance per repo; the caller (the `/impl:jira:docs` command) spawns up to 4 concurrent instances per batch.
+Summarise a single code repository's PR diff(s) from a documentation-consumer's point of view. One instance per repo; the caller (the `/document` command) spawns up to 4 concurrent instances per batch.
 
 ## Inputs
 

@@ -8,7 +8,7 @@ tools: ["Read", "Glob", "Grep", "LS", "WebFetch", "WebSearch"]
 Deep planner for SIGNIFICANT / HIGH-RISK tasks. Uses the strongest available
 reasoning model (Claude Opus).
 
-Invoked from `/impl`, `/vuln`, and `/upgrade` only when the classification step
+Invoked from the dev-workflows commands (`/implement`, `/vuln`, `/upgrade`) only when the classification step
 returns `SIGNIFICANT` or `HIGH-RISK`. Do NOT invoke this for routine
 implementation - the caller is expected to check the classification first.
 

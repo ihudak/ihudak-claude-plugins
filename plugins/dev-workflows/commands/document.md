@@ -1,6 +1,6 @@
 ---
 name: document
-description: Jira-driven feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in dynatrace-docs default → on-demand /impl:docs:profile) and the VI's specs dir under /workspace. Phase 4.5 determines/confirms the applicable space(s). Optional saas|managed constraint scopes the run to one space. Reads a Value Increment hierarchy from exported markdown, resolves PR diffs in parallel, synthesises product documentation, and gates on style-check and Opus doc review.
+description: Jira-driven feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in dynatrace-docs default → on-demand /docs-profile) and the VI's specs dir under /workspace. Phase 4.5 determines/confirms the applicable space(s). Optional saas|managed constraint scopes the run to one space. Reads a Value Increment hierarchy from exported markdown, resolves PR diffs in parallel, synthesises product documentation, and gates on style-check and Opus doc review.
 allowed-tools: Read Edit Write Bash Glob Grep Task WebFetch LS
 ---
 
@@ -8,9 +8,9 @@ Generate product documentation for the Jira Value Increment: $ARGUMENTS
 
 Signature: `PRODUCT-NNNN [saas|managed]`. The optional second token is a **space constraint**, not a target list. When you pass `saas` or `managed`, the command documents **only that space** and leaves the OTHER space's rendered output unchanged (SaaS pages stay as they are when you pass `managed`, and vice-versa). When you omit it, the command **determines the applicable space(s)** from the Jira hierarchy and the resolved repos, then confirms with you. `both` is intentionally NOT an accepted value — omit the argument to cover both spaces.
 
-`/impl:jira:docs` is the **Jira-driven feature-documentation** workflow. Given a Jira Value Increment key, it reads the full Jira hierarchy from pre-exported markdown in the user's Obsidian vault, resolves PR URLs to local git repos, runs parallel PR-diff summaries, synthesises product documentation, runs style-check + Opus review gates, and writes the output to the current working directory (a product docs repository).
+`/document` (Jira mode) is the **Jira-driven feature-documentation** workflow. Given a Jira Value Increment key, it reads the full Jira hierarchy from pre-exported markdown in the user's Obsidian vault, resolves PR URLs to local git repos, runs parallel PR-diff summaries, synthesises product documentation, runs style-check + Opus review gates, and writes the output to the current working directory (a product docs repository).
 
-For small one-off doc edits, use `/impl:docs`. For writing child Epic drafts from a VI, use `/impl:jira:epics`. For release notes, use `/impl:jira:release-notes` — this command never writes release-notes / what's-new pages, because those are generated from Jira by the docs team's automation.
+For small one-off doc edits, use direct mode (below). For writing child Epic drafts from a VI, use `/epics`. For release notes, use `/release-notes` — this command never writes release-notes / what's-new pages, because those are generated from Jira by the docs team's automation.
 
 ---
 
@@ -64,7 +64,7 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 5. **Resolve the profile** (record `profile_source`). The profile steers all later phases' conventions. Resolve in this order:
    - **(a) In-repo profile →** `in-repo`. If `<docs_repo_path>/.dev-workflows/docs-profile.yml` exists, load it. `profile_source: in-repo`.
    - **(b) dynatrace-docs built-in default →** `built-in`. Else, if `is_dynatrace_docs`, load `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/docs-profile.default.yml`. `profile_source: built-in`.
-   - **(c) Custom repo, no profile →** `generated`. Else (a custom docs repo with no profile), run **inline on-demand profiling**: invoke the `/impl:docs:profile` flow against `docs_repo_path` (Skill tool, `skill: "dev-workflows:impl:docs:profile"`, with `docs_repo_path --inline` as its arguments — the `--inline` token tells profiling to skip its branch-naming prompt and standalone PR-draft handoff, since this command owns the single branch + PR draft) and wait for it to write `<docs_repo_path>/.dev-workflows/docs-profile.yml`. Then load that file. `profile_source: generated`. If the user cancels profiling (it produces no profile), stop with the named error `PROFILE_REQUIRED: a docs-profile is required to write into a custom docs repo; run /impl:docs:profile or switch to a profiled repo.`
+   - **(c) Custom repo, no profile →** `generated`. Else (a custom docs repo with no profile), run **inline on-demand profiling**: invoke the `/docs-profile` flow against `docs_repo_path` (Skill tool, `skill: "dev-workflows:docs-profile"`, with `docs_repo_path --inline` as its arguments — the `--inline` token tells profiling to skip its branch-naming prompt and standalone PR-draft handoff, since this command owns the single branch + PR draft) and wait for it to write `<docs_repo_path>/.dev-workflows/docs-profile.yml`. Then load that file. `profile_source: generated`. If the user cancels profiling (it produces no profile), stop with the named error `PROFILE_REQUIRED: a docs-profile is required to write into a custom docs repo; run /docs-profile or switch to a profiled repo.`
 
    Hold the loaded profile for later phases.
 
@@ -194,7 +194,7 @@ Each subagent dispatch below cites which chain it uses (the §9 role→chain map
 - **`current_model` is on the §2 chain** → no advisory.
 - **`current_model` is NOT on the §2 chain and `opus_available: true`** → the heavy synthesis + writing are already on Opus; the residual risk is the orchestrator's **context window** on a **large multi-repo ticket**. Offer relaunch **only** in that case:
   ```
-  choices: ["Relaunch /impl:jira:docs under Opus — I'll restart (Recommended for large multi-repo tickets)", "Proceed on <current_model>", "Cancel"]
+  choices: ["Relaunch /document under Opus — I'll restart (Recommended for large multi-repo tickets)", "Proceed on <current_model>", "Cancel"]
   ```
   Otherwise proceed without prompting.
 - **`current_model` is NOT on the §2 chain and `opus_available: false`** → `planning_model`, `review_model`, and the **doc-writer** all fall to the Sonnet floor; record the degradation in `notes` and the Phase 9 report; proceed.
@@ -451,7 +451,7 @@ This phase is **three-way** when a spec was provided (Phase 0 resolved `specs_di
    ```
    "Document as intended (spec)" describes the agreed contract — the `spec_phrasing` (or the Jira phrasing when it is `(no spec)`) — and, when the code lags the intended phrasing, adds an intentional-discrepancy marker + bug-report draft. "Document as actual (code)" matches what shipped. "Skip this claim and report it" omits the claim but still records the gap in the bug-report draft.
 
-4. **Record `discrepancy_decisions[]`** keyed by `number` (claim, jira_phrasing, spec_phrasing, source_phrasing, source_location, decision ∈ {document-as-spec, document-as-code, skip-and-report}, rationale). `spec_phrasing` is recorded verbatim (`(no spec)` when none was provided). Set `bug_report_destination` to the ticket's vault project folder (resolved exactly like the release-notes destination in `/impl:jira:release-notes` — `find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"`; ask if none) when any decision is `document-as-spec` (where the code lags the intended phrasing) or `skip-and-report`.
+4. **Record `discrepancy_decisions[]`** keyed by `number` (claim, jira_phrasing, spec_phrasing, source_phrasing, source_location, decision ∈ {document-as-spec, document-as-code, skip-and-report}, rationale). `spec_phrasing` is recorded verbatim (`(no spec)` when none was provided). Set `bug_report_destination` to the ticket's vault project folder (resolved exactly like the release-notes destination in `/release-notes` — `find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"`; ask if none) when any decision is `document-as-spec` (where the code lags the intended phrasing) or `skip-and-report`.
 
 Pass `discrepancy_decisions` to Phase 6.
 
@@ -570,7 +570,7 @@ Run this phase only when write context = `docs_repo` (or `non_docs_repo` after u
 
 5. **Create or adopt the branch, and record handoff anchors.** Record `base_branch` = the base resolved in step 1 (the Phase 8.5 squash uses it).
    - **Normal case** (`profile_source` is `in-repo` or `built-in`, or a custom repo whose profiling did not create a branch): `git switch -c <name>` from `base_branch`.
-   - **Inline-profiling case** (`profile_source: generated`): Phase 0's `/impl:docs:profile` already ran `git switch -c <profile-branch>` and committed `.dev-workflows/docs-profile.yml`, so HEAD is already on that branch. Do NOT create a new branch — rename it with `git branch -m <name>`. Record `profile_commit` = the commit that introduced the profile config: `git log --diff-filter=A --format=%H -- .dev-workflows/docs-profile.yml | head -1`. Phase 8.5 squashes the docs commits onto `profile_commit`, keeping the profile-config commit as a distinct first commit. (Per `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md` §1.)
+   - **Inline-profiling case** (`profile_source: generated`): Phase 0's `/docs-profile` already ran `git switch -c <profile-branch>` and committed `.dev-workflows/docs-profile.yml`, so HEAD is already on that branch. Do NOT create a new branch — rename it with `git branch -m <name>`. Record `profile_commit` = the commit that introduced the profile config: `git log --diff-filter=A --format=%H -- .dev-workflows/docs-profile.yml | head -1`. Phase 8.5 squashes the docs commits onto `profile_commit`, keeping the profile-config commit as a distinct first commit. (Per `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md` §1.)
 
 No external CLI calls; all git operations are local.
 
@@ -669,7 +669,7 @@ Carry the table and the Step 1/Step 2 outcomes into the Phase 9 `### Render veri
 
 ## Phase 7 — Doc review gate
 
-Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `review_model`, no dispatch override added). The reviewer is **product-docs-only**; Epic drafts go through `epic-reviewer` in `/impl:jira:epics`.
+Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `review_model`, no dispatch override added). The reviewer is **product-docs-only**; Epic drafts go through `epic-reviewer` in `/epics`.
 
 → Agent (subagent_type: "dev-workflows:doc-reviewer"):
   > "Review the written product documentation for this brief:
@@ -768,12 +768,12 @@ Then spawn all four Phase 4-style maintenance agents in a **single Agent message
 > "Analyse this session and return a Lessons Learned report.
 >
 > Session handoff:
-> - Command run: /impl:jira:docs
+> - Command run: /document
 > - What was done: [one-paragraph summary of the documentation produced]
 > - Key events: [BLOCK reviews encountered and their reason, ambiguous image policies, unresolved PRs, style-check failures, branch-naming conflicts — or 'none']
 > - Workarounds used: [manual steps not automated by the workflow — or 'none']
 > - Review verdict: [PASS | PASS WITH RECOMMENDATIONS | BLOCK]
-> - Test result: N/A (no tests in /impl:jira:docs)
+> - Test result: N/A (no tests in /document)
 > - Project root: [the resolved docs_repo_path (Phase 0)]"
 
 Collect all four summaries for the Phase 9 report.
@@ -886,7 +886,7 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 - [list any]
 
 ### Git state
-[When Phase 8.5 ran: "Branch <name> — squashed to N commit(s); pushed to origin: <yes/no>; PR draft: <pr-draft path>." When Phase 8.5 was skipped (no branch/commits): "Working tree has uncommitted changes. /impl:jira:docs writes but does not commit in non-git contexts."]
+[When Phase 8.5 ran: "Branch <name> — squashed to N commit(s); pushed to origin: <yes/no>; PR draft: <pr-draft path>." When Phase 8.5 was skipped (no branch/commits): "Working tree has uncommitted changes. /document (Jira mode) writes but does not commit in non-git contexts."]
 ```
 
 ---
@@ -905,7 +905,7 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 - ALWAYS resolve the `model_routing` block at Phase 1.5 and pin each subagent dispatch to its §9 chain via `model:` — `doc-planner` to the §2 Opus chain, the mechanical steps (`jira-reader`, `diff-summarizer`, `doc-location-finder`, `docs-style-checker`, `doc-fixer`, maintenance) to the §2.1 Sonnet chain; `doc-reviewer` keeps its frontmatter Opus pin (no override); the inline writer + gates run on `current_model` (advisory only)
 - ALWAYS cap review/fix cycles: 1 fix + 1 re-review max
 - ALWAYS pass `Change type: docs` in the Phase 8 change summary block
-- ALWAYS pass `Command run: /impl:jira:docs` in the Phase 8 Agent 4 session handoff
+- ALWAYS pass `Command run: /document` in the Phase 8 Agent 4 session handoff
 - ALWAYS spawn Phase 8 agents in a single message — never sequentially
 - ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
 - ALWAYS produce the Phase 9 report as the final output
@@ -920,11 +920,11 @@ Implement the following doc edit: $ARGUMENTS
 
 If the argument starts with `@`, treat it as a path to a markdown file. Resolve relative to the current working directory. Read its full content and use it as the description. Echo `📄 Reading prompt from \`<file>\`…` before proceeding. If the file cannot be read, stop and report the error immediately.
 
-`/impl:docs` is the **one-shot doc-editing** workflow — minor edits, formatting, small updates to existing pages, and single-file additions where the content comes from the user's description alone. It is the right tool when:
+`/document` (direct mode) is the **one-shot doc-editing** workflow — minor edits, formatting, small updates to existing pages, and single-file additions where the content comes from the user's description alone. It is the right tool when:
 - the change is small and the content is already in the user's head or the file, **not** scattered across Jira items and PR diffs
 - no tests, no branch, no code review, and no commit are warranted
 
-For net-new documentation assembled from a Jira hierarchy plus PR diffs, use `/impl:jira:docs`. For writing child Epic drafts from a Value Increment, use `/impl:jira:epics`.
+For net-new documentation assembled from a Jira hierarchy plus PR diffs, use Jira mode (above). For writing child Epic drafts from a Value Increment, use `/epics`.
 
 No model-routing reminder is injected for this command — classification still happens but is always SIMPLE or MODERATE, and Opus is never invoked.
 
@@ -965,14 +965,14 @@ Doc edits in this command are always either **SIMPLE** or **MODERATE**:
 - **SIMPLE** — single file, small additions / fixes / rewording, no cross-file linking
 - **MODERATE** — multi-file edit, non-trivial restructure, or content that needs internal cross-references
 
-If your reading of the task lands closer to SIGNIFICANT or HIGH-RISK (multi-repo, net-new feature pages from a Jira hierarchy, published-documentation blast radius that needs a reviewer gate), **stop and redirect the user** to `/impl:jira:docs` or `/impl:jira:epics`:
+If your reading of the task lands closer to SIGNIFICANT or HIGH-RISK (multi-repo, net-new feature pages from a Jira hierarchy, published-documentation blast radius that needs a reviewer gate), **stop and redirect the user** to Jira mode or `/epics`:
 ```
-choices: ["Re-run under /impl:jira:docs (for Jira-sourced feature documentation) (Recommended)", "Re-run under /impl:jira:epics (for Epic drafting)", "Proceed under /impl:docs anyway — I accept the simplified flow", "Cancel"]
+choices: ["Re-run under /document (Jira mode) (for Jira-sourced feature documentation) (Recommended)", "Re-run under /epics (for Epic drafting)", "Proceed under direct mode anyway — I accept the simplified flow", "Cancel"]
 ```
 
 State the classification and a one-line reason, then proceed to Phase 2A.
 
-*(There is no Phase 2B, Phase 3B, or Opus review in this command. A mandatory Phase 3.5 style check runs after Phase 3. Phase numbering is kept aligned with `/impl:code` to make cross-referencing straightforward; the A-suffix on Phase 2A below is retained for symmetry, not because a Phase 2B exists for docs.)*
+*(There is no Phase 2B, Phase 3B, or Opus review in this command. A mandatory Phase 3.5 style check runs after Phase 3. Phase numbering is kept aligned with `/implement` to make cross-referencing straightforward; the A-suffix on Phase 2A below is retained for symmetry, not because a Phase 2B exists for docs.)*
 
 ---
 
@@ -997,7 +997,7 @@ Produce a written plan with these sections:
 3. **Approach** — chosen edit strategy and why (extend existing page vs. create new vs. restructure)
 4. **Steps** — numbered, concrete edits
 5. **Files to create/modify** — list with brief rationale for each
-6. **Validation** — spot-check steps to run after the edit. Replace the `/impl:code` "Tests" section with this. Typical checks:
+6. **Validation** — spot-check steps to run after the edit. Replace the `/implement` "Tests" section with this. Typical checks:
    - Heading structure renders correctly (no orphan H3 under H1, no skipped levels)
    - All `[[wikilinks]]` resolve to existing files in the vault / docs tree
    - All `[text](relative-path)` links resolve on disk
@@ -1111,12 +1111,12 @@ Then spawn all four Phase 4 agents. They are independent and can run in any orde
 > "Analyse this session and return a Lessons Learned report.
 >
 > Session handoff:
-> - Command run: /impl:docs
+> - Command run: /document (direct mode)
 > - What was done: [one-paragraph summary of the doc edit]
 > - Key events: [ambiguities that required user clarification, style-rule surprises, broken links encountered and fixed, convention mismatches — or 'none']
 > - Workarounds used: [manual steps not automated by the workflow — or 'none']
-> - Review verdict: N/A (no review gate in /impl:docs)
-> - Test result: N/A (no tests in /impl:docs)
+> - Review verdict: N/A (no review gate in /document direct mode)
+> - Test result: N/A (no tests in /document direct mode)
 > - Project root: [absolute path]"
 
 Collect all four summaries for the Phase 5 report.
@@ -1162,7 +1162,7 @@ Output a structured report — do NOT ask any closing confirmation:
 - [anything the user asked to defer, OR validation failures the user accepted, OR "none"]
 
 ### Git state
-The working tree has uncommitted changes. `/impl:docs` never commits — you manage git manually. Run `git status` to review, then commit when ready.
+The working tree has uncommitted changes. `/document` (direct mode) never commits — you manage git manually. Run `git status` to review, then commit when ready.
 ```
 
 ---
@@ -1180,9 +1180,9 @@ The working tree has uncommitted changes. `/impl:docs` never commits — you man
 - NEVER skip Phase 4 — documentation, knowledge, instructions, and session-maintenance are mandatory after every successful doc edit; always collect all four agent summaries for Phase 5
 - ALWAYS run the Phase 2A exploration subagent before drafting the plan
 - ALWAYS pass `Change type: docs` in the Phase 4 change summary block
-- ALWAYS pass `Command run: /impl:docs` in the Phase 4 Agent 4 session handoff
+- ALWAYS pass `Command run: /document (direct mode)` in the Phase 4 Agent 4 session handoff
 - ALWAYS spawn Phase 4 agents in a single message — never sequentially
 - ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
 - ALWAYS produce the Phase 5 report as the final output
 - ALWAYS run the Validation checks from the plan — validation failures are surfaced in the Phase 5 report, not silently accepted
-- IF the task reads as SIGNIFICANT / HIGH-RISK on inspection: redirect to `/impl:jira:docs` or `/impl:jira:epics` rather than proceeding under the simplified flow
+- IF the task reads as SIGNIFICANT / HIGH-RISK on inspection: redirect to `/document` (Jira mode) or `/epics` rather than proceeding under the simplified flow

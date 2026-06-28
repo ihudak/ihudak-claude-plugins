@@ -6,7 +6,7 @@ allowed-tools: Read Edit Write Bash Glob Grep Task LS
 
 Profile the documentation repository: $ARGUMENTS
 
-`$ARGUMENTS` is an optional repo path; default to the current working directory.
+`$ARGUMENTS` is an optional repo path (default: the current working directory), optionally followed by `--inline`. The `--inline` token is passed when `/impl:jira:docs` invokes this flow inline (its Phase 0 case (c)); it switches this command to **inline mode** — see Phase 5 step 1, step 2, step 6, and Phase 6.
 
 `/impl:docs:profile` **bootstraps or refreshes** the machine-readable docs-profile that `/impl:jira:docs` consumes. It scans a documentation repository, synthesises a `.dev-workflows/docs-profile.yml` (and complementary CLAUDE.md guidance) that conforms to `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/docs-profile-schema.md`, then writes the result as a **reviewable PR** — branch + commit + a drafted PR message. It never pushes or auto-merges.
 
@@ -20,7 +20,7 @@ For one-off doc edits use `/impl:docs`; for Jira-driven feature documentation us
 
 ## Phase 0 — Resolve and validate the target repo
 
-1. **Resolve the repo path.** Take the first token of `$ARGUMENTS` as the target path; if `$ARGUMENTS` is empty, default to the current working directory. Resolve it to an absolute path and record it as `<repo>`.
+1. **Resolve the repo path.** Take the first token of `$ARGUMENTS` as the target path; if `$ARGUMENTS` is empty, default to the current working directory. Resolve it to an absolute path and record it as `<repo>`. Treat a `--inline` token (in any position) as the inline-mode flag, not a path; record `inline = true` when present.
 
 2. **Validate it is a writeable git work tree:**
    - `git -C <repo> rev-parse --is-inside-work-tree` must print `true`. If it errors or prints anything else, stop with the named error: `NOT_A_GIT_WORKTREE: <repo> is not inside a git work tree.`
@@ -160,7 +160,7 @@ Record the final, confirmed `docs-profile.yml` and CLAUDE.md additions, and tag 
 
 Produce a reviewable PR in the **target repo** (never the plugin). **Never push or auto-merge** unless the user explicitly asks.
 
-1. **Resolve the branch name.**
+1. **Resolve the branch name.** **Inline mode** (`--inline`): skip the prompt and the confirmation entirely — use the deterministic name `dev-workflows/docs-profile-bootstrap`; `/impl:jira:docs` Phase 6.5 renames it to the docs-branch convention. **Standalone** (default):
    - If the repo documents a branch-naming convention (detected in Phase 2 / confirmed in Phase 4), fill its placeholders and use it.
    - Else use `<initials>/NOISSUE-docs-profile`. Derive `<initials>` from `git -C <repo-root> config user.name`; if it is empty or initials are unclear, ask:
      ```
@@ -176,7 +176,7 @@ Produce a reviewable PR in the **target repo** (never the plugin). **Never push 
    ```
    choices: ["Stash changes and continue (Recommended)", "Proceed anyway — pre-existing changes will appear in the diff", "Cancel", "Other… (describe)"]
    ```
-   Then create/switch to the branch: `git -C <repo-root> switch -c <name>` (or `git -C <repo-root> switch <name>` if it already exists).
+   Then base the branch on the repo's default branch so the profile PR is cut from a clean base: resolve the base (`git -C <repo-root> symbolic-ref --short refs/remotes/origin/HEAD`; fall back to `main`, then `master`) and run `git -C <repo-root> switch <base> && git -C <repo-root> pull --ff-only` (the clean-tree check above already ran; if the fast-forward pull fails, offer the same stash/proceed/cancel choices). Then create the branch: `git -C <repo-root> switch -c <name>` (or `git -C <repo-root> switch <name>` if it already exists).
 
 3. **Write the profile.** Create `<repo-root>/.dev-workflows/` if absent, then write the confirmed `.dev-workflows/docs-profile.yml`. It MUST conform to `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/docs-profile-schema.md`. Apply the confirmed complementary CLAUDE.md additions to the repo's root `CLAUDE.md` (create the file if absent) — minimal, additive, scoped edits only; never restate changelog/owners rules owned by the dynatrace-docs-frontmatter skill.
 
@@ -187,11 +187,13 @@ Produce a reviewable PR in the **target repo** (never the plugin). **Never push 
    git -C <repo-root> commit -m "docs: add/refresh .dev-workflows/docs-profile.yml"
    ```
 
-6. **Draft the PR message.** Detect the host (`git -C <repo-root> remote get-url origin`) and draft a copy-paste-ready PR title + body for Bitbucket or GitHub (whichever the remote indicates). Title e.g. `docs: bootstrap docs-profile for /impl:jira:docs`; body summarising the profile (spaces, dev-servers, cross-space override, tokens, branch-naming, images, prerequisites) and the CLAUDE.md additions. **Do not push, do not open the PR via any CLI** — present the branch name + the drafted message for the user to push and open themselves.
+6. **Draft the PR message.** **Inline mode** (`--inline`): skip this step — control returns to `/impl:jira:docs`, which owns the single PR draft (its Phase 8.5). **Standalone:** Detect the host (`git -C <repo-root> remote get-url origin`) and draft a copy-paste-ready PR title + body for Bitbucket or GitHub (whichever the remote indicates). Title e.g. `docs: bootstrap docs-profile for /impl:jira:docs`; body summarising the profile (spaces, dev-servers, cross-space override, tokens, branch-naming, images, prerequisites) and the CLAUDE.md additions. **Do not push, do not open the PR via any CLI** — present the branch name + the drafted message for the user to push and open themselves.
 
 ---
 
 ## Phase 6 — Final report
+
+**Inline mode** (`--inline`): skip this report — control returns to `/impl:jira:docs`, which produces the consolidated report (its Phase 9). The rest of this section is the standalone report.
 
 Output a structured report — do NOT ask any closing confirmation:
 

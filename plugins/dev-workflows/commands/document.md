@@ -237,7 +237,7 @@ Invoke `jira-reader` with `depth: full`:
   > jira_key:   [resolved <JIRA_KEY>]
   > depth:      full"
 
-Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the §15 `Jira key dir not found` choices (`["Re-enter key", "Cancel"]`) and act accordingly. On `OK`, store the handoff for downstream phases.
+Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Jira key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`) and act accordingly. On `OK`, store the handoff for downstream phases.
 
 ---
 
@@ -251,7 +251,7 @@ From the `jira-reader` handoff `pull_requests` list:
 4. Resolve each unique in-scope `repo` slug against the map:
    - **One match** — use that absolute path as `repo_path`.
    - **Multiple matches** (e.g. `cluster` and `cluster-repo`, both pointing at the same upstream) — auto-prefer basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last; show all candidates at plan approval so the user can override.
-   - **Zero matches** — escalate using the §15 rules:
+   - **Zero matches** — escalate using the `Repo unresolved (zero matches) — /document` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
      ```
      choices: ["Skip and continue without its PRs", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]
      ```
@@ -311,7 +311,7 @@ For each repo, in the same Agent message:
 After the batch returns, handle each per-repo status:
 
 - `OK` / `PARTIAL` — store the output, continue.
-- `REPO_MISSING` — should not happen at this stage (Phase 4 already checked). If it does, escalate per §15 "Repo missing".
+- `REPO_MISSING` — should not happen at this stage (Phase 4 already checked). If it does, escalate per the `Repo missing (after resolution)` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
 - `DIRTY_TREE` — escalate:
   ```
   choices: ["Stash changes and retry this repo", "Skip this repo", "Cancel", "Other… (describe)"]
@@ -685,7 +685,7 @@ Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `revi
 
 Act on the verdict:
 
-- **BLOCK** — invoke `doc-fixer` with `Severities to fix: BLOCKER and MAJOR`. Re-invoke `doc-reviewer` once. If the second verdict is still BLOCK, escalate for each unresolved BLOCKER individually per §15:
+- **BLOCK** — invoke `doc-fixer` with `Severities to fix: BLOCKER and MAJOR`. Re-invoke `doc-reviewer` once. If the second verdict is still BLOCK, escalate for each unresolved BLOCKER individually per the `Review verdict BLOCK (unresolved after one fix cycle) — /document` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
   ```
   choices: ["Provide manual fix notes (you'll be prompted)", "Defer to a follow-up issue (record in Phase 9 report)", "Override and accept the finding", "Cancel the whole run"]
   ```

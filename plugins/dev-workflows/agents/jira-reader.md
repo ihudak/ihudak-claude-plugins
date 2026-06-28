@@ -22,7 +22,7 @@ Refuse to run without all three fields.
 
 ## Process
 
-**Phase 0 — Validate `jira_key`.** Accept only `^[A-Z][A-Z0-9_]*-\d+$` (uppercase letters / digits / underscores, a dash, digits). On mismatch return `status: NOT_FOUND` with a clear message naming the invalid key. The caller surfaces the Section 15 `Jira key dir not found` choices to the user.
+**Phase 0 — Validate `jira_key`.** Accept only `^[A-Z][A-Z0-9_]*-\d+$` (uppercase letters / digits / underscores, a dash, digits). On mismatch return `status: NOT_FOUND` with a clear message naming the invalid key. The caller surfaces the `Jira key dir not found` choices from `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` to the user.
 
 1. **Read the index.** Open `<vault_path>/jira-products/<jira_key>/<jira_key>-index.md`. The first data table in the file must have header row `| Key | Type | Status | Summary | Role |` exactly. If the header differs (e.g. the Jira-to-Obsidian exporter changed its output format), return `status: EMPTY` with a message naming the mismatched columns — do NOT try to parse rows with an unknown schema.
 

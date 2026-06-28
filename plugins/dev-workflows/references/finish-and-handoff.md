@@ -1,13 +1,13 @@
 # Finish & handoff (/document — Jira mode)
 
-The mechanics for Phase 6.5's inline-profiling-branch handling and Phase 8.5's
+The mechanics for Phase 6.2's inline-profiling-branch handling and Phase 8.5's
 finish & handoff (squash → opt-in push → copy-paste PR draft). Generic git +
 PR-draft logic; the command cites this so it stays lean. Read repo specifics
 from the resolved `profile`. The plugin NEVER creates a PR via any REST API.
 
 ## 1. The branch entering Phase 8.5
 
-Phase 6.5 created (normal case) or renamed (inline-profiling case) the work
+Phase 6.2 created (normal case) or renamed (inline-profiling case) the work
 branch off the base (main/master/release), named per repo convention, and
 recorded:
 - `base_branch` — the resolved base.
@@ -21,7 +21,7 @@ recorded:
 
 Stage the run's uncommitted docs-repo edits first — Phase 8 Agent 1 (doc index /
 cross-links) and Agent 3 (`CLAUDE.md`) may have edited without committing; the
-Phase 6.5 clean-tree precondition means anything uncommitted is this run's work.
+Phase 6.2 clean-tree precondition means anything uncommitted is this run's work.
 Then squash:
 - squash base = `profile_commit` (C0) when recorded — keeps the profile-config
   commit as a distinct first commit; otherwise `git merge-base <base_branch> HEAD`.
@@ -58,7 +58,7 @@ Compose the draft and BOTH write and show it:
   (`find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"`; ask if
   none) — the same destination convention as the release-notes / bug drafts.
 - **title**: per `commit_convention` (e.g. `<JIRA-KEY> <summary>`).
-- **body**: what was documented; the output files; the Phase 6.8
+- **body**: what was documented; the output files; the Phase 6.5
   render-verification summary; deferred style/review/render items; a link back
   to the Jira VI.
 - **DO-NOT-MERGE banner** at the very top WHEN Phase 5.8 recorded any

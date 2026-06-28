@@ -1,20 +1,20 @@
 # Render verification (dynatrace-docs)
 
-How `/document` Phase 6.8 proves the documentation it just wrote builds
+How `/document` Phase 6.5 proves the documentation it just wrote builds
 and renders — and that cross-space pages honor the 3a render-unchanged invariant
 (the protected space's render is unchanged). See [[multi-space-writing]] for the
 write strategies this verifies.
 
-This is the single source of truth for the mechanics; Phase 6.8 cites it and
+This is the single source of truth for the mechanics; Phase 6.5 cites it and
 stays lean. Read every path, command, and port from the resolved `profile` — do
 not hard-code dynatrace-docs specifics.
 
-"Affected pages" = every file written or modified in Phase 6.
+"Affected pages" = every file written or modified in Phase 6.3.
 
 ## 1. Build vs boot
 
-Run `profile.commands.build` only if the profile defines one. Phase 6.8 does NOT
-re-run the prose linter — that is Phase 6.7's `docs-style-checker`. When the
+Run `profile.commands.build` only if the profile defines one. Phase 6.5 does NOT
+re-run the prose linter — that is Phase 6.4's `docs-style-checker`. When the
 profile defines no build command (the dynatrace-docs case: only
 `commands.lint` + the `*:start` dev servers), the **dev-server boot is the build
 proof** — a server that boots and serves HTTP 200s proves the content compiled.
@@ -52,7 +52,7 @@ that page to the manual table — it is not a render defect by itself.
 
 A **delta marker** is a short, distinctive literal string taken from the
 per-space content a cross-space write produced — derived here at verification
-time, not emitted by Phase 6:
+time, not emitted by Phase 6.3:
 
 - `conditional` page → read the written file and take a distinctive literal line
   from inside the `{{#if project='<target_space>'}}…{{/if}}` block.
@@ -70,7 +70,7 @@ failed.
 ## 5. Prerequisites (best-effort, never auto-applied)
 
 `profile.prerequisites` lists what a dev server may need before `*:start` boots
-(e.g. a working `.docstack` toolchain / an axios shim). Phase 6.8 **checks** a
+(e.g. a working `.docstack` toolchain / an axios shim). Phase 6.5 **checks** a
 prerequisite but NEVER applies it — the `.docstack` workaround is a local,
 gitignored, reversible dev-environment hack and is out of scope for an automated
 run. If a prerequisite is unmet, record "smoke-check skipped for `<space>`:

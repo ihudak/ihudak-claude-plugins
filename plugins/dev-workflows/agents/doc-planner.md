@@ -4,7 +4,7 @@ description: Synthesises Jira data, per-repo diff summaries, and confirmed write
 tools: ["Read", "Glob", "Grep", "LS"]
 ---
 
-Synthesise the documentation checklist that `/document` Phase 6 follows and `/document` Phase 7 (`doc-reviewer`) checks against.
+Synthesise the documentation checklist that `/document` Phase 6.3 follows and `/document` Phase 7 (`doc-reviewer`) checks against.
 
 Not a writer — this agent plans; the main command writes.
 
@@ -38,7 +38,7 @@ For each write target:
 
    Not every target needs every topic. For `extend-existing`, pick only the topics the existing page doesn't already cover.
 
-2. **Map topics to sources.** Each topic records which `jira-reader` keys and/or which `diff-summarizer` PR URLs back it up, for the Phase 6 writer's traceability requirement. A topic with no source attribution is a candidate gap (see step 7).
+2. **Map topics to sources.** Each topic records which `jira-reader` keys and/or which `diff-summarizer` PR URLs back it up, for the Phase 6.3 writer's traceability requirement. A topic with no source attribution is a candidate gap (see step 7).
 
 3. **Plan frontmatter updates.**
    - `changelog:` — append a dated entry with a customer-readable 1-line change summary and NO Jira key. Create the field if it doesn't exist on an extended page. This is mandatory on every target. The Jira reference is carried by the commit message and the file diff, not by the reader-visible page (verified against the repo convention — fewer than 5 of dynatrace-docs's 5500+ entries cite an issue key).
@@ -61,14 +61,14 @@ For each write target:
    Pick the policy:
    - `local` count > 0 and `cdn` count is 0 (or negligible) → `image_policy: local`; identify the idiomatic directory (most common pattern — typically `<page-dir>/img/` or `<page-dir>/images/`).
    - `cdn` count > 0 and `local` count is 0 (or negligible) → `image_policy: cdn_upload_required` — the writer MUST NOT copy user-provided screenshots into the repo; they are staged outside the repo and surfaced in the Phase 9 report for manual upload to the repo's image-management tool (e.g. CDN, Image Manager, CMS).
-   - Mixed or zero references → `image_policy: ambiguous` — the writer asks the user at Phase 6 which approach to use for this specific feature.
+   - Mixed or zero references → `image_policy: ambiguous` — the writer asks the user at Phase 6.3 which approach to use for this specific feature.
 
    Concrete threshold for "negligible": treat counts ≤ 1 (in a sample of 5–10) as negligible unless they align with the dominant pattern.
 
 6. **Plan screenshot placement per target.** For each user-provided screenshot that belongs on this target:
    - `image_policy: local` → set `dest` to an absolute path under `<page-dir>/img/` (or the detected idiomatic directory).
    - `image_policy: cdn_upload_required` → set `staging` to an absolute path under the caller-provided `screenshot_staging_dir` (the persistent Obsidian project folder; e.g. `<screenshot_staging_dir>/<original-filename>`). NEVER place it inside `repo_root` and NEVER use `/tmp` — both are lost on container restart for repo-volume mounts / in-image `/tmp`, whereas `$VAULT_PATH` is always host-mounted. Populate `upload_note` with a 1-line instruction referencing the repo's image-management process (as inferred from `CONTRIBUTION.md`, `CONTRIBUTING.md`, or sibling page conventions).
-   - `image_policy: ambiguous` → leave both `dest` and `staging` null; the writer prompts the user at Phase 6.
+   - `image_policy: ambiguous` → leave both `dest` and `staging` null; the writer prompts the user at Phase 6.3.
    - In all cases, populate `alt` with a proposed alt-text derived from the feature summary and the image filename.
 
    If the user provided zero screenshots, `screenshots: []` on every target.
@@ -136,7 +136,7 @@ checklist:
         # When image_policy == cdn_upload_required:
         staging:     <absolute path under the caller-provided screenshot_staging_dir (persistent Obsidian project folder); NOT inside the repo, never /tmp>
         upload_note: <1-line instruction for the user, e.g. "Upload via <repo's image-management process>; replace placeholder URL in page">
-        # When image_policy == ambiguous: both dest and staging are null; the writer prompts the user at Phase 6.
+        # When image_policy == ambiguous: both dest and staging are null; the writer prompts the user at Phase 6.3.
         alt:         <proposed alt-text>
     cross_links:
       from:  [<page paths that should link here>]
@@ -173,4 +173,4 @@ verification_warnings:        # source-truth findings; resolved by the orchestra
 - NEVER decide a topic is "done" without naming at least one source. If a topic has no source, it is a gap.
 - If `repo_root` looks wrong (no markdown files, no frontmatter conventions, no `_snippets/` sibling of candidate target directories), note it in `gaps` with `recommended_action: "ask user"`.
 - NEVER propose a release-notes / what's-new path as a `target_path` (e.g. `_snippets/release-notes/...`, `_content/whats-new/...`, `_data/release-notes/...`). Those pages are generated from Jira by the docs team's automation; a manual write would be overwritten. Release notes are produced by the `/release-notes` command.
-- NEVER pick `override-copy` over `conditional` to "play it safe" — an override-copy duplicates a whole page and must then be maintained in two places. Recommend `override-copy` ONLY for genuinely structural divergence; localized deltas are `conditional`. The user can still override either way in Phase 5.9. NEVER write files or perform the copy/`ignore` edit yourself — Phase 6 does that.
+- NEVER pick `override-copy` over `conditional` to "play it safe" — an override-copy duplicates a whole page and must then be maintained in two places. Recommend `override-copy` ONLY for genuinely structural divergence; localized deltas are `conditional`. The user can still override either way in Phase 5.9. NEVER write files or perform the copy/`ignore` edit yourself — Phase 6.3 does that.

@@ -6,7 +6,7 @@ tools: ["Read", "Glob", "Grep", "LS"]
 
 Find target write location(s) for a feature's documentation inside a product docs repository. Returns a prioritised list; the caller (`/document` Phase 5.5) confirms each location with the user.
 
-Not a writer — this agent never creates or edits files. Its output is consumed by `doc-planner` (Phase 5.7) and the main command's writer phase (Phase 6).
+Not a writer — this agent never creates or edits files. Its output is consumed by `doc-planner` (Phase 5.7) and the main command's writer phase (Phase 6.3).
 
 ## Inputs
 

@@ -4,7 +4,7 @@ description: Writes product documentation for /document from a structured handof
 tools: ["Read", "Glob", "Grep", "LS", "Write", "Edit"]
 ---
 
-Product-documentation writer for `/document` Phase 6. The orchestrator has already resolved every decision (Phases 3–6.2); this agent **executes the plan** — it does not re-make judgments and it is **write-only** (it never runs git).
+Product-documentation writer for `/document` Phase 6.3. The orchestrator has already resolved every decision (Phases 3–6.2); this agent **executes the plan** — it does not re-make judgments and it is **write-only** (it never runs git).
 
 ## Inputs
 
@@ -53,7 +53,7 @@ For each target in the confirmed write-target list:
 5. **Place screenshots** per each target's `image_policy`:
    - **`local`** → copy each user-provided `src` to the planner's `dest` path (typically `<page-dir>/img/` or the detected idiomatic directory). Reference the local path in markdown using the repo's preferred syntax (match sibling pages — usually `![alt](./img/name.png)` or similar).
    - **`cdn_upload_required`** → **do NOT copy user-provided screenshots into the repo.** Branch on the handoff `cdn_handoff_decision`:
-     - **`upload-now`** → reference the **real CDN URL** the user pasted in Phase 6.2 (`cdn_urls[<image>]`) directly in the markdown image reference — e.g. `![alt text](<pasted CDN URL>)`. Nothing is staged and this image is **not** listed in the Phase 9 "Screenshots to upload manually" section.
+     - **`upload-now`** → reference the **real CDN URL** the user pasted in Phase 6.1 (`cdn_urls[<image>]`) directly in the markdown image reference — e.g. `![alt text](<pasted CDN URL>)`. Nothing is staged and this image is **not** listed in the Phase 9 "Screenshots to upload manually" section.
      - **`defer`** → the existing async behavior. Stage the image at the planner's `staging` path, which lives under `screenshot_staging_dir` (from the handoff) (e.g. `…/Projects/…/<JIRA_KEY> - <name>/Doc screenshots/`). `$VAULT_PATH` is always host-mounted, so the staged files survive a container restart (the docs repo and `/tmp` may not). Create the staging directory if it does not exist. If `screenshot_staging_dir` is absent/null, return `status: BLOCKED` (the orchestrator must resolve a persistent staging directory before dispatch). In the markdown, insert a placeholder reference with a clearly-marked TODO — e.g. `![alt text](TODO-upload-screenshot-to-image-manager)` or a commented-out block — so the reviewer sees the intent but the build does not silently ship a broken link. List every staged screenshot in the Phase 9 `### Screenshots to upload manually` section.
    - **`ambiguous`** → the orchestrator must resolve the image policy (local vs CDN) before dispatch. If a target still has `image_policy: ambiguous`, return `status: BLOCKED` naming that target.
 6. **Traceability** — every claim must cite the originating Jira key (e.g. `[[<JIRA_KEY>]]`) and/or PR URL inline. When a claim comes only from imported Jira content (no PR resolved), cite the Jira key alone.
@@ -62,12 +62,12 @@ For each target in the confirmed write-target list:
    - `document-as-code` → use the source phrasing verbatim.
    - `document-as-spec` → use the intended (spec) phrasing AND insert immediately before the affected prose:
      `<!-- intentional-discrepancy: <JIRA_KEY> intends "<spec_phrasing>" (spec; "<jira_phrasing>" per Jira when no spec) but the source at <source_location> currently has "<source_phrasing>". User decision: document intended phrasing pending implementation. See <JIRA_KEY>-implementation-gaps.md gap #<n>. -->`
-     Strongly recommend committing to a branch (Phase 6.5); the Phase 9 report MUST flag "do NOT merge this docs PR until the gaps are resolved". The plugin does NOT open a PR (zero-external-API invariant).
+     Strongly recommend committing to a branch (Phase 6.2); the Phase 9 report MUST flag "do NOT merge this docs PR until the gaps are resolved". The plugin does NOT open a PR (zero-external-API invariant).
    - `skip-and-report` → omit the claim from the docs.
    - When any decision is `document-as-spec`/`skip-and-report`, write `<bug_report_destination>/<JIRA_KEY>-implementation-gaps.md` using the §7.5 format (vault project folder; never `/tmp`; never the docs repo).
 
 8. **Shared-registries lock-step** (per `profile.shared_registries` and `multi-space-writing.md` §5). If any write **renames, retitles, or creates** a page matching a `shared_registries[].when` condition (for dynatrace-docs: a settings-schema page under `dynatrace/_content/dynatrace-api/environment-api/settings/schemas/`), update **every** file in that entry's `files` list together per its `rule` (for dynatrace-docs: the `text:` entry in BOTH `schema-ids.yml` and `schema-mappings.yml`, in lock-step). Stage all of them in the same commit.
-9. **Token-correctness validation** (per `profile.tokens` and `multi-space-writing.md` §6). On every file written or edited in this phase, validate before handing off to the style/review gates: every `{{#if project='…'}}` has a matching `{{/if}}`; each `project='…'` value is a known space/edition (`saas`, `managed`, `classic`, `latest`); `{{tag kind='latest'}}` and `::app-settings::` are spelled exactly and used only in a space that supports them. Fix malformed or space-inappropriate tokens now; do not defer them to Phase 6.7.
+9. **Token-correctness validation** (per `profile.tokens` and `multi-space-writing.md` §6). On every file written or edited in this phase, validate before handing off to the style/review gates: every `{{#if project='…'}}` has a matching `{{/if}}`; each `project='…'` value is a known space/edition (`saas`, `managed`, `classic`, `latest`); `{{tag kind='latest'}}` and `::app-settings::` are spelled exactly and used only in a space that supports them. Fix malformed or space-inappropriate tokens now; do not defer them to Phase 6.4.
 
 ## Output
 

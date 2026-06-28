@@ -62,7 +62,7 @@ For each new Epic, emit a markdown file under the resolved output directory (def
 - ...
 ```
 
-Create the output directory if missing — your `Write` tool auto-creates parent directories (no shell). Write every Epic file before proceeding to Phase 6.7.
+Create the output directory if missing — your `Write` tool auto-creates parent directories (no shell). Write every Epic file before proceeding to Phase 6.1.
 
 Traceability: every claim in each Epic must be traceable to the handoff `jira_reader_handoff` (Jira key + which item type — VI goal, existing Epic summary, Story theme) or `code_scanner_outputs` (`evidence.path` + symbols). Do not invent content the sources don't contain.
 

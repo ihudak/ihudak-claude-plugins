@@ -160,7 +160,7 @@ Record the final, confirmed `docs-profile.yml` and CLAUDE.md additions, and tag 
 
 Produce a reviewable PR in the **target repo** (never the plugin). **Never push or auto-merge** unless the user explicitly asks.
 
-1. **Resolve the branch name.** **Inline mode** (`--inline`): skip the prompt and the confirmation entirely — use the deterministic name `dev-workflows/docs-profile-bootstrap`; `/document` (Jira mode) Phase 6.5 renames it to the docs-branch convention. **Standalone** (default):
+1. **Resolve the branch name.** **Inline mode** (`--inline`): skip the prompt and the confirmation entirely — use the deterministic name `dev-workflows/docs-profile-bootstrap`; `/document` (Jira mode) Phase 6.2 renames it to the docs-branch convention. **Standalone** (default):
    - If the repo documents a branch-naming convention (detected in Phase 2 / confirmed in Phase 4), fill its placeholders and use it.
    - Else use `<initials>/NOISSUE-docs-profile`. Derive `<initials>` from `git -C <repo-root> config user.name`; if it is empty or initials are unclear, ask:
      ```

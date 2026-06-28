@@ -4,7 +4,7 @@ description: Finds the right place(s) in a docs repository to write new or exten
 tools: ["Read", "Glob", "Grep", "LS"]
 ---
 
-Find target write location(s) for a feature's documentation inside a product docs repository. Returns a prioritised list; the caller (`/impl:jira:docs` Phase 5.5) confirms each location with the user.
+Find target write location(s) for a feature's documentation inside a product docs repository. Returns a prioritised list; the caller (`/document` Phase 5.5) confirms each location with the user.
 
 Not a writer — this agent never creates or edits files. Its output is consumed by `doc-planner` (Phase 5.7) and the main command's writer phase (Phase 6).
 
@@ -39,7 +39,7 @@ Refuse to run without `repo_root` and a non-empty `feature_summary`.
    - **`new-page-in-existing-section`** — the topic is new but its section/folder already exists (e.g. a new "how-to" under `…/configure/`). `path` is the proposed new file's absolute path.
    - **`new-section`** — no adjacent content exists; a new folder + index page is justified. `path` is the proposed new file's absolute path (typically an `index.md` or the repo's equivalent).
 
-5. **Return multiple targets when the feature has multiple natural homes.** A single feature can straddle a Settings reference page and a How-to guide. Emit one target per natural home, each with its own kind and rationale. Cross-linking intent between targets is captured in `linked_from`. NEVER propose a What's New / release-notes path (e.g. `_content/whats-new/...`, `_snippets/release-notes/...`, `_data/release-notes/...`) as a target — those are generated from Jira by automation; release notes are produced by the `/impl:jira:release-notes` command.
+5. **Return multiple targets when the feature has multiple natural homes.** A single feature can straddle a Settings reference page and a How-to guide. Emit one target per natural home, each with its own kind and rationale. Cross-linking intent between targets is captured in `linked_from`. NEVER propose a What's New / release-notes path (e.g. `_content/whats-new/...`, `_snippets/release-notes/...`, `_data/release-notes/...`) as a target — those are generated from Jira by automation; release notes are produced by the `/release-notes` command.
 
 6. **Identify inbound cross-links.** For each target, scan for 1–3 pages that should cross-link *to* this target (e.g. a product overview that lists all features, a sidebar/nav file that enumerates sections). Record their absolute paths in `linked_from`. If none is obvious, return `linked_from: []`.
 

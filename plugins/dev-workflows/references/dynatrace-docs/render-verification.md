@@ -1,6 +1,6 @@
 # Render verification (dynatrace-docs)
 
-How `/impl:jira:docs` Phase 6.8 proves the documentation it just wrote builds
+How `/document` Phase 6.8 proves the documentation it just wrote builds
 and renders — and that cross-space pages honor the 3a render-unchanged invariant
 (the protected space's render is unchanged). See [[multi-space-writing]] for the
 write strategies this verifies.

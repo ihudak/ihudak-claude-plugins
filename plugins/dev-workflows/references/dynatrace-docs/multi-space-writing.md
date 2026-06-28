@@ -1,6 +1,6 @@
 # Multi-space writing (dynatrace-docs)
 
-How `/impl:jira:docs` Phase 6 writes documentation across more than one space
+How `/document` Phase 6 writes documentation across more than one space
 (SaaS + Managed in dynatrace-docs) while honoring the `saas`/`managed`
 constraint — i.e. changing one space's documentation **without altering the
 other space's rendered output**.

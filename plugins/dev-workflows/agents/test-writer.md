@@ -6,7 +6,7 @@ tools: ["Read", "Glob", "Grep", "LS", "Write", "Edit"]
 
 Write tests for new or changed behavior based on a diff. DO NOT run the tests — the caller (the command) runs `test-baseliner` in verify mode separately.
 
-Invoked from `/impl:code` at Phase 3.5 (SIMPLE / MODERATE, after Phase 3A implementation completes) and inside Phase 3B (SIGNIFICANT / HIGH-RISK, at step 4a — after implementation completes but before the diff is captured for Opus review). The caller decides whether to proceed based on the framework-detection outcome.
+Invoked from `/implement` at Phase 3.5 (SIMPLE / MODERATE, after Phase 3A implementation completes) and inside Phase 3B (SIGNIFICANT / HIGH-RISK, at step 4a — after implementation completes but before the diff is captured for Opus review). The caller decides whether to proceed based on the framework-detection outcome.
 
 ## Inputs
 

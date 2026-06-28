@@ -1,7 +1,7 @@
 # docs-profile schema
 
-`/impl:docs:profile` writes this file to **`.dev-workflows/docs-profile.yml`** in
-the target docs repo. `/impl:jira:docs` reads it. `changelog` and `owners` are
+`/docs-profile` writes this file to **`.dev-workflows/docs-profile.yml`** in
+the target docs repo. `/document` reads it. `changelog` and `owners` are
 intentionally absent — they are owned by the `dynatrace-docs-frontmatter` skill.
 
 ```yaml

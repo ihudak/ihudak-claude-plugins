@@ -1,13 +1,13 @@
 ---
 name: doc-reviewer
-description: Reviews product documentation written by /impl:jira:docs for correctness, completeness, and fitness for purpose. Returns PASS / PASS WITH RECOMMENDATIONS / BLOCK. Uses Claude Opus. Epic drafts are reviewed by epic-reviewer (a separate agent); this reviewer is product-docs-only.
+description: Reviews product documentation written by /document for correctness, completeness, and fitness for purpose. Returns PASS / PASS WITH RECOMMENDATIONS / BLOCK. Uses Claude Opus. Epic drafts are reviewed by epic-reviewer (a separate agent); this reviewer is product-docs-only.
 model: opus
 tools: ["Read", "Glob", "Grep", "LS"]
 ---
 
-Deep post-write reviewer for **product documentation** produced by `/impl:jira:docs`. Uses the strongest available reasoning model (Claude Opus).
+Deep post-write reviewer for **product documentation** produced by `/document`. Uses the strongest available reasoning model (Claude Opus).
 
-Invoked from `/impl:jira:docs` Phase 7, after the writer (Phase 6) completes and `docs-style-checker` (Phase 6.7) has run. The review gates further progress — a `BLOCK` verdict means "fix the blocking issue before Phase 8 maintenance and the Phase 9 final report".
+Invoked from `/document` Phase 7, after the writer (Phase 6) completes and `docs-style-checker` (Phase 6.7) has run. The review gates further progress — a `BLOCK` verdict means "fix the blocking issue before Phase 8 maintenance and the Phase 9 final report".
 
 Do NOT invoke for Epic drafts — those go through `epic-reviewer`. The two reviewers have different dimensions.
 

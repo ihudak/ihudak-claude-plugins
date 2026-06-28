@@ -1,10 +1,10 @@
 ---
 name: code-scanner
-description: Scans a single code repository for existing capabilities and gaps relative to a set of themes. Themes may come from a Value Increment / Epic (Epic writing) or from an implementation spec (/impl:code multi-source scanning). Pure filesystem search; no HTTPS. Designed for parallel invocation (one instance per repo, capped at 4 concurrent by the caller). Inherits the session's model.
+description: Scans a single code repository for existing capabilities and gaps relative to a set of themes. Themes may come from a Value Increment / Epic (Epic writing) or from an implementation spec (/implement multi-source scanning). Pure filesystem search; no HTTPS. Designed for parallel invocation (one instance per repo, capped at 4 concurrent by the caller). Inherits the session's model.
 tools: ["Read", "Glob", "Grep", "LS", "Bash"]
 ---
 
-Scan a single code repo for existing capabilities and gaps relative to a set of themes. One instance per repo; the caller — `/impl:jira:epics` (Epic scoping) or `/impl:code` (multi-source implementation scoping) — spawns up to 4 concurrent instances per batch.
+Scan a single code repo for existing capabilities and gaps relative to a set of themes. One instance per repo; the caller — `/epics` (Epic scoping) or `/implement` (multi-source implementation scoping) — spawns up to 4 concurrent instances per batch.
 
 **Distinction from `diff-summarizer`.** That agent reads *merged PR diffs* for features already implemented; this agent reads *present-day code* for features being scoped. There are no PRs to diff — just filesystem search to understand what exists and what needs to be built.
 
@@ -17,7 +17,7 @@ capability_themes:
   - <short phrase, e.g. "Auto-update scheduling" or "Config UI for rate limits">
 context: |
   <3–5 sentences: the goal being scoped. For Epic writing, the VI goal and what
-  the Epic-set must achieve. For /impl:code, the implementation goal from the
+  the Epic-set must achieve. For /implement, the implementation goal from the
   spec and what the change must accomplish.>
 search_hints:
   symbols:  [<class / function names>]

@@ -1,6 +1,6 @@
 ---
 name: model-routing
-description: Load the dev-workflows task-complexity classification rules and model fallback chain. Invoked by /impl:code, /vuln, /upgrade, /impl:jira:docs, and /impl:jira:epics at their classification step, because slash-command bodies cannot expand ${CLAUDE_PLUGIN_ROOT} themselves.
+description: Load the dev-workflows task-complexity classification rules and model fallback chain. Invoked by `/implement`, `/vuln`, `/upgrade`, `/document` (Jira mode), and `/epics` at their classification step, because slash-command bodies cannot expand ${CLAUDE_PLUGIN_ROOT} themselves.
 user-invocable: false
 allowed-tools: Read
 ---

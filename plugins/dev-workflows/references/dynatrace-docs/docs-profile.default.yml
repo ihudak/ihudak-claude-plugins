@@ -1,5 +1,5 @@
 # Built-in default profile for dynatrace-docs (dev-workflows).
-# Used by /impl:jira:docs when the resolved docs repo is recognized as
+# Used by /document when the resolved docs repo is recognized as
 # dynatrace-docs and no in-repo .dev-workflows/docs-profile.yml is present.
 # An in-repo profile, if present, overrides this file.
 schema_version: 1

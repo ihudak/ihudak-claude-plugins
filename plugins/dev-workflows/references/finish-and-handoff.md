@@ -1,4 +1,4 @@
-# Finish & handoff (/impl:jira:docs)
+# Finish & handoff (/document — Jira mode)
 
 The mechanics for Phase 6.5's inline-profiling-branch handling and Phase 8.5's
 finish & handoff (squash → opt-in push → copy-paste PR draft). Generic git +

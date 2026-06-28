@@ -6,11 +6,11 @@ allowed-tools: Read Edit Write Bash Glob Grep Task WebFetch LS
 
 Draft child Epics for the Jira Value Increment: $ARGUMENTS
 
-`/impl:jira:epics` is the **Jira-driven Epic-writing** workflow. Given a Value Increment key, it reads the VI plus its existing Epics from pre-exported markdown in the user's Obsidian vault, optionally scans code repos to identify reusable capabilities and gaps, drafts child Epic definitions as markdown files under the vault, and gates the result on an Opus review.
+`/epics` is the **Jira-driven Epic-writing** workflow. Given a Value Increment key, it reads the VI plus its existing Epics from pre-exported markdown in the user's Obsidian vault, optionally scans code repos to identify reusable capabilities and gaps, drafts child Epic definitions as markdown files under the vault, and gates the result on an Opus review.
 
-Key distinction from `/impl:jira:docs`: the VI being Epic-ized is **not yet implemented** — there are no PRs to diff. Code scanning (when enabled) is a plain filesystem search to understand what exists and what needs to be built.
+Key distinction from `/document` (Jira mode): the VI being Epic-ized is **not yet implemented** — there are no PRs to diff. Code scanning (when enabled) is a plain filesystem search to understand what exists and what needs to be built.
 
-`/impl:jira:epics` **never branches**, **never commits**, and only writes inside `$VAULT_PATH`. Vault git hygiene is the user's responsibility — they may or may not have the vault under version control.
+`/epics` **never branches**, **never commits**, and only writes inside `$VAULT_PATH`. Vault git hygiene is the user's responsibility — they may or may not have the vault under version control.
 
 ---
 
@@ -55,7 +55,7 @@ Ask about:
   ```
   choices: ["fetch + pull default branch (Recommended)", "fetch only", "no refresh", "Other… (describe)"]
   ```
-  The `fetch + pull default branch` default matches `code-scanner`'s default (`refresh.switch_to_default_branch: true, refresh.pull: true`) — capability scans target present-day code and want the default-branch tip. This is deliberately different from `/impl:jira:docs`, which keeps `pull: false` because historical merged commits must not move.
+  The `fetch + pull default branch` default matches `code-scanner`'s default (`refresh.switch_to_default_branch: true, refresh.pull: true`) — capability scans target present-day code and want the default-branch tip. This is deliberately different from `/document` (Jira mode), which keeps `pull: false` because historical merged commits must not move.
 
 - **Repos search base (`$REPOS_PATH`)** (only if code scan is ON). Read `${REPOS_PATH:-/workspace}` (the container mounts every repo under `/workspace`). `$REPOS_PATH` may be a single directory or a colon-separated list. Ask:
   ```
@@ -217,7 +217,7 @@ The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1
 
 ## Phase 6.7 — Dynatrace style check
 
-Invoke `dt-style-checker` on the files written in Phase 6. Unlike `/impl:jira:docs`, this does NOT use `docs-style-checker` (no repo linter for vault content). Instead, the Dynatrace corporate style guide checker validates terminology, trademarks, voice/tone, and inclusive language.
+Invoke `dt-style-checker` on the files written in Phase 6. Unlike `/document` (Jira mode), this does NOT use `docs-style-checker` (no repo linter for vault content). Instead, the Dynatrace corporate style guide checker validates terminology, trademarks, voice/tone, and inclusive language.
 
 → Agent (subagent_type: "dt-style-guide:dt-style-checker", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Run the style check for this brief:
@@ -258,13 +258,13 @@ Invoke `epic-reviewer` (Opus). This reviewer is Epic-specific — scope clarity,
   > jira-reader handoff: [paste full YAML from Phase 3]
   > code-scanner output:  [paste array of per-repo scanner outputs from Phase 5, or 'N/A — code scan off']"
 
-Act on the verdict (same shape as `/impl:jira:docs` Phase 7):
+Act on the verdict (same shape as `/document` Jira mode Phase 7):
 
 - **BLOCK** — invoke `doc-fixer` with `Severities to fix: BLOCKER and MAJOR`. Re-invoke `epic-reviewer` once. If still BLOCK, escalate per §15 for each unresolved BLOCKER individually:
   ```
   choices: ["Provide manual fix notes (you'll be prompted)", "Defer to a follow-up issue (record in Phase 9 report)", "Override and accept the finding", "Cancel the whole run", "Other… (describe)"]
   ```
-  For `/impl:jira:epics`, "Defer" means the finding goes into an Epic-refinement note in the draft itself (appended as a `## Refinement notes` section) in addition to the Phase 9 report.
+  For `/epics`, "Defer" means the finding goes into an Epic-refinement note in the draft itself (appended as a `## Refinement notes` section) in addition to the Phase 9 report.
 
 - **PASS WITH RECOMMENDATIONS** — invoke `doc-fixer` for MAJOR findings only:
 
@@ -342,12 +342,12 @@ Then spawn all four maintenance agents in a **single Agent message**. They are i
 > "Analyse this session and return a Lessons Learned report.
 >
 > Session handoff:
-> - Command run: /impl:jira:epics
+> - Command run: /epics
 > - What was done: [one-paragraph summary of Epics drafted]
 > - Key events: [BLOCK reviews and their reason, DIRTY_TREE / REFRESH_BLOCKED scanner statuses, duplicate-Epic near-misses, missing repos, user override decisions — or 'none']
 > - Workarounds used: [manual steps not automated by the workflow — or 'none']
 > - Review verdict: [PASS | PASS WITH RECOMMENDATIONS | BLOCK]
-> - Test result: N/A (no tests in /impl:jira:epics)
+> - Test result: N/A (no tests in /epics)
 > - Project root: [resolved $VAULT_PATH]"
 
 Collect all four summaries for the Phase 9 report.
@@ -415,7 +415,7 @@ MODERATE — vault-internal Epic drafting for a single VI
 - [list any]
 
 ### Git state
-The vault has uncommitted changes. `/impl:jira:epics` never commits — vault git management is your responsibility.
+The vault has uncommitted changes. `/epics` never commits — vault git management is your responsibility.
 ```
 
 ---
@@ -435,7 +435,7 @@ The vault has uncommitted changes. `/impl:jira:epics` never commits — vault gi
 - ALWAYS delegate Phase 6 writing to the `epic-writer` subagent (write-only); the orchestrator never writes Epics itself and never commits (vault git is the user's responsibility)
 - ALWAYS cap review/fix cycles: 1 fix + 1 re-review max
 - ALWAYS pass `Change type: docs` in the Phase 8 change summary block
-- ALWAYS pass `Command run: /impl:jira:epics` in the Phase 8 Agent 4 session handoff
+- ALWAYS pass `Command run: /epics` in the Phase 8 Agent 4 session handoff
 - ALWAYS spawn Phase 8 agents in a single message — never sequentially
 - ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
 - ALWAYS produce the Phase 9 report as the final output

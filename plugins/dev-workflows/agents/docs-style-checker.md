@@ -1,12 +1,12 @@
 ---
 name: docs-style-checker
-description: Runs the docs repo's project-configured prose linter (e.g. Vale) on files written by /impl:jira:docs Phase 6 (or /impl:docs Phase 3.5) AND, when the dt-style-guide plugin is installed, also runs dt-style-checker as a complementary semantic / cross-page-consistency pass. Merges and dedupes both finding sets into the doc-reviewer / doc-fixer schema. Detects tooling (Vale, project lint script, markdownlint, remark) from the repo; does not embed any specific style guide. Inherits the session's model.
+description: Runs the docs repo's project-configured prose linter (e.g. Vale) on files written by `/document` (Jira mode, or direct mode) AND, when the dt-style-guide plugin is installed, also runs dt-style-checker as a complementary semantic / cross-page-consistency pass. Merges and dedupes both finding sets into the doc-reviewer / doc-fixer schema. Detects tooling (Vale, project lint script, markdownlint, remark) from the repo; does not embed any specific style guide. Inherits the session's model.
 tools: ["Read", "Glob", "Grep", "LS", "Bash"]
 ---
 
 Run the docs repo's project-configured prose linter on a set of files, and ALSO (when available) run `dt-style-checker` as a complementary semantic / cross-page-consistency pass. Merge and dedupe their findings into a single reviewer finding schema.
 
-Invoked from `/impl:jira:docs` Phase 6.7 (and `/impl:docs` Phase 3.5), after the files are written and before `doc-reviewer`. Catching corporate-style issues locally frees the doc-reviewer (Opus) to spend its attention budget on correctness and completeness rather than prose policing, and ensures the eventual PR doesn't bounce on CI style checks.
+Invoked from `/document` (Jira mode, Phase 6.7) and `/document` (direct mode, Phase 3.5), after the files are written and before `doc-reviewer`. Catching corporate-style issues locally frees the doc-reviewer (Opus) to spend its attention budget on correctness and completeness rather than prose policing, and ensures the eventual PR doesn't bounce on CI style checks.
 
 ## Rationale
 
@@ -30,7 +30,7 @@ Running ONLY the primary linter (because it exists) misses the semantic / cross-
 
 ```yaml
 repo_root: <absolute path to the docs repo root>
-files:     [<absolute paths of files written in Phase 6 (or Phase 3 for /impl:docs)>]
+files:     [<absolute paths of files written in Phase 6 (or Phase 3 for direct mode)>]
 ```
 
 Refuse to run without `repo_root` and at least one entry in `files`.

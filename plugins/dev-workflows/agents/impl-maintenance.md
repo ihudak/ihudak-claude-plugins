@@ -17,13 +17,12 @@ can choose which suggestions to act on.
 The caller passes a **compact session handoff**:
 
 - **Command run** — which command variant executed this session. One of
-  `/impl:code`, `/impl:docs`, `/impl:jira:docs`, `/impl:jira:epics`,
-  `/vuln`, `/upgrade`. As of plugin 1.1.0, `/impl` is a dispatcher — it
-  prints help and does not run a workflow, so no live workflow should
-  pass `Command run: /impl`. For backward compatibility (e.g. replaying
-  handoffs archived from 1.0.x), accept the literal value `/impl` and
-  internally map it to `/impl:code`, noting the mapping in the report's
-  `### Session summary`. This field scopes any "Command workflow
+  `/implement`, `/document` (direct mode), `/document` (Jira mode), `/epics`,
+  `/vuln`, `/upgrade`. For backward compatibility (e.g. replaying
+  handoffs archived from earlier plugin versions), accept the legacy values
+  `/implement`, `/document` (direct), `/document` (Jira), `/epics` and
+  internally map them to the corresponding new verbs, noting the mapping in
+  the report's `### Session summary`. This field scopes any "Command workflow
   improvements" suggestions to the right command.
 - **What was done** — 1-paragraph summary (classification, component/CVE/task, scope)
 - **Key events** — things that went unexpectedly: BLOCK reviews, test regressions,
@@ -35,8 +34,7 @@ The caller passes a **compact session handoff**:
 - **Test result** — passed / regressions / not run
 - **Project root** — absolute path
 
-If `Command run` is missing from the handoff, or is the literal legacy value
-`/impl`, default to `/impl:code` (the canonical code workflow) and note the
+If `Command run` is missing from the handoff, default to `/implement` (the canonical code workflow) and note the
 substitution in the report's `### Session summary` so the caller notices and
 updates their invocation.
 
@@ -108,7 +106,7 @@ Return this exact shape (no preamble, no chatter):
 - _or_ "No new agents suggested"
 
 #### Command workflow improvements
-- **Command**: [/impl:code | /impl:docs | /impl:jira:docs | /impl:jira:epics | /vuln | /upgrade]
+- **Command**: [/implement | /document (direct mode) | /document (Jira mode) | /epics | /vuln | /upgrade]
   **Section**: [Phase / step reference]
   **Change**: [what to change and why]
 - ...

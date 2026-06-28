@@ -1,7 +1,6 @@
 # Model Routing by Task Complexity (Shared Policy)
 
-This document is the **single source of truth** for how the `/impl`, `/vuln`, and
-`/upgrade` workflows (and their sub-agents) classify tasks and route them to the
+This document is the **single source of truth** for how the dev-workflows commands (`/implement`, `/vuln`, `/upgrade`, and related commands) and their sub-agents classify tasks and route them to the
 appropriate model. Every top-level orchestrator MUST load and follow this policy
 before doing any planning, implementation, or review work.
 
@@ -21,7 +20,7 @@ Every task MUST be classified into exactly one of:
 ### 1.1 Classify as `SIGNIFICANT` or `HIGH-RISK` if **any** of the following apply
 
 - Major framework or library upgrade (any **major** version bump, e.g. Spring Boot 2→3, React 17→18, Java 11→21).
-- Vulnerability fix that requires a **major** dependency version bump or **source-code changes** in the repo (API renames, signature changes, deprecation removals, behaviour adaptations). See the "Vulnerability-fix exception" below — a CVE's category alone (RCE, deserialization, auth bypass, etc.) does **not** force this class regardless of which orchestrator (`/vuln`, `/impl`, `/upgrade`) is invoking the rubric; what matters is the size of the actual fix.
+- Vulnerability fix that requires a **major** dependency version bump or **source-code changes** in the repo (API renames, signature changes, deprecation removals, behaviour adaptations). See the "Vulnerability-fix exception" below — a CVE's category alone (RCE, deserialization, auth bypass, etc.) does **not** force this class regardless of which orchestrator (`/vuln`, `/implement`, `/upgrade`) is invoking the rubric; what matters is the size of the actual fix.
 - Touches authentication, authorization, sessions, tokens, OAuth/OIDC, JWT, cookies, CSRF, CORS, or permissions.
 - Touches database schema, migrations, or data integrity (DDL, foreign keys, indexes, backfills).
 - Public API or wire-protocol contract changes (REST/GraphQL/gRPC routes, request/response shape, event schemas, SDK signatures).
@@ -29,7 +28,7 @@ Every task MUST be classified into exactly one of:
 - Concurrency, caching, transactions, locking, retries, idempotency, async/queue processing.
 - Payment, billing, audit, compliance, PII, or other security-sensitive logic.
 - Changes touching **more than 3–5 non-test files**.
-- **Multi-source input** — `/impl:code` was given more than one code repository, or any directory input (an exported Jira ticket folder, or a spec/design folder). Large multi-source briefs are cross-cutting by nature; this floors the task at `SIGNIFICANT`. See §8 for the fan-out scan this triggers. The floor is overridable at plan approval if the user judges the work genuinely smaller than its input footprint.
+- **Multi-source input** — `/implement` was given more than one code repository, or any directory input (an exported Jira ticket folder, or a spec/design folder). Large multi-source briefs are cross-cutting by nature; this floors the task at `SIGNIFICANT`. See §8 for the fan-out scan this triggers. The floor is overridable at plan approval if the user judges the work genuinely smaller than its input footprint.
 - Unclear requirements, large unknowns, or otherwise high blast radius.
 
 `HIGH-RISK` is the same list with an additional severity multiplier — pick it
@@ -54,7 +53,7 @@ when the change is **production-critical, security-critical, or data-irreversibl
 > **(a) Universal — CVE category never forces SIGNIFICANT/HIGH-RISK.** A
 > CVE's category (RCE, deserialization, auth bypass, etc.) drives *attention*
 > but does **not** by itself force a SIGNIFICANT/HIGH-RISK class, regardless
-> of which orchestrator (`/vuln`, `/impl`, `/upgrade`) is invoking the
+> of which orchestrator (`/vuln`, `/implement`, `/upgrade`) is invoking the
 > rubric. Most CVEs are remediated by a patch or minor dependency bump with
 > no source-code changes — those are MODERATE.
 >
@@ -67,7 +66,7 @@ when the change is **production-critical, security-critical, or data-irreversibl
 > JWT, OAuth, session libs). See `${CLAUDE_PLUGIN_ROOT}/commands/vuln.md`
 > "Step 0 — Classify & Route" for the full vulnerability rubric.
 >
-> **For `/impl` and `/upgrade` orchestrators**, the standard rubric in §1.1
+> **For `/implement` and `/upgrade` orchestrators**, the standard rubric in §1.1
 > applies — there is no per-CVE size analysis available at classification
 > time. If the user wants CVE-aware sizing, route the work through `/vuln`.
 
@@ -291,8 +290,8 @@ and reason are still required.
 
 When a scanning step must digest more than a single working tree, a single
 explorer subagent on a weak session model comprehends it poorly. This section
-is the shared policy for that case. It is consulted by `/impl:code` and
-generalizes the pattern `/impl:jira:epics` already uses.
+is the shared policy for that case. It is consulted by `/implement` and
+generalizes the pattern `/epics` already uses.
 
 ### 8.1 Trigger (input shape, not measured volume)
 
@@ -334,14 +333,13 @@ normal single-explorer path.
 
 A referenced directory that is missing, or is neither a recognized folder type
 nor a git repository, MUST be surfaced to the user — never silently skipped
-(mirrors the `REFRESH_BLOCKED` honesty rule used by the `/impl:jira:*` flows).
+(mirrors the `REFRESH_BLOCKED` honesty rule used by the Jira-driven flows).
 
 ---
 
 ## 9. Per-step routing for multi-phase authoring pipelines
 
-The `/impl:jira:*` authoring pipelines (`commands/impl/jira/docs.md` now;
-`commands/impl/jira/epics.md` later) run a long sequence of phases — some
+The Jira-driven authoring pipelines (`/document` and `/epics`) run a long sequence of phases — some
 judgment-heavy, some mechanical. They MUST NOT let every step inherit the
 session model. Apply this policy, resolving each model against the §2 (Opus)
 and §2.1 (Sonnet) fallback chains.
@@ -378,8 +376,8 @@ the same rule as §2.
 ### 9.4 Reconciliation with §8.3
 
 §8.3's "`jira-reader` / `code-scanner` inherit the session model" is the
-conservative default for the `/impl:code` large-input **fan-out**. Authoring
+conservative default for the `/implement` large-input **fan-out**. Authoring
 pipelines that route per this section pin **`jira-reader`** to the detection
 chain (reading pre-exported markdown is mechanical — an Opus session should not
 pay for it). `code-scanner` remains governed by §8.3 when invoked under the
-large-input fan-out trigger. Refinement: `code-scanner` inherits under §8.3 **only when a powerful-chain synthesis step consumes its output**; in an authoring pipeline with no such step (e.g. `/impl:jira:epics`, where the writer is a detection/reasoning-pinned subagent and there is no risk-planner synthesis), pin `code-scanner` to the detection chain.
+large-input fan-out trigger. Refinement: `code-scanner` inherits under §8.3 **only when a powerful-chain synthesis step consumes its output**; in an authoring pipeline with no such step (e.g. `/epics`, where the writer is a detection/reasoning-pinned subagent and there is no risk-planner synthesis), pin `code-scanner` to the detection chain.

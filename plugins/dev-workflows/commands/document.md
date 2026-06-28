@@ -70,11 +70,11 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 
    **In-repo-profile-not-on-base guard.** When `profile_source: in-repo`, confirm the profile is committed on the base branch before relying on a docs branch cut from it. Resolve the base (`git -C <docs_repo_path> symbolic-ref --short refs/remotes/origin/HEAD`; fall back to `main`, then `master`) and run `git -C <docs_repo_path> cat-file -e <base>:.dev-workflows/docs-profile.yml`:
    - **exit 0 (present on base)** → proceed (the common case — the profile was merged earlier).
-   - **non-zero (absent on base)** → the profile is only in the working tree / on an unmerged branch, so the docs branch Phase 6.5 cuts from `<base>` will not include it. Warn and ask:
+   - **non-zero (absent on base)** → the profile is only in the working tree / on an unmerged branch, so the docs branch Phase 6.2 cuts from `<base>` will not include it. Warn and ask:
      ```
      choices: ["Proceed — the run uses the in-memory profile; I'll merge the profile PR separately", "Cancel — merge the profile PR first, then re-run", "Other… (describe)"]
      ```
-   Skip this check for `profile_source: built-in` (no profile file) and `generated` (the inline profiling branch is adopted by Phase 6.5, so the profile rides the single docs branch — a base check would false-fire).
+   Skip this check for `profile_source: built-in` (no profile file) and `generated` (the inline profiling branch is adopted by Phase 6.2, so the profile rides the single docs branch — a base check would false-fire).
 
 6. **Discover the specs dir.** Specs are additive context, not a prerequisite. Under `${REPOS_PATH:-/workspace}` (single dir or colon-separated list), look for a sibling directory whose detected **vis-root** (a `specifications/` or `vis/` subdirectory) contains a folder matching `<JIRA_KEY>*` (prefix match; tolerate mixed `-`/`_` separators and a trailing slug, e.g. `PRODUCT-14902-foo` or `PRODUCT_14902_foo`):
    - **Found →** record `specs_dir` = the matching `<JIRA_KEY>*` folder's absolute path.
@@ -86,7 +86,7 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 
 7. **Classify write context** for later branch/write decisions — computed against the resolved `docs_repo_path` (not necessarily cwd). Walk up from `docs_repo_path` looking for `.obsidian/`; if found, context = `obsidian`. Else if `git -C <docs_repo_path> rev-parse --show-toplevel` succeeds AND at least one docs signal from step 3 is present, context = `docs_repo`. Else if it succeeds with no docs signals, context = `non_docs_repo` (step 3 has already asked the user; their confirmation promotes this to `docs_repo` behaviour). Else context = `plain_dir`. In a normal run, Phase 0's docs-repo resolution (steps 3–4) yields a real docs repo (`docs_repo`) or a user-confirmed `non_docs_repo`; `obsidian` and `plain_dir` are **defensive guards** (they forbid branch/commit) rather than expected write targets.
 
-   Record the resolved context — it drives Phase 6.5 (branch setup) and Phase 6 write rules. When `docs_repo_path` differs from cwd, record **both** and note that the writing phases (Increments 2–3) consume `docs_repo_path`, not cwd, for every write.
+   Record the resolved context — it drives Phase 6.2 (branch setup) and Phase 6.3 write rules. When `docs_repo_path` differs from cwd, record **both** and note that the writing phases (Increments 2–3) consume `docs_repo_path`, not cwd, for every write.
 
 8. **Parse the optional space constraint.** Read `$ARGUMENTS` as `<JIRA_KEY> [space]` — the same `$ARGUMENTS` already split for `<JIRA_KEY>` in step 2; the optional second whitespace-separated token is the space constraint.
    - **No second token** → `space_constraint = none`. Phase 4.5 will determine and confirm the applicable space(s).
@@ -181,7 +181,7 @@ model_routing:
   detection_model: <§2.1 mid-tier Sonnet chain: claude-sonnet-4-6, fallback claude-sonnet-4-5>
   planning_model:  <§2 powerful chain: claude-opus-4-8 … fallback Sonnet per §2>   # doc-planner (5.7)
   review_model:    <§2 powerful chain>     # doc-reviewer (frontmatter-pinned; recorded here, no override added)
-  implementation_model: <= planning_model>  # the doc-writer subagent (Phase 6) — now a delegated, Opus-pinned writer
+  implementation_model: <= planning_model>  # the doc-writer subagent (Phase 6.3) — now a delegated, Opus-pinned writer
   fixes_model: <= detection_model>         # doc-fixer (6.7 / 7) runs on the detection chain
   opus_available: <true if a §2 Opus model resolved, else false>
   notes: <any §2 / §2.1 fallback or degradation>
@@ -357,7 +357,7 @@ Handle the return:
   ```
   The manual path takes a free-text entry per target (`path` + `kind` + `section`) and validates path existence for `extend-existing` targets.
 
-The confirmed target list (from any of the three paths above) is the **authoritative write-target set** for Phase 6 and is handed to `doc-planner` in Phase 5.7.
+The confirmed target list (from any of the three paths above) is the **authoritative write-target set** for Phase 6.3 and is handed to `doc-planner` in Phase 5.7.
 
 ---
 
@@ -416,7 +416,7 @@ Handle the `status` and `gaps`:
 - **`status: OK`, `gaps: []`** → proceed to the approval prompt.
 - **`status: OK` or `PARTIAL` with `gaps` entries** — for each gap, act on its `recommended_action`:
   - `"ask user"` → prompt inline **before** showing the checklist-approval choice. Free-text prompt scoped to the gap; feed the answer back to the planner via a single re-invocation (pass the user's answer as an additional `gap_resolution` field in the brief). If the user declines, fall back to `"mark TODO in draft"`.
-  - `"mark TODO in draft"` → surface in the checklist display as a visible TODO; the writer at Phase 6 emits `<!-- TODO: … -->` markers. Does not block approval.
+  - `"mark TODO in draft"` → surface in the checklist display as a visible TODO; the writer at Phase 6.3 emits `<!-- TODO: … -->` markers. Does not block approval.
   - `"skip with note in final report"` → list in the checklist display; carry forward into the Phase 9 `### Skipped items`. Does not block approval.
 - **`status: PARTIAL`** alone (without user-asked gaps) is presented to the user alongside the checklist so the approval decision is informed.
 
@@ -429,7 +429,7 @@ choices: ["Approve & write (Recommended)", "Adjust (describe)", "Cancel"]
 
 ## Phase 5.8 — Discrepancy analysis & user decision
 
-Run this phase when the `doc-planner` handoff contains any `verification_warnings` with `finding: CONTRADICTED`, `NOT_FOUND`, `AMBIGUOUS`, or verdict `SPEC-VS-JIRA`. If there are none, skip to Phase 6.
+Run this phase when the `doc-planner` handoff contains any `verification_warnings` with `finding: CONTRADICTED`, `NOT_FOUND`, `AMBIGUOUS`, or verdict `SPEC-VS-JIRA`. If there are none, skip to Phase 6.3.
 
 This phase is **three-way** when a spec was provided (Phase 0 resolved `specs_dir` and Phase 5.7 passed it to `doc-planner`): it compares the **Jira** narrative, the **Spec** (authoritative "intended"), and the **Code** ("actual"), per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7. When no spec was provided, the planner emits `spec_phrasing: "(no spec)"`; the **Spec phrasing** column simply renders `(no spec)` and the run behaves exactly as the original Jira-vs-code two-way protocol.
 
@@ -453,7 +453,7 @@ This phase is **three-way** when a spec was provided (Phase 0 resolved `specs_di
 
 4. **Record `discrepancy_decisions[]`** keyed by `number` (claim, jira_phrasing, spec_phrasing, source_phrasing, source_location, decision ∈ {document-as-spec, document-as-code, skip-and-report}, rationale). `spec_phrasing` is recorded verbatim (`(no spec)` when none was provided). Set `bug_report_destination` to the ticket's vault project folder (resolved exactly like the release-notes destination in `/release-notes` — `find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"`; ask if none) when any decision is `document-as-spec` (where the code lags the intended phrasing) or `skip-and-report`.
 
-Pass `discrepancy_decisions` to Phase 6.
+Pass `discrepancy_decisions` to Phase 6.3.
 
 ---
 
@@ -462,11 +462,11 @@ Pass `discrepancy_decisions` to Phase 6.
 Run this phase when the `doc-planner` checklist contains **any** target whose
 `write_strategy.strategy` is `conditional` or `override-copy` (i.e. at least one
 shared page needs cross-space protection). If every target is `plain`, skip to
-Phase 6 — there is nothing to protect.
+Phase 6.3 — there is nothing to protect.
 
 The mechanics are defined in
 `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/multi-space-writing.md`; this
-phase only confirms the per-page **strategy choice** before Phase 6 writes.
+phase only confirms the per-page **strategy choice** before Phase 6.3 writes.
 
 1. **Present the recommended strategies** (informational, before asking) — one
    row per non-`plain` target:
@@ -486,13 +486,13 @@ phase only confirms the per-page **strategy choice** before Phase 6 writes.
    ```
    The default/recommended choice is the planner's `write_strategy.strategy`, listed first.
 
-4. **Record `write_strategies[]`** keyed by `target_path`: `{target_path, strategy ∈ {conditional, override-copy, plain}, target_space, rationale}`. Targets the planner marked `plain` are carried through as `plain` without prompting. Pass `write_strategies` to Phase 6.
+4. **Record `write_strategies[]`** keyed by `target_path`: `{target_path, strategy ∈ {conditional, override-copy, plain}, target_space, rationale}`. Targets the planner marked `plain` are carried through as `plain` without prompting. Pass `write_strategies` to Phase 6.3.
 
 ---
 
-## Phase 6.2 — CDN image handoff
+## Phase 6.1 — CDN image handoff
 
-Run this phase only when, in the Phase 5.7 `doc-planner` return, **any** screenshot has `image_policy: cdn_upload_required` — **or** the user picked "Stage for manual upload" under an `ambiguous` target in Phase 6. (When the only image policy in play is `local`, skip this phase: local images are copied into the repo at Phase 6 with no handoff needed.)
+Run this phase only when, in the Phase 5.7 `doc-planner` return, **any** screenshot has `image_policy: cdn_upload_required` — **or** the user picked "Stage for manual upload" under an `ambiguous` target in Phase 6.3. (When the only image policy in play is `local`, skip this phase: local images are copied into the repo at Phase 6.3 with no handoff needed.)
 
 1. **List each affected image** so the decision is informed — one row per image:
    - target page / anchor it belongs on (from the planner's per-screenshot placement);
@@ -504,49 +504,15 @@ Run this phase only when, in the Phase 5.7 `doc-planner` return, **any** screens
    choices: ["Upload now — I'll paste the CDN links (Recommended)", "Defer — stage with TODO placeholders + Phase 9 list", "Cancel", "Other… (describe)"]
    ```
 
-   - **Upload now** → collect one CDN URL per image (prompt per image, or one URL per line in image order). Validate each pasted value looks like a URL (e.g. starts with `http://` / `https://`); re-prompt for any that don't. Record `cdn_urls[<image>]`. Phase 6 then writes the **real CDN URL** into each markdown image reference instead of a TODO placeholder. Nothing is staged and the Phase 9 "Screenshots to upload manually" section stays empty for these images.
-   - **Defer** → the existing async behavior: stage each image under `<screenshot_staging_dir>` (the ticket's persistent Obsidian project folder resolved in Phase 1), Phase 6 inserts the `TODO-upload` placeholder reference, and every staged image is listed in the Phase 9 `### Screenshots to upload manually` section.
+   - **Upload now** → collect one CDN URL per image (prompt per image, or one URL per line in image order). Validate each pasted value looks like a URL (e.g. starts with `http://` / `https://`); re-prompt for any that don't. Record `cdn_urls[<image>]`. Phase 6.3 then writes the **real CDN URL** into each markdown image reference instead of a TODO placeholder. Nothing is staged and the Phase 9 "Screenshots to upload manually" section stays empty for these images.
+   - **Defer** → the existing async behavior: stage each image under `<screenshot_staging_dir>` (the ticket's persistent Obsidian project folder resolved in Phase 1), Phase 6.3 inserts the `TODO-upload` placeholder reference, and every staged image is listed in the Phase 9 `### Screenshots to upload manually` section.
    - **Cancel** → stop and summarise.
 
-   Record the decision as `cdn_handoff_decision ∈ {upload-now, defer}` and carry it (with any `cdn_urls`) into Phase 6.
+   Record the decision as `cdn_handoff_decision ∈ {upload-now, defer}` and carry it (with any `cdn_urls`) into Phase 6.3.
 
 ---
 
-## Phase 6 — Write documentation
-
-**Execution order with Phase 6.5 (branch setup).** When branching applies — write context `docs_repo` (or confirmed `non_docs_repo`) **and** the user opted into branching at plan approval — **Phase 6.5 runs *before* this phase**: it creates (or, for an inline-profiling run, renames) the branch off the base, and this phase then writes and commits onto that branch. Follow this execution order, not the numeric phase order (the `6.2`/`6`/`6.5`/`6.7`/`6.8` cluster is pending a monotonic renumber). For `obsidian`/`plain_dir` or no-branch runs, no branch is created and this phase writes in place without committing.
-
-The writing is delegated to the **`doc-writer`** subagent (pinned to the §2 Opus reasoning chain — see `classification.md` §9.2). The orchestrator prepares a structured handoff and dispatches; it does not write pages itself.
-
-1. **Write the handoff file.** Create a temp file (`mktemp`, e.g. `$(mktemp -t dw-<JIRA_KEY>-XXXX.yml)` — never the vault, never the docs repo) containing the `doc-writer` input contract: `jira_reader_handoff`, `diff_summaries`, `write_targets`, `doc_planner_checklist` (+ gap dispositions), `discrepancy_decisions` (Phase 5.8), `write_strategies` (Phase 5.9), `cdn_handoff_decision` + `cdn_urls` + `screenshot_staging_dir` + `screenshots` (Phase 6.2), `target_spaces`, `profile`, `docs_repo_path`, and `bug_report_destination`. Record its absolute path.
-
-2. **Dispatch the writer:**
-
-→ Agent (subagent_type: "dev-workflows:doc-writer", model: `<planning_model — §9 / §2 Opus chain>`):
-  > "Write the product documentation for this brief.
-  >
-  > handoff_file: [absolute path of the temp handoff file from step 1]"
-
-3. **Handle the return.**
-   - **`status: DONE`** — record `files_written` + `notes` for Phases 6.7 / 6.8 / 7 / 8. Then **commit** per the branch/commit policy below.
-   - **`status: BLOCKED`** — surface the named gap to the user:
-     ```
-     choices: ["Provide the missing input (you'll be prompted)", "Cancel"]
-     ```
-     On a provided value, rewrite the handoff file and re-dispatch once.
-
-Write context governs branch/commit (Phase 0 step 7); **the orchestrator commits the writer's output** (the writer never commits):
-
-| Write context | Branch | Commit |
-|---|---|---|
-| `obsidian` | NEVER | NEVER |
-| `docs_repo` | YES (opt-in confirmed at plan approval) — see Phase 6.5 | YES (orchestrator commits doc-writer's `files_written`) |
-| `non_docs_repo` | Phase 0 step 3 already asked user to confirm; if confirmed, behave as `docs_repo` | YES (if user confirmed at Phase 0) |
-| `plain_dir` | NEVER | NEVER |
-
----
-
-## Phase 6.5 — Branch setup (conditional)
+## Phase 6.2 — Branch setup (conditional)
 
 Run this phase only when write context = `docs_repo` (or `non_docs_repo` after user confirmed at Phase 0 step 3) AND the user confirmed branching at plan approval. Never for `obsidian` or `plain_dir`.
 
@@ -576,19 +542,51 @@ No external CLI calls; all git operations are local.
 
 ---
 
-## Phase 6.7 — Style check (before reviewer)
+## Phase 6.3 — Write documentation
+
+The writing is delegated to the **`doc-writer`** subagent (pinned to the §2 Opus reasoning chain — see `classification.md` §9.2). The orchestrator prepares a structured handoff and dispatches; it does not write pages itself.
+
+1. **Write the handoff file.** Create a temp file (`mktemp`, e.g. `$(mktemp -t dw-<JIRA_KEY>-XXXX.yml)` — never the vault, never the docs repo) containing the `doc-writer` input contract: `jira_reader_handoff`, `diff_summaries`, `write_targets`, `doc_planner_checklist` (+ gap dispositions), `discrepancy_decisions` (Phase 5.8), `write_strategies` (Phase 5.9), `cdn_handoff_decision` + `cdn_urls` + `screenshot_staging_dir` + `screenshots` (Phase 6.1), `target_spaces`, `profile`, `docs_repo_path`, and `bug_report_destination`. Record its absolute path.
+
+2. **Dispatch the writer:**
+
+→ Agent (subagent_type: "dev-workflows:doc-writer", model: `<planning_model — §9 / §2 Opus chain>`):
+  > "Write the product documentation for this brief.
+  >
+  > handoff_file: [absolute path of the temp handoff file from step 1]"
+
+3. **Handle the return.**
+   - **`status: DONE`** — record `files_written` + `notes` for Phases 6.7 / 6.8 / 7 / 8. Then **commit** per the branch/commit policy below.
+   - **`status: BLOCKED`** — surface the named gap to the user:
+     ```
+     choices: ["Provide the missing input (you'll be prompted)", "Cancel"]
+     ```
+     On a provided value, rewrite the handoff file and re-dispatch once.
+
+Write context governs branch/commit (Phase 0 step 7); **the orchestrator commits the writer's output** (the writer never commits):
+
+| Write context | Branch | Commit |
+|---|---|---|
+| `obsidian` | NEVER | NEVER |
+| `docs_repo` | YES (opt-in confirmed at plan approval) — see Phase 6.2 | YES (orchestrator commits doc-writer's `files_written`) |
+| `non_docs_repo` | Phase 0 step 3 already asked user to confirm; if confirmed, behave as `docs_repo` | YES (if user confirmed at Phase 0) |
+| `plain_dir` | NEVER | NEVER |
+
+---
+
+## Phase 6.4 — Style check (before reviewer)
 
 **Mandatory:** the orchestrator MUST dispatch `docs-style-checker` and act on its return — never skip on its own judgement of which linters are installed.
 
 `docs-style-checker` runs the chain **internally**: the repo's primary linter (Vale, etc.) AND — when the `dt-style-guide` plugin is installed — `dt-style-checker` as a complementary semantic / cross-page-consistency pass, merging and deduping both finding sets. The two are complementary, not redundant (Vale: lexical at scale + frontmatter; `dt-style-checker`: engineer jargon, cross-page label consistency, subject-verb agreement, plural/singular label mismatch). The command does NOT invoke `dt-style-checker` separately — the agent already did.
 
-Invoke `docs-style-checker` on the files written in Phase 6:
+Invoke `docs-style-checker` on the files written in Phase 6.3:
 
 → Agent (subagent_type: "dev-workflows:docs-style-checker", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Run the style check for this brief:
   >
   > repo_root: [the resolved docs_repo_path (Phase 0)]
-  > files:     [absolute paths of every file written or modified in Phase 6]"
+  > files:     [absolute paths of every file written or modified in Phase 6.3]"
 
 Act on the return:
 
@@ -616,13 +614,13 @@ Act on the return:
 
 ---
 
-## Phase 6.8 — Render verification
+## Phase 6.5 — Render verification
 
-Run this phase after Phase 6.7 **only** when Phase 6 wrote files into a buildable docs repo (write context `docs_repo`, or `non_docs_repo` confirmed at Phase 0). Skip for `obsidian` / `plain_dir` (nothing was written into a repo that builds). Mechanics: `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/render-verification.md`. "Affected pages" = every file written or modified in Phase 6.
+Run this phase after Phase 6.4 **only** when Phase 6.3 wrote files into a buildable docs repo (write context `docs_repo`, or `non_docs_repo` confirmed at Phase 0). Skip for `obsidian` / `plain_dir` (nothing was written into a repo that builds). Mechanics: `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/render-verification.md`. "Affected pages" = every file written or modified in Phase 6.3.
 
 ### Step 1 — Build check (gating)
 
-Run `profile.commands.build` if the profile defines one. Do NOT re-run the Phase 6.7 prose linter. Classify any failure:
+Run `profile.commands.build` if the profile defines one. Do NOT re-run the Phase 6.4 prose linter. Classify any failure:
 - **Content failure** (Handlebars won't compile, unresolved snippet include, broken postid/internal link, malformed conditional) → invoke `doc-fixer` (Severities: BLOCKER and MAJOR), then re-run the build once. If failures remain:
   ```
   choices: ["Proceed to smoke-check anyway", "Show remaining and fix manually", "Cancel"]
@@ -675,12 +673,12 @@ Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `revi
   > "Review the written product documentation for this brief:
   >
   > Task description: [one-paragraph summary of the feature and <JIRA_KEY>]
-  > Written doc file paths: [absolute paths of every file written in Phase 6]
+  > Written doc file paths: [absolute paths of every file written in Phase 6.3]
   > Jira directory path:    [$VAULT_PATH/jira-products/<JIRA_KEY>/]
   > Diff summaries:         [array of diff-summarizer outputs from Phase 5]
   > doc-planner checklist:  [the full YAML from Phase 5.7]
-  > style-check report: [the violations output from Phase 6.7 — from docs-style-checker or dt-style-checker (fallback), or 'status: NOT_CONFIGURED' if neither ran]
-  > render_verification: [the Phase 6.8 summary — build result; smoke-check per space (passed / skipped with reason); cross-space invariant check result]
+  > style-check report: [the violations output from Phase 6.4 — from docs-style-checker or dt-style-checker (fallback), or 'status: NOT_CONFIGURED' if neither ran]
+  > render_verification: [the Phase 6.5 summary — build result; smoke-check per space (passed / skipped with reason); cross-space invariant check result]
   > code_repos:         [the Phase-4 resolved {slug, path} map; [] if none resolved]"
 
 Act on the verdict:
@@ -713,7 +711,7 @@ Cap: one fix cycle + one re-review maximum.
 
 First gather the change context:
 
-a. Run `git -C <docs_repo_path> diff --stat` against the base branch (if branching happened at Phase 6.5) or against HEAD (if no branching) and capture the list of changed files.
+a. Run `git -C <docs_repo_path> diff --stat` against the base branch (if branching happened at Phase 6.2) or against HEAD (if no branching) and capture the list of changed files.
 b. Compose a **change summary block**:
 
 ```
@@ -782,13 +780,13 @@ Collect all four summaries for the Phase 9 report.
 
 ## Phase 8.5 — Finish & handoff
 
-Run this phase only when Phase 6 wrote + committed in a git repo (write context `docs_repo`, or `non_docs_repo` confirmed at Phase 0) — i.e. a branch with this run's commits exists. Skip otherwise (nothing to hand off). Mechanics: `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md`.
+Run this phase only when Phase 6.3 wrote + committed in a git repo (write context `docs_repo`, or `non_docs_repo` confirmed at Phase 0) — i.e. a branch with this run's commits exists. Skip otherwise (nothing to hand off). Mechanics: `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md`.
 
 ### Step 1 — Squash (always)
 
 Fold the run into clean history before handoff:
-1. Stage the run's uncommitted docs-repo edits — Phase 8 Agent 1 (doc index / cross-links) and Agent 3 (`CLAUDE.md`) may have edited without committing; the Phase 6.5 clean-tree check means everything uncommitted is this run's work.
-2. Compute the squash base: if Phase 6.5 recorded `profile_commit` (inline-profiling run), base = `profile_commit` (keeps the profile-config commit as a distinct first commit → two commits); otherwise base = `git merge-base <base_branch> HEAD` (one commit).
+1. Stage the run's uncommitted docs-repo edits — Phase 8 Agent 1 (doc index / cross-links) and Agent 3 (`CLAUDE.md`) may have edited without committing; the Phase 6.2 clean-tree check means everything uncommitted is this run's work.
+2. Compute the squash base: if Phase 6.2 recorded `profile_commit` (inline-profiling run), base = `profile_commit` (keeps the profile-config commit as a distinct first commit → two commits); otherwise base = `git merge-base <base_branch> HEAD` (one commit).
 3. `git add` the docs-repo changes → `git reset --soft <squash-base>` → one `git commit`. The message follows `profile.commit_convention` when present (dynatrace-docs: `<JIRA-KEY> <summary>`); for a repo with no such field, infer from recent `git log` / `CONTRIBUTING`, else fall back to `<JIRA_KEY> <summary>`. NEVER put the Jira key in a reader-visible changelog — the commit message carries traceability.
 
 ### Step 2 — Offer push
@@ -804,7 +802,7 @@ choices: ["Push <branch> to origin now", "Skip — I'll push later", "Cancel"]
 
 Per `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md` §4–§5:
 1. **Detect the host** from the docs repo's `git remote get-url origin` (Bitbucket Cloud / Bitbucket Server / GitHub / other).
-2. **Compose the draft**: title (per `commit_convention`); body — what was documented, the output files, the Phase 6.8 render-verification summary, deferred style/review/render items, a link to the Jira VI. When Phase 5.8 recorded any `document-as-spec` / `skip-and-report` decision, prepend a banner: `> ⚠ DO NOT MERGE until <JIRA_KEY>-implementation-gaps.md is resolved.`
+2. **Compose the draft**: title (per `commit_convention`); body — what was documented, the output files, the Phase 6.5 render-verification summary, deferred style/review/render items, a link to the Jira VI. When Phase 5.8 recorded any `document-as-spec` / `skip-and-report` decision, prepend a banner: `> ⚠ DO NOT MERGE until <JIRA_KEY>-implementation-gaps.md is resolved.`
 3. **Write + show**: write `<JIRA_KEY>-pr-draft.md` to the vault project folder (`find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"`; ask if none) AND print it.
 4. **Host footer**: Bitbucket → "open a PR in the web UI and paste the title + body"; GitHub → additionally offer `gh pr create --title "<title>" --body-file <pr-draft path>` that the user may run; other → "open a PR and paste the title + body". The plugin never opens the PR itself.
 
@@ -847,13 +845,13 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 - ...
 
 ### Branch
-[branch name created in Phase 6.5, e.g. docs/<jira-key>-<slug>] OR "N/A — no branch created (context: obsidian / plain_dir / user declined branching)"
+[branch name created in Phase 6.2, e.g. docs/<jira-key>-<slug>] OR "N/A — no branch created (context: obsidian / plain_dir / user declined branching)"
 
 ### Render verification
 - Build: [ran — pass/fail | no build command — boot is the proof | unverified (reason)]
 - Smoke-check: [per space — passed (N pages, HTTP 200) | skipped (reason)] OR "not run (user skipped)"
 - Cross-space invariant: [verified (markers present in target, absent in protected) | not checked | VIOLATION — see deferred items]
-- Pages to visit: [the Phase 6.8 Step 3 table]
+- Pages to visit: [the Phase 6.5 Step 3 table]
 
 ### Doc review verdict
 [PASS | PASS WITH RECOMMENDATIONS | BLOCK] — [1-line summary of findings applied / deferred]
@@ -871,7 +869,7 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 - [top suggestions from impl-maintenance agent, or "no suggestions — routine session"]
 
 ### Screenshots to upload manually
-[Only populated for the **Defer** path of Phase 6.2 — i.e. a target used image_policy: cdn_upload_required (or the user selected "Stage for manual upload" under the ambiguous branch) AND the user chose "Defer — stage with TODO placeholders" at the Phase 6.2 CDN handoff. For each staged screenshot: src (original user-provided path), staging path under <screenshot_staging_dir> (the persistent Obsidian project folder), the target page it belongs on, the proposed alt-text, and the upload_note from the planner. Omit this section entirely when no screenshots were staged — including when the user chose "Upload now" in Phase 6.2 (those images carry real CDN URLs in the markdown and need no manual step).]
+[Only populated for the **Defer** path of Phase 6.1 — i.e. a target used image_policy: cdn_upload_required (or the user selected "Stage for manual upload" under the ambiguous branch) AND the user chose "Defer — stage with TODO placeholders" at the Phase 6.1 CDN handoff. For each staged screenshot: src (original user-provided path), staging path under <screenshot_staging_dir> (the persistent Obsidian project folder), the target page it belongs on, the proposed alt-text, and the upload_note from the planner. Omit this section entirely when no screenshots were staged — including when the user chose "Upload now" in Phase 6.1 (those images carry real CDN URLs in the markdown and need no manual step).]
 
 ### Implementation gaps (Jira vs source)
 [Populated when Phase 5.8 produced any document-as-spec / skip-and-report decision. List each gap (claim, decision) and: "Bug-report draft written to <path>. If docs were branched, DO NOT merge the PR until these gaps are resolved." Omit when there were no discrepancies.]
@@ -900,7 +898,7 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 - NEVER write inside `jira-products/` — that path is re-created from scratch on every Jira import; writes there will be lost
 - NEVER write product documentation outside the resolved `docs_repo_path` (Phase 0); the only other writes are to the ticket's vault project folder under `$VAULT_PATH` (the `<JIRA_KEY>-implementation-gaps.md` bug-report draft, the `<JIRA_KEY>-pr-draft.md`, and screenshot staging) — never anywhere else.
 - ALWAYS escalate missing repos before proceeding — never silent skip
-- ALWAYS invoke `docs-style-checker` (Phase 6.7) before `doc-reviewer` (Phase 7)
+- ALWAYS invoke `docs-style-checker` (Phase 6.4) before `doc-reviewer` (Phase 7)
 - ALWAYS invoke `doc-reviewer` before Phase 8 maintenance
 - ALWAYS resolve the `model_routing` block at Phase 1.5 and pin each subagent dispatch to its §9 chain via `model:` — `doc-planner` to the §2 Opus chain, the mechanical steps (`jira-reader`, `diff-summarizer`, `doc-location-finder`, `docs-style-checker`, `doc-fixer`, maintenance) to the §2.1 Sonnet chain; `doc-reviewer` keeps its frontmatter Opus pin (no override); the inline writer + gates run on `current_model` (advisory only)
 - ALWAYS cap review/fix cycles: 1 fix + 1 re-review max

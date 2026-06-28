@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
-# Fires on every message submission. Matches /impl, /impl:code, /impl:docs,
-# /impl:jira:docs, /impl:jira:epics, /vuln, /upgrade and routes per spec §3:
-#   • /impl:code, /vuln, /upgrade       → full (model-routing + git status +
+# Fires on every message submission. Matches /implement, /document, /epics,
+# /release-notes, /vuln, /upgrade and routes per spec §3:
+#   • /implement, /vuln, /upgrade       → full (model-routing + git status +
 #                                         recent commits + small-repo directory listing)
-#   • /impl:jira:docs, /impl:jira:epics → $VAULT_PATH + $REPOS_PATH default
+#   • /document                         → Jira context iff the argument is a
+#                                         JiraID (e.g. /document PRODUCT-14902);
+#                                         free-text / @file → silent (direct-edit
+#                                         mode owns its own git hygiene and never
+#                                         invokes Opus)
+#   • /epics, /release-notes            → $VAULT_PATH + $REPOS_PATH default
 #                                         + git branch only if cwd is inside
 #                                         a git repo (no model-routing,
 #                                         no full status/log, no directory listing)
-#   • /impl                             → silent (dispatcher / help-only; as of 1.1.0
-#                                         /impl does not execute any workflow)
-#   • /impl:docs                        → silent (user manages git manually;
-#                                         model-routing not triggered)
+#   • /docs-profile                     → not matched (no context injected)
 #
 # Exits immediately (near-zero overhead) if the message doesn't match.
 # Always exits 0 — must never block Claude.
@@ -30,11 +32,11 @@ except Exception:
     print('')
 " 2>/dev/null) || true
 
-# Require at least one non-whitespace, non-flag argument so bare `/impl` or
-# `/impl --help` doesn't inject noise on every misfire. The first capture group
-# holds the full command token (e.g. "impl", "impl:code", "impl:jira:docs") —
-# see spec §3 "Hook scope" for the normative regex.
-if [[ ! "$prompt" =~ ^/(impl(:(code|docs|jira(:(docs|epics|release-notes))?))?|vuln|upgrade)[[:space:]]+[^[:space:]-] ]]; then
+# Require at least one non-whitespace, non-flag argument so bare `/document` or
+# `/implement --help` doesn't inject noise on every misfire. The first capture
+# group holds the command token (e.g. "implement", "document", "release-notes")
+# — see spec §3 "Hook scope" for the normative regex.
+if [[ ! "$prompt" =~ ^/(implement|document|epics|release-notes|vuln|upgrade)[[:space:]]+[^[:space:]-] ]]; then
     exit 0
 fi
 cmd="${BASH_REMATCH[1]}"
@@ -75,39 +77,39 @@ emit_dir_listing_if_small() {
     fi
 }
 
+emit_jira_context() {
+    echo "=== Auto-injected project context (Jira workflow) ==="
+    if [[ -n "${VAULT_PATH:-}" ]]; then
+        echo "VAULT_PATH: $VAULT_PATH"
+    else
+        echo "VAULT_PATH: (not set — the command will ask in Phase 1)"
+    fi
+    echo "repos_path: ${REPOS_PATH:-/workspace} (default — the command will confirm or ask)"
+    emit_git_branch_if_repo
+}
+
 # --- per-command routing (spec §3 table) ---------------------------------
 case "$cmd" in
-    impl|impl:docs)
-        # Silent:
-        #   • /impl      — dispatcher (help-only); injected context would be noise.
-        #   • /impl:docs — owns its own git hygiene and never invokes Opus.
-        exit 0
-        ;;
-    impl:jira*)
-        # /impl:jira:docs and /impl:jira:epics. Catches bare /impl:jira too
-        # (the regex allows it as a spec-intentional over-match) — handled
-        # identically since any path into the :jira branch needs the same
-        # vault/repos_path context.
-        echo "=== Auto-injected project context (Jira workflow) ==="
-        if [[ -n "${VAULT_PATH:-}" ]]; then
-            echo "VAULT_PATH: $VAULT_PATH"
-        else
-            echo "VAULT_PATH: (not set — the command will ask in Phase 1)"
-        fi
-        echo "repos_path: ${REPOS_PATH:-/workspace} (default — the command will confirm or ask)"
-        emit_git_branch_if_repo
-        ;;
-    impl:code|vuln|upgrade)
-        # Full — code / security / upgrade commands benefit from the full
-        # git context plus the model-routing reminder.
+    implement|vuln|upgrade)
+        # Full — code / security / upgrade benefit from full git context + model-routing.
         echo "=== Auto-injected project context ==="
         emit_model_routing
         emit_git_full
         emit_dir_listing_if_small
         ;;
+    document)
+        # Mode-aware: a JiraID argument → Jira context; free-text / @file → silent
+        # (direct-edit mode owns its own git hygiene and never invokes Opus).
+        if [[ "$prompt" =~ ^/document[[:space:]]+[A-Z][A-Z0-9]+-[0-9]+ ]]; then
+            emit_jira_context
+        fi
+        ;;
+    epics|release-notes)
+        # Jira-driven, vault + repos context.
+        emit_jira_context
+        ;;
     *)
-        # Unreachable given the regex above; exit silently if the regex
-        # is ever widened without updating this switch.
+        # Unreachable given the regex; exit silently if the regex is ever widened.
         exit 0
         ;;
 esac

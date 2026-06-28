@@ -28,7 +28,9 @@ Before writing, validate the handoff. Return `status: BLOCKED` with the specific
 - the handoff file is missing/unreadable, or `write_targets` is empty;
 - a target's `write_strategy.strategy` is `override-copy` or `conditional` but `target_space` is absent;
 - a target's home space (matched against `profile.spaces[].content_root`/`snippet_root`) is **not** in `target_spaces` and the target is not an `override-copy` destination;
-- a screenshot has `image_policy: cdn_upload_required`, `cdn_handoff_decision: upload-now`, but no `cdn_urls[<image>]`.
+- a screenshot has `image_policy: cdn_upload_required`, `cdn_handoff_decision: upload-now`, but no `cdn_urls[<image>]`;
+- a screenshot has `image_policy: cdn_upload_required` and `cdn_handoff_decision: defer` but `screenshot_staging_dir` is absent/null;
+- any target's `image_policy` is still `ambiguous` (the orchestrator must resolve it before dispatch);
 
 ## Write mechanics
 
@@ -52,12 +54,8 @@ For each target in the confirmed write-target list:
    - **`local`** → copy each user-provided `src` to the planner's `dest` path (typically `<page-dir>/img/` or the detected idiomatic directory). Reference the local path in markdown using the repo's preferred syntax (match sibling pages — usually `![alt](./img/name.png)` or similar).
    - **`cdn_upload_required`** → **do NOT copy user-provided screenshots into the repo.** Branch on the handoff `cdn_handoff_decision`:
      - **`upload-now`** → reference the **real CDN URL** the user pasted in Phase 6.2 (`cdn_urls[<image>]`) directly in the markdown image reference — e.g. `![alt text](<pasted CDN URL>)`. Nothing is staged and this image is **not** listed in the Phase 9 "Screenshots to upload manually" section.
-     - **`defer`** → the existing async behavior. Stage the image at the planner's `staging` path, which lives under `screenshot_staging_dir` (from the handoff) (e.g. `…/Projects/…/<JIRA_KEY> - <name>/Doc screenshots/`). `$VAULT_PATH` is always host-mounted, so the staged files survive a container restart (the docs repo and `/tmp` may not). Create the staging directory if it does not exist. If `<screenshot_staging_dir>` was skipped/null, prompt the user for a persistent directory now. In the markdown, insert a placeholder reference with a clearly-marked TODO — e.g. `![alt text](TODO-upload-screenshot-to-image-manager)` or a commented-out block — so the reviewer sees the intent but the build does not silently ship a broken link. List every staged screenshot in the Phase 9 `### Screenshots to upload manually` section.
-   - **`ambiguous`** → ask the user at this step, per target:
-     ```
-     choices: ["Use local path <page-dir>/img/ (Recommended if this repo uses local images)", "Stage for manual upload to the repo's image-management tool", "Skip this screenshot", "Other… (describe)"]
-     ```
-     Apply the chosen branch.
+     - **`defer`** → the existing async behavior. Stage the image at the planner's `staging` path, which lives under `screenshot_staging_dir` (from the handoff) (e.g. `…/Projects/…/<JIRA_KEY> - <name>/Doc screenshots/`). `$VAULT_PATH` is always host-mounted, so the staged files survive a container restart (the docs repo and `/tmp` may not). Create the staging directory if it does not exist. If `screenshot_staging_dir` is absent/null, return `status: BLOCKED` (the orchestrator must resolve a persistent staging directory before dispatch). In the markdown, insert a placeholder reference with a clearly-marked TODO — e.g. `![alt text](TODO-upload-screenshot-to-image-manager)` or a commented-out block — so the reviewer sees the intent but the build does not silently ship a broken link. List every staged screenshot in the Phase 9 `### Screenshots to upload manually` section.
+   - **`ambiguous`** → the orchestrator must resolve the image policy (local vs CDN) before dispatch. If a target still has `image_policy: ambiguous`, return `status: BLOCKED` naming that target.
 6. **Traceability** — every claim must cite the originating Jira key (e.g. `[[<JIRA_KEY>]]`) and/or PR URL inline. When a claim comes only from imported Jira content (no PR resolved), cite the Jira key alone.
 
 7. **Apply discrepancy decisions** (from the handoff `discrepancy_decisions`), per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.4–§7.6:

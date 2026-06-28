@@ -77,7 +77,21 @@ No branching context is shown — this command never branches.
 
 Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the classification rules, then classify the task as exactly one of: `SIMPLE`, `MODERATE`, `SIGNIFICANT`, or `HIGH-RISK`. Epic writing is typically **MODERATE** (bounded scope, single VI, vault-internal output). State the classification and a one-sentence reason.
 
-MODERATE → no Opus planning; `epic-reviewer` gate is mandatory.
+MODERATE → no separate Opus planner; the `epic-reviewer` gate (Opus, frontmatter-pinned) is mandatory. Resolve the per-step routing per `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §9:
+
+```yaml
+model_routing:
+  classification: MODERATE        # typical; SIGNIFICANT possible
+  reason: <one-line>
+  current_model: <the model this orchestrator is running under>
+  detection_model: <§2.1 Sonnet chain: claude-sonnet-4-6, fallback claude-sonnet-4-5>   # jira-reader, code-scanner, dt-style-checker, doc-fixer, epic-writer (MODERATE)
+  review_model:    <§2 Opus chain>     # epic-reviewer (frontmatter-pinned; recorded, no override)
+  implementation_model: <= detection_model>   # the epic-writer subagent (Phase 6); planning_model if SIGNIFICANT/HIGH-RISK
+  opus_available: <true if a §2 Opus model resolved, else false>
+  notes: <any §2/§2.1 fallback or degradation>
+```
+
+Each subagent dispatch below cites its chain (§9 role→chain map). **No relaunch advisory** for MODERATE — the writer runs on its detection pin and the gates run on `current_model`, which §3.1 allows (if a run is classified SIGNIFICANT/HIGH-RISK, the §9.1 advisory applies and `epic-writer` escalates to the §2 chain). If no Opus is available, `epic-reviewer` falls to the Sonnet floor — record the degradation in `notes` and the Phase 9 report.
 
 ---
 
@@ -107,7 +121,7 @@ choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
 
 Invoke `jira-reader` with `depth: vi-plus-epics`. This depth is specifically designed for Epic writing: richer than `vi-only` so themes extracted for `code-scanner` aren't starved of context, but lighter than `full` so the agent doesn't read dozens of already-closed child Stories.
 
-→ Agent (subagent_type: "dev-workflows:jira-reader"):
+→ Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Return the structured handoff for this brief:
   >
   > vault_path: [resolved $VAULT_PATH]
@@ -148,7 +162,7 @@ Spawn `code-scanner` instances in **batches of up to 4 concurrent agents** per A
 
 For each repo in the batch:
 
-→ Agent (subagent_type: "dev-workflows:code-scanner"):
+→ Agent (subagent_type: "dev-workflows:code-scanner", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Scan this repo for the brief:
   >
   > repo_path:     <resolved absolute path for this repo from Phase 4>
@@ -182,56 +196,22 @@ Handle per-repo status after the batch returns:
 
 ## Phase 6 — Write Epics
 
-The main command drafts child Epic definitions — one file per Epic — following the `jira-reader` handoff and (when code scan ran) the `code-scanner` outputs. The writer is NOT a separate subagent — it's the orchestrating command with full context from Phases 3–5 already loaded.
+The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1 Sonnet detection chain for MODERATE; §2 Opus only if the run is SIGNIFICANT/HIGH-RISK — see `classification.md` §9.2). The orchestrator prepares a handoff and dispatches; it does not write Epics itself, and **nothing commits** (epics never branches/commits — vault git is the user's responsibility).
 
-For each new Epic, emit a markdown file under the resolved output directory (default `$VAULT_PATH/jira-drafts/<JIRA_KEY>/<NEW-EPIC-SLUG>.md`):
+1. **Write the handoff file.** Create a temp file (`mktemp` — never the vault, never a repo) containing the `epic-writer` input contract: `jira_reader_handoff`, `code_scanner_outputs` (empty if no scan), `scope` (Phase 2 in/out of scope), `existing_epics` (non-duplication), `output_dir` (resolved Phase 1 dir), `vi_goal`, `jira_key`. Record its absolute path.
 
-```markdown
-# <Epic title>
+2. **Dispatch the writer:**
 
-## Goal
-<one sentence, tied concretely to the parent VI's outcome>
+→ Agent (subagent_type: "dev-workflows:epic-writer", model: `<detection_model — §9 / §2.1 Sonnet chain; planning_model (§2 Opus) only if classification is SIGNIFICANT/HIGH-RISK>`):
+  > "Write the child Epic definitions for this brief.
+  >
+  > handoff_file: [absolute path of the temp handoff file from step 1]"
 
-## Business value
-<1–2 sentences linking the Epic to the VI's outcome>
-
-## Scope
-
-### In scope
-- <concretely delimited features/behaviours/surfaces>
-- ...
-
-### Out of scope
-- <concrete — not "anything else" or "future work">
-- ...
-
-## Acceptance criteria
-- <testable; each has an observable pass/fail signal — a user action + expected system response, a measurable threshold, a reproducible test case>
-- ...
-
-## Dependencies
-- <other Epics under this VI or elsewhere, repos, teams, external systems — named>
-- ...
-
-## Suggested stories
-- <high-level breakdown; each story plausibly pickup-ready without further scoping>
-- ...
-
-## References
-- Parent VI: [[<JIRA_KEY>]]
-- <code paths from code-scanner evidence, when relevant — especially classification: present or partial anchors>
-- ...
-```
-
-Create the output directory if missing (`mkdir -p`). Write every Epic file before proceeding to Phase 6.7.
-
-Traceability: every claim in each Epic must be traceable to the `jira-reader` handoff (Jira key + which item type — VI goal, existing Epic summary, Story theme) or a `code-scanner` output (`evidence.path` + symbols). Do not invent content the sources don't contain.
-
-**Write restrictions** (enforced by invariants):
-- NEVER write inside `jira-products/` — re-created on every import.
-- NEVER write inside `_archive/` — read-only by convention.
-- NEVER write outside `$VAULT_PATH`.
-- ALWAYS write inside the resolved output directory from Phase 1 (default `jira-drafts/<VI-KEY>/`).
+3. **Handle the return.** `status: DONE` → record `files_written` for Phase 6.7 onward. `status: BLOCKED` → surface the named gap:
+   ```
+   choices: ["Provide the missing input (you'll be prompted)", "Cancel"]
+   ```
+   On a provided value, rewrite the handoff and re-dispatch once. Nothing is committed (vault git is the user's responsibility).
 
 ---
 
@@ -239,7 +219,7 @@ Traceability: every claim in each Epic must be traceable to the `jira-reader` ha
 
 Invoke `dt-style-checker` on the files written in Phase 6. Unlike `/impl:jira:docs`, this does NOT use `docs-style-checker` (no repo linter for vault content). Instead, the Dynatrace corporate style guide checker validates terminology, trademarks, voice/tone, and inclusive language.
 
-→ Agent (subagent_type: "dt-style-guide:dt-style-checker"):
+→ Agent (subagent_type: "dt-style-guide:dt-style-checker", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Run the style check for this brief:
   >
   > files:    [absolute paths of every Epic file written in Phase 6]
@@ -250,7 +230,7 @@ Act on the return:
 - **`status: OK`** — zero violations. Proceed to Phase 7.
 - **`status: VIOLATIONS_FOUND`** — invoke `doc-fixer` with the violations treated as per their severity. After `doc-fixer` completes, re-run `dt-style-checker` once:
 
-  → Agent (subagent_type: "dev-workflows:doc-fixer"):
+  → Agent (subagent_type: "dev-workflows:doc-fixer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
     > "Fix the style violations for this brief:
     >
     > Task description: [Epic drafting for <JIRA_KEY>]
@@ -288,7 +268,7 @@ Act on the verdict (same shape as `/impl:jira:docs` Phase 7):
 
 - **PASS WITH RECOMMENDATIONS** — invoke `doc-fixer` for MAJOR findings only:
 
-  → Agent (subagent_type: "dev-workflows:doc-fixer"):
+  → Agent (subagent_type: "dev-workflows:doc-fixer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
     > "Fix the review findings for this brief:
     >
     > Task description: [Epic drafting for <JIRA_KEY>]
@@ -384,6 +364,13 @@ Output a structured report — do NOT ask any closing confirmation:
 ### Classification
 MODERATE — vault-internal Epic drafting for a single VI
 
+### Model Routing
+- Session model (current_model): [model]
+- epic-writer (implementation_model): [model] — detection (MODERATE) | reasoning (SIGNIFICANT)
+- Detection steps — jira-reader, code-scanner, dt-style-checker, doc-fixer (detection_model): [model]
+- epic-reviewer (review_model): [model]
+- Opus available: [yes | no]
+
 ### VI summary
 - Key: <JIRA_KEY>
 - Summary: [VI summary, 1 line]
@@ -444,6 +431,8 @@ The vault has uncommitted changes. `/impl:jira:epics` never commits — vault gi
 - ALWAYS write to `jira-drafts/<JIRA_KEY>/` (or the user-confirmed alternative under `$VAULT_PATH`) — auto-create the directory if missing
 - ALWAYS escalate missing repos before proceeding — never silent skip
 - ALWAYS invoke `epic-reviewer` before Phase 8 maintenance
+- ALWAYS resolve the `model_routing` block at Phase 1.5 and pin each subagent dispatch to its §9 chain via `model:` — the mechanical steps (`jira-reader`, `code-scanner`, `dt-style-checker`, `doc-fixer`) and `epic-writer` (MODERATE) to the §2.1 Sonnet chain; `epic-reviewer` keeps its frontmatter Opus pin (no override); coordination + interactive gates run on `current_model`
+- ALWAYS delegate Phase 6 writing to the `epic-writer` subagent (write-only); the orchestrator never writes Epics itself and never commits (vault git is the user's responsibility)
 - ALWAYS cap review/fix cycles: 1 fix + 1 re-review max
 - ALWAYS pass `Change type: docs` in the Phase 8 change summary block
 - ALWAYS pass `Command run: /impl:jira:epics` in the Phase 8 Agent 4 session handoff

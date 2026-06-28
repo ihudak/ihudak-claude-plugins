@@ -156,7 +156,37 @@ Also display (for user context):
 
 Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the classification rules, then classify the task as exactly one of: `SIMPLE`, `MODERATE`, `SIGNIFICANT`, or `HIGH-RISK`. Jira-driven feature docs are typically **SIGNIFICANT** (large blast radius if wrong — published documentation). State the classification and a one-sentence reason.
 
-SIGNIFICANT → no Opus planning (the Jira hierarchy + diff summaries *are* the plan); `doc-reviewer` gate is mandatory.
+SIGNIFICANT → no separate Opus **risk-planner** for the high-level plan (the Jira hierarchy + diff summaries *are* the plan), **but `doc-planner` (Phase 5.7) is pinned to the §2 Opus reasoning chain**; the `doc-reviewer` gate (Opus) is mandatory.
+
+**Resolve the per-step routing.** Following `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §9, record a `model_routing` block (reusing the §4 field names) resolving each model against the fallback chains:
+
+```yaml
+model_routing:
+  classification: SIGNIFICANT
+  reason: <one-line>
+  current_model: <the model this orchestrator is running under>   # = the inline writer + Phase 5.8 framing
+  detection_model: <§2.1 mid-tier Sonnet chain: claude-sonnet-4-6, fallback claude-sonnet-4-5>
+  planning_model:  <§2 powerful chain: claude-opus-4-8 … fallback Sonnet per §2>   # doc-planner (5.7)
+  review_model:    <§2 powerful chain>     # doc-reviewer (frontmatter-pinned; recorded here, no override added)
+  implementation_model: <= current_model>  # the INLINE writer (Phase 6) + discrepancy framing (5.8); not overridable
+  fixes_model: <= detection_model>         # doc-fixer (6.7 / 7) runs on the detection chain
+  opus_available: <true if a §2 Opus model resolved, else false>
+  notes: <any §2 / §2.1 fallback or degradation>
+```
+
+Each subagent dispatch below cites which chain it uses (the §9 role→chain map): `doc-planner` → `planning_model`; `jira-reader`, `diff-summarizer`, `doc-location-finder`, `docs-style-checker`, `doc-fixer`, and the Phase 8 maintenance agents → `detection_model`; `doc-reviewer` keeps its own frontmatter Opus pin (recorded as `review_model`, no override added).
+
+**Writer / orchestration advisory.** The Phase 0–9 coordination, the discrepancy (5.8) and write-strategy (5.9) gates, and the prose writing (Phase 6) run on `current_model` and cannot be delegated. So:
+
+- **`current_model` is on the §2 Opus chain** → no advisory; the detection steps still de-escalate to Sonnet via their overrides.
+- **`current_model` is NOT on the §2 chain and `opus_available: true`** → advise relaunching on Opus:
+  ```
+  ⚠ This run is on <current_model>. /impl:jira:docs is a long, judgment-heavy, context-heavy orchestration: the Phase 0–9 coordination, the discrepancy (5.8) and write-strategy (5.9) gates, and the prose writing (Phase 6) all run on the session model and cannot be delegated. Opus is recommended for the whole run — better reasoning on the gates and the prose, plus a 1M context window that removes window pressure on large multi-repo tickets. doc-planner (5.7) is escalated to Opus regardless of this choice.
+
+  choices: ["Relaunch /impl:jira:docs under Opus — I'll restart (Recommended)", "Proceed on <current_model> — record the degradation in the report", "Cancel"]
+  ```
+  "Relaunch" → stop cleanly with the relaunch instruction (a running command cannot change its own session model). "Proceed" → set a degradation flag carried into the Phase 9 report. "Cancel" → stop.
+- **`current_model` is NOT on the §2 chain and `opus_available: false`** → skip the relaunch offer; set `planning_model` and `review_model` to the Sonnet floor; record in `notes` and the Phase 9 report that `doc-planner`, `doc-reviewer`, **and** the writer all ran degraded (per §9.3 / §2); proceed.
 
 ---
 
@@ -189,7 +219,7 @@ choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
 
 Invoke `jira-reader` with `depth: full`:
 
-→ Agent (subagent_type: "dev-workflows:jira-reader"):
+→ Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Return the structured handoff for this brief:
   >
   > vault_path: [resolved $VAULT_PATH]
@@ -253,7 +283,7 @@ Spawn `diff-summarizer` instances in **batches of up to 4 concurrent agents** pe
 
 For each repo, in the same Agent message:
 
-→ Agent (subagent_type: "dev-workflows:diff-summarizer"):
+→ Agent (subagent_type: "dev-workflows:diff-summarizer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Summarise this repo's PRs for the brief:
   >
   > repo_path:     <resolved absolute path for this repo from Phase 4>
@@ -292,7 +322,7 @@ choices: ["Proceed with Jira-only content (Recommended — writer/planner draw f
 
 Invoke `doc-location-finder`:
 
-→ Agent (subagent_type: "dev-workflows:doc-location-finder"):
+→ Agent (subagent_type: "dev-workflows:doc-location-finder", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Find write target(s) for the brief:
   >
   > repo_root:       [the resolved docs_repo_path (Phase 0)]
@@ -356,7 +386,7 @@ The selected paths populate the existing **`screenshots[]`** passed to `doc-plan
 
 Invoke `doc-planner`:
 
-→ Agent (subagent_type: "dev-workflows:doc-planner"):
+→ Agent (subagent_type: "dev-workflows:doc-planner", model: `<planning_model — §9 / §2 Opus chain>`):
   > "Produce the documentation checklist for the brief:
   >
   > jira_reader_handoff: [paste full YAML from Phase 3]
@@ -565,7 +595,7 @@ No external CLI calls; all git operations are local.
 
 Invoke `docs-style-checker` on the files written in Phase 6:
 
-→ Agent (subagent_type: "dev-workflows:docs-style-checker"):
+→ Agent (subagent_type: "dev-workflows:docs-style-checker", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Run the style check for this brief:
   >
   > repo_root: [the resolved docs_repo_path (Phase 0)]
@@ -577,7 +607,7 @@ Act on the return:
 - **`status: OK`** — the chain ran (primary and/or complementary), zero merged violations. Proceed to Phase 7.
 - **`status: VIOLATIONS_FOUND`** — invoke `doc-fixer` with the violations treated as per their severity. After `doc-fixer` completes, re-run the linter once:
 
-  → Agent (subagent_type: "dev-workflows:doc-fixer"):
+  → Agent (subagent_type: "dev-workflows:doc-fixer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
     > "Fix the style violations for this brief:
     >
     > Task description: [doc writing for <JIRA_KEY>]
@@ -650,7 +680,7 @@ Carry the table and the Step 1/Step 2 outcomes into the Phase 9 `### Render veri
 
 ## Phase 7 — Doc review gate
 
-Invoke `doc-reviewer` (Opus). The reviewer is **product-docs-only**; Epic drafts go through `epic-reviewer` in `/impl:jira:epics`.
+Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `review_model`, no dispatch override added). The reviewer is **product-docs-only**; Epic drafts go through `epic-reviewer` in `/impl:jira:epics`.
 
 → Agent (subagent_type: "dev-workflows:doc-reviewer"):
   > "Review the written product documentation for this brief:
@@ -674,7 +704,7 @@ Act on the verdict:
 
 - **PASS WITH RECOMMENDATIONS** — invoke `doc-fixer` for MAJOR findings only:
 
-  → Agent (subagent_type: "dev-workflows:doc-fixer"):
+  → Agent (subagent_type: "dev-workflows:doc-fixer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
     > "Fix the review findings for this brief:
     >
     > Task description: [doc writing for <JIRA_KEY>]
@@ -709,7 +739,7 @@ Doc-review verdict: [PASS | PASS WITH RECOMMENDATIONS | BLOCK]
 
 Then spawn all four Phase 4-style maintenance agents in a **single Agent message**. They are independent and run concurrently.
 
-**Agent 1 — Documentation** (general-purpose):
+**Agent 1 — Documentation** (general-purpose, model: `<detection_model — §9 / §2.1 Sonnet chain>`):
 > "Post-write documentation review. Change summary:
 > [paste change summary block]
 >
@@ -720,7 +750,7 @@ Then spawn all four Phase 4-style maintenance agents in a **single Agent message
 > If an update is warranted: apply minimal edits to the relevant section(s).
 > Return: file updated and what changed, OR 'no update required (reason)'."
 
-**Agent 2 — Knowledge base** (general-purpose):
+**Agent 2 — Knowledge base** (general-purpose, model: `<detection_model — §9 / §2.1 Sonnet chain>`):
 > "Post-write knowledge review. Change summary:
 > [paste change summary block]
 >
@@ -735,7 +765,7 @@ Then spawn all four Phase 4-style maintenance agents in a **single Agent message
 > - **Ref**: [first 60 chars of the Jira key + feature summary]
 > Return: file updated/created and summary of entry, OR 'no update required'."
 
-**Agent 3 — Instructions** (general-purpose):
+**Agent 3 — Instructions** (general-purpose, model: `<detection_model — §9 / §2.1 Sonnet chain>`):
 > "Post-write instructions review. Change summary:
 > [paste change summary block]
 >
@@ -745,7 +775,7 @@ Then spawn all four Phase 4-style maintenance agents in a **single Agent message
 > If YES: apply minimal, additive, scoped changes only — do not rewrite sections wholesale.
 > Return: what was changed and why, OR 'no update required'."
 
-**Agent 4 — Session maintenance** (dev-workflows:impl-maintenance):
+**Agent 4 — Session maintenance** (dev-workflows:impl-maintenance, model: `<detection_model — §9 / §2.1 Sonnet chain>`):
 > "Analyse this session and return a Lessons Learned report.
 >
 > Session handoff:
@@ -802,6 +832,13 @@ Output a structured report — do NOT ask any closing confirmation:
 
 ### Classification
 SIGNIFICANT — Jira-driven feature documentation has large blast radius if wrong
+
+### Model Routing
+- Session / writer model (current_model): [model] — [if it ran degraded: "Sonnet; user proceeded past the Phase 1.5 advisory" | "Sonnet; no Opus available" | "on §2 chain — no degradation"]
+- doc-planner synthesis (planning_model): [model]
+- Detection steps — jira-reader, diff-summarizer, doc-location-finder, docs-style-checker, doc-fixer, maintenance (detection_model): [model]
+- doc-reviewer (review_model): [model]
+- Opus available: [yes | no]
 
 ### Jira hierarchy summary
 - VI: [<KEY>] [summary, 1 line]
@@ -876,6 +913,7 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 - ALWAYS escalate missing repos before proceeding — never silent skip
 - ALWAYS invoke `docs-style-checker` (Phase 6.7) before `doc-reviewer` (Phase 7)
 - ALWAYS invoke `doc-reviewer` before Phase 8 maintenance
+- ALWAYS resolve the `model_routing` block at Phase 1.5 and pin each subagent dispatch to its §9 chain via `model:` — `doc-planner` to the §2 Opus chain, the mechanical steps (`jira-reader`, `diff-summarizer`, `doc-location-finder`, `docs-style-checker`, `doc-fixer`, maintenance) to the §2.1 Sonnet chain; `doc-reviewer` keeps its frontmatter Opus pin (no override); the inline writer + gates run on `current_model` (advisory only)
 - ALWAYS cap review/fix cycles: 1 fix + 1 re-review max
 - ALWAYS pass `Change type: docs` in the Phase 8 change summary block
 - ALWAYS pass `Command run: /impl:jira:docs` in the Phase 8 Agent 4 session handoff

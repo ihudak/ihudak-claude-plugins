@@ -168,7 +168,7 @@ model_routing:
   detection_model: <§2.1 mid-tier Sonnet chain: claude-sonnet-4-6, fallback claude-sonnet-4-5>
   planning_model:  <§2 powerful chain: claude-opus-4-8 … fallback Sonnet per §2>   # doc-planner (5.7)
   review_model:    <§2 powerful chain>     # doc-reviewer (frontmatter-pinned; recorded here, no override added)
-  implementation_model: <= current_model>  # the INLINE writer (Phase 6) + discrepancy framing (5.8); not overridable
+  implementation_model: <= planning_model>  # the doc-writer subagent (Phase 6) — now a delegated, Opus-pinned writer
   fixes_model: <= detection_model>         # doc-fixer (6.7 / 7) runs on the detection chain
   opus_available: <true if a §2 Opus model resolved, else false>
   notes: <any §2 / §2.1 fallback or degradation>
@@ -176,17 +176,15 @@ model_routing:
 
 Each subagent dispatch below cites which chain it uses (the §9 role→chain map): `doc-planner` → `planning_model`; `jira-reader`, `diff-summarizer`, `doc-location-finder`, `docs-style-checker`, `doc-fixer`, and the Phase 8 maintenance agents → `detection_model`; `doc-reviewer` keeps its own frontmatter Opus pin (recorded as `review_model`, no override added).
 
-**Writer / orchestration advisory.** The Phase 0–9 coordination, the discrepancy (5.8) and write-strategy (5.9) gates, and the prose writing (Phase 6) run on `current_model` and cannot be delegated. So:
+**Orchestration advisory (window-focused).** `doc-planner` (5.7) and `doc-writer` (6) run on the §2 Opus chain regardless of session; only coordination + the interactive gates (4.5, 5.8 decision, 5.9, 6.2) run on `current_model`. So:
 
-- **`current_model` is on the §2 Opus chain** → no advisory; the detection steps still de-escalate to Sonnet via their overrides.
-- **`current_model` is NOT on the §2 chain and `opus_available: true`** → advise relaunching on Opus:
+- **`current_model` is on the §2 chain** → no advisory.
+- **`current_model` is NOT on the §2 chain and `opus_available: true`** → the heavy synthesis + writing are already on Opus; the residual risk is the orchestrator's **context window** on a **large multi-repo ticket**. Offer relaunch **only** in that case:
   ```
-  ⚠ This run is on <current_model>. /impl:jira:docs is a long, judgment-heavy, context-heavy orchestration: the Phase 0–9 coordination, the discrepancy (5.8) and write-strategy (5.9) gates, and the prose writing (Phase 6) all run on the session model and cannot be delegated. Opus is recommended for the whole run — better reasoning on the gates and the prose, plus a 1M context window that removes window pressure on large multi-repo tickets. doc-planner (5.7) is escalated to Opus regardless of this choice.
-
-  choices: ["Relaunch /impl:jira:docs under Opus — I'll restart (Recommended)", "Proceed on <current_model> — record the degradation in the report", "Cancel"]
+  choices: ["Relaunch /impl:jira:docs under Opus — I'll restart (Recommended for large multi-repo tickets)", "Proceed on <current_model>", "Cancel"]
   ```
-  "Relaunch" → stop cleanly with the relaunch instruction (a running command cannot change its own session model). "Proceed" → set a degradation flag carried into the Phase 9 report. "Cancel" → stop.
-- **`current_model` is NOT on the §2 chain and `opus_available: false`** → skip the relaunch offer; set `planning_model` and `review_model` to the Sonnet floor; record in `notes` and the Phase 9 report that `doc-planner`, `doc-reviewer`, **and** the writer all ran degraded (per §9.3 / §2); proceed.
+  Otherwise proceed without prompting.
+- **`current_model` is NOT on the §2 chain and `opus_available: false`** → `planning_model`, `review_model`, and the **doc-writer** all fall to the Sonnet floor; record the degradation in `notes` and the Phase 9 report; proceed.
 
 ---
 
@@ -505,53 +503,31 @@ Run this phase only when, in the Phase 5.7 `doc-planner` return, **any** screens
 
 **Execution order with Phase 6.5 (branch setup).** When branching applies — write context `docs_repo` (or confirmed `non_docs_repo`) **and** the user opted into branching at plan approval — **Phase 6.5 runs *before* this phase**: it creates (or, for an inline-profiling run, renames) the branch off the base, and this phase then writes and commits onto that branch. Follow this execution order, not the numeric phase order (the `6.2`/`6`/`6.5`/`6.7`/`6.8` cluster is pending a monotonic renumber). For `obsidian`/`plain_dir` or no-branch runs, no branch is created and this phase writes in place without committing.
 
-The main command writes the markdown following the `doc-planner` checklist. The writer is NOT a separate subagent — it's the orchestrating command with full context from Phases 3–5.7 already loaded.
+The writing is delegated to the **`doc-writer`** subagent (pinned to the §2 Opus reasoning chain — see `classification.md` §9.2). The orchestrator prepares a structured handoff and dispatches; it does not write pages itself.
 
-Multi-space safety is governed by `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/multi-space-writing.md`. Before writing, resolve **per-space routing** for each target:
-- Determine the target's **home space** by matching `target_path` against each `profile.spaces[].content_root`/`snippet_root` prefix.
-- A target whose home space is **not** in `target_spaces` is a routing error — stop and surface it (it should not occur once Phase 4.5/5.5 honored `target_spaces`); the one legitimate write outside `target_spaces` is an `override-copy` destination (step 0 below).
-- Apply the **approved `write_strategy`** for the target (from Phase 5.9 `write_strategies[]`; absent ⇒ `plain`).
+1. **Write the handoff file.** Create a temp file (`mktemp`, e.g. `$(mktemp -t dw-<JIRA_KEY>-XXXX.yml)` — never the vault, never the docs repo) containing the `doc-writer` input contract: `jira_reader_handoff`, `diff_summaries`, `write_targets`, `doc_planner_checklist` (+ gap dispositions), `discrepancy_decisions` (Phase 5.8), `write_strategies` (Phase 5.9), `cdn_handoff_decision` + `cdn_urls` + `screenshot_staging_dir` + `screenshots` (Phase 6.2), `target_spaces`, `profile`, `docs_repo_path`, and `bug_report_destination`. Record its absolute path.
 
-For each target in the confirmed write-target list:
+2. **Dispatch the writer:**
 
-0. **Apply the approved write strategy** (per `write_strategies[<target_path>]` and `multi-space-writing.md`):
-   - **`plain`** → write the page in its home space's `content_root` as usual (steps 1–7 below). No cross-space action.
-   - **`conditional`** → edit the **shared source page in place** in its home space and wrap the per-space delta in `{{#if project='<target_space>'}}…{{/if}}` (project value from `profile.tokens.project_conditionals`). The protected space's render does not change because the wrapped content is excluded for it. Continue with steps 1–7 for the edited content.
-   - **`override-copy`** → copy the page into `profile.spaces[]` `content_root` of `write_strategy.target_space` at the **same relative path** under that `content_root` (`<home content_root>/<rel>` → `<dest content_root>/<rel>`), edit the copy for the destination space (steps 1–7), then make the override win: add the **shared source path** to the override manifest's `ignore` allowlist per `profile.cross_space_override.rule` (for dynatrace-docs: add `../dynatrace/_content/<rel>` to the `ignore` block of `managed/docstack.jsonc`). Leave the home-space source untouched so its render is unchanged.
+→ Agent (subagent_type: "dev-workflows:doc-writer", model: `<planning_model — §9 / §2 Opus chain>`):
+  > "Write the product documentation for this brief.
+  >
+  > handoff_file: [absolute path of the temp handoff file from step 1]"
 
-1. **Preserve any existing YAML frontmatter** on pages being extended. Never strip unknown fields.
-2. **Add or update** the `changelog:` field per the planner's checklist (append a new dated entry naming the Jira key and a 1-line change summary). Create the field if it doesn't exist on an extended page.
-3. **Update other frontmatter** the planner flagged: `published` (creation date on new pages), `meta.generation`, `readtime` (estimate from word count), `tags` (merge — don't duplicate), `owners` (leave to the user).
-4. **Reuse snippets** per the checklist: for snippets listed under `snippets.reuse`, use the repo's include syntax rather than inlining content. For snippets listed under `snippets.extract`, create the new snippet file in the repo's idiomatic `_snippets/` location and reference it from the target page.
-5. **Place screenshots** per each target's `image_policy`:
-   - **`local`** → copy each user-provided `src` to the planner's `dest` path (typically `<page-dir>/img/` or the detected idiomatic directory). Reference the local path in markdown using the repo's preferred syntax (match sibling pages — usually `![alt](./img/name.png)` or similar).
-   - **`cdn_upload_required`** → **do NOT copy user-provided screenshots into the repo.** Branch on the Phase 6.2 `cdn_handoff_decision`:
-     - **`upload-now`** → reference the **real CDN URL** the user pasted in Phase 6.2 (`cdn_urls[<image>]`) directly in the markdown image reference — e.g. `![alt text](<pasted CDN URL>)`. Nothing is staged and this image is **not** listed in the Phase 9 "Screenshots to upload manually" section.
-     - **`defer`** → the existing async behavior. Stage the image at the planner's `staging` path, which lives under `<screenshot_staging_dir>` — the ticket's persistent Obsidian project folder resolved in Phase 1 (e.g. `…/Projects/…/<JIRA_KEY> - <name>/Doc screenshots/`). `$VAULT_PATH` is always host-mounted, so the staged files survive a container restart (the docs repo and `/tmp` may not). Create the staging directory if it does not exist. If `<screenshot_staging_dir>` was skipped/null, prompt the user for a persistent directory now. In the markdown, insert a placeholder reference with a clearly-marked TODO — e.g. `![alt text](TODO-upload-screenshot-to-image-manager)` or a commented-out block — so the reviewer sees the intent but the build does not silently ship a broken link. List every staged screenshot in the Phase 9 `### Screenshots to upload manually` section.
-   - **`ambiguous`** → ask the user at this step, per target:
+3. **Handle the return.**
+   - **`status: DONE`** — record `files_written` + `notes` for Phases 6.7 / 6.8 / 7 / 8. Then **commit** per the branch/commit policy below.
+   - **`status: BLOCKED`** — surface the named gap to the user:
      ```
-     choices: ["Use local path <page-dir>/img/ (Recommended if this repo uses local images)", "Stage for manual upload to the repo's image-management tool", "Skip this screenshot", "Other… (describe)"]
+     choices: ["Provide the missing input (you'll be prompted)", "Cancel"]
      ```
-     Apply the chosen branch.
-6. **Traceability** — every claim must cite the originating Jira key (e.g. `[[<JIRA_KEY>]]`) and/or PR URL inline. When a claim comes only from imported Jira content (no PR resolved), cite the Jira key alone.
+     On a provided value, rewrite the handoff file and re-dispatch once.
 
-7. **Apply discrepancy decisions** (from Phase 5.8), per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.4–§7.6:
-   - `document-as-code` → use the source phrasing verbatim.
-   - `document-as-spec` → use the intended (spec) phrasing AND insert immediately before the affected prose:
-     `<!-- intentional-discrepancy: <JIRA_KEY> intends "<spec_phrasing>" (spec; "<jira_phrasing>" per Jira when no spec) but the source at <source_location> currently has "<source_phrasing>". User decision: document intended phrasing pending implementation. See <JIRA_KEY>-implementation-gaps.md gap #<n>. -->`
-     Strongly recommend committing to a branch (Phase 6.5); the Phase 9 report MUST flag "do NOT merge this docs PR until the gaps are resolved". The plugin does NOT open a PR (zero-external-API invariant).
-   - `skip-and-report` → omit the claim from the docs.
-   - When any decision is `document-as-spec`/`skip-and-report`, write `<bug_report_destination>/<JIRA_KEY>-implementation-gaps.md` using the §7.5 format (vault project folder; never `/tmp`; never the docs repo).
-
-8. **Shared-registries lock-step** (per `profile.shared_registries` and `multi-space-writing.md` §5). If any write **renames, retitles, or creates** a page matching a `shared_registries[].when` condition (for dynatrace-docs: a settings-schema page under `dynatrace/_content/dynatrace-api/environment-api/settings/schemas/`), update **every** file in that entry's `files` list together per its `rule` (for dynatrace-docs: the `text:` entry in BOTH `schema-ids.yml` and `schema-mappings.yml`, in lock-step). Stage all of them in the same commit.
-9. **Token-correctness validation** (per `profile.tokens` and `multi-space-writing.md` §6). On every file written or edited in this phase, validate before handing off to the style/review gates: every `{{#if project='…'}}` has a matching `{{/if}}`; each `project='…'` value is a known space/edition (`saas`, `managed`, `classic`, `latest`); `{{tag kind='latest'}}` and `::app-settings::` are spelled exactly and used only in a space that supports them. Fix malformed or space-inappropriate tokens now; do not defer them to Phase 6.7.
-
-Write to the resolved `docs_repo_path` (Phase 0). Branch and commit policy is governed by the write context (Phase 0 step 7):
+Write context governs branch/commit (Phase 0 step 7); **the orchestrator commits the writer's output** (the writer never commits):
 
 | Write context | Branch | Commit |
 |---|---|---|
 | `obsidian` | NEVER | NEVER |
-| `docs_repo` | YES (opt-in confirmed at plan approval) — see Phase 6.5 | YES |
+| `docs_repo` | YES (opt-in confirmed at plan approval) — see Phase 6.5 | YES (orchestrator commits doc-writer's `files_written`) |
 | `non_docs_repo` | Phase 0 step 3 already asked user to confirm; if confirmed, behave as `docs_repo` | YES (if user confirmed at Phase 0) |
 | `plain_dir` | NEVER | NEVER |
 

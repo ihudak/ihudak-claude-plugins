@@ -4,6 +4,17 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.0.0] — 2026-06-28
+
+### Changed (BREAKING)
+- Renamed all `/impl:*` commands to top-level verbs: `/impl:code` → `/implement`; `/impl:jira:docs` → `/document`; `/impl:jira:epics` → `/epics`; `/impl:jira:release-notes` → `/release-notes`; `/impl:docs:profile` → `/docs-profile`.
+- `/impl:docs` (one-shot doc editor) is **folded into `/document`** as direct mode — `/document <JiraID> [saas|managed]` runs the Jira pipeline; `/document @file` or `/document <free-text>` runs the one-shot edit. The standalone `/impl:docs` command is removed.
+- The `/impl` dispatcher command is removed (no namespace left to dispatch).
+- The context hook now matches the new verbs and routes `/document` by argument (JiraID → vault/repos context; free-text → silent).
+
+### Added
+- `references/escalation-rules.md` — the shared escalation `choices:` rules, resolving the previously-dangling "§15" references.
+
 ## [1.16.0] — 2026-06-28
 
 ### Changed

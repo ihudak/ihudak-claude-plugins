@@ -356,7 +356,7 @@ and §2.1 (Sonnet) fallback chains.
 - **Orchestrator-executed** judgment steps — the inline prose writing and the
   interactive gates, plus the orchestration itself — run on the session model
   and CANNOT be overridden from inside a running command. Handle them with an
-  **advisory** (recommend relaunching on the §2 chain), never an override.
+  **advisory** (recommend relaunching on the §2 chain), never an override. This advisory applies when the task is SIGNIFICANT/HIGH-RISK; for SIMPLE/MODERATE the writer runs on its detection pin without a relaunch advisory (per §3.1).
 
 ### 9.2 Role → chain map
 
@@ -365,7 +365,8 @@ and §2.1 (Sonnet) fallback chains.
 | Synthesis / planner (e.g. `doc-planner`) | §2 reasoning (Opus) |
 | Reader / summarizer / locator / style-checker / fixer / maintenance (`jira-reader`, `diff-summarizer`, `doc-location-finder`, `docs-style-checker`, `doc-fixer`, maintenance agents) | §2.1 detection (Sonnet) |
 | Domain reviewer (`doc-reviewer`, `epic-reviewer`) | §2 review (Opus) — usually already frontmatter-pinned; the orchestrator records it and adds **no** override |
-| Inline writer + interactive gates (the orchestrator itself) | session model → §9.1 advisory |
+| Delegated writer (`doc-writer` / `epic-writer`) | §2 reasoning (Opus) for SIGNIFICANT/judgment writing; §2.1 detection (Sonnet) for MODERATE writing |
+| Coordination + interactive gates (the orchestrator itself) | session model; narrowed window advisory for large non-Opus runs (§9.1) |
 
 ### 9.3 No-Opus degradation
 
@@ -381,4 +382,4 @@ conservative default for the `/impl:code` large-input **fan-out**. Authoring
 pipelines that route per this section pin **`jira-reader`** to the detection
 chain (reading pre-exported markdown is mechanical — an Opus session should not
 pay for it). `code-scanner` remains governed by §8.3 when invoked under the
-large-input fan-out trigger.
+large-input fan-out trigger. Refinement: `code-scanner` inherits under §8.3 **only when a powerful-chain synthesis step consumes its output**; in an authoring pipeline with no such step (e.g. `/impl:jira:epics`, where the writer is a detection/reasoning-pinned subagent and there is no risk-planner synthesis), pin `code-scanner` to the detection chain.

@@ -1,6 +1,6 @@
 ---
 name: impl
-description: Help and dispatcher for /impl variants. Prints available subcommands (/impl:code, /impl:docs, /impl:jira:docs, /impl:jira:epics) and usage guidance. Does not run any workflow itself.
+description: Help and dispatcher for /impl variants. Prints available subcommands (/impl:code, /impl:docs, /impl:docs:profile, /impl:jira:docs, /impl:jira:epics, /impl:jira:release-notes) and usage guidance. Does not run any workflow itself.
 allowed-tools: Read Glob
 ---
 
@@ -26,6 +26,8 @@ As of plugin version **1.1.0**, `/impl` is a dispatcher — it does not run a wo
 | `/impl:docs <description>` | One-shot doc edits — single-file markdown, README tweaks, Obsidian notes, formatting. No branch, no tests, no code review, no commit. Always SIMPLE or MODERATE. | `/impl:docs add a troubleshooting section to README.md` |
 | `/impl:jira:docs <VI-KEY>` | Jira-driven **feature documentation** — reads a Value Increment from the vault, resolves PR URLs to local repos, runs parallel PR-diff summaries, writes product docs, gated by Opus `doc-reviewer`. | `/impl:jira:docs MGD-2423` |
 | `/impl:jira:epics <VI-KEY>` | Jira-driven **Epic drafting** — reads a Value Increment plus its existing Epics, optionally scans code for reusable capabilities, writes child Epic drafts into the vault, gated by Opus `epic-reviewer`. Never branches or commits. | `/impl:jira:epics MGD-2423` |
+| `/impl:docs:profile` | Generate or refresh a docs repo's profile (`.dev-workflows/docs-profile.yml` + CLAUDE.md guidance) as a reviewable PR. One-time setup, consumed by `/impl:jira:docs`. | `/impl:docs:profile` |
+| `/impl:jira:release-notes <KEY>` | Jira-driven **release-notes drafting** — renders the dynatrace-docs authored release-notes body from a ticket and writes a persistent draft to paste into Jira. Never branches or commits. | `/impl:jira:release-notes MGD-2423` |
 
 #### Related commands (same plugin)
 

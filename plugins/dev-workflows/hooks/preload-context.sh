@@ -2,7 +2,11 @@
 # Fires on every message submission. Matches /implement, /document, /epics,
 # /release-notes, /vuln, /upgrade and routes per spec §3:
 #   • /implement, /vuln, /upgrade       → full (model-routing + git status +
-#                                         recent commits + small-repo directory listing)
+#                                         recent commits + small-repo directory
+#                                         listing); /implement also preloads
+#                                         Jira context when its argument is a
+#                                         JiraID (jira-driven via the shared
+#                                         Jira-input front-end)
 #   • /document                         → Jira context iff the argument is a
 #                                         JiraID (e.g. /document PRODUCT-14902);
 #                                         free-text / @file → silent (direct-edit
@@ -13,6 +17,8 @@
 #                                         a git repo (no model-routing,
 #                                         no full status/log, no directory listing)
 #   • /docs-profile                     → not matched (no context injected)
+#
+# emit_jira_context also surfaces $SPECS_PATH alongside $VAULT_PATH/$REPOS_PATH.
 #
 # Exits immediately (near-zero overhead) if the message doesn't match.
 # Always exits 0 — must never block Claude.
@@ -85,6 +91,11 @@ emit_jira_context() {
         echo "VAULT_PATH: (not set — the command will ask in Phase 1)"
     fi
     echo "repos_path: ${REPOS_PATH:-/workspace} (default — the command will confirm or ask)"
+    if [[ -n "${SPECS_PATH:-}" ]]; then
+        echo "SPECS_PATH: $SPECS_PATH"
+    else
+        echo "SPECS_PATH: (not set — the command will use \$VAULT_PATH-based specs or ask)"
+    fi
     emit_git_branch_if_repo
 }
 
@@ -96,6 +107,10 @@ case "$cmd" in
         emit_model_routing
         emit_git_full
         emit_dir_listing_if_small
+        # /implement <JiraID> is jira-driven — also preload Jira context.
+        if [[ "$cmd" == "implement" && "$prompt" =~ ^/implement[[:space:]]+[A-Z][A-Z0-9]+-[0-9]+ ]]; then
+            emit_jira_context
+        fi
         ;;
     document)
         # Mode-aware: a JiraID argument → Jira context; free-text / @file → silent

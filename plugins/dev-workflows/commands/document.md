@@ -18,8 +18,8 @@ For small one-off doc edits, use direct mode (below). For writing child Epic dra
 
 `/document` has **two modes**, selected by the first argument token:
 
-- **Jira mode** — the first token matches a JiraID (`^[A-Z][A-Z0-9]+-[0-9]+`), optionally followed by `saas` | `managed`. Run **Mode A** below. If the token is JiraID-shaped but no ticket folder exists under `$VAULT_PATH/jira-products/<KEY>`, ask: `choices: ["Re-enter the Jira key", "Treat the text as a direct edit instead", "Cancel"]`.
-- **Direct mode** — anything else (a leading `@file` token, or free-text prose). Run **Mode B** below.
+- **Jira mode (Mode A)** — the input resolves `jira-driven` via the shared front-end (`${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`): a first token matching a JiraID (`^[A-Z][A-Z0-9]+-[0-9]+`), optionally followed by `saas` | `managed`, **or** a directory that inspects as a Jira-export (contains `<KEY>-index.md`). The front-end's Fallback B handles a JiraID-shaped token with no `jira-products/<KEY>` folder.
+- **Direct mode (Mode B)** — the input resolves `direct` (a leading `@file` token, free-text prose, or a non-Jira-export directory, which Mode B handles via its existing "anything else" path).
 
 Echo the detected mode, then proceed to that mode's phases. The two modes share the same `docs-style-checker` / `doc-reviewer` / `doc-fixer` agents (each mode emits its own final report).
 
@@ -29,13 +29,13 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 
 ## Phase 0 — Load and dispatch
 
-1. **Resolve `$VAULT_PATH`.** Read the `VAULT_PATH` environment variable. If unset, ask:
-   ```
-   choices: ["Set to detected path (Recommended)", "Enter manually", "Cancel"]
-   ```
-   Validate that the resolved path exists and contains a `jira-products/` subdirectory. If not, stop with an error.
-
-2. **Resolve `<JIRA_KEY>`** from `$ARGUMENTS`. Validate that `$VAULT_PATH/jira-products/<JIRA_KEY>/` exists. If not, stop with an error naming the missing directory.
+1. **Resolve the Jira input via the shared front-end.** Execute
+   `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against
+   `$ARGUMENTS`. For Mode A the result is `mode: jira-driven` with `jira_key`,
+   `jira_export_root` (the ticket export dir — `$VAULT_PATH/jira-products/<KEY>`
+   for a JiraID, or the passed directory), `source`, and `specs`. The front-end
+   owns the `$VAULT_PATH`/`jira-products` validation and Fallbacks A/B. Carry
+   `jira_key`, `jira_export_root`, and `specs` forward.
 
 3. **Resolve the docs repo (cwd-preferred).** This command writes feature documentation into a product docs repository; running it outside such a repository is almost always a mistake. The **docs signals** checked throughout this step are:
    - `package.json` with any script matching `*:start`, `*:build`, `*:lint`, `docs:*`, or
@@ -76,13 +76,9 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
      ```
    Skip this check for `profile_source: built-in` (no profile file) and `generated` (the inline profiling branch is adopted by Phase 6.2, so the profile rides the single docs branch — a base check would false-fire).
 
-6. **Discover the specs dir.** Specs are additive context, not a prerequisite. Under `${REPOS_PATH:-/workspace}` (single dir or colon-separated list), look for a sibling directory whose detected **vis-root** (a `specifications/` or `vis/` subdirectory) contains a folder matching `<JIRA_KEY>*` (prefix match; tolerate mixed `-`/`_` separators and a trailing slug, e.g. `PRODUCT-14902-foo` or `PRODUCT_14902_foo`):
-   - **Found →** record `specs_dir` = the matching `<JIRA_KEY>*` folder's absolute path.
-   - **Not found →** `specs_dir: none`; **proceed** (do NOT stop — specs are optional).
-   - **Multiple candidate sibling repos match →** list them and ask which to use:
-     ```
-     choices: ["<first candidate> (Recommended)", "<other candidates…>", "None — proceed without specs", "Other… (describe)"]
-     ```
+6. **Specs (additive).** Use the `specs` list from the front-end (§Specs
+   resolution — `$SPECS_PATH` then the directory case). `specs: []` is fine —
+   specs are additive context for `/document`; proceed without prompting.
 
 7. **Classify write context** for later branch/write decisions — computed against the resolved `docs_repo_path` (not necessarily cwd). Walk up from `docs_repo_path` looking for `.obsidian/`; if found, context = `obsidian`. Else if `git -C <docs_repo_path> rev-parse --show-toplevel` succeeds AND at least one docs signal from step 3 is present, context = `docs_repo`. Else if it succeeds with no docs signals, context = `non_docs_repo` (step 3 has already asked the user; their confirmation promotes this to `docs_repo` behaviour). Else context = `plain_dir`. In a normal run, Phase 0's docs-repo resolution (steps 3–4) yields a real docs repo (`docs_repo`) or a user-confirmed `non_docs_repo`; `obsidian` and `plain_dir` are **defensive guards** (they forbid branch/commit) rather than expected write targets.
 
@@ -233,9 +229,9 @@ Invoke `jira-reader` with `depth: full`:
 → Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Return the structured handoff for this brief:
   >
-  > vault_path: [resolved $VAULT_PATH]
-  > jira_key:   [resolved <JIRA_KEY>]
-  > depth:      full"
+  > jira_export_root: [resolved jira_export_root from Phase 0]
+  > jira_key:         [resolved <JIRA_KEY>]
+  > depth:            full"
 
 Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Jira key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`) and act accordingly. On `OK`, store the handoff for downstream phases.
 

@@ -19,12 +19,30 @@ Implement the following: $ARGUMENTS
 | **Jira ticket folder** | a directory containing a `*-index.md`, or ticket-key subdirectories each containing a `KEY.md` | hand to `jira-reader` in Phase 1.7 |
 | **Code repo** | a directory where `git -C <path> rev-parse --is-inside-work-tree` succeeds (includes the cwd) | scan target in Phase 1.7 |
 
+**Jira-input resolution (shared front-end).** Before the per-`@path`
+classification above, run `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`
+against `$ARGUMENTS`. It unifies the input grammar with `/document`: a **JiraID**
+token (`^[A-Z][A-Z0-9]+-[0-9]+`) is discovered under `$VAULT_PATH/jira-products/`
+(Fallbacks A/B on miss); a directory that inspects as a **jira-export** is used as
+`jira_export_root`; a **spec-folder** contributes to `specs`; everything else is
+`direct` (free-text/`@file`, this command's existing flow). The classification
+table above is the directory branch of that front-end — a Jira ticket folder ↔
+jira-export, a spec folder ↔ spec-folder, a code repo ↔ an `/implement`-only
+target. Carry `mode`, `jira_key`, `jira_export_root`, and `specs` forward.
+
 Rules:
 - The **primary description** is: the spec file if one was given → else the spec-folder design doc → else the inline prose. Echo `📄 Reading prompt from <file>…` (or `from inline text`) and confirm `"Loaded prompt (N lines)."`.
 - Multiple inputs of the same kind are allowed.
 - A referenced `@dir` that is missing, or is neither a recognized folder type nor a git repo, MUST be surfaced to the user immediately (do not silently skip) — then ask whether to continue without it or stop. This mirrors `classification.md` §8.4.
 - Note any embedded images as "referenced image: <path>".
 - If a single `@file` cannot be read, stop and report the error immediately.
+- **Specs are required for jira-driven runs.** When `mode: jira-driven` and the
+  front-end resolved `specs: []`, do not plan blind — prompt:
+  `choices: ["Point me at a specs directory (you'll provide the path)", "Proceed without specs — not recommended", "Cancel"]`
+  "Point me…" takes a path, classifies it as a spec-folder, and re-resolves
+  `specs`. "Proceed without specs" is logged in the Phase 5 report's
+  `### Assumptions & limitations`. Direct-mode runs (no Jira input) are exempt —
+  the prompt/spec file is the instruction.
 
 ---
 
@@ -89,7 +107,11 @@ Runs after Pre-Phase 2 and replaces the single Phase 2B exploration subagent for
 1. **Read Jira ticket folders.** For each Jira ticket folder, invoke `jira-reader` (read-only):
 
    → Agent (subagent_type: "dev-workflows:jira-reader"):
-     > "Read the exported Jira hierarchy at <ticket-folder absolute path> and return the structured handoff: linked items, PR URLs (identifiers only — no fetching), and capability themes."
+     > "Return the structured handoff for this brief — linked items, PR URLs (identifiers only — no fetching), and capability themes:
+     >
+     > jira_export_root: [the resolved jira_export_root (from the Phase 0 front-end), or the ticket-folder absolute path]
+     > jira_key:         [the resolved <KEY>]
+     > depth:            full"
 
    Run multiple `jira-reader` calls sequentially (it is fast and read-only). Collect the themes and PR references.
 

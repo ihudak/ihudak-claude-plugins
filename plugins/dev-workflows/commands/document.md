@@ -78,13 +78,19 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 
 6. **Specs (additive).** Use the `specs` list from the front-end (§Specs
    resolution — `$SPECS_PATH` then the directory case). `specs: []` is fine —
-   specs are additive context for `/document`; proceed without prompting.
+   specs are additive context for `/document`; proceed without prompting. For
+   the downstream phases that scan or cite a single specs location (the Phase 4.5
+   space hint, the Phase 5.6 image scan, the Phase 5.7 `doc-planner` dispatch,
+   and the Phase 5.8 three-way analysis), also record `specs_dir` = the directory
+   containing the resolved `specs` (their common parent — e.g. the
+   `$SPECS_PATH/…/<KEY>…/` folder, or the directory they were found in), or
+   `none` when `specs` is empty.
 
 7. **Classify write context** for later branch/write decisions — computed against the resolved `docs_repo_path` (not necessarily cwd). Walk up from `docs_repo_path` looking for `.obsidian/`; if found, context = `obsidian`. Else if `git -C <docs_repo_path> rev-parse --show-toplevel` succeeds AND at least one docs signal from step 3 is present, context = `docs_repo`. Else if it succeeds with no docs signals, context = `non_docs_repo` (step 3 has already asked the user; their confirmation promotes this to `docs_repo` behaviour). Else context = `plain_dir`. In a normal run, Phase 0's docs-repo resolution (steps 3–4) yields a real docs repo (`docs_repo`) or a user-confirmed `non_docs_repo`; `obsidian` and `plain_dir` are **defensive guards** (they forbid branch/commit) rather than expected write targets.
 
    Record the resolved context — it drives Phase 6.2 (branch setup) and Phase 6.3 write rules. When `docs_repo_path` differs from cwd, record **both** and note that the writing phases (Increments 2–3) consume `docs_repo_path`, not cwd, for every write.
 
-8. **Parse the optional space constraint.** Read `$ARGUMENTS` as `<JIRA_KEY> [space]` — the same `$ARGUMENTS` already split for `<JIRA_KEY>` in step 2; the optional second whitespace-separated token is the space constraint.
+8. **Parse the optional space constraint.** Read `$ARGUMENTS` as `<JIRA_KEY> [space]` — the same `$ARGUMENTS` already split for `<JIRA_KEY>` in step 1; the optional second whitespace-separated token is the space constraint.
    - **No second token** → `space_constraint = none`. Phase 4.5 will determine and confirm the applicable space(s).
    - **Second token is `saas` or `managed`** (case-insensitive) → `space_constraint = <space>`. This is a deliberate scoping decision by the user, so Phase 4.5 skips its determination step and records `target_spaces = [space_constraint]` directly.
    - **Second token present but not `saas`/`managed`** (e.g. `both`, a typo, or extra free text) → do NOT silently guess. Reject it and ask:
@@ -100,7 +106,7 @@ Before clarification, show a readiness table summarizing what Phase 0 resolved:
 
 | Item | Resolved |
 |---|---|
-| Vault + Jira | `$VAULT_PATH` ok; `jira-products/<JIRA_KEY>/` ok |
+| Jira input | source: `<vault \| directory>`; export root: `<jira_export_root>` |
 | Docs repo | `<docs_repo_path>` (`is_dynatrace_docs`: yes/no) — write context `<obsidian \| docs_repo \| non_docs_repo \| plain_dir>` |
 | Profile | `profile_source`: `<in-repo \| built-in \| generated>` |
 | Specs | `<specs_dir>` or `none` |
@@ -201,7 +207,7 @@ Each subagent dispatch below cites which chain it uses (the §9 role→chain map
 
 Present a concise plan:
 
-- Resolved `<JIRA_KEY>` and the `$VAULT_PATH/jira-products/<JIRA_KEY>/` path
+- Resolved `<JIRA_KEY>` and the Jira export root `<jira_export_root>`
 - Output filename / path under the resolved `docs_repo_path` (from Phase 1)
 - `$REPOS_PATH` and the slug→clone resolution for the repos that will be examined (inferred from the `jira-reader` output in Phase 3; if Phase 3 hasn't run yet, list "TBD — resolved after Jira read")
 - PR filter (MERGED only / all / specific)
@@ -670,7 +676,7 @@ Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `revi
   >
   > Task description: [one-paragraph summary of the feature and <JIRA_KEY>]
   > Written doc file paths: [absolute paths of every file written in Phase 6.3]
-  > Jira directory path:    [$VAULT_PATH/jira-products/<JIRA_KEY>/]
+  > Jira directory path:    [<jira_export_root>]
   > Diff summaries:         [array of diff-summarizer outputs from Phase 5]
   > doc-planner checklist:  [the full YAML from Phase 5.7]
   > style-check report: [the violations output from Phase 6.4 — from docs-style-checker or dt-style-checker (fallback), or 'status: NOT_CONFIGURED' if neither ran]

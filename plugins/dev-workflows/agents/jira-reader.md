@@ -10,27 +10,38 @@ Invoked from `/document` (Phase 3, `depth: full`) and `/epics` (Phase 3, `depth:
 
 ## Inputs
 
-The caller passes:
+The caller passes **either** an explicit export root (preferred — used by
+`/document` and `/implement` via the shared `jira-input-resolution.md`
+front-end) **or** a vault path + key (used by `/epics` and `/release-notes`):
 
 ```yaml
+# Form 1 — explicit export root:
+jira_export_root: <absolute path to the ticket export dir, e.g. .../jira-products/PRODUCT-14902>
+jira_key:         <e.g. JIRA-12345>
+depth:            full | vi-plus-epics | vi-only
+
+# Form 2 — vault + key (export root is derived as <vault_path>/jira-products/<jira_key>):
 vault_path: <absolute path, e.g. /home/user/obsidian-vault>
 jira_key:   <e.g. JIRA-12345>
 depth:      full | vi-plus-epics | vi-only
 ```
 
-Refuse to run without all three fields.
+Resolve the **export root** once: `EXPORT_ROOT = jira_export_root` when provided,
+else `<vault_path>/jira-products/<jira_key>`. All reads below use `EXPORT_ROOT`.
+Refuse to run without `depth`, `jira_key`, and at least one of
+`{jira_export_root, vault_path}`.
 
 ## Process
 
 **Phase 0 — Validate `jira_key`.** Accept only `^[A-Z][A-Z0-9_]*-\d+$` (uppercase letters / digits / underscores, a dash, digits). On mismatch return `status: NOT_FOUND` with a clear message naming the invalid key. The caller surfaces the `Jira key dir not found` choices from `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` to the user.
 
-1. **Read the index.** Open `<vault_path>/jira-products/<jira_key>/<jira_key>-index.md`. The first data table in the file must have header row `| Key | Type | Status | Summary | Role |` exactly. If the header differs (e.g. the Jira-to-Obsidian exporter changed its output format), return `status: EMPTY` with a message naming the mismatched columns — do NOT try to parse rows with an unknown schema.
+1. **Read the index.** Open `<EXPORT_ROOT>/<jira_key>-index.md`. The first data table in the file must have header row `| Key | Type | Status | Summary | Role |` exactly. If the header differs (e.g. the Jira-to-Obsidian exporter changed its output format), return `status: EMPTY` with a message naming the mismatched columns — do NOT try to parse rows with an unknown schema.
 
 2. **Depth-scoped file reads.**
 
-   - **`depth: full`** — for every linked item (including the root VI itself), read `<vault_path>/jira-products/<jira_key>/<LINKED_KEY>/<LINKED_KEY>.md`. For the VI itself, `<LINKED_KEY> == <jira_key>`, so the path resolves to `<vault_path>/jira-products/<jira_key>/<jira_key>/<jira_key>.md` (a nested same-named subdirectory — verified against real exports). Parse YAML frontmatter, extract the Description body, and collect PR URLs from the `## Pull Requests` section.
-   - **`depth: vi-plus-epics`** — read the VI's own file at `<vault_path>/jira-products/<jira_key>/<jira_key>/<jira_key>.md` plus every Epic `.md` directly linked to the VI (filter the linked-items table to `type == Epic`). Skip Stories, Sub-tasks, Research, Request for Assistance. This gives Epic-writing workflows enough context to extract meaningful themes for `code-scanner` without reading the entire hierarchy.
-   - **`depth: vi-only`** — read only the VI's own file at `<vault_path>/jira-products/<jira_key>/<jira_key>/<jira_key>.md` plus the index. Every linked item is nested under the root export directory; never look for `<vault_path>/jira-products/<LINKED_KEY>/<LINKED_KEY>.md` (that path does not exist).
+   - **`depth: full`** — for every linked item (including the root VI itself), read `<EXPORT_ROOT>/<LINKED_KEY>/<LINKED_KEY>.md`. For the VI itself, `<LINKED_KEY> == <jira_key>`, so the path resolves to `<EXPORT_ROOT>/<jira_key>/<jira_key>.md` (a nested same-named subdirectory — verified against real exports). Parse YAML frontmatter, extract the Description body, and collect PR URLs from the `## Pull Requests` section.
+   - **`depth: vi-plus-epics`** — read the VI's own file at `<EXPORT_ROOT>/<jira_key>/<jira_key>.md` plus every Epic `.md` directly linked to the VI (filter the linked-items table to `type == Epic`). Skip Stories, Sub-tasks, Research, Request for Assistance. This gives Epic-writing workflows enough context to extract meaningful themes for `code-scanner` without reading the entire hierarchy.
+   - **`depth: vi-only`** — read only the VI's own file at `<EXPORT_ROOT>/<jira_key>/<jira_key>.md` plus the index. Every linked item is nested under the root export directory; never look for `<EXPORT_ROOT>/<LINKED_KEY>/<LINKED_KEY>.md` (that path does not exist).
 
 3. **Extract capability themes.** Collect 2–4 short bullets summarising recurring topics across the items read. Themes may be sparse for `depth: vi-only`; callers that need richer themes should request `vi-plus-epics` or `full`.
 
@@ -120,4 +131,4 @@ attachments:            # image files found under the VI's attachments/ dirs (pa
 - NEVER read sibling `<KEY>-comments.md` files or the **content** of files under `attachments/`. Enumerating image filenames under `attachments/` (for the `attachments[]` output field) is permitted and required — listing paths is not reading content.
 - NEVER attempt to reach out over HTTPS to Jira or any git host. This agent operates purely on pre-exported markdown in the vault.
 - If the index header schema doesn't match the expected 5-column form, return `status: EMPTY` with a schema-mismatch message; do NOT try to parse rows with a guessed column layout.
-- For `depth: vi-only`, NEVER look for `<vault_path>/jira-products/<LINKED_KEY>/<LINKED_KEY>.md` — that path does not exist. Linked items live under the VI's own export directory.
+- For `depth: vi-only`, NEVER look for `<EXPORT_ROOT>/<LINKED_KEY>/<LINKED_KEY>.md` — that path does not exist. Linked items live under the VI's own export directory.

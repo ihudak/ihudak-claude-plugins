@@ -3,6 +3,9 @@
 ## Input
 
 ```yaml
+# Preferred (from the jira-input-resolution front-end): an explicit export root.
+jira_export_root: /absolute/path/to/jira-products/PRODUCT-14902
+# OR (legacy — /epics, /release-notes): vault path + key.
 vault_path: /absolute/path/to/vault
 jira_key:   PRODUCT-14902
 depth:      full | vi-only

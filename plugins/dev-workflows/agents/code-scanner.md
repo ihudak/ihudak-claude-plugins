@@ -1,6 +1,6 @@
 ---
 name: code-scanner
-description: Scans a single code repository for existing capabilities and gaps relative to a set of themes. Themes may come from a Value Increment / Epic (Epic writing) or from an implementation spec (/implement multi-source scanning). Pure filesystem search; no HTTPS. Designed for parallel invocation (one instance per repo, capped at 4 concurrent by the caller). Inherits the session's model.
+description: Scans a single code repository for existing capabilities and gaps relative to a set of themes. Themes may come from a Value Increment / Epic (Epic writing) or from an implementation spec (/implement multi-source scanning). Pure filesystem search; no HTTPS. Designed for parallel invocation (one instance per repo, capped at 4 concurrent by the caller). Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "LS", "Bash"]
 ---
 

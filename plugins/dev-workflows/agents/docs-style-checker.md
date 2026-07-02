@@ -1,6 +1,6 @@
 ---
 name: docs-style-checker
-description: Runs the docs repo's project-configured prose linter (e.g. Vale) on files written by `/document` (Jira mode, or direct mode) AND, when the dt-style-guide plugin is installed, also runs dt-style-checker as a complementary semantic / cross-page-consistency pass. Merges and dedupes both finding sets into the doc-reviewer / doc-fixer schema. Detects tooling (Vale, project lint script, markdownlint, remark) from the repo; does not embed any specific style guide. Inherits the session's model.
+description: Runs the docs repo's project-configured prose linter (e.g. Vale) on files written by `/document` (Jira mode, or direct mode) AND, when the dt-style-guide plugin is installed, also runs dt-style-checker as a complementary semantic / cross-page-consistency pass. Merges and dedupes both finding sets into the doc-reviewer / doc-fixer schema. Detects tooling (Vale, project lint script, markdownlint, remark) from the repo; does not embed any specific style guide. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "LS", "Bash"]
 ---
 

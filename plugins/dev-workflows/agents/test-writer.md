@@ -1,6 +1,6 @@
 ---
 name: test-writer
-description: Writes tests for new or changed behavior based on a diff. Does NOT run tests. Framework detection mirrors test-baseliner; if no framework is detected, returns "not detected" immediately so the caller can ask the user whether to specify a test command or skip. Inherits the session's model.
+description: Writes tests for new or changed behavior based on a diff. Does NOT run tests. Framework detection mirrors test-baseliner; if no framework is detected, returns "not detected" immediately so the caller can ask the user whether to specify a test command or skip. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "LS", "Write", "Edit"]
 ---
 

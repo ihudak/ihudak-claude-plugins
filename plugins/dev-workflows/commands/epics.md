@@ -6,7 +6,7 @@ allowed-tools: Read Edit Write Bash Glob Grep Task WebFetch LS
 
 Draft child Epics for the Jira Value Increment: $ARGUMENTS
 
-`/epics` is the **Jira-driven Epic-writing** workflow. Given a Value Increment key, it reads the VI plus its existing Epics from pre-exported markdown in the user's Obsidian vault, optionally scans code repos to identify reusable capabilities and gaps, drafts child Epic definitions as markdown files under the vault, and gates the result on an Opus review.
+`/epics` is the **Jira-driven Epic-writing** workflow. Given a Value Increment key, it reads the VI plus its existing Epics from pre-exported markdown in the user's Obsidian vault, optionally scans code repos to identify reusable capabilities and gaps, drafts child Epic definitions as markdown files under the resolved output directory, and gates the result on an Opus review.
 
 Key distinction from `/document` (Jira mode): the VI being Epic-ized is **not yet implemented** — there are no PRs to diff. Code scanning (when enabled) is a plain filesystem search to understand what exists and what needs to be built.
 
@@ -213,7 +213,7 @@ Handle per-repo status after the batch returns:
 
 ## Phase 6 — Write Epics
 
-The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1 Sonnet detection chain for MODERATE; §2 Opus only if the run is SIGNIFICANT/HIGH-RISK — see `classification.md` §9.2). The orchestrator prepares a handoff and dispatches; it does not write Epics itself, and **nothing commits** (epics never branches/commits — vault git is the user's responsibility).
+The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1 Sonnet detection chain for MODERATE; §2 Opus only if the run is SIGNIFICANT/HIGH-RISK — see `classification.md` §9.2). The orchestrator prepares a handoff and dispatches; it does not write Epics itself, and **nothing commits** (epics never branches/commits — git is the user's responsibility).
 
 1. **Write the handoff file.** Create a temp file (`mktemp` — never the vault, never a repo) containing the `epic-writer` input contract: `jira_reader_handoff`, `code_scanner_outputs` (empty if no scan), `scope` (Phase 2 in/out of scope), `existing_epics` (non-duplication), `output_dir` (resolved Phase 1 dir), `vi_goal`, `jira_key`. Record its absolute path.
 
@@ -228,7 +228,7 @@ The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1
    ```
    choices: ["Provide the missing input (you'll be prompted)", "Cancel"]
    ```
-   On a provided value, rewrite the handoff and re-dispatch once. Nothing is committed (vault git is the user's responsibility).
+   On a provided value, rewrite the handoff and re-dispatch once. Nothing is committed (git is the user's responsibility).
 
 ---
 
@@ -324,7 +324,7 @@ Then spawn all four maintenance agents in a **single Agent message**. They are i
 > "Post-write documentation review. Change summary:
 > [paste change summary block]
 >
-> The project root is an Obsidian vault; look only for vault-internal documentation files that reference Epic drafts (e.g., a `jira-drafts/README.md` or an index page enumerating active drafts).
+> The project root is an Obsidian vault when `$VAULT_PATH` is set, else the resolved output directory; look only for internal documentation files that reference Epic drafts (e.g., a `jira-drafts/README.md` or an index page enumerating active drafts).
 > Determine if any such file needs updating — e.g., a new entry in a drafts index.
 > Skip if: no such file exists or drafts aren't indexed centrally.
 > If an update is warranted: apply minimal edits.
@@ -432,7 +432,7 @@ MODERATE — vault-internal Epic drafting for a single VI
 - [list any]
 
 ### Git state
-The vault has uncommitted changes. `/epics` never commits — vault git management is your responsibility.
+The project root has uncommitted changes. `/epics` never commits — git management is your responsibility.
 ```
 
 ---
@@ -441,7 +441,7 @@ The vault has uncommitted changes. `/epics` never commits — vault git manageme
 
 - ALWAYS resolve input via the shared Jira-input front-end (Phase 0) — a JiraID requires `$VAULT_PATH`; an imported-Jira directory works without it; `/epics` is cwd-agnostic and rejects `mode: direct`
 - NEVER create a git branch (this command never branches)
-- NEVER commit (vault git management is the user's responsibility)
+- NEVER commit (git management is the user's responsibility)
 - NEVER write inside `jira-products/` — re-created on every import; writes would be lost
 - NEVER write inside `_archive/` — read-only by convention
 - NEVER write inside `jira_export_root` — it is re-created on every Jira import, so drafts there would be lost (the Phase 1 path-safety guard enforces this for the derived `epic-drafts/` default)
@@ -449,7 +449,7 @@ The vault has uncommitted changes. `/epics` never commits — vault git manageme
 - ALWAYS escalate missing repos before proceeding — never silent skip
 - ALWAYS invoke `epic-reviewer` before Phase 8 maintenance
 - ALWAYS resolve the `model_routing` block at Phase 1.5 and pin each subagent dispatch to its §9 chain via `model:` — the mechanical steps (`jira-reader`, `code-scanner`, `dt-style-checker`, `doc-fixer`) and `epic-writer` (MODERATE) to the §2.1 Sonnet chain; `epic-reviewer` keeps its frontmatter Opus pin (no override); coordination + interactive gates run on `current_model`
-- ALWAYS delegate Phase 6 writing to the `epic-writer` subagent (write-only); the orchestrator never writes Epics itself and never commits (vault git is the user's responsibility)
+- ALWAYS delegate Phase 6 writing to the `epic-writer` subagent (write-only); the orchestrator never writes Epics itself and never commits (git is the user's responsibility)
 - ALWAYS cap review/fix cycles: 1 fix + 1 re-review max
 - ALWAYS pass `Change type: docs` in the Phase 8 change summary block
 - ALWAYS pass `Command run: /epics` in the Phase 8 Agent 4 session handoff

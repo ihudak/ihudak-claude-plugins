@@ -180,7 +180,7 @@ model_routing:
   classification: SIGNIFICANT
   reason: <one-line>
   current_model: <the model this orchestrator is running under>   # = the inline writer + Phase 5.8 framing
-  detection_model: <§2.1 mid-tier Sonnet chain: claude-sonnet-4-6, fallback claude-sonnet-4-5>
+  detection_model: <§2.1 mid-tier Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>
   planning_model:  <§2 powerful chain: claude-opus-4-8 … fallback Sonnet per §2>   # doc-planner (5.7)
   review_model:    <§2 powerful chain>     # doc-reviewer (frontmatter-pinned; recorded here, no override added)
   implementation_model: <= planning_model>  # the doc-writer subagent (Phase 6.3) — now a delegated, Opus-pinned writer

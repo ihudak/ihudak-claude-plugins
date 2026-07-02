@@ -79,8 +79,9 @@ Use the first model in this list that is available in the environment:
 1. `claude-opus-4-8`
 2. `claude-opus-4-7`
 3. `claude-opus-4-6`
-4. `claude-sonnet-4-6` (fallback only — note in the report that no Opus was available)
-5. `claude-sonnet-4-5` (further fallback — note "no Opus or Sonnet 4.6 available")
+4. `claude-sonnet-5` (fallback only — note in the report that no Opus was available)
+5. `claude-sonnet-4-6` (further fallback)
+6. `claude-sonnet-4-5` (further fallback — note "no Opus or Sonnet 5/4.6 available")
 
 Sonnet 4.5 is the floor; if no model in the list is available, abort the
 SIGNIFICANT/HIGH-RISK gates and ask the user how to proceed rather than
@@ -107,8 +108,9 @@ Opus, defeating the point).
 
 Use the first available:
 
-1. `claude-sonnet-4-6` (latest Sonnet)
-2. `claude-sonnet-4-5` (fallback — note the degradation in the report)
+1. `claude-sonnet-5` (latest Sonnet)
+2. `claude-sonnet-4-6` (fallback)
+3. `claude-sonnet-4-5` (further fallback — note the degradation in the report)
 
 If neither Sonnet is available, fall back to the session model and announce it.
 Record the chosen model as `detection_model:` in the `model_routing` block.

@@ -27,6 +27,7 @@ All changes are left **uncommitted** on the current branch.
    ```
    task(
      agent_type: "dev-workflows:upgrade-planner",
+     model: `<detection_model — §2.1 Sonnet chain>`,
      description: "Plan component upgrade",
      prompt: "## Upgrade Plan Request
      repo: [absolute repo path]
@@ -39,7 +40,14 @@ All changes are left **uncommitted** on the current branch.
        [component]: [current version]
      model_routing:
        classification: [SIMPLE | MODERATE | SIGNIFICANT | HIGH-RISK]
-       ..."
+       reason: <one-line>
+       current_model: <the model this orchestrator is running under>
+       detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # upgrade-planner, test-baseliner; upgrade-executor (SIMPLE/MODERATE); review-fixer
+       planning_model: <§2 Opus chain>   # risk-planner (SIGNIFICANT/HIGH-RISK; frontmatter-pinned, recorded, no override); upgrade-executor escalates here only if HIGH-RISK
+       review_model:  <§2 Opus chain>    # code-review (frontmatter-pinned; recorded, no override)
+       opus_available: <true if a §2 Opus model resolved, else false>
+       gate_tests_on_review: <true for SIGNIFICANT/HIGH-RISK, false otherwise>
+       notes: <any §2 / §2.1 fallback or degradation>"
    )
    ```
 
@@ -50,7 +58,7 @@ All changes are left **uncommitted** on the current branch.
 
 5. **Classify each READY component** — Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the classification rules, then apply them using the actual resolved change, related upgrades, and planner findings. Print one classification line per component. When in doubt, escalate to `SIGNIFICANT`.
 
-6. **Risk plan for SIGNIFICANT / HIGH-RISK components** — For every component classified `SIGNIFICANT` or `HIGH-RISK`, invoke `risk-planner` on Opus before execution:
+6. **Risk plan for SIGNIFICANT / HIGH-RISK components** — For every component classified `SIGNIFICANT` or `HIGH-RISK`, invoke `risk-planner` before execution (frontmatter-pinned to Opus; recorded as `planning_model` above, no `model:` override needed):
 
    ```
    task(
@@ -86,6 +94,7 @@ All changes are left **uncommitted** on the current branch.
    ```
    task(
      agent_type: "dev-workflows:test-baseliner",
+     model: `<detection_model — §2.1 Sonnet chain>`,
      description: "Capture test baseline",
      prompt: "Mode: capture
      Project root: [absolute repo path]"
@@ -101,6 +110,7 @@ All changes are left **uncommitted** on the current branch.
    ```
    task(
      agent_type: "dev-workflows:upgrade-executor",
+     model: `<detection_model — §2.1 Sonnet chain — for SIMPLE/MODERATE; planning_model — §2 Opus chain — only if HIGH-RISK>`,
      description: "Execute component upgrade",
      prompt: "## Upgrade Execution Request
      repo: [absolute repo path]
@@ -111,7 +121,14 @@ All changes are left **uncommitted** on the current branch.
          - [captured test ids]
      model_routing:
        classification: [component class]
+       reason: <one-line>
+       current_model: <the model this orchestrator is running under>
+       detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # upgrade-planner, test-baseliner; upgrade-executor (SIMPLE/MODERATE); review-fixer
+       planning_model: <§2 Opus chain>   # risk-planner (SIGNIFICANT/HIGH-RISK; frontmatter-pinned, recorded, no override); upgrade-executor escalates here only if HIGH-RISK
+       review_model:  <§2 Opus chain>    # code-review (frontmatter-pinned; recorded, no override)
+       opus_available: <true if a §2 Opus model resolved, else false>
        gate_tests_on_review: [true for SIGNIFICANT / HIGH-RISK, false otherwise]
+       notes: <any §2 / §2.1 fallback or degradation>
 
      [paste the full READY upgrade plan verbatim]"
    )
@@ -119,8 +136,8 @@ All changes are left **uncommitted** on the current branch.
 
 4. **Review gate for SIGNIFICANT / HIGH-RISK** — If the executor returns `status: AWAITING_REVIEW`, run the Opus code-review gate before any test verification:
    - Capture the diff with `git add -N . && git diff`
-   - Invoke `code-review` on Opus using the approved risk plan, the executor output, and the diff
-   - If review returns `BLOCK` or `PASS WITH RECOMMENDATIONS`, invoke `review-fixer` for `BLOCKER` and `MAJOR` findings, then re-run the Opus review once
+   - Invoke `code-review` using the approved risk plan, the executor output, and the diff (frontmatter-pinned to Opus; recorded as `review_model` above, no `model:` override needed)
+   - If review returns `BLOCK` or `PASS WITH RECOMMENDATIONS`, invoke `review-fixer` with model: `<detection_model — §2.1 Sonnet chain>` for `BLOCKER` and `MAJOR` findings, then re-run the Opus review once
    - If the second verdict is still `BLOCK`, stop and escalate; do not continue to tests
 
 5. **Resume verify step after review** — Re-invoke `upgrade-executor` with `phase: verify-resume`, the original `READY` plan, and the same baseline block captured in Phase 2 prep.

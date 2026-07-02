@@ -30,7 +30,7 @@ This command makes **zero external API calls** and **never writes into the docs 
    dir — `$VAULT_PATH/jira-products/<KEY>` for a JiraID, or the passed
    directory), and `source`. The front-end owns the `$VAULT_PATH` /
    `jira-products` validation and Fallbacks A/B. Carry `jira_key` and
-   `jira_export_root` forward (downstream `<JIRA_KEY>` denotes `jira_key`).
+   `jira_export_root` forward.
 
    If the front-end returns `mode: direct` (no Jira input), stop with
    `RELEASE_NOTES_NEEDS_JIRA: /release-notes needs a Jira key or an imported-Jira directory.` —
@@ -102,7 +102,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
    choices: ["Proceed anyway (Recommended)", "Cancel", "Other… (describe)"]
    ```
 
-2. **Plan.** Present: resolved `<JIRA_KEY>`, destination, diff-grounding on/off (+ `$REPOS_PATH` and repos to scan when on), release versions detected, style-check choice. Ask:
+2. **Plan.** Present: resolved `jira_key`, destination, diff-grounding on/off (+ `$REPOS_PATH` and repos to scan when on), release versions detected, style-check choice. Ask:
    ```
    choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
    ```
@@ -189,7 +189,7 @@ If `dt-style-guide` is not installed, skip this phase and note "style check skip
 
 2. **Report:**
    ```
-   ## Release-notes draft — <JIRA_KEY>
+   ## Release-notes draft — <jira_key>
    - Destination: <path | stdout | skipped>
    - Release versions: <list, or "none declared">
    - Diff grounding: <on (repos: …) | off>

@@ -10,7 +10,7 @@ Draft child Epics for the Jira Value Increment: $ARGUMENTS
 
 Key distinction from `/document` (Jira mode): the VI being Epic-ized is **not yet implemented** — there are no PRs to diff. Code scanning (when enabled) is a plain filesystem search to understand what exists and what needs to be built.
 
-`/epics` **never branches**, **never commits**, and only writes inside `$VAULT_PATH`. Vault git hygiene is the user's responsibility — they may or may not have the vault under version control.
+`/epics` **never branches** and **never commits**, and writes only to the resolved output directory — `jira-drafts/<jira_key>/` under `$VAULT_PATH`, or a derived `epic-drafts/<jira_key>/` dir beside the imported hierarchy when `$VAULT_PATH` is unset. Git hygiene of the write target is the user's responsibility — they may or may not have it under version control.
 
 ---
 

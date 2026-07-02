@@ -16,19 +16,23 @@ Key distinction from `/document` (Jira mode): the VI being Epic-ized is **not ye
 
 ## Phase 0 — Load
 
-1. **Resolve `$VAULT_PATH`.** Read the `VAULT_PATH` environment variable. If unset, ask:
-   ```
-   choices: ["Set to detected path (Recommended)", "Enter manually", "Cancel"]
-   ```
-   Validate the resolved path exists and contains a `jira-products/` subdirectory. If not, stop with an error.
+1. **Resolve the Jira input via the shared front-end.** Execute
+   `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against
+   `$ARGUMENTS`. `/epics` is **jira-driven only**: expect `mode: jira-driven`
+   with `jira_key` (the input Value Increment key), `jira_export_root` (the VI
+   export dir — `$VAULT_PATH/jira-products/<KEY>` for a JiraID, or the passed
+   directory), and `source`. The front-end owns the `$VAULT_PATH` /
+   `jira-products` validation and Fallbacks A/B. Carry `jira_key` and
+   `jira_export_root` forward. Downstream, `<JIRA_KEY>` and `<VI-KEY>` both
+   denote this `jira_key`.
 
-2. **Require vault context.** This command writes Epic drafts into the user's Obsidian vault; running it outside the vault would produce files in the wrong place. Verify cwd is inside `$VAULT_PATH` (cwd starts with the resolved `$VAULT_PATH` prefix, case-sensitive). If not:
-   ```
-   choices: ["Cancel and re-run after `cd <VAULT_PATH>`", "Cancel"]
-   ```
-   Both choices end the current run — the command cannot `cd` for the user safely across shells. The first choice emits a `cd "$VAULT_PATH"` instruction for the user to copy-paste. Default = Cancel.
+   If the front-end returns `mode: direct` (no Jira input), stop with
+   `EPICS_NEEDS_JIRA: /epics needs a Jira key or an imported-Jira directory.` —
+   `/epics` has no direct-prompt behavior.
 
-3. **Resolve `<JIRA_KEY>`** from `$ARGUMENTS`. Validate that `$VAULT_PATH/jira-products/<JIRA_KEY>/` exists. If not, stop with an error naming the missing directory.
+`/epics` is **cwd-agnostic**: it writes Epic drafts to an absolute output
+directory (resolved in Phase 1), so it does **not** require cwd to be inside the
+vault.
 
 ---
 
@@ -40,9 +44,22 @@ Group questions where possible; use `choices` arrays; the last choice in every a
 
 Ask about:
 
-- **Output directory** (default: `$VAULT_PATH/jira-drafts/<VI-KEY>/`; one `.md` file per Epic, filename `<NEW-EPIC-SLUG>.md`). This path lives **outside** `jira-products/` by design — `jira-products/` is re-created from scratch on every Jira import, so any Epic drafts written there would be lost. `jira-drafts/` is a sibling directory reserved for PM/PO work-in-progress that survives re-imports. The directory is auto-created if missing.
+- **Output directory.** One `.md` file per Epic, filename `<NEW-EPIC-SLUG>.md`
+  (drafted Epics have no Jira ID yet, so they are slug-named files inside the
+  VI-keyed folder). The default depends on `$VAULT_PATH`:
+  - **`$VAULT_PATH` set** → `$VAULT_PATH/jira-drafts/<jira_key>/`. This lives
+    **outside** `jira-products/` by design — `jira-products/` is re-created on
+    every Jira import, so drafts written there would be lost; `jira-drafts/` is a
+    sibling reserved for PM/PO work-in-progress that survives re-imports.
+  - **`$VAULT_PATH` unset** (directory input) →
+    `<parent-of-jira_export_root>/epic-drafts/<jira_key>/`. **Path-safety
+    guard:** warn and offer another path if this dir would fall *inside*
+    `jira_export_root` (wiped and regenerated on every import). A pre-existing
+    dir that already holds drafts is normal — **not** a warning.
+  The directory is auto-created if missing. Record `output_dir`, and record
+  `project_root` = `$VAULT_PATH` when set, else `output_dir`. Ask:
   ```
-  choices: ["Use $VAULT_PATH/jira-drafts/<JIRA_KEY>/ (Recommended)", "Use a different path under $VAULT_PATH (you'll be prompted)", "Cancel", "Other… (describe)"]
+  choices: ["Use <output_dir> (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]
   ```
 
 - **Code examination on/off** (default ON). If ON, ask which repos under `$REPOS_PATH` to scan:
@@ -67,7 +84,7 @@ Also display (for user context):
 - Resolved cwd absolute path
 - Resolved output directory
 - Resolved `$REPOS_PATH` (or "N/A — code scan off")
-- Resolved `$VAULT_PATH` and `<JIRA_KEY>`
+- Resolved `jira_export_root` and `jira_key` (plus `$VAULT_PATH` when set)
 
 No branching context is shown — this command never branches.
 
@@ -99,7 +116,7 @@ Each subagent dispatch below cites its chain (§9 role→chain map). **No relaun
 
 Present a concise plan:
 
-- Resolved `<JIRA_KEY>` and the `$VAULT_PATH/jira-products/<JIRA_KEY>/` path
+- Resolved `jira_key` and the `jira_export_root` path
 - Existing Epics identified under this VI (will NOT be duplicated)
 - Repos to scan (or "code scan off")
 - Output directory with one file per new Epic; propose a name stub per Epic if the themes already suggest them
@@ -124,8 +141,8 @@ Invoke `jira-reader` with `depth: vi-plus-epics`. This depth is specifically des
 → Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Return the structured handoff for this brief:
   >
-  > vault_path: [resolved $VAULT_PATH]
-  > jira_key:   [resolved <JIRA_KEY>]
+  > jira_export_root: [resolved jira_export_root]
+  > jira_key:         [resolved jira_key]
   > depth:      vi-plus-epics"
 
 Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Jira key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On `OK`, identify the Epics already linked to the VI (filter `linked_items` to `type == Epic`) — the new Epic drafts MUST NOT duplicate their scope (enforced later by `epic-reviewer`).
@@ -235,7 +252,7 @@ Act on the return:
     >
     > Task description: [Epic drafting for <JIRA_KEY>]
     > Reviewer or style-checker output: [paste full dt-style-checker output]
-    > Project root: [resolved $VAULT_PATH]
+    > Project root: [resolved project_root]
     > Severities to fix: MAJOR only"
 
   If violations remain after the re-run, proceed to Phase 7 — the remaining findings (mostly MINOR/NIT for epics) are informational and will appear in the Phase 9 report.
@@ -273,7 +290,7 @@ Act on the verdict (same shape as `/document` Jira mode Phase 7):
     >
     > Task description: [Epic drafting for <JIRA_KEY>]
     > Reviewer or style-checker output: [paste full epic-reviewer output]
-    > Project root: [resolved $VAULT_PATH]
+    > Project root: [resolved project_root]
     > Severities to fix: BLOCKER and MAJOR"
 
   MINOR / NIT findings are deferred to the Phase 9 report.
@@ -288,7 +305,7 @@ Cap: one fix cycle + one re-review maximum.
 
 First gather the change context:
 
-a. The vault is the "project root" for this run. Run `git diff --stat` from `$VAULT_PATH` if the vault is a git repo; otherwise list the written files manually. This command never commits — just report what changed.
+a. `project_root` (the vault when `$VAULT_PATH` is set, else the resolved output directory) is the "project root" for this run. Run `git diff --stat` from `project_root` if it is a git repo; otherwise list the written files manually. This command never commits — just report what changed.
 b. Compose a **change summary block**:
 
 ```
@@ -348,7 +365,7 @@ Then spawn all four maintenance agents in a **single Agent message**. They are i
 > - Workarounds used: [manual steps not automated by the workflow — or 'none']
 > - Review verdict: [PASS | PASS WITH RECOMMENDATIONS | BLOCK]
 > - Test result: N/A (no tests in /epics)
-> - Project root: [resolved $VAULT_PATH]"
+> - Project root: [resolved project_root]"
 
 Collect all four summaries for the Phase 9 report.
 

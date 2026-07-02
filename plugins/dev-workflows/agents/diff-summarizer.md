@@ -1,6 +1,6 @@
 ---
 name: diff-summarizer
-description: Reads a single code repository's PR diff(s) and returns a documentation-focused summary. Host-aware resolver — uses the gh CLI for GitHub when available, falls back to pure-local-git strategies for Bitbucket Cloud, Bitbucket Server, and GitHub when gh is absent. Designed for parallel invocation (one instance per repo, capped at 4 concurrent by the caller). Inherits the session's model.
+description: Reads a single code repository's PR diff(s) and returns a documentation-focused summary. Host-aware resolver — uses the gh CLI for GitHub when available, falls back to pure-local-git strategies for Bitbucket Cloud, Bitbucket Server, and GitHub when gh is absent. Designed for parallel invocation (one instance per repo, capped at 4 concurrent by the caller). Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "LS", "Bash"]
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: doc-planner
-description: Synthesises Jira data, per-repo diff summaries, and confirmed write targets into a documentation checklist the writer follows and the reviewer checks against. Detects the repo's image policy (local vs CDN-upload) and annotates per-screenshot placement. Does NOT write content. Inherits the session's model.
+description: Synthesises Jira data, per-repo diff summaries, and confirmed write targets into a documentation checklist the writer follows and the reviewer checks against. Detects the repo's image policy (local vs CDN-upload) and annotates per-screenshot placement. Does NOT write content. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "LS"]
 ---
 

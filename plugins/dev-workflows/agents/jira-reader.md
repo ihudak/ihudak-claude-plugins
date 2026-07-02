@@ -1,6 +1,6 @@
 ---
 name: jira-reader
-description: Reads a pre-exported Jira markdown hierarchy (Value Increment, Epics, Stories, Sub-tasks, Research, Request for Assistance) from the user's Obsidian vault and returns a structured handoff — linked items, PR URLs with host classification, and capability themes. Read-only; never modifies vault files. Inherits the session's model.
+description: Reads a pre-exported Jira markdown hierarchy (Value Increment, Epics, Stories, Sub-tasks, Research, Request for Assistance) from the user's Obsidian vault and returns a structured handoff — linked items, PR URLs with host classification, and capability themes. Read-only; never modifies vault files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "LS"]
 ---
 

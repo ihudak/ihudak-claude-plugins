@@ -1,6 +1,6 @@
 ---
 name: doc-location-finder
-description: Finds the right place(s) in a docs repository to write new or extended documentation for a feature. Returns a prioritised list of write targets (extend-existing, new-page-in-existing-section, new-section) with rationale. Heuristic + grep work; no content written. Inherits the session's model.
+description: Finds the right place(s) in a docs repository to write new or extended documentation for a feature. Returns a prioritised list of write targets (extend-existing, new-page-in-existing-section, new-section) with rationale. Heuristic + grep work; no content written. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "LS"]
 ---
 

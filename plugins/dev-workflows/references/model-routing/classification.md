@@ -321,15 +321,20 @@ normal single-explorer path.
 
 ### 8.3 Model routing inside the fan-out
 
-- `jira-reader` and `code-scanner` **inherit the session model** — each handles
-  a bounded slice, so even a Sonnet-pinned session copes.
+- `jira-reader` and `code-scanner` are **pinned to the §2.1 detection (Sonnet)
+  chain** via the `task` tool `model:` override — the same rule as every other
+  mechanical step (§2.1, §9.1). Scanning is mechanical filesystem work; it must
+  not inherit the session model (an Opus session would otherwise burn Opus on a
+  cheap step), and its tier must not depend on which model the session happens
+  to run under.
 - Because the trigger floors the task at `SIGNIFICANT` (§1.1), synthesis and
   planning run on the strongest available reasoning model via `risk-planner`
-  (§2 chain). That is where the "more powerful model for the scan/plan step"
-  requirement is satisfied — no separate synthesis-model knob is introduced.
-- **Optional escalation:** if a single repo slice is itself oversized, the
-  orchestrator MAY pin that one `code-scanner` to Opus via the `task` tool
-  `model:` override. This is optional and judgment-based, not threshold-driven.
+  (§2 chain). That is where reasoning power is applied — the mechanical scan
+  that feeds it does not need it.
+- **Optional escalation:** if a single repo slice is itself oversized for the
+  detection tier to comprehend, the orchestrator MAY pin that one `code-scanner`
+  to Opus via the `task` tool `model:` override. This is a size-driven, judgment-
+  based exception — not session-driven.
 
 ### 8.4 Honesty
 
@@ -375,11 +380,14 @@ Sonnet floor, **skip** the relaunch advisory (there is nothing to relaunch onto)
 and announce the degradation in the `model_routing` record and the final report —
 the same rule as §2.
 
-### 9.4 Reconciliation with §8.3
+### 9.4 One rule across commands (`/implement` included)
 
-§8.3's "`jira-reader` / `code-scanner` inherit the session model" is the
-conservative default for the `/implement` large-input **fan-out**. Authoring
-pipelines that route per this section pin **`jira-reader`** to the detection
-chain (reading pre-exported markdown is mechanical — an Opus session should not
-pay for it). `code-scanner` remains governed by §8.3 when invoked under the
-large-input fan-out trigger. Refinement: `code-scanner` inherits under §8.3 **only when a powerful-chain synthesis step consumes its output**; in an authoring pipeline with no such step (e.g. `/epics`, where the writer is a detection/reasoning-pinned subagent and there is no risk-planner synthesis), pin `code-scanner` to the detection chain.
+Routing is by **step nature**, not by pipeline or session: `jira-reader` and
+`code-scanner` are mechanical, so they run on the §2.1 detection (Sonnet) chain
+in **every** command — `/implement`'s fan-out (§8.3), `/epics`, and `/document`
+alike. There is no "inherit the session model" for scanning and no per-command
+exception. A step's downstream consumer does not change its tier: a mechanical
+scan that feeds an Opus synthesis (e.g. `/implement`'s `risk-planner`) still runs
+on Sonnet — the reasoning power is applied in the synthesis step, not the scan.
+The only carve-out is size-driven, not session-driven: escalate a single
+oversized repo slice's `code-scanner` to Opus (§8.3).

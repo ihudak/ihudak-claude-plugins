@@ -259,7 +259,7 @@ Placed **after** branch creation (Pre-Phase 3), **before** any file edits. The `
 
 Invoke the `test-baseliner` agent in capture mode:
 
-→ Agent (subagent_type: "dev-workflows:test-baseliner"):
+→ Agent (subagent_type: "dev-workflows:test-baseliner", model: `<detection_model — §2.1 Sonnet chain>`):
   > "Run the agent in the following mode:
   >
   > Mode: capture
@@ -536,4 +536,4 @@ Output a structured report — do NOT ask any closing confirmation:
 - WHEN `fan_out` is true (multi-repo or any directory input): floor classification at SIGNIFICANT (overridable at plan approval), run Phase 1.7, and feed its synthesized summary to the planner instead of the single Explore subagent
 - ALWAYS fan out `code-scanner` one-per-repo in a single response, capped at 4 concurrent — never sequentially
 - NEVER silently skip a referenced `@dir` that is missing or unrecognized — surface it and ask (classification.md §8.4)
-- Scanning agents (`jira-reader`, `code-scanner`) inherit the session model; escalate a single scanner to Opus only when one repo slice is oversized
+- Scanning agents (`jira-reader`, `code-scanner`) are pinned to the §2.1 detection (Sonnet) chain like every mechanical step (never inherit the session model); escalate a single scanner to Opus only when one repo slice is oversized

@@ -23,13 +23,18 @@ This command makes **zero external API calls** and **never writes into the docs 
 
 ## Phase 0 — Load
 
-1. **Resolve `$VAULT_PATH`.** Read the `VAULT_PATH` environment variable. If unset, ask:
-   ```
-   choices: ["Set to detected path (Recommended)", "Enter manually", "Cancel"]
-   ```
-   Validate the resolved path exists and contains a `jira-products/` subdirectory. If not, stop with an error.
+1. **Resolve the Jira input via the shared front-end.** Execute
+   `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against
+   `$ARGUMENTS`. `/release-notes` is **jira-driven only**: expect
+   `mode: jira-driven` with `jira_key`, `jira_export_root` (the ticket export
+   dir — `$VAULT_PATH/jira-products/<KEY>` for a JiraID, or the passed
+   directory), and `source`. The front-end owns the `$VAULT_PATH` /
+   `jira-products` validation and Fallbacks A/B. Carry `jira_key` and
+   `jira_export_root` forward (downstream `<JIRA_KEY>` denotes `jira_key`).
 
-2. **Resolve `<JIRA_KEY>`** from `$ARGUMENTS`. Validate that `$VAULT_PATH/jira-products/<JIRA_KEY>/` exists. If not, stop with an error naming the missing directory.
+   If the front-end returns `mode: direct` (no Jira input), stop with
+   `RELEASE_NOTES_NEEDS_JIRA: /release-notes needs a Jira key or an imported-Jira directory.` —
+   this command has no direct-prompt behavior.
 
 ---
 
@@ -54,22 +59,33 @@ This command makes **zero external API calls** and **never writes into the docs 
   choices: ["MERGED only (Recommended)", "All PRs (MERGED + OPEN + DECLINED)", "Specific list (you'll be prompted)", "Other… (describe)"]
   ```
 
-- **Output destination.** First resolve the ticket's persistent Obsidian project folder (the durable home where the user keeps project work — NOT `jira-products/`, which is regenerated on every Jira import):
-  ```bash
-  find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<JIRA_KEY>*" 2>/dev/null | head -1
+- **Output destination.** Always write to a **file** (console-pasted markdown
+  loses formatting in Jira). Resolve the default by `$VAULT_PATH`:
+  - **`$VAULT_PATH` set** → resolve the ticket's persistent Obsidian project
+    folder (the durable home — NOT `jira-products/`, regenerated on every
+    import):
+    ```bash
+    find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<jira_key>*" 2>/dev/null | head -1
+    ```
+    Default = `<project-dir>/<jira_key>-release-notes.md`. If no project folder
+    is found (e.g. a non-`PRODUCT-` ticket), use the derived default below.
+  - **`$VAULT_PATH` unset** (directory input) → default
+    `<parent-of-jira_export_root>/<jira_key>-release-notes.md`.
+  Then ask (the Recommended choice is always the resolved file):
   ```
-  Then ask (the default uses the resolved `<project-dir>` when found):
+  choices: ["Write to <default file> (Recommended)", "Write to a different absolute path (you'll be prompted)", "Print to screen only", "Skip writing", "Other… (describe)"]
   ```
-  choices: ["Write to <project-dir>/<JIRA_KEY>-release-notes.md (Recommended — persistent project folder)", "Write to a different absolute path (you'll be prompted)", "Print to screen only", "Skip writing", "Other… (describe)"]
-  ```
-  When no project folder is found (e.g. a non-`PRODUCT-` ticket), drop the first choice and make "Write to a different absolute path" the recommended one. The default is persistent under `$VAULT_PATH` (always host-mounted; survives container restart, unlike `/tmp`). NEVER offer or accept a path inside a docs repo or under `jira-products/`.
+  Print-to-screen and Skip remain available but are **never** the default. The
+  default is persistent (host-mounted; survives container restart, unlike
+  `/tmp`). NEVER offer or accept a path inside a docs repo or under
+  `jira-products/`.
 
 - **Style check** (default ON when the `dt-style-guide` plugin is installed):
   ```
   choices: ["Run dt-style-checker then apply safe fixes (Recommended)", "Run dt-style-checker, report only (no auto-fix)", "Skip style check", "Other… (describe)"]
   ```
 
-Also display: resolved `$VAULT_PATH`, `<JIRA_KEY>`, `$REPOS_PATH` (or "N/A — Jira-only"), and the resolved destination.
+Also display: resolved `jira_export_root`, `jira_key` (plus `$VAULT_PATH` when set), `$REPOS_PATH` (or "N/A — Jira-only"), and the resolved destination.
 
 ---
 
@@ -100,8 +116,8 @@ Invoke `jira-reader`. Use `depth: vi-only` when diff grounding is OFF; `depth: f
 → Agent (subagent_type: "dev-workflows:jira-reader"):
   > "Return the structured handoff for this brief:
   >
-  > vault_path: [resolved $VAULT_PATH]
-  > jira_key:   [resolved <JIRA_KEY>]
+  > jira_export_root: [resolved jira_export_root]
+  > jira_key:         [resolved jira_key]
   > depth:      [vi-only | full]"
 
 If `status: NOT_FOUND` / `EMPTY`, surface `["Re-enter key", "Cancel"]`. On `OK`, parse `release_versions` from the VI frontmatter into a list (e.g. `"Managed (344), SaaS (344)"` → `["Managed (344)", "SaaS (344)"]`).
@@ -145,7 +161,7 @@ When `release-notes-writer` returns `gaps[]` entries that have `jira_phrasing` a
    choices: ["Decide per discrepancy (Recommended)", "Document ALL as actual (code)", "Document ALL as intended (Jira)", "Skip ALL and report (drafts a bug report)", "Cancel", "Other… (describe)"]
    ```
 3. Apply the decision to the draft prose: `document-as-code` → use source phrasing; `document-as-spec` → use Jira phrasing (no marker in release notes prose — the gap is recorded only in the gaps file); `skip-and-report` → omit the claim.
-4. For `document-as-spec` or `skip-and-report`: resolve `bug_report_destination` using `find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<JIRA_KEY>*"` (same as the release-notes destination resolution). Write/append `<bug_report_destination>/<JIRA_KEY>-implementation-gaps.md` using the §7.5 format from `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`, setting `Spec phrasing:` to `(no spec)` (this flow has no spec).
+4. For `document-as-spec` or `skip-and-report`: resolve `bug_report_destination` the same way as the release-notes destination — `$VAULT_PATH` set → the `find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<jira_key>*"` project folder; `$VAULT_PATH` unset → `<parent-of-jira_export_root>/`. Write/append `<bug_report_destination>/<jira_key>-implementation-gaps.md` using the §7.5 format from `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`, setting `Spec phrasing:` to `(no spec)` (this flow has no spec).
 
 Pass `code_repos` (the Phase-4 resolved map) to the writer when diff-grounding is on.
 

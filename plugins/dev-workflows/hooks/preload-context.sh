@@ -14,8 +14,10 @@
 #                                         invokes Opus)
 #   • /epics, /release-notes            → $VAULT_PATH + $REPOS_PATH default
 #                                         + git branch only if cwd is inside
-#                                         a git repo (no model-routing,
-#                                         no full status/log, no directory listing)
+#                                         a git repo (no model-routing, no full
+#                                         status/log, no directory listing). Both
+#                                         accept a JiraID or an imported-Jira
+#                                         directory via the shared front-end.
 #   • /docs-profile                     → not matched (no context injected)
 #
 # emit_jira_context also surfaces $SPECS_PATH alongside $VAULT_PATH/$REPOS_PATH.

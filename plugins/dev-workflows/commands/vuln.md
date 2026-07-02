@@ -143,7 +143,7 @@ task(
 3. **If the fixer returns `AWAITING_REVIEW`**, run Opus code review before tests:
    - Capture the diff with `git add -N . && git diff`
    - Invoke `code-review` with the CVE summary, the research handoff, the fixer output, and the diff (frontmatter-pinned to Opus; recorded as `review_model` above, no `model:` override needed)
-   - If review returns `BLOCK` or `PASS WITH RECOMMENDATIONS`, invoke `review-fixer` with `model: `<detection_model — §2.1 Sonnet chain>`` for `BLOCKER` and `MAJOR` findings, then re-run the Opus review once
+   - If review returns `BLOCK` or `PASS WITH RECOMMENDATIONS`, invoke `review-fixer` with model: `<detection_model — §2.1 Sonnet chain>` for `BLOCKER` and `MAJOR` findings, then re-run the Opus review once
    - If the second verdict is still `BLOCK`, stop and escalate; do not continue to tests, commit, or PR
 
 4. **Resume the fixer after review** — Re-invoke `vuln-fixer` with `phase: verify-resume`, the same baseline block, and the original research report re-supplied verbatim.

@@ -42,6 +42,7 @@ Invoke one research task per valid CVE. Use a single agent message for the batch
 ```
 task(
   agent_type: "dev-workflows:vuln-research",
+  model: `<detection_model — §2.1 Sonnet chain>`,
   description: "Research CVE",
   prompt: "## Vuln Research Request
   repo: [absolute repo path]
@@ -51,7 +52,14 @@ task(
   ecosystem_hint: [optional]
   model_routing:
     classification: MODERATE
-    ..."
+    reason: <one-line>
+    current_model: <the model this orchestrator is running under>
+    detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # vuln-research; vuln-fixer (SIMPLE/MODERATE); review-fixer
+    planning_model: <§2 Opus chain>   # vuln-fixer escalates here only if HIGH-RISK
+    review_model:  <§2 Opus chain>    # code-review (frontmatter-pinned; recorded, no override)
+    opus_available: <true if a §2 Opus model resolved, else false>
+    gate_tests_on_review: false
+    notes: <any §2 / §2.1 fallback or degradation>"
 )
 ```
 
@@ -76,6 +84,7 @@ Invoke `vuln-fixer` with `baseline_tests: run-fresh`:
 ```
 task(
   agent_type: "dev-workflows:vuln-fixer",
+  model: `<detection_model — §2.1 Sonnet chain>`,
   description: "Fix CVE",
   prompt: "## Vuln Fix Request
   repo: [absolute repo path]
@@ -84,7 +93,14 @@ task(
   jira_placeholder: [NOJIRA or omit]
   model_routing:
     classification: [MODERATE]
+    reason: <one-line>
+    current_model: <the model this orchestrator is running under>
+    detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # vuln-research; vuln-fixer (SIMPLE/MODERATE); review-fixer
+    planning_model: <§2 Opus chain>   # vuln-fixer escalates here only if HIGH-RISK
+    review_model:  <§2 Opus chain>    # code-review (frontmatter-pinned; recorded, no override)
+    opus_available: <true if a §2 Opus model resolved, else false>
     gate_tests_on_review: false
+    notes: <any §2 / §2.1 fallback or degradation>
 
   [paste the single READY research report verbatim]"
 )
@@ -98,6 +114,7 @@ task(
 ```
 task(
   agent_type: "dev-workflows:vuln-fixer",
+  model: `<detection_model for SIGNIFICANT; planning_model (§2 Opus chain) only if HIGH-RISK>`,
   description: "Apply CVE fix before review",
   prompt: "## Vuln Fix Request
   repo: [absolute repo path]
@@ -110,7 +127,14 @@ task(
   jira_placeholder: [NOJIRA or omit]
   model_routing:
     classification: [SIGNIFICANT | HIGH-RISK]
+    reason: <one-line>
+    current_model: <the model this orchestrator is running under>
+    detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # vuln-research; vuln-fixer (SIMPLE/MODERATE); review-fixer
+    planning_model: <§2 Opus chain>   # vuln-fixer escalates here only if HIGH-RISK
+    review_model:  <§2 Opus chain>    # code-review (frontmatter-pinned; recorded, no override)
+    opus_available: <true if a §2 Opus model resolved, else false>
     gate_tests_on_review: true
+    notes: <any §2 / §2.1 fallback or degradation>
 
   [paste the single READY research report verbatim]"
 )
@@ -118,8 +142,8 @@ task(
 
 3. **If the fixer returns `AWAITING_REVIEW`**, run Opus code review before tests:
    - Capture the diff with `git add -N . && git diff`
-   - Invoke `code-review` on Opus with the CVE summary, the research handoff, the fixer output, and the diff
-   - If review returns `BLOCK` or `PASS WITH RECOMMENDATIONS`, invoke `review-fixer` for `BLOCKER` and `MAJOR` findings, then re-run the Opus review once
+   - Invoke `code-review` with the CVE summary, the research handoff, the fixer output, and the diff (frontmatter-pinned to Opus; recorded as `review_model` above, no `model:` override needed)
+   - If review returns `BLOCK` or `PASS WITH RECOMMENDATIONS`, invoke `review-fixer` with `model: `<detection_model — §2.1 Sonnet chain>`` for `BLOCKER` and `MAJOR` findings, then re-run the Opus review once
    - If the second verdict is still `BLOCK`, stop and escalate; do not continue to tests, commit, or PR
 
 4. **Resume the fixer after review** — Re-invoke `vuln-fixer` with `phase: verify-resume`, the same baseline block, and the original research report re-supplied verbatim.

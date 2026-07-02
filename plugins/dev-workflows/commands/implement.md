@@ -79,6 +79,24 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 
 State the classification and the specific criterion that triggered it. When in doubt between MODERATE and SIGNIFICANT, pick SIGNIFICANT.
 
+**Resolve the per-step routing.** Following `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §9, record a `model_routing` block resolving each model against the fallback chains:
+
+```yaml
+model_routing:
+  classification: <SIMPLE | MODERATE | SIGNIFICANT | HIGH-RISK>
+  reason: <one-line>
+  current_model: <the model this orchestrator is running under>   # = the inline implementation coding
+  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # jira-reader, code-scanner, Phase 2A exploration, test-writer, test-baseliner, review-fixer
+  planning_model: <§2 Opus chain>   # risk-planner (Phase 2B; SIGNIFICANT/HIGH-RISK only; frontmatter-pinned, recorded, no override)
+  review_model:  <§2 Opus chain>    # code-review (Phase 3B; frontmatter-pinned, recorded, no override)
+  implementation_model: <= current_model>   # coding done inline by the orchestrator
+  fixes_model: <= detection_model>          # review-fixer (Phase 3B)
+  opus_available: <true if a §2 Opus model resolved, else false>
+  notes: <any §2 / §2.1 fallback or degradation>
+```
+
+Each subagent dispatch below cites its chain (§9 role→chain map); mechanical steps pin `detection_model` via `model:`, and the frontmatter-Opus gates (`risk-planner`, `code-review`) are recorded but never overridden.
+
 Then choose the branch:
 
 - **SIMPLE / MODERATE** → continue to Phase 2A (standard planning)
@@ -106,7 +124,7 @@ Runs after Pre-Phase 2 and replaces the single Phase 2B exploration subagent for
 
 1. **Read Jira ticket folders.** For each Jira ticket folder, invoke `jira-reader` (read-only):
 
-   → Agent (subagent_type: "dev-workflows:jira-reader"):
+   → Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §2.1 Sonnet chain>`):
      > "Return the structured handoff for this brief — linked items, PR URLs (identifiers only — no fetching), and capability themes:
      >
      > jira_export_root: [the resolved jira_export_root (from the Phase 0 front-end), or the ticket-folder absolute path]
@@ -119,7 +137,7 @@ Runs after Pre-Phase 2 and replaces the single Phase 2B exploration subagent for
 
 3. **Fan out `code-scanner` — one per repo, single response, cap 4 concurrent.** Spawn all repo scanners in **one** message (batch in groups of 4 if there are more than 4 repos). For each code repo:
 
-   → Agent (subagent_type: "dev-workflows:code-scanner"):
+   → Agent (subagent_type: "dev-workflows:code-scanner", model: `<detection_model — §2.1 Sonnet chain>`):
      > "repo_path: <absolute repo path>
      >  capability_themes: <themes from steps 1–2 + the implementation spec>
      >  context: <3–5 sentences: the implementation goal and what the change must accomplish>
@@ -135,7 +153,7 @@ Runs after Pre-Phase 2 and replaces the single Phase 2B exploration subagent for
 
 **Codebase exploration** — Before writing the plan, spawn an exploration subagent to map the relevant parts of the codebase:
 
-→ Agent (subagent_type: "general-purpose", tools: Read/Glob/Grep/LS only — no Bash, no Edit):
+→ Agent (subagent_type: "general-purpose", tools: Read/Glob/Grep/LS only — no Bash, no Edit, model: `<detection_model — §2.1 Sonnet chain>`):
   "Given this implementation description: [paste the full implementation description from Phase 0 or Phase 1 here], find and return:
    - Relevant source files and their primary responsibility
    - Existing patterns and conventions used in this codebase
@@ -179,7 +197,7 @@ Once the file map is returned, delegate planning to Opus. Invoke via
 system prompt from file" instruction — this routing is independent of whether
 user-level agent auto-discovery is active in the current session.
 
-→ Agent (subagent_type: "dev-workflows:risk-planner"):
+→ Agent (subagent_type: "dev-workflows:risk-planner"):  # planning_model — §2 Opus chain; frontmatter-pinned, recorded in model_routing, no override added
   > "Produce the risk-weighted plan for the following brief:
   >
   > Task description: [substitute full description]
@@ -272,7 +290,7 @@ Runs after Phase 3A step 5 completes (all code changes written), before the outc
 
 1. **Invoke `test-writer` agent**:
 
-   → Agent (subagent_type: "dev-workflows:test-writer"):
+   → Agent (subagent_type: "dev-workflows:test-writer", model: `<detection_model — §2.1 Sonnet chain>`):
      > "Write tests for this brief:
      >
      > Task description: [substitute full description]
@@ -293,7 +311,7 @@ Runs after Phase 3A step 5 completes (all code changes written), before the outc
 
 4. **Invoke `test-baseliner` in verify mode** against the baseline captured in Pre-Phase 3.5:
 
-   → Agent (subagent_type: "dev-workflows:test-baseliner"):
+   → Agent (subagent_type: "dev-workflows:test-baseliner", model: `<detection_model — §2.1 Sonnet chain>`):
      > "Run the agent in the following mode:
      >
      > Mode: verify
@@ -325,7 +343,7 @@ Use the currently selected model or Sonnet for implementation itself. Opus is re
 4. If a **new ambiguity** emerges mid-implementation: STOP, ask with choices (last: `"Other… (describe)"`), resume after answer
 4a. **Invoke `test-writer` agent** (inserted before diff capture so the Opus review sees code and tests together — test adequacy is already a review dimension in `code-review.md`):
 
-   → Agent (subagent_type: "dev-workflows:test-writer"):
+   → Agent (subagent_type: "dev-workflows:test-writer", model: `<detection_model — §2.1 Sonnet chain>`):
      > "Write tests for this brief:
      >
      > Task description: [substitute full description]
@@ -345,7 +363,7 @@ Use the currently selected model or Sonnet for implementation itself. Opus is re
    an explicit `model: "opus"` override and a "read the system prompt from file"
    instruction so the routing works independently of agent auto-discovery.
 
-   → Agent (subagent_type: "dev-workflows:code-review"):
+   → Agent (subagent_type: "dev-workflows:code-review"):  # review_model — §2 Opus chain; frontmatter-pinned, recorded in model_routing, no override added
      > "Produce the Opus code review for this brief:
      >
      > Task description: [substitute full description]
@@ -362,7 +380,7 @@ Use the currently selected model or Sonnet for implementation itself. Opus is re
 
    **Review-fixer sub-step** (for BLOCK and PASS WITH RECOMMENDATIONS):
 
-   → Agent (subagent_type: "dev-workflows:review-fixer"):
+   → Agent (subagent_type: "dev-workflows:review-fixer", model: `<fixes_model — = detection_model, §2.1 Sonnet chain>`):
      > "Fix the review findings for this brief:
      >
      > Task description: [substitute full description]

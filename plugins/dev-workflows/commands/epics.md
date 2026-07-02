@@ -439,13 +439,13 @@ The vault has uncommitted changes. `/epics` never commits — vault git manageme
 
 ## Invariants (always enforced)
 
-- ALWAYS run Phase 0 vault check — refuse to run outside `$VAULT_PATH`
+- ALWAYS resolve input via the shared Jira-input front-end (Phase 0) — a JiraID requires `$VAULT_PATH`; an imported-Jira directory works without it; `/epics` is cwd-agnostic and rejects `mode: direct`
 - NEVER create a git branch (this command never branches)
 - NEVER commit (vault git management is the user's responsibility)
 - NEVER write inside `jira-products/` — re-created on every import; writes would be lost
 - NEVER write inside `_archive/` — read-only by convention
-- NEVER write outside `$VAULT_PATH`
-- ALWAYS write to `jira-drafts/<JIRA_KEY>/` (or the user-confirmed alternative under `$VAULT_PATH`) — auto-create the directory if missing
+- NEVER write inside `jira_export_root` — it is re-created on every Jira import, so drafts there would be lost (the Phase 1 path-safety guard enforces this for the derived `epic-drafts/` default)
+- ALWAYS write to the resolved `output_dir` — `$VAULT_PATH/jira-drafts/<jira_key>/` when `$VAULT_PATH` is set, else `<parent-of-jira_export_root>/epic-drafts/<jira_key>/` (or the user-confirmed alternative) — auto-create the directory if missing
 - ALWAYS escalate missing repos before proceeding — never silent skip
 - ALWAYS invoke `epic-reviewer` before Phase 8 maintenance
 - ALWAYS resolve the `model_routing` block at Phase 1.5 and pin each subagent dispatch to its §9 chain via `model:` — the mechanical steps (`jira-reader`, `code-scanner`, `dt-style-checker`, `doc-fixer`) and `epic-writer` (MODERATE) to the §2.1 Sonnet chain; `epic-reviewer` keeps its frontmatter Opus pin (no override); coordination + interactive gates run on `current_model`

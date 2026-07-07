@@ -1,11 +1,11 @@
 # Jira-input resolution (shared front-end)
 
 Shared input-resolution mechanics for the Jira-driven commands `/implement`,
-`/document`, `/epics`, and `/release-notes`. The command's Phase 0 **cites this
+`/document`, `/epics`, `/specify`, and `/release-notes`. The command's Phase 0 **cites this
 file and executes these steps inline** — the orchestrator owns every prompt. The
 commands parse `$ARGUMENTS` identically and consume the normalized output
-contract (§ Output contract); each then layers its own downstream work. `/epics`
-and `/release-notes` are **jira-driven only**: they consume
+contract (§ Output contract); each then layers its own downstream work. `/epics`,
+`/specify`, and `/release-notes` are **jira-driven only**: they consume
 `{mode, source, jira_key, jira_export_root}`, ignore `specs` / `direct_prompt` /
 `direct_files`, and **reject** `mode: direct` (they have no non-Jira behavior —
 stop with a clear error).

@@ -43,7 +43,7 @@ specification* for a single item (typically an Epic). Run `/epics` first, then `
    `$SPECS_PATH/specifications/<KEY>{-|_}<slug>/` — tolerate `-`/`_` after the key and a pre-existing
    slug that doesn't exactly match a freshly-derived one (a human may have adjusted it). Honor an
    existing folder if found; otherwise the folder is created at `$SPECS_PATH/specifications/<KEY>_<slug>/`
-   the first time Phase 5 writes to it.
+   the first time a phase writes to it — Phase 2's `idea.md` write, in a fresh run.
 
 4. **Detect a prior run.** If a `_session.md` exists in the resolved feature folder, record that a
    resume is available — Phase 1 asks the user resume-vs-fresh. If no `_session.md` exists, this is a

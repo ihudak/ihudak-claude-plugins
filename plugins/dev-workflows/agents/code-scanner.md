@@ -1,10 +1,10 @@
 ---
 name: code-scanner
-description: Scans a single code repository for existing capabilities and gaps relative to a set of themes. Themes may come from a Value Increment / Epic (Epic writing) or from an implementation spec (/implement multi-source scanning). Pure filesystem search; no HTTPS. Designed for parallel invocation (one instance per repo, capped at 4 concurrent by the caller). Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Scans a single code repository for existing capabilities and gaps relative to a set of themes. Themes may come from a Value Increment / Epic (Epic writing), from an implementation spec (/implement multi-source scanning), or from a Jira item being specified (/specify light feasibility grounding). Pure filesystem search; no HTTPS. Designed for parallel invocation (one instance per repo, capped at 4 concurrent by the caller). Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "LS", "Bash"]
 ---
 
-Scan a single code repo for existing capabilities and gaps relative to a set of themes. One instance per repo; the caller — `/epics` (Epic scoping) or `/implement` (multi-source implementation scoping) — spawns up to 4 concurrent instances per batch.
+Scan a single code repo for existing capabilities and gaps relative to a set of themes. One instance per repo; the caller — `/epics` (Epic scoping), `/implement` (multi-source implementation scoping), or `/specify` (light capability scan for spec feasibility grounding) — spawns up to 4 concurrent instances per batch.
 
 **Distinction from `diff-summarizer`.** That agent reads *merged PR diffs* for features already implemented; this agent reads *present-day code* for features being scoped. There are no PRs to diff — just filesystem search to understand what exists and what needs to be built.
 

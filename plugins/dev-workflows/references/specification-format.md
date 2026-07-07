@@ -92,6 +92,16 @@ outcome asserting the *parent* AC's behaviour, reusing the AC's exact terms). Va
 - Open questions: `- *Open questions:* [q]` on a test, or an `Open questions` sub-heading for broader
   items.
 
+The renderer (`scripts/specification-to-html.py`) parses a literal micro-format for each field —
+match it exactly:
+
+```
+**[TC01]: <title> — Happy path:**
+- *Preconditions:* <state>
+- *Steps:* 1. <action> 2. <action>
+- *Expected result:* <single pass/fail outcome asserting the parent AC>
+```
+
 ## Identifier conventions
 
 `[Uxx]` unique+contiguous document-wide; `[ACxx]` unique+contiguous within each story; `[TCxx]`

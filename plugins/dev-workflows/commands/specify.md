@@ -60,7 +60,7 @@ specification* for a single item (typically an Epic). Run `/epics` first, then `
        (`<eslug>` = kebab of the Epic title). Apply the same honor-an-existing-dir tolerance to the
        `<EPIC>-<eslug>` segment.
      - `focus_key` null **and** the item is a **VI** for which the broad-VI-spec choice is made
-       (Phase 2.5) → `specifications/<VI>-<vslug>/specification.md` — flat at the VI-dir level, no
+       (Phase 2, Step A) → `specifications/<VI>-<vslug>/specification.md` — flat at the VI-dir level, no
        per-Epic subfolder; the feature folder is the VI dir itself.
      - `focus_key` null **and** the item is a **stand-alone top-level Epic** (no parent VI) →
        `specifications/<EPIC>-<eslug>/`, where `<EPIC>` here is this item's own key (== `jira_key`,
@@ -144,9 +144,82 @@ The grill + authoring run inline on `current_model` (interactive judgment — no
 
 ## Phase 2 — Read Jira
 
-Dispatch `jira-reader` at `depth: full` — richer than `/epics`' `vi-plus-epics`, because `/specify`
-needs the full linked subtree (Stories/Sub-tasks) as the raw material for user stories, acceptance
-criteria, and test cases; `vi-plus-epics` would starve the grill of exactly the detail it needs.
+Phase 2 reads Jira in **two steps, cheap before expensive**. Step A settles *granularity* — the
+input's type and, for a multi-Epic VI, *which* Epic — with a cheap `vi-plus-epics` read (and, when
+needed, the progress-aware picker), resolving `focus_key`. Only then does Step B spend the full-depth
+read, now scoped to the resolved Epic. This ordering resolves a null `focus_key` by a cheap
+enumeration **before** any expensive full read, so the full read never pulls a whole multi-Epic VI
+subtree the grill would only discard. When `focus_key` is already set on entry, Step A is skipped and
+Phase 2 is just the full read (Step B).
+
+### Step A — Resolve granularity + focus Epic (cheap enumeration + picker)
+
+**Skip this step entirely when `focus_key` is already set on entry** — any two-token form
+(`<VI-Key> <Epic-Key>`, `<dir> <Epic-Key>`) or a bare `<Epic-Key>` auto-resolved to its parent VI in
+Phase 0. The Epic is already chosen, so go straight to Step B.
+
+Otherwise (`focus_key` is null), dispatch `jira-reader` at the **cheap** `depth: vi-plus-epics` to
+determine the item's type and enumerate its child Epics *without* reading the full Story/Sub-task
+subtree:
+
+→ Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §2.1 Sonnet chain>`):
+  > "Return the structured handoff for this brief:
+  >
+  > jira_export_root: [resolved jira_export_root]
+  > jira_key:         [resolved jira_key]
+  > depth:      vi-plus-epics"
+
+Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Jira key dir not found`
+rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On
+`OK`, read the item's type from `value_increment` / `linked_items` and enumerate its **child Epics**
+(filter `linked_items` to `type == Epic`). Then branch — this is the reusable **progress-aware
+Epic-picker pattern** documented in `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`
+(§ Progress-aware Epic picker), applied here with `/specify`'s own done-predicate:
+
+- **Stand-alone top-level Epic** (the item is itself an Epic, no parent VI) → no picker; the item
+  *is* the focus. Set `focus_key` = the item (== `jira_key`). The feature folder stays the flat
+  `specifications/<jira_key>-<slug>/` resolved in Phase 0 — a stand-alone Epic has no distinct parent
+  VI, so `<VI>` == `<EPIC>` and there is no self-nested subfolder (Phase 0 step 3's
+  shared-physical-target note). Proceed to Step B.
+- **VI with exactly 1 Epic** → no picker; auto-select it. Set `focus_key` = that Epic and emit a
+  one-line notice (e.g. `Single child Epic <EPIC> '<title>' — authoring its spec.`). Re-point the
+  feature folder to that Epic's per-Epic subfolder (see *Re-pointing* below). Proceed to Step B.
+- **VI with ≥2 Epics** → render the **progress-aware picker**, one row per child Epic. Compute each
+  Epic's status from `/specify`'s **done-predicate** against its feature folder
+  `specifications/<VI>-<vslug>/<EPIC>-<eslug>/`:
+  - **○ not started** — no `specification.md` and no `_session.md` there → selectable.
+  - **◐ in progress** (resume) — a `_session.md` exists there but no `specification.md` → selectable
+    as a resume; the per-Epic stage-level resume then runs in Phase 5 from that `_session.md`
+    (resume *stacks* on the picker, per the shared pattern).
+  - **● done** — `specification.md` exists there → shown greyed, **not** default-selectable;
+    selecting it offers *revise*.
+  Default cursor = the first actionable row (in-progress before not-started). Render as a `choices`
+  array: one entry per Epic (its ○/◐/● marker + key + title), then an explicit
+  **"Author one broad VI-level spec instead"** choice, then `"Other… (describe)"`.
+  - On selecting an Epic → set `focus_key` = that Epic; re-point the feature folder to its per-Epic
+    subfolder (see *Re-pointing* below).
+  - On **"Author one broad VI-level spec instead"** → leave `focus_key` = null; the feature folder
+    stays the flat VI-dir path `specifications/<VI>-<vslug>/` (Phase 0 step 3's `focus_key`-null VI
+    case). Step B then reads the whole VI subtree.
+- **VI with 0 Epics** → this VI hasn't been split yet. Offer the existing without-Epics choices:
+  `choices: ["Split into Epics first with /epics, then create them in Jira and re-import (Recommended)", "Author one broad VI-level spec now", "Cancel", "Other… (describe)"]`
+  `/specify` does NOT create Jira Epics itself (zero external API) — on "Split…", stop and guide the
+  user through the manual round-trip (see the Phase 7 round-trip note). On "Author one broad VI-level
+  spec now", leave `focus_key` = null and proceed to Step B.
+
+**Re-pointing the feature folder after the picker.** When Step A sets `focus_key` to an Epic (the
+single-Epic and ≥2-Epic-selection cases), the feature folder becomes that Epic's per-Epic subfolder
+`specifications/<VI>-<vslug>/<EPIC>-<eslug>/` (Phase 0 step 3's `focus_key`-set case), superseding the
+provisional VI-level folder confirmed in Phase 1 — Phase 0 already marks that folder provisional until
+`jira-reader` runs. Re-detect a prior run there (a `_session.md` → a resume is available for that
+Epic). The stand-alone-Epic and broad-VI-spec cases leave the Phase 0 folder unchanged.
+
+### Step B — Full Epic-scoped read
+
+With granularity settled and `focus_key` resolved, dispatch `jira-reader` at `depth: full` — richer
+than Step A's `vi-plus-epics`, because `/specify` needs the full linked subtree (Stories/Sub-tasks) as
+the raw material for user stories, acceptance criteria, and test cases; `vi-plus-epics` would starve
+the grill of exactly the detail it needs.
 
 → Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §2.1 Sonnet chain>`):
   > "Return the structured handoff for this brief:
@@ -159,26 +232,21 @@ Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Ji
 rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On
 `OK`:
 
-- Extract **capability themes** and component/product mentions — feeds Phase 3's repo derivation and
-  Phase 4's `code-scanner` dispatches.
-- Write **`idea.md`** in the feature folder from the Jira text (the item's summary, description, and
-  linked-item summaries) — pre-spec brainstorming provenance, in the same spirit as the `idea.md`
-  convention `source-truth.md` already treats as non-authoritative once `specification.md` exists.
-- Carry the full linked-item tree (Stories/Sub-tasks) forward into Phase 5 — the raw material the
-  grill mines for user stories, acceptance criteria, and test cases.
-
----
-
-## Phase 2.5 — Granularity pre-flight
-
-From the `jira-reader` output, determine the input item's type (VI vs Epic) and whether it has child Epics:
-
-- **Epic input** → proceed (the sweet spot).
-- **VI input _with_ Epics** → inform the user that specs are authored per Epic; list the child Epics. Offer:
-  `choices: ["Run /specify per Epic (Recommended — I'll list them)", "Author one broad VI-level spec", "Cancel"]`
-- **VI input _without_ Epics** → flag it and offer:
-  `choices: ["Split into Epics first with /epics, then create them in Jira and re-import (Recommended)", "Author one broad VI-level spec now", "Cancel"]`
-  `/specify` does NOT create Jira Epics itself (zero external API) — it guides the user through the manual round-trip (see the round-trip note below).
+- **Epic-scope the read.** `jira-reader` is dispatched with `jira_key` = the VI and returns the
+  **whole VI** linked-item hierarchy (`jira-reader` itself is unchanged). When `focus_key` is set,
+  **scope the returned hierarchy to `focus_key`'s subtree** — the Epic itself plus its linked
+  Stories/Sub-tasks (`linked_items` whose `parent` chain leads to `focus_key`) — filtering
+  in-orchestrator and discarding sibling Epics' subtrees before feeding the downstream phases. When
+  `focus_key` is null (broad VI-level spec), use the whole VI subtree as today. Everything below —
+  themes, `idea.md`, the Phase 5 raw material — derives from this scoped `focus_key` subtree.
+- Extract **capability themes** and component/product mentions from the scoped subtree — feeds
+  Phase 3's repo derivation and Phase 4's `code-scanner` dispatches.
+- Write **`idea.md`** in the feature folder from the scoped Jira text (the focus item's summary,
+  description, and its linked-item summaries) — pre-spec brainstorming provenance, in the same spirit
+  as the `idea.md` convention `source-truth.md` already treats as non-authoritative once
+  `specification.md` exists.
+- Carry the scoped linked-item tree (the Epic's Stories/Sub-tasks) forward into Phase 5 — the raw
+  material the grill mines for user stories, acceptance criteria, and test cases.
 
 ---
 
@@ -323,7 +391,15 @@ Then **offer** (commit-when-asked — never automatic):
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git", "Cancel"]
 ```
 
-On the first choice, in the specs repo (`$SPECS_PATH`): create branch `spec/<KEY>_<slug>` (main is protected — a PR is required), commit ONLY the feature folder (never `git add -A`), push, and open a PR targeting `main`. **Merged-to-main = ready for the dev-team handover.** Devs and `/design` read the spec from `main`, never from the branch. Commit trailer: `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`.
+On the first choice, in the specs repo (`$SPECS_PATH`): create the branch — `spec/<EPIC>-<eslug>` for a **per-Epic** spec (a VI + focus Epic) or a **stand-alone-Epic** spec (`<EPIC>` = `focus_key`, which for a stand-alone Epic equals `jira_key`), or `spec/<VI>-<vslug>` for a **broad VI-level** spec (`focus_key` null). Epic keys are globally unique, so the per-Epic form needs no VI prefix; both forms use hyphens. main is protected — a PR is required — so commit ONLY the feature folder (never `git add -A`), push, and open a PR targeting `main`. **Merged-to-main = ready for the dev-team handover.** Devs and `/design` read the spec from `main`, never from the branch. Commit trailer: `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`.
+
+### Next Epic (after a per-Epic spec from a multi-Epic VI)
+
+When this run authored a **per-Epic** spec that was selected from Step A's ≥2-Epics picker, offer — once Phase 7's write/commit completes — to continue with a sibling Epic under the same VI:
+```
+choices: ["Next Epic — re-open the picker (Recommended)", "Stop here", "Other… (describe)"]
+```
+On **"Next Epic"**, **re-render the Phase 2 Step A progress-aware picker minus the just-completed Epic** — recompute each remaining Epic's ○/◐/● state from its feature folder, so the freshly-authored spec now shows **● done** and drops out of the actionable set — then, on selection, set `focus_key` to the new Epic and loop back through Phase 2 Step B → Phases 3–7 for it. This offer does **not** apply to a stand-alone Epic, a single-Epic VI, or a broad VI-level spec — there is no sibling to advance to.
 
 ### Jira round-trip (document to the user — they will otherwise miss it)
 

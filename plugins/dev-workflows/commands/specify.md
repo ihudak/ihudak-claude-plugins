@@ -184,9 +184,13 @@ Epic-picker pattern** documented in `${CLAUDE_PLUGIN_ROOT}/references/jira-input
 - **VI with exactly 1 Epic** → no picker; auto-select it. Set `focus_key` = that Epic and emit a
   one-line notice (e.g. `Single child Epic <EPIC> '<title>' — authoring its spec.`). Re-point the
   feature folder to that Epic's per-Epic subfolder (see *Re-pointing* below). Proceed to Step B.
-- **VI with ≥2 Epics** → render the **progress-aware picker**, one row per child Epic. Compute each
-  Epic's status from `/specify`'s **done-predicate** against its feature folder
-  `specifications/<VI>-<vslug>/<EPIC>-<eslug>/`:
+- **VI with ≥2 Epics** → render the **progress-aware picker**, one row per child Epic. For each Epic,
+  first resolve its **actual** feature folder the same way Phase 0 step 3 does: look under
+  `specifications/<VI>-<vslug>/` for an existing dir matched by that Epic's key-number (tolerate a
+  stray `-`/`_` after the key, and a pre-existing slug that doesn't exactly match a freshly-derived
+  one), falling back to the freshly-derived `specifications/<VI>-<vslug>/<EPIC>-<eslug>/` only when no
+  such dir exists — this keeps a human-adjusted Epic dir slug from mis-displaying as ○ not-started.
+  Compute each Epic's status from `/specify`'s **done-predicate** against that resolved folder:
   - **○ not started** — no `specification.md` and no `_session.md` there → selectable.
   - **◐ in progress** (resume) — a `_session.md` exists there but no `specification.md` → selectable
     as a resume; the per-Epic stage-level resume then runs in Phase 5 from that `_session.md`

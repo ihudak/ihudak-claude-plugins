@@ -6,7 +6,7 @@ Ivan Gudak's private Claude Code plugin marketplace.
 
 | Plugin | Description |
 |--------|-------------|
-| [dev-workflows](plugins/dev-workflows/) | `/implement`, `/document`, `/docs-profile`, `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/api-guideline-reviewer`, `/guideline-reviewer`, `/specify` — Opus-backed planning, code review, product-docs review, Epic review, vulnerability remediation, dependency upgrades, API and UI guideline compliance, Jira- and code-grounded specification authoring — `/implement` accepts multi-source input (spec files, Jira ticket folders, multiple repos) and fans out a parallel scan for large briefs |
+| [dev-workflows](plugins/dev-workflows/) | `/implement`, `/document`, `/docs-profile`, `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/api-guideline-reviewer`, `/guideline-reviewer`, `/specify`, `/design` — Opus-backed planning, code review, product-docs review, Epic review, vulnerability remediation, dependency upgrades, API and UI guideline compliance, Jira- and code-grounded specification authoring, engineering design authoring — `/implement` accepts multi-source input (spec files, Jira ticket folders, multiple repos) and fans out a parallel scan for large briefs |
 | [dt-style-guide](plugins/dt-style-guide/) | Dynatrace corporate style guide enforcement: `/dt-review-pr`, `/dt-review-docs`, `/dt-style-refresh`, and sub-agents used by `dev-workflows` for style checking Epics and feature docs |
 | [obsidian-llm-wiki](plugins/obsidian-llm-wiki/) | Ten slash commands for compiling Obsidian vault knowledge into a persistent, cross-referenced wiki with task management; supports Claude Code and GitHub Copilot |
 

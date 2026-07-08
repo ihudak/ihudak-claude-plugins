@@ -32,6 +32,16 @@ target. Carry `mode`, `jira_key`, `jira_export_root`, and `specs` forward.
 
 Rules:
 - The **primary description** is: the spec file if one was given → else the spec-folder design doc → else the inline prose. Echo `📄 Reading prompt from <file>…` (or `from inline text`) and confirm `"Loaded prompt (N lines)."`.
+- **Design-doc open-question guard.** If the primary description is a **design doc** — a file named
+  `design.md` or matching `*-design.md` (the `/design` output; distinct from a `specification.md`) —
+  scan it for unresolved `- [ ]` open questions under its `## Open questions` heading. If any exist,
+  **refuse to proceed**:
+  `choices: ["Cancel — resolve the design's open questions in /design first (Recommended)", "Override and implement anyway (logged in the Phase 5 report)", "Other… (describe)"]`
+  A design must be decision-complete before implementation (enforced upstream by `design-reviewer`;
+  this is the cross-command backstop). **`specification.md`-level open questions are exempt** — they are
+  the spec's way of flagging what the design phase resolves, and a design doc may legitimately
+  incorporate a spec that still carries them. "Override" is the only escape and is recorded in the
+  Phase 5 report's `### Assumptions & limitations`.
 - Multiple inputs of the same kind are allowed.
 - A referenced `@dir` that is missing, or is neither a recognized folder type nor a git repo, MUST be surfaced to the user immediately (do not silently skip) — then ask whether to continue without it or stop. This mirrors `classification.md` §8.4.
 - Note any embedded images as "referenced image: <path>".

@@ -1,0 +1,321 @@
+---
+name: design
+description: Jira-driven engineering-design workflow (Dev phase). Takes over a merged specification.md from the specs repo's main branch, grounds strictly in the fully-mounted implementation code, and authors a reviewed engineering design.md through a relentless one-question-at-a-time grill that challenges the spec and designs the implementation; gates on the Opus design-reviewer and lands design.md + the spec's engineering-review edits on main via branch + PR for /implement.
+allowed-tools: Read Edit Write Bash Glob Grep Task WebFetch LS
+---
+
+Author an engineering design for the Jira item: $ARGUMENTS
+
+`/design` is the **Dev-phase engineering-design** workflow — phase 2 of the PM→Dev pipeline
+(`/specify` → `specification.md`; then `/design` → `design.md`). The developer *takes over* a merged
+`specification.md`, grounds in the **fully-mounted** implementation code, and authors a reviewed
+engineering `design.md` through a relentless one-question-at-a-time grill that **challenges** the spec
+and **designs** the implementation. It gates on the Opus `design-reviewer` and offers to land
+`design.md` + the spec's engineering-review edits on the specs repo's main branch (via branch + PR) so
+`/implement` can plan and build from it.
+
+Key distinction from `/specify`: `/specify` (PM) *authors* the requirements spec and grounds lightly
+(soft repo gate); `/design` (Dev) *challenges* that spec and *designs* the implementation, and must see
+**all** implementation repos — its repo gate is **strict** (hard-stop on any unmounted repo).
+
+---
+
+## Phase 0 — Resolve input
+
+1. **Resolve the Jira input via the shared front-end.** Execute
+   `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against `$ARGUMENTS`. `/design` is
+   **jira-driven only**: expect `mode: jira-driven`. The front-end owns the `$VAULT_PATH` /
+   `jira-products` validation, Fallbacks A/B **and D/E**, and the VI-selector (key-or-directory) +
+   focus-Epic grammar. Carry forward:
+   - `jira_key` — the resolved **top-level** key: the **VI** when a focus Epic is present, or the
+     stand-alone top-level item's own key otherwise. Define `<VI>` = `jira_key`.
+   - `focus_key` — the **Epic** to design within its VI, or `null` for a bare VI / stand-alone item /
+     directory. Define `<EPIC>` = `focus_key` (may be `null`).
+
+   If the front-end returns `mode: direct`, stop with
+   `DESIGN_NEEDS_JIRA: /design needs a Jira key (a VI or an Epic) or an imported-Jira directory.` —
+   `/design` has no direct-prompt behaviour. **`/design` uses the front-end only to parse the grammar
+   and classify the key; it does NOT call `jira-reader` and does NOT read the Jira export for content —
+   the requirements source of truth is the merged `specification.md` in the specs repo.**
+
+2. **Resolve `$SPECS_PATH`.** `/design` reads `specification.md` and writes `design.md` under
+   `$SPECS_PATH/specifications/`. If `$SPECS_PATH` is unset, stop with a clear error naming `SPECS_PATH`
+   (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
+
+3. **Map onto the specs repo + require the spec on main.** Derive provisional kebab-case slugs from the
+   relevant Jira title(s): `<vslug>` for `<VI>`, and `<eslug>` for `<EPIC>` when `focus_key` is set.
+   - **Resolve the VI dir:** `specifications/<VI>-<vslug>/` — honor an existing dir matched by
+     key-number (tolerate a stray `-`/`_` after the key and a human-adjusted slug); use the freshly
+     derived `<VI>-<vslug>` only if none exists.
+   - **Resolve the feature folder + confirm the spec is on main** (the `mgd-specifications` **main**
+     branch is the handoff surface — read from a clean main checkout, never a branch), by case:
+     - **`focus_key` set** → the per-Epic home `specifications/<VI>-<vslug>/<EPIC>-<eslug>/` (same
+       honor-existing tolerance on the `<EPIC>-<eslug>` segment). Require `specification.md` there.
+     - **`focus_key` null** → resolved in step 4 (Granularity): either the flat VI dir (stand-alone
+       Epic / broad VI spec) or a per-Epic subfolder the picker selects.
+   - If the target `specification.md` is not present on main → stop:
+     `spec not handed off — run /specify for this item and merge it to the specs repo main first.`
+
+4. **Granularity — the Epic is the unit of work; no fan-out. Progress-aware Epic picker.** One
+   `design.md` per invocation. Resolve by `focus_key`:
+   - **`focus_key` set** (explicit `<VI> <Epic>` / `<dir> <Epic>`, or a nested-Epic key auto-resolved by
+     the front-end) → the Epic is chosen; the feature folder is its per-Epic home. Skip the picker; go
+     to step 5.
+   - **`focus_key` null** → inspect the resolved VI dir in the specs repo:
+     - it holds a **flat `specification.md`** (a stand-alone top-level Epic, or a broad VI-level spec) →
+       one design; the feature folder is the VI dir itself. Skip the picker; go to step 5.
+     - it holds **Epic subfolders** each with a `specification.md` on main → enumerate those **spec'd**
+       Epics (subfolders **without** a merged `specification.md` are not yet designable — exclude them
+       and report the excluded count). Then branch on count — this is the reusable **progress-aware
+       Epic-picker pattern** in `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`
+       (§ Progress-aware Epic picker), applied here with `/design`'s own done-predicate and
+       **enumerated from the specs repo** (not `jira-reader`):
+       - **exactly 1 spec'd Epic** → no picker; auto-select it; re-point the feature folder to its
+         per-Epic subfolder; emit a one-line notice.
+       - **≥2 spec'd Epics** → render the picker, one `choices` entry per spec'd Epic (its ○/◐/● marker
+         + key + title), then `"Other… (describe)"`. Compute each Epic's state from `/design`'s
+         **done-predicate** against that Epic's resolved folder:
+         - **○ not started** — a `specification.md` exists there but no `design.md` and no
+           `_design-session.md` → selectable.
+         - **◐ in progress** — a `_design-session.md` exists there but no `design.md` → selectable as a
+           resume (per-Epic stage resume then runs in Phase 5 from that `_design-session.md`).
+         - **● done** — a `design.md` exists there → shown greyed, **not** default-selectable; selecting
+           offers *revise*.
+         Default cursor = the first actionable row (in-progress before not-started). On selecting an
+         Epic → set `focus_key` = that Epic and re-point the feature folder to its per-Epic subfolder.
+     - neither a flat `specification.md` nor any spec'd Epic subfolder → stop
+       (`spec not handed off — run /specify first`).
+
+5. **Detect a prior `/design` run.** If a `_design-session.md` exists in the resolved feature folder,
+   record that a resume is available — Phase 1 asks resume-vs-fresh. (Distinct from `/specify`'s
+   `_session.md`, which may coexist in the same flat folder.)
+
+`/design` is **cwd-agnostic** — it reads/writes an absolute `$SPECS_PATH`-rooted feature folder and
+scans repos under `$REPOS_PATH`; cwd need not be inside either.
+
+---
+
+## Phase 1 — Configure
+
+**Rule: Ask, don't guess. This rule is absolute.** Use `choices` arrays; the last choice in every array
+MUST be `"Other… (describe)"`.
+
+1. **Feature folder.** Confirm the path resolved in Phase 0:
+   `choices: ["Use <feature_folder> (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]`
+2. **Resume vs fresh** (only if step 5 found a `_design-session.md`): read it back and summarise which
+   stages are settled:
+   `choices: ["Resume — skip settled stages (Recommended)", "Start fresh — discard the prior design session", "Cancel", "Other… (describe)"]`
+3. **Repo refresh policy** (governs Phase 4's `code-scanner` dispatches):
+   `choices: ["fetch + pull default branch (Recommended)", "fetch only", "no refresh", "Other… (describe)"]`
+4. **Repos search base (`$REPOS_PATH`).** Read `${REPOS_PATH:-/workspace}` (may be colon-separated):
+   `choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]`
+
+Also display (context): resolved feature folder; resolved `<VI>` / `<EPIC>` (or 'none — VI-level');
+resolved `$SPECS_PATH`; resolved `$REPOS_PATH`.
+
+---
+
+## Phase 1.5 — Classify + tiered model gate
+
+Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`), then classify as
+`SIMPLE` / `MODERATE` / `SIGNIFICANT` / `HIGH-RISK`. This single classification scales **grill depth**,
+`design.md` **section-inclusion** (per `design-format.md`), and **`design-reviewer` rigor** together.
+Resolve per-step routing per `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §9:
+
+```yaml
+model_routing:
+  classification: <SIMPLE|MODERATE|SIGNIFICANT|HIGH-RISK>
+  reason: <one-line>
+  current_model: <the model this orchestrator/grill is running under>
+  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # code-scanner
+  review_model:    <§2 Opus chain>     # design-reviewer (frontmatter-pinned; recorded, no override)
+  authoring_model: <= current_model>   # the interactive grill + design.md authoring (session model, not a delegated subagent)
+  opus_available: <true if a §2 Opus model resolved, else false>
+  notes: <any §2/§2.1 fallback or degradation>
+```
+
+The grill + authoring run inline on `current_model` (interactive judgment — not a delegated subagent).
+
+**Tiered model gate (stricter than `/implement` — `/design`'s critical synthesis is inline, not an Opus
+subagent):**
+- **SIGNIFICANT / HIGH-RISK + `current_model` is not an Opus-tier model → HARD gate.** Stop and require
+  relaunching `/design` on Opus (the run is resumable from `_design-session.md`):
+  `choices: ["I'll relaunch /design on Opus (Recommended)", "Override — proceed on the current model (logged in the final report)", "Cancel", "Other… (describe)"]`
+  Design authoring for risky work must be Opus — the Opus `design-reviewer` reviews, it cannot originate
+  good architecture.
+- **SIMPLE / MODERATE + not Opus → soft advisory.** Recommend Opus but proceed; record the choice in
+  `notes` and the final report.
+- **Opus session →** proceed (the intended case).
+
+---
+
+## Phase 2 — Read the spec
+
+Read the resolved `specification.md` **fully** (from the specs repo main). Extract the in-scope items,
+user stories (`[Uxx]`), acceptance criteria (`[ACxx]`), and test cases (`[TCxx]`) the design must cover
+— this is the traceability baseline for **Requirements coverage** and the raw material the grill
+challenges. Note the spec's `Published` flag (governs whether Phase 5 may propose ID changes or must
+annotate-only) and any existing `- [ ]` open questions (spec-level; tolerated — the design may resolve
+or inherit them). **No Jira re-read** — the spec is the requirements source of truth.
+
+---
+
+## Phase 3 — Derive repos + STRICT gate
+
+1. **Auto-derive candidate repos** from the spec's themes / component mentions / any referenced code
+   paths. Build the slug→clone map (`/epics`-style): for each top-level dir under each `$REPOS_PATH`
+   entry, `timeout 5 git -C <dir> remote get-url origin 2>/dev/null`, strip a trailing `.git`, take the
+   URL's last path segment as the slug; skip dirs with no `.git` or a failing/timed-out call.
+2. **Confirm the complete set — the developer owns it.** Present the derived candidates and ask the
+   developer to confirm the **complete** list of implementation repos this design must span:
+   `choices: ["Confirm this set (Recommended)", "Add repos (you'll be prompted)", "Remove repos (you'll be prompted)", "Cancel", "Other… (describe)"]`
+3. **Resolve each confirmed repo against the map.** One match → use it. Ambiguous or zero matches
+   escalate per the `Repo unresolved (zero matches) — /epics` rule in
+   `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
+   `choices: ["Skip and continue without this repo's scan", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo", "Other… (describe)"]`
+4. **STRICT mounted gate — hard-stop.** Any repo in the confirmed set that is **not mounted** under
+   `$REPOS_PATH` **hard-stops** `/design` (unlike `/specify`'s soft gate): describe the missing
+   capability and why the design needs it (you cannot name or link an unmounted repo's code), then:
+   `choices: ["I've remounted — re-scan", "Remove this repo from the design's scope (you confirm it's not needed)", "Cancel", "Other… (describe)"]`
+   On "remounted", the developer restarts the container with the repo mounted and re-runs `/design`
+   (resuming from `_design-session.md`); a design cannot be completed while a confirmed repo is missing
+   unless the developer explicitly removes it from scope. Record the confirmed repo set in
+   `_design-session.md`.
+
+---
+
+## Phase 4 — Code scan
+
+Spawn `code-scanner` instances in **batches of up to 4 concurrent agents** per Agent message over
+**all** confirmed, mounted repos (the scan runs over the full set regardless of classification — only
+grill depth / sections / review scale by tier). Wait for each batch before the next.
+
+→ Agent (subagent_type: "dev-workflows:code-scanner", model: `<detection_model — §2.1 Sonnet chain>`):
+  > "Scan this repo for the brief:
+  >
+  > repo_path:     <resolved absolute path for this repo from Phase 3>
+  > repo_url_slug: <repo slug, e.g. "cluster">
+  > capability_themes:
+  >   [themes derived from the specification]
+  > context: |
+  >   [3–5 sentences: what the spec requires; what the design must ground — seams, interfaces, gaps]
+  > search_hints:
+  >   symbols:  [names inferred from the spec, or []]
+  >   paths:    [globs inferred from themes, or []]
+  >   keywords: [grep keywords from themes]
+  > refresh:
+  >   switch_to_default_branch: [true if Phase 1 chose 'fetch + pull default branch' or 'fetch only'; false if 'no refresh']
+  >   pull: [true only if 'fetch + pull default branch'; false otherwise]"
+
+Handle per-repo status after the batch returns:
+- `OK` / `PARTIAL` / `EMPTY` — store the capabilities / seams / interfaces / gaps output; this grounds
+  Phase 5's design decisions.
+- `REPO_MISSING` — should not occur post-gate; if it does, return to the Phase 3 strict gate for that
+  repo.
+- `DIRTY_TREE` — escalate per the `Dirty working tree` rule in
+  `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
+- `REFRESH_BLOCKED` — escalate per the `Refresh blocked` rule in
+  `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
+
+---
+
+## Phase 5 — Grill: challenge + design
+
+**Interview technique (grilling — embedded; no runtime plugin dependency).** Conduct the design as a
+relentless interview:
+- Ask exactly ONE question at a time; wait for the answer before the next. Never batch questions — a
+  firehose is bewildering.
+- For every question, give your recommended answer, so the developer reacts to a proposal.
+- If a question can be answered from the Phase 4 code scan or the spec, explore and answer it yourself
+  instead of asking.
+- Walk the design tree in dependency order — resolve a parent decision before dependent ones.
+- Continue until you and the developer reach a shared understanding for the section, then write it.
+
+(Technique adapted from mattpocock grill-me/grilling; embedded here so `/design` has no runtime
+dependency.)
+
+Run **two intertwined tracks**, authoring `design.md` live against
+`${CLAUDE_PLUGIN_ROOT}/references/design-format.md`, sections scaled by the Phase 1.5 classification:
+
+- **Challenge the spec.** Interrogate testability, seams, scope realism, missing cases, and feasibility
+  against the real code. Record every substantive challenge **into `specification.md`**: add/extend an
+  `## Engineering review` section and new `- [ ]` open questions on the spec. Raise substantive changes
+  to ACs/TCs as **proposals** — do not unilaterally rewrite them; when the spec is `Published: yes`,
+  **annotate only, never mutate `[Uxx]` / `[ACxx]` / `[TCxx]` IDs** (those route through the specs
+  repo's human change-management).
+- **Design the implementation.** Author each `design.md` section: Context & problem, Requirements
+  coverage (with the challenge notes cross-referencing the spec's `## Engineering review`), Architecture
+  & components, Interfaces / contracts, Seams, Data flow, Error handling & edge cases, Test strategy,
+  Risks & mitigations, Migration / rollout / backward-compatibility, Out of scope. Omit a
+  non-applicable section with a one-line `_N/A — why_`.
+
+As each decision settles, append it to `_design-session.md`; capture a genuinely-ambiguous term in
+`_design-glossary.md`. **Resolve `design.md` open questions to zero** — the design is the last gate
+before code. A residual engineering unknown that truly cannot be resolved is either (a) pushed onto the
+`specification.md` as a spec-level `- [ ]` for the PM (and the design waits on it), or (b) kept as a
+`design.md` `- [ ]` that will **block handoff** (Phase 6/7). A repo gap surfacing here → hard-stop (the
+Phase 3 strict gate); resumable from `_design-session.md`.
+
+---
+
+## Phase 6 — Review gate
+
+Dispatch `design-reviewer` (Opus):
+
+→ Agent (subagent_type: "dev-workflows:design-reviewer", model: `<review_model — §2 Opus chain; frontmatter-pinned, recorded, no override>`):
+  > "Review the design for this brief:
+  >
+  > Design path:        [absolute path to design.md]
+  > Specification path: [absolute path to specification.md]
+  > Classification:     [the Phase 1.5 classification]"
+
+**Act on the verdict** (mirrors `/specify`):
+- **`BLOCK`** — fix the BLOCKER findings (the orchestrator/grill edits `design.md` inline — no delegated
+  writer) and re-review once. **Any unresolved `design.md` `- [ ]` is a BLOCKER by policy** — resolve it
+  or push it onto the spec (Phase 5) before handoff. If still `BLOCK`, escalate per the
+  `Review verdict BLOCK (unresolved after one fix cycle) — /epics` rule in
+  `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`, per unresolved BLOCKER individually:
+  `choices: ["Provide manual fix notes (you'll be prompted)", "Defer to a follow-up issue (record in the final report)", "Override and accept the finding", "Cancel the whole run", "Other… (describe)"]`
+- **`MAJOR` / `MINOR` / `NIT`** (surfaced under `PASS WITH RECOMMENDATIONS`) — defer to the final
+  report; no mandatory fix cycle.
+- **`PASS`** / **`PASS WITH RECOMMENDATIONS`** — proceed to Phase 7.
+
+Cap: one fix cycle + one re-review maximum. Phase 7 will not hand off a `design.md` with any unresolved
+`- [ ]`.
+
+---
+
+## Phase 7 — Handoff
+
+Write the feature folder: `design.md` (flat, alongside `specification.md`), the updated
+`specification.md` (its `## Engineering review` + open-question edits), `_design-session.md`, and
+`_design-glossary.md`. **Refuse to proceed if `design.md` has any unresolved `- [ ]`** (the
+decision-completeness gate).
+
+Then **offer** (commit-when-asked — never automatic):
+`choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git", "Cancel"]`
+
+On the first choice, in the specs repo (`$SPECS_PATH`): create the branch — `design/<EPIC>-<eslug>` for
+a **per-Epic** or **stand-alone-Epic** design (`<EPIC>` = `focus_key`, which for a stand-alone Epic
+equals `jira_key`), or `design/<VI>-<vslug>` for a **broad VI-level** design (`focus_key` null). Epic
+keys are globally unique, so the per-Epic form needs no VI prefix; both forms use hyphens. main is
+protected — a PR is required — so commit ONLY the feature folder (never `git add -A`), push, and open a
+PR targeting `main`. **Merged-to-main = ready for `/implement`.** Commit trailer:
+`Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`.
+
+### Next Epic (after a per-Epic design from a multi-Epic VI)
+
+When this run designed a per-Epic Epic selected from Phase 0's ≥2-Epics picker, offer — once the
+write/commit completes:
+`choices: ["Next Epic — re-open the picker (Recommended)", "Stop here", "Other… (describe)"]`
+On **"Next Epic"**, re-render the Phase 0 picker **minus the just-completed Epic** (recompute each
+remaining Epic's ○/◐/● state — the freshly-authored design now shows **● done** and drops out of the
+actionable set), then, on selection, loop back through Phases 2–7 for the selected Epic. This offer does
+not apply to a stand-alone Epic, a single-Epic VI, or a broad VI-level design.
+
+## Final report
+
+Report: feature-folder path; classification + model-gate outcome; `design.md` sections authored (and
+those `_N/A_`); spec challenges recorded (count of `## Engineering review` notes / new spec `- [ ]`);
+confirmed repo set (and any removed-from-scope); the `design-reviewer` verdict; the PR URL (if opened);
+and "run `/implement <VI> <Epic>` next."

@@ -56,6 +56,34 @@ merge into `specs`. A JiraID **and** a spec-folder directory may be given togeth
 (`PRODUCT-123 @/path/to/specs`): the JiraID fixes the hierarchy, the spec-folder
 contributes/overrides `specs`.
 
+### VI selector + optional focus Epic (two-key grammar)
+
+The first positional is a **VI selector** — either a **VI JiraID** (resolved under
+`$VAULT_PATH/jira-products/<VI-Key>`, a bare key with **no slug**; requires `$VAULT_PATH`) or a
+**jira-export directory** (content-classified as a jira-export; used directly as `jira_export_root`;
+**no `$VAULT_PATH` needed**). An optional **focus Epic** (a JiraID) may follow either form.
+
+- **Single VI JiraID** — classify against `jira-products/`: a **top-level dir** → a VI or stand-alone
+  item (`jira_export_root = jira-products/<KEY>`, `source = vault`, `focus_key = null`); **not a
+  top-level dir** → a **nested Epic**: auto-resolve its parent VI by scanning `jira-products/*/` for a
+  child dir named `<KEY>` containing `<KEY>.md` (one parent → that VI is `jira_export_root`,
+  `focus_key = <KEY>`; zero → Fallback D; ≥2 → Fallback E).
+- **jira-export directory** — `jira_export_root` = the dir, `source = directory`, no `$VAULT_PATH`.
+  This is what Fallback A already points users to.
+- **Optional focus Epic** (second positional JiraID) — binds to whichever root resolved: validate
+  `<root>/<Epic>/<Epic>.md` → `focus_key = <Epic>`; missing → Fallback D.
+
+| Input | Root | `$VAULT_PATH`? | `focus_key` |
+|---|---|---|---|
+| `<VI-Key>` | `jira-products/<VI-Key>` | required | null |
+| `<Epic-Key>` | parent VI (auto-resolved) | required | the Epic |
+| `<VI-Key> <Epic-Key>` | `jira-products/<VI-Key>` | required | the Epic |
+| `<dir>` | `<dir>` | not needed | null |
+| `<dir> <Epic-Key>` | `<dir>` | not needed | the Epic |
+
+Directory tokens stay **content-classified** (jira-export vs spec-folder), so `<dir> <Epic-Key>` never
+collides with the existing `<VI-Key> @spec-folder` form (a spec-folder feeds `specs`, not the root).
+
 ### direct
 
 Collect free-text prose into `direct_prompt` and any file tokens into
@@ -87,6 +115,10 @@ order:
   `choices: ["Re-enter the Jira key", "Treat the text as a direct edit instead", "Cancel"]`
 - **C — multiple jira-export directories:** list them;
   `choices: ["<first> (Recommended)", "<other candidates…>", "Cancel"]`
+- **D — Epic key given but not found** (single-key: no parent VI contains it; two-key/dir:
+  `<root>/<Epic>/` missing): `choices: ["Re-enter the Epic key", "Pass <VI> <Epic> explicitly", "Cancel"]`
+- **E — nested Epic key found under multiple VIs:** list the candidate VIs;
+  `choices: ["<first> (Recommended)", "<other VIs…>", "Cancel"]`
 
 ## Output contract
 
@@ -98,7 +130,30 @@ mode:             jira-driven | direct
 source:           vault | directory | none
 jira_key:         <KEY> | null
 jira_export_root: <abs path to the ticket export dir> | null   # → jira-reader (jira_export_root input)
+focus_key:        <EPIC key> | null    # Epic to center on within jira_export_root; null for a bare VI/stand-alone/dir
 specs:            [<abs paths>]    # specs/plans; may be []
 direct_prompt:    <free-text> | null
 direct_files:     [<abs paths>]
 ```
+
+## Progress-aware Epic picker (opt-in per command)
+
+For an **Epic-unit** command given a top-level key with `focus_key = null`, first determine the item's
+type from a cheap `jira-reader depth: vi-plus-epics` read, then:
+
+- **The item is itself an Epic** (stand-alone/top-level) → no picker; proceed for it directly.
+- **VI with exactly 1 Epic** → no picker; auto-proceed for that Epic.
+- **VI with ≥2 Epics** → render a status-aware picker. Status comes from the command's own output
+  artifact (its **done-predicate**), one row per Epic:
+  - **○ not started** — no artifact → selectable.
+  - **◐ in progress** — a resume file exists but no final artifact → selectable as resume.
+  - **● done** — artifact exists → shown greyed, not default-selectable; selecting offers revise.
+  Default cursor = first actionable (in-progress before not-started). Include an explicit
+  "Author one broad VI-level artifact instead" choice. After finishing one, offer
+  "Next Epic? [picker] / Stop here". Resume stacks across sessions (VI picker + the command's own
+  per-item resume file).
+- **VI with 0 Epics** → the command's no-Epics policy (e.g. split with `/epics` first, or a broad
+  VI-level artifact).
+
+This pattern is **policy-neutral in the resolver** — it is invoked by Epic-unit commands only; VI-level
+commands (`/epics`, `/document`, `/release-notes`) never use it and must keep working for un-split VIs.

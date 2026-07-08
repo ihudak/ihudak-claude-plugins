@@ -37,6 +37,10 @@ stop with a clear error).
 3. `jira_key` = `<KEY>`; `source = vault`.
 4. Resolve `specs` (§ Specs resolution).
 
+**Note:** the VI-selector rule below (§ VI selector + optional focus Epic) refines step 2's existence
+check for a single JiraID — one that is not a top-level `jira-products/` dir is not a Fallback-B miss
+but triggers nested-Epic auto-resolve to its parent VI.
+
 ### jira-driven — directory token (works *without* `$VAULT_PATH`)
 
 Inspect-classify each path token **by content, not by name** (this is the same

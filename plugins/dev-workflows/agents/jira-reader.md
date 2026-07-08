@@ -6,7 +6,7 @@ tools: ["Read", "Glob", "Grep", "LS"]
 
 Read the pre-exported Jira markdown hierarchy from the vault and return a structured handoff. Read-only — never modify vault files.
 
-Invoked from `/document` (Phase 3, `depth: full`), `/epics` (Phase 3, `depth: vi-plus-epics`), and `/specify` (Phase 2, `depth: full`). The caller decides which depth based on whether downstream agents need PR URLs + the full linked-item tree (docs command, specify command) or the VI plus its child Epics for code-scanning (epics command).
+Invoked from `/document` (Phase 3, `depth: full`), `/epics` (Phase 3, `depth: vi-plus-epics`), and `/specify` (Phase 2, `depth: vi-plus-epics then full`). The caller decides which depth based on whether downstream agents need PR URLs + the full linked-item tree (docs command, specify command) or the VI plus its child Epics for code-scanning (epics command).
 
 ## Inputs
 

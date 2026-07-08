@@ -23,27 +23,55 @@ specification* for a single item (typically an Epic). Run `/epics` first, then `
 
 1. **Resolve the Jira input via the shared front-end.** Execute
    `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against `$ARGUMENTS`. `/specify` is
-   **jira-driven only**: expect `mode: jira-driven` with `jira_key` (the Epic or VI key being
-   specified) and `jira_export_root`. The front-end owns the `$VAULT_PATH` / `jira-products`
-   validation and Fallbacks A/B. Carry `jira_key` and `jira_export_root` forward. Downstream, `<KEY>`
-   denotes this `jira_key`.
+   **jira-driven only**: expect `mode: jira-driven`. The front-end owns the `$VAULT_PATH` /
+   `jira-products` validation, Fallbacks A/B **and D/E**, and the VI-selector (key-or-directory) +
+   focus-Epic grammar. Carry forward:
+   - `jira_key` — the resolved **top-level** key: the **VI** when a focus Epic is present, or the
+     stand-alone top-level item's own key otherwise.
+   - `focus_key` — the **Epic** to center on within `jira_export_root`, or `null` for a bare VI /
+     stand-alone item / directory.
+   - `jira_export_root`, `source`.
+
+   Define `<VI>` = `jira_key` and `<EPIC>` = `focus_key` (may be `null`). Downstream steps use these
+   two symbols in place of the old single `<KEY>`.
 
    If the front-end returns `mode: direct` (no Jira input), stop with
    `SPECIFY_NEEDS_JIRA: /specify needs a Jira key or an imported-Jira directory.` — `/specify` has no
    direct-prompt behavior.
 
-2. **Resolve `$SPECS_PATH`.** `/specify` writes specifications under
-   `$SPECS_PATH/specifications/<KEY>_<slug>/` — the specs repo, not the vault. If `$SPECS_PATH` is
-   unset, stop with a clear error naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)",
-   "Cancel"]`) — there is no vault-relative fallback for this write target the way there is for reads.
+2. **Resolve `$SPECS_PATH`.** `/specify` writes specifications under `$SPECS_PATH/specifications/`
+   (exact layout resolved in step 3) — the specs repo, not the vault. If `$SPECS_PATH` is unset, stop
+   with a clear error naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`) —
+   there is no vault-relative fallback for this write target the way there is for reads.
 
-3. **Resolve the feature folder.** Derive a provisional `<slug>` as the kebab-case form of the Jira
-   item's title (from the index/summary — finalized once `jira-reader` runs in Phase 2, but a
-   provisional slug is enough to check for an existing folder now). Look for an existing folder at
-   `$SPECS_PATH/specifications/<KEY>{-|_}<slug>/` — tolerate `-`/`_` after the key and a pre-existing
-   slug that doesn't exactly match a freshly-derived one (a human may have adjusted it). Honor an
-   existing folder if found; otherwise the folder is created at `$SPECS_PATH/specifications/<KEY>_<slug>/`
-   the first time a phase writes to it — Phase 2's `idea.md` write, in a fresh run.
+3. **Resolve the feature folder** (design §7). Derive provisional kebab-case slugs from the relevant
+   Jira item title(s) (from the index/summary — finalized once `jira-reader` runs in Phase 2, but a
+   provisional slug is enough to check for existing folders now): `<vslug>` for the `<VI>` title, and
+   `<eslug>` for the `<EPIC>` title when `focus_key` is set.
+
+   - **Resolve/derive the VI (top-level) dir:** `specifications/<VI>-<vslug>/`. Look for an existing
+     dir at `specifications/<VI>{-|_}<vslug-or-other-slug>/` — honor an existing dir matched by
+     key-number (tolerate a stray `-`/`_` after the key, and a pre-existing slug that doesn't exactly
+     match a freshly-derived one — a human may have adjusted it). Create `<VI>-<vslug>` (hyphen) only
+     if no such dir exists yet.
+   - **Resolve the feature folder itself**, by case:
+     - `focus_key` set (an Epic nested under a VI) →
+       `specifications/<VI>-<vslug>/<EPIC>-<eslug>/` — a per-Epic subfolder under the VI dir
+       (`<eslug>` = kebab of the Epic title). Apply the same honor-an-existing-dir tolerance to the
+       `<EPIC>-<eslug>` segment.
+     - `focus_key` null **and** the item is a **VI** for which the broad-VI-spec choice is made
+       (Phase 2.5) → `specifications/<VI>-<vslug>/specification.md` — flat at the VI-dir level, no
+       per-Epic subfolder; the feature folder is the VI dir itself.
+     - `focus_key` null **and** the item is a **stand-alone top-level Epic** (no parent VI) →
+       `specifications/<EPIC>-<eslug>/`, where `<EPIC>` here is this item's own key (== `jira_key`,
+       since `focus_key` is null) — top-level, keyed by the Epic, no VI wrapper. Physically this is
+       the same dir the VI-dir step above already resolved (`specifications/<VI>-<vslug>/` with
+       `<VI>` = `<EPIC>` = `jira_key`), so no separate resolution step is needed: the two null-`focus_key`
+       cases share one physical target, `specifications/<jira_key>-<slug>/`, with `specification.md`
+       written flat inside it either way.
+   - All delimiters this step writes are hyphens; matching an existing dir tolerates a stray `-`/`_`.
+     Neither the VI dir nor the feature folder is created here — the first phase that writes to it
+     (Phase 2's `idea.md` write, in a fresh run) creates it.
 
 4. **Detect a prior run.** If a `_session.md` exists in the resolved feature folder, record that a
    resume is available — Phase 1 asks the user resume-vs-fresh. If no `_session.md` exists, this is a
@@ -88,8 +116,9 @@ Use `choices` arrays; the last choice in every array MUST be `"Other… (describ
    If "different path", validate that at least one directory exists under the given value before
    recording it.
 
-Also display (for user context): resolved feature folder; resolved `jira_export_root` and `jira_key`;
-resolved `$REPOS_PATH`; resolved `$SPECS_PATH`.
+Also display (for user context): resolved feature folder; resolved `jira_export_root`; resolved
+`jira_key` (VI); resolved `focus_key` (Epic, or 'none — VI-level'); resolved `$REPOS_PATH`; resolved
+`$SPECS_PATH`.
 
 ---
 

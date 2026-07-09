@@ -120,10 +120,11 @@ Invoke `jira-reader`. Use `depth: vi-only` when diff grounding is OFF; `depth: f
   > jira_key:         [resolved jira_key]
   > depth:      [vi-only | full]"
 
-When `focus_key` is set (explicit `<VI> <Epic>`), scope the handoff to the focus
-Epic's subtree — the focus Epic plus its linked descendants — before Phase 6 renders
-the draft, so the release note covers that Epic's user-facing changes rather than the
-whole VI. When `focus_key` is null, the draft covers the whole ticket/VI exactly as
+When `focus_key` is set (explicit `<VI> <Epic>`), scope the **Phase 6 render input**
+to the focus Epic's subtree — the focus Epic plus its linked descendants — so the
+release note covers that Epic's user-facing changes rather than the whole VI. This
+scopes only what Phase 6 renders; it does not mutate the stored handoff that other
+phases read. When `focus_key` is null, the draft covers the whole ticket/VI exactly as
 today.
 
 If `status: NOT_FOUND` / `EMPTY`, surface `["Re-enter key", "Cancel"]`. On `OK`, parse `release_versions` from the VI frontmatter into a list (e.g. `"Managed (344), SaaS (344)"` → `["Managed (344)", "SaaS (344)"]`).

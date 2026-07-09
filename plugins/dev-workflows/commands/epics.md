@@ -448,6 +448,28 @@ The project root has uncommitted changes. `/epics` never commits — git managem
 
 ---
 
+## Phase 10 — Emit follow-up tasks
+
+Terminal phase — runs AFTER the Phase 9 Final Report is composed; NEVER
+interrupts an earlier phase. Persist the run's manual-step / out-of-scope
+follow-ups by citing `${CLAUDE_PLUGIN_ROOT}/references/followup-emission.md`
+and executing its steps inline.
+
+1. **Collect** the qualifying follow-ups: the manual publish step ("create these
+   drafted Epics in Jira manually" — the drafts are vault/dir files, not Jira
+   tickets) and the Phase 9 `### Deferred items` that are out-of-scope refinement.
+2. **Filter** them with the reference's §6 qualifying predicate.
+3. **Resolve** the write target via the §4 ladder using `jira_key` and `source`;
+   render + place tasks and verbose notes per §1–§3; dedupe per §5.
+4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.
+
+ADDITIVE — the follow-ups also remain in the Phase 9 report. This phase NEVER
+fails the run, NEVER commits (git is the user's responsibility), and NEVER
+writes into `jira-products/`, `jira_export_root`, or the current working
+directory.
+
+---
+
 ## Invariants (always enforced)
 
 - ALWAYS resolve input via the shared Jira-input front-end (Phase 0) — a JiraID requires `$VAULT_PATH`; an imported-Jira directory works without it; `/epics` is cwd-agnostic and rejects `mode: direct`

@@ -35,7 +35,7 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
    `jira_export_root` (the ticket export dir — `$VAULT_PATH/jira-products/<KEY>`
    for a JiraID, or the passed directory), `source`, and `specs`. The front-end
    owns the `$VAULT_PATH`/`jira-products` validation and Fallbacks A/B. Carry
-   `jira_key`, `jira_export_root`, and `specs` forward.
+   `jira_key`, `jira_export_root`, `focus_key`, and `specs` forward.
 
 3. **Resolve the docs repo (cwd-preferred).** This command writes feature documentation into a product docs repository; running it outside such a repository is almost always a mistake. The **docs signals** checked throughout this step are:
    - `package.json` with any script matching `*:start`, `*:build`, `*:lint`, `docs:*`, or
@@ -241,6 +241,13 @@ Invoke `jira-reader` with `depth: full`:
 
 Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Jira key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`) and act accordingly. On `OK`, store the handoff for downstream phases.
 
+When `focus_key` is set (explicit `<VI> <Epic>`), also derive `focus_items` = the
+focus Epic plus every linked item beneath it (its Stories / Sub-tasks). The
+change-scoped phases below consume `focus_items` in place of the full hierarchy —
+Phase 5 (diff summarisation) and Phase 5.7 (doc planning) — while VI-descriptive
+phases (e.g. Phase 4.5 space determination) keep the full handoff. When `focus_key`
+is null, every phase uses the full hierarchy exactly as today.
+
 ---
 
 ## Phase 4 — Resolve repos
@@ -301,11 +308,11 @@ For each repo, in the same Agent message:
   >
   > repo_path:     <resolved absolute path for this repo from Phase 4>
   > repo_url_slug: <repo slug, e.g. "cluster">
-  > pr_refs:     [ ... full PR entries from jira-reader handoff, filtered to this repo ... ]
+  > pr_refs:     [ ... full PR entries from jira-reader handoff, filtered to this repo (and, when focus_key is set, to focus_items) ... ]
   > context:    |
   >   [1–2 sentences: VI goal + themes relevant to this repo]
   > jira_keys_hierarchy:
-  >   [VI key + every linked_items key from jira-reader]
+  >   [VI key + every linked_items key from jira-reader; when focus_key is set, restrict to focus_items — the focus Epic + its linked descendants]
   > refresh:
   >   fetch: true
   >   pull:  [false if Phase 1 chose 'fetch only' (default) or 'no refresh'; true if 'fetch + pull default branch']"
@@ -402,7 +409,7 @@ Invoke `doc-planner`:
 → Agent (subagent_type: "dev-workflows:doc-planner", model: `<planning_model — §9 / §2 Opus chain>`):
   > "Produce the documentation checklist for the brief:
   >
-  > jira_reader_handoff: [paste full YAML from Phase 3]
+  > jira_reader_handoff: [paste full YAML from Phase 3; when focus_key is set, restrict linked items to focus_items]
   > diff_summaries:       [paste array of diff-summarizer outputs from Phase 5]
   > write_targets:        [paste confirmed list from Phase 5.5]
   > screenshots:          [selected candidate paths from Phase 5.6, possibly empty]

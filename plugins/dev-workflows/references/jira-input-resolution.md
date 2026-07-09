@@ -100,11 +100,17 @@ as `VAULT_PATH`** — host-provided, mounted into the container (at
 `/workspace/specs` in Ai-Containers; an arbitrary directory on a host). Resolve in
 order:
 
-1. **`$SPECS_PATH` set →** look for the ticket's specs at
-   `$SPECS_PATH/{specs|specifications|vis}/…/<KEY>{-|_}<slug>/…/*.md` — a
-   `specs`/`specifications`/`vis` root inside `$SPECS_PATH`, then a `<KEY>`-prefixed
-   folder (tolerate `-`/`_` separators and a trailing slug) holding the `.md`
-   specs/plans.
+1. **`$SPECS_PATH` set →** locate a `specs`/`specifications`/`vis` root inside
+   `$SPECS_PATH`, then resolve by **matching folders on the Jira key-number**
+   (tolerate `-`/`_` separators and a trailing slug):
+   - **`focus_key` set →** prefer the nested per-Epic home: under the VI folder
+     matching `jira_key` (`<VI>{-|_}<vslug>/`), the Epic folder matching `focus_key`
+     (`<focus_key>{-|_}<eslug>/`), holding `specification.md`, `design.md`, and any
+     other `.md`. If that nested Epic folder does not exist, **fall back** to the
+     VI-flat resolution below (so nothing pre-foundation breaks).
+   - **`focus_key` null →** the VI-flat resolution: a `<jira_key>`-prefixed folder
+     (`<jira_key>{-|_}<slug>/…/*.md`) holding the `.md` specs/plans — for a
+     stand-alone item, a broad VI-level slice, or a legacy pre-foundation layout.
 2. **Directory case →** a passed spec-folder, or specs found inside
    `jira_export_root`.
 3. **None found →** `specs: []`. The **consuming command** applies its policy:

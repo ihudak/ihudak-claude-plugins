@@ -25,6 +25,41 @@ Six of the seven dev-workflows commands — `/implement`, `/document` (both mode
 
 `/implement` adds test-writing (Phase 3.5) between implementation and review, then verifies the baseline.
 
+## Session feedback
+
+Beyond the workflow commands, dev-workflows captures **friction and improvement
+signals about the plugin itself** and persists them per-VI into the specs repo,
+so the plugin maintainer can aggregate feedback across engineers and plan
+improvements. Capture is **silent and high-recall** — there is no approval gate;
+curation is the maintainer's job, centrally, at analysis time.
+
+- **Automatic.** The end-of-run maintenance phase of all eight workflow commands
+  (`/implement`, `/document`, `/epics`, `/vuln`, `/upgrade`, `/release-notes`,
+  `/specify`, `/design`) projects the plugin-facing slice of the
+  `impl-maintenance` report (command workflow improvements, new agents/skills,
+  reference-doc gaps) into a feedback entry (`origin: auto`). A routine session
+  with no plugin-facing signal writes nothing.
+- **`/feedback <text>`** — a universal manual note about the plugin, tied to no
+  command (`origin: manual`).
+- **`/prompt <text>`** — capture a corrective interaction (a command produced
+  something wrong; you fix it) as Friction + your verbatim prompt + the
+  Resolution, then act on the correction directly (`origin: prompt`).
+- **`/prompt-brainstorm <text>`** — same capture, then hand off to
+  `superpowers:brainstorming`.
+- **`/prompt-grill-me <text>`** — same capture, then runtime-resolve `/grilling`
+  (mattpocock-skills), **falling back to `superpowers:brainstorming` with a
+  notice if mattpocock-skills is not installed**. mattpocock-skills is an
+  **optional** dependency — the command degrades gracefully; there is no hard
+  install-time requirement.
+
+**Graceful degradation.** Persistence is **specs-first** (central aggregation is
+the point) and deterministic: `$SPECS_PATH` VI dir
+(`<VI-dir>/dev-workflows/<KEY>-feedback.md`) → `$SPECS_PATH/dev-workflows-feedback/`
+→ a writable vault (with a loud "won't auto-aggregate to the maintainer" notice)
+→ beside an imported Jira directory → report-only. It **never** writes into the
+current working directory, and no capture phase ever fails the run. See
+`references/feedback-emission.md`.
+
 ## `/implement` workflow
 
 ```mermaid
@@ -206,6 +241,7 @@ These commands run fine on a bare host, but they depend on a few external tools 
 - `references/dynatrace-docs/render-verification.md` — how `/document` (Jira mode) Phase 6.5 verifies the written docs build and render (build-vs-boot, sequential dev-server smoke-check, the cross-space render-unchanged invariant, pages-to-visit table)
 - `references/finish-and-handoff.md` — how `/document` (Jira mode) Phase 8.5 finishes a run (squash, opt-in push, host-aware copy-paste PR draft) and how Phase 6.2 adopts an inline-profiling branch
 - `references/followup-emission.md` — the end-of-run follow-up task & journal emitter shared by `/document`, `/release-notes`, `/epics`, and `/implement` (task-line format, Jira-key → project-file resolution, notes / `Journal.md` placement, dedupe, the no-vault fallback ladder). Self-contained; mirrors obsidian-llm-wiki's `_shared/task-rules.md` + `vault-conventions.md`.
+- `references/feedback-emission.md` — the session-feedback emitter shared by the automatic maintenance phases and the `/feedback` + `/prompt*` commands (entry format, the specs-first persistence ladder, append-only dedup + attribution, the plugin-facing predicate, and the `emit-auto` / `emit-manual` / `emit-prompt` caller contract). Self-contained; persists plugin signal to `$SPECS_PATH` for maintainer aggregation.
 - `references/dynatrace-docs/changelog-guidelines.md` — dynatrace-docs changelog writing rules + managed owners policy (consulted by the `dynatrace-docs-frontmatter` skill)
 - `references/dynatrace-docs/managed-owners.txt` — managed-docs owner IDs unioned into `managed/_content/**` pages (read by the skill and the `changelog-owners-reminder` hook)
 

@@ -29,8 +29,8 @@ This command makes **zero external API calls** and **never writes into the docs 
    `mode: jira-driven` with `jira_key`, `jira_export_root` (the ticket export
    dir — `$VAULT_PATH/jira-products/<KEY>` for a JiraID, or the passed
    directory), and `source`. The front-end owns the `$VAULT_PATH` /
-   `jira-products` validation and Fallbacks A/B. Carry `jira_key` and
-   `jira_export_root` forward.
+   `jira-products` validation and Fallbacks A/B. Carry `jira_key`,
+   `jira_export_root`, and `focus_key` forward.
 
    If the front-end returns `mode: direct` (no Jira input), stop with
    `RELEASE_NOTES_NEEDS_JIRA: /release-notes needs a Jira key or an imported-Jira directory.` —
@@ -120,6 +120,12 @@ Invoke `jira-reader`. Use `depth: vi-only` when diff grounding is OFF; `depth: f
   > jira_key:         [resolved jira_key]
   > depth:      [vi-only | full]"
 
+When `focus_key` is set (explicit `<VI> <Epic>`), scope the handoff to the focus
+Epic's subtree — the focus Epic plus its linked descendants — before Phase 6 renders
+the draft, so the release note covers that Epic's user-facing changes rather than the
+whole VI. When `focus_key` is null, the draft covers the whole ticket/VI exactly as
+today.
+
 If `status: NOT_FOUND` / `EMPTY`, surface `["Re-enter key", "Cancel"]`. On `OK`, parse `release_versions` from the VI frontmatter into a list (e.g. `"Managed (344), SaaS (344)"` → `["Managed (344)", "SaaS (344)"]`).
 
 ---
@@ -144,7 +150,7 @@ Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent messag
 → Agent (subagent_type: "dev-workflows:release-notes-writer"):
   > "Render the release-notes draft for this brief:
   >
-  > jira_reader_handoff: [the Phase 3 handoff]
+  > jira_reader_handoff: [the Phase 3 handoff — scoped to the focus Epic's subtree when focus_key is set]
   > diff_summaries:      [the Phase 5 array, or omit when diff grounding was off]
   > release_versions:    [parsed list, or [] ]
   > context_label_hint:  [user hint if any, else null]

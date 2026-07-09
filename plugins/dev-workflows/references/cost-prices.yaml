@@ -1,0 +1,25 @@
+# dev-workflows session-cost price table. USD per MILLION tokens, keyed by model id.
+# PLACEHOLDER RATES -- verify against current Anthropic pricing at implementation.
+# Override without editing this file: set $DEV_WORKFLOWS_COST_PRICES to a path, or
+# drop a repo-local cost-prices.yaml. Cache multipliers follow Anthropic's model
+# (cache_read = input * 0.1, cache_write_5m = input * 1.25, cache_write_1h = input * 2.0).
+models:
+  claude-opus-4-8:
+    input: 15.0           # verify: Anthropic pricing
+    output: 75.0          # verify: Anthropic pricing
+    cache_read: 1.5       # input * 0.1
+    cache_write_5m: 18.75 # input * 1.25
+    cache_write_1h: 30.0  # input * 2.0
+  claude-sonnet-5:
+    input: 3.0            # verify: Anthropic pricing
+    output: 15.0          # verify: Anthropic pricing
+    cache_read: 0.3       # input * 0.1
+    cache_write_5m: 3.75  # input * 1.25
+    cache_write_1h: 6.0   # input * 2.0
+  claude-haiku-4-5-20251001:
+    input: 1.0            # verify: Anthropic pricing
+    output: 5.0           # verify: Anthropic pricing
+    cache_read: 0.1       # input * 0.1
+    cache_write_5m: 1.25  # input * 1.25
+    cache_write_1h: 2.0   # input * 2.0
+default: null             # unknown model -> unpriced (tokens recorded, cost null)

@@ -785,6 +785,23 @@ Then spawn all four Phase 4-style maintenance agents in a **single Agent message
 
 Collect all four summaries for the Phase 9 report.
 
+**Persist plugin feedback (automatic).** After Agent 4 (`impl-maintenance`)
+returns, project its plugin-facing slice into the specs repo by citing
+`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
+`emit-auto` entry point (§6). Pass Agent 4's Lessons Learned report,
+`command: /document (Jira mode)`, the run's `jira_key` and `source`, and
+`plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`).
+`emit-auto` renders only the report's **Command workflow improvements**, **New
+agents / skills**, and plugin **Reference docs** sections plus the **Key
+observations** that triggered them (§4 plugin-facing predicate) — never
+target-project `CLAUDE.md`/hook advice — as `origin: auto` entries, dedupes by
+stable `id` (§3), resolves the target via the §2 specs-first ladder, and writes
+silently. List the persisted path (or "no plugin-facing signal — nothing
+persisted") in the Phase 9 report's Session learnings line. ADDITIVE — the
+impl-maintenance report still appears in the report; this step NEVER fails the
+run, NEVER commits, and NEVER writes into the docs repo or the current working
+directory.
+
 ---
 
 ## Phase 8.5 — Finish & handoff
@@ -1152,6 +1169,23 @@ Then spawn all four Phase 4 agents. They are independent and can run in any orde
 > - Project root: [absolute path]"
 
 Collect all four summaries for the Phase 5 report.
+
+**Persist plugin feedback (automatic).** After Agent 4 (`impl-maintenance`)
+returns, project its plugin-facing slice into the specs repo by citing
+`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
+`emit-auto` entry point (§6). Pass Agent 4's Lessons Learned report,
+`command: /document (direct mode)`, the run's `jira_key` (usually `null` in
+direct mode) and `source`, and `plugin_version` (read from
+`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto` renders only
+the report's **Command workflow improvements**, **New agents / skills**, and
+plugin **Reference docs** sections plus the **Key observations** that triggered
+them (§4 plugin-facing predicate) — never target-project `CLAUDE.md`/hook advice
+— as `origin: auto` entries, dedupes by stable `id` (§3), resolves the target
+via the §2 specs-first ladder, and writes silently. List the persisted path
+(or "no plugin-facing signal — nothing persisted") in the Phase 5
+`### Session learnings (Agent 4)` line. ADDITIVE — the impl-maintenance report
+still appears in the report; this step NEVER fails the run, NEVER commits, and
+NEVER writes into the docs repo or the current working directory.
 
 ---
 

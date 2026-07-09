@@ -78,8 +78,9 @@ price table; an optional statusline snapshot cross-checks it.
   `<VI-dir>/dev-workflows/cost/<sid8>.md` — one file per session (`<sid8>` = the
   first 8 chars of the session id), so nothing merge-conflicts across many teams
   or one person's N sessions. Machine-friendly YAML (phase, role, per-model split,
-  duration, `cost_computed_usd`, and — when the plugin statusline is installed —
-  `cost_statusline_usd`). **No user name is ever written.**
+  duration, `cost_computed_usd`, and — when the plugin statusline is installed
+  and a prior checkpoint baseline is already recorded (i.e., not the session's
+  first cost phase) — `cost_statusline_usd`). **No user name is ever written.**
 - **Attribution** is a fixed per-command phase/role map, except `/release-notes`,
   whose phase/role is inferred from whether any `specification.md` / `design.md`
   exists under the VI (a PM's early bare-VI run vs. a dev's documenting re-run).

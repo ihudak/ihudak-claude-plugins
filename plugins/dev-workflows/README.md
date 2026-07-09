@@ -60,6 +60,45 @@ the point) and deterministic: `$SPECS_PATH` VI dir
 current working directory, and no capture phase ever fails the run. See
 `references/feedback-emission.md`.
 
+## Session cost reporting
+
+dev-workflows records how many **dollars** a Value Increment cost across its
+whole lifecycle — by **phase**, **role**, and **model** — persisted per-VI into
+the specs repo so the maintainer can aggregate spend across engineers and teams.
+Claude Code exposes no dollar figure to a command, so cost is **computed** from
+transcript token usage (the main transcript + the session's subagents) times a
+price table; an optional statusline snapshot cross-checks it.
+
+- **Terminal cost phase** on the six VI-lifecycle commands (`/specify`, `/epics`,
+  `/design`, `/implement`, `/document`, `/release-notes`). It **always runs** and
+  always advances a per-session **chained checkpoint** (each command's window
+  starts where the previous one ended), so per-command costs sum to the session
+  total. `/vuln` and `/upgrade` are out of scope (no VI to attribute to).
+- **Per-invocation, append-only entries** in
+  `<VI-dir>/dev-workflows/cost/<sid8>.md` — one file per session (`<sid8>` = the
+  first 8 chars of the session id), so nothing merge-conflicts across many teams
+  or one person's N sessions. Machine-friendly YAML (phase, role, per-model split,
+  duration, `cost_computed_usd`, and — when the plugin statusline is installed —
+  `cost_statusline_usd`). **No user name is ever written.**
+- **Attribution** is a fixed per-command phase/role map, except `/release-notes`,
+  whose phase/role is inferred from whether any `specification.md` / `design.md`
+  exists under the VI (a PM's early bare-VI run vs. a dev's documenting re-run).
+- **Graceful degradation** (specs-first, never the cwd): `$SPECS_PATH` VI dir →
+  a pending file for keyless runs (opportunistically reconciled later) → a
+  writable vault (with a "won't auto-aggregate" notice) → beside an imported Jira
+  directory → report-only. The price table is overridable via
+  `$DEV_WORKFLOWS_COST_PRICES`. See `references/cost-emission.md`.
+
+## Statusline
+
+`/statusline` installs the plugin's multi-line, truecolor status line (session
+identity, git branch, context bar, cost, tokens, rate limits) into
+`~/.claude/settings.json`. Installation is idempotent and backs up any existing
+script and `statusLine` block before writing. Installing it also enables the
+**Option B** cost cross-check: the shipped script writes a per-render
+`{ts, cost_usd}` snapshot that the cost phase compares against its
+transcript-computed estimate (a drift signal for refreshing the price table).
+
 ## `/implement` workflow
 
 ```mermaid
@@ -242,6 +281,7 @@ These commands run fine on a bare host, but they depend on a few external tools 
 - `references/finish-and-handoff.md` — how `/document` (Jira mode) Phase 8.5 finishes a run (squash, opt-in push, host-aware copy-paste PR draft) and how Phase 6.2 adopts an inline-profiling branch
 - `references/followup-emission.md` — the end-of-run follow-up task & journal emitter shared by `/document`, `/release-notes`, `/epics`, and `/implement` (task-line format, Jira-key → project-file resolution, notes / `Journal.md` placement, dedupe, the no-vault fallback ladder). Self-contained; mirrors obsidian-llm-wiki's `_shared/task-rules.md` + `vault-conventions.md`.
 - `references/feedback-emission.md` — the session-feedback emitter shared by the automatic maintenance phases and the `/feedback` + `/prompt*` commands (entry format, the specs-first persistence ladder, append-only dedup + attribution, the plugin-facing predicate, and the `emit-auto` / `emit-manual` / `emit-prompt` caller contract). Self-contained; persists plugin signal to `$SPECS_PATH` for maintainer aggregation.
+- `references/cost-emission.md` — the session-cost emitter shared by the terminal cost phase of the six VI-lifecycle commands (session-artifact resolution, the chained-checkpoint model, `scripts/session-cost.py` invocation, the price table, the per-invocation entry format written to `<VI-dir>/dev-workflows/cost/<sid8>.md`, the specs-first ladder, pending/reconciliation, the optional statusline cross-check, attribution incl. the `/release-notes` inference, and the `emit-cost` caller contract). Self-contained; computes cost from transcript tokens × `references/cost-prices.yaml`.
 - `references/dynatrace-docs/changelog-guidelines.md` — dynatrace-docs changelog writing rules + managed owners policy (consulted by the `dynatrace-docs-frontmatter` skill)
 - `references/dynatrace-docs/managed-owners.txt` — managed-docs owner IDs unioned into `managed/_content/**` pages (read by the skill and the `changelog-owners-reminder` hook)
 

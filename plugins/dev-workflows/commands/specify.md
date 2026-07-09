@@ -415,6 +415,43 @@ The end-to-end PM flow:
 
 Steps 2–3 are the round-trip; without them `/specify` cannot see the Epics.
 
+## Phase 8 — Session maintenance & feedback
+
+Terminal phase — runs after Phase 7 and before the Final report is presented;
+NEVER interrupts an earlier phase. `/specify` has no built-in maintenance agent,
+so this phase invokes `impl-maintenance` on the Sonnet detection chain and then
+persists the plugin-facing slice of its report as session feedback.
+
+1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
+   > "Analyse this session and return a Lessons Learned report.
+   >
+   > Session handoff:
+   > - Command run: /specify
+   > - What was done: [one-paragraph summary of the specification authored]
+   > - Key events: [BLOCK reviews and their reason, unmounted-repo soft-gate advisories, unresolved open questions, picker / round-trip friction — or 'none']
+   > - Workarounds used: [manual steps not automated by the workflow — or 'none']
+   > - Review verdict: [the spec-reviewer verdict — PASS | PASS WITH RECOMMENDATIONS | BLOCK]
+   > - Test result: N/A (no tests in /specify)
+   > - Project root: [the resolved feature folder under $SPECS_PATH]"
+2. **Persist plugin feedback (automatic).** Project the report's plugin-facing
+   slice into the specs repo by citing
+   `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
+   `emit-auto` entry point (§6). Pass the Lessons Learned report,
+   `command: /specify`, the run's `jira_key` and `source`, and `plugin_version`
+   (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto`
+   renders only the report's **Command workflow improvements**, **New agents /
+   skills**, and plugin **Reference docs** sections plus the **Key observations**
+   that triggered them (§4) — never target-project `CLAUDE.md`/hook advice — as
+   `origin: auto` entries, dedupes by stable `id` (§3), resolves the target via
+   the §2 specs-first ladder, and writes silently.
+3. **Surface** the persisted path (or "no plugin-facing signal — nothing
+   persisted") as this phase's only output.
+
+ADDITIVE — this phase NEVER fails the run, NEVER commits (git is offered only in
+Phase 7), and NEVER writes into the current working directory. The specs-first
+ladder writes the feedback file inside `$SPECS_PATH`, alongside the feature
+folder — the intended home.
+
 ## Final report
 
 Report: feature-folder path; stage/user-story/AC/TC counts; open-question count; unmounted-repo advisories; the `spec-reviewer` verdict; the PR URL (if opened); and a reminder of the round-trip described above + that `Published: yes` is a human-only freeze step.

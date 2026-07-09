@@ -313,6 +313,43 @@ remaining Epic's ○/◐/● state — the freshly-authored design now shows **�
 actionable set), then, on selection, loop back through Phases 2–7 for the selected Epic. This offer does
 not apply to a stand-alone Epic, a single-Epic VI, or a broad VI-level design.
 
+## Phase 8 — Session maintenance & feedback
+
+Terminal phase — runs after Phase 7 and before the Final report is presented;
+NEVER interrupts an earlier phase. `/design` has no built-in maintenance agent,
+so this phase invokes `impl-maintenance` on the Sonnet detection chain and then
+persists the plugin-facing slice of its report as session feedback.
+
+1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
+   > "Analyse this session and return a Lessons Learned report.
+   >
+   > Session handoff:
+   > - Command run: /design
+   > - What was done: [one-paragraph summary of the engineering design authored]
+   > - Key events: [BLOCK reviews and their reason, STRICT repo-gate hard-stops, model-gate overrides, unresolved design open questions — or 'none']
+   > - Workarounds used: [manual steps not automated by the workflow — or 'none']
+   > - Review verdict: [the design-reviewer verdict — PASS | PASS WITH RECOMMENDATIONS | BLOCK]
+   > - Test result: N/A (no tests in /design)
+   > - Project root: [the resolved feature folder under $SPECS_PATH]"
+2. **Persist plugin feedback (automatic).** Project the report's plugin-facing
+   slice into the specs repo by citing
+   `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
+   `emit-auto` entry point (§6). Pass the Lessons Learned report,
+   `command: /design`, the run's `jira_key` and `source`, and `plugin_version`
+   (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto`
+   renders only the report's **Command workflow improvements**, **New agents /
+   skills**, and plugin **Reference docs** sections plus the **Key observations**
+   that triggered them (§4) — never target-project `CLAUDE.md`/hook advice — as
+   `origin: auto` entries, dedupes by stable `id` (§3), resolves the target via
+   the §2 specs-first ladder, and writes silently.
+3. **Surface** the persisted path (or "no plugin-facing signal — nothing
+   persisted") as this phase's only output.
+
+ADDITIVE — this phase NEVER fails the run, NEVER commits (git is offered only in
+Phase 7), and NEVER writes into the current working directory. The specs-first
+ladder writes the feedback file inside `$SPECS_PATH`, alongside the feature
+folder — the intended home.
+
 ## Final report
 
 Report: feature-folder path; classification + model-gate outcome; `design.md` sections authored (and

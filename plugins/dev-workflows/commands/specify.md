@@ -452,6 +452,31 @@ Phase 7), and NEVER writes into the current working directory. The specs-first
 ladder writes the feedback file inside `$SPECS_PATH`, alongside the feature
 folder — the intended home.
 
+## Phase 9 — Session cost
+
+Terminal phase — the NEW final operational phase; runs after Phase 8 (feedback)
+and NEVER interrupts an earlier phase. Records this command's token-cost
+contribution to the VI by citing
+`${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and calling its single
+`emit-cost` entry point. Unlike feedback, **cost ALWAYS runs** — it never "writes
+nothing".
+
+Call `emit-cost` with `command: /specify`, `phase: specification`, `role: pe`,
+the run's `jira_key` (or `null`) and `source`, and `plugin_version` (read from
+`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the session
+transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),
+runs `scripts/session-cost.py` to compute the per-model token-cost delta against
+the price table (§4), records the optional statusline cross-check (§5), and
+appends one per-invocation entry to `<VI-dir>/dev-workflows/cost/<sid8>.md` via
+the specs-first ladder (§8) — pending + opportunistic move-then-delete
+reconciliation (§9) when no VI key resolves. **The checkpoint advances even in
+the pending / report-only tiers.** Surface the persisted path (or the
+report-only notice) as this phase's only output.
+
+ADDITIVE — this phase NEVER fails the run, NEVER commits (git is offered only in
+Phase 7), and NEVER writes into a docs/code repo or the current working
+directory; no user name is ever written (§10 privacy).
+
 ## Final report
 
 Report: feature-folder path; stage/user-story/AC/TC counts; open-question count; unmounted-repo advisories; the `spec-reviewer` verdict; the PR URL (if opened); and a reminder of the round-trip described above + that `Published: yes` is a human-only freeze step.

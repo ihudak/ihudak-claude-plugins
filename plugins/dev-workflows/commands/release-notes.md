@@ -266,6 +266,36 @@ API call, and NEVER writes into a docs repo or the current working directory.
 
 ---
 
+## Phase 11 — Session cost
+
+Terminal phase — the NEW final operational phase; runs after Phase 10 (feedback)
+and NEVER interrupts an earlier phase. Records this command's token-cost
+contribution to the VI by citing
+`${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and calling its single
+`emit-cost` entry point. Unlike feedback, **cost ALWAYS runs**.
+
+`/release-notes` runs at two different phases by two roles (a PM's early bare-VI
+run and a dev's documenting re-run), so DO NOT pass a fixed phase/role: call
+`emit-cost` with `command: /release-notes`, `phase: inferred`, `role: inferred`,
+the run's `jira_key` (or `null`) and `source`, and `plugin_version` (read from
+`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-cost` applies the §7
+inference: **no `specification.md` or `design.md` under the VI's specs dir ->
+`phase: vi-creation`, `role: pm`; either present -> `phase: documenting`, `role:
+dev`.** Epic presence is deliberately NOT part of the signal. It then resolves
+the transcript + subagents (§1), **advances the chained checkpoint** (§3), runs
+`scripts/session-cost.py` against the price table (§4), records the optional
+statusline cross-check (§5), and appends one entry to
+`<VI-dir>/dev-workflows/cost/<sid8>.md` via the specs-first ladder (§8) — pending
++ reconciliation (§9) when no VI key resolves. **The checkpoint advances even in
+the pending / report-only tiers.** Surface the persisted path (or the
+report-only notice) as this phase's only output.
+
+ADDITIVE — this phase NEVER fails the run, NEVER commits, NEVER makes an external
+API call, and NEVER writes into a docs repo or the current working directory; no
+user name is ever written (§10).
+
+---
+
 ## Invariants (always enforced)
 
 - ZERO external API calls — PR URLs are identifiers only; all resolution is local `git`.

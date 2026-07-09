@@ -28,7 +28,38 @@ token (`^[A-Z][A-Z0-9]+-[0-9]+`) is discovered under `$VAULT_PATH/jira-products/
 `direct` (free-text/`@file`, this command's existing flow). The classification
 table above is the directory branch of that front-end — a Jira ticket folder ↔
 jira-export, a spec folder ↔ spec-folder, a code repo ↔ an `/implement`-only
-target. Carry `mode`, `jira_key`, `jira_export_root`, and `specs` forward.
+target. Carry `mode`, `jira_key`, `jira_export_root`, `focus_key`, and `specs` forward.
+
+**Epic-unit resolution (jira-driven).** `/implement` implements one Epic at a time.
+After the front-end resolves, when `mode: jira-driven`:
+
+- **`focus_key` set** (explicit `<VI> <Epic>`, a bare nested `<Epic>`, or chosen in
+  the picker below) → proceed for that Epic. The Jira read (Phase 1.7) and specs
+  resolution both scope to it.
+- **`focus_key` null** → classify the target with a cheap `jira-reader`
+  `depth: vi-plus-epics` read on `jira_export_root`, then follow
+  `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` §"Progress-aware Epic
+  picker":
+  - the item is **itself an Epic** (stand-alone / top-level) → no picker; proceed
+    directly (`focus_key` stays null; specs resolve at the item's top-level dir).
+  - **VI with exactly 1 Epic** → no picker; set `focus_key` to that Epic and proceed.
+  - **VI with ≥2 Epics** → render the picker. `/implement`'s **done-predicate is the
+    Epic's Jira status** (`linked_items[].status`): map *done / closed / resolved* →
+    ● (greyed, not default-selectable; selecting offers "implement anyway"), *in
+    progress / in review* → ◐, anything else → ○; always show the raw status text
+    beside each row so a lagging status can't mislead. If the export carries no
+    status, degrade to a plain unstatused selection list. Include the explicit choice
+    **"Implement one broad VI-level slice instead"** (`focus_key` stays null → specs
+    resolve VI-level). Selecting an Epic sets `focus_key` and proceeds for **that Epic
+    only** — there is **no "Next Epic?" loop** (code-writing is heavy and branchy;
+    each `/implement` run targets one Epic).
+  - **VI with 0 Epics** → offer: split with `/epics` first (then re-import), or
+    implement one broad VI-level slice (`focus_key` stays null).
+
+When the picker (or the 1-Epic auto-path) sets `focus_key` that was initially null,
+**re-resolve `specs`** per the shared reference §Specs-resolution now that `focus_key`
+is set — the front-end's first pass resolved `specs` with `focus_key` null, so it must
+run again to pick up the Epic's nested per-Epic home.
 
 Rules:
 - The **primary description** is: the spec file if one was given → else the spec-folder design doc → else the inline prose. Echo `📄 Reading prompt from <file>…` (or `from inline text`) and confirm `"Loaded prompt (N lines)."`.
@@ -142,6 +173,11 @@ Runs after Pre-Phase 2 and replaces the single Phase 2B exploration subagent for
      > depth:            full"
 
    Run multiple `jira-reader` calls sequentially (it is fast and read-only). Collect the themes and PR references.
+
+   When `focus_key` is set, scope the collected result to the focus Epic's subtree:
+   keep the focus Epic plus the items linked beneath it (its Stories / Sub-tasks) and
+   drop sibling Epics' subtrees before folding themes/PRs into the plan. `jira-reader`
+   itself is not modified — the scoping is done here, mirroring `/specify`.
 
 2. **Read spec/design folders inline.** Read each spec-folder `.md` and fold its content into the themes and primary description.
 

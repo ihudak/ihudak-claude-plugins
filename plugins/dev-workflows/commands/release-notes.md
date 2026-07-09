@@ -228,6 +228,44 @@ into a docs repo or the current working directory.
 
 ---
 
+## Phase 10 — Session maintenance & feedback
+
+Terminal phase — runs AFTER the Phase 8 report and the Phase 9 follow-up phase;
+NEVER interrupts an earlier phase. `/release-notes` has no built-in maintenance
+agent, so this phase invokes `impl-maintenance` on the Sonnet detection chain
+and then persists the plugin-facing slice of its report as session feedback.
+
+1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<Sonnet detection chain — claude-sonnet-5, fallback claude-sonnet-4-6 / 4-5>`):
+   > "Analyse this session and return a Lessons Learned report.
+   >
+   > Session handoff:
+   > - Command run: /release-notes
+   > - What was done: [one-paragraph summary of the release-notes draft produced]
+   > - Key events: [source-truth discrepancies, PARTIAL renders, style-check failures, ambiguous destinations — or 'none']
+   > - Workarounds used: [manual steps not automated by the workflow — or 'none']
+   > - Review verdict: N/A (light gate only, no Opus review)
+   > - Test result: N/A (no tests in /release-notes)
+   > - Project root: [the resolved jira_export_root or the destination directory]"
+2. **Persist plugin feedback (automatic).** Project the report's plugin-facing
+   slice into the specs repo by citing
+   `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
+   `emit-auto` entry point (§6). Pass the Lessons Learned report,
+   `command: /release-notes`, the run's `jira_key` and `source`, and
+   `plugin_version` (read from
+   `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto` renders only
+   the report's **Command workflow improvements**, **New agents / skills**, and
+   plugin **Reference docs** sections plus the **Key observations** that
+   triggered them (§4) — never target-project `CLAUDE.md`/hook advice — as
+   `origin: auto` entries, dedupes by stable `id` (§3), resolves the target via
+   the §2 specs-first ladder, and writes silently.
+3. **Surface** the persisted path (or "no plugin-facing signal — nothing
+   persisted") as this phase's only output.
+
+ADDITIVE — this phase NEVER fails the run, NEVER commits, NEVER makes an external
+API call, and NEVER writes into a docs repo or the current working directory.
+
+---
+
 ## Invariants (always enforced)
 
 - ZERO external API calls — PR URLs are identifiers only; all resolution is local `git`.

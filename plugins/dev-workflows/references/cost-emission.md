@@ -126,6 +126,10 @@ models:
 default: null
 ```
 
+Model lookup is exact-first, then longest-prefix: an undated base key (e.g.
+`claude-sonnet-5`) prices a dated transcript model id (e.g.
+`claude-sonnet-5-20250930`) when no exact key matches.
+
 The `models:` wrapper is **required** — `price_model()` reads
 `prices.get("models")`, so model ids placed at the top level (as siblings of
 `default`, instead of nested under `models:`) are never found and every model

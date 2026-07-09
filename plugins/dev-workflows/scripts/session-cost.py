@@ -206,6 +206,15 @@ def price_model(model, tok, prices):
     table = prices.get("models") if isinstance(prices.get("models"), dict) else {}
     rates = table.get(model)
     if not isinstance(rates, dict):
+        # Exact miss -> longest table key that is a prefix of the model id
+        # (so undated key "claude-sonnet-5" prices "claude-sonnet-5-20250930").
+        best = None
+        for k, v in table.items():
+            if isinstance(v, dict) and isinstance(model, str) and model.startswith(k):
+                if best is None or len(k) > len(best):
+                    best = k
+        rates = table.get(best) if best is not None else None
+    if not isinstance(rates, dict):
         return None, "unpriced-model"
     cost = (
         tok["input"] * _rate(rates, "input")

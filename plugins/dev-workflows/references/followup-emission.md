@@ -95,8 +95,9 @@ most-durable first. `vault_writable` = `$VAULT_PATH` is set **and**
    the task line links the section.
 3. **No vault; no `$SPECS_PATH` VI dir; `source = directory`** → write beside
    the imported Jira directory:
-   `<parent-of-jira_export_root>/<KEY>-followups.md` (where `/epics` +
-   `/release-notes` already write their no-vault output).
+   `<parent-of-jira_export_root>/<KEY>-followups.md` (the imported hierarchy's
+   parent — the same area under which /epics and /release-notes place their
+   no-vault drafts, e.g. /epics' epic-drafts/<jira_key>/).
 4. **None resolvable** → **report-only.** Keep the follow-ups in the Final
    Report and emit the notice. **NEVER** write into the current working
    directory — it may be a code repository.
@@ -147,6 +148,10 @@ requires a MANUAL human step:
 DO NOT emit tasks for in-scope items the report/draft already tracks: deferred
 review BLOCKERs, skipped tests, in-draft `<!-- TODO -->` markers. Those belong
 to the current task and are already carried in the Final Report.
+
+**If no signal qualifies after this filter, the phase is a no-op:** resolve no
+target, show no preview or vault-path prompt, write nothing, and end silently —
+the run is byte-identical to one where this phase did not exist.
 
 ## 7. Interaction model — batch preview at end-of-run
 

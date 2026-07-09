@@ -566,11 +566,12 @@ follow-ups by citing `${CLAUDE_PLUGIN_ROOT}/references/followup-emission.md`
 and executing its steps inline.
 
 1. **Collect** the qualifying follow-ups: manual publish/config steps and
-   out-of-scope maintenance items surfaced during the run (e.g. an
-   impl-maintenance suggestion that touches another repo or team, or a manual
-   post-merge step). **Do NOT** collect the report's `### Deferred items (from
-   review or tests)` or skipped tests — §6 explicitly excludes those as in-scope
-   work already carried by the current task.
+   out-of-scope maintenance items surfaced in the Phase 5 `### Session
+   learnings` section (e.g. an impl-maintenance suggestion that touches
+   another repo or team, or a manual post-merge step). **Do NOT** collect the
+   report's `### Deferred items (from review or tests)` or skipped tests — §6
+   explicitly excludes those as in-scope work already carried by the current
+   task.
 2. **Filter** them with the reference's §6 qualifying predicate.
 3. **Resolve** the write target via the §4 ladder using `jira_key` and `source`
    (jira-driven runs carry a key; direct-prompt runs usually do not, so tasks

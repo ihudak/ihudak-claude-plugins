@@ -898,6 +898,31 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 
 ---
 
+## Phase 10 — Emit follow-up tasks
+
+Terminal phase — runs AFTER the Phase 9 Final Report is composed; NEVER
+interrupts an earlier phase. Persist the run's out-of-scope / manual-step
+follow-ups as durable Obsidian tasks (and notes) by citing
+`${CLAUDE_PLUGIN_ROOT}/references/followup-emission.md` and executing its steps
+inline.
+
+1. **Collect** the follow-up items already aggregated in the Phase 9 report:
+   `### Screenshots to upload manually`, `### Implementation gaps (Jira vs source)`,
+   `### Skipped items`, and `### Deferred items`.
+2. **Filter** them with the reference's §6 qualifying predicate — emit only
+   out-of-scope / manual-step signals; drop in-scope items the report already
+   tracks.
+3. **Resolve** the write target via the §4 vault-availability ladder using the
+   run's `jira_key` and `source`; render + place tasks and verbose notes per
+   §1–§3; dedupe per §5.
+4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.
+
+ADDITIVE — the follow-ups also remain in the Phase 9 report (today's behaviour).
+This phase NEVER fails the run, NEVER commits, and NEVER writes into the docs
+repo or the current working directory.
+
+---
+
 ## Invariants (always enforced)
 
 - ALWAYS run Phase 0 docs-repo detection; if 0 signals, require user confirmation before proceeding
@@ -1171,6 +1196,28 @@ Output a structured report — do NOT ask any closing confirmation:
 ### Git state
 The working tree has uncommitted changes. `/document` (direct mode) never commits — you manage git manually. Run `git status` to review, then commit when ready.
 ```
+
+---
+
+## Phase 6 — Emit follow-up tasks
+
+Terminal phase — runs AFTER the Phase 5 Final Report is composed; NEVER
+interrupts an earlier phase. Persist any out-of-scope / manual-step follow-ups
+by citing `${CLAUDE_PLUGIN_ROOT}/references/followup-emission.md` and executing
+its steps inline.
+
+1. **Collect** the follow-up items from the Phase 5 `### Deferred items` section
+   (direct edits rarely produce out-of-scope work; this phase is usually a
+   no-op).
+2. **Filter** them with the reference's §6 qualifying predicate.
+3. **Resolve** the write target via the §4 ladder. Direct mode usually has no
+   `jira_key` (`source = none`), so tasks land in `Tasks.md # Irregular` when the
+   vault is writable, else the phase degrades to report-only.
+4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.
+
+ADDITIVE — the follow-ups also remain in the Phase 5 report. This phase NEVER
+fails the run, NEVER commits (the user manages git manually), and NEVER writes
+into the docs repo or the current working directory.
 
 ---
 

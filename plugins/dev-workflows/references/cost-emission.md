@@ -64,9 +64,11 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/session-cost.py" \
 ```
 
 The helper reads the main transcript **from the checkpoint's line offset
-forward** (O(command), not O(session) — the transcript can be tens of MB) plus
-every `subagents/agent-*.jsonl` entry with `timestamp` in `(last_ts, now]`,
-groups `usage` by `model`, applies the price table, and prints JSON to stdout:
+forward, skipping JSON-parsing of every line before that offset** — I/O still
+scans the whole file (the transcript can be tens of MB), but the offset saves
+re-parsing lines already processed by a prior command — plus every
+`subagents/agent-*.jsonl` entry with `timestamp` in `(last_ts, now]`, groups
+`usage` by `model`, applies the price table, and prints JSON to stdout:
 
 ```json
 {
@@ -109,12 +111,37 @@ dev-workflows command's END in the same session.
 
 ## 4. Price table
 
-`references/cost-prices.yaml`, keyed by model id, **USD per million tokens**
-(`input`, `output`, `cache_read`, `cache_write_5m`, `cache_write_1h`, plus a
-top-level `default: null`). Cache multipliers follow Anthropic's standard model
-(read 0.1x, 5m write 1.25x, 1h write 2x); the transcript's `ephemeral_5m` /
-`ephemeral_1h` split lets cache pricing be exact, and a message without the split
-prices `cache_creation_input_tokens` at the 5m rate.
+`references/cost-prices.yaml` requires a top-level **`models:`** map keyed by
+model id, **USD per million tokens** (`input`, `output`, `cache_read`,
+`cache_write_5m`, `cache_write_1h`), plus a top-level `default: null`:
+
+```yaml
+models:
+  <model-id>:
+    input: <usd-per-million>
+    output: <usd-per-million>
+    cache_read: <usd-per-million>
+    cache_write_5m: <usd-per-million>
+    cache_write_1h: <usd-per-million>
+default: null
+```
+
+The `models:` wrapper is **required** — `price_model()` reads
+`prices.get("models")`, so model ids placed at the top level (as siblings of
+`default`, instead of nested under `models:`) are never found and every model
+prices as unpriced / `$0`. An override supplied via `$DEV_WORKFLOWS_COST_PRICES`
+(below) is read by this same `price_model()`, so it must use this identical
+nested shape.
+
+**`default: null` is documentary only** — `price_model()` never consults it as a
+fallback rate map. Any model id absent from `models:` is always priced
+`cost_usd: null` with `note: unpriced-model` (§6), regardless of what `default`
+is set to.
+
+Cache multipliers follow Anthropic's standard model (read 0.1x, 5m write 1.25x,
+1h write 2x); the transcript's `ephemeral_5m` / `ephemeral_1h` split lets cache
+pricing be exact, and a message without the split prices
+`cache_creation_input_tokens` at the 5m rate.
 
 **Resolution order (first found wins):** `$DEV_WORKFLOWS_COST_PRICES` (a path) ->
 a repo-local `cost-prices.yaml` -> the shipped
@@ -135,8 +162,12 @@ installed (via `/statusline`):
   checkpoint) — a **per-invocation delta on this entry only**, chained
   identically to Option A. **Never an aggregate, never a shared source of truth**
   -> immune to the merge concern.
-- **Auto-detect:** if the snapshot file exists, the field is emitted; otherwise
-  it is `null` and simply omitted from the entry. No configuration.
+- **Auto-detect:** the field is emitted only when BOTH the current snapshot file
+  exists AND a prior checkpoint baseline (`last_snapshot_cost`) is already
+  recorded; otherwise it is `null` and simply omitted from the entry. No
+  configuration. In practice, the **first** cost phase in a session always omits
+  the field — even with the statusline installed, there is no baseline yet — and
+  the **second and later** commands emit the delta against it.
 - **Boundary caveat:** B is authoritative on price but lags at the tail (the
   statusline renders *after* the final turn); A reads the per-turn transcript so
   it is more complete at the boundary. The two differing by cents is the intended

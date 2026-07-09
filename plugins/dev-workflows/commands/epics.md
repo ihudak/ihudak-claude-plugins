@@ -487,6 +487,33 @@ directory.
 
 ---
 
+## Phase 11 — Session cost
+
+Terminal phase — the NEW final operational phase; runs after Phase 10 (the
+follow-up phase) and NEVER interrupts an earlier phase. Records this command's
+token-cost contribution to the VI by citing
+`${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and calling its single
+`emit-cost` entry point. Unlike feedback, **cost ALWAYS runs** — it never "writes
+nothing".
+
+Call `emit-cost` with `command: /epics`, `phase: epic-refinement`, `role: pe`,
+the run's `jira_key` (or `null`) and `source`, and `plugin_version` (read from
+`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the session
+transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),
+runs `scripts/session-cost.py` to compute the per-model token-cost delta against
+the price table (§4), records the optional statusline cross-check (§5), and
+appends one per-invocation entry to `<VI-dir>/dev-workflows/cost/<sid8>.md` via
+the specs-first ladder (§8) — pending + opportunistic move-then-delete
+reconciliation (§9) when no VI key resolves. **The checkpoint advances even in
+the pending / report-only tiers.** Surface the persisted path (or the
+report-only notice) as this phase's only output.
+
+ADDITIVE — this phase NEVER fails the run, NEVER commits (git is the user's
+responsibility), and NEVER writes into `jira-products/`, `jira_export_root`, or
+the current working directory; no user name is ever written (§10 privacy).
+
+---
+
 ## Invariants (always enforced)
 
 - ALWAYS resolve input via the shared Jira-input front-end (Phase 0) — a JiraID requires `$VAULT_PATH`; an imported-Jira directory works without it; `/epics` is cwd-agnostic and rejects `mode: direct`

@@ -558,6 +558,32 @@ Output a structured report — do NOT ask any closing confirmation:
 
 ---
 
+## Phase 6 — Emit follow-up tasks
+
+Terminal phase — runs AFTER the Phase 5 Final Report is composed; NEVER
+interrupts an earlier phase. Persist the run's out-of-scope / manual-step
+follow-ups by citing `${CLAUDE_PLUGIN_ROOT}/references/followup-emission.md`
+and executing its steps inline.
+
+1. **Collect** the qualifying follow-ups: manual publish/config steps and
+   out-of-scope maintenance items surfaced during the run (e.g. an
+   impl-maintenance suggestion that touches another repo or team, or a manual
+   post-merge step). **Do NOT** collect the report's `### Deferred items (from
+   review or tests)` or skipped tests — §6 explicitly excludes those as in-scope
+   work already carried by the current task.
+2. **Filter** them with the reference's §6 qualifying predicate.
+3. **Resolve** the write target via the §4 ladder using `jira_key` and `source`
+   (jira-driven runs carry a key; direct-prompt runs usually do not, so tasks
+   land in `Tasks.md # Irregular` when the vault is writable, else report-only);
+   render + place tasks and verbose notes per §1–§3; dedupe per §5.
+4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.
+
+ADDITIVE — the follow-ups also remain in the Phase 5 report. This phase NEVER
+fails the run, NEVER commits, and NEVER writes into the code repo or the current
+working directory.
+
+---
+
 ## Invariants (always enforced)
 
 - NEVER skip Phase 1.5 classification — every run must state the level

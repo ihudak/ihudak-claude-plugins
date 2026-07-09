@@ -206,6 +206,28 @@ If `dt-style-guide` is not installed, skip this phase and note "style check skip
 
 ---
 
+## Phase 9 — Emit follow-up tasks
+
+Terminal phase — runs AFTER the Phase 8 report is composed; NEVER interrupts an
+earlier phase. Persist the run's manual-step follow-ups by citing
+`${CLAUDE_PLUGIN_ROOT}/references/followup-emission.md` and executing its steps
+inline.
+
+1. **Collect** the qualifying follow-ups: the mandatory manual publish step
+   ("paste this release-notes draft into the ticket's Jira release-notes field")
+   and any implementation-gap signals surfaced during the run.
+2. **Filter** them with the reference's §6 qualifying predicate.
+3. **Resolve** the write target via the §4 ladder using `jira_key` and `source`;
+   render + place tasks and verbose notes per §1–§3; dedupe per §5. The task
+   references the draft file written in Phase 8 rather than duplicating it.
+4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.
+
+ADDITIVE — the follow-ups also remain in the Phase 8 report. This phase NEVER
+fails the run, NEVER commits, NEVER makes an external API call, and NEVER writes
+into a docs repo or the current working directory.
+
+---
+
 ## Invariants (always enforced)
 
 - ZERO external API calls — PR URLs are identifiers only; all resolution is local `git`.

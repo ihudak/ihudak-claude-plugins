@@ -22,9 +22,9 @@ Key distinction from `/document` (Jira mode): the VI being Epic-ized is **not ye
    with `jira_key` (the input Value Increment key), `jira_export_root` (the VI
    export dir — `$VAULT_PATH/jira-products/<KEY>` for a JiraID, or the passed
    directory), and `source`. The front-end owns the `$VAULT_PATH` /
-   `jira-products` validation and Fallbacks A/B. Carry `jira_key` and
-   `jira_export_root` forward. Downstream, `<JIRA_KEY>` and `<VI-KEY>` both
-   denote this `jira_key`.
+   `jira-products` validation and Fallbacks A/B. Carry `jira_key`,
+   `jira_export_root`, and `focus_key` forward. Downstream, `<JIRA_KEY>` and
+   `<VI-KEY>` both denote this `jira_key`.
 
    If the front-end returns `mode: direct` (no Jira input), stop with
    `EPICS_NEEDS_JIRA: /epics needs a Jira key or an imported-Jira directory.` —
@@ -147,6 +147,17 @@ Invoke `jira-reader` with `depth: vi-plus-epics`. This depth is specifically des
 
 Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Jira key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On `OK`, identify the Epics already linked to the VI (filter `linked_items` to `type == Epic`) — the new Epic drafts MUST NOT duplicate their scope (enforced later by `epic-reviewer`).
 
+**Refinement target (`focus_key`).** `/epics` always reads and analyses the whole VI
+(the partition and non-duplication logic are inherently VI-holistic). When `focus_key`
+is set (explicit `<VI> <Epic>`), validate it is among the linked Epics; if it is not,
+surface `EPICS_FOCUS_NOT_FOUND: <focus_key> is not a linked Epic of <jira_key>.` and
+offer `choices: ["Proceed VI-level (draft the full partition)", "Re-enter the Epic key", "Cancel"]`.
+When present, treat `focus_key` as the **single refinement target**: Phase 6 re-drafts
+only that Epic's definition, and Phase 7 reviews only that file. The non-duplication
+set (`existing_epics`) is the *other* linked Epics — exclude the focus Epic so Phase 6
+re-emits it rather than skipping it as a duplicate. When `focus_key` is null, behaviour
+is unchanged (draft the full partition of new Epics).
+
 ---
 
 ## Phase 4 — Resolve repos (conditional)
@@ -215,7 +226,7 @@ Handle per-repo status after the batch returns:
 
 The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1 Sonnet detection chain for MODERATE; §2 Opus only if the run is SIGNIFICANT/HIGH-RISK — see `classification.md` §9.2). The orchestrator prepares a handoff and dispatches; it does not write Epics itself, and **nothing commits** (epics never branches/commits — git is the user's responsibility).
 
-1. **Write the handoff file.** Create a temp file (`mktemp` — never the vault, never a repo) containing the `epic-writer` input contract: `jira_reader_handoff`, `code_scanner_outputs` (empty if no scan), `scope` (Phase 2 in/out of scope), `existing_epics` (non-duplication), `output_dir` (resolved Phase 1 dir), `vi_goal`, `jira_key`. Record its absolute path.
+1. **Write the handoff file.** Create a temp file (`mktemp` — never the vault, never a repo) containing the `epic-writer` input contract: `jira_reader_handoff`, `code_scanner_outputs` (empty if no scan), `scope` (Phase 2 in/out of scope), `existing_epics` (non-duplication), `output_dir` (resolved Phase 1 dir), `vi_goal`, `jira_key`. Record its absolute path. When `focus_key` is set (the Phase 3 refinement target), set `scope` in-scope to just the focus Epic and `existing_epics` to the *other* linked Epics, so `epic-writer` re-drafts the single focus Epic's definition file; `output_dir` is unchanged.
 
 2. **Dispatch the writer:**
 

@@ -254,6 +254,12 @@ rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key"
 
 ---
 
+## Phase 2.5 — Resolve applicable ARD (optional)
+
+Resolve any ARD for this item by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with `<VI>`, `<EPIC>` (`focus_key`), and `$SPECS_PATH`. On `status: none`, **skip and proceed exactly as before**. On `status: found`, keep the spec's user stories + scope consistent with the returned `invariants` + `guidance_summary` during the Phase 5 grill; record a necessary deviation under the spec's `### Open questions` (never edit the ARD). Pass the `invariants` to `spec-reviewer` in Phase 6 as `applicable_ard`.
+
+---
+
 ## Phase 3 — Derive repos + soft gate
 
 1. **Auto-derive candidate repos.** From the Phase 2 capability themes and any linked PR URLs in the
@@ -358,7 +364,8 @@ As each decision settles, append it to `_session.md`; capture a genuinely-ambigu
   > "Review the specification for this brief:
   >
   > Specification path: [absolute path to specification.md]
-  > Detected maturity: test"
+  > Detected maturity: test
+  > applicable_ard: [the ARD invariants resolved in Phase 2.5, or omit if none]"
 
 3. **Act on the verdict** (mirrors `/epics` Phase 7):
    - **`BLOCK`** — fix the BLOCKER findings (the orchestrator/grill edits `specification.md` inline —

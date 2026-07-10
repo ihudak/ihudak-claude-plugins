@@ -84,7 +84,7 @@ rather than duplicating it.
 
 At the start of the phase, resolve the write target by walking the ladder,
 most-durable first. `vault_writable` = `$VAULT_PATH` is set **and**
-`$VAULT_PATH/.obsidian/` is a directory **and** the path is writable.
+is an existing directory **and** the path is writable.
 
 1. **Vault writable** → emit vault tasks (§2) + verbose notes (§3). *[primary]*
 2. **No vault; `$SPECS_PATH` resolvable and the VI spec dir exists** — the dir
@@ -106,7 +106,7 @@ In every non-vault tier the follow-ups ALSO remain in the Final Report (today's
 behaviour — zero regression) and the pipeline never fails.
 
 - **Notice** (tiers 2–4):
-  `⚠ No writable Obsidian vault — N follow-ups written to <path>`;
+  `⚠ No writable vault — N follow-ups written to <path>`;
   tier 4: `⚠ No writable vault or specs dir — N follow-ups kept in this report only; set $VAULT_PATH or $SPECS_PATH to persist them`.
 - **Interactive escape** (folds into the §7 batch preview, mirroring Fallback A
   in `jira-input-resolution.md`): below the vault tier, show the resolved

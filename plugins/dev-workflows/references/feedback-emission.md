@@ -100,7 +100,7 @@ capture, §5). Walk the ladder top-down and stop at the first tier that applies:
    the specs-repo root. Still committed & aggregated; notice:
    `unfiled — move under the VI dir if it belongs to one.`
 3. **No `$SPECS_PATH` (unset / missing / read-only) AND the vault is writable**
-   (`$VAULT_PATH` set **and** `$VAULT_PATH/.obsidian/` is a directory **and**
+   (`$VAULT_PATH` set **and** an existing directory **and**
    writable) → `$VAULT_PATH/dev-workflows/feedback/<KEY>-feedback.md`, with a
    **loud notice**:
    `⚠ $SPECS_PATH unavailable — saved to your vault; it will NOT auto-aggregate to the maintainer. Set $SPECS_PATH and commit, or forward manually.`

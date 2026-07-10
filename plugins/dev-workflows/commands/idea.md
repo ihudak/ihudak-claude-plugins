@@ -88,14 +88,7 @@ This is an environment/user halt — do NOT `emit-block`. On `OK`, carry forward
 
 ## Phase 3 — Refine via grill
 
-**Interview technique (grilling — embedded; no runtime plugin dependency).**
-
-- Ask exactly ONE question at a time; wait for the answer before the next. Never batch — a firehose is bewildering.
-- For every question, give your recommended answer, so the user reacts to a proposal, not a blank prompt.
-- If a question can be answered from the `idea-reader` digest or the vault, explore and answer it yourself instead of asking (fact-vs-decision split — look up facts, only put decisions to the user).
-- Walk the design tree in dependency order — resolve a parent decision before dependents.
-
-(Technique adapted from mattpocock grill-me/grilling; embedded here so `/idea` has no runtime dependency. If `mattpocock-skills` `/grilling` is installed the user may invoke it directly — see `${CLAUDE_PLUGIN_ROOT}/references/dependencies.md`.)
+**Interview technique (grilling — embedded; no runtime dependency).** Follow the shared technique in `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, fact-vs-decision split (look up facts from the `idea-reader` digest / vault, put only decisions to the user), walk the design tree in dependency order. **Depth: bounded by default (below); `--deep` = relentless.**
 
 Scan for gaps against an idea-stage **ambiguity taxonomy**: *problem clarity, target users, desired
 outcome/value, scope boundaries, evidence/demand sufficiency, success signal, terminology.* Rank gaps

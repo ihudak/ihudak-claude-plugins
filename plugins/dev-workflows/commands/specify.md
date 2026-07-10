@@ -332,15 +332,7 @@ Handle per-repo status after the batch returns:
 
 ## Phase 5 — Author via grill
 
-**Interview technique (grilling — embedded; no runtime plugin dependency).** Conduct each stage as a relentless interview:
-
-- Ask exactly ONE question at a time; wait for the answer before the next. Never batch questions — a firehose is bewildering.
-- For every question, give your recommended answer, so the user reacts to a proposal, not a blank prompt.
-- If a question can be answered from the Phase 4 code scan or the Jira content, explore and answer it yourself instead of asking.
-- Walk the design tree in dependency order — resolve a parent decision before the choices that depend on it.
-- Continue until you and the user reach a shared understanding for the stage, then write that stage's section.
-
-(Technique adapted from mattpocock grill-me/grilling; embedded here so `/specify` has no runtime dependency.)
+**Interview technique (grilling — embedded; no runtime dependency).** Conduct each stage as a **relentless** interview per `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, explore the Phase 4 code scan / Jira content to self-answer (fact-vs-decision), walk the design tree in dependency order, continue to shared understanding then write that stage's section.
 
 Walk the stages in order, authoring `specification.md` live against `${CLAUDE_PLUGIN_ROOT}/references/specification-format.md`:
 

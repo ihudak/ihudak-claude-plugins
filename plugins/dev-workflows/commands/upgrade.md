@@ -183,6 +183,7 @@ Include the `impl-maintenance` lessons-learned report after the summary table.
 
 ## Invariants (always enforced)
 
+- ALWAYS `emit-block` (per `references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, jira-not-found, cancellation)
 - NEVER skip per-component classification after planning
 - NEVER use Opus for a `MODERATE` component unless the user explicitly asks for it
 - NEVER run tests for a `SIGNIFICANT` / `HIGH-RISK` component before the Opus review returns a non-BLOCK verdict

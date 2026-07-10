@@ -995,6 +995,7 @@ the docs repo or the current working directory; no user name is ever written
 
 ## Invariants (always enforced)
 
+- ALWAYS `emit-block` (per `references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, jira-not-found, cancellation)
 - ALWAYS run Phase 0 docs-repo detection; if 0 signals, require user confirmation before proceeding
 - NEVER call Bitbucket REST APIs for Cloud or self-hosted Server — Bitbucket URLs are identifiers only; all resolution is pure local git
 - GitHub URLs may use the `gh` CLI for head/base SHA resolution; no direct REST calls outside `gh`
@@ -1338,6 +1339,7 @@ the docs repo or the current working directory; no user name is ever written
 
 ## Invariants (always enforced)
 
+- ALWAYS `emit-block` (per `references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, jira-not-found, cancellation)
 - ALWAYS run Phase 3.5 (style check) after editing — `docs-style-checker` falls back to `dt-style-checker`; never skip style on tool-absence judgement
 - NEVER create a git branch (the user manages git manually)
 - NEVER run tests (this command has no test phase)

@@ -298,6 +298,7 @@ user name is ever written (§10).
 
 ## Invariants (always enforced)
 
+- ALWAYS `emit-block` (per `references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, jira-not-found, cancellation).
 - ZERO external API calls — PR URLs are identifiers only; all resolution is local `git`.
 - `jira-reader` is read-only.
 - The draft contains NO Jira IDs/keys, NO PR links, and NO `{{#internal-note}}` block.

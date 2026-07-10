@@ -221,18 +221,7 @@ Handle per-repo status after the batch returns:
 
 ## Phase 5 — Grill: challenge + design
 
-**Interview technique (grilling — embedded; no runtime plugin dependency).** Conduct the design as a
-relentless interview:
-- Ask exactly ONE question at a time; wait for the answer before the next. Never batch questions — a
-  firehose is bewildering.
-- For every question, give your recommended answer, so the developer reacts to a proposal.
-- If a question can be answered from the Phase 4 code scan or the spec, explore and answer it yourself
-  instead of asking.
-- Walk the design tree in dependency order — resolve a parent decision before dependent ones.
-- Continue until you and the developer reach a shared understanding for the section, then write it.
-
-(Technique adapted from mattpocock grill-me/grilling; embedded here so `/design` has no runtime
-dependency.)
+**Interview technique (grilling — embedded; no runtime dependency).** Conduct the design as a **relentless** interview per `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, explore the Phase 4 code scan / spec to self-answer (fact-vs-decision), walk the design tree in dependency order, continue to shared understanding then write the section.
 
 Run **two intertwined tracks**, authoring `design.md` live against
 `${CLAUDE_PLUGIN_ROOT}/references/design-format.md`, sections scaled by the Phase 1.5 classification:

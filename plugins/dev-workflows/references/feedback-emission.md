@@ -170,6 +170,10 @@ signal the maintainer needs.
 - **`/feedback` and `/prompt*`** are user-invoked, so invocation *is* the
   intent; they write silently and surface the resulting path (and any
   degradation notice) in the command output.
+- **`emit-block`** writes silently exactly like `emit-auto`; the halt is
+  surfaced by the caller's existing `BLOCKED` escalation, **not** by a feedback
+  prompt — capture-at-block stays inside the silent model (no interrupt beyond
+  the block that was already happening, no curation gate).
 
 ## 6. Caller contract
 
@@ -209,3 +213,26 @@ triple** — Friction, the **verbatim User prompt**, and the Resolution — a
 Behavior: `origin: prompt`; write the entry with the two extra prose blocks
 (User prompt verbatim + Resolution, §1); never silently skipped (§3); resolve
 the target (§2); write silently (§5); surface the path.
+
+### `emit-block` — capture-at-block (a run halting on a plugin gap)
+
+Inputs: `command` (exact slash-command name), `jira_key` (or `null`), `source`
+(`vault | directory | none`), and the **halting gap** — a short description of
+the plugin capability / reference / skill / command-path the run needed but the
+plugin lacked. Unlike `emit-auto`, no `impl-maintenance` report exists (the run
+is being abandoned mid-flight), so the gap is passed directly.
+
+Behavior: render **one** entry with `origin: auto` and **`impact: blocker`**;
+`category` from the §1 vocab (`missing-capability` / `missing-reference-doc` /
+`manual-workaround` / `model-routing` as fits); dedupe by the stable `id` (§3) —
+so it will not double-log if a later terminal `emit-auto` captures the same gap
+on a resumed run; resolve the target (§2); **write silently** (§5). Return the
+persisted path (for the caller's block message / report). The caller then
+surfaces its normal `BLOCKED` escalation — `emit-block` never prompts.
+
+**Predicate — fires ONLY for a plugin-facing gap** (the plugin lacked something
+the run needed). It does **NOT** fire for: a code / doc / Epic review **BLOCK**
+(a defect in the *work*, not the plugin); an environment / user halt
+(repo-missing, dirty-tree, jira-not-found, refresh-blocked, and the other
+`escalation-rules.md` cases); or user cancellation. The §4 plugin-facing scoping
+applies (never target-project `CLAUDE.md` / hook advice).

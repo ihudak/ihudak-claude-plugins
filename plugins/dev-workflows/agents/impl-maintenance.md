@@ -18,8 +18,8 @@ The caller passes a **compact session handoff**:
 
 - **Command run** — which command variant executed this session. One of
   `/implement`, `/document` (direct mode), `/document` (Jira mode), `/epics`,
-  `/vuln`, `/upgrade`. This field scopes any "Command workflow
-  improvements" suggestions to the right command.
+  `/vuln`, `/upgrade`, `/design`, `/specify`, `/release-notes`. This field
+  scopes any "Command workflow improvements" suggestions to the right command.
 - **What was done** — 1-paragraph summary (classification, component/CVE/task, scope)
 - **Key events** — things that went unexpectedly: BLOCK reviews, test regressions,
   missing reference docs, workarounds needed, ambiguities that required user
@@ -102,7 +102,7 @@ Return this exact shape (no preamble, no chatter):
 - _or_ "No new agents suggested"
 
 #### Command workflow improvements
-- **Command**: [/implement | /document (direct mode) | /document (Jira mode) | /epics | /vuln | /upgrade]
+- **Command**: [/implement | /document (direct mode) | /document (Jira mode) | /epics | /vuln | /upgrade | /design | /specify | /release-notes]
   **Section**: [Phase / step reference]
   **Change**: [what to change and why]
 - ...

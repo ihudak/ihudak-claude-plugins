@@ -19,7 +19,7 @@ The caller passes a structured brief:
 - **Written doc file path(s)** — absolute paths of every file produced or modified in Phase 6.3.
 - **Jira directory path** — `<vault_path>/jira-products/<JIRA_KEY>/` so the reviewer can cross-check claims.
 - **Diff summaries** — the array of `diff-summarizer` outputs from Phase 5.
-- **`doc-planner` checklist** — the full YAML checklist from Phase 5.7 (review against plan).
+- **`doc-planner` checklist** — the full YAML checklist from Phase 5.7 (review against plan), including the planner's `repo_authoring_guidance` block (the repo-specific authoring rules to check adherence against).
 - **Style-check report** — the merged violations list from Phase 6.4 (`docs-style-checker` now chains the repo's primary linter + a complementary `dt-style-checker` semantic pass; each violation carries a `source: primary|complementary` tag), or `status: NOT_CONFIGURED` if no check could run. Same violation schema regardless of source.
 - **Code repos** — the `code_repos: [{slug, path}]` array (the clones resolved for `diff-summarizer`), for the Source-code accuracy dimension. May be empty.
 
@@ -41,7 +41,8 @@ Refuse to review without the written file paths, the `doc-planner` checklist, an
 | Coverage | "How to use" and "How to configure" sections are present when the feature needs them (inferred from the checklist's `topics`). Reference material is present when the feature introduces config keys, CLI flags, API routes, or UI controls. |
 | Audience fit | End-user clarity; technical jargon explained or linked; commands are copy-pasteable (backticks / code fences, no stray shell prompts). |
 | Structural integrity | Headings use the repo's expected hierarchy; internal links (`[[wikilinks]]` and `[text](relative-path)`) resolve to existing files; sidebar / index / nav pages (if the repo uses them) are updated. |
-| YAML frontmatter | `changelog:` is updated with the Jira key and a 1-line summary per the `doc-planner` checklist. Other required fields per the repo's convention (e.g. `title`, `description`, `published`, `tags`) are present on new pages. Unknown fields that pre-existed on extended pages are preserved. |
+| YAML frontmatter | `changelog:` is updated with a customer-readable 1-line summary (and **no** Jira key) per the `doc-planner` checklist. On new pages, per `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/frontmatter-guidelines.md`: `meta.content-type` present and in the enum (missing or invalid, incl. deprecated `overview`, → **BLOCKER**); `description` present and **120–160 chars** (outside the band → **MAJOR/MINOR warning**); `title` present (missing → MAJOR); `meta.i18n-priority` / `meta.generation` → advisory note only. Unknown fields that pre-existed on extended pages are preserved. |
+| Repo authoring guidance | The written pages follow the planner's `repo_authoring_guidance` rules (required sections, voice/tone, templates, structure). A page missing a repo-mandated section or violating a stated structural rule is a **MAJOR** (BLOCKER only if the rule itself declares it mandatory). Skip with "N/A — no repo authoring guidance" when the block is empty. |
 | Screenshots | For `image_policy: local` targets, every referenced image file resolves on disk. For `image_policy: cdn_upload_required` targets, a TODO placeholder is present in the markdown AND the Phase 9 `### Screenshots to upload manually` section lists the staged file (the reviewer checks the TODO is present; the Phase 9 section content is the command's responsibility). Alt-text is present in all cases. |
 | Snippets | Snippets proposed for `reuse` in the checklist are referenced via the repo's include syntax, not inlined. Snippets proposed for `extract` exist as new files in the repo's idiomatic snippet directory and are referenced from the target page. |
 | Actionability | Examples are runnable; commands copyable verbatim; external links resolve (best-effort — link-resolution failure on a CDN during review is not itself a BLOCKER unless the link is demonstrably wrong). |
@@ -82,6 +83,9 @@ Return this exact shape (no preamble, no chatter):
 - ...
 
 #### YAML frontmatter
+- ...
+
+#### Repo authoring guidance
 - ...
 
 #### Screenshots

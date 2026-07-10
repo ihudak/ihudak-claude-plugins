@@ -13,6 +13,7 @@ The orchestrator writes a single **handoff file** (a temp file) and passes its a
 - `jira_reader_handoff`, `diff_summaries`
 - `write_targets` — the confirmed write-target list (Phase 5.5)
 - `doc_planner_checklist` — the Phase 5.7 checklist + gap dispositions (TODO markers)
+- `repo_authoring_guidance` — the repo's own authoring / structural rules the planner extracted from its guidance files (`CONTRIBUTING.md`, `CLAUDE.md`, …); a list of `{rule, source}`. Augments — never overrides — the built-in references and `dt-style-guide`. Empty list ⇒ none.
 - `discrepancy_decisions[]` — Phase 5.8 `{number, claim, jira_phrasing, spec_phrasing, source_phrasing, source_location, decision, rationale}`
 - `write_strategies[]` — Phase 5.9 `{target_path, strategy ∈ {conditional, override-copy, plain}, target_space, rationale}`
 - `cdn_handoff_decision` ∈ {upload-now, defer}, `cdn_urls{}`, `screenshot_staging_dir`, `screenshots[]`
@@ -38,6 +39,7 @@ Multi-space safety is governed by `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-do
 - Determine the target's **home space** by matching `target_path` against each `profile.spaces[].content_root`/`snippet_root` prefix.
 - A target whose home space is **not** in `target_spaces` is a routing error — **return `status: BLOCKED`** naming the target (per Entry validation) (it should not occur once Phase 4.5/5.5 honored `target_spaces`); the one legitimate write outside `target_spaces` is an `override-copy` destination (step 0 below).
 - Apply the **approved `write_strategy`** for the target (from the handoff `write_strategies`; absent ⇒ `plain`).
+- **Follow `repo_authoring_guidance`** on every page you write — apply the repo's own authoring / structural rules (required sections, voice/tone, page templates, structure). They **augment** the built-in references and `dt-style-guide`; never let a repo rule override those.
 
 For each target in the confirmed write-target list:
 
@@ -48,7 +50,7 @@ For each target in the confirmed write-target list:
 
 1. **Preserve any existing YAML frontmatter** on pages being extended. Never strip unknown fields.
 2. **Add or update** the `changelog:` field per the planner's checklist (append a new dated entry naming the Jira key and a 1-line change summary). Create the field if it doesn't exist on an extended page.
-3. **Update other frontmatter** the planner flagged: `published` (creation date on new pages), `meta.generation`, `readtime` (estimate from word count), `tags` (merge — don't duplicate), `owners` (leave to the user).
+3. **Update other frontmatter** the planner flagged, per `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/frontmatter-guidelines.md`: on new pages set `title`, `description` (**120–160 chars**, SEO), and `meta.content-type` (**mandatory** — from the enum by the page's purpose; NEVER `overview`, and `release-notes` pages are not authored here); `published` (creation date, new pages); `meta.i18n-priority` (a number, when the planner set it); `meta.generation` (`latest`/`classic` array); `readtime` (estimate from word count); `tags` (merge — don't duplicate); `owners` (leave to the user).
 4. **Reuse snippets** per the checklist: for snippets listed under `snippets.reuse`, use the repo's include syntax rather than inlining content. For snippets listed under `snippets.extract`, create the new snippet file in the repo's idiomatic `_snippets/` location and reference it from the target page.
 5. **Place screenshots** per each target's `image_policy`:
    - **`local`** → copy each user-provided `src` to the planner's `dest` path (typically `<page-dir>/img/` or the detected idiomatic directory). Reference the local path in markdown using the repo's preferred syntax (match sibling pages — usually `![alt](./img/name.png)` or similar).

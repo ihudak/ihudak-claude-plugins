@@ -8,8 +8,9 @@ allowed-tools: Read, Edit, Glob, Grep, Bash
 # dynatrace-docs frontmatter conventions
 
 Apply when creating or editing `.md` pages under `dynatrace/_content/**` or
-`managed/_content/**` in the `dynatrace-docs` repo. Two conventions, both in the
-page's YAML frontmatter, applied in the same pass.
+`managed/_content/**` in the `dynatrace-docs` repo. Three conventions, all in the
+page's YAML frontmatter, applied in the same pass: changelog entries, managed-docs
+owners, and the core metadata fields.
 
 ## 1. Changelog (changed existing pages only)
 
@@ -49,6 +50,29 @@ existing owners.**
    all existing owners in place.
 
 Pages under `dynatrace/_content/**` (SaaS) are out of scope for the owners rule.
+
+## 3. Metadata fields (all pages)
+
+Set/validate the core frontmatter fields per the guidelines reference:
+
+- `title` — required; sentence case; no trailing period.
+- `description` — required; **120–160 characters** (SEO). Warn if outside the band.
+- `meta.content-type` — **mandatory on new pages**; one of the enum
+  (`how-to`, `tutorial`, `explanation`, `reference`, `get-started`,
+  `troubleshooting`, `upgrade`, `best-practices`, `app`, `extension`).
+  **Never `overview`** (deprecated); `release-notes` pages are automation-generated,
+  not authored here.
+- `meta.i18n-priority` — optional number (lower = higher priority).
+- `meta.generation` — `latest` / `classic` array (advisory; a `latest`-only page
+  that surfaces in Managed breaks the build — use both when unsure).
+- `published` — creation date on new pages only; never pair it with a first-publish
+  changelog entry.
+
+Detect which optional fields the neighbourhood uses by sampling 2–3 adjacent pages;
+never strip unknown/pre-existing fields.
+
+Full field rules (source of truth):
+`${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/frontmatter-guidelines.md`
 
 ## Notes
 

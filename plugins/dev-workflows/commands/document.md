@@ -150,8 +150,8 @@ Ask about:
   ```bash
   find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<JIRA_KEY>*" 2>/dev/null | head -1
   ```
-  - **Found** → set `<screenshot_staging_dir>` to that project folder's screenshot subfolder: prefer an existing `Doc screenshots/` or `Attachments/` subdirectory; otherwise `Doc screenshots/` (created on first write).
-  - **Not found** (e.g. a non-`PRODUCT-` ticket with no project folder) → ask:
+  - **Found** → record the matched folder as `<project_dir>` (the project-folder root — reused as an image source in Phase 5.6), and set `<screenshot_staging_dir>` to that project folder's screenshot subfolder: prefer an existing `Doc screenshots/` or `Attachments/` subdirectory; otherwise `Doc screenshots/` (created on first write).
+  - **Not found** (e.g. a non-`PRODUCT-` ticket with no project folder) → `<project_dir>` is null (Phase 5.6's project-folder scan then contributes nothing); ask:
     ```
     choices: ["Enter an absolute directory under $VAULT_PATH (you'll be prompted)", "Skip — only needed if the docs repo turns out to be cdn_upload_required", "Cancel", "Other… (describe)"]
     ```
@@ -392,7 +392,7 @@ The confirmed target list (from any of the three paths above) is the **authorita
 
 **Skip this phase entirely when `images_wanted` is `false`** (Phase 1) — `screenshots[]` stays empty and Phase 5.7 receives no images.
 
-When `images_wanted` is `true`, build a **merged, deduped candidate list** from three sources (by this point Phase 0's `specs_dir`, the Phase 3 `jira-reader` `attachments[]`, and the Phase 4 resolved repos are all in hand):
+When `images_wanted` is `true`, build a **merged, deduped candidate list** from four sources (by this point Phase 0's `specs_dir`, the Phase 1 `<project_dir>`, the Phase 3 `jira-reader` `attachments[]`, and the Phase 4 resolved repos are all in hand):
 
 1. **Recursive scan of `<specs_dir>`** — when Phase 0 resolved a `specs_dir` (not `none`), recursively scan it for image files across the spec root, `epics/`, and `spec/`:
    ```bash
@@ -400,12 +400,18 @@ When `images_wanted` is `true`, build a **merged, deduped candidate list** from 
      -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.gif" -o -iname "*.svg" -o -iname "*.webp" \) 2>/dev/null
    ```
    When `specs_dir` is `none`, this source contributes nothing.
-2. **`jira-reader` `attachments[]`** — the image paths enumerated under the VI's `attachments/` dirs (Phase 3 handoff `attachments[].path`). May be empty.
-3. **Manual paths** — the user-provided "I'll provide screenshot paths" option (free text, see the `choices` below).
+2. **`jira-reader` `attachments[]`** — the image paths enumerated under the VI's `attachments/` dirs (Phase 3 handoff `attachments[].path`; these live under `jira-products/<VI-dir>/…`, so this covers screenshots developers attached in Jira). May be empty.
+3. **Recursive scan of `<project_dir>`** — when Phase 1 resolved a `<project_dir>` (the persistent Obsidian project folder under `$VAULT_PATH/Projects`), recursively scan it for image files:
+   ```bash
+   find "<project_dir>" -type f \
+     \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.gif" -o -iname "*.svg" -o -iname "*.webp" \) 2>/dev/null
+   ```
+   This surfaces images you keep in the project folder (custom diagrams, curated screenshots). When `<project_dir>` is null, this source contributes nothing.
+4. **Manual paths** — the user-provided "I'll provide screenshot paths" option (free text, see the `choices` below).
 
 **Dedupe** by resolved absolute path (collapse mixed separators / trailing-slash differences); when the same image appears in more than one source, keep one entry and note its origins. Present the deduped candidates, then ask:
 ```
-"Found <N> candidate image(s): <count> from specs scan, <count> from Jira attachments. How would you like to source screenshots?"
+"Found <N> candidate image(s): <count> from specs scan, <count> from Jira attachments, <count> from the project folder. How would you like to source screenshots?"
 choices: ["Use all auto-discovered + add manual paths (Recommended)", "Use all auto-discovered only", "Select a subset (you'll pick per candidate)", "Provide screenshot paths manually only (you'll be prompted)", "No images after all", "Other… (describe)"]
 ```
 - **Use all auto-discovered + add manual** → take every deduped candidate, then prompt for additional free-text absolute paths to append.
@@ -415,6 +421,8 @@ choices: ["Use all auto-discovered + add manual paths (Recommended)", "Use all a
 - **No images after all** → set `images_wanted = false` semantics for this run; leave `screenshots[]` empty and skip the rest of this phase.
 
 For any **manual** free-text paths, accept any absolute filesystem path (vault, `/tmp`, home, the docs repo); accept multiple (one per line or space-separated). Validate each path exists and has an image extension (`.png|.jpg|.jpeg|.gif|.svg|.webp`); drop and report any that don't.
+
+When you need to **add a new image** for this feature (a screenshot the docs should have but no source yet holds), place it in the **Projects VI-dir** — `<project_dir>` (i.e. `$VAULT_PATH/Projects/<VI-dir>/…`, e.g. its `Doc screenshots/` subfolder). **Never** put it under `jira-products/`: that directory is regenerated on every Jira import, so a manually-added image there is lost on the next import. `jira-products` is a read-only source (developer-attached Jira screenshots, via source 2); authored/curated images belong in the Projects folder.
 
 The selected paths populate the existing **`screenshots[]`** passed to `doc-planner` in Phase 5.7 — the downstream placement machinery (per-screenshot `dest`/`staging`/`upload_note`, `image_policy`) is unchanged.
 

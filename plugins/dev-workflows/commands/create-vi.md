@@ -131,18 +131,19 @@ Without these steps the pipeline cannot read the VI.
 
 ---
 
-## Phase 6 — Next steps (two, parallel)
+## Phase 6 — Next steps
 
-Offer **both** — clearly labeling the role handoff:
+Offer these — clearly labeling the role handoff:
 
 ```
-choices: ["Draft the initial release note now — /release-notes <KEY> (PM)", "Hand off to a Product Architect — /create-ard <KEY> (PA)", "Stop here", "Other… (describe)"]
+choices: ["Draft the release note now — /release-notes <KEY> (PM) (Recommended)", "Hand to a Product Architect — /create-ard <KEY> (PA, optional)", "Hand to a Product Engineer — /epics <KEY> (PE)", "Stop here", "Other… (describe)"]
 ```
 
-- **`/release-notes <KEY>`** — the PM can draft the customer-facing release note now (the cost model's `pm`/`vi-creation` inferred case: no spec/design yet).
-- **`/create-ard <KEY>`** — a **different role/session** (Product Architect) authors the grounded architecture document (`/create-ard` is sub-project 3).
+- **`/release-notes <KEY>`** (PM) — draft the customer-facing release note now (the cost model's `pm`/`vi-creation` inferred case: no spec/design yet).
+- **`/create-ard <KEY>`** (PA, **optional**) — hand to a Product Architect to author the grounded architecture document.
+- **`/epics <KEY>`** (PE) — hand to a Product Engineer to split the VI into Epics (or author a VI-level spec → `/specify <KEY>`).
 
-Guidance only — this never auto-invokes another command.
+Guidance only — never auto-invokes another command. Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`.
 
 ---
 
@@ -162,4 +163,4 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits (git is offered only 
 
 ## Final report
 
-Report: the VI path + profile; US/AC/SM counts + which adapt-in clusters were included; open-question count; the `vi-reviewer` verdict; the PR URL (if opened); the Jira round-trip reminder; resolved model routing (+ any Opus degradation); the feedback + cost paths; and the two next-step recommendations.
+Report: the VI path + profile; US/AC/SM counts + which adapt-in clusters were included; open-question count; the `vi-reviewer` verdict; the PR URL (if opened); the Jira round-trip reminder; resolved model routing (+ any Opus degradation); the feedback + cost paths; and the next-step recommendations.

@@ -27,6 +27,8 @@ Refuse to run without `jira_reader_handoff`, `write_targets`, and `repo_root`.
 
 ## Process
 
+**First — read the repo's own authoring guidance (once, not per target).** Scan `repo_root` (and `.claude/`) for whichever of these exist: `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `CLAUDE.md`, `STYLE.md`, `DOCUMENTATION-GUIDELINES.md`. Extract the **authoring / structural** rules a writer must follow — required page sections, voice/tone directives, page templates, structure and naming conventions, prohibited constructs. Distil them into the `repo_authoring_guidance` output block (one bullet per rule, each tagged with its source file). **Ignore** purely operational content (build/setup steps, PR and branch mechanics — branch naming is handled by the command, not here). These rules **augment, never override** the built-in dynatrace-docs references and the `dt-style-guide` checks; when a repo rule conflicts with those, note it rather than silently overriding. Factor the extracted rules into the topic and section planning below. Emit `repo_authoring_guidance: []` when no guidance files exist or none carry authoring rules.
+
 For each write target:
 
 1. **Decide what topics the page must cover.** Typical topics, sourced from the VI goal + Epic summaries + diff summaries:
@@ -40,10 +42,14 @@ For each write target:
 
 2. **Map topics to sources.** Each topic records which `jira-reader` keys and/or which `diff-summarizer` PR URLs back it up, for the Phase 6.3 writer's traceability requirement. A topic with no source attribution is a candidate gap (see step 7).
 
-3. **Plan frontmatter updates.**
+3. **Plan frontmatter updates** (field rules: `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/frontmatter-guidelines.md`; changelog + owners keep their own references).
    - `changelog:` — append a dated entry with a customer-readable 1-line change summary and NO Jira key. Create the field if it doesn't exist on an extended page. This is mandatory on every target. The Jira reference is carried by the commit message and the file diff, not by the reader-visible page (verified against the repo convention — fewer than 5 of dynatrace-docs's 5500+ entries cite an issue key).
+   - `title` — required on new pages; concise, sentence case, no trailing period.
+   - `description` — required (SEO); **120–160 characters**. Flag a planned/existing description outside that band.
+   - `meta.content-type` — **mandatory on new pages**; pick from the enum (`how-to`, `tutorial`, `explanation`, `reference`, `get-started`, `troubleshooting`, `upgrade`, `best-practices`, `app`, `extension`) by the page's purpose. NEVER `overview` (deprecated); `release-notes` pages are not authored here.
+   - `meta.i18n-priority` — a number when the translation priority is known (advisory; omit otherwise).
    - `published` — creation date for new pages only.
-   - `meta.generation`, `readtime` — if present on adjacent pages, include. Estimate `readtime` from approximate word count.
+   - `meta.generation`, `readtime` — if present on adjacent pages, include. `meta.generation` is a `latest`/`classic` array (both = `[classic, latest]`; a `latest`-only page that surfaces in Managed breaks the build — use both when unsure). Estimate `readtime` from approximate word count.
    - `tags` — merge, don't duplicate existing values.
    - `owners` — leave to the user to maintain; do NOT touch.
    - Detect existing conventions by sampling 2–3 adjacent pages under the target's directory.
@@ -109,6 +115,9 @@ For each write target:
 
 ```yaml
 status:   OK | PARTIAL
+repo_authoring_guidance:        # repo-specific authoring rules from the repo's own guidance files; [] when none. Augments, never overrides, the built-in references + dt-style-guide.
+  - rule:   <one authoring / structural rule the writer must follow>
+    source: <file the rule came from, e.g. CONTRIBUTING.md, CLAUDE.md>
 checklist:
   - target_path: <absolute path>
     kind:        extend-existing | new-page-in-existing-section | new-section

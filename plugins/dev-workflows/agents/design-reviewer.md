@@ -24,6 +24,8 @@ The caller passes:
   `HIGH-RISK` design must cover them thoroughly). Never flag a section that `design-format.md` says is
   legitimately omittable at this classification.
 
+- **`applicable_ard`** (optional) — the resolved ARD `AD-N` invariants (`id`/`binds`/`prevents`/`rule`) when `/design` resolved an ARD (Phase 2.5); absent when no ARD exists. Enables the conditional ARD-conformance check below.
+
 ## Review method
 
 1. Read the design end-to-end, then the specification, before judging.
@@ -60,6 +62,8 @@ The caller passes:
   the spec → `MINOR`.
 - **Classification fit:** a `HIGH-RISK` design that omits scaled sections without justification →
   `MAJOR`; a `SIMPLE` design padded with empty scaled sections → `NIT`.
+
+- **ARD conformance (conditional — only when `applicable_ard` is provided; otherwise skip silently):** the design must honor every `AD-N` `rule`. A violation with **no** matching recorded `## ARD deviations` entry → `BLOCKER`; **with** a recorded deviation → `MINOR` flagged note (the architect adjudicates).
 
 ## Output contract
 

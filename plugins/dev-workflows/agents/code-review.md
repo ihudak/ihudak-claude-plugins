@@ -30,12 +30,14 @@ The caller passes a structured brief:
 
 Refuse to review without a diff - ask the caller to produce one.
 
+- **`applicable_ard`** (optional) — the resolved ARD `AD-N` invariants, passed only by `/implement` (Jira mode) when an ARD exists. Absent for `/vuln`, `/upgrade`, `/implement` direct mode, and when no ARD exists — in which case the conditional ARD-conformance dimension (below) does not apply and is not mentioned.
+
 ## Review method
 
 1. Read the diff end to end before reading any file in isolation.
 2. For each changed file, open and read enough context around each hunk to
    judge the change in its surroundings. Do not trust the hunk alone.
-3. Check each of the eight dimensions below. Skip dimensions that are clearly
+3. Check each of the eight dimensions below (plus the conditional ninth, **only** when `applicable_ard` is provided). Skip dimensions that are clearly
    not applicable for this change, but say so explicitly.
 4. Collect findings. Each finding has:
    - **Severity** - `BLOCKER`, `MAJOR`, `MINOR`, `NIT`
@@ -88,6 +90,10 @@ full review.
 8. **Rollback considerations** - how do we revert this? Reversible or not?
    Any irreversible side effects (data deletion, external calls, cache
    invalidation, schema drop)? If it fails in prod, what's the undo?
+9. **ARD conformance** (conditional — only when `applicable_ard` is provided;
+   otherwise this dimension does not apply — omit it silently) - does the diff
+   honor every `AD-N` `rule`? A violation with no recorded ARD-deviation (in the
+   caller's report) → `BLOCKER`; with a recorded deviation → `MAJOR` flagged note.
 
 ## Output
 
@@ -132,6 +138,9 @@ Return this exact shape (no chatter, no preamble):
 - ...
 
 #### Rollback considerations
+- ...
+
+#### ARD conformance (only if applicable_ard provided)
 - ...
 
 ### Recommended next step

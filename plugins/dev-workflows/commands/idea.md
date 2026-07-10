@@ -130,9 +130,9 @@ Report where `idea.md` was written and its `status`, then offer the next phase �
   `/idea @<idea.md path> --deep` to resolve them, or (b) proceed to `/create-vi <JIRA-KEY> @<idea.md
   path>`, which will grill you on the rest."*
 
-`/create-vi` is a separate command (future sub-project); this offer is guidance the user acts on — it
-never auto-invokes another command. (`/idea` is the reference implementation of the plugin-wide
-next-phase-offer pattern.)
+`/create-vi` is a separate command; this offer is guidance the user acts on — it never auto-invokes
+another command. (Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — the plugin-wide
+next-phase-offer contract; `/idea` is one reference implementation.)
 
 ---
 

@@ -378,4 +378,8 @@ directory; no user name is ever written (§10 privacy).
 Report: feature-folder path; classification + model-gate outcome; `design.md` sections authored (and
 those `_N/A_`); spec challenges recorded (count of `## Engineering review` notes / new spec `- [ ]`);
 confirmed repo set (and any removed-from-scope); the `design-reviewer` verdict; the PR URL (if opened);
-and "run `/implement <VI> <Epic>` next."
+and the `### Next step` recommendation (below).
+
+### Next step
+
+End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): hand to the team → `/implement <VI> <Epic>` (depth); the **Epic fan-out** `/design <VI> <another-Epic>` designs a sibling Epic (breadth). If the run BLOCKED or `design.md` has open questions, recommend resolving those first.

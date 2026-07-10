@@ -260,13 +260,31 @@ From the `jira-reader` handoff `pull_requests` list:
 4. Resolve each unique in-scope `repo` slug against the map:
    - **One match** — use that absolute path as `repo_path`.
    - **Multiple matches** (e.g. `cluster` and `cluster-repo`, both pointing at the same upstream) — auto-prefer basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last; show all candidates at plan approval so the user can override.
-   - **Zero matches** — escalate using the `Repo unresolved (zero matches) — /document` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
+   - **Zero matches** — record the slug as **missing** and defer it to the consolidated repo gate in step 5 (do NOT escalate per slug).
+   Record each resolution as `repo_slug → repo_path` for Phase 5.
+5. **Consolidated repo gate.** From step 4, compute `expected` = the unique in-scope repo slugs, `mounted` = those that resolved to a path, and `missing` = the zero-match slugs. This is the earliest point the repo set is known (it depends on the Phase 3 `jira-reader` PR links) and it runs before any diff work.
+   - **`missing` is empty** — print one line and continue with no gate:
      ```
-     choices: ["Skip and continue without its PRs", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]
+     Resolved <M>/<N> repositories from the Jira PRs.
      ```
-     List the unresolved slugs explicitly. "Skip" removes that repo's PRs from scope; "I'll clone it — wait" pauses until the user confirms the clone is present under `$REPOS_PATH`, then re-runs step 3; "Specify a different absolute path" records the path directly as `repo_path` for that slug.
-   Record the resolution as `repo_slug → repo_path` for Phase 5.
-5. If any PRs had `host: other` (unsupported host), record them as `unresolved` and carry them into the Phase 9 report; do not block.
+   - **`missing` is non-empty** — present ONE consolidated gate (not one prompt per slug):
+     ```
+     This VI's Jira PRs span <N> repositories. <M> mounted, <K> missing:
+
+       ✓ <mounted slug>            ✓ <mounted slug>
+       ✗ <missing slug>            (<n> <status> PRs — not found under $REPOS_PATH)
+
+     Missing repos are skipped: their code won't be diff-summarised or checked
+     against the VI's requirements, so the discrepancy analysis will be partial.
+
+     choices: ["Mount the missing repo(s) now — I'll wait, then re-scan (Recommended)", "Proceed without them — Jira-only for the missing repos", "Cancel", "Specify a different absolute path for a missing repo", "Other… (describe)"]
+     ```
+     Choice semantics follow the `Repo unresolved (zero matches) — /document` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`, applied to the whole missing set at once:
+     - **Mount now & re-scan** (≈ the rule's "I'll clone it — wait") — pause until the user confirms the clones are present under `$REPOS_PATH`, then re-run step 3's scan and re-render this gate. Loop until `missing` is empty or the user picks another option. This is how the operator gets per-repo control: mount whichever repos are available, re-scan, then choose "Proceed" for whatever remains.
+     - **Proceed without them** (≈ the rule's "Skip and continue without its PRs") — record every currently-missing repo's PRs as `unresolved`, out of scope; continue. Identical downstream state to the previous per-slug skip.
+     - **Cancel** — abort the run.
+     - **Specify a different absolute path for a missing repo** (≈ the rule's "Specify a different absolute path") — record the given path as that slug's `repo_path`, move it from `missing` to `mounted`, and re-render.
+6. If any PRs had `host: other` (unsupported host), record them as `unresolved` and carry them into the Phase 9 report; do not block.
 
 ---
 

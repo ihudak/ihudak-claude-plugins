@@ -1,7 +1,7 @@
 # Session Feedback Emission — Shared Reference
 
 Single source of truth for the dev-workflows session-feedback emitter. Every
-capture surface — the automatic maintenance phase of all ten workflow
+capture surface — the automatic maintenance phase of all eleven workflow
 commands, and the `/feedback` and `/prompt*` commands — cites this file and
 executes its steps inline. The orchestrator owns every prompt; this reference
 owns the entry format, the persistence ladder, dedup/attribution, the
@@ -182,7 +182,7 @@ this reference resolve the target (§2), dedupe/append (§3), and format the ent
 (§1). None of them commits; none writes into a docs/code repo or the current
 working directory.
 
-### `emit-auto` — automatic callers (the ten commands' maintenance phases)
+### `emit-auto` — automatic callers (the eleven commands' maintenance phases)
 
 Inputs: the `impl-maintenance` **Lessons Learned report**, `command` (the exact
 slash-command name), `jira_key` (or `null`), `source` (`vault | directory |

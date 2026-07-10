@@ -18,9 +18,9 @@ Flag: `--deep` switches the grill from bounded (≤5 questions) to relentless (u
 
 ## Phase 0 — Validate environment + resolve model routing
 
-1. **Validate `$VAULT_PATH`.** It must be **set**, an **existing directory**, look like the user's
-   personal store (`$VAULT_PATH/.obsidian/` is a directory — the same marker the specs-first ladder
-   uses), and be **writable**. If any check fails, STOP and offer:
+1. **Validate `$VAULT_PATH`.** It must be **set**, an **existing directory**, and **writable** — the
+   env var is the user's explicit declaration of their personal store; the plugin trusts it and does
+   NOT require an Obsidian `.obsidian/` marker. If any check fails, STOP and offer:
    ```
    choices: ["Enter a directory to write idea.md into", "Cancel", "Other… (describe)"]
    ```

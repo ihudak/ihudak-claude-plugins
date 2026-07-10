@@ -276,7 +276,7 @@ subdir. Walk top-down; stop at the first tier that applies:
    `<VI-dir>/dev-workflows/cost/<sid8>.md`. *[primary]*
 2. `$SPECS_PATH` writable but no VI dir (or no key resolved) -> **pending** (§9).
 3. No `$SPECS_PATH`, vault writable (`$VAULT_PATH` set **and**
-   `$VAULT_PATH/.obsidian/` a writable dir) ->
+   an existing, writable dir) ->
    `$VAULT_PATH/dev-workflows/cost/<sid8>.md` with the loud notice:
    `⚠ $SPECS_PATH unavailable — saved to your vault; it will NOT auto-aggregate to the maintainer.`
 4. `source = directory` (imported Jira dir, no specs/vault) -> beside the

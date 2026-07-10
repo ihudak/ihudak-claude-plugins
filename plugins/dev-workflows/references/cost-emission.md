@@ -149,8 +149,13 @@ pricing be exact, and a message without the split prices
 
 **Resolution order (first found wins):** `$DEV_WORKFLOWS_COST_PRICES` (a path) ->
 a repo-local `cost-prices.yaml` -> the shipped
-`${CLAUDE_PLUGIN_ROOT}/references/cost-prices.yaml`. The shipped rates are
-maintainer-verified placeholders; exact dollar accuracy is not required.
+`${CLAUDE_PLUGIN_ROOT}/references/cost-prices.yaml`. The shipped rates are the
+standard first-party Claude API prices (from Anthropic's pricing page) for every
+model the routing policy can reach — the Opus chain, the Sonnet chain, and Haiku;
+a maintainer refreshes them when Anthropic's prices change. **Permanent standard
+rates are used deliberately — never promotional/introductory rates** — so cost
+stays comparable across VIs over time (a temporary promo would make identical
+work look cheaper now and dearer later, distorting efficiency comparisons).
 
 ## 5. Statusline augmentation (optional — "Option B")
 

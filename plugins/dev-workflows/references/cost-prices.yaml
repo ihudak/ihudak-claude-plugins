@@ -1,25 +1,67 @@
 # dev-workflows session-cost price table. USD per MILLION tokens, keyed by model id.
-# PLACEHOLDER RATES -- verify against current Anthropic pricing at implementation.
+# Rates sourced from https://platform.claude.com/docs/en/about-claude/pricing (standard
+# first-party Claude API, retrieved 2026-07-10). Batch / fast-mode / data-residency
+# modifiers are NOT applied (interactive Claude Code sessions bill at standard rates).
+#
+# PERMANENT (standard) rates only -- never promotional/introductory rates. Cost figures
+# must stay comparable across VIs over time: a temporary promo (e.g. Sonnet 5's $2/$10
+# introductory price through 2026-08-31) would make identical work look cheaper now and
+# dearer later, distorting cross-VI efficiency comparisons. So Sonnet 5 is keyed at its
+# standard $3/$15, matching Sonnet 4.5/4.6.
+#
+# Keys cover every model the plugin's routing policy can reach: the Opus chain (§2),
+# the Sonnet chain (§2.1: claude-sonnet-5 -> 4-6 -> 4-5), and Haiku. The engine
+# exact-matches first, then falls back to the longest table key that is a prefix of the
+# model id, so a dated id (claude-sonnet-5-20250930, claude-haiku-4-5-20251001) prices
+# off its undated base key automatically.
+#
 # Override without editing this file: set $DEV_WORKFLOWS_COST_PRICES to a path, or
 # drop a repo-local cost-prices.yaml. Cache multipliers follow Anthropic's model
 # (cache_read = input * 0.1, cache_write_5m = input * 1.25, cache_write_1h = input * 2.0).
 models:
+  # Opus chain (§2). Opus 4.5-4.8 all bill at $5 / $25.
   claude-opus-4-8:
-    input: 15.0           # verify: Anthropic pricing
-    output: 75.0          # verify: Anthropic pricing
-    cache_read: 1.5       # input * 0.1
-    cache_write_5m: 18.75 # input * 1.25
-    cache_write_1h: 30.0  # input * 2.0
+    input: 5.0
+    output: 25.0
+    cache_read: 0.5
+    cache_write_5m: 6.25
+    cache_write_1h: 10.0
+  claude-opus-4-7:
+    input: 5.0
+    output: 25.0
+    cache_read: 0.5
+    cache_write_5m: 6.25
+    cache_write_1h: 10.0
+  claude-opus-4-6:
+    input: 5.0
+    output: 25.0
+    cache_read: 0.5
+    cache_write_5m: 6.25
+    cache_write_1h: 10.0
+  # Sonnet chain (§2.1). Sonnet 5 (standard/permanent) and Sonnet 4.5/4.6 all bill at $3 / $15.
   claude-sonnet-5:
-    input: 3.0            # verify: Anthropic pricing
-    output: 15.0          # verify: Anthropic pricing
-    cache_read: 0.3       # input * 0.1
-    cache_write_5m: 3.75  # input * 1.25
-    cache_write_1h: 6.0   # input * 2.0
+    input: 3.0
+    output: 15.0
+    cache_read: 0.3
+    cache_write_5m: 3.75
+    cache_write_1h: 6.0
+  claude-sonnet-4-6:
+    input: 3.0
+    output: 15.0
+    cache_read: 0.3
+    cache_write_5m: 3.75
+    cache_write_1h: 6.0
+  claude-sonnet-4-5:
+    input: 3.0
+    output: 15.0
+    cache_read: 0.3
+    cache_write_5m: 3.75
+    cache_write_1h: 6.0
+  # Haiku.
   claude-haiku-4-5:
-    input: 1.0            # verify: Anthropic pricing
-    output: 5.0           # verify: Anthropic pricing
-    cache_read: 0.1       # input * 0.1
-    cache_write_5m: 1.25  # input * 1.25
-    cache_write_1h: 2.0   # input * 2.0
+    input: 1.0
+    output: 5.0
+    cache_read: 0.1
+    cache_write_5m: 1.25
+    cache_write_1h: 2.0
 default: null             # unknown model -> unpriced (tokens recorded, cost null)

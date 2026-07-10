@@ -160,6 +160,12 @@ or inherit them). **No Jira re-read** — the spec is the requirements source of
 
 ---
 
+## Phase 2.5 — Resolve applicable ARD (optional)
+
+Resolve any ARD for this item by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with `<VI>`, `<EPIC>` (`focus_key`), and `$SPECS_PATH`. On `status: none`, **skip the rest of this phase and proceed exactly as before** (no ARD in play). On `status: found`, carry the returned `invariants` (VI-level inherited + Epic-level `AD-N`) and `guidance_summary` into Phase 5 — the design is authored **within** them, and a necessary deviation is recorded in a `## ARD deviations` section of `design.md` + as a `- [ ]` open question (never edit the ARD). The `invariants` list is passed to `design-reviewer` in Phase 6 as `applicable_ard`.
+
+---
+
 ## Phase 3 — Derive repos + STRICT gate
 
 1. **Auto-derive candidate repos** from the spec's themes / component mentions / any referenced code
@@ -256,7 +262,8 @@ Dispatch `design-reviewer` (Opus):
   >
   > Design path:        [absolute path to design.md]
   > Specification path: [absolute path to specification.md]
-  > Classification:     [the Phase 1.5 classification]"
+  > Classification:     [the Phase 1.5 classification]
+  > applicable_ard:     [the ARD invariants resolved in Phase 2.5, or omit if none]"
 
 **Act on the verdict** (mirrors `/specify`):
 - **`BLOCK`** — fix the BLOCKER findings (the orchestrator/grill edits `design.md` inline — no delegated

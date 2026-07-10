@@ -195,6 +195,12 @@ Runs after Pre-Phase 2 and replaces the single Phase 2B exploration subagent for
 
 ---
 
+## Phase 1.8 — Resolve applicable ARD (Jira mode; optional)
+
+Only when the run resolved a Jira key (VI/Epic) — i.e. NOT direct-prompt mode — resolve any ARD by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with the resolved `<VI>`, `<EPIC>`, and `$SPECS_PATH`. Direct mode (no Jira key) → treat as `status: none`. On `status: none`, **skip and proceed exactly as before**. On `status: found`, carry the `invariants` as **implementation guardrails** (the implementer honors each `AD-N` `rule`; a necessary deviation is logged as an `- ARD deviation:` line in the Phase 5 report), and — in the SIGNIFICANT / HIGH-RISK path — pass them to `code-review` (Phase 3B) as `applicable_ard`. In the SIMPLE / MODERATE path there is no `code-review` gate, so the guardrails act as guidance only.
+
+---
+
 ## Phase 2A — Standard Plan (SIMPLE / MODERATE only)
 
 **Codebase exploration** — Before writing the plan, spawn an exploration subagent to map the relevant parts of the codebase:
@@ -416,7 +422,8 @@ Use the currently selected model or Sonnet for implementation itself. Opus is re
      > Classification: [SIGNIFICANT | HIGH-RISK] — reason: [from Phase 1.5]
      > Plan: [paste the risk-planner plan approved in Phase 2B]
      > Diff: [paste git diff output]
-     > Project root: [absolute path]"
+     > Project root: [absolute path]
+     > applicable_ard: [the ARD invariants from Phase 1.8, or omit if none / direct mode]"
 
 7. Act on the return:
    - **`### Re-classification` section** — the reviewer decided the change is actually `SIMPLE` or `MODERATE` on inspection. Surface it to the user and ask `choices: ["Accept revised classification (Recommended)", "Override and keep the BLOCK-gated review", "Cancel"]`. If accepted, treat the review as an implicit PASS: skip the BLOCK branch, proceed to step 8, and do NOT re-invoke the reviewer on later fix deltas. Record the revised classification for the Phase 5 report. If overridden, re-invoke code-review with an explicit note that the classification is intentional.

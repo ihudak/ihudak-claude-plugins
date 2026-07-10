@@ -289,6 +289,10 @@ These commands run fine on a bare host, but they depend on a few external tools 
 - `references/dynatrace-docs/changelog-guidelines.md` — dynatrace-docs changelog writing rules + managed owners policy (consulted by the `dynatrace-docs-frontmatter` skill)
 - `references/dynatrace-docs/managed-owners.txt` — managed-docs owner IDs unioned into `managed/_content/**` pages (read by the skill and the `changelog-owners-reminder` hook)
 
+## Architecture (ARD) consumption
+
+`/design`, `/implement`, and `/specify` respect the applicable **ARD** (produced by `/create-ard`) when one exists — resolved via `references/ard-resolution.md` (most-specific first: per-area → Epic-level → inherited VI-level `AD-N`). A design / implementation / spec that violates an `AD-N` Rule without a recorded "ARD deviation" (flagged to the architect) is a reviewer **BLOCKER**. When no ARD exists these commands behave exactly as before — the check is skipped — and `/vuln` / `/upgrade` are unaffected.
+
 ## Dependencies & companions
 
 dev-workflows is self-contained — no command hard-requires another plugin. Recommended companions

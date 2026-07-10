@@ -202,6 +202,9 @@ If `dt-style-guide` is not installed, skip this phase and note "style check skip
    - Diff grounding: <on (repos: …) | off>
    - Style check: <applied N safe fixes | report only (M findings) | skipped (dt-style-guide absent)>
    - Reminder: paste this into the ticket's Jira release-notes field — the docs automation adds the {{#internal-note}} metadata and emits it into dynatrace-docs.
+
+   ### Next step
+   [leaf/closure per `references/next-phase-offer.md` — guidance only, never auto-invoked: the release note is drafted. If earlier pipeline phases remain, continue — hand to PA → `/create-ard <VI>` or PE → `/epics <VI>`; if the change is already built and documented, the VI is fully processed.]
    ```
 
 ---
@@ -305,3 +308,4 @@ user name is ever written (§10).
 - NEVER write into a docs repo; the default destination is persistent (never `/tmp`).
 - ALWAYS use `choices` arrays; the last choice is always `"Other… (describe)"`.
 - Light gate only — no Opus review, no tests, no branch, no commit.
+- ALWAYS end the Phase 8 report with a `### Next step` recommendation (per `references/next-phase-offer.md`) — guidance only, never auto-invoked; the pipeline leaf (adaptive: continue any pending PA/PE phase, else the VI is fully processed).

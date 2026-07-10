@@ -577,6 +577,9 @@ Output a structured report — do NOT ask any closing confirmation:
 
 ### Deferred items (from review or tests)
 - [MINOR / NIT findings that were not applied] OR "none"
+
+### Next step
+[Per `references/next-phase-offer.md` — guidance only, never auto-invoked. Jira mode: finish the remaining Epics under the VI (breadth) — `/implement <VI> <another-Epic>` — and, once **all** Epics are implemented, `/document <VI>` then `/release-notes <VI>` (both VI-level, run once). Depth vs breadth is the team's call. Direct mode: no forward pipeline step (omit). If review is still BLOCK, resolve that first.]
 ```
 
 ---
@@ -652,6 +655,7 @@ the code repo or the current working directory; no user name is ever written
 - ALWAYS spawn Phase 4 agents in a single message — never sequentially
 - ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
 - ALWAYS produce the Phase 5 report as the final output
+- ALWAYS end the Phase 5 report with a `### Next step` recommendation (per `references/next-phase-offer.md`) — guidance only, never auto-invoked; omitted in direct mode (no VI/Epic pipeline context)
 - ALWAYS pass `Command run: /implement` in the Phase 4 Agent 4 session handoff
 - ALWAYS pass `Change type: code` in the Phase 4 change summary block (scopes the four maintenance agents' suggestions to code-change territory — docs / Jira variants use `docs`)
 - AFTER one review-fixer pass + one re-review, if verdict is still BLOCK: stop and surface to user — do NOT loop

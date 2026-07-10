@@ -481,3 +481,7 @@ directory; no user name is ever written (§10 privacy).
 ## Final report
 
 Report: feature-folder path; stage/user-story/AC/TC counts; open-question count; unmounted-repo advisories; the `spec-reviewer` verdict; the PR URL (if opened); and a reminder of the round-trip described above + that `Published: yes` is a human-only freeze step.
+
+### Next step
+
+End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): **Epic-level spec** (`<VI> <Epic>`) → hand to the team → `/design <VI> <Epic>`, and the **Epic fan-out** `/specify <VI> <another-Epic>` for a sibling Epic (breadth); **VI-level spec** (`<VI>` only) → `/epics <VI>` (PE). If the run BLOCKED or left open `- [ ]` items, recommend resolving those first.

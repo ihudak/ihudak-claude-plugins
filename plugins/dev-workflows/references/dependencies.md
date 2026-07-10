@@ -9,7 +9,7 @@ companion degrades the feature, never breaks the run.
 
 | Companion | Used by | Relationship | Fallback when absent |
 |-----------|---------|--------------|----------------------|
-| `mattpocock-skills` (skill `/grilling`) | `/prompt-grill-me`; the embedded grilling technique in `/idea`, `/specify`, `/design` | Recommended | `/prompt-grill-me` runtime-resolves `/grilling`, else falls back to `superpowers:brainstorming`. The grilling *technique* is embedded in `/idea` / `/specify` / `/design`, so those have no runtime dependency. |
+| `mattpocock-skills` (skill `/grilling`) | `/prompt-grill-me`; the embedded grilling technique in `/idea`, `/create-vi`, `/specify`, `/design` | Recommended | `/prompt-grill-me` runtime-resolves `/grilling`, else falls back to `superpowers:brainstorming`. The grilling *technique* is embedded in `/idea` / `/specify` / `/design`, so those have no runtime dependency. |
 | `superpowers` (skill `brainstorming`) | `/prompt-brainstorm`; grilling fallback | Recommended | Embedded technique; no hard dependency. |
 | `dt-style-guide` (in this marketplace) | `docs-style-checker`; planning-doc style checks | Optional companion | `docs-style-checker` falls back to it when no repo-configured prose linter exists; `/epics` and `/release-notes` skip the style gate entirely if it is absent. |
 

@@ -253,6 +253,16 @@ Phase 3 strict gate); resumable from `_design-session.md`.
 
 ---
 
+## Phase 5.5 — Structural pre-lint
+
+Before the review gate, run the deterministic checks in
+`${CLAUDE_PLUGIN_ROOT}/references/pre-lint.md` against the drafted `design.md`: the **Universal checks**
+plus the **design** block (core headings present; a MODERATE+ design has `## Seams` or a `_N/A — why_`;
+report the `## Open questions` `- [ ]` count). Surface every finding; inline-fix the mechanical ones
+(delete a stray placeholder token); leave content gaps for the grill/author. **Advisory** — never
+blocks; proceed to Phase 6 once findings are surfaced. `design-reviewer` remains the gate (it still
+enforces the open-questions hard block).
+
 ## Phase 6 — Review gate
 
 Dispatch `design-reviewer` (Opus):

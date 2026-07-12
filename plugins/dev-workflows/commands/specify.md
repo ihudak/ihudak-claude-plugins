@@ -352,6 +352,16 @@ As each decision settles, append it to `_session.md`; capture a genuinely-ambigu
 
 ---
 
+## Phase 5.5 — Structural pre-lint
+
+Before finalizing, run the deterministic checks in
+`${CLAUDE_PLUGIN_ROOT}/references/pre-lint.md` against the drafted `specification.md`: the **Universal
+checks** plus the **spec** block (incl. the `- **Open questions**: N` header equalling the `- [ ]`
+count). Surface every finding; inline-fix the mechanical ones (renumber a duplicate `[Uxx]`/`[ACxx]`/
+`[TCxx]`, correct the open-questions count, delete a stray placeholder token); leave content gaps for
+the grill/author. **Advisory** — never blocks; proceed to Phase 6 once findings are surfaced.
+`spec-reviewer` remains the gate.
+
 ## Phase 6 — Finalize + review gate
 
 1. **Render HTML.** `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/specification-to-html.py" <spec path>`

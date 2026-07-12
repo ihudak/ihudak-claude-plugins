@@ -355,6 +355,16 @@ If `dt-style-checker` is unavailable (agent file not found), proceed directly to
 
 ---
 
+## Phase 6.3 — Structural pre-lint
+
+Before the review gate, run the deterministic checks in
+`${CLAUDE_PLUGIN_ROOT}/references/pre-lint.md` against each drafted Epic file: the **Universal checks**
+plus the **Epic** block (required headings incl. `## Independent Test`; Given/When/Then acceptance
+criteria; `[NEEDS CLARIFICATION]` ≤ 3 per Epic; `_coverage.md` present). Surface every finding;
+inline-fix the mechanical ones (delete a stray placeholder token); leave content gaps for the author.
+**Advisory** — never blocks; proceed to Phase 7 once findings are surfaced. `epic-reviewer` remains the
+gate.
+
 ## Phase 7 — Epic review gate
 
 Invoke `epic-reviewer` (Opus). This reviewer is Epic-specific — scope clarity, acceptance-criteria testability, non-duplication of existing Epics. `docs-style-checker` is NOT used here (no repo linter for vault content); Dynatrace corporate style is handled by the Phase 6.1 `dt-style-checker` step above.

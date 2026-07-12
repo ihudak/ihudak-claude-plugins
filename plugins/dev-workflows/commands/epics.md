@@ -152,6 +152,37 @@ Resolve any VI-level ARD for this VI by citing
 
 ---
 
+## Phase 2.6 — VI-level spec enrichment (optional)
+
+If a VI-level specification exists, fold its requirements into the coverage
+inventory. **Additive, zero-cost when absent** — the common case, since
+`/specify` usually runs per-Epic *after* `/epics`.
+
+1. **Resolve the VI dir:** `$SPECS_PATH/specifications/<VI>-<vslug>/`, matched by
+   key-number, tolerating a stray `-`/`_` and a human-adjusted slug (the same
+   rule `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` step 1 uses). If
+   `$SPECS_PATH` is unset/unresolvable, or no VI dir matches → **skip** (set
+   `vi_spec_present: false`).
+2. **Detect:** if `<VI-dir>/specification.md` does not exist → **skip** (set
+   `vi_spec_present: false`); the run proceeds byte-identically to today.
+3. **Parse** `<VI-dir>/specification.md` directly (Read it — one file, a simple
+   heading scan): extract its user stories `[Uxx]` and their nested acceptance
+   criteria `[ACxx]` into `vi_spec_requirements[]`. **Skip `[TCxx]` test cases**
+   (per-AC, non-unique, below Epic granularity) and the prose sections
+   (Problem/Scope):
+
+   ```yaml
+   vi_spec_requirements:
+     - id:   <Uxx | ACxx>          # the spec's own id, preserved verbatim
+       type: spec-story | spec-criterion
+       text: <requirement text>
+   ```
+
+   Set `vi_spec_present: true` and record the resolved `specification.md` path
+   for the Phase 9 report.
+
+---
+
 ## Phase 3 — Read Jira hierarchy
 
 Invoke `jira-reader` with `depth: vi-plus-epics`. This depth is specifically designed for Epic writing: richer than `vi-only` so themes extracted for `code-scanner` aren't starved of context, but lighter than `full` so the agent doesn't read dozens of already-closed child Stories.
@@ -165,6 +196,13 @@ Invoke `jira-reader` with `depth: vi-plus-epics`. This depth is specifically des
 
 Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Jira key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On `OK`, carry the handoff `requirements[]` and `requirements_source` forward —
 they are the coverage ground truth for Phases 6–7.
+
+When Phase 2.6 set `vi_spec_present: true`, **append** its
+`vi_spec_requirements[]` to this `requirements[]` — the VI's own rows are
+unchanged; the appended rows carry `type: spec-story` / `spec-criterion`, which
+separates them from the VI's `story`/`criterion` rows. The merged list flows
+unchanged into the Phase 6 handoff and the Phase 7 reviewer brief. When
+`vi_spec_present: false`, `requirements[]` is exactly what `jira-reader` returned.
 
 On `OK`, identify the Epics already linked to the VI (filter `linked_items` to `type == Epic`) — the new Epic drafts MUST NOT duplicate their scope (enforced later by `epic-reviewer`).
 
@@ -482,7 +520,7 @@ MODERATE — vault-internal Epic drafting for a single VI
 [PASS | PASS WITH RECOMMENDATIONS | BLOCK] — [1-line summary of findings applied / deferred]
 
 ### Requirement coverage
-[Roll-up verdict + N/M covered (P%); list each ❌ gap requirement ID; _coverage.md path] — _or_ "derived (coarse) — VI had no structured requirements"
+[Roll-up verdict + N/M covered (P%); list each ❌ gap requirement ID; _coverage.md path] If Phase 2.6 enriched the inventory, also name the VI-level `specification.md` path and the count of `spec-*` rows added. — _or_ "derived (coarse) — VI had no structured requirements"
 
 ### Clarifications
 [Resolved: <n>; Deferred (left unresolved → became blockers): <n>] — _or_ "none raised"

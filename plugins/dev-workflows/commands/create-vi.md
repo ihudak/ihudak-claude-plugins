@@ -65,6 +65,18 @@ model_routing:
 
 The grill + authoring run inline on `current_model` (the §2 Opus chain — interactive judgment, not a delegated subagent). If no Opus resolves, **degrade to best-available + record** in `notes` and the final report — do not hard-block.
 
+**Profile nudge (complex VIs).** If `classification` is **SIGNIFICANT** (a
+complex / cross-cutting VI) and the chosen profile is `--lean` or `--hybrid`
+(so `FR-N` is unavailable — it is full-only), surface a one-line **non-blocking**
+recommendation before Phase 2:
+> "This VI classifies SIGNIFICANT — consider `--full` so Functional Requirements
+> (`FR-N`) and richer Use Cases (`UC-N`) are available for stronger, more
+> traceable downstream Epic coverage."
+
+Offer `choices: ["Switch to --full", "Keep <profile>", "Other… (describe)"]`. On
+"Keep", proceed unchanged. For a SIMPLE / MODERATE classification, or when the
+profile is already `--full`, this nudge does **not** fire.
+
 ---
 
 ## Phase 2 — Read the seed
@@ -92,7 +104,7 @@ Author `<KEY>_ValueIncrement.md` live against `${CLAUDE_PLUGIN_ROOT}/references/
 7. **Scope** (In / Out)
 8. **Success Metrics** (`[SM-N]`)
 
-Then author the profile's **adapt-in clusters**, each **pulled only when the idea warrants it** (never an empty section). Fold the idea's open `[NEEDS CLARIFICATION]` into the grill; resolve to zero where possible, leaving genuinely-unresolvable ones under `## Assumptions & open questions` (hybrid/full). Keep the VI **product-level** — no implementation detail.
+Then author the profile's **adapt-in clusters**, each **pulled only when the idea warrants it** (never an empty section). **For a complex VI (`classification` SIGNIFICANT), actively author the `FR-N` (full) and `UC-N` (hybrid/full) clusters** within the chosen profile — lower the bar for pulling them in, because ID'd functional requirements and use cases feed a finer downstream `/epics` `_coverage.md` (traceability to `FR-N`/`UC-N`, not only `US`/`AC`/`SM`); still never an empty section. Fold the idea's open `[NEEDS CLARIFICATION]` into the grill; resolve to zero where possible, leaving genuinely-unresolvable ones under `## Assumptions & open questions` (hybrid/full). Keep the VI **product-level** — no implementation detail.
 
 ---
 

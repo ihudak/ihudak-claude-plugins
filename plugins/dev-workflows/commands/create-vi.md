@@ -96,6 +96,34 @@ Then author the profile's **adapt-in clusters**, each **pulled only when the ide
 
 ---
 
+## Phase 3.5 — Dynatrace style check
+
+Run a corporate style check on the authored VI **before** the review gate. This
+is a **quality enhancement, not a gate** — it never blocks the handoff.
+`vi-reviewer` (Phase 4) judges content; style / terminology is checked here
+(mirrors `/epics` Phase 6.1).
+
+→ Agent (subagent_type: "dt-style-guide:dt-style-checker", model: `<detection_model — §2.1 Sonnet chain>`):
+  > "Run the style check for this brief:
+  >
+  > files:    [absolute path to <KEY>_ValueIncrement.md]
+  > doc_type: vi
+  > emphasis: terminology and customer-facing captions, labels, messages, and text"
+
+Act on the return:
+- **`OK`** — proceed to Phase 4.
+- **`VIOLATIONS_FOUND`** — the orchestrator/grill applies the **MAJOR** fixes
+  **inline** (no delegated writer — consistent with Phase 4's inline-fix model),
+  then re-runs `dt-style-checker` **once**. Remaining MINOR/NIT are recorded in
+  the final report.
+- **`ERROR`** — surface the reason and proceed to Phase 4 (non-gating).
+
+If `dt-style-checker` is unavailable (agent not found — the `dt-style-guide`
+plugin is not installed), **skip this phase gracefully** and note
+`SKIPPED (dt-style-checker unavailable)` in the final report.
+
+---
+
 ## Phase 4 — Review gate
 
 Dispatch `vi-reviewer` (Opus, frontmatter-pinned; recorded as `review_model`, no override):
@@ -163,4 +191,4 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits (git is offered only 
 
 ## Final report
 
-Report: the VI path + profile; US/AC/SM counts + which adapt-in clusters were included; open-question count; the `vi-reviewer` verdict; the PR URL (if opened); the Jira round-trip reminder; resolved model routing (+ any Opus degradation); the feedback + cost paths; and the next-step recommendations.
+Report: the VI path + profile; US/AC/SM counts + which adapt-in clusters were included; open-question count; the `vi-reviewer` verdict; the Dynatrace style-check outcome (`OK` | `N fixed, M remaining` | `SKIPPED`); the PR URL (if opened); the Jira round-trip reminder; resolved model routing (+ any Opus degradation); the feedback + cost paths; and the next-step recommendations.

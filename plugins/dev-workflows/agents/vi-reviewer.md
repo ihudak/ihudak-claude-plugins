@@ -35,6 +35,7 @@ runs a fix cycle and re-reviews once.
 - **Product-level purity (BLOCKER):** no implementation detail (algorithms, data structures, code paths, internal APIs) — that belongs to the ARD / spec / design.
 - **No restatement:** any FR/UC present must not merely paraphrase a US (reference by ID) → `MAJOR`.
 - **Profile completeness:** every spine section present; each adapt-in section that IS present is substantive, not theater (empty/boilerplate Competitive Snapshot, personas, or metrics → `MAJOR`, "substance over theater"). Never flag an omitted adapt-in cluster the profile doesn't require.
+- **Substance over theater (hollow prose):** a section that is non-empty but states no testable commitment, decision, or constraint — vision/persona/NFR prose that reads well yet does no work → `MAJOR` ("reads well, does no work"), the same bar as the empty/boilerplate case above.
 - **Identifier integrity:** `[US-N]`/`[AC-N]`/`[SM-N]` unique + contiguous; cross-references point at existing IDs.
 
 ## Output contract

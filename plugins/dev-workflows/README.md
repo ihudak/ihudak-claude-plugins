@@ -51,11 +51,9 @@ curation is the maintainer's job, centrally, at analysis time.
   Resolution, then act on the correction directly (`origin: prompt`).
 - **`/prompt-brainstorm <text>`** — same capture, then hand off to
   `superpowers:brainstorming`.
-- **`/prompt-grill-me <text>`** — same capture, then runtime-resolve `/grilling`
-  (mattpocock-skills), **falling back to `superpowers:brainstorming` with a
-  notice if mattpocock-skills is not installed**. mattpocock-skills is an
-  **optional** dependency — the command degrades gracefully; there is no hard
-  install-time requirement.
+- **`/prompt-grill-me <text>`** — same capture, then grill the fix **inline** — a
+  bounded one-question-at-a-time interrogation of the correction following the
+  embedded grilling technique. Self-contained; no plugin dependency.
 
 **Graceful degradation.** Persistence is **specs-first** (central aggregation is
 the point) and deterministic: `$SPECS_PATH` VI dir
@@ -298,7 +296,7 @@ These commands run fine on a bare host, but they depend on a few external tools 
 ## Dependencies & companions
 
 dev-workflows is self-contained — no command hard-requires another plugin. Recommended companions
-(`mattpocock-skills` `/grilling`, `superpowers`, `dt-style-guide`) and the external
+(`superpowers`, `dt-style-guide`) and the external
 [`jira-workitem-import`](https://github.com/ivan-gudak/jira-workitem-import) importer are documented in
 [`references/dependencies.md`](references/dependencies.md); every relationship is convention +
 runtime-resolve + graceful fallback.

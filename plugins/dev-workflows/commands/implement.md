@@ -406,6 +406,9 @@ Once Phase 3.5 returns (passed, skipped, or accepted-with-regressions), return t
 
 Use the currently selected model or Sonnet for implementation itself. Opus is reserved for the review.
 
+For a long step list, apply `${CLAUDE_PLUGIN_ROOT}/references/context-management.md` — checkpoint at N,
+offload parallel-safe (`[P]`) steps to subagents, or decompose — so the run does not degrade as context fills.
+
 1. Work through each step in order
 2. Make precise, surgical changes — do not modify unrelated code
 3. Follow existing code style and LF line endings

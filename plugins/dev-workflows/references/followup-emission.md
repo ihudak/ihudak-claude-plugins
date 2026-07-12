@@ -1,8 +1,8 @@
 # Follow-up Task & Journal Emission — Shared Reference
 
 Single source of truth for the dev-workflows follow-up emitter. A terminal
-"Emit follow-up tasks" phase in `/document`, `/release-notes`, `/epics`, and
-`/implement` cites this file and executes its steps inline — the orchestrator
+"Emit follow-up tasks" phase in `/document`, `/release-notes`, `/epics`,
+`/implement`, and `/ready` cites this file and executes its steps inline — the orchestrator
 owns every prompt.
 
 **Self-contained.** This reference has NO runtime dependency on the

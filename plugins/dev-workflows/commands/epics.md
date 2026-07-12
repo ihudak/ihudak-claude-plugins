@@ -134,6 +134,23 @@ choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
 
 ---
 
+## Phase 2.5 — Resolve applicable ARD (optional)
+
+Resolve any VI-level ARD for this VI by citing
+`${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with `vi = jira_key`,
+**`epic: null`** (Epics do not exist yet — VI-level ARD only), and `$SPECS_PATH`.
+
+- On `status: none` (including `$SPECS_PATH` unset/unresolvable) → **skip and
+  proceed exactly as before.** No prompt, no extra output.
+- On `status: found` → carry `invariants` + `guidance_summary` forward: pass them
+  to `epic-writer` (Phase 6 handoff, as `applicable_ard`) so drafts stay
+  consistent with the `AD-N`, and to `epic-reviewer` (Phase 7, as `applicable_ard`)
+  which then activates its ARD-conformance dimension. A necessary deviation is
+  recorded by the writer in the Epic draft (`- ARD deviation: … flag: architect`)
+  and surfaced in the Phase 9 report — never edit the ARD.
+
+---
+
 ## Phase 3 — Read Jira hierarchy
 
 Invoke `jira-reader` with `depth: vi-plus-epics`. This depth is specifically designed for Epic writing: richer than `vi-only` so themes extracted for `code-scanner` aren't starved of context, but lighter than `full` so the agent doesn't read dozens of already-closed child Stories.
@@ -145,7 +162,10 @@ Invoke `jira-reader` with `depth: vi-plus-epics`. This depth is specifically des
   > jira_key:         [resolved jira_key]
   > depth:      vi-plus-epics"
 
-Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Jira key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On `OK`, identify the Epics already linked to the VI (filter `linked_items` to `type == Epic`) — the new Epic drafts MUST NOT duplicate their scope (enforced later by `epic-reviewer`).
+Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Jira key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On `OK`, carry the handoff `requirements[]` and `requirements_source` forward —
+they are the coverage ground truth for Phases 6–7.
+
+On `OK`, identify the Epics already linked to the VI (filter `linked_items` to `type == Epic`) — the new Epic drafts MUST NOT duplicate their scope (enforced later by `epic-reviewer`).
 
 **Refinement target (`focus_key`).** `/epics` always reads and analyses the whole VI
 (the partition and non-duplication logic are inherently VI-holistic). When `focus_key`
@@ -226,7 +246,7 @@ Handle per-repo status after the batch returns:
 
 The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1 Sonnet detection chain for MODERATE; §2 Opus only if the run is SIGNIFICANT/HIGH-RISK — see `classification.md` §9.2). The orchestrator prepares a handoff and dispatches; it does not write Epics itself, and **nothing commits** (epics never branches/commits — git is the user's responsibility).
 
-1. **Write the handoff file.** Create a temp file (`mktemp` — never the vault, never a repo) containing the `epic-writer` input contract: `jira_reader_handoff`, `code_scanner_outputs` (empty if no scan), `scope` (Phase 2 in/out of scope), `existing_epics` (non-duplication), `output_dir` (resolved Phase 1 dir), `vi_goal`, `jira_key`. Record its absolute path. When `focus_key` is set (the Phase 3 refinement target), set `scope` in-scope to just the focus Epic and `existing_epics` to the *other* linked Epics, so `epic-writer` re-drafts the single focus Epic's definition file; `output_dir` is unchanged.
+1. **Write the handoff file.** Create a temp file (`mktemp` — never the vault, never a repo) containing the `epic-writer` input contract: `jira_reader_handoff`, `code_scanner_outputs` (empty if no scan), `scope` (Phase 2 in/out of scope), `existing_epics` (non-duplication), `output_dir` (resolved Phase 1 dir), `vi_goal`, `jira_key`, `requirements` + `requirements_source` (from Phase 3), `applicable_ard` (the Phase 2.5 invariants + guidance_summary, or omit when status was none), and `existing_epic_themes` (themes of the already-linked Epics). Record its absolute path. When `focus_key` is set (the Phase 3 refinement target), set `scope` in-scope to just the focus Epic and `existing_epics` to the *other* linked Epics, so `epic-writer` re-drafts the single focus Epic's definition file; `output_dir` is unchanged.
 
 2. **Dispatch the writer:**
 
@@ -241,6 +261,24 @@ The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1
    ```
    On a provided value, rewrite the handoff and re-dispatch once. Nothing is committed (git is the user's responsibility).
 
+   Also record `coverage_file` (the `_coverage.md` path) and `clarifications_needed[]` for Phases 6.2 and 7.
+
+---
+
+## Phase 6.2 — Resolve clarifications
+
+If the writer returned a non-empty `clarifications_needed[]`, resolve it BEFORE
+the style check and review (so no review cycle is spent on known unknowns).
+Present ONE batched prompt listing every marker grouped by Epic; for each:
+```
+choices: ["Use the writer's suggested answer", "I'll answer (you'll be prompted)", "Leave unresolved", "Other… (describe)"]
+```
+Fold each resolved answer into the affected Epic draft (Edit the file inline, or
+re-dispatch `epic-writer` once with the resolutions). Markers the user chooses to
+**leave unresolved** stay visible in the draft and become `epic-reviewer`
+BLOCKERs in Phase 7. If `clarifications_needed[]` is empty, this phase is a
+**silent no-op** (byte-identical to a run without it).
+
 ---
 
 ## Phase 6.1 — Dynatrace style check
@@ -251,7 +289,8 @@ Invoke `dt-style-checker` on the files written in Phase 6. Unlike `/document` (J
   > "Run the style check for this brief:
   >
   > files:    [absolute paths of every Epic file written in Phase 6]
-  > doc_type: epic"
+  > doc_type: epic
+  > emphasis: terminology and customer-facing captions, labels, messages, and text"
 
 Act on the return:
 
@@ -284,7 +323,10 @@ Invoke `epic-reviewer` (Opus). This reviewer is Epic-specific — scope clarity,
   > Task description: [one-paragraph: VI key, VI goal, number of Epics drafted]
   > Written Epic file paths: [absolute paths of every Epic file written in Phase 6]
   > jira-reader handoff: [paste full YAML from Phase 3]
-  > code-scanner output:  [paste array of per-repo scanner outputs from Phase 5, or 'N/A — code scan off']"
+  > code-scanner output:  [paste array of per-repo scanner outputs from Phase 5, or 'N/A — code scan off']
+  > requirements:        [paste the requirements[] array from Phase 3]
+  > _coverage.md path:    [absolute path of the coverage file from Phase 6]
+  > applicable_ard:       [the Phase 2.5 invariants, or omit if status was none]"
 
 Act on the verdict (same shape as `/document` Jira mode Phase 7):
 
@@ -438,6 +480,15 @@ MODERATE — vault-internal Epic drafting for a single VI
 ### Epic review verdict
 [PASS | PASS WITH RECOMMENDATIONS | BLOCK] — [1-line summary of findings applied / deferred]
 
+### Requirement coverage
+[Roll-up verdict + N/M covered (P%); list each ❌ gap requirement ID; _coverage.md path] — _or_ "derived (coarse) — VI had no structured requirements"
+
+### Clarifications
+[Resolved: <n>; Deferred (left unresolved → became blockers): <n>] — _or_ "none raised"
+
+### ARD conformance
+[verdict + any `- ARD deviation:` lines recorded] — _omit this whole section when Phase 2.5 status was none_
+
 ### Dynatrace style check (Phase 6.1)
 [OK | VIOLATIONS_FOUND (N fixed, M remaining) | ERROR (reason) | SKIPPED (dt-style-checker unavailable)] — [1-line summary]
 
@@ -540,3 +591,7 @@ the current working directory; no user name is ever written (§10 privacy).
 - ALWAYS end the Phase 9 report with a `### Next step` recommendation (per `references/next-phase-offer.md`) — guidance only, never auto-invoked
 - ALL written claims must be traceable to Jira keys (from `jira-reader`) or code paths (from `code-scanner`); do not invent content the sources don't contain
 - NEVER run `docs-style-checker` — Epic drafts are vault-internal and not subject to product-docs prose linting. Dynatrace corporate style is checked via `dt-style-checker` in Phase 6.1 instead.
+- ALWAYS have `epic-writer` write `_coverage.md` to `output_dir` (VI-holistic, even in focus mode); it is NOT a Jira Epic and is never pasted to Jira
+- ALWAYS run the Phase 6.2 clarification gate when the writer returns clarifications; unresolved-by-choice markers become `epic-reviewer` BLOCKERs
+- ARD steps (Phase 2.5, writer/reviewer `applicable_ard`, the Phase 9 ARD section) are ADDITIVE and guarded on `status: found` — a run with no ARD is byte-identical to before
+- ALWAYS pass `requirements[]`, the `_coverage.md` path, and `applicable_ard` (when found) to `epic-reviewer`

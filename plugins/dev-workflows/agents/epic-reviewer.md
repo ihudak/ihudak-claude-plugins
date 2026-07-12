@@ -19,6 +19,9 @@ The caller passes a structured brief:
 - **Written Epic file(s)** — absolute paths of every `.md` file produced in Phase 6 (one per new Epic).
 - **`jira-reader` handoff** — the full YAML from `jira-reader` (depth `vi-plus-epics`), including `linked_items` with existing Epics under the VI. Used for non-duplication checks.
 - **`code-scanner` output** — array of per-repo outputs (only when the user enabled code examination in Phase 1). Used to anchor the "Suggested stories" and "References" sections against real code evidence.
+- **`requirements[]`** — the VI requirement inventory (from jira-reader). The coverage ground truth.
+- **`_coverage.md` path** — the coverage matrix the writer produced. Verify it against `requirements[]`.
+- **`applicable_ard`** — the VI-level ARD `invariants` (AD-N), or omitted. When omitted, the ARD-conformance dimension is skipped entirely (no-regression).
 
 Refuse to review without the written file paths and the `jira-reader` handoff. These two are the review ground truth.
 
@@ -27,14 +30,19 @@ Refuse to review without the written file paths and the `jira-reader` handoff. T
 1. Read every written Epic file end-to-end before forming any judgement.
 2. Cross-check each Epic's scope against the `jira-reader` handoff's `linked_items` (filter to `type == Epic`) to detect duplication with existing Epics already linked under the VI.
 3. When a `code-scanner` output is present, cross-check the "References" and "Suggested stories" sections: every code path cited must exist in a `code-scanner` `evidence.path`. If an Epic cites a path not found in any scan output, flag it.
-4. For each dimension below, record findings in the shared severity schema (`BLOCKER` / `MAJOR` / `MINOR` / `NIT`). Skip dimensions that are clearly not applicable, but say so explicitly (`"N/A — reason"`).
-5. Derive a single verdict: `PASS` (no findings above MINOR), `PASS WITH RECOMMENDATIONS` (MAJOR / MINOR / NIT only, no blockers), `BLOCK` (at least one BLOCKER finding).
+4. Read `_coverage.md`. Cross-check every row against the passed `requirements[]`: a requirement no existing-or-new Epic covers (`❌ gap`) is a MAJOR coverage finding; a `## Covers` id absent from `requirements[]` is a MINOR stale reference.
+5. Check epic independence: an Epic whose value cannot be delivered without a not-yet-existing Epic (read `## Independent Test` + `## Dependencies`) is a MAJOR finding.
+6. Check internal terminology consistency: the same concept named differently across the batch is a MINOR/NIT finding (corporate terminology vs the style guide is dt-style-checker's job — out of scope here).
+7. Flag any unresolved `[NEEDS CLARIFICATION]` marker as a BLOCKER.
+8. When `applicable_ard` is present, check each Epic against the `AD-N` invariants: a violating Epic WITHOUT a matching `- ARD deviation: … flag: architect` line is a BLOCKER; WITH one it is allowed-but-flagged. When absent, skip this dimension.
+9. For each dimension below, record findings in the shared severity schema (`BLOCKER` / `MAJOR` / `MINOR` / `NIT`). Skip dimensions that are clearly not applicable, but say so explicitly (`"N/A — reason"`).
+10. Derive a single verdict: `PASS` (no findings above MINOR), `PASS WITH RECOMMENDATIONS` (MAJOR / MINOR / NIT only, no blockers), `BLOCK` (at least one BLOCKER finding).
 
 ## Review dimensions
 
 | Dimension | Check |
 |---|---|
-| Goal clarity | One-sentence goal; unambiguous; tied concretely to the parent VI's outcome (the `value_increment.goal` field from the `jira-reader` handoff). |
+| Goal clarity | One-sentence goal; unambiguous; tied concretely to the parent VI's outcome. It expresses USER VALUE, not a technical milestone — titles like "Database Setup", "API Development", "Infrastructure Setup" are anti-patterns (findings), vs a user-value title (correct). Also flag "theater": boilerplate business-value or vague untestable ACs ("improve performance", "be reliable") that look like content but aren't. |
 | Business value | 1–2 sentences linking the Epic to the VI's outcome. Not a restatement of the goal. |
 | Scope (in / out) | "In scope" is concretely delimited (features, behaviours, surfaces). "Out of scope" is also concrete — "out-of-scope: anything else" or "future work" is a finding, not a valid section. |
 | Acceptance criteria | Each criterion has an observable pass/fail signal (a user action + expected system response, a measurable threshold, a reproducible test case). Criteria that restate the goal, describe implementation detail rather than outcome, or are fundamentally untestable ("improve performance", "be reliable") are findings. |
@@ -43,6 +51,10 @@ Refuse to review without the written file paths and the `jira-reader` handoff. T
 | Non-duplication | No overlap with existing Epics linked to the VI (from `jira-reader` `linked_items` filtered to `type == Epic`). If overlap exists, it is explicitly called out in the draft's Dependencies or Scope section and justified (e.g. "extends Epic FOO-123 with capability X; FOO-123 remains the owner for Y"). Undetected duplication is a BLOCKER. |
 | References | Jira parent link to the VI is present. Code paths from `code-scanner` are cited where relevant (especially when `classification == present` or `partial` anchors a reuse argument). Every cited path must appear in a `code-scanner` `evidence.path` if `code-scanner` output was provided. |
 | Structural integrity | Headings are well-formed and follow a consistent level hierarchy across all Epic files in the batch. `[[wikilinks]]` resolve (within the vault if the paths are absolute / vault-relative). Markdown renders without broken fences, unclosed emphasis, or malformed lists. |
+| Requirement coverage | Every VI requirement in `requirements[]` is covered by an existing or new Epic; `❌ gap` rows in `_coverage.md` → MAJOR. A `Covers` id not in `requirements[]` → MINOR. |
+| Epic independence | Each Epic delivers its value without any not-yet-built Epic (no forward dependency). A forward dependency → MAJOR (resequence/merge). |
+| Terminology drift (internal) | The same concept is named consistently across all Epics in the batch. Inconsistency → MINOR/NIT. Corporate terminology is dt-style-checker's job, not this dimension. |
+| ARD conformance (conditional) | Only when `applicable_ard` is present: an Epic violating a VI-level `AD-N` without a matching `- ARD deviation: … flag: architect` line → BLOCKER; with one → allowed-but-flagged. Absent → dimension skipped. |
 
 ## Output
 
@@ -87,6 +99,18 @@ Return this exact shape (no preamble, no chatter):
 
 #### Structural integrity
 - ...
+
+#### Requirement coverage
+- ...
+
+#### Epic independence
+- ...
+
+#### Terminology drift
+- ...
+
+#### ARD conformance
+- _"N/A — no applicable ARD"_ when `applicable_ard` was omitted, else findings.
 
 ### Recommended next step
 - If BLOCK: [the specific thing that must be fixed before the run can continue]

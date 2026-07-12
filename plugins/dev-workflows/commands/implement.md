@@ -87,6 +87,23 @@ Rules:
 
 ---
 
+## Phase 0.5 — Readiness pre-flight (jira-driven only; advisory)
+
+**Jira mode only.** When `mode: direct` this phase is a **no-op** — skip it entirely
+(direct-mode runs are byte-identical to before).
+
+When `mode: jira-driven`, read the resolved item's declared Jira status (reuse the
+Phase 0 `vi-plus-epics` read if it ran, else a cheap Status-column read of
+`<jira_export_root>/<jira_key>-index.md`). Also, if `$SPECS_PATH` is set, check for a
+co-located `_readiness.md` in the item's specs dir.
+
+Surface a **one-line, non-blocking** recommendation to run `/ready <VI> [<Epic>]` first when
+EITHER: the status is below the readiness bar (VI below **Ready for Implementation**; Epic below
+**Refined**), OR a `_readiness.md` records **NOT-SUPPORTED** / **PARTIAL**. This NEVER blocks —
+proceed regardless; it is guidance only. If neither condition holds, say nothing and continue.
+
+---
+
 ## Phase 1 — Clarification
 
 **Rule: Ask, don't guess. This rule is absolute.**

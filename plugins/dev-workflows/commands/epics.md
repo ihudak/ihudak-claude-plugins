@@ -169,11 +169,14 @@ inventory. **Additive, zero-cost when absent** — the common case, since
    heading scan): extract its user stories `[Uxx]` and their nested acceptance
    criteria `[ACxx]` into `vi_spec_requirements[]`. **Skip `[TCxx]` test cases**
    (per-AC, non-unique, below Epic granularity) and the prose sections
-   (Problem/Scope):
+   (Problem/Scope). Because `[ACxx]` numbering restarts per story, qualify each
+   `spec-criterion` id with its parent story (`<Uxx>/<ACxx>`) so every `Req` id
+   in `_coverage.md` is unique; `spec-story` `[Uxx]` ids are document-unique and
+   used as-is:
 
    ```yaml
    vi_spec_requirements:
-     - id:   <Uxx | ACxx>          # the spec's own id, preserved verbatim
+     - id:   <Uxx (story) | <parent-Uxx>/<ACxx> (criterion)>   # spec-story id is document-unique; qualify criterion ids with the parent story
        type: spec-story | spec-criterion
        text: <requirement text>
    ```

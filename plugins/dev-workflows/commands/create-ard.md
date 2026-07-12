@@ -94,6 +94,15 @@ Author the ARD live against `${CLAUDE_PLUGIN_ROOT}/references/ard-format.md` at 
 
 ---
 
+## Phase 4.5 — Structural pre-lint
+
+Before the review gate, run the deterministic checks in
+`${CLAUDE_PLUGIN_ROOT}/references/pre-lint.md` against the drafted `*_ARD.md`: the **Universal checks**
+plus the **ARD** block (incl. that every `### [AD-N]` carries `**Binds:**` / `**Prevents:**` /
+`**Rule:**`). Surface every finding; inline-fix the mechanical ones (renumber a duplicate `[AD-N]`,
+delete a stray placeholder token); leave content gaps for the grill/author. **Advisory** — never blocks;
+proceed to Phase 5 once findings are surfaced. `ard-reviewer` remains the gate.
+
 ## Phase 5 — Review gate
 Dispatch `ard-reviewer` (Opus, frontmatter-pinned; recorded as `review_model`, no override):
 

@@ -45,6 +45,22 @@ Refuse to run without `depth`, `jira_key`, and at least one of
 
 3. **Extract capability themes.** Collect 2–4 short bullets summarising recurring topics across the items read. Themes may be sparse for `depth: vi-only`; callers that need richer themes should request `vi-plus-epics` or `full`.
 
+4. **Extract the requirement inventory.** From the VI's own file
+   (`<EXPORT_ROOT>/<jira_key>/<jira_key>.md`, read at every depth), parse the
+   VI's native requirement IDs into `requirements[]` and set
+   `requirements_source: native`:
+   - `## User Stories` → each `### [US-N]: <title>` → `{id: US-N, type: story, text: <title + the As-a/I-want/so-that line>}`.
+   - `## Acceptance Criteria` → each `[AC-N]` bullet → `{id: AC-N, type: criterion, text: <bullet>}`.
+   - `## Success Metrics` → each `[SM-N]` bullet → `{id: SM-N, type: metric, text: <bullet>}`.
+   - `## Functional requirements` (full profile only, when present) → each `FR-N` → `{id: FR-N, type: functional, text: <text>}`.
+   - `## Use cases & user journey` (hybrid/full, when present) → each `UC-N` → `{id: UC-N, type: usecase, text: <text>}`.
+   Preserve the VI's own IDs verbatim — do not renumber.
+   **Fallback (`requirements_source: derived`):** if the VI body contains NONE
+   of those structured sections (a legacy VI, or a Description pasted as prose),
+   decompose `value_increment.goal` + `themes` into 3–6 synthetic requirements
+   `{id: R1.., type: derived, text: <one requirement per line>}`. Never fabricate
+   requirements not grounded in the VI text.
+
 **Ignored by default:** sibling `<KEY>-comments.md` files and `attachments/` sub-directory **content** (case-insensitive — real exports use both lowercase `attachments/` and capitalised `Attachments/` depending on when the Jira item was created). Rationale: comments and image attachments are occasionally useful for decision-history context but are noisy, rarely authoritative for user-facing docs, and easy to revisit manually when needed. Keeping their content out of the default read path also keeps this agent fast on large VIs. No user-facing toggle is provided.
 
 **Image enumeration (attachments only):** For each linked item read at the current depth, enumerate image files (extensions `.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`, case-insensitive) under that item's `attachments/` or `Attachments/` directory using directory listing — do NOT read file content. Collect the results into the `attachments[]` output field. If no `attachments/` directory exists or no image files are present, the field is an empty list. This enumeration is filename-listing only and does not slow the agent.
@@ -99,6 +115,11 @@ value_increment:
   summary: <text>
   status:  <text>
   goal:    <2–3 sentence extraction from Description>
+requirements_source: native | derived
+requirements:
+  - id:   <US-N | AC-N | SM-N | FR-N | UC-N | R1..>   # native VI id, else synthetic
+    type: story | criterion | metric | functional | usecase | derived
+    text: <requirement text>
 linked_items:
   - key: <key>
     type: ValueIncrement | Epic | Story | Sub-task | Research | "Request for Assistance"
@@ -127,7 +148,7 @@ attachments:            # image files found under the VI's attachments/ dirs (pa
 ## Hard rules
 
 - NEVER modify files under `<vault_path>`. This agent is read-only.
-- NEVER fabricate items not present in the index or in the linked `.md` files. If the index table is empty, return `status: EMPTY`.
+- NEVER fabricate items not present in the index or in the linked `.md` files. If the index table is empty, return `status: EMPTY`. The same rule applies to `requirements[]` — extract only IDs/text present in the VI body; the `derived` fallback decomposes the VI's own goal/themes, never invents scope.
 - NEVER read sibling `<KEY>-comments.md` files or the **content** of files under `attachments/`. Enumerating image filenames under `attachments/` (for the `attachments[]` output field) is permitted and required — listing paths is not reading content.
 - NEVER attempt to reach out over HTTPS to Jira or any git host. This agent operates purely on pre-exported markdown in the vault.
 - If the index header schema doesn't match the expected 5-column form, return `status: EMPTY` with a schema-mismatch message; do NOT try to parse rows with a guessed column layout.

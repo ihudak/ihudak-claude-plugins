@@ -124,7 +124,10 @@ _source: native | derived_
 ```
 
 - Rows = the handoff `requirements[]`. "Covered by" counts BOTH existing linked
-  Epics AND the new drafts. `_source:` echoes `requirements_source`.
+  Epics AND the new drafts. `_source:` echoes `requirements_source`; when any
+  `spec-story`/`spec-criterion` row is present (a VI-level spec was folded in
+  by `/epics` Phase 2.6), append ` + VI-level spec` to it (e.g.
+  `_source: native + VI-level spec_`).
 - Roll-up: `READY` (0 gaps) · `NEEDS WORK` (≥1 gap, none fundamental) ·
   `NOT READY` (gaps you judge fundamental). `P% = covered/total`.
 - **Focus mode:** when the handoff `scope` targets a single focus Epic, still

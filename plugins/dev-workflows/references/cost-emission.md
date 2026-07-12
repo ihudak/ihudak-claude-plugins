@@ -2,7 +2,7 @@
 
 Single source of truth for the dev-workflows session-cost subsystem. The terminal
 "Session cost" phase of every VI-lifecycle command (`/idea`, `/create-vi`, `/create-ard`, `/specify`, `/epics`,
-`/design`, `/implement`, `/document`, `/release-notes`) cites this file and
+`/design`, `/implement`, `/ready`, `/document`, `/release-notes`) cites this file and
 executes its steps inline through the single `emit-cost` entry point (§11). The
 orchestrator owns every prompt; this reference owns session-artifact resolution,
 the chained-checkpoint model, the transcript-window computation, the price table,
@@ -241,6 +241,7 @@ Fixed per-command labels, with one inferred exception:
 | `/epics` | epic-refinement | pe |
 | `/design` | planning | dev |
 | `/implement` | implementation | dev |
+| `/ready` | readiness | team |
 | `/document` | documenting | dev |
 | `/release-notes` | **inferred** | **inferred** |
 | `/idea` | vi-creation | pm |

@@ -17,6 +17,3 @@ technique adapted from mattpocock grill-me/grilling. Each caller cites this file
 
 - **Bounded** — a capped set of the highest Impact×Uncertainty questions, then stop; unresolved high-impact gaps are recorded (e.g. `[NEEDS CLARIFICATION]`). Used by `/idea` (≤5; `--deep` switches to relentless).
 - **Relentless** — keep walking the tree until convergence, no cap. Used by `/create-vi`, `/specify`, `/design`.
-
-If `mattpocock-skills` `/grilling` is installed the user may invoke it directly (see
-`${CLAUDE_PLUGIN_ROOT}/references/dependencies.md`); it is **not** a runtime dependency.

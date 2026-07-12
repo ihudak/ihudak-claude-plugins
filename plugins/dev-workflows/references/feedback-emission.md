@@ -14,9 +14,9 @@ maintainer only if it lands in the committed, pushed specs repo — hence the
 persistence ladder is **specs-first** (§2).
 
 **Self-contained — no hard cross-plugin dependency.** `/prompt-brainstorm` uses
-`superpowers:brainstorming`; `/prompt-grill-me` runtime-resolves `/grilling`
-(mattpocock-skills) and falls back to `superpowers:brainstorming` if it is not
-installed. Neither is a declared install-time dependency.
+`superpowers:brainstorming`; `/prompt-grill-me` grills the fix inline following
+the embedded grilling technique (`references/grilling-technique.md`). Neither is
+a declared install-time dependency.
 
 **Relationship to B4 (`followup-emission.md`).** B4 captures the *engineer's own*
 follow-up actions → vault-first, audience = the engineer. This feature captures

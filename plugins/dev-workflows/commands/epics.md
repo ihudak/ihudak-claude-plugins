@@ -121,6 +121,7 @@ Present a concise plan:
 - Repos to scan (or "code scan off")
 - Output directory with one file per new Epic; propose a name stub per Epic if the themes already suggest them
 - Parallelism plan (up to 4 `code-scanner` instances per batch, single Agent message per batch)
+- Proposed Epic sizing/sequencing — prefer fewer, larger Epics where the VI direction is validated; split only at a genuine risk / feedback-loop boundary; order so that no Epic depends on a later one
 
 Ask:
 ```

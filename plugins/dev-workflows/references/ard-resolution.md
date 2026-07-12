@@ -2,7 +2,7 @@
 
 Given a Jira item, resolve any applicable **Architecture Requirements/Decision Document(s)** produced by
 `/create-ard` and return a normalized **ARD context** — or **`none`**. Cited by `/design`, `/implement`,
-and `/specify` so the resolution logic, the **optional/no-regression** rule, and the deviation-record
+`/specify`, and `/epics` so the resolution logic, the **optional/no-regression** rule, and the deviation-record
 convention live in ONE place.
 
 ## Inputs
@@ -59,6 +59,7 @@ deviation record as *allowed-but-flagged* (the architect adjudicates), **without
 - `/design` — Epic-level ARD = design guidance; VI-level `AD-N` = inherited invariants; deviations → a `## ARD deviations` section in `design.md` + an open question.
 - `/implement` — Jira mode only; `AD-N` = implementation guardrails; deviations → the Phase 5 report. Direct mode → `none`.
 - `/specify` — keep user stories + scope consistent with `AD-N` + scope; deviations → the spec's `### Open questions`.
+- `/epics` — VI-level only (`epic: null`, Epics do not exist yet); `AD-N` = inherited invariants the drafted Epics must respect; deviations → a `- ARD deviation: …` line in the Epic draft + the Phase 9 report.
 
 Each passes `invariants` to its reviewer as `applicable_ard`; the reviewer's ARD-conformance dimension is
 skipped entirely when it is absent.

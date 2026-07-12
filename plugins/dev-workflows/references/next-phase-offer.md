@@ -59,7 +59,11 @@ not required.
 
 **Team/Dev — build**
 
-- `/design <VI> <Epic>` → `/implement <VI> <Epic>`.
+- `/design <VI> <Epic>` → optionally `/ready <VI> <Epic>` (verify readiness) →
+  `/implement <VI> <Epic>`.
+- `/ready <VI> [<Epic>]` → **SUPPORTED** → `/implement <VI> [<Epic>]`; **PARTIAL / NOT-SUPPORTED**
+  → resolve the named gaps + update the Jira status, then re-run `/ready`. *(Read-only verifier;
+  not itself a linear pipeline node — an optional gate before build.)*
 - `/implement <VI> <Epic>` → finish remaining Epics (breadth); once ALL Epics implemented →
   `/document <VI>` → `/release-notes <VI>`. *(Direct mode → no forward offer.)*
 - `/document <VI>` (VI-level, after all Epics) → `/release-notes <VI>`. *(Doc-edit mode → no

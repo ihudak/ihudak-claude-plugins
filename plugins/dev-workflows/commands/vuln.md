@@ -165,6 +165,8 @@ Append a `### Model Routing` section summarising the per-CVE classification, why
 
 Then invoke `impl-maintenance` with a compact session handoff covering the CVEs fixed, notable regressions, workarounds, and overall outcome.
 
+**Context hygiene.** This was a large run — consider **`/compact`** to free context before your next task (per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §3 — non-pipeline, so `/compact` only; guidance only).
+
 **Then persist plugin feedback (automatic).** After `impl-maintenance` returns, project its plugin-facing slice into the specs repo by citing `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its `emit-auto` entry point (§6). Pass the Lessons Learned report, `command: /vuln`, the run's `jira_key` (or `null`) and `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto` renders only the report's **Command workflow improvements**, **New agents / skills**, and plugin **Reference docs** sections plus the **Key observations** that triggered them (§4 plugin-facing predicate) — never target-project `CLAUDE.md`/hook advice — as `origin: auto` entries, dedupes by stable `id` (§3), resolves the target via the §2 specs-first ladder, and writes silently. List the persisted path (or "no plugin-facing signal — nothing persisted") after the lessons-learned report. ADDITIVE — the impl-maintenance report still appears in the output; this step NEVER fails the run, NEVER commits, and NEVER writes into the code repo or the current working directory.
 
 ---
@@ -236,3 +238,4 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 - NEVER run tests for a `SIGNIFICANT` / `HIGH-RISK` CVE before the Opus review returns a non-BLOCK verdict
 - ALWAYS pass the captured baseline block back to `vuln-fixer` on `phase: verify-resume`
 - NEVER push directly to `main` / `master`
+- After the run, suggest **`/compact`** (a big non-pipeline run) per `references/session-hygiene.md` §3 — compact-only, no clear/resume pointer; guidance only, never auto-run.

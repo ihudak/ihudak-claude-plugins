@@ -19,6 +19,8 @@ The orchestrator writes a **handoff file** (a temp file) and passes its absolute
 - `requirements` + `requirements_source` — the VI requirement inventory (from jira-reader); the coverage ground truth.
 - `applicable_ard` — the VI-level ARD `invariants` (AD-N) + `guidance_summary`, or absent when no ARD resolved.
 - `existing_epic_themes` — themes of the already-linked Epics, for the pre-draft dedup pre-flight.
+- `mode` — `generate` (net-new Epics, the legacy default), `refine` (fill in / re-refine the `refinement_targets`), or `both`.
+- `refinement_targets` — list of `{key, team, scope_hint, current_body_path}` for the empty/existing Epics to fill in (present only when `mode` is `refine` or `both`; empty otherwise). `current_body_path` is the imported Epic file, e.g. `<jira_export_root>/<EPIC-KEY>/<EPIC-KEY>.md`.
 
 ## Entry validation (BLOCKED, never guess)
 
@@ -40,6 +42,8 @@ For each new Epic, emit a markdown file under the resolved output directory (def
 
 ```markdown
 # <Epic title>
+
+**Team:** <assigned team, refinement mode only — verbatim, e.g. [DTT] Team Storage; omit this line for net-new Epics>
 
 ## Goal
 <one sentence, tied concretely to the parent VI's outcome — NOT a technical milestone>
@@ -106,6 +110,19 @@ the draft INSTEAD of silently guessing. Rules:
   `{epic, section, question, suggested_answer}` — always propose your best-guess
   `suggested_answer` so the orchestrator's clarification gate can offer it.
 
+## Refinement mode (`mode: refine | both`)
+
+When `mode` is `refine` or `both`, treat every entry in `refinement_targets[]` as an Epic to **fill in**, not a duplicate to avoid:
+
+- **Iterate, don't regenerate.** Read the target's `current_body_path` (the imported Epic file) first. Preserve any real scope/acceptance content already there; fill the gaps and improve — never blow away existing substance.
+- **Keyed filename.** Write each refined Epic to `<output_dir>/<key>.md` using its real Jira Epic key (e.g. `MGD-12573.md`) — NOT a slug. Slug-named files (`<slug>.md`) are reserved for net-new Epics with no Jira ID yet.
+- **Surface the team.** Emit the template's `**Team:** <team>` line under the H1. When `team` is empty, emit `**Team:** [NEEDS CLARIFICATION — team not found in import]` and add a matching `clarifications_needed[]` entry.
+- **Partition the VI.** Distribute the VI `requirements[]` across the refinement targets; each target's `## Covers` lists only its slice. Two targets must not silently claim the same requirement.
+- **Cross-team dependencies are expected.** When one team-Epic depends on another (e.g. a framework Epic that must land first), name the other Epic by key in `## Dependencies`. Such inter-target dependencies are legal (they encode build order) — do not suppress them.
+- **Undrawable boundaries** → a `[NEEDS CLARIFICATION]` marker in the affected Epic + a `clarifications_needed[]` entry (subject to the ≤3-per-Epic cap).
+
+In `mode: both`, also draft net-new Epics for scope no target covers (slug-named, per the normal generate flow). In `mode: generate` (or when `refinement_targets[]` is empty) behaviour is exactly as before.
+
 ## Coverage matrix (`_coverage.md`)
 
 Write ONE file `_coverage.md` into `output_dir` (never a Jira Epic — the leading
@@ -133,6 +150,7 @@ _source: native | derived_
 - **Focus mode:** when the handoff `scope` targets a single focus Epic, still
   recompute `_coverage.md` VI-holistically (all existing Epics + the re-drafted
   focus Epic) — never a single-Epic view.
+- **Refinement mode:** refined targets appear in "Covered by" as `<KEY> (refined)`; net-new drafts as `<slug> (new)`; untouched existing Epics as `<KEY> (exist)`. Requirements no target covers are `❌ gap` rows — the leftover the `/epics` Phase 6.2 gate routes.
 
 ## ARD conformance (only when `applicable_ard` is present)
 

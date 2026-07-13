@@ -2,6 +2,8 @@
 
 Twelve workflow slash commands for idea refinement, VI authoring, architecture, structured implementation, one-shot doc edits, docs-repo profile scanning, Jira-driven feature documentation, Epic drafting, specification authoring, engineering design authoring, release-notes drafting, vulnerability remediation, and dependency upgrades — with Opus-backed risk planning, post-implementation code review, test regression detection, and prose-style / Opus doc review gates.
 
+> Part of the `ihudak-plugins` marketplace — see the [repo-root setup guide](../../README.md) for marketplace install + prerequisites (env vars, `jira-workitem-import`, AI-Containers, first command).
+
 ## Commands
 
 | Command | Description |

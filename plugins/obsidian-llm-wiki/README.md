@@ -77,6 +77,8 @@ Complete installation has three parts: (A) install the plugin into your agent, (
 configure your vault path if it differs from the default, (C) integrate the wiki layer
 into your vault's instruction files (one-time, commit to the vault repo).
 
+For the marketplace install shared across the `ihudak-plugins` plugins, see the [repo-root setup guide](../../README.md); the vault-specific steps below are unique to this plugin.
+
 ### Part A — Install the Plugin
 
 #### Claude Code (marketplace)

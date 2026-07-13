@@ -167,3 +167,5 @@ Rule prefixes: `DT.Terminology`, `DT.WordList`, `DT.VoiceTone`, `DT.Grammar`,
 
 This plugin is part of the `ihudak-plugins` marketplace. Install via Claude Code's
 plugin system — it will be available alongside `dev-workflows`.
+
+For marketplace install and prerequisites, see the [repo-root setup guide](../../README.md).

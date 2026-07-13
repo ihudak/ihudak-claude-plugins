@@ -41,6 +41,11 @@ Refuse to run without `depth`, `jira_key`, and at least one of
 
    - **`depth: full`** — for every linked item (including the root VI itself), read `<EXPORT_ROOT>/<LINKED_KEY>/<LINKED_KEY>.md`. For the VI itself, `<LINKED_KEY> == <jira_key>`, so the path resolves to `<EXPORT_ROOT>/<jira_key>/<jira_key>.md` (a nested same-named subdirectory — verified against real exports). Parse YAML frontmatter, extract the Description body, and collect PR URLs from the `## Pull Requests` section.
    - **`depth: vi-plus-epics`** — read the VI's own file at `<EXPORT_ROOT>/<jira_key>/<jira_key>.md` plus every Epic `.md` directly linked to the VI (filter the linked-items table to `type == Epic`). Skip Stories, Sub-tasks, Research, Request for Assistance. This gives Epic-writing workflows enough context to extract meaningful themes for `code-scanner` without reading the entire hierarchy.
+
+   For each Epic read at `vi-plus-epics`, also parse its YAML frontmatter and body and emit three additive fields on its `linked_items[]` entry (Epic-only, this depth only — absent elsewhere, so other consumers are unaffected):
+   - `team` — verbatim from the Epic frontmatter `team:` key; fall back to the `**Team:**` line in the `## Metadata` section; `""` when neither is present. Keep the value verbatim (e.g. `[DTT] Team Storage`) — do not strip the bracketed org-unit prefix.
+   - `refinement_candidate` — `true` when the Epic body carries no substantive free-text beyond its summary and the importer's structured boilerplate (`## Metadata`, a `## Details` field-dump of counts, `## Comments`): i.e. no populated `## Description`/scope/acceptance content, or such content merely restates the summary. `false` when the Epic already has real scope/acceptance prose. Heuristic only — it *proposes* refinement targets; the `/epics` Phase 3.5 gate lets the PE confirm/adjust the set.
+   - `scope_hint` — the Epic's dedicated description/scope free-text when present, else its `summary`.
    - **`depth: vi-only`** — read only the VI's own file at `<EXPORT_ROOT>/<jira_key>/<jira_key>.md` plus the index. Every linked item is nested under the root export directory; never look for `<EXPORT_ROOT>/<LINKED_KEY>/<LINKED_KEY>.md` (that path does not exist).
 
 3. **Extract capability themes.** Collect 2–4 short bullets summarising recurring topics across the items read. Themes may be sparse for `depth: vi-only`; callers that need richer themes should request `vi-plus-epics` or `full`.
@@ -127,6 +132,10 @@ linked_items:
     summary: <text>
     parent: <key | null>
     role:   root | linked | epic_child
+    # Epic-only, populated ONLY at depth: vi-plus-epics (absent at other depths):
+    refinement_candidate: true | false   # true = empty/almost-empty shell (no real Scope/Description/AC beyond summary + importer boilerplate)
+    team: <verbatim, e.g. "[DTT] Team Storage"; "" if absent>
+    scope_hint: <the Epic's description/scope free-text if present, else its summary>
 pull_requests:
   - url:         <full URL>
     host:        github_cloud | bitbucket_cloud | bitbucket_server | other

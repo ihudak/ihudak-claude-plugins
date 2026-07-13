@@ -2,37 +2,26 @@
 
 ## Input (impl orchestrator → impl-maintenance)
 
+The caller passes a **compact session handoff**:
+
 ```markdown
-## Implementation Summary
-repo: /absolute/path/to/repo
-change_type: feature       # feature | bugfix | security | refactor | test-only | docs
-description: >
-  Added OAuth2 login support with Google and GitHub providers.
-  Users can now log in via /auth/oauth/google and /auth/oauth/github.
-  Config requires OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET env vars.
-files_changed:
-  - path: src/auth/oauth.py
-    summary: "New OAuth2 flow; handles token exchange and user profile fetch"
-  - path: src/auth/routes.py
-    summary: "Added /auth/oauth/<provider> route"
-  - path: config/settings.py
-    summary: "Added OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET config keys"
-  - path: tests/test_oauth.py
-    summary: "New test file covering happy path and token expiry"
-kb_context: >
-  Used httpx-oauth library. Encountered redirect_uri mismatch issues on localhost;
-  resolved by normalising the URI before hashing for state param verification.
-model_routing:             # optional; echo in output if present.
-  classification: SIGNIFICANT  # See `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` for the full model-routing schema.
+Session handoff:
+- Command run: /implement
+- What was done: [1-paragraph summary — classification, component/CVE/task, scope]
+- Key events: [BLOCK reviews, test regressions, missing reference docs, workarounds needed, ambiguities that required user clarification, surprising compatibility issues — or "none"]
+- Workarounds used: [manual steps the workflow could not automate — or "none"]
+- Review verdict: [PASS | PASS WITH RECOMMENDATIONS | BLOCK (+ what the BLOCK was) | N/A]
+- Test result: [passed | regressions | not run]
+- Project root: [absolute path]
 ```
 
-**change_type guide:**
-- `feature` — new user-visible capability → always evaluate docs
-- `bugfix` — fixes broken behaviour → skip docs unless the fix changes usage
-- `security` / `vulnerability` — CVE or security patch → skip docs
-- `refactor` — internal restructuring, same external behaviour → skip docs
-- `test-only` — tests added/changed, no prod code change → skip docs
-- `docs` — documentation-only change → skip docs (work IS the docs)
+`Command run` is one of `/implement`, `/document` (direct mode), `/document`
+(Jira mode), `/epics`, `/vuln`, `/upgrade`, `/design`, `/specify`, or
+`/release-notes` — it scopes any "Command workflow improvements" suggestions to
+the right command. If `Command run` is missing from the handoff, default to
+`/implement` (the canonical code workflow) and note the substitution in the
+report's `### Session summary` so the caller notices and updates their
+invocation.
 
 ## Output (impl-maintenance → impl orchestrator)
 

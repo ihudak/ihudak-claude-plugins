@@ -3,19 +3,27 @@
 ## Input
 
 ```yaml
-repo_path: <absolute, e.g. /workspace/<repo-name>>
-repo_url_slug: <repo slug from PR URL; optional, enables upstream cross-check>
+repo_path:   <absolute path to a local clone, e.g. /workspace/<repo-name>>
+repo_url_slug: <repo slug from the PR URL, e.g. "cluster"; optional, enables upstream cross-check>
 pr_refs:
-  - url:         <full PR URL — used as identifier only, never fetched>
-    pr_id:       <numeric id as string>
-    issue_keys:  [<jira key(s) from link title>]
-    title_hint:  <link text from markdown>
+  - url:         <full PR URL>
+    host:        github_cloud | bitbucket_cloud | bitbucket_server | other
+    repo:        <repo name>
+    owner:       <github_cloud: <OWNER>; bitbucket_cloud: <WORKSPACE>; null otherwise>
+    pr_id:       <id>
+    branch_from: <feature branch from jira-reader>
+    branch_to:   <target branch from jira-reader>
+    title:       <link text>
     status:      MERGED | OPEN | DECLINED | UNKNOWN
 context: |
-  <2–4 sentences: Jira context>
+  <what this repo's PRs relate to — for documentation focus>
+jira_keys_hierarchy:   # optional; passed by caller to enable Strategy 4 cross-key grep
+  - <VI-KEY>
+  - <every Epic/Story/Sub-task/Research/RFA/Bug key discovered by jira-reader>
 refresh:
-  fetch: true
-  pull:  false
+  fetch: true   # default true
+  pull:  false  # default false — historical PR diffs do not need the current branch tip;
+                # pulling risks moving HEAD away from the merge commit we want to reach.
 model_routing:
   classification: SIGNIFICANT | MODERATE
   reason: <from orchestrator>
@@ -26,6 +34,14 @@ model_routing:
   opus_available: true | false
   gate_tests_on_review: false
 ```
+
+Refuse to run without `repo_path` and at least one element in `pr_refs`.
+
+When `repo_url_slug` is provided, before summarising run
+`git -C <repo_path> remote get-url origin`, strip a trailing `.git`, and compare
+the URL's last path segment to `repo_url_slug`. On mismatch, return
+`status: REPO_MISSING` with a note naming both slugs — do NOT summarise the wrong
+repository. When `repo_url_slug` is absent, trust `repo_path` as given.
 
 ## Output
 

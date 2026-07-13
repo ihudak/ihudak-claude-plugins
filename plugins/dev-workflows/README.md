@@ -290,7 +290,7 @@ These commands run fine on a bare host, but they depend on a few external tools 
 - `references/session-hygiene.md` — the prepare-checkpoint + role-aware `/compact` vs `/clear` suggestion + `/rename` aid (guidance-only)
 - `references/context-management.md` — mid-run context-window guidance cited by `/implement`
 - `references/pre-lint.md` — the deterministic advisory pre-reviewer grep checks (universal + per-artifact)
-- `references/escalation-rules.md` — when a run halts on a plugin gap or an unmounted repo, how to escalate
+- `references/escalation-rules.md` — canonical `choices:` prompt sets for the shared interactive escalation decision points (unresolved Jira key, unresolved / missing repo, dirty tree, refresh-blocked, reviewer BLOCK verdict)
 - `references/jira-input-resolution.md` — the shared Jira-input grammar front-end (JiraID / imported-dir / prompt) resolution
 - `references/workflow-states.md` — the readiness rubric + Jira-status → phase mapping consumed by `/ready`
 - `references/dependencies.md` — recommended companions (`superpowers`, `dt-style-guide`) + the external `jira-workitem-import` importer; every relationship is convention + runtime-resolve + graceful fallback

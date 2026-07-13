@@ -433,6 +433,11 @@ persists the plugin-facing slice of its report as session feedback.
 
 **Capture-at-block invariant.** This terminal phase captures gaps for a *completed* run. Separately, if an EARLIER phase **halts on a plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked), `emit-block` (per `references/feedback-emission.md`) at that halt **before** escalating — so a run abandoned at the block still records the gap. NEVER `emit-block` for a work-quality review BLOCK or an environment / user halt (repo/spec gate, jira-not-found, cancellation).
 
+**Session-hygiene invariant.** End the report with a `### Context hygiene` block per
+`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (`resume.md`), then a
+span suggestion (VI-level→`/epics` `/compact`; Epic-level→`/design` `/clear`) +
+`/rename <VI-ID>-<slug>-pe`. Guidance only, never auto-run.
+
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
    > "Analyse this session and return a Lessons Learned report.
    >
@@ -495,3 +500,13 @@ Report: feature-folder path; stage/user-story/AC/TC counts; open-question count;
 ### Next step
 
 End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): **Epic-level spec** (`<VI> <Epic>`) → hand to the team → `/design <VI> <Epic>`, and the **Epic fan-out** `/specify <VI> <another-Epic>` for a sibling Epic (breadth); **VI-level spec** (`<VI>` only) → `/epics <VI>` (PE). If the run BLOCKED or left open `- [ ]` items, recommend resolving those first.
+
+### Context hygiene
+
+Write the resume pointer at `<VI-dir>/dev-workflows/resume.md` (per `session-hygiene.md` §1). Then:
+
+- **VI-level spec → `/epics <VI>` (still PE)?** → run **`/compact`** — context still relevant.
+- **Epic-level spec → Team `/design <VI> <Epic>` (even yourself)?** → run **`/clear`** for a clean slate.
+- Consider **`/rename <VI-ID>-<slug>-pe`** to relocate this session later.
+
+Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.

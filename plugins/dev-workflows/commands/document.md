@@ -942,6 +942,15 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 [Per `references/next-phase-offer.md` — guidance only, never auto-invoked. Once **all** the VI's Epics are documented, draft/finalize the release note → `/release-notes <VI>` (VI-level; run once, not per Epic). If the review BLOCKED, resolve that first.]
 ```
 
+### Context hygiene
+
+Write the resume pointer at `<VI-dir>/dev-workflows/resume.md` (per `session-hygiene.md` §1). Then:
+
+- **On to `/release-notes <VI>` (docs → PM handoff), even yourself?** → run **`/clear`** for a clean slate; the docs are on disk.
+- Consider **`/rename <VI-ID>-<slug>-team`** to relocate this session later.
+
+Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
+
 ---
 
 ## Phase 10 — Emit follow-up tasks
@@ -1018,6 +1027,7 @@ the docs repo or the current working directory; no user name is ever written
 - ALWAYS end the Phase 9 report with a `### Next step` recommendation (per `references/next-phase-offer.md`) — guidance only, never auto-invoked; omitted in direct doc-edit mode (Mode B)
 - ALL written claims must be traceable to Jira keys or PR diffs; if only Jira is available, cite the Jira key alone
 - For `image_policy: cdn_upload_required`, NEVER copy user-provided screenshots into the repo — stage under `<screenshot_staging_dir>`, the ticket's persistent Obsidian project folder under `$VAULT_PATH` (never the docs repo, never `/tmp`) — and surface in the Phase 9 `### Screenshots to upload manually` section
+- ALWAYS end the Phase 9 report with a `### Context hygiene` block per `references/session-hygiene.md` — prepare-first (`resume.md`), then a docs→PM handoff suggestion (`/clear`) + `/rename <VI-ID>-<slug>-team`; guidance only, never auto-run. **Mode B (direct doc-edit) omits this** — no VI context.
 
 ---
 

@@ -16,7 +16,7 @@ All changes are left **uncommitted** on the current branch.
 
 ## Phase 1 — Compatibility Planning (no files changed)
 
-1. **Inventory** — Detect all components and their current versions from build files, runtime version files, and CI YAML. Use `references/upgrade/ecosystems.md`.
+1. **Inventory** — Detect all components and their current versions from build files, runtime version files, and CI YAML. Use `${CLAUDE_PLUGIN_ROOT}/references/upgrade/ecosystems.md`.
 
 2. **Resolve requested targets** — Apply the `Version Resolution` section below to each requested token.
 
@@ -185,7 +185,7 @@ Include the `impl-maintenance` lessons-learned report after the summary table.
 
 ## Invariants (always enforced)
 
-- ALWAYS `emit-block` (per `references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, jira-not-found, cancellation)
+- ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, jira-not-found, cancellation)
 - NEVER skip per-component classification after planning
 - NEVER use Opus for a `MODERATE` component unless the user explicitly asks for it
 - NEVER run tests for a `SIGNIFICANT` / `HIGH-RISK` component before the Opus review returns a non-BLOCK verdict
@@ -194,4 +194,4 @@ Include the `impl-maintenance` lessons-learned report after the summary table.
 - ALWAYS capture the baseline once before executing any component
 - ALWAYS pass the same baseline block to `upgrade-executor` on `phase: verify-resume`
 - ALWAYS include classification in the final summary table
-- After the run, suggest **`/compact`** (a big non-pipeline run) per `references/session-hygiene.md` §3 — compact-only, no clear/resume pointer; guidance only, never auto-run.
+- After the run, suggest **`/compact`** (a big non-pipeline run) per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §3 — compact-only, no clear/resume pointer; guidance only, never auto-run.

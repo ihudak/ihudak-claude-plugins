@@ -205,6 +205,16 @@ If `dt-style-guide` is not installed, skip this phase and note "style check skip
 
    ### Next step
    [leaf/closure per `references/next-phase-offer.md` — guidance only, never auto-invoked: the release note is drafted. If earlier pipeline phases remain, continue — hand to PA → `/create-ard <VI>` or PE → `/epics <VI>`; if the change is already built and documented, the VI is fully processed.]
+
+   ### Context hygiene
+
+   Write the resume pointer at `<VI-dir>/dev-workflows/resume.md` (per `session-hygiene.md` §1). Then:
+
+   - **Release note drafted and the VI fully processed?** → nothing to suggest — you're done.
+   - **A PA/PE phase still pending for this VI (e.g. `/create-ard`, `/epics`), even yourself?** → run **`/clear`** before switching roles.
+   - Consider **`/rename <VI-ID>-<slug>-pm`** to relocate this session later.
+
+   Guidance only — see `references/session-hygiene.md`.
    ```
 
 ---
@@ -309,3 +319,4 @@ user name is ever written (§10).
 - ALWAYS use `choices` arrays; the last choice is always `"Other… (describe)"`.
 - Light gate only — no Opus review, no tests, no branch, no commit.
 - ALWAYS end the Phase 8 report with a `### Next step` recommendation (per `references/next-phase-offer.md`) — guidance only, never auto-invoked; the pipeline leaf (adaptive: continue any pending PA/PE phase, else the VI is fully processed).
+- ALWAYS end the Phase 8 report with a `### Context hygiene` block per `references/session-hygiene.md` — prepare-first (`resume.md`), then a leaf-aware suggestion (done → nothing; pending role → `/clear`) + `/rename <VI-ID>-<slug>-pm`; guidance only, never auto-run.

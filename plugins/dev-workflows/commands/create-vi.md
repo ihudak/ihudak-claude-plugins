@@ -194,6 +194,17 @@ choices: ["Draft the release note now — /release-notes <KEY> (PM) (Recommended
 
 Guidance only — never auto-invokes another command. Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`.
 
+### Context hygiene
+
+Write/overwrite the resume pointer at `<VI-dir>/dev-workflows/resume.md` (per
+`session-hygiene.md` §1; the VI-Key is minted by the Jira round-trip, so **omit the
+session-name line** and name the session manually if useful). Then:
+
+- **Continuing as PM (`/release-notes <VI>` after the round-trip)?** → run **`/compact`**.
+- **Handing to PA (`/create-ard <VI>`) or PE (`/epics <VI>`), even yourself?** → run **`/clear`** for a clean slate.
+
+Guidance only — nothing is auto-run. See `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
+
 ---
 
 ## Phase 7 — Session maintenance, feedback & cost
@@ -201,6 +212,11 @@ Guidance only — never auto-invokes another command. Per `${CLAUDE_PLUGIN_ROOT}
 Terminal phase — runs after Phase 6, NEVER interrupts an earlier phase.
 
 **Capture-at-block invariant.** If an EARLIER phase **halts on a plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked), `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating. NEVER `emit-block` for an environment / user halt (missing key, unset `$SPECS_PATH`, cancellation) or a work-quality review BLOCK.
+
+**Session-hygiene invariant.** End Phase 6 with a `### Context hygiene` block per
+`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (write `resume.md`),
+then a span suggestion (PM continue → `/compact`; PA/PE handoff → `/clear`). No `/rename`
+label yet (no VI-Key). Guidance only, never auto-run.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`) with a compact handoff: command `/create-vi`; what was authored (VI + profile); key events (source-ladder friction, unresolved clarifications, BLOCK reviews — or 'none'); workarounds; the `vi-reviewer` verdict; test result N/A; project root = the feature folder.
 2. **Persist plugin feedback (automatic).** Cite `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6) with the Lessons Learned report, `command: /create-vi`, the run's `jira_key`, `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no plugin-facing signal — nothing persisted").

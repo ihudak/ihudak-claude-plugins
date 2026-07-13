@@ -134,6 +134,13 @@ Report where `idea.md` was written and its `status`, then offer the next phase �
 another command. (Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — the plugin-wide
 next-phase-offer contract; `/idea` is one reference implementation.)
 
+### Context hygiene
+
+Continuing to `/create-vi` (still the PM phase)? → run **`/compact`** to free context; your
+`idea.md` is already on disk. (No resume pointer or `/rename` label here — the VI-Key is
+minted later, and the ideation phase is short.) Guidance only — see
+`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
+
 ---
 
 ## Phase 6 — Session maintenance, feedback & cost
@@ -145,6 +152,10 @@ gap** (a capability the run needed but the plugin lacked), `emit-block` (per
 `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating — so a run
 abandoned at the block still records the gap. NEVER `emit-block` for an environment / user halt (bad
 `$VAULT_PATH`, source-not-found, cancellation).
+
+**Session-hygiene invariant.** End Phase 5 with a `### Context hygiene` note per
+`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — a same-role `/compact` suggestion
+(no `resume.md`, no `/rename`: pre-VI, short PM phase). Guidance only, never auto-run.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
    > "Analyse this session and return a Lessons Learned report.

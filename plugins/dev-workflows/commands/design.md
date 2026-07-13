@@ -6,7 +6,7 @@ allowed-tools: Read Edit Write Bash Glob Grep Task WebFetch LS
 
 Author an engineering design for the Jira item: $ARGUMENTS
 
-`/design` is the **Dev-phase engineering-design** workflow — phase 2 of the PM→Dev pipeline
+`/design` is the **Dev-phase engineering-design** workflow — the design step of the PM→PA→PE→Dev pipeline
 (`/specify` → `specification.md`; then `/design` → `design.md`). The developer *takes over* a merged
 `specification.md`, grounds in the **fully-mounted** implementation code, and authors a reviewed
 engineering `design.md` through a relentless one-question-at-a-time grill that **challenges** the spec
@@ -14,7 +14,7 @@ and **designs** the implementation. It gates on the Opus `design-reviewer` and o
 `design.md` + the spec's engineering-review edits on the specs repo's main branch (via branch + PR) so
 `/implement` can plan and build from it.
 
-Key distinction from `/specify`: `/specify` (PM) *authors* the requirements spec and grounds lightly
+Key distinction from `/specify`: `/specify` (PE) *authors* the requirements spec and grounds lightly
 (soft repo gate); `/design` (Dev) *challenges* that spec and *designs* the implementation, and must see
 **all** implementation repos — its repo gate is **strict** (hard-stop on any unmounted repo).
 

@@ -57,6 +57,8 @@ ID, delete a stray placeholder token); anything needing content goes back to the
 - `[NEEDS CLARIFICATION]` count ≤ 3 per Epic (epic-writer cap; >3 → MAJOR).
 - `## Covers` references parent-VI IDs (`US-N`/`AC-N`/`SM-N`); Epics do not mint their own criterion IDs.
 - A `_coverage.md` file is present in the output dir.
+- Refined Epic files (keyed `<EPIC-KEY>.md`, from `/epics` refinement mode) carry a `**Team:**` line
+  (`grep -nE '^\*\*Team:\*\*' <file>`) and a `## Scope` with real in/out bullets (not just the summary).
 
 ## design — `design.md` (`/design`; format `design-format.md`)
 

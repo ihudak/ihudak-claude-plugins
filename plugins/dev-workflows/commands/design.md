@@ -328,6 +328,10 @@ persists the plugin-facing slice of its report as session feedback.
 
 **Capture-at-block invariant.** This terminal phase captures gaps for a *completed* run. Separately, if an EARLIER phase **halts on a plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked), `emit-block` (per `references/feedback-emission.md`) at that halt **before** escalating — so a run abandoned at the block still records the gap. NEVER `emit-block` for a work-quality review BLOCK or an environment / user halt (repo/spec gate, jira-not-found, cancellation).
 
+**Session-hygiene invariant.** End the report with a `### Context hygiene` block per
+`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (`resume.md`), then a
+same-role `/compact` suggestion + `/rename <VI-ID>-<slug>-team`. Guidance only, never auto-run.
+
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
    > "Analyse this session and return a Lessons Learned report.
    >
@@ -393,3 +397,12 @@ and the `### Next step` recommendation (below).
 ### Next step
 
 End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): hand to the team → `/implement <VI> <Epic>` (depth); the **Epic fan-out** `/design <VI> <another-Epic>` designs a sibling Epic (breadth). If the run BLOCKED or `design.md` has open questions, recommend resolving those first.
+
+### Context hygiene
+
+Write the resume pointer at `<VI-dir>/dev-workflows/resume.md` (per `session-hygiene.md` §1). Then:
+
+- **Continuing on this Epic (`/ready` / `/implement <VI> <Epic>`) or the next Epic (`/design <VI> <Epic2>`) — all still Team?** → run **`/compact`** — context stays relevant.
+- Consider **`/rename <VI-ID>-<slug>-team`** to relocate this session later.
+
+Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.

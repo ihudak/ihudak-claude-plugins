@@ -17,7 +17,7 @@ it only interprets it.
 |---|---|---|---|
 | Open | PM | — | VI stub |
 | Problem Stated | PM | /idea, /create-vi | VI with Problem/Goal |
-| Use cases defined | PM | /create-vi (+ optional /specify <VI>) | VI with user stories / use cases; optional VI-level specification.md |
+| Use cases defined | PM | /create-vi | VI with user stories / use cases |
 | Ready for Implementation | PE→Team | /epics, /specify, /design | Epics defined; each in-scope Epic Refined+ with specification.md AND design.md; coverage complete; ARD (if any) respected; no cross-artifact contradictions |
 | Implementation | Team | /implement | code in progress (past the readiness gate) |
 | Release Preparation | Team/PM | /document, /release-notes | docs + release notes |

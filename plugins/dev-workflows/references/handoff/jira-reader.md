@@ -40,6 +40,12 @@ value_increment:
   status:  <text from frontmatter>
   goal:    <2–3 sentence extraction from the Description / Goal section>
 
+requirements_source: native | derived
+requirements:
+  - id:   <US-N | AC-N | SM-N | FR-N | UC-N | R1..>   # native VI id, else synthetic
+    type: story | criterion | metric | functional | usecase | derived
+    text: <requirement text>
+
 linked_items:
   - key:        <key>
     type:       ValueIncrement | Epic | Story | Sub-task | Research | "Request for Assistance"
@@ -47,8 +53,11 @@ linked_items:
     summary:    <text>
     parent:     <key | null>
     role:       root | linked | epic_child
-    team:       <text | null>
     not_found:  false      # true if the item file could not be read
+    # Epic-only, populated ONLY at depth: vi-plus-epics (absent at other depths):
+    refinement_candidate: true | false   # true = empty/almost-empty shell (no real Scope/Description/AC beyond summary + importer boilerplate)
+    team:       <verbatim, e.g. "[DTT] Team Storage"; "" if absent>
+    scope_hint: <the Epic's description/scope free-text if present, else its summary>
 
 pull_requests:
   - url:          <full URL>

@@ -179,85 +179,17 @@ transcript-computed estimate (a drift signal for refreshing the price table).
 
 ```mermaid
 flowchart TD
-    A["User runs /implement &lt;description&gt;"] --> H["preload-context hook injects<br/>model routing + git context"]
-    H --> P0["Phase 0: Load + classify inputs<br/>inline text, @file, spec/Jira folders, repos"]
-    P0 --> P1{"Phase 1:<br/>Any ambiguity?"}
-    P1 -->|Yes| Q["Ask user with choices<br/>last choice: Other..."]
-    Q --> P1
-    P1 -->|No| C["Phase 1.5: Classify task via model-routing skill<br/>SIMPLE / MODERATE / SIGNIFICANT / HIGH-RISK"]
-
-    C --> SCALE{"Pre-Phase 2:<br/>Multi-source input?<br/>(multi-repo or any folder)"}
-    SCALE -->|No| C2["Use Phase 1.5 classification"]
-    SCALE -->|Yes| FLOOR["Floor at SIGNIFICANT<br/>(overridable at approval)"]
-    FLOOR --> F17["Phase 1.7: fan-out scan<br/>jira-reader + code-scanner xN (cap 4)<br/>→ synthesize summary"]
-    F17 --> E2
-
-    C2 -->|SIMPLE / MODERATE| E1["Explore codebase<br/>read-only subagent"]
-    E1 --> SP["Phase 2A: Standard plan"]
-    SP --> AP{"User approves plan?"}
-    AP -->|Revise| SP
-    AP -->|Cancel| STOP1["Stop + summarize"]
-    AP -->|Approve| BR["Pre-Phase 3: Clean tree check<br/>stash/proceed/cancel if dirty<br/>create feature branch"]
-
-    C2 -->|SIGNIFICANT / HIGH-RISK| E2["Explore codebase (read-only)<br/>or use Phase 1.7 fan-out summary"]
-    E2 --> RP["Phase 2B: Opus risk-planner"]
-    RP --> RC{"Planner reclassifies?"}
-    RC -->|Accepted| SP
-    RC -->|No / override| OP["Present Opus plan"]
-    OP --> OPA{"User approves plan?"}
-    OPA -->|Revise| RP
-    OPA -->|Cancel| STOP2["Stop + summarize"]
-    OPA -->|Approve| BR
-
-    BR --> TB0["Pre-Phase 3.5:<br/>test-baseliner capture mode<br/>store original baseline"]
-
-    TB0 -->|SIMPLE / MODERATE| IMPLA["Phase 3A: Implement directly"]
-    IMPLA --> TW1["Phase 3.5: test-writer"]
-    TW1 --> FW1{"Test framework detected?"}
-    FW1 -->|No| ASKTEST1["Ask: specify command / skip / cancel"]
-    FW1 -->|Yes| LB1["Run lint/build"]
-    ASKTEST1 -->|Specify| LB1
-    ASKTEST1 -->|Skip| OUT1["Verify outcome"]
-    ASKTEST1 -->|Cancel| STOP3["Stop + summarize"]
-    LB1 --> TV1["test-baseliner verify mode<br/>against original baseline"]
-    TV1 --> REG1{"Regressions or new failures?"}
-    REG1 -->|Yes, max 2 attempts| FIX1["Session model fixes<br/>rerun verify"]
-    FIX1 --> TV1
-    REG1 -->|No / accepted| OUT1
-
-    TB0 -->|SIGNIFICANT / HIGH-RISK| IMPLB["Phase 3B: Implement<br/>do not run tests yet"]
-    IMPLB --> TW2["test-writer before review<br/>tests included in review diff"]
-    TW2 --> FW2{"Test framework detected?"}
-    FW2 -->|No| ASKTEST2["Ask before Opus review:<br/>specify / skip / cancel"]
-    FW2 -->|Yes| DIFF["Capture git diff + stat"]
-    ASKTEST2 -->|Specify or skip| DIFF
-    ASKTEST2 -->|Cancel| STOP4["Stop + summarize"]
-
-    DIFF --> CR["Opus code-review"]
-    CR --> VERDICT{"Review verdict"}
-    VERDICT -->|Reclassification accepted| POSTREV["Treat as PASS"]
-    VERDICT -->|PASS| POSTREV
-    VERDICT -->|PASS WITH RECOMMENDATIONS| RF1["review-fixer fixes<br/>BLOCKER/MAJOR findings"]
-    RF1 --> POSTREV
-    VERDICT -->|BLOCK| RF2["review-fixer fixes<br/>BLOCKER/MAJOR findings"]
-    RF2 --> REREV["One Opus re-review"]
-    REREV --> RB{"Still BLOCK?"}
-    RB -->|Yes| STOP5["Stop + ask user"]
-    RB -->|No| POSTREV
-
-    POSTREV --> LB2["Run Phase 3.5 after review gate clears<br/>lint/build + baseline verify"]
-    LB2 --> TV2["test-baseliner verify mode<br/>against original baseline"]
-    TV2 --> REG2{"Regressions or new failures?"}
-    REG2 -->|Yes, max 2 attempts| FIX2["Session model fixes<br/>rerun verify"]
-    FIX2 --> TV2
-    REG2 -->|No / accepted| OUT2["Verify outcome + review verdict"]
-    OUT2 --> REREV2{"Non-trivial test fixes<br/>and not down-classified?"}
-    REREV2 -->|Yes| CR
-    REREV2 -->|No| PH4
-
-    OUT1 --> PH4["Phase 4: Post-implementation maintenance"]
-    PH4 --> M1["Spawn 4 agents in parallel:<br/>Documentation, Knowledge base,<br/>Instructions, Session maintenance"]
-    M1 --> PH5["Phase 5: Final Implementation Report"]
+    IN["/implement"] --> C{"Classify complexity (model-routing)"}
+    C -->|SIMPLE · MODERATE| P1["Standard plan → approve"]
+    C -->|"SIGNIFICANT · HIGH-RISK (multi-source input floors here)"| P2["Opus risk-planner → approve"]
+    P1 --> BR["Branch + capture test baseline"]
+    P2 --> BR
+    BR --> IM["Implement"]
+    IM --> G{"SIGNIFICANT · HIGH-RISK?"}
+    G -->|Yes| RV["Opus code-review → review-fixer (gate before tests)"]
+    G -->|No| TS["test-writer + verify vs baseline (fix loop)"]
+    RV --> TS
+    TS --> MT["Post-impl maintenance (4 agents)"] --> RP["Final report"]
 ```
 
 `/document` (both modes) and `/epics` never run tests and never touch production code. Only `/document` (Jira mode) can create a branch (opt-in at plan approval, and only when a docs repo is detected) — and, also opt-in, squash + `git push` it and emit a copy-paste PR draft (it never opens the PR via an API).

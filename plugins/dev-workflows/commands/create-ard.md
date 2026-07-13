@@ -127,12 +127,27 @@ Write the ARD file(s) into the feature folder. Then **offer** (commit-when-asked
 
 Guidance only — never auto-invokes another command. Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`.
 
+### Context hygiene
+
+Write the resume pointer at `<VI-dir>/dev-workflows/resume.md` (per `session-hygiene.md`
+§1). The next step hands off from PA to PE/Team, so:
+
+- **Handing to PE (`/epics <VI>` / `/specify <VI> <Epic>`) or Team (`/design <VI> <Epic>`), even yourself?** → run **`/clear`** for a clean slate; the ARD is on disk.
+- Continuing to draft more ARD areas yourself right now? → **`/compact`** is fine.
+- Consider **`/rename <VI-ID>-<slug>-pa`** so you can find this session later.
+
+Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
+
 ---
 
 ## Phase 8 — Session maintenance, feedback & cost
 Terminal phase — runs after Phase 7, NEVER interrupts an earlier phase.
 
 **Capture-at-block invariant.** If an EARLIER phase **halts on a plugin / skill / command / reference gap**, `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating. NEVER `emit-block` for an environment / user halt (unset `$SPECS_PATH`, missing key, no-ARD-needed, unmounted-repo descope, cancellation) or a review BLOCK.
+
+**Session-hygiene invariant.** End Phase 7 with a `### Context hygiene` block per
+`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (`resume.md`), then a
+PA→PE/Team handoff suggestion (`/clear`) + `/rename <VI-ID>-<slug>-pa`. Guidance only, never auto-run.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`) with a compact handoff: command `/create-ard`; what was authored (ARD scope + grounded repos); key events (grounding gaps/descopes, BLOCK reviews — or 'none'); workarounds; the `ard-reviewer` verdict; test result N/A; project root = the feature folder.
 2. **Persist plugin feedback (automatic).** Cite `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6) with the report, `command: /create-ard`, the run's `jira_key`, `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no plugin-facing signal — nothing persisted").

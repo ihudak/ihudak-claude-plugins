@@ -604,6 +604,16 @@ The project root has uncommitted changes. `/epics` never commits — git managem
 
 ### Next step
 [Per `references/next-phase-offer.md` — guidance only, never auto-invoked. For each Epic just drafted, author its spec → `/specify <VI> <Epic>` (PE); the **Epic fan-out** (depth vs breadth) applies from the spec/design stage on. Optionally a Product Architect adds an Epic-level ARD first → `/create-ard <VI> <Epic>`. If the review BLOCKED, resolve that first.]
+
+### Context hygiene
+
+Write the resume pointer at `<VI-dir>/dev-workflows/resume.md` (per `session-hygiene.md` §1). Then:
+
+- **Continuing as PE (`/specify <VI> <Epic>`)?** → run **`/compact`** — context still relevant.
+- **Handing to PA (`/create-ard <VI> <Epic>`), even yourself?** → run **`/clear`** for a clean slate.
+- Consider **`/rename <VI-ID>-<slug>-pe`** to relocate this session later.
+
+Guidance only — see `references/session-hygiene.md`.
 ```
 
 ---
@@ -689,3 +699,4 @@ the current working directory; no user name is ever written (§10 privacy).
 - ALWAYS re-surface the code-scan default adaptively in Phase 3.5 for refine/both (ON at ≥2 targets, OFF at 1) — never in the generate path
 - ALWAYS run the Phase 6.2 leftover-disposition gate in refine/both when `_coverage.md` has `❌ gap` rows; silent no-op when none
 - Refinement mode (Phase 3.5 gate, `refinement_targets` handoff, leftover gate, keyed output) is ADDITIVE and guarded — no `refinement_candidate` targets AND no `focus_key` ⇒ `mode = generate` and the run is byte-identical to the legacy net-new flow
+- ALWAYS end the Phase 9 report with a `### Context hygiene` block per `references/session-hygiene.md` — prepare-first (`resume.md`), then a role-aware `/compact`|`/clear` suggestion + `/rename <VI-ID>-<slug>-pe`; guidance only, never auto-run.

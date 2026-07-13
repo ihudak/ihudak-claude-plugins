@@ -3,12 +3,17 @@
 ## Input
 
 ```yaml
-# Preferred (from the jira-input-resolution front-end): an explicit export root.
-jira_export_root: /absolute/path/to/jira-products/PRODUCT-14902
-# OR (legacy — /epics, /release-notes): vault path + key.
-vault_path: /absolute/path/to/vault
-jira_key:   PRODUCT-14902
-depth:      full | vi-only
+# Form 1 — preferred (from the jira-input-resolution front-end): explicit export root.
+jira_export_root: <absolute path to the ticket export dir, e.g. .../jira-products/PRODUCT-14902>
+jira_key:         <e.g. JIRA-12345>
+depth:            full | vi-plus-epics | vi-only
+
+# Form 2 — legacy (/epics, /release-notes): vault path + key
+# (export root is derived as <vault_path>/jira-products/<jira_key>).
+vault_path: <absolute path, e.g. /home/user/obsidian-vault>
+jira_key:   <e.g. JIRA-12345>
+depth:      full | vi-plus-epics | vi-only
+
 model_routing:
   classification: SIGNIFICANT | MODERATE
   reason: <from orchestrator>
@@ -19,6 +24,9 @@ model_routing:
   opus_available: true | false
   gate_tests_on_review: false
 ```
+
+Refuse to run without `depth`, `jira_key`, and at least one of
+`{jira_export_root, vault_path}`.
 
 ## Output
 

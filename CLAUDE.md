@@ -122,7 +122,7 @@ in their prompt; they do not re-read the file.
 /upgrade             → upgrade-planner → upgrade-executor → [code-review@Opus] → review-fixer → tests → impl-maintenance
 /idea                → idea-reader → (embedded grilling) → write idea.md
 /create-vi           → (embedded grilling) → [vi-reviewer@Opus] → write VI + relocate idea.md
-/create-ard          → [ls $REPOS_PATH → code-scanner×N (confirmed set, parallel, cap 4)] → (embedded grilling) → [ard-reviewer@Opus] → write ARD
+/create-ard          → [jira-reader (Epic-level always; VI-level only if the authored VI file is absent under $SPECS_PATH)] → [ls $REPOS_PATH → code-scanner×N (confirmed set, parallel, cap 4)] → (embedded grilling) → [ard-reviewer@Opus] → write ARD
 /specify             → jira-reader → [code-scanner×N (parallel, cap 4, soft gate)] → (embedded grilling) → [spec-reviewer@Opus] → write specification.md
 /design              → [code-scanner×N (parallel, cap 4, STRICT gate)] → (embedded grilling, challenges spec) → [design-reviewer@Opus] → write design.md
 /ready               → jira-reader + Jira status read → verify ARD/spec/design → [readiness-reviewer@Opus] → SUPPORTED/PARTIAL/NOT-SUPPORTED → impl-maintenance + emit-auto
@@ -136,13 +136,13 @@ in their prompt; they do not re-read the file.
                       └── doc-planner        (used by /document Jira mode)
                       └── docs-style-checker (used by /document Jira mode)
                       └── epic-reviewer      (used by /epics)
-                      └── code-scanner       (used by /epics and /implement multi-source fan-out)
-                      └── jira-reader        (used by /document, /epics, /release-notes, and /implement multi-source fan-out)
-                      └── vi-reviewer         (used by /create-vi)                       @Opus
-                      └── ard-reviewer        (used by /create-ard)                      @Opus
-                      └── spec-reviewer       (used by /specify)                         @Opus
-                      └── design-reviewer     (used by /design)                          @Opus
-                      └── readiness-reviewer  (used by /ready)                           @Opus
+                      └── code-scanner       (used by /epics, /implement multi-source fan-out, /create-ard, /specify, /design)
+                      └── jira-reader        (used by /document, /epics, /release-notes, /implement multi-source fan-out, /create-ard, /specify, /ready)
+                      └── vi-reviewer         (used by /create-vi)
+                      └── ard-reviewer        (used by /create-ard)
+                      └── spec-reviewer       (used by /specify)
+                      └── design-reviewer     (used by /design)
+                      └── readiness-reviewer  (used by /ready)
                       └── idea-reader         (used by /idea)
 /api-guideline-reviewer → standalone command; reviews OpenAPI specs against Dynatrace REST API + IAM guidance
 /guideline-reviewer     → standalone command; reviews code/UI against Dynatrace Experience Standards

@@ -1,6 +1,6 @@
 # dev-workflows
 
-Twelve workflow slash commands for idea refinement, VI authoring, architecture, structured implementation, one-shot doc edits, docs-repo profile scanning, Jira-driven feature documentation, Epic drafting, specification authoring, engineering design authoring, release-notes drafting, vulnerability remediation, and dependency upgrades — with Opus-backed risk planning, post-implementation code review, test regression detection, and prose-style / Opus doc review gates.
+Twenty slash commands spanning idea refinement, VI authoring, architecture (ARD), Epic drafting, specification authoring, engineering design, readiness gating, structured implementation, one-shot doc edits, docs-repo profile scanning, Jira-driven feature documentation, release-notes drafting, vulnerability remediation, and dependency upgrades — plus API and UI guideline reviewers and feedback/prompt/statusline utilities — with Opus-backed risk planning, post-implementation code review, test regression detection, and prose-style / Opus doc review gates.
 
 > Part of the `ihudak-plugins` marketplace — see the [repo-root setup guide](../../README.md) for marketplace install + prerequisites (env vars, `jira-workitem-import`, AI-Containers, first command).
 
@@ -31,6 +31,69 @@ Six of the seven dev-workflows commands — `/implement`, `/document` (both mode
 - Capture a pre-change test baseline and diff after changes
 
 `/implement` adds test-writing (Phase 3.5) between implementation and review, then verifies the baseline.
+
+## Workflow overview
+
+The commands form a role-based pipeline. Each role has a starting command and hands a concrete artifact to the next role. `/idea → /create-vi` (PM) opens it; `/document` + `/release-notes` (Dev) close it.
+
+```mermaid
+flowchart TD
+    subgraph PM["PM — ideation & framing"]
+        idea["/idea"] --> createvi["/create-vi"]
+        createvi --> rnpm["/release-notes (early draft)"]
+    end
+    subgraph PA["PA — architecture (optional)"]
+        createard["/create-ard"]
+    end
+    subgraph PE["PE — breakdown & specification"]
+        epics["/epics"]
+        specify["/specify"]
+    end
+    subgraph DEV["Dev — build"]
+        design["/design"] --> implement["/implement"]
+        implement --> document["/document"]
+        document --> rndev["/release-notes (final)"]
+    end
+    subgraph QA["QA — verification & gates"]
+        ready["/ready"]
+    end
+    subgraph ANY["Anytime — improve the plugin & utilities"]
+        improve["/feedback · /prompt · /prompt-brainstorm · /prompt-grill-me"]
+        maint["/vuln · /upgrade"]
+        tooling["/statusline · /docs-profile · /api-guideline-reviewer · /guideline-reviewer"]
+    end
+
+    createvi -->|VI| createard
+    createvi -->|VI| epics
+    createard -->|ARD| epics
+    epics -->|Epic drafts| specify
+    specify -->|specification.md| design
+    ready -. verifies .-> design
+```
+
+| Role | Starts with | Consumes | Produces → where it lands |
+|------|-------------|----------|---------------------------|
+| **PM** | `/idea`, `/create-vi <KEY>`, `/release-notes <VI>` | a prompt / community post / RFE; then a refined `idea.md` + a JIRA-KEY | `<KEY>_ValueIncrement.md` in `$SPECS_PATH/specifications/<KEY>-<slug>/` (idea.md relocated in); an early release-notes draft in the vault; paste-to-Jira → re-import to `$VAULT_PATH/jira-products/<KEY>/` |
+| **PA** *(optional)* | `/create-ard <VI> [<Epic>]` | the VI (and Epic) | `<VI>_ARD.md` / `<EPIC>-<area>_ARD.md` in the same specs feature folder |
+| **PE** | `/epics <VI>`, `/specify <VI> [<Epic>]` | the VI (+ ARD, existing Epics) | Epic drafts in `$VAULT_PATH/jira-drafts/<VI-KEY>/`; `specification.md` on the specs-repo main (branch + PR) |
+| **Dev** | `/design <VI> <Epic>`, `/implement <VI> <Epic>`, `/document <VI>`, `/release-notes <VI>` | the `specification.md` (+ ARD); `design.md`; the code repos | `design.md` on the specs-repo main; code + PR in `$REPOS_PATH`; product docs in the docs repo; the final release-notes draft in the vault |
+| **QA** | `/ready <VI \| Epic>` (+ the Opus reviewer gate embedded in every authoring/build command) | the Jira status + the ARD / spec / design artifacts | a `SUPPORTED` / `PARTIAL` / `NOT-SUPPORTED` verdict — read-only; sets no status |
+
+**Sources of truth & artifact homes**
+
+- **Jira** is the source of truth for workflow *status*. The external `jira-workitem-import` tool imports the ticket tree into `$VAULT_PATH/jira-products/<KEY>/`; the plugin reads status but **never sets it**.
+- **`$SPECS_PATH/specifications/<KEY>-<slug>/`** — the shared, team-visible home for the VI, ARD, `specification.md`, and `design.md`.
+- **`$VAULT_PATH`** — your personal store: `Projects/<area>/<slug>/idea.md`, the imported `jira-products/` tree, `jira-drafts/<VI-KEY>/` Epic drafts, and release-notes drafts.
+- **`$REPOS_PATH`** — the code clones (`/implement` works on branches + PRs here); product documentation is written into the external **docs repo**.
+- **Plugin-generated artifacts live in the specs repo.** Feedback, cost, and follow-up files are written under `<VI-dir>/dev-workflows/` in `$SPECS_PATH` — `<KEY>-feedback.md`, `cost/<sid8>.md`, and `<KEY>-followups.md`. **Committing and pushing these alongside the specs is expected and encouraged** — team-visible feedback and cost transparency is the point, not clutter.
+
+**Cross-cutting commands (any time)**
+
+- **Plugin improvement — please use these.** `/feedback` logs a note about the plugin itself; `/prompt`, `/prompt-brainstorm`, and `/prompt-grill-me` turn a correction you just made into logged feedback plus a fix. This is how the plugin keeps getting better — run them whenever something felt off, on any command.
+- **Standalone maintenance.** `/vuln` (CVE remediation) and `/upgrade` (dependency / runtime upgrades) run on their own, outside the VI pipeline.
+- **Setup & repo tooling.** `/statusline` (install the status line — run this first), `/docs-profile` (bootstrap a docs repo's profile), `/api-guideline-reviewer` and `/guideline-reviewer` (Dynatrace API / UI compliance reviews).
+
+*Legend: **Dev** is the plugin's "Team" lane; **QA** denotes verification and quality gates, not an artifact-authoring role; `/release-notes` appears twice because it serves a PM early draft (from the VI alone) and a Dev final draft (grounded in the merged PR diffs).*
 
 ## Session feedback
 

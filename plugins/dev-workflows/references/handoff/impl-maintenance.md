@@ -36,29 +36,58 @@ model_routing:             # optional; echo in output if present.
 
 ## Output (impl-maintenance → impl orchestrator)
 
-```markdown
-## Maintenance Report
-
-### Knowledge Base
-updated: ~/.claude/memory/oauth-patterns.md
-summary: "Added entry on redirect_uri normalisation gotcha with httpx-oauth"
-
-### Instructions
-no update required
-
-### Documentation
-updated: README.md
-summary: "Added OAuth2 Setup section with env var table and login URL examples"
-```
-
-OR when nothing needed:
+Return this exact shape (no preamble, no chatter):
 
 ```markdown
-## Maintenance Report
-### Knowledge Base
-no update required
-### Instructions
-no update required
-### Documentation
-no update required (bugfix / internal / non-visible change)
+## Session Learnings
+
+### Session summary
+[1–2 sentences on what was done and the overall outcome]
+
+### Key observations
+- [What happened / what was unexpected — one bullet per event]
+- ...
+- _or_ "No notable events — session followed standard workflow"
+
+### Suggested improvements
+
+#### CLAUDE.md rules
+- **Rule**: [proposed rule text, ready to paste]
+  **Rationale**: [why this would have helped]
+  **Scope**: [project-level CLAUDE.md | global ~/.claude/CLAUDE.md]
+- ...
+- _or_ "No new rules suggested"
+
+#### Hooks
+- **Hook**: [name and trigger (e.g. UserPromptSubmit, PostToolUse:Bash)]
+  **Purpose**: [what it would do]
+  **Rationale**: [why this would help]
+- ...
+- _or_ "No new hooks suggested"
+
+#### Reference docs
+- **File**: [path, e.g. ${CLAUDE_PLUGIN_ROOT}/references/upgrade/compatibility.md]
+  **Change**: [what to add or update]
+  **Rationale**: [what was missing that caused the workaround or ambiguity]
+- ...
+- _or_ "No reference doc gaps found"
+
+#### New agents / skills
+- **Agent**: [proposed name and one-line description]
+  **Purpose**: [what task it would handle; why it should be reusable]
+  **Suggested tools**: [list]
+- ...
+- _or_ "No new agents suggested"
+
+#### Command workflow improvements
+- **Command**: [/implement | /document (direct mode) | /document (Jira mode) | /epics | /vuln | /upgrade | /design | /specify | /release-notes]
+  **Section**: [Phase / step reference]
+  **Change**: [what to change and why]
+- ...
+- _or_ "No command improvements suggested"
+
+### Priority
+[HIGH — multiple observations point to the same gap | MEDIUM — single clear gap | LOW — minor polish only]
 ```
+
+This agent is suggest-only — it never writes, edits, or creates a file. The caller (the invoking command) is responsible for acting on any of the suggestions above.

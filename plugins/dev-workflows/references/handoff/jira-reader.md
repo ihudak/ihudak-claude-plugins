@@ -44,8 +44,8 @@ linked_items:
 
 pull_requests:
   - url:          <full URL>
-    host:         bitbucket | github | gitlab | other
-    project:      <project key or org from URL>
+    host:         github_cloud | bitbucket_cloud | bitbucket_server | other
+    owner:        <for github_cloud: the <OWNER> segment; for bitbucket_cloud: the <WORKSPACE> segment; null otherwise>
     repo:         <repo name slug from URL>
     pr_id:        <numeric id as string>
     status:       MERGED | OPEN | DECLINED | UNKNOWN

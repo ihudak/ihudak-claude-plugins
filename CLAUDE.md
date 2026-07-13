@@ -27,12 +27,10 @@ plugins/
 
 ## Active plugin: dev-workflows
 
-`plugins/dev-workflows/` contains three commands (`/impl`, `/vuln`, `/upgrade`) plus a growing set of `/impl:*` subcommands (including `/impl:docs:profile`),
-five agents, four hooks, and reference docs.
+`plugins/dev-workflows/` provides twenty slash commands — `/implement`, `/document`, `/docs-profile`, `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/api-guideline-reviewer`, `/guideline-reviewer`, `/idea`, `/create-vi`, `/create-ard`, `/specify`, `/design`, `/feedback`, `/prompt`, `/prompt-brainstorm`, `/prompt-grill-me`, `/statusline`, and `/ready` — plus thirty reusable subagents, four hooks, and reference docs.
 
-That count reflects the original bootstrap layout. The live `dev-workflows`
-workflow now relies on a larger set of helper agents and workflow roles; see
-the taxonomy and workflow map below.
+The live `dev-workflows` workflow relies on a larger set of helper agents and
+workflow roles; see the taxonomy and workflow map below.
 
 **Internal reference convention:**
 - Agents are invoked by `subagent_type` (`<plugin>:<agent>`, e.g. `dev-workflows:risk-planner`) — never by reading the agent file. Claude Code loads the agent body as its system prompt and honours its `model:` frontmatter.

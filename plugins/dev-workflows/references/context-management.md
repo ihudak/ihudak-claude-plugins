@@ -13,3 +13,7 @@ without degrading. Apply when the plan/step list is large or the run is nearing 
 
 Prefer the cheapest strategy that fits: checkpoint first; offload parallel steps only when they are
 genuinely independent; decompose only when a single unit still overflows.
+
+At each **checkpoint**, a long-run command may additionally suggest **`/compact`** to free
+context before continuing the next scope/Epic — see `references/session-hygiene.md` §3
+(mid-command → `/compact` only, never `/clear`; guidance-only).

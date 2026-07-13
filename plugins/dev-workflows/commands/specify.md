@@ -1,12 +1,12 @@
 ---
 name: specify
-description: Jira-driven specification-authoring workflow (PM phase). Reads a Jira Epic/VI from exported markdown, lightly grounds in code, and authors an org-standard specification.md through a relentless one-question-at-a-time grill; gates on the Opus spec-reviewer and lands the spec on the specs repo's main branch via branch + PR for the /design dev take-over.
+description: Jira-driven specification-authoring workflow (PE phase). Reads a Jira Epic/VI from exported markdown, lightly grounds in code, and authors an org-standard specification.md through a relentless one-question-at-a-time grill; gates on the Opus spec-reviewer and lands the spec on the specs repo's main branch via branch + PR for the /design dev take-over.
 allowed-tools: Read Edit Write Bash Glob Grep Task WebFetch LS
 ---
 
 Author a product specification for the Jira item: $ARGUMENTS
 
-`/specify` is the **PM-phase specification-authoring** workflow — phase 1 of the PM→Dev pipeline
+`/specify` is the **PE-phase specification-authoring** workflow — the specification step of the PM→PA→PE→Dev pipeline
 (`/specify` → `specification.md`; then `/design` → `design.md` + `plan.md`). Given a Jira Epic (or VI)
 key or an imported-Jira directory, it reads the item from pre-exported markdown, lightly scans code to
 ground feasibility, and authors an org-standard `specification.md` through a relentless
@@ -416,7 +416,7 @@ On **"Next Epic"**, **re-render the Phase 2 Step A progress-aware picker minus t
 
 ### Jira round-trip (document to the user — they will otherwise miss it)
 
-The end-to-end PM flow:
+The end-to-end flow:
 1. `/epics <VI>` drafts child Epic definitions.
 2. **You create those Epics in Jira** (manual — `/specify`/`/epics` never call Jira).
 3. **You re-import** the VI to `$VAULT_PATH/jira-products/<KEY>` so the new Epics appear in the export.

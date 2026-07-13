@@ -335,6 +335,16 @@ plugin-gap halt (see Invariants).
    [Per `references/next-phase-offer.md` — guidance only, never auto-invoked. SUPPORTED → Team →
    `/implement <VI> [<Epic>]`. PARTIAL / NOT-SUPPORTED → resolve the named gaps above and update the
    Jira status to match reality, then re-run `/ready <VI> [<Epic>]`.]
+
+   ### Context hygiene
+   Write the resume pointer at `<VI-dir>/dev-workflows/resume.md` (per `session-hygiene.md` §1;
+   record the readiness verdict as a carry-forward line). Then:
+
+   - **SUPPORTED → `/implement <VI> [<Epic>]` (still Team)?** → run **`/compact`** — context stays relevant.
+   - **PARTIAL / NOT-SUPPORTED → resolving the gaps yourself now?** → **`/compact`**.
+   - Consider **`/rename <VI-ID>-<slug>-team`** to relocate this session later.
+
+   Guidance only — see `references/session-hygiene.md`.
    ```
 
 `/ready` **NEVER** writes to Jira, `jira-products/`, or the vault, and **NEVER auto-commits**
@@ -533,3 +543,4 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits, and NEVER writes int
   ADDITIVE and guarded on `status: found` — a run with no ARD is byte-identical to before
 - ALL written claims trace to Jira keys (from `jira-reader`) or artifact paths actually read; never
   invent content the sources don't contain
+- ALWAYS end with a `### Context hygiene` block per `references/session-hygiene.md` — prepare-first (`resume.md`, verdict as carry-forward), then a same-role `/compact` suggestion + `/rename <VI-ID>-<slug>-team`; guidance only, never auto-run.

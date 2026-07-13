@@ -97,10 +97,12 @@ knowledge. Keep those roles separate so workflows stay predictable.
 - The `phase: verify-resume` protocol for review-gated verification
 - The large-input scan fan-out policy (§8): the input-shape trigger, the `jira-reader → parallel code-scanner (cap 4) → Opus synthesis` pattern, and the SIGNIFICANT floor it imposes
 
-All top-level commands that dispatch helper agents (`/implement`, `/document`,
-`/epics`, `/release-notes`, `/vuln`, `/upgrade`) must load and follow this file at the
-start of every invocation. Standalone review commands (`/api-guideline-reviewer`
-and `/guideline-reviewer`) are exempt. Agents receive the `model_routing` block
+All pipeline commands that invoke the `model-routing` skill (`/implement`, `/document`,
+`/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/docs-profile`, `/idea`, `/create-vi`,
+`/create-ard`, `/specify`, `/design`, `/ready`) must load and follow this file at the
+start of every invocation. The standalone review commands (`/api-guideline-reviewer`,
+`/guideline-reviewer`) and the feedback / utility commands (`/feedback`, `/prompt`,
+`/prompt-brainstorm`, `/prompt-grill-me`, `/statusline`) are exempt. Agents receive the `model_routing` block
 in their prompt; they do not re-read the file.
 
 ## Source-truth reference
@@ -118,6 +120,12 @@ in their prompt; they do not re-read the file.
 /release-notes       → jira-reader → [diff-summarizer×N (parallel, optional)] → [release-notes-writer] → [dt-style-checker → dt-doc-fixer (optional)] → write draft (paste into Jira)
 /vuln                → vuln-research → vuln-fixer → [code-review@Opus] → review-fixer → tests → impl-maintenance
 /upgrade             → upgrade-planner → upgrade-executor → [code-review@Opus] → review-fixer → tests → impl-maintenance
+/idea                → idea-reader → (embedded grilling) → write idea.md
+/create-vi           → (embedded grilling) → [vi-reviewer@Opus] → write VI + relocate idea.md
+/create-ard          → [ls $REPOS_PATH → code-scanner×N (confirmed set, parallel, cap 4)] → (embedded grilling) → [ard-reviewer@Opus] → write ARD
+/specify             → jira-reader → [code-scanner×N (parallel, cap 4, soft gate)] → (embedded grilling) → [spec-reviewer@Opus] → write specification.md
+/design              → [code-scanner×N (parallel, cap 4, STRICT gate)] → (embedded grilling, challenges spec) → [design-reviewer@Opus] → write design.md
+/ready               → jira-reader + Jira status read → verify ARD/spec/design → [readiness-reviewer@Opus] → SUPPORTED/PARTIAL/NOT-SUPPORTED → impl-maintenance + emit-auto
                       └── test-baseliner      (used by upgrade-executor, vuln-fixer, and /implement)
                       └── test-writer        (used by /implement only)
                       └── risk-planner       (used by /implement plan critique)
@@ -130,6 +138,12 @@ in their prompt; they do not re-read the file.
                       └── epic-reviewer      (used by /epics)
                       └── code-scanner       (used by /epics and /implement multi-source fan-out)
                       └── jira-reader        (used by /document, /epics, /release-notes, and /implement multi-source fan-out)
+                      └── vi-reviewer         (used by /create-vi)                       @Opus
+                      └── ard-reviewer        (used by /create-ard)                      @Opus
+                      └── spec-reviewer       (used by /specify)                         @Opus
+                      └── design-reviewer     (used by /design)                          @Opus
+                      └── readiness-reviewer  (used by /ready)                           @Opus
+                      └── idea-reader         (used by /idea)
 /api-guideline-reviewer → standalone command; reviews OpenAPI specs against Dynatrace REST API + IAM guidance
 /guideline-reviewer     → standalone command; reviews code/UI against Dynatrace Experience Standards
 ```
@@ -188,6 +202,15 @@ Key invariants for `/release-notes`:
 - NEVER writes into a docs repo; the default destination is persistent (never `/tmp`)
 - Light gate only — `dt-style-checker` (optional, skipped if `dt-style-guide` absent); no Opus review, no tests, no branch, no commit
 - Diff grounding is opt-in; when on, it reuses `$REPOS_PATH` resolution + `diff-summarizer`
+
+Key invariants for the VI-creation flow (`/idea`, `/create-vi`, `/create-ard`, `/specify`, `/design`, `/ready`):
+
+- Each authoring command is gated by its own Opus reviewer (`vi-reviewer`, `ard-reviewer`, `spec-reviewer`, `design-reviewer`; `/ready` by `readiness-reviewer`); `/idea` has no reviewer — its bounded grill is the gate
+- The embedded grill is **bounded** (≤5 questions; `--deep` on `/idea` relaxes it); leftover gaps become capped `[NEEDS CLARIFICATION]` markers + logged assumptions
+- VI / ARD / `specification.md` / `design.md` are written under `$SPECS_PATH/specifications/<KEY>-<slug>/`; `/idea` writes `idea.md` under `$VAULT_PATH` (pre-VI-Key)
+- `/create-ard` grounds on mounted repos it discovers (`$REPOS_PATH` listing + theme→repo proposal + confirm/mount-or-descope); it never reads PRs
+- `/ready` is **read-only** — it verifies the Jira status against the ARD/spec/design and never sets status
+- `/design`, `/implement`, `/specify`, `/epics` respect the applicable ARD via `references/ard-resolution.md`; an `AD-N` Rule violated without a recorded "ARD deviation" is a reviewer BLOCKER
 
 ## Test-writing requirement for code changes
 

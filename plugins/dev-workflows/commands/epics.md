@@ -454,6 +454,7 @@ Classification: MODERATE
 Files changed:
 <list of new Epic file paths, one per line>
 Notable additions/removals: [new Epics by slug — one line each]
+(In `refine`/`both` mode, refined Epics are identified by key `<EPIC-KEY>`, not slug.)
 Epic-review verdict: [PASS | PASS WITH RECOMMENDATIONS | BLOCK]
 ```
 
@@ -530,6 +531,8 @@ current working directory.
 ## Phase 9 — Final Report
 
 Output a structured report — do NOT ask any closing confirmation:
+
+**When `mode` is `refine`/`both`,** begin the report with a `Mode: <refine | both>` line and split the written-Epics listing into three labelled groups: **Refined** (keyed `<EPIC-KEY>.md`), **Net-new** (slug-named), and **Deferred** (VI requirements left uncovered via the Phase 6.2 leftover gate). In `generate` mode the report is unchanged.
 
 ```
 ## Jira-driven Epic Drafting Report

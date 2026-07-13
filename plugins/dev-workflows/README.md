@@ -75,7 +75,7 @@ flowchart TD
     createard -->|ARD| epics
     epics -->|Epic drafts| specify
     specify -->|specification.md| design
-    ready -. verifies spec+design .-> implement
+    ready -. verifies ARD/spec/design .-> implement
 ```
 
 | Role | Starts with | Consumes | Produces → where it lands |
@@ -110,9 +110,9 @@ so the plugin maintainer can aggregate feedback across engineers and plan
 improvements. Capture is **silent and high-recall** — there is no approval gate;
 curation is the maintainer's job, centrally, at analysis time.
 
-- **Automatic.** The end-of-run maintenance phase of all eleven workflow commands
+- **Automatic.** The end-of-run maintenance phase of all twelve workflow commands
   (`/implement`, `/document`, `/epics`, `/vuln`, `/upgrade`, `/release-notes`,
-  `/specify`, `/design`, `/idea`, `/create-vi`, `/create-ard`) projects the plugin-facing slice of the
+  `/specify`, `/design`, `/idea`, `/create-vi`, `/create-ard`, `/ready`) projects the plugin-facing slice of the
   `impl-maintenance` report (command workflow improvements, new agents/skills,
   reference-doc gaps) into a feedback entry (`origin: auto`). A routine session
   with no plugin-facing signal writes nothing.
@@ -245,7 +245,7 @@ Agents are dispatched by `subagent_type` (e.g. `dev-workflows:risk-planner`). Cl
 | Hook | Trigger | Description |
 |------|---------|-------------|
 | `notify-done` | Stop | Desktop notification when Claude Code finishes a turn. |
-| `preload-context` | UserPromptSubmit | Matches `/implement`, `/document`, `/docs-profile`, `/epics`, `/release-notes`, `/vuln`, `/upgrade` (with at least one non-flag argument), then routes: full git context + model-routing reminder for `/implement`, `/vuln`, `/upgrade`; `$VAULT_PATH` + `$REPOS_PATH` + git branch (only if cwd is a git repo) for the Jira-mode commands (`/document` with a JiraID, `/epics`, `/release-notes`); silent pass-through for `/document` (direct mode) and `/docs-profile` (user manages git manually). |
+| `preload-context` | UserPromptSubmit | Matches `/implement`, `/document`, `/epics`, `/release-notes`, `/vuln`, `/upgrade` (with at least one non-flag argument), then routes: full git context + model-routing reminder for `/implement`, `/vuln`, `/upgrade`; `$VAULT_PATH` + `$REPOS_PATH` + git branch (only if cwd is a git repo) for the Jira-mode commands (`/document` with a JiraID, `/epics`, `/release-notes`); silent pass-through for `/document` (direct mode) and `/docs-profile` (user manages git manually). |
 | `test-notify` | PostToolUse:Bash | Parses test-command output and sends a desktop notification with pass/fail counts. |
 | `changelog-owners-reminder` | PostToolUse:Edit\|Write\|MultiEdit | Warn-only `systemMessage` reminder when a dynatrace-docs content page is edited without a `changelog:` entry dated today, or (managed pages) without the required owners. Skips the changelog check for brand-new pages. Always exits 0. |
 

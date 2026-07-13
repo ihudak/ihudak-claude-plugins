@@ -4,6 +4,23 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.29.0] — 2026-07-13
+
+### Added
+
+- `references/session-hygiene.md` — the plugin-wide SSOT for **session-hygiene suggestions**: a prepare-checkpoint that flushes resume-critical state to `<VI-dir>/dev-workflows/resume.md`, then a role-aware `/compact` (same role) vs `/clear` (cross-role handoff) suggestion, plus a `/rename <VI-ID>-<slug>-<role>` session-name aid. Guidance-only — never auto-run.
+- A `### Context hygiene` block at the Final Report of every pipeline command (role-aware per `next-phase-offer.md`), and a mid-phase `/compact` suggestion at `/implement`'s checkpoint.
+
+### Changed
+
+- `/vuln` and `/upgrade` now end with a plain `/compact` suggestion (big non-pipeline runs).
+- `next-phase-offer.md` and `context-management.md` cross-reference `session-hygiene.md`.
+
+### Notes
+
+- No new command, agent, or hook — counts unchanged (Twenty slash commands / Thirty reusable subagents).
+- `/idea` and `/create-vi` (pre-VI-Key PM ideation) get the suggestion but no `resume.md`/`/rename`; direct/doc-edit modes omit the block.
+
 ## [2.28.0] — 2026-07-13
 
 ### Added

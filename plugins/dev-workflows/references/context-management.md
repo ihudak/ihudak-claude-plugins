@@ -15,5 +15,5 @@ Prefer the cheapest strategy that fits: checkpoint first; offload parallel steps
 genuinely independent; decompose only when a single unit still overflows.
 
 At each **checkpoint**, a long-run command may additionally suggest **`/compact`** to free
-context before continuing the next scope/Epic — see `references/session-hygiene.md` §3
+context before continuing the next scope/Epic — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §3
 (mid-command → `/compact` only, never `/clear`; guidance-only).

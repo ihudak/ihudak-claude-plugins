@@ -27,7 +27,7 @@ Receive one upgrade plan with `status: READY`.
 
 1. **Apply changes** — Update every file listed in the plan's `files` array.
    For each related upgrade in `related`, apply those version changes too.
-   Use ecosystem-appropriate commands (see `references/upgrade/ecosystems.md`).
+   Use ecosystem-appropriate commands (see `${CLAUDE_PLUGIN_ROOT}/references/upgrade/ecosystems.md`).
 
 2. **Build** — Run the project build (compile only). On failure see "Build failure" below.
 
@@ -36,7 +36,7 @@ Receive one upgrade plan with `status: READY`.
    - `status: REGRESSIONS` → follow "Test regression" below.
    - `status: RUN_FAILED` → revert all changes, set `status: BUILD_FAILED`.
 
-4. **Output** — Produce the summary record (see `references/handoff/upgrade-executor.md`).
+4. **Output** — Produce the summary record (see `${CLAUDE_PLUGIN_ROOT}/references/handoff/upgrade-executor.md`).
 
 ## Build failure
 

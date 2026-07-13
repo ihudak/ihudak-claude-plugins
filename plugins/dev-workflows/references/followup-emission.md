@@ -44,7 +44,7 @@ The run carries `source` (`vault | directory | none`) and, when Jira-driven, a
 `jira_key`. Resolve the task's home:
 
 1. **Vault writable (§4) AND the run has a `jira_key`** → locate the project
-   folder with the existing pattern (`references/finish-and-handoff.md`):
+   folder with the existing pattern (`${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md`):
 
        find "$VAULT_PATH"/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"
 

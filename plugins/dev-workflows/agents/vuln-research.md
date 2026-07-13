@@ -21,11 +21,11 @@ For each CVE in the input handoff:
 
 1. **Filter** — Skip non-CVE IDs (CWE-*, OWASP patterns). Record `status: SKIP_NON_CVE`.
 
-2. **NVD Lookup** — Fetch CVE details from the NVD API (see `references/fix-vuln/nvd-api.md`).
+2. **NVD Lookup** — Fetch CVE details from the NVD API (see `${CLAUDE_PLUGIN_ROOT}/references/fix-vuln/nvd-api.md`).
    Extract: description, affected package name, ecosystem, vulnerable version range.
    On failure: record `status: LOOKUP_FAILED` with the error, continue to next CVE.
 
-3. **Detect library** — Search the repo for the affected package (see `references/fix-vuln/build-systems.md`).
+3. **Detect library** — Search the repo for the affected package (see `${CLAUDE_PLUGIN_ROOT}/references/fix-vuln/build-systems.md`).
    If not found: record `status: NOT_IN_REPO`, continue.
 
 4. **Current version** — Read the current pinned version from the detected build file(s).
@@ -34,7 +34,7 @@ For each CVE in the input handoff:
    - Check the package registry for the lowest available version ≥ the patched boundary.
    - Prefer a patch bump; avoid a major version change unless no patch/minor fix exists.
 
-6. **Assemble output** — Produce one report entry per CVE (see `references/handoff/vuln-research.md` output format).
+6. **Assemble output** — Produce one report entry per CVE (see `${CLAUDE_PLUGIN_ROOT}/references/handoff/vuln-research.md` output format).
 
 ## Invariants
 

@@ -347,6 +347,21 @@ These commands run fine on a bare host, but they depend on a few external tools 
 `references/` contains the vendored reference docs the commands consult:
 
 - `references/model-routing/classification.md` — four-level complexity taxonomy, model fallback chain, and fan-out policy
+- `references/idea-format.md` — the lean one-page `idea.md` format authored by `/idea`
+- `references/vi-format.md` — the Value-Increment format (mandatory spine + adapt-in menu) authored by `/create-vi`
+- `references/ard-format.md` — the ARD format (`AD-N: Binds/Prevents/Rule`) authored by `/create-ard`
+- `references/specification-format.md` — the org-standard `specification.md` format authored by `/specify`
+- `references/design-format.md` — the engineering `design.md` format authored by `/design`
+- `references/ard-resolution.md` — most-specific-first ARD resolution (per-area → Epic-level → inherited VI-level) consumed by `/design`, `/implement`, `/specify`, `/epics`
+- `references/grilling-technique.md` — the embedded bounded one-question-at-a-time grilling SSOT (used by `/idea`, `/create-vi`, `/specify`, `/design`, `/prompt-grill-me`)
+- `references/next-phase-offer.md` — the role-aware next-step routing graph (PM → PA → PE → Team) emitted at the end of every pipeline command
+- `references/session-hygiene.md` — the prepare-checkpoint + role-aware `/compact` vs `/clear` suggestion + `/rename` aid (guidance-only)
+- `references/context-management.md` — mid-run context-window guidance cited by `/implement`
+- `references/pre-lint.md` — the deterministic advisory pre-reviewer grep checks (universal + per-artifact)
+- `references/escalation-rules.md` — when a run halts on a plugin gap or an unmounted repo, how to escalate
+- `references/jira-input-resolution.md` — the shared Jira-input grammar front-end (JiraID / imported-dir / prompt) resolution
+- `references/workflow-states.md` — the readiness rubric + Jira-status → phase mapping consumed by `/ready`
+- `references/dependencies.md` — recommended companions (`superpowers`, `dt-style-guide`) + the external `jira-workitem-import` importer; every relationship is convention + runtime-resolve + graceful fallback
 - `references/source-truth.md` — implementation-vs-description discrepancy-escalation protocol (consulted by `doc-planner`, `doc-reviewer`, `release-notes-writer`)
 - `references/fix-vuln/nvd-api.md` — NVD API shape, safe-version derivation
 - `references/fix-vuln/build-systems.md` — build system detection rules
@@ -364,6 +379,9 @@ These commands run fine on a bare host, but they depend on a few external tools 
 - `references/cost-emission.md` — the session-cost emitter shared by the terminal cost phase of the nine VI-lifecycle commands (session-artifact resolution, the chained-checkpoint model, `scripts/session-cost.py` invocation, the price table, the per-invocation entry format written to `<VI-dir>/dev-workflows/cost/<sid8>.md`, the specs-first ladder, pending/reconciliation, the optional statusline cross-check, attribution incl. the `/release-notes` inference, and the `emit-cost` caller contract). Self-contained; computes cost from transcript tokens × `references/cost-prices.yaml`.
 - `references/dynatrace-docs/changelog-guidelines.md` — dynatrace-docs changelog writing rules + managed owners policy (consulted by the `dynatrace-docs-frontmatter` skill)
 - `references/dynatrace-docs/managed-owners.txt` — managed-docs owner IDs unioned into `managed/_content/**` pages (read by the skill and the `changelog-owners-reminder` hook)
+- `references/dynatrace-docs/docs-profile-schema.md` — the `.dev-workflows/docs-profile.yml` schema written by `/docs-profile`
+- `references/dynatrace-docs/docs-profile.default.yml` — the built-in dynatrace-docs default profile used when a repo has none
+- `references/dynatrace-docs/frontmatter-guidelines.md` — dynatrace-docs frontmatter rules (description length, content-type enum, i18n-priority) applied by `/document` (Jira mode)
 
 ## Architecture (ARD) consumption
 

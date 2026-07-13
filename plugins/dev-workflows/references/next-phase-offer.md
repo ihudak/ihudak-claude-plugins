@@ -79,6 +79,6 @@ commands are NOT part of the linear VI→docs pipeline and carry no next-phase o
 ## Session hygiene co-fires here
 
 The `### Next step` this contract produces is immediately followed by a
-`### Context hygiene` block (`references/session-hygiene.md`): the compact-vs-clear
+`### Context hygiene` block (`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`): the compact-vs-clear
 choice reads the SAME role labels computed here (same role → `/compact`; role handoff →
 `/clear`). This reference owns the role graph; `session-hygiene.md` only reads it.

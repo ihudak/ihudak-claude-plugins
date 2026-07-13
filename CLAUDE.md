@@ -97,40 +97,39 @@ knowledge. Keep those roles separate so workflows stay predictable.
 - The `phase: verify-resume` protocol for review-gated verification
 - The large-input scan fan-out policy (§8): the input-shape trigger, the `jira-reader → parallel code-scanner (cap 4) → Opus synthesis` pattern, and the SIGNIFICANT floor it imposes
 
-All top-level commands that dispatch helper agents (`/impl`, `/impl:docs`,
-`/impl:jira:*`, `/vuln`, `/upgrade`) must load and follow this file at the
+All top-level commands that dispatch helper agents (`/implement`, `/document`,
+`/epics`, `/release-notes`, `/vuln`, `/upgrade`) must load and follow this file at the
 start of every invocation. Standalone review commands (`/api-guideline-reviewer`
 and `/guideline-reviewer`) are exempt. Agents receive the `model_routing` block
 in their prompt; they do not re-read the file.
 
 ## Source-truth reference
 
-`plugins/dev-workflows/references/source-truth.md` is the **single source of truth** for the Implementation-vs-Description discrepancy-escalation protocol. It is consulted by `doc-planner`, `doc-reviewer`, and `release-notes-writer` to verify user-visible claims (option lists, UI labels, menu paths, defaults, counts, mode names) against the shipped source code, and defines the escalation protocol when Jira and source disagree (Phase 5.8 in `/impl:jira:docs`).
+`plugins/dev-workflows/references/source-truth.md` is the **single source of truth** for the Implementation-vs-Description discrepancy-escalation protocol. It is consulted by `doc-planner`, `doc-reviewer`, and `release-notes-writer` to verify user-visible claims (option lists, UI labels, menu paths, defaults, counts, mode names) against the shipped source code, and defines the escalation protocol when Jira and source disagree (Phase 5.8 in `/document` (Jira mode)).
 
 ## `dev-workflows` workflow relationships
 
 ```
-/impl:code           → /impl → [Pre-Phase 2 scale assessment] → (multi-source? → [jira-reader → code-scanner×N (parallel, cap 4)] → synthesis) → [risk-planner@Opus plan critique] → [code-review@Opus] → review-fixer → test-writer → tests → impl-maintenance
-/impl                → dispatcher / help page; does not run a workflow
-/impl:docs           → /impl:docs → [doc-reviewer] → [doc-fixer] → impl-maintenance
-/impl:docs:profile   → scans docs repo → writes/refreshes .dev-workflows/docs-profile.yml + CLAUDE.md guidance → PR
-/impl:jira:docs      → /impl:jira:docs → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [doc-planner] → [discrepancy-escalation (Phase 5.8)] → writing → [docs-style-checker → dt-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [doc-fixer] → impl-maintenance
-/impl:jira:epics     → /impl:jira:epics → jira-reader → [code-scanner×N (parallel, optional)] → writing → [dt-style-checker] → [doc-fixer] → [epic-reviewer@Opus] → [doc-fixer] → impl-maintenance
-/impl:jira:release-notes → /impl:jira:release-notes → jira-reader → [diff-summarizer×N (parallel, optional)] → [release-notes-writer] → [dt-style-checker → dt-doc-fixer (optional)] → write draft (paste into Jira)
+/implement           → [Pre-Phase 2 scale assessment] → (multi-source? → [jira-reader → code-scanner×N (parallel, cap 4)] → synthesis) → [risk-planner@Opus plan critique] → [code-review@Opus] → review-fixer → test-writer → tests → impl-maintenance
+/document (direct)   → [doc-reviewer] → [doc-fixer] → impl-maintenance
+/docs-profile        → scans docs repo → writes/refreshes .dev-workflows/docs-profile.yml + CLAUDE.md guidance → PR
+/document (Jira)     → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [doc-planner] → [discrepancy-escalation (Phase 5.8)] → writing → [docs-style-checker → dt-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [doc-fixer] → impl-maintenance
+/epics               → jira-reader → [code-scanner×N (parallel, optional)] → writing → [dt-style-checker] → [doc-fixer] → [epic-reviewer@Opus] → [doc-fixer] → impl-maintenance
+/release-notes       → jira-reader → [diff-summarizer×N (parallel, optional)] → [release-notes-writer] → [dt-style-checker → dt-doc-fixer (optional)] → write draft (paste into Jira)
 /vuln                → vuln-research → vuln-fixer → [code-review@Opus] → review-fixer → tests → impl-maintenance
 /upgrade             → upgrade-planner → upgrade-executor → [code-review@Opus] → review-fixer → tests → impl-maintenance
-                      └── test-baseliner      (used by upgrade-executor, vuln-fixer, and /impl:code)
-                      └── test-writer        (used by /impl:code only)
-                      └── risk-planner       (used by /impl:code plan critique)
-                      └── code-review        (used by /impl:code, /vuln, /upgrade)
-                      └── doc-reviewer       (used by /impl:docs and /impl:jira:docs)
-                      └── doc-fixer          (used by /impl:docs and /impl:jira:*)
-                      └── doc-location-finder (used by /impl:jira:docs)
-                      └── doc-planner        (used by /impl:jira:docs)
-                      └── docs-style-checker (used by /impl:jira:docs)
-                      └── epic-reviewer      (used by /impl:jira:epics)
-                      └── code-scanner       (used by /impl:jira:epics and /impl:code multi-source fan-out)
-                      └── jira-reader        (used by /impl:jira:* and /impl:code multi-source fan-out)
+                      └── test-baseliner      (used by upgrade-executor, vuln-fixer, and /implement)
+                      └── test-writer        (used by /implement only)
+                      └── risk-planner       (used by /implement plan critique)
+                      └── code-review        (used by /implement, /vuln, /upgrade)
+                      └── doc-reviewer       (used by /document)
+                      └── doc-fixer          (used by /document, /epics, /release-notes)
+                      └── doc-location-finder (used by /document Jira mode)
+                      └── doc-planner        (used by /document Jira mode)
+                      └── docs-style-checker (used by /document Jira mode)
+                      └── epic-reviewer      (used by /epics)
+                      └── code-scanner       (used by /epics and /implement multi-source fan-out)
+                      └── jira-reader        (used by /document, /epics, /release-notes, and /implement multi-source fan-out)
 /api-guideline-reviewer → standalone command; reviews OpenAPI specs against Dynatrace REST API + IAM guidance
 /guideline-reviewer     → standalone command; reviews code/UI against Dynatrace Experience Standards
 ```
@@ -144,7 +143,7 @@ Key invariants enforced by all three code-oriented commands:
 - `review-fixer` handles BLOCKER findings; only one `review-fixer` cycle per review
 - `impl-maintenance` runs post-batch to update KB, `CLAUDE.md`, and project docs
 
-Key invariants for `/impl:code` specifically:
+Key invariants for `/implement` specifically:
 
 - Test baseline captured **before** any source edits, using `test-baseliner`
 - `test-writer` writes tests for **new or changed behaviour** — mandatory for code changes
@@ -154,17 +153,17 @@ Key invariants for `/impl:code` specifically:
 - The fan-out runs `jira-reader` + per-repo `code-scanner` (single response, cap 4 concurrent); its synthesized summary feeds the planner instead of the single Explore subagent
 - A referenced directory that is missing or unrecognized is surfaced, never silently skipped
 
-Key invariants for `/impl:docs`:
+Key invariants for `/document` (direct mode):
 
 - **No branch creation by default** — it works on the current branch unless the user requests one
 - **No `test-baseliner`, no `test-writer`, no `code-review`** — docs-only phases only
 - `doc-reviewer` performs comprehensive review: links, headings, wikilinks, style, completeness
 - BLOCKER findings trigger a fix cycle via `doc-fixer` (max one fix + one re-review); CONCERNs are recorded and may be fixed inline
-- Mixed code + docs changes must use `/impl:code` instead
+- Mixed code + docs changes must use `/implement` instead
 
-Key invariants for `/impl:jira`:
+Key invariants for `/document` (Jira mode) and `/epics`:
 
-- Subcommand dispatch is explicit: `/impl:jira:docs`, `/impl:jira:epics`; bare `/impl:jira` must dispatch intentionally
+- `/document` (Jira mode) and `/epics` are distinct top-level commands, each invoked explicitly
 - **Zero external API calls** — PR URLs from Jira exports are identifiers only; no `gh`, no Bitbucket REST API, no HTTPS fetch to Bitbucket; all resolution is local `git` against clones discovered under `$REPOS_PATH` (default `/workspace`), matched by `git remote get-url origin` slug
 - `jira-reader` is strictly read-only — it never modifies vault files
 - Parallel agent invocation: all diff summarizers (docs flow) or code scanners (epics flow) are launched in a **single response**
@@ -181,7 +180,7 @@ Key invariants for `/impl:jira`:
 - Every written claim must cite the originating Jira key (`[[KEY]]`) plus PR URL (docs flow) or file path (epics flow)
 - Writes never touch `_archive/` and never write outside cwd unless the user provides an explicit absolute path
 
-Key invariants for `/impl:jira:release-notes`:
+Key invariants for `/release-notes`:
 
 - **Zero external API calls** — PR URLs are identifiers only; all resolution is local `git` against clones under `$REPOS_PATH`
 - `jira-reader` is read-only
@@ -192,14 +191,14 @@ Key invariants for `/impl:jira:release-notes`:
 
 ## Test-writing requirement for code changes
 
-Any `/impl:code` (or `/impl`) invocation that touches source code **must**
+Any `/implement` invocation that touches source code **must**
 produce at least one passing test for each new or changed behaviour before the
 workflow is considered complete.
 
 - Prefer unit tests; use integration or end-to-end tests only if that is the project's established pattern
 - Tests must be meaningful (assert specific behaviour), deterministic, and follow existing project conventions
 - If no test framework is detected, the workflow surfaces this explicitly — it never silently skips test-writing
-- Docs-only changes (`/impl:docs`) are exempt from this requirement
+- Docs-only changes (`/document`) are exempt from this requirement
 
 ## Updating installed plugins after editing
 

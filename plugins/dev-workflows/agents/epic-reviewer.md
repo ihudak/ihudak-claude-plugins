@@ -52,9 +52,13 @@ Refuse to review without the written file paths and the `jira-reader` handoff. T
 | References | Jira parent link to the VI is present. Code paths from `code-scanner` are cited where relevant (especially when `classification == present` or `partial` anchors a reuse argument). Every cited path must appear in a `code-scanner` `evidence.path` if `code-scanner` output was provided. |
 | Structural integrity | Headings are well-formed and follow a consistent level hierarchy across all Epic files in the batch. `[[wikilinks]]` resolve (within the vault if the paths are absolute / vault-relative). Markdown renders without broken fences, unclosed emphasis, or malformed lists. |
 | Requirement coverage | Every VI requirement in `requirements[]` is covered by an existing or new Epic; `❌ gap` rows in `_coverage.md` → MAJOR. A `Covers` id not in `requirements[]` → MINOR. `requirements[]` may also include `spec-story`/`spec-criterion` rows sourced from a VI-level spec (via `/epics` Phase 2.6) — treat them identically to VI requirements (uncovered → MAJOR). |
-| Epic independence | Each Epic delivers its value without any not-yet-built Epic (no forward dependency). A forward dependency → MAJOR (resequence/merge). |
+| Epic independence | Each Epic delivers its value without any not-yet-built Epic. A forward dependency on an Epic that does not yet exist → MAJOR (resequence/merge). **Exception (refinement mode):** a dependency between two Epics in the same refined `refinement_targets` set is legal (it encodes real cross-team build order) and is judged by the Cross-team dependency sanity dimension, not flagged here. |
 | Terminology drift (internal) | The same concept is named consistently across all Epics in the batch. Inconsistency → MINOR/NIT. Corporate terminology is dt-style-checker's job, not this dimension. |
 | ARD conformance (conditional) | Only when `applicable_ard` is present: an Epic violating a VI-level `AD-N` without a matching `- ARD deviation: … flag: architect` line → BLOCKER; with one → allowed-but-flagged. Absent → dimension skipped. |
+| Refinement completeness (conditional) | Only when the brief includes `refinement_targets`: every target is actually filled — a still-empty target (no real Scope/Acceptance content beyond the summary) is a BLOCKER. Absent → dimension skipped. |
+| Partition integrity (conditional) | Only in refinement mode: the union of the refined targets' `## Covers` spans the intended VI slice with no silent overlap (two targets claiming the same requirement without a stated split → MAJOR) and no unflagged uncovered requirement. Absent → skipped. |
+| Cross-team dependency sanity (conditional) | Only in refinement mode: inter-target `## Dependencies` are present where a build order exists and are acyclic. A dependency on a not-yet-existing Epic still → MAJOR. Absent → skipped. |
+| Team preserved (conditional) | Only in refinement mode: each refined Epic records a `**Team:**` line matching its target's team. Missing/wrong team → MINOR (or the retained `[NEEDS CLARIFICATION]` when the import lacked it). Absent → skipped. |
 
 ## Output
 
@@ -108,6 +112,18 @@ Return this exact shape (no preamble, no chatter):
 
 #### Terminology drift
 - ...
+
+#### Refinement completeness
+- _"N/A — no refinement targets"_ when the brief omitted `refinement_targets`, else findings.
+
+#### Partition integrity
+- _"N/A — not refinement mode"_ when not applicable, else findings.
+
+#### Cross-team dependency sanity
+- _"N/A — not refinement mode"_ when not applicable, else findings.
+
+#### Team preserved
+- _"N/A — not refinement mode"_ when not applicable, else findings.
 
 #### ARD conformance
 - _"N/A — no applicable ARD"_ when `applicable_ard` was omitted, else findings.

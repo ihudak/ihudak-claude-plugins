@@ -4,6 +4,8 @@ description: Scans a single code repository for existing capabilities and gaps r
 tools: ["Read", "Glob", "Grep", "LS", "Bash"]
 ---
 
+Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/code-scanner.md` for the exact input/output document format.
+
 Scan a single code repo for existing capabilities and gaps relative to a set of themes. One instance per repo; the caller — `/epics` (Epic scoping), `/implement` (multi-source implementation scoping), or `/specify` (light capability scan for spec feasibility grounding) — spawns up to 4 concurrent instances per batch.
 
 **Distinction from `diff-summarizer`.** That agent reads *merged PR diffs* for features already implemented; this agent reads *present-day code* for features being scoped. There are no PRs to diff — just filesystem search to understand what exists and what needs to be built.

@@ -30,7 +30,7 @@ model_routing:
 ## Output
 
 ```yaml
-status: OK | REPO_MISSING | DIRTY_TREE | REFRESH_BLOCKED | EMPTY
+status: OK | PARTIAL | REPO_MISSING | DIRTY_TREE | REFRESH_BLOCKED | EMPTY
 
 repo:       <repo name (last segment of repo_path)>
 repo_path:  <absolute path>
@@ -42,7 +42,7 @@ prep:
 
 capability_map:
   - theme:          <theme text>
-    classification: present | partial | absent
+    classification: present | partial | absent | error
     evidence:
       - path:    <file path relative to repo root>
         symbols: [<class/function names found>]
@@ -50,6 +50,7 @@ capability_map:
     gap_summary: |
       <required when classification is partial or absent>
       <2–4 sentences: what is missing or needs to be implemented>
+    error: <only when classification == error — one-line reason>
 
 reusable_components: |
   <1–2 paragraphs: what existing code the new Epic can build on>
@@ -62,7 +63,8 @@ gap_summary: |
 
 | Status            | Meaning                                                                        |
 |-------------------|--------------------------------------------------------------------------------|
-| `OK`              | Scan completed; `capability_map` populated.                                    |
+| `OK`              | Every theme was scanned and classified (including `absent`, a legitimate scan result, not a failure). |
+| `PARTIAL`         | Scan completed but at least one theme has `classification: error`. Failing themes do NOT abort the scan; mirrors `diff-summarizer`'s `PARTIAL` status. |
 | `REPO_MISSING`    | `repo_path` does not exist.                                                    |
 | `DIRTY_TREE`      | Working tree is dirty and refresh was requested; orchestrator must escalate.   |
 | `REFRESH_BLOCKED` | `git checkout` or `git pull` failed (RO mount, network, etc.); orchestrator escalates. |

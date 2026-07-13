@@ -43,7 +43,7 @@ prep:
 per_pr:
   - pr_id:          <id>
     url:            <url>
-    resolved_via:   pr_ref | branch_search | merge_commit | issue_grep | unresolved
+    resolved_via:   pr_ref | branch_search | merge_commit | jira_key_commits | gh_cli | unresolved
     base:           <sha | null>
     head:           <sha | null>
     files_changed:  <count>

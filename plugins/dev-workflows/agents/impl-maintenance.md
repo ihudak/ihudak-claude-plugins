@@ -4,6 +4,8 @@ description: Post-session maintenance agent. Reads what happened during an imple
 tools: ["Read", "Glob", "Grep", "LS"]
 ---
 
+Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/impl-maintenance.md` for the exact input/output document format.
+
 Post-session lessons-learned analyst. Receives a compact session handoff and
 produces a structured report of suggested improvements to project and system
 tooling.

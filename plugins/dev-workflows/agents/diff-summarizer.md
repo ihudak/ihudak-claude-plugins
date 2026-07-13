@@ -4,6 +4,8 @@ description: Reads a single code repository's PR diff(s) and returns a documenta
 tools: ["Read", "Glob", "Grep", "LS", "Bash"]
 ---
 
+Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/diff-summarizer.md` for the exact input/output document format.
+
 Summarise a single code repository's PR diff(s) from a documentation-consumer's point of view. One instance per repo; the caller (the `/document` command) spawns up to 4 concurrent instances per batch.
 
 ## Inputs

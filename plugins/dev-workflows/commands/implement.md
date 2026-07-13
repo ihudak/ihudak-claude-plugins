@@ -602,7 +602,6 @@ Output a structured report — do NOT ask any closing confirmation:
 
 ### Next step
 [Per `references/next-phase-offer.md` — guidance only, never auto-invoked. Jira mode: finish the remaining Epics under the VI (breadth) — `/implement <VI> <another-Epic>` — and, once **all** Epics are implemented, `/document <VI>` then `/release-notes <VI>` (both VI-level, run once). Depth vs breadth is the team's call. Direct mode: no forward pipeline step (omit). If review is still BLOCK, resolve that first.]
-```
 
 ### Context hygiene
 
@@ -613,6 +612,7 @@ Write the resume pointer at `<VI-dir>/dev-workflows/resume.md` (per `session-hyg
 - Consider **`/rename <VI-ID>-<slug>-team`** to relocate this session later.
 
 Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
+```
 
 ---
 

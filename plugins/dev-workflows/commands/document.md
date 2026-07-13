@@ -940,7 +940,6 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 
 ### Next step
 [Per `references/next-phase-offer.md` — guidance only, never auto-invoked. Once **all** the VI's Epics are documented, draft/finalize the release note → `/release-notes <VI>` (VI-level; run once, not per Epic). If the review BLOCKED, resolve that first.]
-```
 
 ### Context hygiene
 
@@ -950,6 +949,7 @@ Write the resume pointer at `<VI-dir>/dev-workflows/resume.md` (per `session-hyg
 - Consider **`/rename <VI-ID>-<slug>-team`** to relocate this session later.
 
 Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
+```
 
 ---
 

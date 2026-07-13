@@ -36,6 +36,8 @@ it only interprets it.
 | In Review | Team | /implement | PRs in review (past the gate) |
 | Closed | Team | — | merged/done |
 
+> When the PE has pre-created empty Epic shells in Jira (one per team), `/epics <VI>` detects and **refines** them in place — partitioning the VI scope across teams — instead of generating net-new Epics. Same `Open → Epic draft` transition; the refined drafts are keyed `<EPIC-KEY>.md` and carry a `**Team:**` line.
+
 ## Readiness targets (for `/ready`)
 
 - **VI** — "ready for AI-driven development" = the artifacts support the transition into **Ready for Implementation**.

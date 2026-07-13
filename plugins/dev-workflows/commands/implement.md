@@ -409,6 +409,8 @@ Use the currently selected model or Sonnet for implementation itself. Opus is re
 For a long step list, apply `${CLAUDE_PLUGIN_ROOT}/references/context-management.md` — checkpoint at N,
 offload parallel-safe (`[P]`) steps to subagents, or decompose — so the run does not degrade as context fills.
 
+At each checkpoint, also consider suggesting **`/compact`** to free context before the next scope/Epic (per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §3 — mid-command → `/compact` only, never `/clear`; guidance only).
+
 1. Work through each step in order
 2. Make precise, surgical changes — do not modify unrelated code
 3. Follow existing code style and LF line endings
@@ -602,6 +604,16 @@ Output a structured report — do NOT ask any closing confirmation:
 [Per `references/next-phase-offer.md` — guidance only, never auto-invoked. Jira mode: finish the remaining Epics under the VI (breadth) — `/implement <VI> <another-Epic>` — and, once **all** Epics are implemented, `/document <VI>` then `/release-notes <VI>` (both VI-level, run once). Depth vs breadth is the team's call. Direct mode: no forward pipeline step (omit). If review is still BLOCK, resolve that first.]
 ```
 
+### Context hygiene
+
+*(Jira mode only — omit this whole block in direct-prompt mode, like the `### Next step` above.)*
+Write the resume pointer at `<VI-dir>/dev-workflows/resume.md` (per `session-hygiene.md` §1). Then:
+
+- **More Epics to build (`/implement <VI> <Epic2>`) or on to `/document <VI>` — same build lane?** → run **`/compact`** — context stays relevant.
+- Consider **`/rename <VI-ID>-<slug>-team`** to relocate this session later.
+
+Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
+
 ---
 
 ## Phase 6 — Emit follow-up tasks
@@ -685,3 +697,4 @@ the code repo or the current working directory; no user name is ever written
 - ALWAYS fan out `code-scanner` one-per-repo in a single response, capped at 4 concurrent — never sequentially
 - NEVER silently skip a referenced `@dir` that is missing or unrecognized — surface it and ask (classification.md §8.4)
 - Scanning agents (`jira-reader`, `code-scanner`) are pinned to the §2.1 detection (Sonnet) chain like every mechanical step (never inherit the session model); escalate a single scanner to Opus only when one repo slice is oversized
+- ALWAYS end the Phase 5 report with a `### Context hygiene` block per `references/session-hygiene.md` — prepare-first (`resume.md`), then a same-lane `/compact` suggestion + `/rename <VI-ID>-<slug>-team`; **omitted in direct mode** (no VI/Epic context, no `resume.md`); the Phase 3B checkpoint additionally suggests `/compact` mid-run. Guidance only, never auto-run.

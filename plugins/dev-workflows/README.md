@@ -68,7 +68,7 @@ flowchart TD
     createard -->|ARD| epics
     epics -->|Epic drafts| specify
     specify -->|specification.md| design
-    ready -. verifies .-> design
+    ready -. verifies spec+design .-> implement
 ```
 
 | Role | Starts with | Consumes | Produces → where it lands |

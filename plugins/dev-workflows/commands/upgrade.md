@@ -142,13 +142,15 @@ All changes are left **uncommitted** on the current branch.
 
 5. **Resume verify step after review** — Re-invoke `upgrade-executor` with `phase: verify-resume`, the original `READY` plan, and the same baseline block captured in Phase 2 prep.
 
-6. **Collect results** — Accumulate one summary row per component. Preserve the classification, review verdict, related upgrades applied, and any regression notes.
+6. **If the executor returns `status: TEST_REGRESSION`**, follow "Handling Test Failures" below, then re-invoke `upgrade-executor` with `phase: regression-resume` + the chosen `regression_decision`, the original `READY` plan, and the same baseline block.
 
-7. **Post-batch maintenance** — After all components finish, invoke `impl-maintenance` with a compact session handoff summarising what was upgraded, key failures or workarounds, and the overall result. **Always pass `Command run: /upgrade`** in that handoff — omitting it makes `impl-maintenance` default to `/implement`, mislabeling the run.
+7. **Collect results** — Accumulate one summary row per component. Preserve the classification, review verdict, related upgrades applied, and any regression notes.
+
+8. **Post-batch maintenance** — After all components finish, invoke `impl-maintenance` with a compact session handoff summarising what was upgraded, key failures or workarounds, and the overall result. **Always pass `Command run: /upgrade`** in that handoff — omitting it makes `impl-maintenance` default to `/implement`, mislabeling the run.
 
 **Context hygiene.** This was a large run — consider **`/compact`** to free context before your next task (per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §3 — non-pipeline, so `/compact` only; guidance only).
 
-8. **Persist plugin feedback (automatic)** — After `impl-maintenance` returns, project its plugin-facing slice into the specs repo by citing `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its `emit-auto` entry point (§6). Pass the Lessons Learned report, `command: /upgrade`, the run's `jira_key` (or `null`) and `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto` renders only the report's **Command workflow improvements**, **New agents / skills**, and plugin **Reference docs** sections plus the **Key observations** that triggered them (§4 plugin-facing predicate) — never target-project `CLAUDE.md`/hook advice — as `origin: auto` entries, dedupes by stable `id` (§3), resolves the target via the §2 specs-first ladder, and writes silently. List the persisted path (or "no plugin-facing signal — nothing persisted") after the lessons-learned report. ADDITIVE — this step NEVER fails the run, NEVER commits, and NEVER writes into the code repo or the current working directory.
+9. **Persist plugin feedback (automatic)** — After `impl-maintenance` returns, project its plugin-facing slice into the specs repo by citing `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its `emit-auto` entry point (§6). Pass the Lessons Learned report, `command: /upgrade`, the run's `jira_key` (or `null`) and `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto` renders only the report's **Command workflow improvements**, **New agents / skills**, and plugin **Reference docs** sections plus the **Key observations** that triggered them (§4 plugin-facing predicate) — never target-project `CLAUDE.md`/hook advice — as `origin: auto` entries, dedupes by stable `id` (§3), resolves the target via the §2 specs-first ladder, and writes silently. List the persisted path (or "no plugin-facing signal — nothing persisted") after the lessons-learned report. ADDITIVE — this step NEVER fails the run, NEVER commits, and NEVER writes into the code repo or the current working directory.
 
 ---
 
@@ -180,6 +182,25 @@ Tests: 142 passed, 0 regressions (baseline: 142 passing)
 ```
 
 Include the `impl-maintenance` lessons-learned report after the summary table.
+
+---
+
+## Handling Test Failures
+
+`upgrade-executor` cannot prompt the user directly — dispatched subagents have no access to
+interactive tools, even when one is listed in their `tools:`. When it returns
+`status: TEST_REGRESSION` (previously-green tests now failing, not auto-fixable), the
+**orchestrator** (this command, running in the interactive session) handles the decision:
+
+- Present the failing tests clearly (from the executor's `failing_tests` / `diagnosis`).
+- Ask:
+  ```
+  choices: ["Keep the upgrade and leave the failing tests for you to fix", "Revert this upgrade and skip it", "Investigate further before deciding", "Other… (describe)"]
+  ```
+- **"Investigate further"** → show more detail (the diff, full failure output) and re-ask
+  the same choices — this loops here at the orchestrator until the user picks keep or revert.
+- Map the final choice to `regression_decision: keep-anyway | revert` and re-invoke
+  `upgrade-executor` with `phase: regression-resume` (see Phase 2 step 6).
 
 ---
 

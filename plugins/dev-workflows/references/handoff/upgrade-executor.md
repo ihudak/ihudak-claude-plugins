@@ -7,7 +7,10 @@ The upgrade plan from upgrade-planner with `status: READY`, plus baseline info:
 ```markdown
 ## Upgrade Execution Request
 repo: /absolute/path/to/repo
-phase: full                # full (default) | verify-resume — see "Phase" below
+phase: full                # full (default) | verify-resume | regression-resume — see "Phase" below
+regression_decision: keep-anyway  # keep-anyway | revert — REQUIRED on phase: regression-resume only;
+                            # the orchestrator obtains this from the user (subagents cannot prompt
+                            # the user directly — see /upgrade "Handling Test Failures")
 baseline:                    # The orchestrator (upgrade/SKILL.md Phase 2 Step 1)
                              # ALWAYS captures the baseline before invoking this
                              # agent — this agent never re-baselines.
@@ -46,12 +49,15 @@ related:
 - `full` (or omitted) — apply changes, build, verify, output. Default.
 - `verify-resume` — second-call protocol after Opus review. Skip steps 1–2
   (changes are already applied and built); resume at step 3 (Verify).
+- `regression-resume` — second-call protocol after the orchestrator asked the
+  user about a `TEST_REGRESSION` return. Skip straight to "Test regression"
+  step 4; requires `regression_decision`.
 
 ## Output (upgrade-executor → orchestrator)
 
 ```markdown
 ## Upgrade Result: spring-boot
-status: OK              # OK | BUILD_FAILED | SKIPPED | TEST_REGRESSION_KEPT | TEST_REGRESSION_REVERTED | AWAITING_REVIEW
+status: OK              # OK | BUILD_FAILED | SKIPPED | TEST_REGRESSION | TEST_REGRESSION_KEPT | TEST_REGRESSION_REVERTED | AWAITING_REVIEW
 component: spring-boot
 from: "3.1.4"
 to: "3.3.11"
@@ -70,8 +76,14 @@ model_routing:           # echoed back when present in input
 - `OK` — all changes applied, all previously-green tests still green
 - `BUILD_FAILED` — build failed, all changes reverted for this component
 - `SKIPPED` — component was NOT_FOUND or user chose to skip
-- `TEST_REGRESSION_KEPT` — regressions present, user chose to keep upgrade
-- `TEST_REGRESSION_REVERTED` — regressions present, user chose to revert
+- `TEST_REGRESSION` — regressions present, not auto-fixable, awaiting a user
+  decision. This agent cannot ask the user (subagents have no interactive
+  tools), so it stops here — see `notes` for the failing-test list and
+  diagnosis. The orchestrator asks the user (per `/upgrade` "Handling Test
+  Failures"), then re-invokes this agent with `phase: regression-resume` +
+  `regression_decision: keep-anyway | revert`.
+- `TEST_REGRESSION_KEPT` — the `regression-resume` call's `regression_decision` was `keep-anyway`
+- `TEST_REGRESSION_REVERTED` — the `regression-resume` call's `regression_decision` was `revert`
 - `AWAITING_REVIEW` — `gate_tests_on_review: true` was set; changes are
   applied and the build succeeded, but tests have **not** been run yet.
   The orchestrator must perform the Opus code review, then re-invoke this
@@ -95,6 +107,28 @@ files_changed:                # full list — needed by the orchestrator's Opus 
   - pom.xml
   - subproject/build.gradle
 notes: null                   # or any in-place adjustments made during apply
+model_routing:
+  classification: SIGNIFICANT
+  gate_tests_on_review: true
+```
+
+### TEST_REGRESSION output shape
+
+```markdown
+## Upgrade Result: spring-boot
+status: TEST_REGRESSION
+component: spring-boot
+from: "3.1.4"
+to: "3.3.11"
+related_applied:
+  - {component: hibernate, from: "6.2.0", to: "6.4.0"}
+tests_before: 142
+tests_after: 140
+regressions: 2
+failing_tests:                # full list — the orchestrator shows these to the user
+  - com.example.OrderTest#testCreate
+diagnosis: <one-line: likely cause, e.g. "Hibernate 6.4 changed default fetch type">
+notes: null
 model_routing:
   classification: SIGNIFICANT
   gate_tests_on_review: true

@@ -106,6 +106,10 @@ task(
 )
 ```
 
+If the fixer returns `status: TEST_REGRESSION`, follow "Handling Test Failures" below, then
+re-invoke `vuln-fixer` with `phase: regression-resume` + the chosen `regression_decision`,
+passing the same CVE input verbatim.
+
 ### SIGNIFICANT / HIGH-RISK path
 
 1. **Capture baseline at the orchestrator** using the existing `test-baseliner` agent. Keep the full baseline block (`passing_count` and `passing_tests`).
@@ -148,6 +152,11 @@ task(
 
 4. **Resume the fixer after review** — Re-invoke `vuln-fixer` with `phase: verify-resume`, the same baseline block, and the original research report re-supplied verbatim.
 
+5. **If the fixer returns `status: TEST_REGRESSION`** (from step 4's resumed verify), follow
+   "Handling Test Failures" below, then re-invoke `vuln-fixer` with `phase: regression-resume` +
+   the chosen `regression_decision`, the same baseline block, and the original research report
+   re-supplied verbatim.
+
 ---
 
 ## Step 4 — Summarise
@@ -173,14 +182,20 @@ Then invoke `impl-maintenance` with a compact session handoff covering the CVEs 
 
 ## Handling Test Failures
 
-If the fix causes previously-green tests to fail and a quick investigation does not reveal an obvious fix:
+`vuln-fixer` cannot prompt the user directly — dispatched subagents have no access to
+interactive tools, even when one is listed in their `tools:`. When it returns
+`status: TEST_REGRESSION` (previously-green tests now failing, not auto-fixable), the
+**orchestrator** (this command, running in the interactive session) handles the decision:
 
-- Present the failing tests clearly.
-- Ask the user whether to:
-  1. apply the fix anyway and flag the failures in the PR description,
-  2. revert the fix, or
-  3. investigate further.
-- Honor the user's choice.
+- Present the failing tests clearly (from the fixer's `failing_tests` / `diagnosis`).
+- Ask:
+  ```
+  choices: ["Apply the fix anyway and flag the failures in the PR (Recommended if tests are flaky)", "Revert this fix and skip it", "Investigate further", "Other… (describe)"]
+  ```
+- **"Investigate further"** → show more detail (the diff, full failure output) and re-ask
+  the same choices — this loops here at the orchestrator until the user picks apply or revert.
+- Map the final choice to `regression_decision: keep-anyway | revert` and re-invoke
+  `vuln-fixer` with `phase: regression-resume` (see Step 3).
 
 ---
 

@@ -7,7 +7,7 @@ description: >
   the new version's API changes. Invoked sequentially by the /upgrade command orchestrator.
   NOT triggered by direct user prompts. Leaves all changes uncommitted on the
   current branch.
-tools: ["Read", "Glob", "Grep", "LS", "Bash", "Edit", "Task", "AskUserQuestion"]
+tools: ["Read", "Glob", "Grep", "LS", "Bash", "Edit", "Task"]
 ---
 
 # upgrade-executor — Upgrade Execution Agent
@@ -25,6 +25,10 @@ Receive one upgrade plan with `status: READY`.
 > invocation. Resume at step 3 (Verify). Treat any `baseline` in the input
 > as authoritative; do not re-baseline. Default phase (omitted or
 > `phase: full`) runs all steps.
+>
+> If the input includes `phase: regression-resume`, **skip steps 1-3** —
+> jump straight to "Test regression" step 4 below, honoring the
+> `regression_decision: keep-anyway | revert` supplied by the orchestrator.
 
 1. **Apply changes** — Update every file listed in the plan's `files` array.
    For each related upgrade in `related`, apply those version changes too.
@@ -46,14 +50,20 @@ Receive one upgrade plan with `status: READY`.
 
 ## Test regression
 
+Subagents have no access to interactive tools — `AskUserQuestion` is unavailable even if
+granted, so this agent can never ask the user directly. The orchestrator owns that decision.
+
 1. Determine whether failures are caused by the upgraded component (API rename, removed annotation, changed behaviour).
-2. **Auto-fix** if straightforward: rename imports, update assertion syntax, adjust config. Explain every change in the output.
-3. If not auto-fixable, ask the user via `ask_user`:
-   > "These tests were passing before the upgrade. Would you like me to:"
-   - "Keep the upgrade and leave the failing tests for you to fix"
-   - "Revert this upgrade and skip it"
-   - "Investigate further before deciding"
-4. Honor the choice; record in output.
+2. **Auto-fix** if straightforward: rename imports, update assertion syntax, adjust config. Explain every change in the output, then proceed to step 4 (Output).
+3. If not auto-fixable: **stop here.** Return `status: TEST_REGRESSION` with the full list of
+   newly-failing tests and a one-line diagnosis of the likely cause. The orchestrator asks the
+   user (see `/upgrade` "Handling Test Failures") and re-invokes this agent with
+   `phase: regression-resume` + `regression_decision`.
+4. **On `phase: regression-resume`:** honor `regression_decision`:
+   - `keep-anyway` → set `status: TEST_REGRESSION_KEPT`, proceed to Output, leaving the failing
+     tests documented in `notes` for the user to fix.
+   - `revert` → revert all changes for this component, set `status: TEST_REGRESSION_REVERTED`, return.
+   Record the outcome in the output record.
 
 ## Invariants
 

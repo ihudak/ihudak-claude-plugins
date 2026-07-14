@@ -3,8 +3,9 @@
 ## Input
 
 ```yaml
-jira_reader_handoff: <full YAML from jira-reader; see agents/jira-reader.md output schema>
+jira_reader_handoff: <full YAML from jira-reader; see ${CLAUDE_PLUGIN_ROOT}/references/handoff/jira-reader.md output schema>
 diff_summaries:      <optional array of diff-summarizer outputs; one entry per repo; omit when diff-grounding is off>
+code_repos:          <optional array of {slug, path}; provided when diff-grounding is on — enables the writer's Source-truth check>
 release_versions:    [<parsed version strings, e.g. "Managed (344)", "SaaS (344)">]   # derived by the command from release_versions frontmatter; [] when none declared
 context_label_hint:  <optional 1–2 short category labels the user suggested; null otherwise>
 model_routing:
@@ -46,6 +47,9 @@ gaps:
   - field:              <context_label | feature_title | prose | release_version>
     reason:             <why this is low-confidence or missing>
     recommended_action: "ask user" | "mark TODO in draft"
+    jira_phrasing:      <only for source-truth discrepancies — the draft's current (Jira-derived) phrasing>
+    source_phrasing:    <only for source-truth discrepancies — what the source code actually shows>
+    source_location:    <only for source-truth discrepancies — file:line the source_phrasing was verified against>
 ```
 
 `status: PARTIAL` when at least one gap has `recommended_action: "ask user"`.

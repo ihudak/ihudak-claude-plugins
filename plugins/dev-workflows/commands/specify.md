@@ -44,7 +44,7 @@ specification* for a single item (typically an Epic). Run `/epics` first, then `
    with a clear error naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`) —
    there is no vault-relative fallback for this write target the way there is for reads.
 
-3. **Resolve the feature folder** (design §7). Derive provisional kebab-case slugs from the relevant
+3. **Resolve the feature folder.** Derive provisional kebab-case slugs from the relevant
    Jira item title(s) (from the index/summary — finalized once `jira-reader` runs in Phase 2, but a
    provisional slug is enough to check for existing folders now): `<vslug>` for the `<VI>` title, and
    `<eslug>` for the `<EPIC>` title when `focus_key` is set.

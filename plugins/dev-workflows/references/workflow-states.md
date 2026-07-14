@@ -43,4 +43,4 @@ it only interprets it.
 - **VI** — "ready for AI-driven development" = the artifacts support the transition into **Ready for Implementation**.
 - **Epic** — = the artifacts support the transition into **Refined** (spec **and** design present). **In Progress / In Review / Closed** are *past* the gate — `/ready` reports the gate is moot.
 
-The rubric is advisory: an org may skip an optional artifact (e.g. no ARD) — that downgrades to CONCERN, never a hard block on its own.
+The rubric is advisory: an org may skip an optional artifact (e.g. no ARD) — that downgrades to a MINOR finding, never a hard block on its own.

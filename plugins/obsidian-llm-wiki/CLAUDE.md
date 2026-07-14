@@ -28,7 +28,7 @@ with `skills/` (which are relative to this plugin's installation directory).
 | `/wiki-save` | Save current conversation as a wiki page |
 | `/wiki-lint` | Run wiki health check, produce lint report |
 | `/wiki-hot` | Manually refresh the hot cache |
-| `/wiki-tags-refresh` | Sync wiki tags with vault's tag-index.md |
+| `/wiki-tags-refresh [directory]` | Sync tags with vault's tag-index.md; scans the whole vault by default |
 | `/wiki-task <description>` | Create a single task from natural language (effort, tags, priority, dates) |
 | `/wiki-tasks-extract [wiki-path]` | Batch-extract tasks from wiki content after ingest |
 | `/wiki-init` | Initialize vault integration (first run or after plugin update) |

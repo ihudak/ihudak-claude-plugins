@@ -219,7 +219,7 @@ artifact paths from Phase 1 (the reviewer Reads each end-to-end itself — it ca
 `Grep`/`LS`), the Phase 2 declared statuses, `applicable_ard` (omit entirely when Phase 2.5 was `none`),
 and a pointer to the rubric.
 
-→ Agent (subagent_type: "dev-workflows:readiness-reviewer"):
+→ Agent (subagent_type: "dev-workflows:readiness-reviewer", model: `<review_model — §2 Opus chain; frontmatter-pinned, recorded, no override>`):
   > "Review readiness for this brief:
   >
   > Task description: [one paragraph: <VI> [+ <EPIC>], the declared status(es), what is being verified]

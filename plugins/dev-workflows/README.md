@@ -23,7 +23,7 @@ Twenty slash commands spanning idea refinement, VI authoring, architecture (ARD)
 | `/prompt <text>` | Capture a corrective interaction (a command produced something wrong; you fix it) as Friction + verbatim prompt + Resolution (`origin: prompt`), then act on the correction directly. |
 | `/prompt-brainstorm <text>` | Same capture as `/prompt`, then hand off to `superpowers:brainstorming`. |
 | `/prompt-grill-me <text>` | Same capture as `/prompt`, then grill the fix **inline** — a bounded one-question-at-a-time interrogation following the embedded grilling technique. Self-contained; no plugin dependency. |
-| `/statusline` | Install the plugin's multi-line, truecolor status line into `~/.claude/settings.json` (idempotent; backs up any existing script + block). **Run this first.** Also enables the Option-B cost cross-check. |
+| `/dev-workflows:statusline` | Install the plugin's multi-line, truecolor status line into `~/.claude/settings.json` (idempotent; backs up any existing script + block). **Run this first** — use the fully-qualified name; the bare `/statusline` is Claude Code's own built-in command. Also enables the Option-B cost cross-check. |
 | `/api-guideline-reviewer` | Standalone review command — reviews OpenAPI specification files against Dynatrace REST API + IAM permission naming guidelines. |
 | `/guideline-reviewer` | Standalone review command — reviews Dynatrace app code and UI against the Dynatrace Experience Standards (GUIDElines). |
 
@@ -67,7 +67,7 @@ flowchart TD
     subgraph ANY["Anytime — improve the plugin & utilities"]
         improve["/feedback · /prompt · /prompt-brainstorm · /prompt-grill-me"]
         maint["/vuln · /upgrade"]
-        tooling["/statusline · /docs-profile · /api-guideline-reviewer · /guideline-reviewer"]
+        tooling["/dev-workflows:statusline · /docs-profile · /api-guideline-reviewer · /guideline-reviewer"]
     end
 
     createvi -->|VI| createard
@@ -98,7 +98,7 @@ flowchart TD
 
 - **Plugin improvement — please use these.** `/feedback` logs a note about the plugin itself; `/prompt`, `/prompt-brainstorm`, and `/prompt-grill-me` turn a correction you just made into logged feedback plus a fix. This is how the plugin keeps getting better — run them whenever something felt off, on any command.
 - **Standalone maintenance.** `/vuln` (CVE remediation) and `/upgrade` (dependency / runtime upgrades) run on their own, outside the VI pipeline.
-- **Setup & repo tooling.** `/statusline` (install the status line — run this first), `/docs-profile` (bootstrap a docs repo's profile), `/api-guideline-reviewer` and `/guideline-reviewer` (Dynatrace API / UI compliance reviews).
+- **Setup & repo tooling.** `/dev-workflows:statusline` (install the status line — run this first; use the fully-qualified name, since the bare `/statusline` is Claude Code's own built-in command), `/docs-profile` (bootstrap a docs repo's profile), `/api-guideline-reviewer` and `/guideline-reviewer` (Dynatrace API / UI compliance reviews).
 
 *Legend: **Dev** is the plugin's "Team" lane; **QA** denotes verification and quality gates, not an artifact-authoring role; `/release-notes` appears twice because it serves a PM early draft (from the VI alone) and a Dev final draft (grounded in the merged PR diffs).*
 
@@ -167,13 +167,20 @@ price table; an optional statusline snapshot cross-checks it.
 
 ## Statusline
 
-`/statusline` installs the plugin's multi-line, truecolor status line (session
-identity, git branch, context bar, cost, tokens, rate limits) into
-`~/.claude/settings.json`. Installation is idempotent and backs up any existing
-script and `statusLine` block before writing. Installing it also enables the
-**Option B** cost cross-check: the shipped script writes a per-render
-`{ts, cost_usd}` snapshot that the cost phase compares against its
+`/dev-workflows:statusline` installs the plugin's multi-line, truecolor status
+line (session identity, git branch, context bar, cost, tokens, rate limits)
+into `~/.claude/settings.json`. Installation is idempotent and backs up any
+existing script and `statusLine` block before writing. Installing it also
+enables the **Option B** cost cross-check: the shipped script writes a
+per-render `{ts, cost_usd}` snapshot that the cost phase compares against its
 transcript-computed estimate (a drift signal for refreshing the price table).
+
+> Claude Code has a built-in `/statusline` command of its own (backed by the
+> `statusline-setup` agent) that configures a plain, single-line status line.
+> Because the plugin's command shares that name, the bare `/statusline`
+> resolves to Claude Code's built-in flow, not this one — always invoke the
+> fully-qualified `/dev-workflows:statusline` to install the plugin's status
+> line.
 
 ## `/implement` workflow
 

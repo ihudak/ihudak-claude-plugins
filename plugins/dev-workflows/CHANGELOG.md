@@ -4,6 +4,12 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.31.2] — 2026-07-14
+
+### Fixed
+
+- **`/statusline` install instructions were ambiguous with Claude Code's own built-in `/statusline` command.** The root README, plugin README, `statusline.md`, and `cost-emission.md` told users to "run `/statusline`", but Claude Code ships its own built-in `/statusline` (backed by the `statusline-setup` agent) under the same bare name — typing it runs Claude Code's built-in flow instead of installing this plugin's status line. All install instructions and cross-references now use the fully-qualified `/dev-workflows:statusline`, with an explicit note on the naming collision.
+
 ## [2.31.1] — 2026-07-14
 
 ### Fixed

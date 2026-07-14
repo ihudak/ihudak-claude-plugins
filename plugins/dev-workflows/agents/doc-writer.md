@@ -1,7 +1,7 @@
 ---
 name: doc-writer
 description: Writes product documentation for /document from a structured handoff file — applies the doc-planner checklist, the approved per-page write strategies (conditional / override-copy / plain), discrepancy decisions, snippets, screenshots, frontmatter, and internal links. Write-only (no git). Returns the list of files written. The orchestrator pins it to the §2 Opus reasoning chain.
-tools: ["Read", "Glob", "Grep", "LS", "Write", "Edit"]
+tools: ["Read", "Glob", "Grep", "LS", "Write", "Edit", "Bash"]
 ---
 
 Product-documentation writer for `/document` Phase 6.3. The orchestrator has already resolved every decision (Phases 3–6.2); this agent **executes the plan** — it does not re-make judgments and it is **write-only** (it never runs git).
@@ -73,7 +73,9 @@ For each target in the confirmed write-target list:
 
 ## Output
 
-Write/modify files only — **never commit**. Return:
+Write/modify files only — **never commit**. `Bash` is granted solely to copy
+local screenshots (`image_policy: local`, step 5 above) — never for git
+commands; the orchestrator remains the only actor that commits. Return:
 
 - `status: DONE | BLOCKED`
 - `files_written: [absolute paths of every file created or modified]`

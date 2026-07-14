@@ -33,7 +33,13 @@ release_notes_block:
       context_label:   <e.g. "Platform" | "Platform | Settings">
       feature_title:   <5–10 word headline; sentence case; no leading "New feature:"; no trailing period>
       prose: |
-        <2–4 sentence customer-facing paragraph; no Jira IDs; no PR links>
+        <shaped customer-facing body; no Jira IDs; no PR links. Default: a 2–4
+        sentence paragraph. When the feature enumerates discrete options, use a short
+        intro sentence + a bulleted list (bold each option); lead with the
+        recommended path and demote deprecated options to a trailing sentence or an
+        optional `> Note:`. Bold UI/field names; inline `code` for filenames,
+        identifiers, and flags. See the agent's Process step 3 for the full shaping
+        rules.>
       rendered: |
         {{#context}}<context_label>{{/context}}
 

@@ -4,6 +4,27 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.32.0] — 2026-07-14
+
+### Changed
+
+- **`release-notes-writer` — editorial shaping (enhancement).** The writer no
+  longer defaults to a flat "2–4 sentence paragraph" for every entry. Process
+  step 3 now instructs conditional shaping grounded in shipped dynatrace-docs
+  feature-updates: prose stays the default, but when a feature **enumerates
+  discrete options** (e.g. a new dropdown with N selectable values) the writer
+  uses a short intro sentence + a **bulleted list** (bold each option); it leads
+  with the recommended/new default path and **demotes deprecated or manual-only
+  options** to a trailing sentence or an optional `> Note:` line rather than
+  presenting them as equal peers; and it uses **bold** for UI/field names and
+  inline `code` for filenames, identifiers, and flags. The
+  `release-notes-writer` handoff schema's `prose` field description was relaxed
+  to match (no longer contradicts the agent by mandating a single paragraph).
+  Motivation: a real release note enumerating four container-registry options
+  read better as a list with the deprecated option footnoted than as a
+  comma-chained paragraph. Ported from the Copilot variant of this marketplace
+  (`ihudak-copilot-plugins` dev-workflows v2.1.0).
+
 ## [2.31.2] — 2026-07-14
 
 ### Fixed

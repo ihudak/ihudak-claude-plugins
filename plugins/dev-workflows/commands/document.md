@@ -37,7 +37,7 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
    owns the `$VAULT_PATH`/`jira-products` validation and Fallbacks A/B. Carry
    `jira_key`, `jira_export_root`, `focus_key`, and `specs` forward.
 
-3. **Resolve the docs repo (cwd-preferred).** This command writes feature documentation into a product docs repository; running it outside such a repository is almost always a mistake. The **docs signals** checked throughout this step are:
+2. **Resolve the docs repo (cwd-preferred).** This command writes feature documentation into a product docs repository; running it outside such a repository is almost always a mistake. The **docs signals** checked throughout this step are:
    - `package.json` with any script matching `*:start`, `*:build`, `*:lint`, `docs:*`, or
    - any of `.docstack/`, `mkdocs.yml`, `docusaurus.config.js`, `antora.yml`, `.vale.ini`, `DOCUMENTATION-GUIDELINES.md`, or
    - a `_snippets/` directory at any level under the repo root.
@@ -59,9 +59,9 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 
    **Confirm writeable.** Once `docs_repo_path` is resolved, run `test -w <docs_repo_path>`. If it fails, stop with the named error `REPO_NOT_WRITEABLE: <docs_repo_path> is not writeable.`
 
-4. **Recognize dynatrace-docs.** Set `is_dynatrace_docs` = `true` when the resolved `docs_repo_path` contains **both** `managed/docstack.jsonc` and `dynatrace/_content/` and — when a git remote is available (`git -C <docs_repo_path> remote get-url origin`) — its slug (last path segment, trailing `.git` stripped) is `dynatrace-docs`. Directory name alone is **not** sufficient; the signals decide.
+3. **Recognize dynatrace-docs.** Set `is_dynatrace_docs` = `true` when the resolved `docs_repo_path` contains **both** `managed/docstack.jsonc` and `dynatrace/_content/` and — when a git remote is available (`git -C <docs_repo_path> remote get-url origin`) — its slug (last path segment, trailing `.git` stripped) is `dynatrace-docs`. Directory name alone is **not** sufficient; the signals decide.
 
-5. **Resolve the profile** (record `profile_source`). The profile steers all later phases' conventions. Resolve in this order:
+4. **Resolve the profile** (record `profile_source`). The profile steers all later phases' conventions. Resolve in this order:
    - **(a) In-repo profile →** `in-repo`. If `<docs_repo_path>/.dev-workflows/docs-profile.yml` exists, load it. `profile_source: in-repo`.
    - **(b) dynatrace-docs built-in default →** `built-in`. Else, if `is_dynatrace_docs`, load `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/docs-profile.default.yml`. `profile_source: built-in`.
    - **(c) Custom repo, no profile →** `generated`. Else (a custom docs repo with no profile), run **inline on-demand profiling**: invoke the `/docs-profile` flow against `docs_repo_path` (Skill tool, `skill: "dev-workflows:docs-profile"`, with `docs_repo_path --inline` as its arguments — the `--inline` token tells profiling to skip its branch-naming prompt and standalone PR-draft handoff, since this command owns the single branch + PR draft) and wait for it to write `<docs_repo_path>/.dev-workflows/docs-profile.yml`. Then load that file. `profile_source: generated`. If the user cancels profiling (it produces no profile), stop with the named error `PROFILE_REQUIRED: a docs-profile is required to write into a custom docs repo; run /docs-profile or switch to a profiled repo.`
@@ -76,7 +76,7 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
      ```
    Skip this check for `profile_source: built-in` (no profile file) and `generated` (the inline profiling branch is adopted by Phase 6.2, so the profile rides the single docs branch — a base check would false-fire).
 
-6. **Specs (additive).** Use the `specs` list from the front-end (§Specs
+5. **Specs (additive).** Use the `specs` list from the front-end (§Specs
    resolution — `$SPECS_PATH` then the directory case). `specs: []` is fine —
    specs are additive context for `/document`; proceed without prompting. For
    the downstream phases that scan or cite a single specs location (the Phase 4.5
@@ -86,11 +86,11 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
    `$SPECS_PATH/…/<KEY>…/` folder, or the directory they were found in), or
    `none` when `specs` is empty.
 
-7. **Classify write context** for later branch/write decisions — computed against the resolved `docs_repo_path` (not necessarily cwd). Walk up from `docs_repo_path` looking for `.obsidian/`; if found, context = `obsidian`. Else if `git -C <docs_repo_path> rev-parse --show-toplevel` succeeds AND at least one docs signal from step 3 is present, context = `docs_repo`. Else if it succeeds with no docs signals, context = `non_docs_repo` (step 3 has already asked the user; their confirmation promotes this to `docs_repo` behaviour). Else context = `plain_dir`. In a normal run, Phase 0's docs-repo resolution (steps 3–4) yields a real docs repo (`docs_repo`) or a user-confirmed `non_docs_repo`; `obsidian` and `plain_dir` are **defensive guards** (they forbid branch/commit) rather than expected write targets.
+6. **Classify write context** for later branch/write decisions — computed against the resolved `docs_repo_path` (not necessarily cwd). Walk up from `docs_repo_path` looking for `.obsidian/`; if found, context = `obsidian`. Else if `git -C <docs_repo_path> rev-parse --show-toplevel` succeeds AND at least one docs signal from step 2 is present, context = `docs_repo`. Else if it succeeds with no docs signals, context = `non_docs_repo` (step 2 has already asked the user; their confirmation promotes this to `docs_repo` behaviour). Else context = `plain_dir`. In a normal run, Phase 0's docs-repo resolution (steps 2–3) yields a real docs repo (`docs_repo`) or a user-confirmed `non_docs_repo`; `obsidian` and `plain_dir` are **defensive guards** (they forbid branch/commit) rather than expected write targets.
 
-   Record the resolved context — it drives Phase 6.2 (branch setup) and Phase 6.3 write rules. When `docs_repo_path` differs from cwd, record **both** and note that the writing phases (Increments 2–3) consume `docs_repo_path`, not cwd, for every write.
+   Record the resolved context — it drives Phase 6.2 (branch setup) and Phase 6.3 write rules. When `docs_repo_path` differs from cwd, record **both** and note that the writing phases (Phase 5.9, Phase 6.3) consume `docs_repo_path`, not cwd, for every write.
 
-8. **Parse the optional space constraint.** Read `$ARGUMENTS` as `<JIRA_KEY> [space]` — the same `$ARGUMENTS` already split for `<JIRA_KEY>` in step 1; the optional second whitespace-separated token is the space constraint.
+7. **Parse the optional space constraint.** Read `$ARGUMENTS` as `<JIRA_KEY> [space]` — the same `$ARGUMENTS` already split for `<JIRA_KEY>` in step 1; the optional second whitespace-separated token is the space constraint.
    - **No second token** → `space_constraint = none`. Phase 4.5 will determine and confirm the applicable space(s).
    - **Second token is `saas` or `managed`** (case-insensitive) → `space_constraint = <space>`. This is a deliberate scoping decision by the user, so Phase 4.5 skips its determination step and records `target_spaces = [space_constraint]` directly.
    - **Second token present but not `saas`/`managed`** (e.g. `both`, a typo, or extra free text) → do NOT silently guess. Reject it and ask:
@@ -163,7 +163,7 @@ Also display (for user context):
 - Whether branching will happen (only when context is `docs_repo` — confirmed at plan approval)
 - Resolved `$REPOS_PATH`
 - Resolved `$VAULT_PATH` and `<JIRA_KEY>`
-- Space scope — show `space_constraint` (Phase 0 step 8): `saas`/`managed` means `target_spaces` is already fixed to that single space; `none` means the applicable space(s) are auto-determined and confirmed in Phase 4.5 (after the Jira read and repo resolution). Once Phase 4.5 has run, the resolved `target_spaces` is the authoritative value displayed here.
+- Space scope — show `space_constraint` (Phase 0 step 7): `saas`/`managed` means `target_spaces` is already fixed to that single space; `none` means the applicable space(s) are auto-determined and confirmed in Phase 4.5 (after the Jira read and repo resolution). Once Phase 4.5 has run, the resolved `target_spaces` is the authoritative value displayed here.
 
 ---
 
@@ -290,11 +290,11 @@ From the `jira-reader` handoff `pull_requests` list:
 
 ## Phase 4.5 — Determine applicable space(s)
 
-Resolve `target_spaces` — one of `[saas]`, `[managed]`, or `[saas, managed]`. This is the set of spaces the documentation will cover; the constraint semantics that *protect* the other space (`{{#if project='…'}}` conditionals or override-copies + `managed/docstack.jsonc` `ignore` allowlisting) are Increment 3, so this increment only carries `target_spaces` forward.
+Resolve `target_spaces` — one of `[saas]`, `[managed]`, or `[saas, managed]`. This is the set of spaces the documentation will cover; the constraint semantics that *protect* the other space (`{{#if project='…'}}` conditionals or override-copies + `managed/docstack.jsonc` `ignore` allowlisting) are Phase 5.9, so this phase only carries `target_spaces` forward.
 
-- **If `space_constraint` is set** (`saas` or `managed`, from Phase 0 step 8) → set `target_spaces = [space_constraint]` and skip the determination below. Print:
+- **If `space_constraint` is set** (`saas` or `managed`, from Phase 0 step 7) → set `target_spaces = [space_constraint]` and skip the determination below. Print:
   ```
-  Constrained to <space_constraint> (the other space's render is left unchanged — see Increment 3 techniques).
+  Constrained to <space_constraint> (the other space's render is left unchanged — see Phase 5.9 techniques).
   ```
 
 - **If `space_constraint` is `none`** → run a **first-pass determination** from cheap signals already in hand, then confirm with the user:
@@ -309,7 +309,7 @@ Resolve `target_spaces` — one of `[saas]`, `[managed]`, or `[saas, managed]`. 
   ```
   Map the confirmed choice to `target_spaces`: "saas only" → `[saas]`, "managed only" → `[managed]`, "both saas and managed" → `[saas, managed]`; "Other… (describe)" takes free text and resolves to one of the three. Record the confirmed `target_spaces`.
 
-The authoritative determination (from full diff/spec analysis rather than these cheap signals) is refined in Increment 2; here `target_spaces` is a confirmed best guess that threads through Phases 1 and 2 and the writing phases.
+Phase 4.5's confirmed value is authoritative — no later phase re-derives `target_spaces` from the full diff/spec analysis; it threads through unchanged into Phase 5.7 (`doc-planner`) and the writing phases.
 
 ---
 
@@ -549,7 +549,7 @@ Run this phase only when, in the Phase 5.7 `doc-planner` return, **any** screens
 
 ## Phase 6.2 — Branch setup (conditional)
 
-Run this phase only when write context = `docs_repo` (or `non_docs_repo` after user confirmed at Phase 0 step 3) AND the user confirmed branching at plan approval. Never for `obsidian` or `plain_dir`.
+Run this phase only when write context = `docs_repo` (or `non_docs_repo` after user confirmed at Phase 0 step 2) AND the user confirmed branching at plan approval. Never for `obsidian` or `plain_dir`.
 
 1. **Update the base branch.** Resolve the default branch by running `git symbolic-ref --short refs/remotes/origin/HEAD`; this returns the remote's default (`main` or `master`; legacy repos frequently still use `master`). If the command fails (unset `origin/HEAD`), run `git remote set-head origin --auto` and retry; if it still fails, try `main`, then `master`, in that order. If the user picked a `release/*` branch earlier in Phase 1, use that instead. Once the base is resolved: `git fetch origin`. Then update the base working copy **only outside the inline-profiling case**: when `profile_source` is NOT `generated`, `git switch <base> && git pull --ff-only`. **In the inline-profiling case (`profile_source: generated`), do NOT switch** — HEAD must stay on the generated profile branch so step 5's `git branch -m <name>` renames *that* branch (the profile branch was created off the base in Phase 0, so it is already current). When a switch happened and the fast-forward pull fails:
    ```
@@ -598,13 +598,13 @@ The writing is delegated to the **`doc-writer`** subagent (pinned to the §2 Opu
      ```
      On a provided value, rewrite the handoff file and re-dispatch once.
 
-Write context governs branch/commit (Phase 0 step 7); **the orchestrator commits the writer's output** (the writer never commits):
+Write context governs branch/commit (Phase 0 step 6); **the orchestrator commits the writer's output** (the writer never commits):
 
 | Write context | Branch | Commit |
 |---|---|---|
 | `obsidian` | NEVER | NEVER |
 | `docs_repo` | YES (opt-in confirmed at plan approval) — see Phase 6.2 | YES (orchestrator commits doc-writer's `files_written`) |
-| `non_docs_repo` | Phase 0 step 3 already asked user to confirm; if confirmed, behave as `docs_repo` | YES (if user confirmed at Phase 0) |
+| `non_docs_repo` | Phase 0 step 2 already asked user to confirm; if confirmed, behave as `docs_repo` | YES (if user confirmed at Phase 0) |
 | `plain_dir` | NEVER | NEVER |
 
 ---

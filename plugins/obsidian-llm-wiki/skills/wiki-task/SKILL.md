@@ -108,7 +108,7 @@ First, check whether `Projects/` exists:
 the task's context (project name, tags, Jira project prefix).
 
 ```bash
-grep -rl "tags:" Projects/ --include="*.md" | head -20
+grep -rl --include="*.md" "tags:" Projects/ | head -20
 ```
 
 For each candidate, read the frontmatter and check:

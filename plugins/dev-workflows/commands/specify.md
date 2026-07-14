@@ -1,7 +1,7 @@
 ---
 name: specify
 description: Jira-driven specification-authoring workflow (PE phase). Reads a Jira Epic/VI from exported markdown, lightly grounds in code, and authors an org-standard specification.md through a relentless one-question-at-a-time grill; gates on the Opus spec-reviewer and lands the spec on the specs repo's main branch via branch + PR for the /design dev take-over.
-allowed-tools: Read Edit Write Bash Glob Grep Task WebFetch LS
+allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch LS
 ---
 
 Author a product specification for the Jira item: $ARGUMENTS

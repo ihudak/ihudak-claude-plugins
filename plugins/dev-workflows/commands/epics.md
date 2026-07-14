@@ -1,7 +1,7 @@
 ---
 name: epics
 description: Jira-driven Epic-writing workflow. Reads a Value Increment and existing Epics from exported markdown, optionally scans code repos, drafts child Epic definitions, and gates on dt-style-checker and Opus epic-reviewer.
-allowed-tools: Read Edit Write Bash Glob Grep Task WebFetch LS
+allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch LS
 ---
 
 Draft child Epics for the Jira Value Increment: $ARGUMENTS

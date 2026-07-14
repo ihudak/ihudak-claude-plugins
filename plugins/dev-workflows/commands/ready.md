@@ -1,7 +1,7 @@
 ---
 name: ready
 description: Status-anchored readiness gate. Reads the Jira workflow status of a VI/Epic and verifies the ARD/spec/design artifacts justify it and the next transition; returns SUPPORTED / PARTIAL / NOT-SUPPORTED with a coverage roll-up. Read-only — never sets Jira status, never commits. Gates on the Opus readiness-reviewer.
-allowed-tools: Read Edit Write Bash Glob Grep Task WebFetch LS
+allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch LS
 ---
 
 Verify readiness for AI-driven development for the Jira item: $ARGUMENTS

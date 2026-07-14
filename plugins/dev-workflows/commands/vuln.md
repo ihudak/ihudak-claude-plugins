@@ -1,7 +1,7 @@
 ---
 name: vuln
 description: Security vulnerability fix workflow. Researches CVEs via NVD, applies dependency and code fixes one at a time, runs Opus code review, and verifies with tests.
-allowed-tools: Read Edit Write Bash Glob Grep Task WebFetch LS
+allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch LS
 ---
 
 Fix security vulnerabilities: $ARGUMENTS

@@ -329,7 +329,7 @@ The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1
    ```
    On a provided value, rewrite the handoff and re-dispatch once. Nothing is committed (git is the user's responsibility).
 
-   Also record `coverage_file` (the `_coverage.md` path) and `clarifications_needed[]` for Phases 6.2 and 7.
+   Also record `coverage_file` (the `_coverage.md` path) and `clarifications_needed[]` for Phases 6.1 and 7.
 
 ---
 

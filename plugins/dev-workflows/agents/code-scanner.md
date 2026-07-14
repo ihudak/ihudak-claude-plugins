@@ -73,6 +73,10 @@ absent, trust `repo_path` as given.
 status:    OK | PARTIAL | REPO_MISSING | DIRTY_TREE | REFRESH_BLOCKED | EMPTY
 repo:      <short repo name — the basename of repo_path>
 repo_path: <absolute path as received in input>
+prep:
+  branch_at_scan: <branch name | "unknown">
+  refreshed:      true | false
+  refresh_note:   <e.g. "switched to main, pulled 12 commits" | "skipped per user" | "tree was dirty">
 capability_map:
   - theme: <theme text>
     classification: present | partial | absent | error

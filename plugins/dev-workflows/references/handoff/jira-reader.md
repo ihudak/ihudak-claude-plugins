@@ -89,4 +89,4 @@ notes: |
 |------------|-------------------------------------------------------------------------|
 | `OK`       | Successfully read; `linked_items` and `pull_requests` populated.        |
 | `EMPTY`    | Directory found but index file is missing or empty.                     |
-| `NOT_FOUND`| `<vault_path>/jira-products/<jira_key>/` does not exist.                |
+| `NOT_FOUND`| The resolved export root does not exist — `<vault_path>/jira-products/<jira_key>/` (Form 2), or the caller-supplied `jira_export_root` (Form 1). |

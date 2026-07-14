@@ -123,9 +123,20 @@ If `resolved_via == jira_key_commits`, the summary MUST include the verbatim cav
 status:   OK | REPO_MISSING | DIRTY_TREE | REFRESH_BLOCKED | NO_PRS_RESOLVED | PARTIAL
 repo:      <short repo name — the basename of repo_path>
 repo_path: <absolute path as received in input, so callers can reference the source tree>
+prep:
+  fetched:      true | false
+  pulled:       true | false
+  refresh_note: <e.g. "fetched 3 new refs" | "skipped — RO mount" | "tree was dirty, refresh skipped">
 per_pr:
   - pr_id: <id>
+    url: <url>
     resolved_via: pr_ref | branch_search | merge_commit | jira_key_commits | gh_cli | unresolved
+    base: <sha | null>
+    head: <sha | null>
+    files_changed: <count>
+    insertions: <count>
+    deletions: <count>
+    diff_truncated: false
     summary: |
       <prose; 3–8 sentences: new behavior, changed behavior, API surface, migration notes.
       If resolved_via == jira_key_commits, the summary MUST note that the diff was
@@ -133,6 +144,7 @@ per_pr:
       the original PR content.>
 unresolved_prs:
   - pr_id: <id>
+    url: <url>
     reason: <why resolution failed>
     candidates: [<sha — first line, if Strategy 4 found any>]
 aggregate_summary: |

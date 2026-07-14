@@ -24,7 +24,7 @@ Run the test suite and return a baseline snapshot. Use this **before** making ch
    - `Makefile` containing a `test` target → `make test`
    - If no framework found: return the structure below with Framework = "not detected", all counts = 0, and a note explaining no runner was found. Do not fail.
 
-2. **Run** — Execute the detected command. Allow up to 10 minutes. Capture stdout and stderr combined.
+2. **Run** — Execute the detected command. Allow up to 10 minutes. Capture stdout and stderr combined. If the run aborts (non-zero exit, truncated output, or unrecognized runner output) with no parseable pass/fail counts, treat this as a failed run for the **Status** computation in step 4 (do not fail the tool call — still return the structure).
 
 3. **Parse** — Extract from the output:
 
@@ -38,11 +38,18 @@ Run the test suite and return a baseline snapshot. Use this **before** making ch
 
    Also collect the names/identifiers of every passing test and every failing test from the verbose output.
 
-4. **Return this exact structure and nothing else:**
+4. **Compute Status** — before returning, set:
+   - `COMMAND_NOT_FOUND` — step 1 found no framework at all (the "not detected" fallback)
+   - `RUN_FAILED` — a framework was detected but the run aborted with no parseable pass/fail counts (see step 2)
+   - `NO_TESTS` — the framework ran cleanly but Total = 0 (no test files/suite present, e.g. a CI-only YAML repo)
+   - `OK` — otherwise (framework ran and produced parseable counts, Total > 0)
+
+5. **Return this exact structure and nothing else:**
 
 ```markdown
 ## Test Baseline
 - **Mode**: capture
+- **Status**: [OK | RUN_FAILED | COMMAND_NOT_FOUND | NO_TESTS]
 - **Framework**: [name or "not detected"]
 - **Command**: `[command used]`
 - **Total**: [n] | **Passing**: [n] | **Failing**: [n] | **Skipped**: [n]
@@ -90,11 +97,19 @@ The caller must provide:
    | **Newly fixed** | Was in baseline `### Pre-existing failures` AND is now passing |
    | **New failures** | Is failing now AND was not in baseline `### Pre-existing failures` AND was not in baseline `### Passing tests` (new test added and already failing) |
 
-6. **Return this exact structure and nothing else:**
+6. **Compute Status** — before returning, set:
+   - `RUN_FAILED` — **Comparison status** is `invalid` (framework changed since baseline, no comparison possible) OR is `best-effort` with no parseable pass/fail data recovered at all
+   - `REGRESSIONS` — **Regressions** count > 0 OR **Missing from run** count > 0 (both are regression-severity per the table above)
+   - `OK` — otherwise (comparison was possible and found no regressions)
+
+   Note: `COMMAND_NOT_FOUND` is a valid **Status** value for verify mode too (schema parity with capture), but this agent's own detection logic (step 1) never leaves the framework fully undetected on a verify call that reached step 2 — so in practice this agent only ever emits `OK` / `REGRESSIONS` / `RUN_FAILED` here.
+
+7. **Return this exact structure and nothing else:**
 
 ```markdown
 ## Test Verify Report
 - **Mode**: verify
+- **Status**: [OK | REGRESSIONS | RUN_FAILED | COMMAND_NOT_FOUND]
 - **Framework**: [name]
 - **Command**: `[command used]`
 - **Comparison status**: [exact | best-effort | invalid]

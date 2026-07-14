@@ -43,8 +43,35 @@ Refuse to run without `jira_reader_handoff`.
      and add a `gaps` entry (`field: context_label`, `recommended_action: "ask user"`).
    - **Feature title** — 5–10 words, sentence case, release-note headline style. No
      leading "New feature:", no trailing period.
-   - **Prose** — 2–4 sentences for end users: what they can now do and why it matters.
-     Plain customer-facing language.
+   - **Body** — customer-facing content: what users can now do and why it matters.
+     Do NOT stop at a faithful summary — apply light **editorial shaping** so the
+     entry is scannable and the important path stands out. Choose the shape from the
+     content:
+     - **Default: a 2–4 sentence prose paragraph.** This fits most entries (a single
+       capability, an upgrade, a behavioural change) and matches the bulk of shipped
+       dynatrace-docs feature-updates. Prefer prose unless a structure below clearly
+       helps.
+     - **Enumeration / comparison → a short intro sentence + a bulleted list.** When
+       the feature exposes several discrete choices, options, or removed/added items
+       (e.g. a new dropdown with N selectable values), list them instead of comma-
+       chaining them in a sentence. **Bold** each option's name.
+     - **Editorial hierarchy.** Lead with the new default / recommended path. Demote a
+       deprecated, legacy, or "manual-only" option out of the primary list into a
+       trailing sentence or an optional `> Note:` line — do not present it as an equal
+       peer to the recommended choice. The `jira-reader` handoff's "Current vs Target
+       State" / deprecation signals tell you which option to demote.
+     - **Markdown affordances** (use where they aid clarity, matching shipped
+       feature-updates): **bold** for UI element / screen / field names, inline
+       `code` for filenames, identifiers, flags, and config keys (e.g. `dynakube.yaml`),
+       and links for referenced docs. Keep any list short; a `> Note:` callout is
+       optional and used sparingly (most entries need none).
+     - **Concrete benefit, not hedged prose.** State the user-visible payoff plainly
+       (e.g. "…enabling ARM-based environments") rather than vague qualifiers ("for
+       standard setups"). Never invent behaviour the Jira content (or diff summaries,
+       when provided) does not support — flag unverifiable specifics as a `gaps` entry.
+
+     The rendered `prose` field carries this shaped body (prose and/or list/`> Note:`);
+     it stays plain customer-facing content with no Jira IDs and no PR links.
 
 4. **Render** each entry as exactly:
 

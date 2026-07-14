@@ -8,6 +8,10 @@ Versions follow semver at the plugin level.
 
 Fixes from a full internal-correctness audit (2 BLOCKER, 7 MAJOR, 26 MINOR findings). No new commands, agents, or hooks — counts unchanged.
 
+### Fixed (post-audit correction, same release)
+
+- **`vuln-fixer` / `upgrade-executor` cannot use `AskUserQuestion` — subagents never can.** This session's own BUG-2 fix (granting explicit `tools:` to these agents) initially included `AskUserQuestion` to preserve their documented "ask the user" step, but Claude Code subagents cannot use that tool under any circumstances, even when it's listed in `tools:` — it depends on the main conversation's UI/session state. Both agents' "Test regression" step always instructed asking the user directly, so this was latent and broken before this session touched these files at all, not something introduced by the BUG-2 fix. Corrected properly: `AskUserQuestion` removed from both `tools:` lists; both agents now **stop and return** (`status: TEST_REGRESSION`, with the failing-test list + a diagnosis) instead of trying to ask; `vuln.md`/`upgrade.md` gained a `phase: regression-resume` + `regression_decision: keep-anyway | revert` handshake (mirroring the existing `AWAITING_REVIEW` / `verify-resume` pattern) so the **orchestrator** — which does run interactively — asks the user and resumes the subagent with the decision. Both handoff SSOTs updated to match.
+
 ### Fixed
 
 **Blockers**

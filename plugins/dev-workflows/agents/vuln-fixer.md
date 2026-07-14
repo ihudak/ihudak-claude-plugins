@@ -7,7 +7,7 @@ description: >
   commit to a new branch, and open a PR. Invoked sequentially by the fix-vuln
   orchestrator with a research report from vuln-research. NOT triggered by direct
   user prompts.
-tools: ["Read", "Glob", "Grep", "LS", "Bash", "Edit", "Task", "AskUserQuestion"]
+tools: ["Read", "Glob", "Grep", "LS", "Bash", "Edit", "Task"]
 ---
 
 # vuln-fixer — CVE Fix Agent
@@ -29,6 +29,10 @@ Receive the research report for **one CVE** with `status: READY`.
 > Do **not** re-baseline (that would clobber the pre-fix snapshot) and do
 > **not** re-apply the version pin. Default phase (omitted or `phase: full`)
 > runs all steps.
+>
+> If the input includes `phase: regression-resume`, **skip steps 1-4** —
+> jump straight to "Test regression" step 4 below, honoring the
+> `regression_decision: keep-anyway | revert` supplied by the orchestrator.
 >
 > When `gate_tests_on_review: true` is set on a `phase: full` call, the
 > orchestrator is required to capture and pass the baseline itself (see
@@ -65,14 +69,19 @@ Receive the research report for **one CVE** with `status: READY`.
 
 ## Test regression
 
+Subagents have no access to interactive tools — `AskUserQuestion` is unavailable even if
+granted, so this agent can never ask the user directly. The orchestrator owns that decision.
+
 1. Inspect failures — are they caused by the version bump (API change, renamed class)?
-2. If fixable automatically (import rename, trivial API migration): fix and note in output.
-3. If not fixable: ask the user via `ask_user`:
-   > "These tests were passing before the fix. Would you like me to:"
-   - "Apply the fix anyway and flag the failures in the PR (Recommended if tests are flaky)"
-   - "Revert this fix and skip it"
-   - "Investigate further"
-4. Honor the choice. Record outcome in the output record.
+2. If fixable automatically (import rename, trivial API migration): fix and note in output, then proceed to step 5 (Commit & PR).
+3. If not fixable: **stop here.** Return `status: TEST_REGRESSION` with the full list of
+   newly-failing tests and a one-line diagnosis of the likely cause. Do NOT commit or open
+   a PR. The orchestrator asks the user (see `/vuln` "Handling Test Failures") and
+   re-invokes this agent with `phase: regression-resume` + `regression_decision`.
+4. **On `phase: regression-resume`:** honor `regression_decision`:
+   - `keep-anyway` → proceed to step 5 (Commit & PR), flagging the failures in the PR body.
+   - `revert` → revert the fix, set `status: REVERTED`, return.
+   Record the outcome in the output record.
 
 ## Invariants
 

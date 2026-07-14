@@ -7,6 +7,7 @@ description: >
   with all other components in the repo. Invoked in parallel by the upgrade
   orchestrator — NOT triggered by direct user prompts. Returns a structured
   upgrade plan (ready to hand off to upgrade-executor) or a conflict report.
+tools: ["Read", "Glob", "Grep", "LS", "WebFetch"]
 ---
 
 # upgrade-planner — Upgrade Compatibility Agent

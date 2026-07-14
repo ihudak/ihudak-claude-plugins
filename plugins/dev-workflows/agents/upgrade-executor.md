@@ -7,6 +7,7 @@ description: >
   the new version's API changes. Invoked sequentially by the /upgrade command orchestrator.
   NOT triggered by direct user prompts. Leaves all changes uncommitted on the
   current branch.
+tools: ["Read", "Glob", "Grep", "LS", "Bash", "Edit", "Task", "AskUserQuestion"]
 ---
 
 # upgrade-executor — Upgrade Execution Agent

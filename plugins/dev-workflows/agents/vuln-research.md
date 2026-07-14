@@ -7,6 +7,7 @@ description: >
   /vuln command orchestrator — NOT triggered by direct user prompts. Accepts a structured
   handoff document (list of CVE + optional Jira IDs, repo path) and produces a
   research report consumed by the vuln-fixer agent. Has no side effects.
+tools: ["Read", "Glob", "Grep", "LS", "WebFetch"]
 ---
 
 # vuln-research — CVE Research Agent

@@ -7,6 +7,7 @@ description: >
   commit to a new branch, and open a PR. Invoked sequentially by the fix-vuln
   orchestrator with a research report from vuln-research. NOT triggered by direct
   user prompts.
+tools: ["Read", "Glob", "Grep", "LS", "Bash", "Edit", "Task", "AskUserQuestion"]
 ---
 
 # vuln-fixer — CVE Fix Agent

@@ -191,7 +191,7 @@ as context — do not announce it, do not summarise it. Run `/wiki-hot` to refre
 | `/wiki-save` | Save current conversation as a wiki page |
 | `/wiki-lint` | Run wiki health check, produce lint report |
 | `/wiki-hot` | Manually refresh the hot cache |
-| `/wiki-tags-refresh` | Sync wiki tags with tag-index.md |
+| `/wiki-tags-refresh [directory]` | Sync tags with tag-index.md; scans the whole vault by default |
 | `/wiki-task <description>` | Create a single task from natural language |
 | `/wiki-tasks-extract [wiki-path]` | Batch-extract tasks from wiki content |
 | `/wiki-init` | Re-initialize vault integration after plugin install/update |
@@ -249,7 +249,7 @@ No manual steps needed. To force a hot cache refresh mid-session, run `/wiki-hot
 | `/wiki-save` | Save current conversation as a wiki page |
 | `/wiki-lint` | Run wiki health check |
 | `/wiki-hot` | Refresh the hot cache (run at END of every wiki session) |
-| `/wiki-tags-refresh` | Sync wiki tags with tag-index.md |
+| `/wiki-tags-refresh [directory]` | Sync tags with tag-index.md; scans the whole vault by default |
 | `/wiki-task <description>` | Create a single task from natural language |
 | `/wiki-tasks-extract [wiki-path]` | Batch-extract tasks from wiki content |
 | `/wiki-init` | Re-initialize vault integration after plugin update |

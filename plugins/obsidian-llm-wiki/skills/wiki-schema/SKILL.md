@@ -236,7 +236,7 @@ Most applicable tags for wiki pages:
 If content clearly needs a tag that does not exist: use the closest existing tag AND
 note `tag-needed: <proposed-tag>` in the `_log.md` ingest entry. The user can then
 approve and add it via `/wiki-tags-refresh`,
-which scans `wiki/` for undocumented tags and updates `tag-index.md`.
+which scans the vault (or a target directory) for undocumented tags and updates `tag-index.md`.
 
 ---
 

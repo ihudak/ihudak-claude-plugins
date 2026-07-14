@@ -1,12 +1,11 @@
 ---
 name: wiki-tags-refresh
 description: >
-  Scan wiki/ for tags used in wiki page frontmatter, diff against the vault's
-  tag-index.md, prompt the user to approve new tags and clean stale ones, then update
-  tag-index.md in place. Mirrors the vault's /tags-refresh workflow but scoped to wiki
-  pages. Run after heavy ingest sessions when new concepts may have introduced new tags.
-  Triggers on: wiki-tags-refresh, refresh wiki tags, update tag index for wiki,
-  wiki tags, sync wiki tags.
+  Scan the vault (or a target directory) for tags used in page frontmatter and page
+  bodies, diff against the vault's tag-index.md, prompt the user to approve new tags
+  and clean stale ones, then update tag-index.md in place. Run after heavy ingest or
+  other large content changes when new concepts may have introduced new tags.
+  Triggers on: wiki-tags-refresh, refresh tags, update tag index, wiki tags, sync tags.
 allowed-tools: Read Write Edit Glob Grep Bash
 ---
 
@@ -14,13 +13,17 @@ allowed-tools: Read Write Edit Glob Grep Bash
 
 Read `skills/wiki-schema/SKILL.md` fully before proceeding.
 
-Invoke with: `/wiki-tags-refresh`
+Invoke with: `/wiki-tags-refresh [directory]`
+
+If no directory argument is given, scan the entire vault (excludes `.obsidian/`).
 
 ---
 
-## Step 1 — Resolve VAULT_PATH
+## Step 1 — Resolve VAULT_PATH and scan scope
 
 Vault path: `~/obsidian_vault` by default; set `VAULT_PATH` to override. WSL users with a Windows-side vault must set `VAULT_PATH` explicitly (e.g. `/mnt/c/Users/<name>/obsidian_vault`).
+
+Scan scope: the vault root (default) or the given directory argument.
 
 ---
 
@@ -31,14 +34,14 @@ Read `.obsidian/copilot/tag-index.md` fully. Extract every documented tag (lines
 
 ---
 
-## Step 3 — Collect tags from wiki pages
+## Step 3 — Collect tags from scanned pages
 
-Scan every `.md` file under `wiki/` for frontmatter `tags:` entries only.
-The previous broad grep also matched `related:` wikilinks — use the awk approach below
+Scan every `.md` file under the scan scope for frontmatter `tags:` entries only.
+A broad grep would also match `related:` wikilinks — use the awk approach below
 to stay strictly within the `tags:` block:
 
 ```bash
-find "wiki" -name "*.md" | xargs awk '
+find "<scope>" -name "*.md" -not -path "*/.obsidian/*" -print0 | xargs -0 awk '
   FNR==1{front=0; intags=0}
   /^---/{if(front==0) front=1; else front=0; next}
   !front{next}
@@ -48,11 +51,11 @@ find "wiki" -name "*.md" | xargs awk '
 ' | sort -u
 ```
 
-> Note: tags must use the YAML multi-line block form (`tags:` followed by `  - tagname` lines); inline arrays (`tags: [a, b]`) are silently skipped by this script.
+> Note: tags must use the YAML multi-line block form (`tags:` followed by `  - tagname` lines); inline arrays (`tags: [a, b]`) are silently skipped by this script. `-print0`/`xargs -0` is required — vault filenames routinely contain spaces (e.g. `Daily/2026-07-13 Standup.md`), which would otherwise be word-split into separate, unopenable arguments.
 
-Also collect inline tags from page bodies:
+Also collect inline tags from page bodies across the same scope:
 ```bash
-grep -roh "#[a-zA-Z][a-zA-Z0-9/_-]*" "wiki/" | grep -v "^#" | sort -u
+grep -roh --exclude-dir=".obsidian" "#[a-zA-Z][a-zA-Z0-9/_-]*" "<scope>" | sort -u
 ```
 
 Exclude false positives: markdown headings at line start (`^#`), code blocks, URLs.
@@ -63,8 +66,8 @@ Deduplicate the full collected set.
 
 ## Step 4 — Diff against tag-index.md
 
-- **New tags**: found in `wiki/` pages but NOT documented in `tag-index.md`
-- **Stale candidates**: documented in `tag-index.md` but found in ZERO wiki pages
+- **New tags**: found in scanned pages (default: entire vault) but NOT documented in `tag-index.md`
+- **Stale candidates**: documented in `tag-index.md` but found in ZERO scanned pages
   (flag only — never auto-remove; they may be used in other vault files)
 
 ---
@@ -75,7 +78,7 @@ Deduplicate the full collected set.
 wiki-tags-refresh results
 ─────────────────────────
 New (undocumented in tag-index.md):   #newtag  #anothertag
-Stale (0 uses in wiki pages):         #oldtag  #unusedtag
+Stale (0 uses found):                 #oldtag  #unusedtag
 Already in sync:                      N tags
 ```
 
@@ -99,12 +102,19 @@ Present the stale list and ask:
 - `"Review one by one"` — step through each with keep/remove choice
 - `"Keep all (ignore)"` — leave index unchanged for these
 
-Note: stale means zero uses in `wiki/` only. The tag may be used elsewhere
-in the vault (tasks, project files). Confirm zero vault-wide use before suggesting removal:
+Always confirm zero vault-wide use before suggesting removal — the Step 3 scan may have
+been narrower than the full vault. Exclude only `tag-index.md` itself (not all of
+`.obsidian/`): every documented tag appears in `tag-index.md` by definition, so excluding
+the whole `.obsidian/` directory would also hide genuine uses in other `.obsidian/` files
+(e.g. Copilot custom prompts), silently dropping their removal protection.
 ```bash
-grep -r "#tagname" "${VAULT}" --include="*.md" | grep -v "wiki/" | wc -l
+grep -roh --include="*.md" --exclude="tag-index.md" "#[a-zA-Z][a-zA-Z0-9/_-]*" "<VAULT_PATH>" \
+  | grep -xF "#tagname" | wc -l
 ```
-If vault-wide count > 0, flag as "used outside wiki — keep?" rather than suggesting removal.
+The exact-match filter (`-xF`) avoids `#tagname` false-matching a longer tag like
+`#tagname-extended` or `#tagname/nested`.
+
+If vault-wide count > 0, flag as "used elsewhere in the vault — keep?" rather than suggesting removal.
 
 ---
 

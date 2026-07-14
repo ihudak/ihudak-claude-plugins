@@ -175,7 +175,7 @@ behaviour.
 | `/wiki-save` | Save the current conversation as a wiki page |
 | `/wiki-lint` | Run a wiki health check and produce a lint report |
 | `/wiki-hot` | Manually refresh the hot cache |
-| `/wiki-tags-refresh` | Sync wiki tags with `.obsidian/copilot/tag-index.md` |
+| `/wiki-tags-refresh [directory]` | Sync tags with `.obsidian/copilot/tag-index.md`; scans the whole vault by default |
 | `/wiki-task <description>` | Create a single task from natural language (effort, tags, priority, dates) |
 | `/wiki-tasks-extract [wiki-path]` | Batch-extract tasks from wiki content after ingest |
 | `/wiki-init` | Initialize vault integration (first run or after plugin update) |
@@ -241,9 +241,10 @@ The wiki only uses tags from `.obsidian/copilot/tag-index.md`. When ingest encou
 a concept that needs a tag not in the index, it records `tag-needed: <proposed>` in
 `_log.md` rather than inventing a tag.
 
-Run `/wiki-tags-refresh` after heavy ingest sessions to:
+Run `/wiki-tags-refresh [directory]` after heavy ingest sessions to:
 
-1. Scan all wiki page frontmatter for tags in use
+1. Scan page frontmatter and bodies for tags in use — the whole vault by default,
+   or a given directory
 2. Diff against `tag-index.md`
 3. Prompt for approval of new tags and removal of stale ones
 4. Update `tag-index.md` in place

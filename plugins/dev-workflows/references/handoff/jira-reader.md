@@ -53,7 +53,6 @@ linked_items:
     summary:    <text>
     parent:     <key | null>
     role:       root | linked | epic_child
-    not_found:  false      # true if the item file could not be read
     # Epic-only, populated ONLY at depth: vi-plus-epics (absent at other depths):
     refinement_candidate: true | false   # true = empty/almost-empty shell (no real Scope/Description/AC beyond summary + importer boilerplate)
     team:       <verbatim, e.g. "[DTT] Team Storage"; "" if absent>
@@ -68,7 +67,8 @@ pull_requests:
     status:       MERGED | OPEN | DECLINED | UNKNOWN
     title:        <link text from markdown>
     source_item:  <Jira key of the file where the URL was found>
-    also_in:      [<other Jira keys that reference this same PR>]  # may be empty list
+    branch_from:  <feature branch, from Branch: line>
+    branch_to:    <target branch, from Branch: line>
 
 themes:
   - <short phrase, 5–10 words, summarising a recurring capability topic>

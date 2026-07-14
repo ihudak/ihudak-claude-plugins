@@ -6,12 +6,18 @@ allowed-tools: Read Write Edit Bash
 
 Install the dev-workflows status line: $ARGUMENTS
 
-`/statusline` installs the plugin's multi-line, truecolor status line and wires
-it into `~/.claude/settings.json`. The shipped script also writes the per-session
-**cost snapshot** that enables Option B of session cost reporting (see
-`${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` §5). Installation is
-**idempotent** and **backs up** anything it would overwrite. This is the only
-change the command makes; it changes no workflow-command behavior.
+`/dev-workflows:statusline` installs the plugin's multi-line, truecolor status
+line and wires it into `~/.claude/settings.json`. The shipped script also
+writes the per-session **cost snapshot** that enables Option B of session cost
+reporting (see `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` §5).
+Installation is **idempotent** and **backs up** anything it would overwrite.
+This is the only change the command makes; it changes no workflow-command
+behavior.
+
+Note: Claude Code ships its own built-in `/statusline` command (backed by the
+`statusline-setup` agent). Because this command shares that name, the bare
+`/statusline` resolves to Claude Code's built-in flow — direct users to the
+fully-qualified `/dev-workflows:statusline` to reach this command.
 
 ---
 

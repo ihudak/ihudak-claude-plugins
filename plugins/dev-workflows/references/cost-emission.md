@@ -160,7 +160,7 @@ work look cheaper now and dearer later, distorting efficiency comparisons).
 ## 5. Statusline augmentation (optional — "Option B")
 
 An authoritative cross-check, available only when the plugin statusline is
-installed (via `/statusline`):
+installed (via `/dev-workflows:statusline`):
 
 - The shipped statusline writes a snapshot each render:
   `~/.claude/dev-workflows/cost-snapshots/<session_id>.json = { ts, cost_usd }`

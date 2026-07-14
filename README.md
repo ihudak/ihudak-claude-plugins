@@ -49,13 +49,15 @@ export REPOS_PATH="/workspace"         # where your code clones live (default: /
 - **`SPECS_PATH`** — the shared, team-visible store for a ticket's `specification.md` / `design.md` / ARD under `specifications/<KEY>-<slug>/…`. Required by the specs-authoring commands (`/create-vi`, `/create-ard`, `/specify`, `/design`, `/ready`); advisory for `/implement`; additive for `/document`.
 - **`REPOS_PATH`** — where code clones live; a single directory or a colon-separated list. Defaults to `/workspace`. Repos are matched by their `git remote get-url origin` slug, not by directory name.
 
-### 4. Run `/statusline` first
+### 4. Run `/dev-workflows:statusline` first
 
-After installing, run `/statusline` once. It installs the `dev-workflows` multi-line status line (session identity, git, context, cost, tokens, rate limits) into `~/.claude/settings.json` and enables the Option-B snapshot used by session-cost reporting. It is idempotent and backs up anything it would overwrite, and it changes no workflow-command behavior.
+After installing, run `/dev-workflows:statusline` once. It installs the `dev-workflows` multi-line status line (session identity, git, context, cost, tokens, rate limits) into `~/.claude/settings.json` and enables the Option-B snapshot used by session-cost reporting. It is idempotent and backs up anything it would overwrite, and it changes no workflow-command behavior.
 
 ```
-/statusline
+/dev-workflows:statusline
 ```
+
+> Claude Code ships its own built-in `/statusline` command (backed by the `statusline-setup` agent) that configures a plain, single-line status line. Since the plugin's command shares that name, typing the bare `/statusline` runs Claude Code's built-in flow instead — always use the fully-qualified `/dev-workflows:statusline` to install this plugin's status line.
 
 ### 5. Update after new releases
 

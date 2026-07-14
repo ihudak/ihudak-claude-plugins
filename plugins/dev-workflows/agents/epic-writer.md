@@ -150,7 +150,7 @@ _source: native | derived_
 - **Focus mode:** when the handoff `scope` targets a single focus Epic, still
   recompute `_coverage.md` VI-holistically (all existing Epics + the re-drafted
   focus Epic) — never a single-Epic view.
-- **Refinement mode:** refined targets appear in "Covered by" as `<KEY> (refined)`; net-new drafts as `<slug> (new)`; untouched existing Epics as `<KEY> (exist)`. Requirements no target covers are `❌ gap` rows — the leftover the `/epics` Phase 6.2 gate routes.
+- **Refinement mode:** refined targets appear in "Covered by" as `<KEY> (refined)`; net-new drafts as `<slug> (new)`; untouched existing Epics as `<KEY> (exist)`. Requirements no target covers are `❌ gap` rows — the leftover the `/epics` Phase 6.1 gate routes.
 
 ## ARD conformance (only when `applicable_ard` is present)
 

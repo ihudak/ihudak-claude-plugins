@@ -74,7 +74,7 @@ Receive the research report for **one CVE** with `status: READY`.
 
 - Process one CVE per invocation.
 - Never push to `main`/`master` — always use a dedicated fix branch.
-- Always include the `Co-authored-by: Copilot` trailer (see `/vuln`).
+- Always include the `Co-authored-by: Claude` trailer (see `/vuln`).
 
 ## Model Routing
 

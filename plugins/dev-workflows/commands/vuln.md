@@ -41,7 +41,7 @@ Invoke one research task per valid CVE. Use a single agent message for the batch
 
 ```
 task(
-  agent_type: "dev-workflows:vuln-research",
+  subagent_type: "dev-workflows:vuln-research",
   model: `<detection_model — §2.1 Sonnet chain>`,
   description: "Research CVE",
   prompt: "## Vuln Research Request
@@ -83,7 +83,7 @@ Invoke `vuln-fixer` with `baseline_tests: run-fresh`:
 
 ```
 task(
-  agent_type: "dev-workflows:vuln-fixer",
+  subagent_type: "dev-workflows:vuln-fixer",
   model: `<detection_model — §2.1 Sonnet chain>`,
   description: "Fix CVE",
   prompt: "## Vuln Fix Request
@@ -113,7 +113,7 @@ task(
 
 ```
 task(
-  agent_type: "dev-workflows:vuln-fixer",
+  subagent_type: "dev-workflows:vuln-fixer",
   model: `<detection_model for SIGNIFICANT; planning_model (§2 Opus chain) only if HIGH-RISK>`,
   description: "Apply CVE fix before review",
   prompt: "## Vuln Fix Request
@@ -207,7 +207,7 @@ Fixes <CVE-ID> - <one-line CVE description>
 Vulnerable range: <range>
 Safe version: <version>
 
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+Co-authored-by: Claude <noreply@anthropic.com>
 ```
 
 **Without Jira ID:**
@@ -219,7 +219,7 @@ Fixes <CVE-ID> - <one-line CVE description>
 Vulnerable range: <range>
 Safe version: <version>
 
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+Co-authored-by: Claude <noreply@anthropic.com>
 ```
 
 ### PR

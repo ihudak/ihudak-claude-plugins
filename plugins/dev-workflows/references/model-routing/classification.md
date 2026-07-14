@@ -214,7 +214,7 @@ The CLI's `task` tool accepts an explicit `model:` override. Use it like this:
 
 ```
 task(
-  agent_type: "risk-planner"  | "code-review" | "general-purpose",
+  subagent_type: "dev-workflows:risk-planner" | "dev-workflows:code-review" | "general-purpose",
   model:      "claude-opus-4-8",   # or the highest available per §2
   prompt:     "<full self-contained context — sub-agent has no memory>",
   description:"Opus planning critique" | "Opus code review",
@@ -222,12 +222,12 @@ task(
 )
 ```
 
-- For **planning** on SIGNIFICANT/HIGH-RISK tasks, prefer `agent_type: "risk-planner"`
+- For **planning** on SIGNIFICANT/HIGH-RISK tasks, prefer `subagent_type: "dev-workflows:risk-planner"`
   with Opus, asking it to critique the proposed plan.
 - For **post-implementation review** on SIGNIFICANT/HIGH-RISK tasks, use
-  `agent_type: "code-review"` with Opus, passing the diff and §6 checklist.
+  `subagent_type: "dev-workflows:code-review"` with Opus, passing the diff and §6 checklist.
 - If `code-review` is unavailable in the environment, fall back to
-  `agent_type: "general-purpose"` with the same Opus model and the explicit
+  `subagent_type: "general-purpose"` with the same Opus model and the explicit
   §6 checklist embedded in the prompt.
 
 ---

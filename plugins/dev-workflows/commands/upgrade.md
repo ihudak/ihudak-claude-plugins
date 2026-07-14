@@ -26,7 +26,7 @@ All changes are left **uncommitted** on the current branch.
 
    ```
    task(
-     agent_type: "dev-workflows:upgrade-planner",
+     subagent_type: "dev-workflows:upgrade-planner",
      model: `<detection_model — §2.1 Sonnet chain>`,
      description: "Plan component upgrade",
      prompt: "## Upgrade Plan Request
@@ -62,7 +62,7 @@ All changes are left **uncommitted** on the current branch.
 
    ```
    task(
-     agent_type: "dev-workflows:risk-planner",
+     subagent_type: "dev-workflows:risk-planner",
      description: "Plan risky upgrade",
      prompt: "Task description: Upgrade [component] from [current] to [target] in this repo.
      Classification: [SIGNIFICANT | HIGH-RISK] — reason: [routing trigger]
@@ -93,7 +93,7 @@ All changes are left **uncommitted** on the current branch.
 
    ```
    task(
-     agent_type: "dev-workflows:test-baseliner",
+     subagent_type: "dev-workflows:test-baseliner",
      model: `<detection_model — §2.1 Sonnet chain>`,
      description: "Capture test baseline",
      prompt: "Mode: capture
@@ -109,7 +109,7 @@ All changes are left **uncommitted** on the current branch.
 
    ```
    task(
-     agent_type: "dev-workflows:upgrade-executor",
+     subagent_type: "dev-workflows:upgrade-executor",
      model: `<detection_model — §2.1 Sonnet chain — for SIMPLE/MODERATE; planning_model — §2 Opus chain — only if HIGH-RISK>`,
      description: "Execute component upgrade",
      prompt: "## Upgrade Execution Request

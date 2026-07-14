@@ -4,6 +4,12 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.31.1] — 2026-07-14
+
+### Fixed
+
+- `epics.md`'s Phase 6.1/6.2 sub-phase label swap (v2.31.0) missed one cross-reference: the Phase 6 handoff-recording step still said `clarifications_needed[]` was recorded "for Phases 6.2 and 7" — but that field is consumed by the clarification gate (now Phase 6.1) and the review (Phase 7), never by the style check (Phase 6.2). Corrected to "Phases 6.1 and 7".
+
 ## [2.31.0] — 2026-07-14
 
 Fixes from a full internal-correctness audit (2 BLOCKER, 7 MAJOR, 26 MINOR findings). No new commands, agents, or hooks — counts unchanged.

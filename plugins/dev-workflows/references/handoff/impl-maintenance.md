@@ -16,9 +16,10 @@ Session handoff:
 ```
 
 `Command run` is one of `/implement`, `/document` (direct mode), `/document`
-(Jira mode), `/epics`, `/vuln`, `/upgrade`, `/design`, `/specify`, or
-`/release-notes` — it scopes any "Command workflow improvements" suggestions to
-the right command. If `Command run` is missing from the handoff, default to
+(Jira mode), `/epics`, `/vuln`, `/upgrade`, `/design`, `/specify`,
+`/release-notes`, `/idea`, `/create-vi`, `/create-ard`, or `/ready` — it
+scopes any "Command workflow improvements" suggestions to the right command.
+If `Command run` is missing from the handoff, default to
 `/implement` (the canonical code workflow) and note the substitution in the
 report's `### Session summary` so the caller notices and updates their
 invocation.

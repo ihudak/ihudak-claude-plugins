@@ -38,7 +38,10 @@ Receive the research report for **one CVE** with `status: READY`.
 
 1. **Baseline** — If `baseline_tests: run-fresh`, invoke `test-baseliner` in `capture` mode.
    If `baseline_tests: provided`, the orchestrator has already captured the baseline — skip this step.
-   On `status: RUN_FAILED` or `COMMAND_NOT_FOUND`: set output `status: BASELINE_FAILED`, return.
+   - On `status: RUN_FAILED` or `COMMAND_NOT_FOUND`: set output `status: BASELINE_FAILED`, return.
+   - On `status: NO_TESTS`: the project has no runnable test suite. Proceed with the fix
+     (steps 2-3), then **skip step 4 (Verify) entirely** — there is nothing to diff against —
+     and go straight to step 5, noting in the output that no test suite was found.
 
 2. **Apply fix** — Update the version pin(s) listed in the research report's `files` array.
    Use the ecosystem-appropriate update command (see `${CLAUDE_PLUGIN_ROOT}/references/fix-vuln/build-systems.md`).

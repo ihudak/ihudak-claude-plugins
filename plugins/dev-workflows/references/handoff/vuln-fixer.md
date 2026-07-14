@@ -51,7 +51,7 @@ files:
 
 ```markdown
 ## Vuln Fix Result: CVE-2023-46604
-status: SUCCESS         # SUCCESS | BUILD_FAILED | TEST_REGRESSION | REVERTED | SKIPPED_BY_USER | AWAITING_REVIEW
+status: SUCCESS         # SUCCESS | BUILD_FAILED | TEST_REGRESSION | REVERTED | SKIPPED_BY_USER | AWAITING_REVIEW | BASELINE_FAILED
 branch: fix/MGD-2423-CVE-2023-46604
 pr_url: https://github.com/org/repo/pull/42
 tests_before: 47
@@ -67,6 +67,8 @@ model_routing:           # echoed back when present in input
 - `SUCCESS` — fix applied, tests green, PR opened
 - `BUILD_FAILED` — build failed after fix, changes reverted
 - `TEST_REGRESSION` — previously-green tests failed; see `notes` for detail
+- `BASELINE_FAILED` — `test-baseliner` capture returned `RUN_FAILED` or
+  `COMMAND_NOT_FOUND` before any fix was applied; nothing was changed
 - `REVERTED` — user chose to revert
 - `SKIPPED_BY_USER` — user chose to skip
 - `AWAITING_REVIEW` — `gate_tests_on_review: true` was set; the fix is

@@ -47,7 +47,7 @@ ID, delete a stray placeholder token); anything needing content goes back to the
 - **Open-questions header consistency:** the integer in `- **Open questions**: N` must equal the
   count of `- [ ]` items in the file (`grep -cE '^[[:space:]]*- \[ \]' <file>`). Mismatch → MAJOR.
 
-## Epic — per-Epic file (`/epics`; template in `agents/epic-writer.md`, NOT a `*-format.md` doc)
+## Epic — per-Epic file (`/epics`; template in `${CLAUDE_PLUGIN_ROOT}/agents/epic-writer.md`, NOT a `*-format.md` doc)
 
 - Required headings per Epic file: `## Goal`, `## Business value`, `## Scope`, `### In scope`,
   `### Out of scope`, `## Acceptance criteria`, `## Independent Test`, `## Dependencies`, `## Covers`,

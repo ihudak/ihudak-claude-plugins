@@ -61,9 +61,13 @@ python3 ${CLAUDE_PLUGIN_ROOT}/references/guidelines/check_guidelines.py /path/to
 python3 ${CLAUDE_PLUGIN_ROOT}/references/guidelines/check_guidelines.py /path/to/code/ --guideline appheader
 ```
 
-## Documentation Lookup (dt-app MCP)
+## Documentation Lookup (dt-app MCP, optional)
 
-Reference files contain GUIDEline rules (what you MUST/MUST NOT do). For implementation details, use the **dt-app MCP server**:
+Reference files contain GUIDEline rules (what you MUST/MUST NOT do) and are the authoritative source
+for this review regardless of MCP availability. **This agent's own `tools:` (above) does not grant
+any MCP tool** — this plugin does not bundle or configure a dt-app MCP server. If the calling
+environment has separately configured one AND granted its tools to this agent invocation, use it for
+implementation-detail lookups beyond what the reference files cover:
 
 ```python
 strato_get_component("AppHeader")
@@ -72,6 +76,8 @@ strato_get_component("FilterField")
 strato_search("modal")
 sdk_get_doc("@dynatrace-sdk/client-query")
 ```
+
+If those tools are unavailable, skip this section silently — do not report it as a gap.
 
 ## Common Violations Quick Reference
 

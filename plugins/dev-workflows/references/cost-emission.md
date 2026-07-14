@@ -18,7 +18,7 @@ maintainer — the plugin only ever appends immutable per-invocation measurement
 
 **Cost is computed, never read.** Claude Code stores no dollar figure in the
 transcript. Every assistant message carries `.message.usage` + `.message.model`;
-`scripts/session-cost.py` sums tokens per model and multiplies by a price table
+`${CLAUDE_PLUGIN_ROOT}/scripts/session-cost.py` sums tokens per model and multiplies by a price table
 (§4). Dollars are therefore an estimate that drifts from Claude Code's own figure
 by the accuracy of the price table — an accepted trade (cost accuracy is
 explicitly secondary to code/doc quality).
@@ -111,7 +111,7 @@ dev-workflows command's END in the same session.
 
 ## 4. Price table
 
-`references/cost-prices.yaml` requires a top-level **`models:`** map keyed by
+`${CLAUDE_PLUGIN_ROOT}/references/cost-prices.yaml` requires a top-level **`models:`** map keyed by
 model id, **USD per million tokens** (`input`, `output`, `cache_read`,
 `cache_write_5m`, `cache_write_1h`), plus a top-level `default: null`:
 

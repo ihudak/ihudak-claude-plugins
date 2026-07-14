@@ -51,9 +51,13 @@ Receive a single upgrade request (one component, one target spec).
 If the orchestrator passes a `model_routing` block (see
 `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §4), record it in the output
 `plan` record so the executor and the final report can quote it. This agent
-itself runs under whichever model the orchestrator selected when invoking
-it via the `task` tool's `model:` argument — for SIGNIFICANT / HIGH-RISK
-batches the orchestrator will pin this agent to Opus.
+always runs on the `detection_model` (§2.1 Sonnet chain) — the orchestrator
+invokes it at `/upgrade` Phase 1 step 3, before per-component classification
+happens (Phase 1 step 5), so no Opus pinning is possible or performed here.
+For a component that turns out `SIGNIFICANT` / `HIGH-RISK`, `/upgrade`
+invokes the separate `risk-planner` agent on Opus (Phase 1 step 6) to
+critique this agent's plan before execution — it does not re-invoke
+`upgrade-planner` itself.
 
 This agent has no other behavioural change based on the routing block.
 

@@ -261,10 +261,7 @@ choices: ["Approve & implement now (Recommended)", "Revise plan", "Cancel"]
 
 **Codebase exploration** — If Phase 1.7 ran (`fan_out = true`), use its **multi-source codebase summary** as the codebase context and skip the single Explore subagent. Otherwise, run the same exploration subagent call as Phase 2A (same prompt, same fallback rule).
 
-Once the file map is returned, delegate planning to Opus. Invoke via
-`general-purpose` with an explicit `model: "opus"` override and a "read the
-system prompt from file" instruction — this routing is independent of whether
-user-level agent auto-discovery is active in the current session.
+Once the file map is returned, delegate planning to Opus.
 
 → Agent (subagent_type: "dev-workflows:risk-planner"):  # planning_model — §2 Opus chain; frontmatter-pinned, recorded in model_routing, no override added
   > "Produce the risk-weighted plan for the following brief:
@@ -433,9 +430,7 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
    Record the choice. A "Skip" decision must be explicit and logged in the Phase 5 report.
 
 5. After all changes are written: **DO NOT run tests yet.** Capture the diff and the project root. Use `git add -N . && git diff` — this includes intent-to-add untracked new files so the diff is never empty for implementations that only create new files, and it now also includes the test files from step 4a. Also capture `git diff --stat` for the summary.
-6. **Opus code review** — spawn. As with Phase 2B, invoke `general-purpose` with
-   an explicit `model: "opus"` override and a "read the system prompt from file"
-   instruction so the routing works independently of agent auto-discovery.
+6. **Opus code review** — spawn.
 
    → Agent (subagent_type: "dev-workflows:code-review"):  # review_model — §2 Opus chain; frontmatter-pinned, recorded in model_routing, no override added
      > "Produce the Opus code review for this brief:

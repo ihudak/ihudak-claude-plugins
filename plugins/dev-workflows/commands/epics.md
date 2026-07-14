@@ -333,7 +333,7 @@ The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1
 
 ---
 
-## Phase 6.2 — Resolve clarifications
+## Phase 6.1 — Resolve clarifications
 
 If the writer returned a non-empty `clarifications_needed[]`, resolve it BEFORE
 the style check and review (so no review cycle is spent on known unknowns).
@@ -355,7 +355,7 @@ Fold the results back: *assign* → re-dispatch `epic-writer` once (or Edit inli
 
 ---
 
-## Phase 6.1 — Dynatrace style check
+## Phase 6.2 — Dynatrace style check
 
 Invoke `dt-style-checker` on the files written in Phase 6. Unlike `/document` (Jira mode), this does NOT use `docs-style-checker` (no repo linter for vault content). Instead, the Dynatrace corporate style guide checker validates terminology, trademarks, voice/tone, and inclusive language.
 
@@ -399,7 +399,7 @@ gate.
 
 ## Phase 7 — Epic review gate
 
-Invoke `epic-reviewer` (Opus). This reviewer is Epic-specific — scope clarity, acceptance-criteria testability, non-duplication of existing Epics. `docs-style-checker` is NOT used here (no repo linter for vault content); Dynatrace corporate style is handled by the Phase 6.1 `dt-style-checker` step above.
+Invoke `epic-reviewer` (Opus). This reviewer is Epic-specific — scope clarity, acceptance-criteria testability, non-duplication of existing Epics. `docs-style-checker` is NOT used here (no repo linter for vault content); Dynatrace corporate style is handled by the Phase 6.2 `dt-style-checker` step above.
 
 → Agent (subagent_type: "dev-workflows:epic-reviewer"):
   > "Review the Epic drafts for this brief:
@@ -532,7 +532,7 @@ current working directory.
 
 Output a structured report — do NOT ask any closing confirmation:
 
-**When `mode` is `refine`/`both`,** begin the report with a `Mode: <refine | both>` line and split the written-Epics listing into three labelled groups: **Refined** (keyed `<EPIC-KEY>.md`), **Net-new** (slug-named), and **Deferred** (VI requirements left uncovered via the Phase 6.2 leftover gate). In `generate` mode the report is unchanged.
+**When `mode` is `refine`/`both`,** begin the report with a `Mode: <refine | both>` line and split the written-Epics listing into three labelled groups: **Refined** (keyed `<EPIC-KEY>.md`), **Net-new** (slug-named), and **Deferred** (VI requirements left uncovered via the Phase 6.1 leftover gate). In `generate` mode the report is unchanged.
 
 ```
 ## Jira-driven Epic Drafting Report
@@ -578,7 +578,7 @@ MODERATE — vault-internal Epic drafting for a single VI
 ### ARD conformance
 [verdict + any `- ARD deviation:` lines recorded] — _omit this whole section when Phase 2.5 status was none_
 
-### Dynatrace style check (Phase 6.1)
+### Dynatrace style check (Phase 6.2)
 [OK | VIOLATIONS_FOUND (N fixed, M remaining) | ERROR (reason) | SKIPPED (dt-style-checker unavailable)] — [1-line summary]
 
 ### Documentation (Agent 1)
@@ -689,14 +689,14 @@ the current working directory; no user name is ever written (§10 privacy).
 - ALWAYS produce the Phase 9 report as the final output
 - ALWAYS end the Phase 9 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked
 - ALL written claims must be traceable to Jira keys (from `jira-reader`) or code paths (from `code-scanner`); do not invent content the sources don't contain
-- NEVER run `docs-style-checker` — Epic drafts are vault-internal and not subject to product-docs prose linting. Dynatrace corporate style is checked via `dt-style-checker` in Phase 6.1 instead.
+- NEVER run `docs-style-checker` — Epic drafts are vault-internal and not subject to product-docs prose linting. Dynatrace corporate style is checked via `dt-style-checker` in Phase 6.2 instead.
 - ALWAYS have `epic-writer` write `_coverage.md` to `output_dir` (VI-holistic, even in focus mode); it is NOT a Jira Epic and is never pasted to Jira
-- ALWAYS run the Phase 6.2 clarification gate when the writer returns clarifications; unresolved-by-choice markers become `epic-reviewer` BLOCKERs
+- ALWAYS run the Phase 6.1 clarification gate when the writer returns clarifications; unresolved-by-choice markers become `epic-reviewer` BLOCKERs
 - ARD steps (Phase 2.5, writer/reviewer `applicable_ard`, the Phase 9 ARD section) are ADDITIVE and guarded on `status: found` — a run with no ARD is byte-identical to before
 - ALWAYS pass `requirements[]`, the `_coverage.md` path, and `applicable_ard` (when found) to `epic-reviewer`
 - ALWAYS treat linked Epics flagged `refinement_candidate: true` as fill-in targets (not non-duplication constraints) once the Phase 3.5 gate selects `refine`/`both`; the confirmed target set is the PE's, not the raw detection
 - ALWAYS write refined team-Epics to `<output_dir>/<EPIC-KEY>.md` (keyed by real Jira id) and net-new Epics to `<output_dir>/<slug>.md`; refined files carry a `**Team:**` line
 - ALWAYS re-surface the code-scan default adaptively in Phase 3.5 for refine/both (ON at ≥2 targets, OFF at 1) — never in the generate path
-- ALWAYS run the Phase 6.2 leftover-disposition gate in refine/both when `_coverage.md` has `❌ gap` rows; silent no-op when none
+- ALWAYS run the Phase 6.1 leftover-disposition gate in refine/both when `_coverage.md` has `❌ gap` rows; silent no-op when none
 - Refinement mode (Phase 3.5 gate, `refinement_targets` handoff, leftover gate, keyed output) is ADDITIVE and guarded — no `refinement_candidate` targets AND no `focus_key` ⇒ `mode = generate` and the run is byte-identical to the legacy net-new flow
 - ALWAYS end the Phase 9 report with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (`resume.md`), then a role-aware `/compact`|`/clear` suggestion + `/rename <VI-ID>-<slug>-pe`; guidance only, never auto-run.

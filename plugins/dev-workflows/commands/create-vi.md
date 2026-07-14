@@ -113,7 +113,7 @@ Then author the profile's **adapt-in clusters**, each **pulled only when the ide
 Run a corporate style check on the authored VI **before** the review gate. This
 is a **quality enhancement, not a gate** — it never blocks the handoff.
 `vi-reviewer` (Phase 4) judges content; style / terminology is checked here
-(mirrors `/epics` Phase 6.1).
+(mirrors `/epics` Phase 6.2).
 
 → Agent (subagent_type: "dt-style-guide:dt-style-checker", model: `<detection_model — §2.1 Sonnet chain>`):
   > "Run the style check for this brief:

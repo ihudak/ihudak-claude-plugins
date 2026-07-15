@@ -452,7 +452,7 @@ The **counterpart space** is the one space in `profile.spaces[]` not in `target_
 
 Invoke `counterpart-finder`:
 
-→ Agent (subagent_type: "dev-workflows:counterpart-finder", model: `<planning_model — §9>`):
+→ Agent (subagent_type: "dev-workflows:counterpart-finder", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Discover counterpart-space grounding:
   >
   > repo_root:          [docs_repo_path]

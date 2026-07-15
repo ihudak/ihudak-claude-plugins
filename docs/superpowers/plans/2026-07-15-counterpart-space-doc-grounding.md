@@ -173,9 +173,17 @@ Run: `awk 'NR==1{f=($0=="---")?1:0} END{print (f?"FM_OK":"FM_BAD")}' "$A"` — E
      choices: ["Drop --counterpart — cover both spaces (Recommended)", "Constrain to saas", "Constrain to managed", "Cancel"]
      ```
      "Drop" → `counterpart_ref = null`. "Constrain to saas/managed" → set `space_constraint` accordingly and keep `counterpart_ref`. "Cancel" → stop.
-   - **`--counterpart` value malformed** (not a Jira key or URL) → reject and re-prompt for a valid Jira key or PR URL, or drop it.
-   Renumber any subsequent Phase 0 steps if they exist.
+   - **`--counterpart` value malformed** (not a Jira key or URL) → do NOT guess. Ask:
+     ```
+     "'<value>' isn't a valid --counterpart target. It should be a Jira key (e.g. PROJ-1234) or a PR URL. How would you like to proceed?"
+     choices: ["Re-enter a valid Jira key / PR URL", "Drop --counterpart (Recommended)", "Cancel"]
+     ```
+     "Re-enter" → take the new value. "Drop" → `counterpart_ref = null`. "Cancel" → stop.
+
+   When both the both-space-run rejection and a malformed value apply, resolve the both-space rejection first, then re-validate any value the user keeps.
 ```
+
+**Also amend the existing step 7** (space-constraint parser) so a `--counterpart <value>` flag pair is never mistaken for the space token. Change its opening clause `the optional second whitespace-separated token is the space constraint.` to: `**First set aside any --counterpart <value> flag pair** (parsed in step 8) so it is never mistaken for the space token; the space constraint is then the first remaining whitespace-separated token after <JIRA_KEY> (if any).`
 
 *(Note: verify the actual step count in Phase 0 before inserting — if the last existing step is not 7, insert as `last+1` and keep numbering contiguous.)*
 

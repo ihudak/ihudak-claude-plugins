@@ -90,7 +90,7 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 
    Record the resolved context — it drives Phase 6.2 (branch setup) and Phase 6.3 write rules. When `docs_repo_path` differs from cwd, record **both** and note that the writing phases (Phase 5.9, Phase 6.3) consume `docs_repo_path`, not cwd, for every write.
 
-7. **Parse the optional space constraint.** Read `$ARGUMENTS` as `<JIRA_KEY> [space]` — the same `$ARGUMENTS` already split for `<JIRA_KEY>` in step 1; the optional second whitespace-separated token is the space constraint.
+7. **Parse the optional space constraint.** Read `$ARGUMENTS` as `<JIRA_KEY> [space]` — the same `$ARGUMENTS` already split for `<JIRA_KEY>` in step 1. **First set aside any `--counterpart <value>` flag pair** (parsed in step 8) so it is never mistaken for the space token; the space constraint is then the first remaining whitespace-separated token after `<JIRA_KEY>` (if any).
    - **No second token** → `space_constraint = none`. Phase 4.5 will determine and confirm the applicable space(s).
    - **Second token is `saas` or `managed`** (case-insensitive) → `space_constraint = <space>`. This is a deliberate scoping decision by the user, so Phase 4.5 skips its determination step and records `target_spaces = [space_constraint]` directly.
    - **Second token present but not `saas`/`managed`** (e.g. `both`, a typo, or extra free text) → do NOT silently guess. Reject it and ask:
@@ -107,7 +107,14 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
      choices: ["Drop --counterpart — cover both spaces (Recommended)", "Constrain to saas", "Constrain to managed", "Cancel"]
      ```
      "Drop" → `counterpart_ref = null`. "Constrain to saas/managed" → set `space_constraint` accordingly and keep `counterpart_ref`. "Cancel" → stop.
-   - **`--counterpart` value malformed** (not a Jira key or URL) → reject and re-prompt for a valid Jira key or PR URL, or drop it.
+   - **`--counterpart` value malformed** (not a Jira key or URL) → do NOT guess. Ask:
+     ```
+     "'<value>' isn't a valid --counterpart target. It should be a Jira key (e.g. PROJ-1234) or a PR URL. How would you like to proceed?"
+     choices: ["Re-enter a valid Jira key / PR URL", "Drop --counterpart (Recommended)", "Cancel"]
+     ```
+     "Re-enter" → take the new value. "Drop" → `counterpart_ref = null`. "Cancel" → stop.
+
+   When both the both-space-run rejection and a malformed value apply, resolve the both-space rejection first, then re-validate any value the user keeps.
 
 ### Readiness
 

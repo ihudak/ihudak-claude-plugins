@@ -21,6 +21,7 @@ specs_dir:              <absolute path to the VI's spec folder (PRODUCT-NNNN*), 
 repo_root:              <absolute path to the docs repo root>
 profile:                <the resolved docs-profile (built-in dynatrace-docs default, in-repo, or generated); supplies spaces[], cross_space_override, shared_registries, tokens>
 target_spaces:          <the run's resolved space set: [saas] | [managed] | [saas, managed]>
+counterpart_references: <array of counterpart-finder entries (read-only grounding); [] when none or on a both-space run. Each: {source_kind, path|pr_ref, space, salient_summary, section_outline, is_shared_into_target, screenshots_seen[], match_confidence}>
 ```
 
 Refuse to run without `jira_reader_handoff`, `write_targets`, and `repo_root`.
@@ -100,7 +101,9 @@ For each write target:
 
    When `code_repos` is empty/omitted, emit one entry per user-visible claim with `finding: NOT_FOUND`, `technique: no-source-evidence`, `source_phrasing: "(not verifiable)"` (and `spec_phrasing: "(no spec)"` when `specs_dir` is also null).
 
-10. **Recommend a per-target multi-space write strategy** (per `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/multi-space-writing.md`). For each write target:
+10. **Ground on the counterpart space (read-only).** When `counterpart_references` is non-empty, use each entry's `salient_summary` and `section_outline` to inform topic/section planning for the *target* space — concepts, terminology, and completeness. Author the plan for the target space; do NOT copy the counterpart's space-specific detail (see the cross-space rule below). **Write-strategy signal:** an entry with `is_shared_into_target: true` is strong evidence the target render is already served by that shared page — prefer `conditional` (an in-place `{{#if project='<target>'}}` delta) over a new `content_root` page, and flag in `notes` that the target "may already be covered". `screenshots_seen` are comprehension-only — never plan them as target images.
+
+11. **Recommend a per-target multi-space write strategy** (per `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/multi-space-writing.md`). For each write target:
     - Determine its **home space** by matching `target_path` against each `profile.spaces[].content_root`/`snippet_root` prefix.
     - Determine `rendered_in` and `space_scope`: a page is **`shared`** when `profile.cross_space_override` pulls its home `content_root` into another space's render (in dynatrace-docs, a `saas`-home page under `dynatrace/_content` is pulled into the Managed render, so `rendered_in: [saas, managed]`); otherwise **`single`** (`rendered_in: [<home space>]`).
     - Recommend `write_strategy.strategy`:
@@ -173,6 +176,7 @@ verification_warnings:        # source-truth findings; resolved by the orchestra
 - NEVER include a Jira key inside `frontmatter_updates.changelog.entry`. The changelog is reader-visible "what changed on this page" prose; traceability is the commit message's job.
 - NEVER propose a changelog-only frontmatter update on a page with no other planned change: if a target's `topics:` is empty AND `frontmatter_updates.other:` is empty AND the only change is `frontmatter_updates.changelog`, drop the target from the checklist entirely (a changelog entry with no corresponding content change is meaningless).
 - NEVER let a cross-product "minimal touch" parity reference introduce content specific to the OTHER product's implementation. When extending product X's page about a feature shipped by product Y, plan `topics[].notes` as a one-line cross-link to Y's dedicated page — do NOT inline Y's implementation detail (throttling rules, enum values, precedence). Example: noting on `oneagent-update` that update windows are shared with ActiveGate is fine; copying the per-pool ActiveGate throttling rule onto the OneAgent page is not.
+- The same rule applies **cross-space**: when grounding on a `counterpart_references` page, never plan target-doc content that carries the counterpart space's specific UI paths, URLs, labels, defaults, or screenshots. Consult the counterpart for concepts/terminology/structure; author target-space specifics from the target space's own source.
 - NEVER write or modify files. This agent plans; the writer writes.
 - NEVER copy screenshots anywhere — only compute `dest` / `staging` paths and record them. The writer performs the actual file moves.
 - For `image_policy == cdn_upload_required`, the `staging` path MUST be under the caller-provided `screenshot_staging_dir` (a persistent Obsidian project folder under `$VAULT_PATH`, which is always host-mounted). NEVER stage inside `repo_root` (a repo mounted as a docker repo-volume is not on the host and is lost on restart) and NEVER use `/tmp` (in-image, ephemeral). If `screenshot_staging_dir` is null while a screenshot needs cdn staging, emit a gap with `recommended_action: "ask user"`.

@@ -444,6 +444,49 @@ The selected paths populate the existing **`screenshots[]`** passed to `doc-plan
 
 ---
 
+## Phase 5.6.5 — Counterpart-space reference discovery
+
+**Run only when `target_spaces` is a single space** (`[saas]` or `[managed]`). A run that already covers both spaces has no "other" space → skip entirely and carry `counterpart_references = []`. (A `--counterpart` on a both-space run was already resolved in Phase 0.)
+
+The **counterpart space** is the one space in `profile.spaces[]` not in `target_spaces`. Discover its existing documentation for this feature and carry it forward as **read-only grounding** — concepts, terminology, facts, section structure, and comprehension-only screenshots. It is never copied into the target doc and never an image source (Phase 5.6 remains the only image source).
+
+Invoke `counterpart-finder`:
+
+→ Agent (subagent_type: "dev-workflows:counterpart-finder", model: `<planning_model — §9>`):
+  > "Discover counterpart-space grounding:
+  >
+  > repo_root:          [docs_repo_path]
+  > target_space:       [the single member of target_spaces]
+  > counterpart_space:  [the profile.spaces[] space not in target_spaces]
+  > profile:            [Phase 0 profile]
+  > feature_summary:    [2–4 sentences from the jira-reader themes + VI goal]
+  > jira_key:           [<JIRA_KEY> (focus_key when set)]
+  > counterpart_ref:    [the --counterpart value from Phase 0, or null]
+  > diff_highlights:    [key filenames/symbols from the Phase 5 diff summaries, optional]"
+
+Handle the result:
+
+- **`status: EMPTY`** → set `counterpart_references = []`; print the `notes` line and proceed to Phase 5.7 unchanged.
+- **`status: ERROR`** → log the reason, set `counterpart_references = []`, proceed (never block).
+- **`status: OK`** → present the candidates and confirm (**always ask**; pre-select the `match_confidence: high` rows):
+  ```
+  "Found <N> counterpart-space page(s) to ground on:
+   | # | Page | Space | Confidence | Already in <target> render? | Why |
+   ...
+   How should I use these?"
+  choices: ["Ground on the recommended (high-confidence) set (Recommended)", "Pick a subset (you'll choose)", "Provide a --counterpart ref instead (you'll be prompted)", "Skip grounding", "Other… (describe)"]
+  ```
+  - **recommended set** → keep the `high` rows.
+  - **subset** → user picks rows.
+  - **provide a ref** → take a free-text Jira key / PR URL, re-invoke `counterpart-finder` with `counterpart_ref` set, then confirm again.
+  - **skip** → `counterpart_references = []`.
+
+**Shared-page signal.** For any kept reference with `is_shared_into_target: true`, tell the user the target space may **already be covered** by that page (its render is pulled in via `cross_space_override`) — the work may be a small `{{#if project='<target>'}}` delta, not a new page. Carry this into Phase 5.7 (feeds the planner's write-strategy recommendation) and Phase 5.9.
+
+Record the confirmed `counterpart_references[]`. It threads into Phase 5.7 (`doc-planner`) and Phase 6.3 (`doc-writer`); it never alters the Phase 5.6 image set.
+
+---
+
 ## Phase 5.7 — Plan the documentation
 
 Invoke `doc-planner`:

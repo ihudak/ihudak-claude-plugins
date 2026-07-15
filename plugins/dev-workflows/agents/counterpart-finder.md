@@ -19,7 +19,7 @@ counterpart_ref:    <optional: a Jira key or PR URL passed via --counterpart; nu
 diff_highlights:    <optional: key filenames/symbols from diff-summarizer to seed topical search>
 ```
 
-Refuse to run without `repo_root`, `counterpart_space`, and a non-empty `feature_summary`. If `counterpart_space == target_space`, return `status: ERROR` (the caller must not invoke this on an unconstrained run).
+Refuse to run without `repo_root`, `target_space`, `counterpart_space`, and a non-empty `feature_summary`. If `counterpart_space == target_space`, return `status: ERROR` (the caller must not invoke this on an unconstrained run).
 
 ## Process
 
@@ -32,7 +32,7 @@ Refuse to run without `repo_root`, `counterpart_space`, and a non-empty `feature
 
 ### Layer 2 — explicit ref (only when `counterpart_ref` is non-null)
 
-1. Classify `counterpart_ref`: a Jira key (`^[A-Z][A-Z0-9]+-[0-9]+`) → resolve to its merge/PR via `git -C <repo_root> log --all -E --grep`; a PR URL → resolve via `diff-summarizer`'s host-aware strategies (gh for github.com when installed, else local-git PR-ref / merge-commit grep; local-git-only for Bitbucket — NEVER Bitbucket REST). Mechanics: `agents/diff-summarizer.md` "Local-git strategies".
+1. Classify `counterpart_ref`: a Jira key (`^[A-Z][A-Z0-9]+-[0-9]+`) → resolve to its merge/PR via `git -C <repo_root> log --all -E --grep`; a PR URL → resolve via `diff-summarizer`'s host-aware strategies (gh for github.com when installed, else local-git PR-ref / merge-commit grep; local-git-only for Bitbucket — NEVER Bitbucket REST). Mechanics: `${CLAUDE_PLUGIN_ROOT}/agents/diff-summarizer.md` "Local-git strategies".
 2. Take the ADDED/MODIFIED files under the counterpart `content_root`/`snippet_root` and read them. For an unmerged PR head not present locally, `git fetch` the ref exactly as `diff-summarizer` does; on failure record it in `notes` as unresolved.
 3. Extract the grounding digest; mark these `source_kind: pr_ref`.
 

@@ -503,7 +503,8 @@ Invoke `doc-planner`:
   > code_repos:           [the Phase-4 resolved {slug, path} map; [] if none resolved]
   > specs_dir:            [resolved <specs_dir> from Phase 0, or null]
   > profile:              [the docs-profile loaded in Phase 0 — drives space routing + the multi-space write strategy]
-  > target_spaces:        [the resolved target_spaces from Phase 4.5: [saas] | [managed] | [saas, managed]]"
+  > target_spaces:        [the resolved target_spaces from Phase 4.5: [saas] | [managed] | [saas, managed]]
+  > counterpart_references: [the confirmed counterpart_references from Phase 5.6.5; [] when none]"
 
 Handle the `status` and `gaps`:
 

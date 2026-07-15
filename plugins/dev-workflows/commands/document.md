@@ -1,12 +1,12 @@
 ---
 name: document
-description: Jira-driven feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in dynatrace-docs default → on-demand /docs-profile) and the VI's specs dir under /workspace. Phase 4.5 determines/confirms the applicable space(s). Optional saas|managed constraint scopes the run to one space. Reads a Value Increment hierarchy from exported markdown, resolves PR diffs in parallel, synthesises product documentation, and gates on style-check and Opus doc review.
+description: Jira-driven feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in dynatrace-docs default → on-demand /docs-profile) and the VI's specs dir under /workspace. Phase 4.5 determines/confirms the applicable space(s). Optional saas|managed constraint scopes the run to one space. Reads a Value Increment hierarchy from exported markdown, resolves PR diffs in parallel, synthesises product documentation, and gates on style-check and Opus doc review. Optional --counterpart <JiraID|PR-url> grounds a space-constrained run on the other space's existing docs (read-only).
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch LS
 ---
 
 Generate product documentation for the Jira Value Increment: $ARGUMENTS
 
-Signature: `PRODUCT-NNNN [saas|managed]`. The optional second token is a **space constraint**, not a target list. When you pass `saas` or `managed`, the command documents **only that space** and leaves the OTHER space's rendered output unchanged (SaaS pages stay as they are when you pass `managed`, and vice-versa). When you omit it, the command **determines the applicable space(s)** from the Jira hierarchy and the resolved repos, then confirms with you. `both` is intentionally NOT an accepted value — omit the argument to cover both spaces.
+Signature: `PRODUCT-NNNN [saas|managed] [--counterpart <JiraID|PR-url>]`. The optional second token is a **space constraint**, not a target list. When you pass `saas` or `managed`, the command documents **only that space** and leaves the OTHER space's rendered output unchanged (SaaS pages stay as they are when you pass `managed`, and vice-versa). When you omit it, the command **determines the applicable space(s)** from the Jira hierarchy and the resolved repos, then confirms with you. `both` is intentionally NOT an accepted value — omit the argument to cover both spaces. `--counterpart <JiraID | PR-url>` is an optional named flag (valid only on a space-constrained run) that points at the OTHER space's documentation for this feature — a Jira key or a PR URL (merged or not). It is used as **read-only grounding**; on a both-space run it is rejected. See Phase 5.6.5.
 
 `/document` (Jira mode) is the **Jira-driven feature-documentation** workflow. Given a Jira Value Increment key, it reads the full Jira hierarchy from pre-exported markdown in the user's Obsidian vault, resolves PR URLs to local git repos, runs parallel PR-diff summaries, synthesises product documentation, runs style-check + Opus review gates, and writes the output to the current working directory (a product docs repository).
 
@@ -99,6 +99,15 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
      choices: ["Drop the constraint — auto-determine (Recommended)", "saas", "managed", "Cancel"]
      ```
      "Drop the constraint" → `space_constraint = none`. "saas"/"managed" → `space_constraint = <choice>`. "Cancel" → stop.
+
+8. **Parse the optional `--counterpart` flag.** Scan `$ARGUMENTS` for a `--counterpart <value>` token (named flag; `<value>` is the next whitespace-separated token, a Jira key `^[A-Z][A-Z0-9]+-[0-9]+` or a URL). Record `counterpart_ref = <value>` (default `null` when absent).
+   - **`--counterpart` present but `space_constraint == none`** (both-space run) → do NOT silently accept. Ask:
+     ```
+     "--counterpart grounds a single documented space on the OTHER space, so it needs a space constraint (saas|managed). This run covers both spaces. How would you like to proceed?"
+     choices: ["Drop --counterpart — cover both spaces (Recommended)", "Constrain to saas", "Constrain to managed", "Cancel"]
+     ```
+     "Drop" → `counterpart_ref = null`. "Constrain to saas/managed" → set `space_constraint` accordingly and keep `counterpart_ref`. "Cancel" → stop.
+   - **`--counterpart` value malformed** (not a Jira key or URL) → reject and re-prompt for a valid Jira key or PR URL, or drop it.
 
 ### Readiness
 

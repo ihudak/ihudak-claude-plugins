@@ -18,6 +18,7 @@ The orchestrator writes a single **handoff file** (a temp file) and passes its a
 - `write_strategies[]` — Phase 5.9 `{target_path, strategy ∈ {conditional, override-copy, plain}, target_space, rationale}`
 - `cdn_handoff_decision` ∈ {upload-now, defer}, `cdn_urls{}`, `screenshot_staging_dir`, `screenshots[]`
 - `target_spaces`, `profile`, `docs_repo_path`
+- `counterpart_references[]` — read-only grounding from `counterpart-finder` (Phase 5.6.5): `{source_kind, path|pr_ref, space, salient_summary, section_outline, is_shared_into_target, screenshots_seen[], match_confidence}`; `[]` when none. Consulted for concepts/terminology/structure only.
 - `bug_report_destination` (for `document-as-spec`/`skip-and-report` gaps)
 
 Multi-space mechanics are governed by `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/multi-space-writing.md` and discrepancy application by `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.4–§7.6 — read them; this agent carries the data, those carry the logic.
@@ -81,3 +82,8 @@ commands; the orchestrator remains the only actor that commits. Return:
 - `files_written: [absolute paths of every file created or modified]`
 - `notes: [TODO/placeholder markers emitted, staged screenshots, intentional-discrepancy markers + the implementation-gaps draft path — for the Phase 9 report]`
 - on `BLOCKED`: the specific missing/inconsistent input.
+
+## Hard rules
+
+- NEVER copy counterpart-space-specific content into the target doc — no counterpart UI paths, URLs, labels, defaults, or verbatim prose. `counterpart_references` is grounding; author target-space specifics from the target space's own source.
+- NEVER use a `counterpart_references[].screenshots_seen[]` image as a doc image — they are comprehension-only. Target images come only from the handoff `screenshots[]` (Phase 5.6).

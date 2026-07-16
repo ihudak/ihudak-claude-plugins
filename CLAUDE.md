@@ -185,7 +185,7 @@ Key invariants for `/document` (Jira mode) and `/epics`:
 - Branch setup happens **before** writing output files — never after
 - Branch policy: walk up cwd for `.obsidian/` → `obsidian` (never branch); else `git rev-parse` → `git_repo` (branch opt-in) or `plain_dir` (never branch). User override is allowed at plan approval
 - `doc-location-finder` (docs flow) identifies write targets before writing begins
-- Counterpart-space grounding (`counterpart-finder`, Phase 5.6.5) runs only on space-constrained runs; it is **read-only** — never copies counterpart-space-specific detail or screenshots into the target doc; `--counterpart <JiraID|PR-url>` reaches an unmerged counterpart PR via the existing host-aware resolver (gh for github.com, local-git for Bitbucket — zero new external API); nothing found ⇒ the run behaves exactly as today
+- Counterpart-space grounding (`counterpart-finder`, Phase 5.6.5) runs only on space-constrained runs; it is **read-only** — never copies counterpart-space-specific detail or screenshots into the target doc; `--counterpart <JiraID|PR-url>` reaches an unmerged counterpart PR by reusing `/document`'s existing PR-diff resolver (`diff-summarizer`, no new external-API surface); nothing found ⇒ the run behaves exactly as today
 - `doc-planner` (docs flow) synthesizes Jira + diffs into a documentation checklist
 - `docs-style-checker` + `doc-fixer` lint prose after writing, before the review gate; style check is mandatory — falls back to `dt-style-checker`; `NOT_CONFIGURED` only when nothing is available
 - For epics, `dt-style-checker` is the primary style checker; skip gracefully if `dt-style-guide` is not installed

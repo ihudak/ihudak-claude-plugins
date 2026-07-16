@@ -27,7 +27,7 @@ plugins/
 
 ## Active plugin: dev-workflows
 
-`plugins/dev-workflows/` provides twenty slash commands — `/implement`, `/document`, `/docs-profile`, `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/api-guideline-reviewer`, `/guideline-reviewer`, `/idea`, `/create-vi`, `/create-ard`, `/specify`, `/design`, `/feedback`, `/prompt`, `/prompt-brainstorm`, `/prompt-grill-me`, `/statusline`, and `/ready` — plus thirty reusable subagents, four hooks, and reference docs.
+`plugins/dev-workflows/` provides twenty slash commands — `/implement`, `/document`, `/docs-profile`, `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/api-guideline-reviewer`, `/guideline-reviewer`, `/idea`, `/create-vi`, `/create-ard`, `/specify`, `/design`, `/feedback`, `/prompt`, `/prompt-brainstorm`, `/prompt-grill-me`, `/statusline`, and `/ready` — plus thirty-one reusable subagents, four hooks, and reference docs.
 
 The live `dev-workflows` workflow relies on a larger set of helper agents and
 workflow roles; see the taxonomy and workflow map below.
@@ -115,7 +115,7 @@ in their prompt; they do not re-read the file.
 /implement           → [Pre-Phase 2 scale assessment] → (multi-source? → [jira-reader → code-scanner×N (parallel, cap 4)] → synthesis) → [risk-planner@Opus plan critique] → [code-review@Opus] → review-fixer → test-writer → tests → impl-maintenance
 /document (direct)   → [doc-reviewer] → [doc-fixer] → impl-maintenance
 /docs-profile        → scans docs repo → writes/refreshes .dev-workflows/docs-profile.yml + CLAUDE.md guidance → PR
-/document (Jira)     → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [doc-planner] → [discrepancy-escalation (Phase 5.8)] → writing → [docs-style-checker → dt-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [doc-fixer] → impl-maintenance
+/document (Jira)     → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [counterpart-finder (space-constrained runs)] → [doc-planner] → [discrepancy-escalation (Phase 5.8)] → writing → [docs-style-checker → dt-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [doc-fixer] → impl-maintenance
 /epics               → jira-reader → [code-scanner×N (parallel, optional)] → writing → [dt-style-checker] → [doc-fixer] → [epic-reviewer@Opus] → [doc-fixer] → impl-maintenance
 /release-notes       → jira-reader → [diff-summarizer×N (parallel, optional)] → [release-notes-writer] → [dt-style-checker → dt-doc-fixer (optional)] → write draft (paste into Jira)
 /vuln                → vuln-research → vuln-fixer → [code-review@Opus] → review-fixer → tests → impl-maintenance
@@ -133,6 +133,7 @@ in their prompt; they do not re-read the file.
                       └── doc-reviewer       (used by /document)
                       └── doc-fixer          (used by /document, /epics, /release-notes)
                       └── doc-location-finder (used by /document Jira mode)
+                      └── counterpart-finder (used by /document Jira mode, space-constrained runs)
                       └── doc-planner        (used by /document Jira mode)
                       └── docs-style-checker (used by /document Jira mode)
                       └── epic-reviewer      (used by /epics)
@@ -184,6 +185,7 @@ Key invariants for `/document` (Jira mode) and `/epics`:
 - Branch setup happens **before** writing output files — never after
 - Branch policy: walk up cwd for `.obsidian/` → `obsidian` (never branch); else `git rev-parse` → `git_repo` (branch opt-in) or `plain_dir` (never branch). User override is allowed at plan approval
 - `doc-location-finder` (docs flow) identifies write targets before writing begins
+- Counterpart-space grounding (`counterpart-finder`, Phase 5.6.5) runs only on space-constrained runs; it is **read-only** — never copies counterpart-space-specific detail or screenshots into the target doc; `--counterpart <JiraID|PR-url>` reaches an unmerged counterpart PR via the existing local-git resolver (zero new external API); nothing found ⇒ the run behaves exactly as today
 - `doc-planner` (docs flow) synthesizes Jira + diffs into a documentation checklist
 - `docs-style-checker` + `doc-fixer` lint prose after writing, before the review gate; style check is mandatory — falls back to `dt-style-checker`; `NOT_CONFIGURED` only when nothing is available
 - For epics, `dt-style-checker` is the primary style checker; skip gracefully if `dt-style-guide` is not installed

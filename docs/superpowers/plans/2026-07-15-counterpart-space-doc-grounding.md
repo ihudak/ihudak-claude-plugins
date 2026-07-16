@@ -618,7 +618,7 @@ The Claude whole-branch review surfaced two wiring items fixed in `commands/docu
 1. **Phase 7 `doc-reviewer` dispatch** — pass `counterpart_references` and `target_spaces` into the brief (after `code_repos:`), so the new "Cross-space grounding integrity" dimension actually receives the `screenshots_seen` provenance + the grounded space. Without it the reviewer check has no data.
 2. **Detection-chain enumerations** — add `counterpart-finder` to the three role→chain lists in `document.md` (the §9 map preamble, the Phase 9 report model-attribution line, and the ALWAYS-rules `model:` line), so its run-model is attributed. The inline dispatch pin already uses the detection chain; these lists were just missing it.
 
-Deferred (optional, non-blocking): doc-planner step-10 dense-paragraph styling; a doc-writer procedural reference to `counterpart_references`; CLAUDE.md invariant wording ("existing local-git resolver" under-describes the host-aware gh path).
+Resolved (post-merge polish, applied to all 3 repos): doc-planner step-10 bulletised (consult / write-strategy signal / screenshots); doc-writer's Write-mechanics now procedurally cites `counterpart_references`; the invariant reworded to "existing host-aware resolver (gh for github.com, local-git for Bitbucket — zero new external API)".
 
 **Port method:** transfer each changed file from its FINAL Claude state (post-all-fixes), not by replaying the original per-task edits — that guarantees every review fix carries over.
 

@@ -41,6 +41,7 @@ Multi-space safety is governed by `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-do
 - A target whose home space is **not** in `target_spaces` is a routing error — **return `status: BLOCKED`** naming the target (per Entry validation) (it should not occur once Phase 4.5/5.5 honored `target_spaces`); the one legitimate write outside `target_spaces` is an `override-copy` destination (step 0 below).
 - Apply the **approved `write_strategy`** for the target (from the handoff `write_strategies`; absent ⇒ `plain`).
 - **Follow `repo_authoring_guidance`** on every page you write — apply the repo's own authoring / structural rules (required sections, voice/tone, page templates, structure). They **augment** the built-in references and `dt-style-guide`; never let a repo rule override those.
+- **Consult `counterpart_references` (read-only)** when present — draw on each entry's `salient_summary`/`section_outline` for the target page's concepts, terminology, and structure. Never copy the counterpart space's specific detail or reuse its `screenshots_seen` images (see Hard rules).
 
 For each target in the confirmed write-target list:
 

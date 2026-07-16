@@ -198,7 +198,7 @@ Key invariants for `/document` (Jira mode) and `/epics`:
 
 Key invariants for `/release-notes`:
 
-- **Zero external API calls** — PR URLs are identifiers only; all resolution is local `git` against clones under `$REPOS_PATH`
+- **Zero direct API calls** — PR URLs are identifiers only; the agent never calls a REST API directly over HTTPS. Opt-in diff grounding reuses `diff-summarizer` (GitHub may use the `gh` CLI, which wraps the API — allowed; Bitbucket is pure local `git`); all resolution runs against clones under `$REPOS_PATH`
 - `jira-reader` is read-only
 - The draft is the **authored body only** — a `{{#context}}` label, `### title`, and customer-facing prose; NEVER a Jira ID/key, a PR link, or a `{{#internal-note}}` block (the docs automation adds the metadata wrapper)
 - NEVER writes into a docs repo; the default destination is persistent (never `/tmp`)

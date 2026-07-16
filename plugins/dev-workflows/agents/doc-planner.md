@@ -101,7 +101,10 @@ For each write target:
 
    When `code_repos` is empty/omitted, emit one entry per user-visible claim with `finding: NOT_FOUND`, `technique: no-source-evidence`, `source_phrasing: "(not verifiable)"` (and `spec_phrasing: "(no spec)"` when `specs_dir` is also null).
 
-10. **Ground on the counterpart space (read-only).** When `counterpart_references` is non-empty, use each entry's `salient_summary` and `section_outline` to inform topic/section planning for the *target* space — concepts, terminology, and completeness. Author the plan for the target space; do NOT copy the counterpart's space-specific detail (see the cross-space rule below). **Write-strategy signal:** an entry with `is_shared_into_target: true` is strong evidence the target render is already served by that shared page — prefer `conditional` (an in-place `{{#if project='<target>'}}` delta) over a new `content_root` page, and flag in `notes` that the target "may already be covered". `screenshots_seen` are comprehension-only — never plan them as target images.
+10. **Ground on the counterpart space (read-only).** When `counterpart_references` is non-empty:
+    - **Consult, don't copy.** Use each entry's `salient_summary` and `section_outline` to inform topic/section planning for the *target* space — concepts, terminology, and completeness. Author the plan for the target space; do NOT copy the counterpart's space-specific detail (see the cross-space rule below).
+    - **Write-strategy signal.** An entry with `is_shared_into_target: true` is strong evidence the target render is already served by that shared page — prefer `conditional` (an in-place `{{#if project='<target>'}}` delta) over a new `content_root` page, and flag in `notes` that the target "may already be covered".
+    - **Screenshots.** `screenshots_seen` are comprehension-only — never plan them as target images.
 
 11. **Recommend a per-target multi-space write strategy** (per `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/multi-space-writing.md`). For each write target:
     - Determine its **home space** by matching `target_path` against each `profile.spaces[].content_root`/`snippet_root` prefix.

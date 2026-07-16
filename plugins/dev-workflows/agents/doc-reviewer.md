@@ -22,6 +22,8 @@ The caller passes a structured brief:
 - **`doc-planner` checklist** — the full YAML checklist from Phase 5.7 (review against plan), including the planner's `repo_authoring_guidance` block (the repo-specific authoring rules to check adherence against).
 - **Style-check report** — the merged violations list from Phase 6.4 (`docs-style-checker` now chains the repo's primary linter + a complementary `dt-style-checker` semantic pass; each violation carries a `source: primary|complementary` tag), or `status: NOT_CONFIGURED` if no check could run. Same violation schema regardless of source.
 - **Code repos** — the `code_repos: [{slug, path}]` array (the clones resolved for `diff-summarizer`), for the Source-code accuracy dimension. May be empty.
+- **`counterpart_references`** — the `counterpart-finder` grounding entries from Phase 5.6.5 (`[]` on a non-space-constrained run), for the Cross-space grounding integrity dimension; each entry's `screenshots_seen[]` identifies the counterpart screenshots whose provenance must not appear as target-doc images, and `space` names the counterpart space.
+- **`target_spaces`** — the run's resolved space set, so the reviewer knows which space is the target vs the protected counterpart.
 
 Refuse to review without the written file paths, the `doc-planner` checklist, and the diff summaries. These three are the review ground truth.
 

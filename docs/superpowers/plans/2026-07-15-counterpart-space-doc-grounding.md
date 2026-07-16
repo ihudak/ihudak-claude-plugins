@@ -611,6 +611,17 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 ---
 
+## Post-final-review fixes (Claude — fold into the mgd & Copilot ports)
+
+The Claude whole-branch review surfaced two wiring items fixed in `commands/document.md` after Tasks 1–9. The ports must match the FINAL Claude files, so include these:
+
+1. **Phase 7 `doc-reviewer` dispatch** — pass `counterpart_references` and `target_spaces` into the brief (after `code_repos:`), so the new "Cross-space grounding integrity" dimension actually receives the `screenshots_seen` provenance + the grounded space. Without it the reviewer check has no data.
+2. **Detection-chain enumerations** — add `counterpart-finder` to the three role→chain lists in `document.md` (the §9 map preamble, the Phase 9 report model-attribution line, and the ALWAYS-rules `model:` line), so its run-model is attributed. The inline dispatch pin already uses the detection chain; these lists were just missing it.
+
+Deferred (optional, non-blocking): doc-planner step-10 dense-paragraph styling; a doc-writer procedural reference to `counterpart_references`; CLAUDE.md invariant wording ("existing local-git resolver" under-describes the host-aware gh path).
+
+**Port method:** transfer each changed file from its FINAL Claude state (post-all-fixes), not by replaying the original per-task edits — that guarantees every review fix carries over.
+
 ## Self-Review
 
 **Spec coverage** (each spec section → task):

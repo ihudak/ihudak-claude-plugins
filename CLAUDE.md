@@ -179,7 +179,7 @@ Key invariants for `/document` (direct mode):
 Key invariants for `/document` (Jira mode) and `/epics`:
 
 - `/document` (Jira mode) and `/epics` are distinct top-level commands, each invoked explicitly
-- **Zero external API calls** — PR URLs from Jira exports are identifiers only; no `gh`, no Bitbucket REST API, no HTTPS fetch to Bitbucket; all resolution is local `git` against clones discovered under `$REPOS_PATH` (default `/workspace`), matched by `git remote get-url origin` slug
+- **Zero direct API calls** — PR URLs from Jira exports are identifiers only; the agent never calls the GitHub or Bitbucket REST API **directly over HTTPS**. GitHub resolution may use the `gh` CLI (which wraps the API — allowed); Bitbucket has no `gh` and is pure local `git`; all resolution runs against clones discovered under `$REPOS_PATH` (default `/workspace`), matched by `git remote get-url origin` slug
 - `jira-reader` is strictly read-only — it never modifies vault files
 - Parallel agent invocation: all diff summarizers (docs flow) or code scanners (epics flow) are launched in a **single response**
 - Branch setup happens **before** writing output files — never after

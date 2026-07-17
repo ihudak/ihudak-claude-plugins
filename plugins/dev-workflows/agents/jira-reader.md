@@ -122,6 +122,8 @@ value_increment:
   summary: <text>
   status:  <text>
   goal:    <2–3 sentence extraction from Description>
+  change_type:            <verbatim from VI frontmatter; null when absent>
+  release_notes_category: <verbatim from VI frontmatter; null when absent>
 requirements_source: native | derived
 requirements:
   - id:   <US-N | AC-N | SM-N | FR-N | UC-N | R1..>   # native VI id, else synthetic

@@ -20,6 +20,9 @@ diff_summaries:      <optional array of diff-summarizer outputs; omit when diff-
 release_versions:    [<parsed version strings, e.g. "Managed (344)", "SaaS (344)">]
 context_label_hint:  <optional category labels; null otherwise>
 change_type_hint:    <optional user-supplied Change Type and/or deprecation signal; null otherwise>
+imported_change_type:            <change_type from the imported VI frontmatter (jira-reader handoff); null otherwise>
+imported_release_notes_category: <release_notes_category from the imported VI frontmatter; null otherwise>
+authored_vi_fields:  <optional { change_type, release_notes_category } from the authored specs-draft VI; null/absent otherwise>
 model_routing:       <standard block>
 code_repos:          <optional array of {slug, path}; provided when diff-grounding is on>
 ```
@@ -28,16 +31,23 @@ Refuse to run without `jira_reader_handoff`.
 
 ## Process
 
-1. **Classify the Change Type.** Determine the note's Change Type per
-   `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1–§2: use `change_type_hint`
-   when provided, otherwise infer from the VI/ticket content. Set
-   `release_notes_block.change_type` to one of `Breaking change` /
-   `New technology support` / `Bug fix` / `not applicable`. When the classification is
-   low-confidence (the source supports two types roughly equally), still set the proposed
-   value and add a `gaps[]` entry (`field: change_type`, `recommended_action: "ask
-   user"`).
+1. **Source the Change Type (ladder).** Resolve `release_notes_block.change_type` per
+   `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §6: `change_type_hint` →
+   `imported_change_type` → `authored_vi_fields.change_type` → infer from content (§1–§2).
+   First non-null wins. If both `imported_change_type` and `authored_vi_fields.change_type`
+   are present and differ, use the imported value and emit a `gaps[]` entry
+   (`field: change_type_divergence`, `recommended_action: "note in report"`,
+   `imported: <v>`, `authored: <v>`). Only when the value had to be **inferred** and is
+   low-confidence, emit `gaps[]` (`field: change_type`, `recommended_action: "ask user"`).
+   Set it to one of `Breaking change` / `New technology support` / `Bug fix` /
+   `not applicable`.
 
-2. **Detect deprecation.** Apply the §4 deprecation trigger: scan the VI content
+2. **Surface the release-notes category.** Set `release_notes_block.release_notes_category`
+   = `imported_release_notes_category` → `authored_vi_fields.release_notes_category` → null
+   (first non-null; never inferred). It is surfaced only — it does NOT become the
+   `{{#context}}` label.
+
+3. **Detect deprecation.** Apply the §4 deprecation trigger: scan the VI content
    (`## What`, "Current vs Target State", explicit "deprecat*" wording) and honor a
    deprecation-signaling `change_type_hint`. When triggered, the Summary must carry a
    deprecation note with a **required end-of-life date** and an **optional
@@ -45,16 +55,16 @@ Refuse to run without `jira_reader_handoff`.
    derivable, add a `gaps[]` entry (`field: deprecation_eol`, `recommended_action: "ask
    user"`) and use a `<!-- TODO: end-of-life date -->` placeholder in the prose.
 
-3. **Gather substance.** From the VI/ticket file in the handoff, read the summary,
+4. **Gather substance.** From the VI/ticket file in the handoff, read the summary,
    `## User Story`, `## Acceptance Criteria`, and `## Problem/Pain`. When
    `diff_summaries` is present, use it only to confirm what actually shipped — never to
    add implementation detail that is not user-visible.
 
-4. **Determine release versions.** Use `release_versions` as given. If `[]`, produce a
+5. **Determine release versions.** Use `release_versions` as given. If `[]`, produce a
    single entry with `release_version: "(unspecified)"` and add a `gaps` entry
    (`field: release_version`, `recommended_action: "ask user"`).
 
-5. **Per entry, build the authored body:**
+6. **Per entry, build the authored body:**
    - **Context label** — 1–2 short product-area labels (pipe-separated when 2, e.g.
      `Platform | Settings`), inferred from the VI summary / themes, or from
      `context_label_hint` when provided. If confidence is low, still emit a best guess
@@ -68,7 +78,7 @@ Refuse to run without `jira_reader_handoff`.
      **Breaking change**, use the §3 Breaking change rules (lead with the benefit, state
      what changes and what breaks, add an **Action plan** when the customer must act).
      For **New technology support**, use the benefit-led editorial shaping below. When a
-     deprecation was detected (Process step 2), append the deprecation note (what is
+     deprecation was detected (Process step 3), append the deprecation note (what is
      deprecated + end-of-life date, optional end-of-support date, or the `<!-- TODO:
      end-of-life date -->` placeholder). Never name the release version in the prose
      (§5). Choose the New-technology-support shape from the content:
@@ -98,7 +108,7 @@ Refuse to run without `jira_reader_handoff`.
      The rendered `prose` field carries this shaped body (prose and/or list/`> Note:`);
      it stays plain customer-facing content with no Jira IDs and no PR links.
 
-6. **Render.** Render each entry's Summary body as exactly:
+7. **Render.** Render each entry's Summary body as exactly:
 
    ```handlebars
    {{#context}}<context_label>{{/context}}
@@ -112,9 +122,12 @@ Refuse to run without `jira_reader_handoff`.
    `--- Summary (paste into release-notes field) ---` divider (a human copy guide, not
    pasted), then the entries' Summary bodies concatenated (blank-line separated). The
    Change Type label appears ONLY on the leading line — NEVER inside an entry's Summary
-   body.
+   body. When `release_notes_block.release_notes_category` is non-null, add a
+   `Release-notes category: <value>` line immediately after the `Change type:` line (both
+   above the `--- Summary … ---` divider). The category is metadata for the PM to set the
+   Jira field; it never appears inside the `{{#context}}` Summary body.
 
-7. **Source-truth check (when `code_repos` is provided).** Verify the specific option/label/count claims the draft makes against the source (per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §3). Do NOT auto-resolve: when a claim is contradicted, record a `gaps[]` entry with `field: prose`, `jira_phrasing`, `source_phrasing`, `source_location`, and `recommended_action: "ask user"`. Keep the draft prose in the Jira phrasing for now; the command resolves it.
+8. **Source-truth check (when `code_repos` is provided).** Verify the specific option/label/count claims the draft makes against the source (per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §3). Do NOT auto-resolve: when a claim is contradicted, record a `gaps[]` entry with `field: prose`, `jira_phrasing`, `source_phrasing`, `source_location`, and `recommended_action: "ask user"`. Keep the draft prose in the Jira phrasing for now; the command resolves it.
 
 ## Output
 

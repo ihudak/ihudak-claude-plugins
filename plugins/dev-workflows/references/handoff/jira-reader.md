@@ -39,6 +39,8 @@ value_increment:
   summary: <text from frontmatter>
   status:  <text from frontmatter>
   goal:    <2–3 sentence extraction from the Description / Goal section>
+  change_type:            <verbatim from frontmatter `change_type:` when present; null otherwise — one of Breaking change | New technology support | Bug fix | not applicable>
+  release_notes_category: <verbatim from frontmatter `release_notes_category:` when present; null otherwise>
 
 requirements_source: native | derived
 requirements:

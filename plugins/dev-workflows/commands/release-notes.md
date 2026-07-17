@@ -155,10 +155,27 @@ Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent messag
   > diff_summaries:      [the Phase 5 array, or omit when diff grounding was off]
   > release_versions:    [parsed list, or [] ]
   > context_label_hint:  [user hint if any, else null]
+  > change_type_hint:   [user-supplied Change Type and/or deprecation signal if any, else null]
   > model_routing:       [the block from Phase 1.5]
   > code_repos:          [the Phase-4 resolved {slug, path} map when diff grounding is on; omit otherwise]"
 
 If `status: PARTIAL`, surface each `gaps` entry with `recommended_action: "ask user"` and let the user supply the label/prose or accept a `<!-- TODO -->` marker.
+
+For a `field: change_type` gap (low-confidence classification), present the writer's
+proposed value and let the user confirm or override:
+```
+choices: ["<proposed value> (Recommended)", "Breaking change", "New technology support", "Bug fix", "not applicable", "Other… (describe)"]
+```
+Apply the chosen value to `release_notes_block.change_type` (and thus the draft's leading `Change type:` line).
+
+For a `field: deprecation_eol` gap (a deprecation was detected but the required
+end-of-life date is unclear), ask the user:
+```
+choices: ["Enter the end-of-life date (you'll be prompted; end-of-support optional)", "Leave the <!-- TODO: end-of-life date --> marker in the draft", "This isn't a deprecation — drop the note", "Other… (describe)"]
+```
+On a supplied date, replace the `<!-- TODO: end-of-life date -->` placeholder with the
+end-of-life date (and end-of-support date when given), formatted per the dt-style-guide
+(e.g. `November 30, 2026`).
 
 When `release-notes-writer` returns `gaps[]` entries that have `jira_phrasing` and `source_phrasing` (source-truth discrepancies), present the discrepancy table and per-claim prompt as in `/document` (Jira mode) Phase 5.8:
 
@@ -199,6 +216,8 @@ If `dt-style-guide` is not installed, skip this phase and note "style check skip
    ## Release-notes draft — <jira_key>
    - Destination: <path | stdout | skipped>
    - Release versions: <list, or "none declared">
+   - Change type: <Breaking change | New technology support | Bug fix | not applicable>
+   - Deprecation: <EOL <date> (end-of-support <date | —>) | none>
    - Diff grounding: <on (repos: …) | off>
    - Style check: <applied N safe fixes | report only (M findings) | skipped (dt-style-guide absent)>
    - Reminder: paste this into the ticket's Jira release-notes field — the docs automation adds the {{#internal-note}} metadata and emits it into dynatrace-docs.
@@ -315,6 +334,7 @@ user name is ever written (§10).
 - ZERO external API calls — PR URLs are identifiers only; all resolution is local `git`.
 - `jira-reader` is read-only.
 - The draft contains NO Jira IDs/keys, NO PR links, and NO `{{#internal-note}}` block.
+- The draft LEADS with a `Change type:` line (one of `Breaking change` / `New technology support` / `Bug fix` / `not applicable`) above a type-aware Summary; when the change deprecates something the Summary carries a deprecation note (end-of-life date required, end-of-support optional). The Change Type label never appears inside the Summary body, and no title or Summary prose names the release version. The pipeline-consumed Summary body is otherwise unchanged.
 - NEVER write into a docs repo; the default destination is persistent (never `/tmp`).
 - ALWAYS use `choices` arrays; the last choice is always `"Other… (describe)"`.
 - Light gate only — no Opus review, no tests, no branch, no commit.

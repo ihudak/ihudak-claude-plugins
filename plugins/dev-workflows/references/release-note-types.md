@@ -112,3 +112,22 @@ dt-style-guide (e.g. `November 30, 2026`).
   **never** inside the pipeline-consumed Summary body.
 - These rules complement, and do not duplicate, the dt-style-guide checks run in the
   command's style-gate phase.
+
+## 6. Sourcing the Change Type
+
+`change_type` is **sourced**, not just inferred. Resolve it by this precedence — the first
+source that supplies a value wins (no merging):
+
+1. **`change_type_hint`** — an explicit value the user/command passed. Always wins.
+2. **Imported VI frontmatter** — `change_type` from the re-imported Jira VI (surfaced by
+   `jira-reader`). This is the Jira field of record for a note already authored in Jira
+   (the dev-phase run).
+3. **Authored specs-draft VI** — `change_type` from `$SPECS_PATH/.../<KEY>_<slug>.md`, read
+   as **secondary grounding** per `${CLAUDE_PLUGIN_ROOT}/references/vi-source-resolution.md`
+   §5 (never authoritative over the Jira import). Covers the PM-phase run, before the Jira
+   dropdown is set.
+4. **Infer** — classify from content per §1–§2 (the last resort).
+
+When both the imported and authored sources are present and **differ**, the imported value
+wins and the caller records a non-blocking divergence note. `release_notes_category` follows
+the same ladder minus the hint (imported → authored → none) and is surfaced, never inferred.

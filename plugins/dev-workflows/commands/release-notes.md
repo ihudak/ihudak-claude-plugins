@@ -129,6 +129,16 @@ today.
 
 If `status: NOT_FOUND` / `EMPTY`, surface `["Re-enter key", "Cancel"]`. On `OK`, parse `release_versions` from the VI frontmatter into a list (e.g. `"Managed (344), SaaS (344)"` → `["Managed (344)", "SaaS (344)"]`).
 
+Also capture `imported_change_type` and `imported_release_notes_category` from the
+jira-reader handoff's `value_increment` block (null when absent).
+
+**Resolve the authored specs-draft VI (secondary grounding).** Per
+`${CLAUDE_PLUGIN_ROOT}/references/vi-source-resolution.md` §5, glob
+`$SPECS_PATH/specifications/<jira_key>-*/<jira_key>_*.md` (first match whose frontmatter is
+`issue_type: ValueIncrement`); read its `change_type` + `release_notes_category` into
+`authored_vi_fields`. A missing file or `$SPECS_PATH` is a graceful skip
+(`authored_vi_fields: null`) — never authoritative over the imported values.
+
 ---
 
 ## Phase 4 — Resolve repos (only if diff grounding is ON)
@@ -156,6 +166,9 @@ Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent messag
   > release_versions:    [parsed list, or [] ]
   > context_label_hint:  [user hint if any, else null]
   > change_type_hint:    [user-supplied Change Type and/or deprecation signal if any, else null]
+  > imported_change_type:            [from Phase 3, else null]
+  > imported_release_notes_category: [from Phase 3, else null]
+  > authored_vi_fields:              [from Phase 3, else null]
   > model_routing:       [the block from Phase 1.5]
   > code_repos:          [the Phase-4 resolved {slug, path} map when diff grounding is on; omit otherwise]"
 
@@ -217,6 +230,8 @@ If `dt-style-guide` is not installed, skip this phase and note "style check skip
    - Destination: <path | stdout | skipped>
    - Release versions: <list, or "none declared">
    - Change type: <Breaking change | New technology support | Bug fix | not applicable>
+   - Release-notes category: <value | none>
+   - Change-type source: <hint | imported | authored | inferred>  (+ "imported/authored differ: <imp> vs <auth> — used imported" when a change_type_divergence gap was returned)
    - Deprecation: <EOL <date> (end-of-support <date | —>) | none>
    - Diff grounding: <on (repos: …) | off>
    - Style check: <applied N safe fixes | report only (M findings) | skipped (dt-style-guide absent)>
@@ -235,6 +250,9 @@ If `dt-style-guide` is not installed, skip this phase and note "style check skip
 
    Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
    ```
+
+   Handle a `change_type_divergence` gap by printing the divergence note in the
+   `Change-type source:` line above (non-blocking; no user prompt).
 
 ---
 
@@ -335,6 +353,7 @@ user name is ever written (§10).
 - `jira-reader` is read-only.
 - The draft contains NO Jira IDs/keys, NO PR links, and NO `{{#internal-note}}` block.
 - The draft LEADS with a `Change type:` line (one of `Breaking change` / `New technology support` / `Bug fix` / `not applicable`) above a type-aware Summary; when the change deprecates something the Summary carries a deprecation note (end-of-life date required, end-of-support optional). The Change Type label never appears inside the Summary body, and no title or Summary prose names the release version. The pipeline-consumed Summary body is otherwise unchanged.
+- Change Type + `release_notes_category` are **sourced** — `change_type_hint` → imported VI frontmatter (jira-reader) → authored specs-draft VI (secondary grounding per `vi-source-resolution.md` §5) → infer; import wins over authored on divergence (non-blocking note). The category is surfaced only, never the `{{#context}}` label.
 - NEVER write into a docs repo; the default destination is persistent (never `/tmp`).
 - ALWAYS use `choices` arrays; the last choice is always `"Other… (describe)"`.
 - Light gate only — no Opus review, no tests, no branch, no commit.

@@ -109,6 +109,8 @@ in their prompt; they do not re-read the file.
 
 `plugins/dev-workflows/references/source-truth.md` is the **single source of truth** for the Implementation-vs-Description discrepancy-escalation protocol. It is consulted by `doc-planner`, `doc-reviewer`, and `release-notes-writer` to verify user-visible claims (option lists, UI labels, menu paths, defaults, counts, mode names) against the shipped source code, and defines the escalation protocol when Jira and source disagree (Phase 5.8 in `/document` (Jira mode)).
 
+`plugins/dev-workflows/references/release-note-types.md` is the **single source of truth** for the release-note Change Type taxonomy (`Breaking change` / `New technology support` / `Bug fix` / `not applicable`), the classification order, the per-type Summary shaping rules, and the deprecation-note rule (end-of-life date required, end-of-support optional). It is consulted by `release-notes-writer`; the `/release-notes` command applies its decisions through the writer's gaps.
+
 ## `dev-workflows` workflow relationships
 
 ```
@@ -117,7 +119,7 @@ in their prompt; they do not re-read the file.
 /docs-profile        → scans docs repo → writes/refreshes .dev-workflows/docs-profile.yml + CLAUDE.md guidance → PR
 /document (Jira)     → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [counterpart-finder (space-constrained runs)] → [doc-planner] → [discrepancy-escalation (Phase 5.8)] → writing → [docs-style-checker → dt-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [doc-fixer] → impl-maintenance
 /epics               → jira-reader → [code-scanner×N (parallel, optional)] → writing → [dt-style-checker] → [doc-fixer] → [epic-reviewer@Opus] → [doc-fixer] → impl-maintenance
-/release-notes       → jira-reader → [diff-summarizer×N (parallel, optional)] → [release-notes-writer] → [dt-style-checker → dt-doc-fixer (optional)] → write draft (paste into Jira)
+/release-notes       → jira-reader → [diff-summarizer×N (parallel, optional)] → [release-notes-writer: classify Change Type + shape per type + detect deprecation] → [dt-style-checker → dt-doc-fixer (optional)] → write draft (Change type: line + Summary; paste into Jira)
 /vuln                → vuln-research → vuln-fixer → [code-review@Opus] → review-fixer → tests → impl-maintenance
 /upgrade             → upgrade-planner → upgrade-executor → [code-review@Opus] → review-fixer → tests → impl-maintenance
 /idea                → idea-reader → (embedded grilling) → write idea.md
@@ -201,6 +203,9 @@ Key invariants for `/release-notes`:
 - **Zero direct API calls** — PR URLs are identifiers only; the agent never calls a REST API directly over HTTPS. Opt-in diff grounding reuses `diff-summarizer` (GitHub may use the `gh` CLI, which wraps the API — allowed; Bitbucket is pure local `git`); all resolution runs against clones under `$REPOS_PATH`
 - `jira-reader` is read-only
 - The draft is the **authored body only** — a `{{#context}}` label, `### title`, and customer-facing prose; NEVER a Jira ID/key, a PR link, or a `{{#internal-note}}` block (the docs automation adds the metadata wrapper)
+- The draft LEADS with a `Change type:` line — one of `Breaking change` / `New technology support` / `Bug fix` / `not applicable` — classified by `release-notes-writer` via `references/release-note-types.md`; the label never appears inside the Summary body
+- The Summary is shaped per the Change Type (breaking → benefit-led + action plan; bug fix → past-tense, no hedging, no internal terms; new-tech → benefit-led editorial shaping); no title or Summary prose names the release version
+- A deprecation carries a deprecation note in the Summary — end-of-life date (required) + end-of-support date (optional); a missing required date becomes a `deprecation_eol` gap the command asks about (never invented)
 - NEVER writes into a docs repo; the default destination is persistent (never `/tmp`)
 - Light gate only — `dt-style-checker` (optional, skipped if `dt-style-guide` absent); no Opus review, no tests, no branch, no commit
 - Diff grounding is opt-in; when on, it reuses `$REPOS_PATH` resolution + `diff-summarizer`

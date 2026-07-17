@@ -25,7 +25,7 @@ status: draft | reviewed
 grounded_repos:
   - <repo-slug @ absolute path>
 inherits: <path to <VI>_ARD.md | null>
-derived_from: <path to <VI>_ValueIncrement.md>
+derived_from: <path to the VI file, canonical <VI>_<slug>.md>
 ---
 ```
 

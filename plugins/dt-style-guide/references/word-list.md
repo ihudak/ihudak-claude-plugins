@@ -34,6 +34,7 @@ These words must never appear in Dynatrace content. Always use the listed altern
 | please | (omit) | Unnecessary in instructions |
 | toggle | turn on / turn off | |
 | & (ampersand) | and | Except in space-constrained UI |
+| 24/7, 24x7 | around the clock | Or specify hours instead; never use "24x7" |
 
 ---
 
@@ -147,6 +148,7 @@ Dynatrace uses American English. Common variants:
 | AIOps | AI Ops, aiops |
 | BizDevOps | Biz Dev Ops |
 | Dynatrace environment | Dynatrace tenant |
+| Dynatrace Operator | OneAgent Operator, Operator |
 | Early Access release (EA) | EAR, Early Adopter Release |
 | General Availability (GA) | go GA |
 | Dynatrace Documentation | Dynatrace Help, the docs |

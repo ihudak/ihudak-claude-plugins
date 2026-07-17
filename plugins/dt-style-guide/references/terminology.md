@@ -153,6 +153,7 @@ Optional prefix "Dynatrace" shown in brackets.
 | Full-Stack Monitoring (product); full-stack monitoring (generic) | full stack monitoring | |
 | Grail data lakehouse | Grail database | It's a lakehouse |
 | Dynatrace Intelligence | Davis® AI (deprecated branding) | |
+| Health overview | health overview | Capitalize |
 | host group autodiscovery | host groups autodiscovery | Singular noun as adjective |
 | Hosts page | Host page, Host screen | Plural named UI element, like "Services page" |
 | metric browser | metrics browser | Singular noun as adjective |

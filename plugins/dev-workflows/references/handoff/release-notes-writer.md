@@ -8,6 +8,8 @@ diff_summaries:      <optional array of diff-summarizer outputs; one entry per r
 code_repos:          <optional array of {slug, path}; provided when diff-grounding is on — enables the writer's Source-truth check>
 release_versions:    [<parsed version strings, e.g. "Managed (344)", "SaaS (344)">]   # derived by the command from release_versions frontmatter; [] when none declared
 context_label_hint:  <optional 1–2 short category labels the user suggested; null otherwise>
+change_type_hint:    <optional; a user-supplied Change Type and/or deprecation signal
+                      (e.g. "Breaking change", "new feature + deprecation"); null otherwise>
 model_routing:
   classification: MODERATE
   reason: <from orchestrator>
@@ -28,6 +30,7 @@ status: OK | PARTIAL
 
 release_notes_block:
   target_format: dynatrace-docs-release-notes-v1
+  change_type: <one of: "Breaking change" | "New technology support" | "Bug fix" | "not applicable">   # the note's Change Type (per note, not per release version); classified by the agent via references/release-note-types.md
   entries:
     - release_version: <e.g. "Managed (344)" | "(unspecified)">
       context_label:   <e.g. "Platform" | "Platform | Settings">
@@ -47,11 +50,15 @@ release_notes_block:
 
         <prose>
   combined_rendered: |
-    <all entries' `rendered` blocks concatenated, separated by one blank line>
+    <a leading "Change type: <release_notes_block.change_type>" line, then a
+    "--- Summary (paste into release-notes field) ---" divider (a human copy guide, not
+    pasted), then all entries' `rendered` blocks concatenated, separated by one blank
+    line. The Change Type label appears ONLY on this leading line, never inside an
+    entry's rendered Summary body.>
 
 gaps:
-  - field:              <context_label | feature_title | prose | release_version>
-    reason:             <why this is low-confidence or missing>
+  - field:              <context_label | feature_title | prose | release_version | change_type | deprecation_eol>
+    reason:             <why this is low-confidence or missing. For change_type: the classification is low-confidence (source supports two types); the proposed value is still set on release_notes_block.change_type. For deprecation_eol: a deprecation was detected but the required end-of-life date is not derivable from the source (or a deprecation-signaling change_type_hint left the dates unclear).>
     recommended_action: "ask user" | "mark TODO in draft"
     jira_phrasing:      <only for source-truth discrepancies — the draft's current (Jira-derived) phrasing>
     source_phrasing:    <only for source-truth discrepancies — what the source code actually shows>

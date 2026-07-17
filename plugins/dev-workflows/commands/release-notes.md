@@ -155,7 +155,7 @@ Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent messag
   > diff_summaries:      [the Phase 5 array, or omit when diff grounding was off]
   > release_versions:    [parsed list, or [] ]
   > context_label_hint:  [user hint if any, else null]
-  > change_type_hint:   [user-supplied Change Type and/or deprecation signal if any, else null]
+  > change_type_hint:    [user-supplied Change Type and/or deprecation signal if any, else null]
   > model_routing:       [the block from Phase 1.5]
   > code_repos:          [the Phase-4 resolved {slug, path} map when diff grounding is on; omit otherwise]"
 

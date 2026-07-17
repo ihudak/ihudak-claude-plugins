@@ -1,13 +1,13 @@
 # Changelog
 
-## [0.2.3] - 2026-07-17
+## 0.2.3
 
 - Synced curated terminology from the `mgd-specifications` `dynatrace-content-style`
   digest (additive; no existing entries changed): `timeframe selector`, `Strato Design
   System`, `around the clock` (replaces `24/7` / `24x7`), `Dynatrace Operator`,
   `Hosts page`, `Synthetic Monitoring` vs. `Digital Experience Management`,
   `network zone`, `Full-Stack Monitoring`, `Premium High Availability add-on`,
-  `Dynatrace web UI` vs. `interface`.
+  `Dynatrace web UI` vs. `interface`, `Health overview`.
 
 ## 0.2.2
 

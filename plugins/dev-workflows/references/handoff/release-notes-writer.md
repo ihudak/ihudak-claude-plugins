@@ -34,7 +34,7 @@ status: OK | PARTIAL
 release_notes_block:
   target_format: dynatrace-docs-release-notes-v1
   change_type: <one of: "Breaking change" | "New technology support" | "Bug fix" | "not applicable">   # the note's Change Type (per note, not per release version); sourced by the agent via the §6 ladder in references/release-note-types.md
-  release_notes_category: <one of: "Breaking change" | "New technology support" | "Bug fix" | "not applicable" | null>   # surfaced only, from imported_release_notes_category → authored_vi_fields.release_notes_category → null; never inferred; never the {{#context}} label
+  release_notes_category: <free-text Dynatrace Solution name surfaced verbatim from source, e.g. "Application Observability" | "Software Delivery"; null when absent>   # surfaced only, from imported_release_notes_category → authored_vi_fields.release_notes_category → null; never inferred; never the {{#context}} label; NOT a Change-Type enum
   entries:
     - release_version: <e.g. "Managed (344)" | "(unspecified)">
       context_label:   <e.g. "Platform" | "Platform | Settings">

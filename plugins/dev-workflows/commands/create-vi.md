@@ -12,7 +12,7 @@ authors a high-quality **Value Increment** that feeds the downstream pipeline. T
 (a PRD): what / why / for-whom, not how. Zero Jira API — the VI is authored as markdown in the specs
 repo and published to Jira by paste + re-import.
 
-Usage: `/create-vi <JIRA-KEY> [@idea.md] [--lean|--hybrid|--full]` (default `--hybrid`).
+Usage: `/create-vi <JIRA-KEY> [@idea.md] [--from-vi <VI-KEY|path>] [--lean|--hybrid|--full]` (default `--hybrid`).
 
 ---
 
@@ -20,6 +20,11 @@ Usage: `/create-vi <JIRA-KEY> [@idea.md] [--lean|--hybrid|--full]` (default `--h
 
 1. **`JIRA-KEY` (mandatory).** Parse the first non-flag token; validate `^[A-Z][A-Z0-9_]*-\d+$`. If absent or malformed, **stop gracefully**: `CREATE_VI_NEEDS_KEY: /create-vi needs a Jira key — create an empty Jira workitem first to get the ID, then re-run '/create-vi <KEY> @<idea.md>'.` (Format only — zero Jira API, so existence is not verified.)
 2. **Profile.** `--lean | --hybrid | --full`; default `--hybrid`.
+2a. **`--from-vi <VI-KEY|path>` (optional seed).** When present, this run authors a **new** VI (the
+    positional `<JIRA-KEY>`) seeded read-only by another VI. Resolve the seed via
+    `${CLAUDE_PLUGIN_ROOT}/references/vi-source-resolution.md` (`resolve-existing-vi` — Jira-import-first,
+    3-day freshness) for a key, or read the given path directly. The seed is **grounding, not content**
+    (Phase 3 adapts it; it is never copied wholesale).
 3. **Resolve `idea.md` (ladder — stop at first hit):**
    1. explicit `@path` argument;
    2. **same-session** — if `/idea` ran earlier in this session, use its recorded output path (confirm with the user);
@@ -27,7 +32,7 @@ Usage: `/create-vi <JIRA-KEY> [@idea.md] [--lean|--hybrid|--full]` (default `--h
    4. prompt for a path, or — last resort — proceed with **no idea** and grill the VI from scratch.
 4. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
 5. **Feature folder.** `<SPECS_PATH>/specifications/<KEY>-<slug>/` — `<slug>` from the idea title (else a kebab of the VI summary). Honor an existing dir matched by key-number (tolerate a stray `-`/`_` and a human-adjusted slug). Auto-created by the first write (Phase 5).
-6. **Prior VI.** If `<KEY>_ValueIncrement.md` exists in the folder, Phase 1 offers refine-vs-fresh.
+6. **Prior VI (frontmatter-based).** Glob `<feature-folder>/<KEY>_*.md` and confirm frontmatter `issue_type: ValueIncrement` (tolerant of any slug). If a VI is found, this is an **existing VI** — `/create-vi` is greenfield-only, so **redirect** (see Phase 1) to `/update-vi <KEY>` unless `--from-vi` is present.
 
 `/create-vi` is **cwd-agnostic** and needs **no repos mounted** (product-level; no code scan).
 
@@ -38,10 +43,15 @@ Usage: `/create-vi <JIRA-KEY> [@idea.md] [--lean|--hybrid|--full]` (default `--h
 Use `choices` arrays; the last choice is always `"Other… (describe)"`.
 
 1. **Confirm** the feature folder, the profile, and the resolved `idea.md` (or "none — grill from scratch").
-2. **Refine vs fresh** (only if a prior `<KEY>_ValueIncrement.md` exists):
-   ```
-   choices: ["Refine the existing VI (Recommended)", "Start fresh — overwrite", "Cancel", "Other… (describe)"]
-   ```
+2. **Existing-VI handling** (only if Phase 0 step 6 found a VI for `<KEY>`):
+   - **No `--from-vi`** → `/create-vi` is greenfield-only; **redirect**:
+     ```
+     choices: ["Switch to /update-vi <KEY> to refresh it (Recommended)", "Overwrite as a fresh VI (archives the current one)", "Cancel", "Other… (describe)"]
+     ```
+   - **`--from-vi` present** → "create new (seeded)" conflicts with "a VI already exists here":
+     ```
+     choices: ["Update the existing <KEY> instead — /update-vi <KEY> (seed ignored) (Recommended)", "Overwrite <KEY> as a new seeded VI (archives the current one)", "Cancel", "Other… (describe)"]
+     ```
 3. **Relocate `idea.md`.** If it is outside the feature folder, **copy/move** it to `<feature-folder>/idea.md` (**never a symlink** — a cross-root link between `$VAULT_PATH` and `$SPECS_PATH` would break). Record its original path for `derived_from`.
 4. **Draft idea → warn-and-fold.** If `idea.md` is `status: draft` (open `[NEEDS CLARIFICATION]`), note that the grill resolves those items — do **not** hard-block.
 
@@ -85,6 +95,9 @@ Read the resolved `idea.md` **directly** (it is the plugin's own format — `ide
 
 Optionally ground in the idea's cited sources and any strategy/vision docs the user points to. **No code scan; no repos.**
 
+If `--from-vi` was resolved (Phase 0 step 2a), also read the **seed VI** (body + comments) as read-only
+grounding — structure, personas, scope shape, and metrics to *adapt* (never copy) to the new VI.
+
 If there is no idea (Phase 0 ladder exhausted), grill the VI from scratch.
 
 ---
@@ -93,9 +106,9 @@ If there is no idea (Phase 0 ladder exhausted), grill the VI from scratch.
 
 **Interview technique (grilling — embedded; no runtime dependency).** Conduct a **relentless** interview per `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, fact-vs-decision split (look up facts from the idea/sources; put only decisions to the user), walk the design tree in dependency order, continue to shared understanding then write each section.
 
-Author `<KEY>_ValueIncrement.md` live against `${CLAUDE_PLUGIN_ROOT}/references/vi-format.md` for the selected profile. Walk the **spine** in dependency order:
+Author `<KEY>_<slug>.md` live against `${CLAUDE_PLUGIN_ROOT}/references/vi-format.md` for the selected profile. Walk the **spine** in dependency order:
 
-1. Frontmatter — incl. `release_versions` + `relevant_for_release_notes`, `sources` (propagated), `derived_from`, `jira_key`.
+1. Frontmatter — incl. `release_versions` + `relevant_for_release_notes`, `sources` (propagated), `derived_from`, `seeded_from_vi` (only when `--from-vi` was used), `jira_key`.
 2. **Problem**
 3. **Goal** (crisp 2–3 sentences)
 4. **Target audience** (personas)
@@ -104,7 +117,7 @@ Author `<KEY>_ValueIncrement.md` live against `${CLAUDE_PLUGIN_ROOT}/references/
 7. **Scope** (In / Out)
 8. **Success Metrics** (`[SM-N]`)
 
-Then author the profile's **adapt-in clusters**, each **pulled only when the idea warrants it** (never an empty section). **For a complex VI (`classification` SIGNIFICANT), actively author the `FR-N` (full) and `UC-N` (hybrid/full) clusters** within the chosen profile — lower the bar for pulling them in, because ID'd functional requirements and use cases feed a finer downstream `/epics` `_coverage.md` (traceability to `FR-N`/`UC-N`, not only `US`/`AC`/`SM`); still never an empty section. Fold the idea's open `[NEEDS CLARIFICATION]` into the grill; resolve to zero where possible, leaving genuinely-unresolvable ones under `## Assumptions & open questions` (hybrid/full). Keep the VI **product-level** — no implementation detail.
+Then author the profile's **adapt-in clusters**, each **pulled only when the idea warrants it** (never an empty section). **For a complex VI (`classification` SIGNIFICANT), actively author the `FR-N` (full) and `UC-N` (hybrid/full) clusters** within the chosen profile — lower the bar for pulling them in, because ID'd functional requirements and use cases feed a finer downstream `/epics` `_coverage.md` (traceability to `FR-N`/`UC-N`, not only `US`/`AC`/`SM`); still never an empty section. Fold the idea's open `[NEEDS CLARIFICATION]` into the grill; resolve to zero where possible, leaving genuinely-unresolvable ones under `## Assumptions & open questions` (hybrid/full). Keep the VI **product-level** — no implementation detail. **Self-consistency check:** before writing each section, check it against the already-settled sections — a new `[AC-N]` must not deliver an Out-of-scope behaviour, the `## Goal` must not assert a scope the `## Scope` contradicts, and `[US-N]`s must not conflict. Resolve any contradiction inline with the user, or record it under `## Assumptions & open questions` — never leave it implicit (the Opus `vi-reviewer` flags a silently-baked contradiction).
 
 ---
 
@@ -118,7 +131,7 @@ is a **quality enhancement, not a gate** — it never blocks the handoff.
 → Agent (subagent_type: "dt-style-guide:dt-style-checker", model: `<detection_model — §2.1 Sonnet chain>`):
   > "Run the style check for this brief:
   >
-  > files:    [absolute path to <KEY>_ValueIncrement.md]
+  > files:    [absolute path to <KEY>_<slug>.md]
   > doc_type: vi
   > emphasis: terminology and customer-facing captions, labels, messages, and text"
 
@@ -139,7 +152,7 @@ plugin is not installed), **skip this phase gracefully** and note
 ## Phase 3.6 — Structural pre-lint
 
 Before the review gate, run the deterministic checks in
-`${CLAUDE_PLUGIN_ROOT}/references/pre-lint.md` against the drafted `<KEY>_ValueIncrement.md`: the
+`${CLAUDE_PLUGIN_ROOT}/references/pre-lint.md` against the drafted `<KEY>_<slug>.md`: the
 **Universal checks** plus the **VI** block. Surface every finding; inline-fix the mechanical ones
 (renumber a duplicate `[US-N]`/`[AC-N]`/`[SM-N]`, delete a stray placeholder token); leave content gaps
 (missing section, unresolved `[NEEDS CLARIFICATION]`) for the grill/author. **Advisory** — never blocks;
@@ -152,7 +165,7 @@ Dispatch `vi-reviewer` (Opus, frontmatter-pinned; recorded as `review_model`, no
 → Agent (subagent_type: "dev-workflows:vi-reviewer", model: `<review_model — §2 Opus chain>`):
   > "Review the Value Increment:
   >
-  > VI path: [absolute path to <KEY>_ValueIncrement.md]
+  > VI path: [absolute path to <KEY>_<slug>.md]
   > Profile: [lean | hybrid | full]"
 
 Act on the verdict (mirrors `/specify`):
@@ -163,7 +176,7 @@ Act on the verdict (mirrors `/specify`):
 
 ## Phase 5 — Handoff
 
-Write the feature folder: `<KEY>_ValueIncrement.md` + the relocated `idea.md`. Then **offer** (commit-when-asked — never automatic):
+Write the feature folder: `<KEY>_<slug>.md` + the relocated `idea.md`. Then **offer** (commit-when-asked — never automatic):
 
 ```
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git", "Cancel"]

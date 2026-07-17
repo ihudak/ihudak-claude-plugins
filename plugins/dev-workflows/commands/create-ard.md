@@ -59,7 +59,7 @@ model_routing:
 ---
 
 ## Phase 2 — Read the VI (+ Epic, + inherited ARD)
-Read the VI from `$SPECS_PATH/specifications/<VI>-<vslug>/<VI>_ValueIncrement.md` when present (authored source); else dispatch `jira-reader` to read it from the export:
+Read the VI from `$SPECS_PATH/specifications/<VI>-<vslug>/` — glob `<VI>_*.md` and use the file whose frontmatter is `issue_type: ValueIncrement` (canonical `<VI>_<slug>.md`) when present (authored source); else dispatch `jira-reader` to read it from the export:
 
 → Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §2.1 Sonnet chain>`):
   > "Return the structured handoff for this brief:

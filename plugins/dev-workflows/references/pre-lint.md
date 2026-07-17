@@ -22,7 +22,7 @@ ID, delete a stray placeholder token); anything needing content goes back to the
 3. **Required-section presence** — every mandatory heading listed for the artifact is present
    (`grep -nF '## <heading>' <file>`). A missing required heading → BLOCKER.
 
-## VI — `<KEY>_ValueIncrement.md` (`/create-vi`; format `vi-format.md`)
+## VI — `<KEY>_<slug>.md` (`/create-vi`; format `vi-format.md`)
 
 - Required headings: `## Problem`, `## Goal`, `## Target audience`, `## User Stories`,
   `## Acceptance Criteria`, `## Scope`, `## Success Metrics`.

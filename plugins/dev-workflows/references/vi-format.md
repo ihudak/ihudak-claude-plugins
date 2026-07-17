@@ -25,6 +25,8 @@ priority: <e.g. Major>
 labels: [ ... ]
 relevant_for_release_notes: <yes | no>
 release_versions: "<e.g. Managed (344), SaaS (344)>"
+change_type: <Breaking change | New technology support | Bug fix | not applicable>   # optional; authored-then-mirrored, like release_versions
+release_notes_category: <Dynatrace Solution, e.g. Application Observability>          # optional
 sources:                     # PROPAGATED from idea.md's recorded provenance — not the literal idea.md
   - provenance: rfe | community-post | prompt | markdown
     ref: <RFE key | post URL | ...>

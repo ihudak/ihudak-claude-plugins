@@ -148,20 +148,20 @@ Optional prefix "Dynatrace" shown in brackets.
 | Data Explorer | Data explorer (lowercase e) | |
 | Dynatrace Cluster | Dynatrace Server | |
 | Dynatrace environment | Dynatrace tenant | Never use "tenant" |
-| Dynatrace web UI | interface | Refers to the product's UI, not a generic interface |
+| Dynatrace web UI | interface | |
 | extension | plugin, add-on | Except "Plugins API" |
 | Full-Stack Monitoring (product); full-stack monitoring (generic) | full stack monitoring | |
 | Grail data lakehouse | Grail database | It's a lakehouse |
 | Dynatrace Intelligence | Davis® AI (deprecated branding) | |
 | Health overview | health overview | Capitalize |
 | host group autodiscovery | host groups autodiscovery | Singular noun as adjective |
-| Hosts page | Host page, Host screen | Plural named UI element, like "Services page" |
+| Hosts page | Host page, Host pages, Host screen, Host-Screen | Plural named UI element, like "Services page" |
 | metric browser | metrics browser | Singular noun as adjective |
 | network zone | Network Zone | Lowercase |
 | OneAgent | PHP agent, JavaScript agent | Avoid bare "agent" |
 | Premium High Availability add-on | addon, plugin | The only approved "add-on" |
 | Strato Design System | design system | Capitalize both words |
 | Synthetic Monitoring | Digital Experience Management | |
-| timeframe selector | global time picker, time picker | "the Dynatrace timeframe selector" |
+| timeframe selector | global time picker, time picker, "Timeframe Selector" | "the Dynatrace timeframe selector" |
 | turn on / turn off | enable / disable | See accessibility |
 | sign in | log in | |

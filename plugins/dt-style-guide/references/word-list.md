@@ -133,7 +133,7 @@ Dynatrace uses American English. Common variants:
 | setup (noun) | set up (noun) |
 | set up (verb) | setup (verb) |
 | standalone | stand-alone |
-| time frame | timeframe |
+| timeframe | time frame |
 | use case | usecase |
 | web UI | webUI, Web UI |
 

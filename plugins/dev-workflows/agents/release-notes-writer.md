@@ -1,6 +1,6 @@
 ---
 name: release-notes-writer
-description: Renders a dynatrace-docs release-notes draft (authored body only — a {{#context}} label, an ### title, and customer-facing prose) for a Jira VI/ticket from the jira-reader handoff and optional PR-diff summaries. One entry per declared release version. Leads the draft with a Change type: line (Breaking change / New technology support / Bug fix / not applicable) above a type-aware Summary, and adds a deprecation note (end-of-life date required, end-of-support optional) when the change deprecates something. Emits NO Jira IDs, NO PR links, and NO {{#internal-note}} block (the docs automation adds that). Does NOT write files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Renders a dynatrace-docs release-notes draft (authored body only — a {{#context}} label, an H3 title, and customer-facing prose) for a Jira VI/ticket from the jira-reader handoff and optional PR-diff summaries. One entry per declared release version. Leads the draft with a Change type line (Breaking change / New technology support / Bug fix / not applicable) above a type-aware Summary, and adds a deprecation note (end-of-life date required, end-of-support optional) when the change deprecates something. Emits NO Jira IDs, NO PR links, and NO {{#internal-note}} block (the docs automation adds that). Does NOT write files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "LS"]
 ---
 

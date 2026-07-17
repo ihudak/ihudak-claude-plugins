@@ -41,8 +41,8 @@ release_notes_block:
         intro sentence + a bulleted list (bold each option); lead with the
         recommended path and demote deprecated options to a trailing sentence or an
         optional `> Note:`. Bold UI/field names; inline `code` for filenames,
-        identifiers, and flags. See the agent's Process step 3 for the full shaping
-        rules.>
+        identifiers, and flags. See the agent's Process step 5 for the full shaping
+        rules (and references/release-note-types.md §3 for the per-type shaping).>
       rendered: |
         {{#context}}<context_label>{{/context}}
 

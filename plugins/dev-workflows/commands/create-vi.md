@@ -108,7 +108,7 @@ If there is no idea (Phase 0 ladder exhausted), grill the VI from scratch.
 
 Author `<KEY>_<slug>.md` live against `${CLAUDE_PLUGIN_ROOT}/references/vi-format.md` for the selected profile. Walk the **spine** in dependency order:
 
-1. Frontmatter — incl. `release_versions` + `relevant_for_release_notes`, `sources` (propagated), `derived_from`, `seeded_from_vi` (only when `--from-vi` was used), `jira_key`.
+1. Frontmatter — incl. `release_versions` + `relevant_for_release_notes`, and (when `relevant_for_release_notes: yes`) the optional `change_type` (one of `Breaking change` / `New technology support` / `Bug fix` / `not applicable`) + `release_notes_category` (the Dynatrace Solution); `sources` (propagated), `derived_from`, `seeded_from_vi` (only when `--from-vi` was used), `jira_key`. Ask for `change_type` / `release_notes_category` only when the note is release-notes-relevant; leave them out otherwise (dates/deprecation stay out of frontmatter — they belong in the release-notes Summary).
 2. **Problem**
 3. **Goal** (crisp 2–3 sentences)
 4. **Target audience** (personas)

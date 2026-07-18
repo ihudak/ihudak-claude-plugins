@@ -4,6 +4,15 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.35.0] — 2026-07-18
+
+### Added
+
+- **`/release-notes` Change Type + type-aware Summary (documenting a merged-but-undocumented feature).** New `references/release-note-types.md` — the single authority for the four-value **Change Type** taxonomy (`Breaking change` / `Bug fix` / `New technology support` / `not applicable`), the classification order (with tie-breakers), and per-type Summary shaping rules: Breaking change leads with customer benefit and an Action plan when the customer must act; Bug fix is past-tense, symptom-first, no hedging and no jargon; New technology support uses the existing benefit-led/enumeration shaping. Also defines an orthogonal **deprecation note** (`> Note:` line with a required end-of-life date, optional end-of-support date, never invented) triggered by VI deprecation signals. `release-notes-writer` applies this file and emits the proposed `change_type` (plus any `gaps[]`) on its handoff; `/release-notes` renders the type on a separate `Change type:` line — never inside the pipeline-consumed Summary body.
+- **Authored/imported sourcing ladder for `change_type` / `release_notes_category`.** `release-note-types.md` §6 defines the precedence: an explicit `change_type_hint` always wins; otherwise the re-imported Jira VI frontmatter (surfaced by `jira-reader`) is authoritative; otherwise the authored `$SPECS_PATH` draft VI is read as secondary grounding per `references/vi-source-resolution.md` §5; otherwise the type is inferred from content. `jira-reader` now surfaces `change_type` and `release_notes_category` from VI frontmatter; when both imported and authored sources are present and differ, the imported value wins and a non-blocking divergence note is recorded. `release_notes_category` follows the same ladder minus the hint (imported → authored → none) and is always surfaced, never inferred.
+- **`/create-vi` captures optional `change_type` + `release_notes_category`.** `references/vi-format.md` frontmatter gains optional `change_type` (`Breaking change | New technology support | Bug fix | not applicable`) and `release_notes_category` (the Dynatrace Solution) fields, authored-then-mirrored like `release_versions`. The grill asks for both only when `relevant_for_release_notes: yes`; dates/deprecation stay out of VI frontmatter (they belong in the release-notes Summary).
+- **`vi-reviewer` validates the new fields.** Flags a `change_type` value outside the four-value enum as `MAJOR`, and raises a `MINOR` (recommended, not required) when `relevant_for_release_notes: yes` but `change_type` is absent; `release_notes_category`, when present, is free text with no format check.
+
 ## [2.34.0] — 2026-07-17
 
 ### Added

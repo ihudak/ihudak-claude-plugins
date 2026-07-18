@@ -231,7 +231,7 @@ If `dt-style-guide` is not installed, skip this phase and note "style check skip
    - Release versions: <list, or "none declared">
    - Change type: <Breaking change | New technology support | Bug fix | not applicable>
    - Release-notes category: <value | none>
-   - Change-type source: <hint | imported | authored | inferred>  (+ "imported/authored differ: <imp> vs <auth> — used imported" when a change_type_divergence gap was returned)
+   - Change-type source: <hint | imported | authored | inferred>  (derive by re-walking the ladder over the inputs you passed in Phase 6: the first non-null of change_type_hint / imported_change_type / authored_vi_fields.change_type, else "inferred"; + "imported/authored differ: <imp> vs <auth> — used imported" when a change_type_divergence gap was returned)
    - Deprecation: <EOL <date> (end-of-support <date | —>) | none>
    - Diff grounding: <on (repos: …) | off>
    - Style check: <applied N safe fixes | report only (M findings) | skipped (dt-style-guide absent)>

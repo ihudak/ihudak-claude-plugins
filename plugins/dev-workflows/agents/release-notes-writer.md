@@ -140,6 +140,9 @@ Return YAML exactly as defined in `${CLAUDE_PLUGIN_ROOT}/references/handoff/rele
   low-confidence, still set the proposed value and record a `field: change_type` gap.
 - NEVER place the Change Type label inside a `{{#context}}` Summary body — it belongs
   only on the leading `Change type:` line of `combined_rendered`.
+- `release_notes_category` is surfaced metadata only — it goes on the `Release-notes
+  category:` line, NEVER inside a `{{#context}}` Summary body and NEVER as the
+  `{{#context}}` label; it is sourced, never inferred.
 - NEVER name the release version in any `feature_title` or `prose` (it is a separate
   Jira field the PM sets).
 - NEVER invent an end-of-life or end-of-support date; record a `field: deprecation_eol`

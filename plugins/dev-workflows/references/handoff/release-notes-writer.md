@@ -66,8 +66,8 @@ release_notes_block:
 gaps:
   - field:              <context_label | feature_title | prose | release_version | change_type | change_type_divergence | deprecation_eol>
     reason:             <why this is low-confidence or missing. For change_type: the classification is low-confidence (source supports two types); the proposed value is still set on release_notes_block.change_type. For change_type_divergence: imported_change_type and authored_vi_fields.change_type are both present and differ; the imported value was used (non-blocking, note in report). For deprecation_eol: a deprecation was detected but the required end-of-life date is not derivable from the source (or a deprecation-signaling change_type_hint left the dates unclear).>
-    imported:            <only for change_type_divergence — the imported_change_type value>
-    authored:            <only for change_type_divergence — the authored_vi_fields.change_type value>
+    imported:           <only for change_type_divergence — the imported_change_type value>
+    authored:           <only for change_type_divergence — the authored_vi_fields.change_type value>
     recommended_action: "ask user" | "mark TODO in draft" | "note in report"
     jira_phrasing:      <only for source-truth discrepancies — the draft's current (Jira-derived) phrasing>
     source_phrasing:    <only for source-truth discrepancies — what the source code actually shows>

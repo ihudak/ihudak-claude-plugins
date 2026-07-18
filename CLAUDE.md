@@ -204,6 +204,7 @@ Key invariants for `/release-notes`:
 - `jira-reader` is read-only
 - The draft is the **authored body only** — a `{{#context}}` label, `### title`, and customer-facing prose; NEVER a Jira ID/key, a PR link, or a `{{#internal-note}}` block (the docs automation adds the metadata wrapper)
 - The draft LEADS with a `Change type:` line — one of `Breaking change` / `New technology support` / `Bug fix` / `not applicable` — classified by `release-notes-writer` via `references/release-note-types.md`; the label never appears inside the Summary body
+- Change Type + `release_notes_category` are **sourced** — `change_type_hint` → imported VI frontmatter (surfaced by `jira-reader`) → authored specs-draft VI (secondary grounding per `references/vi-source-resolution.md` §5) → infer; import wins over authored on divergence (non-blocking). `release_notes_category` is surfaced only, never the `{{#context}}` label. Deprecation stays prose in the Summary (no frontmatter field)
 - The Summary is shaped per the Change Type (breaking → benefit-led + action plan; bug fix → past-tense, no hedging, no internal terms; new-tech → benefit-led editorial shaping); no title or Summary prose names the release version
 - A deprecation carries a deprecation note in the Summary — end-of-life date (required) + end-of-support date (optional); a missing required date becomes a `deprecation_eol` gap the command asks about (never invented)
 - NEVER writes into a docs repo; the default destination is persistent (never `/tmp`)
@@ -218,6 +219,7 @@ Key invariants for the VI-creation flow (`/idea`, `/create-vi`, `/create-ard`, `
 - `/create-ard` grounds on mounted repos it discovers (`$REPOS_PATH` listing + theme→repo proposal + confirm/mount-or-descope); it never reads PRs
 - `/ready` is **read-only** — it verifies the Jira status against the ARD/spec/design and never sets status
 - `/design`, `/implement`, `/specify`, `/epics` respect the applicable ARD via `references/ard-resolution.md`; an `AD-N` Rule violated without a recorded "ARD deviation" is a reviewer BLOCKER
+- `/create-vi` captures optional `change_type` + `release_notes_category` VI frontmatter (release-notes-relevant VIs only); `vi-reviewer` validates `change_type` ∈ the four values (MAJOR if malformed; MINOR if missing when relevant). These feed the `/release-notes` sourcing ladder
 
 ## Test-writing requirement for code changes
 

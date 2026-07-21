@@ -189,7 +189,7 @@ Create `plugins/dev-workflows/agents/docs-grounder.md` with exactly this content
 ````markdown
 ---
 name: docs-grounder
-description: Read-only documentation grounding for authoring commands. Given a docs root ($DOCS_PATH), a feature summary, and optional Jira key/themes, retrieves the most relevant existing product-doc pages and returns a bounded digest — docs_references (positive grounding: same-feature facts, analogous precedents to model after, building-block altitude/permissions) plus docs_challenges (reconciliation prompts: already-documented, terminology mismatch, contradiction, divergence-from-precedent, adjacent-undocumented). Two-path retrieval — qmd CLI when available, keyword-overlap + git-grep fallback otherwise. Never writes; advisory only. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Read-only documentation grounding for authoring commands. Given a docs root ($DOCS_PATH), a feature summary, and optional Jira key/themes, retrieves the most relevant existing product-doc pages and returns a bounded digest — docs_references (positive grounding — same-feature facts, analogous precedents to model after, building-block altitude/permissions) plus docs_challenges (reconciliation prompts — already-documented, terminology mismatch, contradiction, divergence-from-precedent, adjacent-undocumented). Two-path retrieval — qmd CLI when available, keyword-overlap + git-grep fallback otherwise. Never writes; advisory only. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "LS", "Bash"]
 ---
 

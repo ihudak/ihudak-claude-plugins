@@ -25,6 +25,29 @@ The operator no longer types *"please also check the documentation in `<dir>`"*
 to get the high-quality result. When `$DOCS_PATH` is set and valid, the named
 commands ground on it by default and reconcile the draft against it.
 
+### Worked examples of the lift (why grounding is mostly *positive*, not adversarial)
+
+These shaped the `relation` / `structural_facts` / `diverges_from_precedent`
+additions to the agent contract (§2). The common thread: the biggest wins come
+from **modeling the new work on a well-documented existing feature for
+consistency**, not from catching contradictions.
+
+1. **New UI over an existing API.** The API is documented — its altitude
+   (environment vs cluster), the permissions it needs. That is prime grounding for
+   the new VI. → `building_block` reference + `structural_facts`.
+2. **New API resembling an existing one.** The docs describe a similar API; design
+   the new one *consistently* with it. → `analogous_precedent`; a
+   `diverges_from_precedent` challenge if the draft breaks the pattern. Same for a
+   **new settings schema** modeled on a documented one.
+3. **New policy / permission.** Existing documented policies and permissions anchor
+   the new one for consistency. → `analogous_precedent` + `structural_facts`
+   (permission model, naming).
+4. **ActiveGate autoupdate (brand-new) grounding on OneAgent autoupdate.** No
+   contradiction exists — but OneAgent and ActiveGate share an update window and use
+   parallel versioning, so the new VI grounds on the documented OneAgent feature.
+   → `analogous_precedent`. A contradiction-only agent would return `EMPTY` on
+   exactly this, the highest-value case.
+
 ## Scope
 
 **In scope — seven commands gain docs grounding:**
@@ -168,18 +191,37 @@ status: OK | EMPTY | ERROR
 retrieval: qmd | fallback          # honest record of which path ran
 docs_references:
   - path:            <absolute path>
+    relation:        same_feature | analogous_precedent | building_block
     salient_summary: <≤150 words: concepts, current behavior, verified facts>
+    structural_facts: <the consistency-bearing facts, when present — see list below>
     section_outline: [<heading>, ...]
     terminology:     [<customer-facing term the docs use>, ...]
     match_confidence: high | medium | low
     match_reason:    <why this page matched>
 docs_challenges:                    # the part that reproduces the manual-prompt lift
-  - kind:      already_documented | terminology_mismatch | contradicts_documented_behavior | adjacent_undocumented
+  - kind:      already_documented | terminology_mismatch | contradicts_documented_behavior | diverges_from_precedent | adjacent_undocumented
     challenge: <the reconciliation question to put to the author>
     evidence:  { path: <page>, quoted_line: <verbatim line from the docs> }
     severity:  high | medium | low
 notes: <when EMPTY: why nothing found; when a path degraded: which and why>
 ```
+
+`relation` semantics — grounding is **positive** (build on / model after), not only
+adversarial:
+- `same_feature` — the docs cover this very capability (feeds `already_documented`).
+- `analogous_precedent` — a *different* but parallel feature to model the new one
+  on (e.g. a new ActiveGate autoupdate grounding on documented OneAgent autoupdate —
+  shared update window, parallel versioning). This is often the highest-value match
+  and produces **no** contradiction; a contradiction-only agent would wrongly return
+  `EMPTY` here.
+- `building_block` — an existing documented thing the new work sits on (e.g. new UI
+  over an existing API — the docs give the API's altitude and required permissions).
+
+`structural_facts` — the consistency-bearing dimensions to surface when a page has
+them (illustrative, not exhaustive; framed generically): resource **altitude/scope**
+(e.g. environment vs cluster), required **permissions/scopes**, **config/settings-
+schema** shape, **versioning & lifecycle/update** mechanics, **naming pattern**.
+These let the author design the new feature consistently with the documented one.
 
 `kind` semantics:
 - `already_documented` — this capability appears to ship already; how is the new
@@ -187,6 +229,11 @@ notes: <when EMPTY: why nothing found; when a path degraded: which and why>
 - `terminology_mismatch` — the docs call it X; the draft calls it Z.
 - `contradicts_documented_behavior` — the draft asserts behavior the docs
   describe differently.
+- `diverges_from_precedent` — the draft designs something analogous to a documented
+  feature (an existing API / policy / settings schema) but **inconsistently**
+  (different altitude, permission model, schema shape, or naming) without
+  acknowledging it. Match it or justify the divergence. (Reconciles the
+  `analogous_precedent` / `building_block` references above.)
 - `adjacent_undocumented` — a closely related area the docs do **not** cover
   (a scope/opportunity signal).
 
@@ -347,6 +394,13 @@ fallback.
   `/create-ard`; excluded `/document` grounding.
 - **Assertiveness:** additive **+ challenge the grill** (reproduces the manual-
   prompt lift); not reviewer-enforced (kept advisory to limit cost/wiring).
+- **Grounding is mostly positive, not adversarial.** Worked examples (new UI over
+  a documented API; new API/settings-schema/policy modeled on an existing one;
+  ActiveGate autoupdate grounding on OneAgent autoupdate) drove a `relation`
+  field (`same_feature | analogous_precedent | building_block`), a
+  `structural_facts` list (altitude/scope, permissions, schema shape, versioning,
+  naming), and a fifth challenge kind `diverges_from_precedent`. A
+  contradiction-only agent would return `EMPTY` on the highest-value analog cases.
 - **Approach A** over inline-per-command (B, context-cost) and generalizing
   `counterpart-finder` (C, superficial reuse).
 - **Read-only is a mount property, not a plugin invariant.** Neither retrieval

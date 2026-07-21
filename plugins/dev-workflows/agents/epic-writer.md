@@ -21,6 +21,7 @@ The orchestrator writes a **handoff file** (a temp file) and passes its absolute
 - `existing_epic_themes` — themes of the already-linked Epics, for the pre-draft dedup pre-flight.
 - `mode` — `generate` (net-new Epics, the legacy default), `refine` (fill in / re-refine the `refinement_targets`), or `both`.
 - `refinement_targets` — list of `{key, team, scope_hint, current_body_path}` for the empty/existing Epics to fill in (present only when `mode` is `refine` or `both`; empty otherwise). `current_body_path` is the imported Epic file, e.g. `<jira_export_root>/<EPIC-KEY>/<EPIC-KEY>.md`.
+- `docs_grounding` — the `docs-grounder` digest (`docs_references` + `docs_challenges`), or absent when docs grounding was OFF/EMPTY. Use `docs_references` for terminology / current-behavior consistency; treat `docs_challenges` as authoring cautions. **Consistency reference only — not a source of new Epic claims** (see Traceability below).
 
 ## Entry validation (BLOCKED, never guess)
 
@@ -87,7 +88,7 @@ For each new Epic, emit a markdown file under the resolved output directory (def
 
 Create the output directory if missing — your `Write` tool auto-creates parent directories (no shell). Write every Epic file before proceeding to the downstream clarification / style / review phases.
 
-Traceability: every claim in each Epic must be traceable to the handoff `jira_reader_handoff` (Jira key + which item type — VI goal, existing Epic summary, Story theme) or `code_scanner_outputs` (`evidence.path` + symbols). Do not invent content the sources don't contain.
+Traceability: every claim in each Epic must be traceable to the handoff `jira_reader_handoff` (Jira key + which item type — VI goal, existing Epic summary, Story theme) or `code_scanner_outputs` (`evidence.path` + symbols). Do not invent content the sources don't contain. `docs_grounding` (when present) is a **consistency reference** — align terminology and avoid contradicting shipped behavior with it — but it is never itself a source of new Epic claims; every Epic claim still traces to `jira_reader_handoff` or `code_scanner_outputs`.
 
 **Write restrictions** (enforced by invariants):
 - NEVER write inside `jira-products/` — re-created on every import.

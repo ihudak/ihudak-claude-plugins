@@ -27,7 +27,7 @@ plugins/
 
 ## Active plugin: dev-workflows
 
-`plugins/dev-workflows/` provides twenty slash commands — `/implement`, `/document`, `/docs-profile`, `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/api-guideline-reviewer`, `/guideline-reviewer`, `/idea`, `/create-vi`, `/create-ard`, `/specify`, `/design`, `/feedback`, `/prompt`, `/prompt-brainstorm`, `/prompt-grill-me`, `/statusline`, and `/ready` — plus thirty-two reusable subagents, four hooks, and reference docs.
+`plugins/dev-workflows/` provides twenty-one slash commands — `/implement`, `/document`, `/docs-profile`, `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/api-guideline-reviewer`, `/guideline-reviewer`, `/idea`, `/create-vi`, `/create-ard`, `/specify`, `/design`, `/feedback`, `/prompt`, `/prompt-brainstorm`, `/prompt-grill-me`, `/statusline`, `/ready`, and `/update-vi` — plus thirty-two reusable subagents, four hooks, and reference docs.
 
 The live `dev-workflows` workflow relies on a larger set of helper agents and
 workflow roles; see the taxonomy and workflow map below.

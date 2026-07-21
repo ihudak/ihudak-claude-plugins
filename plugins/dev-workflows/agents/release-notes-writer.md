@@ -25,9 +25,12 @@ imported_release_notes_category: <release_notes_category from the imported VI fr
 authored_vi_fields:  <optional { change_type, release_notes_category } from the authored specs-draft VI; null/absent otherwise>
 model_routing:       <standard block>
 code_repos:          <optional array of {slug, path}; provided when diff-grounding is on>
+docs_grounding:      <optional docs-grounder digest (docs_references + docs_challenges); omit when docs grounding was OFF/EMPTY>
 ```
 
 Refuse to run without `jira_reader_handoff`.
+
+When `docs_grounding` is present, use its `docs_references` for terminology and current-behavior consistency (align with the customer-facing terms the docs already use) and treat `docs_challenges` as authoring cautions. It never overrides the Change Type sourcing and never adds a claim not grounded in the handoff or diffs.
 
 ## Process
 

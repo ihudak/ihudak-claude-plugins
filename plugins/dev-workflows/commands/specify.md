@@ -92,6 +92,7 @@ Use `choices` arrays; the last choice in every array MUST be `"Other… (describ
    ```
    choices: ["Use <feature_folder> (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]
    ```
+   - Show the `docs grounding: ON <root> | OFF (<reason>)` line (off switch: --no-docs).
 
 2. **Resume vs fresh** (only if Phase 0 found a `_session.md`). Read it back and summarise which
    stages/questions are already settled:
@@ -318,6 +319,8 @@ For each repo in the batch:
   > refresh:
   >   switch_to_default_branch: [true if Phase 1 chose 'fetch + pull default branch' (default) or 'fetch only'; false if 'no refresh']
   >   pull: [true if 'fetch + pull default branch'; false otherwise]"
+
+**Documentation grounding (optional).** Run `resolve-docs-grounding specify` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the scoped Epic/VI goal, `jira_key` = the focus key, `themes` = the Phase 2 capability themes. Carry the digest into the Phase 5 grill with **grill-rank** consumption. When OFF, skip silently.
 
 Handle per-repo status after the batch returns:
 

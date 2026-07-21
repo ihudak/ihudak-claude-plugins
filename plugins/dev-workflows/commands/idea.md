@@ -64,6 +64,8 @@ choices: ["Read this as <detected-type> (Recommended)", "It's actually a <other-
 ```
 (A dedicated `--as prompt|file|rfe` override is future work — the confirmation covers a mis-detection.)
 
+Show the `docs grounding: ON <root> | OFF (<reason>)` line (off switch: --no-docs).
+
 ---
 
 ## Phase 2 — Ingest the source (idea-reader)
@@ -84,6 +86,12 @@ choices: ["Re-enter the source", "Cancel", "Other… (describe)"]
 This is an environment/user halt — do NOT `emit-block`. On `OK`, carry forward `raw_context`,
 `signals`, `images`, `candidate_title`, `candidate_slug`, `source_refs`, `provenance`, and the
 followed/broken wikilinks — `source_refs`/`provenance` feed the `sources:` frontmatter entry in Phase 4.
+
+---
+
+## Phase 2.5 — Documentation grounding (optional)
+
+Run `resolve-docs-grounding idea` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the `idea-reader` digest's problem/outcome, `themes` = its signals; **omit `jira_key`** (idea is keyless, so the git-grep backstop is skipped). Carry the digest into Phase 3 with **grill-rank** consumption — challenges compete for the ≤5 question slots, they do not add slots. When OFF, skip silently.
 
 ---
 

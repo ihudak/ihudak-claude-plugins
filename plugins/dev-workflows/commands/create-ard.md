@@ -33,6 +33,7 @@ this stage). Zero Jira API.
 ## Phase 1 — Configure
 Use `choices` arrays; the last choice is always `"Other… (describe)"`.
 1. **Confirm** the scope (VI-level vs Epic-level) and the feature folder.
+   - Show the `docs grounding: ON <root> | OFF (<reason>)` line (off switch: --no-docs).
 2. **Refine vs fresh** (only if a prior `*_ARD.md` exists): `choices: ["Refine the existing ARD (Recommended)", "Start fresh — overwrite", "Cancel", "Other… (describe)"]`.
 3. **Repos search base (`$REPOS_PATH`).** Read `${REPOS_PATH:-/workspace}` (may be colon-separated): `choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]`.
 4. **Repo refresh policy** (governs Phase 3's `code-scanner`): `choices: ["fetch + pull default branch (Recommended)", "fetch only", "no refresh", "Other… (describe)"]`.
@@ -91,6 +92,7 @@ There are no PRs at ARD time, so repos are **architect-driven**, not PR-derived:
      >  refresh: { switch_to_default_branch: [per Phase 1], pull: [per Phase 1] }"
 
    Store the per-repo as-is findings (`file:line`). Descoped/unmounted repos become Open questions.
+5. **Documentation grounding (optional).** Run `resolve-docs-grounding create-ard` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the VI/Epic goal + capability themes, `jira_key` = `<VI>` (VI-level) or `<EPIC>` (Epic-level), `themes` = the confirmed themes. Carry the digest into the Phase 4 grill with **grill-rank** consumption (documented analogs and building-block altitude/permissions are strong ARD grounding). When OFF, skip silently.
 
 ---
 

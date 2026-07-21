@@ -17,7 +17,7 @@ Ivan Gudak's private Claude Code plugin marketplace.
 - **[`jira-workitem-import`](https://github.com/ivan-gudak/jira-workitem-import)** *(required for Jira-driven commands)* — imports Jira tickets into `$VAULT_PATH/jira-products/<KEY>/` in the exact structure the plugins expect. Every Jira-driven command (`/idea` from an RFE, `/create-vi`, `/update-vi`, `/epics`, `/specify`, `/design`, `/implement`, `/document`, `/release-notes`, `/ready`) consumes this tree.
 - **`gh` + `gh auth login`** *(recommended)* — enables reading GitHub PR diffs (`/document`, `/release-notes`); without it those commands fall back to local-git strategies.
 - **`vale`** *(optional)* — a prose linter for docs; `dev-workflows` falls back to a repo lint script, then the `dt-style-guide` plugin, when `vale` is absent.
-- **Recommended environment: [`ihudak/ai-containers`](https://github.com/ihudak/ai-containers)** — mounts every repository and your Obsidian vault under one `/workspace` umbrella (repos at `/workspace/<repo>`, vault at `/workspace/obsidian`), so the default `$REPOS_PATH` (`/workspace`) and an exported `VAULT_PATH` just work; it also installs `gh` and mounts the host `gh` auth. Outside a container the commands still work — set `$REPOS_PATH` yourself and manage `gh` login.
+- **Recommended environment: [`ihudak/ai-containers`](https://github.com/ihudak/ai-containers)** — mounts every repository and your Obsidian vault under one `/workspace` umbrella (repos at `/workspace/<repo>`, vault at `/workspace/vault`), so the default `$REPOS_PATH` (`/workspace`) and an exported `VAULT_PATH` just work; it also installs `gh` and mounts the host `gh` auth. Outside a container the commands still work — set `$REPOS_PATH` yourself and manage `gh` login.
 
 ## Installation
 

@@ -119,6 +119,7 @@ Present a concise plan:
 - Resolved `jira_key` and the `jira_export_root` path
 - Existing Epics identified under this VI (will NOT be duplicated)
 - Repos to scan (or "code scan off")
+- Docs grounding: `ON <root>` / `OFF (<reason>)` (off switch: --no-docs)
 - Output directory with one file per new Epic; propose a name stub per Epic if the themes already suggest them
 - Parallelism plan (up to 4 `code-scanner` instances per batch, single Agent message per batch)
 - Proposed Epic sizing/sequencing — prefer fewer, larger Epics where the VI direction is validated; split only at a genuine risk / feedback-loop boundary; order so that no Epic depends on a later one
@@ -308,13 +309,15 @@ Handle per-repo status after the batch returns:
   choices: ["Continue with current local state", "Skip this repo", "Cancel"]
   ```
 
+**Documentation grounding (optional, independent of code scan).** Run `resolve-docs-grounding epics` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the VI goal + Epic-set intent, `jira_key` = the VI key, `themes` = the `jira-reader` themes. Carry the digest into Phase 6 with **writer-attach** consumption. When OFF, skip silently. (Runs even when code scan is OFF.)
+
 ---
 
 ## Phase 6 — Write Epics
 
 The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1 Sonnet detection chain for MODERATE; §2 Opus only if the run is SIGNIFICANT/HIGH-RISK — see `classification.md` §9.2). The orchestrator prepares a handoff and dispatches; it does not write Epics itself, and **nothing commits** (epics never branches/commits — git is the user's responsibility).
 
-1. **Write the handoff file.** Create a temp file (`mktemp` — never the vault, never a repo) containing the `epic-writer` input contract: `jira_reader_handoff`, `code_scanner_outputs` (empty if no scan), `scope` (Phase 2 in/out of scope), `existing_epics` (non-duplication), `output_dir` (resolved Phase 1 dir), `vi_goal`, `jira_key`, `requirements` + `requirements_source` (from Phase 3), `applicable_ard` (the Phase 2.5 invariants + guidance_summary, or omit when status was none), `existing_epic_themes` (themes of the already-linked Epics), `mode` (`generate` | `refine` | `both` — from Phase 3.5; `generate` when 3.5 skipped), and `refinement_targets` (list of `{key, team, scope_hint, current_body_path}`, where `current_body_path = <jira_export_root>/<EPIC-KEY>/<EPIC-KEY>.md`; empty in `generate` mode). Record its absolute path. When `focus_key` is set (the Phase 3 refinement target), set `scope` in-scope to just the focus Epic and `existing_epics` to the *other* linked Epics, so `epic-writer` re-drafts the single focus Epic's definition file; `output_dir` is unchanged.
+1. **Write the handoff file.** Create a temp file (`mktemp` — never the vault, never a repo) containing the `epic-writer` input contract: `jira_reader_handoff`, `code_scanner_outputs` (empty if no scan), `scope` (Phase 2 in/out of scope), `existing_epics` (non-duplication), `output_dir` (resolved Phase 1 dir), `vi_goal`, `jira_key`, `requirements` + `requirements_source` (from Phase 3), `applicable_ard` (the Phase 2.5 invariants + guidance_summary, or omit when status was none), `existing_epic_themes` (themes of the already-linked Epics), `mode` (`generate` | `refine` | `both` — from Phase 3.5; `generate` when 3.5 skipped), `refinement_targets` (list of `{key, team, scope_hint, current_body_path}`, where `current_body_path = <jira_export_root>/<EPIC-KEY>/<EPIC-KEY>.md`; empty in `generate` mode), and `docs_grounding` (the Phase 5 digest, or omit when OFF/EMPTY). Record its absolute path. When `focus_key` is set (the Phase 3 refinement target), set `scope` in-scope to just the focus Epic and `existing_epics` to the *other* linked Epics, so `epic-writer` re-drafts the single focus Epic's definition file; `output_dir` is unchanged.
 
 2. **Dispatch the writer:**
 

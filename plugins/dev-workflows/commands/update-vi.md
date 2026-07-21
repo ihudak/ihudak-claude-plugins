@@ -32,6 +32,7 @@ Usage: `/update-vi <KEY> [@transcript-or-notes ...]`.
 Use `choices` arrays; the last choice is always `"Other… (describe)"`.
 
 1. **Confirm** the feature folder; the resolved Jira-import base **with its import date**; and the secondary artifacts discovered (specs draft / ARD / spec / transcript).
+   - Show the `docs grounding: ON <root> | OFF (<reason>)` line (off switch: --no-docs).
 2. **Scope of the update.** `choices: ["Refresh (incorporate new info / comments / transcript) (Recommended)", "Re-do (substantive re-scope driven by an ARD/spec obstacle)", "Cancel", "Other… (describe)"]`.
 
 ---
@@ -45,6 +46,8 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 ## Phase 2 — Read the base + grounding
 
 Read the Jira-import VI **body + `-comments.md`** (the authoritative base and the signal for *what to change*), then the secondary artifacts (specs draft, ARD, spec, transcript). Do NOT treat the frozen specs draft as authoritative where it disagrees with the Jira import — the import wins; surface a notable divergence to the user.
+
+Then run `resolve-docs-grounding update-vi` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the VI goal + the change signal from comments, `jira_key` = `<KEY>`. Carry the digest into the Phase 3 grill with **grill-rank** consumption. When OFF, skip silently.
 
 ---
 

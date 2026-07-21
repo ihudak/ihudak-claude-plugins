@@ -27,7 +27,7 @@ plugins/
 
 ## Active plugin: dev-workflows
 
-`plugins/dev-workflows/` provides twenty slash commands — `/implement`, `/document`, `/docs-profile`, `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/api-guideline-reviewer`, `/guideline-reviewer`, `/idea`, `/create-vi`, `/create-ard`, `/specify`, `/design`, `/feedback`, `/prompt`, `/prompt-brainstorm`, `/prompt-grill-me`, `/statusline`, and `/ready` — plus thirty-one reusable subagents, four hooks, and reference docs.
+`plugins/dev-workflows/` provides twenty slash commands — `/implement`, `/document`, `/docs-profile`, `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/api-guideline-reviewer`, `/guideline-reviewer`, `/idea`, `/create-vi`, `/create-ard`, `/specify`, `/design`, `/feedback`, `/prompt`, `/prompt-brainstorm`, `/prompt-grill-me`, `/statusline`, and `/ready` — plus thirty-two reusable subagents, four hooks, and reference docs.
 
 The live `dev-workflows` workflow relies on a larger set of helper agents and
 workflow roles; see the taxonomy and workflow map below.
@@ -111,21 +111,24 @@ in their prompt; they do not re-read the file.
 
 `plugins/dev-workflows/references/release-note-types.md` is the **single source of truth** for the release-note Change Type taxonomy (`Breaking change` / `New technology support` / `Bug fix` / `not applicable`), the classification order, the per-type Summary shaping rules, and the deprecation-note rule (end-of-life date required, end-of-support optional). It is consulted by `release-notes-writer`; the `/release-notes` command applies its decisions through the writer's gaps.
 
+`plugins/dev-workflows/references/docs-grounding.md` is the **single source of truth** for `$DOCS_PATH` documentation grounding — the resolution gate (`${DOCS_PATH:-/workspace/docs}`, read-only, silent-skip), the `resolve-docs-grounding` procedure, and the grill-rank / writer-attach consumption modes; consumed by the seven authoring commands (`/idea`, `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/epics`, `/release-notes`) — not `/document`.
+
 ## `dev-workflows` workflow relationships
 
 ```
 /implement           → [Pre-Phase 2 scale assessment] → (multi-source? → [jira-reader → code-scanner×N (parallel, cap 4)] → synthesis) → [risk-planner@Opus plan critique] → [code-review@Opus] → review-fixer → test-writer → tests → impl-maintenance
 /document (direct)   → [doc-reviewer] → [doc-fixer] → impl-maintenance
 /docs-profile        → scans docs repo → writes/refreshes .dev-workflows/docs-profile.yml + CLAUDE.md guidance → PR
-/document (Jira)     → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [counterpart-finder (space-constrained runs)] → [doc-planner] → [discrepancy-escalation (Phase 5.8)] → writing → [docs-style-checker → dt-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [doc-fixer] → impl-maintenance
-/epics               → jira-reader → [code-scanner×N (parallel, optional)] → writing → [dt-style-checker] → [doc-fixer] → [epic-reviewer@Opus] → [doc-fixer] → impl-maintenance
-/release-notes       → jira-reader → [diff-summarizer×N (parallel, optional)] → [release-notes-writer: classify Change Type + shape per type + detect deprecation] → [dt-style-checker → dt-doc-fixer (optional)] → write draft (Change type: line + Summary; paste into Jira)
+/document (Jira)     → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [counterpart-finder (space-constrained runs)] → [doc-planner] → [discrepancy-escalation (Phase 5.8)] → writing → [docs-style-checker → dt-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [doc-fixer] → impl-maintenance   (Phase 0 hint: prefers ${DOCS_PATH:-/workspace/docs} as a docs-repo discovery hint — write-target only, no docs-grounder consumption)
+/epics               → jira-reader → [code-scanner×N (parallel, optional)] → [docs-grounder] → writing → [dt-style-checker] → [doc-fixer] → [epic-reviewer@Opus] → [doc-fixer] → impl-maintenance
+/release-notes       → jira-reader → [diff-summarizer×N (parallel, optional)] → [docs-grounder] → [release-notes-writer: classify Change Type + shape per type + detect deprecation] → [dt-style-checker → dt-doc-fixer (optional)] → write draft (Change type: line + Summary; paste into Jira)
 /vuln                → vuln-research → vuln-fixer → [code-review@Opus] → review-fixer → tests → impl-maintenance
 /upgrade             → upgrade-planner → upgrade-executor → [code-review@Opus] → review-fixer → tests → impl-maintenance
-/idea                → idea-reader → (embedded grilling) → write idea.md
-/create-vi           → (embedded grilling) → [vi-reviewer@Opus] → write VI + relocate idea.md
-/create-ard          → [jira-reader (Epic-level always; VI-level only if the authored VI file is absent under $SPECS_PATH)] → [ls $REPOS_PATH → code-scanner×N (confirmed set, parallel, cap 4)] → (embedded grilling) → [ard-reviewer@Opus] → write ARD
-/specify             → jira-reader → [code-scanner×N (parallel, cap 4, soft gate)] → (embedded grilling) → [spec-reviewer@Opus] → write specification.md
+/idea                → idea-reader → [docs-grounder (when $DOCS_PATH valid)] → (embedded grilling) → write idea.md
+/create-vi           → [docs-grounder] → (embedded grilling) → [vi-reviewer@Opus] → write VI + relocate idea.md
+/update-vi           → [Jira-import-first resolve] → [docs-grounder] → (embedded grilling, diffs against base) → [vi-reviewer@Opus] → write canonical + archived revisions
+/create-ard          → [jira-reader (Epic-level always; VI-level only if the authored VI file is absent under $SPECS_PATH)] → [ls $REPOS_PATH → code-scanner×N (confirmed set, parallel, cap 4)] → [docs-grounder] → (embedded grilling) → [ard-reviewer@Opus] → write ARD
+/specify             → jira-reader → [code-scanner×N (parallel, cap 4, soft gate)] → [docs-grounder] → (embedded grilling) → [spec-reviewer@Opus] → write specification.md
 /design              → [code-scanner×N (parallel, cap 4, STRICT gate)] → (embedded grilling, challenges spec) → [design-reviewer@Opus] → write design.md
 /ready               → jira-reader + Jira status read → verify ARD/spec/design → [readiness-reviewer@Opus] → SUPPORTED/PARTIAL/NOT-SUPPORTED → impl-maintenance + emit-auto
                       └── test-baseliner      (used by upgrade-executor, vuln-fixer, and /implement)
@@ -147,6 +150,7 @@ in their prompt; they do not re-read the file.
                       └── design-reviewer     (used by /design)
                       └── readiness-reviewer  (used by /ready)
                       └── idea-reader         (used by /idea)
+                      └── docs-grounder       (used by /idea, /create-vi, /update-vi, /create-ard, /specify, /epics, /release-notes)
 /api-guideline-reviewer → standalone command; reviews OpenAPI specs against Dynatrace REST API + IAM guidance
 /guideline-reviewer     → standalone command; reviews code/UI against Dynatrace Experience Standards
 ```
@@ -220,6 +224,13 @@ Key invariants for the VI-creation flow (`/idea`, `/create-vi`, `/create-ard`, `
 - `/ready` is **read-only** — it verifies the Jira status against the ARD/spec/design and never sets status
 - `/design`, `/implement`, `/specify`, `/epics` respect the applicable ARD via `references/ard-resolution.md`; an `AD-N` Rule violated without a recorded "ARD deviation" is a reviewer BLOCKER
 - `/create-vi` captures optional `change_type` + `release_notes_category` VI frontmatter (release-notes-relevant VIs only); `vi-reviewer` validates `change_type` ∈ the four values (MAJOR if malformed; MINOR if missing when relevant). These feed the `/release-notes` sourcing ladder
+
+Key invariants for `$DOCS_PATH` docs grounding:
+
+- Read-only; never writes into `$DOCS_PATH`; advisory only — never a gate or reviewer BLOCKER
+- Default ON when `$DOCS_PATH` (`:-/workspace/docs`) is a readable dir with ≥1 markdown file; `--no-docs` off, `--docs <path>` override; every miss is a silent non-blocking skip
+- Grill commands rank challenges into the Impact × Uncertainty gap list (never append — preserves `/idea`'s ≤5 bound); writer commands attach the digest
+- `docs-grounder` retrieves via `qmd` CLI (no skill installed; `qmd update` never `--pull`) with keyword + `git log --grep` fallback; write roots `SPECS_PATH`/`VAULT_PATH` stay strict (no default)
 
 ## Test-writing requirement for code changes
 

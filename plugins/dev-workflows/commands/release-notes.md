@@ -102,7 +102,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
    choices: ["Proceed anyway (Recommended)", "Cancel", "Other… (describe)"]
    ```
 
-2. **Plan.** Present: resolved `jira_key`, destination, diff-grounding on/off (+ `$REPOS_PATH` and repos to scan when on), release versions detected, style-check choice. Ask:
+2. **Plan.** Present: resolved `jira_key`, destination, diff-grounding on/off (+ `$REPOS_PATH` and repos to scan when on), docs grounding on/off (+ root when on), release versions detected, style-check choice. Ask:
    ```
    choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
    ```
@@ -156,6 +156,12 @@ Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent messag
 
 ---
 
+## Phase 5.5 — Documentation grounding (optional)
+
+Run `resolve-docs-grounding release-notes` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the ticket goal + release themes, `jira_key` = `jira_key`. Carry the digest into Phase 6 with **writer-attach** consumption. When OFF, skip silently. (Independent of diff grounding.)
+
+---
+
 ## Phase 6 — Render the draft
 
 → Agent (subagent_type: "dev-workflows:release-notes-writer"):
@@ -163,6 +169,7 @@ Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent messag
   >
   > jira_reader_handoff: [the Phase 3 handoff — scoped to the focus Epic's subtree when focus_key is set]
   > diff_summaries:      [the Phase 5 array, or omit when diff grounding was off]
+  > docs_grounding:      [the Phase 5.5 digest, or omit when OFF/EMPTY]
   > release_versions:    [parsed list, or [] ]
   > context_label_hint:  [user hint if any, else null]
   > change_type_hint:    [user-supplied Change Type and/or deprecation signal if any, else null]

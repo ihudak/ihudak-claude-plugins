@@ -60,14 +60,23 @@ the first-choice hint for the docs-repo it already resolves in Phase 0. See §4.
   **`${DOCS_PATH:-/workspace/docs}`** — grounding works even if the var is not
   re-exported, and on a host (where `/workspace/docs` is absent) the validity gate
   simply fails and grounding stays OFF.
-- **Default-safety principle:** a `/workspace/*` default is **safe for a
-  read-only search base** and **unsafe for a required write root**. `REPOS_PATH`
-  (`:-/workspace`) and `DOCS_PATH` (`:-/workspace/docs`) are read-only search
-  bases — a wrong/missing default just misses and silently skips. `SPECS_PATH`
-  and `VAULT_PATH` are **write roots**; the commands deliberately require them and
-  stop if unset, so a misconfigured container fails loud instead of silently
-  writing to the wrong place. This design adds the `DOCS_PATH` default **only**;
-  it does not touch the strict `SPECS_PATH` / `VAULT_PATH` behavior.
+- **Default-safety principle (follows the repo's existing split).** The codebase
+  already divides these vars by read-vs-write, and `DOCS_PATH` joins the read side:
+  - **Read-only search bases default.** `REPOS_PATH` already resolves as
+    `${REPOS_PATH:-/workspace}`; `DOCS_PATH` patterns with it as
+    `${DOCS_PATH:-/workspace/docs}`. A wrong/missing default just misses and
+    silently skips — the output is still correct, and it self-heals once the mount
+    is right.
+  - **Write roots stay strict.** `SPECS_PATH` and `VAULT_PATH` already **stop if
+    unset** (`/create-vi` names the missing var; `/idea` halts). That loud failure
+    is a *feature* for a write root: a wrong default would write the artifact to
+    the wrong place **silently and persistently** (a VI lands in a phantom
+    `/workspace/specs` the operator believes is their real repo). Failing loud
+    makes them fix the mount instead of hunting for a misplaced file.
+  This design adds the `DOCS_PATH` default **only** and does not touch the strict
+  `SPECS_PATH` / `VAULT_PATH` behavior. (Unifying all four to `/workspace/*` was
+  considered and declined — safe in-container, but it trades away the write-root
+  loud-failure guard on hosts / misconfigured containers.)
 - `$DOCS_PATH` is **the same directory `/document` writes into**, differing only
   in use: the seven commands read it as reference; `/document` writes via its own
   resolved `docs_repo_path`.
@@ -344,9 +353,11 @@ fallback.
   path writes into `$DOCS_PATH`; `git log --grep` verified working on read-only
   `.git`.
 - **Single directory**, not colon-separated.
-- **`${DOCS_PATH:-/workspace/docs}` default adopted.** Default-safety principle:
-  safe for a read-only search base (`REPOS_PATH`, `DOCS_PATH`), unsafe for a
-  required write root (`SPECS_PATH`, `VAULT_PATH` stay strict — no default).
+- **`${DOCS_PATH:-/workspace/docs}` default adopted**, following the repo's
+  existing read-vs-write split: read-only search bases default (`REPOS_PATH`,
+  now `DOCS_PATH`), write roots stay strict (`SPECS_PATH`, `VAULT_PATH` — no
+  default; loud stop-if-unset is a deliberate guard). Unifying all four was
+  considered and declined (trades the write-root guard for convention symmetry).
 - **`/document` docs-repo resolution becomes three-tier:** cwd-with-signals →
   `${DOCS_PATH:-/workspace/docs}` (if `is_dynatrace_docs`) → `$REPOS_PATH` search.
 - **qmd two-path retrieval**; no writable mount needed (index in `~/.cache/qmd`).

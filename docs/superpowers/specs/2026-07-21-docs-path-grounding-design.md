@@ -55,14 +55,29 @@ the first-choice hint for the docs-repo it already resolves in Phase 0. See §4.
 - `$DOCS_PATH` is a **full `dynatrace-docs` clone** — thousands of pages under
   `dynatrace/_content/` and `managed/_content/`. **Never readable wholesale**;
   retrieval must be targeted and the result bounded.
-- `$DOCS_PATH` is a **single directory** (not a colon-separated list).
+- `$DOCS_PATH` is a **single directory** (not a colon-separated list). The AI
+  container always mounts it at `/workspace/docs`, so the commands resolve it as
+  **`${DOCS_PATH:-/workspace/docs}`** — grounding works even if the var is not
+  re-exported, and on a host (where `/workspace/docs` is absent) the validity gate
+  simply fails and grounding stays OFF.
+- **Default-safety principle:** a `/workspace/*` default is **safe for a
+  read-only search base** and **unsafe for a required write root**. `REPOS_PATH`
+  (`:-/workspace`) and `DOCS_PATH` (`:-/workspace/docs`) are read-only search
+  bases — a wrong/missing default just misses and silently skips. `SPECS_PATH`
+  and `VAULT_PATH` are **write roots**; the commands deliberately require them and
+  stop if unset, so a misconfigured container fails loud instead of silently
+  writing to the wrong place. This design adds the `DOCS_PATH` default **only**;
+  it does not touch the strict `SPECS_PATH` / `VAULT_PATH` behavior.
 - `$DOCS_PATH` is **the same directory `/document` writes into**, differing only
   in use: the seven commands read it as reference; `/document` writes via its own
   resolved `docs_repo_path`.
 - **Mount mode is not a plugin invariant.** In an AI container `$DOCS_PATH` is
   mounted read-only; on a host, or when it is a `/document` workdir, it may be
   writable. The seven commands treat it as **reference-only regardless of mount**
-  — they must neither depend on read-only nor be surprised by writable.
+  — they must neither depend on read-only nor be surprised by writable. Neither
+  the qmd path nor the git-grep backstop writes into `$DOCS_PATH`: qmd's index
+  lives in `~/.cache/qmd/` (outside the clone) and `git log --grep` is a pure read
+  (verified against a read-only `.git`).
 - `qmd` (Quick Markdown Search — hybrid BM25 + vector + rerank over local GGUF
   models) is installed in the container (`build.sh INSTALL_QMD`, `sandbox.conf
   qmd=ON`) and already used by the `obsidian-llm-wiki` plugin's `wiki-query`
@@ -78,9 +93,11 @@ Mirrors the proven `$REPOS_PATH` + `code-scanner` shape already in the plugin.
 Single source of truth for **is docs grounding on, and against what root?**
 Modeled on `references/vi-source-resolution.md`.
 
-- **Resolution:** read `${DOCS_PATH:-}`. Single directory.
+- **Resolution:** read `${DOCS_PATH:-/workspace/docs}`. Single directory. (The
+  default is safe because the validity gate below turns grounding OFF when the
+  path is absent — see the default-safety principle in §"Environment reality".)
 - **Validity gate — ON only when all hold:**
-  1. `$DOCS_PATH` is set and non-empty,
+  1. the resolved path is non-empty,
   2. it is an existing, readable directory,
   3. it contains at least one markdown file.
   Otherwise → `docs_grounding: OFF` with a one-line reason.
@@ -124,9 +141,12 @@ themes:          <optional capability themes from the caller>
   qmd failure, fall through to Path B.
 - **Path B — fallback.** No qmd binary, `qmd=OFF`, or Path A failed: keyword-
   overlap scoring over frontmatter + first body lines (the `doc-location-finder`
-  technique) plus a `git log --all -E --grep=<jira_key>` backstop. The backstop is
-  **best-effort** — a git failure (e.g. odd read-only mount) degrades to
-  keyword-overlap only, never an error.
+  technique) plus a `git log --all -E --grep=<jira_key>` backstop. `git log
+  --grep` is a pure read and works against a read-only `.git` (verified), so it
+  needs **no** write access to `$DOCS_PATH`; the backstop is **best-effort** — on
+  any failure (e.g. a pathological mount with a broken gitdir pointer) it degrades
+  to keyword-overlap only, never an error. Skipped entirely when `jira_key` is
+  absent (e.g. `/idea`).
 
 **Bounding (must not crowd out the Jira/idea content in a grill):** read at most
 the top 8 pages; `docs_references[]` capped at 8; `docs_challenges[]` capped at 5
@@ -195,12 +215,22 @@ Every command gets the same three edits, differing only in the dispatch point:
 
 ## 4. `/document` discovery-hint consolidation
 
-`/document` Phase 0 step (b) currently searches `${REPOS_PATH:-/workspace}` for a
-`dynatrace-docs` clone. Change: **prefer `$DOCS_PATH` first** when it is set and
-recognizes as dynatrace-docs (the existing `is_dynatrace_docs` signal check),
-then fall back to today's `$REPOS_PATH` search. This is the *only* `/document`
-change — no `docs-grounder` dispatch, no grounding. Purely a first-choice hint
-for the write target it already resolves.
+`/document` resolves its docs-repo write target in Phase 0. Today: (a) cwd with
+docs signals, else (b) search `${REPOS_PATH:-/workspace}` for a `dynatrace-docs`
+clone. Insert `${DOCS_PATH:-/workspace/docs}` as a **new middle tier**, giving the
+three-tier order the operator expects:
+
+1. **(a) cwd with docs signals** — unchanged (this is "check the current dir
+   first"; `$DOCS_PATH` is often *unset* here precisely because the docs repo is
+   the workdir).
+2. **(new) `${DOCS_PATH:-/workspace/docs}`** — when it exists and passes the
+   existing `is_dynatrace_docs` signal check, use it as the write target.
+3. **(b) search `${REPOS_PATH:-/workspace}`** — unchanged, now the last fallback.
+
+This is the *only* `/document` change — no `docs-grounder` dispatch, no grounding.
+Purely a first-choice hint for the write target it already resolves. Because the
+default resolves to a real directory in-container, the middle tier is what makes
+`/document` "just work" without the operator naming the repo.
 
 ## 5. Data flow
 
@@ -240,10 +270,19 @@ For the container team, so the optimization is available. Because indexing uses
 this is wired — the container side only moves the one-time indexing cost to
 startup.
 
-- Mount `$DOCS_PATH` (read-only is fine) and re-export it into the container,
-  parallel to how `VAULT_PATH`/`SPECS_PATH` are handled in `runme.sh`.
+- Mount `$DOCS_PATH` at `/workspace/docs` (read-only is fine) and re-export it,
+  parallel to how `VAULT_PATH`/`SPECS_PATH` are handled in `runme.sh`. Matching the
+  `${DOCS_PATH:-/workspace/docs}` default lets the plugin work even if the export
+  is missed.
 - Register a qmd collection named `docs` from `$DOCS_PATH` at container start and
   embed it.
+- **Persist the qmd index across restarts.** The index lives in `~/.cache/qmd/`
+  (outside the read-only clone, so it cannot be relocated into `$DOCS_PATH`).
+  Without persistence it is lost on every container restart and the full re-embed
+  is paid again — costly for a thousand-page clone. Persist `~/.cache/qmd` on a
+  host-mounted volume (or point `XDG_CACHE_HOME` at a mounted path). This is an
+  **optimization, not a correctness requirement** — `docs-grounder`'s self-heal
+  rebuilds a cold cache on first use; persistence only avoids re-paying the embed.
 - Emit a `qmd=OFF` warning when `$DOCS_PATH` is set but qmd is off — mirroring the
   existing `VAULT_PATH`-with-`qmd=OFF` warning at `runme.sh:522`.
 - **Dependency is the `qmd` binary, not a qmd skill.** No skill is bundled or
@@ -301,9 +340,18 @@ fallback.
   prompt lift); not reviewer-enforced (kept advisory to limit cost/wiring).
 - **Approach A** over inline-per-command (B, context-cost) and generalizing
   `counterpart-finder` (C, superficial reuse).
-- **Read-only is a mount property, not a plugin invariant.**
+- **Read-only is a mount property, not a plugin invariant.** Neither retrieval
+  path writes into `$DOCS_PATH`; `git log --grep` verified working on read-only
+  `.git`.
 - **Single directory**, not colon-separated.
+- **`${DOCS_PATH:-/workspace/docs}` default adopted.** Default-safety principle:
+  safe for a read-only search base (`REPOS_PATH`, `DOCS_PATH`), unsafe for a
+  required write root (`SPECS_PATH`, `VAULT_PATH` stay strict — no default).
+- **`/document` docs-repo resolution becomes three-tier:** cwd-with-signals →
+  `${DOCS_PATH:-/workspace/docs}` (if `is_dynatrace_docs`) → `$REPOS_PATH` search.
 - **qmd two-path retrieval**; no writable mount needed (index in `~/.cache/qmd`).
+  Container should persist that cache dir across restarts (optimization only —
+  self-heal covers a cold cache).
 - **Indexing:** container wiring + agent self-heal.
 - **Repo scope:** plugin only; container contract documented.
 - **No qmd skill installed;** CLI via Bash.

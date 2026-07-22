@@ -230,7 +230,8 @@ Handle per-repo status after the batch returns:
 **Interview technique (grilling — embedded; no runtime dependency).** Conduct the design as a **relentless** interview per `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, explore the Phase 4 code scan / spec to self-answer (fact-vs-decision), walk the design tree in dependency order, continue to shared understanding then write the section.
 
 Run **two intertwined tracks**, authoring `design.md` live against
-`${CLAUDE_PLUGIN_ROOT}/references/design-format.md`, sections scaled by the Phase 1.5 classification:
+`${CLAUDE_PLUGIN_ROOT}/references/design-format.md`, applying the no-hard-wrap prose convention in
+`${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md`, sections scaled by the Phase 1.5 classification:
 
 - **Challenge the spec.** Interrogate testability, seams, scope realism, missing cases, and feasibility
   against the real code. Record every substantive challenge **into `specification.md`**: add/extend an

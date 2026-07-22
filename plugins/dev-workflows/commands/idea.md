@@ -114,7 +114,7 @@ by **Impact × Uncertainty**.
 ## Phase 4 — Write idea.md
 
 Author `idea.md` per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` into the write root resolved in
-Phase 0:
+Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md`:
 
 - **Path:** `<write-root>/Projects/<area>/<candidate_slug>/idea.md`, where `<area>` = `Products` when
   the source already lives under `Projects/Products/…`, else `ideas`.

@@ -113,6 +113,8 @@ in their prompt; they do not re-read the file.
 
 `plugins/dev-workflows/references/docs-grounding.md` is the **single source of truth** for `$DOCS_PATH` documentation grounding — the resolution gate (`${DOCS_PATH:-/workspace/docs}`, read-only, silent-skip), the `resolve-docs-grounding` procedure, and the grill-rank / writer-attach consumption modes; consumed by the seven authoring commands (`/idea`, `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/epics`, `/release-notes`) — not `/document`.
 
+`plugins/dev-workflows/references/prose-formatting.md` is the **single source of truth** for output line-wrapping — never hard-wrap prose; write each paragraph/prose block as one unbroken line, so Obsidian and IntelliJ Idea soft-wrap it for reading and a straight copy-paste into Jira/Grammarly needs no manual cleanup. Consumed by every authoring command/agent that writes prose (`/idea`, `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/design`, `epic-writer`, `doc-writer`, `release-notes-writer`).
+
 ## `dev-workflows` workflow relationships
 
 ```

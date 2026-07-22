@@ -113,7 +113,7 @@ Run `resolve-docs-grounding create-vi` per `${CLAUDE_PLUGIN_ROOT}/references/doc
 
 **Interview technique (grilling — embedded; no runtime dependency).** Conduct a **relentless** interview per `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, fact-vs-decision split (look up facts from the idea/sources; put only decisions to the user), walk the design tree in dependency order, continue to shared understanding then write each section.
 
-Author `<KEY>_<slug>.md` live against `${CLAUDE_PLUGIN_ROOT}/references/vi-format.md` for the selected profile. Walk the **spine** in dependency order:
+Author `<KEY>_<slug>.md` live against `${CLAUDE_PLUGIN_ROOT}/references/vi-format.md` for the selected profile, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md`. Walk the **spine** in dependency order:
 
 1. Frontmatter — incl. `release_versions` + `relevant_for_release_notes`, and (when `relevant_for_release_notes: yes`) the optional `change_type` (one of `Breaking change` / `New technology support` / `Bug fix` / `not applicable`) + `release_notes_category` (the Dynatrace Solution); `sources` (propagated), `derived_from`, `seeded_from_vi` (only when `--from-vi` was used), `jira_key`. Ask for `change_type` / `release_notes_category` only when the note is release-notes-relevant; leave them out otherwise (dates/deprecation stay out of frontmatter — they belong in the release-notes Summary).
 2. **Problem**

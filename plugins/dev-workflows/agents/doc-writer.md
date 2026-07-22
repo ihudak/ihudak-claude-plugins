@@ -36,7 +36,7 @@ Before writing, validate the handoff. Return `status: BLOCKED` with the specific
 
 ## Write mechanics
 
-Multi-space safety is governed by `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/multi-space-writing.md`. Before writing, resolve **per-space routing** for each target:
+Apply the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md` to every prose block you write. Multi-space safety is governed by `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/multi-space-writing.md`. Before writing, resolve **per-space routing** for each target:
 - Determine the target's **home space** by matching `target_path` against each `profile.spaces[].content_root`/`snippet_root` prefix.
 - A target whose home space is **not** in `target_spaces` is a routing error — **return `status: BLOCKED`** naming the target (per Entry validation) (it should not occur once Phase 4.5/5.5 honored `target_spaces`); the one legitimate write outside `target_spaces` is an `override-copy` destination (step 0 below).
 - Apply the **approved `write_strategy`** for the target (from the handoff `write_strategies`; absent ⇒ `plain`).

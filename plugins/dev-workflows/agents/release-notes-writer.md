@@ -109,7 +109,9 @@ When `docs_grounding` is present, use its `docs_references` for terminology and 
        when provided) does not support — flag unverifiable specifics as a `gaps` entry.
 
      The rendered `prose` field carries this shaped body (prose and/or list/`> Note:`);
-     it stays plain customer-facing content with no Jira IDs and no PR links.
+     it stays plain customer-facing content with no Jira IDs and no PR links, and follows the
+     no-hard-wrap convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md` — each
+     paragraph is one unbroken line.
 
 7. **Render.** Render each entry's Summary body as exactly:
 

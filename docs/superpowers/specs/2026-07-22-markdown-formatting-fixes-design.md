@@ -2,10 +2,10 @@
 
 - **Date:** 2026-07-22
 - **Status:** Approved (brainstorming complete; ready for implementation plan)
-- **Repo scope:** `plugins/dev-workflows/` (this repo) for Fix 1 and the defensive
-  half of Fix 2; the user's `obsidian-vault` repo
+- **Repo scope:** `plugins/dev-workflows/` (this repo) for Fix 1 only; the
+  user's `obsidian-vault` repo
   (`$VAULT_PATH/.obsidian/scripts/custom/jira-workitem-import/src/jira_markup_converter.py`)
-  for the root-cause half of Fix 2. Two independent repos, two independent commits.
+  for Fix 2 entirely. Two independent repos, two independent commits.
 - **Target version:** dev-workflows 2.37.0
 
 ## Problem
@@ -70,9 +70,6 @@ the importer's unguarded regex is.
   line in the source file.
 - A VI pasted into Jira and re-imported comes back with `[US-N]`/`[AC-N]`/
   `[SM-N]` intact (no bracket multiplication).
-- `jira-reader` correctly resolves IDs from already-corrupted historical
-  imports (e.g. `PRODUCT-18503`'s `[[[US-3]]]`) without requiring a manual
-  vault edit.
 
 ## Scope
 
@@ -82,7 +79,6 @@ the importer's unguarded regex is.
 |---|---|
 | No-hard-wrap prose convention | New shared reference in `dev-workflows`, cited by every authoring command/agent that writes prose |
 | Importer regex guard | One-line fix in `jira_markup_converter.py` (`obsidian-vault` repo) |
-| Defensive ID normalization | `jira-reader` agent (`dev-workflows`) |
 
 **Out of scope:**
 
@@ -102,9 +98,23 @@ the importer's unguarded regex is.
   short line" (tables, code blocks, frontmatter, a genuinely short paragraph)
   is fuzzy; this stays a writer-side instruction, not a review gate.
 - Re-writing already-exported vault files (e.g. `PRODUCT-18503.md` under
-  `$VAULT_PATH/jira-products/`) to strip existing corruption. Left as-is;
-  `jira-reader` normalization handles reading them correctly without
-  rewriting vault history.
+  `$VAULT_PATH/jira-products/`) to strip existing corruption. Left as-is —
+  cosmetic until that specific VI is worked again, at which point a fresh
+  re-import (see below) produces a clean copy through the fixed importer.
+- Defensive bracket-normalization in `jira-reader` for legacy corrupted
+  imports. Considered and rejected: `/create-vi` and
+  `/update-vi` already gate on a 3-day freshness check before treating a
+  vault import as authoritative, and in practice the user always re-imports
+  before working a VI with any command — so once Fix 2 ships, nothing
+  `jira-reader` actually reads at the point of use stays corrupted. The other
+  seven commands that call `jira-reader` (`/document`, `/epics`,
+  `/release-notes`, `/specify`, `/ready`, `/create-ard`, `/implement`
+  multi-source fan-out) have no automated freshness gate at all — they rely
+  on the same manual-re-import habit — so this is a real (if narrow) reliance
+  on user discipline rather than a mechanically enforced guarantee. Accepted
+  as a reasonable trade-off given it's a single-user private plugin
+  marketplace; revisit (re-add jira-reader normalization) if that discipline
+  ever lapses or the plugin gains other users.
 - Porting to `mgd-claude-plugins` / `ihudak-copilot-plugins`. Follow-up, same
   pattern as prior cross-repo ports (verbatim for mgd, adapted for Copilot).
 
@@ -140,9 +150,7 @@ since the agent is what actually produces the prose):
 `prose-formatting.md` and its consumer list, matching the existing entries
 for `docs-grounding.md` / `source-truth.md` / `release-note-types.md`.
 
-## Fix 2 — VI ID round-trip corruption
-
-### 2a. Root-cause fix (`obsidian-vault` repo)
+## Fix 2 — VI ID round-trip corruption (`obsidian-vault` repo)
 
 `jira_markup_converter.py:363`, guard the issue-key sweep so it skips a token
 already sitting inside a single bracket pair:
@@ -168,39 +176,30 @@ tree (`recent-files-obsidian/data.json`, `workspace.json`,
 `jira_markup_converter.py` (+ its new test); nothing else in that tree is
 staged or committed as part of this work.
 
-### 2b. Defensive normalization (`dev-workflows` repo)
-
-`agents/jira-reader.md`, VI parsing rules (currently lines 59–61): before
-extracting an ID from a heading (`### [US-N]: <title>`) or bullet (`[AC-N]`
-/ `[SM-N]`), normalize away any repeated/multiplied brackets around it —
-`\[+([A-Z]+-\d+)\]+` → `$1` — so a legacy corrupted import like
-`PRODUCT-18503`'s `[[[US-3]]]` still resolves to `US-3` without a manual
-vault edit. This is a safety net independent of the importer fix: it protects
-already-exported files, and it's cheap insurance against any future importer
-regression of the same shape.
-
-No changes to `vi-format.md`, `pre-lint.md`, `vi-reviewer.md`,
-`create-vi.md`, or `update-vi.md` — the `[US-N]`/`[AC-N]`/`[SM-N]` syntax is
-unchanged (see Out of scope).
+No changes needed in `dev-workflows` for this fix — `vi-format.md`,
+`pre-lint.md`, `vi-reviewer.md`, `create-vi.md`, `update-vi.md`, and
+`jira-reader.md` are all untouched. The `[US-N]`/`[AC-N]`/`[SM-N]` syntax
+stays exactly as it is today (see Out of scope for why a defensive
+`jira-reader` normalization pass was considered and rejected too).
 
 ## Testing / verification
 
 - **Fix 1:** author a fresh VI (or re-run `/create-vi` on a scratch ticket)
   and confirm the Problem/Goal/User Story prose has no mid-paragraph line
   breaks in the written file.
-- **Fix 2a:** add the regression test described in §2a; run it against the
+- **Fix 2:** add the regression test described in §Fix 2; run it against the
   fix. Manually re-run the importer's conversion on the `PRODUCT-18503`-style
-  input (`[US-1]`, `**[US-1]**`) and confirm no bracket multiplication.
-- **Fix 2b:** point `jira-reader` at the existing (already-corrupted)
-  `$VAULT_PATH/jira-products/PRODUCT-18503/PRODUCT-18503/PRODUCT-18503.md`
-  and confirm it extracts `US-1`..`US-3`, `AC-1`..`AC-5`, `SM-1`..`SM-2`
-  correctly despite the triple brackets already present in that file.
+  input (`[US-1]`, `**[US-1]**`) and confirm no bracket multiplication. Then
+  re-import `PRODUCT-18503` for real and confirm the refreshed vault copy has
+  clean single-bracket IDs.
 
 ## Rollout
 
-- Bump `dev-workflows` to 2.37.0 (`plugin.json`, `CHANGELOG.md`).
-- Land the `obsidian-vault` fix as its own commit, scoped to
+- Bump `dev-workflows` to 2.37.0 (`plugin.json`, `CHANGELOG.md`) for Fix 1
+  (the only change in this repo).
+- Land the `obsidian-vault` fix (Fix 2) as its own commit, scoped to
   `jira_markup_converter.py` (+ test) only — do not touch or commit the
-  unrelated pending changes already in that working tree.
-- Port to `mgd-claude-plugins` (verbatim) and `ihudak-copilot-plugins`
+  unrelated pending changes already in that working tree. Independent of the
+  dev-workflows release; no version coupling between the two.
+- Port Fix 1 to `mgd-claude-plugins` (verbatim) and `ihudak-copilot-plugins`
   (Copilot-adapted) as a follow-up, per the established porting pattern.

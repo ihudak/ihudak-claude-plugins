@@ -1,0 +1,206 @@
+# Markdown formatting fixes — no hard-wrap prose + VI ID round-trip corruption — design
+
+- **Date:** 2026-07-22
+- **Status:** Approved (brainstorming complete; ready for implementation plan)
+- **Repo scope:** `plugins/dev-workflows/` (this repo) for Fix 1 and the defensive
+  half of Fix 2; the user's `obsidian-vault` repo
+  (`$VAULT_PATH/.obsidian/scripts/custom/jira-workitem-import/src/jira_markup_converter.py`)
+  for the root-cause half of Fix 2. Two independent repos, two independent commits.
+- **Target version:** dev-workflows 2.37.0
+
+## Problem
+
+Reported as one bug ("markdown formatting"), this is actually two independent
+defects surfaced by reviewing authored VI/Epic/ARD/Spec content in Obsidian or
+IntelliJ Idea and then pasting it into Jira.
+
+**1. Hard-wrapped prose.** When Claude Code (or Copilot) authors a VI, Epic,
+ARD, or Spec, prose sections get hard-wrapped at roughly 80–100 characters —
+convenient for a raw terminal `cat`, but redundant in Obsidian/IntelliJ (both
+soft-wrap to the pane width already) and actively harmful when the text is
+pasted into Jira: every wrap point becomes a spurious line/paragraph break,
+which the user then has to manually clean up, and which confuses Grammarly's
+sentence-boundary detection in the meantime. Nothing in this repo mandates the
+wrapping — `vi-format.md`, `ard-format.md`, `specification-format.md`,
+`design-format.md`, `pre-lint.md`, and `CLAUDE.md` are silent on line width.
+It is the model's own habitual prose formatting, not a repo convention, so the
+fix is an explicit counter-instruction rather than a bug removal.
+
+**2. VI ID markers get corrupted by the Jira paste/re-import round-trip.**
+`/create-vi` and `/update-vi` author User Story / Acceptance Criteria /
+Success Metric IDs as `[US-N]` / `[AC-N]` / `[SM-N]` (`vi-format.md`), then
+paste the VI body into the Jira workitem and re-import it to
+`$VAULT_PATH/jira-products/<KEY>` via `jira-workitem-import`
+(`create-vi.md`/`update-vi.md`, "paste + re-import"). Confirmed against the
+real `PRODUCT-18503` export: `[US-1]` comes back as `[[[US-1]]]`, and
+`**[US-1]**` comes back as `*[[[US-1]]]*` (a separate bold→italic mangle from
+the same round-trip, left as a known side-effect — see Out of scope).
+In Obsidian, the leftover triple brackets partially parse as a broken
+wikilink (`[[US-1]` + a stray trailing `]`), which is the "confuses Obsidian"
+symptom as originally reported — but the actual corruption happens upstream,
+in the importer, not in Obsidian's renderer.
+
+Root cause, found in `jira_markup_converter.py`'s `_convert_links`:
+
+```python
+# line 325 — plain [text] that isn't URL-like is left untouched
+text = re.sub(r'\[([^\]]+)\](?!\()', replace_plain_link, text)
+...
+# line 363 — blindly wikilink-ifies ANY KEY-shaped token, with no check
+# for "is this already sitting inside a bracket pair left alone above"
+text = re.sub(r'\b([A-Z]{2,10}-\d+)\b', replace_issue_key, text)
+```
+
+Only already-double-bracketed (`[[...]]`) and already-parenthesized
+(`[...](...)`) spans are protected before the issue-key sweep runs (lines
+338–360); an already-single-bracketed span like `[US-1]` is not, so its inner
+`US-1` gets wikilink-ified into `[[US-1]]`, nesting inside the untouched outer
+brackets to produce `[[[US-1]]]`.
+
+This means a bracket-free VI ID convention (`US-1` with no brackets at all)
+would **not** fix this — the same line-363 regex would still catch the bare
+token and wikilink-ify it into `[[US-1]]`, a dead link to a nonexistent note,
+trading one corruption for another. The VI ID syntax itself is not the bug;
+the importer's unguarded regex is.
+
+## Goal / success criteria
+
+- Freshly authored VI/Epic/ARD/Spec/design/doc/release-notes prose contains no
+  artificial mid-paragraph line breaks — each paragraph/prose block is one
+  line in the source file.
+- A VI pasted into Jira and re-imported comes back with `[US-N]`/`[AC-N]`/
+  `[SM-N]` intact (no bracket multiplication).
+- `jira-reader` correctly resolves IDs from already-corrupted historical
+  imports (e.g. `PRODUCT-18503`'s `[[[US-3]]]`) without requiring a manual
+  vault edit.
+
+## Scope
+
+**In scope:**
+
+| Fix | Where |
+|---|---|
+| No-hard-wrap prose convention | New shared reference in `dev-workflows`, cited by every authoring command/agent that writes prose |
+| Importer regex guard | One-line fix in `jira_markup_converter.py` (`obsidian-vault` repo) |
+| Defensive ID normalization | `jira-reader` agent (`dev-workflows`) |
+
+**Out of scope:**
+
+- Changing the VI's `[US-N]`/`[AC-N]`/`[SM-N]` bracket syntax. Not needed once
+  the importer stops mangling it (see Problem §2); a syntax change would have
+  touched 6 files for no benefit.
+- ARD/spec/design ID markers (`[AD-N]`, `[Uxx]`, `[ACxx]`, `[TCxx]`) — these
+  artifacts are never pasted into Jira (they land via branch+PR to the specs
+  repo), so they're not exposed to this corruption vector at all.
+- The `**bold**` → `*italic*` mangle observed on the same `**[US-1]**` line in
+  the PRODUCT-18503 round-trip. Same failure family (Jira paste/export
+  degrading markdown fidelity) but a distinct bug in a different code path;
+  not blocking and not part of what the user reported. Flagged here for a
+  future look, not fixed now.
+- A pre-lint/reviewer check that flags hard-wrapped prose mechanically.
+  Reliably distinguishing "hard-wrapped mid-sentence" from "legitimately
+  short line" (tables, code blocks, frontmatter, a genuinely short paragraph)
+  is fuzzy; this stays a writer-side instruction, not a review gate.
+- Re-writing already-exported vault files (e.g. `PRODUCT-18503.md` under
+  `$VAULT_PATH/jira-products/`) to strip existing corruption. Left as-is;
+  `jira-reader` normalization handles reading them correctly without
+  rewriting vault history.
+- Porting to `mgd-claude-plugins` / `ihudak-copilot-plugins`. Follow-up, same
+  pattern as prior cross-repo ports (verbatim for mgd, adapted for Copilot).
+
+## Fix 1 — No hard-wrap prose convention
+
+**New file:** `plugins/dev-workflows/references/prose-formatting.md` — single
+source of truth, following the repo's existing pattern (`docs-grounding.md`,
+`source-truth.md`, `release-note-types.md`). Content: never hard-wrap prose;
+write each paragraph/prose block as one unbroken line; the viewer (Obsidian,
+IntelliJ) soft-wraps for reading, and this keeps a straight copy-paste into
+Jira/Grammarly clean.
+
+**Consumers — one citation line added at each writer's authoring step:**
+
+*Commands with embedded writing* (cite `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md`
+directly, following the existing pattern already used a dozen times over in
+`create-vi.md` for `vi-format.md`/`docs-grounding.md`/`grilling-technique.md`
+etc.):
+- `commands/idea.md`
+- `commands/create-vi.md`
+- `commands/update-vi.md`
+- `commands/create-ard.md`
+- `commands/specify.md`
+- `commands/design.md`
+
+*Commands with a dedicated writer agent* (cite it in the agent body instead,
+since the agent is what actually produces the prose):
+- `agents/epic-writer.md` (used by `commands/epics.md`)
+- `agents/doc-writer.md` (used by `commands/document.md`)
+- `agents/release-notes-writer.md` (used by `commands/release-notes.md`)
+
+**CLAUDE.md:** one new bullet under "Source-truth reference" documenting
+`prose-formatting.md` and its consumer list, matching the existing entries
+for `docs-grounding.md` / `source-truth.md` / `release-note-types.md`.
+
+## Fix 2 — VI ID round-trip corruption
+
+### 2a. Root-cause fix (`obsidian-vault` repo)
+
+`jira_markup_converter.py:363`, guard the issue-key sweep so it skips a token
+already sitting inside a single bracket pair:
+
+```diff
+- text = re.sub(r'\b([A-Z]{2,10}-\d+)\b', replace_issue_key, text)
++ text = re.sub(r'(?<!\[)\b([A-Z]{2,10}-\d+)\b(?!\])', replace_issue_key, text)
+```
+
+`[US-1]` is left alone (already inside `[...]`, so no wikilink wrapping);
+a bare mention like `See PRODUCT-18503 for details` is unaffected and still
+gets linkified, since it isn't bracketed. This is a one-file, one-line change
+in `src/jira_markup_converter.py`. No other conversion path (table cells,
+`_convert_cell_content`) does issue-key linkification, so no other call site
+needs the same guard. There's no existing test coverage for `_convert_links`
+(`tests/test_additional_fields.py` doesn't touch it) — add a small regression
+test alongside the fix asserting `[US-1]` round-trips unchanged and a bare
+`PRODUCT-18503` mention still gets wikilink-ified.
+
+This repo has unrelated uncommitted changes already sitting in the working
+tree (`recent-files-obsidian/data.json`, `workspace.json`,
+`Projects/AI-First/AI-First.md`). The fix touches only
+`jira_markup_converter.py` (+ its new test); nothing else in that tree is
+staged or committed as part of this work.
+
+### 2b. Defensive normalization (`dev-workflows` repo)
+
+`agents/jira-reader.md`, VI parsing rules (currently lines 59–61): before
+extracting an ID from a heading (`### [US-N]: <title>`) or bullet (`[AC-N]`
+/ `[SM-N]`), normalize away any repeated/multiplied brackets around it —
+`\[+([A-Z]+-\d+)\]+` → `$1` — so a legacy corrupted import like
+`PRODUCT-18503`'s `[[[US-3]]]` still resolves to `US-3` without a manual
+vault edit. This is a safety net independent of the importer fix: it protects
+already-exported files, and it's cheap insurance against any future importer
+regression of the same shape.
+
+No changes to `vi-format.md`, `pre-lint.md`, `vi-reviewer.md`,
+`create-vi.md`, or `update-vi.md` — the `[US-N]`/`[AC-N]`/`[SM-N]` syntax is
+unchanged (see Out of scope).
+
+## Testing / verification
+
+- **Fix 1:** author a fresh VI (or re-run `/create-vi` on a scratch ticket)
+  and confirm the Problem/Goal/User Story prose has no mid-paragraph line
+  breaks in the written file.
+- **Fix 2a:** add the regression test described in §2a; run it against the
+  fix. Manually re-run the importer's conversion on the `PRODUCT-18503`-style
+  input (`[US-1]`, `**[US-1]**`) and confirm no bracket multiplication.
+- **Fix 2b:** point `jira-reader` at the existing (already-corrupted)
+  `$VAULT_PATH/jira-products/PRODUCT-18503/PRODUCT-18503/PRODUCT-18503.md`
+  and confirm it extracts `US-1`..`US-3`, `AC-1`..`AC-5`, `SM-1`..`SM-2`
+  correctly despite the triple brackets already present in that file.
+
+## Rollout
+
+- Bump `dev-workflows` to 2.37.0 (`plugin.json`, `CHANGELOG.md`).
+- Land the `obsidian-vault` fix as its own commit, scoped to
+  `jira_markup_converter.py` (+ test) only — do not touch or commit the
+  unrelated pending changes already in that working tree.
+- Port to `mgd-claude-plugins` (verbatim) and `ihudak-copilot-plugins`
+  (Copilot-adapted) as a follow-up, per the established porting pattern.

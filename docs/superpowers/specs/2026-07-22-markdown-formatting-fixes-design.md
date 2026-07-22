@@ -3,8 +3,10 @@
 - **Date:** 2026-07-22
 - **Status:** Approved (brainstorming complete; ready for implementation plan)
 - **Repo scope:** `plugins/dev-workflows/` (this repo) for Fix 1 only; the
-  user's `obsidian-vault` repo
-  (`$VAULT_PATH/.obsidian/scripts/custom/jira-workitem-import/src/jira_markup_converter.py`)
+  user's `obsidian-vault` repo — both
+  `$VAULT_PATH/.obsidian/scripts/custom/jira-workitem-import/src/jira_markup_converter.py`
+  and its sibling fork
+  `$VAULT_PATH/.obsidian/scripts/custom/jira-bulk-import/src/jira_markup_converter.py` —
   for Fix 2 entirely. Two independent repos, two independent commits.
 - **Target version:** dev-workflows 2.37.0
 
@@ -40,7 +42,15 @@ wikilink (`[[US-1]` + a stray trailing `]`), which is the "confuses Obsidian"
 symptom as originally reported — but the actual corruption happens upstream,
 in the importer, not in Obsidian's renderer.
 
-Root cause, found in `jira_markup_converter.py`'s `_convert_links`:
+The vault has **two** independently-forked copies of this converter — one in
+`jira-workitem-import` (single-ticket import) and one in `jira-bulk-import`
+(bulk import) — both with the identical bug (`_format_issue_link` differs
+cosmetically: wikilink `[[key]]` in one, standard Markdown link `[key](url)`
+in the other, but the unguarded regex and the resulting corruption class are
+the same in both).
+
+Root cause, found in `jira_markup_converter.py`'s `_convert_links`
+(both copies, same line numbers):
 
 ```python
 # line 325 — plain [text] that isn't URL-like is left untouched
@@ -78,7 +88,7 @@ the importer's unguarded regex is.
 | Fix | Where |
 |---|---|
 | No-hard-wrap prose convention | New shared reference in `dev-workflows`, cited by every authoring command/agent that writes prose |
-| Importer regex guard | One-line fix in `jira_markup_converter.py` (`obsidian-vault` repo) |
+| Importer regex guard | One-line fix in `jira_markup_converter.py`, applied to both `jira-workitem-import` and `jira-bulk-import` (`obsidian-vault` repo) |
 
 **Out of scope:**
 
@@ -152,29 +162,35 @@ for `docs-grounding.md` / `source-truth.md` / `release-note-types.md`.
 
 ## Fix 2 — VI ID round-trip corruption (`obsidian-vault` repo)
 
-`jira_markup_converter.py:363`, guard the issue-key sweep so it skips a token
-already sitting inside a single bracket pair:
+Applied to **both** `jira-workitem-import/src/jira_markup_converter.py` and
+`jira-bulk-import/src/jira_markup_converter.py` — line 363/364 respectively,
+guarding the issue-key sweep so it skips a token already sitting inside a
+single bracket pair:
 
 ```diff
 - text = re.sub(r'\b([A-Z]{2,10}-\d+)\b', replace_issue_key, text)
 + text = re.sub(r'(?<!\[)\b([A-Z]{2,10}-\d+)\b(?!\])', replace_issue_key, text)
 ```
 
-`[US-1]` is left alone (already inside `[...]`, so no wikilink wrapping);
-a bare mention like `See PRODUCT-18503 for details` is unaffected and still
-gets linkified, since it isn't bracketed. This is a one-file, one-line change
-in `src/jira_markup_converter.py`. No other conversion path (table cells,
-`_convert_cell_content`) does issue-key linkification, so no other call site
-needs the same guard. There's no existing test coverage for `_convert_links`
-(`tests/test_additional_fields.py` doesn't touch it) — add a small regression
-test alongside the fix asserting `[US-1]` round-trips unchanged and a bare
-`PRODUCT-18503` mention still gets wikilink-ified.
+`[US-1]` is left alone (already inside `[...]`, so no link wrapping); a bare
+mention like `See PRODUCT-18503 for details` is unaffected and still gets
+linkified, since it isn't bracketed. One line each, in `jira_markup_converter.py`
+only — no other conversion path (table cells, `_convert_cell_content`) does
+issue-key linkification in either tool, so no other call site needs the same
+guard. Neither tool had existing test coverage for `_convert_links`
+(`tests/test_additional_fields.py` doesn't touch it in either) — added
+`tests/test_jira_markup_converter.py` to each, asserting `[US-1]` round-trips
+unchanged and a bare `PRODUCT-18503` mention still gets linkified. Both
+verified directly (no `pytest` available in either `.venv` in this sandbox —
+no network access to install it — so verified via a standalone script
+exercising the same assertions; the committed test files run normally
+wherever the dev dependencies are installed).
 
-This repo has unrelated uncommitted changes already sitting in the working
-tree (`recent-files-obsidian/data.json`, `workspace.json`,
-`Projects/AI-First/AI-First.md`). The fix touches only
-`jira_markup_converter.py` (+ its new test); nothing else in that tree is
-staged or committed as part of this work.
+The `jira-workitem-import` working tree has unrelated uncommitted changes
+already sitting in it (`recent-files-obsidian/data.json`, `workspace.json`,
+`Projects/AI-First/AI-First.md`). The fix touches only the two
+`jira_markup_converter.py` files and their two new test files; nothing else
+in that tree is staged or committed as part of this work.
 
 No changes needed in `dev-workflows` for this fix — `vi-format.md`,
 `pre-lint.md`, `vi-reviewer.md`, `create-vi.md`, `update-vi.md`, and
@@ -187,19 +203,19 @@ stays exactly as it is today (see Out of scope for why a defensive
 - **Fix 1:** author a fresh VI (or re-run `/create-vi` on a scratch ticket)
   and confirm the Problem/Goal/User Story prose has no mid-paragraph line
   breaks in the written file.
-- **Fix 2:** add the regression test described in §Fix 2; run it against the
-  fix. Manually re-run the importer's conversion on the `PRODUCT-18503`-style
-  input (`[US-1]`, `**[US-1]**`) and confirm no bracket multiplication. Then
+- **Fix 2:** regression tests added and passing (verified directly, per
+  §Fix 2) for both `jira-workitem-import` and `jira-bulk-import`. Follow-up:
   re-import `PRODUCT-18503` for real and confirm the refreshed vault copy has
-  clean single-bracket IDs.
+  clean single-bracket IDs end-to-end.
 
 ## Rollout
 
 - Bump `dev-workflows` to 2.37.0 (`plugin.json`, `CHANGELOG.md`) for Fix 1
   (the only change in this repo).
-- Land the `obsidian-vault` fix (Fix 2) as its own commit, scoped to
-  `jira_markup_converter.py` (+ test) only — do not touch or commit the
-  unrelated pending changes already in that working tree. Independent of the
-  dev-workflows release; no version coupling between the two.
+- Land the `obsidian-vault` fix (Fix 2) as one commit covering both tools,
+  scoped to the two `jira_markup_converter.py` files + their two new test
+  files only — do not touch or commit the unrelated pending changes already
+  in that working tree. Independent of the dev-workflows release; no version
+  coupling between the two.
 - Port Fix 1 to `mgd-claude-plugins` (verbatim) and `ihudak-copilot-plugins`
   (Copilot-adapted) as a follow-up, per the established porting pattern.

@@ -52,7 +52,6 @@
         "url": "https://github.com/ziegenberg"
       },
       "category": "development",
-      "license": "MIT",
       "source": "./plugins/acli",
       "homepage": "https://github.com/ihudak/ihudak-claude-plugins/tree/main/plugins/acli"
     }

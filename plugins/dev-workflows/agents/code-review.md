@@ -31,17 +31,20 @@ The caller passes a structured brief:
 Refuse to review without a diff - ask the caller to produce one.
 
 - **`applicable_ard`** (optional) — the resolved ARD `AD-N` invariants, passed only by `/implement` (Jira mode) when an ARD exists. Absent for `/vuln`, `/upgrade`, `/implement` direct mode, and when no ARD exists — in which case the conditional ARD-conformance dimension (below) does not apply and is not mentioned.
+- **`applicable_spec`** (optional) — the in-scope specification/design context, passed only by `/implement` (Jira mode) when a `specification.md`/`design.md` is in scope: `spec_paths` (absolute paths) + `in_scope_ids` (the in-scope `[Uxx]`/`[ACxx]`/`[TCxx]` list). Absent for `/vuln`, `/upgrade`, `/implement` direct mode, and when no spec/design exists — in which case the conditional Spec/design-conformance dimension (below) does not apply and is not mentioned.
 
 ## Review method
 
 1. Read the diff end to end before reading any file in isolation.
 2. For each changed file, open and read enough context around each hunk to
    judge the change in its surroundings. Do not trust the hunk alone.
-3. Check each of the eight dimensions below (plus the conditional ninth, **only** when `applicable_ard` is provided). Skip dimensions that are clearly
+3. Check each of the eight dimensions below (plus the conditional ninth and
+   tenth — dimension 9 only when `applicable_ard` is provided, dimension 10
+   only when `applicable_spec` is provided). Skip dimensions that are clearly
    not applicable for this change, but say so explicitly.
 4. Collect findings. Each finding has:
    - **Severity** - `BLOCKER`, `MAJOR`, `MINOR`, `NIT`
-   - **Dimension** - one of the eight below
+   - **Dimension** - one of the ten below
    - **Location** - `path:line` (use `path:start-end` for ranges)
    - **Observation** - what is wrong or risky
    - **Suggestion** - concrete, minimal fix
@@ -94,6 +97,17 @@ full review.
    otherwise this dimension does not apply — omit it silently) - does the diff
    honor every `AD-N` `rule`? A violation with no recorded ARD-deviation (in the
    caller's report) → `BLOCKER`; with a recorded deviation → `MAJOR` flagged note.
+10. **Spec/design conformance** (conditional — only when `applicable_spec` is
+    provided; otherwise this dimension does not apply — omit it silently) —
+    trace each `in_scope_ids` requirement against the diff and classify it:
+    `satisfied` / `missing` / `partial` / `contradicts`. This checks
+    design→**code** — it does NOT re-verify spec→design traceability (that is
+    `design-reviewer`'s pre-code job). Severity:
+    - `contradicts` (the code does the opposite of a requirement) → `BLOCKER`.
+    - `missing` with **no** recorded deferral → `MAJOR`.
+    - `missing` **with** a recorded deferral (named in the plan's `Out of
+      scope`, or an explicit deferral note in the brief) → `MINOR` flagged note.
+    - `partial` → `MINOR`.
 
 ## Output
 
@@ -142,6 +156,12 @@ Return this exact shape (no chatter, no preamble):
 
 #### ARD conformance (only if applicable_ard provided)
 - ...
+
+#### Spec/design conformance (only if applicable_spec provided)
+- Coverage: [N satisfied / M missing / P partial / C contradicts]
+- [severity] `[ACxx]` - [missing | partial | contradicts] - [what the diff
+  does vs. what the requirement demands]
+- _or_ "no findings — all in-scope requirements satisfied"
 
 ### Recommended next step
 - If BLOCK: [the specific thing that must be fixed before tests run]

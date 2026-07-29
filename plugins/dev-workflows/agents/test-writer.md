@@ -52,8 +52,14 @@ Refuse to write tests without a diff and a baseline — ask the caller to supply
    - Cover happy path + at least one meaningful error / edge path per new behavior
    - Use deterministic data; avoid time-of-day, randomness, network calls unless the project's existing tests do
    - If a behavior genuinely cannot be tested in isolation (e.g. tightly coupled to an external service with no existing mock pattern in the project), note it in the output's `### Notes` section rather than inventing a pattern
+   - **Falsifiability gate** — before writing each test, name the exact production change that would make it fail. If you cannot name one, the test is a change-detector — do not write it.
+   - **No mirror-assertion** — never compute the expected value using the same logic as the code under test; derive it independently.
+   - **No change-detector** — assert the observable behavior that depends on a value, not a bare constant or a private/internal structure for its own sake.
+   - **Production methods only** — test-only helpers, fixtures, and cleanup live in test utilities, never in the production class under test.
 
-6. **Verify syntax.** Re-read each written file end-to-end after the final edit to confirm it parses and follows the discovered conventions. Do NOT run the tests — that's the caller's job via `test-baseliner` verify.
+6. **Mutation self-check.** For each test just written, mentally mutate the production code it covers (flip a condition, drop a line, off-by-one). Confirm the test would fail under that mutation; if it would still pass, the test is too weak — strengthen its assertions before returning.
+
+7. **Verify syntax.** Re-read each written file end-to-end after the final edit to confirm it parses and follows the discovered conventions. Do NOT run the tests — that's the caller's job via `test-baseliner` verify.
 
 ## Output
 
@@ -100,3 +106,4 @@ No build/config file matched the detection set (`pom.xml`, `build.gradle(.kts)`,
 - NEVER modify production code from this agent — only test files (under the project's test conventions directory).
 - NEVER rewrite existing tests unless a diff hunk directly invalidates them; if it does, flag the invalidation in `### Notes` and update only the affected test, surgically.
 - NEVER include the baseline or diff content in the output — the caller already has them. Output stays compact.
+- NEVER write a test that cannot fail on a real regression (tautological / change-detector / mirror-assertion). Every test must have a named production change that would break it.

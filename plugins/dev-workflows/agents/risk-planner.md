@@ -24,6 +24,10 @@ The caller passes a structured brief:
 - **Constraints** - runtime versions, dependencies, deadlines, non-functional
   requirements.
 - **Current state** - git branch, uncommitted changes, test baseline if any.
+- **`task_shape`** (optional) — `bug` when the caller classified the task as a defect fix. When
+  `task_shape: bug`, follow `${CLAUDE_PLUGIN_ROOT}/references/bug-diagnosis.md`: lead `### Steps` with a
+  red-capable repro step, and add a `### Hypotheses (ranked)` section (3–5 falsifiable causes) to the
+  plan output. Absent/other → plan normally.
 
 Refuse to plan without a classification and a task description - ask the caller
 to supply them.
@@ -49,6 +53,10 @@ Return a single structured plan in this exact shape (no chatter, no preamble):
 ### Approach
 [chosen strategy, and why it was picked over the alternatives. Name at least
 one alternative that was rejected and the reason.]
+
+### Hypotheses (ranked)   # include ONLY when task_shape: bug
+1. [cause] — predicts [observation]; falsified by [cheapest test]
+2. ...
 
 ### Steps
 1. [concrete, minimal-scope step]

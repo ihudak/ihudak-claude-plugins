@@ -33,6 +33,11 @@ The caller passes:
      rollout/rollback/process change, or cross-cutting test strategy across
      multiple subsystems — it cannot be safely auto-fixed. Flag as
      `"DEFERRED — needs human decision"` with a clear reason.
+   - If a finding **contradicts the approved plan** (the plan explicitly
+     mandated the thing the finding objects to), do NOT auto-fix against the
+     plan and do NOT bury it in a generic "other" defer. Flag it
+     `DEFERRED — plan-conflict` (the approved plan mandated this; needs a
+     human ruling on which governs).
 3. **For each MAJOR finding:** same rule. Fix if locally actionable, defer if
    not.
 4. **For each MINOR finding** (only if caller requested): apply only if the
@@ -59,7 +64,7 @@ Return this exact shape (no preamble):
 - _or_ "none"
 
 ### Deferred
-- [SEVERITY] `path:line` — [observation summary] → [reason: design change / migration / process / cross-cutting test strategy / other]
+- [SEVERITY] `path:line` — [observation summary] → [reason: design change / migration / process / cross-cutting test strategy / plan-conflict / other]
 - ...
 - _or_ "none"
 
@@ -69,7 +74,7 @@ Return this exact shape (no preamble):
 - _or_ "none"
 
 ### Stop condition flag
-[CLEAR — all BLOCKER findings were applied | NEEDS HUMAN — [count] BLOCKER finding(s) deferred; human decision required before re-review]
+[CLEAR — all BLOCKER findings were applied | NEEDS HUMAN — [count] BLOCKER finding(s) and/or any plan-conflict finding deferred; human decision required before re-review]
 ```
 
 ## Hard rules
@@ -77,6 +82,7 @@ Return this exact shape (no preamble):
 - NEVER attempt to fix a finding that requires design judgment. Flag it and stop.
 - NEVER modify a file that is not named in a finding's `path:line` location.
 - NEVER add new logic beyond what the suggestion explicitly requires.
+- NEVER fix a finding that contradicts the approved plan by overriding the plan; flag it `DEFERRED — plan-conflict` and set `Stop condition flag` to `NEEDS HUMAN`.
 - NEVER return without the `Stop condition flag` line — the caller reads it
   to decide whether re-running the review is worth doing.
 - If `Stop condition flag` is `NEEDS HUMAN`, the caller must surface the

@@ -155,6 +155,8 @@ model_routing:
 
 Each subagent dispatch below cites its chain (§9 role→chain map); mechanical steps pin `detection_model` via `model:`, and the frontmatter-Opus gates (`risk-planner`, `code-review`) are recorded but never overridden.
 
+**Detect task shape.** Inspect the description for defect signals (fix / bug / regression / broken / incorrect / wrong output / crash / fails). If bug-shaped, set `task_shape: bug`; when genuinely ambiguous whether this is a defect fix or new work, ask with a `choices` prompt (last choice `"Other… (describe)"`). `task_shape: bug` only affects the SIGNIFICANT / HIGH-RISK path (Phase 2B/3B); for SIMPLE / MODERATE it is guidance only.
+
 Then choose the branch:
 
 - **SIMPLE / MODERATE** → continue to Phase 2A (standard planning)
@@ -263,6 +265,8 @@ choices: ["Approve & implement now (Recommended)", "Revise plan", "Cancel"]
 
 Once the file map is returned, delegate planning to Opus.
 
+When a `specification.md`/`design.md` is in scope, extract its **in-scope** `[Uxx]`/`[ACxx]`/`[TCxx]` IDs (reuse the specs resolved in Phase 0) into `in_scope_ids` for the review dispatch below. When `task_shape: bug`, the plan will lead with a repro step and a ranked-hypotheses section — surface them in the normal plan-approval gate (no extra interrupt).
+
 → Agent (subagent_type: "dev-workflows:risk-planner"):  # planning_model — §2 Opus chain; frontmatter-pinned, recorded in model_routing, no override added
   > "Produce the risk-weighted plan for the following brief:
   >
@@ -270,7 +274,9 @@ Once the file map is returned, delegate planning to Opus.
   > Classification: [SIGNIFICANT | HIGH-RISK] — reason: [the criterion from Phase 1.5, or the multi-source floor from Phase 1.6 when fan_out]
   > Codebase summary: [paste the Phase 1.7 multi-source summary if fan_out, else the Explore agent's output]
   > Constraints: [any from clarification, plus runtime/version/deadline known]
-  > Current state: branch = [git branch], uncommitted = [git status --short summary]"
+  > Current state: branch = [git branch], uncommitted = [git status --short summary]
+  > Specs in scope: [the resolved specification.md/design.md path(s) from Phase 0, or "none"]
+  > task_shape: [bug | omit]"
 
 **Wait for the risk-planner to return.** Its output is one of:
 
@@ -429,7 +435,7 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
    ```
    Record the choice. A "Skip" decision must be explicit and logged in the Phase 5 report.
 
-5. After all changes are written: **DO NOT run tests yet.** Capture the diff and the project root. Use `git add -N . && git diff` — this includes intent-to-add untracked new files so the diff is never empty for implementations that only create new files, and it now also includes the test files from step 4a. Also capture `git diff --stat` for the summary.
+5. After all changes are written: **DO NOT run tests yet.** When `task_shape: bug`, first **strip every `[DEBUG-xxxx]` probe** added during diagnosis (per `${CLAUDE_PLUGIN_ROOT}/references/bug-diagnosis.md`); the review diff must contain no debug instrumentation. Capture the diff and the project root. Use `git add -N . && git diff` — this includes intent-to-add untracked new files so the diff is never empty for implementations that only create new files, and it now also includes the test files from step 4a. Also capture `git diff --stat` for the summary.
 6. **Opus code review** — spawn.
 
    → Agent (subagent_type: "dev-workflows:code-review"):  # review_model — §2 Opus chain; frontmatter-pinned, recorded in model_routing, no override added
@@ -440,7 +446,8 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
      > Plan: [paste the risk-planner plan approved in Phase 2B]
      > Diff: [paste git diff output]
      > Project root: [absolute path]
-     > applicable_ard: [the ARD invariants from Phase 1.8, or omit if none / direct mode]"
+     > applicable_ard: [the ARD invariants from Phase 1.8, or omit if none / direct mode]
+     > applicable_spec: [ { spec_paths: [...], in_scope_ids: [...] } when a spec/design is in scope, else omit ]"
 
 7. Act on the return:
    - **`### Re-classification` section** — the reviewer decided the change is actually `SIMPLE` or `MODERATE` on inspection. Surface it to the user and ask `choices: ["Accept revised classification (Recommended)", "Override and keep the BLOCK-gated review", "Cancel"]`. If accepted, treat the review as an implicit PASS: skip the BLOCK branch, proceed to step 8, and do NOT re-invoke the reviewer on later fix deltas. Record the revised classification for the Phase 5 report. If overridden, re-invoke code-review with an explicit note that the classification is intentional.
@@ -459,6 +466,7 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
      > Severities to fix: BLOCKER and MAJOR"
 
    Wait for the fix report. Re-capture the diff after the fixer completes.
+7.5. **Spec/design conformance escalation.** For each unresolved `missing`/`contradicts` in-scope requirement from the code-review Spec/design-conformance dimension, write a `- [ ]` note back onto the source `specification.md`/`design.md` under an `## Engineering review` heading (the same escalation `/design` uses; annotate only — never mutate existing `[Uxx]`/`[ACxx]`/`[TCxx]` IDs). Never silently drop them, never invent new Jira work.
 8. **Run Phase 3.5 (post-review).** After the review gate clears (non-BLOCK verdict), run the Phase 3.5 sequence (lint/build, `test-baseliner` verify, fix loop) — **not before**. This preserves the invariant "NEVER run tests for SIGNIFICANT / HIGH-RISK before Opus review returns non-BLOCK". The fix loop inside Phase 3.5 applies fixes via the session model; if the fixes are non-trivial **and** the reviewer was NOT down-classified in step 7, re-invoke the Opus code review on the delta after Phase 3.5 completes. If the reviewer WAS down-classified, skip the re-review.
 9. Verify the outcome matches the approved plan and the review verdict.
 10. Proceed to Phase 4.
@@ -573,6 +581,9 @@ Output a structured report — do NOT ask any closing confirmation:
 
 ### Opus review (if applicable)
 [Verdict and 1-line summary, or "N/A (SIMPLE / MODERATE)"]
+
+### Spec/design conformance (if a spec/design was in scope)
+[coverage summary from code-review's dimension; list any missing/partial/contradicts — or "N/A"]
 
 ### Commands / tests run
 - [command] → [result]
@@ -689,6 +700,8 @@ the code repo or the current working directory; no user name is ever written
 - AFTER two Phase 3.5 fix-loop attempts, if regressions remain: stop and surface to user — do NOT loop
 - ALWAYS classify each `@path` input by inspection (Phase 0) — never by matching the path string
 - WHEN `fan_out` is true (multi-repo or any directory input): floor classification at SIGNIFICANT (overridable at plan approval), run Phase 1.7, and feed its synthesized summary to the planner instead of the single Explore subagent
+- WHEN a `specification.md`/`design.md` is in scope on a SIGNIFICANT / HIGH-RISK run: extract its in-scope IDs, pass `applicable_spec` to `code-review`, report conformance in Phase 5, and escalate unresolved `missing`/`contradicts` as `- [ ]` notes on the spec/design — never silently
+- WHEN `task_shape: bug` on a SIGNIFICANT / HIGH-RISK run: risk-planner follows `bug-diagnosis.md` (repro-first + ranked hypotheses), and all `[DEBUG-xxxx]` instrumentation is stripped before the Opus-review diff is captured
 - ALWAYS fan out `code-scanner` one-per-repo in a single response, capped at 4 concurrent — never sequentially
 - NEVER silently skip a referenced `@dir` that is missing or unrecognized — surface it and ask (classification.md §8.4)
 - Scanning agents (`jira-reader`, `code-scanner`) are pinned to the §2.1 detection (Sonnet) chain like every mechanical step (never inherit the session model); escalate a single scanner to Opus only when one repo slice is oversized

@@ -78,7 +78,12 @@ full review.
    trust boundaries.
 3. **Architectural consistency** - follows existing patterns, respects module
    boundaries, uses the right abstraction layer, avoids duplicate
-   implementations.
+   implementations. As a **floor** when the repo has no documented standard
+   (a documented standard **overrides** this list), watch for the classic
+   code smells — flag as judgment-call findings (`MINOR`/`NIT`, not hard
+   violations): Mysterious Name, Duplicated Code, Feature Envy, Data Clumps,
+   Primitive Obsession, Repeated Switches, Shotgun Surgery, Divergent Change,
+   Speculative Generality, Message Chains, Middle Man, Refused Bequest.
 4. **Missed edge cases** - nulls, empty collections, zero/negative/boundary
    values, unicode, timezones, concurrent access, partial failures, retries,
    idempotency, rate limiting.

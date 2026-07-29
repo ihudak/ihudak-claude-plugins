@@ -4,6 +4,17 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.38.0] — 2026-07-29
+
+### Added
+
+- **Upstream-harvest improvements.** Adapted eight improvements from four upstreams (GitHub SpecKit, Matt Pocock skills, superpowers, BMAD) into the pipeline, all additive and conditional:
+  - **Spec→code conformance ("converge").** `code-review` gains a conditional 10th dimension "Spec/design conformance" (active only when a `specification.md`/`design.md` is in scope) that traces every in-scope `[Uxx]`/`[ACxx]`/`[TCxx]` against the shipped diff (satisfied / missing / partial / contradicts, with severity mirroring the ARD-conformance dimension). `risk-planner` tags plan steps with the requirement IDs they implement. `/implement` extracts in-scope IDs, passes `applicable_spec` to the Opus review, reports conformance in Phase 5, and escalates unresolved `missing`/`contradicts` gaps as `- [ ]` notes back onto the spec/design (never silently, never as invented Jira work).
+  - **Bug-diagnosis discipline.** New `references/bug-diagnosis.md` — feedback-loop-first: a red-capable, deterministic repro before hypothesizing; 3–5 ranked falsifiable hypotheses; `[DEBUG-xxxx]`-tagged instrumentation with a mandatory cleanup gate; regression test at a correct seam ("no correct seam" is itself a finding). Folded into `risk-planner` (`task_shape: bug` → repro-first plan + `### Hypotheses (ranked)`) and `/implement` (bug-shape detection + strip-before-review; `code-review` flags leftover `[DEBUG-xxxx]`).
+  - **Quality gates.** `test-writer` gains a falsifiability gate + no-mirror-assertion / no-change-detector / production-methods-only constraints + a mutation self-check. `review-fixer` gains a `plan-conflict` disposition (a finding that contradicts the approved plan is surfaced for a human ruling, never auto-fixed against the plan). `code-review` gains a Fowler 12-smell floor in the Architectural-consistency dimension (MINOR/NIT, overridden by a documented repo standard).
+  - **Authoring sharpeners.** `grilling-technique.md` gains a terminology-precision forcing move and an altitude-aware `## Ambiguity taxonomy` (NFR / integration / implicit-enum-branch / pre-mortem gap-categories that feed the existing Impact×Uncertainty ranking — no new mandatory questions). `spec-reviewer` gains NFR-coverage + implicit-enum-branch checks. `design-format.md` + `design-reviewer` gain deep-module / deletion-test / two-adapters seam-quality vocabulary. `risk-planner` gains a "No placeholders" self-review. `vi-format` + `vi-reviewer` gain optional counter-metrics (`[SM-C1]`).
+  - Renamed the grill's "design tree" → "decision tree" (removes the naming clash with the `design.md` artifact).
+
 ## [2.37.0] — 2026-07-22
 
 ### Changed

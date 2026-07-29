@@ -51,6 +51,11 @@ The caller passes:
   promises → a vague interface = `MAJOR`.
 - **Seam / test-strategy soundness:** **Test strategy** keys to named seams; a testability claim with
   no seam → `MAJOR`. Missing test strategy on a `MODERATE`+ design → `BLOCKER`.
+  A **shallow module** (interface nearly as large as its implementation) or a
+  **speculative seam** (a seam justified by a single hypothetical adapter, no
+  second real consumer) → `MAJOR` if it drives the design's structure, else
+  `MINOR`. Cite the deep-module / deletion-test / two-adapters vocabulary in
+  `${CLAUDE_PLUGIN_ROOT}/references/design-format.md`.
 - **Architecture coherence:** components and data flow are consistent; an interface referenced by no
   component (or vice-versa) → `MAJOR`.
 - **Risk coverage (SIGNIFICANT/HIGH-RISK):** a risky dimension named in the spec/classification with no

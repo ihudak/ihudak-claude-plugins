@@ -44,6 +44,12 @@ The caller passes:
 - **Coverage:** run the Stage-2 coverage-scan categories across the whole spec; a paired-state
   transition with a direction but no inverse/recovery and no explicit exclusion → `BLOCKER`. Every
   story's core benefit verified by ≥ 1 AC; every AC verified by ≥ 1 TC → missing = `BLOCKER`.
+- **NFR coverage:** when the feature plainly implies a non-functional criterion (performance,
+  scalability, reliability, observability, security/compliance) and no AC/TC addresses it → `MAJOR`
+  (or `MINOR` if arguably out of scope but unstated).
+- **Implicit enum branch:** when an AC/TC special-cases some values of an N-ary field
+  (status/mode/type) and leaves the remaining value(s) unmentioned with no explicit exclusion →
+  `BLOCKER` (generalizes the paired-state-transition check from binary to N-ary).
 - **Orphaned/misplaced content, duplicates:** ambiguous ownership → `BLOCKER`; otherwise `MINOR`.
 - **Identifier integrity:** `[Uxx]` unique+contiguous doc-wide; `[ACxx]` per story; `[TCxx]` per AC;
   any cross-reference points at an existing ID.

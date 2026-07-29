@@ -9,6 +9,7 @@ Ivan Gudak's private Claude Code plugin marketplace.
 | [dev-workflows](plugins/dev-workflows/) | Twenty-one slash commands for the PM → PA → PE → Dev workflow — idea refinement, VI / ARD authoring, VI updates, Epic drafting, specification and engineering-design authoring, structured implementation, feature documentation, release notes, vulnerability remediation, dependency upgrades, API / UI guideline compliance, and a status-anchored readiness gate — with Opus-backed planning, code review, and doc / Epic / design review gates. |
 | [dt-style-guide](plugins/dt-style-guide/) | Dynatrace corporate style guide enforcement: `/dt-review-pr`, `/dt-review-docs`, `/dt-style-refresh`, and sub-agents used by `dev-workflows` for style checking Epics and feature docs. |
 | [obsidian-llm-wiki](plugins/obsidian-llm-wiki/) | Ten slash commands for compiling Obsidian vault knowledge into a persistent, cross-referenced wiki with task management; supports Claude Code and GitHub Copilot. |
+| [acli](plugins/acli/) | Atlassian CLI (`acli`) reference skill for Jira and Confluence — JQL search, work items, comments, links, attachments, watchers, projects, sprints, boards, filters, and Confluence spaces/pages/blog posts. Derived from [ziegenberg/pi-skill-acli](https://github.com/ziegenberg/pi-skill-acli) (MIT). |
 
 ## Prerequisites
 
@@ -33,6 +34,7 @@ claude plugin marketplace add ihudak/ihudak-claude-plugins
 claude plugin install dev-workflows@ihudak-plugins
 claude plugin install dt-style-guide@ihudak-plugins
 claude plugin install obsidian-llm-wiki@ihudak-plugins
+claude plugin install acli@ihudak-plugins
 ```
 
 ### 3. Configure environment variables

@@ -85,6 +85,10 @@ one alternative that was rejected and the reason.]
 - **Minimise scope.** Suggest the smallest change that meets the acceptance
   checks. Do NOT introduce abstractions, feature flags, or cleanup for
   unrelated code.
+- **Trace to requirements (when a spec/design is in the brief).** If the brief carries a
+  `specification.md`/`design.md`, annotate each `### Steps` entry with the requirement ID(s) it
+  implements — e.g. `1. <step> — implements [AC-3], [TC-7]`. A step that implements no specific
+  requirement needs no tag. When no spec/design is in the brief (direct mode), skip this silently.
 - **Name the rejected alternatives.** A plan without a rejected alternative is
   suspect.
 - **Flag blockers early.** If a prerequisite is missing (missing tests, unclear

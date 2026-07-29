@@ -71,7 +71,9 @@ full review.
 
 1. **Correctness** - does the code do what the plan says? Are all described
    steps implemented? Any obvious logic errors, off-by-one, swapped operands,
-   incorrect comparisons?
+   incorrect comparisons? Flag any leftover debug instrumentation (e.g.
+   `[DEBUG-xxxx]` probes from a bug-diagnosis session) that should have been
+   stripped before review.
 2. **Security impact** - authentication, authorization, input validation,
    injection (SQL / command / XSS / template), secret handling, crypto
    choices, CSRF / SSRF, dependency CVEs. Flag anything that touches

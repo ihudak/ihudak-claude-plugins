@@ -52,14 +52,12 @@ present for `MODERATE`+ or whenever the change touches that concern, else a one-
 4. **## Interfaces / contracts** (core) — exact signatures, API shapes, schemas, events, config keys
    the change introduces or alters. Concrete types, not prose promises.
 5. **## Seams** (scaled) — where the change is exercised under test; prefer the **highest** seam that
-   still isolates the change. Name the seam per component. Judge seam/module
-   quality by: **deep module** (a small interface over substantial
-   implementation — prefer depth over many shallow pass-throughs); the
-   **deletion test** (would removing this module concentrate complexity
-   meaningfully, or merely relocate it? if only relocate, it may not earn its
-   keep); the **two-adapters heuristic** (one hypothetical consumer = a
-   *speculative* seam — do not introduce it yet; introduce a seam when a second
-   real consumer exists — YAGNI for seams).
+   still isolates the change. Name the seam per component. Judge seam/module quality by: **deep module**
+   (a small interface over substantial implementation — prefer depth over many shallow pass-throughs);
+   the **deletion test** (would removing this module concentrate complexity meaningfully, or merely
+   relocate it? if only relocate, it may not earn its keep); the **two-adapters heuristic** (one
+   hypothetical consumer = a *speculative* seam — do not introduce it yet; introduce a seam when a
+   second real consumer exists — YAGNI for seams).
 6. **## Data flow** (scaled) — how data moves through the changed path; state transitions; persistence.
 7. **## Error handling & edge cases** (scaled) — failure modes, boundaries, and the defined behaviour
    for each.

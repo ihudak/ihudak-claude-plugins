@@ -115,6 +115,8 @@ in their prompt; they do not re-read the file.
 
 `plugins/dev-workflows/references/prose-formatting.md` is the **single source of truth** for output line-wrapping — never hard-wrap prose; write each paragraph/prose block as one unbroken line, so Obsidian and IntelliJ Idea soft-wrap it for reading and a straight copy-paste into Jira/Grammarly needs no manual cleanup. Consumed by every authoring command/agent that writes prose (`/idea`, `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/design`, `epic-writer`, `doc-writer`, `release-notes-writer`).
 
+`plugins/dev-workflows/references/bug-diagnosis.md` is the **single source of truth** for the bug-diagnosis discipline consulted by `/implement` (Phase 2B) and followed by `risk-planner` when a task is bug-shaped (`task_shape: bug`): feedback-loop-first (a red-capable, deterministic repro before hypothesizing), 3–5 ranked falsifiable hypotheses, `[DEBUG-xxxx]`-tagged instrumentation with a mandatory cleanup gate (stripped before the Opus-review diff), and a regression test at a correct seam. It cross-references `references/design-format.md` `## Seams` for the seam vocabulary and is paired with `/implement`'s spec/design-conformance ("converge") check — `code-review`'s conditional 10th dimension that traces in-scope `[Uxx]`/`[ACxx]`/`[TCxx]` against the shipped diff.
+
 ## `dev-workflows` workflow relationships
 
 ```

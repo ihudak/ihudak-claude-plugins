@@ -99,6 +99,11 @@ one alternative that was rejected and the reason.]
   requirement needs no tag. When no spec/design is in the brief (direct mode), skip this silently.
 - **Name the rejected alternatives.** A plan without a rejected alternative is
   suspect.
+- **No placeholders.** Before returning, re-read the plan and replace any
+  placeholder with concrete content: "TBD", "add proper error handling",
+  "handle edge cases", "similar to step N", or any step that says *what*
+  without *how*. A plan step that a fresh engineer could not act on is a plan
+  failure.
 - **Flag blockers early.** If a prerequisite is missing (missing tests, unclear
   requirement, incompatible runtime), return a plan whose first step is "ask
   user X" rather than silently assuming.

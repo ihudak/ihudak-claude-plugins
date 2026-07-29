@@ -31,7 +31,7 @@ runs a fix cycle and re-reviews once.
 - **User Stories:** `### [US-N]` + `As a [role], I want …, so that …`; specific role (not "the user"/"everyone"); verifiable benefit; contiguous IDs. Vague role/benefit → `MAJOR`.
 - **Acceptance Criteria:** `[AC-N]` per story, externally-observable pass/fail; "be reliable"/"improve performance"/"fast" → `MAJOR`.
 - **Scope:** In concrete (≥1 delivered behaviour); Out concrete + confusable; "anything else"/"future work" as an Out item → `MAJOR`.
-- **Success Metrics:** `[SM-N]` measurable + technology-agnostic; a metric leaking implementation (e.g. "API < 200ms") when an outcome metric is meant → `MINOR`.
+- **Success Metrics:** `[SM-N]` measurable + technology-agnostic; a metric leaking implementation (e.g. "API < 200ms") when an outcome metric is meant → `MINOR`. A Primary SM that is plausibly gameable with no counter-metric (`[SM-Cx]`) guarding it → `NIT`/`MINOR` (non-blocking) — suggest a counter-metric.
 - **Product-level purity (BLOCKER):** no implementation detail (algorithms, data structures, code paths, internal APIs) — that belongs to the ARD / spec / design.
 - **No restatement:** any FR/UC present must not merely paraphrase a US (reference by ID) → `MAJOR`.
 - **Profile completeness:** every spine section present; each adapt-in section that IS present is substantive, not theater (empty/boilerplate Competitive Snapshot, personas, or metrics → `MAJOR`, "substance over theater"). Never flag an omitted adapt-in cluster the profile doesn't require.

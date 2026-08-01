@@ -10,6 +10,10 @@ without degrading. Apply when the plan/step list is large or the run is nearing 
   integrates the results.
 - **Decompose** — if the remaining work is too large even with checkpoints, split it into independently
   shippable units and finish the current unit before starting the next.
+- **Hand off by file, not paste** — when dispatching a subagent, write the context it needs (task brief,
+  diff, review package, prior-phase summary) to a file and hand the subagent the *path*, not the pasted
+  content. Pasted dispatch content stays resident in the orchestrator's context and is re-read on every
+  later turn; a file path costs one line.
 
 Prefer the cheapest strategy that fits: checkpoint first; offload parallel steps only when they are
 genuinely independent; decompose only when a single unit still overflows.

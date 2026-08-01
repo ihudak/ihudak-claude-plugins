@@ -1,39 +1,45 @@
-# RESUME POINTER — dev-workflows upstream harvest
+# Harvest status pointer — dev-workflows upstream harvest
 
-Read this first after compaction. Beside it: `INDEX.md` (ranked shortlist) + the design spec + plan
-(now RELOCATED INTO THE REPO — see paths below).
+## COMPLETE & SHIPPED (2026-07-29)
+The 8-item harvest (freebie + Tier 1 + Tier 2) is implemented, reviewed, and **merged to `main` + pushed**
+in all three editions:
+- `ihudak-claude-plugins` (canonical) — `main` at `b9cfd38`; dev-workflows **2.38.0**. Passed the opus
+  whole-branch review (Ready-to-merge: YES; 4 Minors fixed in `dab042c`).
+- `mgd-claude-plugins` — `main` at `dd39786`; dev-workflows **2.38.0** (byte-identical copy of canonical).
+- `ihudak-copilot-plugins` — `main` at `e4e3703`; dev-workflows **2.8.0** (hand-adapted conversion:
+  `~/.copilot/…/skills/_shared/` paths, `implement:`/`design:` keywords).
 
-## Done & shipped (do NOT redo)
-- **acli feature COMPLETE and pushed** to all three repos' `origin/main` (earlier effort). Plan lives in
-  the workspace scratch `/workspace/dev/docs/superpowers/plans/2026-07-29-acli-skill-distribution-and-mgd-removal.md`.
-  Nothing pending on acli.
+What shipped: spec→code **converge** gate (code-review 10th dim + risk-planner ID-tags + /implement
+wiring), `bug-diagnosis.md` discipline, test-writer falsifiability/mutation gate, review-fixer
+plan-conflict, code-review Fowler floor, altitude-aware ambiguity taxonomy + "design tree"→"decision
+tree" rename, deep-module/seam vocab, risk-planner no-placeholders, VI counter-metrics. Spec + plan:
+`docs/superpowers/specs|plans/2026-07-29-dev-workflows-upstream-harvest*.md`. Do NOT redo any of this.
 
-## Done in THIS harvest effort (do NOT redo)
-- **Design decided + spec written + plan written.** Design forks resolved with the user:
-  (1) converge → GATE in code-review (conditional 10th dim) + risk-planner ID-tags; (2) bug-diagnosis →
-  FOLDED into risk-planner (repro-first + ranked hypotheses via the existing plan-approval gate); (3)
-  ambiguity taxonomy → ALTITUDE-AWARE across all grills. Adjacent "hand-off-by-file" item → DEFERRED
-  (user wants details later; other deferred nuggets enumerated in chat — revisit after this package).
-- **Docs relocated into the canonical repo** `ai-tools/ihudak-claude-plugins/docs/superpowers/`:
-  - Spec: `specs/2026-07-29-dev-workflows-upstream-harvest-design.md`
-  - Plan: `plans/2026-07-29-dev-workflows-upstream-harvest.md`  ← THE authority for execution
-  - Harvest analysis: `harvest/{INDEX,mattpocock,superpowers,bmad,speckit}.md` (+ this NEXT.md)
+## NEXT: the DEFERRED / POSTPONED backlog (to review together)
+Considered during the harvest but NOT shipped — each is a judgment call worth revisiting. Detail lives
+in `INDEX.md` (Adjacent + "NOT adopting") and the per-upstream files (`mattpocock.md`, `bmad.md`,
+`superpowers.md`, `speckit.md`).
 
-## Current task: EXECUTE the plan via superpowers:subagent-driven-development
-- Plan = `.../docs/superpowers/plans/2026-07-29-dev-workflows-upstream-harvest.md` (12 tasks).
-- **Wave 1 (T1–T4)** converge contract + bug-diagnosis + /implement wiring + test-writer gate →
-  **Wave 2 (T5–T9)** taxonomy/plan-conflict/Fowler/seam-vocab/no-placeholders+counter-metrics →
-  **Wave 3 (T10–T12)** port to mgd (straight copy) + Copilot (hybrid: agents straight, refs→skills/_shared/,
-  implement→skills/implement/SKILL.md CONVERSION) + doc-surface sync (marketplace version bumps, READMEs,
-  CLAUDE.md / copilot-instructions.md, CHANGELOGs).
-- Canonical edits happen first on a feature branch off `main` in `ihudak-claude-plugins`.
+**Could adopt later (judgment calls):**
+1. **Adjacent — context "hand off by file, not paste"** → new 4th strategy in
+   `references/context-management.md` + reword `/implement` Phase 1.7/2B/3B dispatch prompts that paste
+   summaries/diffs/review output. Source: superpowers. Effort **M** (the one real `/implement` refactor).
+2. **ADR-candidacy 3-condition filter** → `references/ard-format.md`: offer an `AD-N` only when a decision
+   is hard-to-reverse AND surprising-without-context AND a real trade-off. Source: Matt `domain-modeling`. **S**.
+3. **Prototype-snippet exception** → `references/design-format.md`: allow a narrow decision-encoding
+   snippet (state machine / schema / type shape) where prose is less precise. Source: Matt `to-spec`. **S**.
+4. **Wide-refactor expand→migrate→contract exception** → `commands/epics.md` Phase 2: a named
+   Epic-sequencing carve-out for blast-radius-wide mechanical changes. Source: Matt `to-tickets`. **S/M**.
+5. **`resume.md` redaction line** → `references/session-hygiene.md`: one-line "redact secrets/PII"
+   reminder. Source: Matt `handoff`. **S**.
+6. **"Missing-adoption gap"** → `agents/code-review.md` edge-case dimension: a sibling call site that
+   should adopt changed behavior and doesn't, uncaught by tests. Source: BMAD `lens-verification-gap`. **S**.
 
-## Standing constraints
-- PUSHES ARE HELD for explicit user confirmation before each push (all 3 repos). Plan produces commits only.
-- Commit trailer: `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`.
-- Do NOT edit `references/specification-format.md` (frozen snapshot) — Item 4 coverage lands in spec-reviewer.
-- Additive adaptations judged for fit to the Jira-driven, Opus-gated pipeline — not upstream purity.
+**Rejected on merits (revisit only if asked):** CLI/template scaffolding, `constitution`, governance
+presets, SDD ledger / 5-round fix-breaker, generic lens engine, git-push-blocking hook, PRD-coach
+"never recommend an answer", batch-grill-me denser rounds. (See INDEX.md "Deliberately NOT adopting".)
 
-## Immediate next action after compaction
-Resume SDD at the first task in the plan's progress ledger not marked complete (check
-`ihudak-claude-plugins/.superpowers/sdd/progress.md` + `git log`); if none started, begin Wave 1 Task 1.
+## Standing constraints (still apply for any new work)
+- PUSHES HELD for explicit user confirmation. Commit trailer: `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`.
+- Do NOT edit `references/specification-format.md` (frozen snapshot).
+- mgd push bypasses a PR-required branch rule (user: "ok for now").

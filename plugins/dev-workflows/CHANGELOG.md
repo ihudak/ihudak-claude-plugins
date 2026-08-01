@@ -4,6 +4,22 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.39.0] — 2026-08-01
+
+### Added
+
+- **Deferred-backlog sharpeners (wave 3).** Six additive, single-location refinements harvested from the 2026-07-29 upstream deferred backlog (all additive/conditional; `references/specification-format.md` untouched):
+  - **ADR candidacy filter** — `references/ard-format.md`: an `AD-N` earns its place only when the decision is hard-to-reverse AND surprising-without-context AND the result of a real trade-off (missing any of the three → an ordinary implementation choice, left to `/design`). [Matt `domain-modeling`]
+  - **Wide-refactor sequencing exception** — `commands/epics.md` Phase 2: a named carve-out for blast-radius-wide *mechanical* changes that cannot be tracer-bulleted — expand → migrate-in-batches → contract, each phase its own Epic, contract blocked by every migrate-batch. [Matt `to-tickets`]
+  - **Prototype-snippet exception** — `references/design-format.md`: prose is the default, with a narrow exception for a decision-encoding snippet (state machine / schema / type shape) that pins a decision down more precisely than prose. [Matt `to-spec`]
+  - **Missing-adoption gap** — `agents/code-review.md` dimension 4: flags a sibling call site that should adopt changed behavior and doesn't (an untouched caller of the same pattern), uncaught by tests. Complements the wave-2 converge gate. [BMAD `lens-verification-gap`]
+  - **`resume.md` redaction reminder** — `references/session-hygiene.md`: the `Carry-forward decisions` line redacts secrets / credentials / tokens / PII. [Matt `handoff`]
+  - **Context "hand off by file, not paste"** — `references/context-management.md`: a 4th long-run strategy — write dispatch context (brief / diff / review package / summary) to a file and hand the subagent a path. Reference-only; the matching `/implement` dispatch-prompt refactor is deferred. [superpowers SDD]
+
+### Fixed
+
+- **`/idea` and `/create-vi` YAML frontmatter.** An unquoted `description:` value containing `: ` (colon-space) — `idea.md: a lean` and `profiles: --lean` — was parsed as a nested mapping, so `claude plugin validate` failed and the whole frontmatter (`name`, `allowed-tools`) was silently dropped at runtime. Removed the offending colon-space; both commands now validate and load their metadata. Pre-existing, unrelated to the wave-3 additions.
+
 ## [2.38.0] — 2026-07-29
 
 ### Added

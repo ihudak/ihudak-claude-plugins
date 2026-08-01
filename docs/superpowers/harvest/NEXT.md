@@ -15,25 +15,24 @@ plan-conflict, code-review Fowler floor, altitude-aware ambiguity taxonomy + "de
 tree" rename, deep-module/seam vocab, risk-planner no-placeholders, VI counter-metrics. Spec + plan:
 `docs/superpowers/specs|plans/2026-07-29-dev-workflows-upstream-harvest*.md`. Do NOT redo any of this.
 
-## NEXT: the DEFERRED / POSTPONED backlog (to review together)
-Considered during the harvest but NOT shipped — each is a judgment call worth revisiting. Detail lives
-in `INDEX.md` (Adjacent + "NOT adopting") and the per-upstream files (`mattpocock.md`, `bmad.md`,
-`superpowers.md`, `speckit.md`).
+## Wave 3 — SHIPPED (2026-08-01, dev-workflows 2.39.0 / Copilot 2.9.0)
+Five deferred nuggets + the cheap half of the Adjacent item shipped to all three editions (canonical
+`341b5df`, mgd `557526b`, Copilot `fa25405`). Spec + plan:
+`docs/superpowers/specs|plans/2026-08-01-dev-workflows-deferred-nuggets*.md`. What shipped: ADR
+3-condition candidacy filter (`ard-format.md`), wide-refactor expand→migrate→contract exception
+(`epics.md`), prototype-snippet exception (`design-format.md`), missing-adoption gap (`code-review.md`
+dim 4), `resume.md` redaction reminder (`session-hygiene.md`), and the context "hand off by file, not
+paste" 4th strategy (`context-management.md`, **reference-only**). Also **fixed** a pre-existing `/idea`
++ `/create-vi` YAML-frontmatter bug (a colon-space in the unquoted `description:` silently dropped all
+frontmatter at runtime). Passed the Opus whole-branch review (READY; 3 minors fixed). Do NOT redo.
 
-**Could adopt later (judgment calls):**
-1. **Adjacent — context "hand off by file, not paste"** → new 4th strategy in
-   `references/context-management.md` + reword `/implement` Phase 1.7/2B/3B dispatch prompts that paste
-   summaries/diffs/review output. Source: superpowers. Effort **M** (the one real `/implement` refactor).
-2. **ADR-candidacy 3-condition filter** → `references/ard-format.md`: offer an `AD-N` only when a decision
-   is hard-to-reverse AND surprising-without-context AND a real trade-off. Source: Matt `domain-modeling`. **S**.
-3. **Prototype-snippet exception** → `references/design-format.md`: allow a narrow decision-encoding
-   snippet (state machine / schema / type shape) where prose is less precise. Source: Matt `to-spec`. **S**.
-4. **Wide-refactor expand→migrate→contract exception** → `commands/epics.md` Phase 2: a named
-   Epic-sequencing carve-out for blast-radius-wide mechanical changes. Source: Matt `to-tickets`. **S/M**.
-5. **`resume.md` redaction line** → `references/session-hygiene.md`: one-line "redact secrets/PII"
-   reminder. Source: Matt `handoff`. **S**.
-6. **"Missing-adoption gap"** → `agents/code-review.md` edge-case dimension: a sibling call site that
-   should adopt changed behavior and doesn't, uncaught by tests. Source: BMAD `lens-verification-gap`. **S**.
+## NEXT: the one remaining deferred item (the M one)
+- **Context "hand off by file, not paste" — the `/implement` refactor half.** The reference-only 4th
+  strategy shipped in wave 3; what remains is rewording `/implement` **Phase 1.7 / 2B / 3B** dispatch
+  prompts that currently *paste* the multi-source summary, `git diff` output, and the full code-review
+  report into the subagent prompt — to write those to a file and hand a **path** instead. Touches a
+  working command's hot path (three dispatch sites); deserves its own SDD pass. Source: superpowers.
+  Effort **M**.
 
 **Rejected on merits (revisit only if asked):** CLI/template scaffolding, `constitution`, governance
 presets, SDD ledger / 5-round fix-breaker, generic lens engine, git-push-blocking hook, PRD-coach

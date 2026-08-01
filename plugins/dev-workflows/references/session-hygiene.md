@@ -43,9 +43,10 @@ log). It is intentionally tiny:
 - **Carry-forward decisions:** <0–N one-line decisions the next phase needs that are NOT already in the artifact; 'none' if none>
 ```
 
-**Redact before writing.** The `Carry-forward decisions` line may summarize content pulled from a Jira
-ticket or the session — redact any secret, credential, token, or PII. A resume pointer records *what to do
-next*, never a sensitive value.
+**Redact before writing.** The `Carry-forward decisions` line may summarize
+content pulled from a Jira ticket or the session — redact any secret,
+credential, token, or PII. A resume pointer records *what to do next*, never a
+sensitive value.
 
 ## 2. The suggestion — role-aware (reads next-phase-offer's role labels)
 

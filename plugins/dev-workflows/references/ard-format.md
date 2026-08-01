@@ -44,6 +44,7 @@ derived_from: <path to the VI file, canonical <VI>_<slug>.md>
 
 - Every "as-is" claim cites a grounded `file:line`; no fabricated/uncited architecture.
 - `AD-N` are **testable** and non-overlapping (Binds/Prevents/Rule each populated).
+- An `AD-N` earns its place only when the decision is **hard to reverse** AND **surprising without context** AND the result of a **real trade-off**; a decision missing any of the three is an ordinary implementation choice (leave it to `/design`), not an architecture decision.
 - **VI-level carries NO per-repo detailed solutions** — that is `/design`'s job.
 - An Epic-level ARD may go deeper but stays architecture, not an implementation plan.
 - Grounding is **architect-driven** (repos confirmed by the architect), never derived from PRs (which do not exist at ARD time).

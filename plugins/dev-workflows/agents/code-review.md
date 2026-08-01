@@ -88,7 +88,9 @@ full review.
    Speculative Generality, Message Chains, Middle Man, Refused Bequest.
 4. **Missed edge cases** - nulls, empty collections, zero/negative/boundary
    values, unicode, timezones, concurrent access, partial failures, retries,
-   idempotency, rate limiting.
+   idempotency, rate limiting. Also the **missing-adoption gap** — a sibling
+   call site that should adopt the changed behavior and doesn't (an untouched
+   caller of the same pattern), with no test catching the omission.
 5. **Migration risks** - forward/backward compatibility, data migration
    ordering, feature-flag interaction, deploy order (DB before app vs after),
    schema changes under live traffic.

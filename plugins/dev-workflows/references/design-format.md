@@ -13,10 +13,11 @@ real decision for this change; omit a section that does not apply and replace it
 and how deep each goes — a `SIMPLE` design is a few decisions; a `HIGH-RISK` design is thorough across
 every section.
 
-**Prose is the default; a decision-encoding snippet is the exception.** Where a snippet — a state machine,
-reducer, schema, or type shape — encodes a decision *more precisely than prose can*, inline it (note it if it
-came from a prototype) and trim it to the decision-rich parts. Never paste a whole prototype; the snippet
-earns its place only by pinning down a decision prose would leave ambiguous.
+**Natural-language prose is the default medium; a decision-encoding snippet is the exception.** Where
+a snippet — a state machine, reducer, schema, or type shape — encodes a decision *more precisely than
+prose can*, inline it (note it if it came from a prototype) and trim it to the decision-rich parts.
+Never paste a whole prototype; the snippet earns its place only by pinning down a decision prose would
+leave ambiguous.
 
 ## Header
 

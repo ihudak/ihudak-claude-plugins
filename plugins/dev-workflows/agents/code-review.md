@@ -26,6 +26,8 @@ The caller passes a structured brief:
   `risk-planner` system prompt at `${CLAUDE_PLUGIN_ROOT}/agents/risk-planner.md`, or a
   user-approved equivalent).
 - **Diff** - `git diff` or a file-by-file list of changes. MANDATORY.
+  Both **Plan** and **Diff** may be given inline or as an absolute file
+  path — `Read` the file first when given a path.
 - **Project root** - absolute path so files can be opened.
 
 Refuse to review without a diff - ask the caller to produce one.

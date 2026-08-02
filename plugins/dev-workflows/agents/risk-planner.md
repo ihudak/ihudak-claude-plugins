@@ -21,6 +21,8 @@ The caller passes a structured brief:
 - **Codebase summary** - file map, existing patterns, conventions (from an
   Explore agent or inventory step). For upgrade/vuln work, this includes the
   component's inventory path(s) and any compat notes already gathered.
+  Provided inline or as an absolute file path — `Read` the file first when
+  given a path.
 - **Constraints** - runtime versions, dependencies, deadlines, non-functional
   requirements.
 - **Current state** - git branch, uncommitted changes, test baseline if any.

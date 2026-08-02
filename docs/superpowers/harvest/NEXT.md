@@ -28,13 +28,25 @@ paste" 4th strategy (`context-management.md`, **reference-only**). Also **fixed*
 + `/create-vi` YAML-frontmatter bug (a colon-space in the unquoted `description:` silently dropped all
 frontmatter at runtime). Passed the Opus whole-branch review (READY; 3 minors fixed). Do NOT redo.
 
-## NEXT: the one remaining deferred item (the M one)
-- **Context "hand off by file, not paste" — the `/implement` refactor half.** The reference-only 4th
-  strategy shipped in wave 3; what remains is rewording `/implement` **Phase 1.7 / 2B / 3B** dispatch
-  prompts that currently *paste* the multi-source summary, `git diff` output, and the full code-review
-  report into the subagent prompt — to write those to a file and hand a **path** instead. Touches a
-  working command's hot path (three dispatch sites); deserves its own SDD pass. Source: superpowers.
-  Effort **M**.
+## Wave M (the `/implement` dispatch file-handoff) — SHIPPED (2026-08-02)
+The deferred M item shipped to all three editions. Current tips: canonical `5d8f56c` (**2.39.2**),
+mgd `f2d0ac3` (**2.39.2**), Copilot `2de7eb2` (**2.9.2**). Spec + plan:
+`docs/superpowers/specs|plans/2026-08-02-implement-dispatch-file-handoff*.md`. What shipped: extended
+the existing `/document` + `/epics` `mktemp` handoff pattern to `/implement`'s four in-loop dispatches
+(`risk-planner`, `test-writer`, `code-review`, `review-fixer`) plus the Phase 3.5 sibling — the
+multi-source summary, approved plan, review diff, and code-review report are written to `mktemp` files
+(outside every repo tree → no `git diff` pollution) and handed as absolute **paths**, not pasted
+inline; each agent's `## Inputs` notes a field may arrive inline or as a path. Behavior-preserving
+(Design A, surgical per-artifact). Passed the Opus whole-branch review (READY WITH MINORS; both fixed —
+the re-review paths now refresh `review_diff_file`, and a review-fixer note period). Do NOT redo.
+
+## NEXT: recorded follow-up (sibling of the M item) — effort S
+- **`/vuln` + `/upgrade` inline-diff handoff.** Both dispatch `code-review` with an inline `git diff`
+  (`commands/vuln.md:148`, `commands/upgrade.md:138`); `/upgrade` also pastes the upgrade plan, `/vuln`
+  the research report. Same "hand off by file" pattern the M item applied to `/implement`. The
+  `code-review` agent note already accepts "inline **or** a path", so these keep working as-is — this
+  is a consistency/efficiency follow-up, not a bug. Scoped out of the M item deliberately. Source:
+  superpowers. Effort **S**.
 
 **Rejected on merits (revisit only if asked):** CLI/template scaffolding, `constitution`, governance
 presets, SDD ledger / 5-round fix-breaker, generic lens engine, git-push-blocking hook, PRD-coach

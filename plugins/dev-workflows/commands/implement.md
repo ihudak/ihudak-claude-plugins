@@ -465,12 +465,12 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
      > Project root: [absolute path]
      > Severities to fix: BLOCKER and MAJOR"
 
-   Wait for the fix report. Re-capture the diff after the fixer completes.
+   Wait for the fix report. Re-capture the diff after the fixer completes, **overwriting `review_diff_file`** (write a fresh `git add -N . && git diff` to that same path) — so the one re-review at step 7 reads the post-fix diff, not the stale step-5 capture.
 
    - If the fix report contains any `DEFERRED — plan-conflict` finding, surface it to the user **immediately** (do not wait for the BLOCK-still-BLOCK path): show the finding beside the plan text it contradicts and ask `choices: ["Revise the plan (the finding governs)", "Apply the fix against the plan (the plan governs — logged in Phase 5)", "Other… (describe)"]`. Act on the answer before re-running the review.
 
 7.5. **Spec/design conformance escalation.** For each unresolved `missing`/`contradicts` in-scope requirement from the code-review Spec/design-conformance dimension, write a `- [ ]` note back onto the source `specification.md`/`design.md` under an `## Engineering review` heading (the same escalation `/design` uses; annotate only — never mutate existing `[Uxx]`/`[ACxx]`/`[TCxx]` IDs). Never silently drop them, never invent new Jira work.
-8. **Run Phase 3.5 (post-review).** After the review gate clears (non-BLOCK verdict), run the Phase 3.5 sequence (lint/build, `test-baseliner` verify, fix loop) — **not before**. This preserves the invariant "NEVER run tests for SIGNIFICANT / HIGH-RISK before Opus review returns non-BLOCK". The fix loop inside Phase 3.5 applies fixes via the session model; if the fixes are non-trivial **and** the reviewer was NOT down-classified in step 7, re-invoke the Opus code review on the delta after Phase 3.5 completes. If the reviewer WAS down-classified, skip the re-review.
+8. **Run Phase 3.5 (post-review).** After the review gate clears (non-BLOCK verdict), run the Phase 3.5 sequence (lint/build, `test-baseliner` verify, fix loop) — **not before**. This preserves the invariant "NEVER run tests for SIGNIFICANT / HIGH-RISK before Opus review returns non-BLOCK". The fix loop inside Phase 3.5 applies fixes via the session model; if the fixes are non-trivial **and** the reviewer was NOT down-classified in step 7, re-invoke the Opus code review on the delta after Phase 3.5 completes (first overwrite `review_diff_file` with a fresh `git add -N . && git diff` so the re-review reads the post-Phase-3.5 diff). If the reviewer WAS down-classified, skip the re-review.
 9. Verify the outcome matches the approved plan and the review verdict.
 10. Proceed to Phase 4.
 

@@ -40,13 +40,21 @@ inline; each agent's `## Inputs` notes a field may arrive inline or as a path. B
 (Design A, surgical per-artifact). Passed the Opus whole-branch review (READY WITH MINORS; both fixed —
 the re-review paths now refresh `review_diff_file`, and a review-fixer note period). Do NOT redo.
 
-## NEXT: recorded follow-up (sibling of the M item) — effort S
-- **`/vuln` + `/upgrade` inline-diff handoff.** Both dispatch `code-review` with an inline `git diff`
-  (`commands/vuln.md:148`, `commands/upgrade.md:138`); `/upgrade` also pastes the upgrade plan, `/vuln`
-  the research report. Same "hand off by file" pattern the M item applied to `/implement`. The
-  `code-review` agent note already accepts "inline **or** a path", so these keep working as-is — this
-  is a consistency/efficiency follow-up, not a bug. Scoped out of the M item deliberately. Source:
-  superpowers. Effort **S**.
+## Wave S (the `/vuln` + `/upgrade` dispatch file-handoff) — SHIPPED (2026-08-02)
+The S follow-up shipped to all three editions. Current tips: canonical `04e51f4` (**2.39.3**),
+mgd `e1a7ab5` (**2.39.3**), Copilot `d7ad4b3` (**2.9.3**). Spec+plan (one doc):
+`docs/superpowers/specs/2026-08-02-vuln-upgrade-dispatch-file-handoff-design.md`. What shipped: the
+`/vuln` research report (→ `vuln-fixer`, `code-review`, resumes) and the `/upgrade` planner handoff
+(→ `risk-planner`, `upgrade-executor`, resumes), plus each command's `code-review` `git diff`, are
+written to `mktemp` files (outside every repo tree → no `git diff` pollution) and handed as absolute
+**paths**; `vuln-fixer` + `upgrade-executor` `## Process` note a field may arrive inline or as a path.
+Behavior-preserving. Passed the Opus whole-branch review (READY WITH MINORS; all fixed — the
+`/upgrade` regression-resume `plan_file` gap + 2 NITs). Do NOT redo.
+
+## NEXT: no active item
+The "hand off by file, not paste" pattern is now applied across every code-oriented command
+(`/implement`, `/vuln`, `/upgrade`; `/document` + `/epics` already used it). No active follow-up
+remains from this thread. The only backlog is the "Rejected on merits" list below — parked unless asked.
 
 **Rejected on merits (revisit only if asked):** CLI/template scaffolding, `constitution`, governance
 presets, SDD ledger / 5-round fix-breaker, generic lens engine, git-push-blocking hook, PRD-coach

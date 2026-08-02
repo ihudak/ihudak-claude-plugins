@@ -19,7 +19,7 @@ The caller passes:
 - **Review output** — the full output from the `code-review` agent, including all
   findings with severity, location (`path:line`), observation, and suggestion.
   Provided inline or as an absolute file path — `Read` the file first when given
-  a path
+  a path.
 - **Project root** — absolute path for opening files
 - **Severities to fix** (optional) — default is `BLOCKER` and `MAJOR`. Pass
   `MINOR` explicitly to include MINOR findings. Never include NIT.

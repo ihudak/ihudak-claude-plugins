@@ -10,7 +10,7 @@ commands, no new agents, no new reference files, no phase changes.
 
 | # | Item | Canonical target · anchor | Source | Effort |
 |---|------|---------------------------|--------|--------|
-| 1 | ADR 3-condition candidacy filter | `references/ard-format.md` · `## Architecture decisions` | Matt `domain-modeling` | S |
+| 1 | ADR 3-condition candidacy filter | `references/ard-format.md` · `## Quality rules` (with the AD-N testability rule) | Matt `domain-modeling` | S |
 | 2 | Wide-refactor expand→migrate→contract exception | `commands/epics.md` · Phase 2 sizing bullet | Matt `to-tickets` | S/M |
 | 3 | Prototype-snippet exception | `references/design-format.md` · Principle | Matt `to-spec` | S |
 | 4 | Missing-adoption gap | `agents/code-review.md` · dim 4 (Missed edge cases) | BMAD `lens-verification-gap` | S |

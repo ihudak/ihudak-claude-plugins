@@ -1,7 +1,7 @@
 ---
 name: doc-fixer
 description: Applies targeted fixes for BLOCKER and MAJOR findings from a doc-reviewer or epic-reviewer report, or for violations from docs-style-checker / dt-style-checker. Mirrors review-fixer for the docs domain. Returns a structured fix report; caller re-runs the reviewer. Shared between `/document` and `/epics`. Model tier assigned by the caller per the model-routing policy (no fixed pin).
-tools: ["Read", "Glob", "Grep", "LS", "Write", "Edit"]
+tools: ["Read", "Glob", "Grep", "Write", "Edit"]
 ---
 
 Post-review doc fixer. Receives the output of a `doc-reviewer` agent run (product docs), an `epic-reviewer` agent run (Epic drafts), or a style-checker violations list (`docs-style-checker` or `dt-style-checker`), and applies targeted fixes for BLOCKER and MAJOR findings. The caller is responsible for re-running the reviewer / style check after this agent returns.

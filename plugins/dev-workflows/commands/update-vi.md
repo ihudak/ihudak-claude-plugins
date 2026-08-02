@@ -1,7 +1,7 @@
 ---
 name: update-vi
 description: VI-update workflow (PM phase) — refresh/re-do an existing Value Increment. Resolves the VI Jira-import-first (source of truth) with a 3-day freshness gate, grounds on the VI + comments + any ARD/spec/transcript, updates it via a relentless grill against references/vi-format.md, gated by the Opus vi-reviewer, and writes canonical + archived revisions to $SPECS_PATH/specifications/<KEY>-<slug>/. Product-level (no code scan).
-allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch LS
+allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
 Update the Value Increment for the Jira item: $ARGUMENTS

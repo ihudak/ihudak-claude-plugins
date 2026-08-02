@@ -51,6 +51,76 @@ written to `mktemp` files (outside every repo tree → no `git diff` pollution) 
 Behavior-preserving. Passed the Opus whole-branch review (READY WITH MINORS; all fixed — the
 `/upgrade` regression-resume `plan_file` gap + 2 NITs). Do NOT redo.
 
+## Review-fix wave — SHIPPED to the working tree (2026-08-02, uncommitted)
+An independent whole-branch review of the last 10 days across all three editions found 9 defects in
+the shipped waves and fixed them: canonical/mgd **2.39.4**, Copilot **2.9.4**. Two were functional:
+(1) the `/vuln` + `/upgrade` post-`review-fixer` re-review re-used the *pre-fix* `review_diff_file`
+(the `/implement` correction from the 2.39.2 follow-up was never carried into the 2.39.3 siblings), and
+(2) `/implement`'s two `test-writer` dispatches embedded the `mktemp` + `git diff` capture **inside**
+the agent-facing prompt unbracketed — `test-writer` has no `Bash`/`bash` tool, so it could not comply
+(now an orchestrator step recorded as `test_diff_file`). The rest: dispatch brackets holding
+instructions instead of values (`/vuln` ×2, `/upgrade` ×1), `/vuln`'s SIMPLE/MODERATE
+regression-resume left on "verbatim", `context-management.md` missing the load-bearing
+"`mktemp` outside every repo working tree" guard, both `handoff/` docs describing the report/plan as
+inline-only, the `risk-planner` ID example in `[AC-3]` instead of `[AC03]` form, and — Copilot only —
+two long-standing conversion gaps: the never-ported `phase: regression-resume` directive in
+`vuln-fixer` + `upgrade-executor`, and 16 Claude tool names (`Read`/`Write`/`Glob`/`Grep`/`LS`) in
+prose that edition never grants. Verified: `claude plugin validate` clean (both Claude repos),
+canonical↔mgd byte-identical outside the 5 expected files, handle counts match canonical↔Copilot.
+**Pushes and commits held.**
+
+## Pre-existing-issue wave — SHIPPED to the working tree (2026-08-02, uncommitted)
+Same session, after the user asked for older defects too. Six more, all older than the reviewed window:
+- **Dead `LS` tool entry** in every `allowed-tools` / `tools` list (50 dev-workflows files per Claude
+  edition + `managed-docs`' spec-planner + the `/ready` prose). Verified against the shipped Claude Code
+  **v2.1.218** binary: zero occurrences of `"LS"`, and the legacy alias map is
+  `{Task:"Agent", KillShell:"TaskStop", KillBash:"TaskStop", AgentOutputTool:"TaskOutput", …}` with no
+  `LS` entry. Unmatched entries are dropped silently, so the lists worked — but a `tools` list whose
+  entries *all* fail to match makes the Agent tool refuse to launch. **`Task` was kept** — still a live
+  alias for `Agent`.
+- **Stale `/impl:jira:docs` / `/impl:jira:epics` / `/impl` / `/impl:docs` command names** plus a
+  non-existent "Phase 6.7", in `dt-style-guide/README.md` + `agents/dt-style-checker.md` (all three
+  editions) and `managed-docs/commands/process-managed-doc.md`. Corrected to `/document` (Jira mode)
+  **Phase 6.4** and `/epics` **Phase 6.2**, with the mechanism restated accurately (`docs-style-checker`
+  runs the primary linter *and* `dt-style-checker` internally, merging both finding sets).
+- Copilot marketplace: `obsidian-llm-wiki` entry had no `homepage` (only entry missing it).
+- Copilot manifests: "Thirty-one dispatched sub-agents" and a `README.md` tree saying "30 sub-agents"
+  where there are 32.
+- `plugins/acli/plugin.json` `"skills": ["./skills"]` removed — the default `skills/` scan is always
+  performed and the `skills` field only *adds* to it, so the entry registered the directory twice and
+  diverged from every sibling plugin.
+- mgd `dev-workflows/README.md` agent-table row order realigned to canonical (`idea-reader`).
+
+Versions: dev-workflows **2.39.4** (canonical+mgd) / **2.9.4** (Copilot); dt-style-guide **0.2.4** /
+**0.3.3**; acli **0.1.1** (Claude); managed-docs **0.1.1**. All `claude plugin validate` clean; all 12
+marketplace↔plugin.json versions in sync; canonical↔mgd dev-workflows byte-identical outside the 5
+expected files. **Pushes and commits held.**
+
+### RETRACTED finding — do not "fix" this
+An earlier pass in this session flagged "18 unconverted `/slash-command` names" in the Copilot
+`skills/_shared/docs-grounding.md`, `agents/docs-grounder.md`, and `skills/upgrade/README.md`, and by
+extension the ~126 `/wiki-*` and ~20 `/dt-*` names in the other Copilot plugins' READMEs. **That was
+wrong.** Copilot CLI registers every user-invocable loaded skill as a slash command — verified in the
+CLI 1.0.74 bundle: `getLoadedSkills().filter(n=>n.userInvocable && …).map(n=>({name:`/${…}`, isSkill:!0,
+skill:n}))`. `/wiki-init`, `/dt-review-pr`, and `/idea` are all valid invocations there. The dev-workflows
+edition additionally documents a keyword form (`idea:`) via each skill's description; both work. Left
+untouched deliberately.
+
+**Copilot tool-name convention (verified against the shipped CLI, 1.0.74):** this edition declares the
+CLI's own concrete tool names (`view`, `glob`, `grep`, `bash`, `create`, `edit`, `task`, `web_fetch`),
+confirmed in the CLI bundle (`R_="view"`; `grepToolName??"grep"`, `globToolName??"glob"`,
+`shellToolName??"bash"`; `["str_replace_editor","create","edit","insert","apply_patch"]`). GitHub's
+`custom-agents-configuration` docs additionally define a portable *alias* layer
+(`read`/`edit`/`search`/`execute`/`agent`/`web`/`todo`, case-insensitive, with `Read`/`Write`/`Grep`/
+`Glob`/`Bash`/`Task` as compatible aliases). Both work on the CLI; the concrete names are kept for
+consistency across all 32 agents. Switch to the alias layer only if this edition ever needs to run on
+GitHub.com cloud agent or in an IDE as well.
+
+**`acli` is intentionally opensource-only** (confirmed 2026-08-02): the Dynatrace side uses the
+PII-scrubbing `acli-pii` (`cli-for-atlassian-proxy`), which cannot ship in a public repo — so the
+opensource marketplaces carry plain `acli` instead. The 1:1 ihudak→mgd rule does **not** apply to this
+plugin; do not "fix" the absence.
+
 ## NEXT: no active item
 The "hand off by file, not paste" pattern is now applied across every code-oriented command
 (`/implement`, `/vuln`, `/upgrade`; `/document` + `/epics` already used it). No active follow-up

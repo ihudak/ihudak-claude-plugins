@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "dev-workflows",
-      "version": "2.39.3",
+      "version": "2.39.4",
       "description": "Twenty-one slash commands — /implement, /document, /docs-profile, /epics, /release-notes, /vuln, /upgrade, /api-guideline-reviewer, /guideline-reviewer, /idea, /create-vi, /create-ard, /specify, /design, /feedback, /prompt, /prompt-brainstorm, /prompt-grill-me, /statusline, /ready, and /update-vi — with Opus-backed planning, code review, product-docs review, Epic review, and engineering-design review. /document (Jira mode) preflight-discovers the docs repo + profile (in-repo → built-in dynatrace-docs default → on-demand /docs-profile) and the VI's specs dir under /workspace; Phase 4.5 determines/confirms applicable space(s); optional saas|managed constraint scopes the run to one space. A space-constrained run can additionally ground on the other space's existing docs (counterpart-finder, read-only) via auto-discovery or an explicit --counterpart <JiraID|PR-url>. /release-notes classifies a Change Type (Breaking change / New technology support / Bug fix / not applicable), shapes the Summary per type, and sources the type from the imported/authored VI. Thirty-two reusable subagents (risk-planner, code-review, doc-reviewer, epic-reviewer, test-baseliner, test-writer, review-fixer, doc-fixer, docs-style-checker, doc-planner, doc-location-finder, counterpart-finder, jira-reader, idea-reader, release-notes-writer, diff-summarizer, code-scanner, impl-maintenance, guideline-reviewer, api-guideline-reviewer, upgrade-planner, upgrade-executor, vuln-research, vuln-fixer, doc-writer, epic-writer, spec-reviewer, design-reviewer, vi-reviewer, ard-reviewer, readiness-reviewer, docs-grounder) and four hooks (notifications, context injection, and a dynatrace-docs frontmatter reminder).",
       "author": {
         "name": "Ivan Gudak",
@@ -21,7 +21,7 @@
     },
     {
       "name": "dt-style-guide",
-      "version": "0.2.3",
+      "version": "0.2.4",
       "description": "Dynatrace corporate style guide checker and writing-aid plugin. Enforces terminology, trademarks, voice/tone, grammar, formatting, and inclusive-language rules from styleguide.dynatrace.com. Includes /dt-review-pr (review PR doc changes), /dt-review-docs (review files/directories with optional --fix), /dt-style-refresh (update vendored rules), a dt-style-checker agent, a dt-doc-fixer agent, a dt-style-rules skill, and vendored reference docs. Acts as a fallback for dev-workflows when no repo-configured prose linter is available.",
       "author": {
         "name": "Ivan Gudak",
@@ -45,7 +45,7 @@
     },
     {
       "name": "acli",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "description": "Atlassian CLI (acli) reference skill for Jira and Confluence: JQL search, work items, comments, links, attachments, watchers, projects, sprints, boards, filters, and Confluence spaces, pages and blog posts. Adds container-friendly authentication (token on stdin; --web OAuth cannot complete without a browser) and a destructive-operation policy that forbids the agent from adding --yes and requires a blast-radius count before any --jql/--filter mutation. Requires the acli binary on PATH.",
       "author": {
         "name": "Daniel Ziegenberg",

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.4
+
+### Fixed
+
+- **Stale `dev-workflows` command names and phase numbers.** `README.md` "How it fits with
+  dev-workflows" and `agents/dt-style-checker.md` "When to invoke" still referenced the retired
+  `/impl:jira:docs` / `/impl:jira:epics` / `/impl` names and a non-existent "Phase 6.7". Corrected to
+  `/document` (Jira mode) **Phase 6.4** and `/epics` **Phase 6.2**, and the `/document` mechanism
+  restated accurately: `docs-style-checker` runs the primary linter **and** `dt-style-checker` as a
+  complementary pass internally, merging both finding sets — `/document` never invokes
+  `dt-style-checker` separately, and `NOT_CONFIGURED` means neither was available. Also names the other
+  direct callers (`/create-vi`, `/update-vi`, `/release-notes`).
+
 ## 0.2.3
 
 - Synced curated terminology from the `mgd-specifications` `dynatrace-content-style`

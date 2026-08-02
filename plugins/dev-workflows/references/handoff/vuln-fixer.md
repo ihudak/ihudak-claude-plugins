@@ -4,6 +4,10 @@
 
 The research report from vuln-research for a SINGLE CVE with `status: READY`, plus:
 
+The `## Research Report` section may arrive inline (as shown below) **or** as a line naming the
+absolute path of a `mktemp` file the orchestrator wrote it to. When given a path, `Read` the file
+first and treat its content as that section.
+
 ```markdown
 ## Vuln Fix Request
 repo: /absolute/path/to/repo

@@ -1,7 +1,7 @@
 ---
 name: release-notes
 description: Jira-driven release-notes drafting. Reads a Value Increment (or any ticket) from exported markdown, optionally grounds in PR diffs, renders a dynatrace-docs release-notes body, runs a light dt-style-checker gate, and writes a persistent draft to paste into Jira's release-notes field.
-allowed-tools: Read Edit Write Bash Glob Grep Task Skill LS
+allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
 Draft release notes for the Jira ticket: $ARGUMENTS

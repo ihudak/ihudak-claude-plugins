@@ -1,7 +1,7 @@
 ---
 name: implement
 description: End-to-end code implementation workflow. Classifies task risk, creates a branch, plans (Opus for SIGNIFICANT/HIGH-RISK), implements, writes tests, runs Opus code review, and performs post-session maintenance.
-allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch LS
+allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
 Implement the following: $ARGUMENTS
@@ -360,14 +360,14 @@ Store the returned `## Test Baseline` block verbatim — it will be passed to `t
 
 Runs after Phase 3A step 5 completes (all code changes written), before the outcome-verification step.
 
-1. **Invoke `test-writer` agent**:
+1. **Invoke `test-writer` agent.** First, at the orchestrator, capture the diff for the dispatch: write `git add -N . && git diff` (so new files are included) to a temp file (`mktemp -t dw-impl-diff-XXXX.patch`, never inside a repo tree) and record its absolute path as `test_diff_file`. `test-writer` has no shell tool — it can only `Read` the path it is given. Then spawn:
 
    → Agent (subagent_type: "dev-workflows:test-writer", model: `<detection_model — §2.1 Sonnet chain>`):
      > "Write tests for this brief:
      >
      > Task description: [substitute full description]
      > Plan: read it from the file at [the `plan_file` path recorded at Phase 2A approval]
-     > Diff: read it from a temp file — write `git add -N . && git diff` (so new files are included) to `mktemp -t dw-impl-diff-XXXX.patch` (never inside a repo tree) and pass that path
+     > Diff: read it from the file at [the `test_diff_file` path]
      > Project root: [absolute path]
      > Baseline: [paste the ## Test Baseline block captured in Pre-Phase 3.5]"
 
@@ -418,14 +418,14 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
 2. Make precise, surgical changes — do not modify unrelated code
 3. Follow existing code style and LF line endings
 4. If a **new ambiguity** emerges mid-implementation: STOP, ask with choices (last: `"Other… (describe)"`), resume after answer
-4a. **Invoke `test-writer` agent** (inserted before diff capture so the Opus review sees code and tests together — test adequacy is already a review dimension in `code-review.md`):
+4a. **Invoke `test-writer` agent** (inserted before the review diff capture in step 5 so the Opus review sees code and tests together — test adequacy is already a review dimension in `code-review.md`). First, at the orchestrator, capture the diff for the dispatch: write `git add -N . && git diff` (so new files are included) to a temp file (`mktemp -t dw-impl-diff-XXXX.patch`, never inside a repo tree) and record its absolute path as `test_diff_file`. `test-writer` has no shell tool — it can only `Read` the path it is given. Then spawn:
 
    → Agent (subagent_type: "dev-workflows:test-writer", model: `<detection_model — §2.1 Sonnet chain>`):
      > "Write tests for this brief:
      >
      > Task description: [substitute full description]
      > Plan: read it from the file at [the `plan_file` path]
-     > Diff: read it from a temp file — write `git add -N . && git diff` (so new files are included) to `mktemp -t dw-impl-diff-XXXX.patch` (never inside a repo tree) and pass that path
+     > Diff: read it from the file at [the `test_diff_file` path]
      > Project root: [absolute path]
      > Baseline: [paste the ## Test Baseline block captured in Pre-Phase 3.5]"
 

@@ -2,7 +2,7 @@
 name: epic-reviewer
 description: Reviews Epic drafts written by /epics for goal clarity, acceptance-criteria testability, scope boundaries, and non-duplication with existing Epics under the parent VI. Returns PASS / PASS WITH RECOMMENDATIONS / BLOCK. Uses Claude Opus. Product documentation is reviewed by doc-reviewer (a separate agent); this reviewer is Epic-specific.
 model: opus
-tools: ["Read", "Glob", "Grep", "LS"]
+tools: ["Read", "Glob", "Grep"]
 ---
 
 Deep post-write reviewer for **Epic drafts** produced by `/epics`. Uses the strongest available reasoning model (Claude Opus).

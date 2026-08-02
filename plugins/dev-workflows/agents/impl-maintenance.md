@@ -1,7 +1,7 @@
 ---
 name: impl-maintenance
 description: Post-session maintenance agent. Reads what happened during an implementation, fix, or upgrade session and produces a structured Lessons Learned report with actionable suggestions for improving project tooling — CLAUDE.md rules, reference docs, hooks, command workflows, and new skill patterns. Suggest-only; does NOT write files.
-tools: ["Read", "Glob", "Grep", "LS"]
+tools: ["Read", "Glob", "Grep"]
 ---
 
 Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/impl-maintenance.md` for the exact input/output document format.

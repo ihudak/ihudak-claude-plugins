@@ -1,7 +1,7 @@
 ---
 name: ready
 description: Status-anchored readiness gate. Reads the Jira workflow status of a VI/Epic and verifies the ARD/spec/design artifacts justify it and the next transition; returns SUPPORTED / PARTIAL / NOT-SUPPORTED with a coverage roll-up. Read-only — never sets Jira status, never commits. Gates on the Opus readiness-reviewer.
-allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch LS
+allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
 Verify readiness for AI-driven development for the Jira item: $ARGUMENTS
@@ -216,7 +216,7 @@ Phase 1's inventory. This is the mechanical half of the reviewer's "Status consi
 
 Dispatch `readiness-reviewer` (Opus, frontmatter-pinned — no override) with the Phase 3 skeleton, the
 artifact paths from Phase 1 (the reviewer Reads each end-to-end itself — it carries `Read`/`Glob`/
-`Grep`/`LS`), the Phase 2 declared statuses, `applicable_ard` (omit entirely when Phase 2.5 was `none`),
+`Grep`), the Phase 2 declared statuses, `applicable_ard` (omit entirely when Phase 2.5 was `none`),
 and a pointer to the rubric.
 
 → Agent (subagent_type: "dev-workflows:readiness-reviewer", model: `<review_model — §2 Opus chain; frontmatter-pinned, recorded, no override>`):

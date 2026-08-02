@@ -18,7 +18,7 @@ Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md` for the test-b
 
 ## Process
 
-Receive one upgrade plan with `status: READY`.
+Receive one upgrade plan with `status: READY`. The plan may be provided inline or as an absolute file path — `Read` the file first when given a path.
 
 > **Phase resume.** If the input includes `phase: verify-resume`, **skip
 > steps 1 and 2** — the changes are already applied and built from the prior

@@ -56,6 +56,8 @@ All changes are left **uncommitted** on the current branch.
    - `NOT_FOUND` → warn and skip
    - `CONFLICT` → surface `conflict_details` and ranked `alternatives`; do not proceed until the conflict is resolved or the component is skipped
 
+   For each `READY` component, write its planner handoff to a temp file (`mktemp -t dw-upgrade-plan-XXXX.md`, never inside a repo tree) and record its absolute path as `plan_file` (it persists into Phase 2); the risk-planner, executor, and resume steps below receive this path instead of the pasted handoff.
+
 5. **Classify each READY component** — Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the classification rules, then apply them using the actual resolved change, related upgrades, and planner findings. Print one classification line per component. When in doubt, escalate to `SIGNIFICANT`.
 
 6. **Risk plan for SIGNIFICANT / HIGH-RISK components** — For every component classified `SIGNIFICANT` or `HIGH-RISK`, invoke `risk-planner` before execution (frontmatter-pinned to Opus; recorded as `planning_model` above, no `model:` override needed):
@@ -66,7 +68,7 @@ All changes are left **uncommitted** on the current branch.
      description: "Plan risky upgrade",
      prompt: "Task description: Upgrade [component] from [current] to [target] in this repo.
      Classification: [SIGNIFICANT | HIGH-RISK] — reason: [routing trigger]
-     Upgrade plan: [paste the READY planner handoff]
+     Upgrade plan: read it from the file at [`plan_file`]
      Current state: branch = [git branch], uncommitted = [git status --short summary]
 
      Before writing the plan, grep the repo for import sites and usage patterns of this component to understand blast radius, migration order, test coverage, and rollback."
@@ -130,17 +132,17 @@ All changes are left **uncommitted** on the current branch.
        gate_tests_on_review: [true for SIGNIFICANT / HIGH-RISK, false otherwise]
        notes: <any §2 / §2.1 fallback or degradation>
 
-     [paste the full READY upgrade plan verbatim]"
+     [read the full READY upgrade plan from the file at `plan_file`]"
    )
    ```
 
 4. **Review gate for SIGNIFICANT / HIGH-RISK** — If the executor returns `status: AWAITING_REVIEW`, run the Opus code-review gate before any test verification:
-   - Capture the diff with `git add -N . && git diff`
-   - Invoke `code-review` using the approved risk plan, the executor output, and the diff (frontmatter-pinned to Opus; recorded as `review_model` above, no `model:` override needed)
+   - Capture the diff to a temp file: write `git add -N . && git diff` to `mktemp -t dw-upgrade-diff-XXXX.patch` (never inside a repo tree) and record its path as `review_diff_file`
+   - Invoke `code-review` using the approved risk plan, the executor output, and the diff (from `review_diff_file`) (frontmatter-pinned to Opus; recorded as `review_model` above, no `model:` override needed)
    - If review returns `BLOCK` or `PASS WITH RECOMMENDATIONS`, invoke `review-fixer` with model: `<detection_model — §2.1 Sonnet chain>` for `BLOCKER` and `MAJOR` findings, then re-run the Opus review once
    - If the second verdict is still `BLOCK`, stop and escalate; do not continue to tests
 
-5. **Resume verify step after review** — Re-invoke `upgrade-executor` with `phase: verify-resume`, the original `READY` plan, and the same baseline block captured in Phase 2 prep.
+5. **Resume verify step after review** — Re-invoke `upgrade-executor` with `phase: verify-resume`, the original `READY` plan (from `plan_file`), and the same baseline block captured in Phase 2 prep.
 
 6. **If the executor returns `status: TEST_REGRESSION`**, follow "Handling Test Failures" below, then re-invoke `upgrade-executor` with `phase: regression-resume` + the chosen `regression_decision`, the original `READY` plan, and the same baseline block.
 

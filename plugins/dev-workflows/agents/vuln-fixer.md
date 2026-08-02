@@ -19,7 +19,7 @@ Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md` for the test-b
 
 ## Process
 
-Receive the research report for **one CVE** with `status: READY`.
+Receive the research report for **one CVE** with `status: READY`. The report may be provided inline or as an absolute file path — `Read` the file first when given a path.
 
 > **Phase resume.** If the input includes `phase: verify-resume`, **skip
 > steps 1, 2, and 3** — the baseline was captured (by the orchestrator), the

@@ -77,6 +77,8 @@ Finalize the per-CVE classification from the research output. If the finalized c
 
 Process `READY` CVEs one at a time to avoid conflicting edits to the same dependency files.
 
+For each `READY` CVE, before invoking the fixer, write its research report to a temp file (`mktemp -t dw-vuln-research-XXXX.md`, never inside a repo tree) and record its absolute path as `research_file`; the fixer, code-review, and resume steps below receive this path instead of the pasted report.
+
 ### SIMPLE / MODERATE path
 
 Invoke `vuln-fixer` with `baseline_tests: run-fresh`:
@@ -102,7 +104,7 @@ task(
     gate_tests_on_review: false
     notes: <any §2 / §2.1 fallback or degradation>
 
-  [paste the single READY research report verbatim]"
+  [read the single READY research report from the file at `research_file`]"
 )
 ```
 
@@ -140,22 +142,22 @@ task(
     gate_tests_on_review: true
     notes: <any §2 / §2.1 fallback or degradation>
 
-  [paste the single READY research report verbatim]"
+  [read the single READY research report from the file at `research_file`]"
 )
 ```
 
 3. **If the fixer returns `AWAITING_REVIEW`**, run Opus code review before tests:
-   - Capture the diff with `git add -N . && git diff`
-   - Invoke `code-review` with the CVE summary, the research handoff, the fixer output, and the diff (frontmatter-pinned to Opus; recorded as `review_model` above, no `model:` override needed)
+   - Capture the diff to a temp file: write `git add -N . && git diff` to `mktemp -t dw-vuln-diff-XXXX.patch` (never inside a repo tree) and record its path as `review_diff_file`
+   - Invoke `code-review` with the CVE summary, the research handoff (from `research_file`), the fixer output, and the diff (from `review_diff_file`) (frontmatter-pinned to Opus; recorded as `review_model` above, no `model:` override needed)
    - If review returns `BLOCK` or `PASS WITH RECOMMENDATIONS`, invoke `review-fixer` with model: `<detection_model — §2.1 Sonnet chain>` for `BLOCKER` and `MAJOR` findings, then re-run the Opus review once
    - If the second verdict is still `BLOCK`, stop and escalate; do not continue to tests, commit, or PR
 
-4. **Resume the fixer after review** — Re-invoke `vuln-fixer` with `phase: verify-resume`, the same baseline block, and the original research report re-supplied verbatim.
+4. **Resume the fixer after review** — Re-invoke `vuln-fixer` with `phase: verify-resume`, the same baseline block, and the original research report re-supplied from `research_file`.
 
 5. **If the fixer returns `status: TEST_REGRESSION`** (from step 4's resumed verify), follow
    "Handling Test Failures" below, then re-invoke `vuln-fixer` with `phase: regression-resume` +
    the chosen `regression_decision`, the same baseline block, and the original research report
-   re-supplied verbatim.
+   re-supplied from `research_file`.
 
 ---
 

@@ -16,7 +16,8 @@ without degrading. Apply when the plan/step list is large or the run is nearing 
   later turn; a file path costs one line.
 
 Prefer the cheapest strategy that fits: checkpoint first; offload parallel steps only when they are
-genuinely independent; decompose only when a single unit still overflows.
+genuinely independent; decompose only when a single unit still overflows. "Hand off by file" is
+orthogonal — apply it whenever you dispatch a sub-agent, whichever offload strategy you chose.
 
 At each **checkpoint**, a long-run command may additionally suggest **`/compact`** to free
 context before continuing the next scope/Epic — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §3

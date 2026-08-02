@@ -56,7 +56,7 @@ All changes are left **uncommitted** on the current branch.
    - `NOT_FOUND` → warn and skip
    - `CONFLICT` → surface `conflict_details` and ranked `alternatives`; do not proceed until the conflict is resolved or the component is skipped
 
-   For each `READY` component, write its planner handoff to a temp file (`mktemp -t dw-upgrade-plan-XXXX.md`, never inside a repo tree) and record its absolute path as `plan_file` (it persists into Phase 2); the risk-planner, executor, and resume steps below receive this path instead of the pasted handoff.
+   For each `READY` component, write its planner handoff to a temp file (`mktemp -t dw-upgrade-plan-XXXX.md`, never inside a repo tree) and record its absolute path as the component's `plan_file` (it persists into Phase 2); the risk-planner, executor, and resume steps below receive this path instead of the pasted handoff.
 
 5. **Classify each READY component** — Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the classification rules, then apply them using the actual resolved change, related upgrades, and planner findings. Print one classification line per component. When in doubt, escalate to `SIGNIFICANT`.
 
@@ -144,7 +144,7 @@ All changes are left **uncommitted** on the current branch.
 
 5. **Resume verify step after review** — Re-invoke `upgrade-executor` with `phase: verify-resume`, the original `READY` plan (from `plan_file`), and the same baseline block captured in Phase 2 prep.
 
-6. **If the executor returns `status: TEST_REGRESSION`**, follow "Handling Test Failures" below, then re-invoke `upgrade-executor` with `phase: regression-resume` + the chosen `regression_decision`, the original `READY` plan, and the same baseline block.
+6. **If the executor returns `status: TEST_REGRESSION`**, follow "Handling Test Failures" below, then re-invoke `upgrade-executor` with `phase: regression-resume` + the chosen `regression_decision`, the original `READY` plan (from `plan_file`), and the same baseline block.
 
 7. **Collect results** — Accumulate one summary row per component. Preserve the classification, review verdict, related upgrades applied, and any regression notes.
 

@@ -8,7 +8,7 @@ Versions follow semver at the plugin level.
 
 ### Changed
 
-- **`/vuln` + `/upgrade` now hand their large dispatch artifacts to sub-agents as temp-file paths instead of pasting them inline.** The `/vuln` research report (to `vuln-fixer`, `code-review`, and the resume steps) and the `/upgrade` planner handoff (to `risk-planner`, `upgrade-executor`, and the resume step), plus each command's `code-review` `git diff`, are written to `mktemp` files — outside every repo working tree, so a captured `git diff` never picks them up — and handed as absolute paths. Extends the `/implement` file-handoff (2.39.2) and the `/document` + `/epics` pattern to the two remaining code-oriented commands; `vuln-fixer` and `upgrade-executor` `## Inputs` now note that a field may arrive inline or as a path to `Read`. Behavior-preserving.
+- **`/vuln` + `/upgrade` now hand their large dispatch artifacts to sub-agents as temp-file paths instead of pasting them inline.** The `/vuln` research report (to `vuln-fixer`, `code-review`, and the resume steps) and the `/upgrade` planner handoff (to `risk-planner`, `upgrade-executor`, and the resume step), plus each command's `code-review` `git diff`, are written to `mktemp` files — outside every repo working tree, so a captured `git diff` never picks them up — and handed as absolute paths. Extends the `/implement` file-handoff (2.39.2) and the `/document` + `/epics` pattern to the two remaining code-oriented commands; `vuln-fixer` and `upgrade-executor` `## Process` now notes that a field may arrive inline or as a path to `Read`. Behavior-preserving.
 
 ## [2.39.2] — 2026-08-02
 

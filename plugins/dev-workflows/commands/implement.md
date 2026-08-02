@@ -210,7 +210,7 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
 
    Wait for all scanners in the batch to return. A scanner returning `DIRTY_TREE`/`REFRESH_BLOCKED` is surfaced, not hidden.
 
-4. **Synthesize.** Combine the `jira-reader` output, all `code-scanner` reports, and the spec into a single **multi-source codebase summary** (per-repo: relevant files, existing capabilities, gaps; plus the cross-repo picture and the Jira themes/PR references). This summary is the codebase context for Phase 2B — do **not** also run the single Explore subagent.
+4. **Synthesize.** Combine the `jira-reader` output, all `code-scanner` reports, and the spec into a single **multi-source codebase summary** (per-repo: relevant files, existing capabilities, gaps; plus the cross-repo picture and the Jira themes/PR references). This summary is the codebase context for Phase 2B — do **not** also run the single Explore subagent. Write this summary to a temp file (`mktemp -t dw-impl-summary-XXXX.md` — **never inside a repo working tree**, so a captured `git diff` never picks it up) and record its absolute path as `summary_file`; Phase 2B receives this path, not the pasted summary.
 
 ---
 
@@ -253,7 +253,7 @@ Then ask:
 choices: ["Approve & implement now (Recommended)", "Revise plan", "Cancel"]
 ```
 
-- **Approve** → proceed to Phase 3A
+- **Approve** → write the approved plan to a temp file (`mktemp -t dw-impl-plan-XXXX.md`, never inside a repo tree) and record its absolute path as `plan_file`; proceed to Phase 3A
 - **Revise** → ask what to change, update, re-show, re-ask
 - **Cancel** → stop and summarize what was planned
 
@@ -261,7 +261,7 @@ choices: ["Approve & implement now (Recommended)", "Revise plan", "Cancel"]
 
 ## Phase 2B — Opus-planned (SIGNIFICANT / HIGH-RISK)
 
-**Codebase exploration** — If Phase 1.7 ran (`fan_out = true`), use its **multi-source codebase summary** as the codebase context and skip the single Explore subagent. Otherwise, run the same exploration subagent call as Phase 2A (same prompt, same fallback rule).
+**Codebase exploration** — If Phase 1.7 ran (`fan_out = true`), use its **multi-source codebase summary** (already written to `summary_file` in Phase 1.7 step 4) as the codebase context and skip the single Explore subagent. Otherwise, run the same exploration subagent call as Phase 2A (same prompt, same fallback rule), then write the Explore agent's returned output to a temp file (`mktemp -t dw-impl-summary-XXXX.md`, never inside a repo tree) recorded as `summary_file`. Either way, `summary_file` holds an absolute path before the planner is dispatched.
 
 Once the file map is returned, delegate planning to Opus.
 
@@ -272,7 +272,7 @@ When a `specification.md`/`design.md` is in scope, extract its **in-scope** `[Ux
   >
   > Task description: [substitute full description]
   > Classification: [SIGNIFICANT | HIGH-RISK] — reason: [the criterion from Phase 1.5, or the multi-source floor from Phase 1.6 when fan_out]
-  > Codebase summary: [paste the Phase 1.7 multi-source summary if fan_out, else the Explore agent's output]
+  > Codebase summary: read it from the file at [the `summary_file` absolute path]
   > Constraints: [any from clarification, plus runtime/version/deadline known]
   > Current state: branch = [git branch], uncommitted = [git status --short summary]
   > Specs in scope: [the resolved specification.md/design.md path(s) from Phase 0, or "none"]
@@ -283,7 +283,7 @@ When a `specification.md`/`design.md` is in scope, extract its **in-scope** `[Ux
 1. A full plan in the risk-weighted format (the normal case).
 2. A short `### Re-classification` section, if the planner decided on inspection that the task is actually `SIMPLE` or `MODERATE`.
 
-**If the return contains `### Re-classification`:** surface it to the user, ask for confirmation of the revised level with a `choices` prompt (`["Accept revised classification (Recommended)", "Override and stay SIGNIFICANT/HIGH-RISK", "Cancel"]`). If the user accepts, **fall back to Phase 2A** (standard plan) using the codebase context already captured above — the Phase 1.7 **multi-source codebase summary** when `fan_out = true`, otherwise the Explore summary — and do not re-run exploration. Accepting here is the user exercising the **plan-approval override** of the multi-source SIGNIFICANT floor (Phase 1.6); that is the sanctioned way to leave the fan_out floor. If the user overrides, re-invoke risk-planner with an additional constraint stating the classification is intentional; do not down-classify again. If the user cancels, stop and summarize.
+**If the return contains `### Re-classification`:** surface it to the user, ask for confirmation of the revised level with a `choices` prompt (`["Accept revised classification (Recommended)", "Override and stay SIGNIFICANT/HIGH-RISK", "Cancel"]`). If the user accepts, **fall back to Phase 2A** (standard plan) using the codebase context already captured above (the `summary_file` path) — the Phase 1.7 **multi-source codebase summary** when `fan_out = true`, otherwise the Explore summary — and do not re-run exploration. Accepting here is the user exercising the **plan-approval override** of the multi-source SIGNIFICANT floor (Phase 1.6); that is the sanctioned way to leave the fan_out floor. If the user overrides, re-invoke risk-planner with an additional constraint stating the classification is intentional; do not down-classify again. If the user cancels, stop and summarize.
 
 **If the return is a full plan:** present it to the user verbatim and ask:
 
@@ -292,7 +292,7 @@ When a `specification.md`/`design.md` is in scope, extract its **in-scope** `[Ux
 choices: ["Approve & implement now (Recommended)", "Revise plan", "Cancel"]
 ```
 
-- **Approve** → proceed to Phase 3B
+- **Approve** → write the approved plan to a temp file (`mktemp -t dw-impl-plan-XXXX.md`, never inside a repo tree) and record its absolute path as `plan_file`; proceed to Phase 3B
 - **Revise** → ask what to change, then re-invoke risk-planner with the **complete** brief plus the additional constraint merged in (never send just a delta — the planner refuses to plan without a full brief). Re-show, re-ask.
 - **Cancel** → stop and summarize
 
@@ -366,8 +366,8 @@ Runs after Phase 3A step 5 completes (all code changes written), before the outc
      > "Write tests for this brief:
      >
      > Task description: [substitute full description]
-     > Plan: [paste the approved Phase 2A plan]
-     > Diff: [paste `git add -N . && git diff` output so new files are included]
+     > Plan: read it from the file at [the `plan_file` path recorded at Phase 2A approval]
+     > Diff: read it from a temp file — write `git add -N . && git diff` (so new files are included) to `mktemp -t dw-impl-diff-XXXX.patch` (never inside a repo tree) and pass that path
      > Project root: [absolute path]
      > Baseline: [paste the ## Test Baseline block captured in Pre-Phase 3.5]"
 
@@ -424,8 +424,8 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
      > "Write tests for this brief:
      >
      > Task description: [substitute full description]
-     > Plan: [paste the risk-planner plan approved in Phase 2B]
-     > Diff: [paste `git add -N . && git diff` output so new files are included]
+     > Plan: read it from the file at [the `plan_file` path]
+     > Diff: read it from a temp file — write `git add -N . && git diff` (so new files are included) to `mktemp -t dw-impl-diff-XXXX.patch` (never inside a repo tree) and pass that path
      > Project root: [absolute path]
      > Baseline: [paste the ## Test Baseline block captured in Pre-Phase 3.5]"
 
@@ -435,7 +435,7 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
    ```
    Record the choice. A "Skip" decision must be explicit and logged in the Phase 5 report.
 
-5. After all changes are written: **DO NOT run tests yet.** When `task_shape: bug`, first **strip every `[DEBUG-xxxx]` probe** added during diagnosis (per `${CLAUDE_PLUGIN_ROOT}/references/bug-diagnosis.md`); the review diff must contain no debug instrumentation. Capture the diff and the project root. Use `git add -N . && git diff` — this includes intent-to-add untracked new files so the diff is never empty for implementations that only create new files, and it now also includes the test files from step 4a. Also capture `git diff --stat` for the summary.
+5. After all changes are written: **DO NOT run tests yet.** When `task_shape: bug`, first **strip every `[DEBUG-xxxx]` probe** added during diagnosis (per `${CLAUDE_PLUGIN_ROOT}/references/bug-diagnosis.md`); the review diff must contain no debug instrumentation. Capture the diff and the project root. Use `git add -N . && git diff` — this includes intent-to-add untracked new files so the diff is never empty for implementations that only create new files, and it now also includes the test files from step 4a. Write this diff to a temp file (`mktemp -t dw-impl-diff-XXXX.patch`, never inside a repo tree) and record its absolute path as `review_diff_file`; the code-review dispatch (step 6) receives this path. Also capture `git diff --stat` for the summary (small — kept inline).
 6. **Opus code review** — spawn.
 
    → Agent (subagent_type: "dev-workflows:code-review"):  # review_model — §2 Opus chain; frontmatter-pinned, recorded in model_routing, no override added
@@ -443,8 +443,8 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
      >
      > Task description: [substitute full description]
      > Classification: [SIGNIFICANT | HIGH-RISK] — reason: [from Phase 1.5]
-     > Plan: [paste the risk-planner plan approved in Phase 2B]
-     > Diff: [paste git diff output]
+     > Plan: read it from the file at [the `plan_file` path]
+     > Diff: read it from the file at [the `review_diff_file` path from step 5]
      > Project root: [absolute path]
      > applicable_ard: [the ARD invariants from Phase 1.8, or omit if none / direct mode]
      > applicable_spec: [ { spec_paths: [...], in_scope_ids: [...] } when a spec/design is in scope, else omit ]"
@@ -455,13 +455,13 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
    - **PASS WITH RECOMMENDATIONS** — invoke the review-fixer agent for MAJOR findings (see Review-fixer sub-step below). MINOR / NIT findings may be deferred — note them in the Phase 5 report.
    - **PASS** — proceed.
 
-   **Review-fixer sub-step** (for BLOCK and PASS WITH RECOMMENDATIONS):
+   **Review-fixer sub-step** (for BLOCK and PASS WITH RECOMMENDATIONS): first write the full code-review agent output to a temp file (`mktemp -t dw-impl-review-XXXX.md`, never inside a repo tree) and record its path as `review_file`.
 
    → Agent (subagent_type: "dev-workflows:review-fixer", model: `<fixes_model — = detection_model, §2.1 Sonnet chain>`):
      > "Fix the review findings for this brief:
      >
      > Task description: [substitute full description]
-     > Review output: [paste the full code-review agent output]
+     > Review output: read it from the file at [the `review_file` path]
      > Project root: [absolute path]
      > Severities to fix: BLOCKER and MAJOR"
 

@@ -1,7 +1,7 @@
 ---
 name: document
 description: Jira-driven feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in dynatrace-docs default → on-demand /docs-profile) and the VI's specs dir under /workspace. Phase 4.5 determines/confirms the applicable space(s). Optional saas|managed constraint scopes the run to one space. Reads a Value Increment hierarchy from exported markdown, resolves PR diffs in parallel, synthesises product documentation, and gates on style-check and Opus doc review. Optional --counterpart <JiraID|PR-url> grounds a space-constrained run on the other space's existing docs (read-only).
-allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch LS
+allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
 Generate product documentation for the Jira Value Increment: $ARGUMENTS

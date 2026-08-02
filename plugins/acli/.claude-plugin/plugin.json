@@ -1,6 +1,6 @@
 {
   "name": "acli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Atlassian CLI (acli) reference skill for Jira and Confluence: JQL search, work items, comments, links, attachments, watchers, projects, sprints, boards, filters, and Confluence spaces, pages and blog posts. Adds container-friendly authentication (token on stdin; --web OAuth cannot complete without a browser) and a destructive-operation policy that forbids the agent from adding --yes and requires a blast-radius count before any --jql/--filter mutation. Requires the acli binary on PATH.",
   "author": {
     "name": "Daniel Ziegenberg",
@@ -9,6 +9,5 @@
   "homepage": "https://github.com/ihudak/ihudak-claude-plugins/tree/main/plugins/acli",
   "repository": "https://github.com/ihudak/ihudak-claude-plugins",
   "license": "MIT",
-  "keywords": ["atlassian", "jira", "confluence", "acli", "cli", "jql"],
-  "skills": ["./skills"]
+  "keywords": ["atlassian", "jira", "confluence", "acli", "cli", "jql"]
 }

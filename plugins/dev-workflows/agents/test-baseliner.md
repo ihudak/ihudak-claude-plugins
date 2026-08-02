@@ -1,7 +1,7 @@
 ---
 name: test-baseliner
 description: Run the full test suite and return structured results for regression comparison. Operates in two modes — "capture" (run tests, record baseline) and "verify" (run tests again, diff against a provided baseline, return a structured regression report). Model tier assigned by the caller per the model-routing policy (no fixed pin — does not require Opus).
-tools: ["Bash", "Read", "Glob", "LS"]
+tools: ["Bash", "Read", "Glob"]
 ---
 
 Run the project's full test suite and return a structured result for regression comparison.

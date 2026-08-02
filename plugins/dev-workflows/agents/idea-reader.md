@@ -1,7 +1,7 @@
 ---
 name: idea-reader
 description: Ingests one idea source (inline prompt, a markdown file with wikilinks/images, a community post, or an exported RFE Jira ticket) from the user's vault and returns a structured source digest for /idea. Follows wikilinks one level, enumerates linked images (paths only), and captures community-post demand signals. Read-only; never modifies files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
-tools: ["Read", "Glob", "Grep", "LS"]
+tools: ["Read", "Glob", "Grep"]
 ---
 
 Ingest one idea source and return a structured digest. Read-only — never modify any file.

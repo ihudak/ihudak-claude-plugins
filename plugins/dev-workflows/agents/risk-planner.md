@@ -2,7 +2,7 @@
 name: risk-planner
 description: Risk-weighted planner for SIGNIFICANT / HIGH-RISK tasks. Returns a structured plan with an explicit risks section. Uses Claude Opus. Do NOT use for SIMPLE / MODERATE tasks.
 model: opus
-tools: ["Read", "Glob", "Grep", "LS", "WebFetch", "WebSearch"]
+tools: ["Read", "Glob", "Grep", "WebFetch", "WebSearch"]
 ---
 
 Deep planner for SIGNIFICANT / HIGH-RISK tasks. Uses the strongest available
@@ -98,8 +98,8 @@ one alternative that was rejected and the reason.]
   unrelated code.
 - **Trace to requirements (when a spec/design is in the brief).** If the brief
   carries a `specification.md`/`design.md`, annotate each `### Steps` entry with
-  the requirement ID(s) it implements — e.g. `1. <step> — implements [AC-3],
-  [TC-7]`. A step that implements no specific requirement needs no tag. When no
+  the requirement ID(s) it implements — e.g. `1. <step> — implements [AC03],
+  [TC07]`. A step that implements no specific requirement needs no tag. When no
   spec/design is in the brief (direct mode), skip this silently.
 - **Name the rejected alternatives.** A plan without a rejected alternative is
   suspect.

@@ -2,7 +2,7 @@
 name: code-review
 description: Post-implementation code review for SIGNIFICANT / HIGH-RISK tasks. Checks correctness, security, architecture, edge cases, migration, dependencies, tests, rollback. Returns PASS / PASS WITH RECOMMENDATIONS / BLOCK and gates the test run. Uses Claude Opus.
 model: opus
-tools: ["Read", "Glob", "Grep", "LS"]
+tools: ["Read", "Glob", "Grep"]
 ---
 
 Deep post-implementation code reviewer for SIGNIFICANT / HIGH-RISK tasks. Uses

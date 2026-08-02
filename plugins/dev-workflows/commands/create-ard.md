@@ -1,7 +1,7 @@
 ---
 name: create-ard
 description: Architecture-authoring workflow (Product Architect phase, sub-project 3 of the VI-creation flow). Grounds on the mounted implementation repos (architect-driven discovery — no PRs) and authors an ARD for a VI (/create-ard <VI-KEY>) or an Epic (/create-ard <VI-KEY> <Epic-KEY>, inheriting the VI-level ARD), against references/ard-format.md, gated by the Opus ard-reviewer, written to $SPECS_PATH/specifications/<KEY>-<slug>/. Optional; scoped; product-architecture level (no code writing). Introduces the pa role.
-allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch LS
+allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
 Author an Architecture Requirements/Decision Document for the Jira item: $ARGUMENTS

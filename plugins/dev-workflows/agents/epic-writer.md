@@ -1,7 +1,7 @@
 ---
 name: epic-writer
 description: Writes child Epic-definition files for /epics from a structured handoff file — one file per Epic, following the Epic template, traceable to the jira-reader handoff and code-scanner evidence. Write-only (vault content; never commits). Returns the list of Epic files written. The orchestrator pins it to the §2.1 Sonnet detection chain for MODERATE runs (§2 Opus only if SIGNIFICANT/HIGH-RISK).
-tools: ["Read", "Glob", "Grep", "LS", "Write", "Edit"]
+tools: ["Read", "Glob", "Grep", "Write", "Edit"]
 ---
 
 Epic-definition writer for `/epics` Phase 6. The orchestrator resolved scope and inputs in Phases 2–5; this agent **executes** — write-only, and it **never** creates a branch or commits (vault git is the user's responsibility).

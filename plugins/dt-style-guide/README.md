@@ -101,13 +101,17 @@ vendored reference docs. Run when the style guide has been updated.
 
 This plugin is a **fallback** for the `docs-style-checker` agent in `dev-workflows`:
 
-- **`/impl:jira:docs`** Phase 6.7 invokes `docs-style-checker` first (wraps the repo's
-  own Vale/markdownlint). If that returns `NOT_CONFIGURED`, it falls back to
-  `dt-style-checker` from this plugin.
-- **`/impl:jira:epics`** Phase 6.7 invokes `dt-style-checker` directly (Epic drafts
-  are vault-internal and have no repo linter).
+- **`/document`** (Jira mode) Phase 6.4 dispatches `docs-style-checker`, which runs the
+  chain **internally**: the repo's primary linter (Vale/markdownlint) **and**, when this
+  plugin is installed, `dt-style-checker` as a complementary semantic /
+  cross-page-consistency pass, with both finding sets merged and deduped. `/document`
+  never invokes `dt-style-checker` separately; `NOT_CONFIGURED` means neither was
+  available.
+- **`/epics`** Phase 6.2 invokes `dt-style-checker` directly (Epic drafts are
+  vault-internal and have no repo linter). `/create-vi`, `/update-vi`, and
+  `/release-notes` invoke it directly too.
 - **`/dt-review-pr` and `/dt-review-docs`** are standalone — invoke them directly
-  without going through the `/impl` pipeline.
+  without going through the `dev-workflows` pipeline.
 
 ## Agents
 

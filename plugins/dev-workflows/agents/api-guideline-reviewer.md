@@ -1,7 +1,7 @@
 ---
 name: api-guideline-reviewer
 description: Reviews OpenAPI specification files against Dynatrace REST API and IAM permission naming guidelines. Checks version consistency, required elements, naming conventions, IAM scope format, HTTP status codes, and schema composition. Triggers on 'review OpenAPI', 'API compliance', 'validate API guidelines', 'review IAM permissions'.
-tools: ["Read", "Glob", "Grep", "Bash", "LS"]
+tools: ["Read", "Glob", "Grep", "Bash"]
 ---
 
 # API Guideline Review

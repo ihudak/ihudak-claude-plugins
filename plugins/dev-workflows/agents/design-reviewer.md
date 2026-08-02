@@ -2,7 +2,7 @@
 name: design-reviewer
 description: Reviews an engineering design.md authored by /design against the design-format authority and traceability to its specification.md — architecture/interface/seam/test-strategy soundness, coverage of every in-scope requirement, and decision-completeness. Treats any unresolved design.md open question as a BLOCKER. Read-only; returns findings + a PASS / PASS WITH RECOMMENDATIONS / BLOCK verdict. Uses Claude Opus.
 model: opus
-tools: ["Read", "Glob", "Grep", "LS"]
+tools: ["Read", "Glob", "Grep"]
 ---
 
 Read-only whole-design reviewer for drafts produced by `/design`. Uses the strongest available

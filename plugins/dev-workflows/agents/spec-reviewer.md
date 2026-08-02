@@ -2,7 +2,7 @@
 name: spec-reviewer
 description: Reviews a product specification.md authored by /specify for per-stage quality (problem/scope/user-stories/acceptance-criteria/test-cases), cross-stage consistency, coverage, and identifier integrity. Read-only; returns findings + a PASS / PASS WITH RECOMMENDATIONS / BLOCK verdict. Uses Claude Opus.
 model: opus
-tools: ["Read", "Glob", "Grep", "LS"]
+tools: ["Read", "Glob", "Grep"]
 ---
 
 Read-only whole-specification reviewer for drafts produced by `/specify`. Uses the strongest available

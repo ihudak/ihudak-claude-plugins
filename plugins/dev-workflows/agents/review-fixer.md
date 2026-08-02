@@ -1,7 +1,7 @@
 ---
 name: review-fixer
 description: Applies targeted code fixes for BLOCKER and MAJOR findings from a code-review agent report. Returns a structured fix report; caller re-runs the review. Default model (not Opus).
-tools: ["Read", "Glob", "Grep", "LS", "Write", "Edit"]
+tools: ["Read", "Glob", "Grep", "Write", "Edit"]
 ---
 
 Post-review code fixer. Receives the output of a `code-review` agent run and

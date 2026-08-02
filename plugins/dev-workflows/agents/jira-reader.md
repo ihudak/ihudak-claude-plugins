@@ -1,7 +1,7 @@
 ---
 name: jira-reader
 description: Reads a pre-exported Jira markdown hierarchy (Value Increment, Epics, Stories, Sub-tasks, Research, Request for Assistance) from the user's Obsidian vault and returns a structured handoff — linked items, PR URLs with host classification, and capability themes. Read-only; never modifies vault files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
-tools: ["Read", "Glob", "Grep", "LS"]
+tools: ["Read", "Glob", "Grep"]
 ---
 
 Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/jira-reader.md` for the exact input/output document format.

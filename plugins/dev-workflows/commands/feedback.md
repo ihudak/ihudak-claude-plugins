@@ -1,7 +1,7 @@
 ---
 name: feedback
 description: Log a manual note about the dev-workflows plugin itself — friction you hit or an improvement you want — to the per-VI feedback file in the specs repo, for the plugin maintainer to aggregate. Tied to no command; run any time.
-allowed-tools: Read Edit Write Bash Glob Grep LS
+allowed-tools: Read Edit Write Bash Glob Grep
 ---
 
 Log session feedback about the dev-workflows plugin: $ARGUMENTS

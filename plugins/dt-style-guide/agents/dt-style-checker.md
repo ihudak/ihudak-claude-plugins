@@ -15,9 +15,10 @@ docs-style-checker finding schema.
 
 ## When to invoke
 
-- From `/impl:jira:docs` Phase 6.7 — when `docs-style-checker` returns `NOT_CONFIGURED`
-  (fallback: no repo linter detected).
-- From `/impl:jira:epics` Phase 6.7 — as the primary style checker for Epic drafts.
+- From `/document` (Jira mode) Phase 6.4 — dispatched inside `docs-style-checker` as the
+  complementary semantic pass alongside the repo's primary linter.
+- From `/epics` Phase 6.2 — as the primary style checker for Epic drafts (vault-internal,
+  no repo linter). Also from `/create-vi`, `/update-vi`, and `/release-notes`.
 - From any future command that writes planning documents (PRDs, ARDs, etc.).
 
 ## Inputs

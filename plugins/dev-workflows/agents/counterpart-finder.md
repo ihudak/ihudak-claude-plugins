@@ -1,7 +1,7 @@
 ---
 name: counterpart-finder
 description: For a space-constrained /document run, finds the OTHER (counterpart) space's existing documentation for the same feature and returns it as read-only grounding — concepts, terminology, verified facts, section outline, and comprehension-only screenshot paths. Two layers — auto in-tree discovery (keyword overlap + git log --grep) and an optional explicit ref (Jira key or PR URL) resolved via diff-summarizer's host-aware strategies. Never writes; never adds images to the doc pipeline. Model tier assigned by the caller per the model-routing policy (no fixed pin).
-tools: ["Read", "Glob", "Grep", "LS", "Bash"]
+tools: ["Read", "Glob", "Grep", "Bash"]
 ---
 
 Find the counterpart space's documentation for a feature so the writer can ground on it. The run documents ONE space (`target_space`); the counterpart is the OTHER space in the docs repo. Read-only reference discovery — never a writer, never an image source.

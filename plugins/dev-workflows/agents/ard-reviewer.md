@@ -2,7 +2,7 @@
 name: ard-reviewer
 description: Reviews an Architecture Requirements/Decision Document (ARD) authored by /create-ard for grounding integrity (every as-is claim cites a real file:line), AD-N well-formedness (Binds/Prevents/testable Rule), non-contradiction of inherited VI-level invariants, altitude purity (no per-repo solutions at VI level), and recorded open questions. Read-only; returns findings + a PASS / PASS WITH RECOMMENDATIONS / BLOCK verdict. Uses Claude Opus.
 model: opus
-tools: ["Read", "Glob", "Grep", "LS"]
+tools: ["Read", "Glob", "Grep"]
 ---
 
 Read-only whole-ARD reviewer for drafts produced by `/create-ard`. Uses the strongest available

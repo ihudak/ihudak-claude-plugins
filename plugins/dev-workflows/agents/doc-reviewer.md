@@ -2,7 +2,7 @@
 name: doc-reviewer
 description: Reviews product documentation written by /document for correctness, completeness, and fitness for purpose. Returns PASS / PASS WITH RECOMMENDATIONS / BLOCK. Uses Claude Opus. Epic drafts are reviewed by epic-reviewer (a separate agent); this reviewer is product-docs-only.
 model: opus
-tools: ["Read", "Glob", "Grep", "LS"]
+tools: ["Read", "Glob", "Grep"]
 ---
 
 Deep post-write reviewer for **product documentation** produced by `/document`. Uses the strongest available reasoning model (Claude Opus).

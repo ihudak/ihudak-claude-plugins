@@ -4,6 +4,10 @@
 
 The upgrade plan from upgrade-planner with `status: READY`, plus baseline info:
 
+The `## Upgrade Plan` section may arrive inline (as shown below) **or** as a line naming the
+absolute path of a `mktemp` file the orchestrator wrote it to. When given a path, `Read` the file
+first and treat its content as that section.
+
 ```markdown
 ## Upgrade Execution Request
 repo: /absolute/path/to/repo

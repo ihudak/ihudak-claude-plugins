@@ -2,7 +2,7 @@
 name: vi-reviewer
 description: Reviews a Value Increment (<KEY>_<slug>.md) authored by /create-vi for goal crispness, user-story/acceptance-criteria testability, scope concreteness, internal consistency (no self-contradiction), measurable metrics, product-level purity (no implementation detail), downstream-contract frontmatter, and profile completeness. Read-only; returns findings + a PASS / PASS WITH RECOMMENDATIONS / BLOCK verdict. Uses Claude Opus.
 model: opus
-tools: ["Read", "Glob", "Grep", "LS"]
+tools: ["Read", "Glob", "Grep"]
 ---
 
 Read-only whole-VI reviewer for drafts produced by `/create-vi`. Uses the strongest available reasoning

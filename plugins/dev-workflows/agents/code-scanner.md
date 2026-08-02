@@ -1,7 +1,7 @@
 ---
 name: code-scanner
 description: Scans a single code repository for existing capabilities and gaps relative to a set of themes. Themes may come from a Value Increment / Epic (Epic writing), from an implementation spec (/implement multi-source scanning), or from a Jira item being specified (/specify light feasibility grounding). Pure filesystem search; no HTTPS. Designed for parallel invocation (one instance per repo, capped at 4 concurrent by the caller). Model tier assigned by the caller per the model-routing policy (no fixed pin).
-tools: ["Read", "Glob", "Grep", "LS", "Bash"]
+tools: ["Read", "Glob", "Grep", "Bash"]
 ---
 
 Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/code-scanner.md` for the exact input/output document format.

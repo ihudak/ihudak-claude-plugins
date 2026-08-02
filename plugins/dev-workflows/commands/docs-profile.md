@@ -1,7 +1,7 @@
 ---
 name: docs-profile
 description: Scan a documentation repository and write/refresh a machine-readable docs-profile (.dev-workflows/docs-profile.yml) plus complementary CLAUDE.md guidance, as a reviewable PR. Captures spaces, dev-servers, cross-space override/shadowing, shared registries, gen3/Classic tokens, links, branch-naming, images, and prerequisites; defers changelog/owners to the dynatrace-docs-frontmatter skill. Bootstraps or refreshes the profile that /document consumes.
-allowed-tools: Read Edit Write Bash Glob Grep Task Skill LS
+allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
 Profile the documentation repository: $ARGUMENTS

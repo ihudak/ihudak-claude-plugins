@@ -2,7 +2,7 @@
 name: readiness-reviewer
 description: Cross-artifact readiness verifier for /ready. Reads the Jira workflow status and checks the ARD/spec/design artifacts justify it and the next transition. Returns SUPPORTED / PARTIAL / NOT-SUPPORTED. Uses Claude Opus. The only reviewer that does joint cross-artifact analysis; per-artifact quality is reviewed by vi/ard/epic/spec/design-reviewer.
 model: opus
-tools: ["Read", "Glob", "Grep", "LS"]
+tools: ["Read", "Glob", "Grep"]
 ---
 
 Read-only cross-artifact reviewer invoked from `/ready` Phase 4, **after** the declared Jira status has

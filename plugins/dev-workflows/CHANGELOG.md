@@ -4,6 +4,19 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.39.4] — 2026-08-02
+
+### Fixed
+
+- **`/vuln` + `/upgrade` re-review read a stale diff.** After `review-fixer` applied the `BLOCKER`/`MAJOR` fixes, "re-run the Opus review once" re-used the `review_diff_file` captured *before* those fixes, so the second verdict was computed on the pre-fix diff (and a `BLOCK` could never clear). Both paths now overwrite `review_diff_file` with a fresh `git add -N . && git diff` before the re-review — the same correction `/implement` received as a 2.39.2 follow-up but which was not carried into the 2.39.3 siblings.
+- **`/implement`'s `test-writer` dispatches told the agent to shell out.** Phase 3.5 step 1 and Phase 3B step 4a embedded the `mktemp` + `git add -N . && git diff` capture *inside* the agent-facing prompt and left it unbracketed; `test-writer` has no `Bash` tool, so it could not comply. The capture is now an orchestrator action recorded as `test_diff_file`, and the prompt hands only that path — matching the `/document` + `/epics` handoff pattern.
+- **Dispatch substitution brackets carried instructions instead of values.** `/vuln`'s two `vuln-fixer` dispatches and `/upgrade`'s `upgrade-executor` dispatch wrapped the whole "read … from the file at `<handle>`" sentence in `[…]`, which the house convention reads as "substitute the content here" — the opposite of the intent, and enough to defeat the file-handoff. Only the path handle is bracketed now.
+- **`/vuln`'s SIMPLE/MODERATE regression-resume was a missed adoption site.** It still said "passing the same CVE input verbatim" while every other `/vuln` resume had moved to `research_file`.
+- **`references/context-management.md` omitted the load-bearing temp-file guard.** As the authority for "hand off by file, not paste" it did not say the handoff file must be `mktemp`-ed **outside every repo working tree** — the property that keeps a later `git add -N . && git diff` from picking it up.
+- **`references/handoff/vuln-fixer.md` + `references/handoff/upgrade-executor.md` described their report/plan section as inline-only.** Both now state the section may instead arrive as an absolute path to `Read`, matching what the orchestrators have sent since 2.39.3.
+- **Dead `LS` tool entry removed from every `allowed-tools` / `tools` list.** Claude Code no longer ships an `LS` tool and provides no alias for it (v2.1.218: zero occurrences of `"LS"` in the binary; the legacy alias map is `Task→Agent`, `KillShell→TaskStop`, … with no `LS` entry). Unmatched entries are silently dropped, so the lists worked — but they advertised a tool that cannot be granted, and a `tools` list whose entries *all* fail to match makes the Agent tool refuse to launch. Removed from 50 command/agent files; the `ready:`-reviewer tool list in prose was corrected too. `Task` is kept: it is still a live alias for `Agent`.
+- **`agents/risk-planner.md`'s requirement-ID example used the wrong form.** `[AC-3]`/`[TC-7]` → `[AC03]`/`[TC07]`, the form `references/specification-format.md` defines and `code-review`'s spec/design-conformance dimension traces against.
+
 ## [2.39.3] — 2026-08-02
 
 ### Changed

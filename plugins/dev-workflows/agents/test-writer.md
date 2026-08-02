@@ -1,7 +1,7 @@
 ---
 name: test-writer
 description: Writes tests for new or changed behavior based on a diff. Does NOT run tests. Framework detection mirrors test-baseliner; if no framework is detected, returns "not detected" immediately so the caller can ask the user whether to specify a test command or skip. Model tier assigned by the caller per the model-routing policy (no fixed pin).
-tools: ["Read", "Glob", "Grep", "LS", "Write", "Edit"]
+tools: ["Read", "Glob", "Grep", "Write", "Edit"]
 ---
 
 Write tests for new or changed behavior based on a diff. DO NOT run the tests — the caller (the command) runs `test-baseliner` in verify mode separately.

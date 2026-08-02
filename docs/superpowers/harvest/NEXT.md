@@ -15,9 +15,11 @@ plan-conflict, code-review Fowler floor, altitude-aware ambiguity taxonomy + "de
 tree" rename, deep-module/seam vocab, risk-planner no-placeholders, VI counter-metrics. Spec + plan:
 `docs/superpowers/specs|plans/2026-07-29-dev-workflows-upstream-harvest*.md`. Do NOT redo any of this.
 
-## Wave 3 — SHIPPED (2026-08-01, dev-workflows 2.39.0 / Copilot 2.9.0)
-Five deferred nuggets + the cheap half of the Adjacent item shipped to all three editions (canonical
-`341b5df`, mgd `557526b`, Copilot `fa25405`). Spec + plan:
+## Wave 3 — SHIPPED (2026-08-01; NIT follow-up 2026-08-02)
+Five deferred nuggets + the cheap half of the Adjacent item shipped to all three editions. Current tips:
+canonical `72bb7ae` (**2.39.1**), mgd `5478b74` (**2.39.1**), Copilot `9fca4db` (**2.9.1**) — the `.1`
+patch was a whole-branch-review NIT follow-up (`context-management.md` 4th-strategy summary consistency);
+wave-3 base was 341b5df/557526b/fa25405 (2.39.0 / 2.9.0). Spec + plan:
 `docs/superpowers/specs|plans/2026-08-01-dev-workflows-deferred-nuggets*.md`. What shipped: ADR
 3-condition candidacy filter (`ard-format.md`), wide-refactor expand→migrate→contract exception
 (`epics.md`), prototype-snippet exception (`design-format.md`), missing-adoption gap (`code-review.md`

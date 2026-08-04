@@ -205,7 +205,9 @@ interactive tools, even when one is listed in their `tools:`. When it returns
 
 ### Branch naming
 
-Resolve the prefix per `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` §1 (`$GIT_USER_INITIALS` → `git config user.initials` → inferred from existing branches → fallback `fix/`; reaching the fallback triggers its §1.5 escalation, which the orchestrator runs before dispatching `vuln-fixer`).
+Resolve the branch name per `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` — **the repo's own documented convention wins**. The orchestrator reads the repo's `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`, `CLAUDE.md` for a branch-naming section (§1.1), fills its segments (§1.2) — **identity** from the §2 ladder (`$GIT_USER_INITIALS` → `git config user.initials` → inference → the §2.5 prompt), **issue key** from the CVE's Jira ID when present (else the documented no-issue literal, or the `NOJIRA` placeholder detected in Step 1), **description** from the CVE ID — and hands the resolved name to `vuln-fixer`. Never add an identity segment the pattern does not ask for.
+
+When the repo documents no convention (§1.4), `<prefix>` comes from the §2 ladder with fallback `fix/`:
 
 - With Jira ID: `<prefix>/JIRA-ID-CVE-XXXX-XXXXX`
 - Without Jira ID: `<prefix>/NOJIRA-CVE-XXXX-XXXXX` (or `<prefix>/CVE-XXXX-XXXXX` if the project omits placeholders)

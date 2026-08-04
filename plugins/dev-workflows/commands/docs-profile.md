@@ -162,7 +162,8 @@ Produce a reviewable PR in the **target repo** (never the plugin). **Never push 
 
 1. **Resolve the branch name.** **Inline mode** (`--inline`): skip the prompt and the confirmation entirely — use the deterministic name `dev-workflows/docs-profile-bootstrap`; `/document` (Jira mode) Phase 6.2 renames it to the docs-branch convention. **Standalone** (default):
    - If the repo documents a branch-naming convention (detected in Phase 2 / confirmed in Phase 4), fill its placeholders and use it.
-   - Else use `<prefix>/NOISSUE-docs-profile`, where `<prefix>` comes from the ladder in `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` §1 (`$GIT_USER_INITIALS` → `git config user.initials` → inferred from existing branches → fallback `docs/`). If the ladder reaches its fallback, run its §1.5 escalation:
+   - If the convention has an **identity** placeholder, fill it from the §2 ladder in `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` (`$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → the §2.5 prompt); its issue-key segment takes the documented no-issue literal, since profiling has no ticket.
+   - Else (no convention documented, §1.4) use `<prefix>/NOISSUE-docs-profile`, where `<prefix>` comes from the same §2 ladder with fallback `docs/`. If the ladder yields nothing, run its §2.5 escalation:
      ```
      "I couldn't infer a branch prefix from $GIT_USER_INITIALS, `git config user.initials`, or existing branches. This command's default is `docs/`. What prefix should I use?"
      choices: ["Use `docs/` (default for this command)", "Use my initials — I'll enter them", "Other… (describe)"]

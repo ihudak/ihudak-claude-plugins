@@ -622,13 +622,13 @@ Run this phase only when write context = `docs_repo` (or `non_docs_repo` after u
    choices: ["Stash changes and continue (Recommended)", "Proceed anyway — pre-existing changes will appear in the diff", "Cancel"]
    ```
 
-3. **Derive branch name from repo conventions.** In priority order, look at repo root for `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`. Grep each for a branch-naming section (case-insensitive, patterns like "Branch name", "Branch naming", "naming your branch"). If a pattern like `<user>/<JIRA-KEY>-<slug>` or `<prefix>/<name>` is documented, derive the branch name by filling placeholders with known values (Jira key from Phase 0, slug from the feature summary, and `<user>` / `<prefix>` from the ladder in `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` §1 — `$GIT_USER_INITIALS` → `git config user.initials` → inferred from existing branches). If multiple patterns are documented, offer them all to the user. When no pattern is documented, take the whole prefix from that same ladder, whose fallback for this command is `docs/`.
+3. **Derive branch name from repo conventions.** In priority order, look at repo root for `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`. Grep each for a branch-naming section (case-insensitive, patterns like "Branch name", "Branch naming", "naming your branch"). If a pattern like `<user>/<JIRA-KEY>-<slug>` or `<prefix>/<name>` is documented, derive the branch name by filling placeholders with known values (Jira key from Phase 0, slug from the feature summary, and any **identity** placeholder (`<user>`, `<your-name-or-initials>`, `<initials>`, …) from the §2 ladder in `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` — `$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → its §2.5 prompt). Classify the pattern's segments per §1.2 and never add an identity segment it does not ask for. If multiple patterns are documented, offer them all to the user. When no pattern is documented (§1.4), take the whole prefix from the same ladder, whose fallback for this command is `docs/`.
 
 4. **Confirm the branch name** — always, even when derived from conventions (initials and slugs are subjective):
    ```
    choices: ["Use proposed name: <name>", "Edit name (you'll be prompted)", "Cancel"]
    ```
-   Fallback default when no convention is found: `<prefix>/<jira-key>-<slug>`, where `<prefix>` comes from `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` §1 (fallback `docs/`).
+   Fallback default when no convention is found: `<prefix>/<jira-key>-<slug>`, where `<prefix>` comes from `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` §2 (fallback `docs/`).
 
 5. **Create or adopt the branch, and record handoff anchors.** Record `base_branch` = the base resolved in step 1 (the Phase 8.5 squash uses it).
    - **Normal case** (`profile_source` is `in-repo` or `built-in`, or a custom repo whose profiling did not create a branch): `git switch -c <name>` from `base_branch`.

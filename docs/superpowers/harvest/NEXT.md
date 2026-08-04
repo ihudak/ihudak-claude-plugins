@@ -51,7 +51,7 @@ written to `mktemp` files (outside every repo tree → no `git diff` pollution) 
 Behavior-preserving. Passed the Opus whole-branch review (READY WITH MINORS; all fixed — the
 `/upgrade` regression-resume `plan_file` gap + 2 NITs). Do NOT redo.
 
-## Review-fix wave — SHIPPED to the working tree (2026-08-02, uncommitted)
+## Review-fix wave — SHIPPED (2026-08-02; committed + pushed)
 An independent whole-branch review of the last 10 days across all three editions found 9 defects in
 the shipped waves and fixed them: canonical/mgd **2.39.4**, Copilot **2.9.4**. Two were functional:
 (1) the `/vuln` + `/upgrade` post-`review-fixer` re-review re-used the *pre-fix* `review_diff_file`
@@ -67,9 +67,10 @@ two long-standing conversion gaps: the never-ported `phase: regression-resume` d
 `vuln-fixer` + `upgrade-executor`, and 16 Claude tool names (`Read`/`Write`/`Glob`/`Grep`/`LS`) in
 prose that edition never grants. Verified: `claude plugin validate` clean (both Claude repos),
 canonical↔mgd byte-identical outside the 5 expected files, handle counts match canonical↔Copilot.
-**Pushes and commits held.**
+Both this wave and the pre-existing-issue wave below were squashed into one commit per repo and
+pushed: canonical `2d20bd2`, mgd `4b78b34`, Copilot `2b54f94`.
 
-## Pre-existing-issue wave — SHIPPED to the working tree (2026-08-02, uncommitted)
+## Pre-existing-issue wave — SHIPPED (2026-08-02; committed + pushed)
 Same session, after the user asked for older defects too. Six more, all older than the reviewed window:
 - **Dead `LS` tool entry** in every `allowed-tools` / `tools` list (50 dev-workflows files per Claude
   edition + `managed-docs`' spec-planner + the `/ready` prose). Verified against the shipped Claude Code
@@ -94,7 +95,8 @@ Same session, after the user asked for older defects too. Six more, all older th
 Versions: dev-workflows **2.39.4** (canonical+mgd) / **2.9.4** (Copilot); dt-style-guide **0.2.4** /
 **0.3.3**; acli **0.1.1** (Claude); managed-docs **0.1.1**. All `claude plugin validate` clean; all 12
 marketplace↔plugin.json versions in sync; canonical↔mgd dev-workflows byte-identical outside the 5
-expected files. **Pushes and commits held.**
+expected files. Committed and pushed together with the review-fix wave above (canonical `2d20bd2`,
+mgd `4b78b34`, Copilot `2b54f94`).
 
 ### RETRACTED finding — do not "fix" this
 An earlier pass in this session flagged "18 unconverted `/slash-command` names" in the Copilot
@@ -120,6 +122,53 @@ GitHub.com cloud agent or in an IDE as well.
 PII-scrubbing `acli-pii` (`cli-for-atlassian-proxy`), which cannot ship in a public repo — so the
 opensource marketplaces carry plain `acli` instead. The 1:1 ihudak→mgd rule does **not** apply to this
 plugin; do not "fix" the absence.
+
+## Audit-residue + branch-naming wave — SHIPPED (2026-08-04; committed + pushed)
+A full re-audit of every plan/design in `docs/superpowers` against the shipped plugins, plus a
+three-edition port-parity sweep, found **zero functional gaps** — every plan, design, and recorded
+deferral traces to a shipped artifact, all 12 marketplace↔plugin.json versions were in sync, and
+`claude plugin validate` passed. Seven cosmetic residues were found and fixed:
+- **Two dead `LS` tool names** the 2.39.4 sweep missed, in inline Agent-dispatch prose
+  (`commands/document.md` Phase 10, `commands/implement.md` Phase 2A) — canonical + mgd only; the
+  Copilot edition already read `view/glob/grep`. → folded into dev-workflows **2.40.0**.
+- **Copilot `skills/_shared/branch-naming.md` was documented but never wired.** The `$GIT_USER_INITIALS`
+  prefix ladder had shipped since Copilot 1.6.0 and both `README.md` and the CHANGELOG described it as
+  live policy, but no skill loaded it — every branch-creating workflow silently used its own inline
+  `git branch -a` sniff, so the env var had no effect. **An earlier pass in this session deleted the
+  file as dead; that was wrong** — the user relies on the feature. Instead it is now genuinely wired
+  into all five branch-creating orchestrators in **all three editions**, and promoted to a first-class
+  feature: new canonical/mgd `references/branch-naming.md`, consumed by `/implement`, `/document`
+  (both modes), `/docs-profile`, `/upgrade`, and `/vuln` (via `vuln-fixer`). Two latent defects in the
+  policy fixed at the same time: §1.3 inference rejected **hyphenated** initials (`^[a-z0-9]+$` vs
+  §4's `[a-z0-9-]`), so `iv-gu/…` branches were invisible to it; and §1.5's mandatory
+  "no prefix detected" prompt was never implemented — now registered in `escalation-rules.md` as
+  "Branch prefix undetected". `/docs-profile`'s ad-hoc `git config user.name` initials derivation was
+  replaced by the shared ladder. `GIT_USER_INITIALS` is now documented in both repo-root READMEs.
+  → dev-workflows **2.40.0** (canonical + mgd) / **2.10.0** (Copilot) — MINOR, not PATCH.
+- **mgd carried two stray plugin-embedded planning docs** (`plugins/dev-workflows/docs/{plans,specs}/
+  2026-07-17-update-vi-*`) with no canonical counterpart. `git mv`-ed to mgd's repo-root
+  `docs/superpowers/`, restoring strict plugin 1:1. Canonical's empty `plugins/dev-workflows/docs/`
+  tree removed too.
+- **28 design docs carried pre-implementation `Status:` headers** (`pending implementation`,
+  `approved-for-planning`, `awaiting spec review`, …) though the features verifiably shipped. Each now
+  reads `Shipped in dev-workflows v<X.Y.Z> — pre-implementation design snapshot, kept as authored`,
+  with the version cross-checked against the CHANGELOG entry that introduced it (two, where no version
+  could be pinned with evidence, say `Shipped` without one). Bodies untouched.
+- **This file claimed the last two waves were uncommitted with pushes held** — they were committed and
+  pushed on 2026-08-02; corrected above.
+- **Copilot `wiki-tags-refresh` omitted its `[directory]` argument** from the invoke line (the body
+  already scanned it) and had lost the `-print0` rationale note. → obsidian-llm-wiki **0.3.4**.
+- **Dangling tracker pointer `dev-workflows-next-efforts`** (a memory that does not exist) in
+  `2026-07-07-two-key-grammar-foundation-design.md` ×2 and `2026-07-07-design-command.md` ×1 →
+  repointed at `docs/superpowers/harvest/NEXT.md`, which superseded it.
+
+Verified: `claude plugin validate` clean (both Claude repos), all 12 marketplace↔plugin.json versions
+in sync, canonical↔mgd dev-workflows byte-identical outside the 5 expected files, zero `LS` outside
+CHANGELOG history, and `branch-naming.md` reachable from all five branch-creating orchestrators in all
+three editions (grep-proven, no orphan). Passed an independent whole-branch review over all three
+diffs (READY TO MERGE; 10/10 hard invariants PASS, 2 NITs fixed — the `[a-z0-9-]` first-character
+restriction is now stated in §1.5/§4 and `escalation-rules.md`, and §2's `implement`/`document`
+doc-edit slug rule was aligned with the commands' own wording). **Merged to `main` + pushed.**
 
 ## NEXT: no active item
 The "hand off by file, not paste" pattern is now applied across every code-oriented command

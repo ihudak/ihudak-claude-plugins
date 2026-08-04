@@ -1,7 +1,7 @@
 # Clone `ihudak-claude-plugins` → `mgd-claude-plugins` (Dynatrace Managed internal)
 
 **Date:** 2026-06-15
-**Status:** Approved design (pending implementation)
+**Status:** Shipped — pre-implementation design snapshot, kept as authored.
 
 ## Goal
 

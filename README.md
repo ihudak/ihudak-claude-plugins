@@ -46,12 +46,14 @@ export VAULT_PATH="$HOME/obsidian"     # personal store: Jira imports + idea/pro
 export SPECS_PATH="/workspace/specs"   # shared store: specifications, designs, ARDs
 export REPOS_PATH="/workspace"         # where your code clones live (default: /workspace)
 export DOCS_PATH="/workspace/docs"     # optional, read-only: product docs for grounding (default: /workspace/docs)
+export GIT_USER_INITIALS="iv-gu"       # optional: branch prefix for every branch-creating command
 ```
 
 - **`VAULT_PATH`** — your personal store. Holds `jira-products/<KEY>/` (produced by `jira-workitem-import`) and `Projects/<area>/<slug>/` (idea and project files).
 - **`SPECS_PATH`** — the shared, team-visible store for a ticket's `specification.md` / `design.md` / ARD under `specifications/<KEY>-<slug>/…`. Required by the specs-authoring commands (`/create-vi`, `/create-ard`, `/specify`, `/design`, `/ready`); advisory for `/implement`; additive for `/document`.
 - **`REPOS_PATH`** — where code clones live; a single directory or a colon-separated list. Defaults to `/workspace`. Repos are matched by their `git remote get-url origin` slug, not by directory name.
 - **`DOCS_PATH`** *(optional)* — a **read-only** clone of the product documentation (default `/workspace/docs`). When it is an existing directory containing markdown, `/idea`, `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/epics`, and `/release-notes` automatically ground on the existing shipped docs (via the read-only `docs-grounder` agent), and `/document` prefers it as a docs-repo discovery hint. Never written to; every miss is a silent, non-blocking skip. Disable per-run with `--no-docs`, or override the root with `--docs <path>`.
+- **`GIT_USER_INITIALS`** *(optional)* — your branch prefix, used verbatim (no trailing `/`) by every branch-creating command: `/implement`, `/document`, `/docs-profile`, `/upgrade`, and `/vuln`. Set it once and `iv-gu` yields branches like `iv-gu/PRODUCT-17753-add-oauth`. When unset, the commands fall back to `git config user.initials`, then infer the prefix from existing branch names, then ask before defaulting to a generic prefix (`feat/`, `docs/`, `fix/`, `chore/`). Full ladder: `plugins/dev-workflows/references/branch-naming.md`.
 
 ### 4. Run `/dev-workflows:statusline` first
 

@@ -140,7 +140,7 @@ Typical gaps:
   ```
 - **Branch-naming convention** when none was documented (drives Phase 5):
   ```
-  choices: ["Use repo convention if detected, else `<initials>/NOISSUE-docs-profile` (Recommended)", "Enter a different pattern", "Other… (describe)"]
+  choices: ["Use repo convention if detected, else `<prefix>/NOISSUE-docs-profile` (Recommended)", "Enter a different pattern", "Other… (describe)"]
   ```
 
 **Idempotent refresh.** Before writing, check whether `<repo-root>/.dev-workflows/docs-profile.yml` already exists:
@@ -162,10 +162,10 @@ Produce a reviewable PR in the **target repo** (never the plugin). **Never push 
 
 1. **Resolve the branch name.** **Inline mode** (`--inline`): skip the prompt and the confirmation entirely — use the deterministic name `dev-workflows/docs-profile-bootstrap`; `/document` (Jira mode) Phase 6.2 renames it to the docs-branch convention. **Standalone** (default):
    - If the repo documents a branch-naming convention (detected in Phase 2 / confirmed in Phase 4), fill its placeholders and use it.
-   - Else use `<initials>/NOISSUE-docs-profile`. Derive `<initials>` from `git -C <repo-root> config user.name`; if it is empty or initials are unclear, ask:
+   - Else use `<prefix>/NOISSUE-docs-profile`, where `<prefix>` comes from the ladder in `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` §1 (`$GIT_USER_INITIALS` → `git config user.initials` → inferred from existing branches → fallback `docs/`). If the ladder reaches its fallback, run its §1.5 escalation:
      ```
-     "What initials should the branch use (e.g. 'ig' for Ivan Gudak)?"
-     choices: ["Use derived initials `<xx>` (Recommended)", "Enter initials", "Other… (describe)"]
+     "I couldn't infer a branch prefix from $GIT_USER_INITIALS, `git config user.initials`, or existing branches. This command's default is `docs/`. What prefix should I use?"
+     choices: ["Use `docs/` (default for this command)", "Use my initials — I'll enter them", "Other… (describe)"]
      ```
    Always confirm the final name (initials/slugs are subjective):
    ```

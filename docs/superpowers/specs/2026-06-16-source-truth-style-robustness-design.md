@@ -1,7 +1,7 @@
 # Design: Discrepancy escalation + style-check robustness (Copilot v1.7.0–v1.8.1 port)
 
 **Date:** 2026-06-16
-**Status:** Approved (design); pending implementation plan
+**Status:** Shipped in dev-workflows v1.7.0 — pre-implementation design snapshot, kept as authored.
 **Plugin:** dev-workflows (feature + fix — 1.6.0 → 1.7.0)
 
 > **Supersedes the earlier "code wins, always" draft of this spec.** Source

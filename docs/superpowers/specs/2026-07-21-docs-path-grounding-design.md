@@ -1,7 +1,7 @@
 # `$DOCS_PATH` documentation grounding — design
 
 - **Date:** 2026-07-21
-- **Status:** Approved (brainstorming complete; ready for implementation plan)
+- **Status:** Shipped in dev-workflows v2.36.0 — pre-implementation design snapshot, kept as authored.
 - **Repo scope:** `plugins/dev-workflows/` only. `.ai-containers/` and the sibling
   repos (`ihudak-copilot-plugins`, `mgd-claude-plugins`) are follow-ups (see §10).
 - **Target version:** dev-workflows 2.36.0

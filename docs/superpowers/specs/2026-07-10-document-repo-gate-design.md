@@ -5,7 +5,7 @@ tags:
 
 # `/document` Jira-mode consolidated repo gate — design
 
-**Status:** approved (design), pending spec review
+**Status:** Shipped in dev-workflows v2.11.0 — pre-implementation design snapshot, kept as authored.
 **Date:** 2026-07-10
 **Target:** `dev-workflows` plugin (`/workspace/ihudak-claude-plugins`), `commands/document.md` — Jira mode (Mode A) only
 **Release:** MINOR `v2.11.0` (user-visible workflow behavior; additive, no breaking change) — confirm during spec review

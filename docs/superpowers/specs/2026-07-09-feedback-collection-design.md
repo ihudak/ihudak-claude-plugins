@@ -5,7 +5,7 @@ tags: tasks-exclude
 # Session Feedback Collection — Design
 
 **Date:** 2026-07-09
-**Status:** Approved (design) — awaiting spec review
+**Status:** Shipped in dev-workflows v2.9.0 — pre-implementation design snapshot, kept as authored.
 **Target:** dev-workflows plugin (`/workspace/ihudak-claude-plugins/plugins/dev-workflows/`), release **v2.9.0**
 **Follows:** B4 (follow-up task & journal emission, v2.8.0) — shares the `<VI-dir>/dev-workflows/` per-VI artifact area
 

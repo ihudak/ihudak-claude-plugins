@@ -1,7 +1,7 @@
 # Markdown formatting fixes — no hard-wrap prose + VI ID round-trip corruption — design
 
 - **Date:** 2026-07-22
-- **Status:** Approved (brainstorming complete; ready for implementation plan)
+- **Status:** Shipped in dev-workflows v2.37.0 — pre-implementation design snapshot, kept as authored.
 - **Repo scope:** `plugins/dev-workflows/` (this repo) for Fix 1 only; the
   user's `obsidian-vault` repo — both
   `$VAULT_PATH/.obsidian/scripts/custom/jira-workitem-import/src/jira_markup_converter.py`

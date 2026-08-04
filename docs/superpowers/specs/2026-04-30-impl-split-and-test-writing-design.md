@@ -1,7 +1,7 @@
 # Design: Split `/impl` — test-writing, docs, and Jira-driven workflows
 
 **Date:** 2026-04-30 (updated 2026-05-10)
-**Status:** Approved — ready for implementation
+**Status:** Shipped in dev-workflows v1.1.0 — pre-implementation design snapshot, kept as authored.
 **Scope:** `plugins/dev-workflows` only
 
 ---

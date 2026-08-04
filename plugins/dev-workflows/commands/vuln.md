@@ -205,10 +205,10 @@ interactive tools, even when one is listed in their `tools:`. When it returns
 
 ### Branch naming
 
-Inspect recent git history and existing branches to match the project's naming convention.
+Resolve the prefix per `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` §1 (`$GIT_USER_INITIALS` → `git config user.initials` → inferred from existing branches → fallback `fix/`; reaching the fallback triggers its §1.5 escalation, which the orchestrator runs before dispatching `vuln-fixer`).
 
-- With Jira ID: `fix/JIRA-ID-CVE-XXXX-XXXXX`
-- Without Jira ID: `fix/NOJIRA-CVE-XXXX-XXXXX` (or `fix/CVE-XXXX-XXXXX` if the project omits placeholders)
+- With Jira ID: `<prefix>/JIRA-ID-CVE-XXXX-XXXXX`
+- Without Jira ID: `<prefix>/NOJIRA-CVE-XXXX-XXXXX` (or `<prefix>/CVE-XXXX-XXXXX` if the project omits placeholders)
 
 ### Commit message
 

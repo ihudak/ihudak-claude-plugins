@@ -1,7 +1,7 @@
 # /implement dispatch-prompt file-handoff — design
 
 **Date:** 2026-08-02
-**Status:** approved (Design A — surgical per-artifact offload)
+**Status:** Shipped in dev-workflows v2.39.2 — pre-implementation design snapshot, kept as authored.
 **Scope:** `dev-workflows` plugin, all three editions (canonical Claude, mgd Claude, Copilot)
 **Source:** superpowers "hand off by file, not paste" context-management strategy (shipped
 reference-only in wave 3; this is its `/implement` application — the deferred **M** item).

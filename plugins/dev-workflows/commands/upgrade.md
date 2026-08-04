@@ -87,7 +87,7 @@ All changes are left **uncommitted** on the current branch.
 
 1. **Create feature branch**
    - Run `git status --porcelain`. If dirty, show the diff summary and ask whether to stash, proceed anyway, or cancel.
-   - Generate `chore/upgrade-<component>-to-<version>` for a single component, or `chore/upgrade-<first>-and-<N>-more` for a batch. Match the repo's existing prefix convention when obvious.
+   - Resolve the branch prefix per `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` §1 (`$GIT_USER_INITIALS` → `git config user.initials` → inferred from existing branches → fallback `chore/`; reaching the fallback triggers its §1.5 escalation). Then generate `<prefix>/upgrade-<component>-to-<version>` for a single component, or `<prefix>/upgrade-<first>-and-<N>-more` for a batch.
    - If HEAD is on a non-default branch with ahead commits, ask whether to branch from current position, branch from default, or cancel.
    - Run `git checkout -b <branch-name>`. If it exists, append `-<7-char-sha>`.
 

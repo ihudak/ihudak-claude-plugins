@@ -87,7 +87,7 @@ All changes are left **uncommitted** on the current branch.
 
 1. **Create feature branch**
    - Run `git status --porcelain`. If dirty, show the diff summary and ask whether to stash, proceed anyway, or cancel.
-   - Resolve the branch prefix per `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` §1 (`$GIT_USER_INITIALS` → `git config user.initials` → inferred from existing branches → fallback `chore/`; reaching the fallback triggers its §1.5 escalation). Then generate `<prefix>/upgrade-<component>-to-<version>` for a single component, or `<prefix>/upgrade-<first>-and-<N>-more` for a batch.
+   - Resolve the branch name per `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` — **the repo's own documented convention wins**. Read the repo's `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`, `CLAUDE.md` for a branch-naming section (§1.1) and fill its segments (§1.2): an **identity** placeholder from the §2 ladder (`$GIT_USER_INITIALS` → `git config user.initials` → inference → the §2.5 prompt), an **issue-key** segment from the run's Jira key when it has one (else the documented no-issue literal), and the **description** segment from the slug `upgrade-<component>-to-<version>` (or `upgrade-<first>-and-<N>-more` for a batch). Never add an identity segment the pattern does not ask for. Only when no convention is documented (§1.4) build `<prefix>/<slug>` with the §2 ladder's fallback `chore/`.
    - If HEAD is on a non-default branch with ahead commits, ask whether to branch from current position, branch from default, or cancel.
    - Run `git checkout -b <branch-name>`. If it exists, append `-<7-char-sha>`.
 

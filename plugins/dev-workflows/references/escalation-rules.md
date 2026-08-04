@@ -53,9 +53,14 @@ In `/epics` Phase 5 the `"Other… (describe)"` entry is omitted:
 
 `choices: ["Use `<fallback>` (default for this command)", "Use my initials — I'll enter them", "Other… (describe)"]`
 
-Used by every branch-creating command (`/implement`, `/document`, `/docs-profile`, `/upgrade`, `/vuln`) when the `branch-naming.md` §1 ladder — `$GIT_USER_INITIALS`, `git config user.initials`, then inference from existing branches — yields nothing and the per-command fallback in §1.4 would be used. `<fallback>` is that command's own default (`feat/`, `docs/`, `fix/`, `chore/`).
+Used by every branch-creating command (`/implement`, `/document`, `/docs-profile`, `/upgrade`, `/vuln`) when the `branch-naming.md` §2 identity ladder — `$GIT_USER_INITIALS`, `git config user.initials`, then inference from existing branches — yields nothing. `<fallback>` is that command's own default (`feat/`, `docs/`, `fix/`, `chore/`).
 
-On `"Use my initials"`, follow up with a free-text prompt: `"Enter your initials (lowercase; 2–8 characters from [a-z0-9-], starting with a letter or digit, e.g. `iv-gu` or `ivgu`; used as `<initials>/<slug>`):"` — then suggest, without persisting, `GIT_USER_INITIALS` or `git config --global user.initials`.
+**Identity variant.** When the value is filling an **identity** placeholder in a convention documented by the repo itself (`<your-name-or-initials>`, `<user>`, …), the fallback choice is omitted — a generic prefix is not a name, and the documented convention requires a real identity:
+
+`"This repo's documented convention starts the branch with your name or initials, and I couldn't infer one. What should I use?"`
+`choices: ["Enter my initials", "Cancel", "Other… (describe)"]`
+
+Either way, prompt for the value with: `"Enter your initials (lowercase; 2–8 characters from [a-z0-9-], starting with a letter or digit, e.g. `iv-gu` or `ivgu`):"` — then suggest, without persisting, `GIT_USER_INITIALS` or `git config --global user.initials`.
 
 ## Refresh blocked
 

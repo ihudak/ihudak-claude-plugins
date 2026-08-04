@@ -312,9 +312,9 @@ Before writing any file:
    - **Proceed**: note in the Phase 5 report that the working tree was dirty at implementation start.
    - **Cancel**: stop and summarize what was planned.
 
-2. **Resolve the branch prefix** — apply the ladder in `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` §1: `$GIT_USER_INITIALS` → `git config user.initials` → inferred from existing branches → this command's fallback `feat/`. Reaching the fallback triggers the mandatory §1.5 escalation before any branch is created.
+2. **Resolve the branch name** per `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` — **the repo's own documented convention wins**. Read the target repo's `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`, `CLAUDE.md` (+ `.claude/`) for a branch-naming section (§1.1); if one is found, classify its segments (§1.2) and fill them: an **identity** placeholder (`<your-name-or-initials>`, `<user>`, …) from the §2 ladder (`$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → the §2.5 prompt), an **issue-key** segment from the `jira_key` resolved in Phase 0 (or the pattern's documented no-issue literal in direct mode), and the **description** segment from step 3's slug. A pattern with no identity segment gets none — never inject initials into a convention that does not ask for one. Only when the repo documents no convention (§1.4) build `<prefix>/<slug>` with `<prefix>` from the §2 ladder, whose fallback here is `feat/`.
 
-3. **Generate slug** — derive from the implementation description: lowercase, hyphens, max 40 chars, strip punctuation and special chars. Example: "Add user authentication to login page" → `add-user-authentication-login-page`.
+3. **Generate slug** — derive from the implementation description: lowercase, hyphens, max 40 chars, strip punctuation and special chars. Example: "Add user authentication to login page" → `add-user-authentication-login-page`. When a `jira_key` is resolved and the chosen shape has no separate issue-key segment, prefix it: `<jira_key>-<slug>`.
 
 4. **Check HEAD context** — if HEAD is NOT on the default branch (`main` / `master` / `develop`), check for ahead commits: `git log origin/HEAD..HEAD --oneline 2>/dev/null`. If output is non-empty (branch has commits ahead), ask:
    ```

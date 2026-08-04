@@ -170,6 +170,29 @@ diffs (READY TO MERGE; 10/10 hard invariants PASS, 2 NITs fixed — the `[a-z0-9
 restriction is now stated in §1.5/§4 and `escalation-rules.md`, and §2's `implement`/`document`
 doc-edit slug rule was aligned with the commands' own wording). **Merged to `main` + pushed.**
 
+## Branch-naming repo-rule-first wave — SHIPPED (2026-08-04; committed + pushed)
+The 2.40.0/2.10.0 branch-naming feature had the priority backwards. It made the `$GIT_USER_INITIALS`
+ladder the **primary** mechanism, while only `/document` and `/docs-profile` ever read the target
+repo's own documented convention — so `branch-naming.md`'s claim that a repo-documented pattern
+"outranks this ladder" was **unenforceable** in `/implement`, `/upgrade`, and `/vuln`, which never read
+those files. (Same class of defect as the orphaned Copilot file it replaced: policy documented, not
+wired.) The user's intent: the repo's own `CONTRIBUTING.md` / `README.md` rule is the source of truth,
+and initials fill an identity placeholder **only where the rule has one** — as `dynatrace-docs` does
+(`<your-name-or-initials>/<JIRA-ISSUE-KEY>-<short-branch-name>`, `CONTRIBUTING.md` §Branch name).
+
+Inverted and closed in all three editions: every branch-creating orchestrator now reads the repo's
+guidance files **first** (§1.1), classifies the documented pattern's segments (§1.2), and fills each
+from its proper source — identity from the ladder (now §2), issue key from the run's resolved Jira key,
+description from each command's own slug rule (§3). A pattern with **no** identity segment never gets
+one (a `feat/<slug>` repo still yields `feat/add-oauth`, not `iv-gu/…`); identity inference ignores the
+generic prefixes; and the §2.5 escalation drops its generic-fallback choice when an identity is being
+filled. The ladder supplies the whole prefix only when a repo documents no convention at all (§1.4).
+`/implement` prefixes a resolved Jira key to its slug when the chosen shape has no key segment.
+Passed an independent whole-branch review (READY TO MERGE; 12/12 criteria PASS incl. an end-to-end walk
+of the dynatrace-docs case → `iv-gu/PRODUCT-17753-add-oauth`, and the no-identity case → `feat/…`;
+1 NIT fixed — `DOCUMENTATION-GUIDELINES.md` added to canonical `/vuln` + `/upgrade` inline lists for
+cross-edition parity). Versions: dev-workflows **2.41.0** (canonical + mgd) / **2.11.0** (Copilot).
+
 ## NEXT: no active item
 The "hand off by file, not paste" pattern is now applied across every code-oriented command
 (`/implement`, `/vuln`, `/upgrade`; `/document` + `/epics` already used it). No active follow-up

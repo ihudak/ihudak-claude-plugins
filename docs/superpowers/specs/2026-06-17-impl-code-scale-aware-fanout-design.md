@@ -1,7 +1,7 @@
 # Scale-aware fan-out scanning for `/impl:code`
 
 **Date:** 2026-06-17
-**Status:** Approved (design)
+**Status:** Shipped in dev-workflows v1.7.2 — pre-implementation design snapshot, kept as authored.
 **Plugin:** `dev-workflows`
 **Affected files:** `plugins/dev-workflows/commands/impl/code.md`, `plugins/dev-workflows/references/model-routing/classification.md`, `CLAUDE.md` (workflow map + invariants)
 

@@ -5,7 +5,7 @@ tags:
 
 # `.obsidian` vault-check revisit — Design (dev-workflows v2.20.0)
 
-**Status:** approved (brainstorm) — ready for plan
+**Status:** Shipped in dev-workflows v2.20.0 — pre-implementation design snapshot, kept as authored.
 **Date:** 2026-07-10
 **Repo:** `/workspace/ihudak-claude-plugins`, plugin `dev-workflows`
 **Version:** 2.19.0 → 2.20.0 (behavior change: loosen a write-gate; no new command/subagent)

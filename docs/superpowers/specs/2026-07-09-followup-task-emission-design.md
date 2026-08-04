@@ -5,7 +5,7 @@ tags: tasks-exclude
 # Follow-up Task & Journal Emission — Design
 
 **Date:** 2026-07-09
-**Status:** Approved (design) — awaiting spec review
+**Status:** Shipped in dev-workflows v2.8.0 — pre-implementation design snapshot, kept as authored.
 **Target:** dev-workflows plugin (`/workspace/ihudak-claude-plugins/plugins/dev-workflows/`), release **v2.8.0**
 **Backlog item:** B4
 

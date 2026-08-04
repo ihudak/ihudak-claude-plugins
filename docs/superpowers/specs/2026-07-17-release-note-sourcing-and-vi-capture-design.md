@@ -2,7 +2,7 @@
 
 - **Date:** 2026-07-17
 - **Branch:** `feat/release-note-sourcing`
-- **Status:** Approved (design phase)
+- **Status:** Shipped in dev-workflows v2.35.0 — pre-implementation design snapshot, kept as authored.
 - **Builds on:** `2026-07-17-release-note-change-type-design.md` (merged) — this extends it.
 
 ## Background

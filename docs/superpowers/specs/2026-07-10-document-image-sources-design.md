@@ -5,7 +5,7 @@ tags:
 
 # `/document` — broaden image discovery to the Projects VI-dir
 
-**Status:** approved (design), pending implementation
+**Status:** Shipped in dev-workflows v2.13.0 — pre-implementation design snapshot, kept as authored.
 **Date:** 2026-07-10
 **Target:** `dev-workflows` plugin, `commands/document.md` (Phase 1 + Phase 5.6), Jira mode
 **Release:** MINOR `v2.13.0`

@@ -50,7 +50,7 @@ input grammar and per-Epic output convention, fixes `/specify`, and unblocks `/d
 - Add a progress-aware Epic picker so a user can drive a multi-Epic VI without looking up Epic keys.
 - Do all of the above **additively** so the other Jira-driven commands keep working unchanged.
 
-**Non-goals (deferred, tracked in memory `dev-workflows-next-efforts`)**
+**Non-goals (deferred, tracked in `docs/superpowers/harvest/NEXT.md`)**
 - Adopting the grammar / `focus_key` / picker in `/implement`, `/document`, `/epics`, `/release-notes`.
 - `/design` itself (separate effort; brainstorm+doc done, resumes at writing-plans after this ships).
 - Deciding `/implement`'s per-Epic "done" predicate (open question).
@@ -245,8 +245,8 @@ specifications/
   `/release-notes` continue to work exactly as today.
 - Until they individually adopt the grammar, those commands will **parse** a `<VI> <Epic>` input (they
   cite the shared reference) but **ignore `focus_key`** (resolve the VI, read the whole VI). This is a
-  **known, recorded inconsistency, not a silent regression** — tracked in memory
-  `dev-workflows-next-efforts` (⚠️ FOLLOW-UP) so it is not forgotten. `/epics`/`/document`/`/release-notes`
+  **known, recorded inconsistency, not a silent regression** — tracked in
+  `docs/superpowers/harvest/NEXT.md` (⚠️ FOLLOW-UP) so it is not forgotten. `/epics`/`/document`/`/release-notes`
   must remain VI-capable for un-split VIs; `/implement`'s done-predicate is an open question.
 
 ---

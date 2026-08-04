@@ -49,6 +49,14 @@ Used in `/document` Phase 5 when a diff-summarizer returns `DIRTY_TREE`.
 In `/epics` Phase 5 the `"Other… (describe)"` entry is omitted:
 `choices: ["Stash changes and retry this repo", "Skip this repo", "Cancel"]`
 
+## Branch prefix undetected
+
+`choices: ["Use `<fallback>` (default for this command)", "Use my initials — I'll enter them", "Other… (describe)"]`
+
+Used by every branch-creating command (`/implement`, `/document`, `/docs-profile`, `/upgrade`, `/vuln`) when the `branch-naming.md` §1 ladder — `$GIT_USER_INITIALS`, `git config user.initials`, then inference from existing branches — yields nothing and the per-command fallback in §1.4 would be used. `<fallback>` is that command's own default (`feat/`, `docs/`, `fix/`, `chore/`).
+
+On `"Use my initials"`, follow up with a free-text prompt: `"Enter your initials (lowercase; 2–8 characters from [a-z0-9-], starting with a letter or digit, e.g. `iv-gu` or `ivgu`; used as `<initials>/<slug>`):"` — then suggest, without persisting, `GIT_USER_INITIALS` or `git config --global user.initials`.
+
 ## Refresh blocked
 
 `choices: ["Continue with current local state", "Skip this repo", "Cancel", "Other… (describe)"]`

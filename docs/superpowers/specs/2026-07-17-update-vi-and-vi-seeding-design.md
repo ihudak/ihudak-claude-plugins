@@ -2,7 +2,7 @@
 
 - **Date:** 2026-07-17
 - **Author:** Ivan Gudak
-- **Status:** Approved for planning (brainstorm complete; not yet implemented)
+- **Status:** Shipped in dev-workflows v2.34.0 — pre-implementation design snapshot, kept as authored.
 - **Plugin:** `dev-workflows` (repo `Dynatrace-Internal/mgd-claude-plugins`, `plugins/dev-workflows`, currently v2.33.0)
 - **Motivating ticket:** PRODUCT-17753 (a VI authored at the wrong scope; the author needs to re-do it cleanly)
 

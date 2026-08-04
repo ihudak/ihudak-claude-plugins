@@ -2,7 +2,7 @@
 
 - **Date:** 2026-07-17
 - **Branch:** `feat/release-note-change-type`
-- **Status:** Approved (design phase)
+- **Status:** Shipped in dev-workflows v2.35.0 — pre-implementation design snapshot, kept as authored.
 - **Author:** brainstormed with Ivan Gudak
 
 ## Background

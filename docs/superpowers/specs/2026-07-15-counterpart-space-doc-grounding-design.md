@@ -1,7 +1,7 @@
 # Counterpart-space documentation grounding for `/document`
 
 - **Date:** 2026-07-15
-- **Status:** Design approved (pending written-spec review)
+- **Status:** Shipped in dev-workflows v2.33.0 — pre-implementation design snapshot, kept as authored.
 - **Command affected:** `dev-workflows` `/document` (Jira mode) — Claude Code, mirrored to Copilot `document:` and the `mgd` marketplace
 - **Kind:** Read-path enhancement (no change to the render-protection write path)
 

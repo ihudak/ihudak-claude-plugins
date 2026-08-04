@@ -5,7 +5,7 @@ tags:
 
 # `/document` authoring-guidance uplift — extended frontmatter metadata + repo authoring-rule ingestion
 
-**Status:** approved (design), pending implementation
+**Status:** Shipped in dev-workflows v2.12.0 — pre-implementation design snapshot, kept as authored.
 **Date:** 2026-07-10
 **Target:** `dev-workflows` plugin, docs pipeline (`doc-planner`, `doc-writer`, `doc-reviewer`, the `dynatrace-docs-frontmatter` skill, a new reference)
 **Release:** MINOR `v2.12.0` (new authoring behavior; additive)

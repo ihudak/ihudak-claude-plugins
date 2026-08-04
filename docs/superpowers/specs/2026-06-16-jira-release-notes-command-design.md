@@ -1,7 +1,7 @@
 # Design: `/impl:jira:release-notes` command
 
 **Date:** 2026-06-16
-**Status:** Approved (design); pending implementation plan
+**Status:** Shipped in dev-workflows v1.6.0 — pre-implementation design snapshot, kept as authored.
 **Plugin:** dev-workflows (additive — 1.5.1 → 1.6.0)
 
 ## Summary

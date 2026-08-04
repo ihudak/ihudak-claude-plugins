@@ -5,7 +5,7 @@ tags:
 
 # Capture-at-block — `emit-block` feedback on a gap-caused halt
 
-**Status:** approved (design), pending implementation
+**Status:** Shipped in dev-workflows v2.14.0 — pre-implementation design snapshot, kept as authored.
 **Date:** 2026-07-10
 **Target:** `dev-workflows` plugin — `references/feedback-emission.md` + the 8 pipeline commands
 **Release:** MINOR `v2.14.0`

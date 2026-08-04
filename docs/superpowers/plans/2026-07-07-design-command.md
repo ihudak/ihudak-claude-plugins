@@ -820,4 +820,4 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 - Whole-branch review on the most capable model (Opus) via `superpowers:requesting-code-review` `code-reviewer.md`, pointed at the branch package (`scripts/review-package $(git merge-base main HEAD) HEAD`) + the Minor-findings roll-up.
 - Then `superpowers:finishing-a-development-branch` — present the merge/PR options; commit/push only when the user asks.
-- Update the SDD ledger (`/workspace/docs/.superpowers/sdd/progress.md`) per task and at the end; update the `dev-workflows-next-efforts` memory when shipped (mark `/design` v2.6.0 done; the next backlog item becomes the grammar-adoption effort for the shipped Jira-driven commands).
+- Update the SDD ledger (`/workspace/docs/.superpowers/sdd/progress.md`) per task and at the end; update `docs/superpowers/harvest/NEXT.md` when shipped (mark `/design` v2.6.0 done; the next backlog item becomes the grammar-adoption effort for the shipped Jira-driven commands).

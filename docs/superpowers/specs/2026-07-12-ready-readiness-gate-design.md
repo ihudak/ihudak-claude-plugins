@@ -5,7 +5,7 @@ tags:
 
 # `/ready` — status-anchored readiness gate — design (v2.24.0)
 
-**Status:** approved-for-planning (pending user spec review)
+**Status:** Shipped in dev-workflows v2.24.0 — pre-implementation design snapshot, kept as authored.
 **Date:** 2026-07-12
 **Plugin:** dev-workflows (repo `/workspace/ihudak-claude-plugins`)
 **Version:** 2.23.0 → **2.24.0** (minor; NEW command + NEW agent + NEW reference)

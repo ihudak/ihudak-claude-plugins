@@ -4,6 +4,16 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.40.0] — 2026-08-04
+
+### Added
+
+- **`$GIT_USER_INITIALS` branch prefixes — new `references/branch-naming.md`.** Every branch-creating command now resolves its prefix through one shared ladder: `$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branch names → a per-command fallback (`feat/` for `/implement`, `docs/` for `/document` + `/docs-profile`, `fix/` for `/vuln`, `chore/` for `/upgrade`). Set `GIT_USER_INITIALS=iv-gu` once and `/implement` produces `iv-gu/PRODUCT-17753-add-oauth` instead of `feat/add-oauth`. Reaching the fallback is no longer silent — it triggers a mandatory prompt (registered in `escalation-rules.md` as "Branch prefix undetected") offering the fallback or your initials, and suggests persisting them via the env var or git config without ever writing them itself. Wired into `/implement` (Phase 3 step 2), `/document` (Phase 6.2 steps 3–4, both modes), `/docs-profile` (Phase 6 step 1), `/upgrade` (Phase 2 prep), and `/vuln`'s "Git Workflow" spec that `vuln-fixer` follows. Inference accepts hyphenated initials (`iv-gu/`, `a-hue/`) as well as unhyphenated ones. A branch pattern documented in the repo's own `CONTRIBUTING.md` / `README.md` still outranks the ladder for the name's overall *shape*; the ladder supplies its `<user>` / `<prefix>` placeholder. Replaces `/docs-profile`'s ad-hoc `git config user.name`-derived initials prompt and `/implement`'s prefix-only `git branch -a` sniff.
+
+### Fixed
+
+- **Two dead `LS` tool names survived the 2.39.4 sweep.** That release removed `LS` from all 50 frontmatter `allowed-tools` / `tools` lists but missed the two *inline* Agent-dispatch specs that name their tool restriction in prose — `/document` Phase 10's structure-scout and `/implement` Phase 2A's exploration subagent both still read `tools: Read/Glob/Grep/LS only`. Claude Code grants no `LS` tool and has no alias for it, so the entry was silently dropped; both now read `tools: Read/Glob/Grep only`, matching the Copilot edition, which already had it right.
+
 ## [2.39.4] — 2026-08-02
 
 ### Fixed

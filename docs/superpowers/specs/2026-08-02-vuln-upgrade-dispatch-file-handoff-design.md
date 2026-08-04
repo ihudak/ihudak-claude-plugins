@@ -1,7 +1,7 @@
 # /vuln + /upgrade dispatch file-handoff — design + plan
 
 **Date:** 2026-08-02
-**Status:** approved (S follow-up of the M item; same Design A — surgical per-artifact offload)
+**Status:** Shipped in dev-workflows v2.39.3 — pre-implementation design snapshot, kept as authored.
 **Scope:** `dev-workflows` plugin, all three editions.
 **Source:** superpowers "hand off by file, not paste". The M item
 (`2026-08-02-implement-dispatch-file-handoff-design.md`) applied this to `/implement`; this is its

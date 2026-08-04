@@ -224,7 +224,7 @@ Only when the run resolved a Jira key (VI/Epic) — i.e. NOT direct-prompt mode 
 
 **Codebase exploration** — Before writing the plan, spawn an exploration subagent to map the relevant parts of the codebase:
 
-→ Agent (subagent_type: "general-purpose", tools: Read/Glob/Grep/LS only — no Bash, no Edit, model: `<detection_model — §2.1 Sonnet chain>`):
+→ Agent (subagent_type: "general-purpose", tools: Read/Glob/Grep only — no Bash, no Edit, model: `<detection_model — §2.1 Sonnet chain>`):
   "Given this implementation description: [paste the full implementation description from Phase 0 or Phase 1 here], find and return:
    - Relevant source files and their primary responsibility
    - Existing patterns and conventions used in this codebase
@@ -312,7 +312,7 @@ Before writing any file:
    - **Proceed**: note in the Phase 5 report that the working tree was dirty at implementation start.
    - **Cancel**: stop and summarize what was planned.
 
-2. **Detect naming convention** — check `git branch -a` for the project's branch prefix (`feat/`, `feature/`, `chore/`, `story/`, etc.). Default to `feat/` if ambiguous.
+2. **Resolve the branch prefix** — apply the ladder in `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` §1: `$GIT_USER_INITIALS` → `git config user.initials` → inferred from existing branches → this command's fallback `feat/`. Reaching the fallback triggers the mandatory §1.5 escalation before any branch is created.
 
 3. **Generate slug** — derive from the implementation description: lowercase, hyphens, max 40 chars, strip punctuation and special chars. Example: "Add user authentication to login page" → `add-user-authentication-login-page`.
 

@@ -5,7 +5,7 @@ tags:
 
 # `/epics` VI-level-spec requirement enrichment — design (v2.23.0)
 
-**Status:** approved-for-planning
+**Status:** Shipped in dev-workflows v2.23.0 — pre-implementation design snapshot, kept as authored.
 **Date:** 2026-07-12
 **Plugin:** dev-workflows (repo `/workspace/ihudak-claude-plugins`)
 **Version:** 2.22.0 → **2.23.0** (minor; feature, no new command/agent)

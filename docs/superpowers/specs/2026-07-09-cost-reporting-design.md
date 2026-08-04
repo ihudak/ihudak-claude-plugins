@@ -8,7 +8,7 @@ tags: tasks-exclude
 **Target release:** v2.10.0
 **Repo:** `/workspace/ihudak-claude-plugins`, plugin `dev-workflows`
 **Date:** 2026-07-09
-**Status:** approved (pending spec review)
+**Status:** Shipped in dev-workflows v2.10.0 — pre-implementation design snapshot, kept as authored.
 
 ---
 

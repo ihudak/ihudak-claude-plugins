@@ -20,7 +20,7 @@ runs a fix cycle and re-reviews once.
 ## Review method
 
 1. Read the VI end-to-end before judging.
-2. Verify frontmatter: `issue_type: ValueIncrement`; `jira_key` matches `^[A-Z][A-Z0-9_]*-\d+$`; the downstream-contract fields `relevant_for_release_notes` + `release_versions` present; `sources` carries real provenance (not the literal `idea.md` path). When present, `change_type` must be one of `Breaking change` / `New technology support` / `Bug fix` / `not applicable` (`MAJOR` if it is some other value); when `relevant_for_release_notes: yes` and `change_type` is absent, raise a `MINOR` (recommended, not required). `release_notes_category`, when present, is free text — no format check.
+2. Verify frontmatter: `issue_type: ValueIncrement`; `jira_key` matches `^[A-Z][A-Z0-9_]*-\d+$`; the downstream-contract field `relevant_for_release_notes` present; `sources` carries real provenance (not the literal `idea.md` path). `release_versions`, `change_type`, and `release_notes_category` are Jira-mirror fields per `${CLAUDE_PLUGIN_ROOT}/references/vi-format.md` — they are not authored in the VI, so their absence is NEVER a finding and their presence is not validated.
 3. Apply every spine rule from `${CLAUDE_PLUGIN_ROOT}/references/vi-format.md`; for each adapt-in section present, apply its rule.
 4. Apply the dimension checks below.
 5. Record each finding in the severity schema; route gaps needing product knowledge to **needs product input**; never fabricate a fix.

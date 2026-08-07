@@ -961,9 +961,40 @@ Insert at the top of the entries in `plugins/dev-workflows/CHANGELOG.md`, matchi
 - **One question survives, reframed.** A low-confidence *destination* inference is still confirmed — but only when the Jira dropdown is unset, and the options now name each choice's shape and destination file instead of the four opaque enum values.
 ```
 
-- [ ] **Step 6: Bump the version**
+- [ ] **Step 6: Bump the version and correct the marketplace description**
 
-In `plugins/dev-workflows/.claude-plugin/plugin.json`, change `"version": "2.41.0"` to `"version": "2.42.0"`.
+In `plugins/dev-workflows/.claude-plugin/plugin.json`:
+
+1. Change `"version": "2.41.0"` to `"version": "2.42.0"`.
+2. In the `description` field, replace this clause:
+
+```
+/release-notes classifies a Change Type (Breaking change / New technology support / Bug fix / not applicable), shapes the Summary per type, and sources the type from the imported/authored VI.
+```
+
+with:
+
+```
+/release-notes routes each note to its destination (breaking-changes / feature-updates / fixes), shapes the Summary per destination, and sources the {{#context}} label from the imported VI.
+```
+
+The old text advertises the authored-VI sourcing rung that Task 3 removed, and describes a Change Type label the draft no longer carries. This is the marketplace-facing blurb — the sentence someone reads when deciding whether to install.
+
+- [ ] **Step 6b: Fix the README subagent-table row for `release-notes-writer`**
+
+`plugins/dev-workflows/README.md` has a Sub-agents reference table whose `release-notes-writer` row still describes the old per-version, label-and-title-always behavior. Replace this cell text:
+
+```
+Renders the dynatrace-docs authored release-notes body for a Jira VI or ticket: a `{{#context}}` label, `### title`, and customer-facing prose — one entry per declared release version.
+```
+
+with:
+
+```
+Renders the dynatrace-docs authored release-notes body for a Jira VI or ticket — exactly ONE Summary per run, shaped by the destination it routes to: a `{{#context}}` label + `### title` + prose for `feature-updates` / `breaking-changes`, or one bare past-tense sentence for `fixes`.
+```
+
+The rest of the row (no Jira IDs, no PR links, no `{{#internal-note}}`, does not write files, used by `/release-notes`) is unchanged and correct.
 
 - [ ] **Step 7: Run the verification to confirm it passes**
 

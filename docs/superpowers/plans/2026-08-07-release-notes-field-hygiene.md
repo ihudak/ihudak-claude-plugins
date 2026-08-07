@@ -907,9 +907,19 @@ git commit -m "docs(dev-workflows): 2.42.0 — release-notes field hygiene"
 
 ---
 
-### Task 6: Port to `mgd-claude-plugins` (verbatim)
+### Task 6: Port to `mgd-claude-plugins` (copy the content files, hand-edit the identity files)
 
-`plugins/dev-workflows/` is byte-identical between the two Claude editions at 2.41.0 (verified with `diff -rq`), so this is a straight file copy plus its own version metadata.
+**The two Claude editions are identical in content but NOT byte-identical.** Five files carry edition identity and must never be blind-copied:
+
+| File | What differs |
+|---|---|
+| `.claude-plugin/plugin.json` | author `Dynatrace Managed` vs `Ivan Gudak`; `homepage` / `repository` point at `Dynatrace-Internal/mgd-claude-plugins` |
+| `README.md` | marketplace name `mgd-plugins` vs `ihudak-plugins`; AI-container repo `Dynatrace-Internal/mgd-ai-containers` |
+| `LICENSE` | copyright `Dynatrace LLC` vs `Ivan Gudak` |
+| `references/dependencies.md` | marketplace name `mgd-plugins` |
+| `CHANGELOG.md` | mgd entries carry "(ported from `ihudak-claude-plugins`)" annotations and edition-specific phrasing |
+
+`LICENSE` and `references/dependencies.md` are untouched by this change. The other three need **hand-edits that mirror the canonical content change while preserving mgd identity** — never `cp`.
 
 **Files:**
 - Modify in `/workspace/mgd-claude-plugins`: the eight plugin files changed in Tasks 1–5, plus `CLAUDE.md`, `CHANGELOG.md`, `.claude-plugin/plugin.json`
@@ -918,15 +928,19 @@ git commit -m "docs(dev-workflows): 2.42.0 — release-notes field hygiene"
 - Consumes: the finished canonical files from Tasks 1–5.
 - Produces: nothing later tasks depend on.
 
-- [ ] **Step 1: Confirm the two editions were identical before the change**
+- [ ] **Step 1: Confirm the drift is only the known identity set plus this change**
 
 ```bash
-cd /workspace/mgd-claude-plugins && git stash list && git status --short
-git -C /workspace/ihudak-claude-plugins stash list
+cd /workspace/mgd-claude-plugins && git status --short
 diff -rq /workspace/mgd-claude-plugins/plugins/dev-workflows \
          /workspace/ihudak-claude-plugins/plugins/dev-workflows
 ```
-Expected: the mgd tree is clean, and `diff -rq` reports differences ONLY in the files Tasks 1–5 touched. Any *other* difference means the editions had drifted — stop and report it rather than copying over it.
+Expected: the mgd tree is clean, and `diff -rq` reports differences ONLY in
+
+- the five known identity files (`.claude-plugin/plugin.json`, `README.md`, `LICENSE`, `references/dependencies.md`, `CHANGELOG.md`), **and**
+- the content files Tasks 1–4 touched (`references/vi-format.md`, `references/release-note-types.md`, `references/handoff/release-notes-writer.md`, `agents/release-notes-writer.md`, `agents/vi-reviewer.md`, `commands/create-vi.md`, `commands/release-notes.md`).
+
+Any *other* difference means the editions drifted in content — stop and report it rather than copying over it.
 
 - [ ] **Step 2: Create the branch**
 
@@ -935,7 +949,7 @@ cd /workspace/mgd-claude-plugins
 git checkout -b iv-gu/release-notes-field-hygiene
 ```
 
-- [ ] **Step 3: Copy the changed plugin files**
+- [ ] **Step 3: Copy the seven content files (safe — no identity in any of them)**
 
 ```bash
 cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
@@ -945,31 +959,39 @@ for f in references/vi-format.md \
          agents/release-notes-writer.md \
          agents/vi-reviewer.md \
          commands/create-vi.md \
-         commands/release-notes.md \
-         README.md \
-         CHANGELOG.md \
-         .claude-plugin/plugin.json; do
+         commands/release-notes.md; do
   cp "$f" "/workspace/mgd-claude-plugins/plugins/dev-workflows/$f"
 done
 ```
 
-- [ ] **Step 4: Apply the same `CLAUDE.md` edits**
+- [ ] **Step 4: Hand-edit the three identity-bearing files**
+
+Do **not** `cp` these. Apply the same content change while preserving mgd identity:
+
+1. **`plugins/dev-workflows/README.md`** — apply the Task 5 Step 3 replacements (the `/create-vi` row sentence and the two `/release-notes` row sentences). Leave every `mgd-plugins` / `mgd-ai-containers` reference untouched.
+2. **`plugins/dev-workflows/CHANGELOG.md`** — add the Task 5 Step 5 entry, but append `(ported from `ihudak-claude-plugins`)` to the first bullet's bolded lead, matching the annotation style of mgd's existing 2.40.0 / 2.41.0 entries.
+3. **`plugins/dev-workflows/.claude-plugin/plugin.json`** — change only `"version": "2.41.0"` → `"2.42.0"`. Leave `author`, `homepage`, and `repository` alone.
+
+- [ ] **Step 5: Apply the same `CLAUDE.md` edits**
 
 The mgd repo's root `CLAUDE.md` carries the same invariants. Apply the Task 5 Step 4 replacements to `/workspace/mgd-claude-plugins/CLAUDE.md`. Do **not** copy the canonical `CLAUDE.md` wholesale — it names the canonical repo and marketplace.
 
-- [ ] **Step 5: Verify**
+- [ ] **Step 6: Verify**
 
 ```bash
 diff -rq /workspace/mgd-claude-plugins/plugins/dev-workflows \
          /workspace/ihudak-claude-plugins/plugins/dev-workflows
 ```
-Expected: no output.
+Expected: differences in exactly the five known identity files and nothing else. In particular `commands/`, `agents/`, and `references/` (other than `dependencies.md`) must report no differences.
 
 ```bash
 cd /workspace/mgd-claude-plugins
 grep -n "change_type" CLAUDE.md | grep -v "Jira-mirror\|sourced .imported_change_type"
+grep -c "mgd-plugins" plugins/dev-workflows/README.md          # must stay > 0
+grep -n '"name": "Dynatrace Managed"' plugins/dev-workflows/.claude-plugin/plugin.json
+grep -n '"version": "2.42.0"' plugins/dev-workflows/.claude-plugin/plugin.json
 ```
-Expected: no output.
+Expected: the first returns nothing; the last three all match.
 
 - [ ] **Step 6: Commit**
 

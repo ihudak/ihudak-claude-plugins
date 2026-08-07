@@ -304,7 +304,7 @@ imported fields verbatim, which is exactly what the new design consumes.
 | Repo | Effort | Notes |
 |---|---|---|
 | `ihudak-claude-plugins` | canonical | Implement here first. |
-| `mgd-claude-plugins` | verbatim copy | `plugins/dev-workflows/` is byte-identical at 2.41.0 (verified with `diff -rq`). Copy the changed files; bump its own `plugin.json` + `CHANGELOG.md`. |
+| `mgd-claude-plugins` | copy + hand-edit | Content files are byte-identical at 2.41.0, but **five files carry edition identity** and must never be blind-copied: `.claude-plugin/plugin.json` (author `Dynatrace Managed`, `Dynatrace-Internal` URLs), `README.md` (`mgd-plugins` marketplace, `mgd-ai-containers`), `LICENSE` (`Dynatrace LLC`), `references/dependencies.md` (`mgd-plugins`), and `CHANGELOG.md` (entries annotated "(ported from `ihudak-claude-plugins`)"). Copy the seven content files; hand-edit `README.md`, `CHANGELOG.md`, and `plugin.json`. |
 | `ihudak-copilot-plugins` | adapted | Same content, different layout: commands are `dev-workflows/skills/<name>/SKILL.md` (triggered by a `<name>:` prefix, not `/<name>`) and references are `dev-workflows/skills/_shared/<ref>.md`. Rewrite `${CLAUDE_PLUGIN_ROOT}/references/…` paths to `~/.copilot/installed-plugins/ihudak-copilot-plugins/dev-workflows/skills/_shared/…`, and command mentions to the `name:` trigger form. Its `release-notes` skill carries the same line-for-line content (verified: worthiness check at `:102`, dispatch inputs at `:164-166`). |
 
 ## Verification

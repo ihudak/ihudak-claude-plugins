@@ -231,6 +231,11 @@ first match, in this order:
 Tie-breakers:
 - A change that both improves something and forces customer action → **Breaking change**.
 - A change that both corrects expected behavior and is delivered automatically → **Bug fix**.
+- **A change that deprecates anything is NEVER a `Bug fix`.** A deprecation forces customers to act
+  before its end-of-life date, so it is never a completed correction. It classifies as `Breaking
+  change` when the customer must act now, else `New technology support` when a new capability
+  supersedes the old one. **A deprecation therefore never routes to `fixes`** — which is what leaves
+  the §5 deprecation note room to live in a titled Summary.
 
 Emit the classification with a confidence signal. When confidence is low (the source supports two
 destinations roughly equally), record a `gaps[]` entry (`field: change_type`,
@@ -238,6 +243,10 @@ destinations roughly equally), record a `gaps[]` entry (`field: change_type`,
 **consequence** — the shape and the destination file — never by presenting the bare enum labels.
 
 ## 3. Draft shape per destination
+
+The **Summary** is the customer-facing body the PM pastes into the Jira release-notes field — the
+thing this file's rules shape. There is exactly one per run (§6). Its structure depends on the
+destination:
 
 ### `feature-updates.md` and `breaking-changes.md`
 
@@ -274,7 +283,14 @@ Fixed an issue where the **GET account audits** endpoint of the Account Manageme
 ### Feature update
 - Lead with **customer value**, present tense; mention a previous limitation only as a subordinate
   clause or a later sentence.
-- **Include a link to documentation or a blog post.**
+- **Link to documentation only on a dev-phase run.** `/release-notes` runs twice in a VI's life, and
+  the two runs have different link realities:
+  - **PM phase** — no `specification.md` and no `design.md` under the VI's specs dir. The feature is
+    not built and the documentation does not exist yet. **Omit the link entirely**; do not ask for one.
+  - **Dev phase** — either file is present (the same signal
+    `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` §7 uses to infer `phase`/`role`). The author
+    can supply a redirect short link that will later point at the page `/document` publishes.
+  **Never invent a URL** at either phase.
 - Editorial hierarchy — lead with the new or recommended path; demote a deprecated, legacy, or
   manual-only option to a trailing sentence or a `> Note:` line, never an equal peer.
 - Enumeration or comparison → a short intro sentence + a bulleted list, **bolding** each option's name.
@@ -294,7 +310,8 @@ Fixed an issue where the **GET account audits** endpoint of the Account Manageme
 
 ## 5. Deprecation note (orthogonal to the destination)
 
-Any destination may also carry a deprecation note. This is independent of the Change Type — a
+A deprecating change is never a `Bug fix` (§2's third tie-breaker), so it always lands in a **titled**
+destination and the note always has room. Which titled destination is independent: a
 `New technology support` note can announce that a new capability deprecates an old one, and a
 `Breaking change` may itself be a deprecation.
 
@@ -415,9 +432,18 @@ jira_reader_handoff: <full YAML from jira-reader>
 diff_summaries:      <optional array of diff-summarizer outputs; omit when diff-grounding is off>
 imported_change_type:            <change_type from the imported VI frontmatter (jira-reader handoff); null otherwise>
 imported_release_notes_category: <release_notes_category from the imported VI frontmatter; null otherwise>
+run_phase:           <pm | dev — which of the two /release-notes runs this is; gates the §4 documentation-link rule>
 model_routing:       <standard block>
 code_repos:          <optional array of {slug, path}; provided when diff-grounding is on>
 docs_grounding:      <optional docs-grounder digest (docs_references + docs_challenges); omit when docs grounding was OFF/EMPTY>
+```
+
+Add this sentence to the `## Inputs` prose, immediately after the block:
+
+```
+`run_phase` distinguishes the PM-phase run (the feature is not built and no documentation exists) from
+the dev-phase run (implementation and docs are underway). It gates only the §4 documentation-link rule
+for the `feature-updates` destination; nothing else reads it.
 ```
 
 - [ ] **Step 5: Edit `agents/release-notes-writer.md` — Process steps 1, 2, 5, 6, 7**
@@ -525,6 +551,7 @@ Replace lines 9-15 with:
 ```yaml
 imported_change_type:            <change_type from the imported VI frontmatter (jira-reader handoff); null otherwise>
 imported_release_notes_category: <release_notes_category from the imported VI frontmatter; null otherwise — used verbatim as the {{#context}} label>
+run_phase:                       <"pm" | "dev" — inferred by the command from whether specification.md / design.md exist under the VI's specs dir; gates the release-note-types.md §4 documentation-link rule only>
 ```
 
 Replace line 27 with:
@@ -677,9 +704,28 @@ Replace the dispatch prompt's input lines with:
   > docs_grounding:      [the Phase 5.5 digest, or omit when OFF/EMPTY]
   > imported_change_type:            [from Phase 3, else null]
   > imported_release_notes_category: [from Phase 3, else null]
+  > run_phase:           [pm | dev — resolved in Phase 3, see below]
   > model_routing:       [the block from Phase 1.5]
   > code_repos:          [the Phase-4 resolved {slug, path} map when diff grounding is on; omit otherwise]
 ```
+
+Then add this paragraph immediately before the dispatch block, so `run_phase` is resolved before it is passed:
+
+````
+**Resolve `run_phase`.** `/release-notes` runs at two points in a VI's life, and the
+`release-note-types.md` §4 documentation-link rule depends on which. Reuse the existing signal from
+`${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` §7 — glob the VI's specs dir
+(`$SPECS_PATH/specifications/<jira_key>-*/`) for `specification.md` and `design.md`:
+
+- **neither present** → `run_phase: pm`. The feature is not built and its documentation does not
+  exist yet, so the note carries no documentation link and the command never asks for one.
+- **either present** → `run_phase: dev`. The author may supply a redirect short link that will later
+  point at the page `/document` publishes.
+- **`$SPECS_PATH` unset or the dir missing** → `run_phase: pm` (the safe default — it only suppresses
+  a link, never fabricates one).
+
+This is the same inference `emit-cost` already applies in Phase 11; do not add a question for it.
+````
 
 - [ ] **Step 6: Replace the `change_type` gap prompt with the consequence-framed confirmation**
 

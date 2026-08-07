@@ -109,7 +109,7 @@ in their prompt; they do not re-read the file.
 
 `plugins/dev-workflows/references/source-truth.md` is the **single source of truth** for the Implementation-vs-Description discrepancy-escalation protocol. It is consulted by `doc-planner`, `doc-reviewer`, and `release-notes-writer` to verify user-visible claims (option lists, UI labels, menu paths, defaults, counts, mode names) against the shipped source code, and defines the escalation protocol when Jira and source disagree (Phase 5.8 in `/document` (Jira mode)).
 
-`plugins/dev-workflows/references/release-note-types.md` is the **single source of truth** for the release-note Change Type taxonomy (`Breaking change` / `New technology support` / `Bug fix` / `not applicable`), the classification order, the per-type Summary shaping rules, and the deprecation-note rule (end-of-life date required, end-of-support optional). It is consulted by `release-notes-writer`; the `/release-notes` command applies its decisions through the writer's gaps.
+`plugins/dev-workflows/references/release-note-types.md` is the **single source of truth** for the release-note **destination map** (`breaking-changes.md` / `feature-updates.md` / `fixes.md`), the per-destination **draft shape** (label + title + prose, vs one bare sentence for `fixes`), the per-destination prose rules, the deprecation-note rule (end-of-life date required, end-of-support optional), and Change Type sourcing (import → infer). It is consulted by `release-notes-writer`; the Change Type is never rendered as text.
 
 `plugins/dev-workflows/references/docs-grounding.md` is the **single source of truth** for `$DOCS_PATH` documentation grounding — the resolution gate (`${DOCS_PATH:-/workspace/docs}`, read-only, silent-skip), the `resolve-docs-grounding` procedure, and the grill-rank / writer-attach consumption modes; consumed by the seven authoring commands (`/idea`, `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/epics`, `/release-notes`) — not `/document`.
 
@@ -125,7 +125,7 @@ in their prompt; they do not re-read the file.
 /docs-profile        → scans docs repo → writes/refreshes .dev-workflows/docs-profile.yml + CLAUDE.md guidance → PR
 /document (Jira)     → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [counterpart-finder (space-constrained runs)] → [doc-planner] → [discrepancy-escalation (Phase 5.8)] → writing → [docs-style-checker → dt-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [doc-fixer] → impl-maintenance   (Phase 0 hint: prefers ${DOCS_PATH:-/workspace/docs} as a docs-repo discovery hint — write-target only, no docs-grounder consumption)
 /epics               → jira-reader → [code-scanner×N (parallel, optional)] → [docs-grounder] → writing → [dt-style-checker] → [doc-fixer] → [epic-reviewer@Opus] → [doc-fixer] → impl-maintenance
-/release-notes       → jira-reader → [diff-summarizer×N (parallel, optional)] → [docs-grounder] → [release-notes-writer: classify Change Type + shape per type + detect deprecation] → [dt-style-checker → dt-doc-fixer (optional)] → write draft (Change type: line + Summary; paste into Jira)
+/release-notes       → jira-reader → [diff-summarizer×N (parallel, optional)] → [docs-grounder] → [release-notes-writer: resolve destination + shape per destination + source the {{#context}} label + detect deprecation] → [dt-style-checker → dt-doc-fixer (optional)] → write draft (destination-shaped Summary; paste into Jira)
 /vuln                → vuln-research → vuln-fixer → [code-review@Opus] → review-fixer → tests → impl-maintenance
 /upgrade             → upgrade-planner → upgrade-executor → [code-review@Opus] → review-fixer → tests → impl-maintenance
 /idea                → idea-reader → [docs-grounder (when $DOCS_PATH valid)] → (embedded grilling) → write idea.md
@@ -210,10 +210,10 @@ Key invariants for `/release-notes`:
 
 - **Zero direct API calls** — PR URLs are identifiers only; the agent never calls a REST API directly over HTTPS. Opt-in diff grounding reuses `diff-summarizer` (GitHub may use the `gh` CLI, which wraps the API — allowed; Bitbucket is pure local `git`); all resolution runs against clones under `$REPOS_PATH`
 - `jira-reader` is read-only
-- The draft is the **authored body only** — a `{{#context}}` label, `### title`, and customer-facing prose; NEVER a Jira ID/key, a PR link, or a `{{#internal-note}}` block (the docs automation adds the metadata wrapper)
-- The draft LEADS with a `Change type:` line — one of `Breaking change` / `New technology support` / `Bug fix` / `not applicable` — classified by `release-notes-writer` via `references/release-note-types.md`; the label never appears inside the Summary body
-- Change Type + `release_notes_category` are **sourced** — `change_type_hint` → imported VI frontmatter (surfaced by `jira-reader`) → authored specs-draft VI (secondary grounding per `references/vi-source-resolution.md` §5) → infer; import wins over authored on divergence (non-blocking). `release_notes_category` is surfaced only, never the `{{#context}}` label. Deprecation stays prose in the Summary (no frontmatter field)
-- The Summary is shaped per the Change Type (breaking → benefit-led + action plan; bug fix → past-tense, no hedging, no internal terms; new-tech → benefit-led editorial shaping); no title or Summary prose names the release version
+- The draft is the **authored body only** — for a titled destination a `{{#context}}` label, `### title`, and customer-facing prose; for `fixes` ONE bare past-tense sentence. NEVER a Jira ID/key, a PR link, a `Change type:` line, or a `{{#internal-note}}` block (the docs automation adds the metadata wrapper)
+- The `{{#context}}` label IS the imported `release_notes_category`, used verbatim; absent ⇒ the line is omitted. Change Type is sourced `imported_change_type` → infer, drives destination + shape only, and is confirmed with the user only on a low-confidence inference — by shape and destination, never by enum label
+- The Summary is shaped per its destination (breaking → present tense, what breaks, remediation; feature update → benefit-led + a docs/blog link; fixes → one past-tense sentence, no hedging, no internal terms); exactly ONE Summary per run, and no title or prose names the release version
+- The run is gated on the imported `relevant_for_release_notes` — an explicit `false` stops with `RELEASE_NOTES_NOT_RELEVANT` (overridable); absent proceeds silently
 - A deprecation carries a deprecation note in the Summary — end-of-life date (required) + end-of-support date (optional); a missing required date becomes a `deprecation_eol` gap the command asks about (never invented)
 - NEVER writes into a docs repo; the default destination is persistent (never `/tmp`)
 - Light gate only — `dt-style-checker` (optional, skipped if `dt-style-guide` absent); no Opus review, no tests, no branch, no commit
@@ -227,7 +227,7 @@ Key invariants for the VI-creation flow (`/idea`, `/create-vi`, `/create-ard`, `
 - `/create-ard` grounds on mounted repos it discovers (`$REPOS_PATH` listing + theme→repo proposal + confirm/mount-or-descope); it never reads PRs
 - `/ready` is **read-only** — it verifies the Jira status against the ARD/spec/design and never sets status
 - `/design`, `/implement`, `/specify`, `/epics` respect the applicable ARD via `references/ard-resolution.md`; an `AD-N` Rule violated without a recorded "ARD deviation" is a reviewer BLOCKER
-- `/create-vi` captures optional `change_type` + `release_notes_category` VI frontmatter (release-notes-relevant VIs only); `vi-reviewer` validates `change_type` ∈ the four values (MAJOR if malformed; MINOR if missing when relevant). These feed the `/release-notes` sourcing ladder
+- `/create-vi` does NOT capture `release_versions` / `change_type` / `release_notes_category` — they are Jira-mirror fields per `references/vi-format.md`, set as Jira dropdowns and returned by the importer; `vi-reviewer` neither requires nor validates them
 
 Key invariants for `$DOCS_PATH` docs grounding:
 

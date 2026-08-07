@@ -738,7 +738,7 @@ Replace the dispatch prompt's input lines with:
   > docs_grounding:      [the Phase 5.5 digest, or omit when OFF/EMPTY]
   > imported_change_type:            [from Phase 3, else null]
   > imported_release_notes_category: [from Phase 3, else null]
-  > run_phase:           [pm | dev — resolved in Phase 3, see below]
+  > run_phase:           [pm | dev — resolved immediately above, in this phase]
   > model_routing:       [the block from Phase 1.5]
   > code_repos:          [the Phase-4 resolved {slug, path} map when diff grounding is on; omit otherwise]
 ```

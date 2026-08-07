@@ -876,7 +876,7 @@ destination file instead of the opaque Jira enum values."
 ```bash
 cd /workspace/ihudak-claude-plugins
 grep -n '"version": "2.42.0"' plugins/dev-workflows/.claude-plugin/plugin.json
-grep -n "2.42.0" plugins/dev-workflows/CHANGELOG.md
+grep -n "^## \\[2.42.0\\]" plugins/dev-workflows/CHANGELOG.md
 grep -c "change_type" CLAUDE.md   # expect 0 when done
 ```
 
@@ -970,7 +970,7 @@ In `plugins/dev-workflows/.claude-plugin/plugin.json`, change `"version": "2.41.
 ```bash
 cd /workspace/ihudak-claude-plugins
 grep -n '"version": "2.42.0"' plugins/dev-workflows/.claude-plugin/plugin.json
-grep -n "^## 2.42.0" plugins/dev-workflows/CHANGELOG.md
+grep -n "^## \\[2.42.0\\]" plugins/dev-workflows/CHANGELOG.md
 grep -n "change_type" CLAUDE.md | grep -v "Jira-mirror\|sourced .imported_change_type"
 ```
 Expected: the first two match; the third returns no output.

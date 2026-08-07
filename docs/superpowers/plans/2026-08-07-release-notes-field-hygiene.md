@@ -438,12 +438,17 @@ code_repos:          <optional array of {slug, path}; provided when diff-groundi
 docs_grounding:      <optional docs-grounder digest (docs_references + docs_challenges); omit when docs grounding was OFF/EMPTY>
 ```
 
-Add this sentence to the `## Inputs` prose, immediately after the block:
+Add this paragraph to the `## Inputs` prose, immediately after the block:
 
 ```
 `run_phase` distinguishes the PM-phase run (the feature is not built and no documentation exists) from
 the dev-phase run (implementation and docs are underway). It gates only the §4 documentation-link rule
-for the `feature-updates` destination; nothing else reads it.
+for the `feature-updates` destination; nothing else reads it. **It arrives pre-resolved — trust it.**
+`release-note-types.md` §4 states the condition concretely ("no `specification.md` and no `design.md`
+under the VI's specs dir") because it was written before this field existed, but you have no knowledge
+of `$SPECS_PATH` or the VI's specs dir, so NEVER glob or otherwise check the filesystem for those
+files. The command resolves the phase and hands it to you; a self-check would silently produce the
+wrong answer.
 ```
 
 - [ ] **Step 5: Edit `agents/release-notes-writer.md` — Process steps 1, 2, 5, 6, 7**
@@ -602,10 +607,39 @@ Replace the `PARTIAL` status-table row with:
 | `PARTIAL` | Draft rendered but at least one gap needs the user (low-confidence destination, missing end-of-life date, or an unverifiable claim). |
 ```
 
+- [ ] **Step 9b: Repair staleness Task 2's renumbering and this task's flattening created**
+
+Four repairs to text the earlier steps leave behind. All four are in the two files this task already owns.
+
+1. **Three stale section citations in `agents/release-notes-writer.md`.** Task 2 renumbered `release-note-types.md`, so citations written against the old numbering now point at the wrong sections. Repair each in place:
+   - the Bug-fix rules citation — `§3 Bug fix rules` → `§4 Fixes rules`
+   - the Breaking-change rules citation — `§3 Breaking change rules` → `§4 Breaking change rules`
+   - the release-version rule — `Never name the release version in the prose (§5)` → `(§6)`
+
+   Then audit **every** remaining `§N` in both files against the actual headings of `plugins/dev-workflows/references/release-note-types.md` (§1 destination map, §2 classification order, §3 draft shape, §4 prose rules, §5 deprecation, §6 general rules, §7 sourcing) and repair any other mismatch.
+
+2. **Dead `rendered` field name.** In the agent's Hard rules, the Jira-ID prohibition lists `context_label`, `feature_title`, `prose`, or `rendered`. The per-entry `rendered` field no longer exists — Step 9 flattened the schema to `combined_rendered`. Change that one name.
+
+3. **Stale `entries` wording in the handoff status table.** The `OK` row reads "Draft rendered; every entry has a confident context label and prose." Replace with: `Draft rendered; the Summary has its prose and, when the import supplied one, its context label.`
+
+4. **Missing `docs_grounding` in the handoff Input block.** The agent lists `docs_grounding` as an input but the handoff contract never did. Add it to the contract's Input block so the two files agree:
+
+```yaml
+docs_grounding:      <optional docs-grounder digest (docs_references + docs_challenges); omit when docs grounding was OFF/EMPTY>
+```
+
 - [ ] **Step 10: Run the verification to confirm it passes**
 
-Run the four greps from Step 1.
-Expected: the first three return no output; the `destination` grep matches.
+Run the four greps from Step 1, then the staleness checks:
+
+```bash
+cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
+grep -n '§3 Bug fix\|§3 Breaking change\|release version in the prose (§5)' agents/release-notes-writer.md   # expect none
+grep -n 'or `rendered`' agents/release-notes-writer.md                                                       # expect none
+grep -n 'every entry' references/handoff/release-notes-writer.md                                             # expect none
+grep -n 'docs_grounding' references/handoff/release-notes-writer.md                                          # expect 1
+```
+Expected: the first three return no output; the `destination` grep matches; and of the staleness checks the first three are empty and the last matches once.
 
 - [ ] **Step 11: Commit**
 

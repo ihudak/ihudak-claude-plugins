@@ -1,133 +1,156 @@
-# Release-note types — source of truth
+# Release-note destinations & shapes — source of truth
 
-Consulted by `release-notes-writer` to classify a Jira release note and shape its
-Summary. This file is the single authority for the Change Type taxonomy, the
-classification order, the per-type Summary shaping rules, and the deprecation-note
-rule. The `/release-notes` command never re-reads this file; the agent applies it and
-returns a proposed `change_type` plus any gaps.
+Consulted by `release-notes-writer` to decide **where a release note lands and what shape it must
+take**. This file is the single authority for the destination map, the per-destination draft shape,
+the per-destination prose rules, the deprecation-note rule, and Change Type sourcing. The
+`/release-notes` command never re-reads this file; the agent applies it and returns a proposed
+destination plus any gaps.
 
-## 1. Change Type taxonomy
+The Change Type is a **Jira dropdown the PM sets on the ticket**. It is never written into the draft
+and never collected as a field — the agent resolves it only to pick the destination and the shape.
 
-Every release note carries exactly one **Change Type** — a Jira dropdown value the PM
-sets. The four values:
+## 1. The destination map
 
-1. **Breaking change** — removes or alters existing behavior so customers must act to
-   avoid disruption; usually announced before it ships.
-2. **Bug fix** — a completed correction (bug fix, vulnerability fix, patch, or routine
-   maintenance) that restores intended behavior.
-3. **New technology support** — the release-note-worthy catch-all: adds or enhances a
-   capability, or adds new integration / region / technology / platform support, while
-   staying compatible with previous releases.
-4. **not applicable** — the change is not release-note-worthy. Corresponds to the
-   command's worthiness check (`relevant_for_release_notes != "Yes"`); a note is
-   normally not authored for this value.
+The Jira release-notes automation routes each note into one of three generated snippet files under
+`<space>/_snippets/release-notes/<product>/<sprint>/`. The Change Type selects the file:
+
+| Jira Change Type | Destination | Draft shape |
+|---|---|---|
+| `Breaking change` | `breaking-changes.md` | `{{#context}}` label + `### title` + prose |
+| `New technology support` | `feature-updates.md` | `{{#context}}` label + `### title` + prose |
+| `Bug fix` | `fixes.md` | one self-contained sentence — **no label, no title** |
+| `not applicable` | — | no note is authored; the command's Phase 2 gate stops the run |
+
+`spotlight.md` also exists in the generated output, but it is curated by the docs team — a Value
+Increment never routes there.
 
 ## 2. Classification order
 
-Determine the type by the nature of the change, not how the source frames it. Take the
-first type that matches, in this order:
+Determine the destination by the nature of the change, not by how the source frames it. Take the
+first match, in this order:
 
 1. **Breaking change** — the change forces customers to act to avoid disruption.
 2. **Bug fix** — the change is a completed correction restoring intended behavior.
-3. **New technology support** — anything else that adds or enhances a capability.
+3. **New technology support** — anything else that adds or enhances a capability. **For a Value
+   Increment this is the overwhelmingly common case**; do not reach for `Bug fix` because a VI
+   mentions fixing something.
 
 Tie-breakers:
 - A change that both improves something and forces customer action → **Breaking change**.
 - A change that both corrects expected behavior and is delivered automatically → **Bug fix**.
 
-Emit the classification with a confidence signal. When confidence is low (the source
-supports two types roughly equally), record a `gaps[]` entry (`field: change_type`,
-`recommended_action: "ask user"`) carrying the proposed value.
+Emit the classification with a confidence signal. When confidence is low (the source supports two
+destinations roughly equally), record a `gaps[]` entry (`field: change_type`,
+`recommended_action: "ask user"`) carrying the proposed value. The command confirms it by
+**consequence** — the shape and the destination file — never by presenting the bare enum labels.
 
-## 3. Per-type Summary shaping
+## 3. Draft shape per destination
 
-Apply the shaping rules for the classified type together with the general rules in §5.
+### `feature-updates.md` and `breaking-changes.md`
+
+Render exactly:
+
+```handlebars
+{{#context}}<Solution | Capability>{{/context}}
+
+### <feature title>
+
+<prose>
+```
+
+Omit the `{{#context}}` line entirely when no Solution label is available (§7).
+
+### `fixes.md`
+
+Render **one self-contained sentence** — no `{{#context}}` line, no `###` title, and no Jira key (the
+automation appends the key when it publishes). A shipped entry looks like:
+
+```markdown
+Fixed an issue where the **GET account audits** endpoint of the Account Management API would return a `500` error instead of a `504` error in case of a timeout.
+```
+
+## 4. Prose rules per destination
 
 ### Breaking change
-- Lead with the customer benefit, not what breaks.
-- State what changes or improves, and what will break or behave differently.
-- Include an **Action plan** — the specific steps the customer must take — whenever the
-  customer must act; omit it only when no action is needed.
-- Voice: write "you"/"your"; start with verbs ("Visualize…", "Streamline…").
+- **Present tense.** State plainly what is breaking — the reader is scanning for impact, so do not
+  bury it behind a benefit statement.
+- **Include directions or a link to remediate** (the Action plan). Mandatory whenever the customer
+  must act; omit only when no action is needed.
+- Voice: write "you"/"your"; start with verbs.
 
-### Bug fix
-- Past tense; lead with the resolution, not the problem.
-- Describe the symptom and resolution in plain language the reader can match against
-  their own problem; add further detail only if the customer needs it.
-- Include the conditions necessary for the problem to occur (what action, what
-  environment, what input).
-- **No hedging** (`could`, `sometimes`, `might`) — except when describing a potential
-  security exposure, which must not be stated as fact.
-- **No jargon or code** — no internal jargon, variable names, or code references.
-  Customer-facing API details (endpoints, status codes, response shapes) are fine.
-- **No internal workflow terms** — never mention `ported from`, `merged from`, or
-  `backported`.
-
-### New technology support
-Use the benefit-led editorial shaping (the writer's default):
-- Lead with the customer value; mention any previous limitation only as a subordinate
+### Feature update
+- Lead with **customer value**, present tense; mention a previous limitation only as a subordinate
   clause or a later sentence.
-- Editorial hierarchy — lead with the new/recommended path; demote deprecated or legacy
-  options to a trailing sentence or a `> Note:` line.
-- Enumeration/comparison → a short intro sentence + a bulleted list, bolding each
-  option's name.
-- Bold UI element / screen / field names; inline `code` for filenames, identifiers,
-  flags, and config keys.
+- **Include a link to documentation or a blog post.**
+- Editorial hierarchy — lead with the new or recommended path; demote a deprecated, legacy, or
+  manual-only option to a trailing sentence or a `> Note:` line, never an equal peer.
+- Enumeration or comparison → a short intro sentence + a bulleted list, **bolding** each option's name.
+- **Bold** UI element / screen / field names; inline `code` for filenames, identifiers, flags, and
+  config keys.
 - State the concrete benefit, not hedged prose.
 
-## 4. Deprecation note (orthogonal to Change Type)
+### Fixes
+- **Past tense**, one sentence: symptom + resolution.
+- Include the conditions necessary for the problem to occur when they fit the sentence (what action,
+  what environment, what input).
+- **No hedging** (`could`, `sometimes`, `might`) — except when describing a potential security
+  exposure, which must not be stated as fact.
+- **No internal jargon, variable names, or code references.** Customer-facing API details (endpoints,
+  status codes, response shapes) are fine.
+- **No internal workflow terms** — never `ported from`, `merged from`, or `backported`.
 
-Any Change Type may also carry a deprecation note. This is independent of the type — a
-`New technology support` note can announce that a new capability deprecates an old one,
-and a `Breaking change` may itself be a deprecation.
+## 5. Deprecation note (orthogonal to the destination)
+
+Any destination may also carry a deprecation note. This is independent of the Change Type — a
+`New technology support` note can announce that a new capability deprecates an old one, and a
+`Breaking change` may itself be a deprecation.
 
 **Trigger** — one or more of:
 - The VI deprecates a capability, or a new capability supersedes/deprecates an old one.
 - The whole VI is a deprecation.
-- The `change_type_hint` mentions deprecation (e.g. "new feature + deprecation").
 
-**When triggered**, the Summary carries a **deprecation note** — a trailing `> Note:`
-line or a short labeled sentence — stating:
+**When triggered**, the Summary carries a **deprecation note** — a trailing `> Note:` line or a short
+labeled sentence — stating:
 - what is deprecated,
 - the **end-of-life date** — **required**,
 - the **end-of-support date** — optional.
 
-**Dates** — never invent them. Derive a date from the source only when the source
-states it. If a required end-of-life date is not available (or a deprecation-signaling
-`change_type_hint` leaves the dates unclear), record a `gaps[]` entry
-(`field: deprecation_eol`, `recommended_action: "ask user"`) and place a
-`<!-- TODO: end-of-life date -->` placeholder in the draft prose. Format dates per the
-dt-style-guide (e.g. `November 30, 2026`).
+**Dates** — never invent them. Derive a date from the source only when the source states it. If a
+required end-of-life date is not available, record a `gaps[]` entry (`field: deprecation_eol`,
+`recommended_action: "ask user"`) and place a `<!-- TODO: end-of-life date -->` placeholder in the
+draft prose. Format dates per the dt-style-guide (e.g. `November 30, 2026`).
 
-## 5. General rules (all types)
+Not every VI deprecates something. Raise this only on the trigger above, and ask only for what the VI
+does not already state.
 
-- **No release version in the title or Summary.** The release version is a separate
-  Jira field the PM sets manually from the epics'/VI's fixVersions, and it is obvious to
-  customers. Never write "Starting with version 1.305…", "in 344", etc. The writer still
-  emits one Summary block per declared release version, but the prose never names the
-  version.
+## 6. General rules (all destinations)
+
+- **No release version anywhere, and exactly one Summary.** The release version is a separate Jira
+  field the PM sets, and it is obvious to customers. Never write "Starting with version 1.305…", "in
+  344", etc. Emit **one** Summary for the note — never one block per declared release version.
+- **The Change Type never appears as text in the draft.** It selects the destination and the shape;
+  the PM sets the dropdown in Jira.
 - Translate the technical change into customer-value language (product and UI terms).
 - Assert only what the source supports; preserve the facts the source supports.
-- The Change Type label appears **only** on the draft's separate `Change type:` line —
-  **never** inside the pipeline-consumed Summary body.
-- These rules complement, and do not duplicate, the dt-style-guide checks run in the
-  command's style-gate phase.
+- These rules complement, and do not duplicate, the dt-style-guide checks run in the command's
+  style-gate phase.
 
-## 6. Sourcing the Change Type
+## 7. Sourcing the Change Type and the `{{#context}}` label
 
-`change_type` is **sourced**, not just inferred. Resolve it by this precedence — the first
-source that supplies a value wins (no merging):
+**Change Type — two rungs:**
 
-1. **`change_type_hint`** — an explicit value the user/command passed. Always wins.
-2. **Imported VI frontmatter** — `change_type` from the re-imported Jira VI (surfaced by
-   `jira-reader`). This is the Jira field of record for a note already authored in Jira
-   (the dev-phase run).
-3. **Authored specs-draft VI** — `change_type` from `$SPECS_PATH/.../<KEY>_<slug>.md`, read
-   as **secondary grounding** per `${CLAUDE_PLUGIN_ROOT}/references/vi-source-resolution.md`
-   §5 (never authoritative over the Jira import). Covers the PM-phase run, before the Jira
-   dropdown is set.
-4. **Infer** — classify from content per §1–§2 (the last resort).
+1. **Imported VI frontmatter** — `change_type` from the re-imported Jira VI (surfaced by
+   `jira-reader`). Authoritative: when present, no confirmation prompt fires.
+2. **Infer** — classify per §2. When confidence is low, record the `field: change_type` gap so the
+   command can confirm the shape.
 
-When both the imported and authored sources are present and **differ**, the imported value
-wins and the caller records a non-blocking divergence note. `release_notes_category` follows
-the same ladder minus the hint (imported → authored → none) and is surfaced, never inferred.
+**`{{#context}}` label — one rung.** It is the Dynatrace Solution taxonomy (e.g. `Platform`,
+`Application Observability | Distributed Tracing`, `Infrastructure Observability | Kubernetes`) and it
+is exactly the VI's `release_notes_category`:
+
+1. **Imported VI frontmatter** — `release_notes_category` from the re-imported Jira VI. Use it
+   verbatim as the label.
+2. **Absent → omit the `{{#context}}` line.** Never infer it, never guess it, never ask for it.
+
+Both are Jira dropdowns the PM sets on the ticket; neither is authored in the VI (see
+`${CLAUDE_PLUGIN_ROOT}/references/vi-format.md`).

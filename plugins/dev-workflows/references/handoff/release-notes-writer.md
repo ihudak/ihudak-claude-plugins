@@ -18,6 +18,7 @@ model_routing:
   implementation_model: <model name>
   opus_available: true | false
   gate_tests_on_review: false
+docs_grounding:      <optional docs-grounder digest (docs_references + docs_challenges); omit when docs grounding was OFF/EMPTY>
 ```
 
 Refuse to run without `jira_reader_handoff`. Emit exactly one Summary per run.
@@ -60,5 +61,5 @@ gaps:
 
 | Status    | Meaning                                                              |
 |-----------|---------------------------------------------------------------------|
-| `OK`      | Draft rendered; every entry has a confident context label and prose.|
+| `OK`      | Draft rendered; the Summary has its prose and, when the import supplied one, its context label.|
 | `PARTIAL` | Draft rendered but at least one gap needs the user (low-confidence destination, missing end-of-life date, or an unverifiable claim). |

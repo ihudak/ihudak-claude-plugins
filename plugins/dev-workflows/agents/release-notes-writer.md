@@ -27,7 +27,12 @@ docs_grounding:      <optional docs-grounder digest (docs_references + docs_chal
 
 `run_phase` distinguishes the PM-phase run (the feature is not built and no documentation exists) from
 the dev-phase run (implementation and docs are underway). It gates only the §4 documentation-link rule
-for the `feature-updates` destination; nothing else reads it.
+for the `feature-updates` destination; nothing else reads it. **It arrives pre-resolved — trust it.**
+`release-note-types.md` §4 states the condition concretely ("no `specification.md` and no `design.md`
+under the VI's specs dir") because it was written before this field existed, but you have no knowledge
+of `$SPECS_PATH` or the VI's specs dir, so NEVER glob or otherwise check the filesystem for those
+files. The command resolves the phase and hands it to you; a self-check would silently produce the
+wrong answer.
 
 Refuse to run without `jira_reader_handoff`.
 
@@ -74,15 +79,15 @@ When `docs_grounding` is present, use its `docs_references` for terminology and 
      leading "New feature:", no trailing period.
    - **Body** — customer-facing content shaped by the destination per
      `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §4. For a **Bug fix**, use
-     the §3 Bug fix rules (past tense, lead with the resolution, include triggering
+     the §4 Fixes rules (past tense, lead with the resolution, include triggering
      conditions, no hedging, no jargon/code, no internal workflow terms). For a
-     **Breaking change**, use the §3 Breaking change rules (lead with the benefit, state
+     **Breaking change**, use the §4 Breaking change rules (lead with the benefit, state
      what changes and what breaks, add an **Action plan** when the customer must act).
      For **New technology support**, use the benefit-led editorial shaping below. When a
      deprecation was detected (Process step 3), append the deprecation note (what is
      deprecated + end-of-life date, optional end-of-support date, or the `<!-- TODO:
      end-of-life date -->` placeholder). Never name the release version in the prose
-     (§5). Choose the New-technology-support shape from the content:
+     (§6). Choose the New-technology-support shape from the content:
      - **Default: a 2–4 sentence prose paragraph.** This fits most entries (a single
        capability, an upgrade, a behavioural change) and matches the bulk of shipped
        dynatrace-docs feature-updates. Prefer prose unless a structure below clearly
@@ -154,7 +159,7 @@ Return YAML exactly as defined in `${CLAUDE_PLUGIN_ROOT}/references/handoff/rele
   gap and use the `<!-- TODO: end-of-life date -->` placeholder instead.
 - NEVER write or modify files. This agent renders; the command writes.
 - NEVER include a Jira ID/key (e.g. `PRODUCT-14902`, `[[KEY]]`, or a browse URL)
-  anywhere in `context_label`, `feature_title`, `prose`, or `rendered`. The draft is
+  anywhere in `context_label`, `feature_title`, `prose`, or `combined_rendered`. The draft is
   pasted into the ticket's Jira release-notes field; the automation associates the ID.
 - NEVER include a Bitbucket/GitHub/GitLab PR URL or PR number in any output field.
   Release notes are customer-facing.

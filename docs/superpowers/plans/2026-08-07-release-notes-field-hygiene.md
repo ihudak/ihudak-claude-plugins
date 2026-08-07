@@ -176,7 +176,7 @@ and vi-reviewer stops requiring and validating them."
 ```bash
 cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
 # Must ALL be present once the task is done:
-grep -c "feature-updates.md" references/release-note-types.md   # expect >= 3
+grep -c "feature-updates.md" references/release-note-types.md   # expect exactly 2 (the §1 map row + the §3 shape heading)
 grep -n "^## 7. Sourcing the Change Type" references/release-note-types.md
 grep -n "no label, no title" references/release-note-types.md
 # Must be ABSENT once done:
@@ -186,7 +186,7 @@ grep -n "Authored specs-draft VI" references/release-note-types.md
 
 - [ ] **Step 2: Run it to verify it currently fails**
 
-Expected: the first three return no matches / `0`; the last two DO match (`:87`, `:97`, `:121`, `:125`). That is the "red" state.
+Expected: the first three return `0` / no matches; the last two DO match (`:87`, `:97`, `:121`, `:125`). That is the "red" state.
 
 - [ ] **Step 3: Replace the whole file with this content**
 

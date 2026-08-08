@@ -33,6 +33,15 @@ commands:
   lint: "pnpm dynatrace:lint"
   format: "pnpm prettier -w"
   commit_hook: "husky pre-commit -> lint-staged -> pnpm prettier -w"
+  per_space:                          # optional; keyed by space id from spaces[]
+    saas:
+      lint: "pnpm dynatrace:lint"
+      build: "pnpm dynatrace:build"
+      format: "pnpm dynatrace:format"
+    managed:
+      lint: "pnpm managed:lint"
+      build: "pnpm managed:build"
+      format: "pnpm managed:format"
 cross_space_override:
   manifest: managed/docstack.jsonc
   mechanism: "the managed manifest pulls an allowlist of ../dynatrace/_content/... pages; last-write-wins by path silently shadows a managed/_content override"
@@ -64,6 +73,8 @@ prerequisites:
 - `spaces[]` is required and non-empty. A single-space repo has one entry and omits `cross_space_override`.
 - `dev_servers.concurrent: false` means the consumer must start servers sequentially.
 - `dev_servers.readiness_timeout_seconds` is optional (default 120) — how many seconds Phase 6.5 polls a booted server for readiness before falling back to the manual table.
+- `commands.per_space` is optional — a map keyed by a space id from `spaces[]`, each entry carrying any of `lint`, `build`, `format`. A multi-space repo that lints or builds each space separately declares it here; consumers run the command for each space actually written to and fall back to the flat `commands.lint` / `commands.build` when the map is absent. A space id in `per_space` that is not in `spaces[]` is a profile error.
+- `commands.build` (flat) and `commands.per_space.<space>.build` are both optional. When neither exists, the consumer treats the dev-server boot as the build proof. Declare a build command whenever the repo has one — an absent build command disables `/document`'s gating build check.
 - `commit_convention` is optional — the squash commit-message format Phase 8.5 uses. When absent, the consumer infers it from recent `git log` / `CONTRIBUTING`, else falls back to `<JIRA_KEY> <summary>`.
 - `cross_space_override` and `shared_registries` are present only when detected (multi-space / docstack repos).
 - `frontmatter.*` are pointers; never copy the rules here.

@@ -560,8 +560,8 @@ choices: ["Approve & write (Recommended)", "Adjust (describe)", "Cancel"]
 **Ledger first — before the skip check below.** This gate must carry a row on every run, including runs with nothing to escalate. Append the `source_truth_verification` row now, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3:
 
 - `code_repos` is empty → `NOT_APPLICABLE`, `precondition_unmet: "code_repos is empty"`.
-- `code_repos` is non-empty and `doc-planner` returned no `verification_warnings` → `RAN`, `mechanism: "claim-class verification per source-truth.md §2–§3"`, `findings: 0`.
-- `code_repos` is non-empty and there ARE warnings → append `RAN` provisionally now, then rewrite the row at the end of this phase per **Ledger (final)** below.
+- `code_repos` is non-empty and `doc-planner` returned no `verification_warnings` of an escalating type (`CONTRADICTED`, `NOT_FOUND`, `AMBIGUOUS`, `SPEC-VS-JIRA`) → `RAN`, `mechanism: "claim-class verification per source-truth.md §2–§3"`, `findings: 0`. A list of only `VERIFIED` entries counts as none for this purpose — the row is final and this phase's body does not run.
+- `code_repos` is non-empty and at least one warning IS of an escalating type → append `RAN` provisionally now, then rewrite the row at the end of this phase per **Ledger (final)** below.
 
 Run the rest of this phase when the `doc-planner` handoff contains any `verification_warnings` with `finding: CONTRADICTED`, `NOT_FOUND`, `AMBIGUOUS`, or verdict `SPEC-VS-JIRA`. If there are none, skip to Phase 6.3 — the row above is already recorded.
 
@@ -589,7 +589,7 @@ This phase is **three-way** when a spec was provided (Phase 0 resolved `specs_di
 
 Pass `discrepancy_decisions` to Phase 6.3.
 
-**Ledger (final).** Rewrite the `source_truth_verification` row appended at the top of this phase, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3: `RAN` when verification ran against the resolved repos; `DEGRADED` when any claim was resolved only by the supplementary grep, with `not_run:` naming what did not run (e.g. `mechanism: diff-summarizer refresh`, `reason: REFRESH_BLOCKED`) and a `ci_still_checks:` line; `UNAVAILABLE` when the primary verification AND the supplementary grep both failed to execute at all with `code_repos` non-empty — convert that per `gate-ledger.md` §5 before leaving this phase. `findings:` is the count of `verification_warnings` presented to the user.
+**Ledger (final).** Rewrite the `source_truth_verification` row appended at the top of this phase, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3: when the row you appended at the top is already `NOT_APPLICABLE` (`code_repos` was empty), leave it exactly as it is — a phase body that ran on no-source-evidence warnings does not turn an unmet precondition into a performed check; `RAN` when verification ran against the resolved repos; `DEGRADED` when any claim was resolved only by the supplementary grep, with `not_run:` naming what did not run (e.g. `mechanism: diff-summarizer refresh`, `reason: REFRESH_BLOCKED`) and a `ci_still_checks:` line; `UNAVAILABLE` when the primary verification AND the supplementary grep both failed to execute at all with `code_repos` non-empty — convert that per `gate-ledger.md` §5 before leaving this phase. `findings:` is the count of `verification_warnings` presented to the user.
 
 ---
 

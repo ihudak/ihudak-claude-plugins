@@ -773,7 +773,7 @@ Run this phase after Phase 6.4 **only** when Phase 6.3 wrote files into a builda
 
 ### Step 1 — Build check (gating)
 
-Resolve the build command per space — `profile.commands.per_space.<space>.build`, else the flat `profile.commands.build` — and run it for each space written to. Do NOT re-run the Phase 6.4 prose linter. Classify any failure:
+Resolve the build command per space — `profile.commands.per_space.<space>.build`, else the flat `profile.commands.build` — and run it for every space in the **verification set** (`${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/render-verification.md` §2): `target_spaces`, plus the protected space of any affected page whose `write_strategy.strategy` is `conditional` or `override-copy`. Do NOT scope the build by which `content_root` the files physically landed in — a `conditional` delta is written into its HOME space's tree but renders only in its `target_space`, so a path-scoped build would run the home space's build (which skips the `{{#if project='…'}}` block outright) and never compile the content the change is actually for. Do NOT re-run the Phase 6.4 prose linter. Classify any failure:
 - **Content failure** (Handlebars won't compile, unresolved snippet include, broken postid/internal link, malformed conditional) → invoke `doc-fixer` (Severities: BLOCKER and MAJOR), then re-run the build once. If failures remain:
   ```
   choices: ["Proceed to smoke-check anyway", "Show remaining and fix manually", "Cancel"]

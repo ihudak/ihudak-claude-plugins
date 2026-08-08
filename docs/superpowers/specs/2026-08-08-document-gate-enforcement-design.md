@@ -38,15 +38,101 @@ reference. `package.json` in `dynatrace-docs` defines `dynatrace:build`, `manage
 `managed:lint`. With Step 1 disabled by the false claim and Step 2 skipped by the re-ranking, the run
 had zero build proof of any kind.
 
-The design therefore has two halves: one mechanism that removes the orchestrator's discretion to skip
-(§1), and four wiring repairs that make the gates capable of the job they were already assigned
-(§2–§5), plus the render-gate repair (§6).
+### The shared upstream cause
+
+Failures 1 and 5 have a cause upstream of both: **the run was started from the wrong container.**
+`vale` was not installed, `pnpm` was not installed, and the docs repo was not the working tree. The
+linter ladder had nothing to climb; the dev servers had nothing to boot. The wiring repairs below are
+still correct — a run in a *healthy* container is why they matter, and #2, #3, and #4 fail regardless
+of environment — but on this particular run they would have converted silent skips into honest
+`DEGRADED` rows and no more.
+
+The environment was knowable at Phase 0, for the cost of one `command -v` per tool. Instead the run
+discovered it one gate at a time, at Phase 6.4 and Phase 6.5, after the documentation had already been
+written. That is the difference between reporting a broken environment and preventing one.
+
+The design therefore has three parts: a preflight that stops a doomed run before it writes anything
+(§1), a mechanism that removes the orchestrator's discretion to skip when a run does proceed (§2), and
+four wiring repairs that make the gates capable of the job they were already assigned (§3–§6), plus
+the render-gate repair (§7).
 
 ---
 
-## 1. The gate ledger
+## 1. The toolchain preflight
 
-### 1.1 The property we need
+### 1.1 What it checks
+
+Phase 0 gains a step **after profile resolution** — the profile has to be loaded first, because it is
+what names the commands.
+
+**Location** needs no new logic. Phase 0 step 2 already resolves `docs_repo_path` through cwd →
+`${DOCS_PATH:-/workspace/docs}` → a search under `$REPOS_PATH` → asking. The preflight only *reports*
+it, and when `docs_repo_path` differs from cwd it says so on its own line. A divergence by itself is
+the normal AI-container case and never prompts.
+
+**Toolchain** is the missing axis. The required set is the union of three sources:
+
+1. **The resolved profile** — the first token of every `commands.*` value and every
+   `dev_servers.servers[].command` (`pnpm`, `vale`, `npx`, …), plus each entry in
+   `profile.prerequisites`.
+2. **Repo config signals** — `.vale.ini` ⇒ `vale`; a lockfile (`pnpm-lock.yaml` / `package-lock.json` /
+   `yarn.lock`) ⇒ that package manager; `.markdownlint.json(c)` ⇒ `markdownlint`; `.remarkrc*` ⇒
+   `remark`. `node_modules/` is checked separately as an installed-dependencies signal — a present
+   `pnpm` with absent dependencies fails just as completely.
+3. **The repo's documented prerequisites** — a `Prerequisites` heading in `CONTRIBUTING.md` or
+   `README.md`, read best-effort. (`dynatrace-docs` publishes two.)
+
+Binaries are checked with `command -v`, directories with `test -d`. One cheap, read-only pass.
+
+### 1.2 What it produces
+
+```yaml
+toolchain:
+  - tool: <binary or directory signal>
+    status: present | missing
+    source: <profile.commands | .vale.ini | CONTRIBUTING.md Prerequisites | …>
+    required_by: [<gate ids from §2.4>]
+```
+
+`required_by` is the point of the block. Mapping each tool to the gates it powers lets the preflight
+state the run's outcome *before* the run:
+
+> With `vale` and `pnpm` missing, this run would record `style_check` **DEGRADED** (only
+> `dt-style-checker` runs — the repo's own linter, the one CI will run on your PR, would not),
+> `build_check` **UNAVAILABLE**, and `render_smoke_check` **UNAVAILABLE**.
+
+### 1.3 When it prompts
+
+**Never, when everything resolves.** A preflight that prompts on a healthy container becomes one more
+thing to click through, and dies exactly the way Phase 6.4 died. On a clean run it contributes one row
+to the Phase 0 Readiness table and nothing else.
+
+When one or more required tools are missing, it reports the table above and asks:
+
+```
+choices: ["Cancel — re-run in the docs container (Recommended)", "Continue anyway — record the degraded gates", "Other… (describe)"]
+```
+
+Cancel is the recommendation, and under §2.2 the orchestrator cannot move it.
+
+"Continue anyway" pre-seeds each affected gate's ledger row with the user's decision quoted verbatim.
+That is what makes the two mechanisms compose: **the preflight decides whether to start; the ledger
+records what actually happened.** A user who has a reason to push on gets the §2 design, honestly
+reported — not a run that quietly rediscovers the same facts three phases later.
+
+The preflight is itself a ledger gate (`toolchain_preflight`, Phase 0, no fallback), so the Phase 9
+report explains *why* the later gates degraded instead of leaving the reader to infer it.
+
+### 1.4 Direct mode
+
+`/document` direct mode gets the same preflight at its own Phase 0, scoped to the style check. It has
+no `target_spaces`, no build gate, and no render gate, so `required_by` never names them.
+
+---
+
+## 2. The gate ledger
+
+### 2.1 The property we need
 
 A rule that can be rationalized around will be rationalized around. Phase 6.4 has said **"Mandatory:
 the orchestrator MUST dispatch `docs-style-checker` — never skip on its own judgement"** since v2.0.0
@@ -61,7 +147,7 @@ orchestrator's own judgement, and it is not terminal.
 | `RAN` | The gate's primary mechanism executed. | evidence only |
 | `DEGRADED` | Only a fallback executed. Records what did not run, why, and what CI will still check. | evidence only |
 | `FAILED` | Ran and found blocking problems. Feeds the existing `doc-fixer` loops. | evidence only |
-| `UNAVAILABLE` | Nothing ran and no fallback exists. **Not a resting state** — see §1.7. | the orchestrator, but never as a final answer |
+| `UNAVAILABLE` | Nothing ran and no fallback exists. **Not a resting state** — see §2.7. | the orchestrator, but never as a final answer |
 | `SKIPPED_BY_USER` | The user chose to skip. Carries their decision quoted verbatim. | the user only |
 | `NOT_APPLICABLE` | A named precondition is unmet (e.g. write context is `obsidian`, so nothing was written into a buildable repo). | evidence only |
 
@@ -72,7 +158,7 @@ analysis was sufficient" has nowhere to go.
 Per the approved strictness call, `DEGRADED` proceeds — a weaker check is not a documentation defect,
 and Phase 9 names what CI will check that the run did not. Total absence of coverage does not proceed.
 
-### 1.2 The verbatim-choice-list rule
+### 2.2 The verbatim-choice-list rule
 
 The run did not ignore Phase 6.5. It **re-ranked** it. So the ledger needs a companion rule, and that
 rule is not `/document`-specific:
@@ -85,7 +171,7 @@ rule is not `/document`-specific:
 This lands in `references/escalation-rules.md`, which already owns the prompt-shape rules, and binds
 every command in the plugin.
 
-### 1.3 Where the ledger lives
+### 2.3 Where the ledger lives
 
 A new `references/gate-ledger.md` is the single source of truth for the schema, the outcome
 vocabulary, the gate registry, and the reviewer contract.
@@ -108,20 +194,21 @@ gate_ledger:
     findings: <count>                            # RAN / DEGRADED / FAILED
 ```
 
-### 1.4 The gate registry for `/document` (Jira mode)
+### 2.4 The gate registry for `/document` (Jira mode)
 
 | Gate id | Phase | Precondition | Primary | Fallback |
 |---|---|---|---|---|
-| `source_truth_verification` | 5.8 | ≥1 entry in `code_repos` | claim-class verification per `source-truth.md` §2–§3 | supplementary direct grep against the resolved local path (§5.2) |
-| `style_check` | 6.4 | ≥1 file written | the repo linter ladder (§2) **plus** `dt-style-checker` complementary | `dt-style-checker` alone |
-| `repo_checklist` | 6.4 | the repo publishes authoring/verification guidance | `repo_verification_gates` applied to the written files (§4) | none |
+| `toolchain_preflight` | 0 | always (after profile resolution) | `command -v` / `test -d` over the §1.1 required set | none |
+| `source_truth_verification` | 5.8 | ≥1 entry in `code_repos` | claim-class verification per `source-truth.md` §2–§3 | supplementary direct grep against the resolved local path (§6.2) |
+| `style_check` | 6.4 | ≥1 file written | the repo linter ladder (§3) **plus** `dt-style-checker` complementary | `dt-style-checker` alone |
+| `repo_checklist` | 6.4 | the repo publishes authoring/verification guidance | `repo_verification_gates` applied to the written files (§5) | none |
 | `build_check` | 6.5 S1 | write context is a buildable repo | `commands.per_space.<space>.build` for each written space, else the whole-repo `commands.build` | the Step 2 dev-server boot |
 | `render_smoke_check` | 6.5 S2 | buildable repo with ≥1 affected page | dev servers for the target **and** protected spaces | the manual pages-to-visit table |
 
 A gate whose precondition is unmet records `NOT_APPLICABLE` with the precondition named. It is never
 silently absent.
 
-### 1.5 The reviewer contract
+### 2.5 The reviewer contract
 
 `doc-reviewer` gains a **Verification-gate integrity** dimension and receives `gate_ledger` as an
 input. It replaces today's two loose free-text inputs, `style-check report` and `render_verification`,
@@ -142,21 +229,21 @@ The existing **Style-check follow-through** dimension keeps its job (unresolved 
 MINOR become findings) but reads the `style_check` row instead of the free-text report. Its
 "skip when `status: NOT_CONFIGURED`" clause is replaced by "skip when the `style_check` row is
 `NOT_APPLICABLE` or `SKIPPED_BY_USER`". `docs-style-checker` can still *return* `NOT_CONFIGURED` —
-§2 makes the ladder try every rung first, but a repo with no linter config and no `dt-style-guide`
-installed still has nothing to run. That status maps to a ledger `UNAVAILABLE`, which §1.7 then
+§3 makes the ladder try every rung first, but a repo with no linter config and no `dt-style-guide`
+installed still has nothing to run. That status maps to a ledger `UNAVAILABLE`, which §2.7 then
 converts. It never rests as `NOT_CONFIGURED`.
 
-### 1.6 Phase 9 rendering
+### 2.6 Phase 9 rendering
 
 The Phase 9 report gains a `### Verification gates` table: one row per registry gate — gate, outcome,
 mechanism, and the `ci_still_checks` / `user_decision` / `precondition_unmet` detail where it applies.
 This is the durable artifact the user reads, and the reason the ledger does not need its own file.
 
-### 1.7 Converting `UNAVAILABLE`
+### 2.7 Converting `UNAVAILABLE`
 
 A gate whose primary and fallback mechanisms both failed to run, with the precondition met, is a real
 coverage hole — the case the approved strictness call says must not proceed silently. The orchestrator
-converts it before the run continues, with a choice list bound by §1.2:
+converts it before the run continues, with a choice list bound by §2.2:
 
 ```
 choices: ["Install <named tool> and retry this gate", "Proceed without this check — record my decision", "Cancel the run"]
@@ -168,7 +255,7 @@ among the three on the user's behalf.
 
 ---
 
-## 2. F1 — the linter ladder falls through instead of jumping
+## 3. F1 — the linter ladder falls through instead of jumping
 
 `docs-style-checker`'s detection order is documented as "first match wins", and its failure handling
 sends every step-1/2/3 failure to **step 5**. So a *detected but broken* rung abandons every rung
@@ -207,7 +294,7 @@ opaque non-zero exit.
 
 ---
 
-## 3. F2 — `changelog-guidelines.md` gets consumers
+## 4. F2 — `changelog-guidelines.md` gets consumers
 
 The rules stay in the reference. Nothing is duplicated, and the reference remains the single source of
 truth.
@@ -233,7 +320,7 @@ note **linking … to this section**"), an overused "Added", and a redundant scr
 
 ---
 
-## 4. F3 — the repo's pre-PR checklist is ingested, not discarded
+## 5. F3 — the repo's pre-PR checklist is ingested, not discarded
 
 `doc-planner`'s instruction to ignore operational content stays — for its own topic and section
 planning, build steps and PR mechanics are noise. But it now **additionally** emits a
@@ -276,9 +363,9 @@ Alongside it, three plugin-side corrections that cost no PR into `dynatrace-docs
 
 ---
 
-## 5. F4 — commands and code blocks become a verified claim class
+## 6. F4 — commands and code blocks become a verified claim class
 
-### 5.1 The new claim class
+### 6.1 The new claim class
 
 `source-truth.md` §2's table gains a row:
 
@@ -293,7 +380,7 @@ Phase 5.8 like every other discrepancy — the existing machinery, not a new one
 **MAJOR** rather than an ordinary "not verifiable" note. A reader runs a `helm` line verbatim; it is
 the highest-blast-radius claim on a page.
 
-### 5.2 The supplementary grep
+### 6.2 The supplementary grep
 
 One item from the feedback file that the user did not name, folded in because it is the same gate.
 Phase 5.8 today escalates an `AMBIGUOUS` / `NOT_FOUND` verification warning straight to the user even
@@ -303,19 +390,19 @@ grepping the local clone by hand — a step the workflow does not prescribe.
 Phase 5.8 will run **one** supplementary direct grep against the resolved local repo path before
 presenting the discrepancy table, **including when `diff-summarizer` returned `REFRESH_BLOCKED`** for
 that repo — a read-only mount that cannot `git fetch` can still be grepped. This is the
-`source_truth_verification` gate's declared fallback (§1.4): a resolution by grep records `DEGRADED`
+`source_truth_verification` gate's declared fallback (§2.4): a resolution by grep records `DEGRADED`
 with `not_run: [diff-summarizer refresh: REFRESH_BLOCKED]`, not a clean `RAN`.
 
 ---
 
-## 6. F5 — the render gate stops being skippable by the orchestrator
+## 7. F5 — the render gate stops being skippable by the orchestrator
 
 Four changes to Phase 6.5:
 
-1. **Step 1 actually runs.** With `commands.per_space.<space>.build` now defined (§4), the gating
+1. **Step 1 actually runs.** With `commands.per_space.<space>.build` now defined (§5), the gating
    build check executes for each written space instead of falling through the "no build command"
    branch.
-2. **Step 2's choice list is presented verbatim** under the §1.2 rule. `(Recommended)` stays on the
+2. **Step 2's choice list is presented verbatim** under the §2.2 rule. `(Recommended)` stays on the
    smoke-check. Skip is only ever the user's, and it writes `SKIPPED_BY_USER` with their decision
    quoted.
 3. **Cross-space runs boot both spaces.** The loop iterates `target_spaces` only, so the *protected*
@@ -341,9 +428,10 @@ unremarked substitute.
 
 | File | Change |
 |---|---|
+| `references/toolchain-preflight.md` | **new** — required-set derivation, the `toolchain` block, the tool→gate map, the prompt |
 | `references/gate-ledger.md` | **new** — schema, outcome vocabulary, gate registry, reviewer contract |
-| `references/escalation-rules.md` | + the verbatim-choice-list rule (§1.2) |
-| `references/source-truth.md` | + the commands/CLI/code-block claim class (§5.1); + the supplementary-grep step (§5.2) |
+| `references/escalation-rules.md` | + the verbatim-choice-list rule (§2.2) |
+| `references/source-truth.md` | + the commands/CLI/code-block claim class (§6.1); + the supplementary-grep step (§6.2) |
 | `references/dynatrace-docs/render-verification.md` | correct the "no build command" claim; + both-space boot for cross-space runs; + static-analysis-is-insufficient |
 | `references/dynatrace-docs/docs-profile.default.yml` | + `commands.per_space`; + the lint-needs-a-prior-serve prerequisite |
 | `references/dynatrace-docs/docs-profile-schema.md` | document `commands.per_space` |
@@ -351,7 +439,7 @@ unremarked substitute.
 | `agents/doc-planner.md` | read `changelog-guidelines.md`; emit `repo_verification_gates` |
 | `agents/doc-writer.md` | apply `changelog-guidelines.md` |
 | `agents/doc-reviewer.md` | + Verification-gate integrity dimension; `gate_ledger` input replaces the two free-text inputs; changelog conformance at MAJOR; unverified command at MAJOR |
-| `commands/document.md` | ledger rows written at Phases 5.8 / 6.4 / 6.5; Phase 6.5 Steps 1–2 per §6; Phase 9 `### Verification gates` table |
+| `commands/document.md` | Phase 0 preflight step + Readiness row (both modes); ledger rows written at Phases 0 / 5.8 / 6.4 / 6.5; Phase 6.5 Steps 1–2 per §7; Phase 9 `### Verification gates` table |
 | `commands/docs-profile.md` | detect and populate `commands.per_space` |
 | `README.md` | + `gate-ledger.md` in the reference list; refresh the `/document` row |
 | `CHANGELOG.md` | `## [2.43.0] — 2026-08-08` |
@@ -359,8 +447,9 @@ unremarked substitute.
 | `../../.claude-plugin/marketplace.json` | `dev-workflows` entry: version + description |
 | `../../CLAUDE.md` | + `gate-ledger.md` under Source-truth reference; update the `/document` invariants |
 
-**Direct mode** (`/document` Phase 3.5) gets the same `style_check` ledger row and the same ladder fix
-— it shares `docs-style-checker`. It gets no render gate; it has no `target_spaces`.
+**Direct mode** gets the preflight at its Phase 0 (§1.4) and the same `style_check` ledger row and
+ladder fix at Phase 3.5 — it shares `docs-style-checker`. It gets no build or render gate; it has no
+`target_spaces`.
 
 ## Porting
 
@@ -377,25 +466,29 @@ implementation plan's file table explicitly, per repo, not only in the porting p
 
 There is no test framework — this is prompt and reference markdown. Verification is grep and reading:
 
-1. Every gate in the §1.4 registry has a ledger-append instruction at its owning phase in
+1. The Phase 0 preflight runs **after** profile resolution in both modes, and every gate id it names
+   in `required_by` exists in the §2.4 registry.
+2. The preflight prompts only on a missing tool — a clean toolchain contributes a Readiness row and
+   no `choices` block.
+3. Every gate in the §2.4 registry has a ledger-append instruction at its owning phase in
    `commands/document.md`.
-2. No phase in `commands/document.md` offers an outcome the orchestrator can assign that means "I
+4. No phase in `commands/document.md` offers an outcome the orchestrator can assign that means "I
    decided not to run this" — grep for skip language not bound to a user choice or a named
    precondition.
-3. `changelog-guidelines.md` is cited by at least three files in the write path
+5. `changelog-guidelines.md` is cited by at least three files in the write path
    (`doc-planner.md`, `doc-writer.md`, `doc-reviewer.md`).
-4. `docs-style-checker.md` contains no jump from step 1/2/3 directly to step 5; each failure path
+6. `docs-style-checker.md` contains no jump from step 1/2/3 directly to step 5; each failure path
    names the next rung.
-5. `docs-profile.default.yml`'s `per_space` commands match `dynatrace-docs`' `package.json` script
+7. `docs-profile.default.yml`'s `per_space` commands match `dynatrace-docs`' `package.json` script
    names exactly.
-6. `render-verification.md` no longer claims the dynatrace-docs profile has no build command.
-7. `source-truth.md` §2's table contains the commands/CLI row; `doc-reviewer.md` grades an unverified
+8. `render-verification.md` no longer claims the dynatrace-docs profile has no build command.
+9. `source-truth.md` §2's table contains the commands/CLI row; `doc-reviewer.md` grades an unverified
    command at MAJOR.
-8. The verbatim-choice-list rule exists in `escalation-rules.md` and is cited from
-   `commands/document.md` Phase 6.5.
-9. All three `marketplace.json` catalogs and all three `plugin.json` files carry the new version, and
-   only the `dev-workflows` entry is touched in each catalog.
-10. No `${CLAUDE_PLUGIN_ROOT}` or `subagent_type` token leaks into any Copilot file; no
+10. The verbatim-choice-list rule exists in `escalation-rules.md` and is cited from
+    `commands/document.md` Phase 6.5.
+11. All three `marketplace.json` catalogs and all three `plugin.json` files carry the new version, and
+    only the `dev-workflows` entry is touched in each catalog.
+12. No `${CLAUDE_PLUGIN_ROOT}` or `subagent_type` token leaks into any Copilot file; no
     Copilot-style path leaks into a Claude file.
 
 ## Rejected alternatives
@@ -403,6 +496,17 @@ There is no test framework — this is prompt and reference markdown. Verificati
 **More emphatic prose.** The Phase 6.4 wording already reads "Mandatory … MUST … never skip on its
 own judgement" and has since v2.0.0. Escalating the adjective is the one intervention with a
 measured failure.
+
+**The preflight alone, without the ledger.** Tempting once the container turns out to be the root
+cause, and wrong: the preflight only catches what is knowable at Phase 0. A dev server that boots and
+then times out, a lint script that needs a build folder it does not have, a user who chooses to
+continue anyway — all of those still produce a run whose gates did not do their job, and the ledger is
+what keeps that visible. The preflight also cannot address failures 2, 3, and 4, which occur in a
+perfectly healthy container.
+
+**The ledger alone, without the preflight.** The approved design before this revision. It reports the
+broken environment accurately but only after the writing is done, one gate at a time — three phases
+and a full documentation pass later than the facts were available.
 
 **A blocking hook.** The plugin ships hooks, and a `Stop` hook could inspect a ledger. But this
 repo's convention is that hook scripts must exit 0 and never block Claude, so a hook can only warn —
@@ -434,6 +538,14 @@ drifts the moment either copy is edited. The reference stays the single source o
   (`{{#tabgroup}}`) instead of ad-hoc bold pseudo-headings. Plus the two `missing-reference-doc`
   items: an anchor-conventions reference, and widening `source-truth.md` §7.5's bug-report trigger to
   cover `document-as-code` decisions where the Jira phrasing was factually wrong.
+- **Generalizing the preflight and the ledger beyond `/document`.** `/implement`, `/vuln`, and
+  `/upgrade` all run builds and test suites and would fail the same way in the same wrong container,
+  and their Opus review and test gates are the same shape as the ones the ledger governs.
+  `references/toolchain-preflight.md` and `references/gate-ledger.md` are written generically for that
+  reason, but only `/document` is wired in this sub-project — the same way `branch-naming.md` started
+  on two commands and reached all five later. The verbatim-choice-list rule in §2.2 is the one piece
+  that binds every command immediately, because it costs nothing to apply and the failure it prevents
+  is not `/document`-specific.
 - **C — git completeness.** `/create-vi` offers git in Phase 5, then Phases 6 and 7 write `resume.md`,
   cost, and feedback files into the same folder; `feedback-emission.md` and `cost-emission.md` both
   say "NEVER commits". Late artifacts are untracked by construction, across roughly eight commands.

@@ -583,6 +583,13 @@ This phase is **three-way** when a spec was provided (Phase 0 resolved `specs_di
 
 Pass `discrepancy_decisions` to Phase 6.3.
 
+**Ledger.** Append the `source_truth_verification` row (schema:
+`${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3): `NOT_APPLICABLE` with
+`precondition_unmet: "code_repos is empty"` when no repo resolved; `RAN` when verification ran against
+the resolved repos; `DEGRADED` when any claim was resolved only by the supplementary grep, with
+`not_run:` naming what did not (e.g. `diff-summarizer refresh: REFRESH_BLOCKED`). `findings:` is the
+count of `verification_warnings` presented.
+
 ---
 
 ## Phase 5.9 — Write-strategy approval (multi-space safety)
@@ -717,9 +724,25 @@ Invoke `docs-style-checker` on the files written in Phase 6.3:
   > files:     [absolute paths of every file written or modified in Phase 6.3]
   > spaces:    [one entry per space in profile.spaces that has a profile.commands.per_space entry — {id, content_root, lint}; omit the key entirely when the profile declares no per_space commands]"
 
-Act on the return:
+Append the `style_check` ledger row before acting on the return (schema:
+`${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3), deriving its outcome from the agent's
+`primary_attempts` and `complementary_linter`:
 
-- **`status: NOT_CONFIGURED`** — neither a repo linter NOR the `dt-style-checker` complementary pass was available (the agent already tried both). Proceed to Phase 7; `doc-reviewer` will still check correctness/completeness.
+- a primary rung succeeded → `RAN`, `mechanism: <primary_linter>` (+ `dt-style-checker` when it ran).
+- every primary rung failed but `dt-style-checker` ran → `DEGRADED`, `not_run:` one entry per failed
+  rung from `primary_attempts`, and `ci_still_checks: "<the repo's own linter> runs on the PR in CI"`.
+- `status: NOT_CONFIGURED` (no primary rung detected AND `dt-style-guide` absent) → `UNAVAILABLE`;
+  convert it per `gate-ledger.md` §5 before proceeding.
+- `status: ERROR` → `UNAVAILABLE`; convert it per `gate-ledger.md` §5.
+
+Also append the `repo_checklist` row: `NOT_APPLICABLE` with
+`precondition_unmet: "the repo publishes no authoring or verification guidance"` when
+`doc-planner`'s `repo_verification_gates` block is empty; otherwise `RAN` with `findings:` = the
+number of checklist items that failed against the written files.
+
+Then act on the return:
+
+- **`status: NOT_CONFIGURED`** — no primary rung was detected AND `dt-style-guide` is not installed (the agent already climbed the whole ladder). This is a real coverage hole, not a no-op: the ledger row is `UNAVAILABLE` and `gate-ledger.md` §5 converts it before Phase 7. Never proceed on `NOT_CONFIGURED` without that conversion.
 - **`status: OK`** — the chain ran (primary and/or complementary), zero merged violations. Proceed to Phase 7.
 - **`status: VIOLATIONS_FOUND`** — invoke `doc-fixer` with the violations treated as per their severity. After `doc-fixer` completes, re-run the linter once:
 
@@ -792,6 +815,20 @@ Emit a table, one row per affected page — URL per space the page renders in (`
 
 Carry the table and the Step 1/Step 2 outcomes into the Phase 9 `### Render verification` section, and pass a one-paragraph `render_verification` summary to Phase 7.
 
+**Ledger.** Append two rows (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3):
+
+- `build_check` — `NOT_APPLICABLE` with `precondition_unmet: "write context is <obsidian|plain_dir>"`
+  when this phase was skipped entirely; `RAN` when a build command executed; `DEGRADED` when no build
+  command exists and the Step 2 boot served as the proof, with
+  `ci_still_checks: "the repo's build runs on the PR in CI"`; `FAILED` on a content failure;
+  `UNAVAILABLE` when no build command exists **and** Step 2 did not run — convert it per
+  `gate-ledger.md` §5.
+- `render_smoke_check` — `RAN` when the smoke-check completed for every space in scope;
+  `DEGRADED` when at least one space fell back to the manual table, with `not_run:` naming the space
+  and its reason (prerequisite unmet / boot failure / readiness timeout);
+  `SKIPPED_BY_USER` with the chosen option quoted verbatim when the user selected Skip;
+  `NOT_APPLICABLE` with the precondition named when the phase did not apply.
+
 ---
 
 ## Phase 7 — Doc review gate
@@ -806,7 +843,8 @@ Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `revi
   > Jira directory path:    [<jira_export_root>]
   > Diff summaries:         [array of diff-summarizer outputs from Phase 5]
   > doc-planner checklist:  [the full YAML from Phase 5.7]
-  > style-check report: [the violations output from Phase 6.4 — from docs-style-checker or dt-style-checker (fallback), or 'status: NOT_CONFIGURED' if neither ran]
+  > style-check report: [the violations output from Phase 6.4 — from docs-style-checker or dt-style-checker; same violation schema regardless of source]
+  > gate_ledger:        [the complete gate_ledger block — one row per gate in references/gate-ledger.md §4, including the Phase 0 toolchain_preflight row]
   > render_verification: [the Phase 6.5 summary — build result; smoke-check per space (passed / skipped with reason); cross-space invariant check result]
   > code_repos:         [the Phase-4 resolved {slug, path} map; [] if none resolved]
   > counterpart_references: [the confirmed counterpart_references from Phase 5.6.5; [] when none — supplies the screenshots_seen provenance and the grounded counterpart space for the 'Cross-space grounding integrity' dimension]
@@ -995,6 +1033,11 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 ### Branch
 [branch name created in Phase 6.2, e.g. docs/<jira-key>-<slug>] OR "N/A — no branch created (context: obsidian / plain_dir / user declined branching)"
 
+### Verification gates
+| Gate | Outcome | Mechanism | Detail |
+|---|---|---|---|
+[One row per gate in the `gate_ledger`, in registry order (`references/gate-ledger.md` §4). "Detail" carries the row's `ci_still_checks` (DEGRADED), `user_decision` (SKIPPED_BY_USER), or `precondition_unmet` (NOT_APPLICABLE) — empty otherwise. When any row is DEGRADED, follow the table with a one-line warning naming what CI will check that this run did not.]
+
 ### Render verification
 - Build: [ran — pass/fail | no build command — boot is the proof | unverified (reason)]
 - Smoke-check: [per space — passed (N pages, HTTP 200) | skipped (reason)] OR "not run (user skipped)"
@@ -1112,6 +1155,9 @@ the docs repo or the current working directory; no user name is ever written
 - NEVER write product documentation outside the resolved `docs_repo_path` (Phase 0); the only other writes are to the ticket's vault project folder under `$VAULT_PATH` (the `<JIRA_KEY>-implementation-gaps.md` bug-report draft, the `<JIRA_KEY>-pr-draft.md`, and screenshot staging) — never anywhere else.
 - ALWAYS escalate missing repos before proceeding — never silent skip
 - ALWAYS invoke `docs-style-checker` (Phase 6.4) before `doc-reviewer` (Phase 7)
+- ALWAYS run the Phase 0 toolchain preflight (`${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md`) after profile resolution and before Phase 1; it prompts only when a required tool is missing
+- ALWAYS append each gate's ledger row at the moment that gate completes, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` — NEVER reconstruct the ledger at Phase 9, and NEVER leave a registry gate without a row
+- NEVER present a phase's `choices:` array in an order, wording, or recommendation other than the one written; the "Choice lists are presented verbatim" rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` binds every prompt in this command
 - ALWAYS invoke `doc-reviewer` before Phase 8 maintenance
 - ALWAYS resolve the `model_routing` block at Phase 1.5 and pin each subagent dispatch to its §9 chain via `model:` — `doc-planner` to the §2 Opus chain, the mechanical steps (`jira-reader`, `diff-summarizer`, `doc-location-finder`, `counterpart-finder`, `docs-style-checker`, `doc-fixer`, maintenance) to the §2.1 Sonnet chain; `doc-reviewer` keeps its frontmatter Opus pin (no override); the inline writer + gates run on `current_model` (advisory only)
 - ALWAYS cap review/fix cycles: 1 fix + 1 re-review max

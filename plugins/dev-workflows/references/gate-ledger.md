@@ -45,7 +45,10 @@ gate_ledger:
     phase: "<the phase that owns it>"
     outcome: RAN | DEGRADED | FAILED | UNAVAILABLE | SKIPPED_BY_USER | NOT_APPLICABLE
     mechanism: <what actually executed; omitted when nothing did>
-    not_run: [<primary mechanism>: <reason>]        # DEGRADED only, non-empty
+    not_run:                                        # DEGRADED only, non-empty
+      - mechanism: <the primary mechanism that did not run>
+        reason:    <why>
+
     ci_still_checks: <one line>                     # DEGRADED only, non-empty
     precondition_unmet: <the named precondition>    # NOT_APPLICABLE only, non-empty
     user_decision: "<the user's choice, verbatim>"  # SKIPPED_BY_USER only, non-empty
@@ -66,9 +69,15 @@ gate_ledger:
 A gate whose precondition is unmet records `NOT_APPLICABLE` with the precondition named. It is never
 silently absent from the ledger.
 
-**Direct mode** (`/document` Mode B) registers `toolchain_preflight` (Phase 0) and `style_check`
-(Phase 3.5) only. It has no `target_spaces`, no build gate, and no render gate, so those three ids
-never appear in a direct-mode ledger — not even as `NOT_APPLICABLE`.
+**Direct mode** (`/document` Mode B) registers exactly three gates: `toolchain_preflight` (Phase 0),
+`repo_checklist` (Phase 0 extraction, checked at Phase 3.5), and `style_check` (Phase 3.5). The other
+three ids never appear in a direct-mode ledger — not even as `NOT_APPLICABLE`:
+
+- `source_truth_verification` — direct mode has no Phase 5.8, no `jira-reader`, and no `code_repos`.
+- `build_check` and `render_smoke_check` — direct mode has no Phase 6.5 and no `target_spaces`.
+
+Direct mode has no `doc-planner`, so its orchestrator extracts `repo_verification_gates` itself per
+`${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §5.
 
 ## 5. Converting `UNAVAILABLE`
 

@@ -117,6 +117,37 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 
    When both the both-space-run rejection and a malformed value apply, resolve the both-space rejection first, then re-validate any value the user keeps.
 
+9. **Toolchain preflight.** Execute `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` against
+   the resolved `docs_repo_path` and the profile loaded in step 4. Derive the required set from all
+   three sources (profile commands including `commands.per_space`, repo config signals, the repo's
+   documented `Prerequisites`), check each, and build the `toolchain` block.
+
+   Initialize the run's `gate_ledger` (schema:
+   `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3) and append its first row:
+
+   ```yaml
+   gate_ledger:
+     - gate: toolchain_preflight
+       phase: "0"
+       outcome: RAN
+       mechanism: command -v / test -d over the derived required set
+       findings: <count of tools with status: missing>
+   ```
+
+   - **Every required tool present** → record the row, contribute one line to the Readiness table, and
+     proceed. Do NOT prompt.
+   - **One or more missing** → present the `toolchain-preflight.md` §5 report and its choice list
+     **verbatim** (the "Choice lists are presented verbatim" rule in
+     `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` binds this prompt — `(Recommended)` stays
+     on "Cancel"). On "Cancel", stop with the named error
+     `TOOLCHAIN_UNAVAILABLE: <comma-separated missing tools> not available in this environment.` On
+     "Continue anyway", pre-seed the affected gates' rows per `toolchain-preflight.md` §5 with the
+     user's choice quoted verbatim in `user_decision`, and proceed.
+
+   When the write context resolved in step 6 is `obsidian` or `plain_dir`, the build and render gates
+   have no precondition to meet — do not name them in the consequence line, and let Phase 6.5 record
+   their `NOT_APPLICABLE` rows as usual.
+
 ### Readiness
 
 Before clarification, show a readiness table summarizing what Phase 0 resolved:
@@ -126,6 +157,7 @@ Before clarification, show a readiness table summarizing what Phase 0 resolved:
 | Jira input | source: `<vault \| directory>`; export root: `<jira_export_root>` |
 | Docs repo | `<docs_repo_path>` (`is_dynatrace_docs`: yes/no) — write context `<obsidian \| docs_repo \| non_docs_repo \| plain_dir>` |
 | Profile | `profile_source`: `<in-repo \| built-in \| generated>` |
+| Toolchain | `<all required tools present>` OR `<N missing: vale, pnpm — user chose to continue>`; writing into `<docs_repo_path>`[ (cwd is `<cwd>`)] |
 | Specs | `<specs_dir>` or `none` |
 | Space constraint | `<space_constraint>` (`saas` \| `managed` \| `none` → auto-determine in Phase 4.5) |
 | Code repos | resolved later in Phase 4 (slug→clone match under `$REPOS_PATH`) |
@@ -1112,7 +1144,25 @@ No model-routing reminder is injected for this command — classification still 
 
 ## Phase 0 — Load the description
 
-If `@file` syntax: read the file, confirm `"Loaded prompt from <filename.md> (N lines)."`, note any embedded images as "referenced image: <path>". Otherwise use the inline text verbatim.
+1. If `@file` syntax: read the file, confirm `"Loaded prompt from <filename.md> (N lines)."`, note any embedded images as "referenced image: <path>". Otherwise use the inline text verbatim.
+
+2. **Toolchain preflight.** Resolve `repo_root` = `git rev-parse --show-toplevel` from cwd (when cwd is not a git tree, skip this step entirely — there is no repo to lint). Then execute
+   `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` against it. Direct mode has no profile, so
+   use **sources 2 and 3 only** (repo config signals and the repo's documented `Prerequisites`); the
+   only gate in scope is `style_check`, so `required_by` never names `build_check` or
+   `render_smoke_check`.
+
+   Initialize `gate_ledger` and append the `toolchain_preflight` row per
+   `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3. Present the §5 prompt verbatim only when a
+   required tool is missing; on "Cancel", stop with `TOOLCHAIN_UNAVAILABLE: <missing tools> not
+   available in this environment.`
+
+3. **Extract the repo's pre-PR checklist.** Direct mode has no `doc-planner`, so the orchestrator does
+   this itself. In the **same pass** that read the repo's guidance files for step 2's `Prerequisites`,
+   follow `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §2–§4 and build the
+   `repo_verification_gates` block. Carry it to Phase 3.5, which checks the edited files against it and
+   records the `repo_checklist` ledger row. An empty block is normal — record it and move on. Skip this
+   step entirely when cwd is not a git tree (step 2 already skipped for the same reason).
 
 ---
 

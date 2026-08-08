@@ -539,13 +539,31 @@ drifts the moment either copy is edited. The reference stays the single source o
   items: an anchor-conventions reference, and widening `source-truth.md` §7.5's bug-report trigger to
   cover `document-as-code` decisions where the Jira phrasing was factually wrong.
 - **Generalizing the preflight and the ledger beyond `/document`.** `/implement`, `/vuln`, and
-  `/upgrade` all run builds and test suites and would fail the same way in the same wrong container,
-  and their Opus review and test gates are the same shape as the ones the ledger governs.
-  `references/toolchain-preflight.md` and `references/gate-ledger.md` are written generically for that
-  reason, but only `/document` is wired in this sub-project — the same way `branch-naming.md` started
-  on two commands and reached all five later. The verbatim-choice-list rule in §2.2 is the one piece
-  that binds every command immediately, because it costs nothing to apply and the failure it prevents
-  is not `/document`-specific.
+  `/upgrade` run builds and test suites and would meet the same missing toolchain in the same wrong
+  container — but the consequence is not the same, and that asymmetry is why `/document` is where this
+  belongs first.
+
+  **A broken docs run fails silently.** `/document` in a toolless container still produces a branch, a
+  commit, and a PR draft. Vale never ran, no server ever booted, and the docs are worse for it — but
+  the PR exists and CI is green, so there is no signal that anything went wrong. The engineer has no
+  reason to look. **A broken code run fails loudly.** Without a JDK the build fails; without a test
+  runner the suite does not run. The engineer cannot mistake it for success, and does not ship poor
+  code on the back of it, because neither the PR nor CI will go green.
+
+  A preflight is worth most exactly where the failure is otherwise undetectable. It is a nice-to-have
+  where the toolchain announces its own absence within minutes.
+
+  A second asymmetry points the same way. The docs repo is one repo, shared by every Dynatrace team,
+  with one profile and one toolchain — so a `/document` preflight has a single, knowable required set.
+  Code repos are per-team and heterogeneous, and a single PRODUCT ticket routinely spans several: some
+  JDK-based, some Node, each with its own required set. A code-side preflight therefore has to derive
+  and report a different toolchain **per repo in the run**, which is a materially larger design than
+  the one specified here — not a wiring exercise.
+
+  `references/toolchain-preflight.md` and `references/gate-ledger.md` are still written generically, so
+  that larger design can build on them rather than restart. The verbatim-choice-list rule in §2.2 is
+  the one piece that binds every command immediately: it costs nothing to apply, and the failure it
+  prevents is not `/document`-specific.
 - **C — git completeness.** `/create-vi` offers git in Phase 5, then Phases 6 and 7 write `resume.md`,
   cost, and feedback files into the same folder; `feedback-emission.md` and `cost-emission.md` both
   say "NEVER commits". Late artifacts are untracked by construction, across roughly eight commands.

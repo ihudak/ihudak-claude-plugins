@@ -557,7 +557,13 @@ choices: ["Approve & write (Recommended)", "Adjust (describe)", "Cancel"]
 
 ## Phase 5.8 — Discrepancy analysis & user decision
 
-Run this phase when the `doc-planner` handoff contains any `verification_warnings` with `finding: CONTRADICTED`, `NOT_FOUND`, `AMBIGUOUS`, or verdict `SPEC-VS-JIRA`. If there are none, skip to Phase 6.3.
+**Ledger first — before the skip check below.** This gate must carry a row on every run, including runs with nothing to escalate. Append the `source_truth_verification` row now, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3:
+
+- `code_repos` is empty → `NOT_APPLICABLE`, `precondition_unmet: "code_repos is empty"`.
+- `code_repos` is non-empty and `doc-planner` returned no `verification_warnings` → `RAN`, `mechanism: "claim-class verification per source-truth.md §2–§3"`, `findings: 0`.
+- `code_repos` is non-empty and there ARE warnings → append `RAN` provisionally now, then rewrite the row at the end of this phase per **Ledger (final)** below.
+
+Run the rest of this phase when the `doc-planner` handoff contains any `verification_warnings` with `finding: CONTRADICTED`, `NOT_FOUND`, `AMBIGUOUS`, or verdict `SPEC-VS-JIRA`. If there are none, skip to Phase 6.3 — the row above is already recorded.
 
 This phase is **three-way** when a spec was provided (Phase 0 resolved `specs_dir` and Phase 5.7 passed it to `doc-planner`): it compares the **Jira** narrative, the **Spec** (authoritative "intended"), and the **Code** ("actual"), per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7. When no spec was provided, the planner emits `spec_phrasing: "(no spec)"`; the **Spec phrasing** column simply renders `(no spec)` and the run behaves exactly as the original Jira-vs-code two-way protocol.
 
@@ -583,12 +589,7 @@ This phase is **three-way** when a spec was provided (Phase 0 resolved `specs_di
 
 Pass `discrepancy_decisions` to Phase 6.3.
 
-**Ledger.** Append the `source_truth_verification` row (schema:
-`${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3): `NOT_APPLICABLE` with
-`precondition_unmet: "code_repos is empty"` when no repo resolved; `RAN` when verification ran against
-the resolved repos; `DEGRADED` when any claim was resolved only by the supplementary grep, with
-`not_run:` naming what did not (e.g. `diff-summarizer refresh: REFRESH_BLOCKED`). `findings:` is the
-count of `verification_warnings` presented.
+**Ledger (final).** Rewrite the `source_truth_verification` row appended at the top of this phase, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3: `RAN` when verification ran against the resolved repos; `DEGRADED` when any claim was resolved only by the supplementary grep, with `not_run:` naming what did not run (e.g. `mechanism: diff-summarizer refresh`, `reason: REFRESH_BLOCKED`) and a `ci_still_checks:` line; `UNAVAILABLE` when the primary verification AND the supplementary grep both failed to execute at all with `code_repos` non-empty — convert that per `gate-ledger.md` §5 before leaving this phase. `findings:` is the count of `verification_warnings` presented to the user.
 
 ---
 
@@ -728,9 +729,12 @@ Append the `style_check` ledger row before acting on the return (schema:
 `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3), deriving its outcome from the agent's
 `primary_attempts` and `complementary_linter`:
 
-- a primary rung succeeded → `RAN`, `mechanism: <primary_linter>` (+ `dt-style-checker` when it ran).
+- no file was written in Phase 6.3 → `NOT_APPLICABLE`, `precondition_unmet: "no files written"`.
+- a primary rung succeeded → `RAN`, `mechanism: <primary_linter>` (+ `dt-style-checker` when it ran),
+  `findings:` = the number of merged violations returned.
 - every primary rung failed but `dt-style-checker` ran → `DEGRADED`, `not_run:` one entry per failed
-  rung from `primary_attempts`, and `ci_still_checks: "<the repo's own linter> runs on the PR in CI"`.
+  rung from `primary_attempts`, `ci_still_checks: "<the repo's own linter> runs on the PR in CI"`, and
+  `findings:` = the number of merged violations returned.
 - `status: NOT_CONFIGURED` (no primary rung detected AND `dt-style-guide` absent) → `UNAVAILABLE`;
   convert it per `gate-ledger.md` §5 before proceeding.
 - `status: ERROR` → `UNAVAILABLE`; convert it per `gate-ledger.md` §5.

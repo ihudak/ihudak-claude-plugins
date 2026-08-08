@@ -78,7 +78,7 @@ or empty, run the whole-repo detection ladder below unchanged.
 
    The complementary pass NEVER promotes the overall status to ERROR; it only adds findings or notes its own failure in `complementary_error`.
 
-   - **If `dt-style-guide` is NOT installed AND no primary linter ran** → return `status: NOT_CONFIGURED`, `violations: []`. The main command treats this as a no-op and proceeds to the reviewer. This is the **only** path that yields `NOT_CONFIGURED`.
+   - **If `dt-style-guide` is NOT installed AND no primary linter ran** → return `status: NOT_CONFIGURED`, `violations: []`. This is the **only** path that yields `NOT_CONFIGURED`. It is NOT a no-op for the caller: `/document` records the `style_check` gate as `UNAVAILABLE` and converts it per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 before the reviewer runs.
    - **If `dt-style-guide` is NOT installed AND a primary linter ran** → proceed with primary findings only; record `complementary_linter: none`.
 
 ## Merging primary + complementary findings (deduplication)

@@ -105,6 +105,9 @@ Return this exact shape (no preamble, no chatter):
 #### Source traceability
 - ...
 
+#### Verification-gate integrity
+[findings, or "None"]
+
 #### Style-check follow-through
 - ...
 

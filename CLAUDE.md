@@ -212,7 +212,7 @@ Key invariants for `/release-notes`:
 - `jira-reader` is read-only
 - The draft is the **authored body only** — for a titled destination a `{{#context}}` label, `### title`, and customer-facing prose; for `fixes` ONE bare past-tense sentence. NEVER a Jira ID/key, a PR link, a `Change type:` line, or a `{{#internal-note}}` block (the docs automation adds the metadata wrapper)
 - The `{{#context}}` label IS the imported `release_notes_category`, used verbatim; absent ⇒ the line is omitted. Change Type is sourced `imported_change_type` → infer, drives destination + shape only, and is confirmed with the user only on a low-confidence inference — by shape and destination, never by enum label
-- The Summary is shaped per its destination (breaking → present tense, what breaks, remediation; feature update → benefit-led + a docs/blog link; fixes → one past-tense sentence, no hedging, no internal terms); exactly ONE Summary per run, and no title or prose names the release version
+- The Summary is shaped per its destination (breaking → present tense, what breaks, remediation; feature update → benefit-led, plus a docs/blog link on a dev-phase run only; fixes → one past-tense sentence, no hedging, no internal terms); exactly ONE Summary per run, and no title or prose names the release version
 - The run is gated on the imported `relevant_for_release_notes` — an explicit `false` stops with `RELEASE_NOTES_NOT_RELEVANT` (overridable); absent proceeds silently
 - A deprecation carries a deprecation note in the Summary — end-of-life date (required) + end-of-support date (optional); a missing required date becomes a `deprecation_eol` gap the command asks about (never invented)
 - NEVER writes into a docs repo; the default destination is persistent (never `/tmp`)

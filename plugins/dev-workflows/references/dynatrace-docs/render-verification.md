@@ -14,7 +14,11 @@ not hard-code dynatrace-docs specifics.
 ## 1. Build vs boot
 
 Resolve the build command per space: `profile.commands.per_space.<space>.build` when the profile
-declares one for that space, else the flat `profile.commands.build`. Run it for each space written to.
+declares one for that space, else the flat `profile.commands.build`. Run it for every space in the
+**verification set** defined in §2 — `target_spaces` plus the protected space of any affected page
+whose `write_strategy.strategy` is `conditional` or `override-copy` — never by which `content_root`
+the written files sit under. A `conditional` delta lives in its home space's tree but renders only in
+its `target_space`, so a path-scoped build compiles the one space that skips the new content.
 For dynatrace-docs that is `pnpm dynatrace:build` and `pnpm managed:build` — both exist, and an
 earlier version of this file wrongly claimed the repo had only `commands.lint` and the `*:start`
 servers, which disabled this gate entirely.

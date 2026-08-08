@@ -759,10 +759,7 @@ Then act on the return:
   choices: ["Proceed to review anyway — reviewer may still PASS", "Show remaining violations and let me fix manually", "Cancel"]
   ```
 
-- **`status: ERROR`** — surface the error reason and ask:
-  ```
-  choices: ["Proceed to doc-reviewer (style check unavailable — doc-reviewer still runs)", "Cancel and fix locally"]
-  ```
+- **`status: ERROR`** — every primary rung AND the `dt-style-checker` pass failed or were unavailable. Surface the error reason, then STOP: the `style_check` row is `UNAVAILABLE`, and the only prompt the user sees is the `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 conversion list. Do NOT ask an ad-hoc question here — §5 owns this decision, and the "Choice lists are presented verbatim" rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` binds it.
 
 ---
 

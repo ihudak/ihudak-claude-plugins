@@ -773,7 +773,7 @@ Run this phase after Phase 6.4 **only** when Phase 6.3 wrote files into a builda
 
 ### Step 1 — Build check (gating)
 
-Run `profile.commands.build` if the profile defines one. Do NOT re-run the Phase 6.4 prose linter. Classify any failure:
+Resolve the build command per space — `profile.commands.per_space.<space>.build`, else the flat `profile.commands.build` — and run it for each space written to. Do NOT re-run the Phase 6.4 prose linter. Classify any failure:
 - **Content failure** (Handlebars won't compile, unresolved snippet include, broken postid/internal link, malformed conditional) → invoke `doc-fixer` (Severities: BLOCKER and MAJOR), then re-run the build once. If failures remain:
   ```
   choices: ["Proceed to smoke-check anyway", "Show remaining and fix manually", "Cancel"]
@@ -783,16 +783,16 @@ Run `profile.commands.build` if the profile defines one. Do NOT re-run the Phase
   choices: ["Proceed (build unverified)", "I'll fix locally — retry the build", "Cancel"]
   ```
 
-When the profile defines **no** build command (the dynatrace-docs case), record "no build command in profile; build proof deferred to the dev-server boot (Step 2)" and proceed.
+When the profile declares **no** build command at either level, record "no build command in profile; build proof deferred to the dev-server boot (Step 2)" and proceed. Under the built-in dynatrace-docs profile this branch does not apply — `commands.per_space.saas.build` and `commands.per_space.managed.build` are both defined.
 
 ### Step 2 — Dev-server smoke-check (opt-in, best-effort)
 
-Offer it:
+Offer it. Present this list **verbatim** — the "Choice lists are presented verbatim" rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` forbids moving `(Recommended)`, reordering the options, or re-wording them. Dev-server flakiness and a correct static conditional are reasons to say something in prose beside the list; they are never reasons to recommend Skip.
 ```
-choices: ["Run smoke-check (Recommended)", "Skip — use the manual table only", "Cancel"]
+choices: ["Run smoke-check (Recommended)", "Skip — use the manual table only", "Cancel", "Other… (describe)"]
 ```
 
-When run, for each space in `target_spaces`, **sequentially** (`profile.dev_servers.concurrent: false` forbids overlap) — full mechanics in `render-verification.md`:
+When run, boot each space in the **verification set** — `target_spaces` plus, when any affected page's `write_strategy.strategy` is `conditional` or `override-copy`, that strategy's protected space (see `render-verification.md` §2) — **sequentially** (`profile.dev_servers.concurrent: false` forbids overlap). Booting only `target_spaces` can never check the ABSENT half of the §4 invariant. Full mechanics in `render-verification.md`:
 1. **Prerequisites (best-effort, never auto-applied).** Verify `profile.prerequisites`. The `.docstack` shim is a local, gitignored dev-environment workaround — check it, NEVER apply it. Unmet → record "smoke-check skipped for `<space>`: prerequisite `<x>` unmet" and use the manual table for that space.
 2. **Boot** `profile.dev_servers.servers[<space>].command` in the background; record the process id.
 3. **Readiness poll** — GET `http://localhost:<port><base_path>/` until HTTP 200 or `profile.dev_servers.readiness_timeout_seconds` seconds (fall back to **120** when absent). On timeout → stop the process, record "smoke-check skipped for `<space>`: not ready", use the manual table for that space.

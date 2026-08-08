@@ -41,12 +41,17 @@ When `docs_grounding` is present, use its `docs_references` for terminology and 
 ## Process
 
 1. **Resolve the destination.** Per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §7:
-   `imported_change_type` → infer per §2. Set `release_notes_block.change_type` to one of
-   `Breaking change` / `New technology support` / `Bug fix`, and `release_notes_block.destination` to
-   the matching file from §1. Only when the value had to be **inferred** and is low-confidence, emit
-   `gaps[]` (`field: change_type`, `recommended_action: "ask user"`) carrying the proposed value —
-   the command confirms it by shape and destination, not by enum label. The Change Type is NEVER
-   written as text into the draft.
+   `imported_change_type` is authoritative, with two **not routable** exceptions that fall through to
+   inference (§2) instead: `not applicable` (§1 maps it to no destination — the command's Phase 2
+   relevance gate is what stops such a run, not this step) and `Bug fix` on a change that trips the §5
+   deprecation trigger (apply that trigger's scan now, ahead of Process step 3's full detection — §2's
+   deprecation tie-breaker bars a deprecation from `fixes`, where the required end-of-life note would
+   have nowhere to live). Otherwise, `imported_change_type` → infer per §2. Set
+   `release_notes_block.change_type` to one of `Breaking change` / `New technology support` /
+   `Bug fix`, and `release_notes_block.destination` to the matching file from §1. Only when the value
+   had to be **inferred** and is low-confidence, emit `gaps[]` (`field: change_type`,
+   `recommended_action: "ask user"`) carrying the proposed value — the command confirms it by shape
+   and destination, not by enum label. The Change Type is NEVER written as text into the draft.
 
 2. **Resolve the `{{#context}}` label.** Per §7, set `release_notes_block.context_label` =
    `imported_release_notes_category`, used verbatim. When it is null, set `context_label: null` and
@@ -78,12 +83,10 @@ When `docs_grounding` is present, use its `docs_references` for terminology and 
    - **Feature title** — 5–10 words, sentence case, release-note headline style. No
      leading "New feature:", no trailing period.
    - **Body** — customer-facing content shaped by the destination per
-     `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §4. For a **Bug fix**, use
-     the §4 Fixes rules (past tense, lead with the resolution, include triggering
-     conditions, no hedging, no jargon/code, no internal workflow terms). For a
-     **Breaking change**, use the §4 Breaking change rules (lead with the benefit, state
-     what changes and what breaks, add an **Action plan** when the customer must act).
-     For **New technology support**, use the benefit-led editorial shaping below. When a
+     `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §4. For a
+     **Breaking change**, use the §4 Breaking change rules (present tense, state plainly
+     what is breaking, include directions or a link to remediate). For **New technology
+     support**, use the benefit-led editorial shaping below. When a
      deprecation was detected (Process step 3), append the deprecation note (what is
      deprecated + end-of-life date, optional end-of-support date, or the `<!-- TODO:
      end-of-life date -->` placeholder). Never name the release version in the prose
@@ -145,10 +148,13 @@ Return YAML exactly as defined in `${CLAUDE_PLUGIN_ROOT}/references/handoff/rele
 ## Hard rules
 
 - When code_repos is provided, NEVER silently emit a claim the source contradicts; record it in gaps[] for the command to escalate.
-- ALWAYS set `release_notes_block.change_type` to one of `Breaking change` / `New technology
-  support` / `Bug fix`, and `release_notes_block.destination` to the matching file per
-  `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1; when the value was inferred with low
-  confidence, still set it and record a `field: change_type` gap.
+- `imported_change_type` is authoritative EXCEPT two not-routable values that fall through to
+  inference (§2) instead: `not applicable`, and `Bug fix` on a change that trips the §5 deprecation
+  trigger — see `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §7.
+- ALWAYS set `release_notes_block.change_type` to one of `Breaking change` /
+  `New technology support` / `Bug fix`, and `release_notes_block.destination` to the matching file
+  per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1; when the value was inferred with
+  low confidence, still set it and record a `field: change_type` gap.
 - NEVER write the Change Type as text anywhere in the draft. It selects the destination and the shape
   only; the PM sets the Jira dropdown.
 - The `{{#context}}` label IS the imported `release_notes_category`, used verbatim. When the import

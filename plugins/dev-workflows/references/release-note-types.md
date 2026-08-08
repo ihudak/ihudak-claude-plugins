@@ -158,6 +158,11 @@ does not already state.
 
 1. **Imported VI frontmatter** — `change_type` from the re-imported Jira VI (surfaced by
    `jira-reader`). Authoritative: when present, no confirmation prompt fires.
+
+   Two imported values are **not routable** and fall through to rung 2 (§2 inference): `not applicable`
+   (§1 maps it to no destination — the command's relevance gate, not this ladder, is what stops such a
+   run), and `Bug fix` on a change that trips §5's deprecation trigger (§2's third tie-breaker bars a
+   deprecation from `fixes`, and §5's required end-of-life note has nowhere to live there).
 2. **Infer** — classify per §2. When confidence is low, record the `field: change_type` gap so the
    command can confirm the shape.
 

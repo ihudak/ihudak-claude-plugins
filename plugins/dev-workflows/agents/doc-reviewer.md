@@ -121,7 +121,7 @@ Return this exact shape (no preamble, no chatter):
 - NEVER modify files. The reviewer reads; the caller (via `doc-fixer`) writes.
 - NEVER return a PASS verdict if a BLOCKER finding exists.
 - NEVER skip a dimension silently — either report findings or say "N/A — reason".
-- NEVER promote an unconfigured style check into a BLOCKER for the whole run. If `docs-style-checker` returned `NOT_CONFIGURED`, the Style-check follow-through dimension is "N/A" and the rest of the review proceeds.
+- NEVER promote an unconfigured style check into a BLOCKER via the Style-check follow-through dimension. That dimension reads the `style_check` ledger row: `NOT_APPLICABLE` or `SKIPPED_BY_USER` → "N/A", and the rest of the review proceeds. A `style_check` row still sitting at `UNAVAILABLE` IS a BLOCKER — but it is raised by the Verification-gate integrity dimension, never by this one.
 - NEVER re-run the linter. `docs-style-checker` is authoritative for style findings.
 - NEVER invent new review dimensions beyond the ones listed. If an issue doesn't fit, assign it to the closest applicable dimension and say so.
 - If the `doc-planner` checklist references a topic or a screenshot that doesn't appear in any written file, that is a `Completeness vs plan` BLOCKER — do NOT downgrade to MAJOR because the topic was "probably optional".

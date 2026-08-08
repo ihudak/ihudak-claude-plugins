@@ -40,7 +40,7 @@ spaces:    # OPTIONAL. Supplied by the caller from profile.spaces + profile.comm
 Refuse to run without `repo_root` and at least one entry in `files`. `spaces` is optional: when absent
 or empty, run the whole-repo detection ladder below unchanged.
 
-## Detection order (first match wins for the PRIMARY pass)
+## Detection order (a ladder — the first rung that SUCCEEDS sets the PRIMARY pass)
 
 > **Hard rule before anything else — this is a ladder, not a first-match switch.** A failure at step
 > *N* continues to step *N+1*. The first step that **succeeds** sets `primary_linter`; a step that is
@@ -60,7 +60,7 @@ or empty, run the whole-repo detection ladder below unchanged.
 
 3. **Generic markdown linter** — if `<repo_root>/.markdownlint.json(c)` or `<repo_root>/.remarkrc*` exists AND the corresponding binary is on PATH, run it on the target files. Set `primary_linter: markdownlint` or `primary_linter: remark`. **On failure → record the attempt in `primary_attempts` and continue to step 4.**
 
-4. **Nothing configured** — no project-level linter detected. Go to step 5; in this case `dt-style-checker` becomes the SOLE check (not complementary).
+4. **No primary pass succeeded** — either no project-level linter was detected at all, or every rung that was detected has been tried and failed (each recorded in `primary_attempts`). Go to step 5. Which role `dt-style-checker` takes depends on which of those two happened, and step 5's own bullets decide it: SOLE when nothing was ever detected, FALLBACK when rungs were tried and failed.
 
 5. **`dt-style-checker` — role depends on whether steps 1-3 succeeded.**
    - If steps 1-3 succeeded → run as **COMPLEMENTARY** pass (always, when `dt-style-guide` is installed). Merge findings with the primary pass.

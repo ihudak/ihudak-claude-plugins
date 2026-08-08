@@ -714,7 +714,8 @@ Invoke `docs-style-checker` on the files written in Phase 6.3:
   > "Run the style check for this brief:
   >
   > repo_root: [the resolved docs_repo_path (Phase 0)]
-  > files:     [absolute paths of every file written or modified in Phase 6.3]"
+  > files:     [absolute paths of every file written or modified in Phase 6.3]
+  > spaces:    [one entry per space in profile.spaces that has a profile.commands.per_space entry — {id, content_root, lint}; omit the key entirely when the profile declares no per_space commands]"
 
 Act on the return:
 
@@ -1278,7 +1279,9 @@ After writing the edits and before Phase 4, dispatch `docs-style-checker` on the
 - `OK` / `NOT_CONFIGURED` → proceed to Phase 4 (NOT_CONFIGURED means no primary linter AND `dt-style-guide` not installed — recorded, not silently ignored).
 - `ERROR` → surface the reason; proceed to Phase 4 (the edit is small and user-managed).
 
-Never skip this phase on your own judgement of which linters are installed. `docs-style-checker` runs the chain internally: the primary linter PLUS `dt-style-checker` as a complementary semantic pass when the `dt-style-guide` plugin is installed (and as the fallback when the primary linter fails) — so the semantic / cross-page class is never silently dropped just because Vale exists.
+Never skip this phase on your own judgement of which linters are installed. `docs-style-checker` runs the chain internally as a **ladder**: each primary rung is tried in turn (a detected-but-broken rung does not abandon the ones below it), and `dt-style-checker` runs as a complementary semantic pass whenever the `dt-style-guide` plugin is installed — so neither the repo's own linter nor the semantic / cross-page class is silently dropped. Record the returned `primary_attempts` in the `style_check` ledger row.
+
+After the style check, hold the edited files against the `repo_verification_gates` block extracted in Phase 0 (`${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §5) and append the `repo_checklist` ledger row: `RAN` with `findings:` = the number of entries that failed, or `NOT_APPLICABLE` with `precondition_unmet: "the repo publishes no pre-PR checklist"` when the block is empty. Report any failed entry to the user with its `source` citation — direct mode has no reviewer gate, so this is where the repo's own rules surface.
 
 ---
 

@@ -9,10 +9,11 @@ Draft release notes for the Jira ticket: $ARGUMENTS
 `/release-notes` produces a **customer-facing release-notes draft** for a Jira
 Value Increment (or any ticket) from pre-exported markdown in the user's Obsidian vault.
 It optionally grounds the prose in merged PR diffs, renders the dynatrace-docs authored
-release-notes body (a `{{#context}}` label + `### title` + prose — **no `{{#internal-note}}`,
-no Jira IDs, no PR links**; the docs automation adds the metadata wrapper), runs a light
-style gate, and writes the draft to a persistent destination for the user to paste into
-Jira's release-notes field.
+release-notes body — a `{{#context}}` label + `### title` + prose for the `feature-updates` /
+`breaking-changes` destinations, or one bare past-tense sentence for `fixes` — with **no
+`{{#internal-note}}`, no Jira IDs, no PR links** (the docs automation adds the metadata
+wrapper), runs a light style gate, and writes the draft to a persistent destination for the
+user to paste into Jira's release-notes field.
 
 For full feature documentation use `/document`; for Epic drafting use `/epics`.
 
@@ -97,12 +98,22 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 
 ## Phase 2 — Worthiness check + plan/approval
 
-1. **Worthiness.** After Phase 3 reads the ticket (or by reading the VI frontmatter now), check `relevant_for_release_notes` and `release_versions`. If `relevant_for_release_notes != "Yes"` AND `release_versions` is empty/absent, warn and ask:
-   ```
-   choices: ["Proceed anyway (Recommended)", "Cancel", "Other… (describe)"]
-   ```
+1. **Worthiness gate.** Read `relevant_for_release_notes` directly from the **imported VI frontmatter**
+   under `jira_export_root` (this phase runs before Phase 3, so there is no `jira-reader` handoff yet,
+   and `jira-reader` does not surface this field in any case). NEVER read it from the authored specs
+   draft.
+   - **`false` / `no`** → stop:
+     `RELEASE_NOTES_NOT_RELEVANT: <jira_key> is flagged not relevant for release notes; Jira's status rule does not require one.`
+     Offer an override for drafting ahead of the flag:
+     ```
+     choices: ["Cancel — nothing to draft (Recommended)", "Draft anyway — I'll set the flag later", "Other… (describe)"]
+     ```
+   - **`true` / `yes`** → proceed.
+   - **absent** → **proceed silently.** The field defaults to true; absent is not false.
 
-2. **Plan.** Present: resolved `jira_key`, destination, diff-grounding on/off (+ `$REPOS_PATH` and repos to scan when on), docs grounding on/off (+ root when on), release versions detected, style-check choice. Ask:
+   `release_versions` plays no part in this gate.
+
+2. **Plan.** Present: resolved `jira_key`, destination, diff-grounding on/off (+ `$REPOS_PATH` and repos to scan when on), docs grounding on/off (+ root when on), style-check choice. Ask:
    ```
    choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
    ```
@@ -127,17 +138,13 @@ scopes only what Phase 6 renders; it does not mutate the stored handoff that oth
 phases read. When `focus_key` is null, the draft covers the whole ticket/VI exactly as
 today.
 
-If `status: NOT_FOUND` / `EMPTY`, surface `["Re-enter key", "Cancel"]`. On `OK`, parse `release_versions` from the VI frontmatter into a list (e.g. `"Managed (344), SaaS (344)"` → `["Managed (344)", "SaaS (344)"]`).
+If `status: NOT_FOUND` / `EMPTY`, surface `["Re-enter key", "Cancel"]`.
 
-Also capture `imported_change_type` and `imported_release_notes_category` from the
-jira-reader handoff's `value_increment` block (null when absent).
-
-**Resolve the authored specs-draft VI (secondary grounding).** Per
-`${CLAUDE_PLUGIN_ROOT}/references/vi-source-resolution.md` §5, glob
-`$SPECS_PATH/specifications/<jira_key>-*/<jira_key>_*.md` (first match whose frontmatter is
-`issue_type: ValueIncrement`); read its `change_type` + `release_notes_category` into
-`authored_vi_fields`. A missing file or `$SPECS_PATH` is a graceful skip
-(`authored_vi_fields: null`) — never authoritative over the imported values.
+On `OK`, capture `imported_change_type` and `imported_release_notes_category` from the jira-reader
+handoff's `value_increment` block (null when absent). Do NOT parse `release_versions` — the draft
+carries one Summary and never names a version. Do NOT read the authored specs-draft VI for these
+fields: they are Jira-mirror fields (`${CLAUDE_PLUGIN_ROOT}/references/vi-format.md`), so an authored
+VI never carries them.
 
 ---
 
@@ -164,29 +171,53 @@ Run `resolve-docs-grounding release-notes` per `${CLAUDE_PLUGIN_ROOT}/references
 
 ## Phase 6 — Render the draft
 
+**Resolve `run_phase`.** `/release-notes` runs at two points in a VI's life, and the
+`release-note-types.md` §4 documentation-link rule depends on which. Reuse the existing signal from
+`${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` §7 — glob the VI's specs dir
+(`$SPECS_PATH/specifications/<jira_key>-*/`) for `specification.md` and `design.md`:
+
+- **neither present** → `run_phase: pm`. The feature is not built and its documentation does not
+  exist yet, so the note carries no documentation link and the command never asks for one.
+- **either present** → `run_phase: dev`. The author may supply a redirect short link that will later
+  point at the page `/document` publishes.
+- **`$SPECS_PATH` unset or the dir missing** → `run_phase: pm` (the safe default — it only suppresses
+  a link, never fabricates one).
+
+This is the same inference `emit-cost` already applies in Phase 11; do not add a question for it.
+
 → Agent (subagent_type: "dev-workflows:release-notes-writer"):
   > "Render the release-notes draft for this brief:
   >
   > jira_reader_handoff: [the Phase 3 handoff — scoped to the focus Epic's subtree when focus_key is set]
   > diff_summaries:      [the Phase 5 array, or omit when diff grounding was off]
   > docs_grounding:      [the Phase 5.5 digest, or omit when OFF/EMPTY]
-  > release_versions:    [parsed list, or [] ]
-  > context_label_hint:  [user hint if any, else null]
-  > change_type_hint:    [user-supplied Change Type and/or deprecation signal if any, else null]
   > imported_change_type:            [from Phase 3, else null]
   > imported_release_notes_category: [from Phase 3, else null]
-  > authored_vi_fields:              [from Phase 3, else null]
+  > run_phase:           [pm | dev — resolved immediately above, in this phase]
   > model_routing:       [the block from Phase 1.5]
   > code_repos:          [the Phase-4 resolved {slug, path} map when diff grounding is on; omit otherwise]"
 
 If `status: PARTIAL`, surface each `gaps` entry with `recommended_action: "ask user"` and let the user supply the label/prose or accept a `<!-- TODO -->` marker.
 
-For a `field: change_type` gap (low-confidence classification), present the writer's
-proposed value and let the user confirm or override:
+For a `field: change_type` gap, the destination was inferred with low confidence — and the
+destination decides the draft's whole shape. Confirm it by **consequence**, never by enum label.
+This fires ONLY when `imported_change_type` was null; when the Jira dropdown is already set, no
+prompt appears.
+
+State the inference, then ask:
+
+> This note reads like a `<proposed type>`, so the draft is shaped as `<shape>` and lands in
+> `<destination>`.
+
 ```
-choices: ["<proposed value> (Recommended)", "Breaking change", "New technology support", "Bug fix", "not applicable", "Other… (describe)"]
+choices: ["<proposed type> — <its shape>, in <its destination> (Recommended)", "Feature update — titled section with a docs link, in feature-updates.md", "Breaking change — titled section with remediation steps, in breaking-changes.md", "Fix — one self-contained sentence, in fixes.md", "Other… (describe)"]
 ```
-Apply the chosen value to `release_notes_block.change_type` (and thus the draft's leading `Change type:` line).
+
+Drop the option that duplicates the recommended one. Apply the choice to
+`release_notes_block.change_type` (Feature update → `New technology support`, Breaking change →
+`Breaking change`, Fix → `Bug fix`) + `destination` and **re-render** the draft in the chosen shape —
+switching between `fixes` and a titled destination changes the body structure, not just a label. The
+chosen value never becomes text in the draft; the PM still sets the Jira dropdown.
 
 For a `field: deprecation_eol` gap (a deprecation was detected but the required
 end-of-life date is unclear), ask the user:
@@ -235,10 +266,8 @@ If `dt-style-guide` is not installed, skip this phase and note "style check skip
    ```
    ## Release-notes draft — <jira_key>
    - Destination: <path | stdout | skipped>
-   - Release versions: <list, or "none declared">
-   - Change type: <Breaking change | New technology support | Bug fix | not applicable>
-   - Release-notes category: <value | none>
-   - Change-type source: <hint | imported | authored | inferred>  (derive by re-walking the ladder over the inputs you passed in Phase 6: the first non-null of change_type_hint / imported_change_type / authored_vi_fields.change_type, else "inferred"; + "imported/authored differ: <imp> vs <auth> — used imported" when a change_type_divergence gap was returned)
+   - Shaped as: <Feature update | Breaking change | Fix> → <destination file>  (source: <imported | inferred>)
+   - Context label: <the {{#context}} value | none — omitted from the draft>
    - Deprecation: <EOL <date> (end-of-support <date | —>) | none>
    - Diff grounding: <on (repos: …) | off>
    - Style check: <applied N safe fixes | report only (M findings) | skipped (dt-style-guide absent)>
@@ -257,9 +286,6 @@ If `dt-style-guide` is not installed, skip this phase and note "style check skip
 
    Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
    ```
-
-   Handle a `change_type_divergence` gap by printing the divergence note in the
-   `Change-type source:` line above (non-blocking; no user prompt).
 
 ---
 
@@ -359,8 +385,9 @@ user name is ever written (§10).
 - ZERO external API calls — PR URLs are identifiers only; all resolution is local `git`.
 - `jira-reader` is read-only.
 - The draft contains NO Jira IDs/keys, NO PR links, and NO `{{#internal-note}}` block.
-- The draft LEADS with a `Change type:` line (one of `Breaking change` / `New technology support` / `Bug fix` / `not applicable`) above a type-aware Summary; when the change deprecates something the Summary carries a deprecation note (end-of-life date required, end-of-support optional). The Change Type label never appears inside the Summary body, and no title or Summary prose names the release version. The pipeline-consumed Summary body is otherwise unchanged.
-- Change Type + `release_notes_category` are **sourced** — `change_type_hint` → imported VI frontmatter (jira-reader) → authored specs-draft VI (secondary grounding per `vi-source-resolution.md` §5) → infer; import wins over authored on divergence (non-blocking note). The category is surfaced only, never the `{{#context}}` label.
+- The draft is EXACTLY one Summary, shaped by its destination per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1/§3 — a `{{#context}}` label + `### title` + prose for `breaking-changes` / `feature-updates`, or ONE bare past-tense sentence for `fixes`. It carries NO `Change type:` line, NO `Release-notes category:` line, and no title or prose that names the release version. When the change deprecates something the Summary carries a deprecation note (end-of-life date required, end-of-support optional).
+- The `{{#context}}` label IS the imported `release_notes_category`, used verbatim; when the import carries none the line is OMITTED. Change Type is sourced `imported_change_type` → infer, and is confirmed with the user ONLY when it was inferred with low confidence — by shape and destination, never by enum label. Neither field is ever asked for as a Jira dropdown value.
+- The run is GATED on the imported `relevant_for_release_notes`: an explicit `false` stops with `RELEASE_NOTES_NOT_RELEVANT` (overridable); absent proceeds silently.
 - NEVER write into a docs repo; the default destination is persistent (never `/tmp`).
 - ALWAYS use `choices` arrays; the last choice is always `"Other… (describe)"`.
 - Light gate only — no Opus review, no tests, no branch, no commit.

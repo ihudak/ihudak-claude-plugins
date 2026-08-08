@@ -33,13 +33,18 @@ is a fallback for repos without a build, not a description of dynatrace-docs.
 
 `profile.dev_servers.concurrent: false` means one space at a time.
 
-**Which spaces to boot.** Start from `target_spaces`. When any affected page's `write_strategy.strategy`
-is `conditional` or `override-copy`, **add that strategy's protected space** — the space that is *not*
-its `target_space`. The invariant in §4 has two halves (marker PRESENT in the target render, ABSENT in
-the protected render) and booting only `target_spaces` can never check the second one, which is the
-half the 3a protection depends on. On a run with no cross-space pages, the set is just `target_spaces`.
+**The verification set — which spaces to build and boot.** Start from `target_spaces`. When any
+affected page's `write_strategy.strategy` is `conditional` or `override-copy`, **add that strategy's
+protected space** — the space that is *not* its `target_space`. The invariant in §4 has two halves
+(marker PRESENT in the target render, ABSENT in the protected render) and booting only `target_spaces`
+can never check the second one, which is the half the 3a protection depends on. On a run with no
+cross-space pages, the verification set is just `target_spaces`.
 
-For each space in that set, in order:
+This set governs **both** gates: §1's build check runs each of its spaces' build commands, and the
+smoke-check below boots each of them. Neither is scoped by which `content_root` the written files sit
+under.
+
+For each space in the verification set, in order:
 
 1. Verify prerequisites (§5) — best-effort, never applied.
 2. Boot `profile.dev_servers.servers[<space>].command` in the background; record

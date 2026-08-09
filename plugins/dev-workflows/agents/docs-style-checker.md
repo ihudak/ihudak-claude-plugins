@@ -31,21 +31,36 @@ Running ONLY the primary linter (because it exists) misses the semantic / cross-
 ```yaml
 repo_root: <absolute path to the docs repo root>
 files:     [<absolute paths of files written in Phase 6.3 (or Phase 3 for direct mode)>]
+spaces:    # OPTIONAL. Supplied by the caller from profile.spaces + profile.commands.per_space.
+  - id:           <space id>
+    content_root: <path relative to repo_root, e.g. managed/_content>
+    lint:         <the space's lint command, e.g. "pnpm managed:lint">
 ```
 
-Refuse to run without `repo_root` and at least one entry in `files`.
+Refuse to run without `repo_root` and at least one entry in `files`. `spaces` is optional: when absent
+or empty, run the whole-repo detection ladder below unchanged.
 
-## Detection order (first match wins for the PRIMARY pass)
+## Detection order (a ladder — the first rung that SUCCEEDS sets the PRIMARY pass)
 
-> **Hard rule before anything else:** if a detected primary linter ERRORS at runtime (missing binary, non-zero exit with no parseable output, timeout), the agent MUST attempt the `dt-style-checker` pass (step 5) before returning `status: ERROR`. "Some check is better than no check." Only return `ERROR` if the primary linter AND `dt-style-checker` both fail or are unavailable.
+> **Hard rule before anything else — this is a ladder, not a first-match switch.** A failure at step
+> *N* continues to step *N+1*. The first step that **succeeds** sets `primary_linter`; a step that is
+> detected but fails (missing binary, non-zero exit with no parseable output, timeout) is recorded in
+> `primary_attempts` and the ladder moves on. Step 5 (`dt-style-checker`) is reached after steps 1–4
+> have each been tried — never as an escape hatch from the first one. Only return `ERROR` if every
+> primary rung AND `dt-style-checker` fail or are unavailable.
+>
+> This matters concretely: `dynatrace-docs` has both a `.vale.ini` (step 1) and `pnpm dynatrace:lint`
+> / `pnpm managed:lint` scripts (step 2). When `vale` is not installed, step 2 is the linter CI will
+> actually run, and abandoning it because step 1 was *detected* leaves the run with no repo linter at
+> all.
 
-1. **Vale via `.vale.ini`** — if `<repo_root>/.vale.ini` exists, run `vale --output=JSON <files>` from the repo root. Parse the JSON into finding records. Set `primary_linter: vale`. **On non-zero exit / missing binary → go to step 5 (dt-style-checker as fallback), not ERROR.**
+1. **Vale via `.vale.ini`** — if `<repo_root>/.vale.ini` exists, run `vale --output=JSON <files>` from the repo root. Parse the JSON into finding records. Set `primary_linter: vale`. **On non-zero exit / missing binary → record the attempt in `primary_attempts` and continue to step 2.**
 
-2. **Project-specific lint script** — if `<repo_root>/package.json` has a script matching `*:lint` or `lint:*` that covers markdown (e.g. `docs:lint`, `site:lint`, `lint:md`), run it. Parse stderr/stdout for line-level violations. If the script lints the whole tree, filter violations to the target files only. Set `primary_linter: yarn:<script>` or `npm:<script>`. **On failure → go to step 5, not ERROR.**
+2. **Project-specific lint script** — when the caller supplied `spaces`, determine which spaces own the input `files` by matching each file's path against each space's `content_root` prefix, and run **that space's `lint` command** for every space owning at least one file (a Managed-only file set runs `pnpm managed:lint`, not the SaaS linter). Record one `primary_attempts` entry per space-scoped command. The rung succeeds only if EVERY owning space's command produced parseable output; if any one of them fails, record each attempt separately and continue the ladder to step 3 for the whole file set (never re-lint a partial subset — a mixed pass is not a primary pass). On success set `primary_linter` to `per-space:` followed by every owning space id in `spaces` order joined by `+` — one owning space gives `per-space:managed`, two give `per-space:saas+managed` — and set `primary_command` to every command that ran, joined by `; `, so the pair always describes exactly what executed. When `spaces` is absent or no space matches, fall back to the whole-repo behaviour: if `<repo_root>/package.json` has a script matching `*:lint` or `lint:*` that covers markdown (e.g. `docs:lint`, `site:lint`, `lint:md`), run it. Parse stderr/stdout for line-level violations. If the script lints the whole tree, filter violations to the target files only. Set `primary_linter: yarn:<script>` or `npm:<script>`. **On failure → record the attempt in `primary_attempts` and continue to step 3.**
 
-3. **Generic markdown linter** — if `<repo_root>/.markdownlint.json(c)` or `<repo_root>/.remarkrc*` exists AND the corresponding binary is on PATH, run it on the target files. Set `primary_linter: markdownlint` or `primary_linter: remark`. **On failure → go to step 5, not ERROR.**
+3. **Generic markdown linter** — if `<repo_root>/.markdownlint.json(c)` or `<repo_root>/.remarkrc*` exists AND the corresponding binary is on PATH, run it on the target files. Set `primary_linter: markdownlint` or `primary_linter: remark`. **On failure → record the attempt in `primary_attempts` and continue to step 4.**
 
-4. **Nothing configured** — no project-level linter detected. Go to step 5; in this case `dt-style-checker` becomes the SOLE check (not complementary).
+4. **No primary pass succeeded** — either no project-level linter was detected at all, or every rung that was detected has been tried and failed (each recorded in `primary_attempts`). Go to step 5. Which role `dt-style-checker` takes depends on which of those two happened, and step 5's own bullets decide it: SOLE when nothing was ever detected, FALLBACK when rungs were tried and failed.
 
 5. **`dt-style-checker` — role depends on whether steps 1-3 succeeded.**
    - If steps 1-3 succeeded → run as **COMPLEMENTARY** pass (always, when `dt-style-guide` is installed). Merge findings with the primary pass.
@@ -63,7 +78,7 @@ Refuse to run without `repo_root` and at least one entry in `files`.
 
    The complementary pass NEVER promotes the overall status to ERROR; it only adds findings or notes its own failure in `complementary_error`.
 
-   - **If `dt-style-guide` is NOT installed AND no primary linter ran** → return `status: NOT_CONFIGURED`, `violations: []`. The main command treats this as a no-op and proceeds to the reviewer. This is the **only** path that yields `NOT_CONFIGURED`.
+   - **If `dt-style-guide` is NOT installed AND no primary linter ran** → return `status: NOT_CONFIGURED`, `violations: []`. This is the **only** path that yields `NOT_CONFIGURED`. It is NOT a no-op for the caller: `/document` records the `style_check` gate as `UNAVAILABLE` and converts it per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 before the reviewer runs.
    - **If `dt-style-guide` is NOT installed AND a primary linter ran** → proceed with primary findings only; record `complementary_linter: none`.
 
 ## Merging primary + complementary findings (deduplication)
@@ -113,8 +128,12 @@ The plugin does NOT promote a linter MINOR into BLOCKER. The linter's own severi
 
 ```yaml
 status:                OK | NOT_CONFIGURED | VIOLATIONS_FOUND | ERROR
-primary_linter:        vale | yarn:<script> | npm:<script> | markdownlint | remark | none
+primary_linter:        vale | per-space:<space id>[+<space id>…] | yarn:<script> | npm:<script> | markdownlint | remark | none
 primary_command:       <exact command line executed for the primary pass, or null>
+primary_attempts:      # every primary rung tried, in ladder order; [] only when step 1 succeeded first try
+  - linter: vale | per-space:<space id> | pnpm:<script> | yarn:<script> | npm:<script> | markdownlint | remark
+    outcome: succeeded | failed | not_detected
+    reason:  <one line; null when outcome == succeeded>
 complementary_linter:  dt-style-checker | none | skipped
 complementary_command: <exact agent invocation for the complementary pass, or null>
 violations:            [<merged + deduped array of the schema above; empty if status == OK or NOT_CONFIGURED>]
@@ -125,7 +144,7 @@ complementary_error:   <only when the complementary pass failed independently; d
 - `status: OK` — at least one pass ran and produced zero merged violations.
 - `status: NOT_CONFIGURED` — no primary linter detected AND `dt-style-guide` not installed.
 - `status: VIOLATIONS_FOUND` — at least one pass produced ≥ 1 violation (after merge + dedupe).
-- `status: ERROR` — the primary linter failed AND the `dt-style-checker` fallback also failed or is not installed. The main command surfaces this and may continue to the reviewer without a style check.
+- `status: ERROR` — every primary rung failed AND the `dt-style-checker` pass also failed or is not installed. This is NOT a licence for the caller to continue unchecked: `/document` records the `style_check` gate as `UNAVAILABLE` and converts it per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 — in Jira mode before the reviewer, in direct mode before Phase 4.
 
 ## Hard rules
 
@@ -133,6 +152,9 @@ complementary_error:   <only when the complementary pass failed independently; d
 - NEVER promote a MINOR / NIT style finding to BLOCKER. The linter's own severity is authoritative.
 - NEVER run the whole-repo lint if a files-scoped invocation is available (performance + noise reduction). If Vale and markdownlint both accept per-file paths, pass only the input `files`.
 - NEVER fabricate a `primary_command` or `complementary_command` value — if a pass didn't run, the field is `null`.
+- NEVER return a `primary_attempts` list that omits a rung the ladder tried. It is the caller's only evidence for what CI will check that this run did not, and it fills the gate ledger's `not_run` and `ci_still_checks` fields.
+- A rung whose configuration is absent is still a rung the ladder passed: record it with `outcome: not_detected` and a one-line `reason` (e.g. "no .vale.ini at repo root"). `primary_attempts` describes the whole climb, not only the failures.
+- NEVER stop the ladder at a *detected but failing* rung. Detection is not execution — only a rung that produced parseable output counts as the primary pass.
 - NEVER output a partially filled violation record (missing `file` or `line`). Drop such records and note the count in `error` if suspicious.
 - Cap each pass at 2 minutes (4 minutes total wall clock). On timeout, kill the pass and record it (`error` if primary, `complementary_error` if complementary).
 - If a primary linter emits warnings about its own configuration (e.g. "Vale: no styles found") rather than content, treat it as a primary-pass failure and fall through to `dt-style-checker`; the complementary pass may still succeed.

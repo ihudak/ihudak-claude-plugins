@@ -30,6 +30,7 @@
 |---|---|
 | `references/toolchain-preflight.md` | Derive the run's required tool set; the `toolchain` block; the tool→gate map; the missing-tool prompt |
 | `references/gate-ledger.md` | Outcome vocabulary, row schema, `/document` gate registry, reviewer contract, adoption notes |
+| `references/repo-verification-gates.md` | Find and extract the docs repo's own pre-PR checklist; the `repo_verification_gates` block; how each consumer applies it (planner in Jira mode, orchestrator in direct mode) |
 
 **Modified (canonical):** `references/escalation-rules.md`, `references/source-truth.md`, `references/dynatrace-docs/render-verification.md`, `references/dynatrace-docs/docs-profile.default.yml`, `references/dynatrace-docs/docs-profile-schema.md`, `agents/docs-style-checker.md`, `agents/doc-planner.md`, `agents/doc-writer.md`, `agents/doc-reviewer.md`, `commands/document.md`, `commands/docs-profile.md`, `README.md`, `CHANGELOG.md`, `.claude-plugin/plugin.json`, repo-root `.claude-plugin/marketplace.json`, repo-root `CLAUDE.md`.
 
@@ -57,11 +58,12 @@
 **Files:**
 - Create: `plugins/dev-workflows/references/gate-ledger.md`
 - Create: `plugins/dev-workflows/references/toolchain-preflight.md`
+- Create: `plugins/dev-workflows/references/repo-verification-gates.md`
 - Modify: `plugins/dev-workflows/references/escalation-rules.md`
 
 **Interfaces:**
 - Consumes: nothing (first task).
-- Produces: the outcome vocabulary `RAN | DEGRADED | FAILED | UNAVAILABLE | SKIPPED_BY_USER | NOT_APPLICABLE`; the gate ids `toolchain_preflight`, `source_truth_verification`, `style_check`, `repo_checklist`, `build_check`, `render_smoke_check`; the `gate_ledger:` row schema; the `toolchain:` block schema; and the rule name **"Choice lists are presented verbatim"** in `escalation-rules.md`. Tasks 3–9 cite these by name.
+- Produces: the outcome vocabulary `RAN | DEGRADED | FAILED | UNAVAILABLE | SKIPPED_BY_USER | NOT_APPLICABLE`; the gate ids `toolchain_preflight`, `source_truth_verification`, `style_check`, `repo_checklist`, `build_check`, `render_smoke_check`; the `gate_ledger:` row schema; the `toolchain:` block schema; the `repo_verification_gates:` block schema and its extraction procedure; and the rule name **"Choice lists are presented verbatim"** in `escalation-rules.md`. Tasks 3–9 cite these by name.
 
 - [ ] **Step 1: Create `references/gate-ledger.md`**
 
@@ -115,7 +117,10 @@ gate_ledger:
     phase: "<the phase that owns it>"
     outcome: RAN | DEGRADED | FAILED | UNAVAILABLE | SKIPPED_BY_USER | NOT_APPLICABLE
     mechanism: <what actually executed; omitted when nothing did>
-    not_run: [<primary mechanism>: <reason>]        # DEGRADED only, non-empty
+    not_run:                                        # DEGRADED only, non-empty
+      - mechanism: <the primary mechanism that did not run>
+        reason:    <why>
+
     ci_still_checks: <one line>                     # DEGRADED only, non-empty
     precondition_unmet: <the named precondition>    # NOT_APPLICABLE only, non-empty
     user_decision: "<the user's choice, verbatim>"  # SKIPPED_BY_USER only, non-empty
@@ -136,9 +141,15 @@ gate_ledger:
 A gate whose precondition is unmet records `NOT_APPLICABLE` with the precondition named. It is never
 silently absent from the ledger.
 
-**Direct mode** (`/document` Mode B) registers `toolchain_preflight` (Phase 0) and `style_check`
-(Phase 3.5) only. It has no `target_spaces`, no build gate, and no render gate, so those three ids
-never appear in a direct-mode ledger — not even as `NOT_APPLICABLE`.
+**Direct mode** (`/document` Mode B) registers exactly three gates: `toolchain_preflight` (Phase 0),
+`repo_checklist` (Phase 0 extraction, checked at Phase 3.5), and `style_check` (Phase 3.5). The other
+three ids never appear in a direct-mode ledger — not even as `NOT_APPLICABLE`:
+
+- `source_truth_verification` — direct mode has no Phase 5.8, no `jira-reader`, and no `code_repos`.
+- `build_check` and `render_smoke_check` — direct mode has no Phase 6.5 and no `target_spaces`.
+
+Direct mode has no `doc-planner`, so its orchestrator extracts `repo_verification_gates` itself per
+`${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §5.
 
 ## 5. Converting `UNAVAILABLE`
 
@@ -324,6 +335,91 @@ directory is the normal AI-container case.
 - NEVER treat a tool with an empty `required_by` as blocking.
 ````
 
+- [ ] **Step 2b: Create `references/repo-verification-gates.md`**
+
+Write this file exactly:
+
+````markdown
+# Repo verification gates (shared)
+
+Single source of truth for extracting a documentation repository's **own** pre-PR checklist and
+applying it to the files a run just wrote.
+
+Consumed by `doc-planner` (`/document` Jira mode) and by `/document` Mode B directly — direct mode has
+no planner, so its orchestrator performs the extraction itself. Both produce the same block, and both
+feed the `repo_checklist` gate in `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md`.
+
+---
+
+## 1. Why
+
+A docs repo publishes the checks a human reviewer applies before merging. `dynatrace-docs` puts them
+in `CONTRIBUTING.md` under `## PR checklist` — a Contributors minimum check and an InfoDevs advanced
+check covering frontmatter fields, changelog conformance, sensitive information, duplicate headings,
+terminology, and "Validate the change. The validation must pass with no errors or warnings."
+
+Those are exactly the checks a generated PR should already satisfy. Consuming them is not optional
+politeness: a run that ignores them ships work a reviewer will bounce.
+
+## 2. Finding the checklist
+
+Scan the repo root (and `.claude/`) for `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`,
+`CLAUDE.md`, `STYLE.md`, and `DOCUMENTATION-GUIDELINES.md`. In each, look for a checklist section —
+headings matching, case-insensitively, `PR checklist`, `Before you submit`, `Before submitting`,
+`Definition of done`, `Review checklist`, `Submission checklist`, or `Merge checklist`. Read every
+sub-section beneath it.
+
+Nothing found ⇒ emit `repo_verification_gates: []`. That is a normal outcome, not an error.
+
+## 3. What to extract
+
+Include an item when it is **checkable against the files this run wrote**:
+
+| Kind | Examples |
+|---|---|
+| `frontmatter` | required fields present; `description` meets the repo's guidelines; `changelog` present and conforming |
+| `content` | no sensitive information (hostnames, IP addresses, API tokens); no placeholder text left behind |
+| `structure` | no duplicate headings; no walls of text; images referenced the way the repo requires |
+| `terminology` | product names spelled and capitalised per the repo's list |
+| `validation` | "run a local build and check the local preview"; "run source validation"; "the validation must pass with no errors or warnings" |
+
+Exclude anything that is not about the written files: PR title conventions, reviewer assignment,
+branch mechanics, ticket hygiene, release timing.
+
+## 4. The block
+
+```yaml
+repo_verification_gates:        # [] when the repo publishes no checklist
+  - check:  <one checkable requirement, phrased as a testable assertion>
+    source: <file + section, e.g. "CONTRIBUTING.md § PR checklist → Advanced check (InfoDevs)">
+    kind:   frontmatter | content | structure | terminology | validation
+```
+
+## 5. Applying it
+
+- **`/document` Jira mode** — `doc-planner` emits the block during its guidance scan; `doc-reviewer`
+  holds the written files against each entry; `/document` Phase 6.4 records the `repo_checklist`
+  ledger row.
+- **`/document` direct mode** — there is no planner. The orchestrator extracts the block itself at
+  Phase 0, in the same pass that reads the repo's `Prerequisites` for
+  `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §2 source 3, checks the edited files
+  against it at Phase 3.5, and records the `repo_checklist` row there.
+
+A `validation`-kind entry is **not** satisfied by reading files — it names a command the run must
+actually have executed. Whether it ran is the business of the `style_check` / `build_check` ledger
+rows. Record it in the block so a reviewer can see it was required, and let the ledger carry whether
+it happened.
+
+## 6. Hard rules
+
+- NEVER emit an entry that cannot be checked against the files this run wrote.
+- NEVER paraphrase a repo rule into a different requirement. Quote or tightly restate the repo's own
+  wording, and always name its `source` file and section — a consumer must be able to cite it.
+- These gates **augment, never override** the plugin's built-in references. Where one conflicts with a
+  built-in rule, record both and note the conflict; never silently pick a winner.
+- NEVER treat an empty block as a failure. A repo without a checklist is normal.
+````
+
 - [ ] **Step 3: Add the verbatim-choice-list rule to `references/escalation-rules.md`**
 
 Insert this section immediately after the intro paragraph that ends `…both variants are listed.` and before `## Jira key dir not found`:
@@ -349,12 +445,15 @@ adjustment.
 Run:
 ```bash
 cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
-test -f references/gate-ledger.md && test -f references/toolchain-preflight.md && echo "both created"
+test -f references/gate-ledger.md && test -f references/toolchain-preflight.md && test -f references/repo-verification-gates.md && echo "all three created"
 grep -c "SKIPPED_BY_USER" references/gate-ledger.md
 grep -n "Choice lists are presented verbatim" references/escalation-rules.md
-grep -rn 'plugins/data\|~/.claude/plugins' references/gate-ledger.md references/toolchain-preflight.md || echo "no hardcoded plugin paths — good"
+grep -rn 'plugins/data\|~/.claude/plugins' references/gate-ledger.md references/toolchain-preflight.md references/repo-verification-gates.md || echo "no hardcoded plugin paths — good"
+echo "--- direct mode registers exactly 3 and names the 3 exclusions ---"
+grep -c "registers exactly three gates" references/gate-ledger.md
+grep -c "repo-verification-gates.md" references/gate-ledger.md
 ```
-Expected: `both created`; a count ≥ 4 for `SKIPPED_BY_USER`; one heading match in `escalation-rules.md`; the "no hardcoded plugin paths" line.
+Expected: `all three created`; a count ≥ 4 for `SKIPPED_BY_USER`; one heading match in `escalation-rules.md`; the "no hardcoded plugin paths" line; then `1` and `1`.
 
 - [ ] **Step 5: Commit**
 
@@ -522,8 +621,8 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 - Modify: `plugins/dev-workflows/commands/document.md` — Jira mode Phase 0 (new step 9, before `### Readiness`), the `### Readiness` table, and Mode B `## Phase 0 — Load the description`
 
 **Interfaces:**
-- Consumes: `references/toolchain-preflight.md` (Task 1) — the `toolchain:` block and the §5 prompt; `references/gate-ledger.md` (Task 1) — the row schema and the `toolchain_preflight` gate id; `commands.per_space` (Task 2) — a source of required binaries.
-- Produces: the `toolchain` block, the initialized `gate_ledger` block with its first row, and (on "Continue anyway") pre-seeded rows carrying `user_decision`. Task 5 appends the remaining rows to the same block.
+- Consumes: `references/toolchain-preflight.md` (Task 1) — the `toolchain:` block and the §5 prompt; `references/gate-ledger.md` (Task 1) — the row schema and the `toolchain_preflight` gate id; `references/repo-verification-gates.md` (Task 1) — the extraction procedure for direct mode; `commands.per_space` (Task 2) — a source of required binaries.
+- Produces: the `toolchain` block, the initialized `gate_ledger` block with its first row, direct mode's `repo_verification_gates` block, and (on "Continue anyway") pre-seeded rows carrying `user_decision`. Task 5 appends the remaining rows to the same block.
 
 - [ ] **Step 1: Add Phase 0 step 9 (Jira mode)**
 
@@ -597,6 +696,13 @@ with:
    `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3. Present the §5 prompt verbatim only when a
    required tool is missing; on "Cancel", stop with `TOOLCHAIN_UNAVAILABLE: <missing tools> not
    available in this environment.`
+
+3. **Extract the repo's pre-PR checklist.** Direct mode has no `doc-planner`, so the orchestrator does
+   this itself. In the **same pass** that read the repo's guidance files for step 2's `Prerequisites`,
+   follow `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §2–§4 and build the
+   `repo_verification_gates` block. Carry it to Phase 3.5, which checks the edited files against it and
+   records the `repo_checklist` ledger row. An empty block is normal — record it and move on. Skip this
+   step entirely when cwd is not a git tree (step 2 already skipped for the same reason).
 ```
 
 - [ ] **Step 4: Verify**
@@ -792,6 +898,8 @@ with:
 
 ```markdown
 Never skip this phase on your own judgement of which linters are installed. `docs-style-checker` runs the chain internally as a **ladder**: each primary rung is tried in turn (a detected-but-broken rung does not abandon the ones below it), and `dt-style-checker` runs as a complementary semantic pass whenever the `dt-style-guide` plugin is installed — so neither the repo's own linter nor the semantic / cross-page class is silently dropped. Record the returned `primary_attempts` in the `style_check` ledger row.
+
+After the style check, hold the edited files against the `repo_verification_gates` block extracted in Phase 0 (`${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §5) and append the `repo_checklist` ledger row: `RAN` with `findings:` = the number of entries that failed, or `NOT_APPLICABLE` with `precondition_unmet: "the repo publishes no pre-PR checklist"` when the block is empty. Report any failed entry to the user with its `source` citation — direct mode has no reviewer gate, so this is where the repo's own rules surface.
 ```
 
 - [ ] **Step 8: Verify**
@@ -1313,11 +1421,9 @@ with:
 ```markdown
 These rules **augment, never override** the built-in dynatrace-docs references and the `dt-style-guide` checks; when a repo rule conflicts with those, note it rather than silently overriding. Factor the extracted rules into the topic and section planning below. Emit `repo_authoring_guidance: []` when no guidance files exist or none carry authoring rules.
 
-**Second — extract the repo's pre-PR verification gates from the same files.** The instruction above ignores operational content for *planning* purposes, but a repo's own pre-merge checklist is not noise: it is the list of checks a human reviewer will apply. Scan the same guidance files for a checklist section (headings matching `PR checklist`, `Before you submit`, `Definition of done`, `Review checklist`, or similar) and extract every item that is **checkable against the files this run writes**. Emit them as `repo_verification_gates`.
+**Second — extract the repo's pre-PR verification gates from the same files.** The instruction above ignores operational content for *planning* purposes, but a repo's own pre-merge checklist is not noise: it is the list of checks a human reviewer will apply. Follow `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §2–§4 — it owns the heading patterns to look for, what counts as checkable, what to exclude, and the block's schema — and emit the resulting `repo_verification_gates` block. Do NOT restate its rules here; the reference is the single source of truth, and `/document` direct mode follows the same procedure without a planner.
 
-Include: required frontmatter fields, changelog conformance, prohibited content (sensitive data, internal hostnames, tokens), structural checks (duplicate headings, overlong paragraphs), terminology and capitalization rules, and any explicit "run the build / run validation / check the preview" requirement. Exclude items that are not about the written files — PR title conventions, reviewer assignment, branch mechanics, and ticket hygiene. Emit `repo_verification_gates: []` when no checklist exists.
-
-For `dynatrace-docs` this is `CONTRIBUTING.md` `## PR checklist` (both the Contributors minimum check and the InfoDevs advanced check).
+For `dynatrace-docs` this resolves to `CONTRIBUTING.md` `## PR checklist` (both the Contributors minimum check and the InfoDevs advanced check).
 ```
 
 - [ ] **Step 2: Add the output block**
@@ -1336,9 +1442,7 @@ repo_verification_gates:        # the repo's own pre-PR checks that are checkabl
 In `agents/doc-planner.md`'s `## Hard rules`, insert after the `NEVER include a Jira key inside frontmatter_updates.changelog.entry` bullet:
 
 ```markdown
-- NEVER emit a `repo_verification_gates` entry that cannot be checked against the files this run writes. "Make sure the PR name is meaningful" is out of scope; "`description` meets our description guidelines" is in scope.
-- NEVER paraphrase a repo gate into a different requirement. Quote or tightly restate the repo's own wording, and always name its `source` file and section — the reviewer needs to cite it.
-- `repo_verification_gates` **augments, never overrides** the built-in references. Where a repo gate conflicts with one, record both and note the conflict; do not silently pick a winner.
+- The `repo_verification_gates` block obeys `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §6 in full — never emit an entry that cannot be checked against the files this run writes, never paraphrase a repo gate into a different requirement, and never let a repo gate silently override a built-in reference.
 ```
 
 - [ ] **Step 4: Give the reviewer the block**
@@ -1532,6 +1636,7 @@ In `plugins/dev-workflows/README.md`, in the reference-list section (the one con
 ```markdown
 - `references/toolchain-preflight.md` — the Phase 0 environment check: derives the run's required tool set from the resolved profile (`commands.*`, `commands.per_space.*`, `dev_servers`, `prerequisites`), the repo's config signals (`.vale.ini`, lockfiles, `node_modules/`, `.markdownlint.json`, `.remarkrc*`), and the repo's own documented `Prerequisites` section; maps each tool to the gates it powers so the run can state its outcome before it happens; prompts only when something is missing, recommending Cancel so a run started in the wrong container stops before writing. Consumed by `/document` (both modes)
 - `references/gate-ledger.md` — the six-outcome vocabulary (`RAN` / `DEGRADED` / `FAILED` / `UNAVAILABLE` / `SKIPPED_BY_USER` / `NOT_APPLICABLE`) with **no orchestrator-assignable skip**: every non-run path ends in a named missing precondition, a named missing tool, or the user's verbatim decision. Carries the `/document` gate registry, the `UNAVAILABLE` conversion prompt, and the reviewer contract that makes a missing or unattributed row a BLOCKER. Consumed by `/document` (both modes); written generically for other commands to adopt
+- `references/repo-verification-gates.md` — finding and extracting a docs repo's **own** pre-PR checklist (`CONTRIBUTING.md` `## PR checklist` and its equivalents) and turning it into the `repo_verification_gates` block: which headings to look for, which items are checkable against the written files, and the rule that a repo gate augments but never overrides a built-in reference. Applied by `doc-planner` in Jira mode and by the orchestrator itself in direct mode, which has no planner
 ```
 
 - [ ] **Step 2: Update the `/document` command row in the README**
@@ -1605,6 +1710,8 @@ In `/workspace/ihudak-claude-plugins/CLAUDE.md`, under `## Source-truth referenc
 ```markdown
 `plugins/dev-workflows/references/gate-ledger.md` is the **single source of truth** for verification-gate accounting — the six outcomes (`RAN` / `DEGRADED` / `FAILED` / `UNAVAILABLE` / `SKIPPED_BY_USER` / `NOT_APPLICABLE`), the rule that **no outcome is orchestrator-assignable to mean "I decided not to run this"**, the `/document` gate registry, the `UNAVAILABLE` conversion prompt, and the reviewer contract. Consumed by `/document` (both modes) and written generically for other commands to adopt.
 
+`plugins/dev-workflows/references/repo-verification-gates.md` is the **single source of truth** for extracting a docs repo's own pre-PR checklist into the `repo_verification_gates` block — the heading patterns, what counts as checkable against the written files, and the augment-never-override rule. Applied by `doc-planner` in `/document` Jira mode and by the orchestrator itself in direct mode, which has no planner.
+
 `plugins/dev-workflows/references/toolchain-preflight.md` is the **single source of truth** for the Phase 0 environment check — deriving the required tool set from the resolved profile, the repo's config signals, and the repo's own documented `Prerequisites`; the `toolchain` block with its tool→gate map; and the missing-tool prompt (Cancel recommended, silence when everything resolves). Consumed by `/document` (both modes).
 ```
 
@@ -1667,7 +1774,7 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 11: Port to mgd-claude-plugins
 
 **Files (in `/workspace/mgd-claude-plugins`):**
-- Copy verbatim from canonical: `plugins/dev-workflows/references/gate-ledger.md` (new), `references/toolchain-preflight.md` (new), `references/escalation-rules.md`, `references/source-truth.md`, `references/dynatrace-docs/render-verification.md`, `references/dynatrace-docs/docs-profile.default.yml`, `references/dynatrace-docs/docs-profile-schema.md`, `agents/docs-style-checker.md`, `agents/doc-planner.md`, `agents/doc-writer.md`, `agents/doc-reviewer.md`, `commands/document.md`, `commands/docs-profile.md`
+- Copy verbatim from canonical: `plugins/dev-workflows/references/gate-ledger.md` (new), `references/toolchain-preflight.md` (new), `references/repo-verification-gates.md` (new), `references/dynatrace-docs/changelog-guidelines.md`, `references/escalation-rules.md`, `references/source-truth.md`, `references/dynatrace-docs/render-verification.md`, `references/dynatrace-docs/docs-profile.default.yml`, `references/dynatrace-docs/docs-profile-schema.md`, `agents/docs-style-checker.md`, `agents/doc-planner.md`, `agents/doc-writer.md`, `agents/doc-reviewer.md`, `commands/document.md`, `commands/docs-profile.md`
 - Hand-edit (identity files — **never** `cp`): `plugins/dev-workflows/README.md`, `plugins/dev-workflows/CHANGELOG.md`, `plugins/dev-workflows/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `CLAUDE.md`
 
 **Interfaces:**
@@ -1683,9 +1790,11 @@ cd /workspace
 git -C mgd-claude-plugins status --porcelain | wc -l    # expect 0
 diff -rq ihudak-claude-plugins/plugins/dev-workflows mgd-claude-plugins/plugins/dev-workflows
 ```
-Expected: `0` dirty files, and exactly five "differ" lines — `.claude-plugin/plugin.json`, `CHANGELOG.md`, `LICENSE`, `README.md`, `references/dependencies.md` — plus "Only in …" lines for the two brand-new reference files. Any *other* differing file means canonical and mgd drifted; stop and report rather than copying over it.
+Expected, BEFORE copying: mgd is `0` dirty, and `diff -rq` reports **17 differing files plus 3 "Only in canonical" lines**. That set breaks down as: the **5 identity files** (`.claude-plugin/plugin.json`, `CHANGELOG.md`, `LICENSE`, `README.md`, `references/dependencies.md`), the **12 content files this feature changed** (the Step 2 list minus its 3 new files), and the **3 new references** as "Only in" lines. Identity files differ because they are mgd's own; content files differ because canonical has this feature and mgd does not yet.
 
-- [ ] **Step 2: Copy the thirteen content files**
+Any file differing that is NOT in one of those three groups means canonical and mgd drifted independently — stop and report BLOCKED rather than copying over it.
+
+- [ ] **Step 2: Copy the fifteen content files**
 
 ```bash
 cd /workspace
@@ -1694,8 +1803,10 @@ DST=mgd-claude-plugins/plugins/dev-workflows
 for f in \
   references/gate-ledger.md \
   references/toolchain-preflight.md \
+  references/repo-verification-gates.md \
   references/escalation-rules.md \
   references/source-truth.md \
+  references/dynatrace-docs/changelog-guidelines.md \
   references/dynatrace-docs/render-verification.md \
   references/dynatrace-docs/docs-profile.default.yml \
   references/dynatrace-docs/docs-profile-schema.md \
@@ -1778,8 +1889,8 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 12: Port to ihudak-copilot-plugins
 
 **Files (in `/workspace/ihudak-copilot-plugins`):**
-- Create: `dev-workflows/skills/_shared/gate-ledger.md`, `dev-workflows/skills/_shared/toolchain-preflight.md`
-- Modify: `dev-workflows/skills/_shared/escalation-rules.md`, `source-truth.md`, `dynatrace-docs/render-verification.md`, `dynatrace-docs/docs-profile.default.yml`, `dynatrace-docs/docs-profile-schema.md`
+- Create: `dev-workflows/skills/_shared/gate-ledger.md`, `dev-workflows/skills/_shared/toolchain-preflight.md`, `dev-workflows/skills/_shared/repo-verification-gates.md`
+- Modify: `dev-workflows/skills/_shared/escalation-rules.md`, `source-truth.md`, `dynatrace-docs/changelog-guidelines.md`, `dynatrace-docs/render-verification.md`, `dynatrace-docs/docs-profile.default.yml`, `dynatrace-docs/docs-profile-schema.md`
 - Modify: `dev-workflows/agents/docs-style-checker.md`, `doc-planner.md`, `doc-writer.md`, `doc-reviewer.md`
 - Modify: `dev-workflows/skills/document/SKILL.md`, `dev-workflows/skills/docs-profile/SKILL.md`
 - Modify: `dev-workflows/README.md`, `dev-workflows/CHANGELOG.md`, `dev-workflows/.plugin/plugin.json`
@@ -1814,16 +1925,16 @@ cd /workspace
 SRC=ihudak-claude-plugins/plugins/dev-workflows
 DST=ihudak-copilot-plugins/dev-workflows
 COPILOT_ROOT='~/.copilot/installed-plugins/ihudak-copilot-plugins/dev-workflows/skills/_shared'
-for f in gate-ledger.md toolchain-preflight.md ; do
+for f in gate-ledger.md toolchain-preflight.md repo-verification-gates.md ; do
   sed "s|\${CLAUDE_PLUGIN_ROOT}/references|$COPILOT_ROOT|g" "$SRC/references/$f" > "$DST/skills/_shared/$f"
 done
-grep -c 'CLAUDE_PLUGIN_ROOT' "$DST/skills/_shared/gate-ledger.md" "$DST/skills/_shared/toolchain-preflight.md"
+grep -c 'CLAUDE_PLUGIN_ROOT' "$DST/skills/_shared/gate-ledger.md" "$DST/skills/_shared/toolchain-preflight.md" "$DST/skills/_shared/repo-verification-gates.md"
 ```
-Expected: `0` for both files.
+Expected: `0` for all three files.
 
 - [ ] **Step 3: Port the modified references and agents**
 
-For each of `escalation-rules.md`, `source-truth.md`, `dynatrace-docs/render-verification.md`, `dynatrace-docs/docs-profile.default.yml`, `dynatrace-docs/docs-profile-schema.md`, apply the **same edits** made in Tasks 1, 2, 6, and 9 to the copilot copy under `dev-workflows/skills/_shared/`, rewriting any `${CLAUDE_PLUGIN_ROOT}/references/` citation to the copilot `_shared` path. Do not `cp` these — they may already carry copilot-specific path text.
+For each of `escalation-rules.md`, `source-truth.md`, `dynatrace-docs/changelog-guidelines.md`, `dynatrace-docs/render-verification.md`, `dynatrace-docs/docs-profile.default.yml`, `dynatrace-docs/docs-profile-schema.md`, apply the **same edits** made in Tasks 1, 2, 6, 7, and 9 to the copilot copy under `dev-workflows/skills/_shared/`, rewriting any `${CLAUDE_PLUGIN_ROOT}/references/` citation to the copilot `_shared` path. Do not `cp` these — they may already carry copilot-specific path text.
 
 For each of `agents/docs-style-checker.md`, `doc-planner.md`, `doc-writer.md`, `doc-reviewer.md`, apply the same edits made in Tasks 4, 5, 7, 8, and 9, with two adaptations: `${CLAUDE_PLUGIN_ROOT}/references/X` → the copilot `_shared` path, and any `subagent_type:` dispatch → `task(agent_type: …)`. Agent frontmatter `tools:` lists stay in their existing copilot lowercase form — do not change them.
 
@@ -1854,7 +1965,7 @@ cd /workspace/ihudak-copilot-plugins
 echo "--- Claude-only tokens in copilot (expect 0 lines) ---"
 grep -rn 'CLAUDE_PLUGIN_ROOT\|subagent_type' dev-workflows/ | grep -v '^Binary' || echo "clean"
 echo "--- new references present and indexed ---"
-test -f dev-workflows/skills/_shared/gate-ledger.md && test -f dev-workflows/skills/_shared/toolchain-preflight.md && echo "both present"
+test -f dev-workflows/skills/_shared/gate-ledger.md && test -f dev-workflows/skills/_shared/toolchain-preflight.md && test -f dev-workflows/skills/_shared/repo-verification-gates.md && echo "all three present"
 grep -c "gate-ledger.md" dev-workflows/README.md
 grep -c "gate-ledger\|toolchain-preflight" .github/copilot-instructions.md
 echo "--- versions (expect 2.13.0 twice) ---"
@@ -1872,7 +1983,7 @@ grep -c "toolchain-preflight" dev-workflows/skills/document/SKILL.md
 grep -c "gate_ledger" dev-workflows/skills/document/SKILL.md
 grep -c "go to step 5" dev-workflows/agents/docs-style-checker.md     # expect 0
 ```
-Expected: `clean`; `both present`; non-zero index counts in **both** the README and `copilot-instructions.md`; `2.13.0` twice with siblings unchanged; `json ok`; non-zero skill counts; and `0` for the step-5 jump.
+Expected: `clean`; `all three present`; non-zero index counts in **both** the README and `copilot-instructions.md`; `2.13.0` twice with siblings unchanged; `json ok`; non-zero skill counts; and `0` for the step-5 jump.
 
 - [ ] **Step 9: Commit**
 

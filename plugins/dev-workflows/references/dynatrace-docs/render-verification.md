@@ -13,16 +13,38 @@ not hard-code dynatrace-docs specifics.
 
 ## 1. Build vs boot
 
-Run `profile.commands.build` only if the profile defines one. Phase 6.5 does NOT
-re-run the prose linter — that is Phase 6.4's `docs-style-checker`. When the
-profile defines no build command (the dynatrace-docs case: only
-`commands.lint` + the `*:start` dev servers), the **dev-server boot is the build
-proof** — a server that boots and serves HTTP 200s proves the content compiled.
+Resolve the build command per space: `profile.commands.per_space.<space>.build` when the profile
+declares one for that space, else the flat `profile.commands.build`. Run it for every space in the
+**verification set** defined in §2 — `target_spaces` plus the protected space of any affected page
+whose `write_strategy.strategy` is `conditional` or `override-copy` — never by which `content_root`
+the written files sit under. A `conditional` delta lives in its home space's tree but renders only in
+its `target_space`, so a path-scoped build compiles the one space that skips the new content.
+For dynatrace-docs that is `pnpm dynatrace:build` and `pnpm managed:build` — both exist, and an
+earlier version of this file wrongly claimed the repo had only `commands.lint` and the `*:start`
+servers, which disabled this gate entirely.
+
+Phase 6.5 does NOT re-run the prose linter — that is Phase 6.4's `docs-style-checker`.
+
+Only when a repo genuinely declares **no** build command at either level does the **dev-server boot
+become the build proof** — a server that boots and serves HTTP 200s proves the content compiled. That
+is a fallback for repos without a build, not a description of dynatrace-docs.
 
 ## 2. Sequential dev-server smoke-check
 
-`profile.dev_servers.concurrent: false` means one space at a time. For each space
-in `target_spaces`, in order:
+`profile.dev_servers.concurrent: false` means one space at a time.
+
+**The verification set — which spaces to build and boot.** Start from `target_spaces`. When any
+affected page's `write_strategy.strategy` is `conditional` or `override-copy`, **add that strategy's
+protected space** — the space that is *not* its `target_space`. The invariant in §4 has two halves
+(marker PRESENT in the target render, ABSENT in the protected render) and booting only `target_spaces`
+can never check the second one, which is the half the 3a protection depends on. On a run with no
+cross-space pages, the verification set is just `target_spaces`.
+
+This set governs **both** gates: §1's build check runs each of its spaces' build commands, and the
+smoke-check below boots each of them. Neither is scoped by which `content_root` the written files sit
+under.
+
+For each space in the verification set, in order:
 
 1. Verify prerequisites (§5) — best-effort, never applied.
 2. Boot `profile.dev_servers.servers[<space>].command` in the background; record
@@ -89,3 +111,10 @@ URL in each space it renders in (§3), its `write_strategy`, and what to verify
 (cross-space rows: "confirm `<target_space>` shows the change and the
 `<protected_space>` render is unchanged"). When the smoke-check ran, annotate
 each row ✅ 200 / ⚠️ skipped (reason) / ❌ failed.
+
+**Static analysis is necessary but never sufficient.** A correct `{{#if project='…'}}` wrapping, a
+clean link-integrity grep, and a verified conditional structure all corroborate the render gate and
+none of them satisfy it. Static greps do not catch Handlebars compile errors, do not prove
+`managed/docstack.jsonc`'s allowlist actually pulls a shared page into the managed render, and do not
+prove a postid resolves in the managed build. A run that has only static evidence has not run this
+gate — record `render_smoke_check` accordingly.

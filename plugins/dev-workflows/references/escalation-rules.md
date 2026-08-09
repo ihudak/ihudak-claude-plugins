@@ -5,6 +5,20 @@ point uses a `choices:` array whose **last** entry is `"Other… (describe)"` wh
 applicable. Command bodies are authoritative; where `/document` and `/epics`
 differ for the same scenario, both variants are listed.
 
+## Choice lists are presented verbatim
+
+**A choice list written into a command phase is presented to the user verbatim. Its options, their
+order, their wording, and the `(Recommended)` marker are not the orchestrator's to change. An
+orchestrator that believes a different option is correct for this run says so in prose alongside the
+list — it never edits the list.**
+
+This rule binds every command in the plugin, not only the ones documented below. It exists because a
+`/document` run presented Phase 6.5's `["Run smoke-check (Recommended)", "Skip — use the manual table
+only", "Cancel"]` with the recommendation moved onto Skip, and the render gate was never exercised.
+
+Adding the trailing `"Other… (describe)"` entry where a phase omits it is the one permitted
+adjustment.
+
 ## Jira key dir not found
 
 `choices: ["Re-enter key", "Cancel"]`

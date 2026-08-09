@@ -567,6 +567,20 @@ Run the rest of this phase when the `doc-planner` handoff contains any `verifica
 
 This phase is **three-way** when a spec was provided (Phase 0 resolved `specs_dir` and Phase 5.7 passed it to `doc-planner`): it compares the **Jira** narrative, the **Spec** (authoritative "intended"), and the **Code** ("actual"), per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7. When no spec was provided, the planner emits `spec_phrasing: "(no spec)"`; the **Spec phrasing** column simply renders `(no spec)` and the run behaves exactly as the original Jira-vs-code two-way protocol.
 
+**Supplementary resolution (one attempt, before presenting anything).** For every
+`verification_warning` whose `finding` is `AMBIGUOUS` or `NOT_FOUND`, check whether the relevant repo
+is present in the Phase-4 `code_repos` map. When it is, run **one** direct grep against that resolved
+local path to try to resolve the claim — using the `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`
+§3 technique matching the claim's type — **including when `diff-summarizer` returned `REFRESH_BLOCKED`
+for that repo**. A read-only mount that cannot `git fetch` can still be grepped, and this is exactly
+the case a user previously had to resolve by hand.
+
+Update the warning in place when the grep resolves it (`finding: VERIFIED` or `CONTRADICTED`, with
+`source_phrasing` and `source_location` filled from the grep). Present only what remains unresolved.
+Record the outcome in the `source_truth_verification` ledger row: a resolution obtained this way makes
+the row `DEGRADED`, with `not_run:` naming what did not run (e.g.
+`diff-summarizer refresh: REFRESH_BLOCKED`), never a clean `RAN`.
+
 1. **Present the analysis table** (informational, before asking):
    ```
    | # | Claim | Jira phrasing | Spec phrasing | Source (code) phrasing | Source location | Verdict |

@@ -801,7 +801,7 @@ Resolve the build command per space — `profile.commands.per_space.<space>.buil
   ```
 - **Environmental failure** (the build tool will not run — missing toolchain, `command not found`, missing `.docstack` shim) → surface the reason; no `doc-fixer` loop:
   ```
-  choices: ["I'll fix locally — retry the build", "Proceed without this check — record my decision", "Cancel the run", "Other… (describe)"]
+  choices: ["Install <the missing tool> and retry this gate", "Proceed without this check — record my decision", "Cancel the run", "Other… (describe)"]
   ```
   This is the `gate-ledger.md` §5 conversion for `build_check`, not an orchestrator decision: "Proceed without this check" writes `SKIPPED_BY_USER` with the chosen option quoted verbatim in `user_decision`.
 
@@ -840,20 +840,18 @@ Carry the table and the Step 1/Step 2 outcomes into the Phase 9 `### Render veri
 
 **Ledger (final).** Rewrite the two rows appended at the top of this phase (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3). A row already written as `NOT_APPLICABLE` is never reached here — this phase did not run:
 
-- `build_check` — `NOT_APPLICABLE` with `precondition_unmet: "write context is <obsidian|plain_dir>"`
-  when this phase was skipped entirely; `RAN` when a build command executed; `DEGRADED` when no build
-  command exists and the Step 2 boot served as the proof, with
-  `ci_still_checks: "the repo's build runs on the PR in CI"`; `FAILED` on a content failure;
-  `UNAVAILABLE` when the build could not be attempted at all — either no build command exists **and**
-  Step 2 did not run, **or** Step 1 hit an environmental failure (the build tool will not run: missing
-  toolchain, `command not found`, missing shim). Both are the coverage hole
-  `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §5 predicts when `pnpm` is absent —
-  convert per `gate-ledger.md` §5.
+- `build_check` — `RAN` when a build command executed; `DEGRADED` when no build command exists and the
+  Step 2 boot served as the proof, with `ci_still_checks: "the repo's build runs on the PR in CI"`;
+  `FAILED` on a content failure. A row Step 1 already wrote as `SKIPPED_BY_USER` (its §5 conversion,
+  when the build tool would not run and the user chose to proceed) is **final — do not rewrite it**.
+  `UNAVAILABLE` applies only when the build could not be attempted AND Step 1 did not already convert
+  it: no build command exists **and** Step 2 did not run. That is the coverage hole
+  `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §5 predicts — convert per
+  `gate-ledger.md` §5.
 - `render_smoke_check` — `RAN` when the smoke-check completed for every space in scope;
   `DEGRADED` when at least one space fell back to the manual table, with `not_run:` naming the space
   and its reason (prerequisite unmet / boot failure / readiness timeout);
-  `SKIPPED_BY_USER` with the chosen option quoted verbatim when the user selected Skip;
-  `NOT_APPLICABLE` with the precondition named when the phase did not apply.
+  `SKIPPED_BY_USER` with the chosen option quoted verbatim when the user selected Skip.
 
 ---
 

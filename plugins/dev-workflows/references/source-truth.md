@@ -103,6 +103,7 @@ source code:
 | **Concurrency / scope rules** ("one AG per group, one per zone") | Algorithm implementations, throttle/lock classes, scope filter expressions |
 | **Permission / role gates** | Access-rule classes (`*AccessRule.java`), `@RequiresPermission` annotations, IAM scope declarations |
 | **Headline counts** ("3 options", "4 modes", "supports X variants") | Always derived from the enumeration in the source; never copied from the description |
+| **Commands, CLI invocations, and copy-paste code blocks** (helm/kubectl/pnpm invocations, flags, image references, chart names, registry paths, YAML keys inside fenced blocks) | Chart and manifest files in the source repo (`Chart.yaml`, `values.yaml`, `templates/**`), the CI/release workflow that publishes the artifact, sibling docs pages that already carry the same command, and `--help` / usage strings in the CLI source |
 
 ## 3. How to verify (techniques)
 
@@ -181,6 +182,25 @@ shipped behaviour:
 ```bash
 grep -rn "<feature-name>" <repo_path> --include="*Test.java" --include="*.spec.ts"
 ```
+
+### 3.7 Commands and fenced code blocks
+
+A reader runs a documented command verbatim, so a wrong flag or a wrong registry path is a
+customer-facing defect with no recovery. Verify every command the docs introduce or change:
+
+```bash
+# the artifact's own definition
+find <repo_path> \( -name Chart.yaml -o -name values.yaml \) 2>/dev/null
+
+# the published name/path, as the release pipeline writes it
+grep -rn "<chart-or-image-name>" <repo_path>/.github/workflows <repo_path>/.ci 2>/dev/null
+
+# what the docs already say elsewhere — sibling pages are strong corroboration
+grep -rn "<command-head>" <docs_repo_path> --include="*.md" 2>/dev/null
+```
+
+A command that no source confirms is `NOT_FOUND`, not "probably fine". Record it as a
+`verification_warning` like any other claim and let the caller escalate it.
 
 ## 4. Sub-agent responsibilities
 

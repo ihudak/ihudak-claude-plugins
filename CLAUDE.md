@@ -211,8 +211,8 @@ Key invariants for `/document` (Jira mode) and `/epics`:
 - Sub-agents return `DIRTY_TREE` / `REFRESH_BLOCKED` when they cannot refresh repos — never fail silently
 - Every written claim must cite the originating Jira key (`[[KEY]]`) plus PR URL (docs flow) or file path (epics flow)
 - Writes never touch `_archive/` and never write outside cwd unless the user provides an explicit absolute path
-- Phase 0 runs the toolchain preflight after profile resolution; it prompts **only** when a required tool is missing, and Cancel is the recommended option
-- Every gate in the `gate-ledger.md` registry appends its row **when the gate completes**; a missing row, an unconverted `UNAVAILABLE`, or an unattributed skip is a `doc-reviewer` BLOCKER
+- (docs flow) Phase 0 runs the toolchain preflight after profile resolution; it prompts **only** when a required tool is missing, and Cancel is the recommended option
+- (docs flow) Every gate in the `gate-ledger.md` registry appends its row **when the gate completes**; a missing row, an unconverted `UNAVAILABLE`, or an unattributed skip is a `doc-reviewer` BLOCKER
 - A phase's `choices:` array is presented verbatim — order, wording, and the `(Recommended)` marker are not the orchestrator's to change
 
 Key invariants for `/release-notes`:

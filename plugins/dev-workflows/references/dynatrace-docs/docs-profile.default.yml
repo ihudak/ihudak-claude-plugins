@@ -30,6 +30,15 @@ commands:
   lint: "pnpm dynatrace:lint"
   format: "pnpm prettier -w"
   commit_hook: "husky pre-commit -> lint-staged -> pnpm prettier -w"
+  per_space:
+    saas:
+      lint: "pnpm dynatrace:lint"
+      build: "pnpm dynatrace:build"
+      format: "pnpm dynatrace:format"
+    managed:
+      lint: "pnpm managed:lint"
+      build: "pnpm managed:build"
+      format: "pnpm managed:format"
 cross_space_override:
   manifest: managed/docstack.jsonc
   mechanism: "the managed manifest pulls an allowlist of ../dynatrace/_content/... pages; last-write-wins by path silently shadows a managed/_content override"
@@ -55,3 +64,4 @@ images:
   policy: "CDN-hosted; the user uploads to CDN and supplies links; docs reference the URLs; never commit binaries"
 prerequisites:
   - "a dev server may need a working .docstack toolchain (e.g. an axios>=1.16 shim) before `*:start` boots"
+  - "the lint command needs a build folder: run a `*:start` (serve) once in a fresh clone before the first `*:lint`, or lint exits non-zero with no content findings (CONTRIBUTING.md, 'Other useful scripts/tasks')"

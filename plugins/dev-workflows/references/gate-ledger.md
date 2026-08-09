@@ -38,6 +38,7 @@ CI will check that the run did not. Total absence of coverage does not proceed.
 
 The ledger is an in-context YAML block. The orchestrator **appends a row at the moment each gate
 completes** — never reconstructs the ledger at report time from memory.
+A phase whose outcome is not yet known at append time may write a **provisional** row, but only when a named later step in that same phase rewrites it before the phase ends — Phase 5.8's `Ledger (final)` and Phase 6.5's `Ledger (final)` are the two sanctioned cases. A provisional row is never the outcome a later reader sees.
 
 ```yaml
 gate_ledger:

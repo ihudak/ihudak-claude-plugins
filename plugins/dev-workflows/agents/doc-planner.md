@@ -30,6 +30,10 @@ Refuse to run without `jira_reader_handoff`, `write_targets`, and `repo_root`.
 
 **First — read the repo's own authoring guidance (once, not per target).** Scan `repo_root` (and `.claude/`) for whichever of these exist: `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `CLAUDE.md`, `STYLE.md`, `DOCUMENTATION-GUIDELINES.md`. Extract the **authoring / structural** rules a writer must follow — required page sections, voice/tone directives, page templates, structure and naming conventions, prohibited constructs. Distil them into the `repo_authoring_guidance` output block (one bullet per rule, each tagged with its source file). **Ignore** purely operational content (build/setup steps, PR and branch mechanics — branch naming is handled by the command, not here). These rules **augment, never override** the built-in dynatrace-docs references and the `dt-style-guide` checks; when a repo rule conflicts with those, note it rather than silently overriding. Factor the extracted rules into the topic and section planning below. Emit `repo_authoring_guidance: []` when no guidance files exist or none carry authoring rules.
 
+**Second — extract the repo's pre-PR verification gates from the same files.** The instruction above ignores operational content for *planning* purposes, but a repo's own pre-merge checklist is not noise: it is the list of checks a human reviewer will apply. Follow `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §2–§4 — it owns the heading patterns to look for, what counts as checkable, what to exclude, and the block's schema — and emit the resulting `repo_verification_gates` block. Do NOT restate its rules here; the reference is the single source of truth, and `/document` direct mode follows the same procedure without a planner.
+
+For `dynatrace-docs` this resolves to `CONTRIBUTING.md` `## PR checklist` (both the Contributors minimum check and the InfoDevs advanced check).
+
 For each write target:
 
 1. **Decide what topics the page must cover.** Typical topics, sourced from the VI goal + Epic summaries + diff summaries:
@@ -125,6 +129,10 @@ status:   OK | PARTIAL
 repo_authoring_guidance:        # repo-specific authoring rules from the repo's own guidance files; [] when none. Augments, never overrides, the built-in references + dt-style-guide.
   - rule:   <one authoring / structural rule the writer must follow>
     source: <file the rule came from, e.g. CONTRIBUTING.md, CLAUDE.md>
+repo_verification_gates:        # the repo's own pre-PR checks that are checkable against the written files; [] when none
+  - check:  <one checkable requirement, phrased as a testable assertion>
+    source: <file + section, e.g. "CONTRIBUTING.md § PR checklist → Advanced check (InfoDevs)">
+    kind:   frontmatter | content | structure | terminology | validation
 checklist:
   - target_path: <absolute path>
     kind:        extend-existing | new-page-in-existing-section | new-section
@@ -178,6 +186,7 @@ verification_warnings:        # source-truth findings; resolved by the orchestra
 ## Hard rules
 
 - NEVER include a Jira key inside `frontmatter_updates.changelog.entry`. The changelog is reader-visible "what changed on this page" prose; traceability is the commit message's job.
+- The `repo_verification_gates` block obeys `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §6 in full — never emit an entry that cannot be checked against the files this run writes, never paraphrase a repo gate into a different requirement, and never let a repo gate silently override a built-in reference.
 - NEVER propose a changelog-only frontmatter update on a page with no other planned change: if a target's `topics:` is empty AND `frontmatter_updates.other:` is empty AND the only change is `frontmatter_updates.changelog`, drop the target from the checklist entirely (a changelog entry with no corresponding content change is meaningless).
 - NEVER let a cross-product "minimal touch" parity reference introduce content specific to the OTHER product's implementation. When extending product X's page about a feature shipped by product Y, plan `topics[].notes` as a one-line cross-link to Y's dedicated page — do NOT inline Y's implementation detail (throttling rules, enum values, precedence). Example: noting on `oneagent-update` that update windows are shared with ActiveGate is fine; copying the per-pool ActiveGate throttling rule onto the OneAgent page is not.
 - The same rule applies **cross-space**: when grounding on a `counterpart_references` page, never plan target-doc content that carries the counterpart space's specific UI paths, URLs, labels, defaults, or screenshots. Consult the counterpart for concepts/terminology/structure; author target-space specifics from the target space's own source.

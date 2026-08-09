@@ -131,7 +131,7 @@ status:                OK | NOT_CONFIGURED | VIOLATIONS_FOUND | ERROR
 primary_linter:        vale | per-space:<space id>[+<space id>…] | yarn:<script> | npm:<script> | markdownlint | remark | none
 primary_command:       <exact command line executed for the primary pass, or null>
 primary_attempts:      # every primary rung tried, in ladder order; [] only when step 1 succeeded first try
-  - linter: vale | yarn:<script> | npm:<script> | markdownlint | remark
+  - linter: vale | per-space:<space id> | pnpm:<script> | yarn:<script> | npm:<script> | markdownlint | remark
     outcome: succeeded | failed | not_detected
     reason:  <one line; null when outcome == succeeded>
 complementary_linter:  dt-style-checker | none | skipped
@@ -144,7 +144,7 @@ complementary_error:   <only when the complementary pass failed independently; d
 - `status: OK` — at least one pass ran and produced zero merged violations.
 - `status: NOT_CONFIGURED` — no primary linter detected AND `dt-style-guide` not installed.
 - `status: VIOLATIONS_FOUND` — at least one pass produced ≥ 1 violation (after merge + dedupe).
-- `status: ERROR` — the primary linter failed AND the `dt-style-checker` fallback also failed or is not installed. The main command surfaces this and may continue to the reviewer without a style check.
+- `status: ERROR` — every primary rung failed AND the `dt-style-checker` pass also failed or is not installed. This is NOT a licence for the caller to continue unchecked: `/document` records the `style_check` gate as `UNAVAILABLE` and converts it per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 — in Jira mode before the reviewer, in direct mode before Phase 4.
 
 ## Hard rules
 

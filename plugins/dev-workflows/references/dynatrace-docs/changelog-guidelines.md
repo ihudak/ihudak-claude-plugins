@@ -1,7 +1,7 @@
 # dynatrace-docs changelog entries — writing guidelines
 
 Single source of truth for writing `changelog:` frontmatter entries on
-dynatrace-docs pages. The `dynatrace-docs-frontmatter` skill applies these rules.
+dynatrace-docs pages. Applied by the `dynatrace-docs-frontmatter` skill and, in the `/document` write path, read directly by `doc-planner`, `doc-writer`, and `doc-reviewer`.
 
 ## Format
 

@@ -579,7 +579,7 @@ Update the warning in place when the grep resolves it (`finding: VERIFIED` or `C
 `source_phrasing` and `source_location` filled from the grep). Present only what remains unresolved.
 Record the outcome in the `source_truth_verification` ledger row: a resolution obtained this way makes
 the row `DEGRADED`, with `not_run:` naming what did not run (e.g.
-`diff-summarizer refresh: REFRESH_BLOCKED`), never a clean `RAN`.
+`mechanism: diff-summarizer refresh`, `reason: REFRESH_BLOCKED`), never a clean `RAN`.
 
 1. **Present the analysis table** (informational, before asking):
    ```

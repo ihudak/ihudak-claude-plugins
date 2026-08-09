@@ -1774,7 +1774,7 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 11: Port to mgd-claude-plugins
 
 **Files (in `/workspace/mgd-claude-plugins`):**
-- Copy verbatim from canonical: `plugins/dev-workflows/references/gate-ledger.md` (new), `references/toolchain-preflight.md` (new), `references/repo-verification-gates.md` (new), `references/escalation-rules.md`, `references/source-truth.md`, `references/dynatrace-docs/render-verification.md`, `references/dynatrace-docs/docs-profile.default.yml`, `references/dynatrace-docs/docs-profile-schema.md`, `agents/docs-style-checker.md`, `agents/doc-planner.md`, `agents/doc-writer.md`, `agents/doc-reviewer.md`, `commands/document.md`, `commands/docs-profile.md`
+- Copy verbatim from canonical: `plugins/dev-workflows/references/gate-ledger.md` (new), `references/toolchain-preflight.md` (new), `references/repo-verification-gates.md` (new), `references/dynatrace-docs/changelog-guidelines.md`, `references/escalation-rules.md`, `references/source-truth.md`, `references/dynatrace-docs/render-verification.md`, `references/dynatrace-docs/docs-profile.default.yml`, `references/dynatrace-docs/docs-profile-schema.md`, `agents/docs-style-checker.md`, `agents/doc-planner.md`, `agents/doc-writer.md`, `agents/doc-reviewer.md`, `commands/document.md`, `commands/docs-profile.md`
 - Hand-edit (identity files — **never** `cp`): `plugins/dev-workflows/README.md`, `plugins/dev-workflows/CHANGELOG.md`, `plugins/dev-workflows/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `CLAUDE.md`
 
 **Interfaces:**
@@ -1790,9 +1790,11 @@ cd /workspace
 git -C mgd-claude-plugins status --porcelain | wc -l    # expect 0
 diff -rq ihudak-claude-plugins/plugins/dev-workflows mgd-claude-plugins/plugins/dev-workflows
 ```
-Expected: `0` dirty files, and exactly five "differ" lines — `.claude-plugin/plugin.json`, `CHANGELOG.md`, `LICENSE`, `README.md`, `references/dependencies.md` — plus "Only in …" lines for the two brand-new reference files. Any *other* differing file means canonical and mgd drifted; stop and report rather than copying over it.
+Expected, BEFORE copying: mgd is `0` dirty, and `diff -rq` reports **17 differing files plus 3 "Only in canonical" lines**. That set breaks down as: the **5 identity files** (`.claude-plugin/plugin.json`, `CHANGELOG.md`, `LICENSE`, `README.md`, `references/dependencies.md`), the **12 content files this feature changed** (the Step 2 list minus its 3 new files), and the **3 new references** as "Only in" lines. Identity files differ because they are mgd's own; content files differ because canonical has this feature and mgd does not yet.
 
-- [ ] **Step 2: Copy the fourteen content files**
+Any file differing that is NOT in one of those three groups means canonical and mgd drifted independently — stop and report BLOCKED rather than copying over it.
+
+- [ ] **Step 2: Copy the fifteen content files**
 
 ```bash
 cd /workspace
@@ -1804,6 +1806,7 @@ for f in \
   references/repo-verification-gates.md \
   references/escalation-rules.md \
   references/source-truth.md \
+  references/dynatrace-docs/changelog-guidelines.md \
   references/dynatrace-docs/render-verification.md \
   references/dynatrace-docs/docs-profile.default.yml \
   references/dynatrace-docs/docs-profile-schema.md \

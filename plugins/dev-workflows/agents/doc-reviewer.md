@@ -107,6 +107,9 @@ Return this exact shape (no preamble, no chatter):
 #### Source traceability
 - ...
 
+#### Repo verification gates
+- ...
+
 #### Verification-gate integrity
 - ...
 

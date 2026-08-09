@@ -144,9 +144,10 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
      "Continue anyway", pre-seed the affected gates' rows per `toolchain-preflight.md` §5 with the
      user's choice quoted verbatim in `user_decision`, and proceed.
 
-   When the write context resolved in step 6 is `obsidian` or `plain_dir`, the build and render gates
-   have no precondition to meet — do not name them in the consequence line, and let Phase 6.5 record
-   their `NOT_APPLICABLE` rows as usual.
+   When the write context resolved in step 6 is `obsidian` or `plain_dir`, the build and render
+   gates have no precondition to meet — do not name them in the consequence line. Phase 6.5 records
+   their `NOT_APPLICABLE` rows before its own run-condition, so they are present even though that
+   phase does not execute.
 
 ### Readiness
 
@@ -776,6 +777,7 @@ Then act on the return:
   ```
   choices: ["Proceed to review anyway — reviewer may still PASS", "Show remaining violations and let me fix manually", "Cancel"]
   ```
+  When the re-run completes, rewrite the `style_check` row's `findings:` to the post-fix violation count so the Phase 9 table reports what survived, not what was found.
 
 - **`status: ERROR`** — every primary rung AND the `dt-style-checker` pass failed or were unavailable. Surface the error reason, then STOP: the `style_check` row is `UNAVAILABLE`, and the only prompt the user sees is the `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 conversion list. Do NOT ask an ad-hoc question here — §5 owns this decision, and the "Choice lists are presented verbatim" rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` binds it.
 
@@ -783,7 +785,12 @@ Then act on the return:
 
 ## Phase 6.5 — Render verification
 
-Run this phase after Phase 6.4 **only** when Phase 6.3 wrote files into a buildable docs repo (write context `docs_repo`, or `non_docs_repo` confirmed at Phase 0). Skip for `obsidian` / `plain_dir` (nothing was written into a repo that builds). Mechanics: `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/render-verification.md`. "Affected pages" = every file written or modified in Phase 6.3.
+**Ledger first — before the run-condition below.** Both gates this phase owns must carry a row on every run, including runs where the phase does not execute. Append them now, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3:
+
+- Write context is `obsidian` or `plain_dir` → append BOTH `build_check` and `render_smoke_check` as `NOT_APPLICABLE` with `precondition_unmet: "write context is <obsidian|plain_dir>"`. These rows are final; the phase does not run.
+- Write context is `docs_repo` or a confirmed `non_docs_repo` → append both provisionally as `RAN`, then rewrite each at the end of this phase per **Ledger (final)** below.
+
+Run this phase after Phase 6.4 **only** when Phase 6.3 wrote files into a buildable docs repo (write context `docs_repo`, or `non_docs_repo` confirmed at Phase 0). Skip for `obsidian` / `plain_dir` (nothing was written into a repo that builds) — the rows above are already recorded. Mechanics: `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/render-verification.md`. "Affected pages" = every file written or modified in Phase 6.3.
 
 ### Step 1 — Build check (gating)
 
@@ -794,8 +801,9 @@ Resolve the build command per space — `profile.commands.per_space.<space>.buil
   ```
 - **Environmental failure** (the build tool will not run — missing toolchain, `command not found`, missing `.docstack` shim) → surface the reason; no `doc-fixer` loop:
   ```
-  choices: ["Proceed (build unverified)", "I'll fix locally — retry the build", "Cancel"]
+  choices: ["I'll fix locally — retry the build", "Proceed without this check — record my decision", "Cancel the run", "Other… (describe)"]
   ```
+  This is the `gate-ledger.md` §5 conversion for `build_check`, not an orchestrator decision: "Proceed without this check" writes `SKIPPED_BY_USER` with the chosen option quoted verbatim in `user_decision`.
 
 When the profile declares **no** build command at either level, record "no build command in profile; build proof deferred to the dev-server boot (Step 2)" and proceed. Under the built-in dynatrace-docs profile this branch does not apply — `commands.per_space.saas.build` and `commands.per_space.managed.build` are both defined.
 
@@ -830,14 +838,17 @@ Emit a table, one row per affected page — URL per space the page renders in (`
 
 Carry the table and the Step 1/Step 2 outcomes into the Phase 9 `### Render verification` section, and pass a one-paragraph `render_verification` summary to Phase 7.
 
-**Ledger.** Append two rows (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3):
+**Ledger (final).** Rewrite the two rows appended at the top of this phase (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3). A row already written as `NOT_APPLICABLE` is never reached here — this phase did not run:
 
 - `build_check` — `NOT_APPLICABLE` with `precondition_unmet: "write context is <obsidian|plain_dir>"`
   when this phase was skipped entirely; `RAN` when a build command executed; `DEGRADED` when no build
   command exists and the Step 2 boot served as the proof, with
   `ci_still_checks: "the repo's build runs on the PR in CI"`; `FAILED` on a content failure;
-  `UNAVAILABLE` when no build command exists **and** Step 2 did not run — convert it per
-  `gate-ledger.md` §5.
+  `UNAVAILABLE` when the build could not be attempted at all — either no build command exists **and**
+  Step 2 did not run, **or** Step 1 hit an environmental failure (the build tool will not run: missing
+  toolchain, `command not found`, missing shim). Both are the coverage hole
+  `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` §5 predicts when `pnpm` is absent —
+  convert per `gate-ledger.md` §5.
 - `render_smoke_check` — `RAN` when the smoke-check completed for every space in scope;
   `DEGRADED` when at least one space fell back to the manual table, with `not_run:` naming the space
   and its reason (prerequisite unmet / boot failure / readiness timeout);
@@ -1338,10 +1349,10 @@ After writing the edits and before Phase 4, dispatch `docs-style-checker` on the
   > files:     [the files edited in Phase 3]
 
 - `VIOLATIONS_FOUND` → apply safe fixes via `doc-fixer` (one fix cycle), then re-run once.
-- `OK` / `NOT_CONFIGURED` → proceed to Phase 4 (NOT_CONFIGURED means no primary linter AND `dt-style-guide` not installed — recorded, not silently ignored).
-- `ERROR` → surface the reason; proceed to Phase 4 (the edit is small and user-managed).
+- `OK` → proceed to Phase 4.
+- `NOT_CONFIGURED` / `ERROR` → no primary rung and no complementary pass produced a result, so the gate has no coverage. Record `style_check` as `UNAVAILABLE` and convert it per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 before proceeding. Direct mode has no reviewer gate, so this prompt is the only place the gap surfaces — never proceed past it silently.
 
-Never skip this phase on your own judgement of which linters are installed. `docs-style-checker` runs the chain internally as a **ladder**: each primary rung is tried in turn (a detected-but-broken rung does not abandon the ones below it), and `dt-style-checker` runs as a complementary semantic pass whenever the `dt-style-guide` plugin is installed — so neither the repo's own linter nor the semantic / cross-page class is silently dropped. Record the returned `primary_attempts` in the `style_check` ledger row.
+Never skip this phase on your own judgement of which linters are installed. `docs-style-checker` runs the chain internally as a **ladder**: each primary rung is tried in turn (a detected-but-broken rung does not abandon the ones below it), and `dt-style-checker` runs as a complementary semantic pass whenever the `dt-style-guide` plugin is installed — so neither the repo's own linter nor the semantic / cross-page class is silently dropped. Append the `style_check` ledger row here (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3), carrying the returned `primary_attempts`: `RAN` when a primary rung succeeded; `DEGRADED` when every rung failed but `dt-style-checker` ran, with `not_run:` one `{mechanism, reason}` entry per failed rung and a `ci_still_checks:` line; `UNAVAILABLE` per the bullets above; `NOT_APPLICABLE` with `precondition_unmet: "no files edited"` when Phase 3 changed nothing.
 
 After the style check, hold the edited files against the `repo_verification_gates` block extracted in Phase 0 (`${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §5) and append the `repo_checklist` ledger row: `RAN` with `findings:` = the number of entries that failed, or `NOT_APPLICABLE` with `precondition_unmet: "the repo publishes no pre-PR checklist"` when the block is empty. Report any failed entry to the user with its `source` citation — direct mode has no reviewer gate, so this is where the repo's own rules surface.
 

@@ -1890,7 +1890,7 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 **Files (in `/workspace/ihudak-copilot-plugins`):**
 - Create: `dev-workflows/skills/_shared/gate-ledger.md`, `dev-workflows/skills/_shared/toolchain-preflight.md`, `dev-workflows/skills/_shared/repo-verification-gates.md`
-- Modify: `dev-workflows/skills/_shared/escalation-rules.md`, `source-truth.md`, `dynatrace-docs/render-verification.md`, `dynatrace-docs/docs-profile.default.yml`, `dynatrace-docs/docs-profile-schema.md`
+- Modify: `dev-workflows/skills/_shared/escalation-rules.md`, `source-truth.md`, `dynatrace-docs/changelog-guidelines.md`, `dynatrace-docs/render-verification.md`, `dynatrace-docs/docs-profile.default.yml`, `dynatrace-docs/docs-profile-schema.md`
 - Modify: `dev-workflows/agents/docs-style-checker.md`, `doc-planner.md`, `doc-writer.md`, `doc-reviewer.md`
 - Modify: `dev-workflows/skills/document/SKILL.md`, `dev-workflows/skills/docs-profile/SKILL.md`
 - Modify: `dev-workflows/README.md`, `dev-workflows/CHANGELOG.md`, `dev-workflows/.plugin/plugin.json`
@@ -1934,7 +1934,7 @@ Expected: `0` for all three files.
 
 - [ ] **Step 3: Port the modified references and agents**
 
-For each of `escalation-rules.md`, `source-truth.md`, `dynatrace-docs/render-verification.md`, `dynatrace-docs/docs-profile.default.yml`, `dynatrace-docs/docs-profile-schema.md`, apply the **same edits** made in Tasks 1, 2, 6, and 9 to the copilot copy under `dev-workflows/skills/_shared/`, rewriting any `${CLAUDE_PLUGIN_ROOT}/references/` citation to the copilot `_shared` path. Do not `cp` these — they may already carry copilot-specific path text.
+For each of `escalation-rules.md`, `source-truth.md`, `dynatrace-docs/changelog-guidelines.md`, `dynatrace-docs/render-verification.md`, `dynatrace-docs/docs-profile.default.yml`, `dynatrace-docs/docs-profile-schema.md`, apply the **same edits** made in Tasks 1, 2, 6, 7, and 9 to the copilot copy under `dev-workflows/skills/_shared/`, rewriting any `${CLAUDE_PLUGIN_ROOT}/references/` citation to the copilot `_shared` path. Do not `cp` these — they may already carry copilot-specific path text.
 
 For each of `agents/docs-style-checker.md`, `doc-planner.md`, `doc-writer.md`, `doc-reviewer.md`, apply the same edits made in Tasks 4, 5, 7, 8, and 9, with two adaptations: `${CLAUDE_PLUGIN_ROOT}/references/X` → the copilot `_shared` path, and any `subagent_type:` dispatch → `task(agent_type: …)`. Agent frontmatter `tools:` lists stay in their existing copilot lowercase form — do not change them.
 

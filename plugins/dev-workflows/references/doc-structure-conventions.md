@@ -39,17 +39,19 @@ to check for it. Do not remove this marker as a stray provenance comment; see
 
 ## 2. Callout scope and adjacency
 
-A callout that qualifies one member of a set is placed **with that member**, never as a trailing
-block after the set:
+A callout that qualifies one member of a set is placed **with that member**, never as an
+**unqualified** trailing block after the set (rule 3 below is the one permitted alternative):
 
 1. **With-the-member placement.** When a step or section presents mutually exclusive options, each
    option owns its callouts, placed immediately beneath it.
 2. **Whole-set callouts in the lead-in.** A callout that applies to the whole set goes in the lead-in,
    **before** the options — never after them, where position alone reads as "and finally, this
    applies to everything above".
-3. **Explicit scope naming.** Where placement alone could still mislead, the callout names its own
-   scope in its first clause — for example, *"This applies only to the Private Container Registry
-   option."*
+3. **Explicit scope naming.** Where placement alone could still mislead — including the case where a
+   callout genuinely must stay adjacent to the whole set — the callout names its own scope in its
+   first clause, for example *"This applies only to the Private Container Registry option."* A
+   trailing callout that opens this way satisfies this section; it is a compliant alternative to
+   rule 1, not a tolerated violation, and enforcers must not flag it.
 
 **Worked example.** Illustrative only — the syntax below (`{{#callout}}`) is one repo's component; the
 rule does not require it. A four-option list presents ways to configure a registry — a built-in
@@ -62,7 +64,9 @@ placement — move the callout under the one option it actually describes, or, i
 to the set, open it with *"This applies only to the built-in cluster registry."*
 
 **Reviewer severity: MAJOR.** A callout whose position admits a broader reading than intended changes
-what the customer believes is required or prohibited — a correctness failure, not a stylistic one.
+what the customer believes is required or prohibited — a correctness failure, not a stylistic one. A
+callout that names its own scope per rule 3 admits no broader reading, so it is never this finding
+regardless of where it sits.
 
 ## 3. Component-pattern fidelity
 

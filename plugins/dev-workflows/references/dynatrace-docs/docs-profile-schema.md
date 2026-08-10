@@ -87,10 +87,5 @@ prerequisites:
 - `commands.build` (flat) and `commands.per_space.<space>.build` are both optional. When neither exists, the consumer treats the dev-server boot as the build proof. Declare a build command whenever the repo has one — an absent build command disables `/document`'s gating build check.
 - `commit_convention` is optional — the squash commit-message format Phase 8.5 uses. When absent, the consumer infers it from recent `git log` / `CONTRIBUTING`, else falls back to `<JIRA_KEY> <summary>`.
 - `cross_space_override` and `shared_registries` are present only when detected (multi-space / docstack repos).
-- `announcement_pages` is optional — hand-authored destination pages that receive a given class of
-  change regardless of where the feature itself is documented, typically inside a tree that is
-  otherwise automation-owned. A repo without any omits the block. Each entry is
-  `{postid, path, kinds}`; `kinds` is an open list of change kinds. `path` is authoritative when
-  `path` and `postid` disagree; `postid` alone suffices when the repo's link convention is
-  postid-based.
+- `announcement_pages` is optional — hand-authored destination pages that receive a given class of change regardless of where the feature itself is documented, typically inside a tree that is otherwise automation-owned. A repo without any omits the block. Each entry is `{postid, path, kinds}`; `kinds` is an open list of change kinds. `path` is authoritative when `path` and `postid` disagree; `postid` alone suffices when the repo's link convention is postid-based. A declared page is a **cross-cutting** destination: `doc-location-finder` proposes it regardless of which space's `content_root` it sits under, exempt from the `target_spaces` filter, and writes it for another space via the `conditional` strategy.
 - `frontmatter.*` are pointers; never copy the rules here.

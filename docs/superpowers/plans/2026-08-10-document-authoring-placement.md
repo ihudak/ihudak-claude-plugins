@@ -897,9 +897,10 @@ git commit -m "chore(dev-workflows): 2.14.0 — /document authoring and placemen
 
 `existing_images` appears nowhere as a produced name — an earlier draft had both the planner and the orchestrator building that list, which is the duplication the previous round was burned by. T6's verification asserts `grep -c existing_images agents/doc-planner.md` is **0** for exactly this reason.
 
-**Known deviations, both deliberate and both flagged in place:**
+**Known deviations, all deliberate and all flagged in place:**
 
 1. **T11 Step 6** — one new report section rather than the spec's two, because the Agent 2 and Agent 3 sections already exist in both reports.
 2. **T14** — the copilot catalog is `.github/plugin/marketplace.json`; spec §10 says `.claude-plugin/marketplace.json`. The plan's path is the verified one.
+3. **T12** — root `CLAUDE.md` gains **one** of the two new references, not two. Only `references/doc-structure-conventions.md` is listed there; `references/dynatrace-docs/anchor-conventions.md` is not, because that list holds nine entries all sitting directly under `references/` — it is the cross-cutting-reference index, not an inventory of every file in the tree, and a repo-specific `dynatrace-docs/` reference does not belong in it. The omission is correct, not an oversight.
 
 **Ordering constraints.** T7 produces `existing_image_decisions`, which T6's writer consumes — but T6 runs first, so its writer edit references a block T7 has not yet defined. That is fine within a plan executed to completion, and T6's Interfaces block names T7 as the source. T8 must land before or with T7's ledger append. T10 must land after T1, T2, T6, T7, and T8, since it cites all five. Sequential execution in the order written satisfies every constraint.

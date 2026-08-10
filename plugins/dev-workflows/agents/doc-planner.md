@@ -45,7 +45,7 @@ For each write target:
 
    Not every target needs every topic. For `extend-existing`, pick only the topics the existing page doesn't already cover.
 
-   When a topic's content presents mutually exclusive options (alternative setup paths, alternative configurations, and similarly-shaped either/or content), plan its callout placement per `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §2: each option's callout is planned adjacent to that option, never as a trailing block after the whole set; a callout that applies to the whole set is planned into the lead-in, before the options. Record the placement in the topic's `notes`. Do not restate §2's rules here — cite it.
+   When a topic's content presents mutually exclusive options (alternative setup paths, alternative configurations, and similarly-shaped either/or content), plan its callout placement per `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §2: each option's callout is planned adjacent to that option, never as an **unqualified** trailing block after the whole set; a callout that applies to the whole set is planned into the lead-in, before the options. §2 rule 3 is an explicit alternative: when a callout must stay adjacent to the whole set, plan it to name its own scope in its first clause (e.g. *"This applies only to the built-in cluster registry."*). Record the placement in the topic's `notes`. Do not restate §2's rules here — cite it.
 
 2. **Map topics to sources.** Each topic records which `jira-reader` keys and/or which `diff-summarizer` PR URLs back it up, for the Phase 6.3 writer's traceability requirement. A topic with no source attribution is a candidate gap (see step 7).
 
@@ -94,6 +94,8 @@ For each write target:
 7. **Cross-links.** For each target record:
    - `cross_links.from` — pages that should link to this target (start from `linked_from` in the `doc-location-finder` output; extend with sidebar/nav files if the repo has them).
    - `cross_links.to` — pages this target should link out to (related topics, reference pages that back up the narrative).
+
+   When a cross-link points at a specific **section** rather than a whole page, plan the section anchor and the link form per `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/anchor-conventions.md` §1–§2: one `{:#id}` per heading (multi-anchor is unsupported), and the cross-page `[text](<postid>#<anchor>)` form. Do not restate its rules here — cite it.
 
 8. **Flag gaps the writer cannot fill from inputs alone.** Examples:
    - "Feature requires a DB-migration note but no migration steps were found in Jira or diffs."

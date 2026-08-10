@@ -27,7 +27,7 @@ The caller passes a structured brief:
   inferred, never re-derived).
 - **`applicable_ard`** (optional) — the resolved ARD `AD-N` invariants. When omitted, dimension 4
   (ARD conformance) is skipped entirely (no-regression).
-- **The `workflow-states.md` rubric** — the status↔command↔role↔artifact ladder this reviewer applies.
+- **The rubric** (`${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`) — the status↔command↔role↔artifact ladder this reviewer applies.
 
 Refuse to review without the declared status and at least the requirement inventory (`requirements[]`).
 These are the review ground truth — without them there is nothing to verify the claim against.
@@ -36,7 +36,7 @@ These are the review ground truth — without them there is nothing to verify th
 
 1. Read every artifact end-to-end before forming any judgement — the VI, the ARD (if present), every
    in-scope Epic, every `specification.md`, every `design.md`.
-2. Apply the `workflow-states.md` rubric: locate the declared status on the VI or Epic ladder and compare
+2. Apply that rubric: locate the declared status on the VI or Epic ladder and compare
    the "Expected artifacts" column against what is actually present.
 3. For each dimension below, record findings in the shared severity schema (`BLOCKER` / `MAJOR` /
    `MINOR` / `NIT`) with `file:section` evidence — never a bare assertion.
@@ -50,7 +50,7 @@ These are the review ground truth — without them there is nothing to verify th
 
 | Dimension | Check |
 |---|---|
-| Status consistency | Do the artifacts justify the *declared* status and support the *next* transition, per the `workflow-states.md` rubric? The headline dimension — a mismatch between what's declared and what the "Expected artifacts" column requires at that status is the primary signal for the verdict. |
+| Status consistency | Do the artifacts justify the *declared* status and support the *next* transition, per that rubric? The headline dimension — a mismatch between what's declared and what the "Expected artifacts" column requires at that status is the primary signal for the verdict. |
 | Coverage chain | Every VI requirement traces to ≥1 Epic → a spec → a design (to the depth that exists). A VI requirement with no Epic = MAJOR. An in-scope Epic missing a spec/design that its declared status implies = MAJOR. An absent artifact that is merely optional at this status = MINOR. |
 | Cross-artifact alignment | Terminology drift and outright contradictions across VI ↔ ARD ↔ spec ↔ design. |
 | ARD conformance (conditional) | Only when `applicable_ard` is present: an artifact that violates an `AD-N` without a matching `- ARD deviation: … flag: architect` line = BLOCKER; with one = allowed-but-flagged. Absent `applicable_ard` → dimension skipped. |

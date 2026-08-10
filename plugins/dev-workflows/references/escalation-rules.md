@@ -30,8 +30,14 @@ that must not edit the list. Write it one of two ways instead:
   `(Recommended)`; or
 - the condition **lives in the option's own description** → the list carries no marker at all.
 
+A **reason** annotation is not a condition and is fine: `(Recommended — <why>)` states why the option
+is recommended, unconditionally, and is honoured verbatim like any other marker (`/document`
+Phase 5 and `/epics` Phase 1 both use it).
+
 When no option is safe to recommend across the runs that reach a prompt, omit the marker and say so
 in prose beside the list (as `/document` Phase 5.6 does for its per-occurrence image review).
+
+This rule binds every command in the plugin, not only the ones documented below.
 
 ## Jira key dir not found
 

@@ -71,7 +71,7 @@ targets:
     path:      <absolute path; for extend-existing this is the existing file, for new-* this is the proposed new file>
     rationale: <1–2 sentences: why this location; for a step-6 announcement-page target, also its recommended write strategy (`conditional` for the requesting space)>
     linked_from: [<paths of pages that should cross-link to this, if any>]
-confidence_notes: <when status == LOW_CONFIDENCE: what's ambiguous>
+confidence_notes: <when status == LOW_CONFIDENCE: what's ambiguous. Also used at any status to record a filter that could not be applied — e.g. `target_spaces` supplied without a `profile` (see the Inputs note and the target_spaces hard rule); an OK run with such a note stays OK.>
 ```
 
 When `status: EMPTY`, `targets` is `[]` and `confidence_notes` explains why (e.g. "feature topic matches no page above the 0.15 overlap threshold; repo has no existing section that's a natural adjacent home").

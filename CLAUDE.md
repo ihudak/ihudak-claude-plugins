@@ -117,6 +117,8 @@ in their prompt; they do not re-read the file.
 
 `plugins/dev-workflows/references/bug-diagnosis.md` is the **single source of truth** for the bug-diagnosis discipline consulted by `/implement` (Phase 2B) and followed by `risk-planner` when a task is bug-shaped (`task_shape: bug`): feedback-loop-first (a red-capable, deterministic repro before hypothesizing), 3–5 ranked falsifiable hypotheses, `[DEBUG-xxxx]`-tagged instrumentation with a mandatory cleanup gate (stripped before the Opus-review diff), and a regression test at a correct seam. It cross-references `references/design-format.md` `## Seams` for the seam vocabulary and is paired with `/implement`'s spec/design-conformance ("converge") check — `code-review`'s conditional 10th dimension that traces in-scope `[Uxx]`/`[ACxx]`/`[TCxx]` against the shipped diff.
 
+`plugins/dev-workflows/references/specs-repo-git.md` is the **single source of truth** for the two git entry points the plugin runs against `$SPECS_PATH` — `specs-preflight` (run start: flush leftover artifacts, retry an unpushed artifact commit, settle the branch) and `commit-artifacts` (terminal: stage the bounded artifact paths, commit, push). It owns the bounded write authority (three path shapes; `^(vi|ard|spec|design)/` branches only), the three guards and their four-part notice contract, the branch-disposition table, and the `Specs repo:` outcome line. Consumed by the seventeen commands that write into `$SPECS_PATH` — every command except `/api-guideline-reviewer`, `/guideline-reviewer`, `/statusline`, and `/docs-profile`. Hard rules: every git call is `git -C "$SPECS_PATH"` and never a `cd`; `git add -A` is never issued at repository scope; never force-push, never `branch -D`, never merge/rebase/reset, never delete an `index.lock`; never fatal.
+
 `plugins/dev-workflows/references/gate-ledger.md` is the **single source of truth** for verification-gate accounting — the six outcomes (`RAN` / `DEGRADED` / `FAILED` / `UNAVAILABLE` / `SKIPPED_BY_USER` / `NOT_APPLICABLE`), the rule that **no outcome is orchestrator-assignable to mean "I decided not to run this"**, the `/document` gate registry, the `UNAVAILABLE` conversion prompt, and the reviewer contract. Consumed by `/document` (both modes) and written generically for other commands to adopt.
 
 `plugins/dev-workflows/references/repo-verification-gates.md` is the **single source of truth** for extracting a docs repo's own pre-PR checklist into the `repo_verification_gates` block — the heading patterns, what counts as checkable against the written files, and the augment-never-override rule. Applied by `doc-planner` in `/document` Jira mode and by the orchestrator itself in direct mode, which has no planner.
@@ -128,21 +130,22 @@ in their prompt; they do not re-read the file.
 ## `dev-workflows` workflow relationships
 
 ```
-/implement           → [Pre-Phase 2 scale assessment] → (multi-source? → [jira-reader → code-scanner×N (parallel, cap 4)] → synthesis) → [risk-planner@Opus plan critique] → [code-review@Opus] → review-fixer → test-writer → tests → impl-maintenance
-/document (direct)   → [doc-reviewer] → [doc-fixer] → impl-maintenance
+/implement           → [Pre-Phase 2 scale assessment] → (multi-source? → [jira-reader → code-scanner×N (parallel, cap 4)] → synthesis) → [risk-planner@Opus plan critique] → [code-review@Opus] → review-fixer → test-writer → tests → impl-maintenance → commit-artifacts
+/document (direct)   → [doc-reviewer] → [doc-fixer] → impl-maintenance → commit-artifacts
 /docs-profile        → scans docs repo → writes/refreshes .dev-workflows/docs-profile.yml + CLAUDE.md guidance → PR
-/document (Jira)     → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [counterpart-finder (space-constrained runs)] → [doc-planner] → [discrepancy-escalation (Phase 5.8)] → writing → [docs-style-checker → dt-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [doc-fixer] → impl-maintenance   (Phase 0 hint: prefers ${DOCS_PATH:-/workspace/docs} as a docs-repo discovery hint — write-target only, no docs-grounder consumption)
-/epics               → jira-reader → [code-scanner×N (parallel, optional)] → [docs-grounder] → writing → [dt-style-checker] → [doc-fixer] → [epic-reviewer@Opus] → [doc-fixer] → impl-maintenance
-/release-notes       → jira-reader → [diff-summarizer×N (parallel, optional)] → [docs-grounder] → [release-notes-writer: resolve destination + shape per destination + source the {{#context}} label + detect deprecation] → [dt-style-checker → dt-doc-fixer (optional)] → write draft (destination-shaped Summary; paste into Jira)
-/vuln                → vuln-research → vuln-fixer → [code-review@Opus] → review-fixer → tests → impl-maintenance
-/upgrade             → upgrade-planner → upgrade-executor → [code-review@Opus] → review-fixer → tests → impl-maintenance
-/idea                → idea-reader → [docs-grounder (when $DOCS_PATH valid)] → (embedded grilling) → write idea.md
-/create-vi           → [docs-grounder] → (embedded grilling) → [vi-reviewer@Opus] → write VI + relocate idea.md
-/update-vi           → [Jira-import-first resolve] → [docs-grounder] → (embedded grilling, diffs against base) → [vi-reviewer@Opus] → write canonical + archived revisions
-/create-ard          → [jira-reader (Epic-level always; VI-level only if the authored VI file is absent under $SPECS_PATH)] → [ls $REPOS_PATH → code-scanner×N (confirmed set, parallel, cap 4)] → [docs-grounder] → (embedded grilling) → [ard-reviewer@Opus] → write ARD
-/specify             → jira-reader → [code-scanner×N (parallel, cap 4, soft gate)] → [docs-grounder] → (embedded grilling) → [spec-reviewer@Opus] → write specification.md
-/design              → [code-scanner×N (parallel, cap 4, STRICT gate)] → (embedded grilling, challenges spec) → [design-reviewer@Opus] → write design.md
-/ready               → jira-reader + Jira status read → verify ARD/spec/design → [readiness-reviewer@Opus] → SUPPORTED/PARTIAL/NOT-SUPPORTED → impl-maintenance + emit-auto
+/document (Jira)     → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [counterpart-finder (space-constrained runs)] → [doc-planner] → [discrepancy-escalation (Phase 5.8)] → writing → [docs-style-checker → dt-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [doc-fixer] → impl-maintenance → commit-artifacts   (Phase 0 hint: prefers ${DOCS_PATH:-/workspace/docs} as a docs-repo discovery hint — write-target only, no docs-grounder consumption)
+/epics               → jira-reader → [code-scanner×N (parallel, optional)] → [docs-grounder] → writing → [dt-style-checker] → [doc-fixer] → [epic-reviewer@Opus] → [doc-fixer] → impl-maintenance → commit-artifacts
+/release-notes       → jira-reader → [diff-summarizer×N (parallel, optional)] → [docs-grounder] → [release-notes-writer: resolve destination + shape per destination + source the {{#context}} label + detect deprecation] → [dt-style-checker → dt-doc-fixer (optional)] → write draft (destination-shaped Summary; paste into Jira) → commit-artifacts
+/vuln                → vuln-research → vuln-fixer → [code-review@Opus] → review-fixer → tests → impl-maintenance → commit-artifacts
+/upgrade             → upgrade-planner → upgrade-executor → [code-review@Opus] → review-fixer → tests → impl-maintenance → commit-artifacts
+/idea                → idea-reader → [docs-grounder (when $DOCS_PATH valid)] → (embedded grilling) → write idea.md → commit-artifacts
+/create-vi           → [docs-grounder] → (embedded grilling) → [vi-reviewer@Opus] → write VI + relocate idea.md → commit-artifacts
+/update-vi           → [Jira-import-first resolve] → [docs-grounder] → (embedded grilling, diffs against base) → [vi-reviewer@Opus] → write canonical + archived revisions → commit-artifacts
+/create-ard          → [jira-reader (Epic-level always; VI-level only if the authored VI file is absent under $SPECS_PATH)] → [ls $REPOS_PATH → code-scanner×N (confirmed set, parallel, cap 4)] → [docs-grounder] → (embedded grilling) → [ard-reviewer@Opus] → write ARD → commit-artifacts
+/specify             → jira-reader → [code-scanner×N (parallel, cap 4, soft gate)] → [docs-grounder] → (embedded grilling) → [spec-reviewer@Opus] → write specification.md → commit-artifacts
+/design              → [code-scanner×N (parallel, cap 4, STRICT gate)] → (embedded grilling, challenges spec) → [design-reviewer@Opus] → write design.md → commit-artifacts
+/ready               → jira-reader + Jira status read → verify ARD/spec/design → [readiness-reviewer@Opus] → SUPPORTED/PARTIAL/NOT-SUPPORTED → impl-maintenance + emit-auto → commit-artifacts
+All seventeen in-scope commands additionally run `specs-preflight` at Phase 0 and `commit-artifacts` as their last action (`references/specs-repo-git.md`). (`/feedback`, `/prompt`, `/prompt-brainstorm`, and `/prompt-grill-me` are in scope too but have no line of their own in this map — they are single-purpose logging commands, not pipelines.)
                       └── test-baseliner      (used by upgrade-executor, vuln-fixer, and /implement)
                       └── test-writer        (used by /implement only)
                       └── risk-planner       (used by /implement plan critique)
@@ -175,6 +178,7 @@ Key invariants enforced by all three code-oriented commands:
 - Opus review gate runs **before** tests for `SIGNIFICANT` / `HIGH-RISK` tasks
 - `review-fixer` handles BLOCKER findings; only one `review-fixer` cycle per review
 - `impl-maintenance` runs post-batch to update KB, `CLAUDE.md`, and project docs
+- Every command that writes into `$SPECS_PATH` runs `specs-preflight` at Phase 0 and `commit-artifacts` as its last action (`references/specs-repo-git.md`) — bounded to the artifact paths and to plugin-created branches, and reported once as a `Specs repo:` line
 
 Key invariants for `/implement` specifically:
 
@@ -246,6 +250,18 @@ Key invariants for `$DOCS_PATH` docs grounding:
 - Default ON when `$DOCS_PATH` (`:-/workspace/docs`) is a readable dir with ≥1 markdown file; `--no-docs` off, `--docs <path>` override; every miss is a silent non-blocking skip
 - Grill commands rank challenges into the Impact × Uncertainty gap list (never append — preserves `/idea`'s ≤5 bound); writer commands attach the digest
 - `docs-grounder` retrieves via `qmd` CLI (no skill installed; `qmd update` never `--pull`) with keyword + `git log --grep` fallback; write roots `SPECS_PATH`/`VAULT_PATH` stay strict (no default)
+
+Key invariants for specs-repo git (`references/specs-repo-git.md`):
+
+- Every git invocation is `git -C "$SPECS_PATH"` — the working directory is NEVER changed; nine of the seventeen callers are standing in a different repository
+- Staging is by enumeration over `git status --porcelain --untracked-files=all`, never by glob; `git add -A` is only ever issued as `git add -A -- <literal paths>`, and `-A` is required because cost reconciliation deletes a pending file
+- Only `^(vi|ard|spec|design)/` branches are the plugin's to switch away from or delete; any other **named** branch is left alone and the artifacts are committed on it
+- **Detached HEAD is the one blocking state** — it sets `specs_git: blocked` for the whole run, `commit-artifacts` skips on that flag, and the notice fires at both ends. A dirty unrelated path (G1) does NOT block the terminal commit
+- Never force-push, never `branch -D`, never merge/rebase/reset, never delete an `index.lock`, never open a PR, never call a REST API
+- Never fatal — every failure is reported and the run continues
+- The artifact commit carries no `Co-Authored-By` trailer; each artifact already carries its own `author:` field
+- The canonical terminal order is deliverable + handoff → feedback → follow-ups → cost → `resume.md` → `commit-artifacts` → the run's last printed output
+- Exactly one `Specs repo:` outcome line per run, at the end; a guard notice is repeated in full there, never only at Phase 0
 
 ## Test-writing requirement for code changes
 

@@ -48,7 +48,7 @@ de-duplicate by binary name.
    nothing. Never fail the preflight on an unparseable Prerequisites section.
 
 **Direct mode has no profile.** `/document` Mode B resolves `repo_root` as cwd's git root and uses
-sources **2 and 3 only**. Source 1 contributes nothing there.
+sources **2 and 3 only**. Source 1 contributes nothing there. `/document` direct mode reads the same guidance files again in the same pass for `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §2 — do both in one read, not two.
 
 ## 3. Checking
 

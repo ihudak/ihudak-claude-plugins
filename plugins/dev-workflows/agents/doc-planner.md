@@ -32,7 +32,7 @@ Refuse to run without `jira_reader_handoff`, `write_targets`, and `repo_root`.
 
 **Second — extract the repo's pre-PR verification gates from the same files.** The instruction above ignores operational content for *planning* purposes, but a repo's own pre-merge checklist is not noise: it is the list of checks a human reviewer will apply. Follow `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §2–§4 — it owns the heading patterns to look for, what counts as checkable, what to exclude, and the block's schema — and emit the resulting `repo_verification_gates` block. Do NOT restate its rules here; the reference is the single source of truth, and `/document` direct mode follows the same procedure without a planner.
 
-For `dynatrace-docs` this resolves to `CONTRIBUTING.md` `## PR checklist` (both the Contributors minimum check and the InfoDevs advanced check).
+For `dynatrace-docs` this resolves to `CONTRIBUTING.md` `## PR checklist` — both its `### Minimum check (Contributors)` and `### Advanced check (InfoDevs)` subsections.
 
 For each write target:
 

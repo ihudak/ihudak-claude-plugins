@@ -44,6 +44,8 @@ This set governs **both** gates: §1's build check runs each of its spaces' buil
 smoke-check below boots each of them. Neither is scoped by which `content_root` the written files sit
 under.
 
+Consumers restate this set inline where they use it rather than citing it alone. That duplication is deliberate: these files are read once at runtime by a model that may not follow a cross-reference. Keep the restatements in sync with this definition; do not collapse them into a bare citation.
+
 For each space in the verification set, in order:
 
 1. Verify prerequisites (§5) — best-effort, never applied.

@@ -31,7 +31,7 @@ Before writing, validate the handoff. Return `status: BLOCKED` with the specific
 
 - the handoff file is missing/unreadable, or `write_targets` is empty;
 - a target's `write_strategy.strategy` is `override-copy` or `conditional` but `target_space` is absent;
-- a target's home space (matched against `profile.spaces[].content_root`/`snippet_root`) is **not** in `target_spaces` and the target is neither an `override-copy` destination nor a `conditional` edit whose `write_strategy.target_space` IS in `target_spaces` (see the routing rule below for why both are legitimate);
+- a target's home space (matched against `profile.spaces[].content_root`/`snippet_root`) is **not** in `target_spaces` and the target is neither an `override-copy` destination nor a `conditional` edit of a shared source page whose `write_strategy.target_space` IS in `target_spaces` (see the routing rule below for why both are legitimate);
 - a screenshot has `image_policy: cdn_upload_required`, `cdn_handoff_decision: upload-now`, but no `cdn_urls[<image>]`;
 - a screenshot has `image_policy: cdn_upload_required` and `cdn_handoff_decision: defer` but `screenshot_staging_dir` is absent/null;
 - any target's `image_policy` is still `ambiguous` (the orchestrator must resolve it before dispatch);

@@ -1001,7 +1001,7 @@ Run this phase only when Phase 6.3 wrote + committed in a git repo (write contex
 Fold the run into clean history before handoff:
 1. Stage the run's uncommitted docs-repo edits — Phase 8 Agent 1 (doc index / cross-links) and Agent 3 (`CLAUDE.md`) may have edited without committing; the Phase 6.2 clean-tree check means everything uncommitted is this run's work.
 2. Compute the squash base: if Phase 6.2 recorded `profile_commit` (inline-profiling run), base = `profile_commit` (keeps the profile-config commit as a distinct first commit → two commits); otherwise base = `git merge-base <base_branch> HEAD` (one commit).
-3. `git add` the docs-repo changes → `git reset --soft <squash-base>` → one `git commit`. The message follows `profile.commit_convention` when present (dynatrace-docs: `<JIRA-KEY> <summary>`); for a repo with no such field, infer from recent `git log` / `CONTRIBUTING`, else fall back to `<JIRA_KEY> <summary>`. NEVER put the Jira key in a reader-visible changelog — the commit message carries traceability.
+3. `git add` the docs-repo changes → `git reset --soft <squash-base>` → one `git commit`. The message follows `profile.commit_convention` when present (dynatrace-docs: `<JIRA-KEY> <summary>`); for a repo with no such field, infer from recent `git log` / `CONTRIBUTING`, else fall back to `<JIRA_KEY> <summary>`. NEVER put the Jira key in a reader-visible changelog — see `references/doc-structure-conventions.md` §1.
 
 ### Step 2 — Offer push
 

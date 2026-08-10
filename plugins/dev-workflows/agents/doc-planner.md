@@ -45,7 +45,7 @@ For each write target:
 
    Not every target needs every topic. For `extend-existing`, pick only the topics the existing page doesn't already cover.
 
-   When a topic's content presents mutually exclusive options (alternative setup paths, alternative configurations, and similarly-shaped either/or content), plan its callout placement per `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §2: each option's callout is planned adjacent to that option, never as an **unqualified** trailing block after the whole set; a callout that applies to the whole set is planned into the lead-in, before the options. §2 rule 3 is an explicit alternative: when a callout must stay adjacent to the whole set, plan it to name its own scope in its first clause (e.g. *"This applies only to the built-in cluster registry."*). Record the placement in the topic's `notes`. Do not restate §2's rules here — cite it.
+   When a topic's content presents mutually exclusive options (alternative setup paths, alternative configurations, and similarly-shaped either/or content), plan its callout placement per `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §2: each option's callout is planned adjacent to that option, never as an **unqualified** trailing block after the whole set; a callout that applies to the whole set is planned into the lead-in, before the options. §2 rule 3 is an explicit alternative: when a callout must stay adjacent to the whole set, plan it to name its own scope in its first clause (e.g. *"This applies only to the built-in cluster registry."*). Record the placement in the topic's `notes`. Do not restate §2's rules here — cite it. (The one-line operational paraphrase above is deliberate and stays, as does its twin in `doc-writer.md` step 10: in this file pair the planner and the writer each carry their own short operational version of a cited rule, with §2 the authority both defer to. It is not duplication to collapse.)
 
 2. **Map topics to sources.** Each topic records which `jira-reader` keys and/or which `diff-summarizer` PR URLs back it up, for the Phase 6.3 writer's traceability requirement. A topic with no source attribution is a candidate gap (see step 7).
 
@@ -130,6 +130,8 @@ For each write target:
     - Set `write_strategy.rationale` to a 1-line justification grounded in the divergence you estimated (used by Phase 5.9's table).
     - This recommendation is **advisory** — the orchestrator presents it for approval/override in Phase 5.9 before any write. Do NOT write files.
 
+    **Known residual (deliberate, do not "fix" by inventing a branch).** The three strategies above cover no case for a `single` page whose home space is *outside* `target_spaces` — `plain` requires the home space to be in `target_spaces`, and `conditional` / `override-copy` both require a `shared` page. Such a target should never reach this step (Phase 4.5/5.5 honour `target_spaces`), and if one does, `doc-writer`'s routing rule returns `status: BLOCKED` naming the target and its resolved home space, so it fails loudly rather than silently. Do not paper over it with a fourth branch here — that would convert a caller defect into a quietly written page in an untouched space.
+
 ## Output — the documentation checklist
 
 ```yaml
@@ -197,6 +199,8 @@ verification_warnings:        # source-truth findings; resolved by the orchestra
 `status: PARTIAL` is returned when the checklist is usable but at least one gap has `recommended_action: "ask user"` or the image policy is `ambiguous` for at least one target — the caller must surface those to the user before approval.
 
 ## Hard rules
+
+Convention for this list: **every field this agent emits carries a matching `NEVER …` rule here.** A bullet that reads wider than the planning brief — the `component_patterns` pair below (no fabrication, no second scan) among them — is in-brief by that convention and stays; it is the rule that keeps its output field honest.
 
 - NEVER include a Jira key inside `frontmatter_updates.changelog.entry` — see `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1.
 - The `repo_verification_gates` block obeys `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §6 in full — never emit an entry that cannot be checked against the files this run writes, never paraphrase a repo gate into a different requirement, and never let a repo gate silently override a built-in reference.

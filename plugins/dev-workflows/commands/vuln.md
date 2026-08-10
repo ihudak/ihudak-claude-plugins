@@ -190,9 +190,9 @@ interactive tools, even when one is listed in their `tools:`. When it returns
 **orchestrator** (this command, running in the interactive session) handles the decision:
 
 - Present the failing tests clearly (from the fixer's `failing_tests` / `diagnosis`).
-- Ask:
+- Ask — no option is safe to recommend across arbitrary regressions, so this list carries no `(Recommended)` marker and the qualifying condition sits in the option's own description (per the marker rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`):
   ```
-  choices: ["Apply the fix anyway and flag the failures in the PR (Recommended if tests are flaky)", "Revert this fix and skip it", "Investigate further", "Other… (describe)"]
+  choices: ["Apply the fix anyway and flag the failures in the PR — for failures that are flaky or unrelated to this fix", "Revert this fix and skip it", "Investigate further", "Other… (describe)"]
   ```
 - **"Investigate further"** → show more detail (the diff, full failure output) and re-ask
   the same choices — this loops here at the orchestrator until the user picks apply or revert.

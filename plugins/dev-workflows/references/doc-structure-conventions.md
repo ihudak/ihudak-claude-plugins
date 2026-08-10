@@ -16,26 +16,26 @@ Consumed by `doc-writer`, `doc-planner`, and `doc-reviewer`.
 comments belong in the commit message and in the run's handoff — never in body prose, never in a
 changelog entry, never as a comment in the markdown.
 
+**Scope: rendered product-docs pages** — the pages `/document` writes into a docs repo. This section
+does not govern **vault documents**, such as the Epic drafts `/epics` writes into an Obsidian vault,
+where a `[[KEY]]` wikilink is the native idiom, resolves, and is the required traceability form.
+
 | Where | Carries |
 |---|---|
 | Rendered page | The customer-facing claim only. |
 | Commit message | The Jira key and the summary (`profile.commit_convention`). |
 | Run handoff / final report | Per-claim attribution to Jira keys and PR URLs. |
 
-This is the general form of the changelog rule already stated in several places in this plugin — a
-changelog entry is reader-visible "what changed on this page" prose, and a Jira key never belongs in
-it. Every place that says so (`doc-writer.md`, `doc-planner.md`, `commands/document.md`) is stating an
-instance of this rule, not a competing one. This section is their authority; when in doubt, this is
-the rule those statements cite.
+A changelog entry is reader-visible "what changed on this page" prose, so it is covered by the rule
+above: a Jira key never belongs in it. `doc-writer.md`, `doc-planner.md`, and `commands/document.md`
+each state that instance; this section is their authority — they are instances of this rule, not
+competing ones.
 
 **One exception.** `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.6 defines an
 `<!-- intentional-discrepancy: … -->` HTML comment that IS written into the rendered page, and its
-text does cite a Jira key. It is not provenance in the sense this rule bans: it is not there to
-attribute the change's origin. It is a deliberate, user-decided flag recording *why* the page states
-the spec's intended phrasing instead of the code's current behavior — a `document-as-spec` decision
-made explicit for the reader and for `doc-reviewer`'s Source-code accuracy dimension, which continues
-to check for it. Do not remove this marker as a stray provenance comment; see
-`${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.6 for its exact format.
+text does cite a Jira key. It is a user-decided gap flag, not provenance, and `doc-reviewer`'s
+Source-code accuracy dimension checks for it. Do not remove this marker as a stray provenance
+comment; see `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.6 for its exact format.
 
 ## 2. Callout scope and adjacency
 
@@ -65,8 +65,10 @@ to the set, open it with *"This applies only to the built-in cluster registry."*
 
 **Reviewer severity: MAJOR.** A callout whose position admits a broader reading than intended changes
 what the customer believes is required or prohibited — a correctness failure, not a stylistic one. A
-callout that names its own scope per rule 3 admits no broader reading, so it is never this finding
-regardless of where it sits.
+callout that names its own scope per rule 3 **and stays adjacent to the set it qualifies** admits no
+broader reading, so it is not this finding. Rule 3 licenses that placement and no other: scope naming
+cures ambiguous adjacency, not absent adjacency, so a scope-labelled callout parked away from its set
+— several sections later, or beneath an unrelated option — is still this finding.
 
 ## 3. Component-pattern fidelity
 
@@ -89,17 +91,13 @@ component_patterns:
 illustrate the block shape — it is not a required or default component.
 
 `shape` is an **open vocabulary**, not a closed enum: the planner names what it observes in the
-sampled pages. Mutually-exclusive option sets, collapsible detail, and tabular reference are seed
-examples for this rule, not the permitted set — a repo may have area-specific shapes (a comparison
-matrix, a decision tree, a step sequence with per-step prerequisites) that belong in `component_patterns`
-just the same.
+sampled pages. The shapes named above are seed examples, not the permitted set.
 
 **No component list is vendored.** This rule carries no catalog of components to choose from for any
-repo, including a dynatrace-docs one. The evidence comes from whatever repo is in front of the run —
-the sampled sibling pages, not a reference table in this plugin. A repo's own authoring guidance may
-separately document that a component exists (e.g. a `CLAUDE.md` line naming `{{#tabgroup}}`); what
-that guidance typically does not state is which shape it is idiomatic for — that convention is read
-off the sibling pages themselves.
+repo, including a dynatrace-docs one: the evidence comes from the sampled sibling pages of whatever
+repo is in front of the run, never from a reference table in this plugin. A repo's own authoring
+guidance may separately document that a component exists; which shape it is idiomatic for is still
+read off the sibling pages.
 
 **Reviewer severity: MINOR.** A divergence from an established sibling pattern still renders — this is
 a consistency and scannability finding, not a correctness one.

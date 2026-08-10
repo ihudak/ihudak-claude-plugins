@@ -196,7 +196,7 @@ Ask about:
   ```
   Record the answer as `new_images_wanted` (true/false). When `false`, Phase 5.6 skips its **add** list only and still reviews existing images on the edited pages. The downstream `doc-planner` (Phase 5.7) detects the repo's `image_policy` and decides per screenshot whether the writer will copy it locally or stage it for manual upload.
 
-  **Resolve `<screenshot_staging_dir>` (only when `new_images_wanted` is true).** For the `cdn_upload_required` case the staged copies must live somewhere that survives a container restart — `$VAULT_PATH` is always host-mounted, the docs repo (often a docker repo-volume) and `/tmp` are not. Find the ticket's persistent Obsidian project folder:
+  **Resolve `<screenshot_staging_dir>`.** No longer gated on `new_images_wanted`: Phase 5.6 always runs and its existing-image review can need a durable location for a replacement source regardless of this answer, so `<project_dir>` (set below) must be resolved on every run, not only an add-list one. For the `cdn_upload_required` case the staged copies must live somewhere that survives a container restart — `$VAULT_PATH` is always host-mounted, the docs repo (often a docker repo-volume) and `/tmp` are not. Find the ticket's persistent Obsidian project folder:
   ```bash
   find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<JIRA_KEY>*" 2>/dev/null | head -1
   ```
@@ -495,17 +495,17 @@ When both lists are empty, skip presenting this prompt — there is nothing to s
     - **Select a subset** → present the deduped candidates and let the user pick which to keep.
     - **Provide screenshot paths manually only** → ignore the auto-discovered candidates; take free text only.
     - **No images after all** → leave `screenshots[]` empty; the add list contributes nothing further.
-  - **Existing-image list**, if non-empty, walks each occurrence in order — showing `target`, `section`, `gating`, and `old_url` — and asks per item:
+  - **Existing-image list**, if non-empty, walks each occurrence in order — showing `target`, `section`, `gating`, and `old_url` — and asks per item (no default is safe to recommend across arbitrary items, so no `(Recommended)` marker):
     ```
-    choices: ["Replace — I'll provide a new screenshot (staged via Phase 6.1) (Recommended when this feature changed that page's UI)", "Leave as is — still accurate", "Cancel", "Other… (describe)"]
+    choices: ["Replace — I'll provide a new screenshot (staged via Phase 6.1)", "Leave as is — still accurate", "Cancel", "Other… (describe)"]
     ```
     "Replace" appends an `existing_image_decisions[]` entry `{target, occurrence, old_url, new_url, section, gating, decision: accepted}` with `new_url` left pending (Phase 6.1 resolves it) and records the replacement's source (a path from the add list just reviewed, or a new free-text path). "Leave as is" appends the same shape with `decision: declined` and no `new_url`.
 - **Add-list only — existing images are current** → run the add-list sub-flow above (if non-empty); `existing_image_decisions[] = []` — the user's verbatim choice is the record of the (skipped) existing-image review, not a per-item entry.
 - **Nothing to do — no image work this run** → `screenshots[] = []`, `existing_image_decisions[] = []`.
 - **Cancel** → stop and summarise.
 
-**Append the `image_review` ledger row immediately after the user answers this prompt — outside any conditional branch above**, so every path through this phase (including the both-lists-empty case, which skips the prompt) writes exactly one row (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3; registry entry: §4, added by Task 8):
-- `RAN` — the choice was "Review both lists item by item" and at least one of the two lists was non-empty; `findings:` = the count of existing-image occurrences reviewed.
+**Append the `image_review` ledger row once this phase's outcome is settled — by the user's answer to the merged prompt above, or by the both-lists-empty precondition when that prompt itself was skipped — outside any conditional branch above**, so every path through this phase writes exactly one row (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3; registry entry: §4, added by Task 8):
+- `RAN` — the choice was "Review both lists item by item" and at least one of the two lists was non-empty; `mechanism: "per-item user review of the add list and the existing-image list built from extend-existing write targets"`; `findings:` = the count of existing-image occurrences reviewed.
 - `SKIPPED_BY_USER` — the choice was "Add-list only — existing images are current" or "Nothing to do — no image work this run"; `user_decision` quotes the choice verbatim.
 - `NOT_APPLICABLE` — both lists were empty (the prompt above was skipped); `precondition_unmet: "no add-list candidates and no image references on any extend-existing write target"`.
 

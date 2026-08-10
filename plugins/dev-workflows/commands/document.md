@@ -190,13 +190,13 @@ Ask about:
   choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]
   ```
   If "different path", take free-text input (single dir or colon-separated list) and validate that at least one directory exists under it. Record the resolved value as `$REPOS_PATH`. Individual clones are located in Phase 4 by matching their `git remote` against each PR's repo slug — not by assuming a `<base>/<slug>` directory name.
-- **Screenshots** — ask only whether images are wanted; the candidate list itself is built later in **Phase 5.6** (by which point `specs_dir`, the `jira-reader` `attachments[]`, and the resolved repos are all available):
+- **Screenshots** — this question seeds the **add-list** only; it never skips Phase 5.6. The candidate list itself is built later in **Phase 5.6** (by which point `specs_dir`, the `jira-reader` `attachments[]`, and the resolved repos are all available), and Phase 5.6 **always** runs — it also reviews the images already on the pages this run is about to edit, regardless of this answer:
   ```
-  choices: ["Yes — include screenshots (you'll pick the sources in Phase 5.6) (Recommended)", "No screenshots needed", "Cancel", "Other… (describe)"]
+  choices: ["Yes — I have new screenshots to add (you'll pick the sources in Phase 5.6) (Recommended)", "No new screenshots", "Cancel", "Other… (describe)"]
   ```
-  Record the answer as `images_wanted` (true/false). When `false`, Phase 5.6 is skipped and `screenshots[]` stays empty. The downstream `doc-planner` (Phase 5.7) detects the repo's `image_policy` and decides per screenshot whether the writer will copy it locally or stage it for manual upload.
+  Record the answer as `new_images_wanted` (true/false). When `false`, Phase 5.6 skips its **add** list only and still reviews existing images on the edited pages. The downstream `doc-planner` (Phase 5.7) detects the repo's `image_policy` and decides per screenshot whether the writer will copy it locally or stage it for manual upload.
 
-  **Resolve `<screenshot_staging_dir>` (only when `images_wanted` is true).** For the `cdn_upload_required` case the staged copies must live somewhere that survives a container restart — `$VAULT_PATH` is always host-mounted, the docs repo (often a docker repo-volume) and `/tmp` are not. Find the ticket's persistent Obsidian project folder:
+  **Resolve `<screenshot_staging_dir>` (only when `new_images_wanted` is true).** For the `cdn_upload_required` case the staged copies must live somewhere that survives a container restart — `$VAULT_PATH` is always host-mounted, the docs repo (often a docker repo-volume) and `/tmp` are not. Find the ticket's persistent Obsidian project folder:
   ```bash
   find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<JIRA_KEY>*" 2>/dev/null | head -1
   ```
@@ -263,7 +263,7 @@ Present a concise plan:
 - PR filter (MERGED only / all / specific)
 - Parallelism plan (up to 4 `diff-summarizer` instances per batch; up to 4 repos per Agent message)
 - Write context + whether branching will happen
-- Screenshots: `images_wanted` (yes/no, from Phase 1). When yes, the candidate list is gathered and confirmed in Phase 5.6 (specs scan + Jira `attachments[]` + manual paths) — list "candidates resolved in Phase 5.6".
+- Screenshots: `new_images_wanted` (yes/no, from Phase 1). Phase 5.6 always runs: when yes, its add-list candidates are gathered and confirmed there (specs scan + Jira `attachments[]` + manual paths) — list "candidates resolved in Phase 5.6"; either way, Phase 5.6 also reviews the images already on the edited pages for staleness.
 - Target space(s): the resolved `target_spaces` (`[saas]` / `[managed]` / `[saas, managed]`). State whether it came from the `space_constraint` argument (and that the other space's render is left unchanged) or from the Phase 4.5 auto-determination the user confirmed. If Phase 4.5 hasn't run yet (auto-determine, `space_constraint = none`), list "TBD — determined and confirmed in Phase 4.5".
 
 Ask:
@@ -440,11 +440,13 @@ The confirmed target list (from any of the three paths above) is the **authorita
 
 ---
 
-## Phase 5.6 — Image candidates
+## Phase 5.6 — Images
 
-**Skip this phase entirely when `images_wanted` is `false`** (Phase 1) — `screenshots[]` stays empty and Phase 5.7 receives no images.
+**Always runs**, regardless of the Phase 1 `new_images_wanted` answer. Declining new screenshots seeds an empty add list; it never skips reviewing whether the images already on the pages this run is about to edit are still accurate — that was the defect: one Phase 1 answer used to gate both concerns. Build **two** lists.
 
-When `images_wanted` is `true`, build a **merged, deduped candidate list** from four sources (by this point Phase 0's `specs_dir`, the Phase 1 `<project_dir>`, the Phase 3 `jira-reader` `attachments[]`, and the Phase 4 resolved repos are all in hand):
+### Add list (new screenshots)
+
+Build this list only when `new_images_wanted` is `true` (Phase 1); when `false`, the add list is empty and contributes nothing to the merged prompt below — skip straight to the existing-image list. When `true`, build a **merged, deduped candidate list** from four sources (by this point Phase 0's `specs_dir`, the Phase 1 `<project_dir>`, the Phase 3 `jira-reader` `attachments[]`, and the Phase 4 resolved repos are all in hand):
 
 1. **Recursive scan of `<specs_dir>`** — when Phase 0 resolved a `specs_dir` (not `none`), recursively scan it for image files across the spec root, `epics/`, and `spec/`:
    ```bash
@@ -461,22 +463,57 @@ When `images_wanted` is `true`, build a **merged, deduped candidate list** from 
    This surfaces images you keep in the project folder (custom diagrams, curated screenshots). When `<project_dir>` is null, this source contributes nothing.
 4. **Manual paths** — the user-provided "I'll provide screenshot paths" option (free text, see the `choices` below).
 
-**Dedupe** by resolved absolute path (collapse mixed separators / trailing-slash differences); when the same image appears in more than one source, keep one entry and note its origins. Present the deduped candidates, then ask:
+**Dedupe** by resolved absolute path (collapse mixed separators / trailing-slash differences); when the same image appears in more than one source, keep one entry and note its origins.
+
+### Existing-image list (staleness review)
+
+**Always build this list** — it does not depend on `new_images_wanted`. The orchestrator owns it (`doc-planner` runs later, at Phase 5.7, and never supplies or reads this list). For every `extend-existing` write target in Phase 5.5's confirmed `write_targets`, read the target file and record **every image reference in document order** — one row per occurrence, not per unique URL: the same URL can recur under different space gating, and each occurrence is decided separately (a `saas`-gated and a `managed`-gated block can carry the same stale URL, and only one of them may need the fix). For each occurrence record:
+- `target` — the write target's path.
+- `occurrence` — the 1-based index of this image reference within the whole target, counted in document order across **all** image references in the file — never filtered by `old_url`, never scoped to a section.
+- `old_url` — the image reference's current URL/path.
+- `section` — the nearest enclosing heading.
+- `gating` — the enclosing `{{#if project='…'}}` conditional, or `none`.
+
+A target with no image references contributes nothing.
+
+### Merged prompt
+
+Present both lists — "Found `<N>` add-list candidate(s) (`<count>` from specs scan, `<count>` from Jira attachments, `<count>` from the project folder)" and "Found `<M>` existing image(s) across `<K>` edited page(s) to review for staleness" — then ask:
 ```
-"Found <N> candidate image(s): <count> from specs scan, <count> from Jira attachments, <count> from the project folder. How would you like to source screenshots?"
-choices: ["Use all auto-discovered + add manual paths (Recommended)", "Use all auto-discovered only", "Select a subset (you'll pick per candidate)", "Provide screenshot paths manually only (you'll be prompted)", "No images after all", "Other… (describe)"]
+choices: ["Review both lists item by item (Recommended)", "Add-list only — existing images are current", "Nothing to do — no image work this run", "Cancel", "Other… (describe)"]
 ```
-- **Use all auto-discovered + add manual** → take every deduped candidate, then prompt for additional free-text absolute paths to append.
-- **Use all auto-discovered only** → take every deduped candidate; no manual prompt.
-- **Select a subset** → present the deduped candidates and let the user pick which to keep.
-- **Provide screenshot paths manually only** → ignore the auto-discovered candidates; take free text only.
-- **No images after all** → set `images_wanted = false` semantics for this run; leave `screenshots[]` empty and skip the rest of this phase.
+When both lists are empty, skip presenting this prompt — there is nothing to show — and set `screenshots[] = []`, `existing_image_decisions[] = []` directly.
+
+- **Review both lists item by item**:
+  - **Add list**, if non-empty, asks:
+    ```
+    "Found <N> candidate image(s): <count> from specs scan, <count> from Jira attachments, <count> from the project folder. How would you like to source screenshots?"
+    choices: ["Use all auto-discovered + add manual paths (Recommended)", "Use all auto-discovered only", "Select a subset (you'll pick per candidate)", "Provide screenshot paths manually only (you'll be prompted)", "No images after all", "Other… (describe)"]
+    ```
+    - **Use all auto-discovered + add manual** → take every deduped candidate, then prompt for additional free-text absolute paths to append.
+    - **Use all auto-discovered only** → take every deduped candidate; no manual prompt.
+    - **Select a subset** → present the deduped candidates and let the user pick which to keep.
+    - **Provide screenshot paths manually only** → ignore the auto-discovered candidates; take free text only.
+    - **No images after all** → leave `screenshots[]` empty; the add list contributes nothing further.
+  - **Existing-image list**, if non-empty, walks each occurrence in order — showing `target`, `section`, `gating`, and `old_url` — and asks per item:
+    ```
+    choices: ["Replace — I'll provide a new screenshot (staged via Phase 6.1) (Recommended when this feature changed that page's UI)", "Leave as is — still accurate", "Cancel", "Other… (describe)"]
+    ```
+    "Replace" appends an `existing_image_decisions[]` entry `{target, occurrence, old_url, new_url, section, gating, decision: accepted}` with `new_url` left pending (Phase 6.1 resolves it) and records the replacement's source (a path from the add list just reviewed, or a new free-text path). "Leave as is" appends the same shape with `decision: declined` and no `new_url`.
+- **Add-list only — existing images are current** → run the add-list sub-flow above (if non-empty); `existing_image_decisions[] = []` — the user's verbatim choice is the record of the (skipped) existing-image review, not a per-item entry.
+- **Nothing to do — no image work this run** → `screenshots[] = []`, `existing_image_decisions[] = []`.
+- **Cancel** → stop and summarise.
+
+**Append the `image_review` ledger row immediately after the user answers this prompt — outside any conditional branch above**, so every path through this phase (including the both-lists-empty case, which skips the prompt) writes exactly one row (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3; registry entry: §4, added by Task 8):
+- `RAN` — the choice was "Review both lists item by item" and at least one of the two lists was non-empty; `findings:` = the count of existing-image occurrences reviewed.
+- `SKIPPED_BY_USER` — the choice was "Add-list only — existing images are current" or "Nothing to do — no image work this run"; `user_decision` quotes the choice verbatim.
+- `NOT_APPLICABLE` — both lists were empty (the prompt above was skipped); `precondition_unmet: "no add-list candidates and no image references on any extend-existing write target"`.
 
 For any **manual** free-text paths, accept any absolute filesystem path (vault, `/tmp`, home, the docs repo); accept multiple (one per line or space-separated). Validate each path exists and has an image extension (`.png|.jpg|.jpeg|.gif|.svg|.webp`); drop and report any that don't.
 
-When you need to **add a new image** for this feature (a screenshot the docs should have but no source yet holds), place it in the **Projects VI-dir** — `<project_dir>` (i.e. `$VAULT_PATH/Projects/<VI-dir>/…`, e.g. its `Doc screenshots/` subfolder). **Never** put it under `jira-products/`: that directory is regenerated on every Jira import, so a manually-added image there is lost on the next import. `jira-products` is a read-only source (developer-attached Jira screenshots, via source 2); authored/curated images belong in the Projects folder.
+When you need to **add a new image** for this feature (a screenshot the docs should have but no source yet holds — including a replacement source for an accepted existing-image entry), place it in the **Projects VI-dir** — `<project_dir>` (i.e. `$VAULT_PATH/Projects/<VI-dir>/…`, e.g. its `Doc screenshots/` subfolder). **Never** put it under `jira-products/`: that directory is regenerated on every Jira import, so a manually-added image there is lost on the next import. `jira-products` is a read-only source (developer-attached Jira screenshots, via source 2); authored/curated images belong in the Projects folder.
 
-The selected paths populate the existing **`screenshots[]`** passed to `doc-planner` in Phase 5.7 — the downstream placement machinery (per-screenshot `dest`/`staging`/`upload_note`, `image_policy`) is unchanged.
+The selected add-list paths populate the existing **`screenshots[]`** passed to `doc-planner` in Phase 5.7 — the downstream placement machinery (per-screenshot `dest`/`staging`/`upload_note`, `image_policy`) is unchanged. An accepted item — from either list — carries into Phase 6.1 for its CDN URL. The outcome is recorded as `existing_image_decisions[]` (schema above; matches `doc-writer`'s input contract) and carried in the Phase 6.3 handoff file alongside `cdn_urls`.
 
 ---
 
@@ -645,23 +682,25 @@ phase only confirms the per-page **strategy choice** before Phase 6.3 writes.
 
 ## Phase 6.1 — CDN image handoff
 
-Run this phase only when, in the Phase 5.7 `doc-planner` return, **any** screenshot has `image_policy: cdn_upload_required` — **or** the user picked "Stage for manual upload" under an `ambiguous` target in Phase 6.3. (When the only image policy in play is `local`, skip this phase: local images are copied into the repo at Phase 6.3 with no handoff needed.)
+Run this phase when, in the Phase 5.7 `doc-planner` return, **any** screenshot has `image_policy: cdn_upload_required` — **or** the user picked "Stage for manual upload" under an `ambiguous` target in Phase 6.3 — **or** any Phase 5.6 `existing_image_decisions[]` entry has `decision: accepted`. (When the only image policy in play is `local` and there is no accepted existing-image replacement, skip this phase: local images are copied into the repo at Phase 6.3 with no handoff needed.)
 
 1. **List each affected image** so the decision is informed — one row per image:
-   - target page / anchor it belongs on (from the planner's per-screenshot placement);
+   - target page / anchor it belongs on (from the planner's per-screenshot placement, or — for an existing-image replacement — the `target` / `section` / `gating` recorded in Phase 5.6);
    - proposed alt text;
    - the planner's `upload_note`.
+
+   An item sourced from the existing-image list (Phase 5.6) is a **replacement**, not a new insertion: the writer swaps that occurrence's URL rather than inserting a new reference, and because a CDN URL is immutable, the collected `new_url` is always a different URL from `old_url`. A swap has no deferred/TODO form — `doc-writer` only ever writes a real replacement URL for an `existing_image_decisions` entry — so even when the batch choice below is "Defer", still collect each accepted existing-image entry's `new_url` individually (record it as that entry's `new_url`, not in `cdn_urls`) before Phase 6.3; only the remaining, non-swap screenshots follow the Defer path.
 
 2. **Ask how to handle the upload:**
    ```
    choices: ["Upload now — I'll paste the CDN links (Recommended)", "Defer — stage with TODO placeholders + Phase 9 list", "Cancel", "Other… (describe)"]
    ```
 
-   - **Upload now** → collect one CDN URL per image (prompt per image, or one URL per line in image order). Validate each pasted value looks like a URL (e.g. starts with `http://` / `https://`); re-prompt for any that don't. Record `cdn_urls[<image>]`. Phase 6.3 then writes the **real CDN URL** into each markdown image reference instead of a TODO placeholder. Nothing is staged and the Phase 9 "Screenshots to upload manually" section stays empty for these images.
-   - **Defer** → the existing async behavior: stage each image under `<screenshot_staging_dir>` (the ticket's persistent Obsidian project folder resolved in Phase 1), Phase 6.3 inserts the `TODO-upload` placeholder reference, and every staged image is listed in the Phase 9 `### Screenshots to upload manually` section.
+   - **Upload now** → collect one CDN URL per image (prompt per image, or one URL per line in image order). Validate each pasted value looks like a URL (e.g. starts with `http://` / `https://`); re-prompt for any that don't. Record `cdn_urls[<image>]` for a regular screenshot, or the entry's `new_url` for an existing-image replacement. Phase 6.3 then writes the **real CDN URL** into each markdown image reference instead of a TODO placeholder — for an existing-image replacement, it swaps that occurrence in place. Nothing is staged and the Phase 9 "Screenshots to upload manually" section stays empty for these images.
+   - **Defer** → the existing async behavior for regular screenshots: stage each image under `<screenshot_staging_dir>` (the ticket's persistent Obsidian project folder resolved in Phase 1), Phase 6.3 inserts the `TODO-upload` placeholder reference, and every staged image is listed in the Phase 9 `### Screenshots to upload manually` section. Existing-image replacements are exempt from this path (see above) — their `new_url` is still collected now.
    - **Cancel** → stop and summarise.
 
-   Record the decision as `cdn_handoff_decision ∈ {upload-now, defer}` and carry it (with any `cdn_urls`) into Phase 6.3.
+   Record the decision as `cdn_handoff_decision ∈ {upload-now, defer}` and carry it (with any `cdn_urls` and the updated `existing_image_decisions[]`) into Phase 6.3.
 
 ---
 
@@ -699,7 +738,7 @@ No external CLI calls; all git operations are local.
 
 The writing is delegated to the **`doc-writer`** subagent (pinned to the §2 Opus reasoning chain — see `classification.md` §9.2). The orchestrator prepares a structured handoff and dispatches; it does not write pages itself.
 
-1. **Write the handoff file.** Create a temp file (`mktemp`, e.g. `$(mktemp -t dw-<JIRA_KEY>-XXXX.yml)` — never the vault, never the docs repo) containing the `doc-writer` input contract: `jira_reader_handoff`, `diff_summaries`, `write_targets`, `doc_planner_checklist` (+ gap dispositions), `repo_authoring_guidance` (the planner's extracted repo-specific rules), `discrepancy_decisions` (Phase 5.8), `write_strategies` (Phase 5.9), `cdn_handoff_decision` + `cdn_urls` + `screenshot_staging_dir` + `screenshots` (Phase 6.1), `target_spaces`, `profile`, `docs_repo_path`, `counterpart_references` (Phase 5.6.5), and `bug_report_destination`. Record its absolute path.
+1. **Write the handoff file.** Create a temp file (`mktemp`, e.g. `$(mktemp -t dw-<JIRA_KEY>-XXXX.yml)` — never the vault, never the docs repo) containing the `doc-writer` input contract: `jira_reader_handoff`, `diff_summaries`, `write_targets`, `doc_planner_checklist` (+ gap dispositions), `repo_authoring_guidance` (the planner's extracted repo-specific rules), `discrepancy_decisions` (Phase 5.8), `write_strategies` (Phase 5.9), `cdn_handoff_decision` + `cdn_urls` + `screenshot_staging_dir` + `screenshots` + `existing_image_decisions` (Phase 5.6 / 6.1), `target_spaces`, `profile`, `docs_repo_path`, `counterpart_references` (Phase 5.6.5), and `bug_report_destination`. Record its absolute path.
 
 2. **Dispatch the writer:**
 

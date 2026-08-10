@@ -914,6 +914,7 @@ Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `revi
   > render_verification: [the Phase 6.5 summary — build result; smoke-check per space (passed / skipped with reason); cross-space invariant check result]
   > code_repos:         [the Phase-4 resolved {slug, path} map; [] if none resolved]
   > counterpart_references: [the confirmed counterpart_references from Phase 5.6.5; [] when none — supplies the screenshots_seen provenance and the grounded counterpart space for the 'Cross-space grounding integrity' dimension]
+  > existing_image_decisions: [the Phase 5.6/6.1 stale-image-swap array, each {target, occurrence, old_url, new_url, section, gating, decision}; [] when no existing-image review occurred — supplies the swap-completeness evidence for the 'Screenshots' dimension]
   > profile:            [the resolved docs-profile from Phase 0 — supplies frontmatter.changelog_guidelines and spaces[]]
   > target_spaces:      [the resolved target_spaces from Phase 4.5]"
 

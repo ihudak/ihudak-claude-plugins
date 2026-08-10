@@ -189,7 +189,7 @@ Write the feature folder: `<KEY>_<slug>.md` + the relocated `idea.md`. Then **of
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git", "Cancel"]
 ```
 
-On the first choice, in the specs repo (`$SPECS_PATH`): create branch `vi/<KEY>-<slug>`; commit **only** the feature folder (never `git add -A`); push; open a PR targeting `main`. Commit trailer: `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`.
+On the first choice, in the specs repo (`$SPECS_PATH`): create branch `vi/<KEY>-<slug>`; commit **only** the feature folder (never `git add -A`); push; open a PR targeting `main`. Commit trailer: `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
 
 ### Jira round-trip (document to the user — they will otherwise miss it)
 

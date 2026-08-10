@@ -128,7 +128,7 @@ On `BLOCK`, fix the BLOCKER findings inline (the orchestrator/grill edits the AR
 ---
 
 ## Phase 6 — Handoff
-Write the ARD file(s) into the feature folder. Then **offer** (commit-when-asked — never automatic): `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git", "Cancel"]`. Branch `ard/<VI>-<vslug>` (VI-level) or `ard/<EPIC>-<eslug>` (Epic-level); commit ONLY the feature folder (never `git add -A`); push; open a PR targeting `main`. Commit trailer: `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`.
+Write the ARD file(s) into the feature folder. Then **offer** (commit-when-asked — never automatic): `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git", "Cancel"]`. Branch `ard/<VI>-<vslug>` (VI-level) or `ard/<EPIC>-<eslug>` (Epic-level); commit ONLY the feature folder (never `git add -A`); push; open a PR targeting `main`. Commit trailer: `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
 
 ---
 

@@ -2256,7 +2256,7 @@ scope, minus `/api-guideline-reviewer`, `/guideline-reviewer`, `/statusline`,
 | V8 | `git add -A` **as an invocation** in `specs-repo-git.md` not followed by ` -- ` on the same line | 0 |
 | V9 | `--force` / `push -f` / `branch -D` **as an invocation** in `specs-repo-git.md` | 0 |
 | V10 | `resume.md` written after the cost phase (copilot: after the feedback/follow-up phase) | 10 of the 10 commands that write it |
-| V11 | `dev-workflows-cost` anywhere in the copilot edition | 0 |
+| V11 | `dev-workflows-cost` as a **staged path shape** in the copilot edition | 0. **A bare `grep -c` is the wrong check** — `specs-repo-git.md` §2.1 deliberately carries one *negation* sentence ("this edition has **no cost subsystem** — there is no `cost-emission.md`, no `emit-cost`, and no `dev-workflows-cost/` path shape"), which is the clearest way to stop a future porter from reintroducing it. Verify instead that the §2.1 fenced path block lists exactly **two** shapes, and that every other occurrence of `dev-workflows-cost` / `emit-cost` in the edition is inside a negation |
 | V12 | mgd diff against canonical | exactly the 5 identity files |
 | V13 | CHANGELOG ordering monotonic in all three | canonical/mgd 2.45.0 → 2.44.1 → …; copilot 2.15.0 → 2.14.1 → … |
 

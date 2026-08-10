@@ -45,6 +45,8 @@ For each write target:
 
    Not every target needs every topic. For `extend-existing`, pick only the topics the existing page doesn't already cover.
 
+   When a topic's content presents mutually exclusive options (alternative setup paths, alternative configurations, and similarly-shaped either/or content), plan its callout placement per `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §2: each option's callout is planned adjacent to that option, never as a trailing block after the whole set; a callout that applies to the whole set is planned into the lead-in, before the options. Record the placement in the topic's `notes`. Do not restate §2's rules here — cite it.
+
 2. **Map topics to sources.** Each topic records which `jira-reader` keys and/or which `diff-summarizer` PR URLs back it up, for the Phase 6.3 writer's traceability requirement. A topic with no source attribution is a candidate gap (see step 7).
 
 3. **Plan frontmatter updates** (field rules: `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/frontmatter-guidelines.md`; changelog + owners keep their own references).
@@ -65,7 +67,9 @@ For each write target:
    - `reuse` — list relative snippet paths that cover a topic the target page would otherwise inline.
    - `extract` — when the writer will produce reusable content (e.g. a config-option table that applies to multiple pages), propose extracting into a new snippet. Record the proposed snippet path and a 1-line description of the content.
 
-5. **Detect the repo's image policy.** Sample 5–10 sibling markdown pages under the target's folder and up to 3 ancestor folders. Count each image reference and classify:
+5. **Detect the repo's image policy and component patterns.** Sample 5–10 sibling markdown pages under the target's folder and up to 3 ancestor folders — this same sample serves both jobs below; do not run a second, independent scan for the second job.
+
+   **a. Image policy.** Count each image reference and classify:
    - **`local`** — relative path resolving inside the repo (e.g. `./img/foo.png`, `../images/bar.jpg`, `<page-dir>/img/...`); a matching file exists on disk.
    - **`cdn`** — absolute URL to an external host (e.g. `https://cdn.example.com/images/...`); no local file exists.
    - **`wikilink`** — `![[name.png]]` Obsidian-style (unlikely in a docs repo but possible).
@@ -76,6 +80,8 @@ For each write target:
    - Mixed or zero references → `image_policy: ambiguous` — the writer asks the user at Phase 6.3 which approach to use for this specific feature.
 
    Concrete threshold for "negligible": treat counts ≤ 1 (in a sample of 5–10) as negligible unless they align with the dominant pattern.
+
+   **b. Component patterns.** Give the same sample a second job: for each recurring content shape it shows (mutually exclusive options, collapsible detail, tabular reference, and any other shape the sample shows), note which content component the surrounding area uses for it, per `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §3. `shape` is an open vocabulary — name what you observe in the sample; do not restate §3's rules here — cite it. Emit one `component_patterns` entry per observed shape (`shape`, `component`, one `evidence` file:line citation, `count`). When the sample shows no established pattern, emit `component_patterns: []`.
 
 6. **Plan screenshot placement per target.** For each user-provided screenshot that belongs on this target:
    - `image_policy: local` → set `dest` to an absolute path under `<page-dir>/img/` (or the detected idiomatic directory).
@@ -133,6 +139,11 @@ repo_verification_gates:        # the repo's own pre-PR checks that are checkabl
   - check:  <one checkable requirement, phrased as a testable assertion>
     source: <file + section, e.g. "CONTRIBUTING.md § PR checklist → Advanced check (InfoDevs)">
     kind:   frontmatter | content | structure | terminology | validation
+component_patterns:              # recurring content shapes observed in the step-5 sibling sample; [] when the sample shows no established pattern — see ${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md §3
+  - shape:     <open vocabulary named from observation, e.g. mutually-exclusive-options, collapsible-detail, tabular-reference>
+    component: <the sibling pages' component syntax for this shape>
+    evidence:  <file:line of one observed instance>
+    count:     <number of sibling instances observed>
 checklist:
   - target_path: <absolute path>
     kind:        extend-existing | new-page-in-existing-section | new-section
@@ -196,6 +207,8 @@ verification_warnings:        # source-truth findings; resolved by the orchestra
 - NEVER propose `dest` inside the repo when `image_policy == cdn_upload_required`, even as a fallback — the whole point of that policy is that local image files would break the repo's image-management invariant.
 - NEVER strip unknown YAML frontmatter fields from the `other` updates. If the target page has fields you don't recognise, leave them alone.
 - NEVER fabricate sources. Every `topics[].sources` entry must correspond to a Jira key in the `jira_reader_handoff` or a PR URL in `diff_summaries`.
+- NEVER fabricate a `component_patterns` entry — `evidence` must cite a real file:line observed in the step-5 sample. NEVER add a second, independent scan for component patterns; it is the step-5 sibling sample's second job, not a new one.
+- NEVER collect or emit existing-image data — this agent does not build the stale-image list. It runs at Phase 5.7, after the Phase 5.6 image step that must already present it; the orchestrator owns that list (`existing_image_decisions[]`).
 - NEVER decide a topic is "done" without naming at least one source. If a topic has no source, it is a gap.
 - If `repo_root` looks wrong (no markdown files, no frontmatter conventions, no `_snippets/` sibling of candidate target directories), note it in `gaps` with `recommended_action: "ask user"`.
 - NEVER propose an automation-generated path as a `target_path`: a page whose frontmatter carries `meta.content-type: release-notes`, anything under `_data/release-notes/…`, and anything under `_snippets/release-notes/…`. Those pages are generated from Jira by the docs team's automation and a manual write would be overwritten; release notes are produced by the `/release-notes` command. **A page declared in `profile.announcement_pages` is exempt** — announcement pages are hand-authored and nothing generates them.

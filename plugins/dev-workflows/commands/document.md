@@ -980,14 +980,14 @@ Then spawn all four Phase 4-style maintenance agents in a **single Agent message
 >
 > Check ~/.claude/memory/ (global) and .claude/memory/ (project-level, preferred for repo-specific knowledge) for existing knowledge files.
 > Determine if a new knowledge entry is warranted — look for: reusable insights about this docs repo's conventions, non-obvious style rules uncovered, Vale / lint interactions, snippet patterns, image-policy discoveries.
-> If YES: append to the most appropriate existing file (never create a new file if an existing one fits) using this format:
+> If YES: identify the most appropriate existing file (never propose a new file if an existing one fits) and return a proposed edit — write nothing. The entry format:
 > ### [Short title]
 > - **Context**: what problem/situation triggered this
 > - **Insight**: the learned rule, pattern, or gotcha
 > - **When it applies**: conditions under which this matters
 > - **Date**: YYYY-MM-DD
 > - **Ref**: [first 60 chars of the Jira key + feature summary]
-> Return: file updated/created and summary of entry, OR 'no update required'."
+> Return: `{file, anchor, replacement, reason}` — `anchor` is the exact existing text to change, or the section to append to; `replacement` is the entry above in full; `reason` is why it's warranted — OR 'no update required'."
 
 **Agent 3 — Instructions** (general-purpose, model: `<detection_model — §9 / §2.1 Sonnet chain>`):
 > "Post-write instructions review. Change summary:
@@ -996,8 +996,8 @@ Then spawn all four Phase 4-style maintenance agents in a **single Agent message
 > Check CLAUDE.md in the project root and ~/.claude/CLAUDE.md (global).
 > Determine if any doc-writing rules, guidance, or guardrails are missing because of what this run revealed (e.g., a repo-specific frontmatter field that must always be present, a cross-link pattern that's easy to miss, an image-policy rule that caught you out).
 > Skip if: the run followed existing conventions with no surprises. Only update if a concrete, recurring rule would have prevented a decision point or misunderstanding.
-> If YES: apply minimal, additive, scoped changes only — do not rewrite sections wholesale.
-> Return: what was changed and why, OR 'no update required'."
+> If YES: keep it minimal, additive, and scoped — do not propose rewriting sections wholesale — and return a proposed edit — write nothing.
+> Return: `{file, anchor, replacement, reason}` — `anchor` is the exact existing text to change, or the section to append to; `replacement` is the proposed new/changed text; `reason` is what this run revealed that warrants it — OR 'no update required'."
 
 **Agent 4 — Session maintenance** (dev-workflows:impl-maintenance, model: `<detection_model — §9 / §2.1 Sonnet chain>`):
 > "Analyse this session and return a Lessons Learned report.
@@ -1039,7 +1039,7 @@ Run this phase only when Phase 6.3 wrote + committed in a git repo (write contex
 ### Step 1 — Squash (always)
 
 Fold the run into clean history before handoff:
-1. Stage the run's uncommitted docs-repo edits — Phase 8 Agent 1 (doc index / cross-links) and Agent 3 (`CLAUDE.md`) may have edited without committing; the Phase 6.2 clean-tree check means everything uncommitted is this run's work.
+1. Stage the run's uncommitted docs-repo edits — Phase 8 Agent 1 (doc index / cross-links) may have edited without committing; the Phase 6.2 clean-tree check means everything uncommitted is this run's work.
 2. Compute the squash base: if Phase 6.2 recorded `profile_commit` (inline-profiling run), base = `profile_commit` (keeps the profile-config commit as a distinct first commit → two commits); otherwise base = `git merge-base <base_branch> HEAD` (one commit).
 3. `git add` the docs-repo changes → `git reset --soft <squash-base>` → one `git commit`. The message follows `profile.commit_convention` when present (dynatrace-docs: `<JIRA-KEY> <summary>`); for a repo with no such field, infer from recent `git log` / `CONTRIBUTING`, else fall back to `<JIRA_KEY> <summary>`. NEVER put the Jira key in a reader-visible changelog — see `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1.
 
@@ -1061,6 +1061,40 @@ Per `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md` §4–§5:
 4. **Host footer**: Bitbucket → "open a PR in the web UI and paste the title + body"; GitHub → additionally offer `gh pr create --title "<title>" --body-file <pr-draft path>` that the user may run; other → "open a PR and paste the title + body". The plugin never opens the PR itself.
 
 Carry the squash result, push outcome, and PR-draft path into the Phase 9 report.
+
+---
+
+## Phase 8.6 — Maintenance proposals
+
+Runs **after** Phase 8.5's squash — never before. The ordering is the whole safety property: by the time this phase runs, the docs commit is already sealed, so an accepted `CLAUDE.md` (or knowledge-base) edit has no commit left to ride.
+
+Skip this phase with no prompt when both Phase 8 Agent 2 and Agent 3 returned `'no update required'`.
+
+Otherwise present one row per proposal:
+
+| File | Rule / entry | Reason |
+|---|---|---|
+[one row per Agent 2 / Agent 3 proposal — `file`, the rule or knowledge entry in one line, `reason`]
+
+```
+choices: ["Skip — report only (Recommended)", "Apply all", "Choose per proposal", "Cancel"]
+```
+
+- **Skip — report only** — apply nothing; every proposal's disposition is `proposed` for the Phase 9 report.
+- **Apply all** — apply every proposal via the mechanism below; every proposal's disposition is `applied-uncommitted`.
+- **Choose per proposal** — ask accept/decline for each proposal; apply the accepted ones (`applied-uncommitted`), leave the rest `declined`.
+- **Cancel** — apply nothing; every proposal's disposition is `proposed`.
+
+**Apply mechanism.** For each accepted proposal, re-dispatch the agent that produced it — Agent 2 or Agent 3, same general-purpose agent and model as Phase 8, no new agent type — in apply mode, carrying its own proposal back verbatim:
+
+> "Apply this proposed edit exactly as returned — do not re-derive it:
+> `{file, anchor, replacement, reason}`: [paste the proposal]
+>
+> Locate `anchor` in `file` and write `replacement` in its place (or append it, if the proposal is an append). Return: file written, OR a mismatch note if `anchor` no longer matches the file's current content — do NOT guess at the intended location; skip and report the mismatch."
+
+Applied edits are left **uncommitted** — deliberately. Do NOT stage, commit, or re-run Phase 8.5 for these files: in a repo where a `CLAUDE.md` change triggers a review of its own, long enough to delay the documentation it would otherwise ride with, that change needs its own PR on the user's timing. A later `/document` run's Phase 6.2 clean-tree check will trip on these uncommitted files until the user commits or discards them — that is intended, not a bug to fix.
+
+Carry each proposal's `{file, reason, disposition}` into the Phase 9 report.
 
 ---
 
@@ -1119,10 +1153,13 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 - [file updated] — [what was added/changed] OR "no update required (reason)"
 
 ### Knowledge base (Agent 2)
-- [file updated/created] — [summary of entry] OR "no update required"
+- [file, rule/entry summary, reason] — disposition: [proposed | applied-uncommitted | declined] OR "no update required"
 
 ### Instructions (Agent 3)
-- [summary of change] OR "no update required"
+- [file, rule/entry summary, reason] — disposition: [proposed | applied-uncommitted | declined] OR "no update required"
+
+### Maintenance applied (uncommitted)
+[Every Phase 8.6 proposal with disposition `applied-uncommitted` — file, one-line summary, reason — one per line. These edits are deliberately excluded from the Phase 8.5 docs commit: a repo-governance file like `CLAUDE.md` needs its own PR on the user's timing, not a ride on this run's docs commit. Run `git status` in the docs repo to review before committing them separately. OR "none".]
 
 ### Session learnings (Agent 4)
 - [top suggestions from impl-maintenance agent, or "no suggestions — routine session"]
@@ -1137,7 +1174,7 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 [Gaps the planner flagged with recommended_action: "skip with note in final report" — one line each; or "none"]
 
 ### Deferred items
-[MINOR / NIT findings that were not applied, OR user-declined screenshots, OR doc-reviewer BLOCK findings that were overridden / deferred — one line each; or "none"]
+[MINOR / NIT findings that were not applied, OR user-declined screenshots, OR doc-reviewer BLOCK findings that were overridden / deferred, OR an accepted existing-image swap `doc-writer` skipped because the file's occurrence no longer matched `old_url` (its `notes` return — the position went stale between Phase 5.6 and Phase 6.3) — one line each; or "none"]
 
 ### Assumptions & limitations
 - [list any]
@@ -1439,14 +1476,14 @@ Then spawn all four Phase 4 agents. They are independent and can run in any orde
 >
 > Check ~/.claude/memory/ (global) and .claude/memory/ (project-level, preferred for repo-specific knowledge) for existing knowledge files.
 > Determine if a new knowledge entry is warranted — look for: reusable insights about this repo's doc conventions, non-obvious style rules uncovered, tooling gotchas (Vale rule interactions, snippet conventions).
-> If YES: append to the most appropriate existing file (never create a new file if an existing one fits) using this format:
+> If YES: identify the most appropriate existing file (never propose a new file if an existing one fits) and return a proposed edit — write nothing. The entry format:
 > ### [Short title]
 > - **Context**: what problem/situation triggered this
 > - **Insight**: the learned rule, pattern, or gotcha
 > - **When it applies**: conditions under which this matters
 > - **Date**: YYYY-MM-DD
 > - **Ref**: [first 60 chars of the doc-edit description]
-> Return: file updated/created and summary of entry, OR 'no update required'."
+> Return: `{file, anchor, replacement, reason}` — `anchor` is the exact existing text to change, or the section to append to; `replacement` is the entry above in full; `reason` is why it's warranted — OR 'no update required'."
 
 **Agent 3 — Instructions** (general-purpose):
 > "Post-doc-edit instructions review. Change summary:
@@ -1455,8 +1492,8 @@ Then spawn all four Phase 4 agents. They are independent and can run in any orde
 > Check CLAUDE.md in the project root and ~/.claude/CLAUDE.md (global).
 > Determine if any doc-editing rules, guidance, or guardrails are missing because of what this edit revealed (e.g., a repo-specific frontmatter field that must always be present, a cross-link pattern that's easy to miss, a style rule that caught you out).
 > Skip if: the edit followed existing conventions with no surprises. Only update if a concrete, recurring rule would have prevented a decision point or misunderstanding during this edit.
-> If YES: apply minimal, additive, scoped changes only — do not rewrite sections wholesale.
-> Return: what was changed and why, OR 'no update required'."
+> If YES: keep it minimal, additive, and scoped — do not propose rewriting sections wholesale — and return a proposed edit — write nothing.
+> Return: `{file, anchor, replacement, reason}` — `anchor` is the exact existing text to change, or the section to append to; `replacement` is the proposed new/changed text; `reason` is what this edit revealed that warrants it — OR 'no update required'."
 
 **Agent 4 — Session maintenance** (dev-workflows:impl-maintenance):
 > "Analyse this session and return a Lessons Learned report.
@@ -1491,6 +1528,40 @@ NEVER writes into the docs repo or the current working directory.
 
 ---
 
+## Phase 4.5 — Maintenance proposals
+
+Direct mode never commits — Phase 3 explicitly creates no branch and no commit — so the ordering constraint that gates Jira mode's Phase 8.6 is already satisfied here: there is no commit for an accepted proposal to ride. This phase exists only so an accepted proposal still gets applied instead of just reported, the same as Jira mode's Phase 8.6.
+
+Skip this phase with no prompt when both Phase 4 Agent 2 and Agent 3 returned `'no update required'`.
+
+Otherwise present one row per proposal:
+
+| File | Rule / entry | Reason |
+|---|---|---|
+[one row per Agent 2 / Agent 3 proposal — `file`, the rule or knowledge entry in one line, `reason`]
+
+```
+choices: ["Skip — report only (Recommended)", "Apply all", "Choose per proposal", "Cancel"]
+```
+
+- **Skip — report only** — apply nothing; every proposal's disposition is `proposed` for the Phase 5 report.
+- **Apply all** — apply every proposal via the mechanism below; every proposal's disposition is `applied-uncommitted`.
+- **Choose per proposal** — ask accept/decline for each proposal; apply the accepted ones (`applied-uncommitted`), leave the rest `declined`.
+- **Cancel** — apply nothing; every proposal's disposition is `proposed`.
+
+**Apply mechanism.** For each accepted proposal, re-dispatch the agent that produced it — Agent 2 or Agent 3, same general-purpose agent as Phase 4, no new agent type — in apply mode, carrying its own proposal back verbatim:
+
+> "Apply this proposed edit exactly as returned — do not re-derive it:
+> `{file, anchor, replacement, reason}`: [paste the proposal]
+>
+> Locate `anchor` in `file` and write `replacement` in its place (or append it, if the proposal is an append). Return: file written, OR a mismatch note if `anchor` no longer matches the file's current content — do NOT guess at the intended location; skip and report the mismatch."
+
+The edit lands on disk, uncommitted, alongside the rest of this run's changes — direct mode leaves the whole working tree for the user to review and commit manually.
+
+Carry each proposal's `{file, reason, disposition}` into the Phase 5 report.
+
+---
+
 ## Phase 5 — Final Report
 
 Output a structured report — do NOT ask any closing confirmation:
@@ -1515,10 +1586,13 @@ Output a structured report — do NOT ask any closing confirmation:
 - [file updated] — [what was added/changed] OR "no update required (reason)"
 
 ### Knowledge base (Agent 2)
-- [file updated/created] — [summary of entry] OR "no update required"
+- [file, rule/entry summary, reason] — disposition: [proposed | applied-uncommitted | declined] OR "no update required"
 
 ### Instructions (Agent 3)
-- [summary of change] OR "no update required"
+- [file, rule/entry summary, reason] — disposition: [proposed | applied-uncommitted | declined] OR "no update required"
+
+### Maintenance applied (uncommitted)
+[Every Phase 4.5 proposal with disposition `applied-uncommitted` — file, one-line summary, reason — one per line. Direct mode never commits, so these edits already sit in the same uncommitted working tree as the rest of this run's changes; listed separately so an accepted `CLAUDE.md` / knowledge-base edit doesn't get lost among the doc edits when you review before committing. OR "none".]
 
 ### Session learnings (Agent 4)
 - [top suggestions from impl-maintenance agent, or "no suggestions — routine session"]

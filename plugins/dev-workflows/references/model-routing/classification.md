@@ -168,8 +168,8 @@ model_routing:
   current_model: <e.g. claude-opus-5>        # the model the orchestrator is running
   planning_model: <e.g. claude-opus-5>       # only set for SIGNIFICANT/HIGH-RISK
   review_model:   <e.g. claude-opus-5>       # only set for SIGNIFICANT/HIGH-RISK
-  implementation_model: <e.g. claude-sonnet-4-6 or current_model>
-  detection_model: <e.g. claude-sonnet-4-6>  # mid-tier steps (§2.1); never the session model
+  implementation_model: <e.g. claude-sonnet-5 or current_model>
+  detection_model: <e.g. claude-sonnet-5>    # mid-tier steps (§2.1); never the session model
   fixes_model:    <same as implementation_model>
   opus_available: true | false
   gate_tests_on_review: true | false   # optional; default false. Only meaningful for SIGNIFICANT/HIGH-RISK.

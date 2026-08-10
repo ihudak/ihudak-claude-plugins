@@ -181,4 +181,7 @@ The calling phase provides:
 The phase applies §6 (filter) → §4 (resolve target) → §1–§3 (render + place) →
 §5 (dedupe) → §7 (confirm), then writes. It is ADDITIVE: the follow-ups always
 also remain in the Final Report, the phase NEVER commits, and it NEVER writes
-into a docs/code repo or the current working directory.
+into a docs/code repo or the current working directory. Follow-ups written
+into `$SPECS_PATH` are committed later, once, by the run's terminal
+`commit-artifacts` step (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`
+§4); vault-tier follow-ups stay the user's own sync responsibility.

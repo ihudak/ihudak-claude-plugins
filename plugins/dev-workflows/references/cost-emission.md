@@ -331,9 +331,11 @@ and acceptable.
 
 One entry point. Every caller supplies `command`, `phase`, `role` (or the
 `inferred` marker for `/release-notes`), `jira_key` (or `null`), `source`, and
-`plugin_version`. `emit-cost` does the rest; it NEVER commits, NEVER writes into
-a docs/code repo or the current working directory, and NEVER fails the run. Cost
-ALWAYS runs.
+`plugin_version`. `emit-cost` does the rest; it NEVER commits, NEVER writes
+into a docs/code repo or the current working directory, and NEVER fails the
+run. The cost entry is committed later, once, by the run's terminal
+`commit-artifacts` step (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`
+§4). Cost ALWAYS runs.
 
 Inputs:
 - `command` — the exact slash-command name (e.g. `/implement`,

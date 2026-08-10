@@ -68,6 +68,9 @@ gate_ledger:
 | `repo_checklist` | 6.4 | the repo publishes authoring/verification guidance | `repo_verification_gates` applied to the written files | none |
 | `build_check` | 6.5 S1 | write context is a buildable repo | `commands.per_space.<space>.build` for every space in the render verification set (`dynatrace-docs/render-verification.md` §2), else whole-repo `commands.build` | the Step 2 dev-server boot |
 | `render_smoke_check` | 6.5 S2 | buildable repo with ≥1 affected page | dev servers for the target **and** protected spaces | the manual pages-to-visit table |
+| `image_review` | 5.6 | ≥1 candidate image (to add or possibly-stale) | the two-list review with per-occurrence decisions | none |
+
+`image_review` is an input-side gate rather than an output-verification gate, unlike the other six. It is registered anyway because the accountability need is identical — an unattributed image skip is exactly the failure mode this ledger exists to prevent.
 
 The **Phase** column above is Jira mode's. Direct mode runs the same gate ids at different phases — `toolchain_preflight` at Phase 0, and both `style_check` and `repo_checklist` at Phase 3.5 (the checklist is *extracted* at Phase 0 but its row completes when the written files are held against it) — as the paragraph below sets out. A row's `phase:` field always names the phase where the gate **completes**, not where its inputs were gathered.
 
@@ -75,11 +78,12 @@ A gate whose precondition is unmet records `NOT_APPLICABLE` with the preconditio
 silently absent from the ledger.
 
 **Direct mode** (`/document` Mode B) registers exactly three gates: `toolchain_preflight` (Phase 0),
-`repo_checklist` (Phase 0 extraction, checked at Phase 3.5), and `style_check` (Phase 3.5). The other
-three ids never appear in a direct-mode ledger — not even as `NOT_APPLICABLE`:
+`repo_checklist` (Phase 0 extraction, checked at Phase 3.5), and `style_check` (Phase 3.5). The
+other **four** ids never appear in a direct-mode ledger — not even as `NOT_APPLICABLE`:
 
 - `source_truth_verification` — direct mode has no Phase 5.8, no `jira-reader`, and no `code_repos`.
 - `build_check` and `render_smoke_check` — direct mode has no Phase 6.5 and no `target_spaces`.
+- `image_review` — direct mode has no Phase 5.6 and no planner-sourced image candidates.
 
 Direct mode has no `doc-planner`, so its orchestrator extracts `repo_verification_gates` itself per
 `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §5.

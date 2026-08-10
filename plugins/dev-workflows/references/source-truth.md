@@ -104,6 +104,16 @@ source code:
 | **Permission / role gates** | Access-rule classes (`*AccessRule.java`), `@RequiresPermission` annotations, IAM scope declarations |
 | **Headline counts** ("3 options", "4 modes", "supports X variants") | Always derived from the enumeration in the source; never copied from the description |
 | **Commands, CLI invocations, and copy-paste code blocks** (helm/kubectl/pnpm invocations, flags, image references, chart names, registry paths, YAML keys inside fenced blocks) | Chart and manifest files in the source repo (`Chart.yaml`, `values.yaml`, `templates/**`), the CI/release workflow that publishes the artifact, sibling docs pages that already carry the same command, and `--help` / usage strings in the CLI source |
+| **Lifecycle dates and milestones** (end-of-life, end-of-support, shutdown, sunset, availability dates) | UI notice strings and banner constants, announcement/config expiry values, feature-flag sunset metadata, sibling announcement pages that already carry the date |
+
+**Lifecycle dates compare by milestone, not by surface form.** "EOY 2027",
+"end of 2027", "December 31, 2027", and "stops working on January 1, 2028"
+all denote one boundary and are **not** a discrepancy. A discrepancy exists
+only when the milestones genuinely differ — for example "EOL by mid-2027"
+against "stops working on January 1, 2028". Dates have more semantically
+equivalent phrasings than any other claim type; a verifier that compares
+strings floods Phase 5.8 with non-discrepancies and trains users to dismiss
+the table.
 
 ## 3. How to verify (techniques)
 
@@ -440,9 +450,15 @@ Pass this record to Phase 6.3 (writer). The writer:
 ### 7.5 Emit the bug-report draft
 
 When `discrepancy_decisions` contains ANY entry with decision
-`document-as-spec` (where the code lags the intended phrasing) or
-`skip-and-report`, the writer MUST emit a Markdown file alongside the
-release-notes draft at the auto-discovered vault project folder:
+`document-as-spec` (where the code lags the intended phrasing),
+`skip-and-report`, or `document-as-code` **where the Jira phrasing asserts a
+specific value that contradicts the source**, the writer MUST emit a
+Markdown file alongside the release-notes draft at the auto-discovered vault
+project folder. Skip a `document-as-code` entry whose Jira phrasing is vague
+or non-committal — "several registries" against a source with four is loose,
+not wrong. When the two readings are arguable, emit: the output is a draft
+the user reviews, so a spurious entry costs a paragraph while a miss leaves
+a wrong customer-facing claim in the ticket indefinitely.
 
 ```
 <vault>/Projects/Products/**/<JIRA_KEY>*/<JIRA_KEY>-implementation-gaps.md
@@ -464,10 +480,16 @@ team (or amend the Jira ticket if the gap is intentional).
 - **Source location**: <file:line>
 - **User decision in docs**: <decision>
 - **Docs status**: <"described as intended (spec), awaiting implementation"
-                    | "omitted from docs">
-- **Suggested action**: file a Jira defect against the team that owns
-  <source_location>'s component. Include a link to <JIRA_KEY> and a link
-  to this gap analysis.
+                    | "omitted from docs"
+                    | "documented as shipped; the source ticket carries an
+                    incorrect claim">
+- **Suggested action**: <for a `document-as-spec` / `skip-and-report` gap:
+                    file a Jira defect against the team that owns
+                    <source_location>'s component, with a link to
+                    <JIRA_KEY> and a link to this gap analysis
+                    | for a `document-as-code` gap: correct the source
+                    ticket — the implementation is right — rather than
+                    filing a defect against the implementation team>
 ```
 
 The bug-report draft uses the same hard-rule for destination as the

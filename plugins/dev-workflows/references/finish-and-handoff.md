@@ -20,8 +20,8 @@ recorded:
 ## 2. Squash (always)
 
 Stage the run's uncommitted docs-repo edits first — Phase 8 Agent 1 (doc index /
-cross-links) and Agent 3 (`CLAUDE.md`) may have edited without committing; the
-Phase 6.2 clean-tree precondition means anything uncommitted is this run's work.
+cross-links) may have edited without committing; the Phase 6.2 clean-tree
+precondition means anything uncommitted is this run's work.
 Then squash:
 - squash base = `profile_commit` (C0) when recorded — keeps the profile-config
   commit as a distinct first commit; otherwise `git merge-base <base_branch> HEAD`.

@@ -190,13 +190,13 @@ Ask about:
   choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]
   ```
   If "different path", take free-text input (single dir or colon-separated list) and validate that at least one directory exists under it. Record the resolved value as `$REPOS_PATH`. Individual clones are located in Phase 4 by matching their `git remote` against each PR's repo slug — not by assuming a `<base>/<slug>` directory name.
-- **Screenshots** — ask only whether images are wanted; the candidate list itself is built later in **Phase 5.6** (by which point `specs_dir`, the `jira-reader` `attachments[]`, and the resolved repos are all available):
+- **Screenshots** — this question seeds the **add-list** only; it never skips Phase 5.6. The candidate list itself is built later in **Phase 5.6** (by which point `specs_dir`, the `jira-reader` `attachments[]`, and the resolved repos are all available), and Phase 5.6 **always** runs — it also reviews the images already on the pages this run is about to edit, regardless of this answer:
   ```
-  choices: ["Yes — include screenshots (you'll pick the sources in Phase 5.6) (Recommended)", "No screenshots needed", "Cancel", "Other… (describe)"]
+  choices: ["Yes — I have new screenshots to add (you'll pick the sources in Phase 5.6) (Recommended)", "No new screenshots", "Cancel", "Other… (describe)"]
   ```
-  Record the answer as `images_wanted` (true/false). When `false`, Phase 5.6 is skipped and `screenshots[]` stays empty. The downstream `doc-planner` (Phase 5.7) detects the repo's `image_policy` and decides per screenshot whether the writer will copy it locally or stage it for manual upload.
+  Record the answer as `new_images_wanted` (true/false). When `false`, Phase 5.6 skips its **add** list only and still reviews existing images on the edited pages. The downstream `doc-planner` (Phase 5.7) detects the repo's `image_policy` and decides per screenshot whether the writer will copy it locally or stage it for manual upload.
 
-  **Resolve `<screenshot_staging_dir>` (only when `images_wanted` is true).** For the `cdn_upload_required` case the staged copies must live somewhere that survives a container restart — `$VAULT_PATH` is always host-mounted, the docs repo (often a docker repo-volume) and `/tmp` are not. Find the ticket's persistent Obsidian project folder:
+  **Resolve `<screenshot_staging_dir>`.** No longer gated on `new_images_wanted`: Phase 5.6 always runs and its existing-image review can need a durable location for a replacement source regardless of this answer, so `<project_dir>` (set below) must be resolved on every run, not only an add-list one. For the `cdn_upload_required` case the staged copies must live somewhere that survives a container restart — `$VAULT_PATH` is always host-mounted, the docs repo (often a docker repo-volume) and `/tmp` are not. Find the ticket's persistent Obsidian project folder:
   ```bash
   find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<JIRA_KEY>*" 2>/dev/null | head -1
   ```
@@ -263,7 +263,7 @@ Present a concise plan:
 - PR filter (MERGED only / all / specific)
 - Parallelism plan (up to 4 `diff-summarizer` instances per batch; up to 4 repos per Agent message)
 - Write context + whether branching will happen
-- Screenshots: `images_wanted` (yes/no, from Phase 1). When yes, the candidate list is gathered and confirmed in Phase 5.6 (specs scan + Jira `attachments[]` + manual paths) — list "candidates resolved in Phase 5.6".
+- Screenshots: `new_images_wanted` (yes/no, from Phase 1). Phase 5.6 always runs: when yes, its add-list candidates are gathered and confirmed there (specs scan + Jira `attachments[]` + manual paths) — list "candidates resolved in Phase 5.6"; either way, Phase 5.6 also reviews the images already on the edited pages for staleness.
 - Target space(s): the resolved `target_spaces` (`[saas]` / `[managed]` / `[saas, managed]`). State whether it came from the `space_constraint` argument (and that the other space's render is left unchanged) or from the Phase 4.5 auto-determination the user confirmed. If Phase 4.5 hasn't run yet (auto-determine, `space_constraint = none`), list "TBD — determined and confirmed in Phase 4.5".
 
 Ask:
@@ -415,7 +415,9 @@ Invoke `doc-location-finder`:
   >
   > repo_root:       [the resolved docs_repo_path (Phase 0)]
   > feature_summary: [2–4 sentences combining jira-reader themes + value_increment.goal]
-  > diff_highlights: [key filenames / symbols from the diff-summarizer per_pr summaries]"
+  > diff_highlights: [key filenames / symbols from the diff-summarizer per_pr summaries]
+  > target_spaces:   [the resolved target_spaces, or omit for an unconstrained run]
+  > profile:         [the resolved profile — its announcement_pages block]"
 
 Handle the return:
 
@@ -438,11 +440,13 @@ The confirmed target list (from any of the three paths above) is the **authorita
 
 ---
 
-## Phase 5.6 — Image candidates
+## Phase 5.6 — Images
 
-**Skip this phase entirely when `images_wanted` is `false`** (Phase 1) — `screenshots[]` stays empty and Phase 5.7 receives no images.
+**Always runs**, regardless of the Phase 1 `new_images_wanted` answer. Declining new screenshots seeds an empty add list; it never skips reviewing whether the images already on the pages this run is about to edit are still accurate — that was the defect: one Phase 1 answer used to gate both concerns. Build **two** lists.
 
-When `images_wanted` is `true`, build a **merged, deduped candidate list** from four sources (by this point Phase 0's `specs_dir`, the Phase 1 `<project_dir>`, the Phase 3 `jira-reader` `attachments[]`, and the Phase 4 resolved repos are all in hand):
+### Add list (new screenshots)
+
+Build this list only when `new_images_wanted` is `true` (Phase 1); when `false`, the add list is empty and contributes nothing to the merged prompt below — skip straight to the existing-image list. When `true`, build a **merged, deduped candidate list** from four sources (by this point Phase 0's `specs_dir`, the Phase 1 `<project_dir>`, the Phase 3 `jira-reader` `attachments[]`, and the Phase 4 resolved repos are all in hand):
 
 1. **Recursive scan of `<specs_dir>`** — when Phase 0 resolved a `specs_dir` (not `none`), recursively scan it for image files across the spec root, `epics/`, and `spec/`:
    ```bash
@@ -459,22 +463,58 @@ When `images_wanted` is `true`, build a **merged, deduped candidate list** from 
    This surfaces images you keep in the project folder (custom diagrams, curated screenshots). When `<project_dir>` is null, this source contributes nothing.
 4. **Manual paths** — the user-provided "I'll provide screenshot paths" option (free text, see the `choices` below).
 
-**Dedupe** by resolved absolute path (collapse mixed separators / trailing-slash differences); when the same image appears in more than one source, keep one entry and note its origins. Present the deduped candidates, then ask:
+**Dedupe** by resolved absolute path (collapse mixed separators / trailing-slash differences); when the same image appears in more than one source, keep one entry and note its origins.
+
+### Existing-image list (staleness review)
+
+**Always build this list** — it does not depend on `new_images_wanted`. The orchestrator owns it (`doc-planner` runs later, at Phase 5.7, and never supplies or reads this list). For every `extend-existing` write target in Phase 5.5's confirmed `write_targets`, read the target file and record **every image reference in document order** — one row per occurrence, not per unique URL: the same URL can recur under different space gating, and each occurrence is decided separately (a `saas`-gated and a `managed`-gated block can carry the same stale URL, and only one of them may need the fix). For each occurrence record:
+- `target` — the write target's path.
+- `occurrence` — the 1-based index of this image reference within the whole target, counted in document order across **all** image references in the file — never filtered by `old_url`, never scoped to a section.
+- `old_url` — the image reference's current URL/path.
+- `section` — the nearest enclosing heading.
+- `gating` — the enclosing `{{#if project='…'}}` conditional, or `none`.
+
+A target with no image references contributes nothing.
+
+### Merged prompt
+
+Present both lists — "Found `<N>` add-list candidate(s) (`<count>` from specs scan, `<count>` from Jira attachments, `<count>` from the project folder)" and "Found `<M>` existing image(s) across `<K>` edited page(s) to review for staleness" — then ask:
 ```
-"Found <N> candidate image(s): <count> from specs scan, <count> from Jira attachments, <count> from the project folder. How would you like to source screenshots?"
-choices: ["Use all auto-discovered + add manual paths (Recommended)", "Use all auto-discovered only", "Select a subset (you'll pick per candidate)", "Provide screenshot paths manually only (you'll be prompted)", "No images after all", "Other… (describe)"]
+choices: ["Review both lists item by item (Recommended)", "Add-list only — existing images are current", "Nothing to do — no image work this run", "Cancel", "Other… (describe)"]
 ```
-- **Use all auto-discovered + add manual** → take every deduped candidate, then prompt for additional free-text absolute paths to append.
-- **Use all auto-discovered only** → take every deduped candidate; no manual prompt.
-- **Select a subset** → present the deduped candidates and let the user pick which to keep.
-- **Provide screenshot paths manually only** → ignore the auto-discovered candidates; take free text only.
-- **No images after all** → set `images_wanted = false` semantics for this run; leave `screenshots[]` empty and skip the rest of this phase.
+When both lists are empty, skip presenting this prompt — there is nothing to show — and set `screenshots[] = []`, `existing_image_decisions[] = []` directly.
+
+- **Review both lists item by item**:
+  - **Add list**, if non-empty, asks:
+    ```
+    "Found <N> candidate image(s): <count> from specs scan, <count> from Jira attachments, <count> from the project folder. How would you like to source screenshots?"
+    choices: ["Use all auto-discovered + add manual paths (Recommended)", "Use all auto-discovered only", "Select a subset (you'll pick per candidate)", "Provide screenshot paths manually only (you'll be prompted)", "No images after all", "Other… (describe)"]
+    ```
+    - **Use all auto-discovered + add manual** → take every deduped candidate, then prompt for additional free-text absolute paths to append.
+    - **Use all auto-discovered only** → take every deduped candidate; no manual prompt.
+    - **Select a subset** → present the deduped candidates and let the user pick which to keep.
+    - **Provide screenshot paths manually only** → ignore the auto-discovered candidates; take free text only.
+    - **No images after all** → leave `screenshots[]` empty; the add list contributes nothing further.
+  - **Existing-image list**, if non-empty, walks each occurrence in order — showing `target`, `section`, `gating`, and `old_url` — and asks per item (no default is safe to recommend across arbitrary items, so no `(Recommended)` marker):
+    ```
+    choices: ["Replace — I'll provide a new screenshot (staged via Phase 6.1)", "Leave as is — still accurate", "Cancel", "Other… (describe)"]
+    ```
+    "Replace" appends an `existing_image_decisions[]` entry `{target, occurrence, old_url, new_url, section, gating, decision: accepted}` with `new_url` left pending (Phase 6.1 resolves it) and records the replacement's source (a path from the add list just reviewed, or a new free-text path). "Leave as is" appends the same shape with `decision: declined` and no `new_url`.
+- **Add-list only — existing images are current** → run the add-list sub-flow above (if non-empty); `existing_image_decisions[] = []` — the user's verbatim choice is the record of the (skipped) existing-image review, not a per-item entry.
+- **Nothing to do — no image work this run** → `screenshots[] = []`, `existing_image_decisions[] = []`.
+- **Cancel** → stop and summarise.
+- **Other… (describe)** → takes free text and resolves to one of the three dispositions above — "Review both lists item by item", "Add-list only", or "Nothing to do" — and the run then behaves exactly as if that option had been chosen directly, including which ledger row it writes. There is no fourth disposition and no "skip on my own judgement" path here.
+
+**Append the `image_review` ledger row once this phase's outcome is settled — by the user's answer to the merged prompt above, or by the both-lists-empty precondition when that prompt itself was skipped — outside any conditional branch above**, so every path through this phase writes exactly one row (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3; registry entry: §4, added by Task 8):
+- `RAN` — the choice was "Review both lists item by item" and at least one of the two lists was non-empty; `mechanism: "per-item user review of the add list and the existing-image list built from extend-existing write targets"`; `findings:` = the count of existing-image occurrences reviewed.
+- `SKIPPED_BY_USER` — the choice was "Add-list only — existing images are current" or "Nothing to do — no image work this run"; `user_decision` quotes the choice verbatim.
+- `NOT_APPLICABLE` — both lists were empty (the prompt above was skipped); `precondition_unmet: "no add-list candidates and no image references on any extend-existing write target"`.
 
 For any **manual** free-text paths, accept any absolute filesystem path (vault, `/tmp`, home, the docs repo); accept multiple (one per line or space-separated). Validate each path exists and has an image extension (`.png|.jpg|.jpeg|.gif|.svg|.webp`); drop and report any that don't.
 
-When you need to **add a new image** for this feature (a screenshot the docs should have but no source yet holds), place it in the **Projects VI-dir** — `<project_dir>` (i.e. `$VAULT_PATH/Projects/<VI-dir>/…`, e.g. its `Doc screenshots/` subfolder). **Never** put it under `jira-products/`: that directory is regenerated on every Jira import, so a manually-added image there is lost on the next import. `jira-products` is a read-only source (developer-attached Jira screenshots, via source 2); authored/curated images belong in the Projects folder.
+When you need to **add a new image** for this feature (a screenshot the docs should have but no source yet holds — including a replacement source for an accepted existing-image entry), place it in the **Projects VI-dir** — `<project_dir>` (i.e. `$VAULT_PATH/Projects/<VI-dir>/…`, e.g. its `Doc screenshots/` subfolder). **Never** put it under `jira-products/`: that directory is regenerated on every Jira import, so a manually-added image there is lost on the next import. `jira-products` is a read-only source (developer-attached Jira screenshots, via source 2); authored/curated images belong in the Projects folder.
 
-The selected paths populate the existing **`screenshots[]`** passed to `doc-planner` in Phase 5.7 — the downstream placement machinery (per-screenshot `dest`/`staging`/`upload_note`, `image_policy`) is unchanged.
+The selected add-list paths populate the existing **`screenshots[]`** passed to `doc-planner` in Phase 5.7 — the downstream placement machinery (per-screenshot `dest`/`staging`/`upload_note`, `image_policy`) is unchanged. An accepted item — from either list — carries into Phase 6.1 for its CDN URL. The outcome is recorded as `existing_image_decisions[]` (schema above; matches `doc-writer`'s input contract) and carried in the Phase 6.3 handoff file alongside `cdn_urls`.
 
 ---
 
@@ -598,9 +638,9 @@ the row `DEGRADED`, with `not_run:` naming what did not run (e.g.
    ```
    choices: ["Document as intended (spec)", "Document as actual (code)", "Skip this claim and report it", "Cancel", "Other… (describe)"]
    ```
-   "Document as intended (spec)" describes the agreed contract — the `spec_phrasing` (or the Jira phrasing when it is `(no spec)`) — and, when the code lags the intended phrasing, adds an intentional-discrepancy marker + bug-report draft. "Document as actual (code)" matches what shipped. "Skip this claim and report it" omits the claim but still records the gap in the bug-report draft.
+   "Document as intended (spec)" describes the agreed contract — the `spec_phrasing` (or the Jira phrasing when it is `(no spec)`) — and, when the code lags the intended phrasing, adds an intentional-discrepancy marker + bug-report draft. "Document as actual (code)" matches what shipped, and when it is a qualifying `document-as-code` case per §7.5, also records the gap in the bug-report draft. "Skip this claim and report it" omits the claim but still records the gap in the bug-report draft.
 
-4. **Record `discrepancy_decisions[]`** keyed by `number` (claim, jira_phrasing, spec_phrasing, source_phrasing, source_location, decision ∈ {document-as-spec, document-as-code, skip-and-report}, rationale). `spec_phrasing` is recorded verbatim (`(no spec)` when none was provided). Set `bug_report_destination` to the ticket's vault project folder (resolved exactly like the release-notes destination in `/release-notes` — `find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"`; ask if none) when any decision is `document-as-spec` (where the code lags the intended phrasing) or `skip-and-report`.
+4. **Record `discrepancy_decisions[]`** keyed by `number` (claim, jira_phrasing, spec_phrasing, source_phrasing, source_location, decision ∈ {document-as-spec, document-as-code, skip-and-report}, rationale). `spec_phrasing` is recorded verbatim (`(no spec)` when none was provided). Set `bug_report_destination` to the ticket's vault project folder (resolved exactly like the release-notes destination in `/release-notes` — `find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"`; ask if none) when any decision is `document-as-spec` (where the code lags the intended phrasing), `skip-and-report`, or a qualifying `document-as-code` per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.5.
 
 Pass `discrepancy_decisions` to Phase 6.3.
 
@@ -643,23 +683,25 @@ phase only confirms the per-page **strategy choice** before Phase 6.3 writes.
 
 ## Phase 6.1 — CDN image handoff
 
-Run this phase only when, in the Phase 5.7 `doc-planner` return, **any** screenshot has `image_policy: cdn_upload_required` — **or** the user picked "Stage for manual upload" under an `ambiguous` target in Phase 6.3. (When the only image policy in play is `local`, skip this phase: local images are copied into the repo at Phase 6.3 with no handoff needed.)
+Run this phase when, in the Phase 5.7 `doc-planner` return, **any** screenshot has `image_policy: cdn_upload_required` — **or** the user picked "Stage for manual upload" under an `ambiguous` target in Phase 6.3 — **or** any Phase 5.6 `existing_image_decisions[]` entry has `decision: accepted`. (When the only image policy in play is `local` and there is no accepted existing-image replacement, skip this phase: local images are copied into the repo at Phase 6.3 with no handoff needed.)
 
 1. **List each affected image** so the decision is informed — one row per image:
-   - target page / anchor it belongs on (from the planner's per-screenshot placement);
+   - target page / anchor it belongs on (from the planner's per-screenshot placement, or — for an existing-image replacement — the `target` / `section` / `gating` recorded in Phase 5.6);
    - proposed alt text;
    - the planner's `upload_note`.
+
+   An item sourced from the existing-image list (Phase 5.6) is a **replacement**, not a new insertion: the writer swaps that occurrence's URL rather than inserting a new reference, and because a CDN URL is immutable, the collected `new_url` is always a different URL from `old_url`. A swap has no deferred/TODO form — `doc-writer` only ever writes a real replacement URL for an `existing_image_decisions` entry — so even when the batch choice below is "Defer", still collect each accepted existing-image entry's `new_url` individually (record it as that entry's `new_url`, not in `cdn_urls`) before Phase 6.3; only the remaining, non-swap screenshots follow the Defer path.
 
 2. **Ask how to handle the upload:**
    ```
    choices: ["Upload now — I'll paste the CDN links (Recommended)", "Defer — stage with TODO placeholders + Phase 9 list", "Cancel", "Other… (describe)"]
    ```
 
-   - **Upload now** → collect one CDN URL per image (prompt per image, or one URL per line in image order). Validate each pasted value looks like a URL (e.g. starts with `http://` / `https://`); re-prompt for any that don't. Record `cdn_urls[<image>]`. Phase 6.3 then writes the **real CDN URL** into each markdown image reference instead of a TODO placeholder. Nothing is staged and the Phase 9 "Screenshots to upload manually" section stays empty for these images.
-   - **Defer** → the existing async behavior: stage each image under `<screenshot_staging_dir>` (the ticket's persistent Obsidian project folder resolved in Phase 1), Phase 6.3 inserts the `TODO-upload` placeholder reference, and every staged image is listed in the Phase 9 `### Screenshots to upload manually` section.
+   - **Upload now** → collect one CDN URL per image (prompt per image, or one URL per line in image order). Validate each pasted value looks like a URL (e.g. starts with `http://` / `https://`); re-prompt for any that don't. Record `cdn_urls[<image>]` for a regular screenshot, or the entry's `new_url` for an existing-image replacement. Phase 6.3 then writes the **real CDN URL** into each markdown image reference instead of a TODO placeholder — for an existing-image replacement, it swaps that occurrence in place. Nothing is staged and the Phase 9 "Screenshots to upload manually" section stays empty for these images.
+   - **Defer** → the existing async behavior for regular screenshots: stage each image under `<screenshot_staging_dir>` (the ticket's persistent Obsidian project folder resolved in Phase 1), Phase 6.3 inserts the `TODO-upload` placeholder reference, and every staged image is listed in the Phase 9 `### Screenshots to upload manually` section. Existing-image replacements are exempt from this path (see above) — their `new_url` is still collected now.
    - **Cancel** → stop and summarise.
 
-   Record the decision as `cdn_handoff_decision ∈ {upload-now, defer}` and carry it (with any `cdn_urls`) into Phase 6.3.
+   Record the decision as `cdn_handoff_decision ∈ {upload-now, defer}` and carry it (with any `cdn_urls` and the updated `existing_image_decisions[]`) into Phase 6.3.
 
 ---
 
@@ -697,7 +739,7 @@ No external CLI calls; all git operations are local.
 
 The writing is delegated to the **`doc-writer`** subagent (pinned to the §2 Opus reasoning chain — see `classification.md` §9.2). The orchestrator prepares a structured handoff and dispatches; it does not write pages itself.
 
-1. **Write the handoff file.** Create a temp file (`mktemp`, e.g. `$(mktemp -t dw-<JIRA_KEY>-XXXX.yml)` — never the vault, never the docs repo) containing the `doc-writer` input contract: `jira_reader_handoff`, `diff_summaries`, `write_targets`, `doc_planner_checklist` (+ gap dispositions), `repo_authoring_guidance` (the planner's extracted repo-specific rules), `discrepancy_decisions` (Phase 5.8), `write_strategies` (Phase 5.9), `cdn_handoff_decision` + `cdn_urls` + `screenshot_staging_dir` + `screenshots` (Phase 6.1), `target_spaces`, `profile`, `docs_repo_path`, `counterpart_references` (Phase 5.6.5), and `bug_report_destination`. Record its absolute path.
+1. **Write the handoff file.** Create a temp file (`mktemp`, e.g. `$(mktemp -t dw-<JIRA_KEY>-XXXX.yml)` — never the vault, never the docs repo) containing the `doc-writer` input contract: `jira_reader_handoff`, `diff_summaries`, `write_targets`, `doc_planner_checklist` (+ gap dispositions), `repo_authoring_guidance` (the planner's extracted repo-specific rules), `component_patterns` (the planner's recurring content-shape → dominant-component evidence, per `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §3 — like `repo_authoring_guidance`, a top-level sibling of the planner's `checklist:`, so it must be carried explicitly; `[]` when the sibling sample showed no established pattern), `discrepancy_decisions` (Phase 5.8), `write_strategies` (Phase 5.9), `cdn_handoff_decision` + `cdn_urls` + `screenshot_staging_dir` + `screenshots` + `existing_image_decisions` (Phase 5.6 / 6.1), `target_spaces`, `profile`, `docs_repo_path`, `counterpart_references` (Phase 5.6.5), and `bug_report_destination`. Record its absolute path.
 
 2. **Dispatch the writer:**
 
@@ -873,6 +915,7 @@ Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `revi
   > render_verification: [the Phase 6.5 summary — build result; smoke-check per space (passed / skipped with reason); cross-space invariant check result]
   > code_repos:         [the Phase-4 resolved {slug, path} map; [] if none resolved]
   > counterpart_references: [the confirmed counterpart_references from Phase 5.6.5; [] when none — supplies the screenshots_seen provenance and the grounded counterpart space for the 'Cross-space grounding integrity' dimension]
+  > existing_image_decisions: [the Phase 5.6/6.1 stale-image-swap array, one entry per **reviewed occurrence** and each {target, occurrence, old_url, new_url, section, gating, decision}. `[]` when the per-item existing-image review did not run — the existing-image list was empty, or the user chose "Add-list only" / "Nothing to do" at the Phase 5.6 merged prompt. An all-declined review is NOT `[]`: every reviewed occurrence appends an entry, `decision: declined` included. Supplies the swap-completeness evidence for the 'Screenshots' dimension]
   > profile:            [the resolved docs-profile from Phase 0 — supplies frontmatter.changelog_guidelines and spaces[]]
   > target_spaces:      [the resolved target_spaces from Phase 4.5]"
 
@@ -938,14 +981,14 @@ Then spawn all four Phase 4-style maintenance agents in a **single Agent message
 >
 > Check ~/.claude/memory/ (global) and .claude/memory/ (project-level, preferred for repo-specific knowledge) for existing knowledge files.
 > Determine if a new knowledge entry is warranted — look for: reusable insights about this docs repo's conventions, non-obvious style rules uncovered, Vale / lint interactions, snippet patterns, image-policy discoveries.
-> If YES: append to the most appropriate existing file (never create a new file if an existing one fits) using this format:
+> If YES: identify the most appropriate existing file (never propose a new file if an existing one fits) and return a proposed edit — write nothing. The entry format:
 > ### [Short title]
 > - **Context**: what problem/situation triggered this
 > - **Insight**: the learned rule, pattern, or gotcha
 > - **When it applies**: conditions under which this matters
 > - **Date**: YYYY-MM-DD
 > - **Ref**: [first 60 chars of the Jira key + feature summary]
-> Return: file updated/created and summary of entry, OR 'no update required'."
+> Return: `{file, anchor, replacement, reason}` — `anchor` is the exact existing text to change, or the section to append to; `replacement` is the entry above in full; `reason` is why it's warranted — OR 'no update required'."
 
 **Agent 3 — Instructions** (general-purpose, model: `<detection_model — §9 / §2.1 Sonnet chain>`):
 > "Post-write instructions review. Change summary:
@@ -954,8 +997,8 @@ Then spawn all four Phase 4-style maintenance agents in a **single Agent message
 > Check CLAUDE.md in the project root and ~/.claude/CLAUDE.md (global).
 > Determine if any doc-writing rules, guidance, or guardrails are missing because of what this run revealed (e.g., a repo-specific frontmatter field that must always be present, a cross-link pattern that's easy to miss, an image-policy rule that caught you out).
 > Skip if: the run followed existing conventions with no surprises. Only update if a concrete, recurring rule would have prevented a decision point or misunderstanding.
-> If YES: apply minimal, additive, scoped changes only — do not rewrite sections wholesale.
-> Return: what was changed and why, OR 'no update required'."
+> If YES: keep it minimal, additive, and scoped — do not propose rewriting sections wholesale — and return a proposed edit — write nothing.
+> Return: `{file, anchor, replacement, reason}` — `anchor` is the exact existing text to change, or the section to append to; `replacement` is the proposed new/changed text; `reason` is what this run revealed that warrants it — OR 'no update required'."
 
 **Agent 4 — Session maintenance** (dev-workflows:impl-maintenance, model: `<detection_model — §9 / §2.1 Sonnet chain>`):
 > "Analyse this session and return a Lessons Learned report.
@@ -997,9 +1040,9 @@ Run this phase only when Phase 6.3 wrote + committed in a git repo (write contex
 ### Step 1 — Squash (always)
 
 Fold the run into clean history before handoff:
-1. Stage the run's uncommitted docs-repo edits — Phase 8 Agent 1 (doc index / cross-links) and Agent 3 (`CLAUDE.md`) may have edited without committing; the Phase 6.2 clean-tree check means everything uncommitted is this run's work.
+1. Stage the run's uncommitted docs-repo edits — Phase 8 Agent 1 (doc index / cross-links) may have edited without committing; the Phase 6.2 clean-tree check means everything uncommitted is this run's work.
 2. Compute the squash base: if Phase 6.2 recorded `profile_commit` (inline-profiling run), base = `profile_commit` (keeps the profile-config commit as a distinct first commit → two commits); otherwise base = `git merge-base <base_branch> HEAD` (one commit).
-3. `git add` the docs-repo changes → `git reset --soft <squash-base>` → one `git commit`. The message follows `profile.commit_convention` when present (dynatrace-docs: `<JIRA-KEY> <summary>`); for a repo with no such field, infer from recent `git log` / `CONTRIBUTING`, else fall back to `<JIRA_KEY> <summary>`. NEVER put the Jira key in a reader-visible changelog — the commit message carries traceability.
+3. `git add` the docs-repo changes → `git reset --soft <squash-base>` → one `git commit`. The message follows `profile.commit_convention` when present (dynatrace-docs: `<JIRA-KEY> <summary>`); for a repo with no such field, infer from recent `git log` / `CONTRIBUTING`, else fall back to `<JIRA_KEY> <summary>`. NEVER put the Jira key in a reader-visible changelog — see `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1.
 
 ### Step 2 — Offer push
 
@@ -1014,11 +1057,45 @@ choices: ["Push <branch> to origin now", "Skip — I'll push later", "Cancel"]
 
 Per `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md` §4–§5:
 1. **Detect the host** from the docs repo's `git remote get-url origin` (Bitbucket Cloud / Bitbucket Server / GitHub / other).
-2. **Compose the draft**: title (per `commit_convention`); body — what was documented, the output files, the Phase 6.5 render-verification summary, deferred style/review/render items, a link to the Jira VI. When Phase 5.8 recorded any `document-as-spec` / `skip-and-report` decision, prepend a banner: `> ⚠ DO NOT MERGE until <JIRA_KEY>-implementation-gaps.md is resolved.`
+2. **Compose the draft**: title (per `commit_convention`); body — what was documented, the output files, the Phase 6.5 render-verification summary, deferred style/review/render items, a link to the Jira VI. When Phase 5.8 recorded any `document-as-spec` / `skip-and-report` decision, prepend a banner: `> ⚠ DO NOT MERGE until <JIRA_KEY>-implementation-gaps.md is resolved.` A qualifying `document-as-code` decision (§7.5) does NOT get this banner even though it also produces a gaps file — the docs correctly describe what shipped, so the PR is mergeable; only the source ticket needs correcting.
 3. **Write + show**: write `<JIRA_KEY>-pr-draft.md` to the vault project folder (`find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"`; ask if none) AND print it.
 4. **Host footer**: Bitbucket → "open a PR in the web UI and paste the title + body"; GitHub → additionally offer `gh pr create --title "<title>" --body-file <pr-draft path>` that the user may run; other → "open a PR and paste the title + body". The plugin never opens the PR itself.
 
 Carry the squash result, push outcome, and PR-draft path into the Phase 9 report.
+
+---
+
+## Phase 8.6 — Maintenance proposals
+
+Runs **after** Phase 8.5's squash — never before. The ordering is the whole safety property: by the time this phase runs, the docs commit is already sealed, so an accepted `CLAUDE.md` (or knowledge-base) edit has no commit left to ride.
+
+Skip this phase with no prompt when both Phase 8 Agent 2 and Agent 3 returned `'no update required'`.
+
+Otherwise present one row per proposal:
+
+| File | Rule / entry | Reason |
+|---|---|---|
+[one row per Agent 2 / Agent 3 proposal — `file`, the rule or knowledge entry in one line, `reason`]
+
+```
+choices: ["Skip — report only (Recommended)", "Apply all", "Choose per proposal", "Cancel"]
+```
+
+- **Skip — report only** — apply nothing; every proposal's disposition is `proposed` for the Phase 9 report.
+- **Apply all** — apply every proposal via the mechanism below; every proposal's disposition is `applied-uncommitted`.
+- **Choose per proposal** — ask accept/decline for each proposal; apply the accepted ones (`applied-uncommitted`), leave the rest `declined`.
+- **Cancel** — apply nothing; every proposal's disposition is `proposed`. Unlike every other "Cancel" in this command, **Cancel here does not abort the run**: Phase 8.5's squash (and any push / PR draft) is already done by the time this phase runs, so there is nothing left upstream to unwind. Cancel only declines this phase's proposals; the run proceeds to Phase 9 and the Final Report is produced exactly as it would be after Skip.
+
+**Apply mechanism.** For each accepted proposal, re-dispatch the agent that produced it — Agent 2 or Agent 3, same general-purpose agent and model as Phase 8, no new agent type — in apply mode, carrying its own proposal back verbatim:
+
+> "Apply this proposed edit exactly as returned — do not re-derive it:
+> `{file, anchor, replacement, reason}`: [paste the proposal]
+>
+> Locate `anchor` in `file` and write `replacement` in its place (or append it, if the proposal is an append). Return: file written, OR a mismatch note if `anchor` no longer matches the file's current content — do NOT guess at the intended location; skip and report the mismatch."
+
+Applied edits are left **uncommitted** — deliberately. Do NOT stage, commit, or re-run Phase 8.5 for these files: in a repo where a `CLAUDE.md` change triggers a review of its own, long enough to delay the documentation it would otherwise ride with, that change needs its own PR on the user's timing. A later `/document` run's Phase 6.2 clean-tree check will trip on these uncommitted files until the user commits or discards them — that is intended, not a bug to fix.
+
+Carry each proposal's `{file, reason, disposition}` into the Phase 9 report.
 
 ---
 
@@ -1077,10 +1154,13 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 - [file updated] — [what was added/changed] OR "no update required (reason)"
 
 ### Knowledge base (Agent 2)
-- [file updated/created] — [summary of entry] OR "no update required"
+- [file, rule/entry summary, reason] — disposition: [proposed | applied-uncommitted | declined] OR "no update required"
 
 ### Instructions (Agent 3)
-- [summary of change] OR "no update required"
+- [file, rule/entry summary, reason] — disposition: [proposed | applied-uncommitted | declined] OR "no update required"
+
+### Maintenance applied (uncommitted)
+[Every Phase 8.6 proposal with disposition `applied-uncommitted` — file, one-line summary, reason — one per line. These edits are deliberately excluded from the Phase 8.5 docs commit: a repo-governance file like `CLAUDE.md` needs its own PR on the user's timing, not a ride on this run's docs commit. Run `git status` in the docs repo to review before committing them separately. OR "none".]
 
 ### Session learnings (Agent 4)
 - [top suggestions from impl-maintenance agent, or "no suggestions — routine session"]
@@ -1089,13 +1169,17 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 [Only populated for the **Defer** path of Phase 6.1 — i.e. a target used image_policy: cdn_upload_required (or the user selected "Stage for manual upload" under the ambiguous branch) AND the user chose "Defer — stage with TODO placeholders" at the Phase 6.1 CDN handoff. For each staged screenshot: src (original user-provided path), staging path under <screenshot_staging_dir> (the persistent Obsidian project folder), the target page it belongs on, the proposed alt-text, and the upload_note from the planner. Omit this section entirely when no screenshots were staged — including when the user chose "Upload now" in Phase 6.1 (those images carry real CDN URLs in the markdown and need no manual step).]
 
 ### Implementation gaps (Jira vs source)
-[Populated when Phase 5.8 produced any document-as-spec / skip-and-report decision. List each gap (claim, decision) and: "Bug-report draft written to <path>. If docs were branched, DO NOT merge the PR until these gaps are resolved." Omit when there were no discrepancies.]
+[Populated when Phase 5.8 produced any `document-as-spec` / `skip-and-report` decision, **or** any qualifying `document-as-code` decision (per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.5 — the Jira phrasing asserts a specific value that contradicts the source). All three write the same bug-report draft, so all three are listed here; the status line differs by decision:
+- `document-as-spec` / `skip-and-report` → "Bug-report draft written to <path>. If docs were branched, DO NOT merge the PR until these gaps are resolved."
+- qualifying `document-as-code` → "Bug-report draft written to <path>. Documented as shipped; the source ticket carries an incorrect claim — correct the ticket, no PR block."
+
+List each gap (claim, decision) with its own status line — never print the DO-NOT-MERGE sentence for a `document-as-code` gap, and never print it at all on a run whose only gaps are `document-as-code`: the docs describe what shipped, the PR is mergeable, and Phase 8.5 deliberately withholds the PR banner for exactly this case. Omit the section when there were no discrepancies.]
 
 ### Skipped items
 [Gaps the planner flagged with recommended_action: "skip with note in final report" — one line each; or "none"]
 
 ### Deferred items
-[MINOR / NIT findings that were not applied, OR user-declined screenshots, OR doc-reviewer BLOCK findings that were overridden / deferred — one line each; or "none"]
+[List first, each tagged **MAJOR — incomplete swap, invisible in the diff**: any accepted existing-image swap `doc-writer` skipped because the file's occurrence no longer matched `old_url` (its `notes` return — the position went stale between Phase 5.6 and Phase 6.3). This is distinct from the items below — it's a race that left an already-accepted decision unfulfilled, not a routine low-priority deferral. Then: MINOR / NIT findings that were not applied, OR user-declined screenshots, OR doc-reviewer BLOCK findings that were overridden / deferred — one line each; or "none"]
 
 ### Assumptions & limitations
 - [list any]
@@ -1193,7 +1277,7 @@ the docs repo or the current working directory; no user name is ever written
 - ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
 - ALWAYS produce the Phase 9 report as the final output
 - ALWAYS end the Phase 9 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked; omitted in direct doc-edit mode (Mode B)
-- ALL written claims must be traceable to Jira keys or PR diffs; if only Jira is available, cite the Jira key alone
+- ALL written claims must be traceable to Jira keys or PR diffs — attribution goes in the run's return payload and the commit message, NEVER inline in the rendered page (`${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1)
 - For `image_policy: cdn_upload_required`, NEVER copy user-provided screenshots into the repo — stage under `<screenshot_staging_dir>`, the ticket's persistent Obsidian project folder under `$VAULT_PATH` (never the docs repo, never `/tmp`) — and surface in the Phase 9 `### Screenshots to upload manually` section
 - ALWAYS end the Phase 9 report with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (`resume.md`), then a docs→PM handoff suggestion (`/clear`) + `/rename <VI-ID>-<slug>-team`; guidance only, never auto-run. **Mode B (direct doc-edit) omits this** — no VI context.
 
@@ -1397,14 +1481,14 @@ Then spawn all four Phase 4 agents. They are independent and can run in any orde
 >
 > Check ~/.claude/memory/ (global) and .claude/memory/ (project-level, preferred for repo-specific knowledge) for existing knowledge files.
 > Determine if a new knowledge entry is warranted — look for: reusable insights about this repo's doc conventions, non-obvious style rules uncovered, tooling gotchas (Vale rule interactions, snippet conventions).
-> If YES: append to the most appropriate existing file (never create a new file if an existing one fits) using this format:
+> If YES: identify the most appropriate existing file (never propose a new file if an existing one fits) and return a proposed edit — write nothing. The entry format:
 > ### [Short title]
 > - **Context**: what problem/situation triggered this
 > - **Insight**: the learned rule, pattern, or gotcha
 > - **When it applies**: conditions under which this matters
 > - **Date**: YYYY-MM-DD
 > - **Ref**: [first 60 chars of the doc-edit description]
-> Return: file updated/created and summary of entry, OR 'no update required'."
+> Return: `{file, anchor, replacement, reason}` — `anchor` is the exact existing text to change, or the section to append to; `replacement` is the entry above in full; `reason` is why it's warranted — OR 'no update required'."
 
 **Agent 3 — Instructions** (general-purpose):
 > "Post-doc-edit instructions review. Change summary:
@@ -1413,8 +1497,8 @@ Then spawn all four Phase 4 agents. They are independent and can run in any orde
 > Check CLAUDE.md in the project root and ~/.claude/CLAUDE.md (global).
 > Determine if any doc-editing rules, guidance, or guardrails are missing because of what this edit revealed (e.g., a repo-specific frontmatter field that must always be present, a cross-link pattern that's easy to miss, a style rule that caught you out).
 > Skip if: the edit followed existing conventions with no surprises. Only update if a concrete, recurring rule would have prevented a decision point or misunderstanding during this edit.
-> If YES: apply minimal, additive, scoped changes only — do not rewrite sections wholesale.
-> Return: what was changed and why, OR 'no update required'."
+> If YES: keep it minimal, additive, and scoped — do not propose rewriting sections wholesale — and return a proposed edit — write nothing.
+> Return: `{file, anchor, replacement, reason}` — `anchor` is the exact existing text to change, or the section to append to; `replacement` is the proposed new/changed text; `reason` is what this edit revealed that warrants it — OR 'no update required'."
 
 **Agent 4 — Session maintenance** (dev-workflows:impl-maintenance):
 > "Analyse this session and return a Lessons Learned report.
@@ -1449,6 +1533,40 @@ NEVER writes into the docs repo or the current working directory.
 
 ---
 
+## Phase 4.5 — Maintenance proposals
+
+Direct mode never commits — Phase 3 explicitly creates no branch and no commit — so the ordering constraint that gates Jira mode's Phase 8.6 is already satisfied here: there is no commit for an accepted proposal to ride. This phase exists only so an accepted proposal still gets applied instead of just reported, the same as Jira mode's Phase 8.6.
+
+Skip this phase with no prompt when both Phase 4 Agent 2 and Agent 3 returned `'no update required'`.
+
+Otherwise present one row per proposal:
+
+| File | Rule / entry | Reason |
+|---|---|---|
+[one row per Agent 2 / Agent 3 proposal — `file`, the rule or knowledge entry in one line, `reason`]
+
+```
+choices: ["Skip — report only (Recommended)", "Apply all", "Choose per proposal", "Cancel"]
+```
+
+- **Skip — report only** — apply nothing; every proposal's disposition is `proposed` for the Phase 5 report.
+- **Apply all** — apply every proposal via the mechanism below; every proposal's disposition is `applied-uncommitted`.
+- **Choose per proposal** — ask accept/decline for each proposal; apply the accepted ones (`applied-uncommitted`), leave the rest `declined`.
+- **Cancel** — apply nothing; every proposal's disposition is `proposed`. Unlike every other "Cancel" in this command, **Cancel here does not abort the run**: direct mode never branches or commits (Phase 3), so there is nothing upstream to unwind. Cancel only declines this phase's proposals; the run proceeds to Phase 5 and the Final Report is produced exactly as it would be after Skip.
+
+**Apply mechanism.** For each accepted proposal, re-dispatch the agent that produced it — Agent 2 or Agent 3, same general-purpose agent as Phase 4, no new agent type — in apply mode, carrying its own proposal back verbatim:
+
+> "Apply this proposed edit exactly as returned — do not re-derive it:
+> `{file, anchor, replacement, reason}`: [paste the proposal]
+>
+> Locate `anchor` in `file` and write `replacement` in its place (or append it, if the proposal is an append). Return: file written, OR a mismatch note if `anchor` no longer matches the file's current content — do NOT guess at the intended location; skip and report the mismatch."
+
+The edit lands on disk, uncommitted, alongside the rest of this run's changes — direct mode leaves the whole working tree for the user to review and commit manually.
+
+Carry each proposal's `{file, reason, disposition}` into the Phase 5 report.
+
+---
+
 ## Phase 5 — Final Report
 
 Output a structured report — do NOT ask any closing confirmation:
@@ -1473,10 +1591,13 @@ Output a structured report — do NOT ask any closing confirmation:
 - [file updated] — [what was added/changed] OR "no update required (reason)"
 
 ### Knowledge base (Agent 2)
-- [file updated/created] — [summary of entry] OR "no update required"
+- [file, rule/entry summary, reason] — disposition: [proposed | applied-uncommitted | declined] OR "no update required"
 
 ### Instructions (Agent 3)
-- [summary of change] OR "no update required"
+- [file, rule/entry summary, reason] — disposition: [proposed | applied-uncommitted | declined] OR "no update required"
+
+### Maintenance applied (uncommitted)
+[Every Phase 4.5 proposal with disposition `applied-uncommitted` — file, one-line summary, reason — one per line. Direct mode never commits, so these edits already sit in the same uncommitted working tree as the rest of this run's changes; listed separately so an accepted `CLAUDE.md` / knowledge-base edit doesn't get lost among the doc edits when you review before committing. OR "none".]
 
 ### Session learnings (Agent 4)
 - [top suggestions from impl-maintenance agent, or "no suggestions — routine session"]

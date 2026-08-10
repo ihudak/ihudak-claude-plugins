@@ -1,6 +1,6 @@
 ---
 name: docs-profile
-description: Scan a documentation repository and write/refresh a machine-readable docs-profile (.dev-workflows/docs-profile.yml) plus complementary CLAUDE.md guidance, as a reviewable PR. Captures spaces, dev-servers, cross-space override/shadowing, shared registries, gen3/Classic tokens, links, branch-naming, images, and prerequisites; defers changelog/owners to the dynatrace-docs-frontmatter skill. Bootstraps or refreshes the profile that /document consumes.
+description: Scan a documentation repository and write/refresh a machine-readable docs-profile (.dev-workflows/docs-profile.yml) plus complementary CLAUDE.md guidance, as a reviewable PR. Captures spaces, dev-servers, cross-space override/shadowing, shared registries, gen3/Classic tokens, links, announcement pages, branch-naming, images, and prerequisites; defers changelog/owners to the dynatrace-docs-frontmatter skill. Bootstraps or refreshes the profile that /document consumes.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -87,6 +87,7 @@ Dispatch a **read-only** detection subagent **pinned to the §2.1 mid-tier chain
   > 6. **Branch-naming + internal-link conventions** — read CONTRIBUTING.md, CONTRIBUTION.md, README.md, DOCUMENTATION-GUIDELINES.md, and CLAUDE.md at the repo root (and `.claude/`). Quote any documented branch-naming pattern (e.g. `<initials>/<JIRA-KEY>-<slug>`) and any internal-link convention (e.g. `[text](<postid>)` where postid comes from target frontmatter).
   > 7. **Image policy** — any documented rule for screenshots/images (CDN-hosted vs committed binaries); quote the source.
   > 8. **Prerequisites** — anything a dev server needs before `*:start` boots (e.g. a `.docstack` toolchain / shim, an axios version pin, an env var); quote the source.
+  > 9. **Announcement pages** — hand-authored destination pages inside an otherwise automation-owned tree (e.g. a release-notes / what's-new tree). Detection signal: a page under such a tree whose frontmatter does NOT carry `meta.content-type: release-notes` (absent, or any other value) AND whose `git log` shows human PR commits rather than automation. For each match, record its `postid` (frontmatter `postid:`), its repo-relative `path`, and a proposed `kinds` list inferred from the page title and headings (e.g. an "End-of-life announcements" page → `[deprecation, end-of-life, shutdown, sunset]`). Report `announcement_pages: []` explicitly when none are found.
   >
   > Return one section per item above. For anything not found, say `not found` explicitly — do not guess. End with a one-paragraph summary: single-space vs multi-space, and whether this looks like a docstack repo."
 
@@ -112,6 +113,7 @@ On the §2 powerful chain (`planning_model`), turn the detection report into a d
   > - **Multi-space / docstack only:** include `cross_space_override` (manifest path + the last-write-wins shadowing mechanism + the `ignore`-to-win rule) and `shared_registries` (the `schema-ids.yml` / `schema-mappings.yml` lock-step rule). **Single-space repo:** OMIT both.
   > - `tokens`: only the markers detection actually found (`latest_tag`, `gen3_settings_breadcrumb`, `project_conditionals`).
   > - `internal_links.convention`, `branch_naming.pattern`, `images.policy`, `prerequisites[]`: fill from detection; leave a field out rather than inventing it.
+  > - `announcement_pages[]`: one entry per page found by detection item 9 (Announcement pages), each `{postid, path, kinds}`. Emit `announcement_pages: []` explicitly when detection found none — do not omit the key.
   > - `commands.per_space:` — when `package.json` (or the repo's task runner) exposes **per-space** lint / build / format scripts whose names correspond to entries in `spaces[]` (e.g. `dynatrace:lint` + `managed:lint` for spaces `saas` + `managed`), record them under `commands.per_space.<space id>`. Map the script name to the space id by the space's `content_root` (`dynatrace/_content` ⇒ script prefix `dynatrace`), never by guessing. Omit `per_space` entirely for a single-space repo, or when only whole-repo scripts exist.
   > - `frontmatter:` is **POINTERS ONLY** — set `owned_by_skill: dynatrace-docs-frontmatter`, `changelog_guidelines: references/dynatrace-docs/changelog-guidelines.md`, `managed_owners: references/dynatrace-docs/managed-owners.txt`. NEVER copy any changelog or owners rule text into the profile.
   > - Mark every field as `detected` (grounded in the report) or `needs-confirmation` (inferred / not found) so the orchestrator knows what to ask in Phase 4.
@@ -212,7 +214,7 @@ SIGNIFICANT — cross-cutting synthesis of the whole docs repo; output steers al
 <repo-root>/.dev-workflows/docs-profile.yml  (bootstrapped | refreshed)
 
 ### Fields: detected vs user-supplied
-- detected: [spaces, dev_servers, commands, cross_space_override, shared_registries, tokens, internal_links, branch_naming, images, prerequisites — list those that were detected]
+- detected: [spaces, dev_servers, commands, cross_space_override, shared_registries, tokens, internal_links, announcement_pages, branch_naming, images, prerequisites — list those that were detected]
 - user-supplied: [list the fields confirmed/filled in Phase 4]
 - omitted: [e.g. "cross_space_override + shared_registries — single-space repo"]
 - frontmatter: pointers only → dynatrace-docs-frontmatter skill (+ changelog-guidelines.md, managed-owners.txt); changelog/owners NOT re-specified

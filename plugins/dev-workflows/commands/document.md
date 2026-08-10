@@ -415,7 +415,9 @@ Invoke `doc-location-finder`:
   >
   > repo_root:       [the resolved docs_repo_path (Phase 0)]
   > feature_summary: [2–4 sentences combining jira-reader themes + value_increment.goal]
-  > diff_highlights: [key filenames / symbols from the diff-summarizer per_pr summaries]"
+  > diff_highlights: [key filenames / symbols from the diff-summarizer per_pr summaries]
+  > target_spaces:   [the resolved target_spaces, or omit for an unconstrained run]
+  > profile:         [the resolved profile — its announcement_pages block]"
 
 Handle the return:
 

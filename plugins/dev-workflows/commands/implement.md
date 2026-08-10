@@ -569,8 +569,11 @@ that triggered them (§4 plugin-facing predicate) — never target-project
 (§3), resolves the target via the §2 specs-first ladder, and writes silently.
 List the persisted path (or "no plugin-facing signal — nothing persisted") in
 the Phase 5 `### Session learnings` line. ADDITIVE — the impl-maintenance report
-still appears in the report; this step NEVER fails the run, NEVER commits, and
-NEVER writes into the code repo or the current working directory.
+still appears in the report; this step NEVER fails the run, NEVER commits (still
+true — this step only writes the feedback file; the run's only specs-repo commit
+is the terminal `commit-artifacts` step in Phase 7, per
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes into
+the code repo or the current working directory.
 
 ---
 
@@ -658,8 +661,10 @@ and executing its steps inline.
 4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.
 
 ADDITIVE — the follow-ups also remain in the Phase 5 report. This phase NEVER
-fails the run, NEVER commits, and NEVER writes into the code repo or the current
-working directory.
+fails the run, NEVER commits (still true — this phase only writes follow-up
+files; the run's only specs-repo commit is the terminal `commit-artifacts` step
+in Phase 7, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and
+NEVER writes into the code repo or the current working directory.
 
 ---
 
@@ -726,6 +731,7 @@ directory; no user name is ever written (§10 privacy).
 - ALWAYS capture a test baseline (Pre-Phase 3.5) before writing any file
 - ALWAYS create a feature branch (Pre-Phase 3) before writing any file — never implement directly on the default branch
 - ALWAYS check for a clean working tree before branching; stash or get explicit user consent if dirty
+- ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - ALWAYS spawn Phase 4 agents in a single message — never sequentially
 - ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
 - ALWAYS produce the Phase 5 report as the final output
@@ -741,4 +747,4 @@ directory; no user name is ever written (§10 privacy).
 - ALWAYS fan out `code-scanner` one-per-repo in a single response, capped at 4 concurrent — never sequentially
 - NEVER silently skip a referenced `@dir` that is missing or unrecognized — surface it and ask (classification.md §8.4)
 - Scanning agents (`jira-reader`, `code-scanner`) are pinned to the §2.1 detection (Sonnet) chain like every mechanical step (never inherit the session model); escalate a single scanner to Opus only when one repo slice is oversized
-- ALWAYS end the Phase 5 report with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (`resume.md`), then a same-lane `/compact` suggestion + `/rename <VI-ID>-<slug>-team`; **omitted in direct mode** (no VI/Epic context, no `resume.md`); the Phase 3B checkpoint additionally suggests `/compact` mid-run. Guidance only, never auto-run.
+- ALWAYS end the Phase 5 report with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a same-lane `/compact` suggestion + `/rename <VI-ID>-<slug>-team`; **omitted in direct mode** (no VI/Epic context, no `resume.md`); the Phase 3B checkpoint additionally suggests `/compact` mid-run. Guidance only, never auto-run.

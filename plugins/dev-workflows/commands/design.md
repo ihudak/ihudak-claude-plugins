@@ -337,7 +337,10 @@ persists the plugin-facing slice of its report as session feedback.
 **Capture-at-block invariant.** This terminal phase captures gaps for a *completed* run. Separately, if an EARLIER phase **halts on a plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked), `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating — so a run abandoned at the block still records the gap. NEVER `emit-block` for a work-quality review BLOCK or an environment / user halt (repo/spec gate, jira-not-found, cancellation).
 
 **Session-hygiene invariant.** End the report with a `### Context hygiene` block per
-`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (`resume.md`), then a
+`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the
+`resume.md` write runs later, in the terminal cost phase, per
+`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the
+guidance only), then a
 same-role `/compact` suggestion + `/rename <VI-ID>-<slug>-team`. Guidance only, never auto-run.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
@@ -365,8 +368,11 @@ same-role `/compact` suggestion + `/rename <VI-ID>-<slug>-team`. Guidance only, 
 3. **Surface** the persisted path (or "no plugin-facing signal — nothing
    persisted") as this phase's only output.
 
-ADDITIVE — this phase NEVER fails the run, NEVER commits (git is offered only in
-Phase 7), and NEVER writes into the current working directory. The specs-first
+ADDITIVE — this phase NEVER fails the run, NEVER commits (still true — git for
+the deliverable is offered only in Phase 7, and this phase itself runs no git;
+the run's specs-repo commit is the terminal `commit-artifacts` step in Phase 9,
+per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes
+into the current working directory. The specs-first
 ladder writes the feedback file inside `$SPECS_PATH`, alongside the feature
 folder — the intended home.
 

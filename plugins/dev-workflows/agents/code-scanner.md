@@ -101,7 +101,7 @@ gap_summary: |
 ## Hard rules
 
 - NEVER modify files under `repo_path`. This agent reads and classifies.
-- NEVER commit, create branches, cherry-pick, reset, or rebase. Prep step operations are limited to `git status`, `git symbolic-ref`, `git remote set-head`, `git switch`, `git pull --ff-only`.
+- NEVER commit, create branches, cherry-pick, reset, or rebase. Prep step operations are limited to `git status`, `git symbolic-ref`, `git remote set-head`, `git switch`, `git pull --ff-only`. (Still true — this rule binds `repo_path`, a code repo; the caller's terminal `commit-artifacts` step touches only `$SPECS_PATH` and never dispatches this agent's git.)
 - NEVER make HTTPS / REST calls to any git host. All scan work is on the local clone.
 - NEVER switch away from the detected default branch after the prep step. If the user's workflow requires a different branch, the caller must pre-configure it; this agent does not accept a branch override.
 - NEVER invent a theme's classification without evidence. If no files match, classify `absent`.

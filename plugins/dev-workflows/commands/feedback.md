@@ -18,6 +18,20 @@ project. Target-project tooling advice does not belong here (see
 
 ---
 
+## Phase 0 — Specs-repo preflight
+
+Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
+`specs-preflight` entry point (§3) inline: flush any leftover session
+artifacts from an earlier run, retry an artifact commit that failed to push,
+and settle the branch. This runs against `$SPECS_PATH` only — `git -C
+"$SPECS_PATH"`, never a `cd`, so whatever repository you are standing in is
+untouched (§1 rule 1). Prompt-free and silent when the specs repo is clean and
+on its default branch. If a guard fires, emit its §5 notice; if it returns
+`specs_git: blocked` (§3.3 G0), carry that flag — the terminal
+`commit-artifacts` step skips on it.
+
+---
+
 ## Phase 1 — Compose the note
 
 1. If `$ARGUMENTS` is empty, ask the user for the note (the friction and the
@@ -57,8 +71,24 @@ ladder using `jira_key` and `source`, format the entry per §1 (`origin:
 manual`), and append per §3 (manual entries are never silently skipped — on an
 `id` collision append a numeric suffix and warn). Write silently.
 
+**Then commit session artifacts (terminal).** Cite
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
+`commit-artifacts` entry point (§4) inline. It stages ONLY the §2.1 bounded
+artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session
+artifacts (/feedback)` — or `NOISSUE …` when no `jira_key` resolved — and
+pushes. It NEVER touches a code/docs repo, the vault, or the current working
+directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the
+run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its
+§6 outcome line for Phase 4.
+
 ## Phase 4 — Report
 
 Surface the persisted path and any degradation notice (e.g. the tier-3 vault
-warning, or tier-5 report-only). This command NEVER commits, and NEVER writes
-into a docs/code repo or the current working directory.
+warning, or tier-5 report-only), then the `Specs repo:` outcome line from
+`commit-artifacts` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6),
+with any guard notice repeated in full.
+
+This command NEVER commits into a docs/code repo, the vault, or the current
+working directory. The terminal `commit-artifacts` step commits ONLY
+`$SPECS_PATH`'s bounded artifact paths
+(`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).

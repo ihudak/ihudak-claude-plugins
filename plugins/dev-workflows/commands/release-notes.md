@@ -318,7 +318,7 @@ inline.
 
 ADDITIVE — the follow-ups also remain in the Phase 8 report. This phase NEVER
 fails the run, NEVER commits (still true — this phase only writes follow-up
-files; the run's single commit is the terminal `commit-artifacts` step in
+files; those writes are committed by the terminal `commit-artifacts` step in
 Phase 11, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), NEVER
 makes an external API call, and NEVER writes into a docs repo or the current
 working directory.
@@ -358,11 +358,12 @@ and then persists the plugin-facing slice of its report as session feedback.
 3. **Surface** the persisted path (or "no plugin-facing signal — nothing
    persisted") as this phase's only output.
 
-ADDITIVE — this phase NEVER fails the run, NEVER commits (still true — this phase
-only writes the feedback file; the run's single commit is the terminal
+ADDITIVE — this phase NEVER fails the run, NEVER commits (still true — this
+phase only writes the feedback file; those writes are committed by the terminal
 `commit-artifacts` step in Phase 11, per
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), NEVER makes an external
-API call, and NEVER writes into a docs repo or the current working directory.
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), NEVER makes an
+external API call, and NEVER writes into a docs repo or the current working
+directory.
 
 ---
 
@@ -429,7 +430,7 @@ current working directory; no user name is ever written (§10).
 - The run is GATED on the imported `relevant_for_release_notes`: an explicit `false` stops with `RELEASE_NOTES_NOT_RELEVANT` (overridable); absent proceeds silently.
 - NEVER write into a docs repo; the default destination is persistent (never `/tmp`).
 - ALWAYS use `choices` arrays; the last choice is always `"Other… (describe)"`.
-- Light gate only — no Opus review, no tests, no branch, and no commit of the draft or of anything in a docs/code repo, the vault, or the current working directory. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
+- Light gate only — no Opus review, no tests, no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none), and no commit of the draft or of anything in a docs/code repo, the vault, or the current working directory. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - ALWAYS end the Phase 8 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked; the pipeline leaf (adaptive: continue any pending PA/PE phase, else the VI is fully processed).
 - ALWAYS end the Phase 8 report with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a leaf-aware suggestion (done → nothing; pending role → `/clear`) + `/rename <VI-ID>-<slug>-pm`; guidance only, never auto-run.

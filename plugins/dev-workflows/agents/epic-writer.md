@@ -1,6 +1,6 @@
 ---
 name: epic-writer
-description: Writes child Epic-definition files for /epics from a structured handoff file — one file per Epic, following the Epic template, traceable to the jira-reader handoff and code-scanner evidence. Write-only (vault content; never commits — it runs no git at all). Returns the list of Epic files written. The orchestrator pins it to the §2.1 Sonnet detection chain for MODERATE runs (§2 Opus only if SIGNIFICANT/HIGH-RISK).
+description: Writes child Epic-definition files for /epics from a structured handoff file — one file per Epic, following the Epic template, traceable to the jira-reader handoff and code-scanner evidence. Write-only — writes vault content, never commits (still true — it runs no git at all). Returns the list of Epic files written. The orchestrator pins it to the §2.1 Sonnet detection chain for MODERATE runs (§2 Opus only if SIGNIFICANT/HIGH-RISK).
 tools: ["Read", "Glob", "Grep", "Write", "Edit"]
 ---
 

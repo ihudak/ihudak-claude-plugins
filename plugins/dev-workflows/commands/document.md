@@ -767,7 +767,7 @@ The writing is delegated to the **`doc-writer`** subagent (pinned to the §2 Opu
      ```
      On a provided value, rewrite the handoff file and re-dispatch once.
 
-Write context governs branch/commit (Phase 0 step 6); **the orchestrator commits the writer's output** (the writer never commits — still true: `doc-writer` runs no git at all, it only writes files):
+Write context governs branch/commit (Phase 0 step 6); **the orchestrator commits the writer's output** (the writer never commits (still true — `doc-writer` runs no git at all; it only writes files)):
 
 | Write context | Branch | Commit |
 |---|---|---|
@@ -1032,19 +1032,20 @@ returns, project its plugin-facing slice into the specs repo by citing
 `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
 `emit-auto` entry point (§6). Pass Agent 4's Lessons Learned report,
 `command: /document (Jira mode)`, the run's `jira_key` and `source`, and
-`plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`).
-`emit-auto` renders only the report's **Command workflow improvements**, **New
-agents / skills**, and plugin **Reference docs** sections plus the **Key
-observations** that triggered them (§4 plugin-facing predicate) — never
-target-project `CLAUDE.md`/hook advice — as `origin: auto` entries, dedupes by
-stable `id` (§3), resolves the target via the §2 specs-first ladder, and writes
-silently. List the persisted path (or "no plugin-facing signal — nothing
-persisted") in the Phase 9 report's Session learnings line. ADDITIVE — the
-impl-maintenance report still appears in the report; this step NEVER fails the
-run, NEVER commits (still true — this step only writes the feedback file; the
-run's specs-repo commit is the separate terminal `commit-artifacts` step, per
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes into
-the docs repo or the current working directory.
+`plugin_version` (read from
+`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto` renders only
+the report's **Command workflow improvements**, **New agents / skills**, and
+plugin **Reference docs** sections plus the **Key observations** that
+triggered them (§4 plugin-facing predicate) — never target-project
+`CLAUDE.md`/hook advice — as `origin: auto` entries, dedupes by stable `id`
+(§3), resolves the target via the §2 specs-first ladder, and writes silently.
+List the persisted path (or "no plugin-facing signal — nothing persisted") in
+the Phase 9 report's Session learnings line. ADDITIVE — the impl-maintenance
+report still appears in the report; this step NEVER fails the run, NEVER
+commits (still true — this step only writes the feedback file; those writes
+are committed by the separate terminal `commit-artifacts` step, per
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes
+into the docs repo or the current working directory.
 
 ---
 
@@ -1082,7 +1083,7 @@ Carry the squash result, push outcome, and PR-draft path into the Phase 9 report
 
 ## Phase 8.6 — Maintenance proposals
 
-Runs **after** Phase 8.5 — never before. The ordering is the whole safety property, and it holds whether or not Phase 8.5 ran: once this phase starts, **the run will create no further commit in the docs write target** — either Phase 8.5 sealed the docs commit, or the write context never commits at all (`obsidian` / `plain_dir`, per the Phase 6.3 branch/commit table — which governs the docs write target only, never `$SPECS_PATH`). Either way an accepted `CLAUDE.md` (or knowledge-base) edit has no commit left to ride. The one commit still to come is the terminal `commit-artifacts` step, which stages ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1) — it can never pick up a `CLAUDE.md` or knowledge-base edit, so the safety property holds unchanged.
+Runs **after** Phase 8.5 — never before. The ordering is the whole safety property, and it holds whether or not Phase 8.5 ran: once this phase starts, **the run will create no further commit in the docs write target** — either Phase 8.5 sealed the docs commit, or the write context never commits at all (`obsidian` / `plain_dir`, per the Phase 6.3 branch/commit table — which governs the docs write target only, never `$SPECS_PATH`). Either way an accepted `CLAUDE.md` (or knowledge-base) edit has no commit left to ride. What still commits after this point is the terminal `commit-artifacts` step, which stages ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1) — it can never pick up a `CLAUDE.md` or knowledge-base edit, so the safety property holds unchanged.
 
 Skip this phase with no prompt when both Phase 8 Agent 2 and Agent 3 returned `'no update required'`.
 
@@ -1099,7 +1100,7 @@ choices: ["Skip — report only (Recommended)", "Apply all", "Choose per proposa
 - **Skip — report only** — apply nothing; every proposal's disposition is `proposed` for the Phase 9 report.
 - **Apply all** — apply every proposal via the mechanism below; every proposal's disposition is `applied-uncommitted`.
 - **Choose per proposal** — ask accept/decline for each proposal; apply the accepted ones (`applied-uncommitted`), leave the rest `declined`.
-- **Cancel** — apply nothing; every proposal's disposition is `proposed`. Unlike every other "Cancel" in this command, **Cancel here does not abort the run**: by the time this phase runs there is nothing upstream left to unwind — Phase 8.5's squash (and any push / PR draft) is already done, or the write context never committed at all (`obsidian` / `plain_dir`) — still true, because the only later commit is the terminal `commit-artifacts` step, bounded to `$SPECS_PATH`'s artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1) and therefore never able to carry a proposal from this phase. Cancel only declines this phase's proposals; the run proceeds to Phase 9 and the Final Report is produced exactly as it would be after Skip.
+- **Cancel** — apply nothing; every proposal's disposition is `proposed`. Unlike every other "Cancel" in this command, **Cancel here does not abort the run**: by the time this phase runs there is nothing upstream left to unwind — Phase 8.5's squash (and any push / PR draft) is already done, or the write context never committed at all (`obsidian` / `plain_dir`) (still true — what still commits after this point is the terminal `commit-artifacts` step, bounded to `$SPECS_PATH`'s artifact paths per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1, and therefore never able to carry a proposal from this phase). Cancel only declines this phase's proposals; the run proceeds to Phase 9 and the Final Report is produced exactly as it would be after Skip.
 
 **Apply mechanism.** For each accepted proposal, re-dispatch the agent that produced it — Agent 2 or Agent 3, same general-purpose agent and model as Phase 8, no new agent type — in apply mode, carrying its own proposal back verbatim:
 
@@ -1236,12 +1237,12 @@ inline.
    §1–§3; dedupe per §5.
 4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.
 
-ADDITIVE — the follow-ups also remain in the Phase 9 report (today's behaviour).
-This phase NEVER fails the run, NEVER commits (still true — this phase only
-writes follow-up files; the run's specs-repo commit is the separate terminal
-`commit-artifacts` step, per
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes into
-the docs repo or the current working directory.
+ADDITIVE — the follow-ups also remain in the Phase 9 report (today's
+behaviour). This phase NEVER fails the run, NEVER commits (still true — this
+phase only writes follow-up files; those writes are committed by the separate
+terminal `commit-artifacts` step, per
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes
+into the docs repo or the current working directory.
 
 ---
 
@@ -1333,7 +1334,7 @@ If the argument starts with `@`, treat it as a path to a markdown file. Resolve 
 
 `/document` (direct mode) is the **one-shot doc-editing** workflow — minor edits, formatting, small updates to existing pages, and single-file additions where the content comes from the user's description alone. It is the right tool when:
 - the change is small and the content is already in the user's head or the file, **not** scattered across Jira items and PR diffs
-- no tests, no branch, no code review, and no commit of the doc edit are warranted
+- no tests, no branch (still true — the specs-repo preflight creates none, `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2), no code review, and no commit of the doc edit are warranted
 
 For net-new documentation assembled from a Jira hierarchy plus PR diffs, use Jira mode (above). For writing child Epic drafts from a Value Increment, use `/epics`.
 
@@ -1568,23 +1569,23 @@ returns, project its plugin-facing slice into the specs repo by citing
 direct mode) and `source`, and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto` renders only
 the report's **Command workflow improvements**, **New agents / skills**, and
-plugin **Reference docs** sections plus the **Key observations** that triggered
-them (§4 plugin-facing predicate) — never target-project `CLAUDE.md`/hook advice
-— as `origin: auto` entries, dedupes by stable `id` (§3), resolves the target
-via the §2 specs-first ladder, and writes silently. List the persisted path
-(or "no plugin-facing signal — nothing persisted") in the Phase 5
-`### Session learnings (Agent 4)` line. ADDITIVE — the impl-maintenance report
-still appears in the report; this step NEVER fails the run, NEVER commits (still
-true — this step only writes the feedback file; the run's specs-repo commit is
-the separate terminal `commit-artifacts` step, per
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes into
-the docs repo or the current working directory.
+plugin **Reference docs** sections plus the **Key observations** that
+triggered them (§4 plugin-facing predicate) — never target-project
+`CLAUDE.md`/hook advice — as `origin: auto` entries, dedupes by stable `id`
+(§3), resolves the target via the §2 specs-first ladder, and writes silently.
+List the persisted path (or "no plugin-facing signal — nothing persisted") in
+the Phase 5 `### Session learnings (Agent 4)` line. ADDITIVE — the
+impl-maintenance report still appears in the report; this step NEVER fails the
+run, NEVER commits (still true — this step only writes the feedback file;
+those writes are committed by the separate terminal `commit-artifacts` step,
+per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes
+into the docs repo or the current working directory.
 
 ---
 
 ## Phase 4.5 — Maintenance proposals
 
-Direct mode never commits the doc edits — Phase 3 explicitly creates no branch and no commit — so the ordering constraint that gates Jira mode's Phase 8.6 is already satisfied here: there is no docs commit for an accepted proposal to ride. The one commit the run does make, the terminal `commit-artifacts` step, is bounded to `$SPECS_PATH`'s artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1) and can never carry a proposal from this phase. This phase exists only so an accepted proposal still gets applied instead of just reported, the same as Jira mode's Phase 8.6.
+Direct mode never commits the doc edits — Phase 3 explicitly creates no branch and no commit — so the ordering constraint that gates Jira mode's Phase 8.6 is already satisfied here: there is no docs commit for an accepted proposal to ride. What the run does commit, via the terminal `commit-artifacts` step, is bounded to `$SPECS_PATH`'s artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1) and can never carry a proposal from this phase. This phase exists only so an accepted proposal still gets applied instead of just reported, the same as Jira mode's Phase 8.6.
 
 Skip this phase with no prompt when both Phase 4 Agent 2 and Agent 3 returned `'no update required'`.
 
@@ -1601,7 +1602,7 @@ choices: ["Skip — report only (Recommended)", "Apply all", "Choose per proposa
 - **Skip — report only** — apply nothing; every proposal's disposition is `proposed` for the Phase 5 report.
 - **Apply all** — apply every proposal via the mechanism below; every proposal's disposition is `applied-uncommitted`.
 - **Choose per proposal** — ask accept/decline for each proposal; apply the accepted ones (`applied-uncommitted`), leave the rest `declined`.
-- **Cancel** — apply nothing; every proposal's disposition is `proposed`. Unlike every other "Cancel" in this command, **Cancel here does not abort the run**: direct mode never branches or commits the doc edits (Phase 3), so there is nothing upstream to unwind — still true, because the only later commit is the terminal `commit-artifacts` step, bounded to `$SPECS_PATH`'s artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1). Cancel only declines this phase's proposals; the run proceeds to Phase 5 and the Final Report is produced exactly as it would be after Skip.
+- **Cancel** — apply nothing; every proposal's disposition is `proposed`. Unlike every other "Cancel" in this command, **Cancel here does not abort the run**: direct mode never branches or commits the doc edits (Phase 3), so there is nothing upstream to unwind (still true — what still commits after this point is the terminal `commit-artifacts` step, bounded to `$SPECS_PATH`'s artifact paths per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1). Cancel only declines this phase's proposals; the run proceeds to Phase 5 and the Final Report is produced exactly as it would be after Skip.
 
 **Apply mechanism.** For each accepted proposal, re-dispatch the agent that produced it — Agent 2 or Agent 3, same general-purpose agent as Phase 4, no new agent type — in apply mode, carrying its own proposal back verbatim:
 
@@ -1686,10 +1687,10 @@ its steps inline.
 
 ADDITIVE — the follow-ups also remain in the Phase 5 report. This phase NEVER
 fails the run, NEVER commits (still true — this phase only writes follow-up
-files, and the user manages git manually for the doc edits; the run's specs-repo
-commit is the separate terminal `commit-artifacts` step, per
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes into
-the docs repo or the current working directory.
+files, and the user manages git manually for the doc edits; those writes are
+committed by the separate terminal `commit-artifacts` step, per
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes
+into the docs repo or the current working directory.
 
 ---
 

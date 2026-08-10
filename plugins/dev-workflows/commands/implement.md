@@ -568,12 +568,12 @@ that triggered them (§4 plugin-facing predicate) — never target-project
 `CLAUDE.md`/hook advice — as `origin: auto` entries, dedupes by stable `id`
 (§3), resolves the target via the §2 specs-first ladder, and writes silently.
 List the persisted path (or "no plugin-facing signal — nothing persisted") in
-the Phase 5 `### Session learnings` line. ADDITIVE — the impl-maintenance report
-still appears in the report; this step NEVER fails the run, NEVER commits (still
-true — this step only writes the feedback file; the run's only specs-repo commit
-is the terminal `commit-artifacts` step in Phase 7, per
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes into
-the code repo or the current working directory.
+the Phase 5 `### Session learnings` line. ADDITIVE — the impl-maintenance
+report still appears in the report; this step NEVER fails the run, NEVER
+commits (still true — this step only writes the feedback file; those writes
+are committed by the terminal `commit-artifacts` step in Phase 7, per
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes
+into the code repo or the current working directory.
 
 ---
 
@@ -662,8 +662,8 @@ and executing its steps inline.
 
 ADDITIVE — the follow-ups also remain in the Phase 5 report. This phase NEVER
 fails the run, NEVER commits (still true — this phase only writes follow-up
-files; the run's only specs-repo commit is the terminal `commit-artifacts` step
-in Phase 7, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and
+files; those writes are committed by the terminal `commit-artifacts` step in
+Phase 7, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and
 NEVER writes into the code repo or the current working directory.
 
 ---

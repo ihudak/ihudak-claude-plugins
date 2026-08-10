@@ -370,11 +370,10 @@ same-role `/compact` suggestion + `/rename <VI-ID>-<slug>-team`. Guidance only, 
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits (still true — git for
 the deliverable is offered only in Phase 7, and this phase itself runs no git;
-the run's specs-repo commit is the terminal `commit-artifacts` step in Phase 9,
+those writes are committed by the terminal `commit-artifacts` step in Phase 9,
 per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes
-into the current working directory. The specs-first
-ladder writes the feedback file inside `$SPECS_PATH`, alongside the feature
-folder — the intended home.
+into the current working directory. The specs-first ladder writes the feedback
+file inside `$SPECS_PATH`, alongside the feature folder — the intended home.
 
 ## Phase 9 — Session cost
 

@@ -19,6 +19,26 @@ only", "Cancel"]` with the recommendation moved onto Skip, and the render gate w
 Adding the trailing `"Other… (describe)"` entry where a phase omits it is the one permitted
 adjustment.
 
+## The `(Recommended)` marker is unconditional
+
+**A `(Recommended)` marker applies whenever its list is shown.** A marker that carries its own
+condition — `(Recommended for <case>)`, `(Recommended if <case>)` — is malformed: it hands the user
+the gate the command was supposed to evaluate, and it cannot be honoured verbatim by an orchestrator
+that must not edit the list. Write it one of two ways instead:
+
+- the condition **gates the prompt** (the list is only shown in that case) → the marker is a plain
+  `(Recommended)`; or
+- the condition **lives in the option's own description** → the list carries no marker at all.
+
+A **reason** annotation is not a condition and is fine: `(Recommended — <why>)` states why the option
+is recommended, unconditionally, and is honoured verbatim like any other marker (`/document`
+Phase 5 and `/epics` Phase 1 both use it).
+
+When no option is safe to recommend across the runs that reach a prompt, omit the marker and say so
+in prose beside the list (as `/document` Phase 5.6 does for its per-occurrence image review).
+
+This rule binds every command in the plugin, not only the ones documented below.
+
 ## Jira key dir not found
 
 `choices: ["Re-enter key", "Cancel"]`

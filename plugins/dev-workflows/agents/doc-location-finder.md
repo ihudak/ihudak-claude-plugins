@@ -69,9 +69,9 @@ targets:
   - kind:      extend-existing | new-page-in-existing-section | new-section
     section:   <human-readable label, e.g. "Setup and configuration">
     path:      <absolute path; for extend-existing this is the existing file, for new-* this is the proposed new file>
-    rationale: <1 sentence: why this location>
+    rationale: <1–2 sentences: why this location; for a step-6 announcement-page target, also its recommended write strategy (`conditional` for the requesting space)>
     linked_from: [<paths of pages that should cross-link to this, if any>]
-confidence_notes: <when status == LOW_CONFIDENCE: what's ambiguous>
+confidence_notes: <when status == LOW_CONFIDENCE: what's ambiguous. Also used at any status to record a filter that could not be applied — e.g. `target_spaces` supplied without a `profile` (see the Inputs note and the target_spaces hard rule); an OK run with such a note stays OK.>
 ```
 
 When `status: EMPTY`, `targets` is `[]` and `confidence_notes` explains why (e.g. "feature topic matches no page above the 0.15 overlap threshold; repo has no existing section that's a natural adjacent home").
@@ -81,7 +81,7 @@ When `status: EMPTY`, `targets` is `[]` and `confidence_notes` explains why (e.g
 - NEVER modify files in `repo_root`. This agent is read-only.
 - NEVER write the topical index to disk. Keep it in memory for the single invocation.
 - NEVER propose a target outside `repo_root` or below a path the user wouldn't reasonably recognise as part of the docs tree (e.g. inside `node_modules/`, `.git/`, build output directories).
-- NEVER propose a target outside the `content_root`(s) of the spaces named in `target_spaces` when `target_spaces` is non-empty — a space-constrained run must not cross into a space it wasn't asked to touch. **One exemption, which takes precedence over this rule: a page declared in `profile.announcement_pages` (step 6).** It is a cross-cutting destination by definition, so it is emitted whichever space's `content_root` it lives under — all three dynatrace-docs built-ins sit under the saas root, and filtering them would suppress the announcement target on exactly the Managed runs that need it. Nothing else is exempt; every discovered target still obeys this rule.
+- NEVER propose a target outside the `content_root`(s) of the spaces named in `target_spaces` when `target_spaces` is non-empty — a space-constrained run must not cross into a space it wasn't asked to touch. **One exemption, which takes precedence over this rule: a page declared in `profile.announcement_pages` (step 6).** It is a cross-cutting destination by definition, so it is emitted whichever space's `content_root` it lives under — all three dynatrace-docs built-ins sit under the saas root, and filtering them would suppress the announcement target on exactly the Managed runs that need it. Nothing else is exempt; every discovered target still obeys this rule **wherever the rule has a map to apply it with** — it is predicated on a `profile` supplying `spaces[].content_root`. `target_spaces` non-empty with `profile` absent leaves no such map, so that run goes unconstrained and says so in `confidence_notes` (see Inputs); that is an unmet precondition, not an exemption, and it signals a caller defect.
 - NEVER guess at prose content for the target pages. This agent picks *where*, not *what*.
 - NEVER return more than ~5 targets. If the feature legitimately has more, rank and keep the top 5; extra noise pushes work into the user's confirm step.
 - If the docs tree root cannot be detected with any confidence (no subdirectory contains ≥ a handful of frontmatter-bearing markdown files), return `status: EMPTY` with a `confidence_notes` explaining that the repo doesn't look like a product docs repo by this agent's heuristics. The caller will ask the user to confirm the repo or cancel.

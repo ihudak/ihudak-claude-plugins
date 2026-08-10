@@ -28,7 +28,7 @@ docs_grounding:      <optional docs-grounder digest (docs_references + docs_chal
 `run_phase` distinguishes the PM-phase run (the feature is not built and no documentation exists) from
 the dev-phase run (implementation and docs are underway). It gates only the §4 documentation-link rule
 for the `feature-updates` destination; nothing else reads it. **It arrives pre-resolved — trust it.**
-`release-note-types.md` §4 states the condition concretely ("no `specification.md` and no `design.md`
+`${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §4 states the condition concretely ("no `specification.md` and no `design.md`
 under the VI's specs dir") because it was written before this field existed, but you have no knowledge
 of `$SPECS_PATH` or the VI's specs dir, so NEVER glob or otherwise check the filesystem for those
 files. The command resolves the phase and hands it to you; a self-check would silently produce the

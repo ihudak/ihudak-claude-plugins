@@ -308,7 +308,7 @@ equals `jira_key`), or `design/<VI>-<vslug>` for a **broad VI-level** design (`f
 keys are globally unique, so the per-Epic form needs no VI prefix; both forms use hyphens. main is
 protected — a PR is required — so commit ONLY the feature folder (never `git add -A`), push, and open a
 PR targeting `main`. **Merged-to-main = ready for `/implement`.** Commit trailer:
-`Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`.
+`Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
 
 ### Next Epic (after a per-Epic design from a multi-Epic VI)
 

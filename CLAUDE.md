@@ -91,7 +91,7 @@ knowledge. Keep those roles separate so workflows stay predictable.
 
 - Task complexity classification (`SIMPLE` / `MODERATE` / `SIGNIFICANT` /
   `HIGH-RISK`)
-- The model fallback chain (Opus 4.8 → 4.7 → 4.6 → Sonnet 4.6 → Sonnet 4.5)
+- The model fallback chain (Opus 5 → 4.8 → 4.7 → 4.6 → Sonnet 5 → Sonnet 4.6 → Sonnet 4.5)
 - The mandatory Opus code-review checklist
 - The `model_routing` YAML handoff block shared between commands and agents
 - The `phase: verify-resume` protocol for review-gated verification

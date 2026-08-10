@@ -89,7 +89,7 @@ Act on the verdict as `/create-vi` Phase 4 does: on `BLOCK`, fix the BLOCKER fin
 
 1. **Archive the current canonical VI** (if one exists) to `<feature-folder>/revisions/<KEY>_<slug>_<YYYYMMDD>.md` before overwrite (same-day second revision → suffix `-2`, `-3`, …).
 2. **Write the refreshed VI** to the **canonical** path `<feature-folder>/<KEY>_<slug>.md`. Record `revision_of: <archived snapshot path>` and `built_from_import: <YYYY-MM-DD>` (the Jira-import date the update was built from) in the frontmatter.
-3. **Offer git** (commit-when-asked — never automatic): `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git", "Cancel"]`. On the first choice, in `$SPECS_PATH`: branch `vi/<KEY>-<slug>-update`; commit **only** the feature folder (never `git add -A`); push; PR to `main`. Commit trailer: `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`.
+3. **Offer git** (commit-when-asked — never automatic): `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git", "Cancel"]`. On the first choice, in `$SPECS_PATH`: branch `vi/<KEY>-<slug>-update`; commit **only** the feature folder (never `git add -A`); push; PR to `main`. Commit trailer: `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
 
 ### Jira round-trip (document to the user — they will otherwise miss it)
 

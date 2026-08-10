@@ -407,7 +407,7 @@ Then **offer** (commit-when-asked — never automatic):
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git", "Cancel"]
 ```
 
-On the first choice, in the specs repo (`$SPECS_PATH`): create the branch — `spec/<EPIC>-<eslug>` for a **per-Epic** spec (a VI + focus Epic) or a **stand-alone-Epic** spec (`<EPIC>` = `focus_key`, which for a stand-alone Epic equals `jira_key`), or `spec/<VI>-<vslug>` for a **broad VI-level** spec (`focus_key` null). Epic keys are globally unique, so the per-Epic form needs no VI prefix; both forms use hyphens. main is protected — a PR is required — so commit ONLY the feature folder (never `git add -A`), push, and open a PR targeting `main`. **Merged-to-main = ready for the dev-team handover.** Devs and `/design` read the spec from `main`, never from the branch. Commit trailer: `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`.
+On the first choice, in the specs repo (`$SPECS_PATH`): create the branch — `spec/<EPIC>-<eslug>` for a **per-Epic** spec (a VI + focus Epic) or a **stand-alone-Epic** spec (`<EPIC>` = `focus_key`, which for a stand-alone Epic equals `jira_key`), or `spec/<VI>-<vslug>` for a **broad VI-level** spec (`focus_key` null). Epic keys are globally unique, so the per-Epic form needs no VI prefix; both forms use hyphens. main is protected — a PR is required — so commit ONLY the feature folder (never `git add -A`), push, and open a PR targeting `main`. **Merged-to-main = ready for the dev-team handover.** Devs and `/design` read the spec from `main`, never from the branch. Commit trailer: `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
 
 ### Next Epic (after a per-Epic spec from a multi-Epic VI)
 

@@ -1,7 +1,7 @@
 # Anchor conventions (dynatrace-docs)
 
 How `/document` authors, links, and verifies heading anchors on dynatrace-docs
-pages — the `{:#id}` syntax, the three link forms that reference an anchor, the
+pages — the `{:#id}` syntax, the link forms that reference an anchor, the
 `docstack` tool that validates them, and the rule for reconciling a docs anchor
 against a product `dt-url` deep link.
 
@@ -27,21 +27,24 @@ Multi-anchor syntax on one heading — `{:#a #b}`, aliasing two ids to the same
 section — appears **0 times** in the repo (`grep -rE '\{:#[^}]*#'`).
 
 **Multi-anchor is unsupported.** Do not author `{:#a #b}` expecting either id
-to resolve; if a section needs a second stable id, add a second heading (or a
-dedicated anchor-only element) instead of stacking ids on one heading.
+to resolve; if a section needs a second stable id, add a second heading instead
+of stacking ids on one heading.
 
 ## 2. Link forms
 
-All three forms are verified in-repo. Use the whole-page form when the target
-is the page itself, the cross-page form when linking into a specific section of
-another page, and the same-page form only within the page that owns the anchor.
+The table has four rows. Each is either measured against the docs repo in this
+pass or cited to an existing convention — the Occurrences column says which.
+Use the whole-page form when the target is the page itself, the cross-page form
+when linking into a specific section of another page, the same-page form only
+within the page that owns the anchor, and the tabgroup form when the link
+target is a specific tab rather than a heading-owned section.
 
 | Form | Purpose | Occurrences |
 |---|---|---|
-| `[text](<postid>)` | whole page | (existing `internal_links.convention`) |
-| `[text](<postid>#<anchor>)` | cross-page section | 19,560 |
-| `[text](#<anchor>)` | same-page section | 4,006 |
-| `{{#tabgroup anchor='id'}}` | mints an anchor on a tab group | 698 |
+| `[text](<postid>)` | whole page | not measured in this pass — cited to the existing `internal_links.convention` |
+| `[text](<postid>#<anchor>)` | cross-page section | 19,560 (measured) |
+| `[text](#<anchor>)` | same-page section | 4,006 (measured) |
+| `{{#tabgroup anchor='id'}}` | mints an anchor on a tab group | 698 (measured) |
 
 The `{{#tabgroup anchor='id'}}` form is distinct from the heading-level
 `{:#id}` syntax in §1 — it mints an anchor on the tab group component itself,
@@ -50,9 +53,10 @@ rather than a section.
 
 ## 3. Tooling — `validate-anchors`
 
-The repo's `docstack` CLI (invoked via the `docstack` script — see
-`package.json`: `"docstack": "node .docstack/dist/apps/cli/bin/cli.mjs"`; it is
-not a standalone binary and is not exposed as its own npm script) exposes a
+The dynatrace-docs repo's `docstack` CLI (invoked via the `docstack` script in
+the dynatrace-docs repo's own `package.json`:
+`"docstack": "node .docstack/dist/apps/cli/bin/cli.mjs"`; it is not a
+standalone binary and is not exposed as its own npm script) exposes a
 `validate-anchors` command:
 
 ```bash
@@ -81,9 +85,9 @@ re-derived per run.
 If the docs anchor genuinely cannot be made to match the product's deep link
 (for example, the target section was restructured and no single heading
 maps to it), do not resolve the mismatch silently — record it and route it
-through the normal Phase 5.8 discrepancy-escalation path (see
-[`source-truth.md`](../source-truth.md) §7 for the protocol: present the
-analysis, ask the user, and record the decision — never auto-resolve).
+through the normal Phase 5.8 discrepancy-escalation path (see [[source-truth]]
+§7 for the protocol: present the analysis, ask the user, and record the
+decision — never auto-resolve).
 
 ## 5. Consumers
 

@@ -19,15 +19,22 @@ At command finalization — AFTER the deliverable artifact is saved/committed, A
 writes/overwrites a **resume pointer**. It runs regardless of which suggestion (or none)
 fires: **prepare always, suggest adaptively.**
 
-**The write is a step of the cost phase, not of the printed suggestion.** The
-`### Context hygiene` block in a command's report carries the `/compact` | `/clear` |
-`/rename` guidance only; the pointer itself is written as the last step of the command's
-terminal cost phase, immediately before `commit-artifacts`. Several commands compose
-their Final Report *before* their follow-up and cost phases run, so binding the write to
-the printed block would put it before the cost entry it is supposed to follow — and
-would leave it uncommitted, since `commit-artifacts` runs after cost. Prepare-first is
-still satisfied: the write happens before the run ends, and therefore before the user
-can act on the suggestion.
+**The write is its own terminal step — not part of the printed suggestion, and not part
+of `emit-cost`.** The `### Context hygiene` block in a command's report carries the
+`/compact` | `/clear` | `/rename` guidance only. The pointer is written by a **discrete
+step that runs after the cost phase's `emit-cost` call has returned and before
+`commit-artifacts`** — placed at the end of the command's terminal cost phase, but never
+folded into `emit-cost`'s own procedure. `cost-emission.md` owns that procedure and
+writes no resume pointer; giving it one would split ownership of this file across two
+references. The order is three separate steps, as §5 rule 2 states: **cost →
+`resume.md` → `commit-artifacts`**.
+
+Binding the write to the printed block instead would break it twice over: several
+commands compose their Final Report *before* their follow-up and cost phases run, so the
+write would land before the cost entry it is supposed to follow, and it would stay
+uncommitted, since `commit-artifacts` runs after cost. Prepare-first is still satisfied:
+the write happens before the run ends, and therefore before the user can act on the
+printed suggestion.
 
 **Skipped** (no VI anchor to write against): `/idea` (pre-VI, keyless), `/implement`
 **direct** mode, `/document` **doc-edit** mode (Mode B), `/vuln`, `/upgrade`. There the

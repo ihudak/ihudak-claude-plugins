@@ -14,8 +14,8 @@ transition, against the rubric in `${CLAUDE_PLUGIN_ROOT}/references/workflow-sta
 the Opus `readiness-reviewer`.
 
 Key distinction from every other pipeline command: `/ready` **authors nothing**. It never writes a VI,
-Epic, ARD, spec, or design; it never touches Jira; it never branches, and it never commits the
-deliverable. Its only authored write is an overwritten `_readiness.md` snapshot under `$SPECS_PATH`,
+Epic, ARD, spec, or design; it never touches Jira; it never branches (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none),
+and it never commits the deliverable. Its only authored write is an overwritten `_readiness.md` snapshot under `$SPECS_PATH`,
 and that one is the user's to commit — the terminal `commit-artifacts` step commits ONLY the run's
 bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1), which
 `_readiness.md` is not. Where
@@ -468,8 +468,8 @@ Emit this phase's own short output:
 ```
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits (still true — this phase writes only the
-maintenance/feedback artifacts; the run's single commit is the terminal `commit-artifacts` step in
-Phase 8, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes into
+maintenance/feedback artifacts; those writes are committed by the terminal `commit-artifacts` step
+in Phase 8, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes into
 `jira-products/`, `jira_export_root`, or the current working directory.
 
 ---
@@ -497,9 +497,9 @@ Emit this phase's own short output:
 [N follow-ups written to <target>, OR "none — verdict SUPPORTED with a clean coverage roll-up"]
 ```
 
-ADDITIVE — the follow-ups also remain in the Phase 5 report's Findings/coverage sections. This phase
-NEVER fails the run, NEVER commits (still true — this phase only writes follow-up files; the run's
-single commit is the terminal `commit-artifacts` step in Phase 8, per
+ADDITIVE — the follow-ups also remain in the Phase 5 report's Findings/coverage sections. This
+phase NEVER fails the run, NEVER commits (still true — this phase only writes follow-up files;
+those writes are committed by the terminal `commit-artifacts` step in Phase 8, per
 `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes into `jira-products/`,
 `jira_export_root`, or the current working directory.
 
@@ -555,7 +555,7 @@ bounded session-artifact paths in `$SPECS_PATH`), and NEVER writes into `jira-pr
 - NEVER branch — this command never creates a git branch (still true — `specs-preflight` only switches
   `$SPECS_PATH` between branches that already exist, and only plugin-created ones, per
   `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2)
-- NEVER auto-commit `_readiness.md` (git is the user's responsibility — still true: `_readiness.md` is
+- NEVER auto-commit `_readiness.md` (git is the user's responsibility) (still true — `_readiness.md` is
   the deliverable, an OTHER path the terminal `commit-artifacts` step never stages, §2.1)
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - doc-only — repo check is presence-only, no scanning (Phase 3c; never dispatches `code-scanner`)

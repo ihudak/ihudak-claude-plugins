@@ -10,7 +10,7 @@ Draft child Epics for the Jira Value Increment: $ARGUMENTS
 
 Key distinction from `/document` (Jira mode): the VI being Epic-ized is **not yet implemented** — there are no PRs to diff. Code scanning (when enabled) is a plain filesystem search to understand what exists and what needs to be built.
 
-`/epics` **never branches** and **never commits the Epic drafts**, and writes only to the resolved output directory — `jira-drafts/<jira_key>/` under `$VAULT_PATH`, or a derived `epic-drafts/<jira_key>/` dir beside the imported hierarchy when `$VAULT_PATH` is unset. Git hygiene of the write target is the user's responsibility — they may or may not have it under version control. The one commit the run makes is the terminal `commit-artifacts` step, bounded to `$SPECS_PATH`'s session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1) — never the drafts, never the write target.
+`/epics` **never branches** and **never commits the Epic drafts** (still true — the run's git activity is confined to `$SPECS_PATH`, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`; see the paragraph end), and writes only to the resolved output directory — `jira-drafts/<jira_key>/` under `$VAULT_PATH`, or a derived `epic-drafts/<jira_key>/` dir beside the imported hierarchy when `$VAULT_PATH` is unset. Git hygiene of the write target is the user's responsibility — they may or may not have it under version control. The run commits only inside `$SPECS_PATH`, and only its bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1) — via the `specs-preflight` flush at run start (§3.4) and the terminal `commit-artifacts` step (§4); never the drafts, never the write target. It still creates no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none).
 
 ---
 
@@ -325,7 +325,7 @@ Handle per-repo status after the batch returns:
 
 ## Phase 6 — Write Epics
 
-The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1 Sonnet detection chain for MODERATE; §2 Opus only if the run is SIGNIFICANT/HIGH-RISK — see `classification.md` §9.2). The orchestrator prepares a handoff and dispatches; it does not write Epics itself, and **nothing commits in this phase** (still true — `/epics` never branches, and the Epic drafts it writes are never committed; git hygiene of the write target is the user's responsibility. The run's one commit is the terminal `commit-artifacts` step, bounded to `$SPECS_PATH`'s session-artifact paths per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
+The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1 Sonnet detection chain for MODERATE; §2 Opus only if the run is SIGNIFICANT/HIGH-RISK — see `classification.md` §9.2). The orchestrator prepares a handoff and dispatches; it does not write Epics itself, and **nothing commits in this phase** (still true — `/epics` never branches, and the Epic drafts it writes are never committed; git hygiene of the write target is the user's responsibility. The run commits only inside `$SPECS_PATH`, and only its bounded session-artifact paths, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
 
 1. **Write the handoff file.** Create a temp file (`mktemp` — never the vault, never a repo) containing the `epic-writer` input contract: `jira_reader_handoff`, `code_scanner_outputs` (empty if no scan), `scope` (Phase 2 in/out of scope), `existing_epics` (non-duplication), `output_dir` (resolved Phase 1 dir), `vi_goal`, `jira_key`, `requirements` + `requirements_source` (from Phase 3), `applicable_ard` (the Phase 2.5 invariants + guidance_summary, or omit when status was none), `existing_epic_themes` (themes of the already-linked Epics), `mode` (`generate` | `refine` | `both` — from Phase 3.5; `generate` when 3.5 skipped), `refinement_targets` (list of `{key, team, scope_hint, current_body_path}`, where `current_body_path = <jira_export_root>/<EPIC-KEY>/<EPIC-KEY>.md`; empty in `generate` mode), and `docs_grounding` (the Phase 5 digest, or omit when OFF/EMPTY). Record its absolute path. When `focus_key` is set (the Phase 3 refinement target), set `scope` in-scope to just the focus Epic and `existing_epics` to the *other* linked Epics, so `epic-writer` re-drafts the single focus Epic's definition file; `output_dir` is unchanged.
 
@@ -535,11 +535,11 @@ that triggered them (§4 plugin-facing predicate) — never target-project
 (§3), resolves the target via the §2 specs-first ladder, and writes silently.
 List the persisted path (or "no plugin-facing signal — nothing persisted") in
 the Phase 9 report's Session learnings line. ADDITIVE — the impl-maintenance
-report still appears in the report; this step NEVER fails the run, NEVER commits
-(still true — this step only writes the feedback file; the run's single commit
-is the terminal `commit-artifacts` step in Phase 11, per
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes into
-`jira-products/`, `jira_export_root`, or the current working directory.
+report still appears in the report; this step NEVER fails the run, NEVER
+commits (still true — this step only writes the feedback file; those writes
+are committed by the terminal `commit-artifacts` step in Phase 11, per
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes
+into `jira-products/`, `jira_export_root`, or the current working directory.
 
 ---
 
@@ -650,7 +650,7 @@ and executing its steps inline.
 
 ADDITIVE — the follow-ups also remain in the Phase 9 report. This phase NEVER
 fails the run, NEVER commits (still true — this phase only writes follow-up
-files; the run's single commit is the terminal `commit-artifacts` step in
+files; those writes are committed by the terminal `commit-artifacts` step in
 Phase 11, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and
 NEVER writes into `jira-products/`, `jira_export_root`, or the current working
 directory.

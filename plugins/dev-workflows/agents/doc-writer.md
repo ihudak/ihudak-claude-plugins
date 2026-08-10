@@ -17,7 +17,7 @@ The orchestrator writes a single **handoff file** (a temp file) and passes its a
 - `discrepancy_decisions[]` — Phase 5.8 `{number, claim, jira_phrasing, spec_phrasing, source_phrasing, source_location, decision, rationale}`
 - `write_strategies[]` — Phase 5.9 `{target_path, strategy ∈ {conditional, override-copy, plain}, target_space, rationale}`
 - `cdn_handoff_decision` ∈ {upload-now, defer}, `cdn_urls{}`, `screenshot_staging_dir`, `screenshots[]`
-- `target_spaces`, `profile`, `docs_repo_path`
+- `target_spaces`, `profile`, `docs_repo_path`. When `profile.frontmatter.changelog_guidelines` is absent, the two inline changelog rules (customer-readable one-liner, no Jira key) are the whole requirement.
 - `counterpart_references[]` — read-only grounding from `counterpart-finder` (Phase 5.6.5): `{source_kind, path|pr_ref, space, salient_summary, section_outline, is_shared_into_target, screenshots_seen[], match_confidence}`; `[]` when none. Consulted for concepts/terminology/structure only.
 - `bug_report_destination` (for `document-as-spec`/`skip-and-report` gaps)
 

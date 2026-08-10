@@ -47,7 +47,7 @@ Refuse to review without the written file paths, the `doc-planner` checklist, an
 | Structural integrity | Headings use the repo's expected hierarchy; internal links (`[[wikilinks]]` and `[text](relative-path)`) resolve to existing files; sidebar / index / nav pages (if the repo uses them) are updated. |
 | YAML frontmatter | `changelog:` is updated with a customer-readable 1-line summary (and **no** Jira key) per the `doc-planner` checklist, and — when `profile.frontmatter.changelog_guidelines` resolves to a file (for dynatrace-docs: `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/changelog-guidelines.md`) — **conforms to that guideline**: every rule that file states — its Format rules (two-digit month, newest entry first, the 200-character limit), its Writing-change-descriptions rules, and its Grammar-and-style rules including the period rule. The named examples here are illustrative, NOT the checklist: read the guideline and judge against all of it. A non-conforming entry is **MAJOR**. Never rely on the two summary rules alone. On new pages, per `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/frontmatter-guidelines.md`: `meta.content-type` present and in the enum (missing or invalid, incl. deprecated `overview`, → **BLOCKER**); `description` present and **120–160 chars** (outside the band → **MAJOR/MINOR warning**); `title` present (missing → MAJOR); `meta.i18n-priority` / `meta.generation` → advisory note only. Unknown fields that pre-existed on extended pages are preserved. |
 | Repo authoring guidance | The written pages follow the planner's `repo_authoring_guidance` rules (required sections, voice/tone, templates, structure). A page missing a repo-mandated section or violating a stated structural rule is a **MAJOR** (BLOCKER only if the rule itself declares it mandatory). Skip with "N/A — no repo authoring guidance" when the block is empty. |
-| Repo verification gates | Every entry in the planner's `repo_verification_gates` holds against the written files. A failing gate is **MAJOR** (BLOCKER when the repo's own wording marks it mandatory — e.g. "The validation must pass with no errors or warnings"). Cite the gate's `source` file and section in the finding so the author can look it up. A `validation`-kind gate that the run could not execute is not a finding here — that belongs to the Verification-gate integrity dimension via the `build_check` / `style_check` ledger rows. Skip with "N/A — the repo publishes no pre-PR checklist" when the block is empty. |
+| Repo verification gates | Every entry in the planner's `repo_verification_gates` holds against the written files. A failing gate is **MAJOR** (BLOCKER when the repo's own wording marks it mandatory — e.g. "The validation must pass with no errors or warnings"). Cite the gate's `source` file and section in the finding so the author can look it up. A `validation`-kind gate is never graded here at all — neither when the run could not execute it nor when it ran and failed. Whether it ran, and with what result, is carried by the `build_check` / `style_check` ledger rows and judged by the Verification-gate integrity dimension. Skip with "N/A — the repo publishes no pre-PR checklist" when the block is empty. The block's extraction rules live in `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md`; read it if an entry's scope is unclear. |
 | Screenshots | For `image_policy: local` targets, every referenced image file resolves on disk. For `image_policy: cdn_upload_required` targets, a TODO placeholder is present in the markdown AND the Phase 9 `### Screenshots to upload manually` section lists the staged file (the reviewer checks the TODO is present; the Phase 9 section content is the command's responsibility). Alt-text is present in all cases. |
 | Snippets | Snippets proposed for `reuse` in the checklist are referenced via the repo's include syntax, not inlined. Snippets proposed for `extract` exist as new files in the repo's idiomatic snippet directory and are referenced from the target page. |
 | Actionability | Examples are runnable; commands copyable verbatim; external links resolve (best-effort — link-resolution failure on a CDN during review is not itself a BLOCKER unless the link is demonstrably wrong). |
@@ -95,6 +95,9 @@ Return this exact shape (no preamble, no chatter):
 #### Repo authoring guidance
 - ...
 
+#### Repo verification gates
+- ...
+
 #### Screenshots
 - ...
 
@@ -107,13 +110,16 @@ Return this exact shape (no preamble, no chatter):
 #### Source traceability
 - ...
 
-#### Repo verification gates
-- ...
-
 #### Verification-gate integrity
 - ...
 
 #### Style-check follow-through
+- ...
+
+#### Source-code accuracy
+- ...
+
+#### Cross-space grounding integrity
 - ...
 
 ### Recommended next step

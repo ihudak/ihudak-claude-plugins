@@ -49,7 +49,6 @@ gate_ledger:
     not_run:                                        # DEGRADED only, non-empty
       - mechanism: <the primary mechanism that did not run>
         reason:    <why>
-
     ci_still_checks: <one line>                     # DEGRADED only, non-empty
     precondition_unmet: <the named precondition>    # NOT_APPLICABLE only, non-empty
     user_decision: "<the user's choice, verbatim>"  # SKIPPED_BY_USER only, non-empty
@@ -64,8 +63,10 @@ gate_ledger:
 | `source_truth_verification` | 5.8 | ≥1 entry in `code_repos` | claim-class verification per `source-truth.md` §2–§3 | one supplementary direct grep against the resolved local path |
 | `style_check` | 6.4 | ≥1 file written | the repo linter ladder **plus** `dt-style-checker` complementary | `dt-style-checker` alone |
 | `repo_checklist` | 6.4 | the repo publishes authoring/verification guidance | `repo_verification_gates` applied to the written files | none |
-| `build_check` | 6.5 S1 | write context is a buildable repo | `commands.per_space.<space>.build` per written space, else whole-repo `commands.build` | the Step 2 dev-server boot |
+| `build_check` | 6.5 S1 | write context is a buildable repo | `commands.per_space.<space>.build` for every space in the render verification set (`dynatrace-docs/render-verification.md` §2), else whole-repo `commands.build` | the Step 2 dev-server boot |
 | `render_smoke_check` | 6.5 S2 | buildable repo with ≥1 affected page | dev servers for the target **and** protected spaces | the manual pages-to-visit table |
+
+The **Phase** column above is Jira mode's. Direct mode runs the same gate ids at different phases — `toolchain_preflight` and `repo_checklist` at Phase 0, `style_check` at Phase 3.5 — as the paragraph below sets out.
 
 A gate whose precondition is unmet records `NOT_APPLICABLE` with the precondition named. It is never
 silently absent from the ledger.

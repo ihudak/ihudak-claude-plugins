@@ -1,6 +1,6 @@
 ---
 name: ready
-description: Status-anchored readiness gate. Reads the Jira workflow status of a VI/Epic and verifies the ARD/spec/design artifacts justify it and the next transition; returns SUPPORTED / PARTIAL / NOT-SUPPORTED with a coverage roll-up. Read-only — never sets Jira status, never commits. Gates on the Opus readiness-reviewer.
+description: Status-anchored readiness gate. Reads the Jira workflow status of a VI/Epic and verifies the ARD/spec/design artifacts justify it and the next transition; returns SUPPORTED / PARTIAL / NOT-SUPPORTED with a coverage roll-up. Read-only — never sets Jira status, never commits the deliverable. Gates on the Opus readiness-reviewer.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -14,8 +14,11 @@ transition, against the rubric in `${CLAUDE_PLUGIN_ROOT}/references/workflow-sta
 the Opus `readiness-reviewer`.
 
 Key distinction from every other pipeline command: `/ready` **authors nothing**. It never writes a VI,
-Epic, ARD, spec, or design; it never touches Jira; it never branches or commits. Its only write is an
-overwritten `_readiness.md` snapshot under `$SPECS_PATH`, and even that is the user's to commit. Where
+Epic, ARD, spec, or design; it never touches Jira; it never branches, and it never commits the
+deliverable. Its only authored write is an overwritten `_readiness.md` snapshot under `$SPECS_PATH`,
+and that one is the user's to commit — the terminal `commit-artifacts` step commits ONLY the run's
+bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1), which
+`_readiness.md` is not. Where
 `/design`'s repo gate is a **strict, hard-stop** mount check because it is about to ground code
 decisions, `/ready`'s repo check is **best-effort presence only** — it never scans code, it only notes
 whether a needed repo is mounted.
@@ -104,7 +107,9 @@ MUST be `"Other… (describe)"`.
 4. **Display** (context, no further prompt): resolved cwd; resolved VI dir (+ Epic subdir); resolved
    `$SPECS_PATH`; the artifact inventory table from step 2; the status peek from step 3.
 
-No branching context is shown — this command never branches.
+No branching context is shown — this command never branches (still true — `specs-preflight` only
+switches `$SPECS_PATH` between branches that already exist, and only ones the plugin created, per
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2; it creates none).
 
 ---
 
@@ -335,8 +340,8 @@ plugin-gap halt (see Invariants).
    - [any other caveats — e.g. non-main/dirty specs checkout override]
 
    ### `_readiness.md`
-   Written (overwritten) to: <absolute path>. NOT committed — `/ready` never commits; commit it yourself
-   to share this snapshot.
+   Written (overwritten) to: <absolute path>. NOT committed — `/ready` never commits this snapshot
+   (the terminal step commits only the run's bookkeeping artifacts); commit it yourself to share it.
 
    ### Next step
    [Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. SUPPORTED → Team →
@@ -356,8 +361,10 @@ plugin-gap halt (see Invariants).
    ```
 
 `/ready` **NEVER** writes to Jira, `jira-products/`, or the vault, and **NEVER auto-commits**
-`_readiness.md` — git is the user's responsibility. Phases 6–8 below append their own short trailing
-notices after this report; they do not reopen or restate it.
+`_readiness.md` — git is the user's responsibility (still true — `_readiness.md` is the deliverable,
+an OTHER path that the terminal `commit-artifacts` step never stages, per
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1). Phases 6–8 below append their own short
+trailing notices after this report; they do not reopen or restate it.
 
 ---
 
@@ -368,7 +375,9 @@ feeds the still-to-come final report — here the readiness report already print
 
 a. `project_root` = `$SPECS_PATH` for this run (where `_readiness.md` was written). Run
    `git diff --stat` from `project_root` if it is a git repo (it should be, per Phase 0 step 3) —
-   just to report what changed; this command never commits.
+   just to report what changed; this command never commits `_readiness.md` or anything else outside
+   the bounded artifact paths the terminal `commit-artifacts` step stages
+   (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
 b. Compose a **change summary block**:
 
 ```
@@ -458,8 +467,10 @@ Emit this phase's own short output:
 - Feedback persisted: [path, or "no plugin-facing signal — nothing persisted"]
 ```
 
-ADDITIVE — this phase NEVER fails the run, NEVER commits, and NEVER writes into `jira-products/`,
-`jira_export_root`, or the current working directory.
+ADDITIVE — this phase NEVER fails the run, NEVER commits (still true — this phase writes only the
+maintenance/feedback artifacts; the run's single commit is the terminal `commit-artifacts` step in
+Phase 8, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes into
+`jira-products/`, `jira_export_root`, or the current working directory.
 
 ---
 
@@ -487,8 +498,10 @@ Emit this phase's own short output:
 ```
 
 ADDITIVE — the follow-ups also remain in the Phase 5 report's Findings/coverage sections. This phase
-NEVER fails the run, NEVER commits, and NEVER writes into `jira-products/`, `jira_export_root`, or the
-current working directory.
+NEVER fails the run, NEVER commits (still true — this phase only writes follow-up files; the run's
+single commit is the terminal `commit-artifacts` step in Phase 8, per
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes into `jira-products/`,
+`jira_export_root`, or the current working directory.
 
 ---
 
@@ -539,8 +552,12 @@ bounded session-artifact paths in `$SPECS_PATH`), and NEVER writes into `jira-pr
 
 - NEVER set or write Jira status — status is read-only input (Phase 2), never output
 - NEVER write inside `jira-products/` or the vault
-- NEVER branch — this command never creates a git branch
-- NEVER auto-commit `_readiness.md` (git is the user's responsibility)
+- NEVER branch — this command never creates a git branch (still true — `specs-preflight` only switches
+  `$SPECS_PATH` between branches that already exist, and only plugin-created ones, per
+  `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2)
+- NEVER auto-commit `_readiness.md` (git is the user's responsibility — still true: `_readiness.md` is
+  the deliverable, an OTHER path the terminal `commit-artifacts` step never stages, §2.1)
+- ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - doc-only — repo check is presence-only, no scanning (Phase 3c; never dispatches `code-scanner`)
 - ALWAYS end with a `### Next step` per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never
   auto-invoked
@@ -567,4 +584,4 @@ bounded session-artifact paths in `$SPECS_PATH`), and NEVER writes into `jira-pr
   ADDITIVE and guarded on `status: found` — a run with no ARD is byte-identical to before
 - ALL written claims trace to Jira keys (from `jira-reader`) or artifact paths actually read; never
   invent content the sources don't contain
-- ALWAYS end with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (`resume.md`, verdict as carry-forward), then a same-role `/compact` suggestion + `/rename <VI-ID>-<slug>-team`; guidance only, never auto-run.
+- ALWAYS end with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write — carrying the verdict as carry-forward — runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a same-role `/compact` suggestion + `/rename <VI-ID>-<slug>-team`; guidance only, never auto-run.

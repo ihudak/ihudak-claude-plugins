@@ -237,7 +237,10 @@ Terminal phase — runs after Phase 6, NEVER interrupts an earlier phase.
 **Capture-at-block invariant.** If an EARLIER phase **halts on a plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked), `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating. NEVER `emit-block` for an environment / user halt (missing key, unset `$SPECS_PATH`, cancellation) or a work-quality review BLOCK.
 
 **Session-hygiene invariant.** End Phase 6 with a `### Context hygiene` block per
-`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (write `resume.md`),
+`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the
+`resume.md` write runs later, in the terminal cost phase, per
+`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the
+guidance only),
 then a span suggestion (PM continue → `/compact`; PA/PE handoff → `/clear`). No `/rename`
 label yet (no VI-Key). Guidance only, never auto-run.
 

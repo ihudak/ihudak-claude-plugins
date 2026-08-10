@@ -160,7 +160,10 @@ Terminal phase — runs after Phase 7, NEVER interrupts an earlier phase.
 **Capture-at-block invariant.** If an EARLIER phase **halts on a plugin / skill / command / reference gap**, `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating. NEVER `emit-block` for an environment / user halt (unset `$SPECS_PATH`, missing key, no-ARD-needed, unmounted-repo descope, cancellation) or a review BLOCK.
 
 **Session-hygiene invariant.** End Phase 7 with a `### Context hygiene` block per
-`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (`resume.md`), then a
+`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the
+`resume.md` write runs later, in the terminal cost phase, per
+`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the
+guidance only), then a
 PA→PE/Team handoff suggestion (`/clear`) + `/rename <VI-ID>-<slug>-pa`. Guidance only, never auto-run.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`) with a compact handoff: command `/create-ard`; what was authored (ARD scope + grounded repos); key events (grounding gaps/descopes, BLOCK reviews — or 'none'); workarounds; the `ard-reviewer` verdict; test result N/A; project root = the feature folder.

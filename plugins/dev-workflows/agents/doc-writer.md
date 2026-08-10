@@ -85,9 +85,11 @@ Author heading anchors and the internal-link forms that reference them per `${CL
 
 ## Output
 
-Write/modify files only — **never commit**. `Bash` is granted solely to copy
-local screenshots (`image_policy: local`, step 5 above) — never for git
-commands; the orchestrator remains the only actor that commits. Return:
+Write/modify files only — **never commit**. Still true: this agent runs no git at
+all. `Bash` is granted solely to copy local screenshots (`image_policy: local`,
+step 5 above) — never for git commands; the orchestrator remains the only actor
+that commits, both for the docs write target and for its own terminal
+`commit-artifacts` step. Return:
 
 - `status: DONE | BLOCKED`
 - `files_written: [absolute paths of every file created or modified]`

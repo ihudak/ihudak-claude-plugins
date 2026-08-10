@@ -21,6 +21,17 @@ For small one-off doc edits, use direct mode (below). For writing child Epic dra
 - **Jira mode (Mode A)** — the input resolves `jira-driven` via the shared front-end (`${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`): a first token matching a JiraID (`^[A-Z][A-Z0-9]+-[0-9]+`), optionally followed by `saas` | `managed`, **or** a directory that inspects as a Jira-export (contains `<KEY>-index.md`). The front-end's Fallback B handles a JiraID-shaped token with no `jira-products/<KEY>` folder.
 - **Direct mode (Mode B)** — the input resolves `direct` (a leading `@file` token, free-text prose, or a non-Jira-export directory, which Mode B handles via its existing "anything else" path).
 
+**Specs-repo preflight.** Cite
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
+`specs-preflight` entry point (§3) inline: flush any leftover session
+artifacts from an earlier run, retry an artifact commit that failed to push,
+and settle the branch. This runs against `$SPECS_PATH` only — `git -C
+"$SPECS_PATH"`, never a `cd`, so the code/docs repo this run is working
+in is untouched (§1 rule 1). Prompt-free and silent when the specs repo
+is clean and on its default branch. If a guard fires, emit its §5 notice;
+if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole
+run — the terminal `commit-artifacts` step skips on it.
+
 Echo the detected mode, then proceed to that mode's phases. The two modes share the same `docs-style-checker` / `doc-reviewer` / `doc-fixer` agents (each mode emits its own final report).
 
 ---
@@ -164,17 +175,6 @@ Before clarification, show a readiness table summarizing what Phase 0 resolved:
 | Code repos | resolved later in Phase 4 (slug→clone match under `$REPOS_PATH`) |
 
 All discovery defaults to `/workspace` (`${REPOS_PATH:-/workspace}`); on a host, or when a path is missing, the command asks rather than guessing.
-
-**Specs-repo preflight.** Cite
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
-`specs-preflight` entry point (§3) inline: flush any leftover session
-artifacts from an earlier run, retry an artifact commit that failed to push,
-and settle the branch. This runs against `$SPECS_PATH` only — `git -C
-"$SPECS_PATH"`, never a `cd`, so the code/docs repo this run is working
-in is untouched (§1 rule 1). Prompt-free and silent when the specs repo
-is clean and on its default branch. If a guard fires, emit its §5 notice;
-if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole
-run — the terminal `commit-artifacts` step skips on it.
 
 ---
 
@@ -1308,7 +1308,7 @@ name is ever written (§10 privacy).
 - ALWAYS escalate missing repos before proceeding — never silent skip
 - ALWAYS invoke `docs-style-checker` (Phase 6.4) before `doc-reviewer` (Phase 7)
 - ALWAYS run the Phase 0 toolchain preflight (`${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md`) after profile resolution and before Phase 1; it prompts only when a required tool is missing
-- ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
+- ALWAYS run `specs-preflight` in the shared `## Mode detection` section, before dispatching to either mode — so it runs for Mode B as well as Mode A — and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - ALWAYS append each gate's ledger row at the moment that gate completes, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` — NEVER reconstruct the ledger at Phase 9, and NEVER leave a registry gate without a row
 - NEVER present a phase's `choices:` array in an order, wording, or recommendation other than the one written; the "Choice lists are presented verbatim" rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` binds every prompt in this command
 - ALWAYS invoke `doc-reviewer` before Phase 8 maintenance
@@ -1366,9 +1366,10 @@ No model-routing reminder is injected for this command — classification still 
    records the `repo_checklist` ledger row. An empty block is normal — record it and move on. Skip this
    step entirely when cwd is not a git tree (step 3 already skipped for the same reason).
 
-**Specs-repo preflight.** Already run — the shared Phase 0 dispatch executed `specs-preflight`
-(`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §3) before mode detection, and any `specs_git:
-blocked` flag it set is carried into this mode too. Do not run it a second time.
+**Specs-repo preflight.** Already run — the shared `## Mode detection` section executed
+`specs-preflight` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §3) before dispatching to
+either mode, so it runs for Mode B exactly as it does for Mode A, and any `specs_git: blocked` flag
+it set is carried into this mode too. Do not run it a second time.
 
 ---
 
@@ -1747,7 +1748,7 @@ directory; no user name is ever written (§10 privacy).
 - NEVER run tests (this command has no test phase)
 - NEVER invoke Opus (no planning agent, no review agent — docs edits are always SIMPLE or MODERATE)
 - NEVER commit the doc edits, or anything else in a docs/code repo, the vault, or the current working directory — the user manages git manually there. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
-- ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
+- ALWAYS run `specs-preflight` in the shared `## Mode detection` section, before dispatching to either mode — so it runs for Mode B as well as Mode A — and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - NEVER make assumptions that could have been asked — ask instead
 - NEVER end implementation with "Should I implement?" — if approved, implement
 - NEVER rewrite sections wholesale when only a targeted edit is needed

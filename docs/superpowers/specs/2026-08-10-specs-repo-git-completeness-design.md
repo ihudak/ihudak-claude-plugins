@@ -57,6 +57,7 @@ Class-A git offers target `$SPECS_PATH` (`create-vi.md:192`, `update-vi.md:92`, 
 - **The primary artifacts do not move.** Code and tests stay in the code repo; documentation stays in the docs repo; the deliverable VI/ARD/spec/design stays where its handoff phase puts it. This design touches only the bookkeeping artifact area.
 - **No new external-API surface.** `git push` is git-protocol, already sanctioned (`finish-and-handoff.md` §3). No PR is created by either new entry point; no REST call is added.
 - **The vault is not managed.** Tier-3 fallbacks that write into `$VAULT_PATH` (`feedback-emission.md` §2 tier 3, `session-hygiene.md` §1 tier 3) stay the user's own sync responsibility.
+- **The stale model references are not refreshed here.** Five commands hardcode `Co-Authored-By: Claude Opus 4.8 (1M context)` in their handoff phases (`create-vi.md:192`, `create-ard.md:131`, `update-vi.md:92`, `design.md:311`, `specify.md:410`), and `references/model-routing/classification.md:79-86` still tops its fallback chain at `claude-opus-4-8` with a Sonnet 4.5 floor. Both are genuinely stale — Opus 5 exists — but the chain is the plugin's **routing authority**: changing it changes which model executes every Opus review gate, in every command and agent, in both editions. That is a behavioural change needing its own verification, not a rider on a git pass. Tracked as a separate pass; §5 step 4 deliberately adds no sixth site.
 
 ---
 
@@ -111,7 +112,7 @@ Sources: `feedback-emission.md:88-100` (tiers 1–2), `cost-emission.md:275-278`
 
 ### 4.3 Bounded write authority — branches
 
-**The plugin manages only branches it created.** A branch is plugin-owned when its name matches `^(vi|ard|spec|design)/`. Any other branch — the user's own work, a hand-made branch, a detached HEAD — is left alone and never switched away from (§6.1 guard G2).
+**The plugin manages only branches it created.** A branch is plugin-owned when its name matches `^(vi|ard|spec|design)/`. Any other **named** branch — the user's own work, a hand-made branch — is left alone and never switched away from (§6.1 guard G2); the run's artifacts are still committed there, because a named branch cannot be lost. A **detached HEAD** is not a branch and is handled separately and more strictly (§6.1 G0, §6.3): nothing is committed at all.
 
 ---
 
@@ -119,15 +120,18 @@ Sources: `feedback-emission.md:88-100` (tiers 1–2), `cost-emission.md:275-278`
 
 Runs as the **last step of the run**, after `resume.md` is written and before the final report is printed. All seventeen commands.
 
-1. **Gate.** `$SPECS_PATH` is set, exists, is writable, and `git -C "$SPECS_PATH" rev-parse --git-dir` succeeds. Any failure → **silent no-op**, matching the emission ladders' silent-skip discipline: nothing is committed, nothing is reported, and the run is unaffected. The artifacts in this case went to a vault or report-only tier, which the plugin does not manage (§2.1).
+1. **Gate.** All of: `$SPECS_PATH` is set and exists; `git -C "$SPECS_PATH" rev-parse --git-dir` succeeds; **the `.git` directory is writable** (not just the worktree — `commit` and `fetch` both write there, and read-only repository mounts are normal in this container setup, as `PRODUCT-13950-feedback.md:122` records for code repos); and the run does **not** carry `specs_git: blocked` from §6.1 G0.
+   - Gate fails on path/repo/permission grounds → **silent no-op**, matching the emission ladders' silent-skip discipline: nothing committed, nothing reported, run unaffected. The artifacts went to a vault or report-only tier the plugin does not manage (§2.1).
+   - Gate fails on `specs_git: blocked` → **not silent**: re-emit the §6.4 blocking notice. The repo *is* managed; the plugin is deliberately refusing to commit, and the user must know.
 2. **Enumerate and stage** per §4.2. OTHER paths are never staged.
 3. **Nothing staged** (the gate passed but no artifact path is dirty) → no commit; one line in the final report: `Specs repo: no session artifacts to commit`. This is distinct from step 1's silence — here the specs repo *is* managed and simply had nothing new.
 4. **Commit.** Message: `<KEY> Add dev-workflows session artifacts (<command>)`, or `NOISSUE Add dev-workflows session artifacts (<command>)` when the run resolved no key. This matches the specs repo's own `<KEY|NOISSUE> <summary>` convention (`31d2cc6`, `60a6a39`, `28dd702`).
-   **No `Co-Authored-By` trailer.** These are plugin-generated bookkeeping files, not authored content, and each artifact already carries its own `author:` field (`feedback-emission.md:130-133`). Adding a trailer would also hardcode a model name that goes stale — `create-vi.md:192` still names Opus 4.8.
+   **No `Co-Authored-By` trailer.** These are plugin-generated bookkeeping files, not authored content, and each artifact already carries its own `author:` field (`feedback-emission.md:130-133`). A trailer would also hardcode a sixth stale model string — see §2.1.
 5. **Push** to the current branch's upstream. If the branch has no upstream, `git -C "$SPECS_PATH" push -u origin <branch>`.
 6. **Failure at any step is reported, never fatal.** The run never fails because of this step.
-   - No remote / auth failure → report; the commit stays local.
-   - **Non-fast-forward rejection** → report; **never force-push**, never auto-rebase mid-run. The commit stays local and the next run's `specs-preflight` will surface the branch.
+   - No remote / auth failure → report; the commit stays local. §6.1 stage 2 retries the push on the next run.
+   - **Non-fast-forward rejection** → report; **never force-push**, never auto-rebase mid-run. The commit stays local; §6.1 stage 2 retries.
+   - **`index.lock` present** (a concurrent session holds the repo) → report and skip; **never delete a lock file**. The artifacts stay in the working tree and the next run's preflight flushes them.
 7. **Report** in the final report: the short SHA, the file count, the branch, and the push result.
 
 ### 5.1 Where the commit lands
@@ -142,7 +146,7 @@ Runs as the **last step of the run**, after `resume.md` is written and before th
 
 Runs as early as `$SPECS_PATH` is known — Phase 0 in most commands (§8). **Prompt-free.** It is silent when the repository is already clean and on the default branch; it reports a compact block only when it acts.
 
-**Gate:** identical to §5 step 1. Not a git repo, unset, or unwritable → silent no-op.
+**Gate:** the environment half of §5 step 1 — `$SPECS_PATH` set and existing, `rev-parse --git-dir` succeeding, `.git` writable. Not the `specs_git: blocked` clause, which this entry point is what *sets*. Gate fails → silent no-op.
 
 **Default branch resolution:** `git -C "$SPECS_PATH" symbolic-ref --quiet refs/remotes/origin/HEAD` → strip `refs/remotes/origin/`. Verified against the live specs repo, which resolves to `main`. If unset, fall back to `main`, then `master`, then the current branch (in which case no branch switching occurs).
 
@@ -154,21 +158,22 @@ Runs as early as `$SPECS_PATH` is known — Phase 0 in most commands (§8). **Pr
 
 Not a first-match table: stage 1 can end the preflight, and stage 2 always runs before stage 3.
 
-**Stage 1 — guards. Either match ends the preflight; the run proceeds.**
+**Stage 1 — guards. Any match ends the preflight; the run proceeds.** Every guard emits the §6.4 notice, never a quiet line.
 
 | # | State | Action |
 |---|---|---|
-| G1 | Any dirty **OTHER** path (§4.2) | **Hands off.** No commit, no branch switch, no push. One-line report naming the count. Those files are not the plugin's, and switching branches would carry them. |
-| G2 | HEAD is detached, **or** on a branch that is neither the default branch nor a match for `^(vi\|ard\|spec\|design)/` | **Leave it; stay on it.** One-line report. The plugin manages only branches it created (§4.3). |
+| G0 | **HEAD is detached** | **Hands off, and set `specs_git: blocked` for the whole run** — `commit-artifacts` (§5) must also skip. §6.4 notice, severity **blocking**. See §6.3. |
+| G1 | Any dirty **OTHER** path (§4.2) | **Preflight hands off** — no commit, no branch switch, no push. §6.4 notice listing the paths. Those files are not the plugin's, and switching branches would carry them. **This does NOT set `specs_git: blocked`**: the terminal `commit-artifacts` still runs, because it stages only artifact paths and is safe beside unrelated dirt. Losing the artifacts to protect files the step never touches would be the worse failure. |
+| G2 | On a **named** branch that is neither the default branch nor a match for `^(vi\|ard\|spec\|design)/` | **Leave it; stay on it.** §6.4 notice naming the branch, so the user knows where this run's artifacts will land. The commit is safe — a named branch cannot be lost — so `commit-artifacts` proceeds. The plugin manages only branches it created (§4.3). |
 
-**Stage 2 — flush leftovers.** If any dirty ARTIFACT path exists, commit it **onto the current branch** (it belongs to the run that wrote it) and push, per §5 steps 2–6. If none exists, do nothing. Either way, continue to stage 3 with a clean tree.
+**Stage 2 — flush leftovers.** If any dirty ARTIFACT path exists, commit it **onto the current branch** (it belongs to the run that wrote it) and push, per §5 steps 2–6. If none exists, check whether the current branch is **ahead of its upstream** and every ahead-commit touches only artifact paths — if so, **retry the push** (§11 R5). Either way, continue to stage 3 with a clean tree.
 
 **Stage 3 — branch disposition.** First matching row applies.
 
 | # | State | Action |
 |---|---|---|
 | B1 | On the default branch | Nothing further. |
-| B2 | Plugin branch, and `git merge-base --is-ancestor HEAD origin/<default>` succeeds (already merged upstream) | Switch to default, `git pull --ff-only`, `git branch -d <branch>`. If `-d` fails, report and skip — **never `-D`**. |
+| B2 | Plugin branch, and `git merge-base --is-ancestor HEAD origin/<default>` succeeds (already merged upstream) | Switch to default, `git pull --ff-only`, `git branch -d <branch>`. If `-d` fails, report and skip — **never `-D`**. If `pull --ff-only` fails (the local default branch has diverged), report and continue on default **without** pulling — never merge, never rebase, never reset. |
 | B3 | Plugin branch, unmerged, branch key **==** run key | **Stay on it.** See §6.2. |
 | B4 | Plugin branch, unmerged, branch key **≠** run key, or run keyless | Switch to default, `git pull --ff-only`. **Leave the branch and its pull request alone.** Report the branch name. |
 
@@ -182,7 +187,32 @@ B3 looks redundant next to B4 and is the obvious candidate for a future simplifi
 
 The cost is that the follow-up command's own branch is cut from the earlier branch rather than from the default — a stacked branch. That is correct: an ARD genuinely depends on its VI, and stacking is the honest representation.
 
-### 6.3 No auto-merge
+### 6.3 Detached HEAD is blocking, not merely skipped
+
+G0 is the one state where the plugin refuses to commit at all, and it is a data-loss guard rather than a courtesy.
+
+A commit made on a detached HEAD is reachable from no ref. Nothing points at it, `git branch` will not list it, and it is eligible for garbage collection. If `commit-artifacts` committed there, the run would report a short SHA and a success line while the artifacts were already on their way to being unrecoverable — the worst possible failure shape, because it looks like success.
+
+So G0 propagates: it sets `specs_git: blocked` for the whole run, `commit-artifacts` skips on that flag, and the §6.4 notice fires at **blocking** severity at both ends of the run. The artifacts stay in the working tree, uncommitted and intact, and the notice gives the exact command to attach them to a branch.
+
+This is the only condition that disables the terminal commit. In particular G1 does **not** — see the note in its row.
+
+### 6.4 Notice contract — the guards must be impossible to overlook
+
+A guard fires precisely when the plugin has decided **not** to do something the user is relying on. A single dim line in a long run is how that becomes a silent loss, so every guard emits a structured block rather than a sentence, at both the point of detection and again in the final report.
+
+Every notice carries four parts, in this order:
+
+1. **What was found** — the concrete state, with the branch name, the file count, or the path list. Never "an issue was detected".
+2. **What the plugin did NOT do** — stated as the consequence for the user's data, e.g. *"this run's feedback and cost will NOT be committed and will NOT reach the plugin maintainer."*
+3. **The exact commands to resolve it**, ready to paste, with `$SPECS_PATH` already substituted.
+4. **What happens if it is ignored** — one clause, e.g. *"the artifacts stay in your working tree; the next run will pick them up."*
+
+Severities: **blocking** (G0 — the terminal commit will not run) and **advisory** (G1, G2 — the commit still runs, but somewhere the user should know about). Both use the same four-part shape; only the wording of part 2 differs.
+
+The final-report `Specs repo:` line (§8.3) **repeats the notice in full** when a guard fired. A notice printed only at Phase 0 of a long run is a notice the user has scrolled past by the time the run ends.
+
+### 6.5 No auto-merge
 
 The design deliberately never creates a merge commit and never merges a branch into the default branch.
 
@@ -242,19 +272,31 @@ Each of the seventeen command files gains one `specs-preflight` citation and one
 | `/prompt-brainstorm` | at start | at end |
 | `/prompt-grill-me` | at start | at end |
 
-### 8.1 The `NEVER commits` contradiction — highest-risk item
+### 8.1 The `NEVER commits` contradiction — the largest reconciliation (§11 R2)
 
-Roughly thirty lines across the command set assert that a phase or a whole command `NEVER commits`. **Every one of them becomes false or ambiguous** the moment `commit-artifacts` ships. Shipping the step without reconciling them is a self-contradicting plugin.
+Around fifty assertions across the command set state that a phase or a whole command does not commit. **Each one becomes false or ambiguous** the moment `commit-artifacts` ships. Shipping the step without reconciling them is a self-contradicting plugin — and this plugin's own reviewers flag internal contradiction.
 
-Known sites include `create-vi.md:245`, `update-vi.md:128`, `create-ard.md:167`, `specify.md:469,495`, `design.md:361,387`, `idea.md:192`, `epics.md:13,451,607,641,668,679,687`, `ready.md:3,331,363,453,482,509,518-519`, `release-notes.md:309,347,376,393`, `implement.md:561,650,676`, `document.md:1031,1225,1251,1531,1617,1639,1666,1679`, `vuln.md:181`, `upgrade.md:155`, `feedback.md:63`, `prompt-brainstorm.md:43`, `prompt-grill-me.md:50`, `prompt.md:48`, `statusline.md:71`.
+**The sweep must cover every phrasing, not just `NEVER commits`.** A grep for that one phrase finds 45 in-scope occurrences and misses a whole tail. The verified variant set:
 
-**Reconciled wording.** The invariant is scoped rather than deleted — its protective intent is real and stays:
+| Variant | Example sites |
+|---|---|
+| `NEVER commits` / `never commits` | 45 occurrences across 15 in-scope files (`document.md` 13, `epics.md` 7, `ready.md` 6, `implement.md` 3, `release-notes.md` 3, `design.md` 2, `specify.md` 2, the rest 1 each) |
+| **wrapped across a line break** — `This command NEVER\ncommits` | `prompt.md:48-49`, `prompt-grill-me.md:50-51` |
+| `never branches` | `epics.md:13,89`, `ready.md:17,100` |
+| `NEVER auto-commit` | `ready.md:350,519` |
+| `no branch, no commit` | `release-notes.md:393` |
+| `nothing commits` / `Nothing is committed` | `epics.md:319,334` |
+| `git is the user's responsibility` / `git management is your responsibility` | `epics.md:13,607,641,678-679,687`, `ready.md:351,519` |
+| `the user manages git manually` | `document.md:1422,1639,1676,1679` |
+| `never branches or commits` | `document.md:1555`, `ready.md:17` |
+
+**Not every one becomes false.** `/epics` genuinely never branches, and never commits its *drafts* — those go to the vault. Only the specs-repo artifact area changes. The sweep is therefore "check each assertion and scope the ones that became false," not "rewrite them all."
+
+**Reconciled wording** for the ones that did become false — scoped, not deleted, because the protective intent is real:
 
 > NEVER commits into a code/docs repo, the vault, or the current working directory. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4.2).
 
 `/statusline` keeps its unscoped `NEVER commits` — it writes only under `~/.claude/` and is out of scope.
-
-**Verification:** after the change, every remaining unscoped `NEVER commit` assertion in an in-scope command must either name the `$SPECS_PATH` carve-out or be justified in place. This is grep-checkable and belongs in the plan as an explicit count.
 
 ### 8.2 Sibling references to update
 
@@ -310,7 +352,8 @@ Counts are per edition. **17 command *files* are in scope in every edition**, bu
 | V3 | `specs-preflight` call sites (`grep -c`, summed) | 17 — one per file; `/document`'s Phase 0 is shared by both modes |
 | V4 | `commit-artifacts` call sites (`grep -c`, summed) | **18** — one per file, **two** in `document.md` (Jira after Phase 11, direct after Phase 7) |
 | V5 | Final-report templates carrying the `Specs repo:` line | **18** — same split as V4 (§8.3) |
-| V6 | Every line matching `NEVER commit` / `never commit` in an in-scope command file also contains `code/docs repo` or `specs-repo-git` on that same line | 0 non-conforming lines (§8.1). Line-level grep is sufficient because `references/prose-formatting.md` forbids hard-wrapping, so each assertion occupies one line. `/statusline` is excluded — out of scope, keeps its unscoped wording |
+| V6 | **Whitespace-normalized** scan of each in-scope command file for every §8.1 variant; each surviving hit is either scoped (names the `$SPECS_PATH` carve-out) or annotated in place with why it stayed true | 0 unreconciled hits (§8.1). **Must normalize newlines before matching** — `prompt.md:48-49` and `prompt-grill-me.md:50-51` wrap `This command NEVER` / `commits` across a line break, so a line-level grep silently misses them. `references/prose-formatting.md` governs command *output*, not command source, and does not make source one-line-per-assertion. `/statusline` excluded — out of scope |
+| V6b | Annotated-as-still-true assertions each carry a stated reason, not just a label | every one (§8.1; the "annotation must give the reason" rule from the B2 cleanup) |
 | V7 | `cd ` inside `specs-repo-git.md` | 0 — every git call is `git -C "$SPECS_PATH"` (§4.1) |
 | V8 | `git add -A` occurrences in `specs-repo-git.md` not followed by ` -- ` on the same line | 0 (§4.2) |
 | V9 | `--force` / `push -f` / `branch -D` in `specs-repo-git.md` | 0 (§5 step 6, §6.1 B2) |
@@ -323,8 +366,31 @@ Counts are per edition. **17 command *files* are in scope in every edition**, bu
 
 ## 11. Risks
 
-1. **The `NEVER commits` contradiction (§8.1)** — the largest. Thirty-odd assertions across seventeen files, in a plugin whose reviewers check for internal contradiction. Mitigated by V6 as a hard count, and by concentrating the reconciliation in one task so a single implementer holds the wording.
-2. **The final-report transport leg (§8.3)** — the classic dead gate: the citation lands, the report line does not. Mitigated by V5 as a hard count.
-3. **B3 being "simplified" later (§6.2)** — a plausible-looking cleanup that breaks `/create-ard` after `/create-vi`. Mitigated by the rationale living in the reference itself, not only in this spec.
-4. **A run that pushes to a moved remote** — non-fast-forward rejection. Mitigated by explicit no-force, no-auto-rebase, report-and-continue (§5 step 6), and by the next run's preflight surfacing it.
-5. **Prompt-free preflight acting on a repo the user is mid-edit on** — mitigated by guard G1 (any dirty OTHER path ⇒ hands off entirely) and by branch authority being limited to the four plugin prefixes (§4.3).
+Ordered by expected cost. R1–R4 are the ones whose mitigation is *design*, not diligence; R5–R9 are handled by named clauses above and are listed so a reviewer can check the clause exists.
+
+**R1 — Committing onto a detached HEAD would silently destroy the artifacts.** A commit reachable from no ref is garbage-collectable, and the run would print a SHA and a success line while the data was already unrecoverable. Failure that *looks like success* is the worst shape available here.
+*Mitigation:* §6.1 G0 + §6.3 — detached HEAD is the single blocking state; it sets `specs_git: blocked`, `commit-artifacts` gates on it (§5 step 1), and the §6.4 notice fires at both ends. The artifacts stay uncommitted and intact. **Sufficient**, because the guard removes the write rather than warning about it.
+
+**R2 — The `NEVER commits` contradiction (§8.1).** ~50 assertions across 15 in-scope files. Not a behavioural bug but a credibility one, in a plugin whose own reviewers flag internal contradiction.
+*Mitigation:* V6's whitespace-normalized scan over the full variant set, V6b requiring a stated reason on each kept assertion, and concentrating the reconciliation in one task so one implementer holds the wording. **Sufficient only because the variant set was enumerated from the repo** — the first version of this check used one phrase and would have missed the wrapped, `never branches`, `NEVER auto-commit`, and `git is the user's responsibility` families entirely.
+
+**R3 — The final-report transport leg (§8.3).** The dead-gate class that dominated B1 and B2: the citation lands, the report line does not, and the user never learns whether the commit happened.
+*Mitigation:* V5 as a hard count of 18, and the plan assigning the leg explicitly rather than letting it ride along with the citation. **Sufficient given V5 is a count, not a judgement.**
+
+**R4 — B3 being "simplified" later (§6.2).** "Always return to the default branch" is the obvious cleanup and it silently makes `/create-ard` architect against a stale Jira export.
+*Mitigation:* the rationale lives in the shipped reference, not only in this spec, and names the exact failure. **Partially sufficient** — a rationale can still be deleted. Accepted: the alternative (a machine-checkable guard) would cost more than the failure it prevents.
+
+**R5 — Artifacts committed but never pushed, and never retried.** A push that fails leaves a local commit; the next preflight finds a clean tree on the default branch, matches B1, does nothing, and the artifacts never reach the maintainer. This is the original defect re-created one layer up, and it was **missing from the first draft of this design**.
+*Mitigation:* §6.1 stage 2 — when the tree is clean, check whether the branch is ahead of upstream with artifact-only commits and retry the push.
+
+**R6 — G1 mis-wired to disable the terminal commit.** An implementer reading "hands off" on G1 could plausibly set the blocked flag there too, losing every artifact whenever the user has an unrelated edit open — a common state.
+*Mitigation:* G1's row states the non-propagation and its reason explicitly, and §6.3 states that G0 is the *only* blocking condition.
+
+**R7 — Read-only specs mount.** Documented as normal in this container setup (`PRODUCT-13950-feedback.md:122`). A worktree-only writability test passes while `commit` and `fetch` fail, because both write to `.git`.
+*Mitigation:* §5 step 1 tests `.git` writability specifically.
+
+**R8 — Concurrent sessions on one specs repo.** Two runs hitting `index.lock`.
+*Mitigation:* §5 step 6 — report and skip, never delete a lock file; the next preflight flushes.
+
+**R9 — Diverged local default branch.** `pull --ff-only` fails mid-switch.
+*Mitigation:* §6.1 B2 — report and continue on default without pulling; never merge, rebase, or reset.

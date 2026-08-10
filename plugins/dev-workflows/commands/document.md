@@ -165,6 +165,17 @@ Before clarification, show a readiness table summarizing what Phase 0 resolved:
 
 All discovery defaults to `/workspace` (`${REPOS_PATH:-/workspace}`); on a host, or when a path is missing, the command asks rather than guessing.
 
+**Specs-repo preflight.** Cite
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
+`specs-preflight` entry point (§3) inline: flush any leftover session
+artifacts from an earlier run, retry an artifact commit that failed to push,
+and settle the branch. This runs against `$SPECS_PATH` only — `git -C
+"$SPECS_PATH"`, never a `cd`, so the code/docs repo this run is working
+in is untouched (§1 rule 1). Prompt-free and silent when the specs repo
+is clean and on its default branch. If a guard fires, emit its §5 notice;
+if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole
+run — the terminal `commit-artifacts` step skips on it.
+
 ---
 
 ## Phase 1 — Clarification
@@ -1192,7 +1203,7 @@ List each gap (claim, decision) with its own status line — never print the DO-
 
 ### Context hygiene
 
-Write the resume pointer at `<VI-dir>/dev-workflows/resume.md` (per `session-hygiene.md` §1). Then:
+The resume pointer is written in the terminal cost phase (Phase 11), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
 
 - **On to `/release-notes <VI>` (docs → PM handoff), even yourself?** → run **`/clear`** for a clean slate; the docs are on disk.
 - Consider **`/rename <VI-ID>-<slug>-team`** to relocate this session later.
@@ -1248,9 +1259,32 @@ reconciliation (§9) when no VI key resolves. **The checkpoint advances even in
 the pending / report-only tiers.** Surface the persisted path (or the
 report-only notice) as this phase's only output.
 
-ADDITIVE — this phase NEVER fails the run, NEVER commits, and NEVER writes into
-the docs repo or the current working directory; no user name is ever written
-(§10 privacy).
+**Then write the resume pointer.** Cite
+`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and write/overwrite
+`<VI-dir>/dev-workflows/resume.md` now — after the cost entry above, so the
+pointer reflects the completed run, and before the commit step below, so it
+is included in it. Redact per §1. Silent; the printed `### Context hygiene`
+guidance already appeared in the Phase 9 report.
+
+**Then commit session artifacts (terminal).** Cite
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
+`commit-artifacts` entry point (§4) inline — the LAST action of the
+run. It stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`,
+commits `<KEY> Add dev-workflows session artifacts (/document)`, and pushes
+to the specs repo's default branch. It NEVER writes into the docs repo this
+run just changed — the documentation commit, branch, and PR are untouched
+— NEVER touches a code repo, the vault, or the current working directory;
+NEVER force-pushes; NEVER fails the run; and skips entirely when the run carries
+`specs_git: blocked` (§3.3 G0), re-emitting that notice. Because the Phase 9
+report was composed before this phase, **print its §6 outcome line here**,
+as the run's last output — prefixed `Specs repo:`, with any guard notice
+repeated in full.
+
+ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (the
+documentation commit, branch, and PR are handled in Phase 8.5; the terminal
+step above commits only the bounded session-artifact paths in `$SPECS_PATH`),
+and NEVER writes into the docs repo or the current working directory; no user
+name is ever written (§10 privacy).
 
 ---
 
@@ -1322,6 +1356,10 @@ No model-routing reminder is injected for this command — classification still 
    `repo_verification_gates` block. Carry it to Phase 3.5, which checks the edited files against it and
    records the `repo_checklist` ledger row. An empty block is normal — record it and move on. Skip this
    step entirely when cwd is not a git tree (step 3 already skipped for the same reason).
+
+**Specs-repo preflight.** Already run — the shared Phase 0 dispatch executed `specs-preflight`
+(`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §3) before mode detection, and any `specs_git:
+blocked` flag it set is carried into this mode too. Do not run it a second time.
 
 ---
 
@@ -1663,9 +1701,26 @@ reconciliation (§9) when no VI key resolves. **The checkpoint advances even in
 the pending / report-only tiers.** Surface the persisted path (or the
 report-only notice) as this phase's only output.
 
-ADDITIVE — this phase NEVER fails the run, NEVER commits, and NEVER writes into
-the docs repo or the current working directory; no user name is ever written
-(§10 privacy).
+**Then commit session artifacts (terminal).** Cite
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
+`commit-artifacts` entry point (§4) inline — the LAST action of the run. It
+stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
+`<KEY> Add dev-workflows session artifacts (/document)` — or `NOISSUE …`
+when this doc-edit run resolved no key — and pushes to the specs repo's
+default branch. It NEVER writes into the docs repo this run just changed,
+NEVER touches a code repo, the vault, or the current working directory;
+NEVER force-pushes; NEVER fails the run; and skips entirely when the run
+carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Because
+the Phase 5 report was composed before this phase, **print its §6 outcome
+line here**, as the run's last output — prefixed `Specs repo:`, with
+any guard notice repeated in full. No `resume.md` is written in this mode
+(`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 skip list).
+
+ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable
+(direct-mode doc edits remain uncommitted — the user manages git manually;
+the terminal step above commits only the bounded session-artifact paths in
+`$SPECS_PATH`), and NEVER writes into the docs repo or the current working
+directory; no user name is ever written (§10 privacy).
 
 ---
 

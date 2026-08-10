@@ -72,7 +72,15 @@ structural changes), copy the page into the **destination space's**
    per `profile.cross_space_override.rule` — for dynatrace-docs: add the
    `../dynatrace/_content/<rel>` path to the `ignore` block in
    `managed/docstack.jsonc` so the Managed override wins and is not silently
-   shadowed by the pulled-in SaaS page. (See [[managed-docs-override-shadowing]].)
+   shadowed by the pulled-in SaaS page. The shadowing is last-write-wins by
+   path: without that `ignore` entry the pulled-in SaaS page wins over the
+   `managed/_content` override, with no error and no build warning. The
+   mechanism and this remedy are carried by the profile itself —
+   `cross_space_override.mechanism` and `cross_space_override.rule` (see
+   `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/docs-profile.default.yml`,
+   field definitions in `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/docs-profile-schema.md`)
+   — read them from the resolved profile, which is authoritative for the repo in
+   front of the run.
 
 The home space's render is unchanged (its source is untouched); the dest
 space now renders the override copy.

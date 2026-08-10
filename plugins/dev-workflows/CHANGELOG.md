@@ -56,6 +56,15 @@ Versions follow semver at the plugin level.
 - **`/release-notes` is gated on `relevant_for_release_notes`.** An explicit `false` in the *imported* frontmatter stops the run with `RELEASE_NOTES_NOT_RELEVANT` (overridable); an absent value proceeds silently, since the field defaults to true. Previously the check ANDed the flag with `release_versions`, so a VI correctly flagged not-relevant still proceeded whenever a version happened to be set.
 - **One question survives, reframed.** A low-confidence *destination* inference is still confirmed — but only when the Jira dropdown is unset, and the options now name each choice's shape and destination file instead of the four opaque enum values.
 
+## [2.41.0] — 2026-08-04
+
+### Changed
+
+- **Branch naming is now repo-rule-first.** 2.40.0 introduced the `$GIT_USER_INITIALS` ladder but made it the *primary* mechanism, and only `/document` and `/docs-profile` ever read the target repo's own branch-naming convention — so `references/branch-naming.md`'s claim that a documented pattern "outranks this ladder" was unenforceable in `/implement`, `/upgrade`, and `/vuln`, which never looked. The priority is inverted and the gap closed. All five branch-creating commands now read the repo's `CONTRIBUTING.md` / `CONTRIBUTION.md` / `README.md` / `DOCUMENTATION-GUIDELINES.md` / `CLAUDE.md` **first** (§1.1), classify the documented pattern's segments (§1.2), and fill each from its proper source: an **identity** placeholder (`<your-name-or-initials>`, `<user>`, `<initials>`, …) from the `$GIT_USER_INITIALS` → `git config user.initials` → existing-branch-inference → prompt ladder, now §2; an **issue-key** segment from the run's already-resolved Jira key (or the pattern's documented no-issue literal); the **description** segment from each command's own slug rule (§3). Against `dynatrace-docs`' documented `<your-name-or-initials>/<JIRA-ISSUE-KEY>-<short-branch-name>`, `GIT_USER_INITIALS=iv-gu` now yields `iv-gu/PRODUCT-17753-add-oauth`. The ladder supplies the *whole* prefix only when a repo documents no convention at all (§1.4, per-command fallback `feat/` / `docs/` / `fix/` / `chore/`).
+- **A pattern with no identity segment no longer gets one.** Injecting initials into a repo whose documented convention is a plain `feat/<slug>` would violate that convention; §1.2 and §5 now forbid it explicitly. Identity inference also ignores the generic prefixes (`feat/`, `docs/`, `fix/`, `chore/`, …) — they are not identities — and the §2.5 escalation drops its "use the generic fallback" choice when it is an identity being filled, since a documented convention requires a real one.
+- **`/implement` composes a compliant name in issue-key repos.** When a documented pattern has no separate issue-key segment but the run resolved a Jira key, the key is prefixed to the slug (`<KEY>-<slug>`), matching the Jira-driven commands' pre-existing behaviour.
+- Assembling a name from a documented convention still ends in the user confirmation (§1.3) — identity strings and slugs are subjective.
+
 ## [2.40.0] — 2026-08-04
 
 ### Added
@@ -65,15 +74,6 @@ Versions follow semver at the plugin level.
 ### Fixed
 
 - **Two dead `LS` tool names survived the 2.39.4 sweep.** That release removed `LS` from all 50 frontmatter `allowed-tools` / `tools` lists but missed the two *inline* Agent-dispatch specs that name their tool restriction in prose — `/document` Phase 10's structure-scout and `/implement` Phase 2A's exploration subagent both still read `tools: Read/Glob/Grep/LS only`. Claude Code grants no `LS` tool and has no alias for it, so the entry was silently dropped; both now read `tools: Read/Glob/Grep only`, matching the Copilot edition, which already had it right.
-
-## [2.41.0] — 2026-08-04
-
-### Changed
-
-- **Branch naming is now repo-rule-first.** 2.40.0 introduced the `$GIT_USER_INITIALS` ladder but made it the *primary* mechanism, and only `/document` and `/docs-profile` ever read the target repo's own branch-naming convention — so `references/branch-naming.md`'s claim that a documented pattern "outranks this ladder" was unenforceable in `/implement`, `/upgrade`, and `/vuln`, which never looked. The priority is inverted and the gap closed. All five branch-creating commands now read the repo's `CONTRIBUTING.md` / `CONTRIBUTION.md` / `README.md` / `DOCUMENTATION-GUIDELINES.md` / `CLAUDE.md` **first** (§1.1), classify the documented pattern's segments (§1.2), and fill each from its proper source: an **identity** placeholder (`<your-name-or-initials>`, `<user>`, `<initials>`, …) from the `$GIT_USER_INITIALS` → `git config user.initials` → existing-branch-inference → prompt ladder, now §2; an **issue-key** segment from the run's already-resolved Jira key (or the pattern's documented no-issue literal); the **description** segment from each command's own slug rule (§3). Against `dynatrace-docs`' documented `<your-name-or-initials>/<JIRA-ISSUE-KEY>-<short-branch-name>`, `GIT_USER_INITIALS=iv-gu` now yields `iv-gu/PRODUCT-17753-add-oauth`. The ladder supplies the *whole* prefix only when a repo documents no convention at all (§1.4, per-command fallback `feat/` / `docs/` / `fix/` / `chore/`).
-- **A pattern with no identity segment no longer gets one.** Injecting initials into a repo whose documented convention is a plain `feat/<slug>` would violate that convention; §1.2 and §5 now forbid it explicitly. Identity inference also ignores the generic prefixes (`feat/`, `docs/`, `fix/`, `chore/`, …) — they are not identities — and the §2.5 escalation drops its "use the generic fallback" choice when it is an identity being filled, since a documented convention requires a real one.
-- **`/implement` composes a compliant name in issue-key repos.** When a documented pattern has no separate issue-key segment but the run resolved a Jira key, the key is prefixed to the slug (`<KEY>-<slug>`), matching the Jira-driven commands' pre-existing behaviour.
-- Assembling a name from a documented convention still ends in the user confirmation (§1.3) — identity strings and slugs are subjective.
 
 ## [2.39.4] — 2026-08-02
 

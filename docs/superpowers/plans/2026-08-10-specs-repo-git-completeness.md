@@ -61,7 +61,13 @@ Either way there is exactly **one** `Specs repo:` emission per command, at the e
 
 **G-12 — Every `resume.md` write moves to the end of its command's cost phase**, immediately before `commit-artifacts` — all **ten** commands that write one, not just the eight the spec §7 table lists as violating. `/design` and `/specify` write theirs inside the Final report, which is *after* cost but *after* `commit-artifacts` would run; leaving them there would commit a stale or absent `resume.md`. The printed `### Context hygiene` block keeps its `/compact` | `/clear` | `/rename` suggestion and stops carrying the write instruction.
 
-**G-13 — Verbatim citation snippets.** Where a task says "insert the preflight citation" or "insert the commit citation", it means the exact text given in that task's steps. Do not paraphrase; the sweep in Task 8 and the V2–V5 counts depend on the literal strings `specs-repo-git.md`, `specs-preflight`, `commit-artifacts`, and `Specs repo:`.
+**G-13 — Verbatim citation snippets, re-wrapped to local style.** Where a task says "insert the preflight citation" or "insert the commit citation", it means the exact *wording* given in that task's steps. Do not paraphrase — the sweep in Task 8 and the V2–V5 counts depend on the literal strings `specs-repo-git.md`, `specs-preflight`, `commit-artifacts`, and `Specs repo:`.
+
+**Line breaks are not part of the verbatim requirement.** The snippets are written as single long lines. Before inserting one, look at the paragraphs already surrounding the insertion point: if they are hard-wrapped (`specify.md`, `design.md`, `epics.md`, `ready.md`, and most reference files), re-wrap the snippet to the same width. If they are single unwrapped lines (`create-vi.md`, `update-vi.md`, `create-ard.md`), insert it unwrapped. Matching the neighbours is the rule; the snippet's own formatting is not.
+
+Because of this, **every count over command source must be whitespace-normalized** — see the Verification section's V3/V4. A hard-wrapped citation defeats a line-level `grep -c`, which is the exact defect shape that cost the 2.44.1 pass a Critical.
+
+**G-14 — `<KEY>` vs `NOISSUE` at commit time.** `specs-preflight`'s "run key" (`specs-repo-git.md` §3.2) and `commit-artifacts`'s commit-message key (§4 step 4) are resolved at **different points in the run and are independent**. §3.2 calls `/create-vi` "structurally keyless" — that is scoped to the preflight's branch-key matching only, and does not mean the terminal commit is keyless. Every `commit-artifacts` citation states both forms: `<KEY> Add dev-workflows session artifacts (<command>)`, or `NOISSUE …` when no key has resolved **by the time the commit runs**.
 
 ---
 
@@ -652,7 +658,7 @@ In `followup-emission.md`, the sentence containing `the phase NEVER commits` —
 
 ```bash
 cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
-grep -c 'specs-repo-git.md' references/session-hygiene.md      # expect: 3
+grep -c 'specs-repo-git.md' references/session-hygiene.md      # expect: 2 — §1's write-ordering sentence and §5 rule 2's terminal order
 grep -c 'specs-repo-git.md' references/feedback-emission.md    # expect: 2
 grep -c 'specs-repo-git.md' references/cost-emission.md        # expect: 1
 grep -c 'specs-repo-git.md' references/followup-emission.md    # expect: 1
@@ -1474,6 +1480,50 @@ done
 
 If either still reads as the old unscoped assertion, fix it here.
 
+- [ ] **Step 3b: Sweep the SECOND family — resume-ordering assertions**
+
+This family was not in the spec's §8.1 variant table, which enumerated
+*commit* assertions only. It was found during Task 5's review and verified to
+affect **all ten** commands that relocate `resume.md`, not just the three in
+that task. Tasks 3–5 moved the write; these assertions still describe where the
+write used to happen, two lines from the block they contradict.
+
+Every one of the ten relocating commands carries a `### Context hygiene`
+invariant of the shape:
+
+```
+ALWAYS end the Phase N report with a `### Context hygiene` block per
+`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (`resume.md`),
+then a <role-aware suggestion> + `/rename …`; guidance only, never auto-run.
+```
+
+Enumerate them — do not work from a hand-written list:
+
+```bash
+cd /workspace/ihudak-claude-plugins/plugins/dev-workflows/commands
+for f in create-vi update-vi create-ard specify design epics ready release-notes implement document; do
+  n=$(tr '\n' ' ' < $f.md | grep -o 'prepare-first *([^)]*resume\.md[^)]*)' | wc -l)
+  [ "$n" -gt 0 ] && printf '%-14s %s\n' "$f" "$n"
+done
+```
+
+Expect one hit per file, ten total. For each, replace the `prepare-first
+(`resume.md`)` fragment with wording that matches what the command now does,
+preserving everything else in the bullet verbatim — the phase number, the
+role-aware suggestion, the `/rename` aid, and the `guidance only` clause:
+
+```markdown
+prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only)
+```
+
+Where the bullet says `prepare-first (write `resume.md`)` or
+`prepare-first (`resume.md`, verdict as carry-forward)`, keep that bullet's own
+parenthetical detail and fold it into the same replacement — `/ready`'s
+verdict-as-carry-forward note must survive.
+
+Re-run the enumeration afterwards. Every surviving hit must name the terminal
+cost phase; a bare `prepare-first (`resume.md`)` is a failure of this step.
+
 - [ ] **Step 4: Handle the `Invariants (always enforced)` lists**
 
 `epics.md`, `ready.md`, `release-notes.md`, `implement.md`, `document.md` (×2),
@@ -2123,9 +2173,10 @@ scope, minus `/api-guideline-reviewer`, `/guideline-reviewer`, `/statusline`,
 | V5 | `Specs repo:` outcome-line sites | **18** — same split as V4 |
 | V6 | Whitespace-normalized scan of each in-scope file for every phrasing variant; each surviving hit is either scoped (names the `$SPECS_PATH` carve-out) or annotated with a stated reason | 0 unreconciled hits |
 | V6b | Annotated-as-still-true assertions each carry a stated **reason**, not just a label | every one |
+| V6c | `prepare-first (`resume.md`)` assertions naming the terminal cost phase (the second sweep family, Task 8 Step 3b) | 10 of 10 — a bare `prepare-first (`resume.md`)` with no phase is an unreconciled hit |
 | V7 | `cd ` inside `specs-repo-git.md` | 0 |
-| V8 | `git add -A` in `specs-repo-git.md` not followed by ` -- ` on the same line | 0 |
-| V9 | `--force` / `push -f` / `branch -D` in `specs-repo-git.md` | 0 |
+| V8 | `git add -A` **as an invocation** in `specs-repo-git.md` not followed by ` -- ` on the same line | 0 |
+| V9 | `--force` / `push -f` / `branch -D` **as an invocation** in `specs-repo-git.md` | 0 |
 | V10 | `resume.md` written after the cost phase (copilot: after the feedback/follow-up phase) | 10 of the 10 commands that write it |
 | V11 | `dev-workflows-cost` anywhere in the copilot edition | 0 |
 | V12 | mgd diff against canonical | exactly the 5 identity files |
@@ -2133,22 +2184,69 @@ scope, minus `/api-guideline-reviewer`, `/guideline-reviewer`, `/statusline`,
 
 Run V2–V6 with:
 
+**V3 and V4 MUST be whitespace-normalized.** Command source files are
+hard-wrapped, and the executable citation phrase wraps across a line break in
+some of them — `specify.md` and `design.md` break between ``execute its
+`commit-artifacts` `` and `entry point (§4) inline`. A line-level `grep -c`
+silently reports **0** for those files and the count comes out low. This is the
+same defect shape that the 2.44.1 pass hit on `NEVER commits`; do not repeat it.
+
 ```bash
 cd /workspace/ihudak-claude-plugins/plugins/dev-workflows/commands
 SCOPE="create-vi update-vi create-ard specify design idea epics ready release-notes implement document vuln upgrade feedback prompt prompt-brainstorm prompt-grill-me"
-echo "V2 files: $(for f in $SCOPE; do grep -l 'specs-repo-git.md' $f.md; done | wc -l)"      # 17
-echo "V3 preflight: $(for f in $SCOPE; do grep -c 'specs-preflight' $f.md; done | paste -sd+ | bc)"   # >=17
-echo "V4 commit: $(for f in $SCOPE; do grep -c 'commit-artifacts` entry point (§4) inline' $f.md; done | paste -sd+ | bc)"   # 18
-echo "V5 line: $(for f in $SCOPE; do grep -c 'Specs repo:' $f.md; done | paste -sd+ | bc)"   # 18
+
+# V2 — files citing the reference (line-level is safe: the filename never wraps)
+for f in $SCOPE; do grep -l 'specs-repo-git.md' $f.md; done | wc -l                      # 17
+
+# V3 — EXECUTABLE preflight citations, whitespace-normalized
+for f in $SCOPE; do tr '\n' ' ' < $f.md | grep -o 'execute its `specs-preflight` *entry point' | wc -l; done | awk '{s+=$1} END {print s+0}'    # 17
+
+# V4 — EXECUTABLE commit citations, whitespace-normalized
+for f in $SCOPE; do tr '\n' ' ' < $f.md | grep -o 'execute its `commit-artifacts` *entry point' | wc -l; done | awk '{s+=$1} END {print s+0}'   # 18
+
+# V5 — outcome lines (line-level is safe: `Specs repo:` is short and never wraps)
+for f in $SCOPE; do grep -c 'Specs repo:' $f.md; done | awk '{s+=$1} END {print s+0}'                  # 18
 ```
 
-V3 may exceed 17 because `document.md` carries a direct-mode "already run"
-pointer. Confirm the number of **executable** preflight citations is exactly 17
-by grepping the executable phrasing:
+Per-file breakdown for V4 — every file 1 except `document.md`, which is 2:
 
 ```bash
-for f in $SCOPE; do grep -c 'execute its `specs-preflight` entry point' $f.md; done | paste -sd+ | bc   # 17
+for f in $SCOPE; do printf '%-18s %s\n' "$f" "$(tr '\n' ' ' < $f.md | grep -o 'execute its `commit-artifacts` *entry point' | wc -l)"; done
 ```
+
+A bare `grep -c 'specs-preflight'` will exceed 17, because several files also
+*mention* the entry point in prose (`document.md`'s direct-mode "already run"
+pointer, and every preflight citation's closing clause about the blocked flag).
+That is expected; V3 counts the executable phrasing only.
+
+**V7–V9 must distinguish an invocation from prose about an invocation.** The
+reference states its own prohibitions in words — rule 4 names `push --force`,
+`push -f`, and `branch -D` precisely in order to forbid them, and rule 2 names
+`git add -A` in order to bound it. A blunt substring grep flags those sentences
+and reports a violation that does not exist. Run V7–V9 as:
+
+```bash
+cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
+R=references/specs-repo-git.md   # copilot: skills/_shared/specs-repo-git.md
+# V7 — no directory change anywhere
+grep -nE '(^|[^a-z])cd ' "$R"                                  # expect: no output
+# every real git invocation is -C-gated (fenced blocks and inline commands alike);
+# the user-facing Fix: blocks legitimately use the literal <SPECS_PATH> placeholder
+grep -nE '(^ *|` *)git ' "$R" | grep -vE 'git -C "(\$SPECS_PATH|<SPECS_PATH>)"'
+# expect: only prose lines that *mention* git without invoking it —
+#   "`git push` is git-protocol, already sanctioned by…"
+#   "**`git -C` always; `cd` never.**"
+#   "`git add -A` is never issued at repository scope — always `git add -A -- …`"
+#   "plain `git add` would not stage it."
+#   "`git branch` will not list it"
+# V8 — every add -A invocation carries ` -- `
+grep -n 'add -A' "$R" | grep -v ' -- ' | grep -v 'never'       # expect: no output
+# V9 — no destructive verb outside the sentence that forbids it
+grep -nE '\-\-force|push -f|branch -D' "$R" | grep -viE 'never|no `?push|forbid'   # expect: no output
+```
+
+A hit that survives these filters is a real violation. A hit that does not is
+the reference quoting its own rule, which is the point of the rule.
 
 ---
 

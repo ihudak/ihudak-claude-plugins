@@ -38,6 +38,9 @@ CI will check that the run did not. Total absence of coverage does not proceed.
 
 The ledger is an in-context YAML block. The orchestrator **appends a row at the moment each gate
 completes** — never reconstructs the ledger at report time from memory.
+
+**One row per gate, created once.** The first writer to reach a gate creates its row; every later writer **rewrites that row in place** and never appends a second one. A row Phase 0's toolchain preflight pre-seeded is that gate's row — carry its `user_decision` forward rather than discarding it, and let the gate's own phase rewrite the outcome around it. Two rows for one gate id is a defect even though §6 does not name it: the report table reads every row, so a duplicate silently misstates what happened.
+
 A phase whose outcome is not yet known at append time may write a **provisional** row, but only when a named later step in that same phase rewrites it before the phase ends — Phase 5.8's `Ledger (final)` and Phase 6.5's `Ledger (final)` are the two sanctioned cases. A provisional row is never the outcome a later reader sees.
 
 ```yaml
@@ -66,7 +69,7 @@ gate_ledger:
 | `build_check` | 6.5 S1 | write context is a buildable repo | `commands.per_space.<space>.build` for every space in the render verification set (`dynatrace-docs/render-verification.md` §2), else whole-repo `commands.build` | the Step 2 dev-server boot |
 | `render_smoke_check` | 6.5 S2 | buildable repo with ≥1 affected page | dev servers for the target **and** protected spaces | the manual pages-to-visit table |
 
-The **Phase** column above is Jira mode's. Direct mode runs the same gate ids at different phases — `toolchain_preflight` and `repo_checklist` at Phase 0, `style_check` at Phase 3.5 — as the paragraph below sets out.
+The **Phase** column above is Jira mode's. Direct mode runs the same gate ids at different phases — `toolchain_preflight` at Phase 0, and both `style_check` and `repo_checklist` at Phase 3.5 (the checklist is *extracted* at Phase 0 but its row completes when the written files are held against it) — as the paragraph below sets out. A row's `phase:` field always names the phase where the gate **completes**, not where its inputs were gathered.
 
 A gate whose precondition is unmet records `NOT_APPLICABLE` with the precondition named. It is never
 silently absent from the ledger.

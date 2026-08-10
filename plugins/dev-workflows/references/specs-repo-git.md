@@ -122,6 +122,12 @@ keyless here (its key is minted by the Jira round-trip in a later phase), and
 keyless is the right classification for it: a new VI must not stack on another
 VI's branch.
 
+**This run key is the preflight's, and only the preflight's.** It exists to match
+branches in §3.5 and is resolved at the *start* of the run. `commit-artifacts`
+resolves its own key independently, at the *end* of the run (§4 step 4) — by
+which point a command that started keyless may well have one. A run that is
+keyless here is not thereby committing under `NOISSUE`.
+
 ### 3.3 Stage 1 — guards
 
 **Any match ends the preflight; the run proceeds.** Every guard emits the §5

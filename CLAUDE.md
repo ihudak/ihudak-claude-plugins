@@ -145,7 +145,7 @@ in their prompt; they do not re-read the file.
 /specify             → jira-reader → [code-scanner×N (parallel, cap 4, soft gate)] → [docs-grounder] → (embedded grilling) → [spec-reviewer@Opus] → write specification.md → commit-artifacts
 /design              → [code-scanner×N (parallel, cap 4, STRICT gate)] → (embedded grilling, challenges spec) → [design-reviewer@Opus] → write design.md → commit-artifacts
 /ready               → jira-reader + Jira status read → verify ARD/spec/design → [readiness-reviewer@Opus] → SUPPORTED/PARTIAL/NOT-SUPPORTED → impl-maintenance + emit-auto → commit-artifacts
-All seventeen in-scope commands additionally run `specs-preflight` at Phase 0 and `commit-artifacts` as their last action (`references/specs-repo-git.md`). (`/feedback`, `/prompt`, `/prompt-brainstorm`, and `/prompt-grill-me` are in scope too but have no line of their own in this map — they are single-purpose logging commands, not pipelines.)
+All seventeen in-scope commands additionally run `specs-preflight` at Phase 0 and `commit-artifacts` as their last action (`references/specs-repo-git.md`) — including `/feedback`, `/prompt`, `/prompt-brainstorm`, and `/prompt-grill-me`, which have no line of their own in this map because they are single-purpose logging commands rather than pipelines.
                       └── test-baseliner      (used by upgrade-executor, vuln-fixer, and /implement)
                       └── test-writer        (used by /implement only)
                       └── risk-planner       (used by /implement plan critique)

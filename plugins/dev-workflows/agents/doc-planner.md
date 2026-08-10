@@ -11,7 +11,7 @@ Not a writer — this agent plans; the main command writes.
 ## Inputs
 
 ```yaml
-jira_reader_handoff:    <full YAML from jira-reader; see agents/jira-reader.md output schema>
+jira_reader_handoff:    <full YAML from jira-reader; see ${CLAUDE_PLUGIN_ROOT}/agents/jira-reader.md output schema>
 diff_summaries:         <array of diff-summarizer outputs; one entry per repo>
 write_targets:          <confirmed list from doc-location-finder + user; each has kind, section, path, rationale>
 screenshots:            [<array of user-provided absolute image paths; possibly empty>]
@@ -45,7 +45,7 @@ For each write target:
 
    Not every target needs every topic. For `extend-existing`, pick only the topics the existing page doesn't already cover.
 
-   When a topic's content presents mutually exclusive options (alternative setup paths, alternative configurations, and similarly-shaped either/or content), plan its callout placement per `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §2: each option's callout is planned adjacent to that option, never as an **unqualified** trailing block after the whole set; a callout that applies to the whole set is planned into the lead-in, before the options. §2 rule 3 is an explicit alternative: when a callout must stay adjacent to the whole set, plan it to name its own scope in its first clause (e.g. *"This applies only to the built-in cluster registry."*). Record the placement in the topic's `notes`. Do not restate §2's rules here — cite it.
+   When a topic's content presents mutually exclusive options (alternative setup paths, alternative configurations, and similarly-shaped either/or content), plan its callout placement per `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §2: each option's callout is planned adjacent to that option, never as an **unqualified** trailing block after the whole set; a callout that applies to the whole set is planned into the lead-in, before the options. §2 rule 3 is an explicit alternative: when a callout must stay adjacent to the whole set, plan it to name its own scope in its first clause (e.g. *"This applies only to the built-in cluster registry."*). Record the placement in the topic's `notes`. Do not restate §2's rules here — cite it. (The one-line operational paraphrase above is deliberate and stays, as does its twin in `doc-writer.md` step 10: in this file pair the planner and the writer each carry their own short operational version of a cited rule, with §2 the authority both defer to. It is not duplication to collapse.)
 
 2. **Map topics to sources.** Each topic records which `jira-reader` keys and/or which `diff-summarizer` PR URLs back it up, for the Phase 6.3 writer's traceability requirement. A topic with no source attribution is a candidate gap (see step 7).
 
@@ -107,9 +107,9 @@ For each write target:
    - `"mark TODO in draft"` — the writer emits a `<!-- TODO: … -->` marker in the output.
    - `"skip with note in final report"` — the gap is recorded in the Phase 9 `### Skipped items` section.
 
-9. **Source-truth verification (per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`).** For every user-visible claim the checklist would put in a topic `notes:` (option lists, UI labels, menu paths, defaults, counts, mode names), establish the **intended** phrasing, then verify it against `code_repos` using the techniques in source-truth.md §3. Record results in `verification_warnings[]` (schema below). **Do NOT rewrite the topic notes to match source** — preserve the original (intended) phrasing; the orchestrator + user resolve discrepancies in `/document` Phase 5.8.
+9. **Source-truth verification (per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`).** For every user-visible claim the checklist would put in a topic `notes:` (option lists, UI labels, menu paths, defaults, counts, mode names), establish the **intended** phrasing, then verify it against `code_repos` using the techniques in `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §3. Record results in `verification_warnings[]` (schema below). **Do NOT rewrite the topic notes to match source** — preserve the original (intended) phrasing; the orchestrator + user resolve discrepancies in `/document` Phase 5.8.
 
-   - **When `specs_dir` is non-null, the spec markdown is the authoritative "intended" source** (source-truth.md §3.0, §4.2). Read the spec tree **selectively** via the `spec-markdown` technique: the VI spec (`PRODUCT-<key>*.md` or `specification.md` at the spec-dir root), `epics/epic-*.md`, and each `epics/<epic>/requirements.md` + `design.md` (these four classes are authoritative intended); treat `tasks.md` only as a secondary "planned" signal; **ignore** `idea.md`, `prompt.md`, and any rendered HTML mirrors. Capture each user-visible claim's intended phrasing from the spec into `spec_phrasing`. When no spec covers a given claim, fall back to the Jira phrasing as that claim's intended source. Then verify intended-vs-**code** via the §3 techniques as usual. A spec phrasing that differs from the Jira narrative (regardless of whether code matches the spec) is recorded as `finding: SPEC-VS-JIRA` (the spec is authoritative; the Jira ticket is the side that drifted).
+   - **When `specs_dir` is non-null, the spec markdown is the authoritative "intended" source** (`${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §3.0, §4.2). Read the spec tree **selectively** via the `spec-markdown` technique: the VI spec (`PRODUCT-<key>*.md` or `specification.md` at the spec-dir root), `epics/epic-*.md`, and each `epics/<epic>/requirements.md` + `design.md` (these four classes are authoritative intended); treat `tasks.md` only as a secondary "planned" signal; **ignore** `idea.md`, `prompt.md`, and any rendered HTML mirrors. Capture each user-visible claim's intended phrasing from the spec into `spec_phrasing`. When no spec covers a given claim, fall back to the Jira phrasing as that claim's intended source. Then verify intended-vs-**code** via the §3 techniques as usual. A spec phrasing that differs from the Jira narrative (regardless of whether code matches the spec) is recorded as `finding: SPEC-VS-JIRA` (the spec is authoritative; the Jira ticket is the side that drifted).
    - **When `specs_dir` is null/empty, behave as today** (two-way Jira-vs-code): the intended phrasing is the Jira phrasing, and set `spec_phrasing: "(no spec)"` on every entry.
 
    When `code_repos` is empty/omitted, emit one entry per user-visible claim with `finding: NOT_FOUND`, `technique: no-source-evidence`, `source_phrasing: "(not verifiable)"` (and `spec_phrasing: "(no spec)"` when `specs_dir` is also null).
@@ -129,6 +129,8 @@ For each write target:
     - Set `write_strategy.target_space` to the space the change is **for**: for `conditional`, the `project='…'` value of the wrapped delta; for `override-copy`, the destination space the copy lands in; for `plain`, the page's home space.
     - Set `write_strategy.rationale` to a 1-line justification grounded in the divergence you estimated (used by Phase 5.9's table).
     - This recommendation is **advisory** — the orchestrator presents it for approval/override in Phase 5.9 before any write. Do NOT write files.
+
+    **Known residual (deliberate, do not "fix" by inventing a branch).** The three strategies above cover no case for a `single` page whose home space is *outside* `target_spaces` — `plain` requires the home space to be in `target_spaces`, and `conditional` / `override-copy` both require a `shared` page. Such a target should never reach this step (Phase 4.5/5.5 honour `target_spaces`), and if one does, `doc-writer`'s routing rule returns `status: BLOCKED` naming the target and its resolved home space, so it fails loudly rather than silently. Do not paper over it with a fourth branch here — that would convert a caller defect into a quietly written page in an untouched space.
 
 ## Output — the documentation checklist
 
@@ -197,6 +199,8 @@ verification_warnings:        # source-truth findings; resolved by the orchestra
 `status: PARTIAL` is returned when the checklist is usable but at least one gap has `recommended_action: "ask user"` or the image policy is `ambiguous` for at least one target — the caller must surface those to the user before approval.
 
 ## Hard rules
+
+The `component_patterns` bullet below (no fabricated `evidence`, no second scan) reads wider than the planning brief **on purpose, and it stays**: a fabricated `file:line` is trusted downstream without rechecking, and a second scan would silently ground the patterns in a different sample than the image policy came from.
 
 - NEVER include a Jira key inside `frontmatter_updates.changelog.entry` — see `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1.
 - The `repo_verification_gates` block obeys `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §6 in full — never emit an entry that cannot be checked against the files this run writes, never paraphrase a repo gate into a different requirement, and never let a repo gate silently override a built-in reference.

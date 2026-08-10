@@ -2,7 +2,8 @@
 
 How `/document` Phase 6.5 proves the documentation it just wrote builds
 and renders — and that cross-space pages honor the 3a render-unchanged invariant
-(the protected space's render is unchanged). See [[multi-space-writing]] for the
+(the protected space's render is unchanged). See
+`${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/multi-space-writing.md` for the
 write strategies this verifies.
 
 This is the single source of truth for the mechanics; Phase 6.5 cites it and

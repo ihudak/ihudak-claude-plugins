@@ -85,9 +85,10 @@ re-derived per run.
 If the docs anchor genuinely cannot be made to match the product's deep link
 (for example, the target section was restructured and no single heading
 maps to it), do not resolve the mismatch silently — record it and route it
-through the normal Phase 5.8 discrepancy-escalation path (see [[source-truth]]
-§7 for the protocol: present the analysis, ask the user, and record the
-decision — never auto-resolve).
+through the normal Phase 5.8 discrepancy-escalation path (see
+`${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7 for the protocol:
+present the analysis, ask the user, and record the decision — never
+auto-resolve).
 
 ## 5. Consumers
 

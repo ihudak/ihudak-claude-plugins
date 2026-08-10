@@ -44,7 +44,7 @@ This set governs **both** gates: §1's build check runs each of its spaces' buil
 smoke-check below boots each of them. Neither is scoped by which `content_root` the written files sit
 under.
 
-Consumers restate this set inline where they use it rather than citing it alone. That duplication is deliberate: these files are read once at runtime by a model that may not follow a cross-reference. Keep the restatements in sync with this definition; do not collapse them into a bare citation.
+The two operative consumers — `/document` Phase 6.5 Steps 1 and 2 — restate this set inline rather than citing it alone. That duplication is deliberate: those are instructions a model acts on in one pass, and it may not follow a cross-reference before deciding which servers to boot. Keep both restatements in sync with this definition and do not collapse them into a bare citation. Descriptive references elsewhere (`gate-ledger.md` §4's registry, `docs-profile-schema.md`'s field rules) cite this section and should stay short.
 
 For each space in the verification set, in order:
 

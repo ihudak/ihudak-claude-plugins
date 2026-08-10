@@ -740,7 +740,7 @@ Invoke `docs-style-checker` on the files written in Phase 6.3:
   > files:     [absolute paths of every file written or modified in Phase 6.3]
   > spaces:    [one entry per space in profile.spaces that has a profile.commands.per_space entry — {id, content_root, lint}; omit the key entirely when the profile declares no per_space commands]"
 
-Append the `style_check` ledger row before acting on the return (schema:
+Write the `style_check` ledger row before acting on the return — rewriting the row Phase 0's preflight pre-seeded if there is one, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3's one-row-per-gate rule, and preserving any `user_decision` it carries (schema:
 `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3), deriving its outcome from the agent's
 `primary_attempts` and `complementary_linter`:
 
@@ -754,7 +754,7 @@ Append the `style_check` ledger row before acting on the return (schema:
   convert it per `gate-ledger.md` §5 before proceeding.
 - `status: ERROR` → `UNAVAILABLE`; convert it per `gate-ledger.md` §5.
 
-Also append the `repo_checklist` row: `NOT_APPLICABLE` with
+Also write the `repo_checklist` row (creating it, or rewriting it in place if one exists): `NOT_APPLICABLE` with
 `precondition_unmet: "the repo publishes no authoring or verification guidance"` when
 `doc-planner`'s `repo_verification_gates` block is empty; otherwise `RAN` with `findings:` = the
 number of checklist items that failed against the written files.
@@ -786,7 +786,7 @@ Then act on the return:
 
 ## Phase 6.5 — Render verification
 
-**Ledger first — before the run-condition below.** Both gates this phase owns must carry a row on every run, including runs where the phase does not execute. Write them now, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3 — **overwriting** any row Phase 0's preflight pre-seeded for these two gates rather than appending beside it, so each gate holds exactly one row:
+**Ledger first — before the run-condition below.** Both gates this phase owns must carry a row on every run, including runs where the phase does not execute. Per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3 each gate holds exactly one row, so **rewrite** the row Phase 0's preflight pre-seeded rather than appending beside it — and when that pre-seeded row carries a `user_decision`, keep it: the user already decided to proceed without this tooling, and that decision stands until the gate itself proves otherwise. Create the row here only when the preflight did not pre-seed one:
 
 - Write context is `obsidian` or `plain_dir` → append BOTH `build_check` and `render_smoke_check` as `NOT_APPLICABLE` with `precondition_unmet` naming the actual context — `"write context is obsidian"` or `"write context is plain_dir"`. These rows are final; the phase does not run.
 - Write context is `docs_repo` or a confirmed `non_docs_repo` → append both provisionally as `RAN`, then rewrite each at the end of this phase per **Ledger (final)** below.
@@ -1221,7 +1221,7 @@ No model-routing reminder is injected for this command — classification still 
 
 2. **Initialize the ledger.** Create the run's `gate_ledger` block per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3 — unconditionally, before the git-tree check below. Direct mode registers three gates (`gate-ledger.md` §4); each needs a row even when this run cannot lint anything.
 
-3. **Toolchain preflight.** Resolve `repo_root` = `git rev-parse --show-toplevel` from cwd. When cwd is not a git tree there is no repo to lint: record all three of direct mode's gates as `NOT_APPLICABLE` with `precondition_unmet: "cwd is not a git repository"`, skip the rest of this step and the checklist extraction below, and proceed — the ledger is complete and Phase 3.5 appends nothing further. Then execute
+3. **Toolchain preflight.** Resolve `repo_root` = `git rev-parse --show-toplevel` from cwd. Then execute
    `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` against it. Direct mode has no profile, so
    use **sources 2 and 3 only** (repo config signals and the repo's documented `Prerequisites`); the
    only gate in scope is `style_check`, so `required_by` never names `build_check` or
@@ -1230,7 +1230,7 @@ No model-routing reminder is injected for this command — classification still 
    Append the `toolchain_preflight` row per
    `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3. Present the §5 prompt verbatim only when a
    required tool is missing; on "Cancel", stop with `TOOLCHAIN_UNAVAILABLE: <missing tools> not
-   available in this environment.`
+   available in this environment.` When cwd is not a git tree there is no repo to lint: record `toolchain_preflight` as `RAN` with `mechanism: "no repo to check — cwd is not a git repository"` and `findings: 0` (its precondition is "always", so it is never `NOT_APPLICABLE`), record `style_check` and `repo_checklist` as `NOT_APPLICABLE` with `precondition_unmet: "cwd is not a git repository"`, then skip the rest of this step and the checklist extraction below and proceed — the ledger is complete and Phase 3.5 runs no gates.
 
 4. **Extract the repo's pre-PR checklist.** Direct mode has no `doc-planner`, so the orchestrator does
    this itself. In the **same pass** that read the repo's guidance files for step 3's `Prerequisites`,
@@ -1343,6 +1343,8 @@ choices: ["Approve & implement now (Recommended)", "Revise plan", "Cancel"]
 
 ## Phase 3.5 — Style check (mandatory)
 
+**Skip this entire phase** when Phase 0 recorded direct mode's gates as `NOT_APPLICABLE` (cwd is not a git repository): do not dispatch `docs-style-checker`, do not check the repo checklist, and write no rows — the ledger is already complete and final. Proceed to Phase 4.
+
 After writing the edits and before Phase 4, dispatch `docs-style-checker` on the changed file(s):
 
 → Agent (subagent_type: "dev-workflows:docs-style-checker"):
@@ -1353,7 +1355,7 @@ After writing the edits and before Phase 4, dispatch `docs-style-checker` on the
 - `OK` → proceed to Phase 4.
 - `NOT_CONFIGURED` / `ERROR` → no primary rung and no complementary pass produced a result, so the gate has no coverage. Record `style_check` as `UNAVAILABLE` and convert it per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 before proceeding. Direct mode has no reviewer gate, so this prompt is the only place the gap surfaces — never proceed past it silently.
 
-Never skip this phase on your own judgement of which linters are installed. `docs-style-checker` runs the chain internally as a **ladder**: each primary rung is tried in turn (a detected-but-broken rung does not abandon the ones below it), and `dt-style-checker` runs as a complementary semantic pass whenever the `dt-style-guide` plugin is installed — so neither the repo's own linter nor the semantic / cross-page class is silently dropped. Skip both appends below when Phase 0 already recorded direct mode's gates as `NOT_APPLICABLE` (cwd is not a git repository) — their rows are final. Append the `style_check` ledger row here (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3), carrying the returned `primary_attempts`: `RAN` when a primary rung succeeded; `DEGRADED` when every rung failed but `dt-style-checker` ran, with `not_run:` one `{mechanism, reason}` entry per failed rung and a `ci_still_checks:` line; `UNAVAILABLE` per the bullets above; `NOT_APPLICABLE` with `precondition_unmet: "no files edited"` when Phase 3 changed nothing.
+Never skip this phase on your own judgement of which linters are installed. `docs-style-checker` runs the chain internally as a **ladder**: each primary rung is tried in turn (a detected-but-broken rung does not abandon the ones below it), and `dt-style-checker` runs as a complementary semantic pass whenever the `dt-style-guide` plugin is installed — so neither the repo's own linter nor the semantic / cross-page class is silently dropped. Write the `style_check` ledger row here — rewriting the preflight's pre-seeded row if there is one, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3's one-row-per-gate rule (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3), carrying the returned `primary_attempts`: `RAN` when a primary rung succeeded; `DEGRADED` when every rung failed but `dt-style-checker` ran, with `not_run:` one `{mechanism, reason}` entry per failed rung and a `ci_still_checks:` line; `UNAVAILABLE` per the bullets above; `NOT_APPLICABLE` with `precondition_unmet: "no files edited"` when Phase 3 changed nothing.
 
 After the style check, hold the edited files against the `repo_verification_gates` block extracted in Phase 0 (`${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §5) and append the `repo_checklist` ledger row: `RAN` with `findings:` = the number of entries that failed, or `NOT_APPLICABLE` with `precondition_unmet: "the repo publishes no pre-PR checklist"` when the block is empty. Report any failed entry to the user with its `source` citation — direct mode has no reviewer gate, so this is where the repo's own rules surface.
 
@@ -1478,6 +1480,11 @@ Output a structured report — do NOT ask any closing confirmation:
 
 ### Session learnings (Agent 4)
 - [top suggestions from impl-maintenance agent, or "no suggestions — routine session"]
+
+### Verification gates
+| Gate | Outcome | Detail |
+|---|---|---|
+[One row per gate in the `gate_ledger` — direct mode registers three (`references/gate-ledger.md` §4). "Detail" carries the row's `ci_still_checks` (DEGRADED), `user_decision` (SKIPPED_BY_USER), or `precondition_unmet` (NOT_APPLICABLE); empty otherwise. When any row is DEGRADED or SKIPPED_BY_USER, follow the table with a one-line warning naming what CI will check that this run did not.]
 
 ### Assumptions & limitations
 - [list any]

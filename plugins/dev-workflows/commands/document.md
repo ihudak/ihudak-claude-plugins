@@ -1083,7 +1083,7 @@ choices: ["Skip — report only (Recommended)", "Apply all", "Choose per proposa
 - **Skip — report only** — apply nothing; every proposal's disposition is `proposed` for the Phase 9 report.
 - **Apply all** — apply every proposal via the mechanism below; every proposal's disposition is `applied-uncommitted`.
 - **Choose per proposal** — ask accept/decline for each proposal; apply the accepted ones (`applied-uncommitted`), leave the rest `declined`.
-- **Cancel** — apply nothing; every proposal's disposition is `proposed`.
+- **Cancel** — apply nothing; every proposal's disposition is `proposed`. Unlike every other "Cancel" in this command, **Cancel here does not abort the run**: Phase 8.5's squash (and any push / PR draft) is already done by the time this phase runs, so there is nothing left upstream to unwind. Cancel only declines this phase's proposals; the run proceeds to Phase 9 and the Final Report is produced exactly as it would be after Skip.
 
 **Apply mechanism.** For each accepted proposal, re-dispatch the agent that produced it — Agent 2 or Agent 3, same general-purpose agent and model as Phase 8, no new agent type — in apply mode, carrying its own proposal back verbatim:
 
@@ -1174,7 +1174,7 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 [Gaps the planner flagged with recommended_action: "skip with note in final report" — one line each; or "none"]
 
 ### Deferred items
-[MINOR / NIT findings that were not applied, OR user-declined screenshots, OR doc-reviewer BLOCK findings that were overridden / deferred, OR an accepted existing-image swap `doc-writer` skipped because the file's occurrence no longer matched `old_url` (its `notes` return — the position went stale between Phase 5.6 and Phase 6.3) — one line each; or "none"]
+[List first, each tagged **MAJOR — incomplete swap, invisible in the diff**: any accepted existing-image swap `doc-writer` skipped because the file's occurrence no longer matched `old_url` (its `notes` return — the position went stale between Phase 5.6 and Phase 6.3). This is distinct from the items below — it's a race that left an already-accepted decision unfulfilled, not a routine low-priority deferral. Then: MINOR / NIT findings that were not applied, OR user-declined screenshots, OR doc-reviewer BLOCK findings that were overridden / deferred — one line each; or "none"]
 
 ### Assumptions & limitations
 - [list any]
@@ -1547,7 +1547,7 @@ choices: ["Skip — report only (Recommended)", "Apply all", "Choose per proposa
 - **Skip — report only** — apply nothing; every proposal's disposition is `proposed` for the Phase 5 report.
 - **Apply all** — apply every proposal via the mechanism below; every proposal's disposition is `applied-uncommitted`.
 - **Choose per proposal** — ask accept/decline for each proposal; apply the accepted ones (`applied-uncommitted`), leave the rest `declined`.
-- **Cancel** — apply nothing; every proposal's disposition is `proposed`.
+- **Cancel** — apply nothing; every proposal's disposition is `proposed`. Unlike every other "Cancel" in this command, **Cancel here does not abort the run**: direct mode never branches or commits (Phase 3), so there is nothing upstream to unwind. Cancel only declines this phase's proposals; the run proceeds to Phase 5 and the Final Report is produced exactly as it would be after Skip.
 
 **Apply mechanism.** For each accepted proposal, re-dispatch the agent that produced it — Agent 2 or Agent 3, same general-purpose agent as Phase 4, no new agent type — in apply mode, carrying its own proposal back verbatim:
 

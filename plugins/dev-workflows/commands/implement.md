@@ -85,6 +85,17 @@ Rules:
   `### Assumptions & limitations`. Direct-mode runs (no Jira input) are exempt —
   the prompt/spec file is the instruction.
 
+**Specs-repo preflight.** Cite
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
+`specs-preflight` entry point (§3) inline: flush any leftover session
+artifacts from an earlier run, retry an artifact commit that failed to push,
+and settle the branch. This runs against `$SPECS_PATH` only — `git -C
+"$SPECS_PATH"`, never a `cd`, so the code/docs repo this run is working
+in is untouched (§1 rule 1). Prompt-free and silent when the specs repo
+is clean and on its default branch. If a guard fires, emit its §5 notice;
+if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole
+run — the terminal `commit-artifacts` step skips on it.
+
 ---
 
 ## Phase 0.5 — Readiness pre-flight (jira-driven only; advisory)
@@ -615,7 +626,7 @@ Output a structured report — do NOT ask any closing confirmation:
 ### Context hygiene
 
 *(Jira mode only — omit this whole block in direct-prompt mode, like the `### Next step` above.)*
-Write the resume pointer at `<VI-dir>/dev-workflows/resume.md` (per `session-hygiene.md` §1). Then:
+The resume pointer is written in the terminal cost phase (Phase 7), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
 
 - **More Epics to build (`/implement <VI> <Epic2>`) or on to `/document <VI>` — same build lane?** → run **`/compact`** — context stays relevant.
 - Consider **`/rename <VI-ID>-<slug>-team`** to relocate this session later.
@@ -673,9 +684,31 @@ cross-check (§5), and appends one per-invocation entry to
 **The checkpoint advances even in the pending / report-only tiers.** Surface the
 persisted path (or the report-only notice) as this phase's only output.
 
-ADDITIVE — this phase NEVER fails the run, NEVER commits, and NEVER writes into
-the code repo or the current working directory; no user name is ever written
-(§10 privacy).
+**Then write the resume pointer (Jira mode only).** Cite
+`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and write/overwrite
+`<VI-dir>/dev-workflows/resume.md` now — after the cost entry above, so the
+pointer reflects the completed run, and before the commit step below, so it
+is included in it. Redact per §1. Silent; the printed `### Context hygiene`
+guidance already appeared in the Phase 5 report.
+
+**Then commit session artifacts (terminal).** Cite
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
+`commit-artifacts` entry point (§4) inline — the LAST action of the run. It
+stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
+`<KEY> Add dev-workflows session artifacts (/implement)`, and pushes to the
+specs repo's default branch. It NEVER writes into the code repo this run just
+changed — the implementation commit and branch are untouched — NEVER touches
+a docs repo, the vault, or the current working directory; NEVER force-pushes;
+NEVER fails the run; and skips entirely when the run carries `specs_git:
+blocked` (§3.3 G0), re-emitting that notice. Because the Phase 5 report was
+composed before this phase, **print its §6 outcome line here**, as the run's
+last output — prefixed `Specs repo:`, with any guard notice repeated in full.
+
+ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable
+(the implementation remains uncommitted on the branch created in Pre-Phase 3;
+the terminal step above commits only the bounded session-artifact paths in
+`$SPECS_PATH`), and NEVER writes into the code repo or the current working
+directory; no user name is ever written (§10 privacy).
 
 ---
 

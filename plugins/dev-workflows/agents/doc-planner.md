@@ -11,7 +11,7 @@ Not a writer — this agent plans; the main command writes.
 ## Inputs
 
 ```yaml
-jira_reader_handoff:    <full YAML from jira-reader; see agents/jira-reader.md output schema>
+jira_reader_handoff:    <full YAML from jira-reader; see ${CLAUDE_PLUGIN_ROOT}/agents/jira-reader.md output schema>
 diff_summaries:         <array of diff-summarizer outputs; one entry per repo>
 write_targets:          <confirmed list from doc-location-finder + user; each has kind, section, path, rationale>
 screenshots:            [<array of user-provided absolute image paths; possibly empty>]
@@ -107,9 +107,9 @@ For each write target:
    - `"mark TODO in draft"` — the writer emits a `<!-- TODO: … -->` marker in the output.
    - `"skip with note in final report"` — the gap is recorded in the Phase 9 `### Skipped items` section.
 
-9. **Source-truth verification (per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`).** For every user-visible claim the checklist would put in a topic `notes:` (option lists, UI labels, menu paths, defaults, counts, mode names), establish the **intended** phrasing, then verify it against `code_repos` using the techniques in source-truth.md §3. Record results in `verification_warnings[]` (schema below). **Do NOT rewrite the topic notes to match source** — preserve the original (intended) phrasing; the orchestrator + user resolve discrepancies in `/document` Phase 5.8.
+9. **Source-truth verification (per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`).** For every user-visible claim the checklist would put in a topic `notes:` (option lists, UI labels, menu paths, defaults, counts, mode names), establish the **intended** phrasing, then verify it against `code_repos` using the techniques in `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §3. Record results in `verification_warnings[]` (schema below). **Do NOT rewrite the topic notes to match source** — preserve the original (intended) phrasing; the orchestrator + user resolve discrepancies in `/document` Phase 5.8.
 
-   - **When `specs_dir` is non-null, the spec markdown is the authoritative "intended" source** (source-truth.md §3.0, §4.2). Read the spec tree **selectively** via the `spec-markdown` technique: the VI spec (`PRODUCT-<key>*.md` or `specification.md` at the spec-dir root), `epics/epic-*.md`, and each `epics/<epic>/requirements.md` + `design.md` (these four classes are authoritative intended); treat `tasks.md` only as a secondary "planned" signal; **ignore** `idea.md`, `prompt.md`, and any rendered HTML mirrors. Capture each user-visible claim's intended phrasing from the spec into `spec_phrasing`. When no spec covers a given claim, fall back to the Jira phrasing as that claim's intended source. Then verify intended-vs-**code** via the §3 techniques as usual. A spec phrasing that differs from the Jira narrative (regardless of whether code matches the spec) is recorded as `finding: SPEC-VS-JIRA` (the spec is authoritative; the Jira ticket is the side that drifted).
+   - **When `specs_dir` is non-null, the spec markdown is the authoritative "intended" source** (`${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §3.0, §4.2). Read the spec tree **selectively** via the `spec-markdown` technique: the VI spec (`PRODUCT-<key>*.md` or `specification.md` at the spec-dir root), `epics/epic-*.md`, and each `epics/<epic>/requirements.md` + `design.md` (these four classes are authoritative intended); treat `tasks.md` only as a secondary "planned" signal; **ignore** `idea.md`, `prompt.md`, and any rendered HTML mirrors. Capture each user-visible claim's intended phrasing from the spec into `spec_phrasing`. When no spec covers a given claim, fall back to the Jira phrasing as that claim's intended source. Then verify intended-vs-**code** via the §3 techniques as usual. A spec phrasing that differs from the Jira narrative (regardless of whether code matches the spec) is recorded as `finding: SPEC-VS-JIRA` (the spec is authoritative; the Jira ticket is the side that drifted).
    - **When `specs_dir` is null/empty, behave as today** (two-way Jira-vs-code): the intended phrasing is the Jira phrasing, and set `spec_phrasing: "(no spec)"` on every entry.
 
    When `code_repos` is empty/omitted, emit one entry per user-visible claim with `finding: NOT_FOUND`, `technique: no-source-evidence`, `source_phrasing: "(not verifiable)"` (and `spec_phrasing: "(no spec)"` when `specs_dir` is also null).
@@ -200,7 +200,7 @@ verification_warnings:        # source-truth findings; resolved by the orchestra
 
 ## Hard rules
 
-Convention for this list: **every field this agent emits carries a matching `NEVER …` rule here.** A bullet that reads wider than the planning brief — the `component_patterns` pair below (no fabrication, no second scan) among them — is in-brief by that convention and stays; it is the rule that keeps its output field honest.
+The `component_patterns` bullet below (no fabricated `evidence`, no second scan) reads wider than the planning brief **on purpose, and it stays**: a fabricated `file:line` is trusted downstream without rechecking, and a second scan would silently ground the patterns in a different sample than the image policy came from.
 
 - NEVER include a Jira key inside `frontmatter_updates.changelog.entry` — see `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1.
 - The `repo_verification_gates` block obeys `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §6 in full — never emit an entry that cannot be checked against the files this run writes, never paraphrase a repo gate into a different requirement, and never let a repo gate silently override a built-in reference.

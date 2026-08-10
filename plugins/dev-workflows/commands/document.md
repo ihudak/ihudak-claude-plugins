@@ -1067,7 +1067,7 @@ Carry the squash result, push outcome, and PR-draft path into the Phase 9 report
 
 ## Phase 8.6 — Maintenance proposals
 
-Runs **after** Phase 8.5 — never before. The ordering is the whole safety property, and it holds whether or not Phase 8.5 ran: once this phase starts, **the run will create no further commit** — either Phase 8.5 sealed the docs commit, or the write context never commits at all (`obsidian` / `plain_dir`, or branching declined). Either way an accepted `CLAUDE.md` (or knowledge-base) edit has no commit left to ride.
+Runs **after** Phase 8.5 — never before. The ordering is the whole safety property, and it holds whether or not Phase 8.5 ran: once this phase starts, **the run will create no further commit** — either Phase 8.5 sealed the docs commit, or the write context never commits at all (`obsidian` / `plain_dir`, per the Phase 6.3 branch/commit table). Either way an accepted `CLAUDE.md` (or knowledge-base) edit has no commit left to ride.
 
 Skip this phase with no prompt when both Phase 8 Agent 2 and Agent 3 returned `'no update required'`.
 
@@ -1084,7 +1084,7 @@ choices: ["Skip — report only (Recommended)", "Apply all", "Choose per proposa
 - **Skip — report only** — apply nothing; every proposal's disposition is `proposed` for the Phase 9 report.
 - **Apply all** — apply every proposal via the mechanism below; every proposal's disposition is `applied-uncommitted`.
 - **Choose per proposal** — ask accept/decline for each proposal; apply the accepted ones (`applied-uncommitted`), leave the rest `declined`.
-- **Cancel** — apply nothing; every proposal's disposition is `proposed`. Unlike every other "Cancel" in this command, **Cancel here does not abort the run**: by the time this phase runs there is nothing upstream left to unwind — Phase 8.5's squash (and any push / PR draft) is already done, or the run never committed at all. Cancel only declines this phase's proposals; the run proceeds to Phase 9 and the Final Report is produced exactly as it would be after Skip.
+- **Cancel** — apply nothing; every proposal's disposition is `proposed`. Unlike every other "Cancel" in this command, **Cancel here does not abort the run**: by the time this phase runs there is nothing upstream left to unwind — Phase 8.5's squash (and any push / PR draft) is already done, or the write context never committed at all (`obsidian` / `plain_dir`). Cancel only declines this phase's proposals; the run proceeds to Phase 9 and the Final Report is produced exactly as it would be after Skip.
 
 **Apply mechanism.** For each accepted proposal, re-dispatch the agent that produced it — Agent 2 or Agent 3, same general-purpose agent and model as Phase 8, no new agent type — in apply mode, carrying its own proposal back verbatim:
 

@@ -41,7 +41,7 @@ the plan. The plan is only as good as the blast-radius understanding behind it.
 
 ## Output
 
-Return a single structured plan in this exact shape (no chatter, no preamble):
+Return a single structured plan in this exact shape (no chatter, no preamble). The bare `classification.md` inside the template is **deliberate and stays bare** — the template is prose you emit to the user, and a `${CLAUDE_PLUGIN_ROOT}` path there would leak an unexpanded variable into the plan. Your own read of that file uses the absolute path under Planning discipline below.
 
 ```markdown
 ## Risk-weighted implementation plan

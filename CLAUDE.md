@@ -123,6 +123,8 @@ in their prompt; they do not re-read the file.
 
 `plugins/dev-workflows/references/toolchain-preflight.md` is the **single source of truth** for the Phase 0 environment check — deriving the required tool set from the resolved profile, the repo's config signals, and the repo's own documented `Prerequisites`; the `toolchain` block with its tool→gate map; and the missing-tool prompt (Cancel recommended, silence when everything resolves). Consumed by `/document` (both modes).
 
+`plugins/dev-workflows/references/doc-structure-conventions.md` is the **single source of truth** for three product-docs authoring conventions: the traceability boundary (a rendered page carries no Jira key, PR URL, or provenance comment — that lives in the commit message and the run handoff only), callout scope and adjacency (a callout sits with the option it qualifies, in the lead-in only when it spans the whole set), and component-pattern fidelity (reuse an area's established content component for a recurring content shape instead of an ad-hoc structure). Consumed by `doc-planner`, `doc-writer`, and `doc-reviewer`.
+
 ## `dev-workflows` workflow relationships
 
 ```

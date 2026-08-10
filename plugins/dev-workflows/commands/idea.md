@@ -45,6 +45,13 @@ Flag: `--deep` switches the grill from bounded (≤5 questions) to relentless (u
    best available and record the degradation** in `notes` and the final report — do NOT hard-block (a PM
    must not be blocked from capturing an idea by a momentary Opus outage).
 
+**Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
+`specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier run,
+retry an artifact commit that failed to push, and settle the branch. Prompt-free and silent when the
+specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
+`specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal `commit-artifacts`
+step skips on it.
+
 ---
 
 ## Phase 1 — Classify the source
@@ -188,9 +195,17 @@ abandoned at the block still records the gap. NEVER `emit-block` for an environm
    `emit-cost` entry point with `command: /idea`, `phase: vi-creation`, `role: pm`, `jira_key: null`,
    the run's `source`, and `plugin_version`. A keyless run writes to the pending ladder (§9) and
    **advances the chained checkpoint** (§3); surface the persisted path (or the report-only notice).
+4. **Commit session artifacts (terminal).** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`
+   and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages
+   ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `NOISSUE Add dev-workflows
+   session artifacts (/idea)` (this run is keyless — no VI-Key exists yet), and pushes. It NEVER
+   touches a code/docs repo, the vault, or the current working directory; NEVER force-pushes; NEVER
+   fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting
+   that notice. Hold its §6 outcome line for the Final report.
 
-ADDITIVE — this phase NEVER fails the run, NEVER commits, and NEVER writes into a code/docs repo or the
-current working directory; no user name is ever written.
+ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (idea.md carries no git offer
+of its own — the terminal step above commits only the bounded session-artifact paths in `$SPECS_PATH`),
+and NEVER writes into a code/docs repo or the current working directory; no user name is ever written.
 
 ---
 
@@ -199,4 +214,6 @@ current working directory; no user name is ever written.
 Report: the `idea.md` path + `status` (refined / draft with N open clarifications); the source type and
 `sources`; the count of `[NEEDS CLARIFICATION]` items and Assumptions; any source-detection correction
 or broken wikilinks; the resolved model routing (+ any Opus degradation); the feedback path; the cost
-path (or notice); and the adaptive next-phase recommendation.
+path (or notice); the `Specs repo:` outcome line from `commit-artifacts`
+(`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; and
+the adaptive next-phase recommendation.

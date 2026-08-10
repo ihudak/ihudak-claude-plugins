@@ -1524,6 +1524,80 @@ verdict-as-carry-forward note must survive.
 Re-run the enumeration afterwards. Every surviving hit must name the terminal
 cost phase; a bare `prepare-first (`resume.md`)` is a failure of this step.
 
+- [ ] **Step 3c: Sweep the THIRD and FOURTH families — push assertions and frontmatter claims**
+
+Both were found by Task 8's review, after the two sweeps above had run clean.
+Neither family is reachable by a regex built around the word *commit*, which is
+why two sweeps missed them. Each turned out to have exactly one live site in the
+canonical edition — but the copilot port must run the same sweeps rather than
+copying the two known answers.
+
+**Family 3 — push assertions.** `commit-artifacts` pushes (`specs-repo-git.md`
+§4 step 5), so a blanket "never push" rule now forbids what a sibling bullet
+mandates.
+
+```bash
+cd /workspace/ihudak-claude-plugins/plugins/dev-workflows/commands
+for f in $SCOPE; do grep -n -i 'never push\|no push\|do not push\|NEVER force-push' $f.md | sed "s|^|$f:|"; done
+```
+
+Canonical result: one site, `vuln.md`'s `- NEVER push directly to \`main\` /
+\`master\``, sitting one bullet above the new `commit-artifacts` bullet that
+pushes to the specs repo's default branch. Scope it to the code repo, matching
+the already-correct form in `agents/vuln-fixer.md` ("always use a dedicated fix
+branch"). Leave every `NEVER force-push` untouched — that one is still absolute.
+
+**Family 4 — frontmatter `description:` claims.** A command's `description:`
+line is user-visible in the plugin catalog. It is prose about what the command
+does, so it states *writes*, not *commits* — outside every commit regex.
+
+```bash
+for f in $SCOPE; do sed -n '3p' $f.md | grep -i -o 'no specs write\|no commit[s]*\|never commit[s]*\|no git\|never write[s]*' | sed "s|^|$f: |"; done
+```
+
+Canonical result: two hits, of which only one is false. `idea.md`'s `no specs
+write` is now wrong — `/idea` runs `specs-preflight`, `commit-artifacts`, and
+prints a `Specs repo:` line. `ready.md`'s `never commits the deliverable` is
+already correctly scoped and must be left alone. **Judge each hit; do not
+rewrite both.**
+
+- [ ] **Step 3d: Do not over-claim "the run's only commit"**
+
+An annotation of the form *"the run's single commit is the terminal
+`commit-artifacts` step"* is **false**. `specs-repo-git.md` §3.4 stage 2 has
+`specs-preflight` commit and push leftover artifact paths at **run start**, so a
+run can legitimately make two specs-repo commits. Nothing gates on the claim,
+but it could license an agent to skip the §3.4 flush — the recovery path this
+whole sub-project exists to build.
+
+```bash
+for f in $SCOPE; do
+  python3 -c "
+import io,re,sys
+s=' '.join(io.open('$f.md',encoding='utf-8').read().split())
+for m in re.finditer(r\"(?:single|only) commit\", s):
+    print('$f', s[max(0,m.start()-70):m.end()+40])
+"
+done
+```
+
+Replace each with wording that names the terminal step without asserting
+uniqueness — e.g. *"the artifacts this phase writes are committed by the
+terminal `commit-artifacts` step"*.
+
+- [ ] **Step 3e: One annotation voice**
+
+Thirty-plus annotations are added across this sweep, and they are read by other
+agents at run time. Use exactly one construction — the parenthetical
+`(still true — <reason>)` — everywhere. Do not mix in `— still true: …`,
+`— still true, because …`, a capitalized `(Still true — …)`, a standalone
+`Still true: …` sentence, or an unmarked reason clause.
+
+Apply the same reason-annotation rule to **branch** assertions, not just commit
+ones: a `never branches` / `no branch` clause needs the §2.2 reason
+(*switches only between existing plugin-created branches; creates none*) just as
+a commit assertion needs its own.
+
 - [ ] **Step 4: Handle the `Invariants (always enforced)` lists**
 
 `epics.md`, `ready.md`, `release-notes.md`, `implement.md`, `document.md` (×2),
@@ -2173,7 +2247,11 @@ scope, minus `/api-guideline-reviewer`, `/guideline-reviewer`, `/statusline`,
 | V5 | `Specs repo:` outcome-line sites | **18** — same split as V4 |
 | V6 | Whitespace-normalized scan of each in-scope file for every phrasing variant; each surviving hit is either scoped (names the `$SPECS_PATH` carve-out) or annotated with a stated reason | 0 unreconciled hits |
 | V6b | Annotated-as-still-true assertions each carry a stated **reason**, not just a label | every one |
-| V6c | `prepare-first (`resume.md`)` assertions naming the terminal cost phase (the second sweep family, Task 8 Step 3b) | 10 of 10 — a bare `prepare-first (`resume.md`)` with no phase is an unreconciled hit |
+| V6c | `prepare-first (`resume.md`)` assertions naming the terminal cost phase (family 2, Task 8 Step 3b) | 10 of 10 — a bare `prepare-first (`resume.md`)` with no phase is an unreconciled hit |
+| V6d | Blanket "never push" assertions (family 3, Step 3c) | 0 unscoped — `NEVER force-push` is exempt and stays absolute |
+| V6e | Frontmatter `description:` lines claiming the command does not write to / commit the specs repo (family 4, Step 3c) | 0 false — a claim already scoped to the deliverable is correct and stays |
+| V6f | `the run's single/only commit` over-claims (Step 3d) | 0 — `specs-preflight` §3.4 can also commit, at run start |
+| V6g | Annotation voice (Step 3e) | one construction, `(still true — <reason>)`, across every annotation |
 | V7 | `cd ` inside `specs-repo-git.md` | 0 |
 | V8 | `git add -A` **as an invocation** in `specs-repo-git.md` not followed by ` -- ` on the same line | 0 |
 | V9 | `--force` / `push -f` / `branch -D` **as an invocation** in `specs-repo-git.md` | 0 |

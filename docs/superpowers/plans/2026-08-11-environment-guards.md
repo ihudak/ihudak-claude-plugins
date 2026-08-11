@@ -417,8 +417,8 @@ Replace the whole of item 2 with:
    On a **writable** mount, unchanged:
    - `git status --porcelain` — if output is non-empty AND `refresh.pull` is true → return `status: DIRTY_TREE`. The caller's escalation prompts the user to stash-and-retry, skip this repo, or cancel.
    - If `refresh.switch_to_default_branch` is true: resolve the default branch via `git symbolic-ref --short refs/remotes/origin/HEAD`. If that fails (unset `origin/HEAD`), run `git remote set-head origin --auto` and retry; if it still fails, try `main`, then `master`, in that order. If the fallback chain exhausts, return `status: REFRESH_BLOCKED` with reason `cannot resolve default branch`.
-   - `git switch <default-branch>` — on failure, if the error contains `Read-only file system`, enter read-only mode per `read-only-repos.md` §1 and retry there; otherwise return `status: REFRESH_BLOCKED` with the one-line git error.
-   - If `refresh.pull` is true: `git pull --ff-only`. On any failure (non-fast-forward, network, auth, etc.) return `status: REFRESH_BLOCKED` with the one-line git error.
+   - `git switch <default-branch>` — on failure, if the error contains `Read-only file system`, abandon the writable path and continue in read-only mode per `read-only-repos.md` §1, which does not run `git switch` at all; otherwise return `status: REFRESH_BLOCKED` with the one-line git error.
+   - If `refresh.pull` is true: `git pull --ff-only`. On failure, if the error contains `Read-only file system`, abandon the writable path and continue in read-only mode per `read-only-repos.md` §1; on any other failure (non-fast-forward, network, auth, etc.) return `status: REFRESH_BLOCKED` with the one-line git error.
 ````
 
 - [ ] **Step 2: Make step 3's scan read-only aware**
@@ -426,7 +426,7 @@ Replace the whole of item 2 with:
 Replace `3. **Scan — pure filesystem.** No git commands beyond step 2. For each theme:` with:
 
 ````markdown
-3. **Scan.** On a writable mount, and on a read-only mount whose HEAD is already at `scanned_ref`, this is pure filesystem search with the native tools and no git commands beyond step 2. On a read-only mount whose HEAD is NOT at `scanned_ref`, run the same searches through the `read-only-repos.md` §4 ref primitives — `git grep -n <pattern> <ref> -- <pathspec>` to search, `git ls-tree -r --name-only <ref>` to enumerate, `git show <ref>:<path>` to read — so the evidence describes released content rather than an unmerged working tree. For each theme:
+3. **Scan.** On a writable mount, and on a read-only mount whose HEAD is already at `scanned_ref`, this is pure filesystem search with the native tools and no git commands beyond step 2. On a read-only mount whose HEAD is NOT at `scanned_ref`, run the same searches through the `read-only-repos.md` §4 ref primitives — `git -C "<repo_path>" grep -n <pattern> <ref> -- <pathspec>` to search, `git -C "<repo_path>" ls-tree -r --name-only <ref>` to enumerate, `git -C "<repo_path>" show <ref>:<path>` to read — so the evidence describes released content rather than an unmerged working tree. For each theme:
 ````
 
 - [ ] **Step 3: Replace step 4's read instruction**
@@ -434,7 +434,7 @@ Replace `3. **Scan — pure filesystem.** No git commands beyond step 2. For eac
 Replace `4. **Read top candidates.** For each theme, open the head (~80 lines) of the top 2–3 matching files.` with:
 
 ````markdown
-4. **Read top candidates.** For each theme, open the head (~80 lines) of the top 2–3 matching files — with `Read` on the working tree, or `git show <scanned_ref>:<path>` in ref mode.
+4. **Read top candidates.** For each theme, open the head (~80 lines) of the top 2–3 matching files — with `Read` on the working tree, or `git -C "<repo_path>" show <scanned_ref>:<path>` in ref mode.
 ````
 
 - [ ] **Step 4: Extend the agent's output `prep` block**
@@ -466,7 +466,13 @@ Replace the bullet beginning `- NEVER modify files under `repo_path`.` and the b
 In `references/handoff/code-scanner.md`, replace the three-line `prep:` block inside the `## Output` fence with the same seven-line block from Step 4, and immediately after the closing fence add:
 
 ````markdown
-`prep.read_only`, `prep.scanned_ref`, `prep.ref_committed_at`, and `prep.head_divergence` are always present, so a caller never branches on absence. Every `evidence.path` is relative to the repo root and denotes content **at `scanned_ref`**; on a read-only mount, open one with `git show <scanned_ref>:<path>`. See `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md`.
+`prep.read_only`, `prep.scanned_ref`, `prep.ref_committed_at`, and `prep.head_divergence` are always present, so a caller never branches on absence. Every `evidence.path` is relative to the repo root and denotes content **at `scanned_ref`**; on a read-only mount, open one with `git -C "<repo_path>" show <scanned_ref>:<path>`. See `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md`.
+````
+
+Then, in the same file's **Status codes** table, replace the `REFRESH_BLOCKED` row — it currently names a read-only mount as a routine cause, which contradicts the mechanism this task builds:
+
+````markdown
+| `REFRESH_BLOCKED` | Ref resolution or a writable-mount refresh genuinely failed (no resolvable default branch, network, auth, non-fast-forward); orchestrator escalates. A read-only mount is NOT a cause — that scan proceeds at `prep.scanned_ref` with `prep.read_only: true`. |
 ````
 
 - [ ] **Step 7: Verify**
@@ -512,6 +518,14 @@ In `## Refresh step`, insert a new item between item 1 (`Verify repo exists`) an
 2. **Read-only detection.** Per `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md` §1, test whether `repo_path` and `repo_path/.git` are writable. On a read-only mount, skip items 3–5 entirely and follow that reference — §2 for what to skip, §3 for ref resolution, §4 for reading at the ref, §5 for when to escalate. `refresh.fetch` writes refs and `refresh.pull` writes the working tree, so neither can run; PR resolution proceeds against the object database as it stands. A read-only mount is NOT `DIRTY_TREE` and NOT `REFRESH_BLOCKED`.
 ````
 
+Then, in the (renumbered) item 4 — the fetch step — replace `On failure return `status: REFRESH_BLOCKED` with a one-line reason.` with:
+
+````markdown
+On failure, if the error contains `Read-only file system`, abandon the writable path and continue in read-only mode per `read-only-repos.md` §1; on any other failure return `status: REFRESH_BLOCKED` with a one-line reason.
+````
+
+This mirrors the switch/pull step below it. `read-only-repos.md` §1 makes the `Read-only file system` error a general secondary trigger, so applying it to only some of the writing commands leaves a live route to `REFRESH_BLOCKED` for a mount that is merely read-only — which is exactly what this task removes.
+
 Then in the (renumbered) item 5, replace `; `git switch <default>` + `git pull --ff-only`. On any failure return `status: REFRESH_BLOCKED`.` with:
 
 ````markdown
@@ -537,6 +551,12 @@ In `references/handoff/diff-summarizer.md`, immediately after the closing fence 
 
 ````markdown
 `prep.read_only`, `prep.scanned_ref`, `prep.ref_committed_at`, and `prep.head_divergence` are always present, so a caller never branches on absence. See `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md`.
+````
+
+Then, in the same file's **Status codes** table, replace the `REFRESH_BLOCKED` row — it currently names a read-only mount as a routine cause, which contradicts the mechanism this task builds:
+
+````markdown
+| `REFRESH_BLOCKED`   | `git fetch` or `git pull` genuinely failed (auth, network, non-fast-forward); orchestrator escalates. A read-only mount is NOT a cause — resolution proceeds at `prep.scanned_ref` with `prep.read_only: true`. |
 ````
 
 - [ ] **Step 3: Add the hard rule**

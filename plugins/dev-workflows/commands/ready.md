@@ -345,8 +345,8 @@ plugin-gap halt (see Invariants).
 
    ### Next step
    [Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. SUPPORTED → Team →
-   `/implement <VI> [<Epic>]`. PARTIAL / NOT-SUPPORTED → resolve the named gaps above and update the
-   Jira status to match reality, then re-run `/ready <VI> [<Epic>]`.]
+   `/dev-workflows:implement <VI> [<Epic>]`. PARTIAL / NOT-SUPPORTED → resolve the named gaps above and update the
+   Jira status to match reality, then re-run `/dev-workflows:ready <VI> [<Epic>]`.]
 
    ### Context hygiene
    The resume pointer is written in the terminal cost phase (Phase 8), per

@@ -106,7 +106,7 @@ Without these steps the update silently diverges from Jira again.
 
 Offer (guidance only — never auto-invoke), per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`:
 ```
-choices: ["Re-draft the release note — /release-notes <KEY> (PM)", "Re-run architecture — /create-ard <KEY> (PA, if one exists)", "Re-run the spec — /specify <KEY> (PE, if one exists)", "Stop here", "Other… (describe)"]
+choices: ["Re-draft the release note — /dev-workflows:release-notes <KEY> (PM)", "Re-run architecture — /dev-workflows:create-ard <KEY> (PA, if one exists)", "Re-run the spec — /dev-workflows:specify <KEY> (PE, if one exists)", "Stop here", "Other… (describe)"]
 ```
 
 ### Context hygiene

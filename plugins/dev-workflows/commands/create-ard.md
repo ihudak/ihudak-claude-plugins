@@ -57,7 +57,7 @@ model_routing:
   notes: <any §2/§2.1 fallback or degradation>
 ```
 
-**Tiered HARD model gate (like `/design`):** for `SIGNIFICANT` / `HIGH-RISK`, require an Opus session — if `opus_available` is false, stop: `choices: ["I'll relaunch /create-ard on Opus (Recommended)", "Override — proceed on the current model (logged in the final report)", "Cancel", "Other… (describe)"]`. For `SIMPLE`/`MODERATE`, degradation is advisory (record in `notes`).
+**Tiered HARD model gate (like `/dev-workflows:design`):** for `SIGNIFICANT` / `HIGH-RISK`, require an Opus session — if `opus_available` is false, stop: `choices: ["I'll relaunch /dev-workflows:create-ard on Opus (Recommended)", "Override — proceed on the current model (logged in the final report)", "Cancel", "Other… (describe)"]`. For `SIMPLE`/`MODERATE`, degradation is advisory (record in `notes`).
 
 ---
 
@@ -135,8 +135,8 @@ Write the ARD file(s) into the feature folder. Then **offer** (commit-when-asked
 ---
 
 ## Phase 7 — Next-step offer (adaptive)
-- **VI-level ARD:** if the VI has 0 Epics → `choices: ["Hand to a Product Engineer — /epics <VI> (then create them in Jira + re-import) (PE) (Recommended)", "Author a VI-level spec — /specify <VI> (PE)", "Stop here", "Other… (describe)"]`; else offer `/specify <VI>` (PE). *(No `/design` — no Epics yet.)*
-- **Epic-level ARD:** `choices: ["Author the spec — /specify <VI> <Epic> (PE) (Recommended)", "Hand to the team — /design <VI> <Epic> (Team)", "Stop here", "Other… (describe)"]`. **Epic fan-out** — repeat this ARD for a sibling Epic: `/create-ard <VI> <another-Epic>`.
+- **VI-level ARD:** if the VI has 0 Epics → `choices: ["Hand to a Product Engineer — /dev-workflows:epics <VI> (then create them in Jira + re-import) (PE) (Recommended)", "Author a VI-level spec — /dev-workflows:specify <VI> (PE)", "Stop here", "Other… (describe)"]`; else offer `/dev-workflows:specify <VI>` (PE). *(No `/dev-workflows:design` — no Epics yet.)*
+- **Epic-level ARD:** `choices: ["Author the spec — /dev-workflows:specify <VI> <Epic> (PE) (Recommended)", "Hand to the team — /dev-workflows:design <VI> <Epic> (Team)", "Stop here", "Other… (describe)"]`. **Epic fan-out** — repeat this ARD for a sibling Epic: `/dev-workflows:create-ard <VI> <another-Epic>`.
 
 Guidance only — never auto-invokes another command. Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`.
 

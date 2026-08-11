@@ -147,7 +147,7 @@ The grill + authoring run inline on `current_model` (interactive judgment — no
 subagent):**
 - **SIGNIFICANT / HIGH-RISK + `current_model` is not an Opus-tier model → HARD gate.** Stop and require
   relaunching `/design` on Opus (the run is resumable from `_design-session.md`):
-  `choices: ["I'll relaunch /design on Opus (Recommended)", "Override — proceed on the current model (logged in the final report)", "Cancel", "Other… (describe)"]`
+  `choices: ["I'll relaunch /dev-workflows:design on Opus (Recommended)", "Override — proceed on the current model (logged in the final report)", "Cancel", "Other… (describe)"]`
   Design authoring for risky work must be Opus — the Opus `design-reviewer` reviews, it cannot originate
   good architecture.
 - **SIMPLE / MODERATE + not Opus → soft advisory.** Recommend Opus but proceed; record the choice in
@@ -431,7 +431,7 @@ and the `### Next step` recommendation (below).
 
 ### Next step
 
-End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): hand to the team → `/implement <VI> <Epic>` (depth); the **Epic fan-out** `/design <VI> <another-Epic>` designs a sibling Epic (breadth). If the run BLOCKED or `design.md` has open questions, recommend resolving those first.
+End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): hand to the team → `/dev-workflows:implement <VI> <Epic>` (depth); the **Epic fan-out** `/dev-workflows:design <VI> <another-Epic>` designs a sibling Epic (breadth). If the run BLOCKED or `design.md` has open questions, recommend resolving those first.
 
 ### Context hygiene
 

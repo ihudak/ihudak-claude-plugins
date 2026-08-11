@@ -257,7 +257,7 @@ Each subagent dispatch below cites which chain it uses (the §9 role→chain map
 - **`current_model` is on the §2 chain** → no advisory.
 - **`current_model` is NOT on the §2 chain and `opus_available: true`** → the heavy synthesis + writing are already on Opus; the residual risk is the orchestrator's **context window** on a **large multi-repo ticket**. Offer relaunch **only** on such a ticket — that condition gates the prompt, so once the list is shown the recommendation holds unconditionally (per the `(Recommended)`-marker rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`):
   ```
-  choices: ["Relaunch /document under Opus — I'll restart (Recommended)", "Proceed on <current_model>", "Cancel"]
+  choices: ["Relaunch /dev-workflows:document under Opus — I'll restart (Recommended)", "Proceed on <current_model>", "Cancel"]
   ```
   Otherwise proceed without prompting.
 - **`current_model` is NOT on the §2 chain and `opus_available: false`** → `planning_model`, `review_model`, and the **doc-writer** all fall to the Sonnet floor; record the degradation in `notes` and the Phase 9 report; proceed.
@@ -1204,7 +1204,7 @@ List each gap (claim, decision) with its own status line — never print the DO-
 [When Phase 8.5 ran: "Branch <name> — squashed to N commit(s); pushed to origin: <yes/no>; PR draft: <pr-draft path>." When Phase 8.5 was skipped (no branch/commits): "Working tree has uncommitted changes. /document (Jira mode) writes but does not commit the docs write target in non-git contexts; this run's $SPECS_PATH session artifacts are committed separately by the terminal step."]
 
 ### Next step
-[Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. Once **all** the VI's Epics are documented, draft/finalize the release note → `/release-notes <VI>` (VI-level; run once, not per Epic). If the review BLOCKED, resolve that first.]
+[Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. Once **all** the VI's Epics are documented, draft/finalize the release note → `/dev-workflows:release-notes <VI>` (VI-level; run once, not per Epic). If the review BLOCKED, resolve that first.]
 
 ### Context hygiene
 
@@ -1404,7 +1404,7 @@ Doc edits in this command are always either **SIMPLE** or **MODERATE**:
 
 If your reading of the task lands closer to SIGNIFICANT or HIGH-RISK (multi-repo, net-new feature pages from a Jira hierarchy, published-documentation blast radius that needs a reviewer gate), **stop and redirect the user** to Jira mode or `/epics`:
 ```
-choices: ["Re-run under /document (Jira mode) (for Jira-sourced feature documentation) (Recommended)", "Re-run under /epics (for Epic drafting)", "Proceed under direct mode anyway — I accept the simplified flow", "Cancel"]
+choices: ["Re-run under /dev-workflows:document (Jira mode) (for Jira-sourced feature documentation) (Recommended)", "Re-run under /dev-workflows:epics (for Epic drafting)", "Proceed under direct mode anyway — I accept the simplified flow", "Cancel"]
 ```
 
 State the classification and a one-line reason, then proceed to Phase 2A.

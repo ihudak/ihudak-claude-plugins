@@ -285,7 +285,7 @@ If `dt-style-guide` is not installed, skip this phase and note "style check skip
    - Reminder: paste this into the ticket's Jira release-notes field — the docs automation adds the {{#internal-note}} metadata and emits it into dynatrace-docs.
 
    ### Next step
-   [leaf/closure per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked: the release note is drafted. If earlier pipeline phases remain, continue — hand to PA → `/create-ard <VI>` or PE → `/epics <VI>`; if the change is already built and documented, the VI is fully processed.]
+   [leaf/closure per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked: the release note is drafted. If earlier pipeline phases remain, continue — hand to PA → `/dev-workflows:create-ard <VI>` or PE → `/dev-workflows:epics <VI>`; if the change is already built and documented, the VI is fully processed.]
 
    ### Context hygiene
 

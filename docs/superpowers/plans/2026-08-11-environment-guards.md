@@ -751,7 +751,7 @@ Note the leading list marker and indentation differ between files (`idea.md` has
 In `epics.md`, at the end of the `**Documentation grounding (optional, independent of code scan).**` paragraph, append:
 
 ```
-Show the `docs grounding:` line that `resolve-docs-grounding` returned, verbatim, in this phase's plan/approval output — including any index-build, staleness, or shadowing clause (off switch: --no-docs).
+Show the `docs grounding:` line that `resolve-docs-grounding` returned, verbatim, in this phase's plan/approval output — including its `retrieval:` value and any index-build, staleness, or shadowing clause (off switch: --no-docs).
 ```
 
 - [ ] **Step 3: Verify all six**

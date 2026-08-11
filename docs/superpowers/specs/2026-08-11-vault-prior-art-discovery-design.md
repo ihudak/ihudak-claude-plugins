@@ -211,7 +211,9 @@ An idea is always written at `<container>/<candidate_slug>/idea.md`. Cases 2 and
 
 ### 3.9 `area_proposal` derivation
 
-`path` = the container (§3.8) of the **highest-confidence match**, except that a **flat container yields `path: null`** — a root is not an area to propose. `path` is likewise `null` when no match reached `high` confidence. A `null` path means no gate.
+**The top match** — used here and by §5.2's gate — is the `prior_art` entry with the highest `match_confidence`, ties broken by array order (the array is returned ranked). Defined once because two consumers read it, and "highest-confidence" is ambiguous the moment two entries tie.
+
+`path` = the container (§3.8) of the **top match**, except that a **flat container yields `path: null`** — a root is not an area to propose. `path` is likewise `null` when no match reached `high` confidence. A `null` path means no gate.
 
 `confidence` = the highest-confidence match's `match_confidence`, **downgraded one step** when the top two matches resolve to different containers.
 
@@ -262,7 +264,11 @@ Five consumers. Every one is named here so none of this becomes a producer witho
 
 The gate **fires iff at least one of rows 1–2 is present**; otherwise the provenance default applies silently. Row 2's differs-from-default test is load-bearing precisely because the default is now a container too — when the source already sits in the area the finder points at, the two agree and there is nothing to ask.
 
-`(Recommended)` is appended to **exactly one** row, chosen by the top match's `relation`: `supersedes_self` → row 1; `predecessor_phase` or `analogous_precedent` → row 2 when present, else row 3; anything else → row 2 when present, else row 3. Row 1 is never recommended without `supersedes_self`, because extending and paralleling a VI are just as common as rewriting it (§2.8) and a wrong default here silently mints or fails to mint a Jira key.
+`(Recommended)` is appended to **exactly one** row, chosen by the **top match** — the `prior_art` entry with the highest `match_confidence`, ties broken by array order — and its `relation`: `supersedes_self` → row 1 **when present, else row 3**; every other relation → row 2 when present, else row 3.
+
+**Every branch needs a fallback, because rows 1 and 2 are conditional.** A supplied `vi` whose key has no vault work document classifies as `supersedes_self` yet yields `item_dir: null` (§4 states that case explicitly), so row 1 is absent while the relation still points at it. A rule that names a row not in the array recommends nothing at all — the unreachable-guard shape: a rule that is cited, counted, and never executable in a reachable state.
+
+Row 1 is never recommended without `supersedes_self`, because extending and paralleling a VI are just as common as rewriting it (§2.8) and a wrong default here silently mints or fails to mint a Jira key.
 
 **The choice is recorded as `vi_disposition`** — `rewrite` for row 1, `new` for every other row — and carried into Phase 5 (§5.4). This is the only place the three shapes of a supplied VI can be told apart, so the gate is not merely about a directory.
 
@@ -353,7 +359,7 @@ Recorded with reasons, so a later reader does not read them as oversights.
 | R10 | The depth-aware default changes where ideas land even on runs that find no prior art. | Intended: it matches the convention the vault already follows. Bounded by §3.8 case 3 — every source not under `Projects/Products/` resolves to `Projects/ideas/` exactly as today. V11b enumerates the unchanged cases. |
 | R11 | §3.2 changes behavior for an existing `jira-input-resolution.md` caller. | Purely additive new entry point; V19 diffs the existing sections byte-for-byte. |
 | R12 | Typing a non-VI, non-PRODFB issue type wrongly. | Never silent: the actual `issue_type` is surfaced in the Phase 1 confirmation and the user chooses. |
-| R13 | The gate's `(Recommended)` marker steers the user to the wrong `vi_disposition`, which decides whether a Jira key gets minted. | The marker derives from the top match's `relation`, never from a fixed default; rows 1–3 are always all present; and the consequence is restated in plain words in the Phase 5 offer, where a wrong choice is still visible before any Jira action. |
+| R13 | The gate's `(Recommended)` marker steers the user to the wrong `vi_disposition`, which decides whether a Jira key gets minted. | The marker derives from the top match's `relation`, never from a fixed default. Rows **3–6 are always present** and rows 1–2 are conditional, so every derivation branch falls back to row 3 — a marker can never name an absent row. The consequence is restated in plain words in the Phase 5 offer, where a wrong choice is still visible before any Jira action. |
 | R14 | `supersedes_self` leaks onto a discovered match, making an unrelated item look like a self-rewrite. | Structurally impossible by definition — a search hit is a different item. V24 asserts no instruction path reaches it from `discovered_by: search`. |
 
 ## 10. Verification

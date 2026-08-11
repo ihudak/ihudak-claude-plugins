@@ -304,7 +304,7 @@ git commit -m "fix(dev-workflows): docs-grounder probes the qmd index instead of
 **Do not touch step 3.** Insert between step 3 and step 4:
 
 ````markdown
-3.5. **Index state — qmd only.** Skip entirely when `command -v qmd` fails: `retrieval: fallback`, silent, exactly as today. Otherwise probe with `timeout 10s qmd status` and `timeout 10s qmd collection list`, then take one branch.
+3.5. **Index state — qmd only.** Skip entirely when `command -v qmd` fails: `retrieval: fallback`, silent, exactly as today. Otherwise probe with `timeout 10s qmd status` and `timeout 10s qmd collection list`. **If either probe fails or times out, treat that exactly as `qmd` absent** — `retrieval: fallback`, silent, no prompt — which mirrors `docs-grounder`'s rung 3 so the command and the agent degrade identically instead of disagreeing about the same broken install. Otherwise take one branch.
 
    **A collection covers `docs_root`** → `timeout 60s qmd update`. Incremental (qmd re-indexes only changed files), instant when nothing changed, and safe to kill because the index is SQLite and rolls back. On a cap breach, prompt once — never silently pay 60 seconds on every future run:
 
@@ -364,7 +364,7 @@ Every form ends with the off switch `(turn off with --no-docs)` when the value i
 At the end of `## Invariants`, append:
 
 ````markdown
-- Index **building and refreshing** happen only in `resolve-docs-grounding` step 3.5, under user consent; `docs-grounder` only probes.
+- Index **building and refreshing** happen only in `resolve-docs-grounding` step 3.5, never inside `docs-grounder`, which only probes. A build always requires user consent; a refresh runs bounded at 60s and asks only when that cap is breached.
 - The validity gate (step 3) checks the docs root, never the retrieval index — Path B works with no index at all, so gating on one would disable grounding exactly where the fallback still works.
 ````
 

@@ -53,6 +53,8 @@ flowchart TD
     subgraph PM["PM — ideation & framing"]
         idea["/idea"] --> createvi["/create-vi"]
         createvi --> rnpm["/release-notes (early draft)"]
+        createvi -.->|VI exists| updatevi["/update-vi"]
+        updatevi --> rnpm
     end
     subgraph PA["PA — architecture (optional)"]
         createard["/create-ard"]

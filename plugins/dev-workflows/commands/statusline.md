@@ -15,9 +15,10 @@ This is the only change the command makes; it changes no workflow-command
 behavior.
 
 Note: Claude Code ships its own built-in `/statusline` command (backed by the
-`statusline-setup` agent). Because this command shares that name, the bare
-`/statusline` resolves to Claude Code's built-in flow — direct users to the
-fully-qualified `/dev-workflows:statusline` to reach this command.
+`statusline-setup` agent), so the bare `/statusline` resolves to Claude Code's
+built-in flow. This is one instance of the general rule — see rule 6 of
+`${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`: printed command names
+are always fully qualified. Direct users to `/dev-workflows:statusline`.
 
 ---
 

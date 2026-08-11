@@ -31,7 +31,30 @@ write-target discovery hint (see its Phase 0).
      (`find "$docs_root" -type f -name '*.md' -print -quit` is non-empty).
    On a host where `/workspace/docs` is absent, the gate fails → `OFF` → the run
    behaves exactly as it does today.
-4. **Return** `{ docs_grounding, docs_root, reason }`.
+3.5. **Index state — qmd only.** Skip entirely when `command -v qmd` fails: `retrieval: fallback`, silent, exactly as today. Otherwise probe with `timeout 10s qmd status` and `timeout 10s qmd collection list`, then take one branch.
+
+   **A collection covers `docs_root`** → `timeout 60s qmd update`. Incremental (qmd re-indexes only changed files), instant when nothing changed, and safe to kill because the index is SQLite and rolls back. On a cap breach, prompt once — never silently pay 60 seconds on every future run:
+
+   ```
+   choices: ["Continue with the current index — some pages may be stale (Recommended)",
+             "Finish the refresh now — uncapped",
+             "Turn docs grounding off for this run",
+             "Other… (describe)"]
+   ```
+
+   **No collection covers `docs_root`** → prompt once, at plan approval, before any of the run's real work. `<N>` is `find "$docs_root" -type f -name '*.md' | wc -l`:
+
+   ```
+   choices: ["Build the docs index now — one-time, <N> markdown files, downloads a ~1.3 GB model on first use (Recommended — every later run is faster and better grounded)",
+             "Skip — ground with keyword fallback this run",
+             "Turn docs grounding off for this run",
+             "Other… (describe)"]
+   ```
+
+   On "Build": `qmd collection add "<docs_root>" --name docs` then `qmd embed`, **uncapped** — killing a consented build wastes the work it has already done — reporting elapsed time on completion. The prompt disappears permanently once the index exists.
+
+   **Index building NEVER happens inside `docs-grounder`.** An agent cannot ask, so an agent told to self-heal has only two options: burn many minutes silently, or abort on its own judgment. This step exists because the orchestrator can ask.
+4. **Return** `{ docs_grounding, docs_root, retrieval, reason }`, where `retrieval` is `qmd-vector | qmd-lexical | fallback`. `docs-grounder` re-probes and its rung selection is authoritative; this value drives the prompts above and the line below.
 
 **Default-safety note.** A `/workspace/*` default is safe here because this is a
 read-only search base — a wrong/missing default just misses and silently skips.
@@ -40,13 +63,23 @@ This mirrors `${REPOS_PATH:-/workspace}`. Write roots (`SPECS_PATH`,
 
 ## Plan-approval line
 
-When `resolve-docs-grounding` returns, surface one line in the command's
-plan/approval (or config-confirm) step, with an off switch:
+When `resolve-docs-grounding` returns, surface one line in the command's plan/approval (or config-confirm) step, with an off switch. This reference owns the format; consumer commands quote it.
 
 ```
-docs grounding: ON  <docs_root>        (turn off with --no-docs)
+docs grounding: ON <root> (retrieval: qmd-vector)
+docs grounding: ON <root> (retrieval: qmd-lexical — index has no embeddings)
+docs grounding: ON <root> (retrieval: qmd-vector; index refresh exceeded 60s — some pages may be stale)
+docs grounding: ON <root> (retrieval: qmd-vector; docs checkout <N> days old — refresh on the host)
+docs grounding: ON <root> (retrieval: fallback — no qmd index; build once: qmd collection add "<root>" --name docs && qmd embed)
+docs grounding: ON <root> (retrieval: fallback — a project-local .qmd index in <cwd> is shadowing the user-scope one; run from another directory or remove it)
 docs grounding: OFF (<reason>)
 ```
+
+Every form ends with the off switch `(turn off with --no-docs)` when the value is `ON`.
+
+**Docs-checkout staleness.** A fresh index over a stale checkout still grounds on stale docs, and a read-only docs mount cannot be pulled from inside the container. One pure read — `git -C "$docs_root" log -1 --format=%cI`, skipped silently when the root is not a git checkout — appends the clause when the newest commit is more than **14 days** old. That threshold is shared with `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md` §5, so the two move together.
+
+**Shadow detection.** `qmd status` prints `Index: <path>` as its first line, which step 3.5 already parses. When that path is not the user-scope `~/.cache/qmd/index.sqlite`, a project-local `.qmd` index in the current directory is shadowing it — name that cause rather than reporting a generic miss. A `qmd init` run by hand in a working repo silently disables docs grounding, and the failure is otherwise indistinguishable from never having built an index.
 
 ## Dispatch — `dispatch-docs-grounder`
 
@@ -88,3 +121,5 @@ challenges as authoring cautions.
 - Never blocks; every failure is a silent, non-blocking skip.
 - Advisory only — never a gate, never a reviewer BLOCKER.
 - Single directory; `${DOCS_PATH:-/workspace/docs}`.
+- Index **building and refreshing** happen only in `resolve-docs-grounding` step 3.5, under user consent; `docs-grounder` only probes.
+- The validity gate (step 3) checks the docs root, never the retrieval index — Path B works with no index at all, so gating on one would disable grounding exactly where the fallback still works.

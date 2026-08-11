@@ -12,7 +12,7 @@ authors a high-quality **Value Increment** that feeds the downstream pipeline. T
 (a PRD): what / why / for-whom, not how. Zero Jira API — the VI is authored as markdown in the specs
 repo and published to Jira by paste + re-import.
 
-Usage: `/create-vi <JIRA-KEY> [@idea.md] [--from-vi <VI-KEY|path>] [--lean|--hybrid|--full]` (default `--hybrid`).
+Usage: `/create-vi <JIRA-KEY> [@idea.md] [--from-vi <VI-KEY|path>] [--lean|--hybrid|--full] [--no-docs] [--no-prior-art]` (default `--hybrid`; the two `--no-*` switches each turn off one grounding source — see Phase 1).
 
 ---
 

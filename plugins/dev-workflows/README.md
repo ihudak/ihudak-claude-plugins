@@ -52,7 +52,7 @@ The commands form a role-based pipeline. Each role has a starting command and ha
 flowchart TD
     subgraph PM["PM — ideation & framing"]
         idea["/idea"] --> createvi["/create-vi"]
-        createvi --> rnpm["/release-notes (early draft)"]
+        createvi --> rnpm["/dev-workflows:release-notes (early draft)"]
         createvi -.->|VI exists| updatevi["/update-vi"]
         updatevi --> rnpm
     end
@@ -66,14 +66,14 @@ flowchart TD
     subgraph DEV["Dev — build"]
         design["/design"] --> implement["/implement"]
         implement --> document["/document"]
-        document --> rndev["/release-notes (final)"]
+        document --> rndev["/dev-workflows:release-notes (final)"]
     end
     subgraph QA["QA — verification & gates"]
         ready["/ready"]
     end
     subgraph ANY["Anytime — improve the plugin & utilities"]
         improve["/feedback · /prompt · /prompt-brainstorm · /prompt-grill-me"]
-        maint["/vuln · /upgrade"]
+        maint["/vuln · /dev-workflows:upgrade"]
         tooling["/dev-workflows:statusline · /docs-profile · /api-guideline-reviewer · /guideline-reviewer"]
     end
 
@@ -84,6 +84,8 @@ flowchart TD
     specify -->|specification.md| design
     ready -. verifies ARD/spec/design .-> implement
 ```
+
+Names shown as `/dev-workflows:<command>` are the ones that collide with a Claude Code built-in of the same name — `/release-notes`, `/upgrade`, and `/statusline`. Typing the bare form reaches Claude Code's own command instead, so use the qualified form for those three. Every other command works either way. See rule 6 of `references/next-phase-offer.md`.
 
 | Role | Starts with | Consumes | Produces → where it lands |
 |------|-------------|----------|---------------------------|

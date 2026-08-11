@@ -120,7 +120,7 @@ Consumers: `/idea` (grill-rank, write path, `## Prior art`, handoff) and `/creat
 2. **Resolve the root.** `vault_root = $VAULT_PATH`. Unlike `$DOCS_PATH` this has **no default** — `$VAULT_PATH` is a write root, and write roots deliberately do not default.
 3. **Validity gate — ON only when all hold** (else `OFF` with a one-line reason):
    - `$VAULT_PATH` is non-empty and is an existing, readable directory;
-   - the run writes into that vault — when the command fell back to a user-supplied write root, return `OFF`, `reason: "write root is not the vault"`;
+   - **`/idea` only** — the run writes into that vault: when `/idea` fell back to a user-supplied write root, return `OFF`, `reason: "write root is not the vault"`. This check does not apply to `/create-vi`, which writes to `$SPECS_PATH` by design and never into the vault; applying it there would resolve `OFF` on every run.
    - at least one of `Projects/Products/` and `Projects/ideas/` exists under it.
 4. **Return** `{ prior_art, vault_root, reason }`.
 
@@ -671,23 +671,21 @@ Replace the `- **Path:**` bullet under `## Phase 4 — Write idea.md` with:
 
   | Row | Included when | Text |
   |---|---|---|
-  | 1 | `provenance: vi` **and** the finder resolved a vault item directory for that key | `Rewrite <KEY> — write into <item-dir>/` |
+  | 1 | `provenance: vi` | `Rewrite <KEY> — reuse its Jira key; write into <item-dir>/` when the finder resolved one, else `Rewrite <KEY> — reuse its Jira key; write to <container default>/<candidate_slug>/` |
   | 2 | `area_proposal.path` non-null, `confidence: high`, **and** it differs from the container default | `New idea under <area_proposal.path>/<candidate_slug>/` |
-  | 3 | always | `Write to <container default>/<candidate_slug>/ as detected` |
+  | 3 | always | `New idea — a new Jira key will be minted; write to <container default>/<candidate_slug>/ as detected` |
   | 4 | always | `Enter a different path` |
   | 5 | always | `Cancel` |
   | 6 | always | `Other… (describe)` |
 
   The gate **fires only when at least one of rows 1–2 is present**; otherwise the container default
-  applies silently. Append `(Recommended)` to **exactly one** row, chosen by the **top match** — the
-  `prior_art` entry with the highest `match_confidence`, ties broken by array order — and its
-  `relation`: `supersedes_self` → row 1 **when present, else row 3**; every other relation → row 2 when
-  present, else row 3. Each branch falls back because rows 1 and 2 are conditional: a supplied `vi`
-  whose key has no vault work document classifies `supersedes_self` yet yields `item_dir: null`, so
-  row 1 is absent and a rule that named it would recommend a row nobody can see. Never recommend row 1
-  without `supersedes_self` — extending and paralleling a VI are as common as rewriting one, and a
-  wrong default here silently mints or fails to mint a Jira key. Validate every chosen path sits inside
-  the resolved write root and is writable.
+  applies silently and `vi_disposition` is `new`. Append `(Recommended)` to **exactly one** row, chosen
+  by the **top match** and its `relation`: `supersedes_self` → row 1; every other relation → row 2 when
+  present, else row 3. **With no top match at all — grounding OFF, invalid `$VAULT_PATH`, a non-vault
+  write root, or an `EMPTY` finder result — recommend row 3.** That state is reachable precisely
+  because row 1 fires on `provenance: vi` alone. Every branch must name a row actually in the array.
+  Never recommend row 1 without `supersedes_self`. Validate every chosen path sits inside the resolved
+  write root and is writable.
 
   Record the choice as **`vi_disposition`** — `rewrite` for row 1, `new` for every other row — and carry
   it into Phase 5. This is the only point in the flow where the three shapes of a supplied VI (extend,
@@ -840,10 +838,14 @@ Insert a new section between `## Section 5 — Signals & evidence` and `## Secti
 ## Section 6 — Prior art (optional)
 
 `## Prior art` — tracked initiatives in the vault that this idea covers, continues, parallels, or
-rewrites. **Omit the whole section when none was found.** One bullet per entry:
+rewrites. **Write it when prior art was discovered *or* the source is a `vi`; omit it entirely
+otherwise.** Two bullet shapes — discovered (every slot sourced from the finder) and supplied-only
+(a `vi` the finder did not match; `tracked` has no `relation`, `match_reason`, or vault path, so the
+bullet omits the wikilink and relation rather than inventing them):
 
 ```
 - [[<work doc>]] (<JIRA-KEY>, <status>) — <relation>: <one line>
+- <JIRA-KEY> (<status>) — supplied source: <summary>
 ```
 
 The **Jira key is the durable identifier**; the wikilink is a convenience that dangles once a vault item

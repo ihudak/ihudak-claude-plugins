@@ -149,9 +149,9 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
 
   | Row | Included when | Text |
   |---|---|---|
-  | 1 | `provenance: vi` | `Rewrite <KEY> — write into <item-dir>/` when the finder resolved one, else `Rewrite <KEY> — write to <container default>/<candidate_slug>/` |
+  | 1 | `provenance: vi` | `Rewrite <KEY> — reuse its Jira key; write into <item-dir>/` when the finder resolved one, else `Rewrite <KEY> — reuse its Jira key; write to <container default>/<candidate_slug>/` |
   | 2 | `area_proposal.path` non-null, `confidence: high`, **and** it differs from the container default | `New idea under <area_proposal.path>/<candidate_slug>/` |
-  | 3 | always | `Write to <container default>/<candidate_slug>/ as detected` |
+  | 3 | always | `New idea — a new Jira key will be minted; write to <container default>/<candidate_slug>/ as detected` |
   | 4 | always | `Enter a different path` |
   | 5 | always | `Cancel` |
   | 6 | always | `Other… (describe)` |
@@ -159,13 +159,15 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
   The gate **fires only when at least one of rows 1–2 is present**; otherwise the container default
   applies silently. Append `(Recommended)` to **exactly one** row, chosen by the **top match** — the
   `prior_art` entry with the highest `match_confidence`, ties broken by array order — and its
-  `relation`: `supersedes_self` → row 1 **when present, else row 3**; every other relation → row 2 when
-  present, else row 3. Each branch falls back because rows 1 and 2 are conditional: a supplied `vi`
-  whose key has no vault work document classifies `supersedes_self` yet yields `item_dir: null`, so
-  row 1 is absent and a rule that named it would recommend a row nobody can see. Never recommend row 1
-  without `supersedes_self` — extending and paralleling a VI are as common as rewriting one, and a
-  wrong default here silently mints or fails to mint a Jira key. Validate every chosen path sits inside
-  the resolved write root and is writable.
+  `relation`: `supersedes_self` → row 1; every other relation → row 2 when present, else row 3.
+  **When there is no top match at all — prior-art grounding OFF, an invalid `$VAULT_PATH`, a non-vault
+  write root, or the finder returning `EMPTY` — recommend row 3.** That state is reachable precisely
+  because row 1 fires on `provenance: vi` alone, and nothing is then known about whether this is a
+  rewrite; the neutral default is the one that mints no Jira key. Every branch must name a row that is
+  actually in the array, or the gate renders with nothing marked. Never recommend row 1 without
+  `supersedes_self` — extending and paralleling a VI are as common as rewriting one, and a wrong
+  default here silently mints or fails to mint a Jira key. Validate every chosen path sits inside the
+  resolved write root and is writable.
 
   Record the choice as **`vi_disposition`** — `rewrite` for row 1, `new` for every other row — and carry
   it into Phase 5. **When the gate does not fire at all, `vi_disposition` is `new`.** Row 1 keys only on
@@ -178,7 +180,9 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
   Phase 2.5 returned any `prior_art` entry **or** the source is `vi`; omit it entirely otherwise. A `vi`
   source contributes its Phase 2 `tracked` block (key, status, summary) even when prior-art grounding is
   OFF — it is prior art the user handed over, not something the finder discovered — and appears there
-  **and** in `sources:`. Merge by Jira key so a supplied VI the finder also matched yields one bullet.
+  **and** in `sources:`. Merge by Jira key so a supplied VI the finder also matched yields one bullet: the finder's entry wins,
+  because it is a strict superset of `tracked` (it adds `relation`, `match_reason`, and a vault path). A
+  finder match with `jira_key: null` cannot collide — a supplied VI always has a key.
 - **Existing file:** if `idea.md` already exists at that path, offer:
   ```
   choices: ["Refine the existing idea.md (Recommended)", "Create a new one (you'll be prompted for a slug)", "Cancel", "Other… (describe)"]

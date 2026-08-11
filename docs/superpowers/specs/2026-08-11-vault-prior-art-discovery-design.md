@@ -264,9 +264,9 @@ Five consumers. Every one is named here so none of this becomes a producer witho
 
 The gate **fires iff at least one of rows 1–2 is present**; otherwise the provenance default applies silently. Row 2's differs-from-default test is load-bearing precisely because the default is now a container too — when the source already sits in the area the finder points at, the two agree and there is nothing to ask.
 
-`(Recommended)` is appended to **exactly one** row, chosen by the **top match** — the `prior_art` entry with the highest `match_confidence`, ties broken by array order — and its `relation`: `supersedes_self` → row 1 **when present, else row 3**; every other relation → row 2 when present, else row 3.
+`(Recommended)` is appended to **exactly one** row, chosen by the **top match** — the `prior_art` entry with the highest `match_confidence`, ties broken by array order — and its `relation`: `supersedes_self` → row 1; every other relation → row 2 when present, else row 3. **With no top match at all — grounding off, invalid `$VAULT_PATH`, a non-vault write root, or an `EMPTY` finder result — recommend row 3.**
 
-**Every branch needs a fallback, because rows 1 and 2 are conditional.** A supplied `vi` whose key has no vault work document classifies as `supersedes_self` yet yields `item_dir: null` (§4 states that case explicitly), so row 1 is absent while the relation still points at it. A rule that names a row not in the array recommends nothing at all — the unreachable-guard shape: a rule that is cited, counted, and never executable in a reachable state.
+**Every branch must name a row that is actually in the array.** Row 2 is conditional, and the no-match state is reachable precisely because row 1 fires on `provenance: vi` alone — so both fall back to row 3, the only always-present destination. A rule naming an absent row recommends nothing at all: the unreachable-guard shape, cited and counted but never executable in a reachable state. This bit twice — first when row 1 required a resolved item directory, then again when widening row 1 to fix that left the no-match state uncovered.
 
 Row 1 is never recommended without `supersedes_self`, because extending and paralleling a VI are just as common as rewriting it (§2.8) and a wrong default here silently mints or fails to mint a Jira key.
 
@@ -281,8 +281,11 @@ Every choice is validated to sit inside the resolved write root and be writable.
 **5.3 — `## Prior art` in `idea.md`.** The durable carrier, fed from both directions — discovered matches and a supplied `vi` source alike. A `vi` source contributes via its Phase 2 `tracked` block, so the section is written whenever prior art was discovered **or** the source is `vi`; entries merge by Jira key. Gating it on the finder alone would drop the supplied case whenever grounding is off. One bullet per entry:
 
 ```
-- [[<work doc>]] (<JIRA-KEY>, <status>) — <relation>: <one line>
+- [[<work doc>]] (<JIRA-KEY>, <status>) — <relation>: <one line>          # discovered
+- <JIRA-KEY> (<status>) — supplied source: <summary>                     # supplied only
 ```
+
+Two shapes, because `tracked` carries `jira_key` / `status` / `summary` and nothing else — no `relation`, no `match_reason`, no vault path. A supplied `vi` the finder did not match takes the second shape rather than inventing a closed-vocabulary `relation` to fill the first.
 
 Every slot is transcribed from the digest, never invented: `<JIRA-KEY>` / `<status>` from `jira_key` / `tracked_status`, `<relation>` verbatim from `relation` (vocabulary in §3.7), and `<one line>` a plain-language rendering of that entry's `match_reason`. Without this, an author reading `idea-format.md` alone sees four placeholders and no source for any of them.
 

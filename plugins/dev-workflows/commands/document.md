@@ -408,6 +408,7 @@ After the batch returns, handle each per-repo status:
   ```
   choices: ["Continue with current local state", "Skip this repo", "Cancel", "Other… (describe)"]
   ```
+- `prep.read_only: true` — not a failure. The scan ran at `prep.scanned_ref`. Escalate per the `Read-only mount — ref stale or diverged` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`; otherwise proceed silently and cite evidence at `prep.scanned_ref`.
 - `NO_PRS_RESOLVED` — record all that repo's PRs as unresolved; continue.
 
 After every batch completes, if **every PR across every repo** is unresolved, present a single aggregate gate (not per-PR):
@@ -624,7 +625,8 @@ This phase is **three-way** when a spec was provided (Phase 0 resolved `specs_di
 is present in the Phase-4 `code_repos` map. When it is, run **one** direct grep against that resolved
 local path to try to resolve the claim — using the `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`
 §3 technique matching the claim's type — **including when `diff-summarizer` returned `REFRESH_BLOCKED`
-for that repo**. A read-only mount that cannot `git fetch` can still be grepped, and this is exactly
+for that repo**. A repo whose refresh genuinely failed — a network or auth error, or an unresolvable
+default branch — can still be grepped at its current local state, and this is exactly
 the case a user previously had to resolve by hand.
 
 Update the warning in place when the grep resolves it (`finding: VERIFIED` or `CONTRADICTED`, with

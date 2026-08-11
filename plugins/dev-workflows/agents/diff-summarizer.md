@@ -100,9 +100,10 @@ If all four strategies fail: record the PR under `unresolved_prs` and continue. 
 Before resolving any PR:
 
 1. **Verify repo exists.** If `repo_path` is not a directory, return `status: REPO_MISSING`.
-2. **Clean-tree check.** `git status --porcelain`; if non-empty AND `refresh.fetch` is true, return `status: DIRTY_TREE`.
-3. **Fetch.** If `refresh.fetch` is true: `git fetch origin`. On failure return `status: REFRESH_BLOCKED` with a one-line reason.
-4. **Pull.** If `refresh.pull` is true (default false): resolve the default branch via `git symbolic-ref --short refs/remotes/origin/HEAD` (with the usual fallback chain — `git remote set-head origin --auto`; then try `main`, then `master`); `git switch <default>` + `git pull --ff-only`. On any failure return `status: REFRESH_BLOCKED`.
+2. **Read-only detection.** Per `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md` §1, test whether `repo_path` and `repo_path/.git` are writable. On a read-only mount, skip items 3–5 entirely and follow that reference — §2 for what to skip, §3 for ref resolution, §4 for reading at the ref, §5 for when to escalate. `refresh.fetch` writes refs and `refresh.pull` writes the working tree, so neither can run; PR resolution proceeds against the object database as it stands. A read-only mount is NOT `DIRTY_TREE` and NOT `REFRESH_BLOCKED`.
+3. **Clean-tree check.** `git status --porcelain`; if non-empty AND `refresh.fetch` is true, return `status: DIRTY_TREE`.
+4. **Fetch.** If `refresh.fetch` is true: `git fetch origin`. On failure, if the error contains `Read-only file system`, abandon the writable path and continue in read-only mode per `read-only-repos.md` §1; on any other failure return `status: REFRESH_BLOCKED` with a one-line reason.
+5. **Pull.** If `refresh.pull` is true (default false): resolve the default branch via `git symbolic-ref --short refs/remotes/origin/HEAD` (with the usual fallback chain — `git remote set-head origin --auto`; then try `main`, then `master`); `git switch <default>` + `git pull --ff-only`. On a failure whose error contains `Read-only file system`, enter read-only mode per `read-only-repos.md` §1 and continue there; on any other failure return `status: REFRESH_BLOCKED`.
 
 ## Per-PR summary content
 
@@ -124,9 +125,13 @@ status:   OK | REPO_MISSING | DIRTY_TREE | REFRESH_BLOCKED | NO_PRS_RESOLVED | P
 repo:      <short repo name — the basename of repo_path>
 repo_path: <absolute path as received in input, so callers can reference the source tree>
 prep:
-  fetched:      true | false
-  pulled:       true | false
-  refresh_note: <e.g. "fetched 3 new refs" | "skipped — RO mount" | "tree was dirty, refresh skipped">
+  fetched:          true | false
+  pulled:           true | false
+  refresh_note:     <e.g. "fetched 3 new refs" | "read-only mount; resolved at origin/main" | "tree was dirty, refresh skipped">
+  read_only:        true | false
+  scanned_ref:      <ref name, e.g. "origin/main"; the default branch name when writable>
+  ref_committed_at: <ISO-8601 timestamp of the ref's newest commit>
+  head_divergence:  { branch: <working-tree branch>, ahead: <n>, behind: <n> }
 per_pr:
   - pr_id: <id>
     url: <url>
@@ -165,3 +170,4 @@ aggregate_summary: |
 - NEVER fabricate diff content. If a PR cannot be resolved by any strategy, record it in `unresolved_prs`.
 - If `resolved_via == jira_key_commits`, the `summary` MUST carry the explicit caveat — omitting it would silently degrade content trust.
 - On `REPO_MISSING`, `DIRTY_TREE`, `REFRESH_BLOCKED`: return immediately with the status; do NOT partially resolve any PRs.
+- On a read-only mount, NEVER `git fetch`, `git pull`, `git switch`, or `git remote set-head` — all write. Follow `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md` instead of returning `REFRESH_BLOCKED`.

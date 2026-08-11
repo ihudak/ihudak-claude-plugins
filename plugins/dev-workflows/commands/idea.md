@@ -159,7 +159,10 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
   The gate **fires only when at least one of rows 1–2 is present**; otherwise the container default
   applies silently. Append `(Recommended)` to **exactly one** row, chosen by the **top match** — the
   `prior_art` entry with the highest `match_confidence`, ties broken by array order — and its
-  `relation`: `supersedes_self` → row 1; every other relation → row 2 when present, else row 3.
+  `relation`: `supersedes_self` → row 1 **when present, else row 3**; every other relation → row 2
+  when present, else row 3. `supersedes_self` needs its own fallback because it is reachable for **any**
+  `known_refs` entry — a `markdown` source that wikilinks a VI work document can carry it — while row 1
+  ships only for `provenance: vi`.
   **When there is no top match at all — prior-art grounding OFF, an invalid `$VAULT_PATH`, a non-vault
   write root, or the finder returning `EMPTY` — recommend row 3.** That state is reachable precisely
   because row 1 fires on `provenance: vi` alone, and nothing is then known about whether this is a

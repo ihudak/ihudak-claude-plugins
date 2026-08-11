@@ -842,7 +842,9 @@ Node labels use this edition's `<name>:` idiom, matching every sibling node.
 
 ### Fixed
 
-- **Printed next-step suggestions used slash-style names that collide with Copilot's own commands.** Slash-style invocation works in this edition, but Copilot registers `/release-notes`, `/upgrade`, `/feedback`, and `/statusline` as built-in slash commands — four collisions with skill names shipped here, one of which (`/feedback`) the Claude edition does not have. Every skill name printed for the user to invoke now uses this edition's `<name>:` idiom, and `skills/_shared/next-phase-offer.md` rule 6 states the contract. Names that are printed but are not invocation targets are unchanged.
+- **The printed-name contract is now stated, before it is needed.** Slash-style invocation works in this edition, so a printed `/release-notes` is not broken — but Copilot registers its own built-in slash commands, and four of them collide with skill names shipped here: `/release-notes`, `/upgrade`, `/feedback`, and `/statusline`. In a collision the built-in wins, and `/feedback` is a collision the Claude edition does not have. A sweep of every printed surface found this edition **already** using the `<name>:` idiom throughout, so no printed text needed converting. `skills/_shared/next-phase-offer.md` rule 6 now states the contract explicitly so it stays that way.
+
+**Write this bullet only after the sweep has run, and make it match the sweep's actual result.** The wording above assumes zero conversions, which is what was observed. If a future run of this plan finds real conversions, say so instead — a changelog that claims a fix which never happened is a defect in its own right, and the first draft of this entry had exactly that flaw.
 - **`update-vi:` cited a routing graph it did not appear in.** `skills/update-vi/SKILL.md` names `skills/_shared/next-phase-offer.md` as the authority for its Phase 6 offer, and that file had never mentioned it. It now appears as a PM re-entry node.
 - **`create-vi:` cited the wrong `epics:` phase.** Its Phase 3.5 style check said it mirrored `epics:` Phase 6.1 (*Resolve clarifications*); the style check is Phase 6.2.
 ```

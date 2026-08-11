@@ -229,6 +229,7 @@ Handle per-repo status after the batch returns:
   `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
 - `REFRESH_BLOCKED` — escalate per the `Refresh blocked` rule in
   `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
+- `prep.read_only: true` — not a failure. The scan ran at `prep.scanned_ref`. Escalate per the `Read-only mount — ref stale or diverged` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`; otherwise proceed silently and cite evidence at `prep.scanned_ref`.
 
 ---
 

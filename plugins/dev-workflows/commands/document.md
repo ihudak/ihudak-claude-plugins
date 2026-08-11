@@ -408,6 +408,7 @@ After the batch returns, handle each per-repo status:
   ```
   choices: ["Continue with current local state", "Skip this repo", "Cancel", "Other… (describe)"]
   ```
+- `prep.read_only: true` — not a failure. The scan ran at `prep.scanned_ref`. Escalate per the `Read-only mount — ref stale or diverged` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`; otherwise proceed silently and cite evidence at `prep.scanned_ref`.
 - `NO_PRS_RESOLVED` — record all that repo's PRs as unresolved; continue.
 
 After every batch completes, if **every PR across every repo** is unresolved, present a single aggregate gate (not per-PR):

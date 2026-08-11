@@ -790,6 +790,14 @@ In `## Phase 3 — Author via grill`, append to the first paragraph (the one beg
 Rank every `docs_challenges` and `prior_art_challenges` entry from Phase 2.5 into the grill's question order; a challenge competes for attention, it never suspends the spine below.
 ````
 
+- [ ] **Step 3b: Complete the `Usage:` line**
+
+That line enumerates the command's flags (`--from-vi`, `--lean|--hybrid|--full`) but names neither
+grounding off-switch. This task adds `--no-prior-art`, so complete it with both `--no-docs` and
+`--no-prior-art`, pointing at Phase 1. (The off-switches are named in the Phase 1 grounding lines
+across all six grounding commands — that convention stays; this is only about a `Usage:` line that
+already promises to list flags.)
+
 - [ ] **Step 4: Verify**
 
 ```bash

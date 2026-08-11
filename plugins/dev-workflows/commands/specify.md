@@ -214,7 +214,7 @@ Epic-picker pattern** documented in `${CLAUDE_PLUGIN_ROOT}/references/jira-input
     stays the flat VI-dir path `specifications/<VI>-<vslug>/` (Phase 0 step 3's `focus_key`-null VI
     case). Step B then reads the whole VI subtree.
 - **VI with 0 Epics** → this VI hasn't been split yet. Offer the existing without-Epics choices:
-  `choices: ["Split into Epics first with /epics, then create them in Jira and re-import (Recommended)", "Author one broad VI-level spec now", "Cancel", "Other… (describe)"]`
+  `choices: ["Split into Epics first with /dev-workflows:epics, then create them in Jira and re-import (Recommended)", "Author one broad VI-level spec now", "Cancel", "Other… (describe)"]`
   `/specify` does NOT create Jira Epics itself (zero external API) — on "Split…", stop and guide the
   user through the manual round-trip (see the Phase 7 round-trip note). On "Author one broad VI-level
   spec now", leave `focus_key` = null and proceed to Step B.
@@ -534,7 +534,7 @@ Report: feature-folder path; stage/user-story/AC/TC counts; open-question count;
 
 ### Next step
 
-End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): **Epic-level spec** (`<VI> <Epic>`) → hand to the team → `/design <VI> <Epic>`, and the **Epic fan-out** `/specify <VI> <another-Epic>` for a sibling Epic (breadth); **VI-level spec** (`<VI>` only) → `/epics <VI>` (PE). If the run BLOCKED or left open `- [ ]` items, recommend resolving those first.
+End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): **Epic-level spec** (`<VI> <Epic>`) → hand to the team → `/dev-workflows:design <VI> <Epic>`, and the **Epic fan-out** `/dev-workflows:specify <VI> <another-Epic>` for a sibling Epic (breadth); **VI-level spec** (`<VI>` only) → `/dev-workflows:epics <VI>` (PE). If the run BLOCKED or left open `- [ ]` items, recommend resolving those first.
 
 ### Context hygiene
 

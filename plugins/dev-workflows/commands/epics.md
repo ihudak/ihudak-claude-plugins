@@ -618,7 +618,7 @@ MODERATE — vault-internal Epic drafting for a single VI
 The project root has uncommitted changes. `/epics` never commits the project root — git management there is your responsibility. (This run's `$SPECS_PATH` session artifacts are committed separately by the terminal step — see its outcome line at the end of the run.)
 
 ### Next step
-[Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. For each Epic just drafted, author its spec → `/specify <VI> <Epic>` (PE); the **Epic fan-out** (depth vs breadth) applies from the spec/design stage on. Optionally a Product Architect adds an Epic-level ARD first → `/create-ard <VI> <Epic>`. If the review BLOCKED, resolve that first.]
+[Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. For each Epic just drafted, author its spec → `/dev-workflows:specify <VI> <Epic>` (PE); the **Epic fan-out** (depth vs breadth) applies from the spec/design stage on. Optionally a Product Architect adds an Epic-level ARD first → `/dev-workflows:create-ard <VI> <Epic>`. If the review BLOCKED, resolve that first.]
 
 ### Context hygiene
 

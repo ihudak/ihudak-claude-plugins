@@ -67,7 +67,7 @@ Rules:
   `design.md` or matching `*-design.md` (the `/design` output; distinct from a `specification.md`) —
   scan it for unresolved `- [ ]` open questions under its `## Open questions` heading. If any exist,
   **refuse to proceed**:
-  `choices: ["Cancel — resolve the design's open questions in /design first (Recommended)", "Override and implement anyway (logged in the Phase 5 report)", "Other… (describe)"]`
+  `choices: ["Cancel — resolve the design's open questions in /dev-workflows:design first (Recommended)", "Override and implement anyway (logged in the Phase 5 report)", "Other… (describe)"]`
   A design must be decision-complete before implementation (enforced upstream by `design-reviewer`;
   this is the cross-command backstop). **`specification.md`-level open questions are exempt** — they are
   the spec's way of flagging what the design phase resolves, and a design doc may legitimately
@@ -624,7 +624,7 @@ Output a structured report — do NOT ask any closing confirmation:
 - [MINOR / NIT findings that were not applied] OR "none"
 
 ### Next step
-[Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. Jira mode: finish the remaining Epics under the VI (breadth) — `/implement <VI> <another-Epic>` — and, once **all** Epics are implemented, `/document <VI>` then `/release-notes <VI>` (both VI-level, run once). Depth vs breadth is the team's call. Direct mode: no forward pipeline step (omit). If review is still BLOCK, resolve that first.]
+[Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. Jira mode: finish the remaining Epics under the VI (breadth) — `/dev-workflows:implement <VI> <another-Epic>` — and, once **all** Epics are implemented, `/dev-workflows:document <VI>` then `/dev-workflows:release-notes <VI>` (both VI-level, run once). Depth vs breadth is the team's call. Direct mode: no forward pipeline step (omit). If review is still BLOCK, resolve that first.]
 
 ### Context hygiene
 

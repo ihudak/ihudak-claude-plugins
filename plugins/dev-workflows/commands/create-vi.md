@@ -49,11 +49,11 @@ Use `choices` arrays; the last choice is always `"Other… (describe)"`.
 2. **Existing-VI handling** (only if Phase 0 step 6 found a VI for `<KEY>`):
    - **No `--from-vi`** → `/create-vi` is greenfield-only; **redirect**:
      ```
-     choices: ["Switch to /update-vi <KEY> to refresh it (Recommended)", "Overwrite as a fresh VI (archives the current one)", "Cancel", "Other… (describe)"]
+     choices: ["Switch to /dev-workflows:update-vi <KEY> to refresh it (Recommended)", "Overwrite as a fresh VI (archives the current one)", "Cancel", "Other… (describe)"]
      ```
    - **`--from-vi` present** → "create new (seeded)" conflicts with "a VI already exists here":
      ```
-     choices: ["Update the existing <KEY> instead — /update-vi <KEY> (seed ignored) (Recommended)", "Overwrite <KEY> as a new seeded VI (archives the current one)", "Cancel", "Other… (describe)"]
+     choices: ["Update the existing <KEY> instead — /dev-workflows:update-vi <KEY> (seed ignored) (Recommended)", "Overwrite <KEY> as a new seeded VI (archives the current one)", "Cancel", "Other… (describe)"]
      ```
 3. **Relocate `idea.md`.** If it is outside the feature folder, **copy/move** it to `<feature-folder>/idea.md` (**never a symlink** — a cross-root link between `$VAULT_PATH` and `$SPECS_PATH` would break). Record its original path for `derived_from`.
 4. **Draft idea → warn-and-fold.** If `idea.md` is `status: draft` (open `[NEEDS CLARIFICATION]`), note that the grill resolves those items — do **not** hard-block.
@@ -207,7 +207,7 @@ Without these steps the pipeline cannot read the VI.
 Offer these — clearly labeling the role handoff:
 
 ```
-choices: ["Draft the release note now — /release-notes <KEY> (PM) (Recommended)", "Hand to a Product Architect — /create-ard <KEY> (PA, optional)", "Hand to a Product Engineer — /epics <KEY> (PE)", "Stop here", "Other… (describe)"]
+choices: ["Draft the release note now — /dev-workflows:release-notes <KEY> (PM) (Recommended)", "Hand to a Product Architect — /dev-workflows:create-ard <KEY> (PA, optional)", "Hand to a Product Engineer — /dev-workflows:epics <KEY> (PE)", "Stop here", "Other… (describe)"]
 ```
 
 - **`/release-notes <KEY>`** (PM) — draft the customer-facing release note now (the cost model's `pm`/`vi-creation` inferred case: no spec/design yet).

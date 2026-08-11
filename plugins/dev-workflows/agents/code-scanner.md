@@ -45,17 +45,21 @@ absent, trust `repo_path` as given.
 1. **Verify repo exists.** If `repo_path` is not a directory, return `status: REPO_MISSING`.
 
 2. **Prep step.**
+
+   **Read-only detection comes first.** Per `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md` §1, test whether `repo_path` and `repo_path/.git` are writable. On a read-only mount, follow that reference — §2 for what to skip, §3 for ref resolution, §4 for reading at the ref, §5 for when to escalate — then continue to step 3. A read-only mount is NOT `DIRTY_TREE` and NOT `REFRESH_BLOCKED`.
+
+   On a **writable** mount, unchanged:
    - `git status --porcelain` — if output is non-empty AND `refresh.pull` is true → return `status: DIRTY_TREE`. The caller's escalation prompts the user to stash-and-retry, skip this repo, or cancel.
    - If `refresh.switch_to_default_branch` is true: resolve the default branch via `git symbolic-ref --short refs/remotes/origin/HEAD`. If that fails (unset `origin/HEAD`), run `git remote set-head origin --auto` and retry; if it still fails, try `main`, then `master`, in that order. If the fallback chain exhausts, return `status: REFRESH_BLOCKED` with reason `cannot resolve default branch`.
-   - `git switch <default-branch>` — on failure return `status: REFRESH_BLOCKED` with the one-line git error.
+   - `git switch <default-branch>` — on failure, if the error contains `Read-only file system`, enter read-only mode per `read-only-repos.md` §1 and retry there; otherwise return `status: REFRESH_BLOCKED` with the one-line git error.
    - If `refresh.pull` is true: `git pull --ff-only`. On any failure (non-fast-forward, network, auth, etc.) return `status: REFRESH_BLOCKED` with the one-line git error.
 
-3. **Scan — pure filesystem.** No git commands beyond step 2. For each theme:
+3. **Scan.** On a writable mount, and on a read-only mount whose HEAD is already at `scanned_ref`, this is pure filesystem search with the native tools and no git commands beyond step 2. On a read-only mount whose HEAD is NOT at `scanned_ref`, run the same searches through the `read-only-repos.md` §4 ref primitives — `git grep -n <pattern> <ref> -- <pathspec>` to search, `git ls-tree -r --name-only <ref>` to enumerate, `git show <ref>:<path>` to read — so the evidence describes released content rather than an unmerged working tree. For each theme:
    - Run `grep` / `glob` / file reads against `search_hints.keywords`, `search_hints.symbols`, and `search_hints.paths`.
    - Augment hints with conservative derivations from the theme text itself (tokenise the theme into 2–3 keywords if `search_hints.keywords` is thin).
    - Collect file paths and top-level symbols (class names, function names, exported identifiers) that match.
 
-4. **Read top candidates.** For each theme, open the head (~80 lines) of the top 2–3 matching files. Use that to characterise the capability in a one-line `note`.
+4. **Read top candidates.** For each theme, open the head (~80 lines) of the top 2–3 matching files — with `Read` on the working tree, or `git show <scanned_ref>:<path>` in ref mode. Use that to characterise the capability in a one-line `note`.
 
 5. **Classify each theme.**
    - `present` — clear existing implementation, with at least one authoritative file / symbol / package.
@@ -74,9 +78,13 @@ status:    OK | PARTIAL | REPO_MISSING | DIRTY_TREE | REFRESH_BLOCKED | EMPTY
 repo:      <short repo name — the basename of repo_path>
 repo_path: <absolute path as received in input>
 prep:
-  branch_at_scan: <branch name | "unknown">
-  refreshed:      true | false
-  refresh_note:   <e.g. "switched to main, pulled 12 commits" | "skipped per user" | "tree was dirty">
+  branch_at_scan:   <branch name | "unknown">
+  refreshed:        true | false
+  refresh_note:     <e.g. "switched to main, pulled 12 commits" | "read-only mount; scanned at origin/main" | "skipped per user">
+  read_only:        true | false
+  scanned_ref:      <ref name, e.g. "origin/main"; the default branch name when writable>
+  ref_committed_at: <ISO-8601 timestamp of the ref's newest commit>
+  head_divergence:  { branch: <working-tree branch>, ahead: <n>, behind: <n> }
 capability_map:
   - theme: <theme text>
     classification: present | partial | absent | error
@@ -100,8 +108,8 @@ gap_summary: |
 
 ## Hard rules
 
-- NEVER modify files under `repo_path`. This agent reads and classifies.
-- NEVER commit, create branches, cherry-pick, reset, or rebase. Prep step operations are limited to `git status`, `git symbolic-ref`, `git remote set-head`, `git switch`, `git pull --ff-only`. (still true — this rule binds `repo_path`, a code repo; the caller's terminal `commit-artifacts` step touches only `$SPECS_PATH` and never dispatches this agent's git.)
+- NEVER edit, create, or delete files under `repo_path`. NEVER commit, cherry-pick, reset, rebase, or force. This agent reads and classifies.
+- Branch switching and fast-forward pulls remain sanctioned prep **on a writable clone** — they change which committed revision is present, not the content of it. Prep operations are limited to `git status`, `git symbolic-ref`, `git remote set-head`, `git switch`, `git pull --ff-only`. On a **read-only** mount none of those run; see `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md`. (The caller's terminal `commit-artifacts` step touches only `$SPECS_PATH` and never dispatches this agent's git.)
 - NEVER make HTTPS / REST calls to any git host. All scan work is on the local clone.
 - NEVER switch away from the detected default branch after the prep step. If the user's workflow requires a different branch, the caller must pre-configure it; this agent does not accept a branch override.
 - NEVER invent a theme's classification without evidence. If no files match, classify `absent`.

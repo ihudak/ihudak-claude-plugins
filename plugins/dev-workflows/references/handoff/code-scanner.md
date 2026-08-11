@@ -36,9 +36,13 @@ repo:       <repo name (last segment of repo_path)>
 repo_path:  <absolute path>
 
 prep:
-  branch_at_scan: <branch name | "unknown">
-  refreshed:      true | false
-  refresh_note:   <e.g. "switched to main, pulled 12 commits" | "skipped per user" | "tree was dirty">
+  branch_at_scan:   <branch name | "unknown">
+  refreshed:        true | false
+  refresh_note:     <e.g. "switched to main, pulled 12 commits" | "read-only mount; scanned at origin/main" | "skipped per user">
+  read_only:        true | false
+  scanned_ref:      <ref name, e.g. "origin/main"; the default branch name when writable>
+  ref_committed_at: <ISO-8601 timestamp of the ref's newest commit>
+  head_divergence:  { branch: <working-tree branch>, ahead: <n>, behind: <n> }
 
 capability_map:
   - theme:          <theme text>
@@ -58,6 +62,8 @@ reusable_components: |
 gap_summary: |
   <1–2 paragraphs: what needs to be implemented from scratch>
 ```
+
+`prep.read_only`, `prep.scanned_ref`, `prep.ref_committed_at`, and `prep.head_divergence` are always present, so a caller never branches on absence. Every `evidence.path` is relative to the repo root and denotes content **at `scanned_ref`**; on a read-only mount, open one with `git show <scanned_ref>:<path>`. See `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md`.
 
 ## Status codes
 

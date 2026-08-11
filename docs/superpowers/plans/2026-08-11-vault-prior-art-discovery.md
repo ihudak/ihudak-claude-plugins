@@ -455,7 +455,19 @@ Then split by provenance:
 
 - [ ] **Step 3: Add `salient_summary` to the output block**
 
-Replace these three fragments of the `## Output` YAML:
+First widen the block's own `provenance:` enum, which documents what this agent may emit:
+
+```
+provenance: prompt | markdown | community-post | rfe
+```
+becomes:
+```
+provenance: prompt | markdown | community-post | rfe | vi
+```
+
+Leaving it at four values would ship a documented contract that contradicts the behaviour Step 2 adds.
+
+Then replace these three fragments of the `## Output` YAML:
 
 ```
 source_refs:

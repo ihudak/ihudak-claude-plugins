@@ -27,7 +27,7 @@ plugins/
 
 ## Active plugin: dev-workflows
 
-`plugins/dev-workflows/` provides twenty-one slash commands — `/implement`, `/document`, `/docs-profile`, `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/api-guideline-reviewer`, `/guideline-reviewer`, `/idea`, `/create-vi`, `/create-ard`, `/specify`, `/design`, `/feedback`, `/prompt`, `/prompt-brainstorm`, `/prompt-grill-me`, `/statusline`, `/ready`, and `/update-vi` — plus thirty-two reusable subagents, four hooks, and reference docs.
+`plugins/dev-workflows/` provides twenty-one slash commands — `/implement`, `/document`, `/docs-profile`, `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/api-guideline-reviewer`, `/guideline-reviewer`, `/idea`, `/create-vi`, `/create-ard`, `/specify`, `/design`, `/feedback`, `/prompt`, `/prompt-brainstorm`, `/prompt-grill-me`, `/statusline`, `/ready`, and `/update-vi` — plus thirty-three reusable subagents, four hooks, and reference docs.
 
 The live `dev-workflows` workflow relies on a larger set of helper agents and
 workflow roles; see the taxonomy and workflow map below.
@@ -113,6 +113,8 @@ in their prompt; they do not re-read the file.
 
 `plugins/dev-workflows/references/docs-grounding.md` is the **single source of truth** for `$DOCS_PATH` documentation grounding — the resolution gate (`${DOCS_PATH:-/workspace/docs}`, read-only, silent-skip), the `resolve-docs-grounding` procedure, and the grill-rank / writer-attach consumption modes; consumed by the seven authoring commands (`/idea`, `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/epics`, `/release-notes`) — not `/document`.
 
+`plugins/dev-workflows/references/vault-prior-art.md` is the **single source of truth** for vault prior-art discovery — the `resolve-prior-art` / `dispatch-prior-art-finder` entry points, the search scope (`Projects/Products/**`, `Projects/ideas/**`) and its exclusions (`Jira - <KEY>/` snapshots, Value Packs, `_archive/`), the status-resolution ladder (work-doc frontmatter before the export, disagreements reported not resolved) with its short-code map, the container derivation shared by `/idea`'s write-path default and `area_proposal`, and the bounding caps. Consumed by `/idea` and `/create-vi`. Read-only and advisory — never a gate; there is no retrieval index and therefore no consent gate.
+
 `plugins/dev-workflows/references/prose-formatting.md` is the **single source of truth** for output line-wrapping — never hard-wrap prose; write each paragraph/prose block as one unbroken line, so Obsidian and IntelliJ Idea soft-wrap it for reading and a straight copy-paste into Jira/Grammarly needs no manual cleanup. Consumed by every authoring command/agent that writes prose (`/idea`, `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/design`, `epic-writer`, `doc-writer`, `release-notes-writer`).
 
 `plugins/dev-workflows/references/bug-diagnosis.md` is the **single source of truth** for the bug-diagnosis discipline consulted by `/implement` (Phase 2B) and followed by `risk-planner` when a task is bug-shaped (`task_shape: bug`): feedback-loop-first (a red-capable, deterministic repro before hypothesizing), 3–5 ranked falsifiable hypotheses, `[DEBUG-xxxx]`-tagged instrumentation with a mandatory cleanup gate (stripped before the Opus-review diff), and a regression test at a correct seam. It cross-references `references/design-format.md` `## Seams` for the seam vocabulary and is paired with `/implement`'s spec/design-conformance ("converge") check — `code-review`'s conditional 10th dimension that traces in-scope `[Uxx]`/`[ACxx]`/`[TCxx]` against the shipped diff.
@@ -140,8 +142,8 @@ in their prompt; they do not re-read the file.
 /release-notes       → jira-reader → [diff-summarizer×N (parallel, optional)] → [docs-grounder] → [release-notes-writer: resolve destination + shape per destination + source the {{#context}} label + detect deprecation] → [dt-style-checker → dt-doc-fixer (optional)] → write draft (destination-shaped Summary; paste into Jira) → commit-artifacts
 /vuln                → vuln-research → vuln-fixer → [code-review@Opus] → review-fixer → tests → impl-maintenance → commit-artifacts
 /upgrade             → upgrade-planner → upgrade-executor → [code-review@Opus] → review-fixer → tests → impl-maintenance → commit-artifacts
-/idea                → idea-reader → [docs-grounder (when $DOCS_PATH valid)] → (embedded grilling) → write idea.md → commit-artifacts
-/create-vi           → [docs-grounder] → (embedded grilling) → [vi-reviewer@Opus] → write VI + relocate idea.md → commit-artifacts
+/idea                → idea-reader → [docs-grounder (when $DOCS_PATH valid) + vault-prior-art-finder (when prior art ON)] → (embedded grilling) → write idea.md → commit-artifacts
+/create-vi           → [docs-grounder + vault-prior-art-finder] → (embedded grilling) → [vi-reviewer@Opus] → write VI + relocate idea.md → commit-artifacts
 /update-vi           → [Jira-import-first resolve] → [docs-grounder] → (embedded grilling, diffs against base) → [vi-reviewer@Opus] → write canonical + archived revisions → commit-artifacts
 /create-ard          → [jira-reader (Epic-level always; VI-level only if the authored VI file is absent under $SPECS_PATH)] → [ls $REPOS_PATH → code-scanner×N (confirmed set, parallel, cap 4)] → [docs-grounder] → (embedded grilling) → [ard-reviewer@Opus] → write ARD → commit-artifacts
 /specify             → jira-reader → [code-scanner×N (parallel, cap 4, soft gate)] → [docs-grounder] → (embedded grilling) → [spec-reviewer@Opus] → write specification.md → commit-artifacts
@@ -168,6 +170,7 @@ All seventeen in-scope commands additionally run `specs-preflight` at run start 
                       └── readiness-reviewer  (used by /ready)
                       └── idea-reader         (used by /idea)
                       └── docs-grounder       (used by /idea, /create-vi, /update-vi, /create-ard, /specify, /epics, /release-notes)
+                      └── vault-prior-art-finder (used by /idea, /create-vi)
 /api-guideline-reviewer → standalone command; reviews OpenAPI specs against Dynatrace REST API + IAM guidance
 /guideline-reviewer     → standalone command; reviews code/UI against Dynatrace Experience Standards
 ```
@@ -245,6 +248,8 @@ Key invariants for the VI-creation flow (`/idea`, `/create-vi`, `/create-ard`, `
 - `/ready` is **read-only** — it verifies the Jira status against the ARD/spec/design, never sets status, and never commits the deliverable or the `_readiness.md` snapshot (its terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded session-artifact paths, `references/specs-repo-git.md` §2.1)
 - `/design`, `/implement`, `/specify`, `/epics` respect the applicable ARD via `references/ard-resolution.md`; an `AD-N` Rule violated without a recorded "ARD deviation" is a reviewer BLOCKER
 - `/create-vi` does NOT capture `release_versions` / `change_type` / `release_notes_category` — they are Jira-mirror fields per `references/vi-format.md`, set as Jira dropdowns and returned by the importer; `vi-reviewer` neither requires nor validates them
+- `/idea` types a Jira source from the export's `issue_type` (`ValueIncrement` → `vi`, `Product Need` → `rfe`), never from the project prefix, and resolves it with `resolve-export-for-key` at any depth; a `vi` source is prior art recorded in **both** `sources:` and `## Prior art`
+- `/idea` Phase 4 derives its write path from the container rule and gates only when a rewrite target or a high-confidence area proposal exists; the resulting `vi_disposition` decides whether Phase 5 tells the user to create a Jira workitem
 
 Key invariants for `$DOCS_PATH` docs grounding:
 

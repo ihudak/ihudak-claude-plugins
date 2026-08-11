@@ -28,9 +28,9 @@ commands so the routing graph and the offer rules live in ONE place (the same sh
    once after ALL Epics are implemented) and do NOT fan out.
 6. **Fully qualified when printed** — every command name the run PRINTS for the user to invoke is
    written `/dev-workflows:<command>`. A bare `/<command>` can resolve to a Claude Code built-in of
-   the same name — `/dev-workflows:release-notes`, `/dev-workflows:upgrade`, and `/dev-workflows:statusline` all collide today, and the
-   built-in wins — so the bare form is NEVER printed. Prose that describes the pipeline to a reader
-   of this plugin's source keeps the short form.
+   the same name — Claude Code's own `/release-notes`, `/upgrade`, and `/statusline` all collide
+   today, and the built-in wins — so the bare form is NEVER printed. Prose that describes the
+   pipeline to a reader of this plugin's source keeps the short form.
 
 ## Surface
 
@@ -50,10 +50,9 @@ not required.
   *(optional)* → `/dev-workflows:create-ard <VI>`; or hand to PE → `/dev-workflows:epics <VI>` (or `/dev-workflows:specify <VI>`).
 - `/dev-workflows:update-vi <KEY>` — re-entry, not a linear node: reached when
   `/dev-workflows:create-vi` redirects an existing-VI call, or when a later phase forces a VI
-  refresh. After the paste-into-Jira + re-import round-trip it offers the same forward paths as
-  `/dev-workflows:create-vi`: `/dev-workflows:release-notes <VI>` (PM),
-  `/dev-workflows:create-ard <VI>` (PA, if one exists), `/dev-workflows:specify <VI>` (PE, if one
-  exists).
+  refresh. After the paste-into-Jira + re-import round-trip it offers:
+  `/dev-workflows:release-notes <VI>` (PM), `/dev-workflows:create-ard <VI>` (PA, if one exists),
+  `/dev-workflows:specify <VI>` (PE, if one exists).
 
 **PA — architecture (optional)**
 

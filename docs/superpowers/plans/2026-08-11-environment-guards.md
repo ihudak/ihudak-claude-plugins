@@ -638,7 +638,9 @@ In `implement.md`, the handling is one line (`A scanner returning `DIRTY_TREE`/`
 ```bash
 cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
 grep -l 'Read-only mount — ref stale or diverged' commands/*.md references/*.md
-# expect 6 files: escalation-rules.md + design, specify, epics, document, implement
+# expect 7 files: TWO references — escalation-rules.md (the definition) and read-only-repos.md,
+# whose §5 already forward-references this title by name — plus the five commands design,
+# specify, epics, document, implement. Task 7 then adds create-ard and release-notes.
 grep -c 'prep.read_only' commands/*.md | grep -v ':0'
 # expect 5 command files, each >=1
 ```

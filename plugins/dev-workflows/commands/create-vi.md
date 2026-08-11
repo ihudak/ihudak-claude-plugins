@@ -45,7 +45,7 @@ Usage: `/create-vi <JIRA-KEY> [@idea.md] [--from-vi <VI-KEY|path>] [--lean|--hyb
 Use `choices` arrays; the last choice is always `"Other… (describe)"`.
 
 1. **Confirm** the feature folder, the profile, and the resolved `idea.md` (or "none — grill from scratch").
-   - Show the `docs grounding: ON <root> | OFF (<reason>)` line (off switch: --no-docs).
+   - Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
 2. **Existing-VI handling** (only if Phase 0 step 6 found a VI for `<KEY>`):
    - **No `--from-vi`** → `/create-vi` is greenfield-only; **redirect**:
      ```

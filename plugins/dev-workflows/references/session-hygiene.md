@@ -103,10 +103,12 @@ command (`/create-ard`, `/epics`, `/specify`, `/design`, `/ready`, `/implement`,
 `claude --resume` later (e.g. after going home). `<role>` is the just-finished command's
 lane tag (pm / pa / pe / team). Guidance-only — a command cannot run `/rename` itself.
 
-**`/idea` and `/create-vi` are excluded** from the rename aid: the PM ideation phase runs
-*before* the paste-into-Jira + re-import round-trip that mints the VI (the key
-`/create-vi` takes is the seed RFE, not the VI-ID). It is a short phase — no label is
-auto-suggested there; the PM names the session manually if they want one.
+**`/idea` and `/create-vi` are excluded** from the rename aid: the PM ideation phase is
+short, and on the common path it runs *before* the paste-into-Jira + re-import round-trip
+that mints the VI, so there is usually no VI-ID to name a session after. Two runs do carry
+one — a `vi`-provenance `/idea` source, and a `vi_disposition: rewrite` run whose key is
+the VI being rewritten — but the phase stays short enough that no label is auto-suggested
+either way; the PM names the session manually if they want one.
 
 ## 5. Contract (5 rules)
 

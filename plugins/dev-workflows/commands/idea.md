@@ -71,7 +71,7 @@ choices: ["Read this as <detected-type> (Recommended)", "It's actually a <other-
 ```
 (A dedicated `--as prompt|file|rfe` override is future work — the confirmation covers a mis-detection.)
 
-Show the `docs grounding: ON <root> | OFF (<reason>)` line (off switch: --no-docs).
+Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
 
 ---
 

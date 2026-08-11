@@ -99,7 +99,7 @@ Use `choices` arrays; the last choice in every array MUST be `"Other… (describ
    ```
    choices: ["Use <feature_folder> (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]
    ```
-   - Show the `docs grounding: ON <root> | OFF (<reason>)` line (off switch: --no-docs).
+   - Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
 
 2. **Resume vs fresh** (only if Phase 0 found a `_session.md`). Read it back and summarise which
    stages/questions are already settled:

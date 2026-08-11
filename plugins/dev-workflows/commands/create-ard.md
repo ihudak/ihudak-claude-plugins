@@ -146,7 +146,7 @@ The resume pointer is written in the terminal cost phase (Phase 8), per
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. The next step hands off from PA
 to PE/Team, so:
 
-- **Handing to PE (`/epics <VI>` / `/specify <VI> <Epic>`) or Team (`/design <VI> <Epic>`), even yourself?** → run **`/clear`** for a clean slate; the ARD is on disk.
+- **Handing to PE (`/dev-workflows:epics <VI>` / `/dev-workflows:specify <VI> <Epic>`) or Team (`/dev-workflows:design <VI> <Epic>`), even yourself?** → run **`/clear`** for a clean slate; the ARD is on disk.
 - Continuing to draft more ARD areas yourself right now? → **`/compact`** is fine.
 - Consider **`/rename <VI-ID>-<slug>-pa`** so you can find this session later.
 

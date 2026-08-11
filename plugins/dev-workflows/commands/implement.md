@@ -53,7 +53,7 @@ After the front-end resolves, when `mode: jira-driven`:
     resolve VI-level). Selecting an Epic sets `focus_key` and proceeds for **that Epic
     only** — there is **no "Next Epic?" loop** (code-writing is heavy and branchy;
     each `/implement` run targets one Epic).
-  - **VI with 0 Epics** → offer: split with `/epics` first (then re-import), or
+  - **VI with 0 Epics** → offer: split with `/dev-workflows:epics` first (then re-import), or
     implement one broad VI-level slice (`focus_key` stays null).
 
 When the picker (or the 1-Epic auto-path) sets `focus_key` that was initially null,
@@ -108,7 +108,7 @@ Phase 0 `vi-plus-epics` read if it ran, else a cheap Status-column read of
 `<jira_export_root>/<jira_key>-index.md`). Also, if `$SPECS_PATH` is set, check for a
 co-located `_readiness.md` in the item's specs dir.
 
-Surface a **one-line, non-blocking** recommendation to run `/ready <VI> [<Epic>]` first when
+Surface a **one-line, non-blocking** recommendation to run `/dev-workflows:ready <VI> [<Epic>]` first when
 EITHER: the status is below the readiness bar (VI below **Ready for Implementation**; Epic below
 **Refined**), OR a `_readiness.md` records **NOT-SUPPORTED** / **PARTIAL**. This NEVER blocks —
 proceed regardless; it is guidance only. If neither condition holds, say nothing and continue.
@@ -631,7 +631,7 @@ Output a structured report — do NOT ask any closing confirmation:
 *(Jira mode only — omit this whole block in direct-prompt mode, like the `### Next step` above.)*
 The resume pointer is written in the terminal cost phase (Phase 7), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
 
-- **More Epics to build (`/implement <VI> <Epic2>`) or on to `/document <VI>` — same build lane?** → run **`/compact`** — context stays relevant.
+- **More Epics to build (`/dev-workflows:implement <VI> <Epic2>`) or on to `/dev-workflows:document <VI>` — same build lane?** → run **`/compact`** — context stays relevant.
 - Consider **`/rename <VI-ID>-<slug>-team`** to relocate this session later.
 
 Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.

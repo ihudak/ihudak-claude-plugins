@@ -1210,7 +1210,7 @@ List each gap (claim, decision) with its own status line — never print the DO-
 
 The resume pointer is written in the terminal cost phase (Phase 11), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
 
-- **On to `/release-notes <VI>` (docs → PM handoff), even yourself?** → run **`/clear`** for a clean slate; the docs are on disk.
+- **On to `/dev-workflows:release-notes <VI>` (docs → PM handoff), even yourself?** → run **`/clear`** for a clean slate; the docs are on disk.
 - Consider **`/rename <VI-ID>-<slug>-team`** to relocate this session later.
 
 Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.

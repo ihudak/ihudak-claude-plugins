@@ -678,7 +678,7 @@ Immediately after the `code-scanner` dispatch block (the fenced `→ Agent (suba
    - `REFRESH_BLOCKED` — escalate per the `Refresh blocked` rule in the same file.
    - `prep.read_only: true` — not a failure. The scan ran at `prep.scanned_ref`. Escalate per the `Read-only mount — ref stale or diverged` rule **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`; otherwise proceed silently and cite evidence at `prep.scanned_ref`.
 
-   A repo the user skips is dropped from the confirmed set and named in the Phase 5 handoff; it never silently disappears.
+   A repo the user skips is dropped from the confirmed set and named in the Phase 6 handoff; it never silently disappears.
 ````
 
 - [ ] **Step 2: Add the handling block to `/release-notes`**

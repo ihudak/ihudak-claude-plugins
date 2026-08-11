@@ -230,6 +230,8 @@ known_refs:      <list of {path, has_summary} the caller already holds, or []>
 
 Refuse to run without `vault_path` and a non-empty `feature_summary`.
 
+**A `known_ref` whose `path` no longer resolves is dropped with a `notes` line — never an error, never fabricated.** Vault items get renamed and moved: `PRODUCT-14589`'s folder and work document were both renamed after its rewrite, leaving the shipped `idea.md`'s first `sources[].ref` pointing at nothing. Since `/create-vi` feeds `sources[]` straight into `known_refs`, dangling entries are ordinary input, not an exceptional case. When the dropped entry carried a Jira key, the finder re-resolves it by key (§3.2) instead of discarding it.
+
 `known_refs` prevents the finder and `idea-reader` from summarising the same file twice — the exact duplicated-read cost entry 3 objects to. Entries are classified and status-resolved like any other match and returned with `discovered_by: source`; when `has_summary: true` the finder **omits** `salient_summary`, and the caller merges by `path`.
 
 - `/idea` passes `idea-reader`'s `source_refs` + `wikilinks_followed` with `has_summary: true`. A `vi` source (§3.1) is among them, so the supplied VI is classified and status-resolved by the same code path as a discovered one.
@@ -274,11 +276,13 @@ Every choice is validated to sit inside the resolved write root and be writable.
 
 The whole section is omitted when nothing was found. A key or status is never fabricated; an unresolved status is written as `status unknown`. A `vi` source appears here **and** in `sources:` (§2.6).
 
+**The Jira key is the durable identifier; the wikilink is a convenience that may dangle.** Obsidian wikilinks resolve by file name, and vault items get renamed — `P14589 ME Export Smartscape topology.md` became `P14589 Detect arch drift w MCP.md`. Carrying both means a later reader re-resolves by key when the link breaks. An entry with no Jira key carries only the wikilink, and that is accepted.
+
 **5.4 — Phase 5 handoff.** Prior art is reported whether or not the gate fired — matched keys with statuses, and the alternative path when one exists. This is the feedback's stated minimum, and it is what lets the user relocate before `/create-vi` makes the path sticky.
 
 The handoff additionally **consumes `vi_disposition`** (§5.2), because today's offer is wrong for a rewrite. It currently reads *"first create an empty Jira workitem, then run `/dev-workflows:create-vi <JIRA-KEY> …`"* — but a rewrite needs no new workitem and its key is already known:
 
-- `vi_disposition: rewrite` → *"Next: `/dev-workflows:create-vi <KEY> @<path>` — this rewrites the existing VI; no new Jira workitem is needed."*
+- `vi_disposition: rewrite` → *"Next: `/dev-workflows:create-vi <KEY> @<path>` — this rewrites the existing VI; no new Jira workitem is needed. If an authored VI already exists for `<KEY>`, `/create-vi` will redirect you to `/dev-workflows:update-vi <KEY>`."*
 - `vi_disposition: new` (and every run with no `vi` source) → the existing text, unchanged.
 
 The `draft`-status variants keep their existing shape, differing only in the same clause. Without this, the run that ends in a rewrite tells the user to mint a key they must not mint.

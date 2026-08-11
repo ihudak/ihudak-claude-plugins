@@ -225,7 +225,7 @@ An idea is always written at `<container>/<candidate_slug>/idea.md`. Cases 2 and
 vault_path:      <absolute $VAULT_PATH>
 feature_summary: <2–4 sentences: the problem + desired outcome>
 themes:          <capability themes from the caller, or []>
-known_refs:      <list of {path, has_summary} the caller already holds, or []>
+known_refs:      <list of {path | jira_key, has_summary} the caller already holds, or []>
 ```
 
 Refuse to run without `vault_path` and a non-empty `feature_summary`.
@@ -234,7 +234,9 @@ Refuse to run without `vault_path` and a non-empty `feature_summary`.
 
 `known_refs` prevents the finder and `idea-reader` from summarising the same file twice — the exact duplicated-read cost entry 3 objects to. Entries are classified and status-resolved like any other match and returned with `discovered_by: source`; when `has_summary: true` the finder **omits** `salient_summary`, and the caller merges by `path`.
 
-- `/idea` passes `idea-reader`'s `source_refs` + `wikilinks_followed` with `has_summary: true`. A `vi` source (§3.1) is among them, so the supplied VI is classified and status-resolved by the same code path as a discovered one.
+An entry carries **either** a `path` **or** a `jira_key`, never both required. A supplied `vi` source arrives as a key: the orchestrator does not know which vault directory holds that VI, and resolving it is the finder's job, not the caller's. A key that matches no vault work document is returned with `item_dir: null` and whatever status the export yields — a VI with no vault note is still prior art.
+
+- `/idea` passes `idea-reader`'s `wikilinks_followed` paths and filesystem-path `source_refs` with `has_summary: true`, plus `{jira_key: <KEY>}` for a `vi` source (§3.1). The supplied VI is then classified and status-resolved by the same code path as a discovered one.
 - `/create-vi` has no `idea-reader` — it reads the seed `idea.md` directly — so it passes the idea's `sources[]` paths and any `## Prior art` refs with `has_summary: false`.
 
 ## 5. Consumption

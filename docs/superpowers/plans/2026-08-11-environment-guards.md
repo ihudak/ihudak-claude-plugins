@@ -372,8 +372,11 @@ At the end of `## Invariants`, append:
 
 ```bash
 cd /workspace/ihudak-claude-plugins
-git diff -U0 plugins/dev-workflows/references/docs-grounding.md | grep -E '^[-+].*(non-empty|test -d|find .*-name)' 
-# expect NO output — the §3 validity gate must be byte-unchanged
+git diff -U0 plugins/dev-workflows/references/docs-grounding.md | grep -E '^-.*(non-empty|test -d|test -r|find "\$docs_root")'
+# expect NO output. Match REMOVALS only: step 3 is unchanged iff none of its lines were deleted
+# or rewritten. Do NOT match '+' lines — the new step 3.5 legitimately contains its own
+# `find "$docs_root" … -name '*.md' | wc -l` for the build prompt's <N>, so matching additions
+# reports a false failure on correct work.
 cd plugins/dev-workflows
 grep -n 'choices:' references/docs-grounding.md
 # expect exactly two arrays: the capped-refresh prompt and the build prompt
@@ -945,8 +948,9 @@ done
 ```bash
 cd /workspace/ihudak-claude-plugins
 git diff main..HEAD -U0 -- plugins/dev-workflows/references/docs-grounding.md \
-  | grep -E '^[-+].*(non-empty|test -d|test -r|find .*-name)'
-# expect NO output
+  | grep -E '^-.*(non-empty|test -d|test -r|find "\$docs_root")'
+# expect NO output. REMOVALS only — the new step 3.5 legitimately adds its own `find "$docs_root"
+# … -name '*.md' | wc -l`, so a pattern matching '+' lines fails on correct work.
 ```
 
 - [ ] **Step 3: V6–V9 — Half B wiring and the dead-gate check**

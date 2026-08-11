@@ -502,6 +502,10 @@ tracked:                 # present only for provenance: vi
   summary:    <from the export frontmatter>
 ```
 
+- [ ] **Step 3b: Refresh the frontmatter `description`**
+
+It currently advertises "an exported **RFE** Jira ticket" and "captures community-post demand signals" — both true before this task and false after it. Widen it to name the Jira source as either product feedback (an RFE) or an existing Value Increment the idea extends, parallels, or rewrites, and to mention that each followed reference is summarised. The `description` is how a reader learns what the agent accepts; leaving it stale is the residue defect this repo keeps hitting.
+
 - [ ] **Step 4: Add hard rules**
 
 Append to `## Hard rules`:

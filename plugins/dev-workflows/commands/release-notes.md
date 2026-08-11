@@ -172,6 +172,16 @@ choices: ["Skip and continue without its PRs", "I'll clone it — wait", "Cancel
 
 Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent message, passing each resolved absolute `repo_path` plus `repo_url_slug` and the PRs filtered to that repo. Collect the outputs into a `diff_summaries` array.
 
+**Per-repo summarizer status.** Handle each returned status before continuing:
+
+- `OK` / `PARTIAL` / `NO_PRS_RESOLVED` — use the result; record unresolved PRs in the run report.
+- `REPO_MISSING` — escalate per the `Repo missing (after resolution)` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
+- `DIRTY_TREE` — escalate per the `Dirty working tree` rule in the same file.
+- `REFRESH_BLOCKED` — escalate per the `Refresh blocked` rule in the same file.
+- `prep.read_only: true` — not a failure. Resolution ran at `prep.scanned_ref`. Escalate per the `Read-only mount — ref stale or diverged` rule **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`; otherwise proceed silently.
+
+Diff grounding is opt-in and advisory here: a repo the user skips degrades the grounding, never the run.
+
 ---
 
 ## Phase 5.5 — Documentation grounding (optional)

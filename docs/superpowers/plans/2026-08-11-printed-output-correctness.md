@@ -571,12 +571,14 @@ Replace with:
 
 Node labels keep the short form — the diagram is documentation prose, not printed output (G-5). The existing `/dev-workflows:statusline` node elsewhere in the diagram is **not** touched (G-4).
 
+**The `updatevi` grep returns 2, not 1** — the insert adds two lines that both carry the identifier (the node declaration and its edge to `rnpm`). Both are required.
+
 - [ ] **Step 3: Verify**
 
 ```bash
 cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
 echo "statusline cites rule 6 (expect 1): $(grep -c 'next-phase-offer.md' commands/statusline.md)"
-echo "mermaid update-vi node (expect 1):  $(awk '/```mermaid/,/^```$/' README.md | grep -c 'updatevi')"
+echo "mermaid update-vi node (expect 2):  $(awk '/```mermaid/,/^```$/' README.md | grep -c 'updatevi')"
 echo "diagram statusline untouched (expect 1): $(awk '/```mermaid/,/^```$/' README.md | grep -c '/dev-workflows:statusline')"
 ```
 

@@ -71,3 +71,33 @@ cd /workspace/ihudak-claude-plugins
 git add docs/superpowers/plans/2026-08-11-vault-prior-art-discovery-verification.md
 git commit -m "docs(superpowers): G verification sweep"
 ```
+
+---
+
+## Re-verification after the sweep's findings were fixed
+
+The sweep returned **25 PASS / 2 FAIL** plus one residue find and two softer notes. All were fixed
+rather than deferred; this section records the re-check. Commits: `946981c` / `e764b6a` / `6b2e82c`
+(the two FAILs + the residue find) and `75836df` / `87f3040` / `04d1b5b` (the two softer notes),
+across canonical / mgd / copilot respectively.
+
+| # | Was | Now | Evidence (all three repos) |
+|---|---|---|---|
+| V3 | FAIL — the agent's Hard rules restated 2 of the 3 §3.3 exclusions and omitted `_archive/` entirely | **PASS** | `sed -n '/^## Hard rules/,$p' agents/vault-prior-art-finder.md \| grep -c 'Jira - \|Value Pack\|_archive'` → **3/3** in each repo. The omitted one was the only exclusion a reader could not infer from the others. |
+| V23 | FAIL — `idea-format.md` pointed at `vault-prior-art.md` for the closed vocabulary, which that file never defined (the 11 terms lived only in the agent's Process steps) | **PASS** | `vault-prior-art.md` now carries a `## Vocabulary` section defining both `relation` and `kind`; the agent cites it (2 references) and keeps only its two genuinely-own assignment rules. Pointer and target both present in all three repos. |
+
+**Residue find (fixed).** `vi-format.md`'s `sources[]` provenance enum never gained `vi` while
+`idea-format.md`'s did, and `/create-vi` Phase 3 propagates the idea's `sources[]` straight into the
+VI — so this sub-project's own central case produced a VI carrying a value its format authority did
+not document. `grep -c 'provenance: rfe | vi'` → 1 in each repo.
+
+**Softer notes (fixed).** `session-hygiene.md` justified excluding `/idea` and `/create-vi` from the
+rename aid by asserting no VI-ID exists at that phase — false for a `vi`-provenance source and for a
+`vi_disposition: rewrite` run; the rationale is now stated as the common case and the exclusion
+rests on the phase being short. `README.md` described the write path as `Projects/<area>/<slug>/`,
+the flat rule this sub-project replaced.
+
+**Why V23 is the one worth remembering.** It was a **dead pointer introduced by a fix**: an earlier
+review asked whether an author could write a correct `## Prior art` section from `idea-format.md`
+alone, the answer was no, and the repair added a cross-reference to a section that did not exist.
+A citation is only as good as its target, and nothing checks that automatically.

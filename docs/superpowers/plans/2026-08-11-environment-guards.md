@@ -216,7 +216,7 @@ Use when the `qmd` binary is available (`command -v qmd`). **This agent never bu
 
    `<terms>` = `feature_summary` keywords + `themes`, minus stopwords. **Union of the two ranked lists:** interleave `qmd search` and `qmd vsearch` results by rank position, dedupe by path keeping the better rank, truncate at the Bounding cap of 8.
 3. **Read the top hits** with `timeout 30s qmd get "<file>"` (or `Read`), capped per Bounding.
-4. **A timeout or non-zero exit on any qmd call drops one rung** and is recorded in `notes`. This is the backstop for anything qmd does that this procedure did not anticipate.
+4. **A timeout or non-zero exit on any qmd call drops one rung** and is recorded in `notes` — except that a failing `qmd search` drops straight to Path B, because rung 2 depends on that same call and would fail identically. This is the backstop for anything qmd does that this procedure did not anticipate.
 
 **`qmd query` is NEVER invoked.** It is the only entry point needing the reranking and query-expansion models on top of the embedding model, and no cheap probe can prove those are cached — a cold run downloads ~1.3 GB on the user's critical path. `vectors > 0` proves the *embedding* model already ran on this machine, which is exactly what makes `qmd vsearch` provably safe and `qmd query` not. The cost is rank polish on a retrieval capped at 8 pages that is advisory-only.
 ````

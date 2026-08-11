@@ -297,7 +297,10 @@ than one invocation.
   because it is an OTHER path. This is deliberate: "I'll handle git" refers to
   the deliverable, and the bookkeeping still has to reach the maintainer. The
   outcome line states plainly that the deliverable remains uncommitted.
-- **Every other command** — on the default branch.
+- **Every other command** — on the default branch, unless §3.3 G2 left the run
+  on a branch the plugin does not manage, or §3.5 B3 kept it on a plugin branch
+  keyed to this run. The commit follows the branch the preflight settled on; it
+  never switches.
 
 ## 5. Notice contract — the guards must be impossible to overlook
 
@@ -409,6 +412,8 @@ Omitting any one of them is a defect, not a style choice.
    after `resume.md` (where one is written) and after the cost phase — or, where
    a later phase cedes control to another skill or to an open-ended interactive
    stretch, immediately before that hand-off (§4's exception).
-3. **Emit the §6 outcome line exactly once**, at the end of the run.
+3. **Emit the §6 outcome line exactly once**, wherever `commit-artifacts`
+   ran — at the end of the run, or immediately before the hand-off in the
+   cede-control case above.
 4. **Never restate this reference's rules** — cite the section number. A rule
    copied into a command is a rule that goes stale.

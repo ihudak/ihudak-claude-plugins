@@ -261,7 +261,7 @@ Key invariants for specs-repo git (`references/specs-repo-git.md`):
 - Never fatal — every failure is reported and the run continues
 - The artifact commit carries no `Co-Authored-By` trailer; each artifact already carries its own `author:` field
 - The canonical terminal order is deliverable + handoff → feedback → follow-ups → cost → `resume.md` → `commit-artifacts` → the run's last printed output. The one exception is a phase that cedes control (`/prompt-brainstorm`'s hand-off to `superpowers:brainstorming`, `/prompt-grill-me`'s long interactive grill): there `commit-artifacts` runs immediately **before** the hand-off, because a commit placed after it would never execute (`references/specs-repo-git.md` §4)
-- Exactly one `Specs repo:` outcome line per run, at the end; a guard notice is repeated in full there, never only at Phase 0
+- Exactly one `Specs repo:` outcome line per run, wherever `commit-artifacts` ran — at the end, or immediately before a hand-off that cedes control (`/prompt-brainstorm`, `/prompt-grill-me`); a guard notice is repeated in full there, never only at the preflight
 
 ## Test-writing requirement for code changes
 

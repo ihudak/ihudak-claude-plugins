@@ -155,6 +155,10 @@ classified below. Two of vii-b's 30 lines (`implement.md:387`, `:445`) already h
 | `specify.md:39` | `SPECIFY_NEEDS_JIRA: /specify needs a Jira key or an imported-Jira directory.` — `/specify` has no… | vii-b | LEAVE | one of the five look-alike `*_NEEDS_JIRA` messages |
 | `specify.md:458` | `> - Command run: /specify` | vii-b | LEAVE | subagent-handoff template |
 | `idea.md:180` | `> - Command run: /idea` | vii-b | LEAVE | subagent-handoff template |
+| `specify.md:430` | ``1. `/epics <VI>` drafts child Epic definitions.`` | viii | QUALIFY | Phase 7 handoff numbered step the user types, under a heading calling for it to be documented |
+| `specify.md:433` | ``4. `/specify <each Epic>` reads the Epic from the refreshed export…`` | viii | QUALIFY | same handoff list — an invocation target the user types |
+| `specify.md:431` | ``2. **You create those Epics in Jira** (manual — `/specify`/`/epics` never call Jira).`` | viii | LEAVE | descriptive negation about what the commands do not do, not an instruction to type them |
+| `update-vi.md:99` | "…so the downstream pipeline and the next `/update-vi` see the current text." | viii | LEAVE | noun phrase naming the next run, not an instruction to type |
 
 ## Tally
 
@@ -182,7 +186,18 @@ classified below. Two of vii-b's 30 lines (`implement.md:387`, `:445`) already h
 
 7 (QUALIFY) + 24 (LEAVE) = 31.
 
+### Final fix wave additions (surface viii)
+
+- Total new candidates: **4** — the eighth printed surface found in `specify.md`'s Phase 7
+  Jira-round-trip handoff list (missed by the earlier greps because it's a numbered list under
+  a "document to the user" heading, not a quoted/marker line), plus one previously-unrowed
+  `update-vi.md:99` LEAVE caught in the same pass
+- **QUALIFY**: **2** — `specify.md:430`, `specify.md:433`
+- **LEAVE**: **2** — `specify.md:431`, `update-vi.md:99`
+
+2 (QUALIFY) + 2 (LEAVE) = 4.
+
 ### Grand total
 
-79 + 31 = **110 rows**. QUALIFY 19 + 7 = **26**. LEAVE 48 + 24 = **72**. HANDLED **12**.
-26 + 72 + 12 = 110.
+79 + 31 + 4 = **114 rows**. QUALIFY 19 + 7 + 2 = **28**. LEAVE 48 + 24 + 2 = **74**. HANDLED **12**.
+28 + 74 + 12 = 114.

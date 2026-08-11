@@ -22,7 +22,7 @@ The real mechanism is **Claude Code's own built-in commands**, and the plugin al
 
 `/release-notes` and `/upgrade` are Claude Code built-ins too, so they collide identically. The convention and its justification already exist; they were simply never generalised. The README's mermaid diagram is the visible symptom: one node reads `/dev-workflows:statusline` while all fourteen siblings are bare.
 
-The same mechanism is confirmed in Copilot, whose CLI bundle registers `/release-notes`, `/upgrade`, `/feedback`, and `/statusline` as built-in slash commands — four collisions with `dev-workflows` skill names. This matters because slash-style invocation *does* work in Copilot; the defect there is collision, not failure.
+The same mechanism is confirmed in Copilot, whose CLI bundle registers `/release-notes`, `/upgrade`, and `/feedback` as built-in slash commands — three collisions with `dev-workflows` skill names. `/statusline` is a Copilot built-in too, but that edition ships no `statusline` skill (deliberately not ported — see that edition's README and CHANGELOG), so it collides with nothing shipped there. This matters because slash-style invocation *does* work in Copilot; the defect there is collision, not failure.
 
 ### (b) "README + workflow diagram are missing `/update-vi` and `/idea --deep`"
 

@@ -427,10 +427,10 @@ On **"Next Epic"**, **re-render the Phase 2 Step A progress-aware picker minus t
 ### Jira round-trip (document to the user — they will otherwise miss it)
 
 The end-to-end flow:
-1. `/epics <VI>` drafts child Epic definitions.
+1. `/dev-workflows:epics <VI>` drafts child Epic definitions.
 2. **You create those Epics in Jira** (manual — `/specify`/`/epics` never call Jira).
 3. **You re-import** the VI to `$VAULT_PATH/jira-products/<KEY>` so the new Epics appear in the export.
-4. `/specify <each Epic>` reads the Epic from the refreshed export and authors its `specification.md`.
+4. `/dev-workflows:specify <each Epic>` reads the Epic from the refreshed export and authors its `specification.md`.
 
 Steps 2–3 are the round-trip; without them `/specify` cannot see the Epics.
 

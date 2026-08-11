@@ -16,7 +16,7 @@ This task writes no plugin content. Every FAIL below carries the exact command a
 | V1 | rule 6 present, correct dialect | 1 per edition | canonical 1, mgd 1, copilot **2** | **FAIL (copilot)** — see below |
 | V2 | surface i bare names | 0 per edition | canonical 0, mgd 0, copilot 0 | PASS |
 | V3 | surface ii bare names | 4 canonical/mgd (D-2), 0 copilot | canonical 4, mgd 4, copilot 0 | PASS |
-| V4 | `next-phase-offer.md` bare names, exact residue | 3 canonical/mgd = `/release-notes /statusline /upgrade`; 4 copilot = adds `/feedback` | canonical 3 (`` `/release-notes `/statusline `/upgrade ``), mgd 3 (same), copilot 4 (`` `/feedback `/release-notes `/statusline `/upgrade ``) | PASS |
+| V4 | `next-phase-offer.md` bare names, exact residue | 3 canonical/mgd = `/release-notes /statusline /upgrade`; 3 copilot = `/feedback /release-notes /upgrade` (no `/statusline` — that edition ships no `statusline` skill) | canonical 3 (`` `/release-notes `/statusline `/upgrade ``), mgd 3 (same), copilot 3 (`` `/feedback `/release-notes `/upgrade ``) | PASS |
 | V6 | `/update-vi` in each routing graph | ≥1 per edition | canonical 1, mgd 1, copilot 1 | PASS |
 | V7 | `/update-vi` node in each README mermaid | ≥1 (canonical/mgd expect 2) | canonical 2, mgd 2, copilot 2 | PASS |
 | V9 | mgd root `CLAUDE.md` doc-structure-conventions paragraph | 1, byte-identical to canonical | canonical 1 occurrence, mgd 1 occurrence, `diff` of the two lines empty (byte-identical) | PASS |
@@ -90,10 +90,10 @@ import json
 d=json.load(open('/workspace/ihudak-copilot-plugins/.github/plugin/marketplace.json'))
 print([p['version'] for p in d['plugins'] if p['name']=='dev-workflows'])
 "
-# → ['2.15.0']
+# → ['2.16.0']
 ```
 
-Copilot's `dev-workflows/.plugin/plugin.json` (2.16.0) and `CHANGELOG.md` head (`## [2.16.0]`) agree, but the marketplace catalog entry at `.github/plugin/marketplace.json` still records `"version": "2.15.0"` — one release behind. This is a real staleness in the copilot repo's own catalog, outside this task's write authority (no plugin content is written by this task) and outside the literal V13 script's scope (which only checks the two `.claude-plugin/marketplace.json` files). Flagged for the maintainer; not fixed here.
+**PASS.** Copilot's `dev-workflows/.plugin/plugin.json` (2.16.0), `CHANGELOG.md` head (`## [2.16.0]`), and the `.github/plugin/marketplace.json` catalog entry (`2.16.0`) all agree. The catalog had lagged one release behind (`2.15.0`) when this check first ran; it was fixed in copilot commit `2a8cf03` ("bump marketplace catalog version to 2.16.0") after the check ran, and is confirmed current as of this update.
 
 ## Summary
 

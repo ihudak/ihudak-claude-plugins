@@ -82,9 +82,9 @@ Two properties, both verified:
 
 ---
 
-## Three deliberate deviations from the spec
+## Four deliberate deviations from the spec
 
-All three were found while deriving the site inventory or during execution. They are recorded here because a reviewer will otherwise read them as defects.
+All four were found while deriving the site inventory or during execution. They are recorded here because a reviewer will otherwise read them as defects.
 
 **D-1 — Surface v widens from "the routing graph section" to the whole file.** The spec scoped surface v to `## The routing graph` (35 sites). The plan qualifies **all 63** command names in `next-phase-offer.md`, except rule 6's three citations of Claude Code's own built-ins (Task 1 Step 4). Reason: rule 5's Epic-fan-out examples (`` `/design <VI> E1` → `/implement <VI> E1` ``) are *templates for printed offers*, and a bare example is a leak path — a model reproducing rule 5 emits bare names. Qualifying the whole file also replaces a fiddly section boundary with a near-trivial gate.
 
@@ -124,6 +124,24 @@ Why the five missed it: a line like ``- **Continuing as PM (`/release-notes <VI>
 `/compact` and `/clear` in these lines are Claude Code built-ins and stay bare, exactly as in Task 1's carve-out.
 
 Not every hit qualifies — vi-b in particular is mixed. `create-ard.md:14-15` document the command's two calling forms to a reader of the source and stay bare; `create-vi.md:213-215` annotate a printed offer and qualify. Classify by reading, as with surfaces iii/iv.
+
+**D-4 — a SEVENTH printed surface; found by the Task 3 reviewer.** The spec named five, D-3 added a sixth, and this is the seventh. It is the more instructive of the two late finds, because the Critical it produced was **the brief's own worked ACCEPT example** — `idea.md:143`, cited in the plan as the model of a surface-iii site, was never in the candidate set the plan generated.
+
+**Surface vii — printed offers and STOP/error messages whose command mention the line-based detectors cannot reach.** Two failure modes:
+
+- **vii-a — multi-line printed literals.** `idea.md:143-147` prints an italic quoted offer where the trigger phrase ("then run") is on one line and the command on the next. The quoted-literal detector needs the `"…"` span on a single line; the trigger-verb detector needs the verb within 120 characters *on the same line*. A two-line sentence defeats both.
+- **vii-b — STOP/error messages with an embedded run-instruction.** `CREATE_VI_NEEDS_KEY: … then re-run '/create-vi <KEY>'`, `PROFILE_REQUIRED: …; run /docs-profile`, `spec not handed off — run /specify`. Single-quoted or unquoted, and "re-run" was not in the trigger-verb list.
+
+```bash
+# vii-a — bare name within 3 lines AFTER a quoted/italic literal opener
+for f in *.md; do awk -v F="$f" '/\*"|: \*"/{for(i=0;i<4;i++){if((getline line)>0){print F":"NR": "line}}}' "$f"; done 2>/dev/null | grep -E "(^|[^:a-z-])/($CMDS)\b"
+# vii-b — run / re-run instruction, or a NAMED_ERROR: code, carrying a bare command
+grep -nHE "([A-Z][A-Z0-9_]{3,}:|re-run|\brun\b)[^.]{0,170}(^|[^:a-z-])/($CMDS)\b" *.md
+```
+
+**The distinction that decides vii-b.** A STOP message that merely names which command needs the missing input is self-referential and stays bare — the five `*_NEEDS_JIRA` messages (`design.md:36`, `epics.md:30`, `release-notes.md:37`, `ready.md:44`, `specify.md:39`). One that additionally tells the user what to type is an invocation target and qualifies. Several lines carry both and take a split verdict, exactly like `create-ard.md:60`.
+
+**The standing lesson.** Two surfaces were discovered *after* the spec froze, both by auditing the residue rather than by re-reading the spec. Any future sweep of this kind should budget for that audit as a first-class step, not a verification afterthought: a detector set proves only what it can see, and enumerating on N axes never proves there is no axis N+1. See the spec's risk R4, which predicted exactly this and was right twice.
 
 ---
 
@@ -968,6 +986,7 @@ EOF
 | V4 | `next-phase-offer.md` bare names | 3 canonical/mgd, 4 copilot — exactly rule 6's built-in citations | 1, 7, 8 |
 | V5 | surfaces iii/iv/vi — every candidate has a verdict | 79 rows canonical | 3 |
 | V17 | surface vi (D-3) — no QUALIFY site left bare | 0 | 3, 8 |
+| V18 | surface vii (D-4) — vii-a and vii-b detectors return no unclassified printed invocation site | 0 | 3, 8 |
 | V6 | `/update-vi` in each routing graph | ≥1 per edition | 1, 7, 8 |
 | V7 | `/update-vi` node in each README mermaid | ≥1 per edition | 4, 6, 7 |
 | V8 | `statusline.md` cites rule 6 | 1 | 4 |

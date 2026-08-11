@@ -86,9 +86,26 @@ Two properties, both verified:
 
 Both were found while deriving the site inventory. They are recorded here because a reviewer will otherwise read them as defects.
 
-**D-1 — Surface v widens from "the routing graph section" to the whole file.** The spec scoped surface v to `## The routing graph` (35 sites). The plan qualifies **all 63** command names in `next-phase-offer.md`. Reason: rule 5's Epic-fan-out examples (`` `/design <VI> E1` → `/implement <VI> E1` ``) are *templates for printed offers*, and a bare example is a leak path — a model reproducing rule 5 emits bare names. Qualifying the whole file also replaces a fiddly section boundary with a trivial gate (`BARE` count in that file = 0).
+**D-1 — Surface v widens from "the routing graph section" to the whole file.** The spec scoped surface v to `## The routing graph` (35 sites). The plan qualifies **all 63** command names in `next-phase-offer.md`, except rule 6's three citations of Claude Code's own built-ins (Task 1 Step 4). Reason: rule 5's Epic-fan-out examples (`` `/design <VI> E1` → `/implement <VI> E1` ``) are *templates for printed offers*, and a bare example is a leak path — a model reproducing rule 5 emits bare names. Qualifying the whole file also replaces a fiddly section boundary with a near-trivial gate.
 
-**D-2 — Surface ii is not a blanket zero.** The spec's V3 reads "0 bare names on `choices:` lines". Two sites are printed but are **not** invocation targets and must stay bare per G-3: `commands/implement.md:387` and `commands/implement.md:445`, both reading "Skip tests for this run (document why in the final report — Phase 5 of the inherited `/implement` workflow)". That `/implement` names the workflow the run is already inside, not something to type. V3 therefore gates at **exactly these 2 documented exceptions**, not 0.
+**D-1 and G-3 deliberately disagree, and the asymmetry is intended.** `next-phase-offer.md` is qualified uniformly; command files follow G-3's invocation-target test. So the identical annotation `*(No `/design` — no Epics yet.)*` ends up **qualified** at `next-phase-offer.md:60` and **bare** at `create-ard.md:138`. This is not an oversight:
+
+- The two files have different jobs. `next-phase-offer.md` is the source a run reads to *construct* printed offers, so uniform qualification there is protective — a bare name in it can be copied into output. A command file is mixed prose and printed text, where G-3 is the only workable test.
+- Qualifying a descriptive negation states nothing false — `/dev-workflows:design` genuinely is the command not being offered. That is what separates it from rule 6's case, where qualifying the built-in citations made the sentence actively untrue and had to be reverted.
+
+A reviewer comparing the two files will see the mismatch; this paragraph is the answer.
+
+**D-2 — Surface ii is not a blanket zero.** The spec's V3 reads "0 bare names on `choices:` lines". **Three** sites are printed-adjacent but are not invocation targets and must stay bare per G-3:
+
+- `commands/implement.md:387` and `commands/implement.md:445` — both read "Skip tests for this run (document why in the final report — Phase 5 of the inherited `/implement` workflow)". That `/implement` names the workflow the run is already inside, not something to type.
+- `commands/create-ard.md:60` — the `/design` in "**Tiered HARD model gate (like `/design`):**", prose comparing this command's gate to `/design`'s, addressed to a reader of the source. The same line's `/create-ard`, inside the printed `choices:` array, **is** qualified.
+- `commands/create-ard.md:138` — the `/design` in the trailing annotation `*(No `/design` — no Epics yet.)*`, which sits **outside** the `choices:` array and names the option that is NOT offered. A negation is not an invocation target. The same line's three in-array names **are** qualified.
+
+V3 therefore gates at **exactly these 4 documented exceptions**, not 0.
+
+**How to find these reliably:** compute each line's `choices: [ … ]` bracket span and test every regex match's character position against it. A match outside the span is prose and takes a G-3 verdict on its own merits. Two of the four exceptions were found this way after inspection alone had missed them.
+
+**Surface ii's extraction is line-based, and that is its one weakness.** A line matching `choices:` may also carry ordinary prose outside the array, so occurrence counts alone cannot be trusted to equal qualification counts — `create-ard.md:60` was mis-tallied exactly this way during planning, and the arithmetic ("23 qualify") forced a wrong edit before it was caught. Every surface-ii line must be classified by reading, not by counting. Corrected totals: **25 occurrences on 14 lines → 21 qualify, 4 stay bare.**
 
 ---
 
@@ -255,12 +272,14 @@ CMDS='implement|document|docs-profile|epics|release-notes|vuln|upgrade|idea|crea
 grep -nH 'choices:' *.md | grep -E "(^|[^:a-z-])/($CMDS)\b" | cut -d: -f1,2
 ```
 
-Expected — 14 lines carrying 25 sites. **23 qualify; 2 stay bare (D-2).**
+Expected — 14 lines carrying 25 sites. **21 qualify; 4 stay bare (D-2).**
+
+Classify each line by **reading** it, not by counting matches: a `choices:` line can also carry prose outside the array, and the two can take opposite verdicts on the same line.
 
 | Site | Verdict |
 |---|---|
-| `create-ard.md:60` | qualify — "I'll relaunch `/create-ard` on Opus" |
-| `create-ard.md:138` | qualify (4) |
+| `create-ard.md:60` | **split verdict** — qualify `/create-ard` ("I'll relaunch … on Opus", inside the array); **LEAVE BARE** the `/design` in "Tiered HARD model gate (like `/design`)", which is prose comparing the two commands' gates |
+| `create-ard.md:138` | **split verdict** — qualify the three names inside the `choices:` array; **LEAVE BARE** the `/design` in the trailing `*(No `/design` — no Epics yet.)*` annotation, which names the option that is not offered |
 | `create-ard.md:139` | qualify (3) |
 | `create-vi.md:52` | qualify — "Switch to `/update-vi <KEY>`" |
 | `create-vi.md:56` | qualify |
@@ -297,11 +316,11 @@ cd /workspace/ihudak-claude-plugins/plugins/dev-workflows/commands
 CMDS='implement|document|docs-profile|epics|release-notes|vuln|upgrade|idea|create-vi|update-vi|create-ard|specify|design|ready|feedback|prompt-brainstorm|prompt-grill-me|prompt|statusline'
 echo "surface i bare (expect 0):"
 for f in *.md; do awk '/^[[:space:]]*### Next step/{inb=1} /^[[:space:]]*#{1,3} [A-Z]/{if(inb && !/### Next step/)inb=0} inb' "$f"; done | grep -cE "(^|[^:a-z-])/($CMDS)\b"
-echo "surface ii bare (expect exactly 2, both implement.md):"
+echo "surface ii bare (expect exactly 4):"
 grep -nH 'choices:' *.md | grep -E "(^|[^:a-z-])/($CMDS)\b" | cut -d: -f1,2
 ```
 
-The second command must print exactly `implement.md:387` and `implement.md:445`.
+The second command must print exactly `create-ard.md:60`, `create-ard.md:138`, `implement.md:387`, and `implement.md:445` — the four D-2 exceptions, and nothing else.
 
 - [ ] **Step 6: Commit**
 
@@ -311,13 +330,16 @@ git add plugins/dev-workflows/commands/
 git commit -m "$(cat <<'EOF'
 feat(dev-workflows): qualify printed command names in surfaces i and ii
 
-38 of 40 structurally-delimited printed sites now name commands as
-/dev-workflows:<command>: 15 in `### Next step` sections, 23 in
+36 of 40 structurally-delimited printed sites now name commands as
+/dev-workflows:<command>: 15 in `### Next step` sections, 21 in
 `choices:` arrays.
 
-Two choices: sites stay bare deliberately — implement.md:387 and :445
-read "Phase 5 of the inherited /implement workflow", which names the
-workflow the run is already inside rather than something to type.
+Three sites stay bare deliberately. implement.md:387 and :445 read
+"Phase 5 of the inherited /implement workflow", naming the workflow the
+run is already inside rather than something to type. create-ard.md:60
+carries a split verdict: its choices: entry is qualified, but the
+"(like /design)" in the surrounding prose compares the two commands'
+gates and is not an invocation target.
 
 The surface i extraction is indent-tolerant; several `### Next step`
 blocks are nested inside fenced report templates, and anchoring at line
@@ -544,7 +566,7 @@ Insert directly above the `## [2.45.0]` heading:
 
 ### Fixed
 
-- **Printed next-step suggestions named commands that resolve to something else.** A bare `/release-notes` typed at the prompt reaches Claude Code's built-in release-notes view, not this plugin — and the same is true of `/upgrade` and `/statusline`. The plugin already knew this for exactly one command: `statusline.md` has always told users to type the fully-qualified `/dev-workflows:statusline`. That reasoning is now the general rule (`references/next-phase-offer.md` rule 6), and every command name the plugin prints for the user to invoke carries the `/dev-workflows:` prefix — 38 sites in `### Next step` sections and `choices:` arrays, plus the quoted handoffs and inline recommendations that sit nowhere near either. Names that are printed but are not invocation targets stay bare: `command: /implement` passed to `emit-cost` is a data field, and "Phase 5 of the inherited `/implement` workflow" names the workflow the run is inside.
+- **Printed next-step suggestions named commands that resolve to something else.** A bare `/release-notes` typed at the prompt reaches Claude Code's built-in release-notes view, not this plugin — and the same is true of `/upgrade` and `/statusline`. The plugin already knew this for exactly one command: `statusline.md` has always told users to type the fully-qualified `/dev-workflows:statusline`. That reasoning is now the general rule (`references/next-phase-offer.md` rule 6), and every command name the plugin prints for the user to invoke carries the `/dev-workflows:` prefix — 36 sites in `### Next step` sections and `choices:` arrays, plus the quoted handoffs and inline recommendations that sit nowhere near either. Names that are printed but are not invocation targets stay bare: `command: /implement` passed to `emit-cost` is a data field, and "Phase 5 of the inherited `/implement` workflow" names the workflow the run is inside.
 - **`/update-vi` cited a routing graph it did not appear in.** `update-vi.md` names `references/next-phase-offer.md` as the authority for its Phase 6 offer, and that file had never mentioned `/update-vi` — in any edition. It now appears as a PM re-entry node, reached when `/create-vi` redirects an existing-VI call or when a later phase forces a refresh. The README's workflow diagram gained the node its own role table has always listed.
 ```
 
@@ -829,7 +851,7 @@ for R in "/workspace/ihudak-claude-plugins/plugins/dev-workflows:commands/*.md:r
 done
 ```
 
-Expected: V1 = 1; V2 = 0; V3 = 2 for canonical and mgd (the two documented `implement.md` exceptions, D-2) and 0 for copilot unless its own sweep records exceptions; **V4 = 3 for canonical and mgd, 4 for copilot**; V6 ≥ 1; V7 ≥ 1.
+Expected: V1 = 1; V2 = 0; V3 = 4 for canonical and mgd (the four documented D-2 exceptions — `create-ard.md:60`, `create-ard.md:138`, `implement.md:387`, `implement.md:445`) and 0 for copilot unless its own sweep records exceptions; **V4 = 3 for canonical and mgd, 4 for copilot**; V6 ≥ 1; V7 ≥ 1.
 
 **V4 is not zero, and that is correct.** Rule 6 cites the built-in command names it warns about, and those must stay bare or the rule states a falsehood (Task 1 Step 4 carve-out; Task 7 Step 1 for copilot). Confirm the residue is exactly those names and nothing else:
 
@@ -898,7 +920,7 @@ EOF
 |----|-------|----------|------|
 | V1 | rule 6 present, correct dialect | 1 per edition | 1, 7, 8 |
 | V2 | surface i bare names (indent-tolerant) | 0 per edition | 2, 8 |
-| V3 | surface ii bare names | 2 canonical/mgd (D-2), 0 copilot | 2, 8 |
+| V3 | surface ii bare names | 4 canonical/mgd (D-2), 0 copilot | 2, 8 |
 | V4 | `next-phase-offer.md` bare names | 3 canonical/mgd, 4 copilot — exactly rule 6's built-in citations | 1, 7, 8 |
 | V5 | surfaces iii/iv — every candidate has a verdict | 60 rows canonical | 3 |
 | V6 | `/update-vi` in each routing graph | ≥1 per edition | 1, 7, 8 |

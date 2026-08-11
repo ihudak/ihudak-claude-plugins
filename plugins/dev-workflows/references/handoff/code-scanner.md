@@ -63,7 +63,7 @@ gap_summary: |
   <1–2 paragraphs: what needs to be implemented from scratch>
 ```
 
-`prep.read_only`, `prep.scanned_ref`, `prep.ref_committed_at`, and `prep.head_divergence` are always present, so a caller never branches on absence. Every `evidence.path` is relative to the repo root and denotes content **at `scanned_ref`**; on a read-only mount, open one with `git show <scanned_ref>:<path>`. See `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md`.
+`prep.read_only`, `prep.scanned_ref`, `prep.ref_committed_at`, and `prep.head_divergence` are always present, so a caller never branches on absence. Every `evidence.path` is relative to the repo root and denotes content **at `scanned_ref`**; on a read-only mount, open one with `git -C "<repo_path>" show <scanned_ref>:<path>`. See `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md`.
 
 ## Status codes
 
@@ -73,5 +73,5 @@ gap_summary: |
 | `PARTIAL`         | Scan completed but at least one theme has `classification: error`. Failing themes do NOT abort the scan; mirrors `diff-summarizer`'s `PARTIAL` status. |
 | `REPO_MISSING`    | `repo_path` does not exist.                                                    |
 | `DIRTY_TREE`      | Working tree is dirty and refresh was requested; orchestrator must escalate.   |
-| `REFRESH_BLOCKED` | `git checkout` or `git pull` failed (RO mount, network, etc.); orchestrator escalates. |
+| `REFRESH_BLOCKED` | Ref resolution or a writable-mount refresh genuinely failed (no resolvable default branch, network, auth, non-fast-forward); orchestrator escalates. A read-only mount is NOT a cause — that scan proceeds at `prep.scanned_ref` with `prep.read_only: true`. |
 | `EMPTY`           | Repo exists but every theme classified as absent and no relevant files found. Emit instead of `OK` when `capability_map` would contain only `absent` entries. |

@@ -535,7 +535,7 @@ Silent; the printed `### Context hygiene` guidance already appeared in the Phase
 **Then commit session artifacts (terminal).** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`
 and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY
 the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts
-(/ready)`, and pushes to the specs repo's default branch. It NEVER touches a code/docs repo, the vault,
+(/ready)`, and pushes per §4 step 5. It NEVER touches a code/docs repo, the vault,
 or the current working directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the
 run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Because the Phase 5 report was
 composed before this phase, **print its §6 outcome line here**, as the run's last output — prefixed

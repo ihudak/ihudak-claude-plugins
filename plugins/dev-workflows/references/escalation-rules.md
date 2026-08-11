@@ -107,9 +107,9 @@ In `/epics` Phase 5 the `"Other… (describe)"` entry is omitted:
 
 ## Read-only mount — ref stale or diverged
 
-`choices: ["Scan released code at `<ref>` (Recommended — cites shipped behavior)", "Scan the working tree at `<branch>` instead — unreleased; citations must say so", "Cancel — refresh on the host (`git -C <path> fetch`) or re-mount read-write, then re-run", "Other… (describe)"]`
+`choices: ["Scan released code at `<ref>` (Recommended — cites shipped behavior)", "Cancel — refresh on the host (`git -C <path> fetch`) or re-mount read-write, then re-run", "Other… (describe)"]`
 
-Used when `code-scanner` or `diff-summarizer` returns `prep.read_only: true` **and** either `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`, per `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md` §5. Present per affected repo.
+Used when `code-scanner` or `diff-summarizer` returns `prep.read_only: true` **and** either `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`, per `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md` §5. Present per affected repo. Neither agent accepts a scan-target parameter — a user who genuinely needs the unmerged working tree says so via `"Other… (describe)"`, because scanning an unmerged tree is what caused this feature's original defect: released behavior cited from unreleased code.
 
 A read-only mount is not a failure and does not use the `Refresh blocked` list: the scan proceeds at `prep.scanned_ref`. This prompt exists only because the container cannot fetch, so refreshing the clone is an action only the user can take on the host.
 

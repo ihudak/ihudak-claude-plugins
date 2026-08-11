@@ -124,7 +124,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 
    `release_versions` plays no part in this gate.
 
-2. **Plan.** Present: resolved `jira_key`, destination, diff-grounding on/off (+ `$REPOS_PATH` and repos to scan when on), docs grounding on/off (+ root when on), style-check choice. Ask:
+2. **Plan.** Before presenting the plan, run `resolve-docs-grounding release-notes` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` — this is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve here, before Phase 3's `jira-reader` and Phase 4/5's diff resolution do any of the run's real work. Present: resolved `jira_key`, destination, diff-grounding on/off (+ `$REPOS_PATH` and repos to scan when on), style-check choice, and the `docs grounding:` line that `resolve-docs-grounding` returned, verbatim — including its `retrieval:` value and any index-build, staleness, or shadowing clause (off switch: --no-docs). Ask:
    ```
    choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
    ```
@@ -184,9 +184,9 @@ Diff grounding is opt-in and advisory here: a repo the user skips degrades the g
 
 ---
 
-## Phase 5.5 — Documentation grounding (optional)
+## Phase 5.5 — Documentation grounding dispatch (optional)
 
-Run `resolve-docs-grounding release-notes` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the ticket goal + release themes, `jira_key` = `jira_key`. Carry the digest into Phase 6 with **writer-attach** consumption. When OFF, skip silently. (Independent of diff grounding.)
+`docs_grounding` was already resolved in Phase 2 — consume that cached result here; never re-run `resolve-docs-grounding`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the ticket goal + release themes, `jira_key` = `jira_key`. Carry the digest into Phase 6 with **writer-attach** consumption. When OFF, skip silently. (Independent of diff grounding.)
 
 ---
 

@@ -625,7 +625,8 @@ This phase is **three-way** when a spec was provided (Phase 0 resolved `specs_di
 is present in the Phase-4 `code_repos` map. When it is, run **one** direct grep against that resolved
 local path to try to resolve the claim — using the `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`
 §3 technique matching the claim's type — **including when `diff-summarizer` returned `REFRESH_BLOCKED`
-for that repo**. A read-only mount that cannot `git fetch` can still be grepped, and this is exactly
+for that repo**. A repo whose refresh genuinely failed — a network or auth error, or an unresolvable
+default branch — can still be grepped at its current local state, and this is exactly
 the case a user previously had to resolve by hand.
 
 Update the warning in place when the grep resolves it (`finding: VERIFIED` or `CONTRADICTED`, with

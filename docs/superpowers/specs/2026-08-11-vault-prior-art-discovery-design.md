@@ -282,6 +282,8 @@ Every choice is validated to sit inside the resolved write root and be writable.
 - [[<work doc>]] (<JIRA-KEY>, <status>) — <relation>: <one line>
 ```
 
+Every slot is transcribed from the digest, never invented: `<JIRA-KEY>` / `<status>` from `jira_key` / `tracked_status`, `<relation>` verbatim from `relation` (vocabulary in §3.7), and `<one line>` a plain-language rendering of that entry's `match_reason`. Without this, an author reading `idea-format.md` alone sees four placeholders and no source for any of them.
+
 The whole section is omitted when nothing was found. A key or status is never fabricated; an unresolved status is written as `status unknown`. A `vi` source appears here **and** in `sources:` (§2.6).
 
 **The Jira key is the durable identifier; the wikilink is a convenience that may dangle.** Obsidian wikilinks resolve by file name, and vault items get renamed — `P14589 ME Export Smartscape topology.md` became `P14589 Detect arch drift w MCP.md`. Carrying both means a later reader re-resolves by key when the link breaks. An entry with no Jira key carries only the wikilink, and that is accepted.
@@ -383,7 +385,7 @@ No test framework — verification is grep, `awk`, `diff`, and reading. Every co
 | V11b | Phase 4's provenance default is depth-aware, and the four unchanged cases still resolve to `Projects/ideas/`: inline prompt, Jira key, a source under `Projects/ideas/`, a source elsewhere in the vault. |
 | V12 | `idea-format.md` has `## Prior art`, marked optional, with the §5.3 bullet shape, and `vi` in the `provenance` enum. |
 | V13 | Each of the five §5 consumers traces to a shipped line — enumerate and judge, do not count. |
-| V14 | `workflow-states.md` reads "Usecases defined"; no file still reads "Use cases defined". |
+| V14 | `workflow-states.md` reads "Usecases defined"; no file **under `plugins/`** still reads "Use cases defined". Scope matters: historical plans and specs under `docs/superpowers/` legitimately preserve the old spelling as a record of what was true when they were written, and rewriting history to satisfy a grep would be the wrong fix. |
 | V15 | `--no-prior-art` is documented in `/idea` and `/create-vi`; the Phase 1 line forms match §6 and promise no match count. |
 | V16 | mgd differs from canonical in exactly the known identity files — enumerate the diff, do not assume the count. |
 | V17 | copilot carries the same content in its own dialect with zero `dev-workflows:` leaks and its own version track. |

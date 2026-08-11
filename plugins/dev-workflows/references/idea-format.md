@@ -53,6 +53,11 @@ rewrites. **Omit the whole section when none was found.** One bullet per entry:
 - [[<work doc>]] (<JIRA-KEY>, <status>) — <relation>: <one line>
 ```
 
+Every slot is **transcribed from the prior-art digest, never invented**: `<JIRA-KEY>` and `<status>` from
+its `jira_key` / `tracked_status`, `<relation>` verbatim from its `relation` field (the closed vocabulary
+lives in `references/vault-prior-art.md`), and `<one line>` a plain-language rendering of that entry's
+`match_reason` — why this initiative bears on the idea.
+
 The **Jira key is the durable identifier**; the wikilink is a convenience that dangles once a vault item
 is renamed, so both are carried and a later reader re-resolves by key. An entry with no Jira key carries
 only the wikilink, and that is accepted. Never fabricate a key or a status — an unresolved status is

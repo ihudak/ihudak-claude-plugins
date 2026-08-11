@@ -680,8 +680,8 @@ Replace the `- **Path:**` bullet under `## Phase 4 — Write idea.md` with:
 
   The gate **fires only when at least one of rows 1–2 is present**; otherwise the container default
   applies silently and `vi_disposition` is `new`. Append `(Recommended)` to **exactly one** row, chosen
-  by the **top match** and its `relation`: `supersedes_self` → row 1; every other relation → row 2 when
-  present, else row 3. **With no top match at all — grounding OFF, invalid `$VAULT_PATH`, a non-vault
+  by the **top match** and its `relation`: `supersedes_self` → row 1 **when present, else row 3**; every
+  other relation → row 2 when present, else row 3. **With no top match at all — grounding OFF, invalid `$VAULT_PATH`, a non-vault
   write root, or an `EMPTY` finder result — recommend row 3.** That state is reachable precisely
   because row 1 fires on `provenance: vi` alone. Every branch must name a row actually in the array.
   Never recommend row 1 without `supersedes_self`. Validate every chosen path sits inside the resolved

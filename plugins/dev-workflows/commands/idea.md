@@ -125,8 +125,7 @@ Carry both digests into Phase 3 with **grill-rank** consumption — challenges f
 **Interview technique (grilling — embedded; no runtime dependency).** Follow the shared technique in `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, fact-vs-decision split (look up facts from the `idea-reader` digest / vault, put only decisions to the user), walk the design tree in dependency order. **Depth: bounded by default (below); `--deep` = relentless.**
 
 Scan for gaps against an idea-stage **ambiguity taxonomy**: *problem clarity, target users, desired
-outcome/value, scope boundaries, evidence/demand sufficiency, success signal, terminology.* Rank gaps
-by **Impact × Uncertainty**.
+outcome/value, scope boundaries, evidence/demand sufficiency, success signal, terminology.* Rank gaps by **Impact × Uncertainty**, ranking every `docs_challenges` and `prior_art_challenges` entry from Phase 2.5 into that same list. Challenges **compete** for the slots below; they never add slots.
 
 - **Default (bounded):** ask **≤5** questions across the ranked gaps, then stop. Remaining high-impact
   gaps become `- [NEEDS CLARIFICATION: <question>]` in the `idea.md` **Open questions & assumptions**
@@ -141,8 +140,36 @@ by **Impact × Uncertainty**.
 Author `idea.md` per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` into the write root resolved in
 Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md`:
 
-- **Path:** `<write-root>/Projects/<area>/<candidate_slug>/idea.md`, where `<area>` = `Products` when
-  the source already lives under `Projects/Products/…`, else `ideas`.
+- **Path (container default):** `<container(source path)>/<candidate_slug>/idea.md`, where the container
+  is derived per `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md`. A source already sitting under a
+  `Projects/Products/` grouper lands beside its neighbours in that grouper; an inline prompt, a Jira key
+  with no vault item, and any source outside `Projects/Products/` all resolve to `Projects/ideas/`
+  exactly as before.
+- **Write-path gate.** Assemble **one** `choices:` array, in this row order, and present it verbatim:
+
+  | Row | Included when | Text |
+  |---|---|---|
+  | 1 | `provenance: vi` **and** the finder resolved a vault item directory for that key | `Rewrite <KEY> — write into <item-dir>/` |
+  | 2 | `area_proposal.path` non-null, `confidence: high`, **and** it differs from the container default | `New idea under <area_proposal.path>/<candidate_slug>/` |
+  | 3 | always | `Write to <container default>/<candidate_slug>/ as detected` |
+  | 4 | always | `Enter a different path` |
+  | 5 | always | `Cancel` |
+  | 6 | always | `Other… (describe)` |
+
+  The gate **fires only when at least one of rows 1–2 is present**; otherwise the container default
+  applies silently. Append `(Recommended)` to **exactly one** row, chosen by the top match's `relation`:
+  `supersedes_self` → row 1; `predecessor_phase` or `analogous_precedent` → row 2 when present, else
+  row 3; anything else → row 2 when present, else row 3. Never recommend row 1 without
+  `supersedes_self` — extending and paralleling a VI are as common as rewriting one, and a wrong
+  default here silently mints or fails to mint a Jira key. Validate every chosen path sits inside the
+  resolved write root and is writable.
+
+  Record the choice as **`vi_disposition`** — `rewrite` for row 1, `new` for every other row — and carry
+  it into Phase 5. This is the only point in the flow where the three shapes of a supplied VI (extend,
+  parallel, rewrite-in-place) can be told apart.
+- **`## Prior art`:** when Phase 2.5 returned any `prior_art` entry, write the section per
+  `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`; omit it entirely otherwise. A `vi` source appears
+  there **and** in `sources:`.
 - **Existing file:** if `idea.md` already exists at that path, offer:
   ```
   choices: ["Refine the existing idea.md (Recommended)", "Create a new one (you'll be prompted for a slug)", "Cancel", "Other… (describe)"]
@@ -158,11 +185,20 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
 
 Report where `idea.md` was written and its `status`, then offer the next phase — **adapted to status**:
 
-- **`refined`:** *"Idea refined. Next: create the VI — first create an empty Jira workitem, then run
-  `/dev-workflows:create-vi <JIRA-KEY> @<idea.md path>`."*
+- **`refined`, `vi_disposition: new`** (and every run with no `vi` source): *"Idea refined. Next: create
+  the VI — first create an empty Jira workitem, then run `/dev-workflows:create-vi <JIRA-KEY> @<idea.md
+  path>`."*
+- **`refined`, `vi_disposition: rewrite`:** *"Idea refined. Next: `/dev-workflows:create-vi <KEY>
+  @<idea.md path>` — this rewrites the existing VI, so no new Jira workitem is needed. If an authored VI
+  already exists for `<KEY>`, `/create-vi` will redirect you to `/dev-workflows:update-vi <KEY>`."*
 - **`draft`** (N open clarifications): *"This idea has N open clarification(s). You can (a) run
-  `/dev-workflows:idea @<idea.md path> --deep` to resolve them, or (b) proceed to `/dev-workflows:create-vi <JIRA-KEY> @<idea.md
-  path>`, which will grill you on the rest."*
+  `/dev-workflows:idea @<idea.md path> --deep` to resolve them, or (b) proceed to
+  `/dev-workflows:create-vi <KEY-or-JIRA-KEY> @<idea.md path>`, which will grill you on the rest."* Use
+  the same `vi_disposition` clause as above when a `vi` source was given.
+
+Also report any prior art found — matched keys with their statuses, and the alternative container path
+when one exists — **whether or not the gate fired**, so the user can relocate before `/create-vi` makes
+the path sticky.
 
 `/create-vi` is a separate command; this offer is guidance the user acts on — it never auto-invokes
 another command. (Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — the plugin-wide
@@ -233,5 +269,6 @@ Report: the `idea.md` path + `status` (refined / draft with N open clarification
 `sources`; the count of `[NEEDS CLARIFICATION]` items and Assumptions; any source-detection correction
 or broken wikilinks; the resolved model routing (+ any Opus degradation); the feedback path; the cost
 path (or notice); the `Specs repo:` outcome line from `commit-artifacts`
-(`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; and
-the adaptive next-phase recommendation.
+(`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; any
+prior art found (keys + statuses) and the resolved `vi_disposition`; and the adaptive next-phase
+recommendation.

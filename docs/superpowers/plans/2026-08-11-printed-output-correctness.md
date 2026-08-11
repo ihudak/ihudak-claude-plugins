@@ -82,9 +82,9 @@ Two properties, both verified:
 
 ---
 
-## Two deliberate deviations from the spec
+## Three deliberate deviations from the spec
 
-Both were found while deriving the site inventory. They are recorded here because a reviewer will otherwise read them as defects.
+All three were found while deriving the site inventory or during execution. They are recorded here because a reviewer will otherwise read them as defects.
 
 **D-1 — Surface v widens from "the routing graph section" to the whole file.** The spec scoped surface v to `## The routing graph` (35 sites). The plan qualifies **all 63** command names in `next-phase-offer.md`, except rule 6's three citations of Claude Code's own built-ins (Task 1 Step 4). Reason: rule 5's Epic-fan-out examples (`` `/design <VI> E1` → `/implement <VI> E1` ``) are *templates for printed offers*, and a bare example is a leak path — a model reproducing rule 5 emits bare names. Qualifying the whole file also replaces a fiddly section boundary with a near-trivial gate.
 
@@ -106,6 +106,24 @@ V3 therefore gates at **exactly these 4 documented exceptions**, not 0.
 **How to find these reliably:** compute each line's `choices: [ … ]` bracket span and test every regex match's character position against it. A match outside the span is prose and takes a G-3 verdict on its own merits. Two of the four exceptions were found this way after inspection alone had missed them.
 
 **Surface ii's extraction is line-based, and that is its one weakness.** A line matching `choices:` may also carry ordinary prose outside the array, so occurrence counts alone cannot be trusted to equal qualification counts — `create-ard.md:60` was mis-tallied exactly this way during planning, and the arithmetic ("23 qualify") forced a wrong edit before it was caught. Every surface-ii line must be classified by reading, not by counting. Corrected totals: **25 occurrences on 14 lines → 21 qualify, 4 stay bare.**
+
+**D-3 — a SIXTH printed surface exists; the spec named five.** Found after Task 2 shipped, by auditing the residue the five surfaces left behind. It is the risk R4 predicted — a printed site phrased on an axis none of the five catches — and it is the largest single miss in this sub-project: **17 lines, 25 occurrences**, more than surface i.
+
+**Surface vi — printed guidance naming the next command, outside both a `### Next step` heading and a `choices:` array.** Two detectors:
+
+```bash
+# vi-a — role-handoff / context-hygiene lines: recommend /compact or /clear AND name what you run next
+grep -nHE '/(compact|clear)\b' *.md | grep -E "(^|[^:a-z-])/($CMDS)\b"     # 14 lines, 22 occurrences
+
+# vi-b — annotated offer bullets: a bullet whose first token is a command name, expanding a printed choices: block
+grep -nHE "^[[:space:]]*[-*][[:space:]]+\*{0,2}\`?/($CMDS)\b" *.md          # 5 lines, 5 occurrences
+```
+
+Why the five missed it: a line like ``- **Continuing as PM (`/release-notes <VI>` after the round-trip)?** → run **`/compact`**`` sits under a `### Context hygiene` heading, carries no `choices:`, no quotation, and no instruction verb. It is nonetheless printed, and `/release-notes <VI>` is exactly what the user types next.
+
+`/compact` and `/clear` in these lines are Claude Code built-ins and stay bare, exactly as in Task 1's carve-out.
+
+Not every hit qualifies — vi-b in particular is mixed. `create-ard.md:14-15` document the command's two calling forms to a reader of the source and stay bare; `create-vi.md:213-215` annotate a printed offer and qualify. Classify by reading, as with surfaces iii/iv.
 
 ---
 
@@ -352,7 +370,7 @@ EOF
 
 ---
 
-## Task 3: Surfaces iii and iv — the judgment sweep
+## Task 3: Surfaces iii, iv and vi — the judgment sweep
 
 **Files:**
 - Modify: `plugins/dev-workflows/commands/*.md` — candidates in 15 files
@@ -362,7 +380,7 @@ EOF
 - Consumes: Task 1's qualified form; Task 2's completed surfaces (skip any candidate already handled there).
 - Produces: the verdict record, which the final review reads to audit judgment instead of re-deriving the candidate set.
 
-Surfaces iii (quoted literals the command emits) and iv ("surface / report / recommend … `/cmd`" instructions) are **not** structurally delimited. They are found by marker and confirmed by reading.
+Surfaces iii (quoted literals the command emits), iv ("surface / report / recommend … `/cmd`" instructions) and vi (printed guidance outside a `### Next step` heading and outside a `choices:` array — see D-3) are **not** structurally delimited. They are found by marker and confirmed by reading.
 
 - [ ] **Step 1: Generate the candidate set**
 
@@ -375,6 +393,23 @@ CMDS='implement|document|docs-profile|epics|release-notes|vuln|upgrade|idea|crea
 
 Expected: **60 lines across 15 files** — `document.md` 9, `implement.md` 8, `create-vi.md` 7, `create-ard.md` 6, `update-vi.md` 4, `ready.md` 4, `specify.md` 3, `idea.md` 3, `docs-profile.md` 3, `design.md` 3, `vuln.md` 2, `upgrade.md` 2, `statusline.md` 2, `release-notes.md` 2, `epics.md` 2.
 
+- [ ] **Step 1b: Generate the surface vi candidate set (D-3)**
+
+```bash
+cd /workspace/ihudak-claude-plugins/plugins/dev-workflows/commands
+CMDS='implement|document|docs-profile|epics|release-notes|vuln|upgrade|idea|create-vi|update-vi|create-ard|specify|design|ready|feedback|prompt-brainstorm|prompt-grill-me|prompt|statusline'
+# vi-a — role-handoff / context-hygiene guidance (14 lines, 22 occurrences)
+grep -nHE '/(compact|clear)\b' *.md | grep -E "(^|[^:a-z-])/($CMDS)\b" | cut -d: -f1,2
+# vi-b — annotated offer bullets (5 lines, 5 occurrences)
+grep -nHE "^[[:space:]]*[-*][[:space:]]+\*{0,2}\`?/($CMDS)\b" *.md | cut -d: -f1,2
+```
+
+Expected vi-a: `idea.md:155`, `create-ard.md:149`, `implement.md:634`, `create-vi.md:226`, `create-vi.md:227`, `epics.md:627`, `epics.md:628`, `document.md:1213`, `design.md:440`, `release-notes.md:295`, `specify.md:451`, `specify.md:543`, `specify.md:544`, `ready.md:356`.
+
+Expected vi-b: `create-ard.md:14`, `create-ard.md:15`, `create-vi.md:213`, `create-vi.md:214`, `create-vi.md:215`.
+
+**`/compact` and `/clear` on these lines are Claude Code built-ins — leave them bare.** Only the `dev-workflows` command name on the line is in question.
+
 - [ ] **Step 2: Classify every candidate by reading it**
 
 Apply G-3: qualify **iff** printed AND an invocation target. Read the surrounding lines — the marker grep is deliberately over-inclusive.
@@ -385,7 +420,14 @@ Worked **ACCEPT** examples:
 - `implement.md:56` — "**VI with 0 Epics** → offer: split with `/epics` first (then re-import)" → a printed offer naming the next command. Qualify.
 - `idea.md:143` — the quoted literal *"Idea refined. Next: create the VI — first create an empty Jira workitem, then run `/create-vi <JIRA-KEY> @<idea.md path>`."* → printed verbatim. Qualify.
 
-Worked **REJECT** examples:
+Worked examples specific to **surface vi**:
+
+- **ACCEPT** — `create-vi.md:226`: ``- **Continuing as PM (`/release-notes <VI>` after the round-trip)?** → run **`/compact`**.`` The user really does run `/release-notes <VI>` next. Qualify it; leave `/compact` bare.
+- **ACCEPT** — `create-vi.md:213`: ``- **`/release-notes <KEY>`** (PM) — draft the customer-facing release note now…`` — a printed bullet expanding the `choices:` block directly above it.
+- **REJECT** — `create-ard.md:14`: ``- `/create-ard <VI-KEY>` → a **VI-level** ARD.`` — documents the command's own calling forms to a reader of the source, at the top of the file, nowhere near a printed offer.
+- **JUDGEMENT, record your reasoning** — `specify.md:451`: an invariant line describing what the hygiene block must print (``span suggestion (VI-level→`/epics` `/compact`; …)``). It is a template for printed text rather than printed text itself, which is the same shape as rule 5's examples in `next-phase-offer.md`. Decide and say why.
+
+Worked **REJECT** examples for surfaces iii/iv:
 
 - `idea.md:189` — "with the Lessons Learned report, `command: /idea`, `jira_key: null`" → a **data-field value** passed to `emit-auto`, not printed as an invocation. Leave bare.
 - `idea.md:195` — "`emit-cost` entry point with `command: /idea`, `phase: vi-creation`" → same. Leave bare.
@@ -403,11 +445,13 @@ Create `docs/superpowers/plans/2026-08-11-surface-iii-iv-verdicts.md` with one r
 
 | Site | Text (truncated) | Verdict | Reason |
 |---|---|---|---|
-| `implement.md:111` | Surface a one-line…run `/ready <VI>` | QUALIFY | printed; invocation target |
-| `idea.md:189` | with the Lessons Learned report, `command: /idea` | LEAVE | data-field value, not printed as invocation |
+| `implement.md:111` | Surface a one-line…run `/ready <VI>` | QUALIFY | iv; printed; invocation target |
+| `idea.md:189` | with the Lessons Learned report, `command: /idea` | LEAVE | iii/iv; data-field value, not printed as invocation |
+| `create-vi.md:226` | Continuing as PM (`/release-notes <VI>`…)? → run `/compact` | QUALIFY | vi-a; user runs it next |
+| `create-ard.md:14` | `/create-ard <VI-KEY>` → a VI-level ARD | LEAVE | vi-b; documents calling forms to a source reader |
 ```
 
-Every one of the 60 candidates gets a row. A candidate with no row is an incomplete task.
+Add a `surface` column as shown. Every candidate from Step 1 **and** Step 1b gets a row — 60 + 19 = **79 rows**. A candidate with no row is an incomplete task.
 
 - [ ] **Step 4: Apply the QUALIFY verdicts**
 
@@ -418,7 +462,7 @@ Edit only the sites marked QUALIFY, rewriting `/<command>` to `/dev-workflows:<c
 ```bash
 cd /workspace/ihudak-claude-plugins
 # every candidate has a verdict row
-echo "verdict rows: $(grep -cE '^\| `[a-z-]+\.md:[0-9]+`' docs/superpowers/plans/2026-08-11-surface-iii-iv-verdicts.md)"   # expect 60
+echo "verdict rows: $(grep -cE '^\| `[a-z-]+\.md:[0-9]+`' docs/superpowers/plans/2026-08-11-surface-iii-iv-verdicts.md)"   # expect 79
 # no QUALIFY site still bare
 cd plugins/dev-workflows/commands
 CMDS='implement|document|docs-profile|epics|release-notes|vuln|upgrade|idea|create-vi|update-vi|create-ard|specify|design|ready|feedback|prompt-brainstorm|prompt-grill-me|prompt|statusline'
@@ -922,7 +966,8 @@ EOF
 | V2 | surface i bare names (indent-tolerant) | 0 per edition | 2, 8 |
 | V3 | surface ii bare names | 4 canonical/mgd (D-2), 0 copilot | 2, 8 |
 | V4 | `next-phase-offer.md` bare names | 3 canonical/mgd, 4 copilot — exactly rule 6's built-in citations | 1, 7, 8 |
-| V5 | surfaces iii/iv — every candidate has a verdict | 60 rows canonical | 3 |
+| V5 | surfaces iii/iv/vi — every candidate has a verdict | 79 rows canonical | 3 |
+| V17 | surface vi (D-3) — no QUALIFY site left bare | 0 | 3, 8 |
 | V6 | `/update-vi` in each routing graph | ≥1 per edition | 1, 7, 8 |
 | V7 | `/update-vi` node in each README mermaid | ≥1 per edition | 4, 6, 7 |
 | V8 | `statusline.md` cites rule 6 | 1 | 4 |

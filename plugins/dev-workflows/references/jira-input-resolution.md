@@ -146,6 +146,19 @@ direct_prompt:    <free-text> | null
 direct_files:     [<abs paths>]
 ```
 
+## Entry point — `resolve-export-for-key <KEY>`
+
+Locates the export for **one exact key**, at any depth. Distinct from the VI-selector rule above, which deliberately resolves a nested Epic *up to its parent VI*; this one never walks upward. Consumed by `/idea` (source typing) and `vault-prior-art-finder` (status resolution) — neither wants a parent.
+
+1. `candidates` = every `$VAULT_PATH/jira-products/**/<KEY>/<KEY>.md` (**any depth** — the export tree nests by hierarchy, so a key recurs under several roots).
+2. **none** → `NOT_FOUND`.
+3. **exactly one** → that file.
+4. **several** → the **most recently modified**. Copies genuinely disagree: one `PRODUCT-14902` export reads `Post GA` and another `Release Preparation`, and `PRODUCT-14589` has three copies of which two still carry its pre-rewrite summary. Picking arbitrarily reports a stale identity.
+
+Returns `{ path, issue_type, status, summary, export_date }`, read from the file's frontmatter; `export_date` is the file's modification date.
+
+**Additive.** No existing caller's behavior changes: the resolution steps, the VI-selector rule, the fallback prompts, and the output contract above are untouched.
+
 ## Progress-aware Epic picker (opt-in per command)
 
 For an **Epic-unit** command given a top-level key with `focus_key = null`, first determine the item's

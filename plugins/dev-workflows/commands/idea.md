@@ -57,7 +57,7 @@ step skips on it.
 
 ## Phase 1 — Classify the source
 
-Classify `$ARGUMENTS` (minus the `--deep` flag) by precedence:
+Classify `$ARGUMENTS` **minus every recognised flag** (`--deep`, `--no-docs`, `--no-prior-art`, and `--docs <path>` with its value) by precedence. Strip them all before classifying: an unstripped flag lands inside the `prompt` branch's raw idea text and is handed to `idea-reader` as if the user had written it.
 
 1. Matches the Jira-key regex `^[A-Z][A-Z0-9_]*-\d+$` → resolve it with `resolve-export-for-key <KEY>`
    (`${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`), then type it from the export's
@@ -78,7 +78,7 @@ Surface a one-line confirmation before ingesting:
 ```
 choices: ["Read this as <detected-type> (Recommended)", "It's actually a <other-type>", "Cancel", "Other… (describe)"]
 ```
-(A dedicated `--as prompt|file|rfe` override is future work — the confirmation covers a mis-detection.)
+(A dedicated `--as prompt|markdown|rfe|vi` override is future work — the confirmation covers a mis-detection.)
 
 Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
 
@@ -157,12 +157,15 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
   | 6 | always | `Other… (describe)` |
 
   The gate **fires only when at least one of rows 1–2 is present**; otherwise the container default
-  applies silently. Append `(Recommended)` to **exactly one** row, chosen by the top match's `relation`:
-  `supersedes_self` → row 1; `predecessor_phase` or `analogous_precedent` → row 2 when present, else
-  row 3; anything else → row 2 when present, else row 3. Never recommend row 1 without
-  `supersedes_self` — extending and paralleling a VI are as common as rewriting one, and a wrong
-  default here silently mints or fails to mint a Jira key. Validate every chosen path sits inside the
-  resolved write root and is writable.
+  applies silently. Append `(Recommended)` to **exactly one** row, chosen by the **top match** — the
+  `prior_art` entry with the highest `match_confidence`, ties broken by array order — and its
+  `relation`: `supersedes_self` → row 1 **when present, else row 3**; every other relation → row 2 when
+  present, else row 3. Each branch falls back because rows 1 and 2 are conditional: a supplied `vi`
+  whose key has no vault work document classifies `supersedes_self` yet yields `item_dir: null`, so
+  row 1 is absent and a rule that named it would recommend a row nobody can see. Never recommend row 1
+  without `supersedes_self` — extending and paralleling a VI are as common as rewriting one, and a
+  wrong default here silently mints or fails to mint a Jira key. Validate every chosen path sits inside
+  the resolved write root and is writable.
 
   Record the choice as **`vi_disposition`** — `rewrite` for row 1, `new` for every other row — and carry
   it into Phase 5. This is the only point in the flow where the three shapes of a supplied VI (extend,

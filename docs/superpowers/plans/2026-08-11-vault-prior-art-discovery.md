@@ -679,12 +679,15 @@ Replace the `- **Path:**` bullet under `## Phase 4 — Write idea.md` with:
   | 6 | always | `Other… (describe)` |
 
   The gate **fires only when at least one of rows 1–2 is present**; otherwise the container default
-  applies silently. Append `(Recommended)` to **exactly one** row, chosen by the top match's `relation`:
-  `supersedes_self` → row 1; `predecessor_phase` or `analogous_precedent` → row 2 when present, else
-  row 3; anything else → row 2 when present, else row 3. Never recommend row 1 without
-  `supersedes_self` — extending and paralleling a VI are as common as rewriting one, and a wrong
-  default here silently mints or fails to mint a Jira key. Validate every chosen path sits inside the
-  resolved write root and is writable.
+  applies silently. Append `(Recommended)` to **exactly one** row, chosen by the **top match** — the
+  `prior_art` entry with the highest `match_confidence`, ties broken by array order — and its
+  `relation`: `supersedes_self` → row 1 **when present, else row 3**; every other relation → row 2 when
+  present, else row 3. Each branch falls back because rows 1 and 2 are conditional: a supplied `vi`
+  whose key has no vault work document classifies `supersedes_self` yet yields `item_dir: null`, so
+  row 1 is absent and a rule that named it would recommend a row nobody can see. Never recommend row 1
+  without `supersedes_self` — extending and paralleling a VI are as common as rewriting one, and a
+  wrong default here silently mints or fails to mint a Jira key. Validate every chosen path sits inside
+  the resolved write root and is writable.
 
   Record the choice as **`vi_disposition`** — `rewrite` for row 1, `new` for every other row — and carry
   it into Phase 5. This is the only point in the flow where the three shapes of a supplied VI (extend,
@@ -714,6 +717,17 @@ Also report any prior art found — matched keys with their statuses, and the al
 when one exists — **whether or not the gate fired**, so the user can relocate before `/create-vi` makes
 the path sticky.
 ````
+
+- [ ] **Step 3b: Fix two pre-existing Phase 1 defects this task's context exposes**
+
+Both pre-date the sub-project; both are now wrong in ways `/idea` will hit.
+
+1. `Classify \`$ARGUMENTS\` (minus the \`--deep\` flag)` strips only one flag. The command honours
+   `--deep`, `--no-docs`, `--no-prior-art`, and `--docs <path>`. Replace it so **every** recognised flag
+   is stripped before classification — an unstripped flag lands inside the `prompt` branch's raw idea
+   text and reaches `idea-reader` as though the user typed it.
+2. The future-work note reads `--as prompt|file|rfe`. Phase 1's types are `prompt`, `markdown`,
+   `rfe`, and now `vi`; `file` was never one of them. Correct it to `--as prompt|markdown|rfe|vi`.
 
 - [ ] **Step 4: Extend the Final report line**
 

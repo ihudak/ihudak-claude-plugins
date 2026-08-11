@@ -26,30 +26,41 @@ one-line `notes` (the caller treats this as OFF and proceeds).
 
 ### Path A — qmd (preferred)
 
-Use when the `qmd` binary is available (`command -v qmd`) and a `docs` collection
-resolves for `docs_path`:
+Use when the `qmd` binary is available (`command -v qmd`). **This agent never builds or refreshes the index** — that belongs to `resolve-docs-grounding` (`${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` step 3.5), which can ask the user first. Here, probe what already exists and pick a rung.
 
-1. **Ensure the collection.** `qmd collection list`. If no collection covers
-   `docs_path`, self-heal: `qmd collection add "<docs_path>" --name docs` then
-   `qmd embed`. If the index looks stale, `qmd update` (**never `--pull`** — the
-   clone may be read-only). Any qmd command failure → fall through to Path B.
-2. **Query.** `qmd query "<feature_summary + themes keywords>"` for ranked hits
-   (hybrid BM25 + vector + rerank).
-3. **Read the top hits** with `qmd get "<file>"` (or `Read`), capped per Bounding.
-4. Record `retrieval: qmd`.
+1. **Probe — model-free and mutation-free.** `timeout 10s qmd status` and `timeout 10s qmd collection list`.
+   - `qmd status`'s first line is `Index: <path>`. When that path is not the user-scope `~/.cache/qmd/index.sqlite`, a project-local `.qmd` index in the current directory is shadowing it: record that in `notes` and take rung 3.
+   - For "does the collection have embeddings", prefer `timeout 10s qmd collection show <name>` when it reports a per-collection embedding count — a global `Vectors:` count from `qmd status` can be satisfied by a *different* collection. Fall back to the global count when per-collection is unavailable.
+2. **Select the rung.**
+
+| Rung | Precondition | Retrieval | `retrieval:` |
+|---|---|---|---|
+| 1 | a collection covers `docs_path` **and** it reports embedded vectors > 0 | `timeout 30s qmd search "<terms>"` + `timeout 30s qmd vsearch "<terms>"`, unioned | `qmd-vector` |
+| 2 | a collection covers `docs_path`, vectors == 0 | `timeout 30s qmd search "<terms>"` | `qmd-lexical` |
+| 3 | no collection covers `docs_path`, `qmd` absent, a project-local index is shadowing, or either probe fails | Path B | `fallback` |
+
+   `<terms>` = `feature_summary` keywords + `themes`, minus stopwords. **Union of the two ranked lists:** interleave `qmd search` and `qmd vsearch` results by rank position, dedupe by path keeping the better rank, truncate at the Bounding cap of 8.
+3. **Read the top hits** with `timeout 30s qmd get "<file>"` (or `Read`), capped per Bounding.
+4. **A timeout or non-zero exit on any qmd call drops one rung** and is recorded in `notes` — except that a failing `qmd search` drops straight to Path B, because rung 2 depends on that same call and would fail identically. This is the backstop for anything qmd does that this procedure did not anticipate.
+5. **Record `retrieval:`** with whichever rung was actually used (per the table in step 2 above), not the rung first attempted before any drop.
+
+**`qmd query` is NEVER invoked.** It is the only entry point needing the reranking and query-expansion models on top of the embedding model, and no cheap probe can prove those are cached — a cold run downloads ~1.3 GB on the user's critical path. `vectors > 0` proves the *embedding* model already ran on this machine, which is exactly what makes `qmd vsearch` provably safe and `qmd query` not. The cost is rank polish on a retrieval capped at 8 pages that is advisory-only.
 
 ### Path B — fallback
 
 Use when `qmd` is absent, off, or Path A failed:
 
-1. **Keyword-overlap scoring** (the `doc-location-finder` technique): index each
-   page's frontmatter (`title`/`description`/`tags`) + first ~50 body lines; score
-   overlap against `feature_summary` + `themes` minus stopwords; keep matches above
-   threshold.
+1. **Keyword-overlap scoring, bounded.** Never enumerate the whole root — `$DOCS_PATH` can hold tens of thousands of pages, and this path now receives every qmd miss.
+   - Derive **3–8** salient keywords from `feature_summary` + `themes`, minus stopwords.
+   - Shortlist with `Grep` in files-with-matches mode, one pass per keyword. **Drop any keyword returning more than 200 files** — it is too generic to discriminate.
+   - Union the surviving hits, ordered by how many keywords each file matched, and **cap the shortlist at 40 files**.
+   - Score only that shortlist: frontmatter (`title`/`description`/`tags`) + first ~50 body lines, overlap against `feature_summary` + `themes`; keep matches above threshold.
+   - An empty shortlist ⇒ `status: EMPTY` with a `notes` line.
 2. **git-grep backstop** (only when `jira_key` is present):
    `git -C "<docs_path>" log --all -E --grep="<jira_key>" -n 20 --name-only` and
    union any pages it touched. This is a pure read and works on a read-only
-   `.git`; **best-effort** — on any failure, degrade to keyword-overlap only,
+   `.git` (see `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md`);
+   **best-effort** — on any failure, degrade to keyword-overlap only,
    never an error. Skip entirely when `jira_key` is absent (e.g. `/idea`).
 3. Record `retrieval: fallback`.
 
@@ -80,7 +91,7 @@ Read at most the top **8** pages. `docs_references[]` capped at **8**;
 
 ```yaml
 status: OK | EMPTY | ERROR
-retrieval: qmd | fallback
+retrieval: qmd-vector | qmd-lexical | fallback
 docs_references:
   - path:             <absolute path>
     relation:         same_feature | analogous_precedent | building_block
@@ -116,9 +127,14 @@ today.
 
 ## Hard rules
 
-- NEVER write or edit any file. Read-only.
+- NEVER write into `$DOCS_PATH`, any git working tree, or any repository.
+- MAY read and touch the user-scope qmd index under `~/.cache/qmd/` — qmd's read commands create and update that file (`qmd status` alone creates it), and it lies outside every git working tree.
+- NEVER **build or refresh** the index from inside this agent: no `qmd collection add`, `qmd collection remove`, `qmd collection rename`, `qmd embed`, `qmd update`, `qmd init`, `qmd cleanup`. Building and refreshing belong to `resolve-docs-grounding`, which can ask the user first.
+- NEVER run `qmd init` anywhere — a project-local `.qmd/` index resolves relative to cwd, and this plugin's commands routinely run standing in a different repo from the one they read.
+- NEVER run `qmd update --pull` (it writes into a possibly-read-only docs clone).
+- NEVER run `qmd query` — use the Path A rung ladder.
+- Every qmd invocation carries an explicit wall-clock cap.
 - NEVER make HTTPS/REST calls — `git` and the `qmd` CLI are local only.
-- NEVER run `qmd update --pull` (the docs clone may be read-only).
 - Advisory only — never a gate; `docs_challenges` are reconciliation prompts, not
   auto-applied edits.
 - Respect the Bounding caps; a large clone must not flood the caller's context.

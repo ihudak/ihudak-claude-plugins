@@ -119,6 +119,8 @@ in their prompt; they do not re-read the file.
 
 `plugins/dev-workflows/references/specs-repo-git.md` is the **single source of truth** for the two git entry points the plugin runs against `$SPECS_PATH` — `specs-preflight` (run start: flush leftover artifacts, retry an unpushed artifact commit, settle the branch) and `commit-artifacts` (terminal: stage the bounded artifact paths, commit, push). It owns the bounded write authority (three path shapes; `^(vi|ard|spec|design)/` branches only), the three guards and their four-part notice contract, the branch-disposition table, and the `Specs repo:` outcome line. Consumed by the seventeen commands that write into `$SPECS_PATH` — every command except `/api-guideline-reviewer`, `/guideline-reviewer`, `/statusline`, and `/docs-profile`. Hard rules: every git call is `git -C "$SPECS_PATH"` and never a `cd`; `git add -A` is never issued at repository scope; never force-push, never `branch -D`, never merge/rebase/reset, never delete an `index.lock`; never fatal.
 
+`plugins/dev-workflows/references/read-only-repos.md` is the **single source of truth** for read-only repository mounts — the detection probe (`test -w` on the repo and `.git`, plus the `Read-only file system` error as a secondary trigger), what read-only mode skips (`fetch`/`pull`/`switch`/`remote set-head`, and the dirty-tree gate), write-free ref resolution and reading (`ls-tree`, `git grep <ref>`, `git show <ref>:<path>`), the 14-day staleness / ahead-of-ref escalation trigger, and the `prep` output contract (`read_only`, `scanned_ref`, `ref_committed_at`, `head_divergence`). Consumed by `code-scanner`, `diff-summarizer`, and `docs-grounder`, and cited by the seven commands that dispatch them. Writable mounts are unaffected: `git switch` and `git pull --ff-only` remain sanctioned prep on a writable clone.
+
 `plugins/dev-workflows/references/gate-ledger.md` is the **single source of truth** for verification-gate accounting — the six outcomes (`RAN` / `DEGRADED` / `FAILED` / `UNAVAILABLE` / `SKIPPED_BY_USER` / `NOT_APPLICABLE`), the rule that **no outcome is orchestrator-assignable to mean "I decided not to run this"**, the `/document` gate registry, the `UNAVAILABLE` conversion prompt, and the reviewer contract. Consumed by `/document` (both modes) and written generically for other commands to adopt.
 
 `plugins/dev-workflows/references/repo-verification-gates.md` is the **single source of truth** for extracting a docs repo's own pre-PR checklist into the `repo_verification_gates` block — the heading patterns, what counts as checkable against the written files, and the augment-never-override rule. Applied by `doc-planner` in `/document` Jira mode and by the orchestrator itself in direct mode, which has no planner.
@@ -214,7 +216,7 @@ Key invariants for `/document` (Jira mode) and `/epics`:
 - Jira-vs-source discrepancies are escalated in Phase 5.8 (never auto-resolved); `doc-planner` records both `jira_phrasing` and `source_phrasing` without choosing
 - A bug-report draft (`<KEY>-implementation-gaps.md`) is written to the vault project folder for `document-as-jira` / `skip-and-report` decisions
 - Review gate is `doc-reviewer` (docs flow) or `epic-reviewer@Opus` (epics flow); `doc-fixer` resolves BLOCKERs; cap at one fix cycle plus one re-review
-- Sub-agents return `DIRTY_TREE` / `REFRESH_BLOCKED` when they cannot refresh repos — never fail silently
+- Sub-agents return `DIRTY_TREE` / `REFRESH_BLOCKED` when a **writable** repo cannot be refreshed; a read-only mount returns neither and scans at `prep.scanned_ref` — never fail silently
 - Every written claim must cite the originating Jira key (`[[KEY]]`) plus PR URL (docs flow) or file path (epics flow)
 - Writes never touch `_archive/` and never write outside cwd unless the user provides an explicit absolute path
 - (docs flow) Phase 0 runs the toolchain preflight after profile resolution; it prompts **only** when a required tool is missing, and Cancel is the recommended option
@@ -249,7 +251,7 @@ Key invariants for `$DOCS_PATH` docs grounding:
 - Read-only; never writes into `$DOCS_PATH`; advisory only — never a gate or reviewer BLOCKER
 - Default ON when `$DOCS_PATH` (`:-/workspace/docs`) is a readable dir with ≥1 markdown file; `--no-docs` off, `--docs <path>` override; every miss is a silent non-blocking skip
 - Grill commands rank challenges into the Impact × Uncertainty gap list (never append — preserves `/idea`'s ≤5 bound); writer commands attach the digest
-- `docs-grounder` retrieves via `qmd` CLI (no skill installed; `qmd update` never `--pull`) with keyword + `git log --grep` fallback; write roots `SPECS_PATH`/`VAULT_PATH` stay strict (no default)
+- `docs-grounder` retrieves via `qmd` CLI (no skill installed) but only ever **probes** the index — it never builds or refreshes one; index building and refreshing happen only in `resolve-docs-grounding` step 3.5, gated on user consent — with keyword + `git log --grep` fallback; write roots `SPECS_PATH`/`VAULT_PATH` stay strict (no default)
 
 Key invariants for specs-repo git (`references/specs-repo-git.md`):
 

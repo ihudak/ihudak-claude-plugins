@@ -52,9 +52,13 @@ repo:       <repo name (last segment of repo_path)>
 repo_path:  <absolute path>
 
 prep:
-  fetched:       true | false
-  pulled:        true | false
-  refresh_note:  <e.g. "fetched 3 new refs" | "skipped — RO mount" | "tree was dirty, refresh skipped">
+  fetched:          true | false
+  pulled:           true | false
+  refresh_note:     <e.g. "fetched 3 new refs" | "read-only mount; resolved at origin/main" | "tree was dirty, refresh skipped">
+  read_only:        true | false
+  scanned_ref:      <ref name, e.g. "origin/main"; the default branch name when writable>
+  ref_committed_at: <ISO-8601 timestamp of the ref's newest commit>
+  head_divergence:  { branch: <working-tree branch>, ahead: <n>, behind: <n> }
 
 per_pr:
   - pr_id:          <id>
@@ -79,13 +83,15 @@ aggregate_summary: |
   <1–2 paragraphs: what this repo contributed to the feature>
 ```
 
+`prep.read_only`, `prep.scanned_ref`, `prep.ref_committed_at`, and `prep.head_divergence` are always present, so a caller never branches on absence. See `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md`.
+
 ## Status codes
 
 | Status              | Meaning                                                                        |
 |---------------------|--------------------------------------------------------------------------------|
 | `OK`                | All PRs resolved; summaries complete.                                          |
 | `REPO_MISSING`      | `repo_path` does not exist or is not a git repo.                              |
-| `DIRTY_TREE`        | Working tree is dirty and refresh was requested; orchestrator must escalate.   |
-| `REFRESH_BLOCKED`   | `git fetch` or `git pull` failed (auth, network, RO mount); orchestrator escalates. |
+| `DIRTY_TREE`        | Working tree is dirty and refresh was requested, on a **writable** mount; orchestrator must escalate. A read-only mount never returns this. |
+| `REFRESH_BLOCKED`   | `git fetch` or `git pull` genuinely failed (auth, network, non-fast-forward); orchestrator escalates. A read-only mount is NOT a cause — resolution proceeds at `prep.scanned_ref` with `prep.read_only: true`. |
 | `NO_PRS_RESOLVED`   | None of the provided PRs could be resolved; `unresolved_prs` lists all of them.|
 | `PARTIAL`           | Some PRs resolved, some unresolved; both `per_pr` and `unresolved_prs` populated. |

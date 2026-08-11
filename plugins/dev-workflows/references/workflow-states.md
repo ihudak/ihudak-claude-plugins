@@ -11,12 +11,12 @@ it only interprets it.
 
 ## VI status ladder
 
-`Open → Problem Stated → Usecases defined → Ready for Implementation → Implementation → Release Preparation → Post GA`
+`Open → Problem stated → Usecases defined → Ready for Implementation → Implementation → Release Preparation → Post GA`
 
 | Status | Role | Transition command | Expected artifacts |
 |---|---|---|---|
 | Open | PM | — | VI stub |
-| Problem Stated | PM | /idea, /create-vi | VI with Problem/Goal |
+| Problem stated | PM | /idea, /create-vi | VI with Problem/Goal |
 | Usecases defined | PM | /create-vi | VI with user stories / use cases |
 | Ready for Implementation | PE→Team | /epics, /specify, /design | Epics defined; each in-scope Epic Refined+ with specification.md AND design.md; coverage complete; ARD (if any) respected; no cross-artifact contradictions |
 | Implementation | Team | /implement | code in progress (past the readiness gate) |

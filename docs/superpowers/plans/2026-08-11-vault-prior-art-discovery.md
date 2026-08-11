@@ -1029,6 +1029,9 @@ git commit -m "feat(dev-workflows): 2.48.0 — vault prior-art discovery"
 1. `→ Agent (subagent_type: "dev-workflows:X"` → `→ task(agent_type: "dev-workflows:X"`
 2. `${CLAUDE_PLUGIN_ROOT}/references/X.md` → `~/.copilot/installed-plugins/ihudak-copilot-plugins/dev-workflows/skills/_shared/X.md`
 3. `§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5` → `§2.1 detection chain: claude-sonnet-4.6, fallback claude-sonnet-4.5/gpt-5.4`
+4. **Command names are colon-form, not slash-form:** `/idea` → `idea:`, `/create-vi` → `create-vi:`, and so on for every command. Copilot's untouched shared references run 21:0 and 16:0 colon-to-slash — a slash-form name prints a trigger the Copilot CLI does not have.
+
+**Never blind-copy a canonical file into Copilot.** Apply the intended edit surgically to Copilot's own file. Copying carries all four dialect rules away at once, and it also discards Copilot-specific content that is not dialect at all — its `session-hygiene.md` has a cost-free terminal order because Copilot implements no `emit-cost` step.
 
 Read a neighbouring already-ported file (e.g. `skills/_shared/docs-grounding.md`) and match whatever it does — it is the ground truth for this dialect, ahead of this list.
 

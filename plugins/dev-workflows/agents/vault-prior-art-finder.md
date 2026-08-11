@@ -72,7 +72,7 @@ Derive `area_proposal` per the reference's container derivation.
 ```yaml
 status: OK | EMPTY | ERROR
 prior_art:
-  - path:             <absolute path to the work document>
+  - path:             <absolute path to the work document, or null when the key resolved to no vault document>
     item_dir:         <absolute path to the item directory, or null>
     area_dir:         <absolute path to the container under Projects/Products, or null>
     jira_key:         <KEY | null>

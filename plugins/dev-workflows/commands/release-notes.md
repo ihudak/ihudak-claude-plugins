@@ -292,7 +292,7 @@ If `dt-style-guide` is not installed, skip this phase and note "style check skip
    The resume pointer is written in the terminal cost phase (Phase 11), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
 
    - **Release note drafted and the VI fully processed?** → nothing to suggest — you're done.
-   - **A PA/PE phase still pending for this VI (e.g. `/create-ard`, `/epics`), even yourself?** → run **`/clear`** before switching roles.
+   - **A PA/PE phase still pending for this VI (e.g. `/dev-workflows:create-ard`, `/dev-workflows:epics`), even yourself?** → run **`/clear`** before switching roles.
    - Consider **`/rename <VI-ID>-<slug>-pm`** to relocate this session later.
 
    Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.

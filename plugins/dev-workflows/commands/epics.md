@@ -624,8 +624,8 @@ The project root has uncommitted changes. `/epics` never commits the project roo
 
 The resume pointer is written in the terminal cost phase (Phase 11), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
 
-- **Continuing as PE (`/specify <VI> <Epic>`)?** → run **`/compact`** — context still relevant.
-- **Handing to PA (`/create-ard <VI> <Epic>`), even yourself?** → run **`/clear`** for a clean slate.
+- **Continuing as PE (`/dev-workflows:specify <VI> <Epic>`)?** → run **`/compact`** — context still relevant.
+- **Handing to PA (`/dev-workflows:create-ard <VI> <Epic>`), even yourself?** → run **`/clear`** for a clean slate.
 - Consider **`/rename <VI-ID>-<slug>-pe`** to relocate this session later.
 
 Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.

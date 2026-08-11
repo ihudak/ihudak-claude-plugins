@@ -353,7 +353,7 @@ plugin-gap halt (see Invariants).
    `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1, recording the readiness
    verdict as a carry-forward line. Then:
 
-   - **SUPPORTED → `/implement <VI> [<Epic>]` (still Team)?** → run **`/compact`** — context stays relevant.
+   - **SUPPORTED → `/dev-workflows:implement <VI> [<Epic>]` (still Team)?** → run **`/compact`** — context stays relevant.
    - **PARTIAL / NOT-SUPPORTED → resolving the gaps yourself now?** → **`/compact`**.
    - Consider **`/rename <VI-ID>-<slug>-team`** to relocate this session later.
 

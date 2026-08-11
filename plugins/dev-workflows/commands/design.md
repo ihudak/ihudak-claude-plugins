@@ -437,7 +437,7 @@ End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/
 
 The resume pointer is written in the terminal cost phase (Phase 9), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
 
-- **Continuing on this Epic (`/ready` / `/implement <VI> <Epic>`) or the next Epic (`/design <VI> <Epic2>`) — all still Team?** → run **`/compact`** — context stays relevant.
+- **Continuing on this Epic (`/dev-workflows:ready` / `/dev-workflows:implement <VI> <Epic>`) or the next Epic (`/dev-workflows:design <VI> <Epic2>`) — all still Team?** → run **`/compact`** — context stays relevant.
 - Consider **`/rename <VI-ID>-<slug>-team`** to relocate this session later.
 
 Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.

@@ -152,7 +152,7 @@ next-phase-offer contract; `/idea` is one reference implementation.)
 
 ### Context hygiene
 
-Continuing to `/create-vi` (still the PM phase)? → run **`/compact`** to free context; your
+Continuing to `/dev-workflows:create-vi` (still the PM phase)? → run **`/compact`** to free context; your
 `idea.md` is already on disk. (No resume pointer or `/rename` label here — the VI-Key is
 minted later, and the ideation phase is short.) Guidance only — see
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.

@@ -210,9 +210,9 @@ Offer these — clearly labeling the role handoff:
 choices: ["Draft the release note now — /dev-workflows:release-notes <KEY> (PM) (Recommended)", "Hand to a Product Architect — /dev-workflows:create-ard <KEY> (PA, optional)", "Hand to a Product Engineer — /dev-workflows:epics <KEY> (PE)", "Stop here", "Other… (describe)"]
 ```
 
-- **`/release-notes <KEY>`** (PM) — draft the customer-facing release note now (the cost model's `pm`/`vi-creation` inferred case: no spec/design yet).
-- **`/create-ard <KEY>`** (PA, **optional**) — hand to a Product Architect to author the grounded architecture document.
-- **`/epics <KEY>`** (PE) — hand to a Product Engineer to split the VI into Epics (or author a VI-level spec → `/specify <KEY>`).
+- **`/dev-workflows:release-notes <KEY>`** (PM) — draft the customer-facing release note now (the cost model's `pm`/`vi-creation` inferred case: no spec/design yet).
+- **`/dev-workflows:create-ard <KEY>`** (PA, **optional**) — hand to a Product Architect to author the grounded architecture document.
+- **`/dev-workflows:epics <KEY>`** (PE) — hand to a Product Engineer to split the VI into Epics (or author a VI-level spec → `/dev-workflows:specify <KEY>`).
 
 Guidance only — never auto-invokes another command. Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`.
 
@@ -223,8 +223,8 @@ The resume pointer is written in the terminal cost phase (Phase 7), per
 Jira round-trip, so it **omits the session-name line**; name the session manually if
 useful. Then:
 
-- **Continuing as PM (`/release-notes <VI>` after the round-trip)?** → run **`/compact`**.
-- **Handing to PA (`/create-ard <VI>`) or PE (`/epics <VI>`), even yourself?** → run **`/clear`** for a clean slate.
+- **Continuing as PM (`/dev-workflows:release-notes <VI>` after the round-trip)?** → run **`/compact`**.
+- **Handing to PA (`/dev-workflows:create-ard <VI>`) or PE (`/dev-workflows:epics <VI>`), even yourself?** → run **`/clear`** for a clean slate.
 
 Guidance only — nothing is auto-run. See `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
 

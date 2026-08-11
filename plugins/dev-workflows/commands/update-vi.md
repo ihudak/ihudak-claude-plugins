@@ -17,7 +17,7 @@ Usage: `/update-vi <KEY> [@transcript-or-notes ...]`.
 
 ## Phase 0 — Resolve inputs
 
-1. **`KEY` (mandatory).** Parse the first non-flag token; validate `^[A-Z][A-Z0-9_]*-\d+$`. If absent or malformed, stop: `UPDATE_VI_NEEDS_KEY: /update-vi needs the VI's Jira key — '/update-vi <KEY>'.`
+1. **`KEY` (mandatory).** Parse the first non-flag token; validate `^[A-Z][A-Z0-9_]*-\d+$`. If absent or malformed, stop: `UPDATE_VI_NEEDS_KEY: /update-vi needs the VI's Jira key — '/dev-workflows:update-vi <KEY>'.`
 2. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
 3. **Feature folder.** `<SPECS_PATH>/specifications/<KEY>-<slug>/` — honor an existing dir matched by key-number (tolerate a stray `-`/`_` and a human-adjusted slug).
 4. **Resolve the base VI — Jira-import-first.** Execute `${CLAUDE_PLUGIN_ROOT}/references/vi-source-resolution.md` (`resolve-existing-vi <KEY>`): the re-imported `$VAULT_PATH/jira-products/<KEY>` VI (body + `-comments.md`) is the **authoritative base**; not imported → stop and ask to import; stale (>3 days) → offer re-import.

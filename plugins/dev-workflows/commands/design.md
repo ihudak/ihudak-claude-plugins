@@ -54,7 +54,7 @@ Key distinction from `/specify`: `/specify` (PE) *authors* the requirements spec
      - **`focus_key` null** → resolved in step 4 (Granularity): either the flat VI dir (stand-alone
        Epic / broad VI spec) or a per-Epic subfolder the picker selects.
    - If the target `specification.md` is not present on main → stop:
-     `spec not handed off — run /specify for this item and merge it to the specs repo main first.`
+     `spec not handed off — run /dev-workflows:specify for this item and merge it to the specs repo main first.`
 
 4. **Granularity — the Epic is the unit of work; no fan-out. Progress-aware Epic picker.** One
    `design.md` per invocation. Resolve by `focus_key`:
@@ -84,7 +84,7 @@ Key distinction from `/specify`: `/specify` (PE) *authors* the requirements spec
          Default cursor = the first actionable row (in-progress before not-started). On selecting an
          Epic → set `focus_key` = that Epic and re-point the feature folder to its per-Epic subfolder.
      - neither a flat `specification.md` nor any spec'd Epic subfolder → stop
-       (`spec not handed off — run /specify first`).
+       (`spec not handed off — run /dev-workflows:specify first`).
 
 5. **Detect a prior `/design` run.** If a `_design-session.md` exists in the resolved feature folder,
    record that a resume is available — Phase 1 asks resume-vs-fresh. (Distinct from `/specify`'s

@@ -58,8 +58,16 @@ step skips on it.
 
 Classify `$ARGUMENTS` (minus the `--deep` flag) by precedence:
 
-1. Matches the Jira-key regex `^[A-Z][A-Z0-9_]*-\d+$` → **rfe** (an exported Product-Enhancement ticket
-   under `$VAULT_PATH/jira-products/<KEY>/`).
+1. Matches the Jira-key regex `^[A-Z][A-Z0-9_]*-\d+$` → resolve it with `resolve-export-for-key <KEY>`
+   (`${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`), then type it from the export's
+   **`issue_type` frontmatter** — never from the project prefix, which is a coincidence of Jira
+   configuration:
+   - `ValueIncrement` → **vi** — an existing VI. Prior art the user supplied.
+   - `Product Need` → **rfe** — product feedback, handled as demand evidence exactly as today.
+   - anything else → name the actual `issue_type` in the confirmation below and let the user choose;
+     **default vi**, since a tracked delivery item is closer to prior art than to demand evidence.
+
+   `NOT_FOUND` from the entry point is handled as today (an environment/user halt, never `emit-block`).
 2. An existing `.md` path or an `@wikilink` → **markdown** (a community post is just a markdown file,
    typically under `Projects/Products/…` — the reader tags it `community-post`; an existing `idea.md`
    passed back for re-refinement is detected here too).
@@ -73,6 +81,8 @@ choices: ["Read this as <detected-type> (Recommended)", "It's actually a <other-
 
 Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
 
+Show the `prior art:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md` resolved — `ON <vault-root>` or `OFF (<reason>)` — verbatim (off switch: --no-prior-art). Run `resolve-prior-art idea` per that reference to obtain it; it runs exactly once per run.
+
 ---
 
 ## Phase 2 — Ingest the source (idea-reader)
@@ -83,22 +93,29 @@ Dispatch `idea-reader` to read the source and return a structured digest:
   > "Ingest this idea source and return the structured digest:
   >
   > argument:        [the resolved argument]
-  > provenance_hint: [prompt | markdown | community-post | rfe from Phase 1]
+  > provenance_hint: [prompt | markdown | community-post | rfe | vi from Phase 1]
   > vault_path:      [resolved $VAULT_PATH]"
 
-Wait for the digest. If `status: NOT_FOUND` (invalid RFE key / missing file), surface:
+Wait for the digest. If `status: NOT_FOUND` (invalid key / missing file), surface:
 ```
 choices: ["Re-enter the source", "Cancel", "Other… (describe)"]
 ```
 This is an environment/user halt — do NOT `emit-block`. On `OK`, carry forward `raw_context`,
-`signals`, `images`, `candidate_title`, `candidate_slug`, `source_refs`, `provenance`, and the
-followed/broken wikilinks — `source_refs`/`provenance` feed the `sources:` frontmatter entry in Phase 4.
+`signals`, `images`, `candidate_title`, `candidate_slug`, `source_refs`, `provenance`, `tracked` (a
+`vi` source only), and the followed/broken wikilinks — `source_refs`/`provenance` feed the `sources:`
+frontmatter entry in Phase 4, and `tracked` seeds `## Prior art`.
 
 ---
 
-## Phase 2.5 — Documentation grounding (optional)
+## Phase 2.5 — Grounding: documentation + vault prior art (optional)
 
-Run `resolve-docs-grounding idea` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the `idea-reader` digest's problem/outcome, `themes` = its signals; **omit `jira_key`** (idea is keyless, so the git-grep backstop is skipped). Carry the digest into Phase 3 with **grill-rank** consumption — challenges compete for the ≤5 question slots, they do not add slots. When OFF, skip silently.
+Dispatch both grounding agents **in a single response** so they run in parallel. Each is independent; either being OFF never suppresses the other.
+
+**Docs.** Run `resolve-docs-grounding idea` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the `idea-reader` digest's problem/outcome, `themes` = its signals; **omit `jira_key`** (idea is keyless, so the git-grep backstop is skipped). When OFF, skip silently.
+
+**Prior art.** Using the `resolve-prior-art idea` result already obtained in Phase 1: when `prior_art: ON`, `dispatch-prior-art-finder` per `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md` with `feature_summary` = the same problem/outcome, `themes` = the digest's signals, and `known_refs` built from the reader's digest: every `wikilinks_followed` path and every filesystem-path `source_refs` ref as `{path, has_summary: true}` (Task 4's reader already summarised them), plus — for a `vi` source — `{jira_key: <KEY>, has_summary: true}`. Passing the key rather than a path is deliberate: the orchestrator does not know which vault directory holds that VI, and resolving it is the finder's job. The supplied VI is then classified and status-resolved by the same code path as a discovered one. When OFF, skip silently.
+
+Carry both digests into Phase 3 with **grill-rank** consumption — challenges from the two compete together for the ≤5 question slots, they do not add slots. Carry `area_proposal` and the `vi` source's match into Phase 4.
 
 ---
 

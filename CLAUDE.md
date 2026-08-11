@@ -145,7 +145,7 @@ in their prompt; they do not re-read the file.
 /specify             → jira-reader → [code-scanner×N (parallel, cap 4, soft gate)] → [docs-grounder] → (embedded grilling) → [spec-reviewer@Opus] → write specification.md → commit-artifacts
 /design              → [code-scanner×N (parallel, cap 4, STRICT gate)] → (embedded grilling, challenges spec) → [design-reviewer@Opus] → write design.md → commit-artifacts
 /ready               → jira-reader + Jira status read → verify ARD/spec/design → [readiness-reviewer@Opus] → SUPPORTED/PARTIAL/NOT-SUPPORTED → impl-maintenance + emit-auto → commit-artifacts
-All seventeen in-scope commands additionally run `specs-preflight` at Phase 0 and `commit-artifacts` as their last action (`references/specs-repo-git.md`) — including `/feedback`, `/prompt`, `/prompt-brainstorm`, and `/prompt-grill-me`, which have no line of their own in this map because they are single-purpose logging commands rather than pipelines.
+All seventeen in-scope commands additionally run `specs-preflight` at run start — as early as `$SPECS_PATH` is known (Phase 0 in most commands, Step 0 in `/vuln`, the shared `## Mode detection` section in `/document`) — and `commit-artifacts` as their last action (`references/specs-repo-git.md`) — including `/feedback`, `/prompt`, `/prompt-brainstorm`, and `/prompt-grill-me`, which have no line of their own in this map because they are single-purpose logging commands rather than pipelines. In `/prompt-brainstorm` and `/prompt-grill-me` the terminal step runs immediately before their Phase 3, which cedes the session (`references/specs-repo-git.md` §4).
                       └── test-baseliner      (used by upgrade-executor, vuln-fixer, and /implement)
                       └── test-writer        (used by /implement only)
                       └── risk-planner       (used by /implement plan critique)
@@ -178,7 +178,7 @@ Key invariants enforced by all three code-oriented commands:
 - Opus review gate runs **before** tests for `SIGNIFICANT` / `HIGH-RISK` tasks
 - `review-fixer` handles BLOCKER findings; only one `review-fixer` cycle per review
 - `impl-maintenance` runs post-batch to update KB, `CLAUDE.md`, and project docs
-- Every command that writes into `$SPECS_PATH` runs `specs-preflight` at Phase 0 and `commit-artifacts` as its last action (`references/specs-repo-git.md`) — bounded to the artifact paths and to plugin-created branches, and reported once as a `Specs repo:` line
+- Every command that writes into `$SPECS_PATH` runs `specs-preflight` at run start — as early as `$SPECS_PATH` is known (Phase 0 in most commands, Step 0 in `/vuln`, the shared `## Mode detection` section in `/document`) — and `commit-artifacts` as its last action, or immediately before a phase that cedes control (`references/specs-repo-git.md` §4) — bounded to the artifact paths and to plugin-created branches, and reported once as a `Specs repo:` line
 
 Key invariants for `/implement` specifically:
 
@@ -231,7 +231,7 @@ Key invariants for `/release-notes`:
 - The run is gated on the imported `relevant_for_release_notes` — an explicit `false` stops with `RELEASE_NOTES_NOT_RELEVANT` (overridable); absent proceeds silently
 - A deprecation carries a deprecation note in the Summary — end-of-life date (required) + end-of-support date (optional); a missing required date becomes a `deprecation_eol` gap the command asks about (never invented)
 - NEVER writes into a docs repo; the default destination is persistent (never `/tmp`)
-- Light gate only — `dt-style-checker` (optional, skipped if `dt-style-guide` absent); no Opus review, no tests, no branch, no commit
+- Light gate only — `dt-style-checker` (optional, skipped if `dt-style-guide` absent); no Opus review, no tests, no branch (`specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones — `references/specs-repo-git.md` §2.2; it creates none), and no commit of the draft or of anything in a docs/code repo, the vault, or the current working directory. The terminal `commit-artifacts` step still runs, committing ONLY `$SPECS_PATH`'s bounded session-artifact paths (`references/specs-repo-git.md` §2.1)
 - Diff grounding is opt-in; when on, it reuses `$REPOS_PATH` resolution + `diff-summarizer`
 
 Key invariants for the VI-creation flow (`/idea`, `/create-vi`, `/create-ard`, `/specify`, `/design`, `/ready`):
@@ -240,7 +240,7 @@ Key invariants for the VI-creation flow (`/idea`, `/create-vi`, `/create-ard`, `
 - The embedded grill is **bounded** (≤5 questions; `--deep` on `/idea` relaxes it); leftover gaps become capped `[NEEDS CLARIFICATION]` markers + logged assumptions
 - VI / ARD / `specification.md` / `design.md` are written under `$SPECS_PATH/specifications/<KEY>-<slug>/`; `/idea` writes `idea.md` under `$VAULT_PATH` (pre-VI-Key)
 - `/create-ard` grounds on mounted repos it discovers (`$REPOS_PATH` listing + theme→repo proposal + confirm/mount-or-descope); it never reads PRs
-- `/ready` is **read-only** — it verifies the Jira status against the ARD/spec/design and never sets status
+- `/ready` is **read-only** — it verifies the Jira status against the ARD/spec/design, never sets status, and never commits the deliverable or the `_readiness.md` snapshot (its terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded session-artifact paths, `references/specs-repo-git.md` §2.1)
 - `/design`, `/implement`, `/specify`, `/epics` respect the applicable ARD via `references/ard-resolution.md`; an `AD-N` Rule violated without a recorded "ARD deviation" is a reviewer BLOCKER
 - `/create-vi` does NOT capture `release_versions` / `change_type` / `release_notes_category` — they are Jira-mirror fields per `references/vi-format.md`, set as Jira dropdowns and returned by the importer; `vi-reviewer` neither requires nor validates them
 
@@ -260,7 +260,7 @@ Key invariants for specs-repo git (`references/specs-repo-git.md`):
 - Never force-push, never `branch -D`, never merge/rebase/reset, never delete an `index.lock`, never open a PR, never call a REST API
 - Never fatal — every failure is reported and the run continues
 - The artifact commit carries no `Co-Authored-By` trailer; each artifact already carries its own `author:` field
-- The canonical terminal order is deliverable + handoff → feedback → follow-ups → cost → `resume.md` → `commit-artifacts` → the run's last printed output
+- The canonical terminal order is deliverable + handoff → feedback → follow-ups → cost → `resume.md` → `commit-artifacts` → the run's last printed output. The one exception is a phase that cedes control (`/prompt-brainstorm`'s hand-off to `superpowers:brainstorming`, `/prompt-grill-me`'s long interactive grill): there `commit-artifacts` runs immediately **before** the hand-off, because a commit placed after it would never execute (`references/specs-repo-git.md` §4)
 - Exactly one `Specs repo:` outcome line per run, at the end; a guard notice is repeated in full there, never only at Phase 0
 
 ## Test-writing requirement for code changes

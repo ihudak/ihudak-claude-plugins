@@ -10,7 +10,7 @@ Draft child Epics for the Jira Value Increment: $ARGUMENTS
 
 Key distinction from `/document` (Jira mode): the VI being Epic-ized is **not yet implemented** — there are no PRs to diff. Code scanning (when enabled) is a plain filesystem search to understand what exists and what needs to be built.
 
-`/epics` **never branches** and **never commits the Epic drafts** (still true — the run's git activity is confined to `$SPECS_PATH`, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`; see the paragraph end), and writes only to the resolved output directory — `jira-drafts/<jira_key>/` under `$VAULT_PATH`, or a derived `epic-drafts/<jira_key>/` dir beside the imported hierarchy when `$VAULT_PATH` is unset. Git hygiene of the write target is the user's responsibility — they may or may not have it under version control. The run commits only inside `$SPECS_PATH`, and only its bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1) — via the `specs-preflight` flush at run start (§3.4) and the terminal `commit-artifacts` step (§4); never the drafts, never the write target. It still creates no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none).
+`/epics` **never branches** and **never commits the Epic drafts** (still true — the run's git **writes** are confined to `$SPECS_PATH`, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`; the only git call outside it is Phase 8's read-only `git diff --stat` from `project_root`; see the paragraph end), and writes only to the resolved output directory — `jira-drafts/<jira_key>/` under `$VAULT_PATH`, or a derived `epic-drafts/<jira_key>/` dir beside the imported hierarchy when `$VAULT_PATH` is unset. Git hygiene of the write target is the user's responsibility — they may or may not have it under version control. The run commits only inside `$SPECS_PATH`, and only its bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1) — via the `specs-preflight` flush at run start (§3.4) and the terminal `commit-artifacts` step (§4); never the drafts, never the write target. It still creates no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none).
 
 ---
 
@@ -689,9 +689,9 @@ guidance already appeared in the Phase 9 report.
 `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
 `commit-artifacts` entry point (§4) inline — the LAST action of the run. It
 stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
-`<KEY> Add dev-workflows session artifacts (/epics)`, and pushes to the specs
-repo's default branch. It NEVER touches the vault, `jira-products/`,
-`jira_export_root`, a code/docs repo, or the current working directory; NEVER
+`<KEY> Add dev-workflows session artifacts (/epics)`, and pushes per §4 step 5.
+It NEVER touches the vault, `jira-products/`, `jira_export_root`, a code/docs
+repo, or the current working directory; NEVER
 force-pushes; NEVER fails the run; and skips entirely when the run carries
 `specs_git: blocked` (§3.3 G0), re-emitting that notice. Because the Phase 9
 report was composed before this phase, **print its §6 outcome line here**, as

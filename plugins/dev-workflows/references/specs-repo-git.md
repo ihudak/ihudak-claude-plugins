@@ -115,18 +115,23 @@ the ancestry test. On failure (offline, auth), use the existing local
 `origin/<default>` ref and note `offline — ancestry checked against the
 last-fetched ref`. Never fatal.
 
-**Run key:** take the run's Jira key if it is already resolved at the call site;
-otherwise the run is **keyless**. Both are correct behaviour — no command needs
-to defer its preflight in order to obtain a key. `/create-vi` is structurally
-keyless here (its key is minted by the Jira round-trip in a later phase), and
-keyless is the right classification for it: a new VI must not stack on another
-VI's branch.
+**Run key set:** every Jira key the run is scoped to, taking each key already
+resolved at the call site. A VI-scoped run contributes its VI key. A run invoked
+as `<VI> <Epic>` (`/create-ard`, `/specify`, `/design`, `/ready`) contributes
+**both** — the Epic is as much this run's key as the VI is, and §3.5 must
+recognise a branch named for either (§3.6). When no key is resolved at the call
+site the set is empty and the run is **keyless**. Both are correct behaviour —
+no command needs to defer its preflight in order to obtain a key. `/create-vi`
+is structurally keyless here (its key is minted by the Jira round-trip in a
+later phase), and keyless is the right classification for it: a new VI must not
+stack on another VI's branch.
 
-**This run key is the preflight's, and only the preflight's.** It exists to match
-branches in §3.5 and is resolved at the *start* of the run. `commit-artifacts`
-resolves its own key independently, at the *end* of the run (§4 step 4) — by
-which point a command that started keyless may well have one. A run that is
-keyless here is not thereby committing under `NOISSUE`.
+**This run key set is the preflight's, and only the preflight's.** It exists to
+match branches in §3.5 and is resolved at the *start* of the run.
+`commit-artifacts` resolves its own key independently — a single key, at the
+*end* of the run (§4 step 4) — by which point a command that started keyless may
+well have one. A run that is keyless here is not thereby committing under
+`NOISSUE`.
 
 ### 3.3 Stage 1 — guards
 
@@ -161,12 +166,12 @@ First matching row applies.
 |---|---|---|
 | B1 | On the default branch | Nothing further. |
 | B2 | Plugin branch, and `git -C "$SPECS_PATH" merge-base --is-ancestor HEAD origin/<default>` succeeds (already merged upstream) | Switch to default, `git -C "$SPECS_PATH" pull --ff-only`, `git -C "$SPECS_PATH" branch -d <branch>`. If `-d` fails, report and skip — **never `-D`**. If `pull --ff-only` fails (the local default branch has diverged), report and continue on default **without** pulling — never merge, rebase, or reset. |
-| B3 | Plugin branch, unmerged, branch key **==** run key | **Stay on it.** See §3.6. |
-| B4 | Plugin branch, unmerged, branch key **≠** run key, or run keyless | Switch to default, `git -C "$SPECS_PATH" pull --ff-only`. **Leave the branch and its pull request alone.** Report the branch name. |
+| B3 | Plugin branch, unmerged, branch key matches **any** key in the run key set (§3.2) | **Stay on it.** See §3.6. |
+| B4 | Plugin branch, unmerged, branch key matches **no** key in the set, or the set is empty (keyless run) | Switch to default, `git -C "$SPECS_PATH" pull --ff-only`. **Leave the branch and its pull request alone.** Report the branch name. |
 
 **Branch key extraction:** strip the `vi/`, `ard/`, `spec/`, or `design/`
 prefix, then take the leading token matching `[A-Z][A-Z0-9_]*-[0-9]+`. No match
-→ treat as "not this run's key" (B4).
+→ treat as matching no key in the set (B4).
 
 **No auto-merge, deliberately.** No row above creates a merge commit or merges a
 branch into the default branch, and none should be added. The routing here
@@ -191,10 +196,24 @@ against the Jira export when the authored file is absent. **That fallback is
 silent**: the run would quietly architect against the stale Jira export instead
 of the VI just authored, with no error to notice.
 
+**The same shape reaches Epic-scoped runs — which is why §3.2 resolves a key
+*set*, not a single key.** `/specify <VI> <Epic>` authors `specification.md` on
+`spec/<EPIC>-<eslug>`, a branch keyed by the **Epic**. The follow-up
+`/design <VI> <Epic>` run resolves the VI as its primary key, so a single-key
+comparison would read branch key ≠ run key, fall through to B4, and switch away
+from the branch holding the very `specification.md` that `/design`'s own Phase 0
+gate had just verified — before Phase 2 ever reads it. `/ready` has the same
+exposure: the user may explicitly choose to proceed on the current checkout, and
+a single-key comparison could switch off it while the report still claims that
+checkout was read. Matching the branch key against **any** key in the set keeps
+B3 in force for the `<VI> <Epic>` invocations (`/create-ard`, `/specify`,
+`/design`, `/ready`) exactly as it holds for VI-scoped ones.
+
 B3 keeps the working tree containing the artifact the run is about to read. The
 cost is that the follow-up command's own branch is cut from the earlier branch
 rather than from the default — a stacked branch. That is correct: an ARD
-genuinely depends on its VI, and stacking is the honest representation.
+genuinely depends on its VI and a design on its spec, and stacking is the honest
+representation.
 
 ### 3.7 Detached HEAD is blocking, not merely skipped
 
@@ -220,6 +239,19 @@ G1 does not — see the note in its row.
 
 Runs as the **last action of the run**, after `resume.md` is written (where the
 command writes one) and before or as the run's last printed output (§6).
+
+**The one exception — a phase that cedes control.** Where a later phase hands the
+session to another skill, or opens an open-ended interactive stretch, this step
+runs immediately **before** that hand-off instead, and prints its §6 outcome line
+there. `/prompt-brainstorm` (whose Phase 3 hands off to
+`superpowers:brainstorming`) and `/prompt-grill-me` (whose Phase 3 is a long
+interactive grill) are the cases. "Last" is protective only while the run still
+reaches its own end: a commit placed after control has left the command never
+executes, and the artifacts it was meant to persist are stranded uncommitted —
+the exact loss this reference exists to prevent. The exception is deliberately
+narrow. It applies where control genuinely leaves the command, never as a
+convenience to commit early, and it never licenses splitting the step across more
+than one invocation.
 
 1. **Gate.** All of §3.1's environment conditions, **plus** the run must not
    carry `specs_git: blocked` from §3.3 G0.
@@ -374,7 +406,9 @@ Omitting any one of them is a defect, not a style choice.
    known — Phase 0 in most commands. Carry any returned `specs_git: blocked`
    flag for the whole run.
 2. **Cite and execute `commit-artifacts` (§4)** as the last action of the run,
-   after `resume.md` (where one is written) and after the cost phase.
+   after `resume.md` (where one is written) and after the cost phase — or, where
+   a later phase cedes control to another skill or to an open-ended interactive
+   stretch, immediately before that hand-off (§4's exception).
 3. **Emit the §6 outcome line exactly once**, at the end of the run.
 4. **Never restate this reference's rules** — cite the section number. A rule
    copied into a command is a rule that goes stale.

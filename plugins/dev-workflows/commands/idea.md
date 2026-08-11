@@ -141,9 +141,9 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
 Report where `idea.md` was written and its `status`, then offer the next phase — **adapted to status**:
 
 - **`refined`:** *"Idea refined. Next: create the VI — first create an empty Jira workitem, then run
-  `/create-vi <JIRA-KEY> @<idea.md path>`."*
+  `/dev-workflows:create-vi <JIRA-KEY> @<idea.md path>`."*
 - **`draft`** (N open clarifications): *"This idea has N open clarification(s). You can (a) run
-  `/idea @<idea.md path> --deep` to resolve them, or (b) proceed to `/create-vi <JIRA-KEY> @<idea.md
+  `/dev-workflows:idea @<idea.md path> --deep` to resolve them, or (b) proceed to `/dev-workflows:create-vi <JIRA-KEY> @<idea.md
   path>`, which will grill you on the rest."*
 
 `/create-vi` is a separate command; this offer is guidance the user acts on — it never auto-invokes

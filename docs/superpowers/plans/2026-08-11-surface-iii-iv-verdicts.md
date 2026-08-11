@@ -1,8 +1,10 @@
 # Surfaces iii/iv/vi — classification verdicts
 
 Task 3 of the 2026-08-11 printed-output-correctness plan. One row per candidate from Step 1
-(surfaces iii/iv — 60 candidates, derived pre-Task-1/2) and Step 1b (surface vi — 19 candidates,
-D-3). 60 + 19 = 79 rows.
+(surfaces iii/iv — 60 candidates, derived pre-Task-1/2), Step 1b (surface vi — 19 candidates,
+D-3), and the coordinator's Fix round 1 (surface vii — 31 candidates: a multi-line printed offer
+the line-based detectors couldn't see, plus STOP/error messages carrying an embedded
+run-instruction). 60 + 19 + 31 = 110 rows.
 
 **Count-drift note (read before the table):** re-running Step 1's grep against the current tree
 (after Tasks 1–2 landed) returns 48 live bare-form matches, not 60. The other 12 do not vanish —
@@ -13,16 +15,20 @@ marker grep. Each of those 12 gets a row below with verdict `HANDLED (Task 2)`, 
 `12c3c72~1` (the pre-Task-2 tree). 48 + 12 + 19 = 79. No candidate was invented or dropped to hit
 the number — see the full reconciliation in `task-3-report.md`.
 
-**A second, unrelated finding:** several LEAVE verdicts below are not judgment calls at all —
-they're marker-grep false positives. The grep's `/($CMDS)\b` term matches `/feedback` inside the
-literal path `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` (because `feedback` is itself
-a command name), `/docs-profile` inside `.dev-workflows/docs-profile.yml`, `/statusline` inside
+**A second, unrelated finding:** 16 of the LEAVE verdicts below (not the 11 originally reported —
+corrected in the Fix round 1 report) are not judgment calls at all — they're marker-grep false
+positives. The grep's `/($CMDS)\b` term matches `/feedback` inside the literal path
+`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` (because `feedback` is itself a command
+name), `/docs-profile` inside `.dev-workflows/docs-profile.yml`, `/statusline` inside
 `statusline-command.sh`, and `/epics` inside the glob `*/epics/*`. None of these name a command at
 all, let alone print an invocation — they're flagged `LEAVE (false positive)` below.
 
 Surface legend: **iii** = quoted literal the command emits; **iv** = surface/report/recommend
 … `/cmd` instruction; **iii/iv** = matched both marker greps; **vi-a** = role-handoff /
-context-hygiene guidance; **vi-b** = annotated offer bullet expanding a `choices:` block.
+context-hygiene guidance; **vi-b** = annotated offer bullet expanding a `choices:` block;
+**vii-a** = bare name within 3 lines after a quoted/italic opener (multi-line printed prose the
+line-based iii/iv detectors can't see); **vii-b** = a `run` / `re-run` instruction or a
+`NAMED_ERROR:` code carrying a bare command mention.
 
 | Site | Text (truncated) | Surface | Verdict | Reason |
 |---|---|---|---|---|
@@ -106,7 +112,53 @@ context-hygiene guidance; **vi-b** = annotated offer bullet expanding a `choices
 | `vuln.md:183` | Pass the Lessons Learned report, `command: /vuln`, the run's `jira_key`… | iv | LEAVE | data-field value |
 | `vuln.md:258` | ALWAYS `emit-block` (per `.../feedback-emission.md`) before escalating… | iv | LEAVE (false positive) | same `/feedback`-in-path false positive |
 
+## Surface vii — Fix round 1 additions (coordinator review)
+
+A multi-line printed offer (`idea.md:143-147`, the brief's own worked ACCEPT example) and four
+STOP/error messages carrying an embedded run-instruction were missed by all three earlier
+detectors — line-based, they can't see a quoted sentence that opens on one line and names the
+command on the next, or a single-quoted (not `"…"`-quoted) instruction with a trigger verb
+("re-run") not on the original trigger-word list. Found by two new detectors (vii-a, vii-b) and
+classified below. Two of vii-b's 30 lines (`implement.md:387`, `:445`) already have rows above
+(the settled D-2 deliberate exceptions) and are not repeated here.
+
+| Site | Text (truncated) | Surface | Verdict | Reason |
+|---|---|---|---|---|
+| `idea.md:144` | "…first create an empty Jira workitem, then run `/create-vi <JIRA-KEY> @<idea.md path>`."* | vii-a | QUALIFY | the brief's own worked ACCEPT example — printed multi-line offer, `refined` branch |
+| `idea.md:146` | "…(a) run `/idea @<idea.md path> --deep`… or (b) proceed to `/create-vi <JIRA-KEY> @<idea.md path>`…"* | vii-a | QUALIFY | printed multi-line offer, `draft` branch — two invocation targets on this line |
+| `implement.md:55` | "…there is no 'Next Epic?' loop (code-writing is heavy and branchy; each `/implement` run targets one Epic)." | vii-a | LEAVE | self-referential description of the current command's own per-run scope, not an offer |
+| `create-vi.md:21` | `CREATE_VI_NEEDS_KEY: /create-vi needs a Jira key — … then re-run '/create-vi <KEY> @<idea.md>'.` | vii-b | QUALIFY (split) | split verdict like `create-ard.md:60`: "/create-vi needs a Jira key" stays bare (self-referential ID); the re-run instruction is the printed corrective action — qualified |
+| `update-vi.md:20` | `UPDATE_VI_NEEDS_KEY: /update-vi needs the VI's Jira key — '/update-vi <KEY>'.` | vii-b | QUALIFY (split) | same split shape as `create-vi.md:21` — self-referential ID stays bare, the re-run instruction is qualified |
+| `design.md:36` | `DESIGN_NEEDS_JIRA: /design needs a Jira key (a VI or an Epic)…` — `/design` has no direct-prompt behaviour. | vii-b | LEAVE | one of the coordinator's five look-alike `*_NEEDS_JIRA` messages — self-referential only, no embedded instruction |
+| `design.md:57` | `spec not handed off — run /specify for this item and merge it to the specs repo main first.` | vii-b | QUALIFY | printed STOP message with an embedded corrective instruction naming a different command |
+| `design.md:87` | `spec not handed off — run /specify first`. | vii-b | QUALIFY | same shape as `:57`, terser |
+| `design.md:193` | "…the developer restarts the container with the repo mounted and re-runs `/design` (resuming from `_design-session.md`)…" | vii-b | LEAVE | self-referential — describes the current command being re-run by the developer after remounting, not a redirect to a different command |
+| `design.md:350` | `> - Command run: /design` | vii-b | LEAVE | quoted subagent-handoff template (the literal prompt text sent to `impl-maintenance`), not shown to the end user — same shape as the `command: /idea` data-field REJECT pattern |
+| `implement.md:549` | `> - Command run: /implement` | vii-b | LEAVE | same subagent-handoff template pattern as `design.md:350` |
+| `implement.md:740` | `ALWAYS pass `Command run: /implement`` in the Phase 4 Agent 4 session handoff | vii-b | LEAVE | invariant describing an internal handoff value, not printed to the user |
+| `epics.md:30` | `EPICS_NEEDS_JIRA: /epics needs a Jira key or an imported-Jira directory.` — | vii-b | LEAVE | one of the five look-alike `*_NEEDS_JIRA` messages |
+| `epics.md:515` | `> - Command run: /epics` | vii-b | LEAVE | subagent-handoff template |
+| `epics.md:727` | `ALWAYS pass `Command run: /epics`` in the Phase 8 Agent 4 session handoff | vii-b | LEAVE | internal handoff invariant |
+| `upgrade.md:157` | `Always pass `Command run: /upgrade`` in that handoff — omitting it makes `impl-maintenance` default to `/implement`… | vii-b | LEAVE | internal handoff data-field value, plus a comparison ("defaults to /implement") describing fallback behavior — neither is an invocation |
+| `document.md:79` | "…invoke the `/docs-profile` flow against `docs_repo_path`… `PROFILE_REQUIRED: …; run /docs-profile or switch to a profiled repo.`" | vii-b | QUALIFY (split) | a THIRD split-verdict line, found while verifying — "invoke the `/docs-profile` flow" describes this command's own internal Skill-tool call (stays bare, self-referential mechanism); the `PROFILE_REQUIRED` STOP message's "run /docs-profile" is the printed corrective instruction (qualified) |
+| `document.md:1020` | `> - Command run: /document` | vii-b | LEAVE | subagent-handoff template |
+| `document.md:1318` | `ALWAYS pass `Command run: /document`` in the Phase 8 Agent 4 session handoff | vii-b | LEAVE | internal handoff invariant |
+| `document.md:1555` | `> - Command run: /document (direct mode)` | vii-b | LEAVE | subagent-handoff template |
+| `document.md:1758` | `ALWAYS pass `Command run: /document (direct mode)`` in the Phase 4 Agent 4 session handoff | vii-b | LEAVE | internal handoff invariant |
+| `vuln.md:179` | `Always pass `Command run: /vuln`` in that handoff — omitting it makes `impl-maintenance` default to `/implement`… | vii-b | LEAVE | same shape as `upgrade.md:157` |
+| `release-notes.md:37` | `RELEASE_NOTES_NEEDS_JIRA: /release-notes needs a Jira key or an imported-Jira directory.` — | vii-b | LEAVE | one of the five look-alike `*_NEEDS_JIRA` messages |
+| `release-notes.md:339` | `> - Command run: /release-notes` | vii-b | LEAVE | subagent-handoff template |
+| `ready.md:44` | `READY_NEEDS_JIRA: /ready needs a Jira key or an imported-Jira directory.` — `/ready` has no… | vii-b | LEAVE | one of the five look-alike `*_NEEDS_JIRA` messages |
+| `ready.md:373` | "Mirrors `epics.md` Phase 8… (unlike `/epics`, where maintenance…" | vii-b | LEAVE | comparison between commands, not an invocation |
+| `ready.md:440` | `> - Command run: /ready` | vii-b | LEAVE | subagent-handoff template |
+| `ready.md:580` | `ALWAYS pass `Command run: /ready`` in the Phase 6 Agent 4 session handoff | vii-b | LEAVE | internal handoff invariant |
+| `specify.md:39` | `SPECIFY_NEEDS_JIRA: /specify needs a Jira key or an imported-Jira directory.` — `/specify` has no… | vii-b | LEAVE | one of the five look-alike `*_NEEDS_JIRA` messages |
+| `specify.md:458` | `> - Command run: /specify` | vii-b | LEAVE | subagent-handoff template |
+| `idea.md:180` | `> - Command run: /idea` | vii-b | LEAVE | subagent-handoff template |
+
 ## Tally
+
+### Original sweep (surfaces iii, iv, vi)
 
 - Total candidates: **79** (48 live Step 1 + 12 HANDLED-in-Task-2 Step 1 + 19 Step 1b) = 79 rows
 - **QUALIFY** (fresh edits applied by this task): **19** — `create-ard.md:149`; `create-vi.md:213,214,215,226,227`; `design.md:440`; `document.md:1213`; `epics.md:627,628`; `idea.md:155`; `implement.md:56,111,634`; `ready.md:356`; `release-notes.md:295`; `specify.md:451,543,544`
@@ -114,3 +166,23 @@ context-hygiene guidance; **vi-b** = annotated offer bullet expanding a `choices
 - **HANDLED (Task 2)**: **12** — already qualified (or, for `create-ard.md:60`/`:138`, deliberately kept bare) before this task ran; no edit made here
 
 19 (QUALIFY) + 48 (LEAVE) + 12 (HANDLED) = 79.
+
+### Fix round 1 additions (surface vii)
+
+- Total new candidates: **31** (3 vii-a + 28 new vii-b — 30 vii-b lines minus 2 already-rowed
+  D-2 exceptions)
+- **QUALIFY**: **7** — `idea.md:144,146`; `create-vi.md:21` (split); `update-vi.md:20` (split);
+  `design.md:57,87`; `document.md:79`
+- **LEAVE**: **24** — `implement.md:55`; the five look-alike `*_NEEDS_JIRA` self-referential
+  messages (`design.md:36`, `epics.md:30`, `release-notes.md:37`, `ready.md:44`, `specify.md:39`);
+  `design.md:193`; `ready.md:373`; `upgrade.md:157`; `vuln.md:179`; and 14 quoted/described
+  subagent-handoff `Command run: /X` sites (`idea.md:180`, `design.md:350`, `implement.md:549,740`,
+  `epics.md:515,727`, `document.md:1020,1318,1555,1758`, `release-notes.md:339`, `ready.md:440,580`,
+  `specify.md:458`)
+
+7 (QUALIFY) + 24 (LEAVE) = 31.
+
+### Grand total
+
+79 + 31 = **110 rows**. QUALIFY 19 + 7 = **26**. LEAVE 48 + 24 = **72**. HANDLED **12**.
+26 + 72 + 12 = 110.

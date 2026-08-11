@@ -18,7 +18,7 @@ Usage: `/create-vi <JIRA-KEY> [@idea.md] [--from-vi <VI-KEY|path>] [--lean|--hyb
 
 ## Phase 0 — Resolve inputs
 
-1. **`JIRA-KEY` (mandatory).** Parse the first non-flag token; validate `^[A-Z][A-Z0-9_]*-\d+$`. If absent or malformed, **stop gracefully**: `CREATE_VI_NEEDS_KEY: /create-vi needs a Jira key — create an empty Jira workitem first to get the ID, then re-run '/create-vi <KEY> @<idea.md>'.` (Format only — zero Jira API, so existence is not verified.)
+1. **`JIRA-KEY` (mandatory).** Parse the first non-flag token; validate `^[A-Z][A-Z0-9_]*-\d+$`. If absent or malformed, **stop gracefully**: `CREATE_VI_NEEDS_KEY: /create-vi needs a Jira key — create an empty Jira workitem first to get the ID, then re-run '/dev-workflows:create-vi <KEY> @<idea.md>'.` (Format only — zero Jira API, so existence is not verified.)
 2. **Profile.** `--lean | --hybrid | --full`; default `--hybrid`.
 2a. **`--from-vi <VI-KEY|path>` (optional seed).** When present, this run authors a **new** VI (the
     positional `<JIRA-KEY>`) seeded read-only by another VI. Resolve the seed via

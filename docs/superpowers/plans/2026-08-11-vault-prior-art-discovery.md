@@ -612,6 +612,15 @@ Dispatch both grounding agents **in a single response** so they run in parallel.
 Carry both digests into Phase 3 with **grill-rank** consumption — challenges from the two compete together for the ≤5 question slots, they do not add slots. Carry `area_proposal` and the `vi` source's match into Phase 4.
 ````
 
+- [ ] **Step 4b: Refresh the command preamble**
+
+The frontmatter `description` and the `Flag:` line are both made stale by this task. Widen the
+`description`'s source list from "an exported **RFE** Jira ticket" to name the Jira source as product
+feedback *or* an existing Value Increment the idea extends, parallels, or rewrites. Turn `Flag:` into
+`Flags:` and add `--no-docs` / `--no-prior-art`, pointing at Phase 1. The `description` is user-facing
+— it surfaces in the plugin's command listing — so leaving it describing the old input set is the same
+residue defect as Step 3b in Task 4.
+
 - [ ] **Step 5: Verify**
 
 ```bash

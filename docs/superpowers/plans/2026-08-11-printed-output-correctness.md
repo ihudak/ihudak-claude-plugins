@@ -117,10 +117,12 @@ The `## The offer contract (5 rules)` heading becomes `## The offer contract (6 
 ```markdown
 6. **Fully qualified when printed** — every command name the run PRINTS for the user to invoke is
    written `/dev-workflows:<command>`. A bare `/<command>` can resolve to a Claude Code built-in of
-   the same name — `/release-notes`, `/upgrade`, and `/statusline` all collide today, and the
-   built-in wins — so the bare form is NEVER printed. Prose that describes the pipeline to a reader
-   of this plugin's source keeps the short form.
+   the same name — Claude Code's own `/release-notes`, `/upgrade`, and `/statusline` all collide
+   today, and the built-in wins — so the bare form is NEVER printed. Prose that describes the
+   pipeline to a reader of this plugin's source keeps the short form.
 ```
+
+The three names in that sentence stay **bare** — they are Claude Code's built-ins, not this plugin's commands. See Step 4's carve-outs.
 
 - [ ] **Step 3: Add the `/update-vi` re-entry node to the routing graph**
 
@@ -129,28 +131,39 @@ In `**PM — ideation & framing**`, after the `/create-vi` entry, insert verbati
 ```markdown
 - `/dev-workflows:update-vi <KEY>` — re-entry, not a linear node: reached when
   `/dev-workflows:create-vi` redirects an existing-VI call, or when a later phase forces a VI
-  refresh. After the paste-into-Jira + re-import round-trip it offers the same forward paths as
-  `/dev-workflows:create-vi`: `/dev-workflows:release-notes <VI>` (PM),
-  `/dev-workflows:create-ard <VI>` (PA, if one exists), `/dev-workflows:specify <VI>` (PE, if one
-  exists).
+  refresh. After the paste-into-Jira + re-import round-trip it offers:
+  `/dev-workflows:release-notes <VI>` (PM), `/dev-workflows:create-ard <VI>` (PA, if one exists),
+  `/dev-workflows:specify <VI>` (PE, if one exists).
 ```
+
+The three paths match what `commands/update-vi.md` Phase 6 prints. Do **not** describe them as "the same forward paths as `/create-vi`" — `/create-vi` also offers `/dev-workflows:epics <VI>`, which `/update-vi` does not.
 
 - [ ] **Step 4: Qualify every command name in the file (D-1)**
 
 Rewrite every `/<command>` to `/dev-workflows:<command>` throughout `next-phase-offer.md` — the routing graph, rules 1–6, the `## Surface` section, and the `## Not pipeline nodes` list. This file is the offer contract; every command name in it is either a printed template or an example of one.
 
-Leave untouched: `/compact` and `/clear` (Claude Code built-ins, correctly named as such in the session-hygiene paragraph).
+**Two carve-outs. Both name commands that are not this plugin's, so qualifying them would state a falsehood:**
+
+- `/compact` and `/clear` in the session-hygiene paragraph — Claude Code built-ins, correctly named as such.
+- **Rule 6's own three illustrative names.** Rule 6 cites `/release-notes`, `/upgrade`, and `/statusline` as examples of names that *collide with a Claude Code built-in*. The qualified forms are precisely the ones that do NOT collide, so qualifying them inverts the rule's meaning. Under G-3 these are descriptive references to an external fact, not invocation targets. Rule 6's text as written in Step 2 already reads "Claude Code's own `/release-notes`, `/upgrade`, and `/statusline`" — the possessive is deliberate, marking them as external so no later sweep re-qualifies them.
 
 - [ ] **Step 5: Verify the file is clean**
 
 ```bash
 cd /workspace/ihudak-claude-plugins/plugins/dev-workflows/references
 CMDS='implement|document|docs-profile|epics|release-notes|vuln|upgrade|idea|create-vi|update-vi|create-ard|specify|design|ready|feedback|prompt-brainstorm|prompt-grill-me|prompt|statusline'
-echo "bare (expect 0):     $(grep -oE "(^|[^:a-z-])/($CMDS)\b" next-phase-offer.md | wc -l)"
+echo "bare (expect 3):     $(grep -oE "(^|[^:a-z-])/($CMDS)\b" next-phase-offer.md | wc -l)"
 echo "qualified (expect >=66): $(grep -oE "/dev-workflows:($CMDS)\b" next-phase-offer.md | wc -l)"
 echo "update-vi (expect >=1):  $(grep -c 'dev-workflows:update-vi' next-phase-offer.md)"
 echo "rule 6 (expect 1):       $(grep -c 'Fully qualified when printed' next-phase-offer.md)"
 echo "heading (expect 1):      $(grep -c 'offer contract (6 rules)' next-phase-offer.md)"
+```
+
+**`bare` is 3, not 0** — exactly rule 6's three Claude Code built-in names (Step 4's second carve-out). Confirm they are those three and nothing else:
+
+```bash
+grep -oE "(^|[^:a-z-])/($CMDS)\b" next-phase-offer.md | tr -d ' '
+# expect exactly: /release-notes /upgrade /statusline
 ```
 
 Qualified is `>= 66` rather than exactly 63 because Step 3 adds new names.
@@ -665,11 +678,13 @@ In `dev-workflows/skills/_shared/next-phase-offer.md`, change the contract headi
 ```markdown
 6. **Printed in this edition's invocation idiom** — every skill name the run PRINTS for the user to
    invoke is written `<name>:` (e.g. `release-notes: <VI>`). Slash-style `/<name>` does invoke the
-   skill, but it can resolve to a Copilot built-in of the same name instead — `/release-notes`,
-   `/upgrade`, `/feedback`, and `/statusline` all collide today — so the slash form is NEVER
-   printed. Prose that describes the pipeline to a reader of this edition's source keeps the short
-   form.
+   skill, but it can resolve to a Copilot built-in of the same name instead — Copilot's own
+   `/release-notes`, `/upgrade`, `/feedback`, and `/statusline` all collide today — so the slash
+   form is NEVER printed. Prose that describes the pipeline to a reader of this edition's source
+   keeps the short form.
 ```
+
+Those four names stay **bare and slash-style**: they name Copilot's built-ins, not skills shipped here. Qualifying or `<name>:`-converting them would state a falsehood. This is the copilot twin of Task 1 Step 4's second carve-out, and it means copilot's `next-phase-offer.md` legitimately goes from 0 slash refs to 4.
 
 - [ ] **Step 2: Add the `update-vi:` re-entry node**
 
@@ -814,7 +829,17 @@ for R in "/workspace/ihudak-claude-plugins/plugins/dev-workflows:commands/*.md:r
 done
 ```
 
-Expected: V1 = 1; V2 = 0; V3 = 2 for canonical and mgd (the two documented `implement.md` exceptions, D-2) and 0 for copilot unless its own sweep records exceptions; V4 = 0; V6 ≥ 1; V7 ≥ 1.
+Expected: V1 = 1; V2 = 0; V3 = 2 for canonical and mgd (the two documented `implement.md` exceptions, D-2) and 0 for copilot unless its own sweep records exceptions; **V4 = 3 for canonical and mgd, 4 for copilot**; V6 ≥ 1; V7 ≥ 1.
+
+**V4 is not zero, and that is correct.** Rule 6 cites the built-in command names it warns about, and those must stay bare or the rule states a falsehood (Task 1 Step 4 carve-out; Task 7 Step 1 for copilot). Confirm the residue is exactly those names and nothing else:
+
+```bash
+grep -oE "(^|[^:a-z-])/($CMDS)\b" "$root/$rdir/next-phase-offer.md" | tr -d ' ' | sort | tr '\n' ' '
+# canonical/mgd expect: /release-notes /statusline /upgrade
+# copilot expect:       /feedback /release-notes /statusline /upgrade
+```
+
+Any name outside those sets is a real defect.
 
 - [ ] **Step 2: Run the risk re-checks V14, V15, V16**
 
@@ -874,7 +899,7 @@ EOF
 | V1 | rule 6 present, correct dialect | 1 per edition | 1, 7, 8 |
 | V2 | surface i bare names (indent-tolerant) | 0 per edition | 2, 8 |
 | V3 | surface ii bare names | 2 canonical/mgd (D-2), 0 copilot | 2, 8 |
-| V4 | `next-phase-offer.md` bare names | 0 per edition | 1, 8 |
+| V4 | `next-phase-offer.md` bare names | 3 canonical/mgd, 4 copilot — exactly rule 6's built-in citations | 1, 7, 8 |
 | V5 | surfaces iii/iv — every candidate has a verdict | 60 rows canonical | 3 |
 | V6 | `/update-vi` in each routing graph | ≥1 per edition | 1, 7, 8 |
 | V7 | `/update-vi` node in each README mermaid | ≥1 per edition | 4, 6, 7 |

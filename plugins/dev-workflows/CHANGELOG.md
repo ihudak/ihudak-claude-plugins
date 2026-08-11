@@ -4,6 +4,12 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.46.1] — 2026-08-11
+
+### Fixed
+
+- **The workflow diagram named commands two different ways without saying why.** One node read `/dev-workflows:statusline` while `/release-notes` and `/upgrade` — which collide with a Claude Code built-in exactly as `/statusline` does — sat bare beside it. A reader could see the inconsistency but not infer the rule behind it. The three colliding names are now qualified throughout the diagram, everything else keeps its short form, and a line beneath the diagram says which names need the prefix and why (`references/next-phase-offer.md` rule 6).
+
 ## [2.46.0] — 2026-08-11
 
 ### Fixed

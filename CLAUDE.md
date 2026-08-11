@@ -216,7 +216,7 @@ Key invariants for `/document` (Jira mode) and `/epics`:
 - Jira-vs-source discrepancies are escalated in Phase 5.8 (never auto-resolved); `doc-planner` records both `jira_phrasing` and `source_phrasing` without choosing
 - A bug-report draft (`<KEY>-implementation-gaps.md`) is written to the vault project folder for `document-as-jira` / `skip-and-report` decisions
 - Review gate is `doc-reviewer` (docs flow) or `epic-reviewer@Opus` (epics flow); `doc-fixer` resolves BLOCKERs; cap at one fix cycle plus one re-review
-- Sub-agents return `DIRTY_TREE` / `REFRESH_BLOCKED` when they cannot refresh repos — never fail silently
+- Sub-agents return `DIRTY_TREE` / `REFRESH_BLOCKED` when a **writable** repo cannot be refreshed; a read-only mount returns neither and scans at `prep.scanned_ref` — never fail silently
 - Every written claim must cite the originating Jira key (`[[KEY]]`) plus PR URL (docs flow) or file path (epics flow)
 - Writes never touch `_archive/` and never write outside cwd unless the user provides an explicit absolute path
 - (docs flow) Phase 0 runs the toolchain preflight after profile resolution; it prompts **only** when a required tool is missing, and Cancel is the recommended option
@@ -251,7 +251,7 @@ Key invariants for `$DOCS_PATH` docs grounding:
 - Read-only; never writes into `$DOCS_PATH`; advisory only — never a gate or reviewer BLOCKER
 - Default ON when `$DOCS_PATH` (`:-/workspace/docs`) is a readable dir with ≥1 markdown file; `--no-docs` off, `--docs <path>` override; every miss is a silent non-blocking skip
 - Grill commands rank challenges into the Impact × Uncertainty gap list (never append — preserves `/idea`'s ≤5 bound); writer commands attach the digest
-- `docs-grounder` retrieves via `qmd` CLI (no skill installed; `qmd update` never `--pull`) with keyword + `git log --grep` fallback; write roots `SPECS_PATH`/`VAULT_PATH` stay strict (no default)
+- `docs-grounder` retrieves via `qmd` CLI (no skill installed) but only ever **probes** the index — it never builds or refreshes one; index building and refreshing happen only in `resolve-docs-grounding` step 3.5, gated on user consent — with keyword + `git log --grep` fallback; write roots `SPECS_PATH`/`VAULT_PATH` stay strict (no default)
 
 Key invariants for specs-repo git (`references/specs-repo-git.md`):
 

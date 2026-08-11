@@ -72,6 +72,6 @@ gap_summary: |
 | `OK`              | Every theme was scanned and classified (including `absent`, a legitimate scan result, not a failure). |
 | `PARTIAL`         | Scan completed but at least one theme has `classification: error`. Failing themes do NOT abort the scan; mirrors `diff-summarizer`'s `PARTIAL` status. |
 | `REPO_MISSING`    | `repo_path` does not exist.                                                    |
-| `DIRTY_TREE`      | Working tree is dirty and refresh was requested; orchestrator must escalate.   |
+| `DIRTY_TREE`      | Working tree is dirty and refresh was requested, on a **writable** mount; orchestrator must escalate. A read-only mount never returns this. |
 | `REFRESH_BLOCKED` | Ref resolution or a writable-mount refresh genuinely failed (no resolvable default branch, network, auth, non-fast-forward); orchestrator escalates. A read-only mount is NOT a cause — that scan proceeds at `prep.scanned_ref` with `prep.read_only: true`. |
 | `EMPTY`           | Repo exists but every theme classified as absent and no relevant files found. Emit instead of `OK` when `capability_map` would contain only `absent` entries. |

@@ -75,7 +75,7 @@ docs grounding: ON <root> (retrieval: fallback — a project-local .qmd index in
 docs grounding: OFF (<reason>)
 ```
 
-Every form ends with the off switch `(turn off with --no-docs)` when the value is `ON`.
+None of the forms above carry the off switch inline — consumer commands state it separately (e.g. "off switch: --no-docs") alongside the verbatim line, per each command's own plan/approval step.
 
 **Docs-checkout staleness.** A fresh index over a stale checkout still grounds on stale docs, and a read-only docs mount cannot be pulled from inside the container. One pure read — `git -C "$docs_root" log -1 --format=%cI`, skipped silently when the root is not a git checkout — appends the clause when the newest commit is more than **14 days** old. That threshold is shared with `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md` §5, so the two move together.
 
@@ -123,3 +123,4 @@ challenges as authoring cautions.
 - Single directory; `${DOCS_PATH:-/workspace/docs}`.
 - Index **building and refreshing** happen only in `resolve-docs-grounding` step 3.5, never inside `docs-grounder`, which only probes. A build always requires user consent; a refresh runs bounded at 60s and asks only when that cap is breached.
 - The validity gate (step 3) checks the docs root, never the retrieval index — Path B works with no index at all, so gating on one would disable grounding exactly where the fallback still works.
+- `resolve-docs-grounding` runs **exactly once per run**, at the earliest phase that shows the `docs grounding:` line; any later invocation in that same run consumes the cached result — it never re-prompts, re-probes, or re-refreshes.

@@ -91,7 +91,7 @@ aggregate_summary: |
 |---------------------|--------------------------------------------------------------------------------|
 | `OK`                | All PRs resolved; summaries complete.                                          |
 | `REPO_MISSING`      | `repo_path` does not exist or is not a git repo.                              |
-| `DIRTY_TREE`        | Working tree is dirty and refresh was requested; orchestrator must escalate.   |
+| `DIRTY_TREE`        | Working tree is dirty and refresh was requested, on a **writable** mount; orchestrator must escalate. A read-only mount never returns this. |
 | `REFRESH_BLOCKED`   | `git fetch` or `git pull` genuinely failed (auth, network, non-fast-forward); orchestrator escalates. A read-only mount is NOT a cause — resolution proceeds at `prep.scanned_ref` with `prep.read_only: true`. |
 | `NO_PRS_RESOLVED`   | None of the provided PRs could be resolved; `unresolved_prs` lists all of them.|
 | `PARTIAL`           | Some PRs resolved, some unresolved; both `per_pr` and `unresolved_prs` populated. |

@@ -123,12 +123,14 @@ Each subagent dispatch below cites its chain (§9 role→chain map). **No relaun
 
 ## Phase 2 — Plan + approval
 
+**Documentation grounding (optional, independent of code scan).** Before presenting the plan below, run `resolve-docs-grounding epics` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` — this is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve here, before Phase 3's `jira-reader`, Phase 4's repo resolution, and Phase 5's parallel code scan do any of the run's real work.
+
 Present a concise plan:
 
 - Resolved `jira_key` and the `jira_export_root` path
 - Existing Epics identified under this VI (will NOT be duplicated)
 - Repos to scan (or "code scan off")
-- Docs grounding: `ON <root>` / `OFF (<reason>)` (off switch: --no-docs)
+- Docs grounding: the `docs grounding:` line that `resolve-docs-grounding` returned, verbatim — including its `retrieval:` value and any index-build, staleness, or shadowing clause (off switch: --no-docs)
 - Output directory with one file per new Epic; propose a name stub per Epic if the themes already suggest them
 - Parallelism plan (up to 4 `code-scanner` instances per batch, single Agent message per batch)
 - Proposed Epic sizing/sequencing — prefer fewer, larger Epics where the VI direction is validated; split only at a genuine risk / feedback-loop boundary; order so that no Epic depends on a later one
@@ -320,7 +322,7 @@ Handle per-repo status after the batch returns:
   ```
 - `prep.read_only: true` — not a failure. The scan ran at `prep.scanned_ref`. Escalate per the `Read-only mount — ref stale or diverged` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`; otherwise proceed silently and cite evidence at `prep.scanned_ref`.
 
-**Documentation grounding (optional, independent of code scan).** Run `resolve-docs-grounding epics` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the VI goal + Epic-set intent, `jira_key` = the VI key, `themes` = the `jira-reader` themes. Carry the digest into Phase 6 with **writer-attach** consumption. When OFF, skip silently. (Runs even when code scan is OFF.) Show the `docs grounding:` line that `resolve-docs-grounding` returned, verbatim, in this phase's plan/approval output — including its `retrieval:` value and any index-build, staleness, or shadowing clause (off switch: --no-docs).
+**Documentation grounding dispatch (optional, independent of code scan).** `docs_grounding` was already resolved in Phase 2 — consume that cached result here; never re-run `resolve-docs-grounding`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the VI goal + Epic-set intent, `jira_key` = the VI key, `themes` = the `jira-reader` themes. Carry the digest into Phase 6 with **writer-attach** consumption. When OFF, skip silently. (Runs even when code scan is OFF.)
 
 ---
 

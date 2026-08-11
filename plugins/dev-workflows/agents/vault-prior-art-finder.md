@@ -50,11 +50,10 @@ A `known_ref` whose `path` no longer resolves is **dropped with a `notes` line**
 
 ### 4. Classify the relation
 
-- `same_capability` — the item covers this very capability.
-- `predecessor_phase` — this idea is the next phase of that item.
-- `analogous_precedent` — a **parallel** initiative to model this one on, typically the same capability in the other product (an existing SaaS Value Increment ↔ a new Managed one on the 2gen UI). It produces no contradiction by itself; the question is where alignment is required and where divergence is deliberate. Expect this often.
-- `supersedes_self` — this idea **rewrites the very item it came from**, in place: same goal, different approach, same Jira key. Reachable **only** for a `known_refs` entry (`discovered_by: source`). A search hit is by definition a *different* item, so never assign this to one.
-- `adjacent_initiative` — related but distinct work.
+Assign each match a `relation` from the reference's `## Vocabulary` section. Two assignment rules are this agent's own:
+
+- **Expect `analogous_precedent` often.** Cross-product parallels are the common shape here, not an edge case.
+- **`supersedes_self` is reachable only for a `known_refs` entry** (`discovered_by: source`). A search hit is by definition a *different* item, so never assign it to one.
 
 ### 5. Resolve status
 
@@ -62,12 +61,7 @@ Follow the reference's ladder — work-doc frontmatter first, the export second,
 
 ### 6. Raise challenges
 
-- `already_tracked` — an initiative already covers this at status X; how is this different?
-- `phase_continuation` — this looks like the next phase of `<KEY>`; author it as such?
-- `precedent_alignment` — the precedent does X (scope shape, altitude, permissions, naming, UX). Should this match it, and where must it diverge? Name the divergence deliberately.
-- `rewrite_delta` — the item currently specifies X and this idea proposes Y. Is the **goal** unchanged, and which existing content is superseded rather than extended? Use this instead of `already_tracked` whenever the relation is `supersedes_self`, where "how is this different from that tracked work?" has the useless answer "it *is* that work".
-- `superseded` — the match is `Closed` / `Cancelled` / `Post GA`; does that resolve the problem, or is this a revival?
-- `adjacent_scope_boundary` — related work in flight; where is the boundary?
+Draw each challenge's `kind` from the reference's `## Vocabulary` section. One selection rule is this agent's own: **use `rewrite_delta` rather than `already_tracked` whenever the relation is `supersedes_self`**, where "how is this different from that tracked work?" has the useless answer "it *is* that work".
 
 ### 7. Propose an area
 
@@ -109,6 +103,7 @@ notes: <degradations, dropped known_refs, unrecognised status codes, why EMPTY>
 - NEVER write, create, move, or rename any file. This agent is read-only.
 - NEVER read a `Jira - <KEY>/` path for status — those are immutable snapshots of an older import.
 - NEVER read, report, or act on a **Value Pack**'s status. A VP-named directory is a grouper and nothing more.
+- NEVER match or read anything under an `_archive/` segment — an archived item is by definition not active prior art.
 - NEVER assign `supersedes_self` to a `discovered_by: search` match.
 - NEVER fabricate a Jira key, a status, or a match — an unresolved status is `unknown`.
 - NEVER make HTTPS/REST calls; NEVER shell out. Vault reads only, via `Read`/`Glob`/`Grep`.

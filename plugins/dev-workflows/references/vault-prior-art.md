@@ -105,6 +105,31 @@ An idea is written at `<container>/<candidate_slug>/idea.md`. Cases 2 and 3 are 
 
 **`area_proposal`.** `path` = the container of the top match, except that a **flat container yields `null`** — a root is not an area to propose — and `null` likewise when no match reached `high` confidence. `confidence` = that match's `match_confidence`, downgraded one step when the top two matches resolve to different containers.
 
+## Vocabulary
+
+The closed term sets. `idea-format.md` and `vault-prior-art-finder` both cite this section; it is defined here once so the two cannot drift.
+
+**`relation`** — how a match stands to the new work.
+
+| Term | Meaning |
+|---|---|
+| `same_capability` | The item covers this very capability. |
+| `predecessor_phase` | This idea is the next phase of that item. |
+| `analogous_precedent` | A **parallel** initiative to model this one on — typically the same capability in the other product (an existing SaaS Value Increment ↔ a new Managed one on the 2gen UI). It produces no contradiction by itself; the question is where alignment is required and where divergence is deliberate. |
+| `supersedes_self` | This idea **rewrites the very item it came from**, in place: same goal, different approach, same Jira key. |
+| `adjacent_initiative` | Related but distinct work. |
+
+**`kind`** — the reconciliation question a challenge puts to the author.
+
+| Term | Meaning |
+|---|---|
+| `already_tracked` | An initiative already covers this at status X; how is this different? |
+| `phase_continuation` | This looks like the next phase of `<KEY>`; author it as such? |
+| `precedent_alignment` | The precedent does X (scope shape, altitude, permissions, naming, UX). Should this match it, and where must it diverge? Name the divergence deliberately. |
+| `rewrite_delta` | The item currently specifies X and this idea proposes Y. Is the **goal** unchanged, and which existing content is superseded rather than extended? |
+| `superseded` | The match is `Closed` / `Cancelled` / `Post GA`; does that resolve the problem, or is this a revival? |
+| `adjacent_scope_boundary` | Related work in flight; where is the boundary? |
+
 ## Consumption
 
 **`grill-rank`** (`/idea`, `/create-vi`) — feed `prior_art` to the grill as positive grounding. **Rank** each `prior_art_challenges` entry into the command's existing Impact × Uncertainty gap list together with `docs_challenges`; do **not** append. A challenge competes for a question slot and never adds one — this preserves `/idea`'s ≤5-question bound.

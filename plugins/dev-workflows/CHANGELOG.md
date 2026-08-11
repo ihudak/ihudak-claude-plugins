@@ -4,6 +4,31 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.48.0] — 2026-08-11
+
+### Added
+
+- **`vault-prior-art-finder` agent and `references/vault-prior-art.md`.** `/idea` and `/create-vi` now ground on vault prior art to surface existing ideas, Value Increments, epics, and specifications that may extend, parallel, or supersede the work the user is authoring. The agent retrieves prior-art matches ranked by confidence and extracts the relation type — so the user can make an informed choice about the write path (rewrite existing, create new, or defer) at the Phase 4 gate.
+- **`resolve-export-for-key` entry point in `jira-input-resolution`.** The `idea-reader` agent uses it to handle both top-level and nested Jira product keys (e.g. `PRODUCT-14796` under `jira-products/PRODUCT/nested/14796/`) as supplied VI references, fixing a lookup failure on the 431 keys stored in subdirectories.
+- **`## Prior art` section in `idea-format.md`.** Documents the relationship types, confidence signals, and write-path derivation rules the Phase 4 gate uses to recommend a choice to the user.
+- **`--no-prior-art` off-switch for `/idea` and `/create-vi`.** Allows users to skip vault prior-art grounding on runs where the feature is not applicable or where an existing item is being refined within its current scope.
+
+### Changed
+
+- **`/idea` and `/create-vi` ground on vault prior art at Phase 2.5, in parallel with `docs-grounder`.** Parallel dispatch avoids blocking on either grounding operation alone; Phase 4 then assembles both digests (if any prior art found, any docs challenges found) into a unified grill question order that respects each digest's ranking.
+- **`idea-reader` now returns `salient_summary` for each followed reference.** Previously the agent extracted follow-links but did not summarize them; the Summary is now included in the digests so the user's grill questions can cite the extracted content.
+- **`/idea`'s write path and Phase 4 gate derive the container from prior-art matching.** In 2.47.x and earlier, a supplied VI always descended to depth 1 (`<container>/idea.md`). The new `area_proposal` from Phase 2.5 identifies the prior-art match's own structure and proposes that container instead — so ideas that extend existing work co-locate with it, and the user can see the relationship at a glance rather than hunting through nested directories.
+- **`/create-vi` Usage line completes with `--no-docs` and `--no-prior-art` switches.** The line already enumerated other flags; the grounding off-switches were missing.
+
+### Fixed
+
+- **`/idea` classified every Jira key as `rfe`; it now types Jira sources.** The `idea-reader` agent extracts the source type from the imported VI or feedback item — product feedback vs. Value Increment vs. Epic vs. Specification — so the user can understand what kind of prior work exists. Previously, a supplied VI was misclassified as a demand ticket.
+- **`/idea` classification stripped only the `--deep` flag while the command honours four: `--deep`, `--no-docs`, `--no-prior-art`, `--docs <path>`.** Unstripped flags landed inside the classified idea text and reached `idea-reader` as though the user typed them, corrupting the classified prompt. Now all four are stripped before classification.
+- **The `--as` future-work note advertised a non-existent `file` source type and omitted the `vi` type.** Phase 1's actual type set is `prompt`, `markdown`, `rfe`, and `vi`; the note now matches.
+- **The Phase 4 gate's `(Recommended)` derivation could name row 1 when row 1 was absent from the display.** When a supplied VI has no vault work document, the finder classifies the case as `supersedes_self` but yields `item_dir: null`, so row 1 is not rendered. The gate's selection rule now falls back to row 3 in every case where the row is not present, eliminating a recommendation that points at nothing.
+- **Several descriptions advertised "an exported RFE Jira ticket" as the only Jira source.** The `idea-reader` agent description, the `/idea` command preamble, and three README table rows all stated RFE-only after Task 4 made them false. Updated to reflect the actual set: product feedback (any Jira type) or Value Increment.
+- **`workflow-states.md` spelled a Jira status `Use cases defined` where Jira emits `Usecases defined`.** The `readiness-reviewer` agent string-matches against the emitted spelling, so the misspelled reference was never matched. Fixed to match.
+
 ## [2.47.1] — 2026-08-11
 
 ### Fixed

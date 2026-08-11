@@ -46,6 +46,7 @@ Use `choices` arrays; the last choice is always `"Other… (describe)"`.
 
 1. **Confirm** the feature folder, the profile, and the resolved `idea.md` (or "none — grill from scratch").
    - Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
+   - Show the `prior art:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md` resolved — `ON <vault-root>` or `OFF (<reason>)` — verbatim (off switch: --no-prior-art). Run `resolve-prior-art create-vi` per that reference to obtain it; it runs exactly once per run.
 2. **Existing-VI handling** (only if Phase 0 step 6 found a VI for `<KEY>`):
    - **No `--from-vi`** → `/create-vi` is greenfield-only; **redirect**:
      ```
@@ -105,15 +106,21 @@ If there is no idea (Phase 0 ladder exhausted), grill the VI from scratch.
 
 ---
 
-## Phase 2.5 — Documentation grounding (optional)
+## Phase 2.5 — Grounding: documentation + vault prior art (optional)
 
-Run `resolve-docs-grounding create-vi` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the idea's problem/goal + VI themes, `jira_key` = `<KEY>`, and `themes` from the idea. Carry the returned digest into Phase 3 with **grill-rank** consumption. When OFF, skip silently — the VI is authored exactly as today.
+Dispatch both grounding agents **in a single response** so they run in parallel. Each is independent; either being OFF never suppresses the other.
+
+**Docs.** Run `resolve-docs-grounding create-vi` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the idea's problem/goal + VI themes, `jira_key` = `<KEY>`, and `themes` from the idea. When OFF, skip silently.
+
+**Prior art.** Using the `resolve-prior-art create-vi` result from Phase 1: when `prior_art: ON`, `dispatch-prior-art-finder` per `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md` with `feature_summary` = the idea's problem/goal, `themes` from the idea, and `known_refs` = every filesystem path in the idea's `sources[]` as `{path, …}`, every Jira key in `sources[]` as `{jira_key, …}`, and the Jira key of each `## Prior art` bullet as `{jira_key, …}` — all with `has_summary: false`, since this command reads `idea.md` directly and holds no summaries of its own. Take the **key**, not the wikilink, from a `## Prior art` bullet: a wikilink resolves by file name and dangles the moment a vault item is renamed, which is exactly why the bullet carries both. Recorded `sources[]` paths may dangle for the same reason; the finder drops what it cannot resolve. When OFF, skip silently.
+
+Carry both digests into Phase 3 with **grill-rank** consumption. When both are OFF the VI is authored exactly as today.
 
 ---
 
 ## Phase 3 — Author via grill
 
-**Interview technique (grilling — embedded; no runtime dependency).** Conduct a **relentless** interview per `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, fact-vs-decision split (look up facts from the idea/sources; put only decisions to the user), walk the design tree in dependency order, continue to shared understanding then write each section.
+**Interview technique (grilling — embedded; no runtime dependency).** Conduct a **relentless** interview per `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, fact-vs-decision split (look up facts from the idea/sources; put only decisions to the user), walk the design tree in dependency order, continue to shared understanding then write each section. Rank every `docs_challenges` and `prior_art_challenges` entry from Phase 2.5 into the grill's question order; a challenge competes for attention, it never suspends the spine below.
 
 Author `<KEY>_<slug>.md` live against `${CLAUDE_PLUGIN_ROOT}/references/vi-format.md` for the selected profile, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md`. Walk the **spine** in dependency order:
 

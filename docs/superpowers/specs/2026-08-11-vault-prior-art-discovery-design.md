@@ -19,12 +19,13 @@ Both directions want the same three things: a resolved tracked status, a digest 
 | 3 | `idea-reader-digest-lacks-prior-art-content` | `idea-reader` returns prior-art **paths**, not content. The orchestrator then reads the files itself — the most expensive place to put a read. |
 | 4 | Found during design | `/idea` classifies **every** Jira key as `rfe`. A `PRODUCT-NNNN` Value Increment is read as a demand ticket. `PRODFB` appears nowhere in the plugin. |
 | 5 | Found during design | `/idea` resolves keys as `jira-products/<KEY>/` flat. **431 keys exist only nested**, including the Value Increments `PRODUCT-14796` and `PRODUCT-14592`. `/idea PRODUCT-14796` returns `NOT_FOUND`. |
+| 6 | Found during design | Phase 5's next-phase offer always says *"first create an empty Jira workitem"*. When the idea rewrites the VI it came from (§2.8), that instructs the user to mint a key they must not mint. |
 
 Entries 1–3 ship together because splitting them manufactures the dead-gate defect: a producer with no consumer, or a consumer with no producer. Entries 4–5 join them because a supplied VI *is* prior art — same status ladder, same digest, same `## Prior art` section.
 
 ## 2. Premise corrections
 
-Seven premises were corrected during design. Each changed the shape of the work.
+Eight premises were corrected during design. Each changed the shape of the work.
 
 **2.1 — Value Packs are out of scope entirely.** The motivating entry reports "the natural Jira parent, PRODUCT-15448, is **Cancelled**". PRODUCT-15448 is a **Value Pack**, not a Value Increment. The VP layer (VP → VI → Epic → Story → Task) was judged overkill for the department and every VP was closed while its VIs were kept as orphans. The pipeline commands were never meant to operate on Value Packs. A VP-named directory is a **grouper — a directory, nothing more**; its Jira status is irrelevant and must never be read, reported, or acted on. *The finder's evidence is therefore one case, not two: what survives from the entry is `PRODUCT-14640` in `Implementation` with the auth work already closed.*
 
@@ -39,6 +40,14 @@ Seven premises were corrected during design. Each changed the shape of the work.
 **2.6 — A supplied VI is both a source and prior art.** The recurring shape is cross-product: an existing **SaaS** VI — shipped or merely planned — and a new **Managed** VI doing the same thing on the 2gen UI. Azure Function deployment is the worked example. That VI is genuinely where the idea came from *and* genuinely an initiative to align against, so it is recorded in **both** `sources:` and `## Prior art`. The duplication is deliberate and load-bearing: `sources:` answers "how did this arrive", `## Prior art` answers "what must this stay consistent with".
 
 **2.7 — That relation is `analogous_precedent`, and it is the common case here, not an edge case.** The SaaS VI is neither the same capability nor a predecessor phase. It is a parallel initiative in the other product, to be modelled on and to diverge from **deliberately** (2gen UI, different altitude, different permissions). For a Managed-facing department this is the most frequent relation, which is why it is first-class in §3.7 and carries its own challenge kind.
+
+**2.8 — A supplied VI has three shapes, indistinguishable at invocation.** `/idea PRODUCT-NNNN` may mean *extend* it (a next phase — `PRODUCT-14640`), *parallel* it (the cross-product twin — §2.6), or **rewrite it in place**. The rewrite case is real and evidenced: `PRODUCT-14589` was "Export Smartscape topology", meaning a new API to export Monitored Entities and their relationships; the goal survived but the approach changed completely, to AI agents over the Managed MCP Server. The user ran `/idea PRODUCT-14589` and then `/create-vi PRODUCT-14589` — **the same key**.
+
+The first two shapes mint a new Jira key; the third reuses one. Nothing in the source distinguishes them, so this is a decision only the user can make, and Phase 4 is where it must be made (§5.2). Three artifacts of that run in the vault corroborate the surrounding defects:
+
+- the shipped `idea.md` records `provenance: rfe, ref: PRODUCT-14589` while the export says `issue_type: "ValueIncrement"` — §3.1's misclassification, in a kept artifact;
+- the file landed in `…/PRODUCT-14589 - Detect architecture drift…/idea.md`, **inside the VI's own item directory** — the documented rule yields `Projects/Products/<slug>/`, so the run deviated to be correct, and it went one level deeper than a grouper (§3.8);
+- the export tree holds **three copies** of `PRODUCT-14589`, one summarised "Architecture drift detection for Dynatrace Managed" and two still "Export Smartscape topology" — §3.2's most-recently-modified rule is what keeps the finder from reporting the pre-rewrite identity.
 
 ## 3. Components
 
@@ -152,13 +161,13 @@ prior_art:
     tracked_status:   <ladder status | unknown>
     status_source:    vault-frontmatter | jira-products | none
     status_conflict:  { vault_frontmatter: <X>, jira_products: <Y>, export_date: <YYYY-MM-DD> }   # omit when they agree
-    relation:         same_capability | predecessor_phase | analogous_precedent | adjacent_initiative
+    relation:         same_capability | predecessor_phase | analogous_precedent | supersedes_self | adjacent_initiative
     salient_summary:  <≤150 words — omitted when the caller declared has_summary: true>
     match_confidence: high | medium | low
     match_reason:     <why this item matched>
     discovered_by:    search | source
 prior_art_challenges:
-  - kind:      already_tracked | phase_continuation | precedent_alignment | superseded | adjacent_scope_boundary
+  - kind:      already_tracked | phase_continuation | precedent_alignment | rewrite_delta | superseded | adjacent_scope_boundary
     challenge: <the reconciliation question to put to the author>
     evidence:  { path: <file>, quoted_line: <verbatim line> }
     severity:  high | medium | low
@@ -174,6 +183,7 @@ notes: <degradations, unrecognised status codes, why EMPTY>
 - `same_capability` — the item covers this very capability.
 - `predecessor_phase` — this idea is the next phase of that item.
 - `analogous_precedent` — a *parallel* initiative to model this one on, typically the same capability in the other product (an existing SaaS VI ↔ a new Managed VI on 2gen UI). Produces no contradiction by itself; the question is where alignment is required and where divergence is deliberate. **The common relation for Managed-facing work** (§2.7).
+- `supersedes_self` — this idea **rewrites the very item it came from**, in place. Only ever reachable for a supplied `vi` source (`discovered_by: source`), never for a discovered match — a search hit is by definition a *different* item. `PRODUCT-14589` is the worked example: same goal, wholly different approach, same Jira key (§2.8).
 - `adjacent_initiative` — related but distinct work.
 
 **`kind` semantics**
@@ -182,6 +192,7 @@ notes: <degradations, unrecognised status codes, why EMPTY>
 - `phase_continuation` — this looks like the next phase of `<KEY>`; author it as such?
 - `precedent_alignment` — the precedent does X (scope shape, altitude, permissions, naming, UX). Should this match it, and where must it diverge? Name the divergence deliberately.
 - `superseded` — the match is `Closed` / `Cancelled` / `Post GA`; does that resolve the problem, or is this a revival?
+- `rewrite_delta` — the item currently specifies X and this idea proposes Y. Is the **goal** unchanged, and which of the existing content is superseded rather than extended? Paired with `supersedes_self`; this is the question the `already_tracked` challenge gets wrong for a rewrite, where "how is this different from that tracked work?" has the useless answer "it *is* that work".
 - `adjacent_scope_boundary` — related work in flight; where is the boundary?
 
 ### 3.8 Container derivation (shared)
@@ -192,9 +203,11 @@ Given an absolute path `P` inside the write root, its **container** is:
 
 1. the **depth-1 directory under `Projects/Products/`** on `P`'s path — the grouper when `P` sits at depth 2 or deeper (`Projects/Products/<grouper>/<item>/…`), and `P`'s own directory when it sits at depth 1 (`Projects/Products/<item>/…`);
 2. `Projects/Products/` itself, when `P` is a bare `.md` directly under `Projects/Products/`;
-3. `Projects/ideas/` otherwise — including when `P` lies under `Projects/ideas/` (an idea sibling is not an area), when `P` lies elsewhere in the vault or outside it, and when `P` is absent (an inline prompt, or a Jira key).
+3. `Projects/ideas/` otherwise — including when `P` lies under `Projects/ideas/` (an idea sibling is not an area), when `P` lies elsewhere in the vault or outside it, and when `P` is absent.
 
 An idea is always written at `<container>/<candidate_slug>/idea.md`. Cases 2 and 3 are the **flat containers** — they name a root, not a specific area.
+
+**Choosing `P` for a Jira-key source.** A key has no vault path of its own — its export lives under `jira-products/`, which is outside `Projects/` and would always fall to case 3. Instead, `P` = the **vault item directory** the finder resolved for that key (the item whose work document carries `jira.id: <KEY>`), when one exists; absent otherwise. So `/idea PRODUCT-14589` gets container `VP-15448 …/` — a *new sibling* beside the VI, which is right for extending or paralleling it and wrong for rewriting it in place. §5.2 is where that gets decided; the container rule stays a pure path→path function and does not try to guess intent.
 
 ### 3.9 `area_proposal` derivation
 
@@ -232,13 +245,24 @@ Five consumers. Every one is named here so none of this becomes a producer witho
 
 *The provenance default becomes depth-aware.* Today it yields a flat `Projects/<Products|ideas>/<slug>/idea.md` regardless of how deep the source sits. It becomes `<container(source path)>/<candidate_slug>/idea.md` per §3.8. A source under `Projects/Products/<grouper>/<item>/` therefore lands beside its neighbours in `<grouper>/` instead of flat under `Products/` — matching the convention the vault already follows, with no prior-art match required. An inline prompt, a Jira key, and any source outside `Projects/Products/` all resolve to `Projects/ideas/` exactly as today, so the common case is unchanged.
 
-*The gate.* Fires **iff** all three hold: `area_proposal.path` is non-null, `area_proposal.confidence` is `high`, **and** `area_proposal.path` differs from the provenance default's container. The third test is load-bearing precisely because the default is now a container too — when the source already sits in the area the finder points at, the two agree and there is nothing to ask. Presented verbatim:
+*The gate.* **One** gate, assembled deterministically — not two that could both fire. Rows are built in this order and the array is presented verbatim:
 
-```
-choices: ["Write under <area_proposal.path>/<candidate_slug>/ (Recommended)", "Write under <provenance default> as detected", "Enter a different path", "Cancel", "Other… (describe)"]
-```
+| Row | Included when | Text |
+|---|---|---|
+| 1 | the source is `vi` **and** the finder resolved a vault item directory for that key | `Rewrite <KEY> — write into <item-dir>/` |
+| 2 | `area_proposal.path` is non-null, `confidence: high`, **and** it differs from the provenance default's container | `New idea under <area_proposal.path>/<candidate_slug>/` |
+| 3 | always | `Write to <provenance default>/<candidate_slug>/ as detected` |
+| 4 | always | `Enter a different path` |
+| 5 | always | `Cancel` |
+| 6 | always | `Other… (describe)` |
 
-Every choice is validated to sit inside the resolved write root and be writable. When the gate does not fire, the provenance default applies silently. The gate **never** auto-relocates and consumes **zero** grill slots — it sits beside the existing-file gate, where the path is actually decided.
+The gate **fires iff at least one of rows 1–2 is present**; otherwise the provenance default applies silently. Row 2's differs-from-default test is load-bearing precisely because the default is now a container too — when the source already sits in the area the finder points at, the two agree and there is nothing to ask.
+
+`(Recommended)` is appended to **exactly one** row, chosen by the top match's `relation`: `supersedes_self` → row 1; `predecessor_phase` or `analogous_precedent` → row 2 when present, else row 3; anything else → row 2 when present, else row 3. Row 1 is never recommended without `supersedes_self`, because extending and paralleling a VI are just as common as rewriting it (§2.8) and a wrong default here silently mints or fails to mint a Jira key.
+
+**The choice is recorded as `vi_disposition`** — `rewrite` for row 1, `new` for every other row — and carried into Phase 5 (§5.4). This is the only place the three shapes of a supplied VI can be told apart, so the gate is not merely about a directory.
+
+Every choice is validated to sit inside the resolved write root and be writable. The gate **never** auto-relocates and consumes **zero** grill slots — it sits beside the existing-file gate, where the path is actually decided.
 
 `/create-vi` gets no gate: its path is keyed under `$SPECS_PATH/specifications/<KEY>-<slug>/`, so there is no area to resolve.
 
@@ -251,6 +275,13 @@ Every choice is validated to sit inside the resolved write root and be writable.
 The whole section is omitted when nothing was found. A key or status is never fabricated; an unresolved status is written as `status unknown`. A `vi` source appears here **and** in `sources:` (§2.6).
 
 **5.4 — Phase 5 handoff.** Prior art is reported whether or not the gate fired — matched keys with statuses, and the alternative path when one exists. This is the feedback's stated minimum, and it is what lets the user relocate before `/create-vi` makes the path sticky.
+
+The handoff additionally **consumes `vi_disposition`** (§5.2), because today's offer is wrong for a rewrite. It currently reads *"first create an empty Jira workitem, then run `/dev-workflows:create-vi <JIRA-KEY> …`"* — but a rewrite needs no new workitem and its key is already known:
+
+- `vi_disposition: rewrite` → *"Next: `/dev-workflows:create-vi <KEY> @<path>` — this rewrites the existing VI; no new Jira workitem is needed."*
+- `vi_disposition: new` (and every run with no `vi` source) → the existing text, unchanged.
+
+The `draft`-status variants keep their existing shape, differing only in the same clause. Without this, the run that ends in a rewrite tells the user to mint a key they must not mint.
 
 **5.5 — Source typing (`/idea` Phase 1–2).** The resolved `issue_type` drives the provenance label, which drives how `idea-reader` reads the ticket (§3.1). Without a consumer the typing would be decoration.
 
@@ -316,6 +347,8 @@ Recorded with reasons, so a later reader does not read them as oversights.
 | R10 | The depth-aware default changes where ideas land even on runs that find no prior art. | Intended: it matches the convention the vault already follows. Bounded by §3.8 case 3 — every source not under `Projects/Products/` resolves to `Projects/ideas/` exactly as today. V11b enumerates the unchanged cases. |
 | R11 | §3.2 changes behavior for an existing `jira-input-resolution.md` caller. | Purely additive new entry point; V19 diffs the existing sections byte-for-byte. |
 | R12 | Typing a non-VI, non-PRODFB issue type wrongly. | Never silent: the actual `issue_type` is surfaced in the Phase 1 confirmation and the user chooses. |
+| R13 | The gate's `(Recommended)` marker steers the user to the wrong `vi_disposition`, which decides whether a Jira key gets minted. | The marker derives from the top match's `relation`, never from a fixed default; rows 1–3 are always all present; and the consequence is restated in plain words in the Phase 5 offer, where a wrong choice is still visible before any Jira action. |
+| R14 | `supersedes_self` leaks onto a discovered match, making an unrelated item look like a self-rewrite. | Structurally impossible by definition — a search hit is a different item. V24 asserts no instruction path reaches it from `discovered_by: search`. |
 
 ## 10. Verification
 
@@ -347,4 +380,8 @@ No test framework — verification is grep, `awk`, `diff`, and reading. Every co
 | V20 | `/idea` types a Jira source from `issue_type`, not from the project prefix — no `PRODUCT`/`PRODFB` string test decides provenance. |
 | V21 | `/idea PRODUCT-14796` resolves (a nested-only `ValueIncrement`); the flat `jira-products/<KEY>/` assumption survives nowhere in `/idea` or `idea-reader`. |
 | V22 | A `vi` source appears in **both** `sources:` and `## Prior art`, and `idea-reader` does not mine it for demand signals. |
-| V23 | `analogous_precedent` and `precedent_alignment` are defined in the reference and reachable from the agent's classification instructions. |
+| V23 | `analogous_precedent`/`precedent_alignment` and `supersedes_self`/`rewrite_delta` are defined in the reference and reachable from the agent's classification instructions. |
+| V24 | `supersedes_self` is reachable **only** for `discovered_by: source`; no instruction path produces it from a search hit. |
+| V25 | `/idea` Phase 4 ships **one** assembled gate with the §5.2 row order, the stated inclusion conditions, and exactly **one** `(Recommended)` marker whose placement is derived from `relation` — not fixed. |
+| V26 | `vi_disposition` is produced in Phase 4 and consumed in Phase 5; **both** handoff forms ship, and no path still tells a rewrite run to create an empty Jira workitem. |
+| V27 | The §3.8 Jira-key rule ships: a key source resolves `P` to the matched item's vault directory, and falls back to absent (⇒ `Projects/ideas/`) when there is none. |

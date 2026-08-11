@@ -51,7 +51,7 @@ Two write-free scan targets:
   - search — `git -C "<repo_path>" grep -n <pattern> <ref> -- <pathspec>`
   - read — `git -C "<repo_path>" show <ref>:<path>`
 
-**When HEAD is already at the ref — `git rev-parse HEAD` equals `git rev-parse <ref>` — scan the working tree natively.** The content is identical and the native tools are better, so the common read-only case costs nothing extra.
+**When HEAD is already at the ref — `git -C "<repo_path>" rev-parse HEAD` equals `git -C "<repo_path>" rev-parse <ref>` — scan the working tree natively.** The content is identical and the native tools are better, so the common read-only case costs nothing extra.
 
 Otherwise read at the ref. If `git grep <tree-ish>` is unavailable or errors, fall back to `git show`-per-file over an `ls-tree` shortlist. If that also fails, return `REFRESH_BLOCKED` with the one-line git error.
 
@@ -80,7 +80,7 @@ Every path an agent returns keeps its documented meaning — relative to the rep
 
 ## 7. Caller contract
 
-A caller that reads repository files directly, rather than through one of these agents, must first confirm `HEAD` is at the remote default ref — or cite the content via `scanned_ref` (`git show <scanned_ref>:<path>`). A working tree on an unmerged branch is not released behavior, and citing it as current is the failure this reference exists to prevent.
+A caller that reads repository files directly, rather than through one of these agents, must first confirm `HEAD` is at the remote default ref — or cite the content via `scanned_ref` (`git -C "<repo_path>" show <scanned_ref>:<path>`). A working tree on an unmerged branch is not released behavior, and citing it as current is the failure this reference exists to prevent.
 
 ## 8. Hard rules
 

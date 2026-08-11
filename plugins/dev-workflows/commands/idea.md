@@ -149,7 +149,7 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
 
   | Row | Included when | Text |
   |---|---|---|
-  | 1 | `provenance: vi` **and** the finder resolved a vault item directory for that key | `Rewrite <KEY> — write into <item-dir>/` |
+  | 1 | `provenance: vi` | `Rewrite <KEY> — write into <item-dir>/` when the finder resolved one, else `Rewrite <KEY> — write to <container default>/<candidate_slug>/` |
   | 2 | `area_proposal.path` non-null, `confidence: high`, **and** it differs from the container default | `New idea under <area_proposal.path>/<candidate_slug>/` |
   | 3 | always | `Write to <container default>/<candidate_slug>/ as detected` |
   | 4 | always | `Enter a different path` |
@@ -168,11 +168,17 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
   the resolved write root and is writable.
 
   Record the choice as **`vi_disposition`** — `rewrite` for row 1, `new` for every other row — and carry
-  it into Phase 5. This is the only point in the flow where the three shapes of a supplied VI (extend,
+  it into Phase 5. **When the gate does not fire at all, `vi_disposition` is `new`.** Row 1 keys only on
+  `provenance: vi`, never on the finder resolving anything, so a `vi` source always reaches this question
+  even when prior-art grounding is OFF or the key has no vault work document — the disposition decides
+  whether the user is told to mint a Jira key, which is not an advisory matter and must not depend on an
+  advisory, user-disableable subsystem. This is the only point in the flow where the three shapes of a supplied VI (extend,
   parallel, rewrite-in-place) can be told apart.
-- **`## Prior art`:** when Phase 2.5 returned any `prior_art` entry, write the section per
-  `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`; omit it entirely otherwise. A `vi` source appears
-  there **and** in `sources:`.
+- **`## Prior art`:** write the section per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` when
+  Phase 2.5 returned any `prior_art` entry **or** the source is `vi`; omit it entirely otherwise. A `vi`
+  source contributes its Phase 2 `tracked` block (key, status, summary) even when prior-art grounding is
+  OFF — it is prior art the user handed over, not something the finder discovered — and appears there
+  **and** in `sources:`. Merge by Jira key so a supplied VI the finder also matched yields one bullet.
 - **Existing file:** if `idea.md` already exists at that path, offer:
   ```
   choices: ["Refine the existing idea.md (Recommended)", "Create a new one (you'll be prompted for a slug)", "Cancel", "Other… (describe)"]
@@ -273,5 +279,6 @@ Report: the `idea.md` path + `status` (refined / draft with N open clarification
 or broken wikilinks; the resolved model routing (+ any Opus degradation); the feedback path; the cost
 path (or notice); the `Specs repo:` outcome line from `commit-artifacts`
 (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; any
-prior art found (keys + statuses) and the resolved `vi_disposition`; and the adaptive next-phase
-recommendation.
+prior art found (keys + statuses), any `status_conflict` a match reported (both values and the export's
+date — it is the signal that catches a broken sync) and any `notes` the finder returned; the resolved
+`vi_disposition`; and the adaptive next-phase recommendation.

@@ -12,7 +12,7 @@ Consumers: `/idea` (grill-rank, write path, `## Prior art`, handoff) and `/creat
 2. **Resolve the root.** `vault_root = $VAULT_PATH`. Unlike `$DOCS_PATH` this has **no default** — `$VAULT_PATH` is a write root, and write roots deliberately do not default.
 3. **Validity gate — ON only when all hold** (else `OFF` with a one-line reason):
    - `$VAULT_PATH` is non-empty and is an existing, readable directory;
-   - the run writes into that vault — when the command fell back to a user-supplied write root, return `OFF`, `reason: "write root is not the vault"`;
+   - **`/idea` only** — the run writes into that vault: when `/idea` fell back to a user-supplied write root, return `OFF`, `reason: "write root is not the vault"`. This check does not apply to `/create-vi`, which writes to `$SPECS_PATH` by design and never into the vault; applying it there would resolve `OFF` on every run.
    - at least one of `Projects/Products/` and `Projects/ideas/` exists under it.
 4. **Return** `{ prior_art, vault_root, reason }`.
 

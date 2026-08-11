@@ -255,7 +255,7 @@ Five consumers. Every one is named here so none of this becomes a producer witho
 
 | Row | Included when | Text |
 |---|---|---|
-| 1 | the source is `vi` **and** the finder resolved a vault item directory for that key | `Rewrite <KEY> — write into <item-dir>/` |
+| 1 | the source is `vi` | `Rewrite <KEY> — write into <item-dir>/` when the finder resolved one, else `Rewrite <KEY> — write to <container default>/<candidate_slug>/` |
 | 2 | `area_proposal.path` is non-null, `confidence: high`, **and** it differs from the provenance default's container | `New idea under <area_proposal.path>/<candidate_slug>/` |
 | 3 | always | `Write to <provenance default>/<candidate_slug>/ as detected` |
 | 4 | always | `Enter a different path` |
@@ -270,13 +270,15 @@ The gate **fires iff at least one of rows 1–2 is present**; otherwise the prov
 
 Row 1 is never recommended without `supersedes_self`, because extending and paralleling a VI are just as common as rewriting it (§2.8) and a wrong default here silently mints or fails to mint a Jira key.
 
-**The choice is recorded as `vi_disposition`** — `rewrite` for row 1, `new` for every other row — and carried into Phase 5 (§5.4). This is the only place the three shapes of a supplied VI can be told apart, so the gate is not merely about a directory.
+**The choice is recorded as `vi_disposition`** — `rewrite` for row 1, `new` for every other row, and `new` when the gate does not fire at all — and carried into Phase 5 (§5.4). This is the only place the three shapes of a supplied VI can be told apart, so the gate is not merely about a directory.
+
+**Row 1 keys only on `provenance: vi`, never on the finder resolving an item directory.** Otherwise two reachable states leave `vi_disposition` unset — prior-art grounding switched off, and a `vi` key with no vault work document — and Phase 5 falls through to the `new` text that §5.4 exists to eliminate. Whether the user mints a Jira key is explicitly not advisory (§7); it must not depend on an advisory, user-disableable subsystem.
 
 Every choice is validated to sit inside the resolved write root and be writable. The gate **never** auto-relocates and consumes **zero** grill slots — it sits beside the existing-file gate, where the path is actually decided.
 
 `/create-vi` gets no gate: its path is keyed under `$SPECS_PATH/specifications/<KEY>-<slug>/`, so there is no area to resolve.
 
-**5.3 — `## Prior art` in `idea.md`.** The durable carrier, fed from both directions — discovered matches and a supplied `vi` source alike. One bullet per entry:
+**5.3 — `## Prior art` in `idea.md`.** The durable carrier, fed from both directions — discovered matches and a supplied `vi` source alike. A `vi` source contributes via its Phase 2 `tracked` block, so the section is written whenever prior art was discovered **or** the source is `vi`; entries merge by Jira key. Gating it on the finder alone would drop the supplied case whenever grounding is off. One bullet per entry:
 
 ```
 - [[<work doc>]] (<JIRA-KEY>, <status>) — <relation>: <one line>

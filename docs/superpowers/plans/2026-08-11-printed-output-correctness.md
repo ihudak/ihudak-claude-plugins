@@ -22,7 +22,7 @@
 - **G-6 — R1, the load-bearing constraint.** The qualified form is written **literally into the source** at every site. A site is NEVER satisfied by adding a citation to rule 6, or by any instruction telling the model to qualify names at runtime. Confirmed hazard: `commands/implement.md:111` prints a `/ready` recommendation and there are **zero** citations of `next-phase-offer.md` anywhere near it — the offer contract is consulted ~500 lines later. Gated by V16.
 - **G-7 — Counting discipline.** Every count is whitespace-normalised (`tr '\n' ' '`) because several files hard-wrap; line-level `grep -c` produced four false counts in the previous sub-project. Surface i extraction MUST be indent-tolerant (`/^[[:space:]]*### Next step/`) — anchoring at line start finds 11 sites in 5 files; the indent-tolerant form finds 15 in 7 and adds `ready.md` and `release-notes.md` outright.
 - **G-8 — Copilot dialect.** Copilot prints `<name>:` (e.g. `release-notes: <VI>`), never `/name`. Slash-style invocation works there, but `/release-notes`, `/upgrade`, `/feedback`, and `/statusline` are Copilot built-ins and win the collision.
-- **G-9 — Release files.** Canonical + mgd → `2.46.0`; copilot → `2.16.0`. **Both** `marketplace.json` catalogs (canonical root and mgd root) must be bumped — they were missed in 2.42.0, so they appear explicitly in the file tables below.
+- **G-9 — Release files.** Canonical + mgd → `2.46.0`; copilot → `2.16.0`. **All THREE** `marketplace.json` catalogs must be bumped: canonical root `.claude-plugin/marketplace.json`, mgd root `.claude-plugin/marketplace.json`, and copilot `.github/plugin/marketplace.json` — note copilot's lives at a **different path**, which is how it gets forgotten. A catalog was missed in 2.42.0, and the first draft of this plan repeated the miss for copilot while warning against it for the other two.
 - **G-10 — CHANGELOGs are append-only.** Add a new entry; never rewrite shipped history. Verify version ordering stays monotonic.
 - **G-11 — Commit trailer.** Every commit message ends with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
 - **G-12 — Counts in this plan are OBSERVATIONS from spec time, not gates.** Re-derive every one. If a derived count differs from the plan, **STOP and report the mismatch** — do not force the number and do not invent a site to reach it. In the previous sub-project, implementers who flagged a count mismatch were right 6 times out of 6.
@@ -78,6 +78,7 @@ Two properties, both verified:
 | `dev-workflows/skills/create-vi/SKILL.md:136` | `epics:` Phase 6.1 → 6.2 | 7 |
 | `dev-workflows/README.md` | `update-vi` node in the mermaid diagram | 7 |
 | `dev-workflows/.plugin/plugin.json` | version → 2.16.0 | 7 |
+| `.github/plugin/marketplace.json` | catalog version → 2.16.0 — **different path** from the other two editions | 7 |
 | `dev-workflows/CHANGELOG.md` | 2.16.0 entry | 7 |
 
 ---
@@ -835,7 +836,7 @@ Node labels use this edition's `<name>:` idiom, matching every sibling node.
 
 - [ ] **Step 6: Bump version and add the CHANGELOG entry**
 
-`dev-workflows/.plugin/plugin.json` `"version": "2.15.0"` → `"2.16.0"`. Insert above `## [2.15.0]`:
+`dev-workflows/.plugin/plugin.json` `"version": "2.15.0"` → `"2.16.0"`, **and** `.github/plugin/marketplace.json`'s `dev-workflows` entry → `"2.16.0"` (do not reformat the catalog). Insert above `## [2.15.0]`:
 
 ```markdown
 ## [2.16.0] — 2026-08-11
@@ -998,7 +999,7 @@ EOF
 | V10 | copilot cites `epics:` Phase 6.2 | 1; zero 6.1 | 7 |
 | V11 | copilot printed surfaces carry no slash refs | 0 | 7 |
 | V12 | mgd parity | exactly 6 identity files | 6, 8 |
-| V13 | CHANGELOGs monotonic; both catalogs bumped | pass | 5, 6, 7, 8 |
+| V13 | CHANGELOGs monotonic; **all three** catalogs bumped and parsing | pass | 5, 6, 7, 8 |
 | V14 | R2 re-check — printed sites outside `commands/` | 0 real | 8 |
 | V15 | R3 re-check — slashless names in surfaces i/ii | 0 | 8 |
 | V16 | R1 — no site defers to rule 6 at runtime | 0 | 8 |

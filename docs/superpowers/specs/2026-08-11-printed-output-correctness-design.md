@@ -22,6 +22,8 @@ The real mechanism is **Claude Code's own built-in commands**, and the plugin al
 
 `/release-notes` and `/upgrade` are Claude Code built-ins too, so they collide identically. The convention and its justification already exist; they were simply never generalised. The README's mermaid diagram is the visible symptom: one node reads `/dev-workflows:statusline` while all fourteen siblings are bare.
 
+The same mechanism is confirmed in Copilot, whose CLI bundle registers `/release-notes`, `/upgrade`, `/feedback`, and `/statusline` as built-in slash commands — four collisions with `dev-workflows` skill names. This matters because slash-style invocation *does* work in Copilot; the defect there is collision, not failure.
+
 ### (b) "README + workflow diagram are missing `/update-vi` and `/idea --deep`"
 
 **Both stated gaps are false; a worse one is real.**
@@ -44,11 +46,15 @@ This is the same defect shape as sub-project C's two Criticals: the rule is cite
 
 > 6. **Fully qualified when printed** — every command name the run PRINTS for the user to invoke is written `/dev-workflows:<command>`. A bare `/<command>` can resolve to a Claude Code built-in of the same name — `/release-notes`, `/upgrade`, and `/statusline` all collide today, and the built-in wins — so the bare form is NEVER printed. Prose that describes the pipeline to a reader of this plugin's source keeps the short form.
 
-**Copilot wording** (no slash commands exist in that edition; the collision concept does not apply, but the same defect does — a printed slash-style reference invokes nothing):
+**Copilot wording.** Slash-style `/<name>` *does* work in Copilot — it invokes the skill. The defect there is not that it fails, but that it collides for exactly the same reason it does in Claude Code: Copilot ships its own built-in slash commands. Four of them collide with `dev-workflows` skill names, confirmed as slash tokens in the `@github/copilot` CLI bundle — **`/release-notes`, `/upgrade`, `/feedback`, and `/statusline`**. The `<name>:` form is unambiguous and is this edition's documented idiom, so it is what gets printed:
 
-> 6. **Printed in this edition's invocation idiom** — every skill name the run PRINTS for the user to invoke is written `<name>:` (e.g. `release-notes: <VI>`). Slash-style `/<name>` is a Claude Code idiom that invokes nothing here, so it is NEVER printed. Prose that describes the pipeline to a reader of this edition's source keeps the short form.
+> 6. **Printed in this edition's invocation idiom** — every skill name the run PRINTS for the user to invoke is written `<name>:` (e.g. `release-notes: <VI>`). Slash-style `/<name>` does invoke the skill, but it can resolve to a Copilot built-in of the same name instead — `/release-notes`, `/upgrade`, `/feedback`, and `/statusline` all collide today — so the slash form is NEVER printed. Prose that describes the pipeline to a reader of this edition's source keeps the short form.
+
+Note that `/feedback` collides in Copilot and `dev-workflows` ships a `feedback` skill, so that edition has one collision the canonical edition is not known to have.
 
 `commands/statusline.md`'s paragraph is retained but rewritten to cite rule 6 as the general rule rather than presenting itself as a one-off exception. No information is lost; the special case becomes an instance.
+
+**Rule 6 is not what makes the output correct.** The sweep writes the qualified form literally into the command source at every existing printed site, so correctness is a static property of the shipped text rather than a behaviour the model must perform mid-run. Rule 6 governs *newly added* printed sites and gives reviewers a citable rule. This distinction is load-bearing — see risk R1, where a site was confirmed to sit ~500 lines from any citation of this file.
 
 ## The five printed surfaces
 
@@ -123,7 +129,7 @@ For context, `commands/*.md` holds 369 bare occurrences in total; `references/` 
 
 - `references/` and `agents/` prose (547 occurrences) — not printed to the user.
 - README command tables, role tables, and root `CLAUDE.md` — prose; short forms stay.
-- The copilot edition's remaining slash-style refs outside printed surfaces (~66 total occurrences, some of which are REST-path false positives in the API-guidelines references). This keeps all three editions' scope aligned, which is how parity is verified. The residue stays logged as the known pre-existing dialect bug.
+- The copilot edition's remaining slash-style refs outside printed surfaces (~66 total occurrences, some of which are REST-path false positives in the API-guidelines references). These are **not broken** — slash-style invocation works in Copilot — they are merely inconsistent with the edition's `<name>:` idiom in text nobody copies. Leaving them keeps all three editions' scope aligned, which is what makes parity checkable.
 - **Never shorten an already-qualified name.** The README diagram's existing `/dev-workflows:statusline` node stays exactly as it is. Re-bareing it would print a name that resolves to Claude Code's built-in — the very defect D exists to remove.
 
 ## `/update-vi` in the routing graph
@@ -160,13 +166,52 @@ No test framework — verification is grep, diff, and reading. Every count is wh
 | V11 | Copilot printed surfaces carry zero slash-style refs | 0 |
 | V12 | mgd parity — files differing from canonical under `plugins/dev-workflows` **plus repo root** | exactly the 6 identity files |
 | V13 | CHANGELOGs monotonic; new entry in all three; both `marketplace.json` catalogs bumped | pass |
+| V14 | R2 re-check — verb-marker grep over `agents/` + `references/` (excluding `next-phase-offer.md`) | 0 printed sites |
+| V15 | R3 re-check — backticked slashless command names inside surfaces i/ii | 0 |
+| V16 | R1 — every site in the surface i–v inventory carries the qualified form **literally in the source**, not by reference to rule 6 | 0 sites relying on runtime rule-following |
 
-**Dialect note for V2–V4.** "Bare name" means the edition's *wrong* printed form. In canonical and mgd that is `/<command>` (unqualified); in copilot it is any slash-style `/<name>` at all, since that edition invokes skills as `<name>:`. The `BARE` regex above detects both cases — in copilot every match is a defect, in canonical/mgd only the unqualified ones are.
+**Dialect note for V2–V4.** "Bare name" means the edition's *wrong* printed form. In canonical and mgd that is an unqualified `/<command>`; in copilot it is any slash-style `/<name>`, because that edition prints `<name>:`. The `BARE` regex detects both — inside a printed surface, every copilot match is a defect, and in canonical/mgd only the unqualified ones are. A slash-style ref in copilot *prose* is not a defect (it works); it is simply out of scope.
 
 **V12 note.** mgd's identity set is **six** files, not five: `plugins/dev-workflows/.claude-plugin/plugin.json`, `LICENSE`, `README.md`, `references/dependencies.md`, plus root `CLAUDE.md` and `.claude-plugin/marketplace.json`. `references/dependencies.md` correctly says `mgd-plugins` where canonical says `ihudak-plugins` — it is not drift, and was mislabelled as such by three reviewers during sub-project C. A seventh differing file is the signal. This check must cover the repository root, since scoping it to `plugins/dev-workflows` is exactly what let (c) survive two releases.
 
 ## Risks
 
-- **Over-qualification.** Rewriting prose that merely describes the pipeline makes dense text heavier without benefit. Mitigated by the surface list: only i–v are in scope, and iii/iv verdicts are recorded per file for review.
-- **Under-qualification via the wrong axis.** The failure mode from C. Mitigated by naming five surfaces drawn on different axes (structure, quotation, instruction verb) rather than one, and by the indent-tolerant extraction for surface i.
-- **Copilot divergence.** Fixing only printed surfaces leaves some files with mixed dialect. Accepted deliberately: aligned scope across editions is what makes parity checkable, and the residue is already logged.
+### R1 — The rule ships but never reaches the printed output (HIGH; mitigation is structural)
+
+This is the defect class that produced both of sub-project C's Criticals, and D is exposed to it directly.
+
+Rule 6 is a **runtime** instruction: it tells the model, mid-run, how to write a name. But surfaces iii and iv sit in phases that never cite `next-phase-offer.md`. Confirmed: `commands/implement.md:111` prints a `/ready` recommendation in Phase 1, and there are **zero** citations of `next-phase-offer.md` anywhere in that region of the file — the offer contract is consulted ~500 lines later. A rule that only lives in `next-phase-offer.md` would be correct, cited, counted, and still never applied at that site.
+
+**Mitigation — do not depend on the rule at runtime.** The sweep writes the qualified form **literally into the command source** at every identified site. Runtime correctness becomes a static property of the shipped text, not a behaviour the model must remember to perform. Rule 6's job is then narrower and must be stated as such in the plan: it governs *newly added* printed sites and gives reviewers something citable. 
+
+This inverts the risk posture in a way worth naming: with the static mitigation in place, a rule 6 that no command ever reads is a **documentation** shortfall, not an output defect. Without it, rule 6 is load-bearing and unreachable. It is also what makes V2/V3/V4 meaningful — a grep over static text can gate a static property, and cannot gate a runtime behaviour.
+
+### R2 — Printed suggestions outside `commands/` (LOW; checked, none found)
+
+Scope is drawn on a *directory* axis (`commands/` in; `agents/`, `references/` out), which is a weaker axis than the surface list and could hide sites in agent reports or reference-defined templates that the orchestrator prints verbatim.
+
+**Checked, not assumed.** A verb-marker grep across `agents/` (122 occurrences) and `references/` (425) returns two hits, both path false positives (`.../handoff/vuln-research.md`). No agent or reference — other than `next-phase-offer.md`, which is surface v and in scope — defines printed text naming a `dev-workflows` command. The directory axis holds. The plan re-runs this check so a future addition cannot silently invalidate it.
+
+### R3 — The `BARE` regex misses slashless names (LOW; checked, none found)
+
+A printed suggestion could name a command without a leading slash (`` `create-vi` ``, "run the create-vi command"), which the regex cannot see.
+
+**Checked:** zero backticked slashless command names inside surfaces i and ii. The plan carries the same check.
+
+### R4 — Under-qualification via the wrong enumeration axis (MODERATE)
+
+The failure mode from C, where a sweep drawn on one axis was blind to sites phrased on another. Mitigated by naming five surfaces on **three different axes** — structure (i, ii, v), quotation (iii), and instruction verb (iv) — rather than one, and by the indent-tolerant extraction for surface i, which alone accounts for 4 of the 15 sites and 2 of the 7 files. Residual risk is a printed site phrased on a fourth axis none of the five catches; the per-file reading pass in surfaces iii/iv is the backstop, and its verdicts are recorded so a reviewer audits judgment rather than re-deriving the set.
+
+### R5 — mgd drifts from canonical (MODERATE)
+
+mgd must stay byte-identical to canonical outside its six identity files. Applying the sweep independently in each repo invites divergence, and a root-level miss is precisely how strand (c) survived two releases.
+
+**Mitigation:** apply the sweep to canonical, then port to mgd by copying the changed files — never by re-editing, and never touching the six identity files, of which the root `CLAUDE.md` is one. V12 covers `plugins/dev-workflows` **and** the repository root.
+
+### R6 — Over-qualification (LOW)
+
+Qualifying prose that merely describes the pipeline makes dense text heavier for no gain. Bounded by the surface list (only i–v), by `references/` and `agents/` being out of scope entirely, and by the "never shorten an already-qualified name" rule, which prevents the sweep from thrashing the one node that is already correct.
+
+### R7 — Future drift (LOW, accepted)
+
+New printed sites added after D revert to the bare form. Rule 6 plus the V2/V3/V4 greps give a reviewer a mechanical check; nothing enforces it automatically. Accepted.

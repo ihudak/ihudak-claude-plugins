@@ -26,7 +26,7 @@ Five premises were corrected during design. Each changed the shape of the work.
 
 **2.4 — The export is staler than the vault frontmatter.** Measured across all 38 work documents carrying `jira.status` that also have an export: **8 real disagreements, all 8 with the vault frontmatter ahead. Zero in the other direction.** Root export dates spread from 2026-07-20 to 2026-08-10; the frontmatter is synced regularly to keep dashboards current. So the status ladder reads the frontmatter first — the reverse of the initial assumption.
 
-**2.5 — The vault's real path convention is one level deeper than the rule produces.** The current rule yields `Projects/<Products|ideas>/<slug>/idea.md`, flat. The convention in practice is `Projects/Products/<grouper-dir>/<item-dir>/idea.md`. The write-path fix is therefore not swapping an `<area>` token but **proposing a grouper directory as container**.
+**2.5 — The vault's real path convention is one level deeper than the rule produces.** The current rule yields `Projects/<Products|ideas>/<slug>/idea.md`, flat. The convention in practice is `Projects/Products/<grouper-dir>/<item-dir>/idea.md`. So the write-path fix is not swapping an `<area>` token but **resolving a container directory** — and that applies to *both* halves of Phase 4: the provenance default becomes depth-aware on its own (a source already sitting under a grouper belongs in that grouper, prior art or not), and a high-confidence match can propose a different container. One derivation serves both (§3.6).
 
 ## 3. Components
 
@@ -35,10 +35,10 @@ Five premises were corrected during design. Each changed the shape of the work.
 | `references/vault-prior-art.md` | **New.** Single source of truth. |
 | `agents/vault-prior-art-finder.md` | **New.** Read/Glob/Grep, `detection_model`. |
 | `agents/idea-reader.md` | `salient_summary` per followed wikilink / source ref. |
-| `commands/idea.md` | Phase 1 grounding line; Phase 2.5 parallel dispatch; Phase 3 merged grill-rank; Phase 4 write-path gate; Phase 5 handoff. |
+| `commands/idea.md` | Phase 1 grounding line; Phase 2.5 parallel dispatch; Phase 3 merged grill-rank; Phase 4 depth-aware provenance default **and** write-path gate; Phase 5 handoff. |
 | `commands/create-vi.md` | Phase 1 grounding line; Phase 2.5 parallel dispatch; Phase 3 merged grill-rank. |
 | `references/idea-format.md` | New optional `## Prior art` section. |
-| `references/workflow-states.md` | Status-spelling fix (§3.7). |
+| `references/workflow-states.md` | Status-spelling fix (§3.8). |
 | `CLAUDE.md`, `README.md` | Workflow map, agent list, reference list. |
 | `plugin.json`, `marketplace.json`, `CHANGELOG.md` | 2.48.0 / 2.18.0, three repos. |
 
@@ -127,15 +127,25 @@ notes: <degradations, unrecognised status codes, why EMPTY>
 
 `kind` semantics — `already_tracked`: an initiative already covers this at status X; how is this different? `phase_continuation`: this looks like the next phase of `<KEY>`; author it as such? `superseded`: the match is Closed / Cancelled / Post GA; does that resolve the problem, or is this a revival? `adjacent_scope_boundary`: related work in flight; where is the boundary?
 
-### 3.6 `area_proposal` derivation
+### 3.6 Container derivation (shared)
 
-`path` = the **depth-1 directory under `Projects/Products/`** on the highest-confidence match's path — the grouper when the match sits at depth 2 (`Projects/Products/<grouper>/<item>/`), and the match's own directory when it sits at depth 1 (`Projects/Products/<item>/`). In both cases the idea is proposed as a **new sibling folder inside that directory**, which is the shape the vault already uses.
+One derivation, two callers: it produces both `/idea`'s provenance default (from the **source** path) and `area_proposal.path` (from the **match** path). Defining it once is what keeps the two from drifting apart.
 
-`path: null` — and therefore no gate — in three cases: the match is a bare `.md` directly under a root (no directory to write into), the match sits under `Projects/ideas/` (an idea sibling is not an area), or no match reached `high` confidence.
+Given an absolute path `P` inside the write root, its **container** is:
 
-`confidence` = the highest-confidence match's `match_confidence`, **downgraded one step** when the top two matches resolve to different `path` values.
+1. the **depth-1 directory under `Projects/Products/`** on `P`'s path — the grouper when `P` sits at depth 2 or deeper (`Projects/Products/<grouper>/<item>/…`), and `P`'s own directory when it sits at depth 1 (`Projects/Products/<item>/…`);
+2. `Projects/Products/` itself, when `P` is a bare `.md` directly under `Projects/Products/`;
+3. `Projects/ideas/` otherwise — including when `P` lies under `Projects/ideas/` (an idea sibling is not an area), when `P` lies elsewhere in the vault or outside it, and when `P` is absent (an inline prompt, or an RFE under `jira-products/`).
 
-### 3.7 Adjacent bug — status spelling
+An idea is always written at `<container>/<candidate_slug>/idea.md`. Cases 2 and 3 are the **flat containers** — they name a root, not a specific area.
+
+### 3.7 `area_proposal` derivation
+
+`path` = the container (§3.6) of the **highest-confidence match**, except that a **flat container yields `path: null`** — a root is not an area to propose. `path` is likewise `null` when no match reached `high` confidence. A `null` path means no gate.
+
+`confidence` = the highest-confidence match's `match_confidence`, **downgraded one step** when the top two matches resolve to different containers.
+
+### 3.8 Adjacent bug — status spelling
 
 `references/workflow-states.md` writes the third VI rung as **"Use cases defined"**. Jira and every export emit **"Usecases defined"**. `readiness-reviewer` matches status strings against that table, so the mismatch is a live string-comparison bug in `/ready`. One-word fix, in scope because §3.4 makes this file's vocabulary load-bearing for a second command.
 
@@ -161,7 +171,11 @@ Four consumers. Every one is named here so none of this becomes a producer witho
 
 **5.1 — Grill-rank (both commands).** `prior_art_challenges` merge with `docs_challenges` into **one** Impact × Uncertainty ranking and compete for the existing **≤5** question slots. They never add slots; `/idea`'s bound is untouched.
 
-**5.2 — Write-path gate (`/idea` Phase 4 only).** Fires **iff** `area_proposal.path` is non-null **and** `area_proposal.confidence: high`. There is deliberately no third "does it differ from the default?" test: §3.6 always yields a directory *inside* `Projects/Products/`, while the provenance default is always flat at `Projects/<Products|ideas>/<slug>/`, so the two can never coincide and such a test would be vacuous. §3.6 returns `path: null` for every case where there is nothing to propose. Presented verbatim:
+**5.2 — Write path (`/idea` Phase 4).** Two changes, and the second depends on the first.
+
+*The provenance default becomes depth-aware.* Today it yields a flat `Projects/<Products|ideas>/<slug>/idea.md` regardless of how deep the source sits. It becomes `<container(source path)>/<candidate_slug>/idea.md` per §3.6. A source under `Projects/Products/<grouper>/<item>/` therefore lands beside its neighbours in `<grouper>/` instead of flat under `Products/` — matching the convention the vault already follows, with no prior-art match required. An inline prompt, an RFE, and any source outside `Projects/Products/` all resolve to `Projects/ideas/` exactly as today, so the common case is unchanged.
+
+*The gate.* Fires **iff** all three hold: `area_proposal.path` is non-null, `area_proposal.confidence` is `high`, **and** `area_proposal.path` differs from the provenance default's container. The third test is load-bearing precisely because the default is now a container too — when the source already sits in the area the finder points at, the two agree and there is nothing to ask. Presented verbatim:
 
 ```
 choices: ["Write under <area_proposal.path>/<candidate_slug>/ (Recommended)", "Write under <provenance default> as detected", "Enter a different path", "Cancel", "Other… (describe)"]
@@ -236,6 +250,7 @@ Recorded with reasons, so a later reader does not read them as oversights.
 | R7 | Parity drift across the three repos. | V16–V17; canonical files are copied, never retyped, into mgd. |
 | R8 | The Phase 2.5 dispatch sits behind a conditional that skips it — F's `/epics` bug. | V9 traces control flow from Phase 2.5 to the first consumer in both commands. |
 | R9 | The two grounding dispatches are serialised instead of parallel. | V8 asserts a single-response dispatch, per the plugin-wide parallel-dispatch invariant. |
+| R10 | The depth-aware default changes where ideas land even on runs that find no prior art. | Intended: it matches the convention the vault already follows. Bounded by §3.6 case 3 — every source not under `Projects/Products/` resolves to `Projects/ideas/` exactly as today, so inline prompts and RFEs are untouched. V11b enumerates the unchanged cases. |
 
 ## 10. Verification
 
@@ -253,7 +268,9 @@ No test framework — verification is grep, `awk`, `diff`, and reading. Every co
 | V8 | Both commands dispatch `docs-grounder` and `vault-prior-art-finder` in a **single response**. |
 | V9 | In both commands, no conditional between the Phase 2.5 dispatch and its first consumer can skip it. |
 | V10 | `/idea` Phase 4 carries the write-path gate with the §5.2 `choices:` array verbatim, including `(Recommended)`. |
-| V11 | The gate's firing condition names **both** tests — `path` non-null and `confidence: high` — and ships no vacuous third test. |
+| V11 | The gate's firing condition names **all three** tests — `path` non-null, `confidence: high`, and differs-from-default. |
+| V11a | The §3.6 container derivation appears **once**, in the reference; `/idea` Phase 4 and `area_proposal` both cite it rather than restating it. |
+| V11b | Phase 4's provenance default is depth-aware, and the four unchanged cases still resolve to `Projects/ideas/`: inline prompt, RFE, a source under `Projects/ideas/`, a source elsewhere in the vault. |
 | V12 | `idea-format.md` has `## Prior art`, marked optional, with the §5.3 bullet shape. |
 | V13 | Each of the four §5 consumers traces to a shipped line — enumerate and judge, do not count. |
 | V14 | `workflow-states.md` reads "Usecases defined"; no file still reads "Use cases defined". |

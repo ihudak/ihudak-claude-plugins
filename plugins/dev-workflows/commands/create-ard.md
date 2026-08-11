@@ -94,6 +94,16 @@ There are no PRs at ARD time, so repos are **architect-driven**, not PR-derived:
      >  refresh: { switch_to_default_branch: [per Phase 1], pull: [per Phase 1] }"
 
    Store the per-repo as-is findings (`file:line`). Descoped/unmounted repos become Open questions.
+
+   **Per-repo scanner status.** Wait for each batch. Handle each returned status before continuing:
+
+   - `OK` / `PARTIAL` / `EMPTY` — use the result. `PARTIAL` and `EMPTY` are data, not failures.
+   - `REPO_MISSING` — escalate per the `Repo missing (after resolution)` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
+   - `DIRTY_TREE` — escalate per the `Dirty working tree` rule in the same file.
+   - `REFRESH_BLOCKED` — escalate per the `Refresh blocked` rule in the same file.
+   - `prep.read_only: true` — not a failure. The scan ran at `prep.scanned_ref`. Escalate per the `Read-only mount — ref stale or diverged` rule **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`; otherwise proceed silently and cite evidence at `prep.scanned_ref`.
+
+   A repo the user skips is dropped from the confirmed set and named in the Phase 5 handoff; it never silently disappears.
 5. **Documentation grounding (optional).** Run `resolve-docs-grounding create-ard` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the VI/Epic goal + capability themes, `jira_key` = `<VI>` (VI-level) or `<EPIC>` (Epic-level), `themes` = the confirmed themes. Carry the digest into the Phase 4 grill with **grill-rank** consumption (documented analogs and building-block altitude/permissions are strong ARD grounding). When OFF, skip silently.
 
 ---

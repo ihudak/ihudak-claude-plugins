@@ -178,7 +178,7 @@ and **proceed without waiting** — an inline confirmation per `${CLAUDE_PLUGIN_
 **Interview technique (grilling — embedded; no runtime dependency).** Follow the shared technique in `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, fact-vs-decision split (look up facts from the `idea-reader` digest / vault, put only decisions to the user), walk the design tree in dependency order. **Depth: bounded by default (below); `--deep` = relentless.**
 
 Scan for gaps against an idea-stage **ambiguity taxonomy**: *problem clarity, target users, desired
-outcome/value, scope boundaries, evidence/demand sufficiency, success signal, terminology.* Rank gaps by **Impact × Uncertainty**, ranking every `docs_challenges` and `prior_art_challenges` entry from Phase 2.5 into that same list. Challenges **compete** for the slots below; they never add slots.
+outcome/value, scope boundaries, evidence/demand sufficiency, success signal, terminology.* Rank gaps by **Impact × Uncertainty**, ranking every `docs_challenges` and `prior_art_challenges` entry from Phase 2.5 into that same list. Challenges **compete** for the slots below; they never add slots. **Code findings are facts, not questions.** A Phase 2.6 finding answers a gap rather than raising one — look it up, cite it, and do not spend a question on it. The one exception is the finding that **contradicts the idea's premise** (the capability already exists, or the gap is far smaller than the idea assumes): that becomes a challenge ranked into the same Impact × Uncertainty list, competing for a slot exactly like a `docs_challenges` or `prior_art_challenges` entry and never adding one. At most **2** such challenges.
 
 - **Default (bounded):** ask **≤5** questions across the ranked gaps, then stop. Remaining high-impact
   gaps become `- [NEEDS CLARIFICATION: <question>]` in the `idea.md` **Open questions & assumptions**
@@ -239,6 +239,7 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
   **and** in `sources:`. Merge by Jira key so a supplied VI the finder also matched yields one bullet: the finder's entry wins,
   because it is a strict superset of `tracked` (it adds `relation`, `match_reason`, and a vault path). A
   finder match with `jira_key: null` cannot collide — a supplied VI always has a key.
+- **`## Feasibility grounding`:** write the section per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` when Phase 2.6 ran **and** returned at least one finding; omit it entirely otherwise. Head it with each grounded repo as `<repo>@<scanned_ref>`; give every bullet a repo-qualified `<repo>/<path>:<line>` citation (the first entry of that evidence's `lines`, or `<repo>/<path>` when it has none); write a **Reframing** line only when a finding contradicted the idea's premise. A theme still inconclusive after round 2 becomes a `[NEEDS CLARIFICATION]` in **Open questions & assumptions**, never a hedged bullet.
 - **Existing file:** if `idea.md` already exists at that path, offer:
   ```
   choices: ["Refine the existing idea.md (Recommended)", "Create a new one (you'll be prompted for a slug)", "Cancel", "Other… (describe)"]
@@ -268,6 +269,8 @@ Report where `idea.md` was written and its `status`, then offer the next phase �
 Also report any prior art found — matched keys with their statuses, and the alternative container path
 when one exists — **whether or not the gate fired**, so the user can relocate before `/create-vi` makes
 the path sticky.
+
+Also report the code grounding when Phase 2.6 ran: the grounded repos with their `scanned_ref`s, any repo descoped or unmounted with the themes left unverified, any theme still inconclusive after round 2, and — first, because it is the most consequential thing a run can produce — the **Reframing** line if one was written. A reframing that changed the idea's Problem section must not be reported only inside the file.
 
 `/create-vi` is a separate command; this offer is guidance the user acts on — it never auto-invokes
 another command. (Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — the plugin-wide
@@ -341,4 +344,5 @@ path (or notice); the `Specs repo:` outcome line from `commit-artifacts`
 (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; any
 prior art found (keys + statuses), any `status_conflict` a match reported (both values and the export's
 date — it is the signal that catches a broken sync) and any `notes` the finder returned; the resolved
-`vi_disposition`; and the adaptive next-phase recommendation.
+`vi_disposition`; the grounded repos with their `scanned_ref`s and any descoped or inconclusive ones
+(or "code grounding: off"); and the adaptive next-phase recommendation.

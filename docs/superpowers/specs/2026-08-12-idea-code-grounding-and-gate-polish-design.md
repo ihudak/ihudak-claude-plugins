@@ -123,7 +123,11 @@ It proceeds without waiting — an inline confirmation per R1.4, not a gate.
 
 **[R19]** Phase 2.6 has exactly two branches. **ON** (`--ground-code` present): the repo gate, then round 1, then the conditional round 2. **OFF**: the R12/R13 detection, then continue.
 
-**[R20]** Every `code-scanner` status is handled with the list `escalation-rules.md` already carries for it — `REPO_MISSING` → *Repo missing (after resolution)*, `DIRTY_TREE` → *Dirty working tree*, `REFRESH_BLOCKED` → *Refresh blocked*, and a read-only mount whose ref is stale or diverged → *Read-only mount — ref stale or diverged*. Sub-project F found that `/create-ard` and `/release-notes` dispatch these agents with **no** failure handling; `/idea` does not join them.
+**[R20]** Every `code-scanner` status is handled with the list `escalation-rules.md` already carries for it — `REPO_MISSING` → *Repo missing (after resolution)*, `DIRTY_TREE` → *Dirty working tree*, `REFRESH_BLOCKED` → *Refresh blocked*, and a read-only mount whose ref is stale or diverged → *Read-only mount — ref stale or diverged*. `/epics`, `/document`, `/release-notes`, `/create-ard`, and `/specify` all do this today, and `/design` handles `REPO_MISSING` differently on purpose (it returns to its Phase 3 strict gate); `/idea` follows the majority form.
+
+**[R20a]** Writing R20 required auditing all six dispatchers, and the audit found the one command that does *not* do this. `/implement` Phase 1.7 says only *"A scanner returning `DIRTY_TREE`/`REFRESH_BLOCKED` is surfaced, not hidden"* — a promise to tell the user, with no choice list, so the run reports a failure and offers no skip / retry / cancel. And it never names `REPO_MISSING` at all, though the status is plainly reachable there: repo paths come straight from the user's multi-source input, and `code-scanner` returns `REPO_MISSING` when `repo_path` is not a directory **or** when `repo_url_slug` does not match the clone's `origin`. §8.4 (Honesty) already requires surfacing exactly this; the command simply never wires it to a list.
+
+**[R20b]** `/implement` Phase 1.7 gains a `REPO_MISSING` branch citing *Repo missing (after resolution)* (as fixed by R9b), and its `DIRTY_TREE` / `REFRESH_BLOCKED` sentence points at *Dirty working tree* and *Refresh blocked* rather than promising to surface. The `prep.read_only` clause is already correct and is not touched. This is the only edit `/implement` receives in this sub-project (cf. R26).
 
 **[R21]** Classification stays **MODERATE**. §1.1's multi-source SIGNIFICANT floor is already written as `/implement`-specific ("`/implement` was given more than one code repository…"), so there is no contradiction to resolve. §8.3's purpose — the strongest available model on synthesis — is already met: `/idea`'s grill and authoring run inline on `current_model` (the §2 Opus chain). Phase 0's `model_routing` block gains one clause saying so, because a reader who knows §8 will otherwise read the fan-out and expect the floor.
 
@@ -138,6 +142,8 @@ It proceeds without waiting — an inline confirmation per R1.4, not a gate.
 **[R25]** Round 2 is capped at **4 dispatches** and is **one round only**. There is no round 3. A theme still inconclusive after round 2 is reported unresolved and becomes a `[NEEDS CLARIFICATION]` in `idea.md`; it is never guessed at.
 
 **[R26]** §8.5 states that it is a **shared procedure a caller opts into by saying so**, and names `/idea` as its first and only current consumer. This is explicit so the section is not read as silently rebinding `/implement`, `/epics`, `/create-ard`, `/specify`, or `/design`, none of which are edited by this sub-project.
+
+**[R26a]** `/implement` is the one other command with a genuine case for §8.5, and it does **not** get wired here. Its fan-out feeds a **planner that acts on the answer**, so an "it must be in the other layer" round-1 result produces a bad plan — the identical failure mode `/idea` recorded. The other four scan to *scope* work (`/epics`, `/create-ard`, `/specify`), where an inconclusive theme legitimately becomes an open question in the artifact, or already scan targets confirmed by a strict gate (`/design`). No `/implement` run has hit the failure yet, so wiring it now would double scan cost on speculation. It is recorded as a feedback entry naming `/implement` as §8.5's candidate second consumer, for a later round to decide with evidence from a real run.
 
 **[R27]** §8.5 records *why*: a broad prompt lets each scanner defer to the layer it did not scan; naming a verified anchor removes that escape. Without the reason the shape reads as ceremony and the next editor deletes it.
 
@@ -192,6 +198,7 @@ Canonical (`/workspace/ihudak-claude-plugins/plugins/dev-workflows/`):
 | `references/model-routing/classification.md` | **new §8.5** Broad, then narrow (R22–R27) |
 | `references/handoff/code-scanner.md` | optional `lines: [<n>]` on `evidence[]` (R28–R29) |
 | `agents/code-scanner.md` | populate `lines` from grep hits (R28) |
+| `commands/implement.md` | Phase 1.7 `REPO_MISSING` branch + listed escalations (R20a–R20b) — the only edit it receives |
 | `references/idea-format.md` | new Section 7 + renumber 7→8, 8→9 (R32–R37); Section 5 closing rule (R38) |
 | `README.md` | `/idea` usage cell gains `--ground-code`, `--no-docs`, `--no-prior-art`; row body mentions code grounding; new **Code grounding** paragraph beside the docs / prior-art pair |
 | `CHANGELOG.md` | 2.49.0 entry |
@@ -208,7 +215,7 @@ No test framework — verification is grep, diff, and reading. The plan carries 
 - Every `R` above has at least one check.
 - **Flag stripping (R11):** `--ground-code` appears in Phase 1's strip list, in the `Flags:` line, and in the README usage cell — three sites, and a miss in the first is a live defect (an unstripped flag becomes idea text). The frontmatter `description` names only `--deep` today and is left that way; `--no-docs` and `--no-prior-art` are absent from it too, and this spec does not change that convention.
 - **Renumbering (R32):** `idea-format.md` has exactly one `## Section N` per N for 1–9, no duplicates and no gaps, and every cross-reference to "Section 7"/"Section 8" elsewhere in the plugin still resolves.
-- **No silent rebinding (R26):** `/implement`, `/epics`, `/create-ard`, `/specify`, `/design` are byte-identical except where this spec names them.
+- **No silent rebinding (R26):** `/epics`, `/create-ard`, `/specify`, and `/design` are byte-identical; `/implement` differs **only** in the Phase 1.7 escalation lines R20b names, and in nothing touching §8.5 or the planner path.
 - **Three-repo parity:** identical content in canonical and mgd outside mgd's identity set; zero dialect leaks in copilot — no slash-form command names, no `→ Agent (subagent_type:`, no `${CLAUDE_PLUGIN_ROOT}`, no `§2.1 Sonnet chain`.
 - **Residue (the standing question):** not "did my rule land everywhere" but **"what did I make false?"** — every statement about `/idea`'s phase count, its grounding sources, `idea-format.md`'s section count, and `code-scanner`'s output contract, in all three repos.
 
@@ -218,5 +225,5 @@ No test framework — verification is grep, diff, and reading. The plan carries 
 - **No `--ground-code` on `/specify` or `/design`** — both already scan code.
 - **No auto-trigger** (R14), **no round 3** (R25), **no new agent** (R24).
 - **No labelling pass over the other ~180 `choices:` blocks** (§1.2, R8).
-- **No change to `/implement`'s fan-out** — §8.5 is opt-in (R26).
+- **No change to `/implement`'s fan-out *behaviour*** — §8.5 is opt-in and `/implement` does not adopt it (R26, R26a). Its only edit is the escalation wiring in R20b, which changes what happens when a scanner fails, not what the scanners do.
 - **`--build-docs-index`** and the other deferred items from earlier sub-projects stay deferred.

@@ -90,7 +90,7 @@ idea arrived, `## Prior art` answers what it must stay consistent with.
 is. **Write it when code grounding ran *and* returned at least one finding; omit it entirely
 otherwise** — a grounded run that found nothing writes no empty section and no "nothing found" line.
 
-The section opens with what its claims were true of: one line naming each grounded repo as
+The section opens with what its claims were true of: a single line naming every grounded repo as
 `<repo>@<scanned_ref>`, taken from `code-scanner`'s `prep.scanned_ref`. Code moves; a finding with no ref
 is unfalsifiable a month later.
 

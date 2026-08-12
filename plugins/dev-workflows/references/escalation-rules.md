@@ -92,21 +92,23 @@ slug→clone map.
 
 `choices: ["List repos to scan manually", "Proceed without code scan", "Cancel", "Other… (describe)"]`
 
-Used in `/epics` Phase 4 when the final resolved repo list is empty (every repo
-was skipped or missing — "Use case B with no repos derivable").
+Used in `/idea` Phase 2.6 when the proposed theme → repo mapping is empty (no
+theme matches any mounted repo), and in `/epics` Phase 4 when the final
+resolved repo list is empty (every repo was skipped or missing — "Use case B
+with no repos derivable").
 
 ## Repo missing (after resolution)
 
 `choices: ["Skip this repo", "I'll clone it — wait", "Specify a different absolute path for this repo", "Cancel", "Other… (describe)"]`
 
 Used when a diff-summarizer or code-scanner batch returns `REPO_MISSING` at
-Phase 5 after Phase 4 already checked, and in `/idea` Phase 2.6, which has no
-earlier check. `REPO_MISSING` means `repo_path` is not a directory **or** the
-clone's `origin` slug does not match `repo_url_slug`; *Specify a different
-absolute path for this repo* is the option that resolves the second case, which
-the previous list had no answer for at all. Present this choice per affected
-repo. No `(Recommended)` marker — which option is right depends entirely on why
-the repo is absent.
+Phase 5 after Phase 4 already checked, in `/idea` Phase 2.6, which has no
+earlier check, and in `/implement` Phase 1.7. `REPO_MISSING` means `repo_path`
+is not a directory **or** the clone's `origin` slug does not match
+`repo_url_slug`; *Specify a different absolute path for this repo* is the
+option that resolves the second case, which the previous list had no answer
+for at all. Present this choice per affected repo. No `(Recommended)` marker —
+which option is right depends entirely on why the repo is absent.
 
 ## Dirty working tree
 

@@ -343,6 +343,47 @@ A referenced directory that is missing, or is neither a recognized folder type
 nor a git repository, MUST be surfaced to the user — never silently skipped
 (mirrors the `REFRESH_BLOCKED` honesty rule used by the Jira-driven flows).
 
+### 8.5 Broad, then narrow (the seeded second round)
+
+A broad prompt lets each scanner defer to the layer it did not scan. Round 1
+asks every repo the same wide question, and a capability spanning two layers can
+come back attributed to the *other* layer by both scanners — a pair of confident
+answers that together say nothing. Naming a verified anchor removes the escape.
+
+**Round 1** is the §8.2 fan-out unchanged: one `code-scanner` per repository,
+broad themes, single response, cap 4 concurrent.
+
+**Inconclusive** describes a round-1 theme whose `classification` is `partial`,
+`absent`, or `error`, **or** for which two scanners' `gap_summary` texts each
+name the *other's* repo or layer as the likely location.
+
+**Round 2** fires for an inconclusive theme when round 1 produced at least one
+evidence anchor to seed from. It dispatches the **same** `code-scanner` agent
+with a narrowed brief:
+
+- `capability_themes` holds exactly **one** question — not the broad theme, but
+  the single thing round 1 failed to settle;
+- `search_hints.paths` / `.symbols` / `.keywords` are seeded from round 1's
+  verified `evidence[].path` and `.symbols`; where an evidence entry carries
+  `lines`, name the anchor as `<path>:<line>` in the round-2 `context` prose,
+  since `search_hints` has no line-number field.
+
+No new agent and no input-contract change: the narrowing lives entirely in what
+the caller puts in the existing fields.
+
+**Bounds.** Round 2 is capped at **4 dispatches** and is **one round only**.
+There is no round 3. A theme still inconclusive after round 2 is reported
+unresolved — never guessed at. A theme confirmed `absent` — by round 2, or by
+round 1 when no anchor existed to seed a round 2 — is a **resolved** finding,
+not an unresolved one: for `/idea`, it belongs in Section 7's *What's missing*,
+not in Open questions. `[NEEDS CLARIFICATION]` (or the caller's equivalent) is
+for a theme the scan could not settle — mutual deferral, or `error`.
+
+**Opt-in.** §8.5 is a shared procedure a caller adopts by saying so in its own
+body. `/idea` (Phase 2.6) is its first and only current consumer. `/implement`,
+`/epics`, `/create-ard`, `/specify`, and `/design` run §8.2 alone and are
+unaffected by this section.
+
 ---
 
 ## 9. Per-step routing for multi-phase authoring pipelines

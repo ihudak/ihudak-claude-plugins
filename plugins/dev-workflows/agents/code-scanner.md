@@ -1,12 +1,12 @@
 ---
 name: code-scanner
-description: Scans a single code repository for existing capabilities and gaps relative to a set of themes. Themes may come from a Value Increment / Epic (Epic writing), from an implementation spec (/implement multi-source scanning), or from a Jira item being specified (/specify light feasibility grounding). Pure filesystem search; no HTTPS. Designed for parallel invocation (one instance per repo, capped at 4 concurrent by the caller). Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Scans a single code repository for existing capabilities and gaps relative to a set of themes. Themes may come from a Value Increment / Epic (Epic writing), from an implementation spec (/implement multi-source scanning), from a Jira item being specified (/specify light feasibility grounding), from an idea's themes (/idea --ground-code), or from architect-driven discovery (/create-ard) or an engineering design (/design). Pure filesystem search; no HTTPS. Designed for parallel invocation (one instance per repo, capped at 4 concurrent by the caller). Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "Bash"]
 ---
 
 Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/code-scanner.md` for the exact input/output document format.
 
-Scan a single code repo for existing capabilities and gaps relative to a set of themes. One instance per repo; the caller — `/epics` (Epic scoping), `/implement` (multi-source implementation scoping), or `/specify` (light capability scan for spec feasibility grounding) — spawns up to 4 concurrent instances per batch.
+Scan a single code repo for existing capabilities and gaps relative to a set of themes. One instance per repo; the caller — `/epics` (Epic scoping), `/implement` (multi-source implementation scoping), `/specify` (light capability scan for spec feasibility grounding), `/idea` (`--ground-code`, broad-then-narrow per §8.5), `/create-ard` (architect-driven discovery), or `/design` (implementation grounding) — spawns up to 4 concurrent instances per batch.
 
 **Distinction from `diff-summarizer`.** That agent reads *merged PR diffs* for features already implemented; this agent reads *present-day code* for features being scoped. There are no PRs to diff — just filesystem search to understand what exists and what needs to be built.
 
@@ -51,13 +51,14 @@ absent, trust `repo_path` as given.
    On a **writable** mount, unchanged:
    - `git status --porcelain` — if output is non-empty AND `refresh.pull` is true → return `status: DIRTY_TREE`. The caller's escalation prompts the user to stash-and-retry, skip this repo, or cancel.
    - If `refresh.switch_to_default_branch` is true: resolve the default branch via `git symbolic-ref --short refs/remotes/origin/HEAD`. If that fails (unset `origin/HEAD`), run `git remote set-head origin --auto` and retry; if it still fails, try `main`, then `master`, in that order. If the fallback chain exhausts, return `status: REFRESH_BLOCKED` with reason `cannot resolve default branch`.
-   - `git switch <default-branch>` — on failure, if the error contains `Read-only file system`, abandon the writable path and continue in read-only mode per `read-only-repos.md` §1, which does not run `git switch` at all; otherwise return `status: REFRESH_BLOCKED` with the one-line git error.
+   - Still under `refresh.switch_to_default_branch: true` — `git switch <default-branch>` — on failure, if the error contains `Read-only file system`, abandon the writable path and continue in read-only mode per `read-only-repos.md` §1, which does not run `git switch` at all; otherwise return `status: REFRESH_BLOCKED` with the one-line git error.
    - If `refresh.pull` is true: `git pull --ff-only`. On failure, if the error contains `Read-only file system`, abandon the writable path and continue in read-only mode per `read-only-repos.md` §1; on any other failure (non-fast-forward, network, auth, etc.) return `status: REFRESH_BLOCKED` with the one-line git error.
 
 3. **Scan.** On a writable mount, and on a read-only mount whose HEAD is already at `scanned_ref`, this is pure filesystem search with the native tools and no git commands beyond step 2. On a read-only mount whose HEAD is NOT at `scanned_ref`, run the same searches through the `read-only-repos.md` §4 ref primitives — `git -C "<repo_path>" grep -n <pattern> <ref> -- <pathspec>` to search, `git -C "<repo_path>" ls-tree -r --name-only <ref>` to enumerate, `git -C "<repo_path>" show <ref>:<path>` to read — so the evidence describes released content rather than an unmerged working tree. For each theme:
    - Run `grep` / `glob` / file reads against `search_hints.keywords`, `search_hints.symbols`, and `search_hints.paths`.
    - Augment hints with conservative derivations from the theme text itself (tokenise the theme into 2–3 keywords if `search_hints.keywords` is thin).
    - Collect file paths and top-level symbols (class names, function names, exported identifiers) that match.
+   - Record the 1-based line numbers of grep hits in that evidence entry's `lines` — both the `Grep` tool and `git grep -n <ref>` return them, so no extra command is needed. Leave `lines` **absent** for an entry found by a path glob or a whole-file read; never invent a line number.
 
 4. **Read top candidates.** For each theme, open the head (~80 lines) of the top 2–3 matching files — with `Read` on the working tree, or `git -C "<repo_path>" show <scanned_ref>:<path>` in ref mode. Use that to characterise the capability in a one-line `note`.
 
@@ -90,6 +91,7 @@ capability_map:
     classification: present | partial | absent | error
     evidence:
       - path: <relative to repo>
+        lines: [<1-based line numbers>]   # optional — present when the match came from a grep hit
         symbols: [<names>]
         note: <one-line characterisation>
     gap_summary: |

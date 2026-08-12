@@ -169,7 +169,7 @@ Handle every returned status through the list `${CLAUDE_PLUGIN_ROOT}/references/
 This idea names <repo>; re-run with --ground-code to verify it against the code.
 ```
 
-and **proceed without waiting** — an inline confirmation per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` ("When a choice list fires"), not a gate. No match ⇒ silent. There is no auto-trigger: grounding is up to eight scanner dispatches and starts only on the user's explicit flag.
+and **proceed without waiting** — an inline confirmation per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` ("When a choice list fires"), not a gate. No match ⇒ silent. There is no auto-trigger: grounding is a fan-out across every confirmed repo plus a second seeded round, and starts only on the user's explicit flag.
 
 ---
 

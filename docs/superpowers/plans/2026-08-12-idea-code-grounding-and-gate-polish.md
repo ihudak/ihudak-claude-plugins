@@ -760,10 +760,15 @@ Set `"version": "2.49.0"` in `plugins/dev-workflows/.claude-plugin/plugin.json`.
 cd /workspace/ihudak-claude-plugins
 # expect 2.49.0
 grep '"version"' plugins/dev-workflows/.claude-plugin/plugin.json
-# expect 1 — changelog entry exists and is above 2.48.0
-awk '/^## 2\.49\.0/{a=NR} /^## 2\.48\.0/{b=NR} END {print (a>0 && a<b) ? "OK" : "BAD ORDER"}' plugins/dev-workflows/CHANGELOG.md
-# expect 3 — README usage cell, README row body, README grounding paragraph
-grep -c 'ground-code' plugins/dev-workflows/README.md
+# expect OK — changelog entry exists and is above 2.48.0. The headings are
+# Keep-a-Changelog bracketed (`## [2.49.0] — 2026-08-12`), so the pattern must
+# include the brackets. (This check read `/^## 2\.49\.0/` when the plan was
+# written and matched neither heading, always printing BAD ORDER.)
+awk '/^## \[2\.49\.0\]/{a=NR} /^## \[2\.48\.0\]/{b=NR} END {print (a>0 && a<b) ? "OK" : "BAD ORDER"}' plugins/dev-workflows/CHANGELOG.md
+# expect 3 — README usage cell, README row body, README grounding paragraph.
+# Count OCCURRENCES, not lines: the usage cell and the row body live on the same
+# one-line table row, so `grep -c` collapses them and reports 2.
+grep -o 'ground-code' plugins/dev-workflows/README.md | wc -l   # expect 5 occurrences across the 3 sites
 # expect 1 each
 grep -c 'broad-then-narrow' CLAUDE.md
 python3 -c "import json;json.load(open('.claude-plugin/marketplace.json'));print('marketplace OK')"

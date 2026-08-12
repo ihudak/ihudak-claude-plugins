@@ -14,6 +14,7 @@ the existing pipeline. It ingests one source, refines it through a grill, and wr
 
 Flags: `--deep` switches the grill from bounded (≤5 questions) to relentless (until convergence).
 `--no-docs` and `--no-prior-art` each turn off one grounding source (see Phase 1).
+`--ground-code [<repo>[,<repo>…]]` grounds the idea against mounted code (see Phase 2.6) — bare it derives the repo set, with a value it scans exactly those repos.
 
 ---
 
@@ -44,7 +45,11 @@ Flags: `--deep` switches the grill from bounded (≤5 questions) to relentless (
    The grill + authoring run inline on `current_model` (the §2 Opus chain — interactive judgment, not a
    delegated subagent). `idea-reader` runs on `detection_model`. If no Opus resolves, **degrade to the
    best available and record the degradation** in `notes` and the final report — do NOT hard-block (a PM
-   must not be blocked from capturing an idea by a momentary Opus outage).
+   must not be blocked from capturing an idea by a momentary Opus outage). A `--ground-code` run does
+   **not** floor the classification at `SIGNIFICANT`: §1.1's multi-source floor is written for
+   `/implement`, and §8.3's purpose — the strongest available model on synthesis — is already met
+   here, because the grill and authoring run inline on `current_model` while the scanners run on
+   `detection_model`.
 
 **Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
 `specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier run,
@@ -57,7 +62,7 @@ step skips on it.
 
 ## Phase 1 — Classify the source
 
-Classify `$ARGUMENTS` **minus every recognised flag** (`--deep`, `--no-docs`, `--no-prior-art`, and `--docs <path>` with its value) by precedence. Strip them all before classifying: an unstripped flag lands inside the `prompt` branch's raw idea text and is handed to `idea-reader` as if the user had written it.
+Classify `$ARGUMENTS` **minus every recognised flag** (`--deep`, `--no-docs`, `--no-prior-art`, `--docs <path>` with its value, and `--ground-code` with its optional comma-separated repo value) by precedence. Strip them all before classifying: an unstripped flag lands inside the `prompt` branch's raw idea text and is handed to `idea-reader` as if the user had written it.
 
 1. Matches the Jira-key regex `^[A-Z][A-Z0-9_]*-\d+$` → resolve it with `resolve-export-for-key <KEY>`
    (`${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`), then type it from the export's
@@ -74,11 +79,19 @@ Classify `$ARGUMENTS` **minus every recognised flag** (`--deep`, `--no-docs`, `-
    passed back for re-refinement is detected here too).
 3. Otherwise → **prompt** (the argument text is the raw idea).
 
-Surface a one-line confirmation before ingesting:
+**Confirm the classification — conditionally.** Per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` ("When a choice list fires"), a list is shown only where the answer genuinely varies. Two cases here do; the rest do not.
+
+**A — the key resolved but its `issue_type` is neither `ValueIncrement` nor `Product Need`.** Name the actual `issue_type` in prose beside the list, never inside an option:
 ```
-choices: ["Read this as <detected-type> (Recommended)", "It's actually a <other-type>", "Cancel", "Other… (describe)"]
+choices: ["Read this as a vi — an existing Value Increment (Recommended)", "Read this as an rfe — product feedback", "Cancel", "Other… (describe)"]
 ```
-(A dedicated `--as prompt|markdown|rfe|vi` override is future work — the confirmation covers a mis-detection.)
+
+**B — the argument is path-like (contains `/`, ends in `.md`, or starts with `@`) but resolved to no existing file.** Without this gate it falls through precedence rule 3 to **prompt** and the path string itself becomes the raw idea text — a mistyped path silently ingested as prose:
+```
+choices: ["Re-enter the path (Recommended)", "Read the argument as a prompt — the literal text is the idea", "Cancel", "Other… (describe)"]
+```
+
+**Everything else** — a `.md` path or `@wikilink` that resolves, a key typed `ValueIncrement` or `Product Need`, and plain prose — is unambiguous. State the resolution in one line that invites correction and **proceed without waiting**; the list would have one plausible answer. (A dedicated `--as prompt|markdown|rfe|vi` override is future work — this inline confirmation covers a mis-detection.)
 
 Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
 

@@ -239,7 +239,13 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
   **and** in `sources:`. Merge by Jira key so a supplied VI the finder also matched yields one bullet: the finder's entry wins,
   because it is a strict superset of `tracked` (it adds `relation`, `match_reason`, and a vault path). A
   finder match with `jira_key: null` cannot collide — a supplied VI always has a key.
-- **`## Feasibility grounding`:** write the section per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` when Phase 2.6 ran **and** returned at least one finding; omit it entirely otherwise. Head it with each grounded repo as `<repo>@<scanned_ref>`; give every bullet a repo-qualified `<repo>/<path>:<line>` citation (the first entry of that evidence's `lines`, or `<repo>/<path>` when it has none); write a **Reframing** line only when a finding contradicted the idea's premise. A theme still inconclusive after round 2 becomes a `[NEEDS CLARIFICATION]` in **Open questions & assumptions**, never a hedged bullet.
+- **`## Feasibility grounding`:** write the section per
+  `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` when Phase 2.6 ran **and** returned at least one
+  finding; omit it entirely otherwise. Head it with each grounded repo as `<repo>@<scanned_ref>`; give
+  every bullet a repo-qualified `<repo>/<path>:<line>` citation (the first entry of that evidence's
+  `lines`, or `<repo>/<path>` when it has none); write a **Reframing** line only when a finding
+  contradicted the idea's premise. A theme still inconclusive after round 2 becomes a
+  `[NEEDS CLARIFICATION]` in **Open questions & assumptions**, never a hedged bullet.
 - **Existing file:** if `idea.md` already exists at that path, offer:
   ```
   choices: ["Refine the existing idea.md (Recommended)", "Create a new one (you'll be prompted for a slug)", "Cancel", "Other… (describe)"]
@@ -270,7 +276,11 @@ Also report any prior art found — matched keys with their statuses, and the al
 when one exists — **whether or not the gate fired**, so the user can relocate before `/create-vi` makes
 the path sticky.
 
-Also report the code grounding when Phase 2.6 ran: the grounded repos with their `scanned_ref`s, any repo descoped or unmounted with the themes left unverified, any theme still inconclusive after round 2, and — first, because it is the most consequential thing a run can produce — the **Reframing** line if one was written. A reframing that changed the idea's Problem section must not be reported only inside the file.
+Also report the code grounding when Phase 2.6 ran: the grounded repos with their `scanned_ref`s, any
+repo descoped or unmounted with the themes left unverified, any theme still inconclusive after round 2,
+and — first, because it is the most consequential thing a run can produce — the **Reframing** line if
+one was written. A reframing that changed the idea's Problem section must not be reported only inside
+the file.
 
 `/create-vi` is a separate command; this offer is guidance the user acts on — it never auto-invokes
 another command. (Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — the plugin-wide

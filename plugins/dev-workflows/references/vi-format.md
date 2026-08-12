@@ -25,7 +25,7 @@ priority: <e.g. Major>
 labels: [ ... ]
 relevant_for_release_notes: <yes | no>
 sources:                     # PROPAGATED from idea.md's recorded provenance — not the literal idea.md
-  - provenance: rfe | community-post | prompt | markdown
+  - provenance: rfe | vi | community-post | prompt | markdown
     ref: <RFE key | post URL | ...>
 derived_from: <path to the idea.md this VI was built from>
 seeded_from_vi: <VI key or path when this VI was seeded from another VI via `/create-vi --from-vi`; omit otherwise>

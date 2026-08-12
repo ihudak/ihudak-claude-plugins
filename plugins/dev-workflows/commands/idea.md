@@ -14,6 +14,7 @@ the existing pipeline. It ingests one source, refines it through a grill, and wr
 
 Flags: `--deep` switches the grill from bounded (≤5 questions) to relentless (until convergence).
 `--no-docs` and `--no-prior-art` each turn off one grounding source (see Phase 1).
+`--ground-code [<repo>[,<repo>…]]` grounds the idea against mounted code (see Phase 2.6) — bare it derives the repo set, with a value it scans exactly those repos. The token after `--ground-code` is its value **only** when it contains no whitespace and every comma-separated part matches a top-level directory basename under `${REPOS_PATH:-/workspace}`; otherwise the flag is bare and the token is idea text.
 
 ---
 
@@ -44,7 +45,11 @@ Flags: `--deep` switches the grill from bounded (≤5 questions) to relentless (
    The grill + authoring run inline on `current_model` (the §2 Opus chain — interactive judgment, not a
    delegated subagent). `idea-reader` runs on `detection_model`. If no Opus resolves, **degrade to the
    best available and record the degradation** in `notes` and the final report — do NOT hard-block (a PM
-   must not be blocked from capturing an idea by a momentary Opus outage).
+   must not be blocked from capturing an idea by a momentary Opus outage). A `--ground-code` run does
+   **not** floor the classification at `SIGNIFICANT`: §1.1's multi-source floor is written for
+   `/implement`, and §8.3's purpose — the strongest available model on synthesis — is already met
+   here, because the grill and authoring run inline on `current_model` while the scanners run on
+   `detection_model`.
 
 **Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
 `specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier run,
@@ -57,7 +62,7 @@ step skips on it.
 
 ## Phase 1 — Classify the source
 
-Classify `$ARGUMENTS` **minus every recognised flag** (`--deep`, `--no-docs`, `--no-prior-art`, and `--docs <path>` with its value) by precedence. Strip them all before classifying: an unstripped flag lands inside the `prompt` branch's raw idea text and is handed to `idea-reader` as if the user had written it.
+Classify `$ARGUMENTS` **minus every recognised flag** (`--deep`, `--no-docs`, `--no-prior-art`, `--docs <path>` with its value, and `--ground-code` with its optional comma-separated repo value) by precedence. Strip them all before classifying: an unstripped flag lands inside the `prompt` branch's raw idea text and is handed to `idea-reader` as if the user had written it. The token after `--ground-code` is its value **only** when it contains no whitespace and every comma-separated part matches a top-level directory basename under `${REPOS_PATH:-/workspace}`; otherwise the flag is bare and the token is idea text — strip only the flag itself.
 
 1. Matches the Jira-key regex `^[A-Z][A-Z0-9_]*-\d+$` → resolve it with `resolve-export-for-key <KEY>`
    (`${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`), then type it from the export's
@@ -74,11 +79,19 @@ Classify `$ARGUMENTS` **minus every recognised flag** (`--deep`, `--no-docs`, `-
    passed back for re-refinement is detected here too).
 3. Otherwise → **prompt** (the argument text is the raw idea).
 
-Surface a one-line confirmation before ingesting:
+**Confirm the classification — conditionally.** Per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` ("When a choice list fires"), a list is shown only where the answer genuinely varies. Two cases here do; the rest do not.
+
+**A — the key resolved but its `issue_type` is neither `ValueIncrement` nor `Product Need`.** Name the actual `issue_type` in prose beside the list, never inside an option:
 ```
-choices: ["Read this as <detected-type> (Recommended)", "It's actually a <other-type>", "Cancel", "Other… (describe)"]
+choices: ["Read this as a vi — an existing Value Increment (Recommended)", "Read this as an rfe — product feedback", "Cancel", "Other… (describe)"]
 ```
-(A dedicated `--as prompt|markdown|rfe|vi` override is future work — the confirmation covers a mis-detection.)
+
+**B — the argument is path-like (contains `/`, ends in `.md`, or starts with `@`) but resolved to no existing file.** Without this gate it falls through precedence rule 3 to **prompt** and the path string itself becomes the raw idea text — a mistyped path silently ingested as prose:
+```
+choices: ["Re-enter the path (Recommended)", "Read the argument as a prompt — the literal text is the idea", "Cancel", "Other… (describe)"]
+```
+
+**Everything else** — a `.md` path or `@wikilink` that resolves, a key typed `ValueIncrement` or `Product Need`, and plain prose — is unambiguous. State the resolution in one line that invites correction and **proceed without waiting**; the list would have one plausible answer. (A dedicated `--as prompt|markdown|rfe|vi` override is future work — this inline confirmation covers a mis-detection.)
 
 Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
 
@@ -120,12 +133,52 @@ Carry both digests into Phase 3 with **grill-rank** consumption — challenges f
 
 ---
 
+## Phase 2.6 — Code grounding (optional)
+
+Runs only when `--ground-code` was given; otherwise take the OFF branch at the end of this phase. Kept separate from Phase 2.5 because the repo gate needs a user answer (which cannot happen inside a parallel dispatch) and because the scan is two-round and therefore sequential.
+
+**1. Resolve the repo set.** The token after `--ground-code` is its value **only** when it contains no whitespace and every comma-separated part matches a top-level directory basename under `${REPOS_PATH:-/workspace}`; otherwise the flag is bare and the token is idea text. Validate each resolved path is a directory; a repo that is not mounted is handled by the `Repo missing (after resolution)` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` — never invented, never silently dropped. A repo the user drops is carried to Phase 5 by name, with the themes it would have grounded left unverified. With `--ground-code <repo>[,<repo>…]`, use exactly those repos and skip the derivation below. Bare, derive them:
+
+- **Cheap discovery.** List the top-level directories under each `${REPOS_PATH:-/workspace}` entry (may be colon-separated) with `ls`. Optionally attach each directory's one-line identity — `timeout 5 git -C <dir> remote get-url origin 2>/dev/null` (slug) or its README's first heading. Do **not** deep-scan to guess relevance.
+- **Propose** a candidate set from the `idea-reader` digest's themes.
+- **Gate** — this list's answer varies every run, so it fires unconditionally:
+  ```
+  choices: ["Ground the proposed set (Recommended)", "Ground a different set (you'll be prompted)", "Ground nothing — continue without a code scan", "Cancel", "Other… (describe)"]
+  ```
+- **Empty proposal — do not show that list.** When no theme matches any mounted repo its first option names a set that does not exist. Escalate instead per the `No repos derivable — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`. Every option in a shown list must name something that exists.
+- **"Ground nothing — continue without a code scan"** ends this phase for the run: no scanner is dispatched, Phase 4 writes no `## Feasibility grounding` section, and the Final report shows `code grounding: declined at the repo gate` — distinct from `code grounding: off`, which means the flag was never given at all.
+
+**2. Round 1 — broad.** Spawn `code-scanner` on the confirmed set in **batches of up to 4 concurrent agents per Agent message**, on `detection_model` per `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §8.3. For each repo in the batch:
+
+→ Agent (subagent_type: "dev-workflows:code-scanner", model: `<detection_model — §2.1 Sonnet chain>`):
+  > "Scan this repo for the brief:
+  >
+  > repo_path:        <resolved absolute path>
+  > capability_themes: <the idea's themes from the idea-reader digest>
+  > context:          <3–5 sentences: the idea's problem + desired outcome, and what a finding would change>
+  > search_hints:     <symbols/paths/keywords derived from the idea, if any>
+  > refresh:          { switch_to_default_branch: false, pull: false }"
+
+Handle every returned status through the list `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` already carries for it — `REPO_MISSING` → *Repo missing (after resolution)*. `prep.read_only: true` is **not** a failure: the scan ran at `prep.scanned_ref`; escalate per *Read-only mount — ref stale or diverged* **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`, and cite evidence at `prep.scanned_ref` either way. With `switch_to_default_branch` and `pull` both false, every repo is scanned read-only as it stands, at `prep.scanned_ref`, without switching branches or pulling — `code-scanner`'s dirty-tree status is gated on `pull: true`, a condition never met here, so this scan never produces it.
+
+**3. Round 2 — narrow.** Apply §8.5 of the model-routing reference: for each theme round 1 left **inconclusive** (`classification` `partial` / `absent` / `error`, or two scanners' `gap_summary` texts each naming the other's repo or layer), and for which round 1 produced at least one evidence anchor, dispatch `code-scanner` again with `capability_themes` holding exactly **one** question and `search_hints.paths` / `.symbols` / `.keywords` seeded from that round's verified `evidence[].path` and `.symbols`; where an evidence entry carries `lines`, name the anchor as `<path>:<line>` in the round-2 `context` prose, since `search_hints` has no line-number field. Cap **4 dispatches, one round only** — there is no round 3, and a theme still inconclusive is carried to Phase 4 as a `[NEEDS CLARIFICATION]`, never guessed at. A theme confirmed `absent` — by round 2, or by round 1 when no anchor existed to seed a round 2 — is a **resolved** finding: it belongs in Section 7's *What's missing*, not in Open questions. `[NEEDS CLARIFICATION]` is for a theme the scan could not settle — mutual deferral, or `error`.
+
+**OFF branch** (no `--ground-code`). Run one detection and print at most one line. Tokenise the raw argument and the digest's `raw_context`; match tokens case-insensitively against the basenames of the **git repositories** (a `.git` entry present) directly under each `${REPOS_PATH:-/workspace}` entry, excluding `$DOCS_PATH`, `$SPECS_PATH`, and `$VAULT_PATH`. Exact token match only — no substring, no stemming. On ≥1 match print:
+
+```
+This idea names <repo>; re-run with --ground-code to verify it against the code.
+```
+
+and **proceed without waiting** — an inline confirmation per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` ("When a choice list fires"), not a gate. No match ⇒ silent. There is no auto-trigger: grounding is a fan-out across every confirmed repo plus a second seeded round, and starts only on the user's explicit flag.
+
+---
+
 ## Phase 3 — Refine via grill
 
 **Interview technique (grilling — embedded; no runtime dependency).** Follow the shared technique in `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, fact-vs-decision split (look up facts from the `idea-reader` digest / vault, put only decisions to the user), walk the design tree in dependency order. **Depth: bounded by default (below); `--deep` = relentless.**
 
 Scan for gaps against an idea-stage **ambiguity taxonomy**: *problem clarity, target users, desired
-outcome/value, scope boundaries, evidence/demand sufficiency, success signal, terminology.* Rank gaps by **Impact × Uncertainty**, ranking every `docs_challenges` and `prior_art_challenges` entry from Phase 2.5 into that same list. Challenges **compete** for the slots below; they never add slots.
+outcome/value, scope boundaries, evidence/demand sufficiency, success signal, terminology.* Rank gaps by **Impact × Uncertainty**, ranking every `docs_challenges` and `prior_art_challenges` entry from Phase 2.5 into that same list. Challenges **compete** for the slots below; they never add slots. **Code findings are facts, not questions.** A Phase 2.6 finding answers a gap rather than raising one — look it up, cite it, and do not spend a question on it. The one exception is the finding that **contradicts the idea's premise** (the capability already exists, or the gap is far smaller than the idea assumes): that becomes a challenge ranked into the same Impact × Uncertainty list, competing for a slot exactly like a `docs_challenges` or `prior_art_challenges` entry and never adding one. At most **2** such challenges.
 
 - **Default (bounded):** ask **≤5** questions across the ranked gaps, then stop. Remaining high-impact
   gaps become `- [NEEDS CLARIFICATION: <question>]` in the `idea.md` **Open questions & assumptions**
@@ -186,6 +239,13 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
   **and** in `sources:`. Merge by Jira key so a supplied VI the finder also matched yields one bullet: the finder's entry wins,
   because it is a strict superset of `tracked` (it adds `relation`, `match_reason`, and a vault path). A
   finder match with `jira_key: null` cannot collide — a supplied VI always has a key.
+- **`## Feasibility grounding`:** write the section per
+  `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` when Phase 2.6 ran **and** returned at least one
+  finding; omit it entirely otherwise. Head it with each grounded repo as `<repo>@<scanned_ref>`; give
+  every bullet a repo-qualified `<repo>/<path>:<line>` citation (the first entry of that evidence's
+  `lines`, or `<repo>/<path>` when it has none); write a **Reframing** line only when a finding
+  contradicted the idea's premise. A theme still inconclusive after round 2 becomes a
+  `[NEEDS CLARIFICATION]` in **Open questions & assumptions**, never a hedged bullet.
 - **Existing file:** if `idea.md` already exists at that path, offer:
   ```
   choices: ["Refine the existing idea.md (Recommended)", "Create a new one (you'll be prompted for a slug)", "Cancel", "Other… (describe)"]
@@ -215,6 +275,12 @@ Report where `idea.md` was written and its `status`, then offer the next phase �
 Also report any prior art found — matched keys with their statuses, and the alternative container path
 when one exists — **whether or not the gate fired**, so the user can relocate before `/create-vi` makes
 the path sticky.
+
+Also report the code grounding when Phase 2.6 ran: the grounded repos with their `scanned_ref`s, any
+repo descoped or unmounted with the themes left unverified, any theme still inconclusive after round 2,
+and — first, because it is the most consequential thing a run can produce — the **Reframing** line if
+one was written. A reframing that changed the idea's Problem section must not be reported only inside
+the file.
 
 `/create-vi` is a separate command; this offer is guidance the user acts on — it never auto-invokes
 another command. (Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — the plugin-wide
@@ -288,4 +354,8 @@ path (or notice); the `Specs repo:` outcome line from `commit-artifacts`
 (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; any
 prior art found (keys + statuses), any `status_conflict` a match reported (both values and the export's
 date — it is the signal that catches a broken sync) and any `notes` the finder returned; the resolved
-`vi_disposition`; and the adaptive next-phase recommendation.
+`vi_disposition`; the code grounding outcome — the grounded repos with their `scanned_ref`s, any
+descoped or inconclusive ones, and — first, because it is the most consequential thing a run can
+produce — the **Reframing** line if one was written; or, when no scan ran, `code grounding: off` (no
+`--ground-code`) or `code grounding: declined at the repo gate` (`--ground-code` given, "Ground
+nothing" chosen); and the adaptive next-phase recommendation.

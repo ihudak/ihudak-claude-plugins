@@ -49,6 +49,7 @@ capability_map:
     classification: present | partial | absent | error
     evidence:
       - path:    <file path relative to repo root>
+        lines:   [<1-based line numbers>]   # optional — present when the match came from a grep hit
         symbols: [<class/function names found>]
         note:    <one-line characterisation of what this file provides>
     gap_summary: |
@@ -63,7 +64,7 @@ gap_summary: |
   <1–2 paragraphs: what needs to be implemented from scratch>
 ```
 
-`prep.read_only`, `prep.scanned_ref`, `prep.ref_committed_at`, and `prep.head_divergence` are always present, so a caller never branches on absence. Every `evidence.path` is relative to the repo root and denotes content **at `scanned_ref`**; on a read-only mount, open one with `git -C "<repo_path>" show <scanned_ref>:<path>`. See `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md`.
+`prep.read_only`, `prep.scanned_ref`, `prep.ref_committed_at`, and `prep.head_divergence` are always present, so a caller never branches on absence. Every `evidence.path` is relative to the repo root and denotes content **at `scanned_ref`**; on a read-only mount, open one with `git -C "<repo_path>" show <scanned_ref>:<path>`. See `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md`. `evidence.lines` is optional — present when the entry came from a grep hit, absent for a path glob or a whole-file read — and is meaningful only together with `scanned_ref`, because a line number moves with the ref it was read at.
 
 ## Status codes
 

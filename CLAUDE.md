@@ -193,7 +193,7 @@ Key invariants for `/implement` specifically:
 - Full test suite is verified against the captured baseline before the workflow is considered complete
 - Multi-source input (more than one repo, or any directory input — Jira ticket folder or spec folder) floors classification at SIGNIFICANT (overridable at plan approval) and triggers the Phase 1.7 fan-out scan
 - The fan-out runs `jira-reader` + per-repo `code-scanner` (single response, cap 4 concurrent); its synthesized summary feeds the planner instead of the single Explore subagent
-- A theme round 1 leaves inconclusive — `partial`/`absent`/`error`, or two scanners each naming the other's repo — gets ONE narrow round 2 seeded with round 1's verified anchors (`classification.md` §8.5, cap 4, no round 3). A theme still unresolved after it is named in the summary's `## Unresolved` section and carried into the plan's risks; it is NEVER flattened into an ordinary gap, because a gap asserts absence while an unresolved theme asserts only that the scan could not tell
+- A theme round 1 leaves inconclusive — `partial`/`absent`/`error`, or two scanners each naming the other's repo — gets ONE narrow round 2 seeded with round 1's verified anchors (`classification.md` §8.5, cap 4, no round 3). A theme still unresolved after round 2 is named in the summary's `## Unresolved` section and carried into the plan's risks; it is NEVER flattened into an ordinary gap, because a gap asserts absence while an unresolved theme asserts only that the scan could not tell
 - A referenced directory that is missing or unrecognized is surfaced, never silently skipped
 
 Key invariants for `/document` (direct mode):

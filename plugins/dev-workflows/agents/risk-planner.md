@@ -26,6 +26,13 @@ The caller passes a structured brief:
 - **Constraints** - runtime versions, dependencies, deadlines, non-functional
   requirements.
 - **Current state** - git branch, uncommitted changes, test baseline if any.
+- **`Unresolved scan themes`** (optional) — from `/implement`'s Phase 1.7
+  multi-source fan-out: each entry is a theme the scan could not settle —
+  mutual deferral between scanners, a scan `error`, or a theme with no
+  evidence anchor to seed a round 2. Each is NOT a confirmed gap and NOT a
+  confirmed capability — the scan could not determine where, or whether, the
+  capability exists. Never plan as though its location is known. Absent/other
+  → plan normally.
 - **`task_shape`** (optional) — `bug` when the caller classified the task as a
   defect fix. When `task_shape: bug`, follow
   `${CLAUDE_PLUGIN_ROOT}/references/bug-diagnosis.md`: lead `### Steps` with a
@@ -76,6 +83,7 @@ one alternative that was rejected and the reason.]
 - **Dependency blast radius**: [...]
 - **Rollback story**: [how to revert; is it reversible?]
 - **Test adequacy**: [what must be verified; mention regressions to guard against]
+- **Unresolved scan themes**: [for each entry in the brief's `Unresolved scan themes`, name it and how the plan treats its location as unknown — e.g. gate a step on confirming which repo owns it — or "none — no unresolved themes in the brief"]
 
 ### Assumptions
 - [minimum set; each must be obviously safe or flagged for user confirmation]

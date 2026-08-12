@@ -14,7 +14,7 @@ the existing pipeline. It ingests one source, refines it through a grill, and wr
 
 Flags: `--deep` switches the grill from bounded (≤5 questions) to relentless (until convergence).
 `--no-docs` and `--no-prior-art` each turn off one grounding source (see Phase 1).
-`--ground-code [<repo>[,<repo>…]]` grounds the idea against mounted code (see Phase 2.6) — bare it derives the repo set, with a value it scans exactly those repos.
+`--ground-code [<repo>[,<repo>…]]` grounds the idea against mounted code (see Phase 2.6) — bare it derives the repo set, with a value it scans exactly those repos. The token after `--ground-code` is its value **only** when it contains no whitespace and every comma-separated part matches a top-level directory basename under `${REPOS_PATH:-/workspace}`; otherwise the flag is bare and the token is idea text.
 
 ---
 
@@ -62,7 +62,7 @@ step skips on it.
 
 ## Phase 1 — Classify the source
 
-Classify `$ARGUMENTS` **minus every recognised flag** (`--deep`, `--no-docs`, `--no-prior-art`, `--docs <path>` with its value, and `--ground-code` with its optional comma-separated repo value) by precedence. Strip them all before classifying: an unstripped flag lands inside the `prompt` branch's raw idea text and is handed to `idea-reader` as if the user had written it.
+Classify `$ARGUMENTS` **minus every recognised flag** (`--deep`, `--no-docs`, `--no-prior-art`, `--docs <path>` with its value, and `--ground-code` with its optional comma-separated repo value) by precedence. Strip them all before classifying: an unstripped flag lands inside the `prompt` branch's raw idea text and is handed to `idea-reader` as if the user had written it. The token after `--ground-code` is its value **only** when it contains no whitespace and every comma-separated part matches a top-level directory basename under `${REPOS_PATH:-/workspace}`; otherwise the flag is bare and the token is idea text — strip only the flag itself.
 
 1. Matches the Jira-key regex `^[A-Z][A-Z0-9_]*-\d+$` → resolve it with `resolve-export-for-key <KEY>`
    (`${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`), then type it from the export's
@@ -137,7 +137,7 @@ Carry both digests into Phase 3 with **grill-rank** consumption — challenges f
 
 Runs only when `--ground-code` was given; otherwise take the OFF branch at the end of this phase. Kept separate from Phase 2.5 because the repo gate needs a user answer (which cannot happen inside a parallel dispatch) and because the scan is two-round and therefore sequential.
 
-**1. Resolve the repo set.** With `--ground-code <repo>[,<repo>…]`, use exactly those repos and skip to step 2. Bare, derive them:
+**1. Resolve the repo set.** The token after `--ground-code` is its value **only** when it contains no whitespace and every comma-separated part matches a top-level directory basename under `${REPOS_PATH:-/workspace}`; otherwise the flag is bare and the token is idea text. Validate each resolved path is a directory; a repo that is not mounted is handled by the `Repo missing (after resolution)` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` — never invented, never silently dropped. A repo the user drops is carried to Phase 5 by name, with the themes it would have grounded left unverified. With `--ground-code <repo>[,<repo>…]`, use exactly those repos and skip the derivation below. Bare, derive them:
 
 - **Cheap discovery.** List the top-level directories under each `${REPOS_PATH:-/workspace}` entry (may be colon-separated) with `ls`. Optionally attach each directory's one-line identity — `timeout 5 git -C <dir> remote get-url origin 2>/dev/null` (slug) or its README's first heading. Do **not** deep-scan to guess relevance.
 - **Propose** a candidate set from the `idea-reader` digest's themes.
@@ -146,8 +146,7 @@ Runs only when `--ground-code` was given; otherwise take the OFF branch at the e
   choices: ["Ground the proposed set (Recommended)", "Ground a different set (you'll be prompted)", "Ground nothing — continue without a code scan", "Cancel", "Other… (describe)"]
   ```
 - **Empty proposal — do not show that list.** When no theme matches any mounted repo its first option names a set that does not exist. Escalate instead per the `No repos derivable — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`. Every option in a shown list must name something that exists.
-
-Validate each resolved path is a directory; a repo that is not mounted is handled by the `Repo missing (after resolution)` rule in the same file — never invented, never silently dropped. A repo the user drops is carried to Phase 5 by name, with the themes it would have grounded left unverified.
+- **"Ground nothing — continue without a code scan"** ends this phase for the run: no scanner is dispatched, Phase 4 writes no `## Feasibility grounding` section, and the Final report shows `code grounding: declined at the repo gate` — distinct from `code grounding: off`, which means the flag was never given at all.
 
 **2. Round 1 — broad.** Spawn `code-scanner` on the confirmed set in **batches of up to 4 concurrent agents per Agent message**, on `detection_model` per `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §8.3. For each repo in the batch:
 
@@ -157,11 +156,12 @@ Validate each resolved path is a directory; a repo that is not mounted is handle
   > repo_path:        <resolved absolute path>
   > capability_themes: <the idea's themes from the idea-reader digest>
   > context:          <3–5 sentences: the idea's problem + desired outcome, and what a finding would change>
-  > search_hints:     <symbols/paths/keywords derived from the idea, if any>"
+  > search_hints:     <symbols/paths/keywords derived from the idea, if any>
+  > refresh:          { switch_to_default_branch: false, pull: false }"
 
-Handle every returned status through the list `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` already carries for it — `REPO_MISSING` → *Repo missing (after resolution)*; `DIRTY_TREE` → *Dirty working tree*; `REFRESH_BLOCKED` → *Refresh blocked*. `prep.read_only: true` is **not** a failure: the scan ran at `prep.scanned_ref`; escalate per *Read-only mount — ref stale or diverged* **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`, and cite evidence at `prep.scanned_ref` either way.
+Handle every returned status through the list `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` already carries for it — `REPO_MISSING` → *Repo missing (after resolution)*; `REFRESH_BLOCKED` → *Refresh blocked*. `prep.read_only: true` is **not** a failure: the scan ran at `prep.scanned_ref`; escalate per *Read-only mount — ref stale or diverged* **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`, and cite evidence at `prep.scanned_ref` either way. With `switch_to_default_branch` and `pull` both false, every repo is scanned read-only as it stands, at `prep.scanned_ref`, without switching branches or pulling — `code-scanner`'s dirty-tree status is gated on `pull: true`, a condition never met here, so this scan never produces it.
 
-**3. Round 2 — narrow.** Apply §8.5 of the model-routing reference: for each theme round 1 left **inconclusive** (`classification` `partial` / `absent` / `error`, or two scanners' `gap_summary` texts each naming the other's repo or layer), and for which round 1 produced at least one evidence anchor, dispatch `code-scanner` again with `capability_themes` holding exactly **one** question and `search_hints` seeded from that round's verified `evidence[].path`, `.symbols`, and `.lines`. Cap **4 dispatches, one round only** — there is no round 3, and a theme still inconclusive is carried to Phase 4 as a `[NEEDS CLARIFICATION]`, never guessed at.
+**3. Round 2 — narrow.** Apply §8.5 of the model-routing reference: for each theme round 1 left **inconclusive** (`classification` `partial` / `absent` / `error`, or two scanners' `gap_summary` texts each naming the other's repo or layer), and for which round 1 produced at least one evidence anchor, dispatch `code-scanner` again with `capability_themes` holding exactly **one** question and `search_hints.paths` / `.symbols` / `.keywords` seeded from that round's verified `evidence[].path` and `.symbols`; where an evidence entry carries `lines`, name the anchor as `<path>:<line>` in the round-2 `context` prose, since `search_hints` has no line-number field. Cap **4 dispatches, one round only** — there is no round 3, and a theme still inconclusive is carried to Phase 4 as a `[NEEDS CLARIFICATION]`, never guessed at. A theme confirmed `absent` — by round 2, or by round 1 when no anchor existed to seed a round 2 — is a **resolved** finding: it belongs in Section 7's *What's missing*, not in Open questions. `[NEEDS CLARIFICATION]` is for a theme the scan could not settle — mutual deferral, or `error`.
 
 **OFF branch** (no `--ground-code`). Run one detection and print at most one line. Tokenise the raw argument and the digest's `raw_context`; match tokens case-insensitively against the basenames of the **git repositories** (a `.git` entry present) directly under each `${REPOS_PATH:-/workspace}` entry, excluding `$DOCS_PATH`, `$SPECS_PATH`, and `$VAULT_PATH`. Exact token match only — no substring, no stemming. On ≥1 match print:
 
@@ -354,5 +354,8 @@ path (or notice); the `Specs repo:` outcome line from `commit-artifacts`
 (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; any
 prior art found (keys + statuses), any `status_conflict` a match reported (both values and the export's
 date — it is the signal that catches a broken sync) and any `notes` the finder returned; the resolved
-`vi_disposition`; the grounded repos with their `scanned_ref`s and any descoped or inconclusive ones
-(or "code grounding: off"); and the adaptive next-phase recommendation.
+`vi_disposition`; the code grounding outcome — the grounded repos with their `scanned_ref`s, any
+descoped or inconclusive ones, and — first, because it is the most consequential thing a run can
+produce — the **Reframing** line if one was written; or, when no scan ran, `code grounding: off` (no
+`--ground-code`) or `code grounding: declined at the repo gate` (`--ground-code` given, "Ground
+nothing" chosen); and the adaptive next-phase recommendation.

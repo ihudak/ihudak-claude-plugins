@@ -95,7 +95,10 @@ slug→clone map.
 Used in `/idea` Phase 2.6 when the proposed theme → repo mapping is empty (no
 theme matches any mounted repo), and in `/epics` Phase 4 when the final
 resolved repo list is empty (every repo was skipped or missing — "Use case B
-with no repos derivable").
+with no repos derivable"). The `— /epics` suffix on this heading is historical
+— `/epics` was its first citer — not a scope restriction; the rule now serves
+both commands listed above, and any future citer with the same empty-repo-set
+shape uses it too.
 
 ## Repo missing (after resolution)
 
@@ -114,10 +117,18 @@ which option is right depends entirely on why the repo is absent.
 
 `choices: ["Stash changes and retry this repo", "Skip this repo", "Cancel", "Other… (describe)"]`
 
-Used in `/document` Phase 5 when a diff-summarizer returns `DIRTY_TREE`.
+Used in `/document` Phase 5 when a diff-summarizer returns `DIRTY_TREE`. `/create-ard`, `/design`,
+`/release-notes`, and `/implement` (Phase 1.7) cite this rule by name without reproducing the list, so
+per the "Choice lists are presented verbatim" convention above they use this variant — the one written
+under this heading.
 
 In `/epics` Phase 5 the `"Other… (describe)"` entry is omitted:
 `choices: ["Stash changes and retry this repo", "Skip this repo", "Cancel"]`
+
+`/specify` (Phase 4) reproduces this shorter `/epics` variant inline as well. A new citer that reproduces
+a list inline states which variant it uses; a citer that names the rule without reproducing the list
+uses the `/document` variant above — the file's own rule (adding the trailing `"Other… (describe)"`
+entry is the one permitted adjustment) already resolves which list that citer is following.
 
 ## Branch prefix undetected
 
@@ -136,10 +147,18 @@ Either way, prompt for the value with: `"Enter your initials (lowercase; 2–8 c
 
 `choices: ["Continue with current local state", "Skip this repo", "Cancel", "Other… (describe)"]`
 
-Used in `/document` Phase 5 when a diff-summarizer returns `REFRESH_BLOCKED`.
+Used in `/document` Phase 5 when a diff-summarizer returns `REFRESH_BLOCKED`. `/create-ard`, `/design`,
+`/release-notes`, `/implement` (Phase 1.7), and `/idea` (Phase 2.6) cite this rule by name without
+reproducing the list, so per the "Choice lists are presented verbatim" convention above they use this
+variant — the one written under this heading.
 
 In `/epics` Phase 5 the `"Other… (describe)"` entry is omitted:
 `choices: ["Continue with current local state", "Skip this repo", "Cancel"]`
+
+`/specify` (Phase 4) reproduces this shorter `/epics` variant inline as well. A new citer that reproduces
+a list inline states which variant it uses; a citer that names the rule without reproducing the list
+uses the `/document` variant above — the file's own rule (adding the trailing `"Other… (describe)"`
+entry is the one permitted adjustment) already resolves which list that citer is following.
 
 ## Read-only mount — ref stale or diverged
 

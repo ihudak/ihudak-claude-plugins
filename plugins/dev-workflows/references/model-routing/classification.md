@@ -364,14 +364,20 @@ with a narrowed brief:
 - `capability_themes` holds exactly **one** question — not the broad theme, but
   the single thing round 1 failed to settle;
 - `search_hints.paths` / `.symbols` / `.keywords` are seeded from round 1's
-  verified `evidence[].path`, `.symbols`, and `.lines`.
+  verified `evidence[].path` and `.symbols`; where an evidence entry carries
+  `lines`, name the anchor as `<path>:<line>` in the round-2 `context` prose,
+  since `search_hints` has no line-number field.
 
 No new agent and no input-contract change: the narrowing lives entirely in what
 the caller puts in the existing fields.
 
 **Bounds.** Round 2 is capped at **4 dispatches** and is **one round only**.
 There is no round 3. A theme still inconclusive after round 2 is reported
-unresolved — never guessed at.
+unresolved — never guessed at. A theme confirmed `absent` — by round 2, or by
+round 1 when no anchor existed to seed a round 2 — is a **resolved** finding,
+not an unresolved one: for `/idea`, it belongs in Section 7's *What's missing*,
+not in Open questions. `[NEEDS CLARIFICATION]` (or the caller's equivalent) is
+for a theme the scan could not settle — mutual deferral, or `error`.
 
 **Opt-in.** §8.5 is a shared procedure a caller adopts by saying so in its own
 body. `/idea` (Phase 2.6) is its first and only current consumer. `/implement`,

@@ -95,7 +95,7 @@ knowledge. Keep those roles separate so workflows stay predictable.
 - The mandatory Opus code-review checklist
 - The `model_routing` YAML handoff block shared between commands and agents
 - The `phase: verify-resume` protocol for review-gated verification
-- The large-input scan fan-out policy (§8): the input-shape trigger, the `jira-reader → parallel code-scanner (cap 4) → Opus synthesis` pattern, and the SIGNIFICANT floor it imposes, and §8.5's opt-in seeded second round (`/idea` only)
+- The large-input scan fan-out policy (§8): the input-shape trigger, the `jira-reader → parallel code-scanner (cap 4) → Opus synthesis` pattern, the SIGNIFICANT floor it imposes, and §8.5's opt-in seeded second round (`/idea` only)
 
 All pipeline commands that invoke the `model-routing` skill (`/implement`, `/document`,
 `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/docs-profile`, `/idea`, `/create-vi`,

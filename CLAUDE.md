@@ -95,7 +95,7 @@ knowledge. Keep those roles separate so workflows stay predictable.
 - The mandatory Opus code-review checklist
 - The `model_routing` YAML handoff block shared between commands and agents
 - The `phase: verify-resume` protocol for review-gated verification
-- The large-input scan fan-out policy (§8): the input-shape trigger, the `jira-reader → parallel code-scanner (cap 4) → Opus synthesis` pattern, the SIGNIFICANT floor it imposes, and §8.5's opt-in seeded second round (`/idea` only)
+- The large-input scan fan-out policy (§8): the input-shape trigger, the `jira-reader → parallel code-scanner (cap 4) → Opus synthesis` pattern, the SIGNIFICANT floor it imposes, and §8.5's opt-in seeded second round (adopted by `/idea` and `/implement`) with its rule that an unresolved theme is named, never flattened into a gap
 
 All pipeline commands that invoke the `model-routing` skill (`/implement`, `/document`,
 `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/docs-profile`, `/idea`, `/create-vi`,
@@ -134,7 +134,7 @@ in their prompt; they do not re-read the file.
 ## `dev-workflows` workflow relationships
 
 ```
-/implement           → [Pre-Phase 2 scale assessment] → (multi-source? → [jira-reader → code-scanner×N (parallel, cap 4)] → synthesis) → [risk-planner@Opus plan critique] → [code-review@Opus] → review-fixer → test-writer → tests → impl-maintenance → commit-artifacts
+/implement           → [Pre-Phase 2 scale assessment] → (multi-source? → [jira-reader → code-scanner×N (parallel, cap 4) → §8.5 narrow round 2] → synthesis, unresolved themes named) → [risk-planner@Opus plan critique] → [code-review@Opus] → review-fixer → test-writer → tests → impl-maintenance → commit-artifacts
 /document (direct)   → [doc-reviewer] → [doc-fixer] → impl-maintenance → commit-artifacts
 /docs-profile        → scans docs repo → writes/refreshes .dev-workflows/docs-profile.yml + CLAUDE.md guidance → PR
 /document (Jira)     → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [counterpart-finder (space-constrained runs)] → [doc-planner] → [discrepancy-escalation (Phase 5.8)] → writing → [docs-style-checker → dt-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [doc-fixer] → impl-maintenance → commit-artifacts   (Phase 0 hint: prefers ${DOCS_PATH:-/workspace/docs} as a docs-repo discovery hint — write-target only, no docs-grounder consumption)
@@ -193,6 +193,7 @@ Key invariants for `/implement` specifically:
 - Full test suite is verified against the captured baseline before the workflow is considered complete
 - Multi-source input (more than one repo, or any directory input — Jira ticket folder or spec folder) floors classification at SIGNIFICANT (overridable at plan approval) and triggers the Phase 1.7 fan-out scan
 - The fan-out runs `jira-reader` + per-repo `code-scanner` (single response, cap 4 concurrent); its synthesized summary feeds the planner instead of the single Explore subagent
+- A theme round 1 leaves inconclusive — `partial`/`absent`/`error`, or two scanners each naming the other's repo — gets ONE narrow round 2 seeded with round 1's verified anchors (`classification.md` §8.5, cap 4, no round 3). A theme still unresolved after round 2 is named in the summary's `## Unresolved` section and carried into the plan's risks; it is NEVER flattened into an ordinary gap, because a gap asserts absence while an unresolved theme asserts only that the scan could not tell
 - A referenced directory that is missing or unrecognized is surfaced, never silently skipped
 
 Key invariants for `/document` (direct mode):

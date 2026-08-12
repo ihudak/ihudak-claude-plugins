@@ -695,7 +695,13 @@ Write `docs/superpowers/plans/2026-08-12-choice-gate-sweep.md` with one row per 
 cd /workspace/ihudak-claude-plugins
 # expect: the sweep record exists and names every hit the detector produced
 test -f docs/superpowers/plans/2026-08-12-choice-gate-sweep.md && echo OK
-# expect 188 minus any list this task converted to an inline confirmation
+# expect 191 by the time this task runs, minus any list it converts to an inline
+# confirmation. 188 was the count at the branch base; the branch legitimately adds
+# three matches before this task: Phase 1's one unconditional list became two
+# conditional ones (+1), Phase 2.6's repo gate (+1), and the new firing rule's own
+# prose — "it carries no `choices:` array" — which grep counts but is not a gate (+1).
+# (This value read "188 minus…" when the plan was written; it ignored the branch's
+# own additions.)
 grep -rh 'choices:' plugins/dev-workflows/commands plugins/dev-workflows/references | wc -l
 ```
 

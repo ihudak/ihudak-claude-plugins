@@ -133,6 +133,46 @@ Carry both digests into Phase 3 with **grill-rank** consumption — challenges f
 
 ---
 
+## Phase 2.6 — Code grounding (optional)
+
+Runs only when `--ground-code` was given; otherwise take the OFF branch at the end of this phase. Kept separate from Phase 2.5 because the repo gate needs a user answer (which cannot happen inside a parallel dispatch) and because the scan is two-round and therefore sequential.
+
+**1. Resolve the repo set.** With `--ground-code <repo>[,<repo>…]`, use exactly those repos and skip to step 2. Bare, derive them:
+
+- **Cheap discovery.** List the top-level directories under each `${REPOS_PATH:-/workspace}` entry (may be colon-separated) with `ls`. Optionally attach each directory's one-line identity — `timeout 5 git -C <dir> remote get-url origin 2>/dev/null` (slug) or its README's first heading. Do **not** deep-scan to guess relevance.
+- **Propose** a candidate set from the `idea-reader` digest's themes.
+- **Gate** — this list's answer varies every run, so it fires unconditionally:
+  ```
+  choices: ["Ground the proposed set (Recommended)", "Ground a different set (you'll be prompted)", "Ground nothing — continue without a code scan", "Cancel", "Other… (describe)"]
+  ```
+- **Empty proposal — do not show that list.** When no theme matches any mounted repo its first option names a set that does not exist. Escalate instead per the `No repos derivable — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`. Every option in a shown list must name something that exists.
+
+Validate each resolved path is a directory; a repo that is not mounted is handled by the `Repo missing (after resolution)` rule in the same file — never invented, never silently dropped. A repo the user drops is carried to Phase 5 by name, with the themes it would have grounded left unverified.
+
+**2. Round 1 — broad.** Spawn `code-scanner` on the confirmed set in **batches of up to 4 concurrent agents per Agent message**, on `detection_model` per `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §8.3. For each repo in the batch:
+
+→ Agent (subagent_type: "dev-workflows:code-scanner", model: `<detection_model — §2.1 Sonnet chain>`):
+  > "Scan this repo for the brief:
+  >
+  > repo_path:        <resolved absolute path>
+  > capability_themes: <the idea's themes from the idea-reader digest>
+  > context:          <3–5 sentences: the idea's problem + desired outcome, and what a finding would change>
+  > search_hints:     <symbols/paths/keywords derived from the idea, if any>"
+
+Handle every returned status through the list `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` already carries for it — `REPO_MISSING` → *Repo missing (after resolution)*; `DIRTY_TREE` → *Dirty working tree*; `REFRESH_BLOCKED` → *Refresh blocked*. `prep.read_only: true` is **not** a failure: the scan ran at `prep.scanned_ref`; escalate per *Read-only mount — ref stale or diverged* **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`, and cite evidence at `prep.scanned_ref` either way.
+
+**3. Round 2 — narrow.** Apply §8.5 of the model-routing reference: for each theme round 1 left **inconclusive** (`classification` `partial` / `absent` / `error`, or two scanners' `gap_summary` texts each naming the other's repo or layer), and for which round 1 produced at least one evidence anchor, dispatch `code-scanner` again with `capability_themes` holding exactly **one** question and `search_hints` seeded from that round's verified `evidence[].path`, `.symbols`, and `.lines`. Cap **4 dispatches, one round only** — there is no round 3, and a theme still inconclusive is carried to Phase 4 as a `[NEEDS CLARIFICATION]`, never guessed at.
+
+**OFF branch** (no `--ground-code`). Run one detection and print at most one line. Tokenise the raw argument and the digest's `raw_context`; match tokens case-insensitively against the basenames of the **git repositories** (a `.git` entry present) directly under each `${REPOS_PATH:-/workspace}` entry, excluding `$DOCS_PATH`, `$SPECS_PATH`, and `$VAULT_PATH`. Exact token match only — no substring, no stemming. On ≥1 match print:
+
+```
+This idea names <repo>; re-run with --ground-code to verify it against the code.
+```
+
+and **proceed without waiting** — an inline confirmation per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` ("When a choice list fires"), not a gate. No match ⇒ silent. There is no auto-trigger: grounding is up to eight scanner dispatches and starts only on the user's explicit flag.
+
+---
+
 ## Phase 3 — Refine via grill
 
 **Interview technique (grilling — embedded; no runtime dependency).** Follow the shared technique in `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, fact-vs-decision split (look up facts from the `idea-reader` digest / vault, put only decisions to the user), walk the design tree in dependency order. **Depth: bounded by default (below); `--deep` = relentless.**

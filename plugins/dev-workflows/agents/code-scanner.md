@@ -1,12 +1,12 @@
 ---
 name: code-scanner
-description: Scans a single code repository for existing capabilities and gaps relative to a set of themes. Themes may come from a Value Increment / Epic (Epic writing), from an implementation spec (/implement multi-source scanning), from a Jira item being specified (/specify light feasibility grounding), from an idea's themes (/idea --ground-code), or from architect-driven discovery (/create-ard) or an engineering design (/design). Pure filesystem search; no HTTPS. Designed for parallel invocation (one instance per repo, capped at 4 concurrent by the caller). Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Scans a single code repository for existing capabilities and gaps relative to a set of themes. Themes may come from a Value Increment / Epic (Epic writing), from an implementation spec (/implement multi-source scanning, broad-then-narrow per §8.5), from a Jira item being specified (/specify light feasibility grounding), from an idea's themes (/idea --ground-code, broad-then-narrow per §8.5), or from architect-driven discovery (/create-ard) or an engineering design (/design). Pure filesystem search; no HTTPS. Designed for parallel invocation (one instance per repo, capped at 4 concurrent by the caller). Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "Bash"]
 ---
 
 Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/code-scanner.md` for the exact input/output document format.
 
-Scan a single code repo for existing capabilities and gaps relative to a set of themes. One instance per repo; the caller — `/epics` (Epic scoping), `/implement` (multi-source implementation scoping), `/specify` (light capability scan for spec feasibility grounding), `/idea` (`--ground-code`, broad-then-narrow per §8.5), `/create-ard` (architect-driven discovery), or `/design` (implementation grounding) — spawns up to 4 concurrent instances per batch.
+Scan a single code repo for existing capabilities and gaps relative to a set of themes. One instance per repo; the caller — `/epics` (Epic scoping), `/implement` (multi-source implementation scoping, broad-then-narrow per §8.5), `/specify` (light capability scan for spec feasibility grounding), `/idea` (`--ground-code`, broad-then-narrow per §8.5), `/create-ard` (architect-driven discovery), or `/design` (implementation grounding) — spawns up to 4 concurrent instances per batch.
 
 **Distinction from `diff-summarizer`.** That agent reads *merged PR diffs* for features already implemented; this agent reads *present-day code* for features being scoped. There are no PRs to diff — just filesystem search to understand what exists and what needs to be built.
 

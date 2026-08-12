@@ -354,8 +354,9 @@ answers that together say nothing. Naming a verified anchor removes the escape.
 broad themes, single response, cap 4 concurrent.
 
 **Inconclusive** describes a round-1 theme whose `classification` is `partial`,
-`absent`, or `error`, **or** for which two scanners' `gap_summary` texts each
-name the *other's* repo or layer as the likely location.
+`absent`, or `error`, **or** for which **two or more** scanners' per-theme
+`capability_map[].gap_summary` texts point at each other's repo in a cycle, or
+at a component/subsystem that no scanned repo covers.
 
 **Round 2** fires for an inconclusive theme when round 1 produced at least one
 evidence anchor to seed from. It dispatches the **same** `code-scanner` agent
@@ -373,11 +374,24 @@ the caller puts in the existing fields.
 
 **Bounds.** Round 2 is capped at **4 dispatches** and is **one round only**.
 There is no round 3. A theme still inconclusive after round 2 is reported
-unresolved — never guessed at. A theme confirmed `absent` — by round 2, or by
-round 1 when no anchor existed to seed a round 2 — is a **resolved** finding,
-not an unresolved one: for `/idea`, it belongs in Section 7's *What's missing*,
-not in Open questions. `[NEEDS CLARIFICATION]` (or the caller's equivalent) is
-for a theme the scan could not settle — mutual deferral, or `error`.
+unresolved — never guessed at. **Precedence: mutual deferral and `error` are
+unresolved regardless of whether a round-1 evidence anchor existed to seed a
+round 2** — a theme with no anchor never gets a round-2 attempt, but the
+absence of an attempt is not itself a resolution. A theme confirmed `absent`
+— by round 2, or by round 1 when no anchor existed to seed one — is a
+**resolved** finding only when that `absent` carries **no deferral to a repo
+or layer outside the scanned set**: for `/idea`, it belongs in Section 7's
+*What's missing*, not in Open questions. `[NEEDS CLARIFICATION]` (or the
+caller's equivalent) is for a theme the scan could not settle — mutual
+deferral, `error`, or `absent` everywhere scanned **plus** a deferral outside
+the scanned set.
+
+The altitude differs by caller. For `/idea --ground-code`, the confirmed repo
+set **is** the world the idea is grounding against, so `absent` everywhere
+scanned genuinely means missing. For `/implement`'s fan-out, the premise is
+that the capability lives *somewhere* across the repos in scope — so `absent`
+everywhere scanned **plus** a deferral outside the scanned set means "the scan
+could not tell," not "the capability does not exist."
 
 **Opt-in.** §8.5 is a shared procedure a caller adopts by saying so in its own
 body. Its consumers are `/idea` (Phase 2.6) and `/implement` (Phase 1.7).

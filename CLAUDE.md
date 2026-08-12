@@ -95,7 +95,7 @@ knowledge. Keep those roles separate so workflows stay predictable.
 - The mandatory Opus code-review checklist
 - The `model_routing` YAML handoff block shared between commands and agents
 - The `phase: verify-resume` protocol for review-gated verification
-- The large-input scan fan-out policy (§8): the input-shape trigger, the `jira-reader → parallel code-scanner (cap 4) → Opus synthesis` pattern, and the SIGNIFICANT floor it imposes
+- The large-input scan fan-out policy (§8): the input-shape trigger, the `jira-reader → parallel code-scanner (cap 4) → Opus synthesis` pattern, and the SIGNIFICANT floor it imposes, and §8.5's opt-in seeded second round (`/idea` only)
 
 All pipeline commands that invoke the `model-routing` skill (`/implement`, `/document`,
 `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/docs-profile`, `/idea`, `/create-vi`,
@@ -142,7 +142,7 @@ in their prompt; they do not re-read the file.
 /release-notes       → jira-reader → [diff-summarizer×N (parallel, optional)] → [docs-grounder] → [release-notes-writer: resolve destination + shape per destination + source the {{#context}} label + detect deprecation] → [dt-style-checker → dt-doc-fixer (optional)] → write draft (destination-shaped Summary; paste into Jira) → commit-artifacts
 /vuln                → vuln-research → vuln-fixer → [code-review@Opus] → review-fixer → tests → impl-maintenance → commit-artifacts
 /upgrade             → upgrade-planner → upgrade-executor → [code-review@Opus] → review-fixer → tests → impl-maintenance → commit-artifacts
-/idea                → idea-reader → [docs-grounder (when $DOCS_PATH valid) + vault-prior-art-finder (when prior art ON)] → (embedded grilling) → write idea.md → commit-artifacts
+/idea                → idea-reader → [docs-grounder (when $DOCS_PATH valid) + vault-prior-art-finder (when prior art ON)] → [code-scanner×N (--ground-code, cap 4, broad-then-narrow)] → (embedded grilling) → write idea.md → commit-artifacts
 /create-vi           → [docs-grounder + vault-prior-art-finder] → (embedded grilling) → [vi-reviewer@Opus] → write VI + relocate idea.md → commit-artifacts
 /update-vi           → [Jira-import-first resolve] → [docs-grounder] → (embedded grilling, diffs against base) → [vi-reviewer@Opus] → write canonical + archived revisions → commit-artifacts
 /create-ard          → [jira-reader (Epic-level always; VI-level only if the authored VI file is absent under $SPECS_PATH)] → [ls $REPOS_PATH → code-scanner×N (confirmed set, parallel, cap 4)] → [docs-grounder] → (embedded grilling) → [ard-reviewer@Opus] → write ARD → commit-artifacts
@@ -161,7 +161,7 @@ All seventeen in-scope commands additionally run `specs-preflight` at run start 
                       └── doc-planner        (used by /document Jira mode)
                       └── docs-style-checker (used by /document Jira mode)
                       └── epic-reviewer      (used by /epics)
-                      └── code-scanner       (used by /epics, /implement multi-source fan-out, /create-ard, /specify, /design)
+                      └── code-scanner       (used by /epics, /implement multi-source fan-out, /create-ard, /specify, /design, /idea)
                       └── jira-reader        (used by /document, /epics, /release-notes, /implement multi-source fan-out, /create-ard, /specify, /ready)
                       └── vi-reviewer         (used by /create-vi)
                       └── ard-reviewer        (used by /create-ard)

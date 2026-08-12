@@ -148,7 +148,7 @@ Either way, prompt for the value with: `"Enter your initials (lowercase; 2–8 c
 `choices: ["Continue with current local state", "Skip this repo", "Cancel", "Other… (describe)"]`
 
 Used in `/document` Phase 5 when a diff-summarizer returns `REFRESH_BLOCKED`. `/create-ard`, `/design`,
-`/release-notes`, `/implement` (Phase 1.7), and `/idea` (Phase 2.6) cite this rule by name without
+`/release-notes`, and `/implement` (Phase 1.7) cite this rule by name without
 reproducing the list, so per the "Choice lists are presented verbatim" convention above they use this
 variant — the one written under this heading.
 

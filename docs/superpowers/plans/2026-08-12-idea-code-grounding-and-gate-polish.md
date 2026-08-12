@@ -523,7 +523,9 @@ cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
 grep -c '^## Phase 2.6 — Code grounding (optional)$' commands/idea.md
 # expect the phase to sit between 2.5 and 3
 grep -n '^## Phase' commands/idea.md
-# expect 2 — the repo gate and nothing else (the empty case escalates, it does not show a list)
+# expect 1 — the repo gate and nothing else. The empty-proposal case and all four
+# scanner statuses escalate on named rules in escalation-rules.md, so they contribute
+# no inline array. (This value read "2" when the plan was written; it was wrong.)
 awk '/^## Phase 2.6/,/^## Phase 3/' commands/idea.md | grep -c 'choices:'
 # expect 4 — every scanner status named
 for s in REPO_MISSING DIRTY_TREE REFRESH_BLOCKED read_only; do

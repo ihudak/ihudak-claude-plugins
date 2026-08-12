@@ -58,6 +58,9 @@ absent, trust `repo_path` as given.
    - Run `grep` / `glob` / file reads against `search_hints.keywords`, `search_hints.symbols`, and `search_hints.paths`.
    - Augment hints with conservative derivations from the theme text itself (tokenise the theme into 2–3 keywords if `search_hints.keywords` is thin).
    - Collect file paths and top-level symbols (class names, function names, exported identifiers) that match.
+   - Record the 1-based line numbers of grep hits in that evidence entry's `lines` — both the `Grep`
+     tool and `git grep -n <ref>` return them, so no extra command is needed. Leave `lines` **absent**
+     for an entry found by a path glob or a whole-file read; never invent a line number.
 
 4. **Read top candidates.** For each theme, open the head (~80 lines) of the top 2–3 matching files — with `Read` on the working tree, or `git -C "<repo_path>" show <scanned_ref>:<path>` in ref mode. Use that to characterise the capability in a one-line `note`.
 

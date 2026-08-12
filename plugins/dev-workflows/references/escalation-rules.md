@@ -39,6 +39,34 @@ in prose beside the list (as `/document` Phase 5.6 does for its per-occurrence i
 
 This rule binds every command in the plugin, not only the ones documented below.
 
+## When a choice list fires
+
+**A choice list blocks whenever it is shown.** Presenting one and continuing without an answer is never
+correct — the list *is* the wait.
+
+**A list is shown only when its firing condition holds.** A list with no written condition is shown
+every time its phase runs. That is the default, and it is the right default for most phases.
+
+**A list written for a question whose answer is already determined is a defect**, not a formality — it
+spends a user turn on a prompt with one plausible answer. Where the answer is determined on some runs
+and open on others, write the firing condition and keep the list for the runs where it is open.
+
+**The inline-confirmation form.** When the answer is determined, state the resolution in one line that
+names what was resolved and how to correct it, then proceed without waiting:
+
+```
+Reading this as a <type> — say so if it's actually a <other-type>.
+```
+
+An inline confirmation is **not** a choice list: it carries no `choices:` array, it never waits, and the
+run continues on the stated resolution. It is the correct form wherever a phase would otherwise ask a
+question with one plausible answer.
+
+This rule governs only *whether* a list is presented. Option wording, option order, and the
+`(Recommended)` marker are governed by the two rules above and are untouched by it.
+
+This rule binds every command in the plugin, not only the ones documented below.
+
 ## Jira key dir not found
 
 `choices: ["Re-enter key", "Cancel"]`
@@ -69,10 +97,16 @@ was skipped or missing — "Use case B with no repos derivable").
 
 ## Repo missing (after resolution)
 
-`choices: ["Stash changes and retry this repo", "Skip this repo", "Cancel"]`
+`choices: ["Skip this repo", "I'll clone it — wait", "Specify a different absolute path for this repo", "Cancel", "Other… (describe)"]`
 
 Used when a diff-summarizer or code-scanner batch returns `REPO_MISSING` at
-Phase 5, after Phase 4 already checked. Present this choice per affected repo.
+Phase 5 after Phase 4 already checked, and in `/idea` Phase 2.6, which has no
+earlier check. `REPO_MISSING` means `repo_path` is not a directory **or** the
+clone's `origin` slug does not match `repo_url_slug`; *Specify a different
+absolute path for this repo* is the option that resolves the second case, which
+the previous list had no answer for at all. Present this choice per affected
+repo. No `(Recommended)` marker — which option is right depends entirely on why
+the repo is absent.
 
 ## Dirty working tree
 

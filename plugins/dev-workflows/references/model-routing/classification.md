@@ -380,9 +380,19 @@ not in Open questions. `[NEEDS CLARIFICATION]` (or the caller's equivalent) is
 for a theme the scan could not settle — mutual deferral, or `error`.
 
 **Opt-in.** §8.5 is a shared procedure a caller adopts by saying so in its own
-body. `/idea` (Phase 2.6) is its first and only current consumer. `/implement`,
+body. Its consumers are `/idea` (Phase 2.6) and `/implement` (Phase 1.7).
 `/epics`, `/create-ard`, `/specify`, and `/design` run §8.2 alone and are
 unaffected by this section.
+
+**Round 2 resolves; it does not license a guess.** A caller that adopts §8.5
+also owes its downstream consumer the truth about what stayed unresolved. An
+inconclusive theme is not a gap: a gap asserts the capability is absent, an
+unresolved theme asserts only that the scan could not tell, and flattening the
+second into the first hands the next step a confident-looking answer that was
+never earned. Name unresolved themes explicitly in whatever the caller passes
+on — `/idea` carries them into `[NEEDS CLARIFICATION]`, `/implement` into the
+codebase summary's `## Unresolved` section and from there into the plan's
+risks.
 
 ---
 

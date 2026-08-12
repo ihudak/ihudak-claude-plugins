@@ -4,6 +4,19 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.50.0] — 2026-08-12
+
+### Added
+
+- **`/implement` adopts `classification.md` §8.5 — the seeded narrow second scan round.** Phase 1.7's fan-out previously ran one broad `code-scanner` per repo and stopped. A theme its round 1 leaves **inconclusive** — `classification` `partial`/`absent`/`error`, or two scanners whose `gap_summary` texts each name the *other's* repo or layer — now gets one narrow round 2 on `detection_model`, with `capability_themes` holding a single question and `search_hints` seeded from round 1's verified `evidence[].path`/`.symbols` (and the `<path>:<line>` anchor named in the `context` prose where `lines` is present). Cap 4 dispatches, one round only, no round 3. This matters more here than in `/idea`, §8.5's first consumer: `/idea`'s summary feeds a grill with a human in it, while this one feeds `risk-planner`, whose output becomes code.
+
+### Fixed
+
+- **Phase 1.7's synthesis flattened uncertainty into false confidence.** Step 4 said only to combine the scanner reports into "relevant files, existing capabilities, gaps" — so two scanners each concluding "it must be in the other repo" were folded in as two ordinary **gaps**, and the planner received a summary that looked settled. The summary now carries a `## Unresolved` section naming every theme still inconclusive after round 2, the repos whose scanners disagreed, and what each concluded; the section is omitted entirely when nothing is unresolved. A gap asserts the capability is absent; an unresolved theme asserts only that the scan could not tell, and once flattened the two are indistinguishable downstream.
+- **`risk-planner` was never told which findings were uncertain.** Phase 2B's dispatch gains an `Unresolved scan themes:` field carrying the summary's `## Unresolved` entries, with the instruction to treat each as a risk and never plan as though its location is known.
+- **`classification.md` §8.5's own consumer list was made false by the above.** Its Opt-in paragraph said `/idea` was "its first and only current consumer" and that `/implement` "runs §8.2 alone and is unaffected"; it now names both consumers, leaving `/epics`, `/create-ard`, `/specify`, and `/design` correctly listed as unaffected. §8.5 also gains a **"Round 2 resolves; it does not license a guess"** rule binding every adopter to name what stayed unresolved in whatever it passes downstream — `/idea` into `[NEEDS CLARIFICATION]`, `/implement` into the summary and the plan's risks.
+- **Repo-root `CLAUDE.md` and `README.md` carried the same stale claim** — the workflow map's `/implement` line, the §8 policy bullet (which read "§8.5's opt-in seeded second round (`/idea` only)"), the `/implement` invariants, the `code-scanner` agent row, and the Code-grounding heading are all reconciled.
+
 ## [2.49.0] — 2026-08-12
 
 ### Added

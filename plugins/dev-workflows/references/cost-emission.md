@@ -1,7 +1,7 @@
 # Session Cost Emission — Shared Reference
 
 Single source of truth for the dev-workflows session-cost subsystem. The terminal
-"Session cost" phase of every VI-lifecycle command (`/idea`, `/create-vi`, `/create-ard`, `/specify`, `/epics`,
+"Session cost" phase of every VI-lifecycle command (`/idea`, `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/epics`,
 `/design`, `/implement`, `/ready`, `/document`, `/release-notes`) cites this file and
 executes its steps inline through the single `emit-cost` entry point (§11). The
 orchestrator owns every prompt; this reference owns session-artifact resolution,

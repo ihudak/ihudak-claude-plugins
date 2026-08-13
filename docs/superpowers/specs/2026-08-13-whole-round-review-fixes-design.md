@@ -100,14 +100,36 @@ keeping `/idea` predictably terminating on a half-formed thought.
 uncapping `/idea` outright, which would additionally require retiring `--deep`, since the flag
 would no longer mean anything.
 
-**D6 — terminal order: align the commands, not the SSOT.**
+**D6 — terminal order: align `/release-notes`, clarify the SSOT for `/document`.**
 `session-hygiene.md:118-120` states the canonical terminal order (deliverable + handoff → feedback →
-follow-ups → cost → `resume.md` → `commit-artifacts`). Measured across the tree, **4 of 5 commands
-with both emitters already follow it; `/release-notes` is the lone inversion.** Align
-`/release-notes` (Phase 9/10) and `/document` (Phase 8/8.5) to the canonical order rather than
-rewriting a rule that governs seventeen commands to accommodate two.
-*Risk:* moving phases in `document.md` is the highest-risk edit in this sub-project; it gets its own
-task and its own verification.
+follow-ups → cost → `resume.md` → `commit-artifacts`). The two deviations turn out to be different
+problems and get different answers.
+
+**R11 — `/release-notes` runs follow-ups before feedback: align the command.** Measured across the
+tree, **4 of 5 commands with both emitters follow the canonical order; `/release-notes` is the lone
+inversion.** A rule governing seventeen commands is not rewritten to accommodate one, and the fix is
+an adjacent-phase swap (Phase 9/10) — low risk.
+
+**R12 — `/document` emits feedback before its Finish & handoff phase: clarify the rule, do NOT move
+the phase.** Three facts, all verified, point the same way:
+1. **There is no majority to align to.** `/document` is the **only** command in the plugin with a
+   `Finish & handoff` phase (`grep -rn '^## Phase.*Finish\b' commands/*.md` → one hit,
+   `document.md:1054`). An earlier measurement suggesting otherwise was a false positive matching
+   `## Phase 6.1 — CDN image handoff`.
+2. **The two steps cannot interact.** Phase 8.5 is the **docs-repo** git finish (squash → branch →
+   PR draft); `emit-auto` writes plugin feedback into `$SPECS_PATH`. Different repositories.
+3. **Moving it would manufacture an unreachable guard.** Phase 8.5 opens *"Run this phase only when
+   Phase 6.3 wrote + committed in a git repo … Skip otherwise."* Relocating a **mandatory** feedback
+   emission to sit after a phase that skips itself is exactly the defect class this round produced
+   eight times, most of them created by moving a rule.
+
+So the binding sequence is the **emitter tail** — feedback → follow-ups → cost → `resume.md` →
+`commit-artifacts` — which `/document` already satisfies exactly. Amend `session-hygiene.md` rule 2
+to say so: a command's deliverable-side finish may precede the tail, and where it sits is that
+command's business.
+*Rejected:* moving `document.md`'s Phase 8/8.5. This was the highest-risk edit in the sub-project;
+it is not made, because the finding it would fix is a documentation imprecision rather than a
+defect.
 
 ## Requirements
 
@@ -163,8 +185,10 @@ context that no longer exists · `R32` `CLAUDE.md:220` names a `document-as-jira
 exists nowhere (it is `document-as-spec`) · `R34` `CLAUDE.md:144`'s `/upgrade` map edge omits its
 `risk-planner@Opus` step.
 
-**Terminal order (D6):** `R11` `/release-notes` Phase 9/10 inverted · `R12` `/document` Phase
-8/8.5 emits feedback before handoff.
+**Terminal order (D6):** `R11` `/release-notes` Phase 9/10 inverted — swap them · `R12`
+`/document` emits feedback before its Finish & handoff phase — **amend `session-hygiene.md` rule 2**
+so the binding sequence is the emitter tail (feedback → follow-ups → cost → `resume.md` →
+`commit-artifacts`), which `/document` already satisfies; the phase is NOT moved.
 
 **Model routing / cost:** `R14` §8.5 gives `/idea` two opposite rules for an `absent`-with-outside-
 deferral theme (`classification.md:380-383` conditional vs `:389-391` unconditional) — scope the
@@ -207,7 +231,8 @@ Thirteen tasks, grouped so each is one coherent diff a reviewer can accept or re
 5. **`/document` "no refresh"** — R2
 6. **Dead-gate narrowing** — R3 + R18 (same lens, D1/D2)
 7. **`/ready` preflight ordering** — R4
-8. **Terminal order** — R11 + R12 (D6; `document.md` is the risky half)
+8. **Terminal order** — R11 (swap `/release-notes` Phase 9/10) + R12 (amend
+   `session-hygiene.md` rule 2; no command file is touched)
 9. **Cost subsystem** — R15 + R43
 10. **Dispatcher count, all three editions** — R35
 11. **copilot dialect** — R1 + R41 (copilot-only, no canonical counterpart)
@@ -237,10 +262,10 @@ Three rules, adopted from what this round's own evidence got wrong:
 
 ## Risks
 
-- **Task 8's `document.md` half** moves phases in a 1745-line two-mode command. Highest-risk edit
-  here. Mitigation: its own task, its own verification, and a reachability check that the moved
-  phase still runs on every path of both modes — the round produced eight unreachable guards, most
-  of them created by moving a rule.
+- **The `document.md` phase move was removed, not mitigated.** It would have been the highest-risk
+  edit here — relocating a mandatory emitter past a self-skipping phase in a 1745-line two-mode
+  command. Verification showed the finding is a documentation imprecision, so D6 now amends the rule
+  instead. No command file is touched for R12, and the residual risk is zero.
 - **Task 1 is a large single diff.** Mitigation: every item is an independent one-line claim with a
   named true value; the reviewer checks each against the tree rather than reading for sense.
 - **R43 and R45 are the only behaviour changes** in a sub-project otherwise made of corrections.

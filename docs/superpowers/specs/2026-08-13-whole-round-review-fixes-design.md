@@ -6,7 +6,7 @@
 
 ## Goal
 
-Close the 44 findings of the whole-round review, so the round's documentation, caller lists, and
+Close the 45 requirements of the whole-round review, so the round's documentation, caller lists, and
 verification records describe what the plugin actually does.
 
 ## Context
@@ -37,9 +37,10 @@ What did not come out sound is the *bookkeeping*. Three classes dominate:
   is **deferred to sub-project J**, which will build on-main gates across the command family, add
   PR creation to `commit-artifacts`, and revise §3.6. Nothing in this sub-project touches PR
   creation, on-main gates, or the `/idea` → `/create-vi` handoff.
-- **No new capability.** Every change here makes an existing claim true, or makes an existing
-  choice work. The two exceptions are called out explicitly as `R43` (a cost warning the feedback
-  asked for) and `R10` (a process rule).
+- **Almost no new capability.** Nearly every change here makes an existing claim true, or makes an
+  existing choice work. The three exceptions are called out explicitly: `R43` (a cost warning the
+  feedback asked for — a surfacing change, not a calculation one), `R10` (a process rule), and
+  `R45` (a user-requested change to `/idea`'s grill cap).
 - **The ~100 per-VI feedback entries** remain deliberately deferred.
 
 ## Decisions
@@ -83,11 +84,21 @@ lightweight design — style-check and fix, no Opus review — is deliberate. Co
 *Rejected:* adding a reviewer gate to direct mode. That is a feature decision, not a review fix, and
 belongs in its own sub-project if wanted.
 
-**D5 — the grill-bounded claim: narrow to `/idea`.**
+**D5 — the grill-bounded claim: narrow to `/idea`, and raise `/idea`'s cap to 10.**
 `CLAUDE.md:246` states the embedded grill is bounded (≤5) for the whole VI-creation flow. Only
 `/idea` is bounded; `/create-vi`, `/create-ard`, `/specify`, `/design` and `/update-vi` are
-deliberately relentless. Narrow the claim.
-*Rejected:* capping the other five. Their relentless design is intentional.
+deliberately relentless. Narrow the claim to `/idea` (R7), **and separately raise `/idea`'s own cap
+from 5 to 10, making `--deep` fully uncapped rather than merely "relaxed" (R45).**
+
+Five is too few for the one command whose purpose is discussion, brainstorming and challenge. The
+cap is nevertheless kept rather than removed, because it is what makes leftover gaps become
+`[NEEDS CLARIFICATION]` markers in `idea.md` instead of being forced to resolution in
+conversation — recording an open question is the right outcome for an early artifact, and an
+uncapped default would make that mechanism rarely fire. Ten gives the brainstorm real room while
+keeping `/idea` predictably terminating on a half-formed thought.
+*Rejected:* capping the other five — their relentless design is intentional. *Also rejected:*
+uncapping `/idea` outright, which would additionally require retiring `--deep`, since the flag
+would no longer mean anything.
 
 **D6 — terminal order: align the commands, not the SSOT.**
 `session-hygiene.md:118-120` states the canonical terminal order (deliverable + handoff → feedback →
@@ -100,7 +111,7 @@ task and its own verification.
 
 ## Requirements
 
-44 requirements, deduplicated across the seven axes. Full per-finding provenance, exact `file:line`,
+45 requirements, deduplicated across the seven axes. Full per-finding provenance, exact `file:line`,
 and the axis label each came from are preserved in the review's own records; this section is the
 authority for what gets built.
 
@@ -108,9 +119,9 @@ authority for what gets built.
 
 | ID | Requirement |
 |---|---|
-| **R1** | copilot `dev-workflows/skills/upgrade/README.md` documents `/upgrade` slash-form at 13 sites; rule 6 (`skills/_shared/next-phase-offer.md:30-34`) names `/upgrade` as colliding with a Copilot CLI built-in and forbids printing the slash form. Convert all 13 sites to colon form (`upgrade:`), **and** sharpen rule 6's own exemption clause — today it exempts "prose that describes the pipeline to a reader of this edition's source", which a README arguably is. Restate it to exempt *narrative description of the pipeline* while explicitly binding *any text that tells a reader what to type* (usage blocks, example tables, quick-starts, tips), in whatever file it appears. That closes the class rather than the instance: D's seven printed surfaces were command-file surfaces, and this leak was in a README precisely because README files were outside that enumeration. Repo: **copilot** (both halves). |
+| **R1** | copilot `dev-workflows/skills/upgrade/README.md` documents `/upgrade` slash-form at 13 sites; rule 6 (`skills/_shared/next-phase-offer.md:30-34`) names `/upgrade` as colliding with a Copilot CLI built-in and forbids printing the slash form. **Delete the file** rather than convert it — it is the only README under `skills/` (the other 20 skills have none), nothing in the edition references it, `SKILL.md:5,:9` already documents the correct `upgrade:` invocation, and it is stale (17 Jul vs `SKILL.md`'s 11 Aug). Its existence *is* the drift. **First fold its two unique passages into `SKILL.md`** — `.sdkmanrc` in the Java version-declaration file list, and the "incompatible explicit versions" conflict example — then delete. **And** sharpen rule 6's exemption clause, which today exempts "prose that describes the pipeline to a reader of this edition's source" (which a README arguably is): restate it to exempt *narrative description of the pipeline* while explicitly binding *any text that tells a reader what to type* — usage blocks, example tables, quick-starts, tips — in whatever file it appears. That closes the class, not just the instance: D's seven printed surfaces were all command-file surfaces, which is precisely why a README could leak. Repo: **copilot** (both halves). |
 
-### Important (9)
+### Important (10)
 
 | ID | Requirement |
 |---|---|
@@ -123,6 +134,7 @@ authority for what gets built.
 | **R8** | `/idea` Phase 2.6's round-2 dispatch (`idea.md:163`) and `classification.md` §8.5 both omit `refresh:`, so an executor may fall back to `code-scanner`'s `true`/`true` default and switch/pull the user's clones — contradicting `:159-161`. State that round 2 reuses round 1's `refresh:` block verbatim. |
 | **R9** | Sub-project F's verification record (`plans/2026-08-11-environment-guards-verification.md`) rows V5 and V8 were falsified by F's own final fix wave 17 minutes after the record was committed, while the preamble claims every value "was re-derived from the tree at verification time". **Correct V5 to 7 consumers and V8 to 3 choices, and add a one-line note to each row recording that the original value was superseded same-day by `7142976`.** Correcting alone would erase the evidence that the record went stale; annotating alone would leave two wrong numbers standing. |
 | **R10** | No file owns the rule that would have prevented R9 and most of R37–R40. Add to this repo's `CLAUDE.md` conventions: **a sub-project's verification record is written last — after the final fix wave, never before it.** |
+| **R45** | `/idea`'s embedded grill is capped at 5 questions — too few for the one command whose purpose is discussion and challenge. Apply **D5**: raise the default cap to **10**, and make `--deep` fully uncapped rather than "relaxed". Update `commands/idea.md`, `references/grilling-technique.md`, and `CLAUDE.md:246` together, and verify the `[NEEDS CLARIFICATION]` overflow path still fires at the new bound. User-requested behaviour change — needs a CHANGELOG entry. |
 
 ### Minor (34)
 
@@ -161,6 +173,14 @@ precedence sentence to `/implement` · `R15` `cost-prices.yaml:22` names "Opus 4
 the cost feedback's durable asks: a visible warning when an unpriced model dominates a run, and a
 maintainer checklist tying a new model generation to both files.
 
+**The cost arithmetic itself is sound — R15 and R43 are prose and reporting only.** Verified: the
+table's eight keys match the routing chains exactly (Opus 5/4.8/4.7/4.6, Sonnet 5/4.6/4.5, Haiku
+4.5); there is **no `claude-opus-4-5` key**, so R15's comment names a version present in neither the
+chain nor the table. Haiku *is* priced despite being unreachable — a harmless defensive entry; only
+the "routing-policy-reachable" claim is wrong. And the engine **already detects** the unpriced case
+(`scripts/session-cost.py:218` returns `"unpriced-model"`), so R43 is a one-line surfacing change,
+not a calculation fix. No change to `session-cost.py`'s pricing logic is in scope.
+
 **Dead gate:** `R18` `source-truth.md:217-221` §4.1 assigns `diff-summarizer` duties it never
 receives. Apply **D2**.
 
@@ -183,7 +203,7 @@ Thirteen tasks, grouped so each is one coherent diff a reviewer can accept or re
 1. **`CLAUDE.md` roster sweep** — R5(half), R7, R16, R17, R21, R22, R25, R29, R30, R31, R32, R33, R34
 2. **Agent / reference caller-list sweep** — R13, R19, R20, R23, R24, R26, R27, R28
 3. **Direct-mode reviewer gate** — R5 + R6 (one fact, two files)
-4. **`/idea` round-2 refresh** — R8
+4. **`/idea` fixes** — R8 (round-2 `refresh:`) + R45 (grill cap 5 → 10, `--deep` uncapped)
 5. **`/document` "no refresh"** — R2
 6. **Dead-gate narrowing** — R3 + R18 (same lens, D1/D2)
 7. **`/ready` preflight ordering** — R4
@@ -223,6 +243,8 @@ Three rules, adopted from what this round's own evidence got wrong:
   of them created by moving a rule.
 - **Task 1 is a large single diff.** Mitigation: every item is an independent one-line claim with a
   named true value; the reviewer checks each against the tree rather than reading for sense.
-- **R43 is the only new capability** in a sub-project otherwise made of corrections. It could be
-  split out if it complicates the review; it is included because the feedback entry that asked for
-  it is otherwise only half-closed.
+- **R43 and R45 are the only behaviour changes** in a sub-project otherwise made of corrections.
+  R43 is included because the feedback entry that asked for it is otherwise only half-closed, and
+  is smaller than it first appeared — the engine already computes `unpriced-model`, so only the
+  surfacing is missing. R45 is user-requested; its one risk is the `[NEEDS CLARIFICATION]` overflow
+  path, which must be verified to still fire at the new bound rather than silently never firing.

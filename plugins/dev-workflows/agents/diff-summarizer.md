@@ -87,7 +87,7 @@ If all four strategies fail: record the PR under `unresolved_prs` and continue. 
 1. **Resolve head/base SHAs.** Run `gh pr view <pr_id> --repo <owner>/<repo> --json headRefOid,baseRefOid,state,title,mergeCommit`. This is the single authoritative call. `gh` handles authentication via `gh auth login` (configured once on the host).
 
 2. **Ensure commits are local.** If `headRefOid` or `baseRefOid` is missing from the local clone (`git cat-file -e <sha>` returns non-zero):
-   - If `refresh.fetch` is true AND the mount is not read-only (per the Refresh step's read-only detection above): run `git fetch origin <headRefOid> <baseRefOid>`. If fetch is rejected (server refuses direct-SHA fetch), fall back to `gh pr checkout <pr_id> --repo <owner>/<repo>` which fetches the branches.
+   - If `refresh.fetch` is true AND the mount is not read-only (per the Refresh step's read-only detection, item 2 below): run `git fetch origin <headRefOid> <baseRefOid>`. If fetch is rejected (server refuses direct-SHA fetch), fall back to `gh pr checkout <pr_id> --repo <owner>/<repo>` which fetches the branches.
    - Otherwise (`refresh.fetch` is false, or the mount is read-only): do NOT run `git fetch` and do NOT run `gh pr checkout` — both write, and the latter also moves the working tree. Record the PR under `unresolved_prs` instead, with `reason: "commits not present locally; fetching disabled by refresh.fetch: false"` (or `"commits not present locally; fetching disabled by a read-only mount"`, as applicable), and continue to the next PR.
 
 3. **Produce diff.** `git diff <baseRefOid>..<headRefOid>`. Set `resolved_via: gh_cli`.

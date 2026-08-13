@@ -120,10 +120,11 @@ either way; the PM names the session manually if they want one.
    `commit-artifacts` → the run's last printed output**. What binds every
    command is the **emitter tail** — feedback → follow-ups → cost →
    `resume.md` → `commit-artifacts`. A command's deliverable-side finish may
-   precede the tail at whatever point suits it: `/document`'s conditional
-   `Phase 8.5 — Finish & handoff` is the docs-repo git finish, while
-   `emit-auto` writes into `$SPECS_PATH`, so the two touch different
-   repositories and their relative order carries no consequence
+   sit anywhere relative to the tail, including between its members, at
+   whatever point suits it: `/document`'s conditional `Phase 8.5 — Finish &
+   handoff` sits between feedback and follow-ups — it is the docs-repo git
+   finish, while `emit-auto` writes into `$SPECS_PATH`, so the two touch
+   different repositories and their relative order carries no consequence
    (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4).
 3. **Role-aware via a single graph** — the compact/clear split reads
    `next-phase-offer.md`'s role labels; the role graph is not duplicated here.

@@ -214,11 +214,13 @@ A command that no source confirms is `NOT_FOUND`, not "probably fine". Record it
 
 ## 4. Sub-agent responsibilities
 
-### 4.1 `diff-summarizer` (use case A)
+### 4.1 High-signal claim types (use case A)
 
-When summarising a PR diff, surface enum changes, new schema files, new
-constants, and renamed labels in the per-PR summary. These are
-high-signal evidence for downstream verification.
+Enum changes, new schema files, new constants, and renamed labels are
+high-signal evidence for downstream verification. The consulting agent
+(doc-planner, §4.2) verifies these the same way as every other
+user-visible claim — by reading shipped source directly with the §3
+techniques, not by relying on a PR summary to have surfaced them.
 
 ### 4.2 `doc-planner` (use case A)
 

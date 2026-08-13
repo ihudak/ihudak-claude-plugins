@@ -1053,6 +1053,8 @@ Expected: the mgd tree is clean, and `diff -rq` reports differences ONLY in
 
 Any *other* difference means the editions drifted in content — stop and report it rather than copying over it.
 
+**Corrected 2026-08-13 (R40, fix round 1):** the "five identity + seven content" expectation (12 total) is **WRONG**. Re-derived at the correct ship pair — canonical `4720e28` (this sub-project's own final fix-wave commit) vs mgd's true pre-port state `f64a69b` (mgd's prior release, immediately before the port commit `2a34a54`; the reviewer's premise for this pairing has been independently confirmed) — a real `git worktree` checkout of both, followed by `diff -rq`, reports **54** differing items, not 12: the 5 identity files + 7 content files (12, as claimed) plus **42** pre-existing files under `references/guidelines/*` and `references/api-guidelines/**` that differ only because canonical's blobs carry CRLF line endings and mgd's carry LF — the same drift class as R38 item 5 and R39 item 7. **Method note:** this 42-file CRLF split is present under both raw-blob comparison (`git show <commit>:<path>`) and an actual on-disk checkout `diff -rq` at this historical commit pair — there is no comparison method at ship time that returns 12; it only disappears if the check is run against **today's** live working trees, where mgd's CRLF has since been brought in line with canonical by unrelated later commits. Consistent with R38 item 5 and R39 item 7, which report the equivalent post-port count as 47 (54 minus the 7 content files this Step-1 baseline still expects as differences, since mgd has not yet received them).
+
 - [ ] **Step 2: Create the branch**
 
 ```bash
@@ -1094,6 +1096,8 @@ diff -rq /workspace/mgd-claude-plugins/plugins/dev-workflows \
          /workspace/ihudak-claude-plugins/plugins/dev-workflows
 ```
 Expected: differences in exactly the five known identity files and nothing else. In particular `commands/`, `agents/`, and `references/` (other than `dependencies.md`) must report no differences.
+
+**Corrected 2026-08-13 (R40, fix round 1):** "exactly the five known identity files" is **WRONG**. Re-derived at the ship pair — canonical `4720e28`, mgd `d404a75` (mgd's own final fix-wave commit, same commit message as canonical's — the reviewer's correction to this task's original `2a34a54`, which was mgd's pre-fix-wave port commit, is confirmed correct) — a real `git worktree` checkout of both, followed by `diff -rq`, reports **47** differing items, not 5: the 5 genuine identity files plus the same **42** pre-existing `references/guidelines/*` / `references/api-guidelines/**` CRLF-vs-LF files identified in the Step 1 correction above. `commands/`, `agents/`, and `references/` (other than `dependencies.md` and the CRLF-affected `guidelines`/`api-guidelines` subtrees) genuinely report no differences — the port's content correctness is unaffected. **Method note:** consistent with R38 item 5 (canonical `c7bdac2` / mgd `fce902f` → 47) and R39 item 7 (canonical `25b3628` / mgd `8bc8862` → 47) — all three sub-projects' mgd-parity checks now report the same value under the same method (an actual on-disk `diff -rq` at the ship-commit pair, verified to match raw-blob comparison). None of the three normalizes to a smaller number at ship time; only a same-day diff of today's live working trees would, because mgd's CRLF has since converged with canonical's.
 
 ```bash
 cd /workspace/mgd-claude-plugins

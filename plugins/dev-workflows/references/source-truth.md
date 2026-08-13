@@ -12,7 +12,7 @@ rules in the `dev-workflows` plugin:
 > to the user for an explicit decision. **The plugin is the analyst; the user
 > is the decision-maker.** The plugin never silently picks a winner.
 
-Every sub-agent that synthesises documentation (`doc-planner`,
+Every sub-agent that synthesises documentation (`doc-planner`, `doc-writer`,
 `doc-reviewer`, `release-notes-writer`) MUST apply this principle.
 
 ---

@@ -66,7 +66,7 @@ Escalate to the caller — which prompts the user per the `Read-only mount — r
 
 ## 6. Output contract
 
-`code-scanner` and `diff-summarizer` report these four fields in their `prep` block, always present so a caller never branches on absence. `docs-grounder` follows §1–§4 (read-only detection, what to skip, ref resolution, reading at the ref) but returns a digest — `status` / `retrieval` / `docs_references` / `docs_challenges` / `notes` — not a `prep` block; its staleness signal is the 14-day clause in `docs-grounding.md` instead:
+`code-scanner` and `diff-summarizer` report these four fields in their `prep` block, always present so a caller never branches on absence:
 
 ```yaml
 prep:
@@ -75,6 +75,8 @@ prep:
   ref_committed_at: <ISO-8601 timestamp of the ref's newest commit>
   head_divergence:  { branch: <working-tree branch>, ahead: <n>, behind: <n> }
 ```
+
+`docs-grounder` follows §1–§4 (read-only detection, what to skip, ref resolution, reading at the ref) but returns a digest — `status` / `retrieval` / `docs_references` / `docs_challenges` / `notes` — not a `prep` block; its staleness signal is the 14-day clause in `docs-grounding.md` instead.
 
 Every path an agent returns keeps its documented meaning — relative to the repo root — and denotes content **at `scanned_ref`**.
 

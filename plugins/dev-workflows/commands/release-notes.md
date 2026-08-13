@@ -310,37 +310,12 @@ If `dt-style-guide` is not installed, skip this phase and note "style check skip
 
 ---
 
-## Phase 9 — Emit follow-up tasks
+## Phase 9 — Session maintenance & feedback
 
-Terminal phase — runs AFTER the Phase 8 report is composed; NEVER interrupts an
-earlier phase. Persist the run's manual-step follow-ups by citing
-`${CLAUDE_PLUGIN_ROOT}/references/followup-emission.md` and executing its steps
-inline.
-
-1. **Collect** the qualifying follow-ups: the mandatory manual publish step
-   ("paste this release-notes draft into the ticket's Jira release-notes field")
-   and any implementation-gap signals surfaced during the run.
-2. **Filter** them with the reference's §6 qualifying predicate.
-3. **Resolve** the write target via the §4 ladder using `jira_key` and `source`;
-   render + place tasks and verbose notes per §1–§3; dedupe per §5. The task
-   references the draft file written in Phase 8 rather than duplicating it.
-4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.
-
-ADDITIVE — the follow-ups also remain in the Phase 8 report. This phase NEVER
-fails the run, NEVER commits (still true — this phase only writes follow-up
-files; those writes are committed by the terminal `commit-artifacts` step in
-Phase 11, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), NEVER
-makes an external API call, and NEVER writes into a docs repo or the current
-working directory.
-
----
-
-## Phase 10 — Session maintenance & feedback
-
-Terminal phase — runs AFTER the Phase 8 report and the Phase 9 follow-up phase;
-NEVER interrupts an earlier phase. `/release-notes` has no built-in maintenance
-agent, so this phase invokes `impl-maintenance` on the Sonnet detection chain
-and then persists the plugin-facing slice of its report as session feedback.
+Terminal phase — runs AFTER the Phase 8 report is composed; NEVER interrupts
+an earlier phase. `/release-notes` has no built-in maintenance agent, so this
+phase invokes `impl-maintenance` on the Sonnet detection chain and then
+persists the plugin-facing slice of its report as session feedback.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<Sonnet detection chain — claude-sonnet-5, fallback claude-sonnet-4-6 / 4-5>`):
    > "Analyse this session and return a Lessons Learned report.
@@ -377,11 +352,36 @@ directory.
 
 ---
 
+## Phase 10 — Emit follow-up tasks
+
+Terminal phase — runs AFTER the Phase 8 report and the Phase 9 feedback phase;
+NEVER interrupts an earlier phase. Persist the run's manual-step follow-ups by
+citing `${CLAUDE_PLUGIN_ROOT}/references/followup-emission.md` and executing
+its steps inline.
+
+1. **Collect** the qualifying follow-ups: the mandatory manual publish step
+   ("paste this release-notes draft into the ticket's Jira release-notes field")
+   and any implementation-gap signals surfaced during the run.
+2. **Filter** them with the reference's §6 qualifying predicate.
+3. **Resolve** the write target via the §4 ladder using `jira_key` and `source`;
+   render + place tasks and verbose notes per §1–§3; dedupe per §5. The task
+   references the draft file written in Phase 8 rather than duplicating it.
+4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.
+
+ADDITIVE — the follow-ups also remain in the Phase 8 report. This phase NEVER
+fails the run, NEVER commits (still true — this phase only writes follow-up
+files; those writes are committed by the terminal `commit-artifacts` step in
+Phase 11, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), NEVER
+makes an external API call, and NEVER writes into a docs repo or the current
+working directory.
+
+---
+
 ## Phase 11 — Session cost
 
-Terminal phase — the NEW final operational phase; runs after Phase 10 (feedback)
-and NEVER interrupts an earlier phase. Records this command's token-cost
-contribution to the VI by citing
+Terminal phase — the NEW final operational phase; runs after Phase 10
+(follow-ups) and NEVER interrupts an earlier phase. Records this command's
+token-cost contribution to the VI by citing
 `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and calling its single
 `emit-cost` entry point. Unlike feedback, **cost ALWAYS runs**.
 

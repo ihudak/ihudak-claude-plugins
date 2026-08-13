@@ -1109,12 +1109,14 @@ done
 echo "--- reviewer wiring ---"
 grep -c "gate_ledger" agents/doc-reviewer.md
 grep -c "Verification-gate integrity" agents/doc-reviewer.md
-echo "--- Phase 9 table ---"
+echo "--- Phase 9 table (expect 1 at ship c7bdac2 — see stale-at-ship note below) ---"
 grep -n "^### Verification gates" commands/document.md
 echo "--- NOT_CONFIGURED is no longer a proceed-silently path (expect 0) ---"
 grep -c "NOT_CONFIGURED\*\* — neither a repo linter" commands/document.md
 ```
 Expected: a non-zero count for all six gate ids; ≥ 2 for `gate_ledger` and ≥ 1 for `Verification-gate integrity` in the reviewer; one Phase 9 heading; and `0` for the old NOT_CONFIGURED wording.
+
+**CORRECTED 2026-08-13 (R38, STALE-AT-SHIP):** "one Phase 9 heading" was correct as written — re-derived at this task's own ship commit `18ead6b` = 1, and still 1 at the sub-project's release commit `c7bdac2`. It was invalidated the next day by commit `0199f89` ("gate-ledger fix round — one-row-per-gate enforced at all four writers", 2026-08-10, F9: "add the missing Verification gates table to Mode B's report"), which gave direct mode (Mode B) its own `### Verification gates` heading. Current true count: **2** (one per mode, `document.md:1052` Jira mode and a second in Mode B's report template) — correct, not a defect; the check's fixed expectation of "one" is what went stale.
 
 - [ ] **Step 12: Commit**
 
@@ -1472,8 +1474,9 @@ In `agents/doc-reviewer.md`'s `## Review dimensions` table, insert this row imme
 Run:
 ```bash
 cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
-echo "--- planner emits it (expect >=4) ---"
+echo "--- planner emits it (expect 3) ---"
 grep -c "repo_verification_gates" agents/doc-planner.md
+# CORRECTED 2026-08-13 (R38): original expected >=4; re-derived at ship commit 1b941f5 = 3 (WRONG, was already wrong at ship — doc-planner.md never carried a 4th occurrence). Old: ">=4". New: "3".
 echo "--- reviewer consumes it (expect >=2) ---"
 grep -c "repo_verification_gates" agents/doc-reviewer.md
 echo "--- the dynatrace-docs anchor is named (expect >=1) ---"
@@ -1794,6 +1797,8 @@ Expected, BEFORE copying: mgd is `0` dirty, and `diff -rq` reports **17 differin
 
 Any file differing that is NOT in one of those three groups means canonical and mgd drifted independently — stop and report BLOCKED rather than copying over it.
 
+**CORRECTED 2026-08-13 (R38, WRONG-TARGET):** "17 differing files plus 3 Only-in lines" (20 total) was never achievable on this repo pair. Re-derived at the paired pre-B1 baseline commits — canonical `29dff3f` (2.42.0) / mgd `aac4320` (A's port merge) — a plain `diff -rq` reports **50** differing items, not 20: on top of the 20 accounted for above, roughly 30 files under `references/guidelines/`, `references/api-guidelines/`, `references/fix-vuln/`, and `references/upgrade/` differ line-for-line because canonical's committed blobs use CRLF line endings and mgd's use LF for these files — confirmed at the raw git-blob level (`git show <commit>:<path>`, not a checkout artifact) and confirmed pre-existing (present before this sub-project's first commit, unrelated to gate-enforcement content). The check as written sweeps the whole `plugins/dev-workflows` tree instead of scoping to files this feature actually touches, so it was always wrong-target for this repo pair, not specific to any one sub-project's ship state.
+
 - [ ] **Step 2: Copy the fifteen content files**
 
 ```bash
@@ -1867,6 +1872,8 @@ print('siblings:', [(p['name'],p['version']) for p in ps if p['name']!='dev-work
 "
 ```
 Expected: `5` differing files, all five matching the identity list; non-zero counts for each identity marker; `2.43.0` twice; siblings unchanged.
+
+**CORRECTED 2026-08-13 (R38, WRONG-TARGET):** "5 differing files" was never achievable by this literal command on this repo pair, for the same reason as the Step 1 baseline above. Re-derived at the ship commits (canonical `c7bdac2`, mgd `fce902f`, via `git show <commit>:<path>` to bypass any local checkout normalization): `diff -rq` reports **47** differing items, not 5 — the 5 identity files plus the same ~30-40 pre-existing CRLF-vs-LF `references/guidelines/` `references/api-guidelines/` `references/fix-vuln/` `references/upgrade/` files identified in the Step 1 correction, unrelated to this feature. The 5 identity files themselves are confirmed correct (`grep -c` against `/tmp/mgd-diff.txt` for the identity filenames still isolates exactly those 5 among the noise); it is the bare `wc -l` total that the check should never have keyed on.
 
 - [ ] **Step 8: Commit**
 
@@ -1960,10 +1967,11 @@ Edit `.github/plugin/marketplace.json` by hand: in the `dev-workflows` entry onl
 
 - [ ] **Step 8: Verify no Claude-only token survives**
 
+<!-- CORRECTED 2026-08-13 (R38, WRONG-TARGET): "expect 0 lines" was unsatisfiable on any tree at or after ship commit a536b07 — the whole-tree sweep also matches `dev-workflows/CHANGELOG.md`, which legitimately narrates the copilot/canonical dialect contrast using the very tokens being banned (one line added by a536b07 itself: "no CLAUDE_PLUGIN_ROOT tokens"; one pre-existing from commit cb9e8cf: "instead of `${CLAUDE_PLUGIN_ROOT}`"). Re-derived at a536b07: raw sweep = 2 lines, both CHANGELOG.md prose, zero in actual skill/agent content. Old expected: "0 lines" (wrong-target — CHANGELOG narration was never excluded). Correct check excludes CHANGELOG.md: `grep -rn 'CLAUDE_PLUGIN_ROOT\|subagent_type' dev-workflows/ | grep -v '^dev-workflows/CHANGELOG.md'` → 0, confirming no real leak. -->
 ```bash
 cd /workspace/ihudak-copilot-plugins
-echo "--- Claude-only tokens in copilot (expect 0 lines) ---"
-grep -rn 'CLAUDE_PLUGIN_ROOT\|subagent_type' dev-workflows/ | grep -v '^Binary' || echo "clean"
+echo "--- Claude-only tokens in copilot content, excluding CHANGELOG.md narration (expect 0 lines) ---"
+grep -rn 'CLAUDE_PLUGIN_ROOT\|subagent_type' dev-workflows/ | grep -v '^Binary' | grep -v '^dev-workflows/CHANGELOG.md' || echo "clean"
 echo "--- new references present and indexed ---"
 test -f dev-workflows/skills/_shared/gate-ledger.md && test -f dev-workflows/skills/_shared/toolchain-preflight.md && test -f dev-workflows/skills/_shared/repo-verification-gates.md && echo "all three present"
 grep -c "gate-ledger.md" dev-workflows/README.md

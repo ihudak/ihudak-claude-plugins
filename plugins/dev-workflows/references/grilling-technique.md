@@ -29,7 +29,7 @@ callers) rather than self-answered. Never grill yourself into a fabricated decis
 
 ## Ambiguity taxonomy (gap-categories, altitude-aware)
 
-Categories the grill scans to *find* gaps — they feed the existing **Impact × Uncertainty** ranking of what to ask. This is **not** a user-facing menu and adds **no** mandatory questions: bounded callers still cap at ≤10; relentless callers still stop at convergence. Scale the categories to the caller's altitude:
+Categories the grill scans to *find* gaps — they feed the existing **Impact × Uncertainty** ranking of what to ask. This is **not** a user-facing menu and adds **no** mandatory questions: bounded callers still cap at their stated bound; relentless callers still stop at convergence. Scale the categories to the caller's altitude:
 
 - **All altitudes:** overloaded/fuzzy **terminology**; **pre-mortem / assumption audit** (which unstated assumption, if wrong, breaks this?); **second-order effects** (what does this change downstream?).
 - **Product altitude** (`/idea`, `/create-vi`): unstated **quality expectations** (implied latency, scale, availability, or compliance expectations) framed as product outcomes — not engineering NFRs.

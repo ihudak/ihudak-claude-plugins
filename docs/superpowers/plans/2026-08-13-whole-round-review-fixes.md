@@ -503,6 +503,8 @@ grep -n 'SPECS_PATH' commands/ready.md | head -3
 ```
 Expected: the preflight line number is now **greater** than the `$SPECS_PATH` resolution line and **less** than the dirty-tree prompt line. State all three numbers in your report.
 
+**Corrected 2026-08-13 (fix round 1):** `grep -n 'specs-preflight' commands/ready.md  # expect exactly 1 occurrence` is **WRONG** and never held on any tree. Verified against both `0542cd5^` (pre-edit) and `0542cd5` (post-edit): the file carries **5** matches in both revisions — 4 are pre-existing narrative citations of `specs-preflight` (the "never branches" call-outs at the old and new locations, plus the closing invariants list) and only **1** is the executable invocation, uniquely marked by the phrase `entry point (§3) inline` at the line that actually dispatches it (pre-edit `:72`, post-edit `:52` — this is the line whose relocation Step 4 exists to verify). Corrected form: `grep -c 'entry point (§3) inline' commands/ready.md  # expect exactly 1`.
+
 - [ ] **Step 5: Commit**
 
 ```bash

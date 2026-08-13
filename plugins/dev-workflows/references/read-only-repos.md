@@ -2,7 +2,7 @@
 
 The AI container mounts repositories from the host, and some arrive **read-only** — verified 2026-08-11, 2 of 12 clones under `/workspace` are (`docs`, `observability-requirements`). Every agent that prepares a clone before reading it must work on those mounts rather than fail on them.
 
-This file is the single source of truth for that behavior. Consumers: `code-scanner`, `diff-summarizer`, `docs-grounder`.
+This file is the single source of truth for that behavior. Consumers: `code-scanner`, `diff-summarizer`, `docs-grounder` — the first two also emit the §6 `prep` block; `docs-grounder` consumes §1–§4 only.
 
 **Nothing here changes behavior on a writable mount.** `git switch` and `git pull --ff-only` remain sanctioned prep on a writable clone — they change which committed revision is present, not the content of it. Everything below is reached only when the mount is read-only.
 
@@ -66,7 +66,7 @@ Escalate to the caller — which prompts the user per the `Read-only mount — r
 
 ## 6. Output contract
 
-Every consuming agent reports these four fields in its `prep` block, always present so a caller never branches on absence:
+`code-scanner` and `diff-summarizer` report these four fields in their `prep` block, always present so a caller never branches on absence. `docs-grounder` follows §1–§4 (read-only detection, what to skip, ref resolution, reading at the ref) but returns a digest — `status` / `retrieval` / `docs_references` / `docs_challenges` / `notes` — not a `prep` block; its staleness signal is the 14-day clause in `docs-grounding.md` instead:
 
 ```yaml
 prep:

@@ -40,7 +40,7 @@ Whole-branch verification for sub-project G (`iv-gu/vault-prior-art`) across all
 | V26 | PASS | See Trap 3 below. |
 | V27 | PASS | Reference "Choosing `P` for a Jira-key source": "`P` = the vault item directory whose work document carries `jira.id: <KEY>`, when one exists; absent otherwise" (lines 102), which per case 3 falls back to `Projects/ideas/`. |
 
-**Tally: 27 PASS, 2 FAIL (V3, V23).** (**Corrected 2026-08-13**: the original tally recorded 25 PASS. Recount: the table above has 29 rows — V1–V27 plus sub-rows V11a and V11b, both PASS — of which 2 are FAIL (V3, V23), so 29 − 2 = 27 PASS. V11a and V11b were left uncounted in the original tally.)
+**Tally: 27 PASS, 2 FAIL (V3, V23).** (**Corrected 2026-08-13**: the original tally recorded a pass count of 25. Recount: the table above has 29 rows — V1–V27 plus sub-rows V11a and V11b, both PASS — of which 2 are FAIL (V3, V23), so 29 − 2 = 27 PASS. V11a and V11b were left uncounted in the original tally.)
 
 ## Trap re-verification
 
@@ -76,7 +76,7 @@ git commit -m "docs(superpowers): G verification sweep"
 
 ## Re-verification after the sweep's findings were fixed
 
-The sweep returned **25 PASS / 2 FAIL** plus one residue find and two softer notes. All were fixed
+The sweep returned **27 PASS / 2 FAIL** (**corrected 2026-08-13** — see the Tally correction above; the original recorded a pass count of 25, leaving V11a/V11b uncounted) plus one residue find and two softer notes. All were fixed
 rather than deferred; this section records the re-check. Commits: `946981c` / `e764b6a` / `6b2e82c`
 (the two FAILs + the residue find) and `75836df` / `87f3040` / `04d1b5b` (the two softer notes),
 across canonical / mgd / copilot respectively.

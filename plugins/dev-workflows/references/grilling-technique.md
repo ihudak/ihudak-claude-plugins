@@ -24,8 +24,8 @@ callers) rather than self-answered. Never grill yourself into a fabricated decis
 
 ## Depth (the caller chooses)
 
-- **Bounded** — a capped set of the highest Impact×Uncertainty questions, then stop; unresolved high-impact gaps are recorded (e.g. `[NEEDS CLARIFICATION]`). Used by `/idea` (≤5; `--deep` switches to relentless).
-- **Relentless** — keep walking the tree until convergence, no cap. Used by `/create-vi`, `/specify`, `/design`.
+- **Bounded** — a capped set of the highest Impact×Uncertainty questions, then stop; unresolved high-impact gaps are recorded (e.g. `[NEEDS CLARIFICATION]`). Used by `/idea` (≤5; `--deep` switches to relentless) and `/prompt-grill-me` (≤5).
+- **Relentless** — keep walking the tree until convergence, no cap. Used by `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/design`.
 
 ## Ambiguity taxonomy (gap-categories, altitude-aware)
 

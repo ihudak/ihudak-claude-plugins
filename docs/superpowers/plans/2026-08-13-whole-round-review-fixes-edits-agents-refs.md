@@ -228,6 +228,8 @@ ASSERT: awk 'NR>=376 && NR<=395' plugins/dev-workflows/references/model-routing/
 ASSERT2: awk 'NR>=376 && NR<=395' plugins/dev-workflows/references/model-routing/classification.md | grep -c 'for `/implement` only'   # expect 1
 VERIFIED: the two passages contradict for exactly one state — `/idea`, absent everywhere scanned, plus a deferral outside the scanned set. Precedence made it unresolved; altitude made it missing-but-resolved. `commands/idea.md` follows altitude, so the precedence sentence is the one narrowed. No behaviour change for `/implement`.
 
+**Corrected 2026-08-13 (fix round 1):** ASSERT2 as written returns **0** on a faithful, verbatim application of the NEW text above, not 1 — it is unsatisfiable by construction. The NEW text's own hard-wrap point splits the phrase across two lines: "…mutual deferral, `error`, or, **for `/implement`" ends one line and "only**, `absent` everywhere scanned…" begins the next, so a line-scoped `grep -c` can never match the phrase `for \`/implement\` only` — confirmed against the live file at `:394`-`:395`. Wrap-aware corrected form: `awk 'NR>=376 && NR<=395' plugins/dev-workflows/references/model-routing/classification.md | tr '\n' ' ' | grep -oc 'for \`/implement\` only'   # expect 1` (verified to return 1 against the applied text).
+
 ### R42 — idea-format.md provenance enum never gained `doc-grounding`
 FILE: plugins/dev-workflows/references/idea-format.md
 LINE: 14

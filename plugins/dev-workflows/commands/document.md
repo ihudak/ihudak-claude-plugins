@@ -32,7 +32,7 @@ is clean and on its default branch. If a guard fires, emit its §5 notice;
 if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole
 run — the terminal `commit-artifacts` step skips on it.
 
-Echo the detected mode, then proceed to that mode's phases. The two modes share the same `docs-style-checker` / `doc-reviewer` / `doc-fixer` agents (each mode emits its own final report).
+Echo the detected mode, then proceed to that mode's phases. The two modes share the same `docs-style-checker` / `doc-fixer` agents; only Jira mode also runs `doc-reviewer` (each mode emits its own final report).
 
 ---
 
@@ -193,7 +193,7 @@ Ask about:
   ```
 - **Repo refresh policy**:
   ```
-  choices: ["fetch only (Recommended)", "fetch + pull default branch", "no refresh", "Other… (describe)"]
+  choices: ["fetch only (Recommended)", "fetch + pull default branch", "no refresh — resolve PRs from local objects only; a PR not yet fetched will not resolve, and a dirty clone stops blocking", "Other… (describe)"]
   ```
   The `fetch only` default matches the `diff-summarizer` default (`refresh.fetch: true, refresh.pull: false`) — historical PR diffs don't need the current branch tip, and pulling risks moving HEAD away from the merge commit we want to reach.
 - **Repos search base (`$REPOS_PATH`)**. Read `${REPOS_PATH:-/workspace}` (the container mounts every repo under `/workspace`). `$REPOS_PATH` may be a single directory or a colon-separated list. Ask:
@@ -393,8 +393,8 @@ For each repo, in the same Agent message:
   > jira_keys_hierarchy:
   >   [VI key + every linked_items key from jira-reader; when focus_key is set, restrict to focus_items — the focus Epic + its linked descendants]
   > refresh:
-  >   fetch: true
-  >   pull:  [false if Phase 1 chose 'fetch only' (default) or 'no refresh'; true if 'fetch + pull default branch']"
+  >   fetch: [false if Phase 1 chose 'no refresh'; true otherwise]
+  >   pull:  [true if Phase 1 chose 'fetch + pull default branch'; false otherwise]"
 
 After the batch returns, handle each per-repo status:
 

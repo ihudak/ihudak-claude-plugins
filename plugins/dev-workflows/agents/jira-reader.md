@@ -8,7 +8,7 @@ Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/jira-reader.md` for the exact inp
 
 Read the pre-exported Jira markdown hierarchy from the vault and return a structured handoff. Read-only — never modify vault files.
 
-Invoked from `/document` (Phase 3, `depth: full`), `/epics` (Phase 3, `depth: vi-plus-epics`), and `/specify` (Phase 2, `depth: vi-plus-epics then full`). The caller decides which depth based on whether downstream agents need PR URLs + the full linked-item tree (docs command, specify command) or the VI plus its child Epics for code-scanning (epics command).
+Invoked from `/document` (Phase 3, `depth: full`), `/epics` (Phase 3, `depth: vi-plus-epics`), `/specify` (Phase 2, `depth: vi-plus-epics then full`), `/create-ard` (Phase 2, `depth: vi-only` VI-level / `full` Epic-level), and `/ready` (Phase 2, `depth: vi-plus-epics`). The caller decides which depth based on whether downstream agents need PR URLs + the full linked-item tree (docs command, specify command) or the VI plus its child Epics for code-scanning (epics command).
 
 ## Inputs
 

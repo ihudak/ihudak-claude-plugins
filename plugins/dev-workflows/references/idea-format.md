@@ -11,7 +11,7 @@ from, NOT a mini-VI.
 title: <candidate human-readable title>
 slug: <candidate-kebab-slug>
 sources:
-  - provenance: rfe | vi | markdown | community-post | prompt
+  - provenance: rfe | vi | markdown | community-post | prompt | doc-grounding
     ref: <path | JIRA-KEY | url>
 created: <YYYY-MM-DD>
 status: draft | refined        # refined IFF zero open [NEEDS CLARIFICATION] remain

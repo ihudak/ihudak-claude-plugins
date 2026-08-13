@@ -23,6 +23,8 @@
 - **Line wrapping:** match the surrounding file. Reference and command files in this repo are hard-wrapped near 100 columns; do not reflow untouched paragraphs.
 
 > **On inline `# expect N` values below:** they were derived on 2026-08-10 against the tree at `7f02770`. If your actual count differs, **report the mismatch with your reasoning — do NOT edit content to satisfy the number.** In the previous round implementers were right about this six times out of six.
+>
+> **Corrected 2026-08-13 (R39, whole-round-review-fixes Task 13).** `7f02770` predates B2's own commits, so several inline expectations went stale by ship time (`25b3628`, the last B2-content commit before the next sub-project began). 8 discrepancies were re-derived against `25b3628` (canonical), `8bc8862` (mgd), and `c25eab7` (copilot) and are annotated in place at their respective checks below: **2 WRONG** (a number that was simply stale — corrected to the true value) and **6 WRONG-TARGET** (a check that, by construction of its own pattern, could never have produced its stated expectation on any tree — annotated with the reason rather than given an invented number). This is a different split than the design spec's "6 wrong + 2 wrong-target" estimate for R39; the total item count (8) matches, the wrong/wrong-target ratio does not — reported per this task's own instruction to trust re-derivation over the brief.
 
 ---
 
@@ -467,13 +469,15 @@ Phase 6.1's run condition currently fires only when a screenshot has `image_poli
 
 ```bash
 cd plugins/dev-workflows
-grep -c 'images_wanted' commands/document.md          # expect 0 — fully renamed
+grep -c 'images_wanted' commands/document.md          # WRONG-TARGET, see note — not 0
 grep -c 'new_images_wanted' commands/document.md      # expect >=3
 grep -n 'image_review' commands/document.md           # expect >=1
 grep -c 'existing_image_decisions' commands/document.md  # expect >=3 (5.6 schema, 6.1, handoff list)
 grep -n '^## Phase 5.6 — Images' commands/document.md # expect 1
 awk '/^## Phase 5.6 — Images/,/^## Phase 5.6.5/' commands/document.md | grep -c 'gate_ledger\|image_review'  # expect >=1
 ```
+
+**Corrected 2026-08-13 (R39):** Line 470's `# expect 0 — fully renamed` is **WRONG-TARGET**, not a wrong number. `images_wanted` is a plain substring match, and the new field name `new_images_wanted` (required `>=3` by the very next line) also contains that substring — so this command can never return 0 while the rename it is checking for is actually present; it structurally contradicts the check on line 471. Re-derived at `25b3628`: `grep -c 'images_wanted'` = 6 lines, `grep -c 'new_images_wanted'` = 6 lines (identical — every hit is the new name), and a word-boundary probe `grep -noE '(^|[^_a-z])images_wanted' commands/document.md` returns **no output**, confirming zero bare/old-name occurrences — the rename genuinely is complete; this specific command just cannot prove it.
 
 Then trace by reading, not grepping: follow the `new_images_wanted: false` path from Phase 1 to Phase 5.6 and confirm it reaches the existing-image list and the ledger append. That path is the entire point of the task, and a grep cannot prove it.
 
@@ -523,13 +527,17 @@ Add one sentence below the table: `image_review` is an input-side gate rather th
 
 ```bash
 cd plugins/dev-workflows
-grep -c '^| `' references/gate-ledger.md                    # expect 7 registry rows
+grep -c '^| `' references/gate-ledger.md                    # WRONG-TARGET, see note — not 7
 grep -n 'exactly three gates' references/gate-ledger.md     # expect 1 — direct mode still registers 3
 grep -n 'other four ids\|other \*\*four\*\* ids' references/gate-ledger.md  # expect 1
-awk '/never appear in a direct-mode ledger/,/^## 5\./' references/gate-ledger.md | grep -c '^- `'  # expect 4 bullets
+awk '/never appear in a direct-mode ledger/,/^## 5\./' references/gate-ledger.md | grep -c '^- `'  # expect 3 bullets (not 4 — corrected 2026-08-13)
 ```
 
-The registered count (3) and the never-appearing count (4) must sum to 7. If they do not, the carve-out and the registry disagree.
+The registered count (3) and the never-appearing count (4 ids) must sum to 7. If they do not, the carve-out and the registry disagree.
+
+**Corrected 2026-08-13 (R39):**
+- Line 526's `grep -c '^| \`' references/gate-ledger.md` is **WRONG-TARGET**, not a wrong number: the file has two markdown tables that both open data rows with `` | ` `` — the §1 outcome-legend table (6 rows: `RAN`/`DEGRADED`/`FAILED`/`UNAVAILABLE`/`SKIPPED_BY_USER`/`NOT_APPLICABLE`) and the §4 registry table (7 rows). The pattern isn't scoped to the registry table, so this exact command returns 13 (6+7) on the ship tree and can never isolate 7 by itself. Read directly (`sed -n '65,71p' references/gate-ledger.md`, at `25b3628`): the registry table genuinely has 7 rows, confirming the intended fact — just not via this command.
+- Line 529's `# expect 4 bullets` was **WRONG**: re-derived at `25b3628`, the "other four ids" bullet list has only **3** bullet lines, because `build_check` and `render_smoke_check` share one bullet ("`build_check` and `render_smoke_check` — direct mode has no Phase 6.5..."). 4 ids across 3 bullets — the prose "other **four** ids" is correct, the old "4 bullets" comment conflated ids with bullets.
 
 - [ ] **Step 5: Commit**
 
@@ -633,7 +641,7 @@ At `:22`, the inputs list describes the planner checklist including `repo_author
 
 ```bash
 cd plugins/dev-workflows
-awk '/^\| Dimension \| Check \|/,/^$/' agents/doc-reviewer.md | grep -c '^| '   # expect 19 (header + separator + 17)
+awk '/^\| Dimension \| Check \|/,/^$/' agents/doc-reviewer.md | grep -c '^| '   # WRONG-TARGET, see note — not 19
 sed -n '75,140p' agents/doc-reviewer.md | grep -c '^#### '                      # expect 17
 diff <(awk '/^\| Dimension \| Check \|/,/^$/' agents/doc-reviewer.md | grep '^| ' | tail -17 | cut -d'|' -f2 | sed 's/^ *//;s/ *$//') \
      <(sed -n '75,140p' agents/doc-reviewer.md | grep '^#### ' | sed 's/^#### //')
@@ -643,6 +651,8 @@ grep -c 'component_patterns\|existing_image_decisions' agents/doc-reviewer.md   
 ```
 
 The `diff` is the important one. The previous round's final review caught these two lists drifting apart, so prove they match rather than counting them separately.
+
+**Corrected 2026-08-13 (R39):** Line 640's `# expect 19 (header + separator + 17)` is **WRONG-TARGET**, not a wrong number. `grep -c '^| '` requires a literal space after the leading pipe; the markdown table separator row is `|---|---|`, which has no space after its leading pipe, so it never matches this pattern on any correctly-formatted table. The command can therefore only ever return header (1) + 17 data rows = **18**, never 19 — confirmed at `25b3628`. This is not a content defect: the `diff` immediately below (line 642) is the check that actually proves the 17 dimensions match, and it passes clean (no output).
 
 - [ ] **Step 8: Commit**
 
@@ -706,13 +716,15 @@ Add one new section to each report, `### Maintenance applied (uncommitted)`, con
 ```bash
 cd plugins/dev-workflows
 grep -c 'Agent 3 (`CLAUDE.md`)' commands/document.md references/finish-and-handoff.md   # expect 0 each
-grep -n '^## Phase 8.6\|^## Phase 4.5' commands/document.md            # expect 2 hits
+grep -n '^## Phase 8.6\|^## Phase 4.5' commands/document.md            # WRONG-TARGET, see note — not 2
 grep -c 'Maintenance applied (uncommitted)' commands/document.md       # expect 2 — one per mode
 grep -c 'write nothing' commands/document.md                           # expect 4 — Agents 2,3 in both modes
 grep -n 'apply minimal, additive, scoped changes' commands/document.md # expect 0 — old apply instruction gone
 ```
 
 Then confirm by reading the phase order: 8.5 (squash) precedes 8.6 (apply). If 8.6 landed before 8.5, the original bug is intact and the greps above all still pass.
+
+**Corrected 2026-08-13 (R39):** Line 715's `# expect 2 hits` is **WRONG-TARGET**, not a wrong number. The pattern matches any heading numbered `8.6` or `4.5` regardless of title, and `document.md` also carries a pre-existing, unrelated `## Phase 4.5 — Determine applicable space(s)` heading (Jira mode's space-resolution phase, present since before this sub-project). That heading will always coexist with the two "Maintenance proposals" headings this step actually adds (`## Phase 8.6 — Maintenance proposals` Jira mode, `## Phase 4.5 — Maintenance proposals` direct mode), so the command returns 3, permanently, on any tree that keeps the space-resolution phase. Re-derived at `25b3628`: 3 hits (`:341` unrelated, `:1068` and `:1536` the two intended "Maintenance proposals" headings — the fact this check actually intends to prove).
 
 - [ ] **Step 8: Commit**
 
@@ -757,11 +769,13 @@ Add `references/doc-structure-conventions.md` to the source-truth reference list
 cd /workspace/ihudak-claude-plugins
 grep -n '"version"' plugins/dev-workflows/.claude-plugin/plugin.json     # expect 2.44.0
 grep -n '2\.44\.0' .claude-plugin/marketplace.json                        # expect >=1
-grep -n '^## 2\.4' plugins/dev-workflows/CHANGELOG.md | head -3           # expect 2.44.0 first
+grep -n '^## 2\.4' plugins/dev-workflows/CHANGELOG.md | head -3           # WRONG-TARGET, see note — not "2.44.0 first"
 grep -n 'doc-structure-conventions' CLAUDE.md                             # expect 1
 python3 -m json.tool .claude-plugin/marketplace.json > /dev/null && echo "marketplace.json valid"
 python3 -m json.tool plugins/dev-workflows/.claude-plugin/plugin.json > /dev/null && echo "plugin.json valid"
 ```
+
+**Corrected 2026-08-13 (R39):** Line 768's `grep -n '^## 2\.4'` is **WRONG-TARGET**, not a wrong number: `CHANGELOG.md` headers are formatted `## [2.44.0] — 2026-08-10` — the pattern is missing the `[` — so this exact command returns **no output** on any tree, ever. The correct probe is `grep -n '^## \['` (confirmed at `25b3628`: `## [2.44.0] — 2026-08-10` first, then `## [2.43.0]`, `## [2.42.0]` — the intended fact holds).
 
 - [ ] **Step 6: Commit**
 
@@ -807,11 +821,13 @@ Copy every file tasks 1–11 created or modified, except the five identity files
 ```bash
 cd /workspace
 diff -rq ihudak-claude-plugins/plugins/dev-workflows mgd-claude-plugins/plugins/dev-workflows
-# expect exactly 5 lines, naming only: .claude-plugin/plugin.json CHANGELOG.md LICENSE README.md references/dependencies.md
+# WRONG, see note below — not exactly 5 lines
 grep -n '2\.44\.0' mgd-claude-plugins/.claude-plugin/marketplace.json mgd-claude-plugins/plugins/dev-workflows/.claude-plugin/plugin.json
 grep -c 'ihudak\|Ivan Gudak' mgd-claude-plugins/.claude-plugin/marketplace.json   # expect 0
 python3 -m json.tool mgd-claude-plugins/.claude-plugin/marketplace.json > /dev/null && echo valid
 ```
+
+**Corrected 2026-08-13 (R39):** Line 819–820's `# expect exactly 5 lines` is **WRONG**. Re-derived at `25b3628` (canonical) / `8bc8862` (mgd): the diff has **47** differing files, not 5. Of these, 5 are the genuine identity files this check intends to name (`.claude-plugin/plugin.json`, `CHANGELOG.md`, `LICENSE`, `README.md`, `references/dependencies.md` — content-verified as real, edition-specific differences). The other **42** are `references/guidelines/*` and `references/api-guidelines/**` files that differ **only in line endings** (canonical stores them CRLF, mgd stores them LF — byte-for-byte identical once normalized: `diff <(tr -d '\r' < canonical-file) <(tr -d '\r' < mgd-file)` is empty for every one). This CRLF/LF split is **pre-existing and unrelated to this sub-project** — both files trace back to `9756501` (canonical, "migrate guideline-reviewer and api-guideline-review from vault") and mgd's original "initial import" commit, both long before B2. It was never caught because no earlier sub-project's parity check happened to run a full, literal `diff -rq` across the entire `plugins/dev-workflows` tree and record the true line count — the same class of undercount as `2026-08-11-environment-guards-verification.md`'s V14 (5 identity files reported instead of 7). Not fixed here: normalizing the CRLF drift is a `plugins/` content change, outside this docs-only task's scope — flagged for a future sub-project. **Method note (2026-08-13, fix round 1):** independently re-verified with a real `git worktree` checkout of both `25b3628` and `8bc8862` (not `git show`) followed by `diff -rq` on disk — also **47**, the same as raw-blob comparison; this repo pair has no `.gitattributes` and both sides use `core.autocrlf=input`, which does not rewrite line endings on checkout, so there is no comparison method at this commit pair that returns 5. Only a same-day diff of **today's** live working trees shows these files as identical, because mgd's CRLF was brought in line with canonical by unrelated later commits after B2 shipped.
 
 - [ ] **Step 6: Commit**
 
@@ -863,7 +879,7 @@ Translate every `${CLAUDE_PLUGIN_ROOT}/references/…` citation to this edition'
 
 ```bash
 cd /workspace/ihudak-copilot-plugins
-grep -rn 'CLAUDE_PLUGIN_ROOT' dev-workflows/ | wc -l      # expect 0
+grep -rn 'CLAUDE_PLUGIN_ROOT' dev-workflows/ | wc -l      # WRONG-TARGET, see note — not 0
 grep -rn 'subagent_type' dev-workflows/ | wc -l           # expect 0
 grep -n '2\.14\.0' dev-workflows/.plugin/plugin.json .github/plugin/marketplace.json  # expect 1 each
 ls dev-workflows/skills/_shared/doc-structure-conventions.md \
@@ -871,6 +887,8 @@ ls dev-workflows/skills/_shared/doc-structure-conventions.md \
 grep -c 'doc-structure-conventions\|anchor-conventions' .github/copilot-instructions.md  # expect >=1
 python3 -m json.tool .github/plugin/marketplace.json > /dev/null && echo valid
 ```
+
+**Corrected 2026-08-13 (R39):** Line 880's `# expect 0` is **WRONG-TARGET**, not a wrong number. Re-derived at `c25eab7`: `grep -rn 'CLAUDE_PLUGIN_ROOT' dev-workflows/` returns 2 hits, both in `dev-workflows/CHANGELOG.md:799-800`, contrastive prose describing copilot's own dialect ("Path references use `~/.copilot/installed-plugins/...` instead of `${CLAUDE_PLUGIN_ROOT}`" / "Hooks use `${PLUGIN_ROOT}` instead of `${CLAUDE_PLUGIN_ROOT}`"). This is historical CHANGELOG narrative, not a leaked canonical-dialect token — the same false-positive class the F sub-project's V16 check already excludes CHANGELOG.md for. Since CHANGELOG entries are never rewritten, this command will keep returning 2, permanently, on every future tree.
 
 - [ ] **Step 7: Commit**
 

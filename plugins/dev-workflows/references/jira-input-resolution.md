@@ -150,8 +150,9 @@ direct_files:     [<abs paths>]
 
 Locates the export for **one exact key**, at any depth. Distinct from the VI-selector
 rule above, which deliberately resolves a nested Epic *up to its parent VI*; this one
-never walks upward. Consumed by `/idea` (source typing) and `vault-prior-art-finder`
-(status resolution) — neither wants a parent.
+never walks upward. Consumed by `/idea` (source typing), `idea-reader` (export
+location for `rfe`/`vi` sources), and `vault-prior-art-finder` (status
+resolution) — none of them wants a parent.
 
 1. `candidates` = every `$VAULT_PATH/jira-products/**/<KEY>/<KEY>.md` (**any depth**
    — the export tree nests by hierarchy, so a key recurs under several roots).

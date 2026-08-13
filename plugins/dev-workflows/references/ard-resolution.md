@@ -60,6 +60,7 @@ deviation record as *allowed-but-flagged* (the architect adjudicates), **without
 - `/implement` — Jira mode only; `AD-N` = implementation guardrails; deviations → the Phase 5 report. Direct mode → `none`.
 - `/specify` — keep user stories + scope consistent with `AD-N` + scope; deviations → the spec's `### Open questions`.
 - `/epics` — VI-level only (`epic: null`, Epics do not exist yet); `AD-N` = inherited invariants the drafted Epics must respect; deviations → a `- ARD deviation: …` line in the Epic draft + the Phase 9 report.
+- `/ready` — VI-level + Epic-level `AD-N` = inherited invariants passed to `readiness-reviewer` as `applicable_ard`; read-only — it never authors a deviation record, only checks the artifacts it reads for an existing one.
 
 Each passes `invariants` to its reviewer as `applicable_ard`; the reviewer's ARD-conformance dimension is
 skipped entirely when it is absent.

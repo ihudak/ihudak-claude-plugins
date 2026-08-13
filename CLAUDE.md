@@ -135,7 +135,7 @@ in their prompt; they do not re-read the file.
 
 ```
 /implement           → [Pre-Phase 2 scale assessment] → (multi-source? → [jira-reader → code-scanner×N (parallel, cap 4) → §8.5 narrow round 2] → synthesis, unresolved themes named) → [risk-planner@Opus plan critique] → [code-review@Opus] → review-fixer → test-writer → tests → impl-maintenance → commit-artifacts
-/document (direct)   → [doc-reviewer] → [doc-fixer] → impl-maintenance → commit-artifacts
+/document (direct)   → [docs-style-checker] → [doc-fixer] → impl-maintenance → commit-artifacts
 /docs-profile        → scans docs repo → writes/refreshes .dev-workflows/docs-profile.yml + CLAUDE.md guidance → PR
 /document (Jira)     → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [counterpart-finder (space-constrained runs)] → [doc-planner] → [discrepancy-escalation (Phase 5.8)] → writing → [docs-style-checker → dt-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [doc-fixer] → impl-maintenance → commit-artifacts   (Phase 0 hint: prefers ${DOCS_PATH:-/workspace/docs} as a docs-repo discovery hint — write-target only, no docs-grounder consumption)
 /epics               → jira-reader → [code-scanner×N (parallel, optional)] → [docs-grounder] → writing → [dt-style-checker] → [doc-fixer] → [epic-reviewer@Opus] → [doc-fixer] → impl-maintenance → commit-artifacts
@@ -200,8 +200,8 @@ Key invariants for `/document` (direct mode):
 
 - **No branch creation by default** — it works on the current branch unless the user requests one
 - **No `test-baseliner`, no `test-writer`, no `code-review`** — docs-only phases only
-- `doc-reviewer` performs comprehensive review: links, headings, wikilinks, style, completeness
-- BLOCKER findings trigger a fix cycle via `doc-fixer` (max one fix + one re-review); CONCERNs are recorded and may be fixed inline
+- **No `doc-reviewer` gate** — direct mode is deliberately lightweight: a mandatory style check (Phase 3.5) and `doc-fixer`, but no Opus review. Two rules in `document.md` (`:1490`, `:1494`) depend on that absence
+- Style-check findings are fixed via `doc-fixer`; with no reviewer gate there is no BLOCKER fix cycle and no re-review in this mode
 - Mixed code + docs changes must use `/implement` instead
 
 Key invariants for `/document` (Jira mode) and `/epics`:

@@ -32,7 +32,7 @@ is clean and on its default branch. If a guard fires, emit its §5 notice;
 if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole
 run — the terminal `commit-artifacts` step skips on it.
 
-Echo the detected mode, then proceed to that mode's phases. The two modes share the same `docs-style-checker` / `doc-reviewer` / `doc-fixer` agents (each mode emits its own final report).
+Echo the detected mode, then proceed to that mode's phases. The two modes share the same `docs-style-checker` / `doc-fixer` agents; only Jira mode also runs `doc-reviewer` (each mode emits its own final report).
 
 ---
 

@@ -56,6 +56,7 @@ Do NOT edit `~/.claude/claude-config/` — that repo is retired and will be dele
 - `hooks.json` `matcher` field (for PostToolUse) goes at the entry level, not inside the hook object.
 - Plugin content references bundled files via `${CLAUDE_PLUGIN_ROOT}` (agents/skills/hooks) or the `model-routing` skill (commands); never hardcode `~/.claude/plugins/data/...@.../` paths (see the Internal reference convention above).
 - MIT license applies to all plugins unless a plugin directory has its own LICENSE file.
+- **A sub-project's verification record is written last** — after the final fix wave, never before it. Three of the 2026-08-07 round's records went stale because the record was written first; one was falsified by its own sub-project's next commit 17 minutes later. Re-derive every expected value against the tree being verified, and never copy an `expect N` from another plan — two of that round's wrong values propagated exactly that way.
 
 ## Command, agent, and skill taxonomy
 
@@ -154,7 +155,7 @@ All seventeen in-scope commands additionally run `specs-preflight` at run start 
                       └── test-writer        (used by /implement only)
                       └── risk-planner       (used by /implement plan critique, /upgrade)
                       └── code-review        (used by /implement, /vuln, /upgrade)
-                      └── doc-reviewer       (used by /document)
+                      └── doc-reviewer       (used by /document Jira mode)
                       └── doc-fixer          (used by /document, /epics)
                       └── doc-location-finder (used by /document Jira mode)
                       └── counterpart-finder (used by /document Jira mode, space-constrained runs)

@@ -682,7 +682,7 @@ grep -n "Shaped as:" commands/release-notes.md
 
 - [ ] **Step 2: Run it to verify it currently fails**
 
-Expected: the first three match (`:174-178`, `:184-189`, `:241`, `:261`); the last two return nothing.
+Expected: the first three match (`:174-178`, `:184-189`, `:241`, `:261`); the last two return nothing. **Corrected 2026-08-13**: the citation was garbled — it does not correspond to any one grep's real output. Re-derived at `fb64314` (the tree state right before this task's own implementation commit `ddc1fb2`): grep 1 (`context_label_hint\|change_type_hint\|authored_vi_fields\|change_type_divergence`) matches `:139-140`, `:174`, `:175`, `:178`, `:241`, `:261`, `:363` (8 lines); grep 2 (`Change-type source:`) matches `:241`, `:262`; grep 3 (the literal enum quote) matches `:187`. The last two greps (`RELEASE_NOTES_NOT_RELEVANT`, `Shaped as:`) do correctly return nothing, confirming the "red" state.
 
 - [ ] **Step 3: Replace Phase 2 step 1 (the worthiness gate)**
 
@@ -877,7 +877,7 @@ destination file instead of the opaque Jira enum values."
 cd /workspace/ihudak-claude-plugins
 grep -n '"version": "2.42.0"' plugins/dev-workflows/.claude-plugin/plugin.json
 grep -n "^## \\[2.42.0\\]" plugins/dev-workflows/CHANGELOG.md
-grep -c "change_type" CLAUDE.md   # expect 0 when done
+grep -c "change_type" CLAUDE.md   # WRONG-TARGET (corrected 2026-08-13): unsatisfiable on any tree — Tasks 5/6's own design keeps "change_type" as a legitimate Jira-mirror field name in CLAUDE.md's invariants (an "imported_change_type" substring hit, plus a "does NOT capture ... change_type ..." sentence); re-derived at 4720e28, actual count is 2, both legitimate
 ```
 
 - [ ] **Step 2: Run it to verify it currently fails**
@@ -1184,7 +1184,7 @@ grep -rn 'CLAUDE_PLUGIN_ROOT' skills/_shared/release-note-types.md skills/_share
         skills/create-vi/SKILL.md skills/release-notes/SKILL.md
 grep -rn '/release-notes\b' skills/release-notes/SKILL.md skills/_shared/release-note-types.md
 ```
-Expected: both return no output.
+Expected: both return no output. **Corrected 2026-08-13**: the first does; the second does not — re-derived at copilot `4d31a8f`, it returns one line, `skills/_shared/release-note-types.md:15`, a path false positive (`.../_snippets/release-notes/<product>/<sprint>/`, not a canonical `/release-notes` command reference). Not a real leak; the check's pattern is over-broad for that one line.
 
 - [ ] **Step 5: Verify the content changes landed**
 
@@ -1251,7 +1251,7 @@ for r in /workspace/ihudak-claude-plugins/plugins/dev-workflows \
   grep -rn "release_versions" "$r" --include=*.md | grep -v CHANGELOG
 done
 ```
-Expected: matches only in `vi-format.md`'s Jira-mirror paragraph and `README.md`'s "are NOT captured" sentence.
+Expected: matches only in `vi-format.md`'s Jira-mirror paragraph and `README.md`'s "are NOT captured" sentence. **Corrected 2026-08-13**: this undercounted. Re-derived at canonical `4720e28` (mgd `2a34a54`, copilot `4d31a8f`): canonical has 6 legitimate matches — `README.md:17`, `commands/create-vi.md:118`, `commands/release-notes.md:114`, `commands/release-notes.md:144`, `references/vi-format.md:39`, `agents/vi-reviewer.md:23` — all Jira-mirror/"NOT captured"/"plays no part"/"do NOT parse" statements, none a dead field reference; mgd and copilot carry the same set (copilot's `agents/vi-reviewer.md` and `skills/` counterparts). No fix needed to plugin content — the check's stated expectation was too narrow, not the shipped result.
 
 - [ ] **Check 3 — the label prohibition is gone**
 

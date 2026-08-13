@@ -523,10 +523,10 @@ grep -nE '\-\-force|push -f|branch -D' references/specs-repo-git.md  # expect: n
 grep -nE '`?git ' references/specs-repo-git.md | grep -v 'git -C "\$SPECS_PATH"' | grep -v 'git branch will not list\|git.s garbage'   # expect: only the `Fix:` blocks in §5, which already use git -C "<SPECS_PATH>"
 ```
 
-The last check will surface the §5 `Fix:` lines that use the literal
-`<SPECS_PATH>` placeholder rather than `$SPECS_PATH` — that is correct (they are
-paste-ready commands for the user with the value substituted) and requires no
-change. Everything else must carry `-C "$SPECS_PATH"`.
+**[R37 correction, 2026-08-13]** Both of the last two checks are wrong as literally written; re-derived against the ship tree at `9e663bf`.
+
+- **V8 is wrong-target**, not just wrong-valued: rule 2's own explanatory sentence — "`git add -A` is never issued at repository scope — always `git add -A -- <literal paths>`" — legitimately wraps across two physical lines (`references/specs-repo-git.md:29-30`). The raw line-level grep matches line 29 alone (`` `git add -A` is never ``, no ` -- ` on that physical line) and reports 1 hit, so "expect: no output" can never hold for this file's genuine two-line prose — only a whitespace-normalized check (`tr '\n' ' '`) correctly returns no output. Not a defect in the reference; a defect in the check's line-boundedness.
+- **The "every git call" check's expectation is wrong**, not just under-described: the unfiltered command returns **17** lines at `9e663bf`, not "only the 5 `Fix:` blocks in §5" — 12 of the 17 are legitimate prose mentioning `git` without invoking it (e.g. `:1` the H1, `:21` "`git push` is git-protocol…", `:25` "`git -C` always; `cd` never.", `:29-30` the V8 sentence above, `:36`, `:75` "plain `git add` would not stage it", `:224` "`git branch` will not list it…", `:293`). The plan's own later, more precise V7–V9 block (§ below, ~line 2300) already accounts for this correctly with an explicit exception list — this earlier occurrence was never brought in line with it.
 
 - [ ] **Step 3: Commit**
 
@@ -947,6 +947,11 @@ for f in idea.md epics.md ready.md; do
   echo "$f: preflight=$(grep -c 'specs-preflight' $f) commit=$(grep -c 'commit-artifacts' $f) line=$(grep -c 'Specs repo:' $f)"
 done
 # expect for each: preflight=1, line=1
+```
+
+**[R37 correction, 2026-08-13] `preflight=1` is wrong-target for `epics.md` and `ready.md`.** A bare `grep -c 'specs-preflight'` cannot equal 1 for either file: both carry a "this command never branches" carve-out that legitimately re-mentions `specs-preflight` by name (`epics.md:13,39,98,714,716`; `ready.md:17,72,110,555,560`), so the true bare count at `9e663bf` is **5 for each**, not 1. `idea.md`'s bare count of 1 happens to hold only because it has no such carve-out. The single *executable* preflight citation is genuinely 1 in all three files — confirmed via the exact-phrase check `grep -o 'execute its \`specs-preflight\` *entry point'` — which is the check this line should have used, matching the more precise version the plan already applies later (V3, ~line 2280).
+
+```bash
 grep -n 'Write the resume pointer at' epics.md ready.md   # expect: no output
 grep -n 'resume pointer is written in the terminal cost phase' epics.md ready.md   # expect: 1 each
 grep -n 'resume' idea.md   # expect: only the existing "no resume pointer" note — /idea writes none
@@ -1102,6 +1107,11 @@ grep -n 'commit-artifacts` entry point (§4) inline' document.md   # expect: exa
 grep -n 'Write the resume pointer at' release-notes.md implement.md document.md   # expect: no output
 ```
 
+**[R37 correction, 2026-08-13] Two of the above are wrong-target, re-derived at `9e663bf`:**
+
+- **The `preflight=` bare counts are wrong for all three files.** `grep -c 'specs-preflight'` cannot equal 1 (or 2) here for the same reason as the `epics.md`/`ready.md` case above — legitimate prose re-mentions the entry point by name. True bare counts: `release-notes.md`=3, `implement.md`=2, `document.md`=5 (`line=` is unaffected and still holds: 1/1/2). The single executable citation is genuinely 1 per file (2 for `document.md`, one per mode) — confirmed via the exact-phrase check, matching the plan's later, correct V3 (~line 2280).
+- **The `execute its \`specs-preflight\` entry point` check in `document.md` is wrong-target as a raw line grep.** The sentence genuinely wraps across two physical lines ("Cite `.../specs-repo-git.md` and execute its" / "`specs-preflight` entry point (§3) inline: …", `document.md:25-26`), so the raw grep returns **0**, not 1. Whitespace-normalized (`tr '\n' ' ' | grep -o …`), it correctly returns 1, matching "exactly 1 (Jira-mode Phase 0)".
+
 - [ ] **Step 7: Commit**
 
 ```bash
@@ -1184,6 +1194,11 @@ for f in vuln.md upgrade.md; do
   echo "$f: preflight=$(grep -c 'specs-preflight' $f) commitsite=$(grep -c 'commit-artifacts` entry point (§4) inline' $f) line=$(grep -c 'Specs repo:' $f)"
 done
 # expect for each: preflight=1 commitsite=1 line=1
+```
+
+**[R37 correction, 2026-08-13] `preflight=1` is wrong-target here too, re-derived at `9e663bf`.** Same bare-substring-overcount defect as the two blocks above: `vuln.md` and `upgrade.md` each carry a "left uncommitted on the current branch" / never-branches clause that re-mentions `specs-preflight`, so the true bare count is **2 for each**, not 1 (`commitsite=1 line=1` are unaffected and hold). The single executable citation is 1 per file, per the plan's later, correct V3.
+
+```bash
 grep -n '^## Phase 0' upgrade.md   # expect: 1 (the new section)
 grep -n 'left uncommitted on the current branch' upgrade.md   # expect: >=1 — the pre-existing invariant is preserved
 ```
@@ -2025,6 +2040,13 @@ grep -c 'specs-repo-git.md' session-hygiene.md feedback-emission.md followup-emi
 ls cost-emission.md 2>/dev/null                        # expect: no such file
 ```
 
+**[R37 correction, 2026-08-13] Four of the above are wrong, re-derived against the copilot ship commit `04273a4`:**
+
+- **V11 is wrong-target** — `dev-workflows-cost` and `emit-cost` cannot be 0: `specs-repo-git.md`'s own §2.1 deliberately carries one negation sentence ("this edition has **no cost subsystem** — there is no `cost-emission.md`, no `emit-cost`, and no `dev-workflows-cost/` path shape", line 57-58) that names each term once precisely so a future porter can't reintroduce the subsystem — actual count is 1/1, not 0/0. This is the identical defect canonical's own V11 already had fixed (commit `4ef5b42`, "a bare grep contradicts the adaptation it checks"); this copilot-side instance of the same check was never brought in line.
+- **V8 is wrong-target** — same wrap defect as the canonical file: rule 2's sentence ("`git add -A` is never" / "issued at repository scope — always `git add -A -- <literal paths>`") wraps across `specs-repo-git.md:29-30`, so the raw line grep hits line 29 (1 line, not "no output"). Whitespace-normalized, it correctly returns no output.
+- **V9 is wrong-target** — the raw grep has no exclusion filter here (unlike the canonical file's later, refined V9 at ~line 2323), so it matches rule 4's own self-describing sentence, "4. **Never destructive.** No `push --force`, no `push -f`, no `branch -D`, no …" (line 33) — 1 hit, not "no output". The rule text is correct; the check needs the same `grep -viE 'never|no \`?push|forbid'` filter the canonical V9 uses.
+- **`session-hygiene 3` is a wrong value** — actual count at `04273a4` is **2** (lines 18 and 118), matching `feedback-emission`'s 2, not 3. Confirmed whitespace-normalized as well (still 2).
+
 - [ ] **Step 5: Commit**
 
 ```bash
@@ -2133,6 +2155,11 @@ grep -rn 'dev-workflows-cost' skills/ agents/ 2>/dev/null       # expect no outp
 # out-of-scope skills untouched
 grep -l 'specs-repo-git' skills/api-guideline-reviewer/SKILL.md skills/guideline-reviewer/SKILL.md skills/docs-profile/SKILL.md 2>/dev/null   # expect no output
 ```
+
+**[R37 correction, 2026-08-13] V3 and V11 are wrong-target, re-derived at `04273a4`:**
+
+- **V3's bare `grep -rc 'specs-preflight'` cannot equal 17** — it returns **35**. The exact-phrase check (`` grep -o 'execute its `specs-preflight` *entry point' `` per SKILL.md, whitespace-normalized) is the one that legitimately returns 17 across all 17 skill files (1 each) — same overcounting defect as the canonical per-command blocks above, here at edition-wide scale.
+- **V11 is wrong-target** — `dev-workflows-cost` cannot return no output: `skills/_shared/specs-repo-git.md:58` carries the same required negation sentence flagged above (1 hit), not zero.
 
 If V4 or V5 reads 17, the missing one is `document/SKILL.md`'s second mode —
 that is the site the count exists to catch.

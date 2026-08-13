@@ -40,7 +40,7 @@ Whole-branch verification for sub-project G (`iv-gu/vault-prior-art`) across all
 | V26 | PASS | See Trap 3 below. |
 | V27 | PASS | Reference "Choosing `P` for a Jira-key source": "`P` = the vault item directory whose work document carries `jira.id: <KEY>`, when one exists; absent otherwise" (lines 102), which per case 3 falls back to `Projects/ideas/`. |
 
-**Tally: 25 PASS, 2 FAIL (V3, V23).**
+**Tally: 27 PASS, 2 FAIL (V3, V23).** (**Corrected 2026-08-13**: the original tally recorded 25 PASS. Recount: the table above has 29 rows — V1–V27 plus sub-rows V11a and V11b, both PASS — of which 2 are FAIL (V3, V23), so 29 − 2 = 27 PASS. V11a and V11b were left uncounted in the original tally.)
 
 ## Trap re-verification
 

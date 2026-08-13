@@ -372,6 +372,10 @@ with a narrowed brief:
 No new agent and no input-contract change: the narrowing lives entirely in what
 the caller puts in the existing fields.
 
+The narrowed brief changes only those fields: every other field of round 1's
+dispatch — **including `refresh:`** — is reused verbatim, so a caller that
+pinned a read-only posture in round 1 keeps it in round 2.
+
 **Bounds.** Round 2 is capped at **4 dispatches** and is **one round only**.
 There is no round 3. A theme still inconclusive after round 2 is reported
 unresolved — never guessed at. **Precedence: mutual deferral and `error` are

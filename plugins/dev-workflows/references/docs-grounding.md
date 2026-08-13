@@ -108,7 +108,7 @@ Feed `docs_references` to the grill as positive grounding (facts to build on,
 analogous precedents to model after, building-block altitude/permissions).
 **Rank** each `docs_challenges` entry into the command's existing
 Impact × Uncertainty gap list — do **not** append. A docs challenge competes for
-a question slot; it never adds one (this preserves `/idea`'s ≤5-question bound).
+a question slot; it never adds one (this preserves `/idea`'s ≤10-question bound).
 
 **`writer-attach`** (`/epics`, `/release-notes`): Pass the whole digest
 (`docs_references` + `docs_challenges`) into the writer agent's input handoff as

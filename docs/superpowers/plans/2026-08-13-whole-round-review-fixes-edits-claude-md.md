@@ -313,6 +313,8 @@ and cited by the eight commands that dispatch them
 ASSERT: `grep -cF 'cited by the eight commands that dispatch them' /workspace/ihudak-claude-plugins/CLAUDE.md`   # expect 1
 VERIFIED: 8 command files cite the marker (list above). NOTE FOR IMPLEMENTERS: R3 (another task) edits a different clause of this same line 124 (the `prep`-contract tail). This OLD string is deliberately minimal so both edits apply independently in either order.
 
+**Corrected 2026-08-13 (fix round 1):** the OLD anchor `and cited by the seven commands that dispatch them` no longer existed in the tree when Task 11 ran — R3 (which this note already flags as touching the same line) had already rewritten the sentence into two sentences: "Consumed by `code-scanner` and `diff-summarizer`, which emit the `prep` block; `docs-grounder` also consumes it (§1–§4 only — read-only detection, what to skip, ref resolution, reading at the ref) but returns a digest, not a `prep` block. Cited by the eight commands that dispatch them." — capital-C "Cited", a standalone sentence, not the lowercase mid-sentence "and cited" this OLD/NEW pair targets. The literal case-sensitive ASSERT above (`grep -cF` on lowercase `cited by…`) therefore returns **0** against the live file, not 1, even though "eight" (the substantive fix this row exists to land) is already correctly present — verified: `grep -icF 'cited by the eight commands that dispatch them' CLAUDE.md` → 1; the case-sensitive form → 0. No further edit to `CLAUDE.md` is needed — R3's rewrite already carries the correct count; only this row's anchor/ASSERT text was stale.
+
 #### R35b — mgd
 FILE: /workspace/mgd-claude-plugins/CLAUDE.md
 LINE: 136 (matches the recorded location)
@@ -326,6 +328,8 @@ and cited by the eight commands that dispatch them
 ```
 ASSERT: `grep -cF 'cited by the eight commands that dispatch them' /workspace/mgd-claude-plugins/CLAUDE.md`   # expect 1
 VERIFIED: mgd's own commands/ tree has 8 files citing the marker (same grep, run against `/workspace/mgd-claude-plugins/plugins/dev-workflows/commands/`).
+
+**Corrected 2026-08-13 (fix round 1):** same stale anchor as R35a. The OLD anchor `and cited by the seven commands that dispatch them` no longer existed in mgd's `CLAUDE.md` when Task 11 ran — mgd's own R3 porting had already rewritten the sentence into two sentences ending "…but returns a digest, not a `prep` block. Cited by the eight commands that dispatch them." (capital-C, standalone sentence). The literal case-sensitive ASSERT above returns **0** against the live file, not 1 — verified: `grep -icF 'cited by the eight commands that dispatch them' CLAUDE.md` → 1; the case-sensitive form → 0. "Eight" is already correctly present; no further edit to mgd's `CLAUDE.md` is needed, only this row's anchor/ASSERT text was stale.
 
 #### R35c — copilot (dialect: "skills", not "commands")
 FILE: /workspace/ihudak-copilot-plugins/dev-workflows/README.md

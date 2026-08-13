@@ -682,7 +682,7 @@ grep -n "Shaped as:" commands/release-notes.md
 
 - [ ] **Step 2: Run it to verify it currently fails**
 
-Expected: the first three match (`:174-178`, `:184-189`, `:241`, `:261`); the last two return nothing.
+Expected: the first three match (`:174-178`, `:184-189`, `:241`, `:261`); the last two return nothing. **Corrected 2026-08-13**: the citation was garbled — it does not correspond to any one grep's real output. Re-derived at `fb64314` (the tree state right before this task's own implementation commit `ddc1fb2`): grep 1 (`context_label_hint\|change_type_hint\|authored_vi_fields\|change_type_divergence`) matches `:139-140`, `:174`, `:175`, `:178`, `:241`, `:261`, `:363` (8 lines); grep 2 (`Change-type source:`) matches `:241`, `:262`; grep 3 (the literal enum quote) matches `:187`. The last two greps (`RELEASE_NOTES_NOT_RELEVANT`, `Shaped as:`) do correctly return nothing, confirming the "red" state.
 
 - [ ] **Step 3: Replace Phase 2 step 1 (the worthiness gate)**
 
@@ -877,7 +877,7 @@ destination file instead of the opaque Jira enum values."
 cd /workspace/ihudak-claude-plugins
 grep -n '"version": "2.42.0"' plugins/dev-workflows/.claude-plugin/plugin.json
 grep -n "^## \\[2.42.0\\]" plugins/dev-workflows/CHANGELOG.md
-grep -c "change_type" CLAUDE.md   # expect 0 when done
+grep -c "change_type" CLAUDE.md   # WRONG-TARGET (corrected 2026-08-13): unsatisfiable on any tree — Tasks 5/6's own design keeps "change_type" as a legitimate Jira-mirror field name in CLAUDE.md's invariants (an "imported_change_type" substring hit, plus a "does NOT capture ... change_type ..." sentence); re-derived at 4720e28, actual count is 2, both legitimate
 ```
 
 - [ ] **Step 2: Run it to verify it currently fails**
@@ -1053,6 +1053,8 @@ Expected: the mgd tree is clean, and `diff -rq` reports differences ONLY in
 
 Any *other* difference means the editions drifted in content — stop and report it rather than copying over it.
 
+**Corrected 2026-08-13 (R40, fix round 1):** the "five identity + seven content" expectation (12 total) is **WRONG**. Re-derived at the correct ship pair — canonical `4720e28` (this sub-project's own final fix-wave commit) vs mgd's true pre-port state `f64a69b` (mgd's prior release, immediately before the port commit `2a34a54`; the reviewer's premise for this pairing has been independently confirmed) — a real `git worktree` checkout of both, followed by `diff -rq`, reports **54** differing items, not 12: the 5 identity files + 7 content files (12, as claimed) plus **42** pre-existing files under `references/guidelines/*` and `references/api-guidelines/**` that differ only because canonical's blobs carry CRLF line endings and mgd's carry LF — the same drift class as R38 item 5 and R39 item 7. **Method note:** this 42-file CRLF split is present under both raw-blob comparison (`git show <commit>:<path>`) and an actual on-disk checkout `diff -rq` at this historical commit pair — there is no comparison method at ship time that returns 12; it only disappears if the check is run against **today's** live working trees, where mgd's CRLF has since been brought in line with canonical by unrelated later commits. Consistent with R38 item 5 and R39 item 7, which report the equivalent post-port count as 47 (54 minus the 7 content files this Step-1 baseline still expects as differences, since mgd has not yet received them).
+
 - [ ] **Step 2: Create the branch**
 
 ```bash
@@ -1094,6 +1096,8 @@ diff -rq /workspace/mgd-claude-plugins/plugins/dev-workflows \
          /workspace/ihudak-claude-plugins/plugins/dev-workflows
 ```
 Expected: differences in exactly the five known identity files and nothing else. In particular `commands/`, `agents/`, and `references/` (other than `dependencies.md`) must report no differences.
+
+**Corrected 2026-08-13 (R40, fix round 1):** "exactly the five known identity files" is **WRONG**. Re-derived at the ship pair — canonical `4720e28`, mgd `d404a75` (mgd's own final fix-wave commit, same commit message as canonical's — the reviewer's correction to this task's original `2a34a54`, which was mgd's pre-fix-wave port commit, is confirmed correct) — a real `git worktree` checkout of both, followed by `diff -rq`, reports **47** differing items, not 5: the 5 genuine identity files plus the same **42** pre-existing `references/guidelines/*` / `references/api-guidelines/**` CRLF-vs-LF files identified in the Step 1 correction above. `commands/`, `agents/`, and `references/` (other than `dependencies.md` and the CRLF-affected `guidelines`/`api-guidelines` subtrees) genuinely report no differences — the port's content correctness is unaffected. **Method note:** consistent with R38 item 5 (canonical `c7bdac2` / mgd `fce902f` → 47) and R39 item 7 (canonical `25b3628` / mgd `8bc8862` → 47) — all three sub-projects' mgd-parity checks now report the same value under the same method (an actual on-disk `diff -rq` at the ship-commit pair, verified to match raw-blob comparison). None of the three normalizes to a smaller number at ship time; only a same-day diff of today's live working trees would, because mgd's CRLF has since converged with canonical's.
 
 ```bash
 cd /workspace/mgd-claude-plugins
@@ -1184,7 +1188,7 @@ grep -rn 'CLAUDE_PLUGIN_ROOT' skills/_shared/release-note-types.md skills/_share
         skills/create-vi/SKILL.md skills/release-notes/SKILL.md
 grep -rn '/release-notes\b' skills/release-notes/SKILL.md skills/_shared/release-note-types.md
 ```
-Expected: both return no output.
+Expected: both return no output. **Corrected 2026-08-13**: the first does; the second does not — re-derived at copilot `4d31a8f`, it returns one line, `skills/_shared/release-note-types.md:15`, a path false positive (`.../_snippets/release-notes/<product>/<sprint>/`, not a canonical `/release-notes` command reference). Not a real leak; the check's pattern is over-broad for that one line.
 
 - [ ] **Step 5: Verify the content changes landed**
 
@@ -1251,7 +1255,7 @@ for r in /workspace/ihudak-claude-plugins/plugins/dev-workflows \
   grep -rn "release_versions" "$r" --include=*.md | grep -v CHANGELOG
 done
 ```
-Expected: matches only in `vi-format.md`'s Jira-mirror paragraph and `README.md`'s "are NOT captured" sentence.
+Expected: matches only in `vi-format.md`'s Jira-mirror paragraph and `README.md`'s "are NOT captured" sentence. **Corrected 2026-08-13**: this undercounted. Re-derived at canonical `4720e28` (mgd `2a34a54`, copilot `4d31a8f`): canonical has 6 legitimate matches — `README.md:17`, `commands/create-vi.md:118`, `commands/release-notes.md:114`, `commands/release-notes.md:144`, `references/vi-format.md:39`, `agents/vi-reviewer.md:23` — all Jira-mirror/"NOT captured"/"plays no part"/"do NOT parse" statements, none a dead field reference; mgd and copilot carry the same set (copilot's `agents/vi-reviewer.md` and `skills/` counterparts). No fix needed to plugin content — the check's stated expectation was too narrow, not the shipped result.
 
 - [ ] **Check 3 — the label prohibition is gone**
 

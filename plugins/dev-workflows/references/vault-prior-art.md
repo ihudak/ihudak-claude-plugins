@@ -132,7 +132,7 @@ The closed term sets. `idea-format.md` and `vault-prior-art-finder` both cite th
 
 ## Consumption
 
-**`grill-rank`** (`/idea`, `/create-vi`) — feed `prior_art` to the grill as positive grounding. **Rank** each `prior_art_challenges` entry into the command's existing Impact × Uncertainty gap list together with `docs_challenges`; do **not** append. A challenge competes for a question slot and never adds one — this preserves `/idea`'s ≤5-question bound.
+**`grill-rank`** (`/idea`, `/create-vi`) — feed `prior_art` to the grill as positive grounding. **Rank** each `prior_art_challenges` entry into the command's existing Impact × Uncertainty gap list together with `docs_challenges`; do **not** append. A challenge competes for a question slot and never adds one — this preserves `/idea`'s ≤10-question bound.
 
 **`## Prior art`** (`/idea`) — the durable carrier, written per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`. Fed from both directions: discovered matches and a supplied `vi` source alike.
 

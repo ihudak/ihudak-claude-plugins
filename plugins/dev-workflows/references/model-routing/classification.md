@@ -372,6 +372,10 @@ with a narrowed brief:
 No new agent and no input-contract change: the narrowing lives entirely in what
 the caller puts in the existing fields.
 
+The narrowed brief changes only those fields: every other field of round 1's
+dispatch — **including `refresh:`** — is reused verbatim, so a caller that
+pinned a read-only posture in round 1 keeps it in round 2.
+
 **Bounds.** Round 2 is capped at **4 dispatches** and is **one round only**.
 There is no round 3. A theme still inconclusive after round 2 is reported
 unresolved — never guessed at. **Precedence: mutual deferral and `error` are
@@ -379,12 +383,17 @@ unresolved regardless of whether a round-1 evidence anchor existed to seed a
 round 2** — a theme with no anchor never gets a round-2 attempt, but the
 absence of an attempt is not itself a resolution. A theme confirmed `absent`
 — by round 2, or by round 1 when no anchor existed to seed one — is a
-**resolved** finding only when that `absent` carries **no deferral to a repo
-or layer outside the scanned set**: for `/idea`, it belongs in Section 7's
-*What's missing*, not in Open questions. `[NEEDS CLARIFICATION]` (or the
-caller's equivalent) is for a theme the scan could not settle — mutual
-deferral, `error`, or `absent` everywhere scanned **plus** a deferral outside
-the scanned set.
+**resolved** finding, and the outside-deferral qualifier below is
+caller-scoped. For **`/implement`** it is resolved only when that `absent`
+carries **no deferral to a repo or layer outside the scanned set**, because
+that caller's premise is that the capability lives somewhere across the repos
+in scope. For **`/idea`** it is resolved unconditionally — the confirmed repo
+set *is* the world the idea grounds against (see the altitude paragraph that
+follows) — and it belongs in Section 7's *What's missing*, not in Open
+questions. `[NEEDS CLARIFICATION]` (or the caller's equivalent) is for a theme
+the scan could not settle — mutual deferral, `error`, or, **for `/implement`
+only**, `absent` everywhere scanned **plus** a deferral outside the scanned
+set.
 
 The altitude differs by caller. For `/idea --ground-code`, the confirmed repo
 set **is** the world the idea is grounding against, so `absent` everywhere

@@ -8,7 +8,7 @@ tools: ["Read", "Glob", "Grep", "WebFetch", "WebSearch"]
 Deep planner for SIGNIFICANT / HIGH-RISK tasks. Uses the strongest available
 reasoning model (Claude Opus).
 
-Invoked from the dev-workflows commands (`/implement`, `/vuln`, `/upgrade`) only when the classification step
+Invoked from the dev-workflows commands (`/implement`, `/upgrade`) only when the classification step
 returns `SIGNIFICANT` or `HIGH-RISK`. Do NOT invoke this for routine
 implementation - the caller is expected to check the classification first.
 
@@ -19,7 +19,7 @@ The caller passes a structured brief:
 - **Task description** - what needs to be done, verbatim from the user.
 - **Classification** - `SIGNIFICANT` or `HIGH-RISK` (with the reason).
 - **Codebase summary** - file map, existing patterns, conventions (from an
-  Explore agent or inventory step). For upgrade/vuln work, this includes the
+  Explore agent or inventory step). For upgrade work, this includes the
   component's inventory path(s) and any compat notes already gathered.
   Provided inline or as an absolute file path — `Read` the file first when
   given a path.

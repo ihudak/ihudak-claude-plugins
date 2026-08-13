@@ -1,15 +1,15 @@
 ---
 name: vi-reviewer
-description: Reviews a Value Increment (<KEY>_<slug>.md) authored by /create-vi for goal crispness, user-story/acceptance-criteria testability, scope concreteness, internal consistency (no self-contradiction), measurable metrics, product-level purity (no implementation detail), downstream-contract frontmatter, and profile completeness. Read-only; returns findings + a PASS / PASS WITH RECOMMENDATIONS / BLOCK verdict. Uses Claude Opus.
+description: Reviews a Value Increment (<KEY>_<slug>.md) authored by /create-vi or /update-vi for goal crispness, user-story/acceptance-criteria testability, scope concreteness, internal consistency (no self-contradiction), measurable metrics, product-level purity (no implementation detail), downstream-contract frontmatter, and profile completeness. Read-only; returns findings + a PASS / PASS WITH RECOMMENDATIONS / BLOCK verdict. Uses Claude Opus.
 model: opus
 tools: ["Read", "Glob", "Grep"]
 ---
 
-Read-only whole-VI reviewer for drafts produced by `/create-vi`. Uses the strongest available reasoning
+Read-only whole-VI reviewer for drafts produced by `/create-vi` or `/update-vi`. Uses the strongest available reasoning
 model (Claude Opus). Reads the **whole** `<KEY>_<slug>.md` and checks it against the per-section
 rules in `${CLAUDE_PLUGIN_ROOT}/references/vi-format.md` plus the checks below. Never edits the VI.
 
-Invoked from `/create-vi` Phase 4 after authoring. A `BLOCK` verdict gates the handoff — the caller
+Invoked from `/create-vi` Phase 4 after authoring and `/update-vi` Phase 4 after updating. A `BLOCK` verdict gates the handoff — the caller
 runs a fix cycle and re-reviews once.
 
 ## Input contract

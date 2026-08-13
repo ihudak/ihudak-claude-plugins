@@ -1,7 +1,7 @@
 # Session Cost Emission — Shared Reference
 
 Single source of truth for the dev-workflows session-cost subsystem. The terminal
-"Session cost" phase of every VI-lifecycle command (`/idea`, `/create-vi`, `/create-ard`, `/specify`, `/epics`,
+"Session cost" phase of every VI-lifecycle command (`/idea`, `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/epics`,
 `/design`, `/implement`, `/ready`, `/document`, `/release-notes`) cites this file and
 executes its steps inline through the single `emit-cost` entry point (§11). The
 orchestrator owns every prompt; this reference owns session-artifact resolution,
@@ -151,8 +151,10 @@ pricing be exact, and a message without the split prices
 a repo-local `cost-prices.yaml` -> the shipped
 `${CLAUDE_PLUGIN_ROOT}/references/cost-prices.yaml`. The shipped rates are the
 standard first-party Claude API prices (from Anthropic's pricing page) for every
-model the routing policy can reach — the Opus chain, the Sonnet chain, and Haiku;
-a maintainer refreshes them when Anthropic's prices change. **Permanent standard
+model the routing policy can reach — the Opus chain and the Sonnet chain —
+**plus Haiku, priced as a harmless defensive entry even though no routing path
+in `classification.md` currently reaches it**; a maintainer refreshes them when
+Anthropic's prices change. **Permanent standard
 rates are used deliberately — never promotional/introductory rates** — so cost
 stays comparable across VIs over time (a temporary promo would make identical
 work look cheaper now and dearer later, distorting efficiency comparisons).
@@ -230,6 +232,35 @@ models:
 Machine-friendly YAML so the maintainer can filter/sum with Claude Code. No prose
 block (unlike feedback). `cost_statusline_usd` is omitted when Option B is
 unavailable; a model priced `null` carries `note: unpriced-model`.
+
+### 6.1 Unpriced-model dominance warning
+
+`note: unpriced-model` (above) is an inline field inside the persisted YAML
+entry — easy to miss when nobody opens the cost file. When the run's tokens
+are actually **dominated** by an unpriced model, that has to be visible where
+the user is already looking: the run output.
+
+**Trigger.** Among the entry's `models` array (§6), some model carries
+`note: unpriced-model` **and** its token total
+(`input_tokens + output_tokens + cache_read_tokens + cache_write_tokens`) is
+the largest of any model in the array — i.e. the model the price table cannot
+price is the single biggest contributor to this run, not a minor stray call.
+
+**Action.** `emit-cost` prints one visible warning line to the run output —
+not just the inline YAML note — in every persistence tier, including
+report-only (§8 tier 5), naming the model id and stating that the figure is a
+lower bound:
+
+```
+⚠ Cost estimate is a lower bound — <model-id> is unpriced (absent from
+cost-prices.yaml) and accounts for the most tokens in this run; its cost is
+recorded as null and excluded from cost_computed_usd. See the maintainer
+checklist (§12) to price it.
+```
+
+Print-only — no extra file write, no interactivity, and it never blocks or
+alters the entry that gets persisted (§6 still writes `cost_usd: null` for
+that model exactly as before).
 
 ## 7. Attribution (phase / role / keys)
 
@@ -350,10 +381,35 @@ Behavior:
 1. Resolve session artifacts (§1) and the price table (§4).
 2. Run `session-cost.py` (§2) with the checkpoint (§3) and, when present, the
    snapshot (§5).
-3. Apply attribution (§7); build the per-invocation entry (§6).
+3. Apply attribution (§7); build the per-invocation entry (§6); evaluate the
+   §6.1 dominance trigger against the built entry and print its warning to the
+   run output if it holds.
 4. Resolve the target via the ladder (§8); on a keyless run write pending and run
    opportunistic reconciliation (§9).
 5. Append the entry (create the file with frontmatter on first write).
 6. **Write `new_checkpoint` back (§3) in EVERY tier**, including pending /
    report-only.
 7. Return the persisted path (or the report-only notice) as the phase's output.
+
+## 12. Maintainer checklist — onboarding a new model generation
+
+A new model generation (e.g. a hypothetical Opus 4.9, or a new Sonnet minor)
+touches **two** files that must change together. Skipping one is exactly the
+omission that produced the stale "Opus 4.5-4.8" chain comment this reference
+and `cost-prices.yaml:22` both used to carry:
+
+1. `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §2 — add
+   the new model id to the correct fallback chain (Opus / Sonnet), in
+   priority order, ahead of the model(s) it supersedes.
+2. `${CLAUDE_PLUGIN_ROOT}/references/cost-prices.yaml` — add a matching
+   `models:` entry (`input`, `output`, `cache_read`, `cache_write_5m`,
+   `cache_write_1h`, USD per million tokens, **permanent/standard rate only**
+   — §4) keyed by the same undated model id, and update the chain-summary
+   comment above the relevant block (e.g. "Opus 5 and Opus 4.6-4.8 all bill at
+   $5 / $25") so it still lists every model actually in the chain.
+
+Do (1) without (2) and the new model routes but prices as `unpriced-model`
+every run — silently at first, loudly once §6.1's dominance warning fires. Do
+(2) without (1) and the price table carries a dead key nothing ever routes to.
+After editing either file, `grep` both for the new model id to confirm the
+other was updated too.

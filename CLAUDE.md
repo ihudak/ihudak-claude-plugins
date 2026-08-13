@@ -243,7 +243,7 @@ Key invariants for `/release-notes`:
 Key invariants for the VI-creation flow (`/idea`, `/create-vi`, `/create-ard`, `/specify`, `/design`, `/ready`):
 
 - Each authoring command is gated by its own Opus reviewer (`vi-reviewer`, `ard-reviewer`, `spec-reviewer`, `design-reviewer`; `/ready` by `readiness-reviewer`); `/idea` has no reviewer — its bounded grill is the gate
-- Only `/idea`'s embedded grill is **bounded** (≤5 questions; `--deep` switches it to relentless), with leftover gaps becoming capped `[NEEDS CLARIFICATION]` markers + logged assumptions; `/create-vi`, `/create-ard`, `/specify`, and `/design` (and `/update-vi`) grill **relentlessly** to convergence with no cap (`references/grilling-technique.md`)
+- Only `/idea`'s embedded grill is **bounded** (≤10 questions; `--deep` switches it to relentless), with leftover gaps becoming capped `[NEEDS CLARIFICATION]` markers + logged assumptions; `/create-vi`, `/create-ard`, `/specify`, and `/design` (and `/update-vi`) grill **relentlessly** to convergence with no cap (`references/grilling-technique.md`)
 - VI / ARD / `specification.md` / `design.md` are written under `$SPECS_PATH/specifications/<KEY>-<slug>/`; `/idea` writes `idea.md` under `$VAULT_PATH` (pre-VI-Key)
 - `/create-ard` grounds on mounted repos it discovers (`$REPOS_PATH` listing + theme→repo proposal + confirm/mount-or-descope); it never reads PRs
 - `/ready` is **read-only** — it verifies the Jira status against the ARD/spec/design, never sets status, and never commits the deliverable or the `_readiness.md` snapshot (its terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded session-artifact paths, `references/specs-repo-git.md` §2.1)
@@ -256,7 +256,7 @@ Key invariants for `$DOCS_PATH` docs grounding:
 
 - Read-only; never writes into `$DOCS_PATH`; advisory only — never a gate or reviewer BLOCKER
 - Default ON when `$DOCS_PATH` (`:-/workspace/docs`) is a readable dir with ≥1 markdown file; `--no-docs` off, `--docs <path>` override; every miss is a silent non-blocking skip
-- Grill commands rank challenges into the Impact × Uncertainty gap list (never append — preserves `/idea`'s ≤5 bound); writer commands attach the digest
+- Grill commands rank challenges into the Impact × Uncertainty gap list (never append — preserves `/idea`'s ≤10 bound); writer commands attach the digest
 - `docs-grounder` retrieves via `qmd` CLI (no skill installed) but only ever **probes** the index — it never builds or refreshes one; index building and refreshing happen only in `resolve-docs-grounding` step 3.5, gated on user consent — with keyword + `git log --grep` fallback; write roots `SPECS_PATH`/`VAULT_PATH` stay strict (no default)
 
 Key invariants for specs-repo git (`references/specs-repo-git.md`):

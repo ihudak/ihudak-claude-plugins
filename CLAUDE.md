@@ -99,7 +99,7 @@ knowledge. Keep those roles separate so workflows stay predictable.
 
 All pipeline commands that invoke the `model-routing` skill (`/implement`, `/document`,
 `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/docs-profile`, `/idea`, `/create-vi`,
-`/create-ard`, `/specify`, `/design`, `/ready`) must load and follow this file at the
+`/update-vi`, `/create-ard`, `/specify`, `/design`, `/ready`) must load and follow this file at the
 start of every invocation. The standalone review commands (`/api-guideline-reviewer`,
 `/guideline-reviewer`) and the feedback / utility commands (`/feedback`, `/prompt`,
 `/prompt-brainstorm`, `/prompt-grill-me`, `/statusline`) are exempt. Agents receive the `model_routing` block
@@ -107,7 +107,7 @@ in their prompt; they do not re-read the file.
 
 ## Source-truth reference
 
-`plugins/dev-workflows/references/source-truth.md` is the **single source of truth** for the Implementation-vs-Description discrepancy-escalation protocol. It is consulted by `doc-planner`, `doc-reviewer`, and `release-notes-writer` to verify user-visible claims (option lists, UI labels, menu paths, defaults, counts, mode names) against the shipped source code, and defines the escalation protocol when Jira and source disagree (Phase 5.8 in `/document` (Jira mode)).
+`plugins/dev-workflows/references/source-truth.md` is the **single source of truth** for the Implementation-vs-Description discrepancy-escalation protocol. It is consulted by `doc-planner`, `doc-writer`, `doc-reviewer`, `release-notes-writer`, and `risk-planner` to verify user-visible claims (option lists, UI labels, menu paths, defaults, counts, mode names) against the shipped source code, and defines the escalation protocol when Jira and source disagree (Phase 5.8 in `/document` (Jira mode)).
 
 `plugins/dev-workflows/references/release-note-types.md` is the **single source of truth** for the release-note **destination map** (`breaking-changes.md` / `feature-updates.md` / `fixes.md`), the per-destination **draft shape** (label + title + prose, vs one bare sentence for `fixes`), the per-destination prose rules, the deprecation-note rule (end-of-life date required, end-of-support optional), and Change Type sourcing (import → infer). It is consulted by `release-notes-writer`; the Change Type is never rendered as text.
 
@@ -141,7 +141,7 @@ in their prompt; they do not re-read the file.
 /epics               → jira-reader → [code-scanner×N (parallel, optional)] → [docs-grounder] → writing → [dt-style-checker] → [doc-fixer] → [epic-reviewer@Opus] → [doc-fixer] → impl-maintenance → commit-artifacts
 /release-notes       → jira-reader → [diff-summarizer×N (parallel, optional)] → [docs-grounder] → [release-notes-writer: resolve destination + shape per destination + source the {{#context}} label + detect deprecation] → [dt-style-checker → dt-doc-fixer (optional)] → write draft (destination-shaped Summary; paste into Jira) → commit-artifacts
 /vuln                → vuln-research → vuln-fixer → [code-review@Opus] → review-fixer → tests → impl-maintenance → commit-artifacts
-/upgrade             → upgrade-planner → upgrade-executor → [code-review@Opus] → review-fixer → tests → impl-maintenance → commit-artifacts
+/upgrade             → upgrade-planner → [risk-planner@Opus] → upgrade-executor → [code-review@Opus] → review-fixer → tests → impl-maintenance → commit-artifacts
 /idea                → idea-reader → [docs-grounder (when $DOCS_PATH valid) + vault-prior-art-finder (when prior art ON)] → [code-scanner×N (--ground-code, cap 4, broad-then-narrow)] → (embedded grilling) → write idea.md → commit-artifacts
 /create-vi           → [docs-grounder + vault-prior-art-finder] → (embedded grilling) → [vi-reviewer@Opus] → write VI + relocate idea.md → commit-artifacts
 /update-vi           → [Jira-import-first resolve] → [docs-grounder] → (embedded grilling, diffs against base) → [vi-reviewer@Opus] → write canonical + archived revisions → commit-artifacts
@@ -150,20 +150,20 @@ in their prompt; they do not re-read the file.
 /design              → [code-scanner×N (parallel, cap 4, STRICT gate)] → (embedded grilling, challenges spec) → [design-reviewer@Opus] → write design.md → commit-artifacts
 /ready               → jira-reader + Jira status read → verify ARD/spec/design → [readiness-reviewer@Opus] → SUPPORTED/PARTIAL/NOT-SUPPORTED → impl-maintenance + emit-auto → commit-artifacts
 All seventeen in-scope commands additionally run `specs-preflight` at run start — as early as `$SPECS_PATH` is known (Phase 0 in most commands, Step 0 in `/vuln`, the shared `## Mode detection` section in `/document`) — and `commit-artifacts` as their last action (`references/specs-repo-git.md`) — including `/feedback`, `/prompt`, `/prompt-brainstorm`, and `/prompt-grill-me`, which have no line of their own in this map because they are single-purpose logging commands rather than pipelines. In `/prompt-brainstorm` and `/prompt-grill-me` the terminal step runs immediately before their Phase 3, which cedes the session (`references/specs-repo-git.md` §4).
-                      └── test-baseliner      (used by upgrade-executor, vuln-fixer, and /implement)
+                      └── test-baseliner      (used by /implement, and by /upgrade and /vuln both directly and via upgrade-executor / vuln-fixer)
                       └── test-writer        (used by /implement only)
-                      └── risk-planner       (used by /implement plan critique)
+                      └── risk-planner       (used by /implement plan critique, /upgrade)
                       └── code-review        (used by /implement, /vuln, /upgrade)
                       └── doc-reviewer       (used by /document)
-                      └── doc-fixer          (used by /document, /epics, /release-notes)
+                      └── doc-fixer          (used by /document, /epics)
                       └── doc-location-finder (used by /document Jira mode)
                       └── counterpart-finder (used by /document Jira mode, space-constrained runs)
                       └── doc-planner        (used by /document Jira mode)
-                      └── docs-style-checker (used by /document Jira mode)
+                      └── docs-style-checker (used by /document, both modes)
                       └── epic-reviewer      (used by /epics)
                       └── code-scanner       (used by /epics, /implement multi-source fan-out, /create-ard, /specify, /design, /idea)
                       └── jira-reader        (used by /document, /epics, /release-notes, /implement multi-source fan-out, /create-ard, /specify, /ready)
-                      └── vi-reviewer         (used by /create-vi)
+                      └── vi-reviewer         (used by /create-vi, /update-vi)
                       └── ard-reviewer        (used by /create-ard)
                       └── spec-reviewer       (used by /specify)
                       └── design-reviewer     (used by /design)
@@ -211,14 +211,14 @@ Key invariants for `/document` (Jira mode) and `/epics`:
 - `jira-reader` is strictly read-only — it never modifies vault files
 - Parallel agent invocation: all diff summarizers (docs flow) or code scanners (epics flow) are launched in a **single response**
 - Branch setup happens **before** writing output files — never after
-- Branch policy: walk up cwd for `.obsidian/` → `obsidian` (never branch); else `git rev-parse` → `git_repo` (branch opt-in) or `plain_dir` (never branch). User override is allowed at plan approval
+- Branch policy: `/epics` never branches. `/document` classifies its write context against the resolved `docs_repo_path` (not necessarily cwd) — walk up for `.obsidian/` → `obsidian` (never branch); else `git rev-parse` plus docs signals → `docs_repo` (branch opt-in, confirmed at plan approval) or `non_docs_repo` (user confirmation promotes it to `docs_repo` behaviour); else `plain_dir` (never branch)
 - `doc-location-finder` (docs flow) identifies write targets before writing begins
 - Counterpart-space grounding (`counterpart-finder`, Phase 5.6.5) runs only on space-constrained runs; it is **read-only** — never copies counterpart-space-specific detail or screenshots into the target doc; `--counterpart <JiraID|PR-url>` reaches an unmerged counterpart PR by reusing `/document`'s existing PR-diff resolver (`diff-summarizer`, no new external-API surface); nothing found ⇒ the run behaves exactly as today
 - `doc-planner` (docs flow) synthesizes Jira + diffs into a documentation checklist
 - `docs-style-checker` + `doc-fixer` lint prose after writing, before the review gate; style check is mandatory — falls back to `dt-style-checker`; `NOT_CONFIGURED` only when nothing is available
 - For epics, `dt-style-checker` is the primary style checker; skip gracefully if `dt-style-guide` is not installed
 - Jira-vs-source discrepancies are escalated in Phase 5.8 (never auto-resolved); `doc-planner` records both `jira_phrasing` and `source_phrasing` without choosing
-- A bug-report draft (`<KEY>-implementation-gaps.md`) is written to the vault project folder for `document-as-jira` / `skip-and-report` decisions
+- A bug-report draft (`<KEY>-implementation-gaps.md`) is written to the vault project folder for `document-as-spec` / `skip-and-report` decisions, and for a `document-as-code` decision where the Jira phrasing asserts a specific value the source contradicts (`references/source-truth.md` §7.5)
 - Review gate is `doc-reviewer` (docs flow) or `epic-reviewer@Opus` (epics flow); `doc-fixer` resolves BLOCKERs; cap at one fix cycle plus one re-review
 - Sub-agents return `DIRTY_TREE` / `REFRESH_BLOCKED` when a **writable** repo cannot be refreshed; a read-only mount returns neither and scans at `prep.scanned_ref` — never fail silently
 - Every written claim must cite the originating Jira key (`[[KEY]]`) plus PR URL (docs flow) or file path (epics flow)
@@ -243,11 +243,11 @@ Key invariants for `/release-notes`:
 Key invariants for the VI-creation flow (`/idea`, `/create-vi`, `/create-ard`, `/specify`, `/design`, `/ready`):
 
 - Each authoring command is gated by its own Opus reviewer (`vi-reviewer`, `ard-reviewer`, `spec-reviewer`, `design-reviewer`; `/ready` by `readiness-reviewer`); `/idea` has no reviewer — its bounded grill is the gate
-- The embedded grill is **bounded** (≤5 questions; `--deep` on `/idea` relaxes it); leftover gaps become capped `[NEEDS CLARIFICATION]` markers + logged assumptions
+- Only `/idea`'s embedded grill is **bounded** (≤5 questions; `--deep` switches it to relentless), with leftover gaps becoming capped `[NEEDS CLARIFICATION]` markers + logged assumptions; `/create-vi`, `/create-ard`, `/specify`, and `/design` (and `/update-vi`) grill **relentlessly** to convergence with no cap (`references/grilling-technique.md`)
 - VI / ARD / `specification.md` / `design.md` are written under `$SPECS_PATH/specifications/<KEY>-<slug>/`; `/idea` writes `idea.md` under `$VAULT_PATH` (pre-VI-Key)
 - `/create-ard` grounds on mounted repos it discovers (`$REPOS_PATH` listing + theme→repo proposal + confirm/mount-or-descope); it never reads PRs
 - `/ready` is **read-only** — it verifies the Jira status against the ARD/spec/design, never sets status, and never commits the deliverable or the `_readiness.md` snapshot (its terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded session-artifact paths, `references/specs-repo-git.md` §2.1)
-- `/design`, `/implement`, `/specify`, `/epics` respect the applicable ARD via `references/ard-resolution.md`; an `AD-N` Rule violated without a recorded "ARD deviation" is a reviewer BLOCKER
+- `/design`, `/implement`, `/specify`, `/epics`, `/ready` respect the applicable ARD via `references/ard-resolution.md`; an `AD-N` Rule violated without a recorded "ARD deviation" is a reviewer BLOCKER
 - `/create-vi` does NOT capture `release_versions` / `change_type` / `release_notes_category` — they are Jira-mirror fields per `references/vi-format.md`, set as Jira dropdowns and returned by the importer; `vi-reviewer` neither requires nor validates them
 - `/idea` types a Jira source from the export's `issue_type` (`ValueIncrement` → `vi`, `Product Need` → `rfe`), never from the project prefix, and resolves it with `resolve-export-for-key` at any depth; a `vi` source is prior art recorded in **both** `sources:` and `## Prior art`
 - `/idea` Phase 4 derives its write path from the container rule and gates only when a rewrite target or a high-confidence area proposal exists; the resulting `vi_disposition` decides whether Phase 5 tells the user to create a Jira workitem

@@ -189,4 +189,4 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git 
 ---
 
 ## Final report
-Report: the ARD path(s) + scope (VI/Epic, any per-area split); the grounded repos + any descoped/ungrounded ones; `AD-N` count; open-question count; the `ard-reviewer` verdict; the PR URL (if opened); resolved model routing (+ any Opus gate/degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; and the adaptive next-step recommendation.
+Report: the ARD path(s) + scope (VI/Epic, any per-area split); the grounded repos + any descoped/ungrounded ones; `AD-N` count; open-question count; the `ard-reviewer` verdict; the `Phase handoff:` outcome line from `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1); resolved model routing (+ any Opus gate/degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; and the adaptive next-step recommendation.

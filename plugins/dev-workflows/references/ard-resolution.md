@@ -1,8 +1,8 @@
 # ARD resolution (embedded — shared reference)
 
 Given a Jira item, resolve any applicable **Architecture Requirements/Decision Document(s)** produced by
-`/create-ard` and return a normalized **ARD context** — or **`none`**. Cited by `/design`, `/implement`,
-`/specify`, `/epics`, and `/ready` so the resolution logic, the **optional/no-regression** rule, and the deviation-record
+`/create-ard` and return a normalized **ARD context** — or **`none`**. Cited by `/create-ard`, `/design`,
+`/implement`, `/specify`, `/epics`, and `/ready` so the resolution logic, the **optional/no-regression** rule, and the deviation-record
 convention live in ONE place.
 
 ## Inputs
@@ -64,6 +64,7 @@ deviation record as *allowed-but-flagged* (the architect adjudicates), **without
 
 ## Consumers (informative)
 
+- `/create-ard` — reads the inherited VI-level ARD on an Epic-level run (`epic: null` maps to VI-level-only); `AD-N` = the invariants the newly-authored Epic-level `AD-N` must not contradict; `ard-reviewer` checks non-contradiction directly against the drafted file — no separate deviation-record path.
 - `/design` — Epic-level ARD = design guidance; VI-level `AD-N` = inherited invariants; deviations → a `## ARD deviations` section in `design.md` + an open question.
 - `/implement` — Jira mode only; `AD-N` = implementation guardrails; deviations → the Phase 5 report. Direct mode → `none`.
 - `/specify` — keep user stories + scope consistent with `AD-N` + scope; deviations → the spec's `### Open questions`.

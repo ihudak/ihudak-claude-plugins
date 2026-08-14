@@ -15,10 +15,7 @@ and must never touch git. This reference supplies the two steps that close the
 loop: a **run-start** flush and branch disposition (`specs-preflight`, §3) and a
 **terminal** commit (`commit-artifacts`, §4).
 
-**Scope.** ONLY the bounded artifact paths of §2.1, ONLY inside `$SPECS_PATH`.
-Nothing here ever touches a code repo, a docs repo, the vault, or the current
-working directory. Nothing here opens a pull request or calls a REST API —
-`git push` is git-protocol, already sanctioned by `finish-and-handoff.md` §3.
+**Scope.** ONLY the bounded artifact paths of §2.1, ONLY inside `$SPECS_PATH`. Nothing here ever touches a code repo, a docs repo, the vault, or the current working directory. Neither entry point here opens a pull request: `specs-preflight` and `commit-artifacts` are prompt-free bookkeeping steps, and opening a pull request is outward-facing. Deliverable handoff — including `gh pr create` where the host supports it — lives in `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.6, behind that reference's consent choice. `git push` here is git-protocol, already sanctioned by `finish-and-handoff.md` §3.
 
 ## 1. Hard rules
 
@@ -28,8 +25,8 @@ working directory. Nothing here opens a pull request or calls a REST API —
    fire; a `cd` would corrupt their git state.
 2. **Bounded paths.** Only §2.1 paths are ever staged. `git add -A` is never
    issued at repository scope — always `git add -A -- <literal paths>`.
-3. **Bounded branches.** Only branches matching `^(vi|ard|spec|design)/` are the
-   plugin's to switch away from or delete (§2.2).
+3. **Bounded branches.** Only branches matching `^(idea|vi|ard|spec|design|ready)/`
+   are the plugin's to switch away from or delete (§2.2).
 4. **Never destructive.** No `push --force`, no `push -f`, no `branch -D`, no
    `merge`, no `rebase`, no `reset`, and never delete an `index.lock`.
 5. **Never fatal.** Every failure is reported and the run continues. The run
@@ -77,7 +74,7 @@ must be staged, and plain `git add` would not stage it.
 ### 2.2 Branches
 
 **The plugin manages only branches it created.** A branch is plugin-owned when
-its name matches `^(vi|ard|spec|design)/`.
+its name matches `^(idea|vi|ard|spec|design|ready)/`.
 
 Any other **named** branch — the user's own work, a hand-made branch — is left
 alone and never switched away from (§3.3 G2). The run's artifacts are still
@@ -142,7 +139,7 @@ notice, never a quiet line.
 |---|---|---|
 | G0 | **HEAD is detached** | **Hand off, and set `specs_git: blocked` for the whole run** — `commit-artifacts` (§4) must also skip. §5 notice at **blocking** severity. See §3.7. |
 | G1 | Any dirty **OTHER** path (§2.1) | **Hand off** — no commit, no branch switch, no push. §5 notice at **advisory** severity, listing the paths. Those files are not the plugin's, and switching branches would carry them. **This does NOT set `specs_git: blocked`**: the terminal `commit-artifacts` still runs, because it stages only artifact paths and is safe beside unrelated dirt. Losing the artifacts to protect files the step never touches would be the worse failure. |
-| G2 | On a **named** branch that is neither the default branch nor a match for `^(vi\|ard\|spec\|design)/` | **Leave it; stay on it.** §5 notice at **advisory** severity, naming the branch, so the user knows where this run's artifacts will land. The commit is safe — a named branch cannot be lost — so `commit-artifacts` proceeds. The plugin manages only branches it created (§2.2). |
+| G2 | On a **named** branch that is neither the default branch nor a match for `^(idea\|vi\|ard\|spec\|design\|ready)/` | **Leave it; stay on it.** §5 notice at **advisory** severity, naming the branch, so the user knows where this run's artifacts will land. The commit is safe — a named branch cannot be lost — so `commit-artifacts` proceeds. The plugin manages only branches it created (§2.2). |
 
 ### 3.4 Stage 2 — flush leftovers
 
@@ -169,9 +166,9 @@ First matching row applies.
 | B3 | Plugin branch, unmerged, branch key matches **any** key in the run key set (§3.2) | **Stay on it.** See §3.6. |
 | B4 | Plugin branch, unmerged, branch key matches **no** key in the set, or the set is empty (keyless run) | Switch to default, `git -C "$SPECS_PATH" pull --ff-only`. **Leave the branch and its pull request alone.** Report the branch name. |
 
-**Branch key extraction:** strip the `vi/`, `ard/`, `spec/`, or `design/`
-prefix, then take the leading token matching `[A-Z][A-Z0-9_]*-[0-9]+`. No match
-→ treat as matching no key in the set (B4).
+**Branch key extraction:** strip the `idea/`, `vi/`, `ard/`, `spec/`, `design/`,
+or `ready/` prefix, then take the leading token matching
+`[A-Z][A-Z0-9_]*-[0-9]+`. No match → treat as matching no key in the set (B4).
 
 **No auto-merge, deliberately.** No row above creates a merge commit or merges a
 branch into the default branch, and none should be added. The routing here
@@ -183,37 +180,19 @@ into B4 as `merge --ff-only → push → branch -d`, with B3 unchanged.
 
 ### 3.6 Why B3 exists — do not "simplify" it away
 
-B3 looks redundant next to B4 and is the obvious candidate for a future
-simplification into "always return to the default branch." **That
-simplification is a bug.**
+B3 looks redundant next to B4 and is the obvious candidate for a future simplification into "always return to the default branch." **That simplification is a bug.**
 
-A `/create-ard PRODUCT-13950` run following `/create-vi` finds the repo on
-`vi/PRODUCT-13950-…` with an unmerged pull request. The authored VI file exists
-**only on that branch**. Switching to the default branch removes it from the
-working tree — and `/create-ard` reads the VI from
-`$SPECS_PATH/specifications/<VI>-<vslug>/`, falling back to `jira-reader`
-against the Jira export when the authored file is absent. **That fallback is
-silent**: the run would quietly architect against the stale Jira export instead
-of the VI just authored, with no error to notice.
+B3 now exists for two reasons.
 
-**The same shape reaches Epic-scoped runs — which is why §3.2 resolves a key
-*set*, not a single key.** `/specify <VI> <Epic>` authors `specification.md` on
-`spec/<EPIC>-<eslug>`, a branch keyed by the **Epic**. The follow-up
-`/design <VI> <Epic>` run resolves the VI as its primary key, so a single-key
-comparison would read branch key ≠ run key, fall through to B4, and switch away
-from the branch holding the very `specification.md` that `/design`'s own Phase 0
-gate had just verified — before Phase 2 ever reads it. `/ready` has the same
-exposure: the user may explicitly choose to proceed on the current checkout, and
-a single-key comparison could switch off it while the report still claims that
-checkout was read. Matching the branch key against **any** key in the set keeps
-B3 in force for the `<VI> <Epic>` invocations (`/create-ard`, `/specify`,
-`/design`, `/ready`) exactly as it holds for VI-scoped ones.
+**First, same-phase resume.** `phase-handoff.md`'s `require-on-main` (§3) has a state — row B — that *passes* when the artifact is on the default branch but the worktree copy differs because the current branch is one this run itself owns: `/design` amends `specification.md` on its own `design/<EPIC>-<eslug>` branch, so a re-run of `/design` legitimately finds that copy has diverged from what merged earlier. B3 is what keeps the repo on that branch in the first place, and that is what makes row B reachable at all. If the preflight instead fell through to B4 and switched to the default branch, `/design`'s in-progress amendments would be left behind on a branch nobody is standing on, and row B — built to pass on exactly this divergence — would never see the case it exists for.
 
-B3 keeps the working tree containing the artifact the run is about to read. The
-cost is that the follow-up command's own branch is cut from the earlier branch
-rather than from the default — a stacked branch. That is correct: an ARD
-genuinely depends on its VI and a design on its spec, and stacking is the honest
-representation.
+**Second, `/ready`'s explicit checkout.** The user may choose to proceed on the current checkout rather than switch to the default branch. Switching off it mid-run while the readiness report still claims that checkout is the one that was read would make the report false.
+
+**The same shape reaches Epic-scoped runs — which is why §3.2 resolves a key *set*, not a single key.** `/specify <VI> <Epic>` authors `specification.md` on `spec/<EPIC>-<eslug>`, a branch keyed by the **Epic**. The follow-up `/design <VI> <Epic>` run resolves the VI as its primary key, so a single-key comparison would read branch key ≠ run key, fall through to B4, and switch away from the branch holding the very `specification.md` `/design`'s resume depends on — the same reachability loss described above, one key earlier in the chain. Matching the branch key against **any** key in the set keeps B3 in force for the `<VI> <Epic>` invocations (`/create-ard`, `/specify`, `/design`, `/ready`) exactly as it holds for VI-scoped ones.
+
+The failure this section used to defend against — `/create-ard` continuing silently against the wrong source when the authored VI file existed only on an unmerged branch — is now caught loudly instead: `phase-handoff.md` §3.3 rows D and E stop that run rather than letting it proceed, so the defense moved there.
+
+B3 keeps the working tree containing the artifact the run is about to read or amend. The cost is that the follow-up command's own branch is cut from the earlier branch rather than from the default — a stacked branch. That is correct: an ARD genuinely depends on its VI and a design on its spec, and stacking is the honest representation.
 
 ### 3.7 Detached HEAD is blocking, not merely skipped
 
@@ -288,8 +267,9 @@ than one invocation.
 
 - **A command that opened a specs-repo branch at handoff** (`/create-vi`,
   `/update-vi`, `/create-ard`, `/specify`, `/design`) — on that
-  `vi|ard|spec|design/*` branch, so the push updates the pull request already
-  open. Two commits on one branch: the deliverable, then the artifacts.
+  `idea|vi|ard|spec|design|ready/*` branch, so the push updates the pull
+  request already open. Two commits on one branch: the deliverable, then the
+  artifacts.
 - **The same command when the user declined git at handoff** ("just write the
   files — I'll handle git") — the repo is still on the default branch and the
   deliverable is uncommitted there. `commit-artifacts` still runs and commits
@@ -367,7 +347,8 @@ If ignored: nothing is lost — your files stay uncommitted, and this run's
 ⚠ SPECS REPO — ON A BRANCH THIS PLUGIN DID NOT CREATE
 
 Found:    <SPECS_PATH> is on branch `<branch>`, which is neither the default
-          branch (`<default>`) nor a plugin branch (vi/ ard/ spec/ design/).
+          branch (`<default>`) nor a plugin branch (idea/ vi/ ard/ spec/
+          design/ ready/).
 Not done: the preflight did not switch away from it — the plugin manages only
           branches it created. This run's artifacts WILL be committed, on
           `<branch>`.

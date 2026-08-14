@@ -104,12 +104,25 @@ grep -cE "runs only behind a user choice" references/phase-handoff.md       # ex
 
 These were executed against a real specs repo before the plan was written. A substituted equivalent is a defect.
 
+Use fixed-string matching (`grep -F`) for anything containing regex metacharacters — an escaped-regex assertion that fails to compile silently returns 0 and proves nothing.
+
 ```bash
-grep -c 'sed -E .s#\^(git@\[\^:\]+:|https://\[\^/\]+/)##' references/phase-handoff.md || true
-grep -c "gh pr create -R" references/phase-handoff.md            # expect >=1
-grep -c "status --porcelain --untracked-files=all" references/phase-handoff.md  # expect >=1
-grep -c "merge-base --is-ancestor" references/phase-handoff.md   # expect >=1
+grep -Fc 'sed -E' references/phase-handoff.md                    # expect >=1
+grep -Fc 'gh pr create -R' references/phase-handoff.md           # expect >=1
+grep -Fc 'gh pr list -R' references/phase-handoff.md             # expect >=1
+grep -Fc 'status --porcelain --untracked-files=all' references/phase-handoff.md  # expect >=1
+grep -Fc 'merge-base --is-ancestor' references/phase-handoff.md  # expect >=1
+grep -Fc 'cat-file -e' references/phase-handoff.md               # expect >=1
+grep -Fc 'diff --quiet' references/phase-handoff.md              # expect >=1
 ```
+
+**Prove the assertion can fail** before trusting it — the point of this step is that a check you cannot show failing proves nothing:
+
+```bash
+grep -Fc 'gh pr merge' references/phase-handoff.md   # expect 0 — D2 forbids plugin-side merging
+```
+
+Every count above must be `>=1` and the last must be `0`. No `|| true` anywhere: a suppressed failure is a passing check that verified nothing.
 
 - [ ] **Step 6: Assert no hard-wrapped prose**
 
@@ -154,13 +167,17 @@ Replace the line `<!-- Task 2 inserts §3 here -->` in `references/phase-handoff
 
 - [ ] **Step 2: Assert all ten states are present, in order**
 
+Extract the first table cell rather than matching an alternation — a regex alternation containing both `C` and `C′` is order-dependent and `.` does not reliably match a multibyte `′`.
+
 ```bash
 cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
-awk '/^### 3\.3 The state table/,/^### 3\.4/' references/phase-handoff.md \
-  | grep -oE '^\| (H|I|A|B|C.|C|D|E|F|G) ' | tr -d '| '
+awk -F'|' '/^\|/ && $2 !~ /^ *-+ *$/ && $2 !~ /#/ {gsub(/ /,"",$2); printf "%s ", $2}' \
+  <(awk '/^### 3\.3 The state table/,/^### 3\.4/' references/phase-handoff.md); echo
 ```
 
 Expected output, in this exact order: `H I A B C′ C D E F G`.
+
+Prove this assertion can fail: run the same command against the §3.4 table instead (`/^### 3\.4/,/^### 3\.5/`) and confirm it prints command names, not state letters. A check that returns the same thing regardless of input is not a check.
 
 If C precedes C′, that is a defect: offering a switch git would refuse is worse than naming the blocker.
 

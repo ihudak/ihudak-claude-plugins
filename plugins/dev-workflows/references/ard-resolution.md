@@ -27,6 +27,8 @@ convention live in ONE place.
 ```yaml
 status: found | none | unmerged
 ard_paths: [ <absolute paths of the ARD files used> ]
+branch: <carrying branch> | null   # present only when status: unmerged
+pr: <open pull request number> | null   # present only when status: unmerged
 invariants:
   - id: AD-1
     source: vi | epic | area

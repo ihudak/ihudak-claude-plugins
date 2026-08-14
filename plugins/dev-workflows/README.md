@@ -214,7 +214,7 @@ flowchart TD
     TS --> MT["Post-impl maintenance (4 agents)"] --> RP["Final report"]
 ```
 
-`/document` (both modes) and `/epics` never run tests and never touch production code. Only `/document` (Jira mode) can create a branch (opt-in at plan approval, and only when a docs repo is detected) — and, also opt-in, squash + `git push` it and emit a copy-paste PR draft (it never opens the PR via an API).
+`/document` (both modes) and `/epics` never run tests and never touch production code. Only `/document` (Jira mode) can create a branch (opt-in at plan approval, and only when a docs repo is detected) — and, also opt-in, squash + `git push` it and emit a copy-paste PR draft (it writes a draft rather than opening the PR — Bitbucket has no CLI that can; the GitHub-hosted specs repo does get a real PR, via `references/phase-handoff.md`).
 
 When a `specification.md`/`design.md` is in scope on a SIGNIFICANT/HIGH-RISK run, `/implement` runs a **spec/design-conformance ("converge") check** — the Opus `code-review` traces every in-scope `[Uxx]`/`[ACxx]`/`[TCxx]` against the shipped diff, and unresolved `missing`/`contradicts` gaps are escalated as `- [ ]` notes back onto the spec/design. Bug-shaped tasks additionally follow `references/bug-diagnosis.md` — a red-capable repro before hypotheses, 3–5 ranked falsifiable hypotheses, and `[DEBUG-xxxx]` instrumentation stripped before the review diff is captured.
 

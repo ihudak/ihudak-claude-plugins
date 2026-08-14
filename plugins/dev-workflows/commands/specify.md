@@ -87,6 +87,8 @@ when the specs repo is clean and on its default branch. If a guard fires, emit i
 it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
 `commit-artifacts` step skips on it.
 
+**Gate the VI.** Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against `specifications/<VI>-<vslug>/<VI>_<vslug>.md`. On `pass`/`pass_amending`, proceed — Phase 2 still reads the item from Jira via `jira-reader` exactly as today; the merged VI is a grounding confirmation, not a new content source. On a stopping state, stop per §4.4. On `absent`, `/specify`'s existing Jira-export behaviour is unaffected — but report it: *"No authored VI on `<default>` for `<VI>` — specifying from the Jira export at `<path>`. If a VI exists on a branch, this run would have stopped; it does not, so none does."* On `unmanaged`, behave exactly as before this feature — reachable here even after step 2's own `$SPECS_PATH` check, since that check only rejects an unset value, never an invalid path or a non-git directory.
+
 ---
 
 ## Phase 1 — Configure
@@ -264,7 +266,7 @@ rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key"
 
 ## Phase 2.5 — Resolve applicable ARD (optional)
 
-Resolve any ARD for this item by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with `<VI>`, `<EPIC>` (`focus_key`), and `$SPECS_PATH`. On `status: none`, **skip and proceed exactly as before**. On `status: found`, keep the spec's user stories + scope consistent with the returned `invariants` + `guidance_summary` during the Phase 5 grill; record a necessary deviation under the spec's `### Open questions` (never edit the ARD). Pass the `invariants` to `spec-reviewer` in Phase 6 as `applicable_ard`.
+Resolve any ARD for this item by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with `<VI>`, `<EPIC>` (`focus_key`), and `$SPECS_PATH`. On `status: none`, **skip and proceed exactly as before**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr`. On `status: found`, keep the spec's user stories + scope consistent with the returned `invariants` + `guidance_summary` during the Phase 5 grill; record a necessary deviation under the spec's `### Open questions` (never edit the ARD). Pass the `invariants` to `spec-reviewer` in Phase 6 as `applicable_ard`.
 
 ---
 
@@ -410,12 +412,12 @@ Cap: one fix cycle + one re-review maximum.
 
 Write the feature folder: `specification.md` (`Published: no`), `idea.md`, `_session.md`, `_glossary.md`, and the rendered `.html`.
 
-Then **offer** (commit-when-asked — never automatic):
+Then **offer** (commit-when-asked — never automatic), presenting `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's choice array verbatim:
 ```
-choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git", "Cancel"]
+choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
 
-On the first choice, in the specs repo (`$SPECS_PATH`): create the branch — `spec/<EPIC>-<eslug>` for a **per-Epic** spec (a VI + focus Epic) or a **stand-alone-Epic** spec (`<EPIC>` = `focus_key`, which for a stand-alone Epic equals `jira_key`), or `spec/<VI>-<vslug>` for a **broad VI-level** spec (`focus_key` null). Epic keys are globally unique, so the per-Epic form needs no VI prefix; both forms use hyphens. main is protected — a PR is required — so commit ONLY the feature folder (never `git add -A`), push, and open a PR targeting `main`. **Merged-to-main = ready for the dev-team handover.** Devs and `/design` read the spec from `main`, never from the branch. Commit trailer: `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
+On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: spec`; `feature_folder` = the Epic subfolder for a **per-Epic** spec (a VI + focus Epic) or a **stand-alone-Epic** spec (`<EPIC>` = `focus_key`, which for a stand-alone Epic equals `jira_key`), or the VI dir for a **broad VI-level** spec (`focus_key` null) — Epic keys are globally unique, so the per-Epic form needs no VI prefix, and both forms use hyphens; §2.2 derives `spec/<EPIC>-<eslug>` or `spec/<VI>-<vslug>` from that folder, matching today's branch names; `deliverable_paths` = `specification.md`, `_session.md`, `_glossary.md`, and the rendered `.html`; `title: <EPIC|VI> Add specification`; and `body_facts` = the stage/user-story/AC/TC counts, the open-question count, and the `spec-reviewer` verdict. **Merged-to-main = ready for the dev-team handover** — Devs and `/design` read the spec from `main`, never from the branch, and `require-on-main` now enforces that rather than merely stating it. Emit its §4.1 outcome line in the Final report.
 
 ### Next Epic (after a per-Epic spec from a multi-Epic VI)
 

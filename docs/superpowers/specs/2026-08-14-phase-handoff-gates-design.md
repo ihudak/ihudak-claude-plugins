@@ -391,6 +391,16 @@ Each mitigation is a verification step someone runs, not advice.
 **Risk 9 — the gate runs after the cost.** R30's ordering is easy to satisfy on paper and miss in a command whose Phase 0 is long.
 *Mitigation:* for each of the seven consumers, record the line number of the gate call and the line number of the first subagent dispatch / scan / grill in that command, and assert the first is smaller. Seven numeric pairs, not seven assurances.
 
+## 9.1 What is at risk today, and what J leaves accepted
+
+**The loss mechanism J closes.** `/implement`'s Phase 7.5 notes and `/ready`'s `_readiness.md` cannot be *destroyed* by the plugin — verified: nothing in it runs `git stash`/`clean`/`checkout`/`reset` against `$SPECS_PATH` (`implement.md:327`'s stash is the code repo's dirty-tree gate; `diff-summarizer.md:169` is a NEVER rule), and `specs-preflight` G1 fires on a dirty OTHER path and **ends the preflight before stage 3**, so no `switch` or `pull --ff-only` runs while they are dirty.
+
+They are lost a different way. They never reach `main`, so no later reader sees them — an engineering finding that the shipped code contradicts the spec exists only in one working tree. And G1's own notice **mis-attributes them**: "Those files are *yours*" and "nothing is lost — your files stay uncommitted" are both false for a plugin-written file, and together they ensure nobody acts on it. That is why the defect survived: the guard detects the dirt correctly and describes it wrongly. Because the files then look like stray edits, ordinary hygiene (`git checkout -- .`) deletes them with no record.
+
+After J both are committed, pushed, and PR'd, and G1's wording becomes true — the only OTHER dirt left in `$SPECS_PATH` is genuinely the user's, or a deliberately declined handoff.
+
+**Accepted residual.** A user who declines the handoff leaves the deliverable uncommitted, and nothing will ever commit it. That is the explicit consequence of D2 and is surfaced twice — in the reworded consent choice and in §4.4's "skipped at your request" outcome line — but the file remains destructible by ordinary git hygiene until the user acts. Accepted, not mitigated: the alternative is committing a deliverable against the user's stated wish.
+
 ## 10. Verification approach
 
 There is no test framework — the plugin is prompt markdown. Verification is `grep`/`awk`/`diff`/reading, with every count whitespace-normalized, recorded as a table of one row per requirement: the assertion, the exact command, the expected value, and the observed value.

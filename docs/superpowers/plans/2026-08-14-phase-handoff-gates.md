@@ -185,11 +185,15 @@ If C precedes C′, that is a defect: offering a switch git would refuse is wors
 
 Row B is the one state whose absence causes data loss.
 
+Match on substrings that do **not** span a `**` bold marker — the mandated text is `**branch ownership**, never whether the file differs`, so a pattern reaching across "ownership" into the comma can never match.
+
 ```bash
-grep -cE "must not be folded into C" references/phase-handoff.md      # expect 1
-grep -cE "branch ownership, never whether the file differs" references/phase-handoff.md  # expect 1
-grep -cE "discard the in-progress design" references/phase-handoff.md # expect 1
+grep -Fc "must not be folded into C" references/phase-handoff.md      # expect 1
+grep -Fc "never whether the file differs" references/phase-handoff.md # expect 1
+grep -Fc "discard the in-progress design" references/phase-handoff.md # expect 1
 ```
+
+Prove the middle one can fail: `printf 'never whether the file matters\n' | grep -Fc 'never whether the file differs'` → `0`.
 
 - [ ] **Step 4: Assert §3.4's delegation table covers all seven callers**
 
@@ -213,7 +217,16 @@ grep -Fc '2>/dev/null' references/phase-handoff.md               # expect >=1
 
 The `2>/dev/null` matters on its own: without it, `cat-file -e` writes `fatal: path … does not exist` to stderr on every absent artifact, and that leaks into the run's output.
 
-Prove these can fail: `grep -Fc 'hash-object' references/phase-handoff.md` — expect **0**. Blob equality deliberately uses `diff --quiet` instead, because `hash-object` on the working file misses a staged-only change.
+Prove these can fail with two negatives that are genuinely absent **and** mean something:
+
+```bash
+grep -Fc 'hash-object "$SPECS' references/phase-handoff.md   # expect 0
+grep -Fc 'stop: not authored' references/phase-handoff.md    # expect 0
+```
+
+The first is the right form of the `hash-object` check. The bare word **does** appear once, in §3.2's prose explaining why blob equality uses `diff --quiet` instead — `hash-object` on the working file misses a staged-only change. Asserting the bare word is zero contradicts the mandated content. Asserting it never appears *as a command* is the claim actually worth making.
+
+The second guards row F: `stop: not authored` was row F's wording before the delegation rule replaced it. If it reappears, the gate has started stopping on an absent optional input — which would make `/idea`, `/create-ard`, and VI-level `/specify` mandatory.
 
 - [ ] **Step 5: Write the reachability trace (Risk 1's mitigation)**
 

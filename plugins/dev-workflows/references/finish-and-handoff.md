@@ -3,7 +3,7 @@
 The mechanics for Phase 6.2's inline-profiling-branch handling and Phase 8.5's
 finish & handoff (squash → opt-in push → copy-paste PR draft). Generic git +
 PR-draft logic; the command cites this so it stays lean. Read repo specifics
-from the resolved `profile`. The plugin NEVER creates a PR via any REST API.
+from the resolved `profile`. This flow does not open the pull request itself: docs repos here are Bitbucket-hosted, and Bitbucket offers no CLI that can create one. Where a host does — the GitHub-hosted specs repo — the plugin opens it via `gh`; see `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.6.
 
 ## 1. The branch entering Phase 8.5
 
@@ -40,7 +40,7 @@ Offer `["Push <branch> to origin now", "Skip — I'll push later", "Cancel"]`.
   git-protocol, not the REST API the zero-external-API invariant forbids.
 - **Skip** → "Branch `<branch>` ready with N commit(s). Push when ready."
 - **Cancel** → stop and summarise.
-Never force-push. Never call a PR REST API.
+Never force-push. Never call a REST API over HTTPS; `gh` wraps the API and is permitted where a host provides it.
 
 ## 4. Host detection
 
@@ -71,4 +71,4 @@ Compose the draft and BOTH write and show it:
     `gh pr create --title "<title>" --body-file <pr-draft path>`.
   - other → "Open a pull request in your host and paste the title + body above."
 
-The plugin never opens the PR itself.
+For a Bitbucket-hosted docs repo the plugin cannot open the pull request — there is no CLI for it — so it writes the draft and the user opens it. This is a host capability limit, not a policy: on a host with a CLI the plugin does open it (`phase-handoff.md` §2.6).

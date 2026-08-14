@@ -94,7 +94,90 @@ Every failure is reported and the phase is described as **not handed off**. The 
 | `title` | the commit subject and pull-request title |
 | `body_facts` | what §2.7 renders |
 
-<!-- Task 2 inserts §3 here -->
+## 3. `require-on-main` — the consumer entry point
+
+Runs in the caller's Phase 0, immediately after `specs-preflight`, so it reuses that step's best-effort `fetch` (`specs-repo-git.md` §3.2) — no second network call.
+
+### 3.1 Gate
+
+`$SPECS_PATH` set, an existing directory, and `git -C "$SPECS_PATH" rev-parse --git-dir` succeeding. Unlike §2.1 the `.git` directory need **not** be writable — the gate only reads. A failed gate is a **silent skip** (state H): the artifacts are going to a tier the plugin does not manage, and there is nothing to verify.
+
+### 3.2 Inputs and primitives
+
+Inputs: the repo-relative `path` of the artifact, the `default` branch (`specs-repo-git.md` §3.2), the caller's own branch prefixes, and the run key set.
+
+The three primitives, each verified against a real specs repo:
+
+- **On the default branch:** `git -C "$SPECS_PATH" cat-file -e "origin/<default>:<path>" 2>/dev/null` Exit 0 = present. The `2>/dev/null` is required — on absence git writes `fatal: path '<path>' does not exist in 'origin/<default>'` to stderr, which must not leak into the run's output.
+- **Worktree matches the ref:** `git -C "$SPECS_PATH" diff --quiet "origin/<default>" -- "<path>"` Exit 0 = identical. This also catches a **staged-only** change, which a `hash-object` comparison against the working file would miss.
+- **Plugin branches carrying the artifact:** `git -C "$SPECS_PATH" for-each-ref --format='%(refname:short)' refs/remotes/origin` filtered to `origin/(idea|vi|ard|spec|design|ready)/*`, then `git -C "$SPECS_PATH" cat-file -e "<ref>:<path>" 2>/dev/null` on each.
+
+### 3.3 The state table
+
+First matching row applies.
+
+| # | On `origin/<default>` | Worktree | HEAD | Outcome |
+|---|---|---|---|---|
+| H | — | — | gate of §3.1 fails | **silent skip** — return `unmanaged`; the caller proceeds exactly as it did before this feature |
+| I | — | — | run carries `specs_git: blocked` (detached HEAD) | **stop**, re-emitting that notice. A phase cannot complete from a detached HEAD, so verifying one is meaningless |
+| A | present | matches ref | any | **pass** |
+| B | present | differs | a branch **this run owns**: prefix is one the caller produces, key is in the run key set | **pass, reported** — `reading <path> from your in-progress <branch>, which amends the approved version on <default>` |
+| C′ | present | differs | any other HEAD, **and** the tree is dirty in a way that would block a switch | **stop**, naming the exact files |
+| C | present | differs | any other HEAD | **repair offer**, then re-test once |
+| D | absent | — | artifact found on a plugin ref, pull request open | **stop** — `<path> is on branch <branch> with PR #<n> open, not merged` |
+| E | absent | — | found on a plugin ref, no open pull request | **stop** — `<path> is on branch <branch> and was never handed off` |
+| F | absent | — | found on no ref | **delegate** — return `absent`; see §3.4 |
+| G | `origin/<default>` ref does not exist | — | any | **stop** — the plugin cannot verify what is on `<default>` |
+
+**Row order matters.** H and I precede everything because they are about the repository, not the artifact. C′ precedes C because offering a switch that git would refuse is worse than naming the blocker.
+
+**Row B is load-bearing and must not be folded into C.** `/design` amends `specification.md` on its own branch, so on a resume the worktree copy legitimately differs from the default branch. Under row C the plugin would offer `switch to <default> + pull --ff-only` and **discard the in-progress design**. The distinguishing test is **branch ownership**, never whether the file differs.
+
+**Row C's repair offer:**
+
+    choices: ["Switch to <default> and pull --ff-only, then continue (Recommended)", "Cancel"]
+
+On the first choice: `git -C "$SPECS_PATH" switch <default>` then `git -C "$SPECS_PATH" pull --ff-only`, then re-test **once**. A second failure stops — never merge, rebase, or reset, and never loop.
+
+### 3.4 Row F delegates — the gate never makes an optional input mandatory
+
+Row F is the difference between "this phase was not handed off" and "this phase never happened". Only the second is row F, and the gate has no opinion about it. Every gated input except `/design`'s `specification.md` is **optional today**, and that must not change. The gate returns `absent`; the caller does what it already does.
+
+| Caller | Input | Pre-existing absent behaviour, preserved |
+|---|---|---|
+| `/create-vi <KEY>` | `idea.md` | continue down the Phase 0 idea ladder — prompt for a path, or grill the VI from scratch. **`/idea` is not a prerequisite.** |
+| `/create-ard` | the VI | fall back to `jira-reader` against the Jira export — now **reported** rather than silent |
+| `/specify` `/design` `/implement` `/epics` `/ready` | the ARD | `status: none` and the no-regression rule of `ard-resolution.md` |
+| `/epics` | VI-level `specification.md` | `vi_spec_present: false`, the existing silent skip |
+| `/implement` | `specification.md` / `design.md` | only an **in-scope** spec is gated; a direct-prompt run resolves none |
+| `/design` | `specification.md` | **stops** — but that stop already exists; this reference only makes its test correct |
+| `/ready` | ARD / spec / design | records the artifact as missing in its coverage roll-up, as today |
+
+Rows D and E add the only new stop: an artifact that **exists** and was never handed off. That state is unreachable before this feature, which is why nothing regresses.
+
+### 3.5 Locating the branch and its pull request
+
+For rows D and E, after §3.2's ref scan finds a carrying branch:
+
+    gh pr list -R "$OWNER_REPO" --head <branch> --state open --json number,url
+
+`$OWNER_REPO` is derived as in §2.6. On `gh` failure, use **row E's** wording plus a note that the pull-request state could not be checked — never assert a pull request exists, and never assert one does not.
+
+### 3.6 Degraded verification
+
+- **Fetch failed** (offline, auth) → test against the last-known `origin/<default>` and say so, the precedent `specs-repo-git.md` §3.2 already sets: `offline — checked against the last-fetched ref`.
+- **Read-only specs mount** → `references/read-only-repos.md` applies: no `fetch`, use the existing ref, emit the degraded clause. The gate still functions; only its freshness degrades.
+- **No `origin/<default>` ref at all** → row G. Nothing to verify against, and proceeding silently is the failure this reference exists to prevent.
+
+### 3.7 Return value
+
+    on_main: pass | pass_amending | absent | unmanaged
+    stopped: true | false
+    branch: <the carrying plugin branch, or null>
+    pr: <number, or null>
+    degraded: <the clause to print, or null>
+
+`pass_amending` is row B. `absent` is row F and is the caller's to interpret per §3.4. `unmanaged` is row H. Every stopping row returns `stopped: true` and the caller does not proceed.
 
 ## 4. Reporting
 

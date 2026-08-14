@@ -23,6 +23,8 @@
 - `/create-vi`'s parameter change is a **breaking change** in each CHANGELOG and README.
 - mgd is content-verbatim with canonical **except its five identity files** (`.claude-plugin/plugin.json`, `LICENSE`, `README.md`, `CHANGELOG.md`, `references/dependencies.md`) plus root `CLAUDE.md` and `.claude-plugin/marketplace.json`. Verify empirically at port time; **never blind-`cp`**.
 - **Never `cp` into copilot.** Its four dialect rules: `subagent_type:` → `agent_type:`; `${CLAUDE_PLUGIN_ROOT}/references/X.md` → `~/.copilot/installed-plugins/ihudak-copilot-plugins/dev-workflows/skills/_shared/X.md`; the `§2.1 Sonnet chain` → its own detection chain; command names in **colon form** (`idea:`) not slash form (`/idea`).
+- **`grep` here is `ugrep 7.5.0`, not GNU grep.** Two consequences bind every task. It returns **0 matches** when handed a `<(…)` process-substitution path as a file argument, so always pipe into `grep` instead — a `0` from that construct is a tool artifact, and an assertion expecting `0` would pass vacuously. And it warns rather than errors on a missing file, so a mistyped path yields `0` and looks like a passing negative check. Confirm the file exists before trusting any zero.
+- **Never write an assertion you have not executed.** Three of the plan-assertion defects found so far were patterns that could not match anything: one spanning a `**` bold-close marker, one demanding a word the mandated content necessarily contains, and one keyed on escaped pipes. Re-reading a pattern does not reveal this; running it does.
 - **Assertion style:** prefer "zero occurrences of the stale pattern, ≥1 of the new" over "exactly N occurrences". Absolute counts go stale when the plan is amended; relational assertions do not. Where a count is asserted, re-derive it against the tree being verified — never copy one from another task.
 - Prose in plugin files is **never hard-wrapped** (`references/prose-formatting.md`): one paragraph is one unbroken line.
 
@@ -238,8 +240,8 @@ Create `docs/superpowers/plans/2026-08-14-gate-reachability.md` with one row per
 | I | `git -C "$S" switch --detach origin/main` before the run | stop + the G0 notice |
 | A | repo on `main`, freshly pulled, artifact committed and merged | pass |
 | B | `/design` run 2 on `design/<KEY>-<slug>`, `specification.md` locally amended by run 1 | `pass_amending`, reported, **no switch offered** |
+| C′ | as C below, plus an uncommitted edit to a file the switch would overwrite | stop naming the files |
 | C | repo on an unrelated named branch (G2 shape) that also carries an older `specification.md` | repair offer, re-test once |
-| C′ | same as C, plus an uncommitted edit to a file the switch would overwrite | stop naming the files |
 | D | artifact committed on `spec/<KEY>-<slug>`, pushed, PR open, `main` without it | stop naming PR #n |
 | E | same as D but the PR closed unmerged, or never opened | stop naming the branch |
 | F | a fresh VI folder with no `idea.md` anywhere | returns `absent`; the caller's ladder continues |
@@ -345,8 +347,12 @@ Both must print their `IDENTICAL` line. If the first diff is non-empty, the `non
 ```bash
 grep -c "found | none | unmerged" references/ard-resolution.md   # expect 1
 awk '/^## Consumers/,0' references/ard-resolution.md | grep -cE '^- `/'  # expect 5
-grep -oE '/(design|implement|specify|epics|ready)' <(grep "Cited by" -A1 references/ard-resolution.md) | sort -u | wc -l  # expect 5
+grep "Cited by" -A1 references/ard-resolution.md | grep -oE '/(design|implement|specify|epics|ready)' | sort -u | wc -l  # expect 5
 ```
+
+**Pipe into `grep`; never hand `grep` a `<(…)` path.** This environment's `grep` is `ugrep 7.5.0`, which silently returns **0 matches** for a `/dev/fd/N` process-substitution argument while the identical content via pipe or `<` redirect matches correctly. A `0` from that construct is a tool artifact, not a fact about the file — and an assertion expecting `0` would pass vacuously.
+
+Prove this one can fail: pipe a four-caller version of the line through the same pattern and confirm it yields `4`.
 
 - [ ] **Step 7: Commit**
 

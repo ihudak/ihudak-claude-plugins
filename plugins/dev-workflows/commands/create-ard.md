@@ -30,6 +30,8 @@ this stage). Zero Jira API.
 
 **Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier run, retry an artifact commit that failed to push, and settle the branch. Prompt-free and silent when the specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal `commit-artifacts` step skips on it.
 
+**Gate the VI.** Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against `specifications/<VI>-<vslug>/<VI>_<vslug>.md`. On `pass`/`pass_amending`, read the authored VI in Phase 2 as today. On a stopping state, stop per §4.4. On `absent`, the existing `jira-reader` fallback applies — but report it: *"No authored VI on `<default>` for `<VI>` — architecting from the Jira export at `<path>`. If a VI exists on a branch, this run would have stopped; it does not, so none does."* On `unmanaged`, behave exactly as before this feature — reachable here even after step 2's own `$SPECS_PATH` check, since that check only rejects an unset value, never an invalid path or a non-git directory.
+
 ---
 
 ## Phase 1 — Configure
@@ -71,7 +73,7 @@ Read the VI from `$SPECS_PATH/specifications/<VI>-<vslug>/` — glob `<VI>_*.md`
   > jira_key:         [<VI> for a VI-level run, <EPIC> for an Epic-level run]
   > depth:      vi-only (VI-level) | full (Epic-level, scoped to focus_key)"
 
-For an **Epic-level** run always dispatch `jira-reader` this way (`depth: full`, scoped to `focus_key`) for the Epic's scope — the authored-VI-file check above only applies VI-level. If a `<VI>_ARD.md` exists load its `AD-N` invariants to **inherit read-only**.
+For an **Epic-level** run always dispatch `jira-reader` this way (`depth: full`, scoped to `focus_key`) for the Epic's scope — the authored-VI-file check above only applies VI-level. Resolve any VI-level ARD via `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` (`vi: <VI>`, `epic: null`, `$SPECS_PATH`). On `status: found`, load its `AD-N` invariants to **inherit read-only**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr`. On `status: none`, proceed unchanged — there is no VI-level ARD to inherit.
 
 Extract the problem/goal/scope frame + capability themes — the raw material for grounding + the grill.
 
@@ -140,7 +142,7 @@ On `BLOCK`, fix the BLOCKER findings inline (the orchestrator/grill edits the AR
 ---
 
 ## Phase 6 — Handoff
-Write the ARD file(s) into the feature folder. Then **offer** (commit-when-asked — never automatic): `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git", "Cancel"]`. Branch `ard/<VI>-<vslug>` (VI-level) or `ard/<EPIC>-<eslug>` (Epic-level); commit ONLY the feature folder (never `git add -A`); push; open a PR targeting `main`. Commit trailer: `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
+Write the ARD file(s) into the feature folder. Then **offer** (commit-when-asked — never automatic), presenting `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's choice array verbatim: `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`. On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: ard`; `feature_folder` as resolved in Phase 0 (the VI dir for a VI-level ARD, the Epic subfolder for an Epic-level ARD — §2.2 derives `ard/<VI>-<vslug>` or `ard/<EPIC>-<eslug>` from it, matching today's branch names); `deliverable_paths` = the ARD file(s); `title: <VI|EPIC> Add architecture requirements document`; and `body_facts` = the ARD scope (VI/Epic, any per-area split), the grounded/descoped repos, the `AD-N` count, the open-question count, and the `ard-reviewer` verdict. Emit its §4.1 outcome line in the Final report.
 
 ---
 

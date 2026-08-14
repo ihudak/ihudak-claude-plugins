@@ -505,7 +505,7 @@ Read the file, then add one paragraph to the contract (one unbroken line):
 ```bash
 grep -rncE "never opens (a|the) (pull request|PR)|never creates? a PR|Never call a PR REST|it never opens the PR via an API" \
   references/finish-and-handoff.md commands/document.md README.md    # every count expect 0
-grep -rc "phase-handoff.md" references/finish-and-handoff.md commands/document.md README.md references/next-phase-offer.md
+grep -rc "phase-handoff.md" references/finish-and-handoff.md commands/document.md README.md references/next-phase-offer.md  # expect >=1 for EACH of the four
 grep -ci "once the pull request is merged\|once it is merged" references/next-phase-offer.md   # expect >=1
 # /document behaviour unchanged: it still writes a draft and offers a command for the user to run
 grep -c "gh pr create" references/finish-and-handoff.md              # expect >=1 (still the user's command)

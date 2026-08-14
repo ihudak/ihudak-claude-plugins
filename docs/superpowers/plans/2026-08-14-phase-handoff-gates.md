@@ -1214,16 +1214,24 @@ Every count must be `1`. A producer missing the consequence clause is a producer
 
 Record a numeric pair per consumer. Seven rows, no assurances:
 
+**Match the dispatch, not the word.** A bare `code-scanner` match hits prose long before any agent runs — measured, the first mention precedes the first real dispatch in every command (`create-ard` 43 vs 89, `specify` 113 vs 315, `design` 94 vs 185, `implement` 160 vs 218, `epics` 84 vs 302). Comparing the gate against a prose mention makes this check pass or fail on coincidence. The dispatch form is `Agent (subagent_type: "dev-workflows:<agent>"`.
+
 ```bash
+cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
 for f in create-vi create-ard specify design implement epics ready; do
-  G=$(grep -n "require-on-main" commands/$f.md | head -1 | cut -d: -f1)
-  X=$(grep -nE "code-scanner|docs-grounder|jira-reader|Grill|grill" commands/$f.md | head -1 | cut -d: -f1)
-  printf "%-12s gate=%-5s first-expensive=%-5s ok=%s\n" "$f" "${G:-NONE}" "${X:-NONE}" \
-    "$( [ -n "$G" ] && [ -n "$X" ] && [ "$G" -lt "$X" ] && echo YES || echo CHECK )"
+  G=$(grep -n 'require-on-main' commands/$f.md | head -1 | cut -d: -f1)
+  X=$(grep -nE 'subagent_type: "dev-workflows:(code-scanner|docs-grounder|jira-reader)"' commands/$f.md | head -1 | cut -d: -f1)
+  P=$(grep -nE '^## Phase .*[Gg]rill' commands/$f.md | head -1 | cut -d: -f1)
+  # first genuinely expensive step = earliest of a real dispatch or a grill phase
+  X=$(printf '%s\n%s\n' "${X:-999999}" "${P:-999999}" | sort -n | head -1)
+  printf "%-12s gate=%-7s first-expensive=%-7s %s\n" "$f" "${G:-NONE}" "$X" \
+    "$( [ -n "$G" ] && [ "$G" -lt "$X" ] && echo YES || echo CHECK )"
 done
 ```
 
-Every row must be `YES`, or `CHECK` with a written justification (for example, the first match is a mention in a phase list rather than a dispatch). Do not accept `CHECK` without reading the surrounding lines.
+Every row must be `YES`. A `CHECK` requires reading the surrounding lines and writing down why — never accept one on the strength of the number alone.
+
+**Prove this check can fail:** re-run it with the gate pattern replaced by a string that appears only near the end of a file (for instance `Final report`) and confirm rows flip to `CHECK`. A check that reports `YES` regardless of input is measuring nothing.
 
 - [ ] **Step 2b: The producer list that only becomes wrong once the producers exist**
 

@@ -71,4 +71,4 @@ Compose the draft and BOTH write and show it:
     `gh pr create --title "<title>" --body-file <pr-draft path>`.
   - other → "Open a pull request in your host and paste the title + body above."
 
-For a Bitbucket-hosted docs repo the plugin cannot open the pull request — there is no CLI for it — so it writes the draft and the user opens it. This is a host capability limit, not a policy: on a host with a CLI the plugin does open it (`phase-handoff.md` §2.6).
+For a Bitbucket-hosted docs repo the plugin cannot open the pull request — there is no CLI for it — so it writes the draft and the user opens it. This is a host capability limit, not a policy: on a host with a CLI — the GitHub-hosted specs repo — the plugin does open the pull request, but that is a separate flow against `$SPECS_PATH`, never this docs repo (`phase-handoff.md` §2.6).

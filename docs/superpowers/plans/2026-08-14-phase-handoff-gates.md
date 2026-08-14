@@ -813,14 +813,23 @@ In Phase 5, after writing the canonical and archived revisions, execute `handoff
 
 At Phase 0 step 5 ("Secondary grounding (read-only)"), add one unbroken line:
 
-> These reads are **not** gated by `require-on-main`: `/update-vi`'s authoritative base is the Jira import, and Phase 2 already rules that the import wins where a frozen draft disagrees. Gating advisory grounding would block a legitimate VI refresh because an unrelated ARD sits on a branch. Where a discovered `*_ARD.md` or `specification.md` is **not** on the specs repo's default branch, say so in the Phase 1 confirmation beside the existing divergence notice — the user should know the grounding is unapproved, not be stopped by it.
+> These reads are deliberately **not** gated: `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) is never executed by this command. `/update-vi`'s authoritative base is the Jira import, and Phase 2 already rules that the import wins where a frozen draft disagrees. Gating advisory grounding would block a legitimate VI refresh because an unrelated ARD sits on a branch. Where a discovered `*_ARD.md` or `specification.md` is **not** on the specs repo's default branch, say so in the Phase 1 confirmation, which already lists the secondary artifacts discovered — the user should know the grounding is unapproved, not be stopped by it.
+
+The paragraph **must name `require-on-main`**. A maintainer auditing which commands gate will grep that name; if `/update-vi` returns nothing, its absence looks like an oversight rather than the decision it is, and the next person "completes the pattern". Naming it is what makes the exclusion discoverable.
 
 - [ ] **Step 3: Assert**
 
 ```bash
 cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
 grep -c "handoff-to-main" commands/update-vi.md     # expect >=1
-grep -c "require-on-main" commands/update-vi.md     # expect 0 — deliberately ungated
+# Assert no EXECUTION of the gate — not the absence of the name. Gate callers write
+# "Execute `require-on-main` (…)"; that imperative form is what makes a command a consumer.
+# Asserting the bare name is 0 forbids the very paragraph that records the decision, and
+# then contradicts Step 2, which mandates naming it.
+grep -Fc 'Execute `require-on-main`' commands/update-vi.md   # expect 0 — no gate executed
+grep -Fc 'require-on-main' commands/update-vi.md             # expect >=1 — the decision is named
+# discrimination: the three real consumers each have exactly one execution site
+for f in create-vi create-ard specify; do grep -Fc 'Execute `require-on-main`' commands/$f.md; done  # expect 1 each
 grep -ci "not.*gated" commands/update-vi.md         # expect >=1
 grep -c "the next phase will stop until this is on main" commands/update-vi.md  # expect 1
 ```

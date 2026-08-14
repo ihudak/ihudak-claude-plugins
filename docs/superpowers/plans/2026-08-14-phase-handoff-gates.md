@@ -290,9 +290,11 @@ repository condition for each of the ten states."
 
 R50 requires the optionality statements unchanged. Capture them now so Step 5 can prove it.
 
+Capture **content without line numbers** — R50 protects the sentence's wording, not its offset in the file. Any edit above it legitimately shifts its line number, and a line-numbered baseline would report that harmless shift as a broken guarantee.
+
 ```bash
 cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
-grep -n "the common case" references/ard-resolution.md > /tmp/ard-none-before.txt
+grep -h "the common case" references/ard-resolution.md > /tmp/ard-none-before.txt
 awk '/^## No-regression rule/,/^## Deviation-record/' references/ard-resolution.md > /tmp/ard-noregress-before.txt
 cat /tmp/ard-none-before.txt /tmp/ard-noregress-before.txt
 ```

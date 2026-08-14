@@ -565,9 +565,17 @@ Replace the clause "no Jira, no code, no specs deliverable — the only `$SPECS_
 
 Replace Phase 5's three status/disposition bullets with these, keeping the surrounding prose (the prior-art report, the code-grounding report, and the never-auto-invoke sentence) intact:
 
-- **`vi_disposition: rewrite`** — the key is already known from the `vi` source. Relocate `idea.md` to `$SPECS_PATH/specifications/<KEY>-<slug>/idea.md` (resolve the folder by key-number, tolerating a human-adjusted slug), then execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: idea`, `deliverable_paths` = the relocated file, `title: <KEY> Refine idea for <summary>`. **No human round trip** — the key exists. Then report the §4.1 outcome line.
-- **`vi_disposition: new`, `status: refined`** — ask: `choices: ["Create the Jira workitem now and give me the key — I'll complete the handoff (Recommended)", "Leave it in the vault — I'll hand it off later", "Other… (describe)"]`. On a key matching `^[A-Z][A-Z0-9_]*-\d+$`, relocate and run `handoff-to-main` as above. On the second choice, report plainly: *"Not handed off — `idea.md` stays at `<path>`. `/create-vi <KEY>` will not find it; use the out-of-contract form `/dev-workflows:create-vi <KEY> @<path>`."*
-- **`status: draft`** (N open `[NEEDS CLARIFICATION]`) — **never hand off**, and do not ask. By the governing principle the phase is not finished. Report the N open items and offer `--deep`, or the out-of-contract `@<path>` route. State explicitly that no branch or pull request was created.
+**Test `status` first, and name it in every branch.** Phase 4 computes `vi_disposition` (`:228`) and `status` (`:255`) from independent signals, so all four combinations occur. A branch keyed on `vi_disposition` alone overlaps the draft branch and a draft idea hands off under first-match-wins. The conditions must be disjoint on their face, not merely ordered.
+
+**And every path into `handoff-to-main` goes through §4.3's consent choice — no exceptions.** `phase-handoff.md` hard rule 7 and its §5 caller-contract rule 1 both state the entry point is reached only through that choice, and neither carves out a known-key case. Opening a pull request is outward-facing; the fact that no *Jira key* round trip is needed says nothing about whether the user consented to a branch and a PR.
+
+- **`status: draft`** (N open `[NEEDS CLARIFICATION]`) — **never hand off, whatever `vi_disposition` says**, and do not ask. By the governing principle the phase is not finished. Report the N open items and offer `--deep`, or the out-of-contract `@<path>` route. State explicitly that no branch or pull request was created.
+- **`status: refined` + `vi_disposition: rewrite`** — the key is already known from the `vi` source, so no Jira round trip is needed. Relocate `idea.md` to `$SPECS_PATH/specifications/<KEY>-<slug>/idea.md` (resolve the folder by key-number, tolerating a human-adjusted slug), then present **§4.3's consent choice verbatim** and, on the branch-and-PR option, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: idea`, `feature_folder` as resolved, `deliverable_paths` = the relocated file, `title: <KEY> Refine idea for <summary>`, and `body_facts` per §2.7. Report the §4.1 outcome line.
+- **`status: refined` + `vi_disposition: new`** — first ask: `choices: ["Create the Jira workitem now and give me the key — I'll complete the handoff (Recommended)", "Leave it in the vault — I'll hand it off later", "Cancel", "Other… (describe)"]`. On a key matching `^[A-Z][A-Z0-9_]*-\d+$`, relocate, then present **§4.3's consent choice verbatim** and run `handoff-to-main` as above. On "Leave it in the vault", report plainly: *"Not handed off — `idea.md` stays at `<path>`. `/create-vi <KEY>` will not find it; use the out-of-contract form `/dev-workflows:create-vi <KEY> @<path>`."*
+
+The key-offer array carries `Cancel` because every other gate in this file does, and a user-facing choice that cannot be abandoned is inconsistent with the rest of the command.
+
+Also correct `:12`, which still reads "no specs-repo write" one line above the `:13` fix — the same stale claim, one line away.
 
 - [ ] **Step 4: Assert the three branches and the draft prohibition**
 
@@ -587,8 +595,14 @@ The last assertion is the one that matters: a `draft` idea reaching `handoff-to-
 
 ```bash
 grep -c "no specs deliverable" commands/idea.md              # expect 0
+grep -Fc 'no specs-repo write' commands/idea.md              # expect 0 — the :12 twin of the :13 claim
 grep -c '`/create-vi` relocates it' commands/idea.md         # expect 0
+# the §4.3 consent choice must be present, verbatim, before ANY handoff
+grep -Fc 'Branch + commit + push + open PR to main (Recommended)' commands/idea.md   # expect 1
+grep -Fc 'the next phase will stop until this is on main' commands/idea.md           # expect 1
 ```
+
+The last two are not bookkeeping. `phase-handoff.md` hard rule 7 makes the consent choice the only route into `handoff-to-main`, so their absence means the command opens a pull request without asking — the exact shape of the spec's Risk 6.
 
 - [ ] **Step 6: Commit**
 

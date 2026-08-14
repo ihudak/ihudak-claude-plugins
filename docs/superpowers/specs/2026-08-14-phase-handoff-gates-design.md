@@ -82,8 +82,11 @@ Rationale: push authority and PR authority are **independent**. Push runs over S
 
 Every command that reads an artifact out of `$SPECS_PATH` gates on it, including the ARD.
 
-- **The ARD is gated in all five readers** (`/specify`, `/design`, `/implement`, `/epics`, `/ready`). An `AD-N` Rule violated without a recorded "ARD deviation" is a reviewer BLOCKER, so the ARD is a binding contract. A branch-only ARD would either bind a run to unapproved rules or be silently dropped as `status: none`.
-- **`/epics` gates conditionally.** Its VI-level `specification.md` is optional grounding. **Absent** ⇒ the existing silent skip (`vi_spec_present: false`), so the Jira-export-only path keeps working. **Present but not on main** ⇒ stop, because that is the case where the run would build on unapproved work.
+**The gate never makes an optional input mandatory.** Every gated input keeps its current optionality; the gate adds exactly one new outcome, for an artifact that **exists but is not on main**. Absent stays absent.
+
+- **The ARD stays optional.** `references/ard-resolution.md:39` states `status: none` is "the common case — `/create-ard` is optional", and `:43` makes it a **no-regression rule**: a caller receiving `none` must behave exactly as it did before the ARD feature existed. J does not touch that. What J adds is `unmerged`, which is reachable only when an ARD file resolves and is not on main — the case where the run would otherwise either bind itself to unapproved `AD-N` rules or silently discard approved-in-progress ones. There is no VI-level vs Epic-level difference: both resolve through the same entry point and both keep the same optionality.
+- **VI-level `/specify` stays optional.** `/epics`'s VI-level `specification.md` is grounding, not a prerequisite. **Absent** ⇒ the existing silent skip (`vi_spec_present: false`), so the Jira-export-only path works exactly as today. **Present but not on main** ⇒ stop, because drafting Epics against a weaker basis than the one about to land means re-doing them.
+- **The gated readers are the five in `ard-resolution.md`'s own Consumers section** (`:59-63`): `/design`, `/implement`, `/specify`, `/epics`, `/ready`. That file's header at `:4-5` names only four, omitting `/ready` — a stale caller list contradicted by its own body (§7).
 - **`/ready` never stops.** Its job is to report readiness, so a not-on-main artifact becomes a **finding** that caps the verdict at PARTIAL — "authored but not handed off". Reporting a phase complete when its artifact is not on main is precisely the lie the gate exists to prevent.
 
 *Rejected:* limiting coverage to decision §2's six commands, which omitted `/epics` and the ARD entirely.
@@ -168,12 +171,28 @@ The full state space, enumerated rather than reasoned case-by-case:
 | C′ | yes | differs | anything else, and the tree is dirty in a way that would block the switch | **hard stop** naming the exact files, with the commands to resolve and an instruction to re-run. No stash, no forced switch |
 | D | no | — | the artifact exists on an `origin/(idea\|vi\|ard\|spec\|design\|ready)/*` ref, and a PR is open for that branch | **stop**: `<artifact> is on branch <branch> with PR #<n> open, not merged — merge it, then re-run` |
 | E | no | — | exists on such a ref, no PR open | **stop**: `<artifact> is on branch <branch> and was never handed off — open a PR for it, then re-run` |
-| F | no | — | exists on no ref at all | **stop**: `<artifact> has not been authored — run <producer command> first` |
+| F | no | — | exists on no ref at all | **delegate — not a new stop.** The gate reports `absent` and the command applies its own pre-existing absent behaviour (§4.2.1) |
 | G | `origin/<default>` ref missing entirely | — | any | **stop**: cannot verify what is on main |
 | H | — | — | `$SPECS_PATH` unset, or `.git` not a managed/readable repo | **silent skip**, mirroring `specs-repo-git.md` §3.1 |
 | I | — | — | detached HEAD (`specs_git: blocked` from §3.3 G0) | **stop**, re-emitting the G0 notice — a phase cannot complete from a detached HEAD |
 
 **Row B is load-bearing.** Without it the gate would offer to discard in-progress design work. It must be decided by **branch ownership**, not by whether the file differs.
+
+#### 4.2.1 Row F delegates — the gate never makes an optional input mandatory
+
+Row F is the difference between "this phase was not handed off" and "this phase never happened". Only the second is row F, and the gate has no opinion about it: every gated input except `/design`'s `specification.md` is **optional today**, and J must not change that. The gate reports `absent`; the command does what it already does.
+
+| Command | Gated input | Pre-existing absent behaviour, preserved unchanged |
+|---|---|---|
+| `/create-vi <KEY>` | `idea.md` | continue down the Phase 0 step 3 ladder — prompt for a path, or grill the VI from scratch (`create-vi.md:32`). **`/idea` does not become a prerequisite.** |
+| `/create-ard` | the VI | fall back to `jira-reader` against the Jira export — now **reported** rather than silent |
+| `/specify`, `/design`, `/implement`, `/epics`, `/ready` | the ARD | `status: none` and the no-regression rule of `ard-resolution.md:43-45`, untouched |
+| `/epics` | VI-level `specification.md` | `vi_spec_present: false`, the existing silent skip |
+| `/implement` | `specification.md` / `design.md` | only an **in-scope** spec is gated; a direct-prompt run resolves none and is unaffected |
+| `/design` | `specification.md` | **stops** — but that stop already exists today (`design.md:56-57`), and J only makes its test correct |
+| `/ready` | ARD / spec / design | records the artifact as missing in its coverage roll-up, exactly as today |
+
+The only behaviour rows D and E add is a stop for an artifact that **exists** and was never handed off. That case is unreachable today, which is why nothing regresses.
 
 **Degraded network:** if the preflight's fetch failed, the gate tests against the last-known `origin/<default>` and says so — the precedent `specs-preflight` §3.2 already sets ("offline — ancestry checked against the last-fetched ref"). Row G covers the case where there is no such ref at all.
 
@@ -223,7 +242,9 @@ A command that produces a `$SPECS_PATH` deliverable must cite and execute `hando
 | `/implement` (Phase 7.5) | the `- [ ]` escalation notes on `specification.md`/`design.md` | `spec/…` or `design/…` per D5 |
 | `/ready` | `_readiness.md` | `ready/<KEY>-<slug>` |
 
-**`/implement`'s escalation notes are written in Phase 7.5 but handed off late.** Phase 7.5 sits inside Phase 3B, before the tests have even run; committing and opening a PR there would interrupt the run mid-review. The notes are written where they are today, and `handoff-to-main` for them runs in the terminal region on its own branch, before the emitter tail — which `references/session-hygiene.md` rule 2 permits, since the deliverable-side finish may sit anywhere relative to that tail. The Phase 4/5 claims at `implement.md:669` and `:718` ("this phase NEVER commits the deliverable") are scoped to the maintenance and follow-up phases and stay true; the handoff is a distinct step, not a widening of theirs.
+**`/implement`'s escalation notes are written in Phase 7.5 but handed off late, and the placement is a hard requirement.** Phase 7.5 sits inside Phase 3B, before the tests have even run; committing and opening a PR there would interrupt the run mid-review. The notes are written where they are today, and `handoff-to-main` for them runs **after Phase 4 (maintenance) and before the emitter tail** — which `references/session-hygiene.md` rule 2 permits, since the deliverable-side finish may sit anywhere relative to that tail.
+
+The placement is load-bearing, not stylistic, because of what the two nearby claims actually say. `implement.md:719` defines its term explicitly — *"the implementation remains uncommitted on the branch created in Pre-Phase 3"* — so "the deliverable" there means **the code**, and the claim is scoped to Phase 7. `:669`'s claim is scoped to the follow-up phase and is about follow-up files. Both therefore stay true, but only while no `handoff-to-main` call lands inside Phase 6 or Phase 7. Read plainly, though, `:718` would still tell a future reader that `/implement` commits nothing at all — so it gains a scoping clause naming the escalation handoff as a distinct step in an earlier phase. A clarification, not a reversal.
 
 `<KEY>` and `<slug>` are always taken from the **resolved feature folder** the deliverable was written into — never re-derived from the Jira title at handoff time. The folder resolution already tolerates a human-adjusted slug and a stray `-`/`_` after the key, and re-deriving would produce a branch name that disagrees with the directory it commits.
 
@@ -262,6 +283,8 @@ Measured in the canonical repo, live surfaces only (`CHANGELOG.md` and `docs/` e
 | `/ready` never commits its deliverable | **11 lines / 2 files**: `commands/ready.md:3,18,343,363,364,378,470,501,544,558`; `CLAUDE.md:250` | narrows to "never **automatically**" — the commit is behind the consent gate |
 | `/ready` never branches | **5 lines / 1 file**: `commands/ready.md:17,110,112,545,555` — `:555` is a hard invariant ("NEVER branch — this command never creates a git branch") | `/ready` now creates `ready/<KEY>-<slug>` via the consent gate. `:17` and `:18` are adjacent lines of one prose block carrying *both* claims, so the block is rewritten once |
 | `/design` confirms the spec is on main | **two** sites: `commands/design.md:50-57` (step 3) and `:67-68` (the Epic picker's "each with a `specification.md` on main") | both replaced by `require-on-main`. Fixing only the reviewed one would leave the picker listing branch-only Epics as designable |
+| `/implement` "NEVER commits the deliverable" | **1 line**: `commands/implement.md:718` | gains a scoping clause. Not a reversal — `:719` already defines "the deliverable" as the code on the Pre-Phase 3 branch, and the claim is Phase-7-scoped. `:669` needs no change (follow-up files, follow-up phase) |
+| `ard-resolution.md` has four callers | **1 line**: `references/ard-resolution.md:4-5` | corrected to five. Contradicted by that file's own Consumers section at `:59-63`, which lists `/ready`. A pre-existing stale caller list, surfaced by J's coverage question and in scope because J's D8 count depends on it |
 
 Additional surfaces that must be updated, not merely checked: `CLAUDE.md`'s workflow-relationship map (a `handoff-to-main` / `require-on-main` edge per command), its "Key invariants for specs-repo git" list, its per-command invariant blocks for `/idea`, `/create-vi`, `/ready`, and the VI-creation flow; each edition's `README.md` command table and reference list; each edition's `CHANGELOG.md` with D12 under breaking changes; `references/next-phase-offer.md`, whose next-step wording must now include the merge step.
 
@@ -297,15 +320,19 @@ Copilot carries `_shared/specs-repo-git.md` and needs a hand-written `_shared/ph
 
 **Consumers**
 
-- **R21** `/create-vi <KEY>` derives `idea.md` from `<KEY>` and gates it; `@<path>` is out-of-contract, reads in place, does not relocate, and is ungated.
+- **R21** `/create-vi <KEY>` derives `idea.md` from `<KEY>` and gates it; `@<path>` is out-of-contract, reads in place, does not relocate, and is ungated. An `idea.md` absent everywhere continues down the existing Phase 0 step 3 ladder (§4.2.1) — `/idea` is not a prerequisite.
 - **R22** `/create-ard` gates the VI and the inherited VI-level ARD; the absent-VI `jira-reader` fallback is reported, never silent.
 - **R23** `/specify` gates the VI and the ARD.
 - **R24** `/design` step 3's gate is replaced by `require-on-main`.
 - **R25** `/design` step 4's Epic picker enumerates spec'd Epics **from the ref**, not the worktree.
-- **R26** `/implement` gates in-scope `specification.md`/`design.md` and the ARD, and its stop text names the specs repo.
-- **R27** `/epics` gates a VI-level `specification.md` that exists but is not on main; absent keeps the existing silent skip.
+- **R26** `/implement` gates **in-scope** `specification.md`/`design.md` and the ARD, and its stop text names the specs repo. A direct-prompt run resolves no spec and is unaffected.
+- **R27** `/epics` gates a VI-level `specification.md` that exists but is not on main; absent keeps the existing silent skip, so **VI-level `/specify` remains optional**.
 - **R28** `/ready` records a not-on-main artifact as a finding capping the verdict at PARTIAL, and never stops.
 - **R29** `ard-resolution.md` returns `none | found | unmerged`; `unmerged` stops all callers except `/ready`.
+- **R50** `ard-resolution.md`'s no-regression rule (`:43-45`) is preserved **verbatim** and its `status: none` definition (`:39`, "`/create-ard` is optional") is unchanged. `unmerged` is reachable only when an ARD file resolves — never when none does. **The ARD does not become a prerequisite for any command.**
+- **R51** `ard-resolution.md:4-5`'s caller list is corrected to the five callers its own Consumers section lists at `:59-63`, adding `/ready`.
+- **R52** `implement.md:718` gains a clause scoping its "NEVER commits the deliverable" claim, naming the escalation handoff as a distinct step in an earlier phase. `:669` is unchanged. No `handoff-to-main` call lands in Phase 6 or Phase 7.
+- **R53** Row F delegates per §4.2.1: for each of the seven gated inputs, the absent case reaches the command's pre-existing behaviour unchanged. No gate turns an optional input into a prerequisite.
 - **R30** Every consumer's gate call sits before the first subagent dispatch, code scan, docs-grounding retrieval, or grill question in that command's phase order — a gate that fires after a `code-scanner` fan-out has already burned the cost it was meant to prevent.
 - **R47** `/update-vi` is **not** gated on the `*_ARD.md` / `specification.md` it discovers in Phase 0 step 5 (D13); an artifact found only off main is **reported** in that phase's confirmation, alongside the existing Jira-import-vs-draft divergence notice.
 - **R48** `handoff-to-main`'s exact `gh pr create` invocation is confirmed to run non-interactively against a named repository before any command depends on it.
@@ -358,7 +385,10 @@ Each mitigation is a verification step someone runs, not advice.
 **Risk 7 — the `gh` invocation blocks or is wrong.** A `gh pr create` missing a required argument opens an interactive editor, which in a non-TTY agent context hangs or fails obscurely; and `-R` behaviour without a `cd` is the part of §4.1 step 6 that is asserted rather than observed.
 *Mitigation:* before any command is wired to it, run the exact invocation with `--dry-run` against `$SPECS_PATH` from a **different** working directory, and record the observed output. `--dry-run` is what makes this checkable without creating a real pull request in `mgd-specifications` (R48).
 
-**Risk 8 — the gate runs after the cost.** R30's ordering is easy to satisfy on paper and miss in a command whose Phase 0 is long.
+**Risk 8 — the gate silently promotes an optional input to a prerequisite.** This is the most likely way J does real damage: `/create-ard`, VI-level `/specify`, and `/idea` are all deliberately optional steps, and a gate that stops on absence would make each of them mandatory without anyone deciding to.
+*Mitigation:* one verification row per line of §4.2.1's table — seven rows — each exercising the **absent** case and asserting the pre-J behaviour, plus a quoted diff showing `ard-resolution.md:39` and `:43-45` are byte-identical to their pre-J text. An absent input that produces a stop anywhere except `/design` is a Critical.
+
+**Risk 9 — the gate runs after the cost.** R30's ordering is easy to satisfy on paper and miss in a command whose Phase 0 is long.
 *Mitigation:* for each of the seven consumers, record the line number of the gate call and the line number of the first subagent dispatch / scan / grill in that command, and assert the first is smaller. Seven numeric pairs, not seven assurances.
 
 ## 10. Verification approach

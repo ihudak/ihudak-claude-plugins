@@ -156,6 +156,7 @@ Resolve any VI-level ARD for this VI by citing
 
 - On `status: none` (including `$SPECS_PATH` unset/unresolvable) → **skip and
   proceed exactly as before.** No prompt, no extra output.
+- On `status: unmerged` → **stop**, naming the returned `branch` and any `pr` — an ARD that exists but has not landed on `<default>` is a weaker architectural basis than the one about to arrive, and Epics drafted against it would need re-doing once it does.
 - On `status: found` → carry `invariants` + `guidance_summary` forward: pass them
   to `epic-writer` (Phase 6 handoff, as `applicable_ard`) so drafts stay
   consistent with the `AD-N`, and to `epic-reviewer` (Phase 7, as `applicable_ard`)
@@ -176,8 +177,7 @@ inventory. **Additive, zero-cost when absent** — the common case, since
    rule `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` step 1 uses). If
    `$SPECS_PATH` is unset/unresolvable, or no VI dir matches → **skip** (set
    `vi_spec_present: false`).
-2. **Detect:** if `<VI-dir>/specification.md` does not exist → **skip** (set
-   `vi_spec_present: false`); the run proceeds byte-identically to today.
+2. **Detect:** execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against `<VI-dir>/specification.md`. On `absent`, **skip** (set `vi_spec_present: false`); the run proceeds byte-identically to today — this is the common case, and VI-level `/specify` remains optional. On `unmanaged`, behave exactly as before this feature — **skip** (set `vi_spec_present: false`). On `pass`/`pass_amending`, proceed to step 3 (`pass_amending` prints §3.3's row-B message). On any other (stopping) state, stop per §4.4, naming `$SPECS_PATH` explicitly — a spec that exists but has not yet landed on `<default>` is a weaker grounding basis than the one about to arrive, and Epics drafted against it would need re-doing.
 3. **Parse** `<VI-dir>/specification.md` directly (Read it — one file, a simple
    heading scan): extract its user stories `[Uxx]` and their nested acceptance
    criteria `[ACxx]` into `vi_spec_requirements[]`. **Skip `[TCxx]` test cases**

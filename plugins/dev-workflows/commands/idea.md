@@ -1,6 +1,6 @@
 ---
 name: idea
-description: Idea-refinement workflow (PM phase, front of the VI-creation flow). Takes one source — an inline prompt, a markdown file (with wikilinks/images), a community post, or an exported Jira ticket (product feedback, or an existing Value Increment the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-vi. Writes to the vault (keyless); no Jira, no code, no specs deliverable — the only `$SPECS_PATH` writes are the run's own session artifacts, committed by `commit-artifacts`.
+description: Idea-refinement workflow (PM phase, front of the VI-creation flow). Takes one source — an inline prompt, a markdown file (with wikilinks/images), a community post, or an exported Jira ticket (product feedback, or an existing Value Increment the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-vi. Writes to the vault (keyless); no Jira, no code; on a completed handoff it relocates `idea.md` into `$SPECS_PATH/specifications/<KEY>-<slug>/` and opens a pull request for it (`references/phase-handoff.md` §2), and its session artifacts are committed by `commit-artifacts`.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -10,7 +10,7 @@ Refine an idea into `idea.md`: $ARGUMENTS
 the existing pipeline. It ingests one source, refines it through a grill, and writes a lean one-page
 `idea.md` (per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`) that seeds the Value Increment. It is
 **not** a VI: no Jira write, no code change, no specs-repo write. Output lands keyless in the vault;
-`/create-vi` relocates it under `$SPECS_PATH` once a Jira key exists.
+`/idea` relocates it under `$SPECS_PATH` itself once a Jira key exists (Phase 5); `/create-vi <KEY>` then finds it there and does not move it.
 
 Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless (until convergence).
 `--no-docs` and `--no-prior-art` each turn off one grounding source (see Phase 1).
@@ -261,16 +261,9 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
 
 Report where `idea.md` was written and its `status`, then offer the next phase — **adapted to status**:
 
-- **`refined`, `vi_disposition: new`** (and every run with no `vi` source): *"Idea refined. Next: create
-  the VI — first create an empty Jira workitem, then run `/dev-workflows:create-vi <JIRA-KEY> @<idea.md
-  path>`."*
-- **`refined`, `vi_disposition: rewrite`:** *"Idea refined. Next: `/dev-workflows:create-vi <KEY>
-  @<idea.md path>` — this rewrites the existing VI, so no new Jira workitem is needed. If an authored VI
-  already exists for `<KEY>`, `/create-vi` will redirect you to `/dev-workflows:update-vi <KEY>`."*
-- **`draft`** (N open clarifications): *"This idea has N open clarification(s). You can (a) run
-  `/dev-workflows:idea @<idea.md path> --deep` to resolve them, or (b) proceed to
-  `/dev-workflows:create-vi <KEY-or-JIRA-KEY> @<idea.md path>`, which will grill you on the rest."* Use
-  the same `vi_disposition` clause as above when a `vi` source was given.
+- **`vi_disposition: rewrite`, `status: refined`** — the key is already known from the `vi` source. Relocate `idea.md` to `$SPECS_PATH/specifications/<KEY>-<slug>/idea.md` (resolve the folder by key-number, tolerating a human-adjusted slug), then execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: idea`, `deliverable_paths` = the relocated file, `title: <KEY> Refine idea for <summary>`. **No human round trip** — the key exists. Then report the §4.1 outcome line.
+- **`vi_disposition: new`, `status: refined`** — ask: `choices: ["Create the Jira workitem now and give me the key — I'll complete the handoff (Recommended)", "Leave it in the vault — I'll hand it off later", "Other… (describe)"]`. On a key matching `^[A-Z][A-Z0-9_]*-\d+$`, relocate and run `handoff-to-main` as above. On the second choice, report plainly: *"Not handed off — `idea.md` stays at `<path>`. `/create-vi <KEY>` will not find it; use the out-of-contract form `/dev-workflows:create-vi <KEY> @<path>`."*
+- **`status: draft`** (N open `[NEEDS CLARIFICATION]`) — **never hand off**, regardless of `vi_disposition`, and do not ask. By the governing principle the phase is not finished, so there is nothing to hand over. Report the N open items and offer `--deep` (`/dev-workflows:idea @<idea.md path> --deep`), or the out-of-contract route (`/dev-workflows:create-vi <KEY-or-JIRA-KEY> @<idea.md path>`, which will grill you on the rest). State explicitly that no branch or pull request was created.
 
 Also report any prior art found — matched keys with their statuses, and the alternative container path
 when one exists — **whether or not the gate fired**, so the user can relocate before `/create-vi` makes

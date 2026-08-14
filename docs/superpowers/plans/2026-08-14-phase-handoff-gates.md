@@ -1233,6 +1233,28 @@ Every row must be `YES`. A `CHECK` requires reading the surrounding lines and wr
 
 **Prove this check can fail:** re-run it with the gate pattern replaced by a string that appears only near the end of a file (for instance `Final report`) and confirm rows flip to `CHECK`. A check that reports `YES` regardless of input is measuring nothing.
 
+- [ ] **Step 2a: `absent` is overloaded — disambiguate the contract, then audit every consumer**
+
+§3.3's first column reads `absent` for rows **D, E and F**, because it describes the *repository* state. But §3.7 uses `absent` as a *return value* meaning row F alone — "`absent` is row F and is the caller's to interpret per §3.4". The only disambiguator is `stopped: true`, and it is easy to miss: the Task 13 implementer, working carefully, misread it in its own first draft and would have classified an unmerged spec as merely missing.
+
+The consequence is a Critical if a consumer matches `absent` before the stopping states: rows D/E mean "authored but never handed off", and treating them as row F makes the run **proceed on unapproved or stale content** — the precise failure J exists to prevent.
+
+**First, remove the ambiguity in `references/phase-handoff.md`:**
+
+- In §3.3, change rows D/E/F's first column from the bare word `absent` to something that plainly describes the repository rather than the return value (e.g. `not on ref`), leaving §3.7's `absent` as the sole return-value use.
+- In §3.7, state the ordering rule explicitly: **a caller tests `stopped` before `on_main`.** `on_main: absent` is returned only by row F; every stopping row returns `stopped: true` regardless of what `on_main` reads.
+
+**Then audit all seven consumers.** For each, quote the gate sentence and record whether it (a) names the stopping states **before** `absent`, or (b) keys on `stopped` explicitly. Either is correct; anything else is a defect to fix.
+
+```bash
+cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
+for f in create-vi create-ard specify design implement epics ready; do
+  echo "── /$f"; grep -h "require-on-main" commands/$f.md | head -1 | cut -c1-400; echo
+done
+```
+
+Measured at the time this step was written: `/create-vi`, `/create-ard` and `/specify` order stopping-first; `/ready` keys on `stopped` explicitly and is the only one that says so; **`/epics` lists `absent` first** with a catch-all stopping clause after it, which is the ordering that fails. Re-measure rather than trusting this list — `/design` and `/implement` were not fully readable in the sample.
+
 - [ ] **Step 2b: The producer list that only becomes wrong once the producers exist**
 
 `references/specs-repo-git.md` §4.1 has a parenthetical naming the commands that open a specs-repo branch at handoff. Task 4 deliberately left it at five (`/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/design`) because at that point in the plan it was **true** — `/idea`, `/implement`, and `/ready` were not yet producers. Tasks 6, 11, and 13 made them producers, so it is wrong **now** and nothing before this step touches it.

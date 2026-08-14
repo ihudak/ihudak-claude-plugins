@@ -641,7 +641,9 @@ relocation."
 
 Read `create-vi.md:28-32`. Replace the ladder with, in this order:
 
-1. **In-contract** — `specifications/<KEY>-<slug>/idea.md`, resolved from `<KEY>`. Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against it. On `pass`/`pass_amending`, use it and **do not relocate** — `/idea` already did. On a stopping state, stop per §4.4. On `absent`, fall through to rung 2.
+1. **In-contract** — `specifications/<KEY>-<slug>/idea.md`, resolved from `<KEY>`. Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against it. On `pass`/`pass_amending`, use it and **do not relocate** — `/idea` already did. On a stopping state, stop per §4.4. On `absent` **or `unmanaged`**, fall through to rung 2.
+
+`unmanaged` (§3.3 row H) must be named here, not left implicit. This ladder runs **before** step 4 validates `$SPECS_PATH`, and the gate needs that variable — so `unmanaged` is genuinely reachable, both when `$SPECS_PATH` is unset and when it is set but not a git repo. It behaves as `absent`: there is nothing to verify, so fall through. Step 4 still stops an unset `$SPECS_PATH` immediately afterwards, so nothing is lost by not stopping here. An unnamed state is a state nobody handles.
 2. **Out-of-contract `@path`** — read the idea where it sits, **never move it**, and do not gate it. Report once: *"out-of-contract: reading `<path>` in place; it will not be relocated or gated."*
 3. Same-session `/idea` output (confirm with the user) — out-of-contract, as rung 2.
 4. Discover under `$VAULT_PATH/Projects` — out-of-contract, as rung 2.
@@ -651,7 +653,11 @@ Rung 5 is load-bearing: **`/idea` is not a prerequisite for `/create-vi`.** An `
 
 - [ ] **Step 2: Delete the relocation step**
 
-`grep -n "Relocate \`idea.md\`" commands/create-vi.md` — remove that whole numbered step. Keep the `derived_from` provenance recording, sourcing the original path from the idea's own frontmatter `sources` instead of from the move.
+`grep -n "Relocate \`idea.md\`" commands/create-vi.md` — remove that whole numbered step. Keep the `derived_from` provenance recording, reading the original path from the resolved `idea.md` at resolution time rather than from the deleted move step. Do **not** derive it by parsing `sources[].ref`: `sources` carries entries for every provenance — `rfe`, `vi`, `community-post`, `prompt` — and only `markdown` ones are paths, so a extraction rule keyed on that field would be wrong for four of five cases.
+
+- [ ] **Step 2b: Refresh the Final report's git line**
+
+`grep -n "PR URL (if opened)" commands/create-vi.md` — Phase 5 now emits `phase-handoff.md` §4.1's `Phase handoff:` outcome line, which says more than a bare URL (branch pushed, PR number and URL, a substituted branch name, a declined handoff, or a failed push). Replace that clause so the Final report names the §4.1 line rather than only a URL. Leave the neighbouring `Specs repo:` clause alone — that is `commit-artifacts`' line and still correct.
 
 - [ ] **Step 3: Correct Phase 5's write list**
 
@@ -669,9 +675,18 @@ grep -c "require-on-main" commands/create-vi.md        # expect >=1
 grep -c "handoff-to-main" commands/create-vi.md        # expect >=1
 grep -c "the relocated" commands/create-vi.md          # expect 0
 grep -c "Relocate \`idea.md\`" commands/create-vi.md   # expect 0
-# Risk 8: absent must reach the grill-from-scratch rung, not a stop
-grep -ci "grill the VI from scratch" commands/create-vi.md   # expect >=1
-grep -ci "not a prerequisite" commands/create-vi.md          # expect >=1
+# Risk 8: absent must reach the grill-from-scratch rung, not a stop.
+# NOT `grep -ci "grill the VI from scratch"` — that phrase already occurs twice at the
+# untouched :105, so it counts 2 both before and after the change and proves nothing. It
+# was the mitigation for this task's named Critical and it was vacuous.
+# These three are new text, verified to count 0 at d72307a and >=1 after:
+grep -Fc 'On `absent`, fall through to rung 2' commands/create-vi.md   # expect 1
+grep -Fc 'is not a prerequisite for' commands/create-vi.md            # expect 1
+grep -Fc 'do not gate it' commands/create-vi.md                       # expect 1
+# and prove each discriminates:
+for s in 'On `absent`, fall through to rung 2' 'is not a prerequisite for' 'do not gate it'; do
+  git show d72307a:plugins/dev-workflows/commands/create-vi.md | grep -Fc "$s"   # expect 0 for each
+done
 # the consent choice is verbatim, including the consequence clause
 grep -c "the next phase will stop until this is on main" commands/create-vi.md  # expect 1
 ```

@@ -1235,6 +1235,27 @@ Expected, exactly: `` `/create-ard` `/create-vi` `/design` `/idea` `/implement` 
 
 This is a **timing** defect class, not a residue class: the claim was true when written and became false three tasks later. A sweep that runs only at the end of each task cannot catch it, which is why it lives here.
 
+- [ ] **Step 2c: The Final-report git clause, across all eight producers**
+
+`/create-vi` had a Final-report clause reading "the PR URL (if opened)", which Task 7 replaced with `phase-handoff.md` §4.1's `Phase handoff:` outcome line — that line conveys more than a URL (branch pushed, PR number and URL, a substituted branch name when §2.2's collision rule fired, a declined handoff, a failed push). The same stale clause exists in other producers, and each producer task only fixed its own files.
+
+```bash
+cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
+grep -rn "PR URL (if opened)" commands/ | sed -E 's/^([^:]+:[0-9]+).*/\1/'
+```
+
+Expected: **no output.** Any remaining site is a producer whose Final report understates what it now emits. Fix each by naming the §4.1 outcome line, leaving any neighbouring `Specs repo:` clause alone — that belongs to `commit-artifacts` and is still correct.
+
+Then assert every producer reports the handoff outcome somehow — either the literal `Phase handoff:` prefix or a `§4.1` citation, both of which are acceptable in this codebase's style:
+
+```bash
+for f in idea create-vi update-vi create-ard specify design implement ready; do
+  printf "%-12s %s\n" "$f" "$(grep -Fc 'Phase handoff:' commands/$f.md)$(grep -Fc '§4.1' commands/$f.md)"
+done
+```
+
+Every row must be non-`00`.
+
 - [ ] **Step 3: Risk 2 — prove `unmerged` is not a dead gate**
 
 For each of the five `ard-resolution.md` callers, quote **two** lines: the one that receives the status and the one that acts on it. A caller with a receiving line and no acting line is a dead gate — the exact shape that shipped five times in sub-project B2 and that grep alone never catches.

@@ -42,19 +42,12 @@ Key distinction from `/specify`: `/specify` (PE) *authors* the requirements spec
    `$SPECS_PATH/specifications/`. If `$SPECS_PATH` is unset, stop with a clear error naming `SPECS_PATH`
    (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
 
-3. **Map onto the specs repo + require the spec on main.** Derive provisional kebab-case slugs from the
-   relevant Jira title(s): `<vslug>` for `<VI>`, and `<eslug>` for `<EPIC>` when `focus_key` is set.
-   - **Resolve the VI dir:** `specifications/<VI>-<vslug>/` — honor an existing dir matched by
-     key-number (tolerate a stray `-`/`_` after the key and a human-adjusted slug); use the freshly
-     derived `<VI>-<vslug>` only if none exists.
-   - **Resolve the feature folder + confirm the spec is on main** (the `mgd-specifications` **main**
-     branch is the handoff surface — read from a clean main checkout, never a branch), by case:
-     - **`focus_key` set** → the per-Epic home `specifications/<VI>-<vslug>/<EPIC>-<eslug>/` (same
-       honor-existing tolerance on the `<EPIC>-<eslug>` segment). Require `specification.md` there.
-     - **`focus_key` null** → resolved in step 4 (Granularity): either the flat VI dir (stand-alone
-       Epic / broad VI spec) or a per-Epic subfolder the picker selects.
-   - If the target `specification.md` is not present on main → stop:
-     `spec not handed off — run /dev-workflows:specify for this item and merge it to the specs repo main first.`
+3. **Map onto the specs repo + require the spec on main.** Derive provisional kebab-case slugs from the relevant Jira title(s): `<vslug>` for `<VI>`, and `<eslug>` for `<EPIC>` when `focus_key` is set.
+   - **Resolve the VI dir:** `specifications/<VI>-<vslug>/` — honor an existing dir matched by key-number (tolerate a stray `-`/`_` after the key and a human-adjusted slug); use the freshly derived `<VI>-<vslug>` only if none exists.
+   - **Resolve the feature folder** by case:
+     - **`focus_key` set** → the per-Epic home `specifications/<VI>-<vslug>/<EPIC>-<eslug>/` (same honor-existing tolerance on the `<EPIC>-<eslug>` segment); the target is `specification.md` there.
+     - **`focus_key` null** → resolved in step 4 (Granularity): either the flat VI dir (stand-alone Epic / broad VI spec) or a per-Epic subfolder the picker selects.
+   - **Gate the resolved target on main** (the `mgd-specifications` **main** branch is the handoff surface, verified against `origin/<default>` by ref — never a worktree file-existence check). Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against the resolved `specification.md` path — immediately once `focus_key` is set, or once step 4 resolves the target for `focus_key` null — and map the outcome: `pass` → proceed; `pass_amending` → proceed, printing §3.3's row-B message (this run's own in-progress branch amends `specification.md`, so it legitimately differs from `<default>`) — proceed as-is, never offering a repair here, since that would discard this run's own in-progress amendments; `absent` → stop, wording unchanged: `spec not handed off — run /dev-workflows:specify for this item and merge it to the specs repo main first.`; `unmanaged` → behave exactly as before this feature; any other stopping state → stop per §4.4.
 
 4. **Granularity — the Epic is the unit of work; no fan-out. Progress-aware Epic picker.** One
    `design.md` per invocation. Resolve by `focus_key`:
@@ -62,29 +55,15 @@ Key distinction from `/specify`: `/specify` (PE) *authors* the requirements spec
      the front-end) → the Epic is chosen; the feature folder is its per-Epic home. Skip the picker; go
      to step 5.
    - **`focus_key` null** → inspect the resolved VI dir in the specs repo:
-     - it holds a **flat `specification.md`** (a stand-alone top-level Epic, or a broad VI-level spec) →
-       one design; the feature folder is the VI dir itself. Skip the picker; go to step 5.
-     - it holds **Epic subfolders** each with a `specification.md` on main → enumerate those **spec'd**
-       Epics (subfolders **without** a merged `specification.md` are not yet designable — exclude them
-       and report the excluded count). Then branch on count — this is the reusable **progress-aware
-       Epic-picker pattern** in `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`
-       (§ Progress-aware Epic picker), applied here with `/design`'s own done-predicate and
-       **enumerated from the specs repo** (not `jira-reader`):
-       - **exactly 1 spec'd Epic** → no picker; auto-select it; re-point the feature folder to its
-         per-Epic subfolder; emit a one-line notice.
-       - **≥2 spec'd Epics** → render the picker, one `choices` entry per spec'd Epic (its ○/◐/● marker
-         + key + title), then `"Other… (describe)"`. Compute each Epic's state from `/design`'s
-         **done-predicate** against that Epic's resolved folder:
-         - **○ not started** — a `specification.md` exists there but no `design.md` and no
-           `_design-session.md` → selectable.
-         - **◐ in progress** — a `_design-session.md` exists there but no `design.md` → selectable as a
-           resume (per-Epic stage resume then runs in Phase 5 from that `_design-session.md`).
-         - **● done** — a `design.md` exists there → shown greyed, **not** default-selectable; selecting
-           offers *revise*.
-         Default cursor = the first actionable row (in-progress before not-started). On selecting an
-         Epic → set `focus_key` = that Epic and re-point the feature folder to its per-Epic subfolder.
-     - neither a flat `specification.md` nor any spec'd Epic subfolder → stop
-       (`spec not handed off — run /dev-workflows:specify first`).
+     - it holds a **flat `specification.md`** (a stand-alone top-level Epic, or a broad VI-level spec) → one design; the feature folder is the VI dir itself. Skip the picker; go to step 5 (step 3's gate re-applies against this flat path).
+     - it holds **Epic subfolders** → enumerate the **spec'd** ones using the ref test `git -C "$SPECS_PATH" cat-file -e "origin/<default>:specifications/<VI>-<vslug>/<EPIC>-<eslug>/specification.md" 2>/dev/null` (exit 0 = present on `<default>`; the `2>/dev/null` is required — git writes `fatal:` to stderr on absence) — never a worktree file-existence check, which would list a branch-only Epic as designable for a user to select before step 3's gate stops on it. A subfolder that fails the test is excluded from the actionable set and counted in the excluded-count report, with the reason distinguished: *"N Epic(s) excluded — no specification.md; M excluded — specification.md not yet merged to `<default>`."* Then branch on count — this is the reusable **progress-aware Epic-picker pattern** in `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` (§ Progress-aware Epic picker), applied here with `/design`'s own done-predicate and **enumerated from the specs repo** (not `jira-reader`):
+       - **exactly 1 spec'd Epic** → no picker; auto-select it; re-point the feature folder to its per-Epic subfolder; emit a one-line notice.
+       - **≥2 spec'd Epics** → render the picker, one `choices` entry per spec'd Epic (its ○/◐/● marker + key + title), then `"Other… (describe)"`. Compute each Epic's state from `/design`'s **done-predicate** against that Epic's resolved folder:
+         - **○ not started** — a `specification.md` exists there but no `design.md` and no `_design-session.md` → selectable.
+         - **◐ in progress** — a `_design-session.md` exists there but no `design.md` → selectable as a resume (per-Epic stage resume then runs in Phase 5 from that `_design-session.md`).
+         - **● done** — a `design.md` exists there → shown greyed, **not** default-selectable; selecting offers *revise*.
+         Default cursor = the first actionable row (in-progress before not-started). On selecting an Epic → set `focus_key` = that Epic and re-point the feature folder to its per-Epic subfolder; step 3's gate re-applies against that Epic's `specification.md`.
+     - neither a flat `specification.md` nor any spec'd Epic subfolder exists at all → the equivalent of step 3's `absent` outcome; stop with its wording, unchanged.
 
 5. **Detect a prior `/design` run.** If a `_design-session.md` exists in the resolved feature folder,
    record that a resume is available — Phase 1 asks resume-vs-fresh. (Distinct from `/specify`'s
@@ -169,7 +148,7 @@ or inherit them). **No Jira re-read** — the spec is the requirements source of
 
 ## Phase 2.5 — Resolve applicable ARD (optional)
 
-Resolve any ARD for this item by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with `<VI>`, `<EPIC>` (`focus_key`), and `$SPECS_PATH`. On `status: none`, **skip the rest of this phase and proceed exactly as before** (no ARD in play). On `status: found`, carry the returned `invariants` (VI-level inherited + Epic-level `AD-N`) and `guidance_summary` into Phase 5 — the design is authored **within** them, and a necessary deviation is recorded in a `## ARD deviations` section of `design.md` + as a `- [ ]` open question (never edit the ARD). The `invariants` list is passed to `design-reviewer` in Phase 6 as `applicable_ard`.
+Resolve any ARD for this item by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with `<VI>`, `<EPIC>` (`focus_key`), and `$SPECS_PATH`. On `status: none`, **skip the rest of this phase and proceed exactly as before** (no ARD in play). On `status: unmerged`, **stop**, naming the returned `branch` and any `pr`. On `status: found`, carry the returned `invariants` (VI-level inherited + Epic-level `AD-N`) and `guidance_summary` into Phase 5 — the design is authored **within** them, and a necessary deviation is recorded in a `## ARD deviations` section of `design.md` + as a `- [ ]` open question (never edit the ARD). The `invariants` list is passed to `design-reviewer` in Phase 6 as `applicable_ard`.
 
 ---
 
@@ -302,21 +281,12 @@ Cap: one fix cycle + one re-review maximum. Phase 7 will not hand off a `design.
 
 ## Phase 7 — Handoff
 
-Write the feature folder: `design.md` (flat, alongside `specification.md`), the updated
-`specification.md` (its `## Engineering review` + open-question edits), `_design-session.md`, and
-`_design-glossary.md`. **Refuse to proceed if `design.md` has any unresolved `- [ ]`** (the
-decision-completeness gate).
+Write the feature folder: `design.md` (flat, alongside `specification.md`), the updated `specification.md` (its `## Engineering review` + open-question edits), `_design-session.md`, and `_design-glossary.md`. **Refuse to proceed if `design.md` has any unresolved `- [ ]`** (the decision-completeness gate).
 
-Then **offer** (commit-when-asked — never automatic):
-`choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git", "Cancel"]`
+Then **offer** (commit-when-asked — never automatic), presenting `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's choice array verbatim:
+`choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`
 
-On the first choice, in the specs repo (`$SPECS_PATH`): create the branch — `design/<EPIC>-<eslug>` for
-a **per-Epic** or **stand-alone-Epic** design (`<EPIC>` = `focus_key`, which for a stand-alone Epic
-equals `jira_key`), or `design/<VI>-<vslug>` for a **broad VI-level** design (`focus_key` null). Epic
-keys are globally unique, so the per-Epic form needs no VI prefix; both forms use hyphens. main is
-protected — a PR is required — so commit ONLY the feature folder (never `git add -A`), push, and open a
-PR targeting `main`. **Merged-to-main = ready for `/implement`.** Commit trailer:
-`Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
+On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: design`; `feature_folder` as resolved in Phase 0 — the per-Epic subfolder for a **per-Epic** or **stand-alone-Epic** design (`<EPIC>` = `focus_key`, which for a stand-alone Epic equals `jira_key`), or the VI dir for a **broad VI-level** design (`focus_key` null); Epic keys are globally unique, so the per-Epic form needs no VI prefix — §2.2 derives `design/<EPIC>-<eslug>` or `design/<VI>-<vslug>` from it, matching today's branch names, both forms using hyphens; `deliverable_paths` = `design.md`, the amended `specification.md`, `_design-session.md`, and `_design-glossary.md`; `title: <EPIC|VI> Add engineering design`; and `body_facts` = the `design.md` sections authored, the spec-challenge count (`## Engineering review` notes / new spec `- [ ]`), the confirmed repo set, and the `design-reviewer` verdict. **Merged-to-main = ready for `/implement`.** Emit its §4.1 outcome line in the Final report.
 
 ### Next Epic (after a per-Epic design from a multi-Epic VI)
 

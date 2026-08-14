@@ -1161,6 +1161,26 @@ done
 
 Every row must be `YES`, or `CHECK` with a written justification (for example, the first match is a mention in a phase list rather than a dispatch). Do not accept `CHECK` without reading the surrounding lines.
 
+- [ ] **Step 2b: The producer list that only becomes wrong once the producers exist**
+
+`references/specs-repo-git.md` §4.1 has a parenthetical naming the commands that open a specs-repo branch at handoff. Task 4 deliberately left it at five (`/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/design`) because at that point in the plan it was **true** — `/idea`, `/implement`, and `/ready` were not yet producers. Tasks 6, 11, and 13 made them producers, so it is wrong **now** and nothing before this step touches it.
+
+```bash
+cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
+grep -n "command that opened a specs-repo branch at handoff" -A3 references/specs-repo-git.md
+```
+
+Add `/idea`, `/implement`, and `/ready` to that list. Then assert all eight, and assert the count is eight rather than "at least the five you were looking for":
+
+```bash
+awk '/command that opened a specs-repo branch at handoff/,/^- \*\*The same command/' references/specs-repo-git.md \
+  | grep -oE '`/[a-z-]+`' | sort -u | tr '\n' ' '; echo
+```
+
+Expected, exactly: `` `/create-ard` `/create-vi` `/design` `/idea` `/implement` `/ready` `/specify` `/update-vi` `` — eight entries.
+
+This is a **timing** defect class, not a residue class: the claim was true when written and became false three tasks later. A sweep that runs only at the end of each task cannot catch it, which is why it lives here.
+
 - [ ] **Step 3: Risk 2 — prove `unmerged` is not a dead gate**
 
 For each of the five `ard-resolution.md` callers, quote **two** lines: the one that receives the status and the one that acts on it. A caller with a receiving line and no acting line is a dead gate — the exact shape that shipped five times in sub-project B2 and that grep alone never catches.

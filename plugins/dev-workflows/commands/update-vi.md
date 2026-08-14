@@ -23,6 +23,8 @@ Usage: `/update-vi <KEY> [@transcript-or-notes ...] [--no-docs]` (`--no-docs` tu
 4. **Resolve the base VI — Jira-import-first.** Execute `${CLAUDE_PLUGIN_ROOT}/references/vi-source-resolution.md` (`resolve-existing-vi <KEY>`): the re-imported `$VAULT_PATH/jira-products/<KEY>` VI (body + `-comments.md`) is the **authoritative base**; not imported → stop and ask to import; stale (>3 days) → offer re-import.
 5. **Secondary grounding (read-only).** Discover in the feature folder: the frozen specs draft (glob `<KEY>_*.md`, `issue_type: ValueIncrement`), any `*_ARD.md`, `specification.md`; plus any `@transcript` / notes path(s) passed in `$ARGUMENTS`.
 
+These reads are **not** gated: `phase-handoff.md` §3's on-main consumer check does not apply to them. `/update-vi`'s authoritative base is the Jira import, and Phase 2 already rules that the import wins where a frozen draft disagrees. Gating advisory grounding would block a legitimate VI refresh because an unrelated ARD sits on a branch. Where a discovered `*_ARD.md` or `specification.md` is **not** on the specs repo's default branch, say so in the Phase 1 confirmation beside the existing divergence notice — the user should know the grounding is unapproved, not be stopped by it.
+
 `/update-vi` is **cwd-agnostic** and needs **no repos mounted** (product-level; no code scan).
 
 **Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier run, retry an artifact commit that failed to push, and settle the branch. Prompt-free and silent when the specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal `commit-artifacts` step skips on it.
@@ -35,6 +37,7 @@ Use `choices` arrays; the last choice is always `"Other… (describe)"`.
 
 1. **Confirm** the feature folder; the resolved Jira-import base **with its import date**; and the secondary artifacts discovered (specs draft / ARD / spec / transcript).
    - Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
+   - Beside the divergence notice, report any discovered `*_ARD.md` or `specification.md` that is not on the specs repo's default branch — per Phase 0 step 5, this grounding is unapproved but advisory-only; it is never a reason to stop the run.
 2. **Scope of the update.** `choices: ["Refresh (incorporate new info / comments / transcript) (Recommended)", "Re-do (substantive re-scope driven by an ARD/spec obstacle)", "Cancel", "Other… (describe)"]`.
 
 ---
@@ -91,7 +94,7 @@ Act on the verdict as `/create-vi` Phase 4 does: on `BLOCK`, fix the BLOCKER fin
 
 1. **Archive the current canonical VI** (if one exists) to `<feature-folder>/revisions/<KEY>_<slug>_<YYYYMMDD>.md` before overwrite (same-day second revision → suffix `-2`, `-3`, …).
 2. **Write the refreshed VI** to the **canonical** path `<feature-folder>/<KEY>_<slug>.md`. Record `revision_of: <archived snapshot path>` and `built_from_import: <YYYY-MM-DD>` (the Jira-import date the update was built from) in the frontmatter.
-3. **Offer git** (commit-when-asked — never automatic): `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git", "Cancel"]`. On the first choice, in `$SPECS_PATH`: branch `vi/<KEY>-<slug>-update`; commit **only** the feature folder (never `git add -A`); push; PR to `main`. Commit trailer: `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
+3. **Hand off** (commit-when-asked — never automatic). Present `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim: `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`. On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: vi`; `feature_folder` as resolved in Phase 0; `deliverable_paths` = the canonical VI file (step 2) and the archived snapshot file (step 1); `title: <KEY> Update Value Increment`; and `body_facts` = which sections changed, the Jira-import date the update was built from, the open-question count, and the `vi-reviewer` verdict. Emit its §4.1 outcome line in the Final report.
 
 ### Jira round-trip (document to the user — they will otherwise miss it)
 
@@ -135,4 +138,4 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git 
 
 ## Final report
 
-Report: the canonical VI path + the archived snapshot path; which sections changed; the Jira-import date the update was built from; open-question count; the `vi-reviewer` verdict; the Dynatrace style-check outcome; the PR URL (if opened); the Jira round-trip reminder; resolved model routing (+ any Opus degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; and the next-step recommendations.
+Report: the canonical VI path + the archived snapshot path; which sections changed; the Jira-import date the update was built from; open-question count; the `vi-reviewer` verdict; the Dynatrace style-check outcome; the `Phase handoff:` outcome line from `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1); the Jira round-trip reminder; resolved model routing (+ any Opus degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; and the next-step recommendations.

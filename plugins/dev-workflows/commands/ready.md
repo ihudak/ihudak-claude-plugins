@@ -83,7 +83,7 @@ MUST be `"Other… (describe)"`.
    - **VI-level** (`focus_key` null) — locate `<VI-dir>/<VI>_ARD.md` (resolved via Phase 2.5, not here) and `<VI-dir>/specification.md` (a VI-level spec is optional per `workflow-states.md`); then enumerate **every** Epic subdirectory under `<VI-dir>` that matches a key-number pattern, and for each locate `{<EPIC>_ARD.md, specification.md, design.md}` — this is per-Epic and plural, because a VI's "Ready for Implementation" status requires **every in-scope Epic** to carry spec + design (`workflow-states.md`'s VI row).
    - **Epic-level** (`focus_key` set) — locate the VI-level `<VI-dir>/<VI>_ARD.md` (inherited invariants) plus the single focus Epic's `{<EPIC>_ARD.md, specification.md, design.md}` under `<VI-dir>/<EPIC>-<eslug>/`.
 
-   For each `specification.md` and `design.md` path located above (the `_ARD.md` files are handled by Phase 2.5's `ard-resolution.md`, not here), execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against its repo-relative path and map its §3.7 return value by `stopped` first, never by `on_main` alone — never a stop, per this command's defining trait: `stopped: false` with `on_main: pass`/`pass_amending` → **present** (with its absolute path); `stopped: false` with `on_main: absent` → **missing**, exactly as before this feature (§3.4's `/ready` row — this is row F only, never rows D/E, which also read `absent` on `origin/<default>` but return `stopped: true`); `stopped: false` with `on_main: unmanaged` → fall back to a raw filesystem presence check, exactly as before this feature (row H's own silent-skip contract); `stopped: true` (rows C′, C after a failed retry, D, E, G, or the run's own `specs_git: blocked`, row I) → **authored, not handed off**, recording the returned `branch`/`pr`/`degraded` clause verbatim as a readiness finding — this run does not prompt, retry, or stop on that state, because Phase 0 step 3 already gated the specs repo's own checkout before this step ever runs. Record each ARD as present (with its absolute path) or absent — its on-main state is Phase 2.5's job. Do not open/read file contents yet beyond what's needed for these checks — full reads happen in Phase 4 via the reviewer.
+   For each `specification.md` and `design.md` path located above (the `_ARD.md` files are handled by Phase 2.5's `ard-resolution.md`, not here), execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against its repo-relative path and map its §3.7 return value by `stopped` first, never by `on_main` alone — never a stop, per this command's defining trait: `stopped: false` with `on_main: pass`/`pass_amending` → **present** (with its absolute path); `stopped: false` with `on_main: absent` → **missing**, exactly as before this feature (§3.4's `/ready` row — this is row F only, never rows D/E, which also read `absent` on `origin/<default>` but return `stopped: true`); `stopped: false` with `on_main: unmanaged` → fall back to a raw filesystem presence check, exactly as before this feature (row H's own silent-skip contract); `stopped: true` → still never a stop for `/ready` — map the row to exactly one of three ⚠ reasons, never conflating them, because they are three different repository states, not one: rows D/E → ⚠ **authored only on `<branch>`, not merged** (naming the branch and any open PR); rows C′/C after a failed retry → ⚠ **on `<default>` but your local checkout is stale or dirty, so it could not be confirmed**; rows G/I (including the run's own `specs_git: blocked`) → ⚠ **could not be verified against any ref** (naming the returned `degraded` clause where present). Each is recorded verbatim as a readiness finding — this run does not prompt, retry, or stop on any of the three, because Phase 0 step 3 already gated the specs repo's own checkout before this step ever runs. Record each ARD as present (with its absolute path) or absent — its on-main state is Phase 2.5's job. Do not open/read file contents yet beyond what's needed for these checks — full reads happen in Phase 4 via the reviewer.
 
 3. **Quick Jira status peek (display only — not the ground truth).** Read
    `<jira_export_root>/<jira_key>-index.md`'s `| Key | Type | Status | Summary | Role |` table directly
@@ -178,10 +178,13 @@ Resolve any applicable ARD by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resol
 Mechanically build three inputs for the reviewer — orchestrator-inline, no subagent, no user prompt.
 
 **(a) Coverage map.** For each requirement in Phase 2's `requirements[]` (by `id`), grep its ID token
-across the in-scope Epic `.md` file(s) and any `specification.md`(s)/`design.md`(s) Phase 1 marked
-**present** (✅). An artifact Phase 1 marked **authored, not handed off** (⚠) has no local path on the
-checked-out `<default>` to grep — it is excluded from this grep pass, not silently treated as absent;
-its own ⚠ finding already carries in Phase 3(b). Record, per requirement: which Epic(s) mention it,
+across the in-scope Epic `.md` file(s) and any `specification.md`(s)/`design.md`(s) Phase 1 found locally
+— that is every artifact except the one ⚠ reason where no local copy exists at all: **authored only on
+`<branch>`, not merged** (rows D/E), which has no local path on the checked-out `<default>` to grep and is
+excluded from this grep pass, not silently treated as absent; its own ⚠ finding already carries in Phase
+3(b). The other two ⚠ reasons (rows C′/C's stale-or-dirty local checkout; rows G/I's unverifiable-against-
+any-ref) still have a local file on disk and are grepped exactly like a ✅ artifact — their ⚠ is about
+handoff verification, not about content availability. Record, per requirement: which Epic(s) mention it,
 whether a `specification.md` mentions it, whether a `design.md` mentions it, or "not found by ID in any
 artifact". **Acknowledge the limitation** (carried to the final report's Assumptions section): this is an
 ID-grep, not semantic matching — an artifact may cover a requirement thematically without repeating its
@@ -190,11 +193,12 @@ literal ID; `readiness-reviewer` reads the full artifact text and can catch what
 **(b) Status-expectation checklist.** Look up the declared VI status (and, when in scope, each Epic
 status) on the matching ladder in `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`, list that
 status's "Expected artifacts" column, and mark each expected artifact present ✅, absent ❌, or — per
-Phase 1's `require-on-main` check and Phase 2.5's `status: unmerged` handling — **authored, not handed
-off** ⚠ (naming the branch/PR/degraded clause carried forward) against Phase 1's inventory. A ⚠ artifact
-is a finding for the reviewer's "Status consistency" dimension, at no less than MAJOR severity — it does
-not satisfy the status the way a merged ✅ does, but it is not a BLOCKER and never stops this run. This is
-the mechanical half of that dimension.
+Phase 1's `require-on-main` check and Phase 2.5's `status: unmerged` handling — ⚠, carrying forward
+whichever of Phase 1's three reasons applies (authored only on a branch, not merged; on `<default>` but
+locally unconfirmed; or unverifiable against any ref) against Phase 1's inventory. A ⚠ artifact of any of
+the three reasons is a finding for the reviewer's "Status consistency" dimension, at no less than MAJOR
+severity — it does not satisfy the status the way a merged ✅ does, but it is not a BLOCKER and never stops
+this run. This is the mechanical half of that dimension.
 
 **(c) Repo-availability presence-check (best-effort, presence only — never scanning).**
 

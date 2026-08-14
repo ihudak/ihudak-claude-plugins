@@ -1,6 +1,6 @@
 ---
 name: ready
-description: Status-anchored readiness gate. Reads the Jira workflow status of a VI/Epic and verifies the ARD/spec/design artifacts justify it and the next transition; returns SUPPORTED / PARTIAL / NOT-SUPPORTED with a coverage roll-up. Read-only — never sets Jira status, never commits the deliverable. Gates on the Opus readiness-reviewer.
+description: Status-anchored readiness gate. Reads the Jira workflow status of a VI/Epic and verifies the ARD/spec/design artifacts justify it and the next transition; returns SUPPORTED / PARTIAL / NOT-SUPPORTED with a coverage roll-up. Never sets Jira status; never stops on an unmerged or missing artifact — that becomes a readiness finding instead, never a run-stopping gate. Commits its `_readiness.md` deliverable only via consent, never automatically. Gates on the Opus readiness-reviewer.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -13,15 +13,9 @@ transition, against the rubric in `${CLAUDE_PLUGIN_ROOT}/references/workflow-sta
 `SUPPORTED` / `PARTIAL` / `NOT-SUPPORTED` with a requirement coverage roll-up and named gaps, gated on
 the Opus `readiness-reviewer`.
 
-Key distinction from every other pipeline command: `/ready` **authors nothing**. It never writes a VI,
-Epic, ARD, spec, or design; it never touches Jira; it never branches (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none),
-and it never commits the deliverable. Its only authored write is an overwritten `_readiness.md` snapshot under `$SPECS_PATH`,
-and that one is the user's to commit — the terminal `commit-artifacts` step commits ONLY the run's
-bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1), which
-`_readiness.md` is not. Where
-`/design`'s repo gate is a **strict, hard-stop** mount check because it is about to ground code
-decisions, `/ready`'s repo check is **best-effort presence only** — it never scans code, it only notes
-whether a needed repo is mounted.
+Key distinction from every other pipeline command: `/ready` **authors nothing** in the VI/Epic/ARD/spec/design sense — it never writes any of those, and it never touches Jira. Its only authored write is an overwritten `_readiness.md` snapshot under `$SPECS_PATH`, and it branches only via the `phase-handoff.md` §4.3 consent choice to hand that snapshot off, creating `ready/<KEY>-<slug>` — `specs-preflight` itself still creates none, switching `$SPECS_PATH` only between branches that already exist and are plugin-created (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2). `_readiness.md` is likewise committed only through that same §4.3 choice, never automatically — declining leaves it uncommitted; the terminal `commit-artifacts` step commits ONLY the run's bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1), which `_readiness.md` is not. Where `/design`'s repo gate is a **strict, hard-stop** mount check because it is about to ground code decisions, `/ready`'s repo check is **best-effort presence only** — it never scans code, it only notes whether a needed repo is mounted.
+
+Key distinction from every other consumer of `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3 (`require-on-main`) and `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md`: every other caller stops when a gated ARD/spec/design resolves off the specs repo's default branch; `/ready` **never** does. That state becomes a readiness finding — "authored but not handed off" — that caps the eventual verdict at `PARTIAL`; an artifact that is absent outright is recorded as missing in the coverage roll-up, exactly as before this feature. Reporting readiness is `/ready`'s whole function, so a run that stops instead of reporting has failed at the one thing it exists to do.
 
 Key distinction from `/design`'s Epic-picker behavior: `/ready`'s two-key grammar treats a **null**
 `focus_key` as a first-class **VI-level** check (workflow-states.md's VI ladder), not something that
@@ -85,18 +79,11 @@ MUST be `"Other… (describe)"`.
 1. **Confirm the resolved scope.**
    `choices: ["Use <VI dir> [+ <Epic subdir>] (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]`
 
-2. **Artifact inventory (mechanical presence check — no content judgment yet).** By mode:
-   - **VI-level** (`focus_key` null) — check for `<VI-dir>/<VI>_ARD.md` and `<VI-dir>/specification.md`
-     (a VI-level spec is optional per `workflow-states.md`); then enumerate **every** Epic subdirectory
-     under `<VI-dir>` that matches a key-number pattern, and for each record whether
-     `{<EPIC>_ARD.md, specification.md, design.md}` exist — this is per-Epic and plural, because a VI's
-     "Ready for Implementation" status requires **every in-scope Epic** to carry spec + design
-     (`workflow-states.md`'s VI row).
-   - **Epic-level** (`focus_key` set) — check for the VI-level `<VI-dir>/<VI>_ARD.md` (inherited
-     invariants) plus the single focus Epic's `{<EPIC>_ARD.md, specification.md, design.md}` under
-     `<VI-dir>/<EPIC>-<eslug>/`.
-   Record each as present (with its absolute path) or absent. Do not open/read file contents yet beyond
-   what's needed to confirm existence — full reads happen in Phase 4 via the reviewer.
+2. **Artifact inventory (mechanical presence + handoff check — no content judgment yet).** By mode:
+   - **VI-level** (`focus_key` null) — locate `<VI-dir>/<VI>_ARD.md` (resolved via Phase 2.5, not here) and `<VI-dir>/specification.md` (a VI-level spec is optional per `workflow-states.md`); then enumerate **every** Epic subdirectory under `<VI-dir>` that matches a key-number pattern, and for each locate `{<EPIC>_ARD.md, specification.md, design.md}` — this is per-Epic and plural, because a VI's "Ready for Implementation" status requires **every in-scope Epic** to carry spec + design (`workflow-states.md`'s VI row).
+   - **Epic-level** (`focus_key` set) — locate the VI-level `<VI-dir>/<VI>_ARD.md` (inherited invariants) plus the single focus Epic's `{<EPIC>_ARD.md, specification.md, design.md}` under `<VI-dir>/<EPIC>-<eslug>/`.
+
+   For each `specification.md` and `design.md` path located above (the `_ARD.md` files are handled by Phase 2.5's `ard-resolution.md`, not here), execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against its repo-relative path and map its §3.7 return value by `stopped` first, never by `on_main` alone — never a stop, per this command's defining trait: `stopped: false` with `on_main: pass`/`pass_amending` → **present** (with its absolute path); `stopped: false` with `on_main: absent` → **missing**, exactly as before this feature (§3.4's `/ready` row — this is row F only, never rows D/E, which also read `absent` on `origin/<default>` but return `stopped: true`); `stopped: false` with `on_main: unmanaged` → fall back to a raw filesystem presence check, exactly as before this feature (row H's own silent-skip contract); `stopped: true` (rows C′, C after a failed retry, D, E, G, or the run's own `specs_git: blocked`, row I) → **authored, not handed off**, recording the returned `branch`/`pr`/`degraded` clause verbatim as a readiness finding — this run does not prompt, retry, or stop on that state, because Phase 0 step 3 already gated the specs repo's own checkout before this step ever runs. Record each ARD as present (with its absolute path) or absent — its on-main state is Phase 2.5's job. Do not open/read file contents yet beyond what's needed for these checks — full reads happen in Phase 4 via the reviewer.
 
 3. **Quick Jira status peek (display only — not the ground truth).** Read
    `<jira_export_root>/<jira_key>-index.md`'s `| Key | Type | Status | Summary | Role |` table directly
@@ -107,9 +94,7 @@ MUST be `"Other… (describe)"`.
 4. **Display** (context, no further prompt): resolved cwd; resolved VI dir (+ Epic subdir); resolved
    `$SPECS_PATH`; the artifact inventory table from step 2; the status peek from step 3.
 
-No branching context is shown — this command never branches (still true — `specs-preflight` only
-switches `$SPECS_PATH` between branches that already exist, and only ones the plugin created, per
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2; it creates none).
+No branching context is shown — nothing here branches this run; the only branch `/ready` ever creates is `ready/<KEY>-<slug>`, and only later, at Phase 5's handoff, and only on the §4.3 consent choice. `specs-preflight` itself still creates none, switching `$SPECS_PATH` only between branches that already exist and are plugin-created, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2.
 
 ---
 
@@ -184,6 +169,7 @@ Resolve any applicable ARD by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resol
   never authors a deviation record itself — it only checks whether one already exists in the artifacts
   it reads (an artifact that violates an `AD-N` **without** a matching
   `- ARD deviation: … flag: architect` line is a BLOCKER per the reviewer's ARD-conformance dimension).
+- **`status: unmerged`** → **never stop**, the one exemption `ard-resolution.md`'s no-regression rule names. Carry the returned `invariants` forward to Phase 4 as `applicable_ard` exactly as `found` does, and additionally carry the returned `branch`/`pr` forward as a readiness finding — "ARD authored, not handed off" — into Phase 3(b)'s status-expectation table, so it reaches `readiness-reviewer` and caps the eventual verdict at `PARTIAL` rather than letting a not-yet-merged ARD read as equivalent to a merged one.
 
 ---
 
@@ -192,17 +178,23 @@ Resolve any applicable ARD by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resol
 Mechanically build three inputs for the reviewer — orchestrator-inline, no subagent, no user prompt.
 
 **(a) Coverage map.** For each requirement in Phase 2's `requirements[]` (by `id`), grep its ID token
-across the in-scope Epic `.md` file(s), `specification.md`(s), and `design.md`(s) found in Phase 1's
-inventory. Record, per requirement: which Epic(s) mention it, whether a `specification.md` mentions it,
-whether a `design.md` mentions it, or "not found by ID in any artifact". **Acknowledge the limitation**
-(carried to the final report's Assumptions section): this is an ID-grep, not semantic matching — an
-artifact may cover a requirement thematically without repeating its literal ID; `readiness-reviewer`
-reads the full artifact text and can catch what the grep misses.
+across the in-scope Epic `.md` file(s) and any `specification.md`(s)/`design.md`(s) Phase 1 marked
+**present** (✅). An artifact Phase 1 marked **authored, not handed off** (⚠) has no local path on the
+checked-out `<default>` to grep — it is excluded from this grep pass, not silently treated as absent;
+its own ⚠ finding already carries in Phase 3(b). Record, per requirement: which Epic(s) mention it,
+whether a `specification.md` mentions it, whether a `design.md` mentions it, or "not found by ID in any
+artifact". **Acknowledge the limitation** (carried to the final report's Assumptions section): this is an
+ID-grep, not semantic matching — an artifact may cover a requirement thematically without repeating its
+literal ID; `readiness-reviewer` reads the full artifact text and can catch what the grep misses.
 
 **(b) Status-expectation checklist.** Look up the declared VI status (and, when in scope, each Epic
 status) on the matching ladder in `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`, list that
-status's "Expected artifacts" column, and mark each expected artifact present ✅ or absent ❌ against
-Phase 1's inventory. This is the mechanical half of the reviewer's "Status consistency" dimension.
+status's "Expected artifacts" column, and mark each expected artifact present ✅, absent ❌, or — per
+Phase 1's `require-on-main` check and Phase 2.5's `status: unmerged` handling — **authored, not handed
+off** ⚠ (naming the branch/PR/degraded clause carried forward) against Phase 1's inventory. A ⚠ artifact
+is a finding for the reviewer's "Status consistency" dimension, at no less than MAJOR severity — it does
+not satisfy the status the way a merged ✅ does, but it is not a BLOCKER and never stops this run. This is
+the mechanical half of that dimension.
 
 **(c) Repo-availability presence-check (best-effort, presence only — never scanning).**
 
@@ -289,11 +281,22 @@ plugin-gap halt (see Invariants).
    <Phase 3(c) result>
 
    ---
-   Generated by `/ready`. NOT committed automatically — commit this file yourself if you want to share
-   this readiness snapshot with your team.
+   Generated by `/ready`. Committing and handing this off to `<default>` is offered, never automatic —
+   see this run's terminal report for the outcome.
    ```
 
-3. **Emit the terminal report to stdout:**
+3. **Hand off** `_readiness.md` (commit-when-asked — never automatic). Present
+   `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim:
+   `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`.
+   On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2)
+   with `prefix: ready`; `feature_folder` = the VI dir or Epic subdir step 2 wrote into;
+   `deliverable_paths` = `_readiness.md`; `title: <VI|EPIC> Update readiness snapshot`; and `body_facts` =
+   the verdict, the coverage roll-up (N/M, P%), and the checked Jira status(es). Because `_readiness.md`
+   is overwritten every run, §2.2's collision rule fires on most re-runs against an already-merged prior
+   branch — expect the `-2`/`-3` substitution, and report it via the §4.1 outcome line as that section
+   requires. Emit that line in the terminal report's Phase handoff section (step 4).
+
+4. **Emit the terminal report to stdout:**
 
    ```
    ## Readiness Report
@@ -317,7 +320,7 @@ plugin-gap halt (see Invariants).
    - Epic <KEY>: <status> — _or omit when VI-level_
 
    ### Artifact inventory (Phase 1)
-   [present ✅ / absent ❌ per artifact, one line each]
+   [present ✅ / absent ❌ / authored, not handed off ⚠ (branch/PR named) per artifact, one line each]
 
    ### Verdict
    [SUPPORTED | PARTIAL | NOT-SUPPORTED]
@@ -340,8 +343,11 @@ plugin-gap halt (see Invariants).
    - [any other caveats — e.g. non-main/dirty specs checkout override]
 
    ### `_readiness.md`
-   Written (overwritten) to: <absolute path>. NOT committed — `/ready` never commits this snapshot
-   (the terminal step commits only the run's bookkeeping artifacts); commit it yourself to share it.
+   Written (overwritten) to: <absolute path>.
+
+   ### Phase handoff
+   [the step-3 §4.1 outcome line — e.g. "Phase handoff: ready/<KEY>-<slug> pushed — PR #<n> open (<url>).
+   The next phase runs once it is merged." or the declined/gate-failed/nothing-to-commit variant]
 
    ### Next step
    [Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. SUPPORTED → Team →
@@ -360,11 +366,12 @@ plugin-gap halt (see Invariants).
    Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
    ```
 
-`/ready` **NEVER** writes to Jira, `jira-products/`, or the vault, and **NEVER auto-commits**
-`_readiness.md` — git is the user's responsibility (still true — `_readiness.md` is the deliverable,
-an OTHER path that the terminal `commit-artifacts` step never stages, per
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1). Phases 6–8 below append their own short
-trailing notices after this report; they do not reopen or restate it.
+`/ready` **NEVER** writes to Jira, `jira-products/`, or the vault. It commits and hands off
+`_readiness.md` only through step 3's `phase-handoff.md` §4.3 consent choice — declining leaves it
+uncommitted; that handoff is independent of the terminal `commit-artifacts` step, which stages ONLY the
+run's bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1) and
+never `_readiness.md` itself. Phases 6–8 below append their own short trailing notices after this
+report; they do not reopen or restate it.
 
 ---
 
@@ -375,9 +382,10 @@ feeds the still-to-come final report — here the readiness report already print
 
 a. `project_root` = `$SPECS_PATH` for this run (where `_readiness.md` was written). Run
    `git diff --stat` from `project_root` if it is a git repo (it should be, per Phase 0 step 3) —
-   just to report what changed; this command never commits `_readiness.md` or anything else outside
-   the bounded artifact paths the terminal `commit-artifacts` step stages
-   (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
+   just to report what changed. Phase 5 step 3 already ran the only commit `_readiness.md` ever gets, so
+   this diff is clean if the user consented there and still shows `_readiness.md` if they declined; this
+   phase itself commits nothing beyond the bounded artifact paths the terminal `commit-artifacts` step
+   stages (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
 b. Compose a **change summary block**:
 
 ```
@@ -467,10 +475,11 @@ Emit this phase's own short output:
 - Feedback persisted: [path, or "no plugin-facing signal — nothing persisted"]
 ```
 
-ADDITIVE — this phase NEVER fails the run, NEVER commits (still true — this phase writes only the
-maintenance/feedback artifacts; those writes are committed by the terminal `commit-artifacts` step
-in Phase 8, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes into
-`jira-products/`, `jira_export_root`, or the current working directory.
+ADDITIVE — this phase NEVER fails the run and NEVER commits its own output (still true — it writes only
+the maintenance/feedback artifacts, which the terminal `commit-artifacts` step in Phase 8 commits, per
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4; the only commit this run makes before Phase 8 is
+Phase 5 step 3's `_readiness.md` handoff, which is unrelated), and NEVER writes into `jira-products/`,
+`jira_export_root`, or the current working directory.
 
 ---
 
@@ -498,9 +507,10 @@ Emit this phase's own short output:
 ```
 
 ADDITIVE — the follow-ups also remain in the Phase 5 report's Findings/coverage sections. This
-phase NEVER fails the run, NEVER commits (still true — this phase only writes follow-up files;
-those writes are committed by the terminal `commit-artifacts` step in Phase 8, per
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes into `jira-products/`,
+phase NEVER fails the run and NEVER commits its own output (still true — it only writes follow-up
+files, which the terminal `commit-artifacts` step in Phase 8 commits, per
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4; unrelated to Phase 5 step 3's `_readiness.md`
+handoff, the only commit this run makes before Phase 8), and NEVER writes into `jira-products/`,
 `jira_export_root`, or the current working directory.
 
 ---
@@ -541,9 +551,11 @@ run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Because th
 composed before this phase, **print its §6 outcome line here**, as the run's last output — prefixed
 `Specs repo:`, with any guard notice repeated in full.
 
-ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git remains the user's
-responsibility — `/ready` never branches or writes to Jira; the terminal step above commits only the
-bounded session-artifact paths in `$SPECS_PATH`), and NEVER writes into `jira-products/`,
+ADDITIVE — this phase itself NEVER fails the run and touches neither `_readiness.md`'s commit nor its
+branch (whichever of those happened, happened earlier, in Phase 5 step 3, behind the §4.3 consent
+choice — `ready/<KEY>-<slug>` is the only branch `/ready` ever creates, and this terminal step neither
+creates it nor undoes it; it only commits the bounded session-artifact paths in `$SPECS_PATH` onto
+whatever branch Phase 5 left checked out), and NEVER writes to Jira or into `jira-products/`,
 `jira_export_root`, or the current working directory; no user name is ever written (§10 privacy).
 
 ---
@@ -552,11 +564,17 @@ bounded session-artifact paths in `$SPECS_PATH`), and NEVER writes into `jira-pr
 
 - NEVER set or write Jira status — status is read-only input (Phase 2), never output
 - NEVER write inside `jira-products/` or the vault
-- NEVER branch — this command never creates a git branch (still true — `specs-preflight` only switches
-  `$SPECS_PATH` between branches that already exist, and only plugin-created ones, per
-  `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2)
-- NEVER auto-commit `_readiness.md` (git is the user's responsibility) (still true — `_readiness.md` is
-  the deliverable, an OTHER path the terminal `commit-artifacts` step never stages, §2.1)
+- Branches only via the Phase 5 step 3 `phase-handoff.md` §4.3 consent choice, creating
+  `ready/<KEY>-<slug>` — `specs-preflight` itself still creates no branch, a hard invariant: it only
+  switches `$SPECS_PATH` between branches that already exist, and only plugin-created ones, per
+  `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2
+- NEVER auto-commit `_readiness.md` — the commit is offered at that same §4.3 choice, never automatic;
+  declining leaves `_readiness.md` uncommitted (still true — `_readiness.md` is the deliverable, an
+  OTHER path the terminal `commit-artifacts` step never stages, §2.1)
+- NEVER stop on a `require-on-main` or `ard-resolution.md` outcome for a gated ARD/spec/design (Phase 1
+  step 2, Phase 2.5) — `/ready` is the one caller these gates never stop: an artifact off `<default>`
+  becomes a readiness finding ("authored, not handed off") that caps the verdict at `PARTIAL`; an absent
+  artifact is recorded as missing in the coverage roll-up, exactly as before this feature
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - doc-only — repo check is presence-only, no scanning (Phase 3c; never dispatches `code-scanner`)
 - ALWAYS end with a `### Next step` per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never
@@ -581,7 +599,8 @@ bounded session-artifact paths in `$SPECS_PATH`), and NEVER writes into `jira-pr
 - ALWAYS spawn Phase 6's four maintenance agents in a single message — never sequentially
 - ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
 - ARD steps (Phase 2.5, the reviewer's `applicable_ard`, the report's ARD-conformance section) are
-  ADDITIVE and guarded on `status: found` — a run with no ARD is byte-identical to before
+  ADDITIVE and guarded on `status: found` or `status: unmerged` — a run with no ARD (`status: none`) is
+  byte-identical to before
 - ALL written claims trace to Jira keys (from `jira-reader`) or artifact paths actually read; never
   invent content the sources don't contain
 - ALWAYS end with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write — carrying the verdict as carry-forward — runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a same-role `/compact` suggestion + `/rename <VI-ID>-<slug>-team`; guidance only, never auto-run.

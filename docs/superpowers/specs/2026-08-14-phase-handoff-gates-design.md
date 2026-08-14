@@ -250,11 +250,13 @@ The placement is load-bearing, not stylistic, because of what the two nearby cla
 
 ### 5.1 `/idea`'s handoff, driven by `vi_disposition`
 
-`/idea` Phase 4 already computes `vi_disposition`. Phase 5 now completes the handshake:
+`/idea` Phase 4 already computes `vi_disposition`. Phase 5 now completes the handshake.
 
-- **`vi_disposition: rewrite`** — the key is already known from the `vi` source. Relocate to `specifications/<KEY>-<slug>/idea.md`, then `handoff-to-main`. **No human round trip.**
-- **`vi_disposition: new`, `status: refined`** — offer: *"create the Jira workitem and give me the key, and I'll complete the handoff."* On receiving a key matching `^[A-Z][A-Z0-9_]*-\d+$`, relocate and run `handoff-to-main`. If the user declines, the idea stays in the vault and Phase 5 reports plainly that it was **not handed off**, and that `/create-vi` will need the out-of-contract `@<path>` form.
-- **`status: draft`** (open `[NEEDS CLARIFICATION]` items) — **never hand off.** The phase is not finished. Offer `--deep`, or the explicit out-of-contract route.
+**The three branches must be mutually exclusive on their face, and every one names `status`.** `vi_disposition` and `status` are computed **independently** in Phase 4 — `vi_disposition` at the write-path gate (`idea.md:228`), `status` from the remaining `[NEEDS CLARIFICATION]` count (`idea.md:255`). So a `vi`-sourced idea can carry `vi_disposition: rewrite` **and** `status: draft` at once. A branch keyed on `vi_disposition` alone therefore overlaps the draft branch, and under first-match-wins a **draft idea would hand off** — the precise outcome the governing principle forbids. Ordering the bullets differently does not fix it; the conditions have to be disjoint.
+
+- **`status: draft`** (any open `[NEEDS CLARIFICATION]`) — **never hand off, whatever `vi_disposition` says**, and do not ask. The phase is not finished. Offer `--deep`, or the explicit out-of-contract route, and state that no branch or pull request was created.
+- **`status: refined` + `vi_disposition: rewrite`** — the key is already known from the `vi` source. Relocate to `specifications/<KEY>-<slug>/idea.md`, then `handoff-to-main`. **No human round trip.**
+- **`status: refined` + `vi_disposition: new`** — offer: *"create the Jira workitem and give me the key, and I'll complete the handoff."* On receiving a key matching `^[A-Z][A-Z0-9_]*-\d+$`, relocate and run `handoff-to-main`. If the user declines, the idea stays in the vault and Phase 5 reports plainly that it was **not handed off**, and that `/create-vi` will need the out-of-contract `@<path>` form.
 
 ## 6. Consumer wiring
 

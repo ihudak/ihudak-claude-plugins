@@ -276,7 +276,7 @@ Measured in the canonical repo, live surfaces only (`CHANGELOG.md` and `docs/` e
 
 | Claim | Measured sites | Change |
 |---|---|---|
-| Branch authority is `^(vi\|ard\|spec\|design)/` | 7 lines / 3 files: `references/specs-repo-git.md:31,80,291,370`; `CLAUDE.md:123,267`; `plugins/dev-workflows/README.md:348` | add `idea` and `ready` |
+| Branch authority is `^(vi\|ard\|spec\|design)/` | **8 lines / 3 files**: `references/specs-repo-git.md` ×5 — the two regex forms, the §3.3 G2 table row, the §4.1 `/*` form, and the §5 G2 notice's prose list — plus `CLAUDE.md:123,267` and `plugins/dev-workflows/README.md:348` | add `idea` and `ready` |
 | "The plugin never opens a PR / never calls a PR REST API" | 6 lines / 4 files: `references/specs-repo-git.md:20`; `references/finish-and-handoff.md:6,43,74`; `commands/document.md:1080`; `README.md:217` | restate as **capability**, not policy: GitHub ⇒ `gh pr create` (it wraps the API, already allowed); Bitbucket has no CLI ⇒ push the branch and instruct. `specs-repo-git.md:20` stays true for its own two entry points but is scoped and cross-referenced |
 | `/create-vi` relocates `idea.md` | 7 lines / 4 files: `commands/create-vi.md:59,195`; `commands/idea.md:13,276`; `README.md:17,96`; `CLAUDE.md:147` | relocation moves to `/idea` |
 | `/idea` writes no specs deliverable | **1 line**: `commands/idea.md:3` — the frontmatter `description` ("no specs deliverable — the only `$SPECS_PATH` writes are the run's own session artifacts"). Measured: `CLAUDE.md` does **not** carry this claim, and neither does either README | it now does |

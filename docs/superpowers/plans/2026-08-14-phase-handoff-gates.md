@@ -106,14 +106,14 @@ These were executed against a real specs repo before the plan was written. A sub
 
 Use fixed-string matching (`grep -F`) for anything containing regex metacharacters — an escaped-regex assertion that fails to compile silently returns 0 and proves nothing.
 
+Only the commands §2 actually contains. `gh pr list -R`, `cat-file -e`, and `diff --quiet` live in §3 and are **Task 2's** to assert — asserting them here would either fail or pressure you into importing Task 2's content early.
+
 ```bash
 grep -Fc 'sed -E' references/phase-handoff.md                    # expect >=1
 grep -Fc 'gh pr create -R' references/phase-handoff.md           # expect >=1
-grep -Fc 'gh pr list -R' references/phase-handoff.md             # expect >=1
 grep -Fc 'status --porcelain --untracked-files=all' references/phase-handoff.md  # expect >=1
 grep -Fc 'merge-base --is-ancestor' references/phase-handoff.md  # expect >=1
-grep -Fc 'cat-file -e' references/phase-handoff.md               # expect >=1
-grep -Fc 'diff --quiet' references/phase-handoff.md              # expect >=1
+grep -Fc 'rev-parse --verify --quiet' references/phase-handoff.md # expect >=1
 ```
 
 **Prove the assertion can fail** before trusting it — the point of this step is that a check you cannot show failing proves nothing:
@@ -199,6 +199,21 @@ awk '/^### 3\.4 Row F delegates/,/^### 3\.5/' references/phase-handoff.md \
 ```
 
 Expected: `7`. Then read the table and confirm the `/create-vi` row contains the sentence `**\`/idea\` is not a prerequisite.**` — that is Risk 8's anchor.
+
+- [ ] **Step 4b: Assert §3's verified primitives landed unaltered**
+
+These three strings exist only in §3, so they are this task's to assert — Task 1 could not, and its own Step 5 was corrected to stop trying. Each was executed against a real specs repo before the plan was written; a substituted equivalent is a defect.
+
+```bash
+grep -Fc 'cat-file -e' references/phase-handoff.md               # expect >=1
+grep -Fc 'diff --quiet' references/phase-handoff.md              # expect >=1
+grep -Fc 'gh pr list -R' references/phase-handoff.md             # expect >=1
+grep -Fc '2>/dev/null' references/phase-handoff.md               # expect >=1
+```
+
+The `2>/dev/null` matters on its own: without it, `cat-file -e` writes `fatal: path … does not exist` to stderr on every absent artifact, and that leaks into the run's output.
+
+Prove these can fail: `grep -Fc 'hash-object' references/phase-handoff.md` — expect **0**. Blob equality deliberately uses `diff --quiet` instead, because `hash-object` on the working file misses a staged-only change.
 
 - [ ] **Step 5: Write the reachability trace (Risk 1's mitigation)**
 

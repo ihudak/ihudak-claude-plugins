@@ -1358,7 +1358,14 @@ Run every command and record the result — **including the rows that were alrea
 ```bash
 cd /workspace/ihudak-claude-plugins
 echo "=== 1. four-prefix authority (expect 0 everywhere) ==="
-grep -rncE 'vi\|ard\|spec\|design\)/|\(vi/ ard/ spec/ design/\)' --include=*.md plugins/ CLAUDE.md | grep -v ':0$' || echo CLEAN
+# `design)/` is the escaped-pipe-agnostic anchor: the stale form ends `design)/`, the
+# six-prefix form ends `ready)/`. A pipe-based pattern silently misses the §3.3 G2 row,
+# whose pipes are backslash-escaped for markdown — that blind spot hid a real site.
+grep -rnF 'design)/' --include=*.md plugins/ CLAUDE.md | grep -v CHANGELOG || echo CLEAN
+grep -rnF '(vi/ ard/ spec/ design/' --include=*.md plugins/ CLAUDE.md | grep -v CHANGELOG || echo CLEAN
+# prove both anchors can fail:
+printf 'probe ^(vi|ard|spec|design)/ and (vi/ ard/ spec/ design/)\n' > /tmp/anchor-probe.md
+grep -cF 'design)/' /tmp/anchor-probe.md; grep -cF '(vi/ ard/ spec/ design/' /tmp/anchor-probe.md; rm -f /tmp/anchor-probe.md
 echo "=== 2. never-opens-a-PR family (expect 0) ==="
 grep -rnicE "never opens (a|the) (pull request|PR)|never creates? a PR|Never call a PR REST|never opens the PR via an API" --include=*.md plugins/ CLAUDE.md | grep -v ':0$' || echo CLEAN
 echo "=== 3. /create-vi relocates idea.md (expect 0 outside CHANGELOG history) ==="

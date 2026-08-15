@@ -1448,8 +1448,9 @@ Then the feature sections: the new reference and its two entry points; the eight
 
 ```bash
 grep -c '"version": "2.52.0"' plugins/dev-workflows/.claude-plugin/plugin.json   # expect 1
-grep -c "^## 2.52.0" plugins/dev-workflows/CHANGELOG.md                          # expect 1
-awk '/^## 2\.52\.0/,/^## 2\.51/' plugins/dev-workflows/CHANGELOG.md | grep -c "Breaking changes"  # expect 1
+grep -c '"version": "2.52.0"' .claude-plugin/marketplace.json                    # expect 1 — it DOES carry a version
+grep -Fc '## [2.52.0]' plugins/dev-workflows/CHANGELOG.md                        # expect 1
+awk '/^## \[2\.52\.0\]/,/^## \[2\.51\.0\]/' plugins/dev-workflows/CHANGELOG.md | grep -c "Breaking changes"  # expect 1
 # every claim in the entry must be true of the tree — no changelog entry for work that did not land
 awk '/^## 2\.52\.0/,/^## 2\.51/' plugins/dev-workflows/CHANGELOG.md | grep -oE '`[a-z-]+\.md`' | sort -u
 ```

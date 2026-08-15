@@ -1,6 +1,6 @@
 ---
 name: ready
-description: Status-anchored readiness gate. Reads the Jira workflow status of a VI/Epic and verifies the ARD/spec/design artifacts justify it and the next transition; returns SUPPORTED / PARTIAL / NOT-SUPPORTED with a coverage roll-up. Never sets Jira status; never stops on an unmerged or missing artifact — that becomes a readiness finding instead, never a run-stopping gate. Commits its `_readiness.md` deliverable only via consent, never automatically. Gates on the Opus readiness-reviewer.
+description: Status-anchored readiness gate. Reads the Jira workflow status of a VI/Epic and verifies the ARD/spec/design artifacts justify it and the next transition; returns SUPPORTED / PARTIAL / NOT-SUPPORTED with a coverage roll-up. Never sets Jira status; never stops on an unmerged artifact (a readiness finding capping the verdict at PARTIAL) or a missing one (recorded as a coverage gap) — neither is a run-stopping gate. Commits its `_readiness.md` deliverable only via consent, never automatically. Gates on the Opus readiness-reviewer.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 

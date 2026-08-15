@@ -149,6 +149,7 @@ Row F is the difference between "this phase was not handed off" and "this phase 
 |---|---|---|
 | `/create-vi <KEY>` | `idea.md` | continue down the Phase 0 idea ladder — prompt for a path, or grill the VI from scratch. **`/idea` is not a prerequisite.** |
 | `/create-ard` | the VI | fall back to `jira-reader` against the Jira export — now **reported** rather than silent |
+| `/specify` | the VI | `jira-reader` is already the primary read path (the merged VI is a grounding confirmation, not a new content source); on `absent` the confirmation is simply skipped — now **reported** rather than silent, the same shape as `/create-ard`'s row |
 | `/specify` `/design` `/implement` `/epics` `/ready` | the ARD | `status: none` and the no-regression rule of `ard-resolution.md` |
 | `/epics` | VI-level `specification.md` | `vi_spec_present: false`, the existing silent skip |
 | `/implement` | `specification.md` / `design.md` | only an **in-scope** spec is gated; a direct-prompt run resolves none |

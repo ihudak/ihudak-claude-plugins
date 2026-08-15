@@ -265,8 +265,9 @@ than one invocation.
 
 ### 4.1 Where the commit lands
 
-- **A command that opened a specs-repo branch at handoff** (`/create-vi`,
-  `/update-vi`, `/create-ard`, `/specify`, `/design`) — on that
+- **A command that opened a specs-repo branch at handoff** (`/idea`,
+  `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/design`,
+  `/implement`, `/ready`) — on that
   `idea|vi|ard|spec|design|ready/*` branch, so the push updates the pull
   request already open. Two commits on one branch: the deliverable, then the
   artifacts.

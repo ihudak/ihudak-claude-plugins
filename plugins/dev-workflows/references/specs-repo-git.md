@@ -265,12 +265,7 @@ than one invocation.
 
 ### 4.1 Where the commit lands
 
-- **A command that opened a specs-repo branch at handoff** (`/idea`,
-  `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/design`,
-  `/implement`, `/ready`) — on that
-  `idea|vi|ard|spec|design|ready/*` branch, so the push updates the pull
-  request already open. Two commits on one branch: the deliverable, then the
-  artifacts.
+- **A command that opened a specs-repo branch at handoff** (`/idea`, `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/design`, `/implement`, `/ready`) — on that `idea|vi|ard|spec|design|ready/*` branch, so the push updates the pull request already open. Two commits on one branch: the deliverable, then the artifacts.
 - **The same command when the user declined git at handoff** ("just write the
   files — I'll handle git") — the repo is still on the default branch and the
   deliverable is uncommitted there. `commit-artifacts` still runs and commits

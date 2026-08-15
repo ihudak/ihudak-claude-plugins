@@ -332,9 +332,7 @@ abandoned at the block still records the gap. NEVER `emit-block` for an environm
    fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting
    that notice. Hold its §6 outcome line for the Final report.
 
-ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (idea.md carries no git offer
-of its own — the terminal step above commits only the bounded session-artifact paths in `$SPECS_PATH`),
-and NEVER writes into a code/docs repo or the current working directory; no user name is ever written.
+ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (idea.md itself is handed off separately, before this phase, via `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2, behind Phase 5's §4.3 consent choice; the terminal step above commits only the bounded session-artifact paths in `$SPECS_PATH`), and NEVER writes into a code/docs repo or the current working directory; no user name is ever written.
 
 ---
 

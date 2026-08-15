@@ -124,10 +124,12 @@ First matching row applies.
 | B | present | differs | a branch **this run owns**: prefix is one the caller produces, key is in the run key set | **pass, reported** — `reading <path> from your in-progress <branch>, which amends the approved version on <default>` |
 | C′ | present | differs | any other HEAD, **and** the tree is dirty in a way that would block a switch | **stop**, naming the exact files |
 | C | present | differs | any other HEAD | **repair offer**, then re-test once |
-| D | absent | — | artifact found on a plugin ref, pull request open | **stop** — `<path> is on branch <branch> with PR #<n> open, not merged` |
-| E | absent | — | found on a plugin ref, no open pull request | **stop** — `<path> is on branch <branch> and was never handed off` |
-| F | absent | — | found on no ref | **delegate** — return `absent`; see §3.4 |
+| D | not on ref | — | artifact found on a plugin ref, pull request open | **stop** — `<path> is on branch <branch> with PR #<n> open, not merged` |
+| E | not on ref | — | found on a plugin ref, no open pull request | **stop** — `<path> is on branch <branch> and was never handed off` |
+| F | not on ref | — | found on no ref | **delegate** — return `absent`; see §3.4 |
 | G | `origin/<default>` ref does not exist | — | any | **stop** — the plugin cannot verify what is on `<default>` |
+
+**`not on ref` describes the repository, not the return value.** Rows D, E, and F all read `not on ref` in the first column because none of the three has the artifact on `origin/<default>` — that column is a statement about the repository. It is row F alone that returns `absent` (§3.7), and D/E are stopping rows that never reach a caller's `absent` branch at all. A consumer that keys off this column instead of the returned `stopped` flag cannot tell D/E from F.
 
 **Row order matters.** H and I precede everything because they are about the repository, not the artifact. C′ precedes C because offering a switch that git would refuse is worse than naming the blocker.
 
@@ -178,6 +180,8 @@ For rows D and E, after §3.2's ref scan finds a carrying branch:
     degraded: <the clause to print, or null>
 
 `pass_amending` is row B. `absent` is row F and is the caller's to interpret per §3.4. `unmanaged` is row H. Every stopping row returns `stopped: true` and the caller does not proceed.
+
+**A caller tests `stopped` before `on_main`.** `on_main: absent` is returned only by row F; every stopping row (I, C′, D, E, G) returns `stopped: true` regardless of what `on_main` reads. A caller that branches on `on_main == "absent"` before checking `stopped` cannot distinguish row F (never happened — §3.4 applies) from rows D/E (happened, but not handed off — the run must stop).
 
 ## 4. Reporting
 

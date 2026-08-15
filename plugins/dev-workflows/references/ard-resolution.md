@@ -71,5 +71,4 @@ deviation record as *allowed-but-flagged* (the architect adjudicates), **without
 - `/epics` — VI-level only (`epic: null`, Epics do not exist yet); `AD-N` = inherited invariants the drafted Epics must respect; deviations → a `- ARD deviation: …` line in the Epic draft + the Phase 9 report.
 - `/ready` — VI-level + Epic-level `AD-N` = inherited invariants passed to `readiness-reviewer` as `applicable_ard`; read-only — it never authors a deviation record, only checks the artifacts it reads for an existing one.
 
-Each passes `invariants` to its reviewer as `applicable_ard`; the reviewer's ARD-conformance dimension is
-skipped entirely when it is absent.
+The other five pass `invariants` to their reviewer as `applicable_ard`; the reviewer's ARD-conformance dimension is skipped entirely when it is absent. `/create-ard` alone does not: it inherits VI-level `AD-N` read-only straight into its own grill and drafting (Phase 4), and `ard-reviewer` checks non-contradiction directly against the drafted file, never via that field.

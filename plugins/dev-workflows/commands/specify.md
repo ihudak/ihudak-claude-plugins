@@ -87,7 +87,7 @@ when the specs repo is clean and on its default branch. If a guard fires, emit i
 it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
 `commit-artifacts` step skips on it.
 
-**Gate the VI.** Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against `specifications/<VI>-<vslug>/<VI>_<vslug>.md`. On `pass`/`pass_amending`, proceed — Phase 2 still reads the item from Jira via `jira-reader` exactly as today; the merged VI is a grounding confirmation, not a new content source. On a stopping state, stop per §4.4. On `absent`, `/specify`'s existing Jira-export behaviour is unaffected — but report it: *"No authored VI on `<default>` for `<VI>` — specifying from the Jira export at `<path>`. If a VI exists on a branch, this run would have stopped; it does not, so none does."* On `unmanaged`, behave exactly as before this feature — reachable here even after step 2's own `$SPECS_PATH` check, since that check only rejects an unset value, never an invalid path or a non-git directory.
+**Gate the VI.** Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against `specifications/<VI>-<vslug>/<VI>_<vslug>.md`, mapping its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4. Otherwise (`stopped: false`): on `pass`/`pass_amending`, proceed — Phase 2 still reads the item from Jira via `jira-reader` exactly as today; the merged VI is a grounding confirmation, not a new content source; on `absent`, `/specify`'s existing Jira-export behaviour is unaffected — but report it: *"No authored VI on `<default>` for `<VI>` — specifying from the Jira export at `<path>`. If a VI exists on a branch, this run would have stopped; it does not, so none does."*; on `unmanaged`, behave exactly as before this feature — reachable here even after step 2's own `$SPECS_PATH` check, since that check only rejects an unset value, never an invalid path or a non-git directory.
 
 ---
 
@@ -537,7 +537,7 @@ Report: feature-folder path; stage/user-story/AC/TC counts; open-question count;
 
 ### Next step
 
-End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): **Epic-level spec** (`<VI> <Epic>`) → hand to the team → `/dev-workflows:design <VI> <Epic>`, and the **Epic fan-out** `/dev-workflows:specify <VI> <another-Epic>` for a sibling Epic (breadth); **VI-level spec** (`<VI>` only) → `/dev-workflows:epics <VI>` (PE). If the run BLOCKED or left open `- [ ]` items, recommend resolving those first.
+End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): **Epic-level spec** (`<VI> <Epic>`) → hand to the team → `/dev-workflows:design <VI> <Epic>`, which will not start until this spec's pull request above is merged, and the **Epic fan-out** `/dev-workflows:specify <VI> <another-Epic>` for a sibling Epic (breadth); **VI-level spec** (`<VI>` only) → `/dev-workflows:epics <VI>` (PE), which stops rather than skipping — the spec exists but isn't yet on main — until this pull request above is merged. If the run BLOCKED or left open `- [ ]` items, recommend resolving those first.
 
 ### Context hygiene
 

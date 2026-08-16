@@ -39,7 +39,7 @@ Collision is normal, not exceptional: `_readiness.md` is overwritten on every `/
 
 1. Test both `git -C "$SPECS_PATH" rev-parse --verify --quiet refs/heads/<name>` and `… refs/remotes/origin/<name>`.
 2. Neither exists → use `<name>`.
-3. One exists **and** it is this run's own in-progress branch — its prefix is the caller's, its key is in the run key set (`specs-repo-git.md` §3.2), and `git -C "$SPECS_PATH" merge-base --is-ancestor refs/remotes/origin/<name> refs/remotes/origin/<default>` fails (not yet merged) → **reuse it**, switching to it rather than creating it.
+3. **At least one exists** (the local ref, the remote ref, or — the common reuse case — both) **and** it is this run's own in-progress branch — its prefix is the caller's, its key is in the run key set (`specs-repo-git.md` §3.2), and `git -C "$SPECS_PATH" merge-base --is-ancestor refs/remotes/origin/<name> refs/remotes/origin/<default>` fails (not yet merged) → **reuse it**, switching to it rather than creating it.
 4. Otherwise → append the lowest free integer suffix, starting at `-2`, retesting both refs each time. Report the substitution in the §4.1 outcome line, because a branch name the user did not expect is a branch name they will not find.
 
 ### 2.3 Staging the deliverable
@@ -121,18 +121,18 @@ First matching row applies.
 |---|---|---|---|---|
 | H | — | — | gate of §3.1 fails | **silent skip** — return `unmanaged`; the caller proceeds exactly as it did before this feature |
 | I | — | — | run carries `specs_git: blocked` (detached HEAD) | **stop**, re-emitting that notice. A phase cannot complete from a detached HEAD, so verifying one is meaningless |
+| G | `origin/<default>` ref does not exist | — | any | **stop** — the plugin cannot verify what is on `<default>` |
 | A | present | matches ref | any | **pass** |
-| B | present | differs | a branch **this run owns**: prefix is one the caller produces, key is in the run key set | **pass, reported** — `reading <path> from your in-progress <branch>, which amends the approved version on <default>` |
+| B | present | differs | a branch **this run itself created or reused during this run**: created earlier in the same invocation via this caller's own `handoff-to-main`, or reused because `specs-repo-git.md` §3.5 B3 kept the preflight checkout on it AND the caller is the artifact's own canonical author (`/design` on `design/…` for `design.md`, `/specify` on `spec/…` for `specification.md`) — never merely a prefix the caller is *capable of* producing for an unrelated purpose, such as `/implement`'s Phase 4.5 escalation handoff onto `spec`/`design` | **pass, reported** — `reading <path> from your in-progress <branch>, which amends the approved version on <default>` |
 | C′ | present | differs | any other HEAD, **and** the tree is dirty in a way that would block a switch | **stop**, naming the exact files |
 | C | present | differs | any other HEAD | **repair offer**, then re-test once |
 | D | not on ref | — | artifact found on a plugin ref, pull request open | **stop** — `<path> is on branch <branch> with PR #<n> open, not merged` |
 | E | not on ref | — | found on a plugin ref, no open pull request | **stop** — `<path> is on branch <branch> and was never handed off` |
 | F | not on ref | — | found on no ref | **delegate** — return `absent`; see §3.4 |
-| G | `origin/<default>` ref does not exist | — | any | **stop** — the plugin cannot verify what is on `<default>` |
 
 **`not on ref` describes the repository, not the return value.** Rows D, E, and F all read `not on ref` in the first column because none of the three has the artifact on `origin/<default>` — that column is a statement about the repository. It is row F alone that returns `absent` (§3.7), and D/E are stopping rows that never reach a caller's `absent` branch at all. A consumer that keys off this column instead of the returned `stopped` flag cannot tell D/E from F.
 
-**Row order matters.** H and I precede everything because they are about the repository, not the artifact. C′ precedes C because offering a switch that git would refuse is worse than naming the blocker.
+**Row order matters.** H, I, and G precede everything else because they are about the repository, not the artifact — and G, like H and I, must precede every row that keys on `not on ref` (D, E, F) and every row that tests the worktree against the ref at all (A, B, C′, C): §3.2's ref-existence primitive runs before the on-ref-presence primitive, so a reader who has not first ruled out G cannot tell "path absent on an existing ref" (row F) from "the ref itself does not exist" (row G) — the defect `f5a9713` closed in §3.2 but this table, until now, never propagated to its own row order. C′ precedes C because offering a switch that git would refuse is worse than naming the blocker.
 
 **Row B is load-bearing and must not be folded into C.** `/design` amends `specification.md` on its own branch, so on a resume the worktree copy legitimately differs from the default branch. Under row C the plugin would offer `switch to <default> + pull --ff-only` and **discard the in-progress design**. The distinguishing test is **branch ownership**, never whether the file differs.
 
@@ -157,7 +157,7 @@ Row F is the difference between "this phase was not handed off" and "this phase 
 | `/design` | `specification.md` | **stops** — but that stop already exists; this reference only makes its test correct |
 | `/ready` | ARD / spec / design | records the artifact as missing in its coverage roll-up, as today |
 
-Rows D and E add the only new stop: an artifact that **exists** and was never handed off. That state is unreachable before this feature, which is why nothing regresses.
+Rows D and E add the only new stop: an artifact that **exists** and was never handed off. That state was **not** unreachable before this feature — pre-J, `/specify` already created `spec/<EPIC>-<eslug>` (or `spec/<VI>-<vslug>`) branches and offered branch + PR, and `/create-vi` did the same on `vi/<KEY>-<slug>`, with no downstream gate reading them; an artifact sitting on such a branch, unmerged, was a common, ordinary state. This is a real behaviour change: for that state, `/create-ard`, `/specify`, and `/epics` now hard-stop where they previously proceeded with a documented fallback (the deliberate, well-argued stop at `epics.md:180`). It qualifies caller-contract rule 3 (§5, `:230` — no consumer turns an optional input into a prerequisite) precisely: row F's `absent` case is still fully delegated to the caller's own pre-existing behaviour, but rows D/E are a new stop for a state that was previously reachable and previously non-blocking.
 
 ### 3.5 Locating the branch and its pull request
 
@@ -183,7 +183,9 @@ For rows D and E, after §3.2's ref scan finds a carrying branch:
 
 `pass_amending` is row B. `absent` is row F and is the caller's to interpret per §3.4. `unmanaged` is row H. Every stopping row returns `stopped: true` and the caller does not proceed.
 
-**A caller tests `stopped` before `on_main`.** `on_main: absent` is returned only by row F; every stopping row (I, C′, D, E, G) returns `stopped: true` regardless of what `on_main` reads. A caller that branches on `on_main == "absent"` before checking `stopped` cannot distinguish row F (never happened — §3.4 applies) from rows D/E (happened, but not handed off — the run must stop).
+**`on_main` is defined only when `stopped: false`.** Its four values — `pass` (row A), `pass_amending` (row B), `absent` (row F), `unmanaged` (row H) — are exhaustive for the non-stopping rows only. Every stopping row (I, C′, C, D, E, G) carries no defined `on_main` value; a caller has nothing to read there and must act on `stopped`/`branch`/`pr`/`degraded` instead.
+
+**A caller tests `stopped` before `on_main`.** `on_main: absent` is returned only by row F; every stopping row (I, C′, C, D, E, G) returns `stopped: true` regardless of what `on_main` reads. A caller that branches on `on_main == "absent"` before checking `stopped` cannot distinguish row F (never happened — §3.4 applies) from rows D/E (happened, but not handed off — the run must stop).
 
 ## 4. Reporting
 

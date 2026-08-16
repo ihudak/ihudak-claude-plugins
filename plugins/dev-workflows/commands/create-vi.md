@@ -26,10 +26,11 @@ Usage: `/create-vi <JIRA-KEY> [@idea.md] [--from-vi <VI-KEY|path>] [--lean|--hyb
     3-day freshness) for a key, or read the given path directly. The seed is **grounding, not content**
     (Phase 3 adapts it; it is never copied wholesale).
 3. **Resolve `idea.md` (ladder — stop at first hit):**
-   1. explicit `@path` argument;
-   2. **same-session** — if `/idea` ran earlier in this session, use its recorded output path (confirm with the user);
-   3. **discover** — `find "$VAULT_PATH/Projects" -type f -name idea.md` (recent first); if any, present a picker;
-   4. prompt for a path, or — last resort — proceed with **no idea** and grill the VI from scratch.
+   1. **in-contract** — `specifications/<KEY>-<slug>/idea.md`, resolved from `<KEY>`. Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against it, mapping its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4. Otherwise (`stopped: false`): on `pass`/`pass_amending`, use it — **do not relocate**, `/idea` already did; on `absent`, fall through to rung 2 — likewise on `unmanaged`: this ladder runs before step 4 validates `$SPECS_PATH`, so `unmanaged` (the §3.1 gate could not run) is reachable here, and it behaves as `absent` because there is nothing to verify; step 4 still stops immediately afterward on an unset `$SPECS_PATH`, so nothing is lost by not stopping here;
+   2. **out-of-contract `@path`** — explicit `@path` argument; read the idea where it sits, **never move it**, and do not gate it. Report once: *"out-of-contract: reading `<path>` in place; it will not be relocated or gated."*;
+   3. **same-session** — if `/idea` ran earlier in this session, use its recorded output path (confirm with the user) — out-of-contract, as rung 2;
+   4. **discover** — `find "$VAULT_PATH/Projects" -type f -name idea.md` (recent first); if any, present a picker — out-of-contract, as rung 2;
+   5. prompt for a path, or — last resort — proceed with **no idea** and grill the VI from scratch. **`/idea` is not a prerequisite for `/create-vi`** — an `absent` in-contract idea must reach this rung, never a stop.
 4. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
 5. **Feature folder.** `<SPECS_PATH>/specifications/<KEY>-<slug>/` — `<slug>` from the idea title (else a kebab of the VI summary). Honor an existing dir matched by key-number (tolerate a stray `-`/`_` and a human-adjusted slug). Auto-created by the first write (Phase 5).
 6. **Prior VI (frontmatter-based).** Glob `<feature-folder>/<KEY>_*.md` and confirm frontmatter `issue_type: ValueIncrement` (tolerant of any slug). If a VI is found, this is an **existing VI** — `/create-vi` is greenfield-only, so **redirect** (see Phase 1) to `/update-vi <KEY>` unless `--from-vi` is present.
@@ -56,8 +57,7 @@ Use `choices` arrays; the last choice is always `"Other… (describe)"`.
      ```
      choices: ["Update the existing <KEY> instead — /dev-workflows:update-vi <KEY> (seed ignored) (Recommended)", "Overwrite <KEY> as a new seeded VI (archives the current one)", "Cancel", "Other… (describe)"]
      ```
-3. **Relocate `idea.md`.** If it is outside the feature folder, **copy/move** it to `<feature-folder>/idea.md` (**never a symlink** — a cross-root link between `$VAULT_PATH` and `$SPECS_PATH` would break). Record its original path for `derived_from`.
-4. **Draft idea → warn-and-fold.** If `idea.md` is `status: draft` (open `[NEEDS CLARIFICATION]`), note that the grill resolves those items — do **not** hard-block.
+3. **Draft idea → warn-and-fold.** If `idea.md` is `status: draft` (open `[NEEDS CLARIFICATION]`), note that the grill resolves those items — do **not** hard-block.
 
 ---
 
@@ -95,7 +95,7 @@ profile is already `--full`, this nudge does **not** fire.
 
 ## Phase 2 — Read the seed
 
-Read the resolved `idea.md` **directly** (it is the plugin's own format — `idea-reader` is for arbitrary external sources and is not used here). Extract Problem / Who / desired outcome & value / rough scope / signals & evidence / candidate success signal, plus any open `[NEEDS CLARIFICATION]`. Carry the idea's `sources[]` forward to **propagate** into the VI frontmatter (the real provenance — RFE key / an existing VI's key / community-post URL / prompt), and record `derived_from` = the idea's original path.
+Read the resolved `idea.md` **directly** (it is the plugin's own format — `idea-reader` is for arbitrary external sources and is not used here). Extract Problem / Who / desired outcome & value / rough scope / signals & evidence / candidate success signal, plus any open `[NEEDS CLARIFICATION]`. Carry the idea's `sources[]` forward to **propagate** into the VI frontmatter (the real provenance — RFE key / an existing VI's key / community-post URL / prompt), and record `derived_from` = the idea's own resolved path — read here from `idea.md`'s own frontmatter, never from a relocation, since `/create-vi` no longer moves it.
 
 Optionally ground in the idea's cited sources and any strategy/vision docs the user points to. **No code scan; no repos.**
 
@@ -192,13 +192,13 @@ Act on the verdict (mirrors `/specify`):
 
 ## Phase 5 — Handoff
 
-Write the feature folder: `<KEY>_<slug>.md` + the relocated `idea.md`. Then **offer** (commit-when-asked — never automatic):
+Write the feature folder: `<KEY>_<slug>.md`. The in-contract `idea.md` is already there, committed by `/idea`; an out-of-contract idea stays where it is. Then **offer** (commit-when-asked — never automatic), presenting `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's choice array verbatim:
 
 ```
-choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git", "Cancel"]
+choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
 
-On the first choice, in the specs repo (`$SPECS_PATH`): create branch `vi/<KEY>-<slug>`; commit **only** the feature folder (never `git add -A`); push; open a PR targeting `main`. Commit trailer: `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
+On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: vi`, `feature_folder` as resolved in Phase 0, `deliverable_paths` = the VI file, `title: <KEY> Add Value Increment — <summary>`; emit its §4.1 outcome line in the Final report.
 
 ### Jira round-trip (document to the user — they will otherwise miss it)
 
@@ -218,7 +218,7 @@ choices: ["Draft the release note now — /dev-workflows:release-notes <KEY> (PM
 ```
 
 - **`/dev-workflows:release-notes <KEY>`** (PM) — draft the customer-facing release note now (the cost model's `pm`/`vi-creation` inferred case: no spec/design yet).
-- **`/dev-workflows:create-ard <KEY>`** (PA, **optional**) — hand to a Product Architect to author the grounded architecture document.
+- **`/dev-workflows:create-ard <KEY>`** (PA, **optional**) — hand to a Product Architect to author the grounded architecture document; it won't start reading this VI until the pull request above is merged to the specs repo's main.
 - **`/dev-workflows:epics <KEY>`** (PE) — hand to a Product Engineer to split the VI into Epics (or author a VI-level spec → `/dev-workflows:specify <KEY>`).
 
 Guidance only — never auto-invokes another command. Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`.
@@ -263,4 +263,4 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git 
 
 ## Final report
 
-Report: the VI path + profile; US/AC/SM counts + which adapt-in clusters were included; open-question count; the `vi-reviewer` verdict; the Dynatrace style-check outcome (`OK` | `N fixed, M remaining` | `SKIPPED`); the PR URL (if opened); the Jira round-trip reminder; resolved model routing (+ any Opus degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; and the next-step recommendations.
+Report: the VI path + profile; US/AC/SM counts + which adapt-in clusters were included; open-question count; the `vi-reviewer` verdict; the Dynatrace style-check outcome (`OK` | `N fixed, M remaining` | `SKIPPED`); the `Phase handoff:` outcome line from `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1); the Jira round-trip reminder; resolved model routing (+ any Opus degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; and the next-step recommendations.

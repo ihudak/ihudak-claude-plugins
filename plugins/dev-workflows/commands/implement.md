@@ -96,6 +96,8 @@ is clean and on its default branch. If a guard fires, emit its §5 notice;
 if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole
 run — the terminal `commit-artifacts` step skips on it.
 
+**Gate the in-scope specs on `$SPECS_PATH`'s main.** For each resolved `specs` path whose basename is `specification.md` or `design.md` — `/implement`'s **in-scope** spec/design files, the same set Phase 2B and the invariants section reference for the conformance dimension — execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against it, mapping its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4, naming `$SPECS_PATH` explicitly — `/implement` stands in a **code** repo, so an unqualified stop message would point at the wrong repository. Otherwise (`stopped: false`): `pass`/`pass_amending` → proceed (on `pass_amending`, print §3.3's row-B message — reachable here only when this run's own Phase 4.5 handoff created or reused the branch earlier in this same invocation; `/implement` does not itself author `specification.md`/`design.md`, so a leftover `spec/`/`design/` branch left by an earlier `/specify`/`/design` run is never row B for this gate — it is row C/C′, and the stop/repair path above already covers it). `absent` → **only an in-scope spec is gated at all** — a direct-prompt run resolves none of these `specs` entries and is entirely unaffected, so do not stop; behave exactly as before this feature. `unmanaged` → behave exactly as before this feature. A spec/design supplied directly as a lone `@path` primary description — the Design-doc open-question guard's own input above, a separate mechanism from the `specs` list this gate reads — is **out-of-contract**: read where it sits, deliberately not gated here, the same rule this plan set for `/create-vi <KEY> @<path>`.
+
 ---
 
 ## Phase 0.5 — Readiness pre-flight (jira-driven only; advisory)
@@ -231,7 +233,7 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
 
 ## Phase 1.8 — Resolve applicable ARD (Jira mode; optional)
 
-Only when the run resolved a Jira key (VI/Epic) — i.e. NOT direct-prompt mode — resolve any ARD by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with the resolved `<VI>`, `<EPIC>`, and `$SPECS_PATH`. Direct mode (no Jira key) → treat as `status: none`. On `status: none`, **skip and proceed exactly as before**. On `status: found`, carry the `invariants` as **implementation guardrails** (the implementer honors each `AD-N` `rule`; a necessary deviation is logged as an `- ARD deviation:` line in the Phase 5 report), and — in the SIGNIFICANT / HIGH-RISK path — pass them to `code-review` (Phase 3B) as `applicable_ard`. In the SIMPLE / MODERATE path there is no `code-review` gate, so the guardrails act as guidance only.
+Only when the run resolved a Jira key (VI/Epic) — i.e. NOT direct-prompt mode — resolve any ARD by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with the resolved `<VI>`, `<EPIC>`, and `$SPECS_PATH`. Direct mode (no Jira key) → treat as `status: none`. On `status: none`, **skip and proceed exactly as before**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr` and naming `$SPECS_PATH` explicitly (`/implement` stands in a code repo, not the specs repo, so an unqualified message would point at the wrong one) — per `ard-resolution.md`'s Output section, this state is unreachable when no ARD resolves. On `status: found`, carry the `invariants` as **implementation guardrails** (the implementer honors each `AD-N` `rule`; a necessary deviation is logged as an `- ARD deviation:` line in the Phase 5 report), and — in the SIGNIFICANT / HIGH-RISK path — pass them to `code-review` (Phase 3B) as `applicable_ard`. In the SIMPLE / MODERATE path there is no `code-review` gate, so the guardrails act as guidance only.
 
 ---
 
@@ -485,7 +487,7 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
 
    - If the fix report contains any `DEFERRED — plan-conflict` finding, surface it to the user **immediately** (do not wait for the BLOCK-still-BLOCK path): show the finding beside the plan text it contradicts and ask `choices: ["Revise the plan (the finding governs)", "Apply the fix against the plan (the plan governs — logged in Phase 5)", "Other… (describe)"]`. Act on the answer before re-running the review.
 
-7.5. **Spec/design conformance escalation.** For each unresolved `missing`/`contradicts` in-scope requirement from the code-review Spec/design-conformance dimension, write a `- [ ]` note back onto the source `specification.md`/`design.md` under an `## Engineering review` heading (the same escalation `/design` uses; annotate only — never mutate existing `[Uxx]`/`[ACxx]`/`[TCxx]` IDs). Never silently drop them, never invent new Jira work.
+7.5. **Spec/design conformance escalation.** For each unresolved `missing`/`contradicts` in-scope requirement from the code-review Spec/design-conformance dimension, write a `- [ ]` note back onto the source `specification.md`/`design.md` under an `## Engineering review` heading (the same escalation `/design` uses; annotate only — never mutate existing `[Uxx]`/`[ACxx]`/`[TCxx]` IDs). Never silently drop them, never invent new Jira work. Record which of `specification.md`/`design.md` actually received a note — the handoff step needs to know whether only one, or both, were annotated. The notes are written here and handed off later — see the escalation handoff after Phase 4.
 8. **Run Phase 3.5 (post-review).** After the review gate clears (non-BLOCK verdict), run the Phase 3.5 sequence (lint/build, `test-baseliner` verify, fix loop) — **not before**. This preserves the invariant "NEVER run tests for SIGNIFICANT / HIGH-RISK before Opus review returns non-BLOCK". The fix loop inside Phase 3.5 applies fixes via the session model; if the fixes are non-trivial **and** the reviewer was NOT down-classified in step 7, re-invoke the Opus code review on the delta after Phase 3.5 completes (first overwrite `review_diff_file` with a fresh `git add -N . && git diff` so the re-review reads the post-Phase-3.5 diff). If the reviewer WAS down-classified, skip the re-review.
 9. Verify the outcome matches the approved plan and the review verdict.
 10. Proceed to Phase 4.
@@ -582,6 +584,20 @@ into the code repo or the current working directory.
 
 ---
 
+## Phase 4.5 — Escalation handoff (spec/design conformance notes)
+
+A **silent no-op** when step 7.5 (Phase 3B) wrote no `- [ ]` notes — which covers every SIMPLE/MODERATE run (no `code-review`, so step 7.5 never runs) and every run with no spec/design in scope, direct-prompt or otherwise.
+
+When step 7.5 did write one or more notes: `prefix` = `spec` when only `specification.md` was annotated, otherwise `design`; `feature_folder` = the directory the annotated file(s) live in (the same specs-repo folder Phase 0 resolved them from); `deliverable_paths` = the annotated file(s) themselves. Present `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim:
+
+`choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`
+
+On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix`, `feature_folder`, and `deliverable_paths` as above; `title: <KEY> Record spec/design conformance findings from /implement`; and `body_facts` = the count of escalated `- [ ]` notes, the code-review Spec/design-conformance dimension summary they came from, and the fact that whoever next reads this `specification.md`/`design.md` will not see them until this pull request is merged. Emit its §4.1 outcome line in the Phase 5 `### Spec/design conformance` section.
+
+Placement is deliberate, not stylistic: step 7.5 sits inside Phase 3B, before the tests run, so calling `handoff-to-main` there would commit mid-review — hence the notes are written in 7.5 and handed off here instead, after Phase 4's post-implementation maintenance and before Phase 6's follow-ups and Phase 7's cost/`resume.md`/`commit-artifacts`. A call from inside Phase 6 or Phase 7 would falsify Phase 7's never-commits-the-deliverable claim below.
+
+---
+
 ## Phase 5 — Final Report
 
 Output a structured report — do NOT ask any closing confirmation:
@@ -605,7 +621,7 @@ Output a structured report — do NOT ask any closing confirmation:
 [Verdict and 1-line summary, or "N/A (SIMPLE / MODERATE)"]
 
 ### Spec/design conformance (if a spec/design was in scope)
-[coverage summary from code-review's dimension; list any missing/partial/contradicts — or "N/A"]
+[coverage summary from code-review's dimension; list any missing/partial/contradicts — or "N/A"; if Phase 4.5 escalated notes, add the `Phase handoff:` outcome line from `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1)]
 
 ### Commands / tests run
 - [command] → [result]
@@ -718,7 +734,7 @@ last output — prefixed `Specs repo:`, with any guard notice repeated in full.
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable
 (the implementation remains uncommitted on the branch created in Pre-Phase 3;
 the terminal step above commits only the bounded session-artifact paths in
-`$SPECS_PATH`), and NEVER writes into the code repo or the current working
+`$SPECS_PATH`; the spec/design conformance notes from step 7.5 are handed off separately, before this phase, via `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2), and NEVER writes into the code repo or the current working
 directory; no user name is ever written (§10 privacy).
 
 ---

@@ -32,6 +32,8 @@ commands so the routing graph and the offer rules live in ONE place (the same sh
    today, and the built-in wins — so the bare form is NEVER printed. Prose that describes the
    pipeline to a reader of this plugin's source keeps the short form.
 
+**A next-step offer that names a downstream command must also name the merge.** The downstream command executes `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) and stops while this phase's pull request is open, so an offer that reads "next: `/dev-workflows:create-ard <KEY>`" without "once the pull request is merged" sends the user into a stop they were not warned about.
+
 ## Surface
 
 The universal minimum is an adaptive **`### Next step`** section at the END of the command's

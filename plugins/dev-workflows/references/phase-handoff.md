@@ -48,7 +48,7 @@ Staging is by enumeration, never by glob — the same discipline as `specs-repo-
 
 1. `git -C "$SPECS_PATH" status --porcelain --untracked-files=all`. `--untracked-files=all` is **required**: the default collapses an untracked directory to a single `?? dir/` line, hiding which files are staged.
 2. Classify each reported path against the caller's declared deliverable paths (§2.9). Everything else is **OTHER** and is never staged — including the `dev-workflows/**` bookkeeping paths, which belong to `commit-artifacts`.
-3. `git -C "$SPECS_PATH" add -A -- <path> [<path>…]` with the literal paths. `-A` is required: a producer may delete a file it relocated (`/idea` moves `idea.md` out of the vault; `/update-vi` supersedes a revision), and plain `git add` would not stage the deletion.
+3. `git -C "$SPECS_PATH" add -A -- <path> [<path>…]` with the literal paths. `-A` is used deliberately: a producer may delete a file it relocated (`/idea` moves `idea.md` out of the vault; `/update-vi` supersedes a revision), and that deletion must be staged. `-A` states the intent explicitly and was strictly required before git 2.0; on git ≥ 2.0 a plain `git add -- <path>` stages a deletion for a literal path too — verified empirically — so keep `-A`, but do not justify it by claiming plain `git add` cannot stage the deletion.
 
 Nothing staged → no commit. Emit the §4.1 `nothing to commit` line. This is not an error: a re-run that changed nothing is a legitimate outcome.
 

@@ -67,9 +67,13 @@ fragile to express and to review. The procedure is:
 3. Stage the literal ARTIFACT paths only:
    `git -C "$SPECS_PATH" add -A -- <path> [<path>…]`.
 
-`-A` is required, not optional: `cost-emission.md` §9 relocates a pending cost
-file into a VI directory and then **deletes** the pending file. That deletion
-must be staged, and plain `git add` would not stage it.
+`-A` is used deliberately: `cost-emission.md` §9 relocates a pending cost file
+into a VI directory and then **deletes** the pending file, and that deletion
+must be staged. `-A` states that intent explicitly, and it was strictly
+required before git 2.0, where `git add <path>` did not stage a deletion. On
+git ≥ 2.0 a plain `git add -- <path>` stages a deletion for a literal path too
+— verified empirically — so keep `-A` for explicitness and for older git, but
+do not justify it by claiming plain `git add` cannot stage the deletion.
 
 ### 2.2 Branches
 

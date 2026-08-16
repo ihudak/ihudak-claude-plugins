@@ -40,7 +40,7 @@ Offer `["Push <branch> to origin now", "Skip — I'll push later", "Cancel"]`.
   git-protocol, not the REST API the zero-external-API invariant forbids.
 - **Skip** → "Branch `<branch>` ready with N commit(s). Push when ready."
 - **Cancel** → stop and summarise.
-Never force-push. Never call a REST API over HTTPS; `gh` wraps the API and is permitted where a host provides it.
+Never force-push. Never call a REST API over HTTPS from this flow. (The `gh` CLI wraps the API rather than calling it over HTTPS and is permitted where a host provides one — but that allowance belongs to pull-request creation, which this docs-repo flow does not perform; see §5 and `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.6.)
 
 ## 4. Host detection
 

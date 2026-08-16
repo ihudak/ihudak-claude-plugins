@@ -62,7 +62,7 @@ Message `<KEY> <summary>`, matching the specs repo's own `<KEY|NOISSUE> <summary
 
 ### 2.6 Open the pull request
 
-Derive the repository, then call `gh` with every argument that would otherwise make it prompt — the plugin must never block on an interactive editor:
+Derive the repository, run a cheap `gh auth status` pre-check purely to avoid a confusing raw error, then call `gh` with every argument that would otherwise make it prompt — the plugin must never block on an interactive editor:
 
     OWNER_REPO=$(git -C "$SPECS_PATH" remote get-url origin \
       | sed -E 's#^(git@[^:]+:|https://[^/]+/)##; s#\.git$##')
@@ -106,9 +106,10 @@ Runs in the caller's Phase 0, immediately after `specs-preflight`, so it reuses 
 
 Inputs: the repo-relative `path` of the artifact, the `default` branch (`specs-repo-git.md` §3.2), the caller's own branch prefixes, and the run key set.
 
-The three primitives, each verified against a real specs repo:
+The four primitives, each verified against a real specs repo:
 
-- **On the default branch:** `git -C "$SPECS_PATH" cat-file -e "origin/<default>:<path>" 2>/dev/null` Exit 0 = present. The `2>/dev/null` is required — on absence git writes `fatal: path '<path>' does not exist in 'origin/<default>'` to stderr, which must not leak into the run's output.
+- **The default-branch ref exists:** `git -C "$SPECS_PATH" rev-parse --verify --quiet "origin/<default>"` Exit 0 = the ref exists — run the next primitive. Non-zero = row G: nothing to verify against, stop. This runs **before** the next primitive, because that primitive's own required `2>/dev/null` discards the only signal that would otherwise distinguish "path absent on an existing ref" (row F) from "the ref itself does not exist" (row G) — `git cat-file -e` exits 128 for both, verified empirically: a missing path and a missing ref are indistinguishable by exit code alone.
+- **On the default branch:** `git -C "$SPECS_PATH" cat-file -e "origin/<default>:<path>" 2>/dev/null` Exit 0 = present. The `2>/dev/null` is required — on absence git writes `fatal: path '<path>' does not exist in 'origin/<default>'` to stderr, which must not leak into the run's output. Only reached once the ref-existence primitive above has already confirmed `origin/<default>` exists, so a non-zero exit here means the path is absent, never that the ref is.
 - **Worktree matches the ref:** `git -C "$SPECS_PATH" diff --quiet "origin/<default>" -- "<path>"` Exit 0 = identical. This also catches a **staged-only** change, which a `hash-object` comparison against the working file would miss.
 - **Plugin branches carrying the artifact:** `git -C "$SPECS_PATH" for-each-ref --format='%(refname:short)' refs/remotes/origin` filtered to `origin/(idea|vi|ard|spec|design|ready)/*`, then `git -C "$SPECS_PATH" cat-file -e "<ref>:<path>" 2>/dev/null` on each.
 

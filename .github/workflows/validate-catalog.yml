@@ -1,0 +1,33 @@
+name: Validate plugin catalog
+
+# Guards the marketplace catalog and every plugin manifest in this repository.
+#
+# The failure this exists to prevent: GitHub Copilot CLI rejects a marketplace
+# whose plugins[i].description exceeds 1024 characters, and it rejects the
+# entire catalog -- so one over-long blurb makes EVERY plugin in the
+# marketplace fail to install or update. Claude Code enforces no such limit,
+# which is precisely why it kept shipping: the Claude editions grew past the
+# limit with no local symptom, and the Copilot edition inherited the overflow
+# at port time.
+#
+# Runs on push and pull request so a bad catalog is caught before anyone's
+# `plugin update` fetches it.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate manifests and catalog
+        run: python3 scripts/validate-catalog.py

@@ -1,7 +1,9 @@
 # Jira-input resolution (shared front-end)
 
 Shared input-resolution mechanics for the Jira-driven commands `/implement`,
-`/document`, `/epics`, `/specify`, and `/release-notes`. The command's Phase 0 **cites this
+`/document`, `/epics`, `/specify`, `/release-notes`, `/create-ard`, `/design`, and
+`/ready`. (`/idea` uses only the `resolve-export-for-key` sub-procedure, not the
+whole front-end.) The command's Phase 0 **cites this
 file and executes these steps inline** — the orchestrator owns every prompt. The
 commands parse `$ARGUMENTS` identically and consume the normalized output
 contract (§ Output contract); each then layers its own downstream work. `/epics`,

@@ -6,7 +6,9 @@ Three reviewers on Fable 5, at most two concurrent: **gate contract vs. its call
 
 ## Verdict
 
-Two Critical defects, four Important, nine Minor. All fixed across three editions in commits `2d8960c`, `4461510`/`8194f37`, `9009a66`/`25c37b1`/`36d2da5`, `3e4ac2b`.
+Two Critical, ten Important, nine Minor — **every one fixed across all three editions**; one further reported finding was verified as a false positive and is recorded as such below. No known leftovers.
+
+Commits: `2d8960c` (marketplace guard), `4461510`/`8194f37` (expired claims), `9009a66`/`25c37b1`/`36d2da5` (gate contract), `3e4ac2b` (seventh row-order site), `8c05a00`/`09ab9b0`/`8962a98` (remaining findings).
 
 ## Critical 1 — the gate ran before the fetch it depends on
 
@@ -33,6 +35,19 @@ Every top-level guidance and changelog document enumerated the ten states as `H/
 - **Rows D/E scanned remote refs only** while §2.2's producer side tests local *and* remote. A deliverable committed after a failed push exists only locally → `absent` → `/create-ard` proceeds printing "If a VI exists on a branch, this run would have stopped; it does not, so none does." Now scans `refs/heads` too.
 - **`/ready`'s exemption was absent from the contract.** §3.7 stated unconditionally that every stopping row means the caller does not proceed; `/ready` never stops, because reporting is its function. `ard-resolution.md:53` already carved it out; `phase-handoff.md` now does too.
 - **`read-only-repos.md` "Cited by the eight commands that dispatch them"** — **no command cites it**. Its consumers are three agents; commands reach it via `escalation-rules.md`. Sub-project I had a requirement on this sentence, changed "seven"→"eight", and recorded PASS: it fixed the count while the verb stayed false.
+
+## Important (second wave)
+
+- **The gate tested an exact filename the plugin elsewhere deliberately globs.** `/create-ard` and `/specify` gated `<VI>_<vslug>.md` built from the derived slug, while `/create-vi` and `/create-ard`'s own readers locate the VI by `<VI>_*.md` plus frontmatter and the folder is matched by key-number — a human-adjusted slug is a supported state. A VI present on `main` under an adjusted slug gated as `absent`, and a slug-drifted file on a plugin branch escaped the D/E stop. Both now resolve the real name on the ref with `ls-tree`.
+- **`/implement`'s row-B rationale described an impossible state** — "this run's own Phase 4.5 handoff created the branch earlier in this same invocation", when the gate is Phase 0 and the handoff Phase 4.5.
+- **`/implement`'s §5 rule 2 deviation was undocumented**, though `/epics` records its own.
+- **§4.3's "Cancel" had defined semantics in no file**, contract included.
+- **`/create-vi` was the only producer not passing `body_facts`.**
+- **Eight reference docs under-declared their consumers** (derived mechanically, not copied), including `idea-format.md`'s "`/create-vi` (future) consumes it" — which shipped, and does not cite that file at all.
+
+## One finding that did not survive verification
+
+`design.md` was reported to omit the mandated `Phase handoff:` §4.1 line. It does not: it cites the outcome line **by section**, which is exactly what §5 rule 4 (*"Never restate this reference's rules — cite the section number"*) requires. The finding came from a literal-string grep. Tested by either form, all eight producers instruct the line. Recorded here rather than silently dropped — a reviewer's false positive is the same defect class as a check that fails on correct content.
 
 ## Minor (all fixed)
 

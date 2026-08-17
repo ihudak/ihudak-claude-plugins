@@ -1,7 +1,6 @@
 # Idea format (embedded authority)
 
-The canonical structure and per-section rules for a refined `idea.md`. `/idea` authors against this
-file; `/create-vi` (future) consumes it. A lean one-page brief — the seed a Value Increment is built
+The canonical structure and per-section rules for a refined `idea.md`. `/idea` is the only caller — it authors against this file. `/create-vi` consumes the resulting `idea.md` **artifact**, not this format doc, and never cites it. A lean one-page brief — the seed a Value Increment is built
 from, NOT a mini-VI.
 
 ## Frontmatter

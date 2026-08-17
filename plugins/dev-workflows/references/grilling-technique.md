@@ -1,6 +1,6 @@
 # Grilling technique (embedded — shared reference)
 
-The interview technique the authoring commands (`/idea`, `/create-vi`, `/specify`, `/design`) use to
+The interview technique the authoring commands (`/idea`, `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/design`) and `/prompt-grill-me` use to
 refine an artifact one decision at a time. Embedded here so callers have **no runtime dependency**;
 technique adapted from mattpocock grill-me/grilling. Each caller cites this file and states its own
 **depth** and **stage list**; this reference owns only the mechanics.

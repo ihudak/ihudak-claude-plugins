@@ -3,7 +3,8 @@
 Consulted by `release-notes-writer` to decide **where a release note lands and what shape it must
 take**. This file is the single authority for the destination map, the per-destination draft shape,
 the per-destination prose rules, the deprecation-note rule, and Change Type sourcing. The
-`/release-notes` command never re-reads this file; the agent applies it and returns a proposed
+`/release-notes` command cites this file for its own invariants (§1/§3 for the draft shape, §4 for
+the documentation-link rule) but never re-derives the writer's decision; the agent applies it and returns a proposed
 destination plus any gaps.
 
 The Change Type is a **Jira dropdown the PM sets on the ticket**. It is never written into the draft

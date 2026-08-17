@@ -1,7 +1,7 @@
 # Value Increment format (embedded authority)
 
-The canonical structure and per-section rules for a `<KEY>_<slug>.md` VI file (frontmatter `issue_type: ValueIncrement`). `/create-vi` authors
-against this file; `vi-reviewer` reviews against it. The VI is **product-level** (a PRD): what / why /
+The canonical structure and per-section rules for a `<KEY>_<slug>.md` VI file (frontmatter `issue_type: ValueIncrement`). `/create-vi` and `/update-vi` author
+against this file; `vi-reviewer` reviews against it, and `/release-notes` reads its Jira-mirror fields. The VI is **product-level** (a PRD): what / why /
 for-whom, **not** how — no implementation detail. A mandatory **spine** (always present) plus an
 **adapt-in menu** whose clusters are pulled only when the idea warrants them (never an empty section).
 

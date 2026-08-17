@@ -42,6 +42,15 @@ Key distinction from `/specify`: `/specify` (PE) *authors* the requirements spec
    `$SPECS_PATH/specifications/`. If `$SPECS_PATH` is unset, stop with a clear error naming `SPECS_PATH`
    (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
 
+**Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
+`specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier
+run, retry an artifact commit that failed to push, and settle the branch. Prompt-free and silent
+when the specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if
+it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
+`commit-artifacts` step skips on it.
+
+*(The preflight runs here, before the gate below, because `require-on-main` performs **no** `fetch` of its own — §3.2 — and relies on this step's best-effort one. Gating first would test never-fetched refs: a just-merged artifact would be missed on `origin/<default>` while the stale remote-tracking ref for its deleted branch still carries it, producing a false row D/E stop. `specs-preflight` self-gates on `$SPECS_PATH`, so it is safe this early.)*
+
 3. **Map onto the specs repo + require the spec on main.** Derive provisional kebab-case slugs from the relevant Jira title(s): `<vslug>` for `<VI>`, and `<eslug>` for `<EPIC>` when `focus_key` is set.
    - **Resolve the VI dir:** `specifications/<VI>-<vslug>/` — honor an existing dir matched by key-number (tolerate a stray `-`/`_` after the key and a human-adjusted slug); use the freshly derived `<VI>-<vslug>` only if none exists.
    - **Resolve the feature folder** by case:
@@ -71,13 +80,6 @@ Key distinction from `/specify`: `/specify` (PE) *authors* the requirements spec
 
 `/design` is **cwd-agnostic** — it reads/writes an absolute `$SPECS_PATH`-rooted feature folder and
 scans repos under `$REPOS_PATH`; cwd need not be inside either.
-
-**Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
-`specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier
-run, retry an artifact commit that failed to push, and settle the branch. Prompt-free and silent
-when the specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if
-it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
-`commit-artifacts` step skips on it.
 
 ---
 

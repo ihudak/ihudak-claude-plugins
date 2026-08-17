@@ -1,7 +1,7 @@
 # Architecture Requirements/Decision Document (ARD) format (embedded authority)
 
 The canonical structure and rules for an ARD authored by `/create-ard`. `ard-reviewer` reviews against
-this file. The ARD is **architecture** — invariants, grounded as-is findings, and cross-cutting
+this file, and `/ready` reads its `grounded_repos:` frontmatter. The ARD is **architecture** — invariants, grounded as-is findings, and cross-cutting
 decisions — NOT product requirements (that is the VI) and NOT a per-Epic implementation plan (that is
 `/design`). One shape; **depth scales with altitude**: a VI-level ARD stays at invariants + frame; an
 Epic-level ARD goes deeper on that Epic's repos/areas.

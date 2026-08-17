@@ -2,7 +2,7 @@
 
 Single source of truth for how a command records whether each of its verification gates actually ran.
 
-Consumed by `/document` (both modes). Written generically so other commands can adopt it — see §6.
+Consumed by `/document` (both modes), and by the two agents that read the ledger it produces: `doc-reviewer` (§4 and §6, for its verification-gate-integrity dimension) and `docs-style-checker`. Written generically so other commands can adopt it — see §6.
 
 ---
 

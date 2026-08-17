@@ -2,7 +2,7 @@
 
 Single source of truth for how a written page is **structured** and what it may **contain**,
 independent of any single docs repo. This reference is repo-agnostic: it governs the shape of prose,
-callouts, and reusable components for whatever docs repo `/document` writes into. Repo-specific
+callouts, and reusable components for whatever docs repo `/document` writes into. Consumed by `/document` and `/epics`, and by `doc-planner`, `doc-writer`, and `doc-reviewer`. Repo-specific
 conventions — frontmatter fields, changelog format, terminology lists, component syntax — live under
 `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/`, not here.
 

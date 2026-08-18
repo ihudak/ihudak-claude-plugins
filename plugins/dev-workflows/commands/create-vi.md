@@ -172,7 +172,8 @@ plugin is not installed), **skip this phase gracefully** and note
 
 Before the review gate, run the deterministic checks in
 `${CLAUDE_PLUGIN_ROOT}/references/pre-lint.md` against the drafted `<KEY>_<slug>.md`: the
-**Universal checks** plus the **VI** block. Surface every finding; inline-fix the mechanical ones
+**Universal checks**, the **Jira-key collision** check (run on the VI body below the frontmatter),
+and the **VI** block. Surface every finding; inline-fix the mechanical ones
 (renumber a duplicate `[US#N]`/`[AC#N]`/`[SM#N]`, delete a stray placeholder token); leave content gaps
 (missing section, unresolved `[NEEDS CLARIFICATION]`) for the grill/author. **Advisory** — never blocks;
 proceed to Phase 4 once findings are surfaced. `vi-reviewer` remains the gate.

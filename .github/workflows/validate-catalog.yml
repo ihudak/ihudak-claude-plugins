@@ -12,6 +12,12 @@ name: Validate plugin catalog
 #
 # Runs on push and pull request so a bad catalog is caught before anyone's
 # `plugin update` fetches it.
+#
+# The same job also runs scripts/check-id-grammar.sh, the requirement-ID grammar
+# gate: every ID a plugin doc teaches must be the Jira-safe bracketed [PREFIX#N]
+# form, never the dash form that Jira auto-links to an unrelated ticket on paste.
+# It is here rather than in a hook because a gate whose enforcement lives only in
+# someone's memory is how the description-length rule regressed three times.
 
 on:
   push:
@@ -31,3 +37,6 @@ jobs:
 
       - name: Validate manifests and catalog
         run: python3 scripts/validate-catalog.py
+
+      - name: Check requirement-ID grammar
+        run: ./scripts/check-id-grammar.sh --root .

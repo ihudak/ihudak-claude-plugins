@@ -6,8 +6,9 @@ consumed BLOCKing on mechanical structure. **Advisory:** surface findings, inlin
 ones, leave content gaps for the author, then proceed to the reviewer. Pre-lint **never hard-stops**
 on its own; the reviewer remains the gate.
 
-Each caller cites this file, states its **artifact type** and the **file(s)** to check, runs the
-Universal checks plus its artifact-specific block, and surfaces the findings. Severities: **BLOCKER**
+Each caller cites this file, states its **artifact type** and the **file(s)** to check, runs three
+things — the **Universal checks**, then the **Jira-key collision** check when the artifact is a VI, an
+ARD, or an Epic file, then its **artifact-specific block** — and surfaces the findings. Severities: **BLOCKER**
 (missing required section, duplicate ID, stray generic placeholder), **MAJOR** (a structural rule
 broken), **MINOR** (ID gap, informational count). Inline-fix only the mechanical (renumber a duplicate
 ID, delete a stray placeholder token); anything needing content goes back to the author/grill.
@@ -34,8 +35,11 @@ For the ARD, scan **below the frontmatter**. For Epic files, scan the entire fil
 
 Discard a hit ONLY when it is a deliberate Jira reference: inside a wikilink (`[[KEY-123]]`), inside
 a markdown link (link text or URL), or inside a fenced code block. Inline code (`` `KEY-123` ``) is NOT excluded and IS flagged.
-Every surviving hit → **BLOCKER**, with the fix named — convert to `[PREFIX#N]` if it is a requirement ID, wrap as `[[KEY-123]]` if it is a real
-ticket. The conversion is mechanical, so inline-fix it under the standard pre-lint contract.
+Classify every surviving hit into exactly one of three branches, and name the branch in the finding — the taxonomy is not exhaustive by assumption, so a hit that fits none of the first two belongs in the third:
+
+1. **A requirement ID** (`US`/`AC`/`SM`/`SMC`/`UC`/`FR`/`AD` prefix) → **BLOCKER**; convert it to `[PREFIX#N]`. This branch alone is mechanical, so inline-fix it under the standard pre-lint contract.
+2. **A real Jira ticket** (a key in a project that actually exists) → **BLOCKER**; wrap it as `[[KEY-123]]` so Jira and the vault importer both read it as the deliberate reference it is. Not mechanical — confirm the key with the author before wrapping.
+3. **Neither — a standards, protocol, or algorithm reference** such as `ISO-8601`, `RFC-8446`, `TLS-13`, `SHA-256`, or `HTTP-2` → **MINOR**; leave the token **exactly as written** and report it. It is correct prose that happens to match the grep, so there is nothing in the artifact to fix. NEVER rewrite it as `[PREFIX#N]` and NEVER wrap it in a wikilink — `[[ISO-8601]]` is a dangling link to a ticket that does not exist, and the inline-fix clause in branch 1 does not reach this branch. If a Jira project genuinely shares the prefix, that is the author's call to make, never the linter's.
 
 The ARD is not itself pasted into Jira, but `epic-writer` copies its `AD` references into Epic
 drafts, which are. Catching it at the source is cheaper than catching it downstream.

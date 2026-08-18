@@ -72,7 +72,7 @@ Run the corporate style check on the updated VI **before** the review gate (qual
 
 ## Phase 3.6 — Structural pre-lint
 
-Run the deterministic checks in `${CLAUDE_PLUGIN_ROOT}/references/pre-lint.md` (Universal + **VI** block) against the updated file; inline-fix mechanical findings; leave content gaps for the grill. Advisory — never blocks; `vi-reviewer` remains the gate.
+Run the deterministic checks in `${CLAUDE_PLUGIN_ROOT}/references/pre-lint.md` (the Universal checks + the **Jira-key collision** check on the body below the frontmatter + the **VI** block) against the updated file; inline-fix mechanical findings; leave content gaps for the grill. Advisory — never blocks; `vi-reviewer` remains the gate.
 
 ---
 

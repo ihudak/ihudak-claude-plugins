@@ -1,3 +1,25 @@
+# Frozen spec/design ID namespace census -- the Risk 1 tripwire for the
+# "Jira-safe requirement IDs" change (2026-08-18). These identifiers are
+# deliberately OUTSIDE the [PREFIX#N] grammar and must stay byte-identical:
+# a change here means a global replace reached the spec/design namespace.
+#
+# Scan root: plugins/ CLAUDE.md   (all commands below are run from the repository root)
+#
+# Regenerate, preserving this header:
+#   ( grep '^#' scripts/spec-id-baseline.txt; \
+#     grep -rhoE '\[U0[0-9]+\]|\[AC0[0-9]+\]|\[TC0[0-9]+\]|\[Uxx\]|\[ACxx\]|\[TCxx\]' \
+#       --include='*.md' plugins/ CLAUDE.md 2>/dev/null | sort | uniq -c \
+#   ) > scripts/spec-id-baseline.new \
+#   && mv scripts/spec-id-baseline.new scripts/spec-id-baseline.txt
+#
+# Verify (must print nothing):
+#   grep -rhoE '\[U0[0-9]+\]|\[AC0[0-9]+\]|\[TC0[0-9]+\]|\[Uxx\]|\[ACxx\]|\[TCxx\]' \
+#     --include='*.md' plugins/ CLAUDE.md 2>/dev/null | sort | uniq -c \
+#   | diff <(grep -v '^#' scripts/spec-id-baseline.txt) -
+#
+# CHANGELOG.md is deliberately NOT excluded, so prose mentions there are counted
+# too. All three editions compute the census the same way, which is the only
+# reason their numbers are comparable at all -- do not narrow the scan root.
       1 [AC01]
       2 [AC03]
      21 [ACxx]

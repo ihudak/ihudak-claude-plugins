@@ -18,10 +18,11 @@ smart cards carrying **`AC-1`'s** summary and status ("Employee Enablement / In 
 VI's own criterion text trailing after the card — links to genuine, unrelated tickets, creating false
 relationships in Jira and noise on the linked tickets.
 
-**The trigger is authoring-time, and the cards are stored in the document, not applied at display
-time.** Probing on 2026-08-18 established this: in a ticket holding both older card-bearing content
-and freshly pasted bare `AC-2:` text, one render pass showed cards on the former and plain text on
-the latter. Plain paste — from a console, from Obsidian's rich-text copy, or from re-imported
+**The cards are stored in the document, not applied at display time.** That, and only that, is what
+probing established; *which* action stores them — and therefore whether the trigger is authoring-time
+at all — remains an open hypothesis, taken up in the next paragraph. Probing on 2026-08-18: in a
+ticket holding both older card-bearing content and freshly pasted bare `AC-2:` text, one render pass
+showed cards on the former and plain text on the latter. Plain paste — from a console, from Obsidian's rich-text copy, or from re-imported
 markdown — never linkified anything. A bare key followed by an explicit commit (cursor after the
 token, Enter) linkified reliably. Which authoring action produced the cards in the shipped VIs is
 **not identified**; the bracketed form resisted every trigger reproduced in probing yet appears
@@ -216,7 +217,15 @@ unpadded form matches what the VI emits today.
 ## 5. Enforcement — `references/pre-lint.md`
 
 `pre-lint.md` is already run by all six commands that produce these artifacts — `/create-vi`,
-`/update-vi`, `/create-ard`, `/specify`, `/design`, `/epics` — so no new wiring is needed.
+`/update-vi`, `/create-ard`, `/specify`, `/design`, `/epics` — so the file needs no new caller.
+
+It does need new wiring **inside** the existing contract, and the first cut of this design wrongly
+said it did not. Each caller enumerates the named blocks it runs ("the Universal checks plus its
+artifact-specific block"), and §5.1's collision check is a peer top-level section that is neither —
+so it ships inert unless the contract sentence in `pre-lint.md` *and* the four VI/ARD/Epic-producing
+callers (`/create-vi`, `/update-vi`, `/create-ard`, `/epics`) name it explicitly. `/specify` and
+`/design` are deliberately excluded: they produce `specification.md` / `design.md`, which §5.1's
+scope line ("VI, ARD, Epic files only") does not cover.
 
 ### 5.1 New check — Jira-key collision
 
@@ -231,9 +240,21 @@ frontmatter's `jira_key:` / `ref:` / `seeded_from_vi:` / `revision_of:` fields l
 keys.
 
 Discard a hit only when it is a deliberate Jira reference: inside a wikilink (`[[KEY-123]]`), inside
-a markdown link, or inside a fenced code block. Every surviving hit is a **BLOCKER** naming its own
-fix — convert to `[PREFIX#N]` if it is a requirement ID, wrap as `[[KEY-123]]` if it is a real
-ticket. The conversion is mechanical, so pre-lint inline-fixes it under its existing contract.
+a markdown link, or inside a fenced code block. Every surviving hit is classified into exactly one of
+three branches, each naming its own fix. The taxonomy is not exhaustive by assumption: standards
+tokens match the same regex, so anything fitting neither of the first two branches lands in the third
+rather than being forced into one of them.
+
+1. **A requirement ID** → **BLOCKER**; convert it to `[PREFIX#N]`. This branch alone is mechanical, so
+   pre-lint inline-fixes it under its existing contract.
+2. **A real Jira ticket** → **BLOCKER**; wrap it as `[[KEY-123]]`. Not mechanical — the key is
+   confirmed with the author first.
+3. **Neither — a standards, protocol, or algorithm reference** (`ISO-8601`, `RFC-8446`, `TLS-13`,
+   `SHA-256`) → **MINOR**; left **exactly as written** and reported. These are correct prose that
+   happens to match the grep, so there is nothing in the artifact to fix. Converting one to
+   `[PREFIX#N]` would corrupt it, and wrapping it as `[[ISO-8601]]` would manufacture a dangling
+   wikilink to a ticket that does not exist — which is what an exhaustive two-branch taxonomy plus the
+   inline-fix clause would otherwise have produced. The inline-fix clause reaches branch 1 only.
 
 The ARD is not itself pasted into Jira — `/create-ard` has no paste step. It gets the check anyway,
 because `epic-writer` copies `AD` references into Epic drafts, which are pasted. Catching it at the
@@ -357,8 +378,10 @@ reasoning, but not evidence. The entire design depends on it.
 Obsidian rich-text, re-imported markdown) the `#` form was never linkified — bracketed or bare —
 while the dash form linkified under a reproducible trigger and is demonstrably linked in shipped
 VIs. The `#` grammar is safer under every mechanism tested. The original single-paste probe below
-proved insufficient on its own: its first two rounds tested a paste path that linkifies nothing, so
-they could not have failed. Retained as written for the record.
+proved insufficient on its own: round 1 tested a paste path that linkifies nothing, so it could not
+have failed; round 2 *did* linkify — a bare key followed by an Enter commit linkified reliably — so it
+was informative about the bare dash form but said nothing about the bracketed form the VIs actually
+mint. Retained as written for the record.
 
 *Mitigation:* a **pre-flight gate, before any of the 23 files is edited** — paste a five-line probe
 into a Jira scratch ticket containing `[US#1]`, `[AC#1]`, `[AD#1]`, a real `PRODUCT-123`, and a bare

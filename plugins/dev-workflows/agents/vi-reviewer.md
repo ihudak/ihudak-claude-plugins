@@ -28,23 +28,23 @@ runs a fix cycle and re-reviews once.
 ## Dimensions
 
 - **Goal crispness (BLOCKER if vague):** a 2–3 sentence outcome a downstream reader can act on — it feeds `jira-reader` and every consumer. Empty, a restatement of the title, or unfalsifiable → `BLOCKER`.
-- **User Stories:** `### [US-N]` + `As a [role], I want …, so that …`; specific role (not "the user"/"everyone"); verifiable benefit; contiguous IDs. Vague role/benefit → `MAJOR`.
-- **Acceptance Criteria:** `[AC-N]` per story, externally-observable pass/fail; "be reliable"/"improve performance"/"fast" → `MAJOR`.
+- **User Stories:** `### [US#N]` + `As a [role], I want …, so that …`; specific role (not "the user"/"everyone"); verifiable benefit; contiguous IDs. Vague role/benefit → `MAJOR`.
+- **Acceptance Criteria:** `[AC#N]` per story, externally-observable pass/fail; "be reliable"/"improve performance"/"fast" → `MAJOR`.
 - **Scope:** In concrete (≥1 delivered behaviour); Out concrete + confusable; "anything else"/"future work" as an Out item → `MAJOR`.
-- **Success Metrics:** `[SM-N]` measurable + technology-agnostic; a metric leaking implementation (e.g. "API < 200ms") when an outcome metric is meant → `MINOR`. A Primary SM that is plausibly gameable with no counter-metric (`[SM-Cx]`) guarding it → `NIT`/`MINOR` (non-blocking) — suggest a counter-metric.
+- **Success Metrics:** `[SM#N]` measurable + technology-agnostic; a metric leaking implementation (e.g. "API < 200ms") when an outcome metric is meant → `MINOR`. A Primary SM that is plausibly gameable with no counter-metric (`[SM-Cx]`) guarding it → `NIT`/`MINOR` (non-blocking) — suggest a counter-metric.
 - **Product-level purity (BLOCKER):** no implementation detail (algorithms, data structures, code paths, internal APIs) — that belongs to the ARD / spec / design.
 - **No restatement:** any FR/UC present must not merely paraphrase a US (reference by ID) → `MAJOR`.
 - **Profile completeness:** every spine section present; each adapt-in section that IS present is substantive, not theater (empty/boilerplate Competitive Snapshot, personas, or metrics → `MAJOR`, "substance over theater"). Never flag an omitted adapt-in cluster the profile doesn't require.
 - **Substance over theater (hollow prose):** a section that is non-empty but states no testable commitment, decision, or constraint — vision/persona/NFR prose that reads well yet does no work → `MAJOR` ("reads well, does no work"), the same bar as the empty/boilerplate case above.
-- **Identifier integrity:** `[US-N]`/`[AC-N]`/`[SM-N]` unique + contiguous; cross-references point at existing IDs.
-- **Internal consistency / non-contradiction (MAJOR; BLOCKER for a hard Goal-vs-Scope contradiction):** the VI must not contradict itself. Flag an `[AC-N]` that delivers a `## Scope` **Out-of-scope** behaviour; a `## Goal` asserting a different scope than `## Scope`; two `[US-N]` in direct conflict; an `[SM-N]` contradicting scope. This is a product-level self-consistency check only — NOT a feasibility or code check. An unresolved contradiction the author chose to keep must appear under `## Assumptions & open questions`, not silently in a requirement.
+- **Identifier integrity:** `[US#N]`/`[AC#N]`/`[SM#N]` unique + contiguous; cross-references point at existing IDs. A dash-form ID (`[AC-1]`, `[US-1]`, …) is a **BLOCKER** — Jira auto-links it to an unrelated ticket on paste, and the vault importer rewrites it into `[[[AC-1]]]` on export.
+- **Internal consistency / non-contradiction (MAJOR; BLOCKER for a hard Goal-vs-Scope contradiction):** the VI must not contradict itself. Flag an `[AC#N]` that delivers a `## Scope` **Out-of-scope** behaviour; a `## Goal` asserting a different scope than `## Scope`; two `[US#N]` in direct conflict; an `[SM#N]` contradicting scope. This is a product-level self-consistency check only — NOT a feasibility or code check. An unresolved contradiction the author chose to keep must appear under `## Assumptions & open questions`, not silently in a requirement.
 
 ## Output contract
 
 Return only findings, no preamble, ordered `BLOCKER` → `MAJOR` → `MINOR` → `NIT`:
 
 ```
-[BLOCKER|MAJOR|MINOR|NIT] — <Section or US-N/AC-N/SM-N>
+[BLOCKER|MAJOR|MINOR|NIT] — <Section or US#N/AC#N/SM#N>
 Violation: <what rule is broken and where>
 Fix: <concrete recommendation, or "needs product input">
 ```

@@ -12,9 +12,21 @@ links to unrelated tickets.
 the form `[US-1]`, `[AC-1]`, `[SM-1]`, and bare `UC-1` / `FR-1`. `/create-ard` mints `[AD-1]`;
 `epic-writer` emits a `## Covers` line carrying **bare** `US-2, AC-4, SM-1`.
 
-Every one of those tokens has the shape of a Jira issue key. The reporting user's Jira has a real
-project keyed `AC`, so on paste Jira's autolinker converts `AC-1`, `AC-2`, … into links to genuine,
-unrelated tickets — creating false relationships in Jira and noise on the linked tickets.
+Every one of those tokens has the shape of a Jira issue key, and the reporting user's Jira has a real
+project keyed `AC`. Shipped VIs show the consequence: PRODUCT-18738 renders its criteria as inline
+smart cards carrying **`AC-1`'s** summary and status ("Employee Enablement / In Progress"), with the
+VI's own criterion text trailing after the card — links to genuine, unrelated tickets, creating false
+relationships in Jira and noise on the linked tickets.
+
+**The trigger is authoring-time, and the cards are stored in the document, not applied at display
+time.** Probing on 2026-08-18 established this: in a ticket holding both older card-bearing content
+and freshly pasted bare `AC-2:` text, one render pass showed cards on the former and plain text on
+the latter. Plain paste — from a console, from Obsidian's rich-text copy, or from re-imported
+markdown — never linkified anything. A bare key followed by an explicit commit (cursor after the
+token, Enter) linkified reliably. Which authoring action produced the cards in the shipped VIs is
+**not identified**; the bracketed form resisted every trigger reproduced in probing yet appears
+linked in production, so the mechanism is broader than what was reproduced. This uncertainty is
+recorded rather than resolved, because it concerns the grammar being removed.
 
 There is a second, independent failure point downstream. The vault importers
 (`$VAULT_PATH/.obsidian/scripts/custom/jira-workitem-import` and `jira-bulk-import`) rewrite bare
@@ -329,6 +341,13 @@ fix that died in one of them.
 in §D6 was verified by running the converters. Jira itself cannot be run from this environment, so
 "Jira does not autolink `AC#1`" rests on the fact that `AC#1` is not a valid issue-key shape — sound
 reasoning, but not evidence. The entire design depends on it.
+**Probe result (2026-08-18): PASS.** Across four paste paths (console, console + Enter-commit,
+Obsidian rich-text, re-imported markdown) the `#` form was never linkified — bracketed or bare —
+while the dash form linkified under a reproducible trigger and is demonstrably linked in shipped
+VIs. The `#` grammar is safer under every mechanism tested. The original single-paste probe below
+proved insufficient on its own: its first two rounds tested a paste path that linkifies nothing, so
+they could not have failed. Retained as written for the record.
+
 *Mitigation:* a **pre-flight gate, before any of the 23 files is edited** — paste a five-line probe
 into a Jira scratch ticket containing `[US#1]`, `[AC#1]`, `[AD#1]`, a real `PRODUCT-123`, and a bare
 `AC#2`; confirm no autolink on the `#` forms and a working link on the real key; then export it with

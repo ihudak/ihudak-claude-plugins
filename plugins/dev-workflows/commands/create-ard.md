@@ -73,7 +73,7 @@ Read the VI from `$SPECS_PATH/specifications/<VI>-<vslug>/` — glob `<VI>_*.md`
   > jira_key:         [<VI> for a VI-level run, <EPIC> for an Epic-level run]
   > depth:      vi-only (VI-level) | full (Epic-level, scoped to focus_key)"
 
-For an **Epic-level** run always dispatch `jira-reader` this way (`depth: full`, scoped to `focus_key`) for the Epic's scope — the authored-VI-file check above only applies VI-level. Resolve any VI-level ARD via `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` (`vi: <VI>`, `epic: null`, `$SPECS_PATH`). On `status: found`, load its `AD-N` invariants to **inherit read-only**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr`. On `status: none`, proceed unchanged — there is no VI-level ARD to inherit.
+For an **Epic-level** run always dispatch `jira-reader` this way (`depth: full`, scoped to `focus_key`) for the Epic's scope — the authored-VI-file check above only applies VI-level. Resolve any VI-level ARD via `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` (`vi: <VI>`, `epic: null`, `$SPECS_PATH`). On `status: found`, load its `AD#N` invariants to **inherit read-only**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr`. On `status: none`, proceed unchanged — there is no VI-level ARD to inherit.
 
 Extract the problem/goal/scope frame + capability themes — the raw material for grounding + the grill.
 
@@ -113,7 +113,7 @@ There are no PRs at ARD time, so repos are **architect-driven**, not PR-derived:
 ## Phase 4 — Author via grill
 **Interview technique (grilling — embedded; no runtime dependency).** Conduct a **relentless** interview per `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, explore the Phase 3 grounding findings / the VI to self-answer (fact-vs-decision), walk the design tree in dependency order, continue to shared understanding then write each section.
 
-Author the ARD live against `${CLAUDE_PLUGIN_ROOT}/references/ard-format.md`, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md`, at the resolved altitude: Context → Grounding findings (cite `file:line`) → Architecture decisions (`AD-N`: Binds/Prevents/Rule) → Cross-repo/component approach → Stack & invariants → Edge cases & risks → Open questions → Deferred. At Epic level, list inherited VI-level ADs read-only and never contradict them; VI level stays at invariants/frame (no per-repo detailed solutions).
+Author the ARD live against `${CLAUDE_PLUGIN_ROOT}/references/ard-format.md`, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md`, at the resolved altitude: Context → Grounding findings (cite `file:line`) → Architecture decisions (`AD#N`: Binds/Prevents/Rule) → Cross-repo/component approach → Stack & invariants → Edge cases & risks → Open questions → Deferred. At Epic level, list inherited VI-level ADs read-only and never contradict them; VI level stays at invariants/frame (no per-repo detailed solutions).
 
 **Per-area split.** If (Epic level) the confirmed grounding spans separable areas in one repo (e.g. `server/` backend + `ui/` frontend), grill: `choices: ["One combined ARD (Recommended)", "One ARD per area (backend / frontend / …)", "Other… (describe)"]`. On per-area, author one `<EPIC>-<area>_ARD.md` per area (each with its own `area:` frontmatter).
 
@@ -123,8 +123,8 @@ Author the ARD live against `${CLAUDE_PLUGIN_ROOT}/references/ard-format.md`, ap
 
 Before the review gate, run the deterministic checks in
 `${CLAUDE_PLUGIN_ROOT}/references/pre-lint.md` against the drafted `*_ARD.md`: the **Universal checks**
-plus the **ARD** block (incl. that every `### [AD-N]` carries `**Binds:**` / `**Prevents:**` /
-`**Rule:**`). Surface every finding; inline-fix the mechanical ones (renumber a duplicate `[AD-N]`,
+plus the **ARD** block (incl. that every `### [AD#N]` carries `**Binds:**` / `**Prevents:**` /
+`**Rule:**`). Surface every finding; inline-fix the mechanical ones (renumber a duplicate `[AD#N]`,
 delete a stray placeholder token); leave content gaps for the grill/author. **Advisory** — never blocks;
 proceed to Phase 5 once findings are surfaced. `ard-reviewer` remains the gate.
 
@@ -142,7 +142,7 @@ On `BLOCK`, fix the BLOCKER findings inline (the orchestrator/grill edits the AR
 ---
 
 ## Phase 6 — Handoff
-Write the ARD file(s) into the feature folder. Then **offer** (commit-when-asked — never automatic), presenting `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's choice array verbatim: `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`. On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: ard`; `feature_folder` as resolved in Phase 0 (the VI dir for a VI-level ARD, the Epic subfolder for an Epic-level ARD — §2.2 derives `ard/<VI>-<vslug>` or `ard/<EPIC>-<eslug>` from it, matching today's branch names); `deliverable_paths` = the ARD file(s); `title: <VI|EPIC> Add architecture requirements document`; and `body_facts` = the ARD scope (VI/Epic, any per-area split), the grounded/descoped repos, the `AD-N` count, the open-question count, and the `ard-reviewer` verdict. Emit its §4.1 outcome line in the Final report.
+Write the ARD file(s) into the feature folder. Then **offer** (commit-when-asked — never automatic), presenting `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's choice array verbatim: `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`. On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: ard`; `feature_folder` as resolved in Phase 0 (the VI dir for a VI-level ARD, the Epic subfolder for an Epic-level ARD — §2.2 derives `ard/<VI>-<vslug>` or `ard/<EPIC>-<eslug>` from it, matching today's branch names); `deliverable_paths` = the ARD file(s); `title: <VI|EPIC> Add architecture requirements document`; and `body_facts` = the ARD scope (VI/Epic, any per-area split), the grounded/descoped repos, the `AD#N` count, the open-question count, and the `ard-reviewer` verdict. Emit its §4.1 outcome line in the Final report.
 
 ---
 
@@ -189,4 +189,4 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git 
 ---
 
 ## Final report
-Report: the ARD path(s) + scope (VI/Epic, any per-area split); the grounded repos + any descoped/ungrounded ones; `AD-N` count; open-question count; the `ard-reviewer` verdict; the `Phase handoff:` outcome line from `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1); resolved model routing (+ any Opus gate/degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; and the adaptive next-step recommendation.
+Report: the ARD path(s) + scope (VI/Epic, any per-area split); the grounded repos + any descoped/ungrounded ones; `AD#N` count; open-question count; the `ard-reviewer` verdict; the `Phase handoff:` outcome line from `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1); resolved model routing (+ any Opus gate/degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; and the adaptive next-step recommendation.

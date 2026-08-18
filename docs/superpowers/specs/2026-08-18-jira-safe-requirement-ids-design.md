@@ -32,8 +32,9 @@ There is a second, independent failure point downstream. The vault importers
 (`$VAULT_PATH/.obsidian/scripts/custom/jira-workitem-import` and `jira-bulk-import`) rewrite bare
 issue keys to links in `src/jira_markup_converter.py:381`. Someone has already been bitten by this
 once: the regex carries `(?<!\[)…(?!\])` lookarounds whose comment names "a VI's `[US-1]` ID
-marker". Brackets therefore shield the **import** side today. Jira ignores brackets entirely, which
-is why the paste side still breaks — and why `## Covers`, the one unbracketed site, breaks on both.
+marker". Brackets therefore shield the **import** side today. They do **not** reliably shield the
+Jira side — shipped VIs whose source is bracketed render as smart cards regardless — so `## Covers`,
+the one unbracketed site, is exposed on both sides, and the bracketed sites remain exposed on one.
 
 The spec and design artifacts are already immune by accident: `specification-format.md` mints
 `[U01]` / `[AC01]` / `[TC01]`, which no autolinker and no importer regex recognises.

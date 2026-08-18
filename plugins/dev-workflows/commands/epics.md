@@ -159,7 +159,7 @@ Resolve any VI-level ARD for this VI by citing
 - On `status: unmerged` → **stop**, naming the returned `branch` and any `pr` — an ARD that exists but has not landed on `<default>` is a weaker architectural basis than the one about to arrive, and Epics drafted against it would need re-doing once it does.
 - On `status: found` → carry `invariants` + `guidance_summary` forward: pass them
   to `epic-writer` (Phase 6 handoff, as `applicable_ard`) so drafts stay
-  consistent with the `AD-N`, and to `epic-reviewer` (Phase 7, as `applicable_ard`)
+  consistent with the `AD#N`, and to `epic-reviewer` (Phase 7, as `applicable_ard`)
   which then activates its ARD-conformance dimension. A necessary deviation is
   recorded by the writer in the Epic draft (`- ARD deviation: … flag: architect`)
   and surfaced in the Phase 9 report — never edit the ARD.

@@ -196,6 +196,7 @@ hits=$(grep -rnE "$PATTERN" \
         --exclude='CHANGELOG.md' \
         --exclude-dir='.git' \
         --exclude-dir='docs' \
+        --exclude-dir='fixtures' \
         "$ROOT" 2>/dev/null \
        | grep -v 'id-grammar-ok:' || true)
 
@@ -656,7 +657,7 @@ Expected: exactly `5` — the five parse rules in `agents/jira-reader.md`, and n
 - [ ] **Step 7: Commit**
 
 ```bash
-git add plugins/dev-workflows/agents/jira-reader.md plugins/dev-workflows/references/handoff/jira-reader.md scripts/check-id-grammar.sh
+git add plugins/dev-workflows/agents/jira-reader.md plugins/dev-workflows/references/handoff/jira-reader.md
 git commit -m "feat(dev-workflows): jira-reader accepts both ID forms, emits [PREFIX#N]"
 ```
 
@@ -833,12 +834,18 @@ Expected: all PASS.
 
 - [ ] **Step 6: Commit (vault repo)**
 
+The vault repo sits on `main` with a live shared remote and carries 3 pre-existing dirty files
+unrelated to this work. Branch first, and stage by explicit path only — never `-A`.
+
 ```bash
 cd /workspace/vault
+git checkout -b iv-gu/jira-safe-requirement-ids
 git add .obsidian/scripts/custom/jira-workitem-import/tests/test_jira_markup_converter.py \
         .obsidian/scripts/custom/jira-bulk-import/tests/test_jira_markup_converter.py
 git commit -m "test(jira-import): lock [PREFIX#N] round-trip and bracket-accumulation guards"
 ```
+
+Leave the 3 unrelated dirty files exactly as they are; do not stash, stage, or revert them.
 
 ---
 

@@ -21,7 +21,7 @@ The caller passes a structured brief:
 - **`code-scanner` output** — array of per-repo outputs (only when the user enabled code examination in Phase 1). Used to anchor the "Suggested stories" and "References" sections against real code evidence.
 - **`requirements[]`** — the VI requirement inventory (from jira-reader). The coverage ground truth.
 - **`_coverage.md` path** — the coverage matrix the writer produced. Verify it against `requirements[]`.
-- **`applicable_ard`** — the VI-level ARD `invariants` (AD-N), or omitted. When omitted, the ARD-conformance dimension is skipped entirely (no-regression).
+- **`applicable_ard`** — the VI-level ARD `invariants` (AD#N), or omitted. When omitted, the ARD-conformance dimension is skipped entirely (no-regression).
 
 Refuse to review without the written file paths and the `jira-reader` handoff. These two are the review ground truth.
 
@@ -34,7 +34,7 @@ Refuse to review without the written file paths and the `jira-reader` handoff. T
 5. Check epic independence: an Epic whose value cannot be delivered without a not-yet-existing Epic (read `## Independent Test` + `## Dependencies`) is a MAJOR finding.
 6. Check internal terminology consistency: the same concept named differently across the batch is a MINOR/NIT finding (corporate terminology vs the style guide is dt-style-checker's job — out of scope here).
 7. Flag any unresolved `[NEEDS CLARIFICATION]` marker as a BLOCKER.
-8. When `applicable_ard` is present, check each Epic against the `AD-N` invariants: a violating Epic WITHOUT a matching `- ARD deviation: … flag: architect` line is a BLOCKER; WITH one it is allowed-but-flagged. When absent, skip this dimension.
+8. When `applicable_ard` is present, check each Epic against the `AD#N` invariants: a violating Epic WITHOUT a matching `- ARD deviation: … flag: architect` line is a BLOCKER; WITH one it is allowed-but-flagged. When absent, skip this dimension.
 9. For each dimension below, record findings in the shared severity schema (`BLOCKER` / `MAJOR` / `MINOR` / `NIT`). Skip dimensions that are clearly not applicable, but say so explicitly (`"N/A — reason"`).
 10. Derive a single verdict: `PASS` (no findings above MINOR), `PASS WITH RECOMMENDATIONS` (MAJOR / MINOR / NIT only, no blockers), `BLOCK` (at least one BLOCKER finding).
 
@@ -51,10 +51,11 @@ Refuse to review without the written file paths and the `jira-reader` handoff. T
 | Non-duplication | No overlap with existing Epics linked to the VI (from `jira-reader` `linked_items` filtered to `type == Epic`). If overlap exists, it is explicitly called out in the draft's Dependencies or Scope section and justified (e.g. "extends Epic FOO-123 with capability X; FOO-123 remains the owner for Y"). Undetected duplication is a BLOCKER. **Exception (refinement mode):** a drafted file whose name matches a `refinement_targets` entry (same Jira key) is an authorized in-place refinement of that Epic, not a duplicate — its coverage is judged by the Refinement completeness / Partition integrity dimensions instead. |
 | References | Jira parent link to the VI is present. Code paths from `code-scanner` are cited where relevant (especially when `classification == present` or `partial` anchors a reuse argument). Every cited path must appear in a `code-scanner` `evidence.path` if `code-scanner` output was provided. |
 | Structural integrity | Headings are well-formed and follow a consistent level hierarchy across all Epic files in the batch. `[[wikilinks]]` resolve (within the vault if the paths are absolute / vault-relative). Markdown renders without broken fences, unclosed emphasis, or malformed lists. |
+| Identifier grammar | Every requirement ID the Epic cites — in `## Covers`, in prose, in a table cell — is in bracketed `#` form (`[US#N]`, `[AC#N]`, `[SM#N]`, and `[AD#N]` for an inherited ARD decision). A surviving dash-form ID, bracketed (`[AC-1]`) or bare (`US-2, AC-4`), is a **BLOCKER**: an Epic draft is pasted into Jira, where a key-shaped token auto-links to an unrelated real ticket in any project sharing the prefix, and the vault importer rewrites it into `[[[AC-1]]]` on export. `## Covers` is the site to check first — it is the one that historically emitted bare tokens. <!-- id-grammar-ok: BLOCKER rule must name the forbidden form -->
 | Requirement coverage | Every VI requirement in `requirements[]` is covered by an existing or new Epic; `❌ gap` rows in `_coverage.md` → MAJOR. A `Covers` id not in `requirements[]` → MINOR. `requirements[]` may also include `spec-story`/`spec-criterion` rows sourced from a VI-level spec (via `/epics` Phase 2.6) — treat them identically to VI requirements (uncovered → MAJOR). |
 | Epic independence | Each Epic delivers its value without any not-yet-built Epic. A forward dependency on an Epic that does not yet exist → MAJOR (resequence/merge). **Exception (refinement mode):** a dependency between two Epics in the same refined `refinement_targets` set is legal (it encodes real cross-team build order) and is judged by the Cross-team dependency sanity dimension, not flagged here. |
 | Terminology drift (internal) | The same concept is named consistently across all Epics in the batch. Inconsistency → MINOR/NIT. Corporate terminology is dt-style-checker's job, not this dimension. |
-| ARD conformance (conditional) | Only when `applicable_ard` is present: an Epic violating a VI-level `AD-N` without a matching `- ARD deviation: … flag: architect` line → BLOCKER; with one → allowed-but-flagged. Absent → dimension skipped. |
+| ARD conformance (conditional) | Only when `applicable_ard` is present: an Epic violating a VI-level `AD#N` without a matching `- ARD deviation: … flag: architect` line → BLOCKER; with one → allowed-but-flagged. Absent → dimension skipped. |
 | Refinement completeness (conditional) | Only when the brief includes `refinement_targets`: every target is actually filled — a still-empty target (no real Scope/Acceptance content beyond the summary) is a BLOCKER. Absent → dimension skipped. |
 | Partition integrity (conditional) | Only in refinement mode: the union of the refined targets' `## Covers` spans the intended VI slice with no silent overlap (two targets claiming the same requirement without a stated split → MAJOR) and no unflagged uncovered requirement. Absent → skipped. |
 | Cross-team dependency sanity (conditional) | Only in refinement mode: inter-target `## Dependencies` are present where a build order exists and are acyclic. A dependency on a not-yet-existing Epic still → MAJOR. Absent → skipped. |
@@ -102,6 +103,9 @@ Return this exact shape (no preamble, no chatter):
 - ...
 
 #### Structural integrity
+- ...
+
+#### Identifier grammar
 - ...
 
 #### Requirement coverage

@@ -20,7 +20,7 @@ The caller passes:
 - **Detected maturity** — normally `test` (full spec). Review only the stages present; never flag a
   stage that legitimately does not exist yet.
 
-- **`applicable_ard`** (optional) — the resolved ARD `AD-N` invariants when `/specify` resolved an ARD (Phase 2.5); absent when no ARD exists. Enables the conditional ARD-conformance check below.
+- **`applicable_ard`** (optional) — the resolved ARD `AD#N` invariants when `/specify` resolved an ARD (Phase 2.5); absent when no ARD exists. Enables the conditional ARD-conformance check below.
 
 ## Review method
 
@@ -58,7 +58,7 @@ The caller passes:
 - **Open-question consistency:** an open question asking for something already stated final → `BLOCKER`
   + **needs product input**.
 
-- **ARD conformance (conditional — only when `applicable_ard` is provided; otherwise skip silently):** no user story / scope item / AC may contradict an `AD-N` `rule`. A contradiction with **no** recorded `### Open questions` ARD-deviation entry → `BLOCKER`; **with** one → `MINOR` flagged note.
+- **ARD conformance (conditional — only when `applicable_ard` is provided; otherwise skip silently):** no user story / scope item / AC may contradict an `AD#N` `rule`. A contradiction with **no** recorded `### Open questions` ARD-deviation entry → `BLOCKER`; **with** one → `MINOR` flagged note.
 
 ## Output contract
 

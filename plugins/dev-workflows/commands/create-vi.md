@@ -84,10 +84,10 @@ The grill + authoring run inline on `current_model` (the §2 Opus chain — inte
 
 **Profile nudge (complex VIs).** If `classification` is **SIGNIFICANT** (a
 complex / cross-cutting VI) and the chosen profile is `--lean` or `--hybrid`
-(so `FR-N` is unavailable — it is full-only), surface a one-line **non-blocking**
+(so `[FR#N]` is unavailable — it is full-only), surface a one-line **non-blocking**
 recommendation before Phase 2:
 > "This VI classifies SIGNIFICANT — consider `--full` so Functional Requirements
-> (`FR-N`) and richer Use Cases (`UC-N`) are available for stronger, more
+> (`[FR#N]`) and richer Use Cases (`[UC#N]`) are available for stronger, more
 > traceable downstream Epic coverage."
 
 Offer `choices: ["Switch to --full", "Keep <profile>", "Other… (describe)"]`. On
@@ -131,12 +131,12 @@ Author `<KEY>_<slug>.md` live against `${CLAUDE_PLUGIN_ROOT}/references/vi-forma
 2. **Problem**
 3. **Goal** (crisp 2–3 sentences)
 4. **Target audience** (personas)
-5. **User Stories** (`[US-N]`)
-6. **Acceptance Criteria** (`[AC-N]` per story)
+5. **User Stories** (`[US#N]`)
+6. **Acceptance Criteria** (`[AC#N]` per story)
 7. **Scope** (In / Out)
-8. **Success Metrics** (`[SM-N]`)
+8. **Success Metrics** (`[SM#N]`)
 
-Then author the profile's **adapt-in clusters**, each **pulled only when the idea warrants it** (never an empty section). **For a complex VI (`classification` SIGNIFICANT), actively author the `FR-N` (full) and `UC-N` (hybrid/full) clusters** within the chosen profile — lower the bar for pulling them in, because ID'd functional requirements and use cases feed a finer downstream `/epics` `_coverage.md` (traceability to `FR-N`/`UC-N`, not only `US`/`AC`/`SM`); still never an empty section. Fold the idea's open `[NEEDS CLARIFICATION]` into the grill; resolve to zero where possible, leaving genuinely-unresolvable ones under `## Assumptions & open questions` (hybrid/full). Keep the VI **product-level** — no implementation detail. **Self-consistency check:** before writing each section, check it against the already-settled sections — a new `[AC-N]` must not deliver an Out-of-scope behaviour, the `## Goal` must not assert a scope the `## Scope` contradicts, and `[US-N]`s must not conflict. Resolve any contradiction inline with the user, or record it under `## Assumptions & open questions` — never leave it implicit (the Opus `vi-reviewer` flags a silently-baked contradiction).
+Then author the profile's **adapt-in clusters**, each **pulled only when the idea warrants it** (never an empty section). **For a complex VI (`classification` SIGNIFICANT), actively author the `[FR#N]` (full) and `[UC#N]` (hybrid/full) clusters** within the chosen profile — lower the bar for pulling them in, because ID'd functional requirements and use cases feed a finer downstream `/epics` `_coverage.md` (traceability to `[FR#N]`/`[UC#N]`, not only `US`/`AC`/`SM`); still never an empty section. Fold the idea's open `[NEEDS CLARIFICATION]` into the grill; resolve to zero where possible, leaving genuinely-unresolvable ones under `## Assumptions & open questions` (hybrid/full). Keep the VI **product-level** — no implementation detail. **Self-consistency check:** before writing each section, check it against the already-settled sections — a new `[AC#N]` must not deliver an Out-of-scope behaviour, the `## Goal` must not assert a scope the `## Scope` contradicts, and `[US#N]`s must not conflict. Resolve any contradiction inline with the user, or record it under `## Assumptions & open questions` — never leave it implicit (the Opus `vi-reviewer` flags a silently-baked contradiction).
 
 ---
 
@@ -172,8 +172,9 @@ plugin is not installed), **skip this phase gracefully** and note
 
 Before the review gate, run the deterministic checks in
 `${CLAUDE_PLUGIN_ROOT}/references/pre-lint.md` against the drafted `<KEY>_<slug>.md`: the
-**Universal checks** plus the **VI** block. Surface every finding; inline-fix the mechanical ones
-(renumber a duplicate `[US-N]`/`[AC-N]`/`[SM-N]`, delete a stray placeholder token); leave content gaps
+**Universal checks**, the **Jira-key collision** check (run on the VI body below the frontmatter),
+and the **VI** block. Surface every finding; inline-fix the mechanical ones
+(renumber a duplicate `[US#N]`/`[AC#N]`/`[SM#N]`, delete a stray placeholder token); leave content gaps
 (missing section, unresolved `[NEEDS CLARIFICATION]`) for the grill/author. **Advisory** — never blocks;
 proceed to Phase 4 once findings are surfaced. `vi-reviewer` remains the gate.
 

@@ -18,8 +18,8 @@ convention live in ONE place.
      `<EPIC>-<area>_ARD.md` (the area-scoped file when `area` is given, else every per-area ARD) **plus**
      the VI-level `<VI>-<vslug>/<VI>_ARD.md` for inherited invariants.
    - **VI-level** (`epic` null): only `<VI>-<vslug>/<VI>_ARD.md`.
-3. Parse each file's `## Architecture decisions` into `AD-N {id, binds, prevents, rule, source}` where
-   `source` ∈ `vi | epic | area`. VI-level `AD-N` are the inherited base; Epic/area `AD-N` layer on top
+3. Parse each file's `## Architecture decisions` into `AD#N {id, binds, prevents, rule, source}` where
+   `source` ∈ `vi | epic | area`. VI-level `AD#N` are the inherited base; Epic/area `AD#N` layer on top
    (Epic/area wins on any conflict — contradictions were already blocked by `ard-reviewer` at authoring).
 
 ## Output — the ARD context, or `none`
@@ -30,12 +30,12 @@ ard_paths: [ <absolute paths of the ARD files used> ]
 branch: <carrying branch> | null   # present only when status: unmerged
 pr: <open pull request number> | null   # present only when status: unmerged
 invariants:
-  - id: AD-1
+  - id: AD#1
     source: vi | epic | area
     binds: <text>
     prevents: <text>
     rule: <testable statement>
-guidance_summary: <short prose: the ARD's non-AD-N architecture guidance the consumer should heed>
+guidance_summary: <short prose: the ARD's non-AD#N architecture guidance the consumer should heed>
 ```
 
 `status: none` when no ARD file resolves (the common case — `/create-ard` is optional).
@@ -54,21 +54,21 @@ A caller that gets `status: unmerged` **stops**, naming the branch and any open 
 
 ## Deviation-record convention
 
-When an artifact must NOT honor an `AD-N`, the consumer records — in its **own** artifact, NEVER in the
+When an artifact must NOT honor an `AD#N`, the consumer records — in its **own** artifact, NEVER in the
 ARD (role separation: the ARD is the architect's) — a line:
 
-`- ARD deviation: [<AD-N id>] — <what deviates> — <why> — flag: architect`
+`- ARD deviation: [<AD#N id>] — <what deviates> — <why> — flag: architect`
 
 and surfaces it in the run's final report. A reviewer treats a violating artifact **with** a matching
 deviation record as *allowed-but-flagged* (the architect adjudicates), **without** one as a **BLOCKER**.
 
 ## Consumers (informative)
 
-- `/create-ard` — reads the inherited VI-level ARD on an Epic-level run (`epic: null` maps to VI-level-only); `AD-N` = the invariants the newly-authored Epic-level `AD-N` must not contradict; `ard-reviewer` checks non-contradiction directly against the drafted file — no separate deviation-record path.
-- `/design` — Epic-level ARD = design guidance; VI-level `AD-N` = inherited invariants; deviations → a `## ARD deviations` section in `design.md` + an open question.
-- `/implement` — Jira mode only; `AD-N` = implementation guardrails; deviations → the Phase 5 report. Direct mode → `none`.
-- `/specify` — keep user stories + scope consistent with `AD-N` + scope; deviations → the spec's `### Open questions`.
-- `/epics` — VI-level only (`epic: null`, Epics do not exist yet); `AD-N` = inherited invariants the drafted Epics must respect; deviations → a `- ARD deviation: …` line in the Epic draft + the Phase 9 report.
-- `/ready` — VI-level + Epic-level `AD-N` = inherited invariants passed to `readiness-reviewer` as `applicable_ard`; read-only — it never authors a deviation record, only checks the artifacts it reads for an existing one.
+- `/create-ard` — reads the inherited VI-level ARD on an Epic-level run (`epic: null` maps to VI-level-only); `AD#N` = the invariants the newly-authored Epic-level `AD#N` must not contradict; `ard-reviewer` checks non-contradiction directly against the drafted file — no separate deviation-record path.
+- `/design` — Epic-level ARD = design guidance; VI-level `AD#N` = inherited invariants; deviations → a `## ARD deviations` section in `design.md` + an open question.
+- `/implement` — Jira mode only; `AD#N` = implementation guardrails; deviations → the Phase 5 report. Direct mode → `none`.
+- `/specify` — keep user stories + scope consistent with `AD#N` + scope; deviations → the spec's `### Open questions`.
+- `/epics` — VI-level only (`epic: null`, Epics do not exist yet); `AD#N` = inherited invariants the drafted Epics must respect; deviations → a `- ARD deviation: …` line in the Epic draft + the Phase 9 report.
+- `/ready` — VI-level + Epic-level `AD#N` = inherited invariants passed to `readiness-reviewer` as `applicable_ard`; read-only — it never authors a deviation record, only checks the artifacts it reads for an existing one.
 
-The other five pass `invariants` to their reviewer as `applicable_ard`; the reviewer's ARD-conformance dimension is skipped entirely when it is absent. `/create-ard` alone does not: it inherits VI-level `AD-N` read-only straight into its own grill and drafting (Phase 4), and `ard-reviewer` checks non-contradiction directly against the drafted file, never via that field.
+The other five pass `invariants` to their reviewer as `applicable_ard`; the reviewer's ARD-conformance dimension is skipped entirely when it is absent. `/create-ard` alone does not: it inherits VI-level `AD#N` read-only straight into its own grill and drafting (Phase 4), and `ard-reviewer` checks non-contradiction directly against the drafted file, never via that field.

@@ -32,7 +32,7 @@ The caller passes a structured brief:
 
 Refuse to review without a diff - ask the caller to produce one.
 
-- **`applicable_ard`** (optional) — the resolved ARD `AD-N` invariants, passed only by `/implement` (Jira mode) when an ARD exists. Absent for `/vuln`, `/upgrade`, `/implement` direct mode, and when no ARD exists — in which case the conditional ARD-conformance dimension (below) does not apply and is not mentioned.
+- **`applicable_ard`** (optional) — the resolved ARD `AD#N` invariants, passed only by `/implement` (Jira mode) when an ARD exists. Absent for `/vuln`, `/upgrade`, `/implement` direct mode, and when no ARD exists — in which case the conditional ARD-conformance dimension (below) does not apply and is not mentioned.
 - **`applicable_spec`** (optional) — the in-scope specification/design context, passed only by `/implement` (Jira mode) when a `specification.md`/`design.md` is in scope: `spec_paths` (absolute paths) + `in_scope_ids` (the in-scope `[Uxx]`/`[ACxx]`/`[TCxx]` list). Absent for `/vuln`, `/upgrade`, `/implement` direct mode, and when no spec/design exists — in which case the conditional Spec/design-conformance dimension (below) does not apply and is not mentioned.
 
 ## Review method
@@ -106,7 +106,7 @@ full review.
    invalidation, schema drop)? If it fails in prod, what's the undo?
 9. **ARD conformance** (conditional — only when `applicable_ard` is provided;
    otherwise this dimension does not apply — omit it silently) - does the diff
-   honor every `AD-N` `rule`? A violation with no recorded ARD-deviation (in the
+   honor every `AD#N` `rule`? A violation with no recorded ARD-deviation (in the
    caller's report) → `BLOCKER`; with a recorded deviation → `MAJOR` flagged note.
 10. **Spec/design conformance** (conditional — only when `applicable_spec` is
     provided; otherwise this dimension does not apply — omit it silently) —

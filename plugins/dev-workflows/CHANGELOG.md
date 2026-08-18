@@ -10,15 +10,24 @@ Versions follow semver at the plugin level.
 - VI, ARD, and Epic requirement IDs now use `[PREFIX#N]` (`[AC#1]`, `[US#1]`, `[AD#1]`) instead of
   `[AC-1]`. The dash form has the shape of a Jira issue key, so pasting an artifact into Jira
   auto-linked criteria to unrelated tickets in any project sharing the prefix, and the vault
-  importer rewrote them into `[[[AC-1]]]` on export.
+  importer rewrote them into `[[[AC-1]]]` on export. `vi-reviewer`, `ard-reviewer`, `epic-reviewer`,
+  and `readiness-reviewer` now treat a surviving dash-form ID as a BLOCKER (for `readiness-reviewer`,
+  that means a `NOT-SUPPORTED` verdict).
 - `epic-writer`'s `## Covers` now emits bracketed IDs; it previously emitted bare `US-2, AC-4`,
   which both Jira and the importer mangled.
 - `jira-reader` accepts both forms inside requirement-bearing sections and always emits `#`, so
   already-published VIs still parse.
 
 ### Added
-- `pre-lint.md` gains a Jira-key collision check for VI / ARD / Epic files.
-- `scripts/check-id-grammar.sh` gates the repo against reintroducing the dash form.
+- `pre-lint.md` gains a Jira-key collision check for VI / ARD / Epic files. Its contract sentence and
+  the four commands that produce those artifacts (`/create-vi`, `/update-vi`, `/create-ard`, `/epics`)
+  name the check explicitly, so it actually runs; `/specify` and `/design` do not, because the check's
+  scope excludes `specification.md` / `design.md`. A hit that is neither a requirement ID nor a real
+  ticket — a standards or protocol reference such as `ISO-8601` or `RFC-8446` — is reported and left
+  exactly as written, never converted and never wrapped in a wikilink.
+- `scripts/check-id-grammar.sh` gates the repo against reintroducing the dash form, and now runs on
+  every push via `.github/workflows/validate-catalog.yml`. The grammar and the script that enforces it
+  are documented in `CLAUDE.md`'s Conventions section.
 
 ## [2.52.0] — 2026-08-15
 

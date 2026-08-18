@@ -27,10 +27,11 @@ PATTERN='\[(US|AC|SM|SMC|UC|FR|AD)-[N0-9]+\]|\[SM-C[N0-9]+\]|(^|[^[:alnum:]_[])(
 
 # CHANGELOG.md is history and keeps the dash form (spec Global Constraints).
 # A line carrying the marker `id-grammar-ok:` is documenting the legacy form on
-# purpose. Sanctioned users: jira-reader's five legacy parse rules (Task 8) for
-# reader tolerance, plus BLOCKER rules in vi-reviewer and ard-reviewer (Task 7)
-# that quote the forbidden form. Task 8 Step 6 audits the per-file breakdown so
-# it cannot become a general escape hatch.
+# purpose. Sanctioned users -- 9 marked lines across 5 files: jira-reader's five
+# legacy parse rules for reader tolerance, plus one BLOCKER rule each in
+# vi-reviewer, ard-reviewer, epic-reviewer and readiness-reviewer, which have to
+# quote the forbidden form in order to forbid it. The per-file breakdown is
+# audited so the marker cannot become a general escape hatch.
 hits=$(grep -rnE "$PATTERN" \
         --include='*.md' \
         --exclude='CHANGELOG.md' \

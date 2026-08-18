@@ -51,6 +51,7 @@ Refuse to review without the written file paths and the `jira-reader` handoff. T
 | Non-duplication | No overlap with existing Epics linked to the VI (from `jira-reader` `linked_items` filtered to `type == Epic`). If overlap exists, it is explicitly called out in the draft's Dependencies or Scope section and justified (e.g. "extends Epic FOO-123 with capability X; FOO-123 remains the owner for Y"). Undetected duplication is a BLOCKER. **Exception (refinement mode):** a drafted file whose name matches a `refinement_targets` entry (same Jira key) is an authorized in-place refinement of that Epic, not a duplicate — its coverage is judged by the Refinement completeness / Partition integrity dimensions instead. |
 | References | Jira parent link to the VI is present. Code paths from `code-scanner` are cited where relevant (especially when `classification == present` or `partial` anchors a reuse argument). Every cited path must appear in a `code-scanner` `evidence.path` if `code-scanner` output was provided. |
 | Structural integrity | Headings are well-formed and follow a consistent level hierarchy across all Epic files in the batch. `[[wikilinks]]` resolve (within the vault if the paths are absolute / vault-relative). Markdown renders without broken fences, unclosed emphasis, or malformed lists. |
+| Identifier grammar | Every requirement ID the Epic cites — in `## Covers`, in prose, in a table cell — is in bracketed `#` form (`[US#N]`, `[AC#N]`, `[SM#N]`, and `[AD#N]` for an inherited ARD decision). A surviving dash-form ID, bracketed (`[AC-1]`) or bare (`US-2, AC-4`), is a **BLOCKER**: an Epic draft is pasted into Jira, where a key-shaped token auto-links to an unrelated real ticket in any project sharing the prefix, and the vault importer rewrites it into `[[[AC-1]]]` on export. `## Covers` is the site to check first — it is the one that historically emitted bare tokens. <!-- id-grammar-ok: BLOCKER rule must name the forbidden form -->
 | Requirement coverage | Every VI requirement in `requirements[]` is covered by an existing or new Epic; `❌ gap` rows in `_coverage.md` → MAJOR. A `Covers` id not in `requirements[]` → MINOR. `requirements[]` may also include `spec-story`/`spec-criterion` rows sourced from a VI-level spec (via `/epics` Phase 2.6) — treat them identically to VI requirements (uncovered → MAJOR). |
 | Epic independence | Each Epic delivers its value without any not-yet-built Epic. A forward dependency on an Epic that does not yet exist → MAJOR (resequence/merge). **Exception (refinement mode):** a dependency between two Epics in the same refined `refinement_targets` set is legal (it encodes real cross-team build order) and is judged by the Cross-team dependency sanity dimension, not flagged here. |
 | Terminology drift (internal) | The same concept is named consistently across all Epics in the batch. Inconsistency → MINOR/NIT. Corporate terminology is dt-style-checker's job, not this dimension. |
@@ -102,6 +103,9 @@ Return this exact shape (no preamble, no chatter):
 - ...
 
 #### Structural integrity
+- ...
+
+#### Identifier grammar
 - ...
 
 #### Requirement coverage

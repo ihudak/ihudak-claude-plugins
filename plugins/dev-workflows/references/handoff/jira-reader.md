@@ -44,7 +44,8 @@ value_increment:
 
 requirements_source: native | derived
 requirements:
-  - id:   <US-N | AC-N | SM-N | FR-N | UC-N | R1..>   # native VI id, else synthetic
+  - id:   <US#N | AC#N | SM#N | SMC#N | FR#N | UC#N | R1..>   # native VI id (always emitted in
+          # `#` form, even when the source VI used the legacy dash form), else synthetic
     type: story | criterion | metric | functional | usecase | derived
     text: <requirement text>
 

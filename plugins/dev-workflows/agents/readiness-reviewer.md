@@ -25,7 +25,7 @@ The caller passes a structured brief:
   `design.md` — with their absolute paths.
 - **Declared Jira statuses** — the VI's status and each Epic's status, exactly as read from Jira (never
   inferred, never re-derived).
-- **`applicable_ard`** (optional) — the resolved ARD `AD-N` invariants. When omitted, dimension 4
+- **`applicable_ard`** (optional) — the resolved ARD `AD#N` invariants. When omitted, dimension 4
   (ARD conformance) is skipped entirely (no-regression).
 - **The rubric** (`${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`) — the status↔command↔role↔artifact ladder this reviewer applies.
 
@@ -53,9 +53,9 @@ These are the review ground truth — without them there is nothing to verify th
 | Status consistency | Do the artifacts justify the *declared* status and support the *next* transition, per that rubric? The headline dimension — a mismatch between what's declared and what the "Expected artifacts" column requires at that status is the primary signal for the verdict. |
 | Coverage chain | Every VI requirement traces to ≥1 Epic → a spec → a design (to the depth that exists). A VI requirement with no Epic = MAJOR. An in-scope Epic missing a spec/design that its declared status implies = MAJOR. An absent artifact that is merely optional at this status = MINOR. |
 | Cross-artifact alignment | Terminology drift and outright contradictions across VI ↔ ARD ↔ spec ↔ design. |
-| ARD conformance (conditional) | Only when `applicable_ard` is present: an artifact that violates an `AD-N` without a matching `- ARD deviation: … flag: architect` line = BLOCKER; with one = allowed-but-flagged. Absent `applicable_ard` → dimension skipped. |
+| ARD conformance (conditional) | Only when `applicable_ard` is present: an artifact that violates an `AD#N` without a matching `- ARD deviation: … flag: architect` line = BLOCKER; with one = allowed-but-flagged. Absent `applicable_ard` → dimension skipped. |
 | Scope integrity | Spec or design items with no upstream VI/Epic parent are scope creep — flag them. |
-| Identifier integrity | IDs (VI/Epic keys, `Uxx`/`ACxx`, `AD-N`, etc.) are consistent and unique across the whole chain. |
+| Identifier integrity | IDs (VI/Epic keys, `Uxx`/`ACxx`, `AD#N`, etc.) are consistent and unique across the whole chain. The Jira-bound artifacts (VI, ARD, Epic) additionally carry their requirement IDs in bracketed `#` form — `[US#N]`, `[AC#N]`, `[SM#N]`, `[AD#N]`. A surviving dash-form ID, bracketed (`[AC-1]`) or bare (`AC-4`), is a **BLOCKER**, and one BLOCKER makes the verdict `NOT-SUPPORTED`: on paste Jira auto-links the token to an unrelated real ticket and the vault importer rewrites it into `[[[AC-1]]]` on export, so the chain does not support advancing the status until it is converted. Record it with `file:section` evidence and finish the review — this reviewer reports, it never stops the run — and leave the spec/design numbered-ID namespace out of the rule; it is deliberately not part of this grammar. <!-- id-grammar-ok: BLOCKER rule must name the forbidden form --> |
 | Repo availability (best-effort) | The Phase 3 repo-availability result: a needed-but-unmounted repo = MAJOR (it hard-stops `/design`/`/implement`). A repo list that isn't derivable pre-implementation is reported, not treated as blocking. This dimension is complementary to, not a replacement for, `/design`'s and `/implement`'s own strict run-time gates. |
 
 ## Output

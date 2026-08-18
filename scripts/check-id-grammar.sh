@@ -37,6 +37,8 @@ hits=$(grep -rnE "$PATTERN" \
         --exclude-dir='.git' \
         --exclude-dir='docs' \
         --exclude-dir='fixtures' \
+        --exclude-dir='.remember' \
+        --exclude-dir='.superpowers' \
         "$ROOT" 2>/dev/null \
        | grep -v 'id-grammar-ok:' || true)
 

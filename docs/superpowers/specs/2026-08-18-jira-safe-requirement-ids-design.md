@@ -346,6 +346,18 @@ fix that died in one of them.
 - **R14** — `vi-reviewer`, `ard-reviewer`, `epic-reviewer`, `readiness-reviewer` check the `#` form,
   and flag a dash-form ID as a **BLOCKER** — it produces false Jira links on paste, so it is a
   shipped defect, not a style nit.
+
+  > **Amendment (2026-08-18, post-merge review) — R14 was wrong about `readiness-reviewer`.**
+  > R14 contradicts D7. D7 leaves the 19 existing `$SPECS_PATH` artifacts unconverted and relies on a
+  > tolerant reader; `readiness-reviewer` *is* a reader — `/ready` verifies artifacts it did not
+  > author — so a BLOCKER there forces `NOT-SUPPORTED` on every VI written before this change, on
+  > grammar alone. The rule was also unreachable in the direction it was meant for: anything freshly
+  > authored has already cleared `vi-reviewer` / `ard-reviewer` / `epic-reviewer`, so the only
+  > artifacts that can still carry a dash form at `/ready` time are exactly the ones D7 chose to
+  > tolerate. In `readiness-reviewer` the finding is now a **MINOR** that never moves the verdict on
+  > its own. R14 stands unchanged for the other three, which gate what their own command just wrote.
+  > The general rule this is an instance of: **strict where the run authors, tolerant where the run
+  > reads.**
 - **R15** — `ard-resolution.md`, `ready.md`, `implement.md`, `design.md`, root `CLAUDE.md`, and
   `README.md` state `AD#N`.
 

@@ -17,7 +17,7 @@ The orchestrator writes a **handoff file** (a temp file) and passes its absolute
 - `output_dir` — the resolved output directory (default `$VAULT_PATH/jira-drafts/<JIRA_KEY>/`)
 - `vi_goal`, `jira_key`
 - `requirements` + `requirements_source` — the VI requirement inventory (from jira-reader); the coverage ground truth.
-- `applicable_ard` — the VI-level ARD `invariants` (AD-N) + `guidance_summary`, or absent when no ARD resolved.
+- `applicable_ard` — the VI-level ARD `invariants` (AD#N) + `guidance_summary`, or absent when no ARD resolved.
 - `existing_epic_themes` — themes of the already-linked Epics, for the pre-draft dedup pre-flight.
 - `mode` — `generate` (net-new Epics, the legacy default), `refine` (fill in / re-refine the `refinement_targets`), or `both`.
 - `refinement_targets` — list of `{key, team, scope_hint, current_body_path}` for the empty/existing Epics to fill in (present only when `mode` is `refine` or `both`; empty otherwise). `current_body_path` is the imported Epic file, e.g. `<jira_export_root>/<EPIC-KEY>/<EPIC-KEY>.md`.
@@ -76,7 +76,7 @@ For each new Epic, emit a markdown file under the resolved output directory (def
 - ...
 
 ## Covers
-- <VI requirement IDs this Epic satisfies, e.g. US-2, AC-4, AC-5, SM-1>
+- <VI requirement IDs this Epic satisfies, bracketed — e.g. [US#2], [AC#4], [AC#5], [SM#1]>
 
 ## Suggested stories
 - <high-level breakdown; each story plausibly pickup-ready without further scoping>
@@ -139,8 +139,8 @@ _source: native | derived_
 
 | Req  | Type      | Text (short) | Covered by                           | Status |
 |------|-----------|--------------|--------------------------------------|--------|
-| US-1 | story     | …            | Epic: <slug-a> (new); <KEY> (exist)  | ✅     |
-| AC-3 | criterion | …            | —                                    | ❌ gap |
+| [US#1] | story     | …            | Epic: <slug-a> (new); <KEY> (exist)  | ✅     |
+| [AC#3] | criterion | …            | —                                    | ❌ gap |
 ```
 
 - Rows = the handoff `requirements[]`. "Covered by" counts BOTH existing linked
@@ -157,10 +157,10 @@ _source: native | derived_
 
 ## ARD conformance (only when `applicable_ard` is present)
 
-Keep each Epic's scope + acceptance criteria consistent with the VI-level `AD-N`
-invariants and `guidance_summary`. When an Epic MUST deviate from an `AD-N`,
+Keep each Epic's scope + acceptance criteria consistent with the VI-level `AD#N`
+invariants and `guidance_summary`. When an Epic MUST deviate from an `AD#N`,
 record — in that Epic draft, NEVER in the ARD — a line:
-`- ARD deviation: [<AD-N id>] — <what deviates> — <why> — flag: architect`
+`- ARD deviation: [<AD#N id>] — <what deviates> — <why> — flag: architect`
 When `applicable_ard` is absent, do nothing here.
 
 ## Output

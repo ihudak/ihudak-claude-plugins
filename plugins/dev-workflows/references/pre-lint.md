@@ -22,11 +22,29 @@ ID, delete a stray placeholder token); anything needing content goes back to the
 3. **Required-section presence** — every mandatory heading listed for the artifact is present
    (`grep -nF '## <heading>' <file>`). A missing required heading → BLOCKER.
 
+## Jira-key collision (VI, ARD, Epic files only)
+
+An artifact whose body is pasted into Jira must contain no token Jira will auto-link. Run:
+
+    grep -nE '\b[A-Z]{2,10}-[0-9]+\b' <file>
+
+For the VI, run against the body **below the frontmatter** — `/create-vi` pastes only that, and the
+frontmatter's `jira_key:` / `ref:` / `seeded_from_vi:` / `revision_of:` legitimately carry keys.
+
+Discard a hit ONLY when it is a deliberate Jira reference: inside a wikilink (`[[KEY-123]]`), inside
+a markdown link, or inside a fenced code block. Every surviving hit → **BLOCKER**, with the fix
+named — convert to `[PREFIX#N]` if it is a requirement ID, wrap as `[[KEY-123]]` if it is a real
+ticket. The conversion is mechanical, so inline-fix it under the standard pre-lint contract.
+
+The ARD is not itself pasted into Jira, but `epic-writer` copies its `AD` references into Epic
+drafts, which are. Catching it at the source is cheaper than catching it downstream.
+
 ## VI — `<KEY>_<slug>.md` (`/create-vi`; format `vi-format.md`)
 
 - Required headings: `## Problem`, `## Goal`, `## Target audience`, `## User Stories`,
   `## Acceptance Criteria`, `## Scope`, `## Success Metrics`.
-- ID series: `[US-N]` (in `### [US-N]:` headings), `[AC-N]`, `[SM-N]` — each contiguous from 1.
+- ID series: `[US#N]` (in `### [US#N]:` headings), `[AC#N]`, `[SM#N]` — each contiguous from 1.
+  Plus `[SMC#N]` (counter-metrics), `[UC#N]`, `[FR#N]` when those adapt-in clusters are present.
 - Report the count of `[NEEDS CLARIFICATION]` (a relentless-grilled VI should converge to 0; >0 → MINOR).
 
 ## ARD — `*_ARD.md` (`/create-ard`; format `ard-format.md`)
@@ -34,8 +52,8 @@ ID, delete a stray placeholder token); anything needing content goes back to the
 - Required headings: `## Context`, `## Grounding findings (architecture as-is)`,
   `## Architecture decisions`, `## Cross-repo / component approach`, `## Stack & invariants`,
   `## Edge cases & risks`, `## Open questions`, `## Deferred`.
-- ID series: `[AD-N]` (in `### [AD-N]:` headings) — contiguous, no dupes.
-- Each `### [AD-N]` block carries all three sub-fields `**Binds:**`, `**Prevents:**`, `**Rule:**`
+- ID series: `[AD#N]` (in `### [AD#N]:` headings) — contiguous, no dupes.
+- Each `### [AD#N]` block carries all three sub-fields `**Binds:**`, `**Prevents:**`, `**Rule:**`
   (a missing one → MAJOR).
 
 ## spec — `specification.md` (`/specify`; format `specification-format.md`)
@@ -55,7 +73,8 @@ ID, delete a stray placeholder token); anything needing content goes back to the
 - Acceptance criteria are Given/When/Then bullets (`grep -nE '^- Given .*, when .*, then ' <file>`;
   a `## Acceptance criteria` section with zero G/W/T bullets → MAJOR).
 - `[NEEDS CLARIFICATION]` count ≤ 3 per Epic (epic-writer cap; >3 → MAJOR).
-- `## Covers` references parent-VI IDs (`US-N`/`AC-N`/`SM-N`); Epics do not mint their own criterion IDs.
+- `## Covers` references parent-VI IDs in bracketed form (`[US#N]`/`[AC#N]`/`[SM#N]`); Epics do not
+  mint their own criterion IDs.
 - A `_coverage.md` file is present in the output dir.
 - Refined Epic files (keyed `<EPIC-KEY>.md`, from `/epics` refinement mode) carry a `**Team:**` line
   (`grep -nE '^\*\*Team:\*\*' <file>`) and a `## Scope` with real in/out bullets (not just the summary).

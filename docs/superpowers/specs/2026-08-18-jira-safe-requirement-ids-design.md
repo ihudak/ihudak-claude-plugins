@@ -123,6 +123,40 @@ What the importers **do** get is a characterization test locking the table above
 compatibility is an accident that nothing records; a future converter change could break the round
 trip silently, surfacing as a corrupted VI.
 
+### D6.1 — Bracket accumulation: this change is the root-cause fix
+
+The `markdown → Jira → markdown → …` loop has historically accumulated brackets. Three things were
+established empirically on 2026-08-18, in this order:
+
+**1. The converter alone is idempotent.** Applied repeatedly to its own output, `convert()` reaches a
+fixed point in one pass for every ID form, in both trees.
+
+**2. Under a hostile Jira model it is not.** Modelling Jira as linkifying every issue key regardless
+of surrounding brackets, `jira-workitem-import` grows +4 brackets per round and `jira-bulk-import`
+grows *exponentially* (148 → 352 → 760 → 1576 → 3208 chars over five rounds). **`[AC#1]` does not
+participate in either** — it survives all five rounds byte-identical, because it is never a link
+candidate.
+
+**3. The real vault says the requirement IDs were the cause.** 25 files carry `[[[`, 35 carry a
+nested `browse/[`. Of the 115 triple-bracket instances:
+
+| Token inside `[[[…]]]` | Count |
+|---|---|
+| `AC` (51), `US` (31), `SM` (16), `UC` (10) — requirement IDs | **108 (94%)** |
+| `PRODUCT` (3), `OA` (3), `PS` (1) — real Jira keys | 7 |
+
+Maximum observed nesting is 4, and 3 in almost every case — bounded, because the `(?<!\[)…(?!\])`
+guard was added after these files were written.
+
+**Conclusion.** The historical bug was overwhelmingly caused by the dash-form requirement IDs this
+design eliminates. Removing them removes 94% of the observed cause; the existing lookaround guard
+remains as the second, independent defence. The residual 7 real-key instances are a pre-existing
+converter issue that this change neither worsens nor fixes — recorded in §11 as out of scope.
+
+*This is why the reader stays tolerant rather than the artifacts being migrated (D5, D7): the
+dash-form VIs still in Jira are exactly the content that produces `[[[AC-1]]]` on re-import, and they
+keep doing so until `/update-vi` converts them.*
+
 ### D7 — Existing `$SPECS_PATH` artifacts are not migrated
 
 19 files under `$SPECS_PATH/specifications/` carry dash-form IDs (canonical VIs, `revisions/`
@@ -275,12 +309,31 @@ fix that died in one of them.
   of §D6's table.
 - **R17** — No behavioural change to either converter; both existing suites stay green.
 
+- **R21** — The characterization test includes an N-round idempotency loop (≥5 rounds, hostile Jira
+  model): bracket counts stable from round 1, and every `[PREFIX#N]` byte-identical throughout.
+- **R22** — A guard test asserts the two vendored `jira_markup_converter.py` files differ only in the
+  two known hunks.
+
+**Pre-flight**
+- **R23** — Risk 0's Jira paste probe passes **before** any of the 23 files is edited. A failure
+  changes the grammar; it does not get worked around downstream.
+
 **Porting**
-- **R18** — mgd and copilot editions carry R1–R16, per their own dialect rules.
+- **R18** — mgd and copilot editions carry R1–R16 and R21–R22, per their own dialect rules.
 - **R19** — Each edition's identity files are inspected individually, not diffed as a group.
 - **R20** — Version bump and CHANGELOG entry in all three editions.
 
 ## 10. Risks and their executable mitigations
+
+**Risk 0 — Jira's paste behaviour with `#` is the one assumption nothing here tested.** Everything
+in §D6 was verified by running the converters. Jira itself cannot be run from this environment, so
+"Jira does not autolink `AC#1`" rests on the fact that `AC#1` is not a valid issue-key shape — sound
+reasoning, but not evidence. The entire design depends on it.
+*Mitigation:* a **pre-flight gate, before any of the 23 files is edited** — paste a five-line probe
+into a Jira scratch ticket containing `[US#1]`, `[AC#1]`, `[AD#1]`, a real `PRODUCT-123`, and a bare
+`AC#2`; confirm no autolink on the `#` forms and a working link on the real key; then export it with
+`jira-workitem-import` and confirm the `#` tokens return byte-identical. If Jira mangles `#`, the
+grammar changes and the rollout has not yet happened. This gate is cheap and it is not optional.
 
 **Risk 1 — a global replace corrupts the spec namespace.** `code-review.md` and the two format
 authorities carry `[ACxx]`-family IDs that must not change.
@@ -290,9 +343,11 @@ occurrence *count* is too weak: it stays equal if a site is changed and another 
 
 **Risk 2 — the collision check misfires on legitimate Jira keys.** VIs cite real keys in
 `## References / linked issues` and in `sources:`.
-*Mitigation:* run the check against all 27 existing feature dirs in `$SPECS_PATH`. Every hit must be
-classifiable as either a requirement ID or a real key. If the §5.1 filter cannot separate them on
-real content, the rule is wrong and gets revised before shipping — not after.
+*Mitigation:* two controls, not one. **Positive:** run the check against the 19 known dash-form files
+in `$SPECS_PATH` — it must produce a hit for every requirement ID they contain, and the expected
+count per file is recorded before the run, not read off afterwards. **Negative:** run it against a
+`#`-form VI carrying genuine `[[PRODUCT-123]]` references in `## References / linked issues` — it
+must produce zero hits. A rule that only ever fires, or only ever passes, has not been tested.
 
 **Risk 3 — the check passes vacuously.** A grep that never fires proves nothing.
 *Mitigation:* prove both directions on fixtures — a known-bad VI (dash-form `[AC-1]`) must BLOCK, a
@@ -301,20 +356,43 @@ known-good VI (`[AC#1]` plus a real `[[PRODUCT-123]]` reference) must pass clean
 **Risk 4 — the fix dies in an identity file.** The repo's recurring failure: identity files are
 excluded from copying, duplicate claims made elsewhere, and get classified as expected-to-differ.
 *Mitigation:* R19 — enumerate and inspect them per edition; root `CLAUDE.md:256` and `README.md`'s
-five `AD-N` sites are named explicitly so they cannot be skipped.
+five `AD-N` sites are named explicitly so they cannot be skipped. **Plus a mechanical cross-check
+that does not depend on anyone remembering:** after porting, run the dash-form inventory grep in all
+three editions and diff the three result sets. They must be empty and identical. A fix that died in
+one edition's identity file shows up as a non-empty result there — inspection can miss it, this
+cannot.
 
 **Risk 5 — converter compatibility regresses later.** Nothing today records that `[AC#1]` must pass
 through untouched.
-*Mitigation:* R16's characterization test, in both trees.
+*Mitigation:* R16's characterization test in both trees, extended per R21 with the N-round
+idempotency loop — bracket counts must be stable from round 1 to round 5 under the hostile Jira
+model, with `[AC#1]` byte-identical throughout. A single-pass test would not have caught the
+historical bug.
 
 **Risk 6 — the two vendored converters drift.** They are currently byte-identical except
-`_format_issue_link` and one comment.
-*Mitigation:* none in this change — flagged, not fixed. Extracting a shared module is separate work.
+`_format_issue_link` and one comment, and this change adds test files to both — which raises the
+chance they diverge.
+*Mitigation:* a guard test asserting `diff` between the two `jira_markup_converter.py` files yields
+exactly the two known hunks. Extracting a shared module remains out of scope; detecting the drift
+does not.
+
+**Risk 7 — `#` breaks a consumer nobody tested.** Verified by reasoning, not execution: Obsidian
+tags require `#` at word start (and reject purely numeric tags), YAML comments require preceding
+whitespace, Jira wiki ordered lists require `#` at line start, and shell/regex treat mid-word `#`
+literally. Every one of those is safe for `[AC#1]`, but none was run.
+*Mitigation:* Risk 0's probe covers the Jira half. For the vault half, render one converted VI in
+Obsidian and confirm no tag appears in the tag pane and the file's frontmatter still parses.
 
 ## 11. Out of scope
 
 - Migrating the 19 existing dash-form artifacts under `$SPECS_PATH` (D7).
 - Any converter behaviour change, including the rejected prefix deny-list (D6).
 - De-duplicating the two vendored `jira_markup_converter.py` copies (Risk 6).
+- The 7 residual `[[[PRODUCT-123]]]`-class instances from **real** Jira keys (§D6.1). They are a
+  pre-existing converter issue, bounded at depth 4, and untouched by this change — 94% of the
+  observed accumulation goes away with the requirement IDs, and chasing the remaining 6% is separate
+  work with its own risk of breaking legitimate links.
+- Cleaning the existing `[[[AC-1]]]` scars in the 25 affected vault files. They are imported
+  snapshots, regenerated on the next import from a converted VI.
 - The spec and design ID namespaces (D4).
 - Jira-side configuration; the autolinker is not something this plugin can disable.

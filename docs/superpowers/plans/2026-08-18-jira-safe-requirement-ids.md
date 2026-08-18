@@ -651,8 +651,17 @@ Expected: two `PASS` lines.
 
 - [ ] **Step 6: Prove the marker cannot become a general escape hatch**
 
-Run: `grep -rn 'id-grammar-ok' plugins/ | wc -l`
-Expected: exactly `5` — the five parse rules in `agents/jira-reader.md`, and nothing else. Any other file carrying the marker is suppressing a real violation rather than documenting reader tolerance; review and remove it. Repeat this audit in Tasks 12 and 13 for the ported editions.
+Run: `grep -rc 'id-grammar-ok' $(grep -rl 'id-grammar-ok' plugins/) | sort`
+
+Expected exactly this per-file breakdown, and nothing else:
+
+```
+plugins/dev-workflows/agents/ard-reviewer.md:1    <- Task 7's BLOCKER rule
+plugins/dev-workflows/agents/jira-reader.md:5     <- the five parse rules (this task)
+plugins/dev-workflows/agents/vi-reviewer.md:1     <- Task 7's BLOCKER rule
+```
+
+Total 7. The per-file breakdown IS the audit — a bare total can stay correct while a marker migrates to a file that has no business suppressing the gate. Any file outside these three is suppressing a real violation rather than documenting the legacy form; review and remove it. Repeat this audit in Tasks 12 and 13 for the ported editions.
 
 - [ ] **Step 7: Commit**
 

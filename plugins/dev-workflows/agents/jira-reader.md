@@ -57,11 +57,15 @@ Refuse to run without `depth`, `jira_key`, and at least one of
    (`<EXPORT_ROOT>/<jira_key>/<jira_key>.md`, read at every depth), parse the
    VI's native requirement IDs into `requirements[]` and set
    `requirements_source: native`:
-   - `## User Stories` → each `### [US-N]: <title>` → `{id: US-N, type: story, text: <title + the As-a/I-want/so-that line>}`.
-   - `## Acceptance Criteria` → each `[AC-N]` bullet → `{id: AC-N, type: criterion, text: <bullet>}`.
-   - `## Success Metrics` → each `[SM-N]` bullet → `{id: SM-N, type: metric, text: <bullet>}`.
-   - `## Functional requirements` (full profile only, when present) → each `FR-N` → `{id: FR-N, type: functional, text: <text>}`.
-   - `## Use cases & user journey` (hybrid/full, when present) → each `UC-N` → `{id: UC-N, type: usecase, text: <text>}`.
+   Accept **both** the current `#` form and the legacy dash form, and ALWAYS emit the `#` form in
+   `id`. Tolerance applies ONLY inside these five sections — elsewhere (notably
+   `## References / linked issues`) a `KEY-123` token is a real Jira key and is read as one.
+
+   - `## User Stories` → each `### [US#N]: <title>` (or legacy `### [US-N]:`) → `{id: US#N, type: story, text: <title + the As-a/I-want/so-that line>}`. <!-- id-grammar-ok: legacy reader tolerance -->
+   - `## Acceptance Criteria` → each `[AC#N]` (or legacy `[AC-N]`) bullet → `{id: AC#N, type: criterion, text: <bullet>}`. <!-- id-grammar-ok: legacy reader tolerance -->
+   - `## Success Metrics` → each `[SM#N]` (or legacy `[SM-N]`) bullet → `{id: SM#N, type: metric, text: <bullet>}`; counter-metrics `[SMC#N]` (legacy `[SM-CN]`) → `{id: SMC#N, type: metric, text: <bullet>}`. <!-- id-grammar-ok: legacy reader tolerance -->
+   - `## Functional requirements` (full profile only, when present) → each `[FR#N]` (or legacy `FR-N`) → `{id: FR#N, type: functional, text: <text>}`. <!-- id-grammar-ok: legacy reader tolerance -->
+   - `## Use cases & user journey` (hybrid/full, when present) → each `[UC#N]` (or legacy `UC-N`) → `{id: UC#N, type: usecase, text: <text>}`. <!-- id-grammar-ok: legacy reader tolerance -->
    Preserve the VI's own IDs verbatim — do not renumber.
    **Fallback (`requirements_source: derived`):** if the VI body contains NONE
    of those structured sections (a legacy VI, or a Description pasted as prose),
@@ -127,7 +131,8 @@ value_increment:
   release_notes_category: <verbatim from VI frontmatter; null when absent>
 requirements_source: native | derived
 requirements:
-  - id:   <US-N | AC-N | SM-N | FR-N | UC-N | R1..>   # native VI id, else synthetic
+  - id:   <US#N | AC#N | SM#N | SMC#N | FR#N | UC#N | R1..>   # native VI id (always emitted in
+          # `#` form, even when the source VI used the legacy dash form), else synthetic
     type: story | criterion | metric | functional | usecase | derived
     text: <requirement text>
 linked_items:

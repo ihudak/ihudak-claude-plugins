@@ -25,8 +25,19 @@ the latter. Plain paste — from a console, from Obsidian's rich-text copy, or f
 markdown — never linkified anything. A bare key followed by an explicit commit (cursor after the
 token, Enter) linkified reliably. Which authoring action produced the cards in the shipped VIs is
 **not identified**; the bracketed form resisted every trigger reproduced in probing yet appears
-linked in production, so the mechanism is broader than what was reproduced. This uncertainty is
-recorded rather than resolved, because it concerns the grammar being removed.
+linked in production, so the mechanism is broader than what was reproduced.
+
+**Leading hypothesis: a background/nightly job.** The PM human-reviews every VI at creation and has
+never seen the cards there — they appear later. A scheduled process that hydrates stored key-shaped
+tokens satisfies all four observations at once (paste never linkifies; authoring-time review is
+clean; the cards are stored rather than rendered; they exist later). A passive test is already
+running: PRODUCT-18882 holds `[AC-1]`, `[AC#1]`, `AC-2:` and `AC#2` as plain text pasted 2026-08-18.
+If the hypothesis holds, the two dash forms become cards and the two `#` forms do not.
+
+**Operational consequence, either way:** if hydration is deferred, a VI cannot be verified clean at
+authoring time — the author sees plain text regardless. Confirming an artifact is unpolluted means
+inspecting it a day later. This argues for the grammar change rather than for a review discipline:
+a token that was never issue-key-shaped cannot be hydrated by any process on any schedule.
 
 There is a second, independent failure point downstream. The vault importers
 (`$VAULT_PATH/.obsidian/scripts/custom/jira-workitem-import` and `jira-bulk-import`) rewrite bare

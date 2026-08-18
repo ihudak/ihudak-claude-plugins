@@ -47,16 +47,16 @@ deciding it in Jira costs, so the question buys nothing.
 - `## Problem` — who is affected and why the current situation is insufficient; why now. Solution-free; no implementation detail.
 - `## Goal` — a crisp 2–3 sentence statement of the outcome (feeds `jira-reader`'s goal extraction and every downstream consumer).
 - `## Target audience` — the personas/roles served (specific roles, not "everyone").
-- `## User Stories` — `### [US-N]: <title>`, `As a [role], I want [capability], so that [benefit].` Contiguous IDs.
-- `## Acceptance Criteria` — `[AC-N]` under each story; externally-observable pass/fail (no "be reliable"/"improve performance").
+- `## User Stories` — `### [US#N]: <title>`, `As a [role], I want [capability], so that [benefit].` Contiguous IDs.
+- `## Acceptance Criteria` — `[AC#N]` under each story; externally-observable pass/fail (no "be reliable"/"improve performance").
 - `## Scope` — **In scope** (concrete delivered behaviours) / **Out of scope** (concrete confusable exclusions; never "anything else"/"future work").
-- `## Success Metrics` — `[SM-N]`; measurable, technology-agnostic outcomes. Optionally add **counter-metrics** (`[SM-C1]`, `[SM-C2]`…) — a metric explicitly named as *not* to be optimized or gamed, counterbalancing a Primary SM (e.g. "throughput up, but `[SM-C1]` error-rate must not rise").
+- `## Success Metrics` — `[SM#N]`; measurable, technology-agnostic outcomes. Optionally add **counter-metrics** (`[SMC#1]`, `[SMC#2]`…) — a metric explicitly named as *not* to be optimized or gamed, counterbalancing a Primary SM (e.g. "throughput up, but `[SMC#1]` error-rate must not rise").
 
 ## Adapt-in menu (pulled only when warranted)
 
 | Cluster | hybrid | full |
 |---|:-:|:-:|
-| `## Use cases & user journey` (UC-N narrative) | ✓ | ✓ |
+| `## Use cases & user journey` (`[UC#N]` narrative) | ✓ | ✓ |
 | `## Non-functional requirements` | ✓ | ✓ |
 | `## Assumptions & open questions` (hybrid: light list; full: Contradictions Log table — Item/Source/Impact/Resolution/Owner) | ✓ | ✓ |
 | `## Why now / differentiation` | ✓ | ✓ |
@@ -65,7 +65,7 @@ deciding it in Jira costs, so the question buys nothing.
 | `## Short Abstract / Blogline` (Internal + External) | | ✓ |
 | `## Customer Zero` | | ✓ |
 | `## Competitive snapshot` (1–3 competitors × Approach / Differentiation / Pricing) | | ✓ |
-| `## Functional requirements` (FR-N *Implements: UC-n / US-n*) | | ✓ |
+| `## Functional requirements` (`[FR#N]` *Implements: `[UC#n]` / `[US#n]`*) | | ✓ |
 | `## E2E Demo` (per-delivery pass/fail acceptance) | | ✓ |
 | `## UX prototype / UI mockups` | | ✓ |
 | `## API specification` | | ✓ |
@@ -76,7 +76,7 @@ deciding it in Jira costs, so the question buys nothing.
 ## Quality rules
 
 - **No implementation detail** anywhere — the VI is product-level (algorithms, data structures, code paths, internal APIs belong to the ARD / spec / design).
-- **Internally consistent** — no requirement contradicts another or the scope: no `[AC-N]` delivering an Out-of-scope behaviour, no `## Goal` asserting a scope the `## Scope` section contradicts, no conflicting `[US-N]`. A deliberately-kept tension is recorded under `## Assumptions & open questions`, never left implicit in a requirement.
+- **Internally consistent** — no requirement contradicts another or the scope: no `[AC#N]` delivering an Out-of-scope behaviour, no `## Goal` asserting a scope the `## Scope` section contradicts, no conflicting `[US#N]`. A deliberately-kept tension is recorded under `## Assumptions & open questions`, never left implicit in a requirement.
 - **FR / UC must not restate US** — reference by ID; each adds capability/behaviour, not a paraphrase.
 - Acceptance criteria and success metrics are **externally observable**.
 - Consolidate shared data dependencies rather than repeating them.

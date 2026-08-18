@@ -38,5 +38,8 @@ jobs:
       - name: Validate manifests and catalog
         run: python3 scripts/validate-catalog.py
 
+      - name: Self-test the requirement-ID gate
+        run: ./scripts/check-id-grammar.sh --selftest
+
       - name: Check requirement-ID grammar
         run: ./scripts/check-id-grammar.sh --root .

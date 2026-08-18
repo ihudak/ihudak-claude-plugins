@@ -4,6 +4,33 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.53.1] — 2026-08-18
+
+### Fixed
+- `readiness-reviewer` no longer BLOCKs on a legacy dash-form requirement ID. The previous release
+  made it a BLOCKER, which forces a `NOT-SUPPORTED` verdict — but `/ready` reads artifacts it did not
+  author, and that same release deliberately left pre-existing artifacts unconverted, to drain as
+  `/update-vi` rewrites each one. The rule could therefore only ever fire on the case the design chose
+  to tolerate: every canonical VI already under `$SPECS_PATH` would have failed `/ready` on grammar
+  alone, while anything freshly authored had already cleared `vi-reviewer` / `ard-reviewer` /
+  `epic-reviewer`. It is now a MINOR that never moves the verdict on its own, reported with the fix
+  ("convert via `/update-vi`"). The four authoring gates are unchanged and still BLOCK.
+- `scripts/check-id-grammar.sh` caught `[US-N]` but missed `[US-n]`, `[AC-x]`, `[SM-Cx]` and bare
+  `SM-Cx`: the bracketed branch used the number class `[N0-9]` while the bare branch used `[Nn0-9]`,
+  and neither covered the `x` / `X` placeholder. The blind spot had already cost one hand-fix during
+  the conversion itself, when `[SM-Cx]` passed the gate green in `vi-reviewer.md`. All four
+  alternations now share `[NnXx0-9]`.
+- The gate excluded `docs`, `fixtures`, `.remember` and `.superpowers` by bare directory name, so a
+  directory with any of those names at any depth — a future `plugins/<name>/docs/` — was silently
+  unscanned. The exclusions are now anchored to the scan root.
+
+### Added
+- `scripts/check-id-grammar.sh --selftest` asserts the gate's exit code against each fixture, and CI
+  runs it before the tree scan. The fixtures shipped in the previous release but nothing executed
+  them, so nothing proved the gate could still fail. A new fixture,
+  `scripts/fixtures/vi-bad-placeholders.md`, fails *only* on placeholder forms — re-narrowing the
+  number class turns the self-test red instead of passing unnoticed.
+
 ## [2.53.0] — 2026-08-18
 
 ### Changed

@@ -164,10 +164,10 @@ Resolve any applicable ARD by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resol
 - **`status: none`** (including `$SPECS_PATH` unset/unresolvable) → the ARD dimension is **inactive** for
   this run — no prompt, no extra output, `readiness-reviewer`'s ARD-conformance dimension is skipped
   entirely (no-regression, per `ard-resolution.md`).
-- **`status: found`** → carry the returned `invariants` (`AD-N` list, VI-level inherited +
+- **`status: found`** → carry the returned `invariants` (`AD#N` list, VI-level inherited +
   Epic-level when in scope) forward to Phase 4 as `applicable_ard`. `/ready` never edits the ARD and
   never authors a deviation record itself — it only checks whether one already exists in the artifacts
-  it reads (an artifact that violates an `AD-N` **without** a matching
+  it reads (an artifact that violates an `AD#N` **without** a matching
   `- ARD deviation: … flag: architect` line is a BLOCKER per the reviewer's ARD-conformance dimension).
 - **`status: unmerged`** → **never stop**, the one exemption `ard-resolution.md`'s no-regression rule names. Carry the returned `invariants` forward to Phase 4 as `applicable_ard` exactly as `found` does, and additionally carry the returned `branch`/`pr` forward as a readiness finding — "ARD authored, not handed off" — into Phase 3(b)'s status-expectation table, so it reaches `readiness-reviewer` and caps the eventual verdict at `PARTIAL` rather than letting a not-yet-merged ARD read as equivalent to a merged one.
 

@@ -21,6 +21,12 @@ convention live in ONE place.
 3. Parse each file's `## Architecture decisions` into `AD#N {id, binds, prevents, rule, source}` where
    `source` ∈ `vi | epic | area`. VI-level `AD#N` are the inherited base; Epic/area `AD#N` layer on top
    (Epic/area wins on any conflict — contradictions were already blocked by `ard-reviewer` at authoring).
+   Accept **both** `### [AD#N]:` and the legacy `### [AD-N]:`, and ALWAYS emit the `#` form in `id`. <!-- id-grammar-ok: legacy reader tolerance -->
+   This resolver is a **reader**, and an ARD has no `/update-ard` to convert it the way `/update-vi`
+   converts a VI, so a dash-form ARD authored by a pre-2.53.0 install on another machine would never
+   drain. Failing to parse it is silent in the worst way: the file still resolves `status: found`, but
+   with an empty `invariants` list every consumer's ARD-conformance dimension is skipped exactly as if
+   no ARD existed — a binding architecture document enforcing nothing, under a run that reports success.
 
 ## Output — the ARD context, or `none`
 

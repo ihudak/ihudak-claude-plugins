@@ -5,27 +5,34 @@
 #
 # Scan root: plugins/ CLAUDE.md   (all commands below are run from the repository root)
 #
+# CHANGELOG.md is EXCLUDED, for the same reason the grammar gate excludes it:
+# it is history, and a changelog entry quoting [Uxx] is prose *about* the
+# namespace, not a use of it. Counting it desensitised the tripwire -- any
+# release note mentioning a spec ID shifted the numbers, training the reader to
+# regenerate the baseline instead of investigating. It also destroyed the
+# cross-edition comparability that an earlier version of this header wrongly
+# claimed as the reason to include it: the three editions keep different
+# changelogs, so counting them made the numbers diverge. With CHANGELOG.md
+# excluded all three editions produce this file's numbers exactly, so drift in
+# one edition is now visible as a difference from the other two.
+#
 # Regenerate, preserving this header:
 #   ( grep '^#' scripts/spec-id-baseline.txt; \
 #     grep -rhoE '\[U0[0-9]+\]|\[AC0[0-9]+\]|\[TC0[0-9]+\]|\[Uxx\]|\[ACxx\]|\[TCxx\]' \
-#       --include='*.md' plugins/ CLAUDE.md 2>/dev/null | sort | uniq -c \
+#       --include='*.md' --exclude='CHANGELOG.md' plugins/ CLAUDE.md 2>/dev/null | sort | uniq -c \
 #   ) > scripts/spec-id-baseline.new \
 #   && mv scripts/spec-id-baseline.new scripts/spec-id-baseline.txt
 #
 # Verify (must print nothing):
 #   grep -rhoE '\[U0[0-9]+\]|\[AC0[0-9]+\]|\[TC0[0-9]+\]|\[Uxx\]|\[ACxx\]|\[TCxx\]' \
-#     --include='*.md' plugins/ CLAUDE.md 2>/dev/null | sort | uniq -c \
+#     --include='*.md' --exclude='CHANGELOG.md' plugins/ CLAUDE.md 2>/dev/null | sort | uniq -c \
 #   | diff <(grep -v '^#' scripts/spec-id-baseline.txt) -
-#
-# CHANGELOG.md is deliberately NOT excluded, so prose mentions there are counted
-# too. All three editions compute the census the same way, which is the only
-# reason their numbers are comparable at all -- do not narrow the scan root.
       1 [AC01]
-      2 [AC03]
-     21 [ACxx]
+      1 [AC03]
+     19 [ACxx]
       2 [TC01]
-      2 [TC07]
-     19 [TCxx]
+      1 [TC07]
+     17 [TCxx]
       1 [U01]
       1 [U02]
-     23 [Uxx]
+     21 [Uxx]

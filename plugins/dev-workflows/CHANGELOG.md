@@ -4,6 +4,23 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.53.2] — 2026-08-18
+
+### Fixed
+- `ard-resolution.md` now accepts a legacy `### [AD-N]:` heading and emits `AD#N`, matching the
+  tolerance `jira-reader` already has. It is a reader, and unlike a VI — which `/update-vi` rewrites —
+  an ARD has no `/update-ard` to convert it, so a dash-form ARD authored by a pre-2.53.0 install on
+  another machine would never drain. The failure was silent in the worst way: the file still resolves
+  `status: found`, but with an empty `invariants` list every consumer's ARD-conformance dimension is
+  skipped exactly as if no ARD existed — a binding architecture document enforcing nothing, under a
+  run reporting success.
+- `scripts/spec-id-baseline.txt` no longer counts `CHANGELOG.md`. Counting it desensitised the
+  tripwire — any release note quoting a spec ID shifted the numbers and trained the reader to
+  regenerate the baseline instead of investigating. The old header claimed changelog counting was
+  what made the three editions comparable; the opposite was true, since the editions keep different
+  changelogs. With it excluded, all three editions' baselines are byte-identical, so drift in one is
+  now visible as a difference from the other two.
+
 ## [2.53.1] — 2026-08-18
 
 ### Fixed

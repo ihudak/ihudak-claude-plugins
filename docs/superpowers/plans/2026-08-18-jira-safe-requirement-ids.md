@@ -1058,6 +1058,17 @@ chmod +x scripts/check-id-grammar.sh
 ```
 Expected: `FAIL`.
 
+- [ ] **Step 3a: Port the NEW prose, not only the grammar conversions**
+
+Tasks 3 and 4 added content that does not exist in the other editions, and a grammar conversion pass will silently skip it. Spec R18 requires the editions to carry R1–R16, and R5–R9 are the collision check. Into `skills/_shared/pre-lint.md`, port:
+
+- the whole `## Jira-key collision` section (between `## Universal checks` and the `## VI` block), preserving its substance: the grep; that only wikilinks / markdown links (link text **or** URL) / fenced code blocks are discarded; that **inline code is NOT excluded and IS flagged**; the per-artifact scan scope (VI below the frontmatter, ARD below the frontmatter, Epic the whole file); BLOCKER severity; and the ARD rationale about `epic-writer`
+- the VI ID-series continuation line naming `[SMC#N]` / `[UC#N]` / `[FR#N]` as present only when those adapt-in clusters are present
+
+Re-derive both against copilot's own wording. This gap was found during the mgd port — mgd shipped the grammar without the rule that enforces it.
+
+Also add `scripts/spec-id-baseline.txt` (copilot's own census, never canonical's).
+
 - [ ] **Step 3: Apply the content edits, re-deriving each against copilot's own text**
 
 Map canonical → copilot paths: `references/X.md` → `skills/_shared/X.md`; `commands/<name>.md` → `skills/<name>/SKILL.md`. Content is authored fresh per copilot's dialect rules; only the ID tokens are being changed here, so preserve every other difference exactly as it stands.

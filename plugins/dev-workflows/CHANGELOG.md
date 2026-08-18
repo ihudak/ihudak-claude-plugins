@@ -4,6 +4,22 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.53.0] — 2026-08-18
+
+### Changed
+- VI, ARD, and Epic requirement IDs now use `[PREFIX#N]` (`[AC#1]`, `[US#1]`, `[AD#1]`) instead of
+  `[AC-1]`. The dash form has the shape of a Jira issue key, so pasting an artifact into Jira
+  auto-linked criteria to unrelated tickets in any project sharing the prefix, and the vault
+  importer rewrote them into `[[[AC-1]]]` on export.
+- `epic-writer`'s `## Covers` now emits bracketed IDs; it previously emitted bare `US-2, AC-4`,
+  which both Jira and the importer mangled.
+- `jira-reader` accepts both forms inside requirement-bearing sections and always emits `#`, so
+  already-published VIs still parse.
+
+### Added
+- `pre-lint.md` gains a Jira-key collision check for VI / ARD / Epic files.
+- `scripts/check-id-grammar.sh` gates the repo against reintroducing the dash form.
+
 ## [2.52.0] — 2026-08-15
 
 ### Breaking changes

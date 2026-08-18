@@ -4,11 +4,26 @@
 set -uo pipefail
 
 ROOT="."
-[ "${1:-}" = "--root" ] && ROOT="$2"
+if [ "${1:-}" = "--root" ]; then
+  if [ $# -lt 2 ]; then
+    echo "Usage: $0 [--root <dir>]" >&2
+    exit 2
+  fi
+  ROOT="$2"
+fi
+
+if [ ! -e "$ROOT" ] || [ ! -r "$ROOT" ]; then
+  echo "ERROR: --root '$ROOT' does not exist or is not readable" >&2
+  exit 2
+fi
 
 # Requirement-ID prefixes the plugin mints. NOT a general Jira-key check:
 # a real key like PRODUCT-123 is legitimate and must never be flagged.
-PATTERN='\[(US|AC|SM|SMC|UC|FR|AD)-[N0-9]+\]|(^|[^[:alnum:]_[])(US|AC|SM|SMC|UC|FR|AD)-[Nn0-9]+([^[:alnum:]_]|$)'
+# SM-C<N> (e.g. SM-C1) is the legacy counter-metric form; SMC#<N> is its
+# hash-form target and is already covered by the shared prefix alternation
+# below — SM-C needs its own alternative because it doesn't fit the
+# \[(PREFIX)-[N0-9]+\] shape (the dash sits before the C, not after it).
+PATTERN='\[(US|AC|SM|SMC|UC|FR|AD)-[N0-9]+\]|\[SM-C[N0-9]+\]|(^|[^[:alnum:]_[])(US|AC|SM|SMC|UC|FR|AD)-[Nn0-9]+([^[:alnum:]_]|$)|(^|[^[:alnum:]_[])SM-C[Nn0-9]+([^[:alnum:]_]|$)'
 
 # CHANGELOG.md is history and keeps the dash form (spec Global Constraints).
 # A line carrying the marker `id-grammar-ok:` is documenting the legacy form on

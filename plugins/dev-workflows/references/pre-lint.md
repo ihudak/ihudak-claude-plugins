@@ -30,10 +30,11 @@ An artifact whose body is pasted into Jira must contain no token Jira will auto-
 
 For the VI, run against the body **below the frontmatter** — `/create-vi` pastes only that, and the
 frontmatter's `jira_key:` / `ref:` / `seeded_from_vi:` / `revision_of:` legitimately carry keys.
+For the ARD, scan **below the frontmatter**. For Epic files, scan the entire file (the template has no frontmatter).
 
 Discard a hit ONLY when it is a deliberate Jira reference: inside a wikilink (`[[KEY-123]]`), inside
-a markdown link, or inside a fenced code block. Every surviving hit → **BLOCKER**, with the fix
-named — convert to `[PREFIX#N]` if it is a requirement ID, wrap as `[[KEY-123]]` if it is a real
+a markdown link (link text or URL), or inside a fenced code block. Inline code (`` `KEY-123` ``) is NOT excluded and IS flagged.
+Every surviving hit → **BLOCKER**, with the fix named — convert to `[PREFIX#N]` if it is a requirement ID, wrap as `[[KEY-123]]` if it is a real
 ticket. The conversion is mechanical, so inline-fix it under the standard pre-lint contract.
 
 The ARD is not itself pasted into Jira, but `epic-writer` copies its `AD` references into Epic

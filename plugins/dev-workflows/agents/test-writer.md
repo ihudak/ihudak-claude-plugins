@@ -15,6 +15,10 @@ The caller passes a structured brief:
 - **Task description** — what was implemented, verbatim from the user where possible
 - **Plan** — the approved plan from Phase 2A (standard) or the risk-planner plan from Phase 2B (Opus)
 - **Diff** — `git add -N . && git diff` output so new files are included. MANDATORY. Both **Plan** and **Diff** may be given inline or as an absolute file path — `Read` the file first when given a path
+  On a read failure, follow the **read-failure contract** in
+  `${CLAUDE_PLUGIN_ROOT}/references/context-management.md` — **Diff** is *evidence*: hard stop, return
+  the "not detected"-style truncated shape with `Diff: unreadable at <path>` as the reason, and **never
+  re-derive the diff** with a tool of your own. **Plan** is *context*: degrade to absent.
 - **Project root** — absolute path so files can be opened
 - **Baseline** — the `## Test Baseline` block captured by `test-baseliner` in Pre-Phase 3.5 (identifies the detected framework + the command used + the set of pre-existing passing / failing tests). Used to confirm framework identity and to avoid shadowing pre-existing test names
 

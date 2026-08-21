@@ -16,6 +16,31 @@ without degrading. Apply when the plan/step list is large or the run is nearing 
   later turn; a file path costs one line. Always `mktemp` the handoff file — **never inside a repo working
   tree** (and never in the vault) — so a later `git add -N . && git diff` never picks it up.
 
+## The read-failure contract
+
+A handed-over path is only useful if it can be read. Every agent that accepts an input "inline or as an
+absolute file path" MUST state what happens when that read fails, and every such failure resolves into
+exactly one of two tiers.
+
+**Evidence inputs** — the artifact the agent's judgement rests on (a diff, a review report, a research
+report, an upgrade plan). An unreadable evidence path is a **hard stop**: return the agent's structured
+gap/blocked shape, naming the path that could not be read. **Never regenerate the artifact by any other
+means** — not by re-running `git diff`, not by re-running a test suite, not by reconstructing it from
+memory. Evidence you could not read is not evidence that does not exist, and regenerating what you
+failed to read is not verification: it silently substitutes a different artifact (a diff at the wrong
+base, a suite at the wrong commit) and then reports success over it.
+
+**Context inputs** — optional grounding that sharpens the work but is not the work (a plan, an ARD
+invariant set, a spec-scope block). An unreadable context path **degrades to absent**: proceed exactly
+as if the input had not been passed — any dimension or section conditional on it stands down as it
+already does — and **record the degradation in the output** so the skip is attributed rather than
+silent. This matches `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3.4 (an absent optional input
+falls back to pre-existing behaviour, never becomes a new prerequisite) and
+`${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` (no skip goes unattributed).
+
+Which tier an input belongs to is fixed by the consuming agent and stated in its `## Inputs`, never
+decided at runtime.
+
 Prefer the cheapest strategy that fits: checkpoint first; offload parallel steps only when they are
 genuinely independent; decompose only when a single unit still overflows. "Hand off by file" is
 orthogonal — apply it whenever you dispatch a sub-agent, whichever offload strategy you chose.

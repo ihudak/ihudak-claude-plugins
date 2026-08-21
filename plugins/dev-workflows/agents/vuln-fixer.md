@@ -21,6 +21,11 @@ Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md` for the test-b
 
 Receive the research report for **one CVE** with `status: READY`. The report may be provided inline or as an absolute file path — `Read` the file first when given a path.
 
+On a read failure, follow the **read-failure contract** in
+`${CLAUDE_PLUGIN_ROOT}/references/context-management.md` — the research report is an *evidence* input:
+hard stop, return `status: BLOCKED` naming the unreadable path, and never re-research the CVE to
+reconstruct it.
+
 > **Phase resume.** If the input includes `phase: verify-resume`, **skip
 > steps 1, 2, and 3** — the baseline was captured (by the orchestrator), the
 > fix was applied, and the build was run on the prior invocation. Resume at

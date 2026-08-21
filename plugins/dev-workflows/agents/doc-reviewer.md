@@ -27,6 +27,7 @@ The caller passes a structured brief:
 - **Code repos** — the `code_repos: [{slug, path}]` array (the clones resolved for `diff-summarizer`), for the Source-code accuracy dimension. May be empty.
 - **`counterpart_references`** — the `counterpart-finder` grounding entries from Phase 5.6.5 (`[]` on a non-space-constrained run), for the Cross-space grounding integrity dimension; each entry's `screenshots_seen[]` identifies the counterpart screenshots whose provenance must not appear as target-doc images, and `space` names the counterpart space.
 - **`target_spaces`** — the run's resolved space set, so the reviewer knows which space is the target vs the protected counterpart.
+- **`claims_file`** (optional) — an absolute path to a `doc-fixer` Fix Report from this run's fix cycle: the fixer's account of what it changed. **DO NOT read this file when you read the brief.** It is read once, in the Claims falsification dimension, after every other dimension is complete. Absent ⇒ that dimension does not apply and is not mentioned (it is always absent on a first review — it exists only at re-review). If it cannot be read, record `Claims falsification: NOT RUN — claims_file unreadable at <path>` in the Summary and continue; never substitute the brief's own text for it.
 
 Refuse to review without the written file paths, the `doc-planner` checklist, and the diff summaries. These three are the review ground truth.
 
@@ -58,6 +59,7 @@ Refuse to review without the written file paths, the `doc-planner` checklist, an
 | Style-check follow-through | Any unresolved style-check violations (from `docs-style-checker` or `dt-style-checker`) above MINOR are reflected as BLOCKER or MAJOR findings here. Do NOT re-lint — trust the style-checker's output. Skip this dimension only when the `style_check` ledger row is `NOT_APPLICABLE` or `SKIPPED_BY_USER` ("N/A — <the row's precondition_unmet or user_decision>"). A `DEGRADED` `style_check` row still carries violations from the fallback pass — review them normally; the coverage gap itself belongs to the Verification-gate integrity dimension, not here. |
 | Source-code accuracy | Spot-check 3–5 user-visible claims per file (option lists, labels, counts, defaults, menu paths) against `code_repos` using `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §3 techniques. **An unmarked claim contradicted by source — or absent from source when repos are available — is a BLOCKER** (customer-facing wrongness). A claim immediately preceded by a valid `<!-- intentional-discrepancy ... -->` marker is a recorded gap, NOT a BLOCKER. A claim that cannot be verified (no/partial `code_repos`) is a MAJOR with a "not verifiable" note — never a BLOCKER. **Commands and fenced code blocks are checked in every run**, whether or not other claims were spot-checked: readers run them verbatim. A command **contradicted** by source is a BLOCKER like any other wrong claim. A command merely **not confirmed** by any available source is a MAJOR even when the rest of the page verified cleanly — capped there deliberately, because a generic CLI verb can legitimately have no trace in the product's own repo, so absence is weaker evidence for a command than for an option list or a label. |
 | Cross-space grounding integrity | When the run was space-constrained and grounded on a counterpart space: the target doc carries NO counterpart-space-specific UI paths, URLs, labels, or defaults, and NO image whose provenance is a counterpart screenshot (`screenshots_seen`). Leaked space-specific detail is a BLOCKER; a copied counterpart screenshot is a BLOCKER. |
+| Claims falsification | Conditional — only when `claims_file` is provided; otherwise omit silently. **Precondition: every other dimension is complete and its findings recorded.** Only now `Read` the file at `claims_file`. It holds the fixer's account of what it changed — testimony, not evidence. Extract each checkable claim ("applied X at `path:line`", "preserved the frontmatter", "swapped every occurrence") and try to **falsify** it against the written files you have already reviewed. Report one finding per falsified claim, severity by consequence for a reader who believed it — a fix reported as applied but absent from the file is a `BLOCKER`. Verified claims produce nothing. |
 
 ## Output
 
@@ -127,9 +129,14 @@ Return this exact shape (no preamble, no chatter):
 #### Cross-space grounding integrity
 - ...
 
+#### Claims falsification (only if claims_file provided)
+- [severity] `path:line` — claim: "[the claim]" — actually: [what the file contains]
+  Suggestion: [correction]
+- _or_ "no findings — every checkable claim verified"
+
 ### Recommended next step
 - If BLOCK: [the specific thing that must be fixed before the run can continue]
-- If PASS WITH RECOMMENDATIONS: "invoke doc-fixer for MAJOR findings; MINOR / NIT may be deferred to the Phase 9 report."
+- If PASS WITH RECOMMENDATIONS: "triage, then invoke doc-fixer for the surviving MAJOR findings; MINOR / NIT may be deferred to the Phase 9 report."
 - If PASS: "proceed to Phase 8 (maintenance)."
 ```
 

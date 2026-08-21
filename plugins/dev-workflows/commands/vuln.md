@@ -110,9 +110,21 @@ task(
 )
 ```
 
-If the fixer returns `status: TEST_REGRESSION`, follow "Handling Test Failures" below, then
-re-invoke `vuln-fixer` with `phase: regression-resume` + the chosen `regression_decision`,
-passing the same CVE input with the original research report re-supplied from `research_file`.
+If the fixer returns `status: BLOCKED`, the research report at `research_file` could not be
+read — an orchestrator bug, not a user choice: report the unreadable path to the user, mark
+this CVE `BLOCKED` in the Step 4 summary table, and stop working this CVE. Do not retry with
+a fresh research pass — that would re-derive the evidence instead of surfacing the failure.
+
+Otherwise, if the fixer returns `status: TEST_REGRESSION`, follow "Handling Test Failures"
+below, then re-invoke `vuln-fixer` with `phase: regression-resume` + the chosen
+`regression_decision`, passing the same CVE input with the original research report
+re-supplied from `research_file`.
+
+If the resumed agent returns `status: BLOCKED`, the re-supplied file path could not be read:
+report the named path to the user and stop this CVE. Do NOT retry, and do NOT reconstruct
+the artifact — a resume that re-derives its own input is the failure
+`${CLAUDE_PLUGIN_ROOT}/references/context-management.md`'s read-failure contract exists to
+prevent.
 
 ### SIGNIFICANT / HIGH-RISK path
 
@@ -148,18 +160,20 @@ task(
 )
 ```
 
-3. **If the fixer returns `AWAITING_REVIEW`**, run Opus code review before tests:
+3. **Handle a `vuln-fixer` stop.** If the fixer returns `status: BLOCKED`, the research report at `research_file` could not be read — an orchestrator bug, not a user choice: report the unreadable path to the user, mark this CVE `BLOCKED` in the Step 4 summary table, and stop working this CVE (do not retry with a fresh research pass, and do not proceed to Opus review). Otherwise, if the fixer returns `AWAITING_REVIEW`, run Opus code review before tests:
    - Capture the diff to a temp file: write `git add -N . && git diff` to `mktemp -t dw-vuln-diff-XXXX.patch` (never inside a repo tree) and record its path as `review_diff_file`
-   - Invoke `code-review` with the CVE summary, the research handoff (from `research_file`), the fixer output, and the diff (from `review_diff_file`) (frontmatter-pinned to Opus; recorded as `review_model` above, no `model:` override needed)
-   - If review returns `BLOCK` or `PASS WITH RECOMMENDATIONS`, invoke `review-fixer` with model: `<detection_model — §2.1 Sonnet chain>` for `BLOCKER` and `MAJOR` findings, then **overwrite `review_diff_file`** with a fresh `git add -N . && git diff` and re-run the Opus review once against that refreshed path — so the re-review reads the post-fix diff, not the stale pre-fix capture
+   - Write the fixer output to a temp file (`mktemp -t dw-vuln-claims-XXXX.md`, never inside a repo tree) and record its path as `claims_file`. Invoke `code-review` with the CVE summary, the research handoff (from `research_file`), the diff (from `review_diff_file`), and `claims_file: [the path]` (frontmatter-pinned to Opus; recorded as `review_model` above, no `model:` override needed)
+   - **Triage sub-step** (before any fixer dispatch): follow `${CLAUDE_PLUGIN_ROOT}/references/finding-triage.md`. For each finding, verify its claimed consequence at the location it names; keep or dismiss; record every dismissal with a reason that disposes of that finding's own claim. Hand the fixer **survivors only**, and carry the dismissal list into this run's report.
+   - If review returns `BLOCK` or `PASS WITH RECOMMENDATIONS`, invoke `review-fixer` with model: `<detection_model — §2.1 Sonnet chain>` for the surviving `BLOCKER` and `MAJOR` findings
+   - **Handle a `review-fixer` stop.** If its `Stop condition flag` is `NEEDS HUMAN`, do NOT re-run the review: surface the deferred BLOCKER(s) to the user with the reason `review-fixer` gave, mark this CVE `BLOCKED` in the Step 4 summary table, and stop working this CVE (do not continue to tests, commit, or PR). Only when the flag is `CLEAR` do you **overwrite `review_diff_file`** with a fresh `git add -N . && git diff` and re-run the Opus review once against that refreshed path — so the re-review reads the post-fix diff, not the stale pre-fix capture
    - If the second verdict is still `BLOCK`, stop and escalate; do not continue to tests, commit, or PR
 
-4. **Resume the fixer after review** — Re-invoke `vuln-fixer` with `phase: verify-resume`, the same baseline block, and the original research report re-supplied from `research_file`.
+4. **Resume the fixer after review** — Re-invoke `vuln-fixer` with `phase: verify-resume`, the same baseline block, and the original research report re-supplied from `research_file`. If the resumed agent returns `status: BLOCKED`, the re-supplied file path could not be read: report the named path to the user and stop this CVE. Do NOT retry, and do NOT reconstruct the artifact — a resume that re-derives its own input is the failure `${CLAUDE_PLUGIN_ROOT}/references/context-management.md`'s read-failure contract exists to prevent.
 
 5. **If the fixer returns `status: TEST_REGRESSION`** (from step 4's resumed verify), follow
    "Handling Test Failures" below, then re-invoke `vuln-fixer` with `phase: regression-resume` +
    the chosen `regression_decision`, the same baseline block, and the original research report
-   re-supplied from `research_file`.
+   re-supplied from `research_file`. If the resumed agent returns `status: BLOCKED`, the re-supplied file path could not be read: report the named path to the user and stop this CVE. Do NOT retry, and do NOT reconstruct the artifact — a resume that re-derives its own input is the failure `${CLAUDE_PLUGIN_ROOT}/references/context-management.md`'s read-failure contract exists to prevent.
 
 ---
 
@@ -175,6 +189,8 @@ After all CVEs are processed, print a result table:
 ```
 
 Append a `### Model Routing` section summarising the per-CVE classification, why it was chosen, the models used, and any Opus review verdicts.
+
+Append a `### Review triage` section with one line per CVE that went through Opus review: - **Review triage:** [N findings reviewed, M survived] — dismissals: [one line per dismissal, `finding — reason`; or "none"] — or "N/A (SIMPLE / MODERATE path, no Opus review)" for CVEs that never reached review.
 
 Then invoke `impl-maintenance` with a compact session handoff covering the CVEs fixed, notable regressions, workarounds, and overall outcome. **Always pass `Command run: /vuln`** in that handoff — omitting it makes `impl-maintenance` default to `/implement`, mislabeling the run.
 

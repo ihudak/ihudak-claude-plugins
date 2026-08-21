@@ -936,7 +936,9 @@ Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `revi
 
 Act on the verdict:
 
-- **BLOCK** — invoke `doc-fixer` with `Severities to fix: BLOCKER and MAJOR`. Re-invoke `doc-reviewer` once. If the second verdict is still BLOCK, escalate for each unresolved BLOCKER individually per the `Review verdict BLOCK (unresolved after one fix cycle) — /document` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
+**Triage sub-step** (before any fixer dispatch): follow `${CLAUDE_PLUGIN_ROOT}/references/finding-triage.md`. For each finding, verify its claimed consequence at the location it names; keep or dismiss; record every dismissal with a reason that disposes of that finding's own claim. Hand the fixer **survivors only**, and carry the dismissal list into this run's report.
+
+- **BLOCK** — invoke `doc-fixer` with `Severities to fix: BLOCKER and MAJOR`. Write the `doc-fixer` Fix Report to a temp file (`mktemp -t dw-doc-claims-XXXX.md`, never inside a repo tree or the vault), record its path as `claims_file`, and re-invoke `doc-reviewer` once **passing `claims_file`** — so the re-review falsifies the fixer's account rather than assuming it. If the second verdict is still BLOCK, escalate for each unresolved BLOCKER individually per the `Review verdict BLOCK (unresolved after one fix cycle) — /document` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
   ```
   choices: ["Provide manual fix notes (you'll be prompted)", "Defer to a follow-up issue (record in Phase 9 report)", "Override and accept the finding", "Cancel the whole run"]
   ```
@@ -948,7 +950,7 @@ Act on the verdict:
     > "Fix the review findings for this brief:
     >
     > Task description: [doc writing for <JIRA_KEY>]
-    > Reviewer or style-checker output: [paste full doc-reviewer output]
+    > Reviewer or style-checker output: [paste the triaged survivor list from the triage sub-step above — the surviving `doc-reviewer` findings only, never the dismissed ones]
     > Project root: [the resolved docs_repo_path (Phase 0)]
     > Severities to fix: BLOCKER and MAJOR"
 
@@ -1167,6 +1169,9 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 
 ### Doc review verdict
 [PASS | PASS WITH RECOMMENDATIONS | BLOCK] — [1-line summary of findings applied / deferred]
+
+### Review triage
+- **Review triage:** [N findings reviewed, M survived] — dismissals: [one line per dismissal, `finding — reason`; or "none"]
 
 ### Documentation (Agent 1)
 - [file updated] — [what was added/changed] OR "no update required (reason)"

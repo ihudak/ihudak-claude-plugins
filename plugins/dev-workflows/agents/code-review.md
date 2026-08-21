@@ -27,26 +27,42 @@ The caller passes a structured brief:
   user-approved equivalent).
 - **Diff** - `git diff` or a file-by-file list of changes. MANDATORY.
   Both **Plan** and **Diff** may be given inline or as an absolute file
-  path — `Read` the file first when given a path.
+  path — `Read` the file first when given a path. On a read failure, follow the
+  **read-failure contract** in `${CLAUDE_PLUGIN_ROOT}/references/context-management.md`:
+  **Diff** is an *evidence* input (hard stop — return a `BLOCK` verdict whose single BLOCKER
+  finding names the unreadable path and whose Summary states the review could not be
+  performed; never re-derive the diff yourself), **Plan**, `applicable_ard`, and
+  `applicable_spec` are *context* inputs (degrade to absent, and say so in the Summary).
 - **Project root** - absolute path so files can be opened.
 
 Refuse to review without a diff - ask the caller to produce one.
 
 - **`applicable_ard`** (optional) — the resolved ARD `AD#N` invariants, passed only by `/implement` (Jira mode) when an ARD exists. Absent for `/vuln`, `/upgrade`, `/implement` direct mode, and when no ARD exists — in which case the conditional ARD-conformance dimension (below) does not apply and is not mentioned.
 - **`applicable_spec`** (optional) — the in-scope specification/design context, passed only by `/implement` (Jira mode) when a `specification.md`/`design.md` is in scope: `spec_paths` (absolute paths) + `in_scope_ids` (the in-scope `[Uxx]`/`[ACxx]`/`[TCxx]` list). Absent for `/vuln`, `/upgrade`, `/implement` direct mode, and when no spec/design exists — in which case the conditional Spec/design-conformance dimension (below) does not apply and is not mentioned.
+- **`claims_file`** (optional) — an absolute path to the change's own narrative: an agent's account
+  of what it changed (a `review-fixer` Fix Report at re-review, a `vuln-fixer` or `upgrade-executor`
+  report at first review). **DO NOT read this file when you read the brief.** It is read once, in the
+  Claims falsification dimension, after every other dimension is complete — see `## Review method` step
+  3. Absent ⇒ the Claims falsification dimension does not apply and is not mentioned. This input
+  is a *context* input under the read-failure contract: if it cannot be read, record
+  `Claims falsification: NOT RUN — claims_file unreadable at <path>` in the Summary and continue;
+  never substitute the brief's own text for it, and never reconstruct it.
 
 ## Review method
 
 1. Read the diff end to end before reading any file in isolation.
 2. For each changed file, open and read enough context around each hunk to
    judge the change in its surroundings. Do not trust the hunk alone.
-3. Check each of the eight dimensions below (plus the conditional ninth and
-   tenth — dimension 9 only when `applicable_ard` is provided, dimension 10
-   only when `applicable_spec` is provided). Skip dimensions that are clearly
+3. Check each of the eight dimensions below (plus the conditional ninth, tenth,
+   and eleventh — dimension 9 only when `applicable_ard` is provided, dimension
+   10 only when `applicable_spec` is provided, dimension 11 only when
+   `claims_file` is provided). Dimension 11 runs **last, after dimensions 1–10
+   are complete and their findings recorded** — that ordering is not a
+   preference, it is what makes the dimension work. Skip dimensions that are clearly
    not applicable for this change, but say so explicitly.
 4. Collect findings. Each finding has:
    - **Severity** - `BLOCKER`, `MAJOR`, `MINOR`, `NIT`
-   - **Dimension** - one of the ten below
+   - **Dimension** - one of the eleven below
    - **Location** - `path:line` (use `path:start-end` for ranges)
    - **Observation** - what is wrong or risky
    - **Suggestion** - concrete, minimal fix
@@ -119,6 +135,27 @@ full review.
     - `missing` **with** a recorded deferral (named in the plan's `Out of
       scope`, or an explicit deferral note in the brief) → `MINOR` flagged note.
     - `partial` → `MINOR`.
+11. **Claims falsification** (conditional — only when `claims_file` is provided;
+    otherwise this dimension does not apply — omit it silently). **Precondition:
+    dimensions 1–10 are complete and their findings recorded.** Only now, for the
+    first time, `Read` the file at `claims_file`.
+
+    The file holds an agent's account of its own work. That account is
+    **testimony, not evidence** — a claim restated in a code comment or a commit
+    message is the same claim, not confirmation of it. Extract each *checkable*
+    claim — what the change does, what it preserves, ordering, arithmetic, and
+    parity claims ("exactly as X does", "same shape as Y") — and try to
+    **falsify** each one against the code you have already traced. Where your
+    trace does not settle it, read the code that does: the compared-to function,
+    the actual callee, the state the claim assumes.
+
+    Report one finding per **falsified** claim: `location` = where the code
+    contradicts the claim; `observation` = the claim, quoted or tightly
+    paraphrased, against what the code actually does; `suggestion` = the
+    correction. Severity by consequence for someone who believed the claim — a
+    false claim that something was fixed is a `BLOCKER`.
+
+    **Verified claims produce nothing.** Add nothing when nothing is falsified.
 
 ## Output
 
@@ -174,10 +211,14 @@ Return this exact shape (no chatter, no preamble):
   does vs. what the requirement demands]
 - _or_ "no findings — all in-scope requirements satisfied"
 
+#### Claims falsification (only if claims_file provided)
+- [severity] `path:line` - claim: "[the claim]" - actually: [what the code does]
+  Suggestion: [correction]
+- _or_ "no findings — every checkable claim verified"
+
 ### Recommended next step
 - If BLOCK: [the specific thing that must be fixed before tests run]
-- If PASS WITH RECOMMENDATIONS: "run tests; address MAJOR findings in the same
-  commit; MINOR / NIT can be deferred."
+- If PASS WITH RECOMMENDATIONS: "triage, then invoke review-fixer for the surviving MAJOR findings in the same commit; then run tests; MINOR / NIT can be deferred."
 - If PASS: "run tests."
 ```
 

@@ -22,6 +22,7 @@ The caller passes a structured brief:
 - **`requirements[]`** — the VI requirement inventory (from jira-reader). The coverage ground truth.
 - **`_coverage.md` path** — the coverage matrix the writer produced. Verify it against `requirements[]`.
 - **`applicable_ard`** — the VI-level ARD `invariants` (AD#N), or omitted. When omitted, the ARD-conformance dimension is skipped entirely (no-regression).
+- **`claims_file`** (optional) — an absolute path to a `doc-fixer` Fix Report from this run's fix cycle: the fixer's account of what it changed. **DO NOT read this file when you read the brief.** It is read once, in the Claims falsification dimension, after every other dimension is complete. Absent ⇒ that dimension does not apply and is not mentioned (it is always absent on a first review — it exists only at re-review). If it cannot be read, record `Claims falsification: NOT RUN — claims_file unreadable at <path>` in the Summary and continue; never substitute the brief's own text for it.
 
 Refuse to review without the written file paths and the `jira-reader` handoff. These two are the review ground truth.
 
@@ -60,6 +61,7 @@ Refuse to review without the written file paths and the `jira-reader` handoff. T
 | Partition integrity (conditional) | Only in refinement mode: the union of the refined targets' `## Covers` spans the intended VI slice with no silent overlap (two targets claiming the same requirement without a stated split → MAJOR) and no unflagged uncovered requirement. Absent → skipped. |
 | Cross-team dependency sanity (conditional) | Only in refinement mode: inter-target `## Dependencies` are present where a build order exists and are acyclic. A dependency on a not-yet-existing Epic still → MAJOR. Absent → skipped. |
 | Team preserved (conditional) | Only in refinement mode: each refined Epic records a `**Team:**` line matching its target's team. Missing/wrong team → MINOR (or the retained `[NEEDS CLARIFICATION]` when the import lacked it). Absent → skipped. |
+| Claims falsification | Conditional — only when `claims_file` is provided; otherwise omit silently. **Precondition: every other dimension is complete and its findings recorded.** Only now `Read` the file at `claims_file` — the fixer's account of what it changed, which is testimony, not evidence. Extract each checkable claim and try to **falsify** it against the drafts you have already reviewed. One finding per falsified claim; a fix reported as applied but absent from the draft is a `BLOCKER`. Verified claims produce nothing. |
 
 ## Output
 
@@ -132,9 +134,14 @@ Return this exact shape (no preamble, no chatter):
 #### ARD conformance
 - _"N/A — no applicable ARD"_ when `applicable_ard` was omitted, else findings.
 
+#### Claims falsification (only if claims_file provided)
+- [severity] `path:line` — claim: "[the claim]" — actually: [what the draft contains]
+  Suggestion: [correction]
+- _or_ "no findings — every checkable claim verified"
+
 ### Recommended next step
 - If BLOCK: [the specific thing that must be fixed before the run can continue]
-- If PASS WITH RECOMMENDATIONS: "invoke doc-fixer for MAJOR findings; MINOR / NIT may be deferred to the Phase 9 report."
+- If PASS WITH RECOMMENDATIONS: "triage, then invoke doc-fixer for the surviving MAJOR findings; MINOR / NIT may be deferred to the Phase 9 report."
 - If PASS: "proceed to Phase 8 (maintenance)."
 ```
 

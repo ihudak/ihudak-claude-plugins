@@ -120,7 +120,11 @@ below, then re-invoke `vuln-fixer` with `phase: regression-resume` + the chosen
 `regression_decision`, passing the same CVE input with the original research report
 re-supplied from `research_file`.
 
-If the resumed agent returns `status: BLOCKED`, the re-supplied file path could not be read: report the named path to the user and stop this CVE. Do NOT retry, and do NOT reconstruct the artifact — a resume that re-derives its own input is the failure `${CLAUDE_PLUGIN_ROOT}/references/context-management.md`'s read-failure contract exists to prevent.
+If the resumed agent returns `status: BLOCKED`, the re-supplied file path could not be read:
+report the named path to the user and stop this CVE. Do NOT retry, and do NOT reconstruct
+the artifact — a resume that re-derives its own input is the failure
+`${CLAUDE_PLUGIN_ROOT}/references/context-management.md`'s read-failure contract exists to
+prevent.
 
 ### SIGNIFICANT / HIGH-RISK path
 

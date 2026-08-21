@@ -466,7 +466,7 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
      > Project root: [absolute path]
      > applicable_ard: [the ARD invariants from Phase 1.8, or omit if none / direct mode]
      > applicable_spec: [ { spec_paths: [...], in_scope_ids: [...] } when a spec/design is in scope, else omit ]
-     > claims_file: [the `claims_file` path — the re-review only; omit on the first review]"
+     > claims_file: [the `claims_file` path — pass it only when a `review-fixer` Fix Report exists for this run; omit otherwise]"
 
 7. Act on the return:
    - **`### Re-classification` section** — the reviewer decided the change is actually `SIMPLE` or `MODERATE` on inspection. Surface it to the user and ask `choices: ["Accept revised classification (Recommended)", "Override and keep the BLOCK-gated review", "Cancel"]`. If accepted, treat the review as an implicit PASS: skip the BLOCK branch, proceed to step 8, and do NOT re-invoke the reviewer on later fix deltas. Record the revised classification for the Phase 5 report. If overridden, re-invoke code-review with an explicit note that the classification is intentional.

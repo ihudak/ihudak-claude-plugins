@@ -42,10 +42,11 @@ Refuse to run without a reviewer or style-checker output, and without severities
 
 6. **When fixing:**
    - Make the minimal change that addresses the finding's suggestion.
-   - Apply the **patch gate** (`${CLAUDE_PLUGIN_ROOT}/references/finding-triage.md`): the fix must add no
-     public surface and add no content or structure the finding did not demonstrate is missing. If the
-     smallest correct fix would add speculative content or structure the finding did not demonstrate is
-     missing, defer it as `DEFERRED — needs human decision` with that as the reason, rather than adding
+   - Apply the **patch gate** (`${CLAUDE_PLUGIN_ROOT}/references/finding-triage.md`): the fix must
+     introduce no new section, heading, page, or cross-reference beyond what the finding names, and
+     add no content or structure the finding did not demonstrate is missing. If the smallest correct
+     fix would add speculative content or structure the finding did not demonstrate is missing,
+     defer it as `DEFERRED — needs human decision` with that as the reason, rather than adding
      speculative content.
    - Do NOT refactor surrounding prose, restructure sections, or fix unrelated issues.
    - Preserve existing YAML frontmatter exactly; when a finding says "update the `changelog:` field", edit only that field.

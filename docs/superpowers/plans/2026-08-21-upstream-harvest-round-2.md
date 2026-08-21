@@ -1191,10 +1191,21 @@ copying.**
 cd /workspace/mgd-claude-plugins
 SRC=/workspace/ihudak-claude-plugins/plugins/dev-workflows
 cp -r "$SRC"/agents "$SRC"/commands "$SRC"/references plugins/dev-workflows/
+# MANDATORY next line — `cp -r references` overwrites references/dependencies.md, which is an
+# mgd IDENTITY file this task also forbids copying. Restore it immediately:
+git checkout -- plugins/dev-workflows/references/dependencies.md
+git diff --stat plugins/dev-workflows/references/dependencies.md   # expect NO output
 ```
 
-`README.md`, `LICENSE`, `CHANGELOG.md`, `dependencies.md`, and `plugin.json` are **not** in that command
-and must not be added to it.
+**Why the restore line is mandatory, and why `diff -rq` will not save you.** An earlier draft of this
+plan listed `dependencies.md` as never-copy and then issued a `cp -r references` that copies it —
+replacing mgd's `mgd-plugins` marketplace name with canonical's. The parity check cannot detect this:
+`dependencies.md` is on the expected-to-differ list, so overwriting it makes the two files **match**,
+dropping the diff from five entries to four. Fewer differences reads like better parity. Verify by
+content (`grep -c mgd-plugins`), never by difference count.
+
+`README.md`, `LICENSE`, `CHANGELOG.md`, and `plugin.json` are **not** in that command and must not be
+added to it; `dependencies.md` is copied by it and must be restored by the line above.
 
 - [ ] **Step 3: Hand-edit mgd's own `plugins/dev-workflows/README.md`** — apply Task 2 Step 9's three
   agent-table row edits and Task 5 Step 3's mermaid node edit **by hand**, to mgd's copy. Never `cp` it.

@@ -218,8 +218,7 @@ Return this exact shape (no chatter, no preamble):
 
 ### Recommended next step
 - If BLOCK: [the specific thing that must be fixed before tests run]
-- If PASS WITH RECOMMENDATIONS: "run tests; address MAJOR findings in the same
-  commit; MINOR / NIT can be deferred."
+- If PASS WITH RECOMMENDATIONS: "triage, then invoke review-fixer for the surviving MAJOR findings in the same commit; then run tests; MINOR / NIT can be deferred."
 - If PASS: "run tests."
 ```
 

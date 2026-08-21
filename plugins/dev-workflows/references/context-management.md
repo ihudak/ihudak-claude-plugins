@@ -16,6 +16,14 @@ without degrading. Apply when the plan/step list is large or the run is nearing 
   later turn; a file path costs one line. Always `mktemp` the handoff file — **never inside a repo working
   tree** (and never in the vault) — so a later `git add -N . && git diff` never picks it up.
 
+Prefer the cheapest strategy that fits: checkpoint first; offload parallel steps only when they are
+genuinely independent; decompose only when a single unit still overflows. "Hand off by file" is
+orthogonal — apply it whenever you dispatch a sub-agent, whichever offload strategy you chose.
+
+At each **checkpoint**, a long-run command may additionally suggest **`/compact`** to free
+context before continuing the next scope/Epic — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §3
+(mid-command → `/compact` only, never `/clear`; guidance-only).
+
 ## The read-failure contract
 
 A handed-over path is only useful if it can be read. Every agent that accepts an input "inline or as an
@@ -41,11 +49,3 @@ falls back to pre-existing behaviour, never becomes a new prerequisite) and
 Which tier an input belongs to is fixed by the consuming agent and stated **where that agent takes the
 input** — its `## Inputs` section, or the `## Process` step that receives the brief for an agent that has
 no `## Inputs` section (`vuln-fixer`, `upgrade-executor`) — never decided at runtime.
-
-Prefer the cheapest strategy that fits: checkpoint first; offload parallel steps only when they are
-genuinely independent; decompose only when a single unit still overflows. "Hand off by file" is
-orthogonal — apply it whenever you dispatch a sub-agent, whichever offload strategy you chose.
-
-At each **checkpoint**, a long-run command may additionally suggest **`/compact`** to free
-context before continuing the next scope/Epic — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §3
-(mid-command → `/compact` only, never `/clear`; guidance-only).

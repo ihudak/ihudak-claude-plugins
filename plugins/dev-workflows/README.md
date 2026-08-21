@@ -208,7 +208,7 @@ flowchart TD
     P2 --> BR
     BR --> IM["Implement"]
     IM --> G{"SIGNIFICANT · HIGH-RISK?"}
-    G -->|Yes| RV["Opus code-review → review-fixer (gate before tests)"]
+    G -->|Yes| RV["Opus code-review → triage (verify each finding) → review-fixer (gate before tests)"]
     G -->|No| TS["test-writer + verify vs baseline (fix loop)"]
     RV --> TS
     TS --> MT["Post-impl maintenance (4 agents)"] --> RP["Final report"]

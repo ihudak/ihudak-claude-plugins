@@ -147,6 +147,7 @@ Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `specs
 4. **Review gate for SIGNIFICANT / HIGH-RISK** — If the executor returns `status: AWAITING_REVIEW`, run the Opus code-review gate before any test verification:
    - Capture the diff to a temp file: write `git add -N . && git diff` to `mktemp -t dw-upgrade-diff-XXXX.patch` (never inside a repo tree) and record its path as `review_diff_file`
    - Write the executor output to a temp file (`mktemp -t dw-upgrade-claims-XXXX.md`, never inside a repo tree) and record its path as `claims_file`. Invoke `code-review` using the approved risk plan, the diff (from `review_diff_file`), and `claims_file: [the path]` (frontmatter-pinned to Opus; recorded as `review_model` above, no `model:` override needed)
+   - **Triage sub-step** (before any fixer dispatch): follow `${CLAUDE_PLUGIN_ROOT}/references/finding-triage.md`. For each finding, verify its claimed consequence at the location it names; keep or dismiss; record every dismissal with a reason that disposes of that finding's own claim. Hand the fixer **survivors only**, and carry the dismissal list into this run's report.
    - If review returns `BLOCK` or `PASS WITH RECOMMENDATIONS`, invoke `review-fixer` with model: `<detection_model — §2.1 Sonnet chain>` for `BLOCKER` and `MAJOR` findings, then **overwrite `review_diff_file`** with a fresh `git add -N . && git diff` and re-run the Opus review once against that refreshed path — so the re-review reads the post-fix diff, not the stale pre-fix capture
    - If the second verdict is still `BLOCK`, stop and escalate; do not continue to tests
 
@@ -192,6 +193,8 @@ Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `specs
 
 Tests: 142 passed, 0 regressions (baseline: 142 passing)
 ```
+
+Append a `### Review triage` section with one line per SIGNIFICANT/HIGH-RISK component that went through Opus review: `- **Review triage:** [N findings reviewed, M survived] — dismissals: [one line per dismissal, `finding — reason`; or "none"]` — or "N/A (SIMPLE / MODERATE, no Opus review)" for components that never reached review.
 
 Include the `impl-maintenance` lessons-learned report after the summary table.
 

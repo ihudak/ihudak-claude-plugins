@@ -20,6 +20,11 @@ Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/test-baseliner.md` for the test-b
 
 Receive one upgrade plan with `status: READY`. The plan may be provided inline or as an absolute file path — `Read` the file first when given a path.
 
+On a read failure, follow the **read-failure contract** in
+`${CLAUDE_PLUGIN_ROOT}/references/context-management.md` — the upgrade plan is an *evidence* input:
+hard stop, return `status: BLOCKED` naming the unreadable path, and never re-plan the upgrade to
+reconstruct it.
+
 > **Phase resume.** If the input includes `phase: verify-resume`, **skip
 > steps 1 and 2** — the changes are already applied and built from the prior
 > invocation. Resume at step 3 (Verify). Treat any `baseline` in the input

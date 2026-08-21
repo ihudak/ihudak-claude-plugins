@@ -20,6 +20,10 @@ The caller passes:
   findings with severity, location (`path:line`), observation, and suggestion.
   Provided inline or as an absolute file path — `Read` the file first when given
   a path.
+  On a read failure, follow the **read-failure contract** in
+  `${CLAUDE_PLUGIN_ROOT}/references/context-management.md`: the review output is an *evidence* input —
+  hard stop, return `Stop condition flag: NEEDS HUMAN` with the unreadable path named, and never
+  reconstruct the findings from the diff.
 - **Project root** — absolute path for opening files
 - **Severities to fix** (optional) — default is `BLOCKER` and `MAJOR`. Pass
   `MINOR` explicitly to include MINOR findings. Never include NIT.

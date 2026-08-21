@@ -23,6 +23,9 @@ The caller passes a structured brief:
   component's inventory path(s) and any compat notes already gathered.
   Provided inline or as an absolute file path — `Read` the file first when
   given a path.
+  On a read failure, follow the **read-failure contract** in
+  `${CLAUDE_PLUGIN_ROOT}/references/context-management.md` — this input is *context*: degrade to absent,
+  plan from what remains, and name the unreadable path in the plan's `### Risks`.
 - **Constraints** - runtime versions, dependencies, deadlines, non-functional
   requirements.
 - **Current state** - git branch, uncommitted changes, test baseline if any.

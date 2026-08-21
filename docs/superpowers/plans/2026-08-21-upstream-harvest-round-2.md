@@ -23,8 +23,10 @@ finding to report, not to silently resolve.
 
 ## Global Constraints
 
-- **Pushes are HELD.** Produce commits only. Never `git push` in any of the three repos without the
-  user's explicit go-ahead, and flag the mgd PR-bypass before any push there.
+- **Pushes AUTHORISED (2026-08-21, superseding the earlier hold).** The user has approved merging to
+  `main` and pushing in all three repos **once the round is done** — that means after Task 11's
+  cross-edition verification and the final whole-branch review, not before. Until then, commits only.
+  The mgd PR-bypass still gets flagged before that push (see Task 8).
 - **Commit trailer**, every commit: `Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>`
 - **Branch** `iv-gu/upstream-harvest-round-2` in all three repos, off `main`, before any edit.
 - **Versions:** canonical + mgd `2.53.2 → 2.54.0`; Copilot `2.23.2 → 2.24.0`. Minor, not patch.

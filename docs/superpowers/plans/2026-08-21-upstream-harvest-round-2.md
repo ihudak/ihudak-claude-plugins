@@ -875,9 +875,16 @@ structure the finding did not demonstrate is missing" in place of the guard word
 cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
 grep -c "^## " references/finding-triage.md                       # expect 4 (When this runs / The step / The patch gate / Reporting — the title is a single #)
 grep -l "finding-triage" agents/*.md | sort                       # expect exactly: doc-fixer, review-fixer
-grep -c "guard no state the finding did not demonstrate" references/finding-triage.md   # expect >= 1
-# Neither fixer claims triage authority:
-grep -niE "do not re-triage" agents/review-fixer.md agents/doc-fixer.md   # expect 1 hit each
+# NOTE on both greps below — an earlier draft of this plan got each of them wrong, in the same way:
+# the pattern was written against an imagined file rather than the real one.
+#   (a) It searched finding-triage.md for "guard no state"; that file correctly reads "guardS no state"
+#       (verb agreement with a singular subject). The uninflected phrase lives in review-fixer.md.
+#   (b) It searched case-sensitively for "do not re-triage"; review-fixer.md capitalises it at the
+#       start of a sentence ("Do not re-triage") while doc-fixer.md has it mid-sentence.
+# Both would have reported a false shortfall. Match on the stable substring and ignore case.
+grep -c "no state the finding did not demonstrate" references/finding-triage.md agents/review-fixer.md
+# ^ expect >= 1 in EACH; the inflection differs between them by design
+grep -ciE "do not re-triage" agents/review-fixer.md agents/doc-fixer.md   # expect 1 each (note -i)
 ```
 
 - [ ] **Step 5: Validate and commit.**

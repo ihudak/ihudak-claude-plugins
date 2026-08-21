@@ -39,6 +39,12 @@ updates their invocation.
 
 ## Analysis method
 
+Before proposing any change to `CLAUDE.md`, a rules file, or a `references/*.md`, follow
+`${CLAUDE_PLUGIN_ROOT}/references/instruction-file-maintenance.md`. In particular: verify every claim you
+propose against the thing that runs it (rule 1), and itemise any narrowing of an existing rule as a
+deletion rather than presenting it as a rewrite (rule 2). You are suggest-only — but a suggestion
+carrying an unverified claim is how the claim gets adopted.
+
 1. Read the session handoff.
 2. Read `CLAUDE.md` in the project root (if present) and `~/.claude/CLAUDE.md`
    (global) to understand what rules already exist — avoid suggesting duplicates.

@@ -136,6 +136,8 @@ in their prompt; they do not re-read the file.
 
 `plugins/dev-workflows/references/doc-structure-conventions.md` is the **single source of truth** for three product-docs authoring conventions: the traceability boundary (a rendered page carries no Jira key, PR URL, or provenance comment — that lives in the commit message and the run handoff only), callout scope and adjacency (a callout sits with the option it qualifies, in the lead-in only when it spans the whole set), and component-pattern fidelity (reuse an area's established content component for a recurring content shape instead of an ad-hoc structure). Consumed by `/document` and `/epics`, and by `doc-planner`, `doc-writer`, and `doc-reviewer`.
 
+`plugins/dev-workflows/references/instruction-file-maintenance.md` is the **single source of truth** for changes to agent-instruction files (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`, rules files, and this plugin's own `references/*.md`) — verify every command claim against the thing that runs it; a rewrite that narrows a rule is a deletion and is itemised separately; a pointer names an observable trigger, never one the agent must judge; two live contradictory instructions is a defect; retirement needs grounds, never "it looks derivable" and never "nothing has failed on it lately". Consumed by `impl-maintenance`, and binding on hand edits to this file.
+
 ## `dev-workflows` workflow relationships
 
 ```

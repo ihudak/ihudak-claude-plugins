@@ -162,7 +162,7 @@ task(
 
 3. **Handle a `vuln-fixer` stop.** If the fixer returns `status: BLOCKED`, the research report at `research_file` could not be read — an orchestrator bug, not a user choice: report the unreadable path to the user, mark this CVE `BLOCKED` in the Step 4 summary table, and stop working this CVE (do not retry with a fresh research pass, and do not proceed to Opus review). Otherwise, if the fixer returns `AWAITING_REVIEW`, run Opus code review before tests:
    - Capture the diff to a temp file: write `git add -N . && git diff` to `mktemp -t dw-vuln-diff-XXXX.patch` (never inside a repo tree) and record its path as `review_diff_file`
-   - Invoke `code-review` with the CVE summary, the research handoff (from `research_file`), the fixer output, and the diff (from `review_diff_file`) (frontmatter-pinned to Opus; recorded as `review_model` above, no `model:` override needed)
+   - Write the fixer output to a temp file (`mktemp -t dw-vuln-claims-XXXX.md`, never inside a repo tree) and record its path as `claims_file`. Invoke `code-review` with the CVE summary, the research handoff (from `research_file`), the diff (from `review_diff_file`), and `claims_file: [the path]` (frontmatter-pinned to Opus; recorded as `review_model` above, no `model:` override needed)
    - If review returns `BLOCK` or `PASS WITH RECOMMENDATIONS`, invoke `review-fixer` with model: `<detection_model — §2.1 Sonnet chain>` for `BLOCKER` and `MAJOR` findings, then **overwrite `review_diff_file`** with a fresh `git add -N . && git diff` and re-run the Opus review once against that refreshed path — so the re-review reads the post-fix diff, not the stale pre-fix capture
    - If the second verdict is still `BLOCK`, stop and escalate; do not continue to tests, commit, or PR
 

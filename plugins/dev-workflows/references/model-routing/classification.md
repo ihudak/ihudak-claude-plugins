@@ -255,9 +255,12 @@ The post-implementation Opus review MUST explicitly comment on each of:
    reversible? Is there a feature flag? What is the worst-case incident playbook?
 
 The review output MUST include a verdict per item: `OK` / `CONCERN` / `BLOCKER`,
-plus a free-text comment for any non-`OK` finding. The orchestrator MUST address
-every `BLOCKER` (and document the disposition of each `CONCERN`) before
-proceeding to tests.
+plus a free-text comment for any non-`OK` finding. Before proceeding to tests the
+orchestrator MUST **dispose of** every `BLOCKER` — and document the disposition of
+each `CONCERN` — where a disposition is either a fix or a dismissal recorded with a
+reason that disposes of that finding's own claim, per
+`${CLAUDE_PLUGIN_ROOT}/references/finding-triage.md`. Only survivors are handed to
+the fixer; no `BLOCKER` may be left undisposed, and none may be dropped silently.
 
 ---
 

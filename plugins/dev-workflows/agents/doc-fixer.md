@@ -15,7 +15,11 @@ Do NOT invoke for PASS verdicts. Only invoke when the verdict is BLOCK or PASS W
 The caller passes:
 
 - **Task description** — what was being written (feature doc / Epic drafts / style-fixing)
-- **Reviewer or style-checker output** — the full structured output, including all findings with severity, location (`path:line`), observation, and suggestion
+- **Reviewer or style-checker output** — the full structured output, including all findings with severity, location (`path:line`), observation, and suggestion.
+  When the source is `doc-reviewer` or `epic-reviewer`, this list has already been triaged by the
+  caller per `${CLAUDE_PLUGIN_ROOT}/references/finding-triage.md` — every finding is a **survivor**;
+  do not re-triage and do not dismiss. When the source is a style checker, no triage step ran (a
+  linter violation is not a claim about consequence) and the list is as the checker produced it.
 - **Project root** — absolute path for opening files (the docs repo root for product docs, the vault path for Epic drafts)
 - **Severities to fix** (optional) — default is `BLOCKER` and `MAJOR`. Pass `MINOR` explicitly to include MINOR findings. Never include NIT.
 
@@ -38,6 +42,12 @@ Refuse to run without a reviewer or style-checker output, and without severities
 
 6. **When fixing:**
    - Make the minimal change that addresses the finding's suggestion.
+   - Apply the **patch gate** (`${CLAUDE_PLUGIN_ROOT}/references/finding-triage.md`): the fix must
+     introduce no new section, heading, page, or cross-reference beyond what the finding names, and
+     add no content or structure the finding did not demonstrate is missing. If the smallest correct
+     fix would add speculative content or structure the finding did not demonstrate is missing,
+     defer it as `DEFERRED — needs human decision` with that as the reason, rather than adding
+     speculative content.
    - Do NOT refactor surrounding prose, restructure sections, or fix unrelated issues.
    - Preserve existing YAML frontmatter exactly; when a finding says "update the `changelog:` field", edit only that field.
    - Preserve existing `[[wikilinks]]` and relative-path links on pages you touch; never rewrite a working link as a side effect.
@@ -78,6 +88,7 @@ Return this exact shape (no preamble):
 - NEVER fix MINOR or NIT findings unless the caller explicitly asked for MINOR.
 - NEVER modify files not referenced in the findings' `path:line` locations.
 - NEVER add new logic, new Epic acceptance criteria, or new documentation sections beyond what the suggestion explicitly requires. If a finding needs content the sources don't contain, defer it.
+- NEVER add content, a section, or a structural element the finding did not demonstrate is missing.
 - NEVER strip unknown YAML frontmatter fields; when extending an existing page, treat unknown fields as load-bearing.
 - NEVER change an image reference's kind (local vs. CDN URL) unless the finding explicitly says so.
 - NEVER return without the `Stop condition flag` line — the caller reads it to decide whether re-running the review is worth doing.

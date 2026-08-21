@@ -61,7 +61,7 @@ files:
 
 ```markdown
 ## Vuln Fix Result: CVE-2023-46604
-status: SUCCESS         # SUCCESS | BUILD_FAILED | TEST_REGRESSION | REVERTED | SKIPPED_BY_USER | AWAITING_REVIEW | BASELINE_FAILED
+status: SUCCESS         # SUCCESS | BUILD_FAILED | TEST_REGRESSION | REVERTED | SKIPPED_BY_USER | AWAITING_REVIEW | BASELINE_FAILED | BLOCKED
 branch: fix/MGD-2423-CVE-2023-46604
 pr_url: https://github.com/org/repo/pull/42
 tests_before: 47
@@ -93,6 +93,11 @@ model_routing:           # echoed back when present in input
   commit was made, and no PR was opened. The orchestrator must perform
   the Opus code review, then re-invoke this agent with
   `phase: verify-resume` to run Verify, Commit, and PR.
+- `BLOCKED` — the research report could not be read at the path the orchestrator supplied;
+  nothing was changed. Per the read-failure contract
+  (`${CLAUDE_PLUGIN_ROOT}/references/context-management.md`), the orchestrator must not
+  re-run vuln-research to reconstruct the report — surface the unreadable path to the user
+  and stop remediation for this CVE.
 
 ### AWAITING_REVIEW output shape
 

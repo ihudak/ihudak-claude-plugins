@@ -439,7 +439,9 @@ When `mode` is `refine`/`both`, include `refinement_targets` in the `epic-review
 
 Act on the verdict (same shape as `/document` Jira mode Phase 7):
 
-- **BLOCK** — invoke `doc-fixer` with `Severities to fix: BLOCKER and MAJOR`. Re-invoke `epic-reviewer` once. If still BLOCK, escalate per the `Review verdict BLOCK (unresolved after one fix cycle) — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` for each unresolved BLOCKER individually:
+**Triage sub-step** (before any fixer dispatch): follow `${CLAUDE_PLUGIN_ROOT}/references/finding-triage.md`. For each finding, verify its claimed consequence at the location it names; keep or dismiss; record every dismissal with a reason that disposes of that finding's own claim. Hand the fixer **survivors only**, and carry the dismissal list into this run's report.
+
+- **BLOCK** — invoke `doc-fixer` with `Severities to fix: BLOCKER and MAJOR`. Write the `doc-fixer` Fix Report to a temp file (`mktemp -t dw-epics-claims-XXXX.md`, never inside a repo tree or the vault), record its path as `claims_file`, and re-invoke `epic-reviewer` once **passing `claims_file`** — so the re-review falsifies the fixer's account rather than assuming it. If still BLOCK, escalate per the `Review verdict BLOCK (unresolved after one fix cycle) — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` for each unresolved BLOCKER individually:
   ```
   choices: ["Provide manual fix notes (you'll be prompted)", "Defer to a follow-up issue (record in Phase 9 report)", "Override and accept the finding", "Cancel the whole run", "Other… (describe)"]
   ```
@@ -451,7 +453,7 @@ Act on the verdict (same shape as `/document` Jira mode Phase 7):
     > "Fix the review findings for this brief:
     >
     > Task description: [Epic drafting for <JIRA_KEY>]
-    > Reviewer or style-checker output: [paste full epic-reviewer output]
+    > Reviewer or style-checker output: [paste the triaged survivor list from the triage sub-step above — the surviving `epic-reviewer` findings only, never the dismissed ones]
     > Project root: [resolved project_root]
     > Severities to fix: BLOCKER and MAJOR"
 
@@ -593,6 +595,9 @@ MODERATE — vault-internal Epic drafting for a single VI
 
 ### Epic review verdict
 [PASS | PASS WITH RECOMMENDATIONS | BLOCK] — [1-line summary of findings applied / deferred]
+
+### Review triage
+- **Review triage:** [N findings reviewed, M survived] — dismissals: [one line per dismissal, `finding — reason`; or "none"]
 
 ### Requirement coverage
 [Roll-up verdict + N/M covered (P%); list each ❌ gap requirement ID; _coverage.md path] If Phase 2.6 enriched the inventory, also name the VI-level `specification.md` path and the count of `spec-*` rows added. — _or_ "derived (coarse) — VI had no structured requirements"

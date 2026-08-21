@@ -389,7 +389,7 @@ Runs after Phase 3A step 5 completes (all code changes written), before the outc
      > Project root: [absolute path]
      > Baseline: [paste the ## Test Baseline block captured in Pre-Phase 3.5]"
 
-2. **Handle `Framework: not detected`.** If the `test-writer` report shows `Framework: not detected`, ask the user:
+2. **Handle a `test-writer` stop.** Check the report's first line before anything else. If it is `Diff: unreadable at <path>`, the orchestrator's own `test_diff_file` could not be read — this is an orchestrator bug, not a user choice: surface the unreadable path to the user and **stop the run**; do not run the framework prompt below, and do not offer to skip tests (skipping would silently proceed past evidence that could not be read). Otherwise, if the report shows `Framework: not detected`, ask the user:
    ```
    choices: ["Specify test command to use", "Skip tests for this run (document why in the final report — Phase 5 of the inherited /implement workflow)", "Cancel"]
    ```
@@ -447,7 +447,7 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
      > Project root: [absolute path]
      > Baseline: [paste the ## Test Baseline block captured in Pre-Phase 3.5]"
 
-   If the `test-writer` report shows `Framework: not detected`, ask the user **before** invoking Opus review (mirrors the SIMPLE/MODERATE branch — keeps the Opus-review input deterministic):
+   Check the `test-writer` report's first line before invoking Opus review. If it is `Diff: unreadable at <path>`, the orchestrator's own `test_diff_file` could not be read — this is an orchestrator bug, not a user choice: surface the unreadable path to the user and **stop the run**; do not invoke Opus review and do not run the framework prompt below. Otherwise, if the report shows `Framework: not detected`, ask the user **before** invoking Opus review (mirrors the SIMPLE/MODERATE branch — keeps the Opus-review input deterministic):
    ```
    choices: ["Specify test command to use", "Skip tests for this run (document why in the final report — Phase 5 of the inherited /implement workflow)", "Cancel"]
    ```
@@ -465,15 +465,18 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
      > Diff: read it from the file at [the `review_diff_file` path from step 5]
      > Project root: [absolute path]
      > applicable_ard: [the ARD invariants from Phase 1.8, or omit if none / direct mode]
-     > applicable_spec: [ { spec_paths: [...], in_scope_ids: [...] } when a spec/design is in scope, else omit ]"
+     > applicable_spec: [ { spec_paths: [...], in_scope_ids: [...] } when a spec/design is in scope, else omit ]
+     > claims_file: [the `claims_file` path — pass it only when a `review-fixer` Fix Report exists for this run; omit otherwise]"
 
 7. Act on the return:
    - **`### Re-classification` section** — the reviewer decided the change is actually `SIMPLE` or `MODERATE` on inspection. Surface it to the user and ask `choices: ["Accept revised classification (Recommended)", "Override and keep the BLOCK-gated review", "Cancel"]`. If accepted, treat the review as an implicit PASS: skip the BLOCK branch, proceed to step 8, and do NOT re-invoke the reviewer on later fix deltas. Record the revised classification for the Phase 5 report. If overridden, re-invoke code-review with an explicit note that the classification is intentional.
-   - **BLOCK** — invoke the review-fixer agent (see Review-fixer sub-step below). If `Stop condition flag` is `CLEAR`, re-run the Opus code review on the updated diff (one re-review only). If the second verdict is still BLOCK, stop: surface the remaining blockers to the user and ask `choices: ["Investigate further", "Abandon implementation and restore to pre-impl state", "Cancel"]`. Do not run tests until the verdict is not BLOCK.
+   - **BLOCK** — invoke the review-fixer agent (see Review-fixer sub-step below). If `Stop condition flag` is `CLEAR`, re-run the Opus code review on the updated diff (one re-review only). If `Stop condition flag` is `NEEDS HUMAN`, do not re-review: surface the deferred BLOCKER(s) to the user with the reason `review-fixer` gave and stop. If the second verdict is still BLOCK, stop: surface the remaining blockers to the user and ask `choices: ["Investigate further", "Abandon implementation and restore to pre-impl state", "Cancel"]`. Do not run tests until the verdict is not BLOCK.
    - **PASS WITH RECOMMENDATIONS** — invoke the review-fixer agent for MAJOR findings (see Review-fixer sub-step below). MINOR / NIT findings may be deferred — note them in the Phase 5 report.
    - **PASS** — proceed.
 
-   **Review-fixer sub-step** (for BLOCK and PASS WITH RECOMMENDATIONS): first write the full code-review agent output to a temp file (`mktemp -t dw-impl-review-XXXX.md`, never inside a repo tree) and record its path as `review_file`.
+   **Triage sub-step** (before any fixer dispatch): follow `${CLAUDE_PLUGIN_ROOT}/references/finding-triage.md`. For each finding, verify its claimed consequence at the location it names; keep or dismiss; record every dismissal with a reason that disposes of that finding's own claim. Hand the fixer **survivors only**, and carry the dismissal list into this run's report.
+
+   **Review-fixer sub-step** (for BLOCK and PASS WITH RECOMMENDATIONS): first write the **triaged survivor list** from the sub-step above — the surviving findings only, each with its severity, location, observation, and suggestion — to a temp file (`mktemp -t dw-impl-review-XXXX.md`, never inside a repo tree) and record its path as `review_file`. Dismissed findings NEVER enter that file; they go to the `### Review triage` report section instead.
 
    → Agent (subagent_type: "dev-workflows:review-fixer", model: `<fixes_model — = detection_model, §2.1 Sonnet chain>`):
      > "Fix the review findings for this brief:
@@ -483,7 +486,7 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
      > Project root: [absolute path]
      > Severities to fix: BLOCKER and MAJOR"
 
-   Wait for the fix report. Re-capture the diff after the fixer completes, **overwriting `review_diff_file`** (write a fresh `git add -N . && git diff` to that same path) — so the one re-review at step 7 reads the post-fix diff, not the stale step-5 capture.
+   Wait for the fix report. Re-capture the diff after the fixer completes, **overwriting `review_diff_file`** (write a fresh `git add -N . && git diff` to that same path) — so the one re-review at step 7 reads the post-fix diff, not the stale step-5 capture. Also write the fixer's full Fix Report to a temp file (`mktemp -t dw-impl-claims-XXXX.md`, never inside a repo tree) and record its path as `claims_file` — the one re-review reads it as the deferred claims input, so the reviewer checks the fixer's account of its own work instead of assuming it.
 
    - If the fix report contains any `DEFERRED — plan-conflict` finding, surface it to the user **immediately** (do not wait for the BLOCK-still-BLOCK path): show the finding beside the plan text it contradicts and ask `choices: ["Revise the plan (the finding governs)", "Apply the fix against the plan (the plan governs — logged in Phase 5)", "Other… (describe)"]`. Act on the answer before re-running the review.
 
@@ -619,6 +622,9 @@ Output a structured report — do NOT ask any closing confirmation:
 
 ### Opus review (if applicable)
 [Verdict and 1-line summary, or "N/A (SIMPLE / MODERATE)"]
+
+### Review triage
+- **Review triage:** [N findings reviewed, M survived] — dismissals: [one line per dismissal, `finding — reason`; or "none"] — or "N/A (SIMPLE / MODERATE, no Opus review)"
 
 ### Spec/design conformance (if a spec/design was in scope)
 [coverage summary from code-review's dimension; list any missing/partial/contradicts — or "N/A"; if Phase 4.5 escalated notes, add the `Phase handoff:` outcome line from `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1)]

@@ -1180,10 +1180,18 @@ git switch main && git pull --ff-only && git switch -c iv-gu/upstream-harvest-ro
 diff -rq /workspace/ihudak-claude-plugins/plugins/dev-workflows plugins/dev-workflows
 ```
 
-Expect **exactly five** differing files: `.claude-plugin/plugin.json`, `README.md`, `LICENSE`,
-`references/dependencies.md`, `CHANGELOG.md` — these are mgd identity plus the annotated changelog.
-**Anything else differing means the two editions were already out of lockstep — STOP and report before
-copying.**
+**Read this before acting on the count.** "Exactly five" is the expected state *after* the port, and
+also the expected state before a port that starts from two synchronised editions. It is NOT what you
+will see here: canonical is already at this round's tip, so the pre-copy `diff -rq` legitimately
+reports **every file this round touched** — roughly two dozen — plus the five identity files.
+
+So do not halt on the raw number. Instead, cross-check each differing path against this round's own
+changed-file list (`git -C /workspace/ihudak-claude-plugins diff --name-only main..HEAD`). A path on
+that list is expected. **A path NOT on that list, and not one of the five identity files, means the two
+editions were already out of lockstep — STOP and report before copying.**
+
+The five identity files are `.claude-plugin/plugin.json`, `README.md`, `LICENSE`,
+`references/dependencies.md`, `CHANGELOG.md` — mgd identity plus the annotated changelog.
 
 - [ ] **Step 2: Copy everything except the five.**
 

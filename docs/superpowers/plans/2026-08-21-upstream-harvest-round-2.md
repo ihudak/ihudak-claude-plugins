@@ -335,15 +335,28 @@ Extend that sentence with:
 
 ```markdown
 If `Stop condition flag` is `NEEDS HUMAN`, do not re-review: surface the deferred BLOCKER(s) to the
-user with the reason `review-fixer` gave and stop, per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
+user with the reason `review-fixer` gave and stop.
+
+**Do not cite `escalation-rules.md` here.** An earlier draft of this plan did; that file contains zero
+`review-fixer` mentions and its "Review verdict BLOCK" rules cover `/document` and `/epics` only, not
+`/implement`. The governing rule is `review-fixer.md`'s own hard rules. Cite nothing rather than a
+reference that does not carry the rule.
 ```
 
 - [ ] **Step 3: Verify.**
 
 ```bash
 cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
-grep -c "status: \`BLOCKED\`\|\`BLOCKED\`" commands/vuln.md      # expect >= 3 (1 initial x2 + resumes)
-grep -c "BLOCKED" commands/upgrade.md                              # expect >= 3
+# Grep for the BARE word, not a guessed code-span shape. An earlier draft of this plan matched
+# `status: \`BLOCKED\`` — a backtick immediately after "status:" — but the house style these files
+# actually use wraps the whole phrase (\`status: BLOCKED\`), so the pattern never matched and the
+# check reported a false shortfall. A verification pattern written against an imagined file reports
+# on the imagined file.
+grep -c "BLOCKED" commands/vuln.md      # every initial AND resume site; derive, do not assume a total
+grep -c "BLOCKED" commands/upgrade.md
+grep -n "phase: verify-resume\|phase: regression-resume" commands/vuln.md commands/upgrade.md
+# ^ Branch EVERY resume call site this prints. Do not trust a count in this plan: an earlier draft
+#   said vuln.md had two and it has three (the SIMPLE/MODERATE path carries its own regression-resume).
 grep -n "NEEDS HUMAN" commands/implement.md                        # expect >= 1
 cd /workspace/ihudak-claude-plugins && claude plugin validate .
 ```

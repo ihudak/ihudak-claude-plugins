@@ -48,6 +48,17 @@ finding to report, not to silently resolve.
   *plugin authors* at runtime, not these files.
 - **The verification record (Task 11, Step 4) is written last**, after the final fix wave — never
   before, and it records what each command actually printed, never an expected value copied from here.
+- **Bugs-first: no deferred minors survive this round.** Every defect found during execution —
+  including ones graded Minor, ones that are pre-existing, and ones found in this plan itself — is
+  fixed before the round is considered done and before any work begins on the next iteration
+  (harvest items 5–7). "We'll get it next round" is how the 2.39.2 `/implement` fix failed to reach
+  its 2.39.3 siblings and shipped as a defect in two editions. A defect may be closed as *deliberately
+  not fixed* only with a written reason; it may never simply be carried forward.
+- **Never let a grepped phrase be split across a line break.** This plan's own 100-column wrapping
+  broke a bolded phrase inside a Task 1 insert block, and the plan's own verification grep for that
+  phrase would have returned one short. When transcribing an insert block, reflow so any phrase a
+  later grep depends on stays on one line — words unchanged. When a count comes in one short, check
+  for a split phrase **before** concluding an edit is missing.
 
 ## Plan-level decision refining spec §4.3
 
@@ -253,7 +264,7 @@ the surrounding prose still flows.
 
 ```bash
 cd /workspace/ihudak-claude-plugins
-claude plugin validate
+claude plugin validate .
 ./scripts/check-id-grammar.sh --selftest && ./scripts/check-id-grammar.sh --root .
 git add plugins/dev-workflows/references/context-management.md plugins/dev-workflows/agents/
 git commit -m "$(cat <<'EOF'
@@ -277,6 +288,86 @@ EOF
 Per spec §9.1, do not continue into Task 2 without a review of Task 1. Report: the six citation sites,
 the grep output from Step 10, and any place where an agent's existing gap/blocked shape did not
 naturally accommodate the contract.
+
+---
+
+## Task 1b: Clear Task 1's deferred minors (bugs-first)
+
+Both were found by Task 1's review cycle and logged rather than fixed. Under the bugs-first constraint
+they are cleared inside this round, not carried forward. Neither is cosmetic: the first is a partial
+dead gate of exactly the class Task 1 closed.
+
+**Files:**
+- Modify: `plugins/dev-workflows/commands/vuln.md` (Step 4 resume, `:163`; regression resume, `:166`)
+- Modify: `plugins/dev-workflows/commands/upgrade.md` (Phase 2 step 5, `:153`; step 6, `:155`)
+- Modify: `plugins/dev-workflows/commands/implement.md` (`:472`)
+
+- [ ] **Step 1: `BLOCKED` on the resume paths.**
+
+`vuln.md:163` re-invokes `vuln-fixer` with `phase: verify-resume` and "the original research report
+re-supplied from `research_file`"; `:166` does the same with `phase: regression-resume`.
+`upgrade.md:153` and `:155` re-invoke `upgrade-executor` with `plan_file`. All four re-supply a file
+path, so all four can hit the same read failure Task 1 handled at the initial invocation — and the
+agent side is phase-independent, so it *will* return `status: BLOCKED` there. Only the command lacks a
+branch, which is the dead-gate shape: a status returned and never consumed.
+
+Add to each of the four sites, matching the file's surrounding sentence style:
+
+```markdown
+   If the resumed agent returns `status: BLOCKED`, the re-supplied file path could not be read: report
+   the named path to the user and stop this CVE / component. Do NOT retry, and do NOT reconstruct the
+   artifact — a resume that re-derives its own input is the failure `references/context-management.md`'s
+   read-failure contract exists to prevent.
+```
+
+Adjust "this CVE" / "this component" per file.
+
+- [ ] **Step 2: `implement.md:472` — state the NEEDS HUMAN branch at the call site.**
+
+The line reads "If `Stop condition flag` is `CLEAR`, re-run the Opus code review…" and never says what
+happens when it is `NEEDS HUMAN`. The behaviour is correct today only because `review-fixer.md`'s own
+hard rule says the caller must surface and stop — the call site itself is silent, so a reader of
+`implement.md` alone would not know. Task 1 made this reachable on a new path (an unreadable diff
+produces a BLOCK whose finding is not locally actionable, so `review-fixer` returns NEEDS HUMAN on the
+first pass), which turns a latent gap into a live one.
+
+Extend that sentence with:
+
+```markdown
+If `Stop condition flag` is `NEEDS HUMAN`, do not re-review: surface the deferred BLOCKER(s) to the
+user with the reason `review-fixer` gave and stop, per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
+```
+
+- [ ] **Step 3: Verify.**
+
+```bash
+cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
+grep -c "status: \`BLOCKED\`\|\`BLOCKED\`" commands/vuln.md      # expect >= 3 (1 initial x2 + resumes)
+grep -c "BLOCKED" commands/upgrade.md                              # expect >= 3
+grep -n "NEEDS HUMAN" commands/implement.md                        # expect >= 1
+cd /workspace/ihudak-claude-plugins && claude plugin validate .
+```
+
+Then read each of the five edit sites in context and confirm the new sentence sits inside the right
+step, not between two unrelated ones.
+
+- [ ] **Step 4: Commit.**
+
+```bash
+git add plugins/dev-workflows/commands/
+git commit -m "$(cat <<'EOF'
+fix(dev-workflows): consume BLOCKED on the resume paths, state NEEDS HUMAN at the call site
+
+Both found by Task 1's review and logged rather than fixed; cleared here under
+the bugs-first rule. The resume paths re-supply a file path and so can hit the
+same read failure the initial invocation now handles — the agent returns
+BLOCKED regardless of phase, but no command branched on it, which is a status
+returned and never consumed.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+EOF
+)"
+```
 
 ---
 
@@ -403,8 +494,10 @@ In `## Inputs`, as a new final bullet, add the same text as Step 2 but with the 
 
 - [ ] **Step 7: `doc-reviewer` — add the dimension and the output slot.**
 
-In `## Review dimensions`, append as the final (18th) dimension, matching the section's existing prose
-form:
+In `## Review dimensions`, append as the final (18th) dimension. **That section is a
+`| Dimension | Check |` table, not prose** (an earlier draft of this plan said prose — it was wrong,
+derived from the output-slot count rather than from the section itself). Append a table row matching
+the existing rows' two-column shape, with this text as the `Check` cell:
 
 ```markdown
 **Claims falsification** (conditional — only when `claims_file` is provided; otherwise omit silently).
@@ -447,8 +540,12 @@ In `plugins/dev-workflows/README.md`, make exactly three row edits:
 - `code-review` row: `Post-implementation reviewer — 8 dimensions (correctness, security, architecture, edge cases, migration, dependencies, test adequacy, rollback).`
   → `Post-implementation reviewer — 11 dimensions: eight always (correctness, security, architecture, edge cases, migration, dependencies, test adequacy, rollback) plus three conditional (ARD conformance, spec/design conformance, claims falsification).`
 - `doc-reviewer` row: `17 dimensions` → `18 dimensions`, and append `, and claims falsification (the fixer's account of its own work, read only after every other dimension)` to that row's dimension list.
-- `epic-reviewer` row: `9 dimensions` → `18 dimensions`. **This row was stale by nine before this
-  round** — it never absorbed the refinement/partition/ARD dimensions. Verify against Step 1's count.
+- `epic-reviewer` row: `9 dimensions` → **`19 dimensions`**, and append the same claims-falsification
+  mention the other two rows get. **This row was stale by nine before this round** (it never absorbed
+  the refinement/partition/ARD dimensions), so there are TWO corrections stacked here: 9 → 18 fixes the
+  pre-existing staleness, and 18 → 19 adds the dimension THIS task creates. An earlier draft of this
+  plan said "→ 18" — it applied only the first correction and dropped the second. Do not copy either
+  number: derive it with `grep -cE "^#### " agents/epic-reviewer.md` AFTER your edit.
 
 - [ ] **Step 10: Verify.**
 
@@ -465,15 +562,25 @@ grep -c "Claims falsification" agents/code-review.md        # expect >= 3 (metho
 grep -c "DO NOT read this file when you read the brief" agents/*.md | grep -v ':0'   # expect 3 lines
 # No stale count phrase survives in code-review:
 grep -nE "one of the ten below|conditional ninth and" agents/code-review.md          # expect no output
-# README rows match the derived counts:
-grep -oE "code-review\` \| Opus \| [^|]*dimensions" ../../plugins/dev-workflows/README.md | head -1
+# README rows match the derived counts — ALL THREE, not just one. An earlier draft of this plan
+# checked only the code-review row, which is why a wrong epic-reviewer count reached review.
+cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
+for a in code-review doc-reviewer epic-reviewer; do
+  case $a in
+    code-review) n=$(sed -n '/^## Review dimensions/,/^## /p' agents/$a.md | grep -cE '^[0-9]+\. \*\*');;
+    *)           n=$(grep -cE '^#### ' agents/$a.md);;
+  esac
+  printf '%-14s agent=%s  README says: ' "$a" "$n"
+  grep -oE "\`$a\` \| Opus \| [^|]*dimensions" README.md | grep -oE '[0-9]+ dimensions'
+done
+# The two numbers on each line MUST match.
 ```
 
 - [ ] **Step 11: Validate and commit.**
 
 ```bash
 cd /workspace/ihudak-claude-plugins
-claude plugin validate
+claude plugin validate .
 git add plugins/dev-workflows/agents/ plugins/dev-workflows/README.md
 git commit -m "$(cat <<'EOF'
 feat(dev-workflows): claims falsification as a deferred read on the three reviewers
@@ -608,7 +715,7 @@ names the fixer/executor output as an inline ingredient.
 
 ```bash
 cd /workspace/ihudak-claude-plugins
-claude plugin validate
+claude plugin validate .
 git add plugins/dev-workflows/commands/
 git commit -m "$(cat <<'EOF'
 feat(dev-workflows): wire claims_file in the five reviewer-gated commands
@@ -764,7 +871,7 @@ grep -niE "do not re-triage" agents/review-fixer.md agents/doc-fixer.md   # expe
 
 ```bash
 cd /workspace/ihudak-claude-plugins
-claude plugin validate
+claude plugin validate .
 git add plugins/dev-workflows/references/finding-triage.md plugins/dev-workflows/agents/
 git commit -m "$(cat <<'EOF'
 feat(dev-workflows): finding-triage reference and the fixer patch gate
@@ -858,7 +965,7 @@ git diff README.md | grep -E "^[-+].*subgraph"      # expect NO output — diagr
 
 ```bash
 cd /workspace/ihudak-claude-plugins
-claude plugin validate
+claude plugin validate .
 git add plugins/dev-workflows/commands/ plugins/dev-workflows/README.md
 git commit -m "$(cat <<'EOF'
 feat(dev-workflows): orchestrator triage between reviewer and fixer in five commands
@@ -957,7 +1064,7 @@ cd /workspace/ihudak-claude-plugins
 grep -c "^## [1-5]\." plugins/dev-workflows/references/instruction-file-maintenance.md   # expect 5
 grep -c "instruction-file-maintenance" plugins/dev-workflows/agents/impl-maintenance.md  # expect 1
 grep -c "instruction-file-maintenance" CLAUDE.md                                          # expect 1
-claude plugin validate
+claude plugin validate .
 git add plugins/dev-workflows/references/instruction-file-maintenance.md plugins/dev-workflows/agents/impl-maintenance.md CLAUDE.md
 git commit -m "$(cat <<'EOF'
 feat(dev-workflows): instruction-file maintenance reference
@@ -1084,7 +1191,7 @@ Expect the same five files and **nothing else**. A sixth difference is either a 
 accidental copy.
 
 ```bash
-claude plugin validate
+claude plugin validate .
 ```
 
 - [ ] **Step 6: Commit** (same message body as the canonical commits, prefixed
@@ -1206,9 +1313,9 @@ The two numbers must match within each repo.
 - [ ] **Step 1: Gates.**
 
 ```bash
-cd /workspace/ihudak-claude-plugins && claude plugin validate && python3 scripts/validate-catalog.py \
+cd /workspace/ihudak-claude-plugins && claude plugin validate . && python3 scripts/validate-catalog.py \
   && ./scripts/check-id-grammar.sh --selftest && ./scripts/check-id-grammar.sh --root .
-cd /workspace/mgd-claude-plugins && claude plugin validate
+cd /workspace/mgd-claude-plugins && claude plugin validate .
 cd /workspace/ihudak-copilot-plugins && python3 -c "import json,sys; [json.load(open(p)) for p in ['dev-workflows/.plugin/plugin.json','.github/plugin/marketplace.json']]" && echo "copilot JSON OK"
 ```
 

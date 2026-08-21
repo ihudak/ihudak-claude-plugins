@@ -43,10 +43,10 @@ Refuse to review without a diff - ask the caller to produce one.
   of what it changed (a `review-fixer` Fix Report at re-review, a `vuln-fixer` or `upgrade-executor`
   report at first review). **DO NOT read this file when you read the brief.** It is read once, in the
   Claims falsification dimension, after every other dimension is complete — see `## Review method` step
-  3. Absent ⇒ the Claims falsification dimension does not apply and is not mentioned. This input is
-  *evidence* under the read-failure contract only in the sense that it must not be reconstructed: if it
-  cannot be read, record `Claims falsification: NOT RUN — claims_file unreadable at <path>` in the
-  Summary and continue; never substitute the brief's own text for it.
+  3. Absent ⇒ the Claims falsification dimension does not apply and is not mentioned. This input
+  is a *context* input under the read-failure contract: if it cannot be read, record
+  `Claims falsification: NOT RUN — claims_file unreadable at <path>` in the Summary and continue;
+  never substitute the brief's own text for it, and never reconstruct it.
 
 ## Review method
 

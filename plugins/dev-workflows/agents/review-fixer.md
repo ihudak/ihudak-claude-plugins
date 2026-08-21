@@ -24,6 +24,10 @@ The caller passes:
   `${CLAUDE_PLUGIN_ROOT}/references/context-management.md`: the review output is an *evidence* input —
   hard stop, return `Stop condition flag: NEEDS HUMAN` with the unreadable path named, and never
   reconstruct the findings from the diff.
+  This list has already been triaged by the caller per
+  `${CLAUDE_PLUGIN_ROOT}/references/finding-triage.md` — every finding you receive is a **survivor** whose
+  claimed consequence the caller verified. Do not re-triage, and do not dismiss a finding on your own
+  judgement: your dispositions remain Applied and Deferred only.
 - **Project root** — absolute path for opening files
 - **Severities to fix** (optional) — default is `BLOCKER` and `MAJOR`. Pass
   `MINOR` explicitly to include MINOR findings. Never include NIT.
@@ -51,6 +55,10 @@ The caller passes:
 5. **Skip all NIT findings entirely.** Do not mention them in the fix report.
 6. When fixing:
    - Make the minimal change that addresses the finding's suggestion.
+   - Apply the **patch gate** (`${CLAUDE_PLUGIN_ROOT}/references/finding-triage.md`): the fix must add no
+     public surface and **guard no state the finding did not demonstrate**. If the smallest correct fix
+     would add such a guard, defer it as `DEFERRED — needs human decision` with that as the reason,
+     rather than adding speculative defence.
    - Do not refactor surrounding code or fix unrelated issues.
    - If multiple findings touch the same location, apply them in order;
      re-read the file between edits to avoid stale hunks.
@@ -89,6 +97,7 @@ Return this exact shape (no preamble):
 - NEVER modify a file that is not named in a finding's `path:line` location.
 - NEVER add new logic beyond what the suggestion explicitly requires.
 - NEVER fix a finding that contradicts the approved plan by overriding the plan; flag it `DEFERRED — plan-conflict` and set `Stop condition flag` to `NEEDS HUMAN`.
+- NEVER add a guard, branch, or check for a state the finding did not demonstrate is reachable.
 - NEVER return without the `Stop condition flag` line — the caller reads it
   to decide whether re-running the review is worth doing.
 - If `Stop condition flag` is `NEEDS HUMAN`, the caller must surface the

@@ -194,7 +194,7 @@ Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `specs
 Tests: 142 passed, 0 regressions (baseline: 142 passing)
 ```
 
-Append a `### Review triage` section with one line per SIGNIFICANT/HIGH-RISK component that went through Opus review: `- **Review triage:** [N findings reviewed, M survived] — dismissals: [one line per dismissal, `finding — reason`; or "none"]` — or "N/A (SIMPLE / MODERATE, no Opus review)" for components that never reached review.
+Append a `### Review triage` section with one line per SIGNIFICANT/HIGH-RISK component that went through Opus review: - **Review triage:** [N findings reviewed, M survived] — dismissals: [one line per dismissal, `finding — reason`; or "none"] — or "N/A (SIMPLE / MODERATE, no Opus review)" for components that never reached review.
 
 Include the `impl-maintenance` lessons-learned report after the summary table.
 

@@ -29,9 +29,10 @@ The caller passes a structured brief:
   Both **Plan** and **Diff** may be given inline or as an absolute file
   path — `Read` the file first when given a path. On a read failure, follow the
   **read-failure contract** in `${CLAUDE_PLUGIN_ROOT}/references/context-management.md`:
-  **Diff** is an *evidence* input (hard stop — return the gap naming the path; never re-derive
-  the diff yourself), **Plan**, `applicable_ard`, and `applicable_spec` are *context* inputs
-  (degrade to absent, and say so in the Summary).
+  **Diff** is an *evidence* input (hard stop — return a `BLOCK` verdict whose single BLOCKER
+  finding names the unreadable path and whose Summary states the review could not be
+  performed; never re-derive the diff yourself), **Plan**, `applicable_ard`, and
+  `applicable_spec` are *context* inputs (degrade to absent, and say so in the Summary).
 - **Project root** - absolute path so files can be opened.
 
 Refuse to review without a diff - ask the caller to produce one.

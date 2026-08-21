@@ -142,6 +142,8 @@ Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `specs
    )
    ```
 
+3a. **Handle an `upgrade-executor` stop.** If the executor returns `status: BLOCKED`, the upgrade plan at `plan_file` could not be read — an orchestrator bug, not a user choice: report the unreadable path to the user, mark this component `BLOCKED` in the Step 7 results table, and stop working this component (do not retry with a fresh planning pass). This applies regardless of classification — skip steps 4–6 for this component and continue the per-component loop with the next one.
+
 4. **Review gate for SIGNIFICANT / HIGH-RISK** — If the executor returns `status: AWAITING_REVIEW`, run the Opus code-review gate before any test verification:
    - Capture the diff to a temp file: write `git add -N . && git diff` to `mktemp -t dw-upgrade-diff-XXXX.patch` (never inside a repo tree) and record its path as `review_diff_file`
    - Invoke `code-review` using the approved risk plan, the executor output, and the diff (from `review_diff_file`) (frontmatter-pinned to Opus; recorded as `review_model` above, no `model:` override needed)

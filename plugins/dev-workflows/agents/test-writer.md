@@ -17,8 +17,10 @@ The caller passes a structured brief:
 - **Diff** — `git add -N . && git diff` output so new files are included. MANDATORY. Both **Plan** and **Diff** may be given inline or as an absolute file path — `Read` the file first when given a path
   On a read failure, follow the **read-failure contract** in
   `${CLAUDE_PLUGIN_ROOT}/references/context-management.md` — **Diff** is *evidence*: hard stop, return
-  the "not detected"-style truncated shape with `Diff: unreadable at <path>` as the reason, and **never
-  re-derive the diff** with a tool of your own. **Plan** is *context*: degrade to absent.
+  the `Diff: unreadable at <path>` shape below (see Output) — a distinct marker from
+  `Framework: not detected`, so the caller does not route an unreadable evidence file into the
+  missing-framework prompt — and **never re-derive the diff** with a tool of your own. **Plan**
+  is *context*: degrade to absent.
 - **Project root** — absolute path so files can be opened
 - **Baseline** — the `## Test Baseline` block captured by `test-baseliner` in Pre-Phase 3.5 (identifies the detected framework + the command used + the set of pre-existing passing / failing tests). Used to confirm framework identity and to avoid shadowing pre-existing test names
 
@@ -100,6 +102,25 @@ If `Framework: not detected`, return this truncated shape and STOP:
 
 ### Reason
 No build/config file matched the detection set (`pom.xml`, `build.gradle(.kts)`, `package.json`, `pyproject.toml`, `setup.py`, `pytest.ini`, `Makefile` with `test` target). Caller: ask the user to specify a test command or skip tests for this run.
+```
+
+If the **Diff** input could not be read, return this shape — its FIRST LINE is the literal
+marker `Diff: unreadable at <path>`, distinct from `Framework: not detected` so the caller
+does not route it into the missing-framework prompt — and STOP:
+
+```markdown
+Diff: unreadable at <path>
+
+## Test Writer Report
+- **Framework**: n/a
+- **Command**: n/a
+- **Tests written**: 0
+
+### Reason
+The **Diff** evidence input could not be read at the path above — an orchestrator bug (the
+file it wrote is missing or unreadable), not a user choice. Caller: surface the path and stop;
+never prompt for a test command, never offer to skip tests, and never re-derive the diff with
+a tool of your own.
 ```
 
 ## Hard rules

@@ -38,8 +38,9 @@ silent. This matches `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3.4 (
 falls back to pre-existing behaviour, never becomes a new prerequisite) and
 `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` (no skip goes unattributed).
 
-Which tier an input belongs to is fixed by the consuming agent and stated in its `## Inputs`, never
-decided at runtime.
+Which tier an input belongs to is fixed by the consuming agent and stated **where that agent takes the
+input** — its `## Inputs` section, or the `## Process` step that receives the brief for an agent that has
+no `## Inputs` section (`vuln-fixer`, `upgrade-executor`) — never decided at runtime.
 
 Prefer the cheapest strategy that fits: checkpoint first; offload parallel steps only when they are
 genuinely independent; decompose only when a single unit still overflows. "Hand off by file" is

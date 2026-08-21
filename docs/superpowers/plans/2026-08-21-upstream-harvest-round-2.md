@@ -1197,6 +1197,20 @@ and must not be added to it.
 - [ ] **Step 3: Hand-edit mgd's own `plugins/dev-workflows/README.md`** — apply Task 2 Step 9's three
   agent-table row edits and Task 5 Step 3's mermaid node edit **by hand**, to mgd's copy. Never `cp` it.
 
+  **Added by Task 7's residue audit — the same file needs four more hand-edits**, found because
+  `README.md` is one of the five expected-to-differ files and so is invisible to Step 5's `diff -rq`.
+  This is the "identity files are where fixes die" class: without these, mgd ships a README that
+  describes the fixers as ungated and omits both new references.
+  - `review-fixer` row — receives **survivors only**, does not re-triage, and applies the patch gate.
+  - `doc-fixer` row — same, plus the reviewer-fed vs style-checker-fed distinction.
+  - `references/context-management.md` bullet — rewritten to name the read-failure contract and its
+    six stating agents (it previously read "mid-run context-window guidance cited by `/implement`").
+  - Two **new** reference-list bullets: `references/finding-triage.md` and
+    `references/instruction-file-maintenance.md`.
+
+  mgd's `agents/` and `references/` are copied wholesale in Step 2, so Task 7's `doc-reviewer` +
+  `epic-reviewer` "Recommended next step" edits port automatically. Do not hand-edit those.
+
 - [ ] **Step 4: Hand-edit mgd's repo-root `CLAUDE.md`** — apply Task 6 Step 3's index entry and Task 7
   Steps 1–2's map and invariants **by hand**. Never `cp` it; it carries mgd-specific paths.
 
@@ -1230,7 +1244,18 @@ cd /workspace/ihudak-copilot-plugins
 git switch main && git pull --ff-only && git switch -c iv-gu/upstream-harvest-round-2
 ```
 
-- [ ] **Step 2: Apply Tasks 1–6 to Copilot's paths, one file at a time.**
+- [ ] **Step 2: Apply Tasks 1–6 to Copilot's paths, one file at a time**, plus the two agent-file edits
+  Task 7's residue audit added: in `dev-workflows/agents/doc-reviewer.md` and
+  `dev-workflows/agents/epic-reviewer.md`, the `Recommended next step` line for PASS WITH
+  RECOMMENDATIONS now reads `"triage, then invoke doc-fixer for the surviving MAJOR findings; …"` —
+  it previously told the caller to invoke the fixer directly, contradicting the triage step this round
+  makes mandatory.
+
+  Also from Task 7's audit: `_shared/context-management.md`'s closing sentence of the read-failure
+  contract said the tier is "stated in its `## Inputs`" — **false for two of the six citing agents**.
+  `vuln-fixer` and `upgrade-executor` have no `## Inputs` section at all and state their tier in
+  `## Process`. The sentence now reads "stated **where that agent takes the input**". Port the
+  correction; do not re-introduce the `## Inputs` wording.
 
 Path mapping: `references/<f>.md` → `dev-workflows/skills/_shared/<f>.md`;
 `agents/<a>.md` → `dev-workflows/agents/<a>.md`; `commands/<c>.md` → `dev-workflows/skills/<c>/SKILL.md`.
@@ -1253,6 +1278,12 @@ Dialect, applied to every inserted line:
   canonical's "9" would import a wrong number into an edition that did not have one.
 - `_shared` reference list (near `:346`): add index bullets for `finding-triage.md` and
   `instruction-file-maintenance.md`.
+- **Added by Task 7's residue audit** — three more edits to the same file:
+  - `review-fixer` row — receives **survivors only**, does not re-triage, applies the patch gate.
+  - `doc-fixer` row — same, plus the reviewer-fed vs style-checker-fed distinction.
+  - the `_shared/context-management.md` bullet — rewrite it to name the read-failure contract and the
+    six agents that state it, replacing the "mid-run context-window guidance" one-liner. Use Copilot's
+    own command dialect (`implement:` / `vuln:` / `upgrade:`), not canonical's slash names.
 - The `implement:` mermaid node (`:153`) reads
   `RV["test-writer → strong-tier code-review → review-fixer (gate: tests never run before non-BLOCK)"]`
   — insert `→ triage (verify each finding)` before `review-fixer`, preserving the rest of that node's

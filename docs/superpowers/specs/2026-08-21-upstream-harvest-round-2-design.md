@@ -394,14 +394,84 @@ This round's subject matter is verification that lies, across a diff of fifteen 
 editions. A single whole-branch review over all of it is the same shape of failure it exists to
 prevent. Checkpoint after item 1 lands rather than reviewing all three items cold.
 
-## 10. Open questions
+## 10. Documentation surfaces
+
+Every surface below is part of the wave that changes the behaviour it describes, not a follow-up. A
+doc surface updated in a later commit is a surface the port review cannot see.
+
+### 10.1 Live surfaces that change
+
+| Surface | Editions | What changes |
+|---|---|---|
+| `<plugin>/README.md` — agent table | 3 | `code-review`, `doc-reviewer`, `epic-reviewer` dimension counts (§10.3); `review-fixer` / `doc-fixer` rows gain the survivor + patch-gate contract |
+| `<plugin>/README.md` — `/implement` mermaid | 3 | the review node gains the triage step (§10.2) |
+| `<plugin>/README.md` — `_shared` reference list | Copilot only | index bullet for `instruction-file-maintenance.md` |
+| `CLAUDE.md` — source-truth index, workflow map, key invariants | canonical + mgd | new reference indexed; the five commands that gain a triage phase; the read-failure and claims contracts as invariants |
+| `.github/copilot-instructions.md` | Copilot | same content **where a target exists** — this file is asymmetric with the other editions; skipping with a stated reason is correct, inventing a section is not |
+| `CHANGELOG.md` | 3 | one entry per edition; mgd's annotated "(ported from `ihudak-claude-plugins`)" |
+| `marketplace.json` + `plugin.json` | 3 each | version only (§8). The `description` blurb is a stable capability statement and this round is behavioural — it should **not** grow, and must never be appended to |
+
+### 10.2 Mermaid
+
+Live mermaid exists in exactly one file per edition: `<plugin>/README.md`, two diagrams each. Verified
+2026-08-21.
+
+**Diagram 2 — `/implement` workflow — changes.** Its review node currently collapses the gate into one
+step, which is the step this round splits:
+
+- canonical + mgd: `RV["Opus code-review → review-fixer (gate before tests)"]`
+- Copilot: `RV["test-writer → strong-tier code-review → review-fixer (gate: tests never run before non-BLOCK)"]`
+
+The two are **not byte-identical** and must not be made so — Copilot says "strong tier" where the
+Claude editions say "Opus", per that edition's model-tier vocabulary. Edit each in its own dialect;
+never `cp`.
+
+**Diagram 1 — the PM/PA/PE/Dev/QA pipeline overview — does NOT change.** It maps command-to-command
+relationships, and this round changes no command's inputs, outputs, or position in the pipeline. This
+is recorded as a decision so a later reader does not "helpfully" edit it into inconsistency.
+
+**Mermaid under `docs/superpowers/**` is out of scope.** Those blocks live in plan and design
+snapshots (**seven** files, canonical only — five under `plans/`, two under `specs/`) which convention
+keeps as authored. This count was written as "six" on first drafting and corrected by deriving it; the
+same discipline applies to every count a plan task carries.
+
+### 10.3 Pre-existing drift, in scope
+
+The README agent table already misstates two counts, independently of this round. Verified against the
+agent files 2026-08-21:
+
+| Row | README says | Actually today | After this round |
+|---|---|---|---|
+| `code-review` | 8 dimensions (all 3 editions) | **10** | 11 |
+| `epic-reviewer` | 9 dimensions (canonical + mgd); **no count** (Copilot) | **18** | 19 |
+| `doc-reviewer` | 17 dimensions (all 3 editions) | 17 ✓ | 18 |
+
+The `code-review` row missed the two conditional dimensions added by the July harvest (ARD conformance,
+spec/design conformance). The `epic-reviewer` row is stale by nine.
+
+These are fixed in this round because we are editing those exact rows anyway, and because shipping a
+round whose subject is "verify claims against the thing they describe" while leaving a false claim in
+the row we just edited would be self-refuting. This is a deliberate, bounded scope extension — three
+table rows — not licence to audit the whole README.
+
+**Copilot's `epic-reviewer` row carries no number at all.** The correct fix there is to leave it
+numberless or to add the *derived* count — never to copy canonical's, which is wrong. This asymmetry
+is the reason §8 forbids `cp` into that edition.
+
+### 10.4 Explicitly unchanged
+
+Repo-root `README.md` in all three editions describes commands only and mentions no reviewer, fixer, or
+dimension count (grep-verified 2026-08-21). No change expected; confirm rather than assume, since item
+4 adds a reference file and some root READMEs index those.
+
+## 11. Open questions
 
 None. All six design decisions were settled in the 2026-08-21 brainstorm: round scope (Tier 1 only),
 decomposition (one spec, three waves), the anti-anchoring mechanism (deferred file read), the claims
 source (existing agent testimony), the verification station (orchestrator triage), and item 4's home
 (new reference).
 
-## 11. Backlog recorded, not dropped
+## 12. Backlog recorded, not dropped
 
 `docs/superpowers/harvest/NEXT.md` is updated in Wave 3 to record what shipped and to carry items 5–7
 forward as named, unaddressed backlog:

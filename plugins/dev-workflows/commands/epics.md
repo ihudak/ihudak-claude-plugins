@@ -453,7 +453,7 @@ Act on the verdict (same shape as `/document` Jira mode Phase 7):
     > "Fix the review findings for this brief:
     >
     > Task description: [Epic drafting for <JIRA_KEY>]
-    > Reviewer or style-checker output: [paste full epic-reviewer output]
+    > Reviewer or style-checker output: [paste the triaged survivor list from the triage sub-step above — the surviving `epic-reviewer` findings only, never the dismissed ones]
     > Project root: [resolved project_root]
     > Severities to fix: BLOCKER and MAJOR"
 

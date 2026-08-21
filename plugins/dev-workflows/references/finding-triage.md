@@ -14,7 +14,7 @@ Wherever an **Opus reviewer's reasoned findings feed a fixer**:
 | `code-review` → `review-fixer` (`/implement`, `/vuln`, `/upgrade`) | yes |
 | `doc-reviewer` → `doc-fixer` (`/document`, Jira mode) | yes |
 | `epic-reviewer` → `doc-fixer` (`/epics`) | yes |
-| a style checker → `doc-fixer` (`/document` direct mode, `/release-notes`, and the style-fix cycle inside `/document` Jira mode) | **no** |
+| a style checker → `doc-fixer` (`/document` direct mode, and the style-fix cycles inside `/document` Jira mode and `/epics`) | **no** |
 
 The seam is **reasoned-claim producer vs deterministic producer**, not code vs docs. A reviewer finding
 is a claim about consequence and can be checked against the thing it names. A linter violation is not —
@@ -37,6 +37,28 @@ For each finding, **before any grouping or deduplication**:
    say nothing" disposition and none may be added.
 
 Only survivors are handed to the fixer.
+
+## When triage empties the survivor set
+
+Triage disposes of findings; it does not restate the verdict. Where every finding behind a non-`PASS`
+verdict is dismissed, the verdict is left standing on nothing — and because the **verdict**, not the
+survivor set, is what gates every downstream branch, the run would otherwise dispatch a fixer with no
+findings to apply, or escalate a `BLOCKER` triage has already refuted. The disposition, in order:
+
+1. **Never dispatch the fixer with an empty survivor list.** It has nothing to apply, and the Fix
+   Report a later re-review would falsify has nothing to be falsified against. Skip the dispatch.
+2. **Never run the unresolved-`BLOCKER` escalation on a refuted `BLOCKER`.** That escalation exists
+   for a `BLOCKER` that survived a fix cycle, not for one that never survived triage.
+3. **Surface it and let the user settle the verdict.** Report the verdict, the fact that nothing
+   survived, and every dismissal with its reason, then ask:
+   ```
+   choices: ["Proceed as if the verdict were PASS — the dismissals are recorded (Recommended)", "Re-review, supplying the dismissal reasons", "Keep the verdict and stop for a human decision", "Cancel"]
+   ```
+   **Never** promote a non-`PASS` verdict to `PASS` silently. The orchestrator's authority under this
+   reference is over *findings*; a verdict its own findings no longer support is the user's to settle.
+
+A partly emptied set is not this case: where at least one finding survived, the verdict stands and the
+command's normal branch runs on the survivors.
 
 ## The patch gate
 

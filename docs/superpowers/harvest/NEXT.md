@@ -201,7 +201,7 @@ act on, report, or accept a claim you have not verified against the thing it nam
 `docs/superpowers/specs/2026-08-21-upstream-harvest-round-2-design.md` and
 `docs/superpowers/plans/2026-08-21-upstream-harvest-round-2.md`.
 
-What shipped on the branch (canonical only so far):
+What shipped on the branch (all three editions — canonical authored, mgd ported, Copilot hand-adapted):
 - **Item 1 — the read-failure contract** (`references/context-management.md`, new `## The read-failure
   contract` section). Every input a caller may hand over "inline or as an absolute file path" resolves
   into one of two tiers, fixed by the consuming agent where it takes that input, never at runtime:
@@ -237,14 +237,17 @@ Also corrected en route (pre-existing drift, deliberately bounded — §10.3): t
 claimed `code-review` had 8 dimensions (it already had 10) and `epic-reviewer` 9 (it already had 18).
 
 **State as of this entry — read before assuming anything is done:**
-- Canonical branch `iv-gu/upstream-harvest-round-2`, commits `5e66c6c` (the plan) through this one.
-  **Not merged, not pushed.**
-- **Not ported.** mgd and Copilot have not been touched (plan Tasks 8–9). Copilot is hand-adapted only —
+- All 12 plan tasks are complete, and the final whole-branch review's fix wave (2 Critical, 2 Important,
+  7 Minor) is applied in all three editions.
+- **Ported.** All three editions are built on branch `iv-gu/upstream-harvest-round-2`: canonical
+  (authored), mgd (byte-identical to canonical outside the five identity files), Copilot (hand-adapted —
   never `cp`; and its `epic-reviewer` README row carries **no** dimension count, so do not import
-  canonical's.
-- **Not versioned.** The round *targets* dev-workflows **2.54.0** (canonical + mgd) / **2.24.0**
-  (Copilot), but at the time of writing `plugin.json` and `marketplace.json` still read **2.53.2** and no
-  `CHANGELOG.md` entry exists in any edition. Plan Task 10 owns the bump and the three changelog entries.
+  canonical's).
+- **Versioned.** dev-workflows **2.54.0** (canonical + mgd) / **2.24.0** (Copilot) — all six
+  `plugin.json` / `marketplace.json` files carry it, and every edition's `CHANGELOG.md` has the entry.
+- **Still on the branch: not merged, not pushed** in any of the three repos — each branch is ahead of
+  both its local `main` and `origin/main`. Merge + push is the remaining step; pushes are now
+  authorised (see Standing constraints).
 
 ## NEXT: harvest items 5–7 — named backlog, NOT rejected
 These three were surveyed on 2026-08-21 and **deliberately left out of round 2**, for one reason only:
@@ -277,7 +280,8 @@ presets, SDD ledger / 5-round fix-breaker, generic lens engine, git-push-blockin
 "never recommend an answer", batch-grill-me denser rounds. (See INDEX.md "Deliberately NOT adopting".)
 
 ## Standing constraints (still apply for any new work)
-- PUSHES HELD for explicit user confirmation. Commit trailer names **the model that did the work**, not
+- Pushes are AUTHORISED (user, 2026-08-21) — merge to `main` and push in all three repos once the round
+  is finished, not incrementally. Commit trailer names **the model that did the work**, not
   whatever a previous round used: `Co-Authored-By: Claude <model> (1M context) <noreply@anthropic.com>`.
   Waves through 2.41.0 used `Claude Opus 4.8 (1M context)`; harvest round 2 used
   `Claude Opus 5 (1M context)`.

@@ -950,7 +950,7 @@ Act on the verdict:
     > "Fix the review findings for this brief:
     >
     > Task description: [doc writing for <JIRA_KEY>]
-    > Reviewer or style-checker output: [paste full doc-reviewer output]
+    > Reviewer or style-checker output: [paste the triaged survivor list from the triage sub-step above — the surviving `doc-reviewer` findings only, never the dismissed ones]
     > Project root: [the resolved docs_repo_path (Phase 0)]
     > Severities to fix: BLOCKER and MAJOR"
 

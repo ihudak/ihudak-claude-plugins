@@ -844,7 +844,7 @@ Enumerate the 36 top-level references plus `cost-prices.yaml` plus `model-routin
 - `fix-vuln/` (2) — CVE-remediation guidance.
 ```
 
-State the arithmetic on the page so a reader can check it: 36 + 1 + 1 + 56 = 94 named or counted, against 98 files, with the four remaining being the non-markdown files inside the counted subtrees.
+State the arithmetic on the page so a reader can check it: 36 top-level markdown + `cost-prices.yaml` + `model-routing/classification.md` enumerated by name, plus 56 markdown pages counted across the six groups. Say explicitly that the group figures are **markdown-page counts**, and that four further files — `api-guidelines/template/openapi-template.yaml`, `dynatrace-docs/docs-profile.default.yml`, `dynatrace-docs/managed-owners.txt`, `guidelines/check_guidelines.py` — sit inside those groups and are deliberately not listed, being vendored data and templates rather than reference documents a reader would open.
 
 - [ ] **Step 5: Verify both inventories, both directions**
 

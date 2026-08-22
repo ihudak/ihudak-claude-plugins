@@ -29,9 +29,10 @@ The caller passes a structured brief:
   Both **Plan** and **Diff** may be given inline or as an absolute file
   path — `Read` the file first when given a path. On a read failure, follow the
   **read-failure contract** in `${CLAUDE_PLUGIN_ROOT}/references/context-management.md`:
-  **Diff** is an *evidence* input (hard stop — return a `BLOCK` verdict whose single BLOCKER
-  finding names the unreadable path and whose Summary states the review could not be
-  performed; never re-derive the diff yourself), **Plan**, `applicable_ard`, and
+  **Diff** is an *evidence* input (hard stop — return the `Diff: unreadable at <path>` shape in
+  `## Output` below: a `BLOCK` verdict whose single BLOCKER finding names the unreadable path and
+  whose Summary states the review could not be performed; never re-derive the diff yourself),
+  **Plan**, `applicable_ard`, and
   `applicable_spec` are *context* inputs (degrade to absent, and say so in the Summary).
 - **Project root** - absolute path so files can be opened.
 
@@ -220,6 +221,29 @@ Return this exact shape (no chatter, no preamble):
 - If BLOCK: [the specific thing that must be fixed before tests run]
 - If PASS WITH RECOMMENDATIONS: "triage, then invoke review-fixer for the surviving MAJOR findings in the same commit; then run tests; MINOR / NIT can be deferred."
 - If PASS: "run tests."
+```
+
+If the **Diff** input could not be read, return this shape instead — its FIRST LINE is the literal
+marker `Diff: unreadable at <path>`, so the caller can tell an orchestrator-side capture failure from
+a substantive `BLOCK` without parsing findings — and STOP:
+
+```markdown
+Diff: unreadable at <path>
+
+## Opus code review
+
+### Verdict
+BLOCK
+
+### Summary
+The review could not be performed: the **Diff** evidence input could not be read at the path above.
+No dimension was assessed.
+
+### Findings
+- [BLOCKER] `<path>` - the diff handed to this review could not be read.
+  Suggestion: the caller re-captures the diff to a readable path and re-invokes the review. This is an
+  orchestrator-side failure; do NOT triage this finding or hand it to `review-fixer`, which cannot act
+  on it.
 ```
 
 ## Hard rules

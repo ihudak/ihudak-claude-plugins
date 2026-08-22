@@ -93,3 +93,4 @@ Return this exact shape (no preamble):
 - NEVER change an image reference's kind (local vs. CDN URL) unless the finding explicitly says so.
 - NEVER return without the `Stop condition flag` line — the caller reads it to decide whether re-running the review is worth doing.
 - If `Stop condition flag` is `NEEDS HUMAN`, the caller must surface the deferred BLOCKERs to the user and stop the automated cycle.
+- The flag can only be `NEEDS HUMAN` where a `BLOCKER` can reach you, which depends on the source: `doc-reviewer` and `epic-reviewer` both emit `BLOCK` on at least one BLOCKER, and `docs-style-checker` maps a linter's own blocking failure to `BLOCKER`. `dt-style-checker` caps at `MAJOR` and never emits a BLOCKER, so a dispatch fed only by it always returns `CLEAR` — a caller on that path (`/epics`' style cycle) needs no stop handling, and adding some would guard a state nothing reaches.

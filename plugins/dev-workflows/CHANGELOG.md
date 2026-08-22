@@ -4,6 +4,36 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.56.1] — 2026-08-22
+
+### Fixed
+- **`doc-fixer`'s `NEEDS HUMAN` stop had no consumer anywhere.** The agent has emitted
+  `Stop condition flag: [CLEAR | NEEDS HUMAN]` since 1.1.0, and its own hard rules say the caller "reads
+  it to decide whether re-running the review is worth doing" and "must surface the deferred BLOCKERs to
+  the user and stop the automated cycle". No caller read it: `/document` (both modes) and `/epics` went
+  straight from `doc-fixer` to re-invoking the reviewer or the linter. Three unconsumed sites are now
+  closed — `/document` Phase 7 (`doc-reviewer`-fed), `/document` Phase 6.4 and direct-mode Phase 3.5
+  (`docs-style-checker`-fed, which maps a linter's own blocking failure to `BLOCKER`). The style-cycle
+  handlers record the `style_check` row from the user's answer per `references/gate-ledger.md`. The
+  `/epics` style cycle deliberately gets no handler: `dt-style-checker` caps at `MAJOR`, so `NEEDS HUMAN`
+  cannot fire there and a guard would protect a state nothing reaches — `doc-fixer.md` now records that
+  reachability map so the absence is not read as an oversight. 2.54.0 fixed exactly this class for
+  `review-fixer` across its three callers, but scoped the sweep to `review-fixer` and never asked whether
+  the plugin's other fixer emitted the same flag. It did.
+- **A `code-review` `BLOCK` caused by an unreadable diff was indistinguishable from a substantive one.**
+  2.54.0's read-failure contract had `code-review` return `BLOCK` when the **Diff** evidence input could
+  not be read, but gave the verdict no marker — so `/implement`, `/vuln`, and `/upgrade` routed it through
+  the ordinary BLOCK branch, triaged a finding that names a capture failure, and handed `review-fixer` a
+  finding no fixer can act on, reaching the correct outcome only after spending a fix dispatch and a
+  re-review. `code-review` now returns the literal first-line marker `Diff: unreadable at <path>`,
+  mirroring `test-writer`'s, and all three commands check that line before acting on the verdict. The
+  plugin already treated the three sibling cases this way in these words — an orchestrator bug, not a
+  user choice — for `test_diff_file`, `research_file`, and `plan_file`; `review_diff_file` was the
+  fourth and was the only one left out.
+- **`/design`'s `model_routing` block under-reported its own detection chain.** The `detection_model`
+  comment read `# code-scanner` while three agents route on that chain — `code-scanner`,
+  `interface-designer` (2.56.0), and `impl-maintenance`. Now names all three.
+
 ## [2.56.0] — 2026-08-22
 
 ### Added

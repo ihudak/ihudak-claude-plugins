@@ -1026,8 +1026,12 @@ Derive from `references/session-hygiene.md`: the prepare-checkpoint that runs fi
 
 Run:
 ```bash
-diff <(sed -n '211,230p' plugins/dev-workflows/references/cost-emission.md) \
-     <(sed -n '/^## 2026-07-09T14:22:33Z/,/^```$/p' plugins/dev-workflows/docs/reference/session-cost.md | head -20)
+# Compare the sample's SUBSTANTIVE lines. Source line 211 is the reference's own outer
+# ````markdown fence and 230 is its closer; the page reproduces the entry, not the fence
+# the reference wrapped it in. Anchoring the source at 211 makes this check unable to pass
+# for any correct copy — it reports a 2-line delta that is always the two fence markers.
+diff <(sed -n '212,229p' plugins/dev-workflows/references/cost-emission.md) \
+     <(sed -n '/^## 2026-07-09T14:22:33Z/,/^```$/p' plugins/dev-workflows/docs/reference/session-cost.md | head -18)
 ```
 Expected: empty. A non-empty diff means the sample was retyped rather than copied, which is how a "worked example" starts documenting a format that does not exist.
 

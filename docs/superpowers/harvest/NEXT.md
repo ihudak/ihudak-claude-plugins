@@ -264,7 +264,7 @@ claimed `code-review` had 8 dimensions (it already had 10) and `epic-reviewer` 9
   against an imagined file reports on the imagined file.** Derive every expected value from the tree in
   front of you, and when a check disagrees with the tree, suspect the check first.
 
-## Harvest round 3a — items 5 + 7 — IN PROGRESS (2026-08-22)
+## Harvest round 3a — items 5 + 7 — ON BRANCH, canonical only (2026-08-22)
 Items 5 and 7 taken as one small bounded round; item 6 (design-it-twice) deliberately left for its own
 architectural cycle, because it adds a parallel sub-agent fan-out to `/design` with its own gate, cost
 story, and `design-reviewer` implications — bundling it with two additive hardening items would either

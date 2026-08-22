@@ -264,7 +264,9 @@ claimed `code-review` had 8 dimensions (it already had 10) and `epic-reviewer` 9
   against an imagined file reports on the imagined file.** Derive every expected value from the tree in
   front of you, and when a check disagrees with the tree, suspect the check first.
 
-## Harvest round 3a — items 5 + 7 — ON BRANCH, canonical only (2026-08-22)
+## Harvest round 3a — items 5 + 7 — SHIPPED, all three editions, merged (2026-08-22)
+> Label corrected 2026-08-22: this round was written while it was still on a branch and canonical-only.
+> It merged (`98b58e7`) and was ported — canonical/mgd `2.55.0`, Copilot `2.25.0`.
 Items 5 and 7 taken as one small bounded round; item 6 (design-it-twice) deliberately left for its own
 architectural cycle, because it adds a parallel sub-agent fan-out to `/design` with its own gate, cost
 story, and `design-reviewer` implications — bundling it with two additive hardening items would either
@@ -288,10 +290,17 @@ absence of a reviewer on the light paths is a deliberate design choice, and a wo
 own reviewer silently overrides that choice while producing a verdict nobody consumes. True on every
 path.
 
-## NEXT: harvest item 6 — named backlog, NOT rejected
-> **Items 5 and 7a are no longer backlog** — they are being implemented in round 3a above, and item 7b
-> is dropped there with its reason. The three entries below are kept as originally written so the
-> survey record stays intact; read them as history for 5 and 7, and as live backlog for **item 6 only**.
+## Harvest round 3b — item 6 — SHIPPED, all three editions, on branch pending merge (2026-08-22)
+`iv-gu/design-it-twice` — canonical/mgd `2.56.0`, Copilot `2.26.0`. The `interface-designer` agent, the
+three-take Phase 5 fan-out in `/design` with `--design-twice` forcing it, `design-format.md`'s
+unconditional `### Alternatives considered` and its four dependency categories, and `design-reviewer`'s
+two new checks. Plan: `docs/superpowers/plans/2026-08-22-design-it-twice.md`; spec:
+`docs/superpowers/specs/2026-08-22-design-it-twice-design.md`.
+
+## The 2026-08-21 survey — all three items now closed
+> **Nothing in this section is live backlog any more.** Items 5 and 7a shipped in round 3a above; item 7b
+> is dropped there with its reason; item 6 shipped in round 3b above. The three entries below are kept
+> as originally written so the survey record stays intact — read them as history, not as work to pick up.
 These three were surveyed on 2026-08-21 and **deliberately left out of round 2**, for one reason only:
 round 2 was scoped to a single discipline — verify what you assert — and these three are a different
 kind of change. They were **not** considered and rejected, they are **not** covered by anything round 2
@@ -303,7 +312,8 @@ absence as a verdict. Source: round-2 design §1.1 and §12.
   show its output".
 - **Item 6 — "design it twice" for `/design`.** Three parallel sub-agents under different interface
   constraints, compared on depth / locality / seam placement; plus `DEEPENING.md`'s four dependency
-  categories for `design-format.md`'s `## Seams`.
+  categories for `design-format.md`'s `## Seams`. **SHIPPED in round 3b** (canonical/mgd `2.56.0`,
+  Copilot `2.26.0`).
 - **Item 7 — subagent-dispatch bounds** for the three agents that hold `Task` (`docs-style-checker`,
   `upgrade-executor`, `vuln-fixer`), and the Claude-only half: reviewers must return findings as text,
   never through a host findings-reporting tool.

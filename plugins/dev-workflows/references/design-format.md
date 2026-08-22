@@ -1,7 +1,7 @@
 # Design format (embedded authority)
 
 The canonical structure and per-section rules for an engineering `design.md`. `/design` authors
-against this file; `design-reviewer` reviews against it, and `/ready` reads its `- **Repos**:` header. **Net-new — authored for the dev-workflows
+against this file; `design-reviewer` reviews against it, `interface-designer` reads its `## Seams` dependency categories, and `/ready` reads its `- **Repos**:` header. **Net-new — authored for the dev-workflows
 plugin, no import source** (unlike `specification-format.md`, which is a snapshot from
 `mgd-specifications`).
 
@@ -55,6 +55,13 @@ present for `MODERATE`+ or whenever the change touches that concern, else a one-
    a diagram or bullet decomposition. Name real modules/files where the code scan revealed them.
    Favor **deep modules** (small interface, substantial implementation — see `## Seams` for the
    depth / deletion-test / two-adapters vocabulary).
+   **Record at least one rejected alternative, and why** — as a short `### Alternatives considered`
+   block inside this section. This is **unconditional**: it applies to every design, whether or not the
+   Phase 5 interface fan-out ran. `risk-planner` already demands the same of plans ("Name at least one
+   alternative that was rejected and the reason"); a design is the weaker artifact if it does not. When
+   the fan-out ran, the losing takes fill this with real trade-offs and are named as such (take,
+   constraint, why it lost); otherwise the author names alternatives by hand. An "alternative" that was
+   never plausible ("we considered not having an interface") is theatre — see `design-reviewer`.
 4. **## Interfaces / contracts** (core) — exact signatures, API shapes, schemas, events, config keys
    the change introduces or alters. Concrete types, not prose promises.
 5. **## Seams** (scaled) — where the change is exercised under test; prefer the **highest** seam that
@@ -64,11 +71,37 @@ present for `MODERATE`+ or whenever the change touches that concern, else a one-
    relocate it? if only relocate, it may not earn its keep); the **two-adapters heuristic** (one
    hypothetical consumer = a *speculative* seam — do not introduce it yet; introduce a seam when a
    second real consumer exists — YAGNI for seams).
+   **Classify each seam's dependency category** — it decides how the seam can be tested, and
+   `## Test strategy` keys off it:
+   - **in-process** — pure computation, in-memory state, no I/O. Test through the interface directly;
+     no adapter needed.
+   - **local-substitutable** — a real local stand-in exists (PGLite for Postgres, an in-memory
+     filesystem). Test with the stand-in; the seam is internal, so no port at the external interface.
+   - **remote-but-owned** — your own service across a network boundary. Define a **port** at the seam;
+     an in-memory adapter for tests, HTTP/gRPC for production.
+   - **true-external** — a third party you do not control. Injected port; tests supply a mock adapter.
+
+   A category implying only one adapter is a hypothetical seam — the two-adapters heuristic above
+   already says not to introduce it yet.
+
+   **When an interface is *contested*** — any one of these — `/design` Phase 5 offers the three-take
+   interface fan-out; `--design-twice` forces the fan-out itself, with no offer:
+   - two or more adapters are plausible for the same seam;
+   - the interface spans a process or network boundary, so its shape decides what can be tested locally;
+   - three or more callers share the shape;
+   - two or more candidate shapes for the same interface are already recorded in `_design-session.md` and
+     none has been eliminated (count the recorded candidates — do not judge whether an argument between
+     them is "discriminating"; that is the unobservable form this list exists to avoid). `/design`
+     Phase 5 records each live candidate as it arises, not only the settled outcome — that is what makes
+     this signal countable.
 6. **## Data flow** (scaled) — how data moves through the changed path; state transitions; persistence.
 7. **## Error handling & edge cases** (scaled) — failure modes, boundaries, and the defined behaviour
    for each.
 8. **## Test strategy** (core) — what is tested and how (unit / integration / e2e), keyed to the seams;
    cite existing test prior art in the scanned repos.
+   Key each seam's approach to the **dependency category** recorded for it in `## Seams` — a
+   remote-but-owned seam tested without a port, or a true-external dependency tested without a mock
+   adapter, is a mismatch `design-reviewer` flags.
 9. **## Risks & mitigations** (scaled) — engineering risks (performance, concurrency, data-loss, blast
    radius) and the mitigation or explicit acceptance for each.
 10. **## Migration / rollout / backward-compatibility** (scaled) — schema/data migration, feature

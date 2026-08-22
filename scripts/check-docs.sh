@@ -65,7 +65,9 @@ check_links_and_anchors() {
     done < <(grep -oE '\]\([^)#][^)]*\)|\]\(#[^)]*\)' "$f" \
              | sed -E 's/^\]\(//; s/\)$//' \
              | grep -vE '^(https?|mailto):')
-  done < <(find "$root/$PLUGIN_REL/docs" -name '*.md' 2>/dev/null)
+  done < <({ find "$root/$PLUGIN_REL/docs" -name '*.md' 2>/dev/null
+             [ -f "$root/$PLUGIN_REL/README.md" ] && printf '%s\n' "$root/$PLUGIN_REL/README.md"
+             [ -f "$root/README.md" ] && printf '%s\n' "$root/README.md"; })
 }
 
 # ------------------------------------------------------------------- check 3
@@ -150,6 +152,14 @@ check_inventory() {
   while IFS= read -r n; do
     [ -f "$p/hooks/$n.sh" ] || fail 4 "reference/hooks.md names '$n', which is not a hook"
   done < <(grep -oE '^\| `[a-z-]+`' "$d/reference/hooks.md" 2>/dev/null | tr -d '|` ')
+
+  # skills <-> docs/reference/references.md
+  while IFS= read -r n; do
+    grep -q "\`$n\`" "$d/reference/references.md" 2>/dev/null || fail 4 "skill '$n' is absent from reference/references.md"
+  done < <(ls -d "$p/skills"/*/ 2>/dev/null | sed 's|/*$||; s|.*/||')
+  while IFS= read -r n; do
+    [ -d "$p/skills/$n" ] || fail 4 "reference/references.md names skill '$n', which is not a skill"
+  done < <(grep -oE '^\| `[a-z-]+`' "$d/reference/references.md" 2>/dev/null | tr -d '|` ')
 }
 
 # ------------------------------------------------------------------- check 5
@@ -257,10 +267,12 @@ selftest() {
 
   expect_pass "the unmutated fixture passes every check"
   expect_fail "a broken relative link is rejected"  1 "sed -i.bak 's|(reference/hooks.md)|(reference/nope.md)|' plugins/dev-workflows/docs/README.md"
+  expect_fail "a broken link in the plugin README is rejected" 1 "sed -i.bak 's|(docs/README.md)|(docs/NOPE.md)|' plugins/dev-workflows/README.md"
   expect_fail "a broken anchor is rejected"         2 "sed -i.bak 's|(getting-started.md#install)|(getting-started.md#no-such-heading)|' plugins/dev-workflows/docs/README.md"
   expect_fail "an orphan page is rejected"          3 "printf '# Orphan\n\nUnreachable.\n' > plugins/dev-workflows/docs/orphan.md"
   expect_fail "an undocumented command is rejected" 4 "printf -- '---\nname: delta\n---\n' > plugins/dev-workflows/commands/delta.md"
   expect_fail "a drifted subtree count is rejected" 4 "sed -i.bak 's|\`handoff/\` (2)|\`handoff/\` (3)|' plugins/dev-workflows/docs/reference/references.md"
+  expect_fail "an undocumented skill is rejected"    4 "mkdir -p plugins/dev-workflows/skills/epsilon && printf -- '---\nname: epsilon\n---\n' > plugins/dev-workflows/skills/epsilon/SKILL.md"
   expect_fail "an undocumented env var is rejected" 5 "printf 'Reads \$NEW_SETTABLE_VAR here.\n' >> plugins/dev-workflows/commands/alpha.md"
   expect_fail "an over-long table cell is rejected" 6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"x\"; printf \"\\n| a | %s |\\n|---|---|\\n| b | c |\\n\", s}' >> plugins/dev-workflows/docs/reference/hooks.md"
   expect_fail "a drifted install block is rejected" 7 "sed -i.bak 's|claude plugin install dev-workflows@fixture-plugins|claude plugin install dev-workflows@drifted|' plugins/dev-workflows/docs/getting-started.md"

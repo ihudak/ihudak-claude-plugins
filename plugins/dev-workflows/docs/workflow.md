@@ -59,7 +59,7 @@ See [Roles and phases](roles-and-phases.md) for what each role owns, consumes, a
 
 - **`$SPECS_PATH/specifications/<KEY>-<slug>/`** — the shared, team-visible home for the VI, the ARD, `specification.md`, and `design.md`. Each authoring command lands its file here, then hands it onto the specs repo's default branch for the next command to find.
 - **`$VAULT_PATH`** — the personal store: `idea.md` before a Jira key exists, the imported `jira-products/<KEY>/` tree, `jira-drafts/<VI-KEY>/` Epic drafts, and release-notes drafts.
-- **`$REPOS_PATH`** — the mounted code clones. `/implement` (and, outside the VI pipeline, `/vuln` and `/upgrade`) work here on branches and pull requests. Product documentation itself is written into the external docs repo, not here.
+- **`$REPOS_PATH`** — the mounted code clones. `/implement` and, outside the VI pipeline, `/upgrade` work here on a feature branch but leave changes uncommitted; `/vuln`, also outside the VI pipeline, is the one that commits and opens a pull request, per fixed CVE. Product documentation itself is written into the external docs repo, not here.
 - **Plugin bookkeeping** — feedback, cost, and follow-up files — lives under `<VI-dir>/dev-workflows/` inside `$SPECS_PATH`, committed and pushed alongside the specs artifacts it describes.
 
 ## Sources of truth

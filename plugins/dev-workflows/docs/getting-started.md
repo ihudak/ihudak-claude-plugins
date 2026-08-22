@@ -19,7 +19,7 @@ claude plugin install obsidian-llm-wiki@ihudak-plugins
 claude plugin install acli@ihudak-plugins
 ```
 
-`dev-workflows` is the pipeline this documentation covers. `dt-style-guide` is the primary style checker for `/epics`, and a fallback prose linter for `/document` when the target docs repo has none configured. `obsidian-llm-wiki` compiles your vault into a persistent, cross-referenced wiki with task management. `acli` is a reference skill for the Atlassian CLI, covering Jira and Confluence operations from the command line. None of the four imports Jira tickets into your vault — that is a separate, external tool, `jira-workitem-import`, which populates `$VAULT_PATH/jira-products/<KEY>/` in the structure every Jira-driven command expects; install it too before you run `/specify`, `/document`, or any other Jira-driven command (the inline-prompt `/idea` walked below needs none of this).
+`dev-workflows` is the pipeline this documentation covers. `dt-style-guide` is the primary style checker for `/epics`, and a fallback prose linter for `/document` when the target docs repo has none configured. `obsidian-llm-wiki` compiles your vault into a persistent, cross-referenced wiki with task management. `acli` is a reference skill for the Atlassian CLI, covering Jira and Confluence operations from the command line. None of the four imports Jira tickets into your vault — that is a separate, external tool, [`jira-workitem-import`](https://github.com/ivan-gudak/jira-workitem-import), which populates `$VAULT_PATH/jira-products/<KEY>/` in the structure every Jira-driven command expects; install it too before you run `/specify`, `/document`, or any other Jira-driven command (the inline-prompt `/idea` walked below needs none of this).
 
 ## Update
 
@@ -69,7 +69,7 @@ Claude Code ships its own built-in `/statusline` command, so typing the bare for
 
 ## Your first run
 
-`/idea` is the pipeline's entry point, and the only command that needs no Jira key — so it is the honest place to try the plugin for the first time. Point it at whatever you already have in mind: an inline prompt, a markdown file, a community post, or an existing VI you want to extend.
+`/idea` is the pipeline's entry point, and it needs no Jira key — which makes it the honest place to try the plugin for the first time. Point it at whatever you already have in mind: an inline prompt, a markdown file, a community post, or an existing VI you want to extend.
 
 ```
 /idea a lightweight way for on-call engineers to silence a noisy alert for one hour without editing the alerting rule

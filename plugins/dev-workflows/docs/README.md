@@ -48,6 +48,7 @@ Three pages orient you before you touch a command: [Getting started](getting-sta
 
 - [Agents](reference/agents.md) — the subagent inventory: what each helper agent does and which command calls it.
 - [References](reference/references.md) — the reference-doc inventory under `references/`, grouped by subtree.
+- [Skills](reference/references.md#skills) — the two bundled skills: what each is for, and which is user-invocable.
 - [Environment](reference/environment.md) — every environment variable the plugin reads, and what it configures.
 - [Hooks](reference/hooks.md) — the bundled hooks and what each one does.
 - [Model routing](reference/model-routing.md) — the task-complexity classification and model fallback chain commands apply before acting.

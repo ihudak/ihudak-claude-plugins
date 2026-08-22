@@ -22,11 +22,11 @@ Every phase ends the same way: a producing command lands its deliverable on the 
 
 ## PA — product architecture
 
-- **Owns:** architecture decisions for a VI, or for one Epic inside it — the only optional role in the pipeline.
+- **Owns:** architecture decisions for a VI, or for one Epic inside it — an optional role in the pipeline.
 - **Runs:** `/create-ard`.
 - **Consumes:** the VI (and the Epic, when scoped), grounded on the mounted implementation repos it discovers under `$REPOS_PATH` — architect-driven discovery, never a pull-request read.
 - **Produces:** `<VI>_ARD.md`, or `<EPIC>-<area>_ARD.md` for a big Epic split by area, written into the same specs feature folder as the VI.
-- **Hands over at the seam:** the VI must be found on the specs repo's default branch before `/create-ard` starts (its absence falls back to reading the Jira export directly, reported rather than silent); `/create-ard` then lands the ARD the same way, and `/epics`, `/specify`, `/design`, `/implement`, and `/ready` each consult it once it's there.
+- **Hands over at the seam:** `/create-ard` gates on the VI — an absent VI falls back to reading the Jira export directly instead of stopping (reported, not silent), and the hard stop is an unmerged VI, never a missing one; `/create-ard` then lands the ARD the same way, and `/epics`, `/specify`, `/design`, `/implement`, and `/ready` each consult it once it's there.
 - **Cost phase:** `architecture`, role `pa`.
 
 ## PE — product engineering
@@ -70,7 +70,7 @@ Emitted by `/update-vi`, role `pm`. Being in this phase means an existing VI is 
 
 ### architecture
 
-Emitted by `/create-ard`, role `pa`. Being in this phase means architecture decisions are being recorded for a VI or one of its Epics — the plugin's one optional phase.
+Emitted by `/create-ard`, role `pa`. Being in this phase means architecture decisions are being recorded for a VI or one of its Epics — an optional phase.
 
 ### specification
 

@@ -69,7 +69,7 @@ not required.
 - `/dev-workflows:epics <VI>` → `/dev-workflows:specify <VI> <Epic>` (per Epic); optional PA → `/dev-workflows:create-ard <VI> <Epic>`.
 - `/dev-workflows:specify <VI> <Epic>` (Epic-level spec) → Dev → `/dev-workflows:design <VI> <Epic>`.
 
-**Dev — build**
+**Dev — build, verify & deliver**
 
 - `/dev-workflows:design <VI> <Epic>` → optionally `/dev-workflows:ready <VI> <Epic>` (verify readiness) →
   `/dev-workflows:implement <VI> <Epic>`.

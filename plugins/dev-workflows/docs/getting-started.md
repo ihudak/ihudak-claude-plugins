@@ -31,7 +31,7 @@ Run this whenever you want the latest command, agent, hook, and reference conten
 
 ## What you set on your machine
 
-`dev-workflows` reads six environment variables. Two are required for the pipeline to have anywhere to write (`VAULT_PATH`, `SPECS_PATH`); the rest are read where relevant and degrade gracefully — a missing optional one is a silent skip, never a failure. Export the ones you use in your shell profile. For defaults, resolution order, and the exact directory layout each one expects, see [Environment](reference/environment.md); this section explains what each variable *is*.
+`dev-workflows` reads six environment variables. Two are required for the pipeline to have anywhere to write (`VAULT_PATH`, `SPECS_PATH`); the rest are read where relevant and degrade gracefully — a missing optional one degrades rather than fails — though only `$DOCS_PATH` and `$DEV_WORKFLOWS_COST_PRICES` degrade *silently*; an unset `$GIT_USER_INITIALS` walks its fallback ladder and, if that comes up empty, the command asks you before creating a branch. Export the ones you use in your shell profile. For defaults, resolution order, and the exact directory layout each one expects, see [Environment](reference/environment.md); this section explains what each variable *is*.
 
 ### `VAULT_PATH`
 
@@ -55,7 +55,7 @@ Your branch identifier. Branch naming is **repo-rule-first**: every branch-creat
 
 ### `DEV_WORKFLOWS_COST_PRICES`
 
-An optional path to your own price table, overriding the bundled `references/cost-prices.yaml` that session-cost reporting prices tokens against. It is the one variable of the six you may reasonably never set — the bundled defaults are used until you do.
+An optional path to your own price table, overriding the bundled `references/cost-prices.yaml` that session-cost reporting prices tokens against. It is the variable of the six you are least likely ever to set — the bundled defaults are used until you do.
 
 ## Install the status line
 

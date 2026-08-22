@@ -1,5 +1,14 @@
 # dev-workflows docs restructure — defects found during verification
 
+> **Superseded 2026-08-22 (same day, commit `583c134`).** D3 and D6 were both resolved after this
+> record was written: the role vocabulary was collapsed from five roles to four, `team` folded into
+> `dev`, and `QA` retired outright. Everything below describes the state **as found during the audit**,
+> not the state of the tree — in particular, `references/cost-emission.md` §7 no longer uses five roles,
+> `docs/workflow.md` no longer has a `QA` subgraph (`/ready` sits inside `DEV`), and neither D3 nor D6
+> is still "left for Ivan". See `2026-08-22-docs-restructure-open-items.md` §D for the ruling and its
+> two grounds. This banner exists because the record was written before the final fix wave rather than
+> after it — the staleness mode `CLAUDE.md` names explicitly.
+
 **Context:** `plugins/dev-workflows/docs/` restructure (34 pages) and README rewrite (379 lines to 46), branch `iv-gu/docs-restructure`. This file records every defect the restructure's verification surfaced, whether the restructure fixed it, and — for the two still open — what a human needs to decide.
 
 ---

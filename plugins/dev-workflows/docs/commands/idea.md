@@ -34,7 +34,7 @@ flowchart TD
     p5 --> p6["Phase 6 — Session maintenance, feedback & cost"]
 ```
 
-Three subagents are dispatched along this path: `idea-reader` (Phase 2, ingests the source), `code-scanner` (Phase 2.6, one instance per confirmed repo, only when `--ground-code` is given), and `impl-maintenance` (Phase 6, session lessons-learned). All three run at the caller's `detection_model` — the §2.1 Sonnet chain — never on a fixed pin; the interactive grill and the authoring itself run inline on the session's own `current_model` rather than through a delegated subagent.
+Four subagents are dispatched along this path: `idea-reader` (Phase 2, ingests the source), `docs-grounder` (Phase 2.5, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `code-scanner` (Phase 2.6, one instance per confirmed repo, only when `--ground-code` is given), and `impl-maintenance` (Phase 6, session lessons-learned). All three run at the caller's `detection_model` — the §2.1 Sonnet chain — never on a fixed pin; the interactive grill and the authoring itself run inline on the session's own `current_model` rather than through a delegated subagent.
 
 ## What it needs
 
@@ -43,7 +43,7 @@ Three subagents are dispatched along this path: `idea-reader` (Phase 2, ingests 
 - **`$DOCS_PATH`** (optional, default `/workspace/docs`) — documentation grounding. Missing, unreadable, or carrying no markdown file is a silent, non-blocking skip: `docs grounding: OFF`, never an error. Turned off explicitly with `--no-docs`.
 - **Vault prior art** (optional, on by default) — searches the vault for tracked initiatives this idea should be reconciled against. Turned off with `--no-prior-art`, or silently OFF when it cannot resolve (for example an invalid `$VAULT_PATH`); advisory only, never a gate.
 - **`--ground-code` repo(s)** (optional) — only runs when the flag is given. A named repo that is not mounted is neither invented nor silently dropped — it is escalated and, if declined, carried forward by name with its themes left unverified. With no flag at all, the run instead does one cheap detection pass and prints at most one advisory line naming a repo the idea mentions; it never scans.
-- **`$SPECS_PATH`** — not needed to start the run at all; it only matters from Phase 5 onward, once a Jira key has resolved and `idea.md` is relocated there for the git handoff.
+- **`$SPECS_PATH`** — not needed to start the run at all, and an unresolvable path is a silent no-op rather than a stop. It is touched twice: `specs-preflight` runs against it at the end of Phase 0 (which can emit a guard notice and set `specs_git: blocked` for the whole run), and it becomes load-bearing from Phase 5 onward, once a Jira key has resolved and `idea.md` is relocated there for the git handoff.
 
 ## What it produces
 

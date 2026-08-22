@@ -8,7 +8,7 @@
 
 **Resolution.** Read straight from the shell environment — there is no config file, CLI flag, or derived fallback that feeds it. Every command that writes into it validates it at its own gating step (Phase 0 in most commands, Step 0 in `/vuln`) before doing any expensive work.
 
-**When unset.** The gating command stops immediately, names `SPECS_PATH` explicitly in its message, and offers `choices: ["Set SPECS_PATH (enter the path)", "Cancel"]` — it never silently substitutes the vault, the current working directory, or any other path.
+**When unset.** The six commands that gate on it — `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/design`, `/ready` — stop immediately, name `SPECS_PATH` explicitly, and offer `choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`. `/epics` and `/release-notes` instead degrade: `/epics` skips the artifact steps that need it, and `/release-notes` falls back to `run_phase: pm`. No command silently substitutes the vault, the current working directory, or any other path.
 
 **When it points somewhere unreadable.** Two separate gates apply, and they differ in strictness. The bookkeeping entry point, `specs-preflight`, requires `$SPECS_PATH` to be an existing directory, `git -C "$SPECS_PATH" rev-parse --git-dir` to succeed, **and** the resolved `.git` directory to be **writable** (tested specifically rather than the worktree, since a read-only specs mount is a normal state in this container setup); a failed gate is a silent no-op, and because the terminal `commit-artifacts` step applies the same writability gate, the feedback/cost/follow-up bookkeeping never gets committed either — `specs-preflight` only declines to prepare for a commit that step would then decline to make. The deliverable-verification entry point, `require-on-main`, needs only the first two conditions — a **readable** git dir is enough, writability is not required, since this gate only reads; a failed gate here returns the state `unmanaged`, and the caller proceeds exactly as it did before this handoff machinery existed — no artifact is verified, and nothing is reported as a stop. [Roles and phases](../roles-and-phases.md) covers the two states you meet more often mid-pipeline — an artifact stuck on an unmerged branch, and one that is simply absent from the default branch — but not `unmanaged`, since that is this environment condition (an unset or unmanageable `$SPECS_PATH`), not a workflow state.
 
@@ -30,11 +30,11 @@
 
 - **`$REPOS_PATH`** — where your code clones live; defaults to `/workspace` when unset.
 
-**Resolution.** `${REPOS_PATH:-/workspace}`, read fresh by each command that scans code — there is no persisted override once a run ends. It may be a single directory or a colon-separated list, and every repo-scanning command that offers a choice presents the resolved default first: `choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]`. Repos underneath it are matched by `git remote get-url origin` slug, **never by directory name** — a clone renamed on disk, or nested at any depth the command's own discovery step reaches, is still found correctly as long as its `origin` remote is intact.
+**Resolution.** `${REPOS_PATH:-/workspace}`, read fresh by each command that scans code — there is no persisted override once a run ends. It may be a single directory or a colon-separated list, and every repo-scanning command that offers a choice presents the resolved default first: `choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]`. Where a command resolves a repo from a pull-request URL — `/document`, `/epics`, `/release-notes` — the match is by `git remote get-url origin` slug, **never by directory name**, so a clone renamed on disk is still found as long as its `origin` remote is intact. The commands that instead discover repos to offer you (`/idea`, `/create-ard`, `/design`) list the top-level directories under each entry and match on their basenames, attaching the slug afterwards as identity.
 
 **When unset.** The `/workspace` default takes over silently — this is deliberately safe because `$REPOS_PATH` is only ever a read/scan base, so a wrong or empty default just finds nothing to scan rather than writing anywhere unexpected.
 
-**When it points somewhere unreadable or empty.** A directory the user supplies in place of the default is validated to contain at least one directory before it is accepted, and validation fails back to the prompt rather than silently accepting a dead path. The default itself is never validated this strictly — a missing or empty `/workspace` on a host without the usual container mounts simply yields zero matched repos, which each repo-dependent command then treats per its own gate (some, like `/design`, hard-stop on no mounted repos; others degrade to a soft advisory skip — see that command's own page).
+**When it points somewhere unreadable or empty.** A directory the user supplies in place of the default is validated to contain at least one directory before it is accepted — in `/epics`, `/specify`, and `/document`, which document that step; `/create-ard`, `/design`, and `/release-notes` offer the same choice without documenting a validation step. Where it runs, validation fails back to the prompt rather than silently accepting a dead path. The default itself is never validated this strictly — a missing or empty `/workspace` on a host without the usual container mounts simply yields zero matched repos, which each repo-dependent command then treats per its own gate (some, like `/design`, hard-stop on no mounted repos; others degrade to a soft advisory skip — see that command's own page).
 
 **Directory layout.** See the layout block at the end of this page.
 
@@ -46,15 +46,15 @@
 
 **When unset.** The `/workspace/docs` default is probed by the validity gate above; on a host where that path does not exist, the gate simply fails.
 
-**When it points somewhere unreadable, or the gate otherwise fails.** Every miss — unset, missing, unreadable, or no markdown file found — is a **silent, non-blocking skip**: `docs_grounding: OFF` with a one-line internal reason, never an error and never `emit-block`. The plugin never writes into `$DOCS_PATH` under any circumstance.
+**When it points somewhere unreadable, or the gate otherwise fails.** Every miss — unset, missing, unreadable, or no markdown file found — is a **silent, non-blocking skip**: `docs_grounding: OFF` with a one-line internal reason, never an error and never `emit-block`. Within these seven grounding consumers the plugin never writes into `$DOCS_PATH` under any circumstance.
 
-**Directory layout.** Unlike the other five variables, the plugin imposes no expected substructure here — it searches whatever markdown it finds under the root (for example, a full documentation-site checkout).
+**Directory layout.** Unlike `$VAULT_PATH` and `$SPECS_PATH`, the plugin imposes no expected substructure here — it searches whatever markdown it finds under the root (for example, a full documentation-site checkout).
 
 ## `$GIT_USER_INITIALS`
 
 - **`$GIT_USER_INITIALS`** — your branch identity string; no default, and the plugin never fails when it is absent.
 
-**Resolution.** It is rung 1 of a four-rung identity ladder every branch-creating command applies in order, stopping at the first non-empty result: `$GIT_USER_INITIALS` (used verbatim, never with a trailing `/`) → `git config user.initials` (same semantics, set once per repo or globally) → inference from existing branch names (a candidate accepted at ≥30% of a sampled 200 branches and ≥3 occurrences) → a mandatory prompt if all three yield nothing.
+**Resolution.** It is rung 1 of a five-rung identity ladder applied by the five commands that name branches in a *code* repo (`/implement`, `/document` in both modes, `/docs-profile`, `/upgrade`, `/vuln`) — the specs-repo handoff branches (`idea/`, `vi/`, `ard/`, `spec/`, `design/`, `ready/`) are named by `phase-handoff.md` §2.2 instead and never enter it. The rungs run in order, stopping at the first non-empty result: `$GIT_USER_INITIALS` (used verbatim, never with a trailing `/`) → `git config user.initials` (same semantics, set once per repo or globally) → inference from existing branch names (a candidate accepted at ≥30% of a sampled 200 branches and ≥3 occurrences) → a mandatory prompt if all three yield nothing.
 
 **When unset.** The ladder simply falls through to rung 2, then 3, then the prompt — there is no error, only degradation to a less certain source. Where the target repo's documented branch-naming convention has no name-or-initials segment at all, the variable is simply unused for that repo regardless of whether it is set.
 
@@ -68,7 +68,7 @@
 
 **Resolution.** First-found-wins, three tiers: `$DEV_WORKFLOWS_COST_PRICES` (a path) → a repo-local `cost-prices.yaml` → the bundled `${CLAUDE_PLUGIN_ROOT}/references/cost-prices.yaml`. Whichever file resolves must carry a top-level `models:` map keyed by model id (`input`/`output`/`cache_read`/`cache_write_5m`/`cache_write_1h`, in USD per million tokens) — a file missing that wrapper, whether it is the override or the shipped default, prices every model as `cost_usd: null` rather than raising an error.
 
-**When unset.** Resolution falls straight through to the repo-local file, then the bundled default — this is the one variable of the six a user may reasonably never set at all.
+**When unset.** Resolution falls straight through to the repo-local file, then the bundled default — this is the variable of the six most users never touch — though `$REPOS_PATH`, `$DOCS_PATH`, and `$GIT_USER_INITIALS` all have working fallbacks too.
 
 **When it points somewhere unreadable.** An unreadable or missing path at this tier is treated the same as "not set at this tier" — resolution continues down the same first-found-wins chain to the next tier rather than failing the run.
 
@@ -89,7 +89,7 @@ $SPECS_PATH/                        # shared, team-visible store
     dev-workflows/                  # bookkeeping: feedback, cost, resume.md; follow-ups only with no vault
 
 $REPOS_PATH/                        # code clones, one directory or a colon-separated list (default /workspace)
-  <repo>/                           # matched by `git remote get-url origin` slug, never by directory name
+  <repo>/                           # discovered by directory name; matched by origin slug for PR-URL resolution
 
 $DOCS_PATH/                         # optional, read-only: a product-docs clone (default /workspace/docs)
   ...                               # searched for grounding; the plugin never writes here

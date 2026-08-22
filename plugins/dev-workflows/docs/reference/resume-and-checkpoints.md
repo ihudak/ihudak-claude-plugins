@@ -20,7 +20,7 @@ Any secret, credential, token, or other sensitive value that might otherwise lan
 
 **When it's written.** The write is unconditional for any VI-scoped run, and it happens first — before the terminal `commit-artifacts` step, but only after the deliverable artifact is already saved or committed, and after the feedback, follow-up, and cost phases have all run. That ordering matters: several commands compose their printed Final Report before their follow-up and cost phases even run, so tying the write to the printed report would land it before the cost entry it's supposed to follow, and it would never get committed, since `commit-artifacts` itself runs after cost. The canonical terminal order is deliverable and handoff, then feedback, then follow-ups, then cost, then `resume.md`, then `commit-artifacts`. Whether the suggestion (below) actually fires or not, the write itself always happens — **prepare always, suggest adaptively.**
 
-**Where it lands.** The same specs-first resolution used elsewhere in this section: `<VI-dir>/dev-workflows/resume.md` when `$SPECS_PATH` is writable and the VI directory matches; a writable `$VAULT_PATH` as the fallback, at `$VAULT_PATH/dev-workflows/resume/<KEY>-resume.md`; and if neither is writable, the file is simply skipped, with a one-line warning that no resume pointer could be persisted and you should set one of the two variables.
+**Where it lands.** Four tiers, walked in order: `$SPECS_PATH` writable with the VI directory matched → `<VI-dir>/dev-workflows/resume.md`, the primary case; `$SPECS_PATH` writable but **no VI directory matched** → the file is skipped outright and the run relies on the printed `### Next step` instead — this tier does **not** fall back to the vault; no `$SPECS_PATH` at all, but `$VAULT_PATH` writable → `$VAULT_PATH/dev-workflows/resume/<KEY>-resume.md`; and neither writable → skipped, with a one-line warning that no resume pointer could be persisted and you should set one of the two variables.
 
 **Which runs skip it entirely.** A run with no VI to anchor the pointer to writes none: `/idea` (pre-VI, keyless), `/implement` in direct mode, `/document`'s doc-edit mode, and `/vuln` and `/upgrade` (their durable state is the branch or PR already on disk, not a VI-scoped artifact).
 
@@ -28,8 +28,8 @@ Any secret, credential, token, or other sensitive value that might otherwise lan
 
 Every next-step option a command offers already carries a role label — see [Roles and phases](../roles-and-phases.md) for what PM, PA, PE, Dev, and Team each own. The context-hygiene suggestion reads those same labels rather than hardcoding a per-command verdict:
 
-- **Staying in the same role** for the next step (`/design E1` → `/design E2`, Team → Team) → **`/compact`** — the context is still relevant, so keep the thread going.
-- **Moving to a different role** (`/epics` PE → `/design` Team) → **`/clear`** is the better default when one person is wearing both hats, since the prior role's reasoning becomes noise for the next one; `/compact` still works fine if you're continuing right away yourself.
+- **Staying in the same role** for the next step (`/design E1` → `/design E2`, Dev → Dev) → **`/compact`** — the context is still relevant, so keep the thread going.
+- **Moving to a different role** (`/epics` PE → `/design` Dev) → **`/clear`** is the better default when one person is wearing both hats, since the prior role's reasoning becomes noise for the next one; `/compact` still works fine if you're continuing right away yourself.
 - **The next step could go either way** (`/create-vi` → PM `/release-notes`, or handing off to PA/PE) → both branches are named explicitly: continuing as the same role suggests `/compact`, handing off — even to yourself — suggests `/clear`.
 - **You're done, or ending the session** → no suggestion at all.
 
@@ -39,7 +39,7 @@ A run doesn't have to finish to earn a checkpoint. `/implement`'s own mid-phase 
 
 ## The `/rename` aid
 
-A VI key first becomes available at `/release-notes`, and every PA/PE/Team/Dev command that takes a `<VI>` argument (`/create-ard`, `/epics`, `/specify`, `/design`, `/ready`, `/implement`, `/document`, `/release-notes`) prints a suggested `/rename <VI-ID>-<slug>-<role>` line, so you can find this session again later in `claude --resume` by name instead of by scrolling. `<role>` is the lane tag of the command that just finished — pm, pa, pe, or team. `/idea` and `/create-vi` are excluded from this aid: idea refinement is short, it usually runs before the paste-into-Jira-and-reimport round trip that mints the VI key in the first place, so there is often no key yet to name the session after — and on the rarer runs that do carry one already, the phase is still short enough that naming the session isn't worth automatically suggesting.
+A VI key first becomes available at `/release-notes`, and every PA/PE/Team/Dev command that takes a `<VI>` argument (`/create-ard`, `/epics`, `/specify`, `/design`, `/ready`, `/implement`, `/document`, `/release-notes`) prints a suggested `/rename <VI-ID>-<slug>-<role>` line, so you can find this session again later in `claude --resume` by name instead of by scrolling. `<role>` is the lane tag of the command that just finished — pm, pa, pe, dev, or team. `/idea` and `/create-vi` are excluded from this aid: idea refinement is short, it usually runs before the paste-into-Jira-and-reimport round trip that mints the VI key in the first place, so there is often no key yet to name the session after — and on the rarer runs that do carry one already, the phase is still short enough that naming the session isn't worth automatically suggesting.
 
 ## The contract
 

@@ -19,7 +19,11 @@ A 2,177-character cell renders in a GitHub table column roughly 30 characters wi
 
 **The enumerations are honest.** Every count in the README was derived against the tree rather than trusted, and they hold: 21 command files on disk, 34 agent files against 34 table rows, 36 top-level references against 36 named, 4 hooks declared in `hooks.json` against 4 scripts on disk against 4 table rows, and exactly 9 agents carrying a `model: opus` frontmatter pin against the claimed "nine Opus-backed reviewers/planners". This README has not rotted the way ai-containers' had, which changes what the work is: **this is a re-shaping and a verification pass, not a rescue.**
 
-**One structural defect is already known.** The `## Commands` table has 19 rows for 21 commands. `/vuln` and `/upgrade` are documented in an unlabeled `Additionally:` table at the tail of the `## /implement workflow` section, so the plugin's two standalone maintenance commands are filed under a command they have nothing to do with, and a reader scanning the Commands table concludes they do not exist.
+**Three defects are already known**, all found by grounding rather than by reading, and all fixed by this change:
+
+- **D1 — the Commands table documents 19 of 21 commands.** `/vuln` and `/upgrade` sit in an unlabeled `Additionally:` table at the tail of the `## /implement workflow` section, so the plugin's two standalone maintenance commands are filed under a command they have nothing to do with, and a reader scanning the Commands table concludes they do not exist.
+- **D2 — `references/cost-emission.md` §7 omits `/update-vi` from its own authority table.** That table is introduced as "Fixed per-command labels" and lists ten commands. `/update-vi` passes `phase: vi-update`, `role: pm` to `emit-cost`, and line 4 of the same file names `/update-vi` among the commands that run the Session cost phase — so `vi-update` is a phase value emitted by a shipped command and recorded in no authority. This is the dead-gate shape from the other side: not a rule with no consumer, but a consumer emitting a value its own reference does not enumerate.
+- **D3 — `/ready`'s role has two names.** `cost-emission.md` §7 attributes it `role: team`; the README's role table files it under **QA**, with a legend defining QA as verification and quality gates rather than an artifact-authoring role. Both may be intentional, so this one is **reported, not resolved**: the docs state the `team` attribution because that is what the artifact records, and the discrepancy goes in the PR body for a human decision.
 
 **A second problem is invisible from the README itself.** `plugins/dev-workflows/README.md` is one of the five files the mgd edition must never copy (with `.claude-plugin/plugin.json`, `LICENSE`, `references/dependencies.md`, and `CHANGELOG.md`). It differs from canonical by **exactly two lines** — line 5 names the marketplace, line 289 names the recommended container repository. So 377 of 379 lines of shared content sit inside a file the porting discipline forbids copying, which is the standing trap recorded as *identity files are where fixes die*.
 
@@ -52,6 +56,8 @@ plugins/dev-workflows/
                                   one worked first run end to end
     workflow.md                   the pipeline Mermaid, the role table, artifact homes,
                                   sources of truth, cross-cutting commands
+    roles-and-phases.md           prose companion to the diagram: what each role owns,
+                                  what each phase is, what is handed over at each seam
     commands/
       api-guideline-reviewer.md   create-ard.md      create-vi.md      design.md
       docs-profile.md             document.md        epics.md          feedback.md
@@ -65,11 +71,16 @@ plugins/dev-workflows/
       environment.md              the 5 environment variables and the directory layout
       hooks.md                    the 4 hooks
       model-routing.md            classification, the fallback chain, the fan-out policy
-      session-artifacts.md        the cost, feedback, follow-up, and resume files written
-                                  under <VI-dir>/dev-workflows/ in $SPECS_PATH
+      session-cost.md             how cost is computed and attributed, and how to read a
+                                  cost file — with a worked sample entry
+      session-feedback.md         what gets logged, the entry format, where it lands
+      follow-ups.md               the task-line format, target-file resolution, the
+                                  end-of-run batch preview
+      resume-and-checkpoints.md   the prepare-checkpoint, resume.md, the role-aware
+                                  suggestion, and the session-name aid
 ```
 
-**30 pages under `docs/`, plus the rewritten `README.md`** — three top-level, 21 commands, six reference. One page per command is the unit because the command is the unit a reader acts on. A small command gets a short page — `feedback.md` will be perhaps 20 lines — and that is correct, not a defect: a short file that answers one question beats a paragraph buried in a 74 KB table.
+**34 pages under `docs/`, plus the rewritten `README.md`** — four top-level, 21 commands, nine reference. One page per command is the unit because the command is the unit a reader acts on. A small command gets a short page — `feedback.md` will be perhaps 20 lines — and that is correct, not a defect: a short file that answers one question beats a paragraph buried in a 74 KB table.
 
 `docs/README.md` opens with the question a reader actually arrives with, not the catalog:
 
@@ -93,8 +104,10 @@ Every command page carries the same seven sections in the same order, so a reade
 ```markdown
 # /specify
 
-One sentence: what this is for and which role runs it.
+One sentence: what this is for.
 
+## Who runs it       the role, its cost-attribution phase, and — where a command
+                     serves more than one role — each variant explained separately
 ## Synopsis          the argument grammar, each accepted form explained separately
 ## How it runs       the Mermaid phase flow (see §6 for when this section exists)
 ## What it needs     environment variables, gated inputs, tool prerequisites — and for
@@ -105,7 +118,21 @@ One sentence: what this is for and which role runs it.
 ## See also          the neighbouring phases and the reference pages it depends on
 ```
 
+`## Who runs it` is grounded, not editorial. The plugin already carries a machine-readable role model: every VI-lifecycle command calls `emit-cost` with a `phase:` and a `role:`, and `references/cost-emission.md` §7 holds the authoritative per-command table — `pe` for `/specify` and `/epics`, `dev` for `/design`, `/implement`, and `/document`, `pm` for `/idea` and `/create-vi`, `pa` for `/create-ard`, `team` for `/ready`. The page states the role from that table, never from the README's prose.
+
+**A command that serves more than one role explains each variant separately.** `/release-notes` is the case that forces the rule: it passes `phase: inferred, role: inferred`, and §7 discriminates on the presence of downstream engineering artifacts — no `specification.md` or `design.md` under the VI's specs dir means the PM's early bare-VI run (`vi-creation` / `pm`), either present means the dev's documenting re-run (`documenting` / `dev`). A PM and a dev arriving at that page need different halves of it, so the page carries both, says which is which, and states the discriminator rather than leaving a reader to infer which run they are about to perform.
+
+**Two unrelated `phase:` vocabularies exist and must not be conflated on any page.** The cost-attribution phases (`vi-creation`, `vi-update`, `architecture`, `specification`, `epic-refinement`, `planning`, `implementation`, `documenting`, `readiness`) name where a run sits in the product lifecycle. The model-routing resume phases (`full`, `verify-resume`, `regression-resume`), which `/vuln` and `/upgrade` pass, name how far a re-entered run should re-execute. They share a field name and nothing else. `/vuln` and `/upgrade` emit no cost attribution at all — they have no VI to attribute to, and `cost-emission.md` never mentions them.
+
 `## What it needs` is the section the current README has nowhere. Today a reader learns that `/specify` requires its VI to be on the specs repo's default branch only by running it and hitting `require-on-main`. Stating each prerequisite together with its absent-case behaviour is the single largest readability gain in this design, because absent-case behaviour is exactly what `references/phase-handoff.md` §3.4 already defines and no user-facing page repeats.
+
+### The roles-and-phases page
+
+`docs/roles-and-phases.md` is the prose companion the diagram cannot be. A flowchart shows that `/specify` sits between `/epics` and `/design`; it cannot say what a PE is accountable for, what they receive, what they must decide, or what they are handing the next person. The page carries one section per role — PM, PA, PE, Dev, and the `team` attribution `/ready` uses — and for each: what the role owns, which commands it runs, what it consumes, what it produces, and **what it hands over at the seam**, since every seam in this pipeline is a `handoff-to-main` / `require-on-main` pair with real failure modes a reader will meet.
+
+It then carries one entry per cost-attribution phase — `vi-creation`, `vi-update`, `architecture`, `specification`, `epic-refinement`, `planning`, `implementation`, `documenting`, `readiness` — naming the command that emits it and what being in that phase means for the work. This is the vocabulary a reader will see in their own cost files, so it needs a definition somewhere; today it is defined only inside a reference written for agents.
+
+Both halves are derived: roles and phases from `references/cost-emission.md` §7 and each command's own `emit-cost` call, seams from `references/phase-handoff.md` §2 and §3. The page links to `workflow.md` for the picture and is linked from it in return, so a reader can move between the two without going through the index.
 
 ## 6. Mermaid policy
 
@@ -146,7 +173,7 @@ Splitting prose multiplies the places drift can hide, so the split ships with it
 1. **Links resolve.** Every relative link in every page and in both READMEs points at a file that exists.
 2. **Anchors resolve.** Every `#anchor` resolves to a real heading in whichever file it names. A bare `#anchor` names no file, so a file-existence check cannot see it — this is the check that catches the 24 anchors ai-containers' split broke.
 3. **No orphans.** Every page under `docs/` is reachable from `docs/README.md`, transitively.
-4. **Inventory agrees, in both directions.** Every file in `commands/` has a page in `docs/commands/` and every page names a real command; the same both ways for the 34 agents against `reference/agents.md`, the 36 top-level references against `reference/references.md`, and the 4 `hooks.json` declarations against `reference/hooks.md`.
+4. **Inventory agrees, in both directions.** Every file in `commands/` has a page in `docs/commands/` and every page names a real command; the same both ways for the 34 agents against `reference/agents.md`, the reference set against `reference/references.md`, and the 4 `hooks.json` declarations against `reference/hooks.md`. The reference inventory is the 36 top-level `references/*.md` **plus** `references/model-routing/classification.md`, which is the single source of truth for model routing and lives one level down. The remaining six subtrees are described as groups with their counts rather than enumerated page by page, and check 4 verifies those counts: `api-guidelines/` (24), `guidelines/` (11), `handoff/` (10), `dynatrace-docs/` (6), `upgrade/` (3), `fix-vuln/` (2). That accounts for all 93 markdown files under `references/` — 36 top-level, 1 in `model-routing/`, 56 across the six groups — so no file falls outside the check. Every inventory is derived from the edition being checked, never from a number written into a page.
 5. **Environment variables agree, in both directions.** Every variable documented in `reference/environment.md` is read somewhere in `commands/`, `agents/`, or `references/`, and every variable those files read is documented. Current usage, derived: `SPECS_PATH` 245 references, `VAULT_PATH` 94, `REPOS_PATH` 56, `DOCS_PATH` 16, `GIT_USER_INITIALS` 12. `CLAUDE_PLUGIN_ROOT` (690) is excluded — it is a Claude Code runtime variable, not a user-set one, and belongs to the maintainer surface in `CLAUDE.md`.
 6. **No table cell exceeds 200 characters.** This is the readability invariant the whole change exists to establish, and it is the one a future edit will silently violate. Defending it mechanically is what stops a 2,177-character row from regrowing.
 7. **`--selftest`.** Each of checks 1–6 is asserted against a fixture that must fail it and a fixture that must pass it, with the expected exit code checked. A gate that cannot be shown to fail proves nothing when it passes — and ai-containers' equivalent gate passed vacuously on its first run, examining nothing, because its file list came from `git ls-files` while the new pages were still untracked.
@@ -173,7 +200,9 @@ Wired into `.github/workflows/validate-catalog.yml` as two steps beside the exis
 
 The consequence is the point: `docs/` is identity-free by construction, so mgd's parity check still reports **exactly five** differing files. A count of six means the rule was broken; a count of four still means `references/dependencies.md` was destroyed by a careless `cp -r`, which is the round-2 defect that `diff -rq` perversely rewards.
 
-**Copilot is adapted, never copied**, per the standing four dialect rules: `task(agent_type:)` rather than `Agent(subagent_type:)`; absolute `~/.copilot/installed-plugins/ihudak-copilot-plugins/dev-workflows/skills/_shared/<file>.md` paths rather than `${CLAUDE_PLUGIN_ROOT}/references/<file>.md`; colon-form command names (`specify:`, `design:`, `document:`) never slash-form; and lowercase tool names (`view`, `glob`, `grep`, `bash`). Its command pages are named for its skills — 20 of them, with `statusline` absent, matching its own "Not ported from the Claude Code edition" section, which also excludes session cost reporting. Its `docs/reference/session-artifacts.md` therefore omits the cost file and says why.
+**Copilot is adapted, never copied**, per the standing four dialect rules: `task(agent_type:)` rather than `Agent(subagent_type:)`; absolute `~/.copilot/installed-plugins/ihudak-copilot-plugins/dev-workflows/skills/_shared/<file>.md` paths rather than `${CLAUDE_PLUGIN_ROOT}/references/<file>.md`; colon-form command names (`specify:`, `design:`, `document:`) never slash-form; and lowercase tool names (`view`, `glob`, `grep`, `bash`). Its command pages are named for its skills — 20 of them, with `statusline` absent, matching its own "Not ported from the Claude Code edition" section, which also excludes session cost reporting. That exclusion is real on disk and not merely declared: `skills/_shared/` has no `cost-emission.md`, while `feedback-emission.md`, `followup-emission.md`, and `session-hygiene.md` are all present. So the copilot set drops `reference/session-cost.md` and keeps the other three.
+
+Both editions happen to carry 36 top-level reference files, but the sets are not the same and the equal count is a coincidence worth not relying on: copilot lacks `cost-emission.md` and carries `model-routing.md` as a flat file, where canonical has a `references/model-routing/` directory holding `classification.md`. This is exactly why check 4 derives its inventory from the edition it is running in rather than from a number written into a page.
 
 ## 10. Global constraints
 
@@ -189,9 +218,9 @@ Copied verbatim into the plan, because each is a gate that bites at push time ra
 
 Three pull requests, in order, each merged before the next begins:
 
-1. **Canonical.** Build the 30 `docs/` pages against the grounding contract, rewrite `README.md` to roughly 50 lines, write `scripts/check-docs.sh` with its self-test, wire both into CI, update the repo-root `README.md` links, and record the defect table in the PR body. This is where all the derivation work lives.
+1. **Canonical.** Build the 34 `docs/` pages against the grounding contract, rewrite `README.md` to roughly 50 lines, write `scripts/check-docs.sh` with its self-test, wire both into CI, update the repo-root `README.md` links, and record the defect table in the PR body. This is where all the derivation work lives.
 2. **mgd.** Copy `docs/` verbatim, copy `scripts/check-docs.sh`, hand-write `README.md` with the mgd identity strings, and verify the parity check still reports exactly five differing files.
-3. **copilot.** Hand-adapt 29 `docs/` pages under the four dialect rules — 20 command pages rather than 21 — hand-write `README.md`, and adapt the gate's check 4 to the `skills/<cmd>/SKILL.md` layout.
+3. **copilot.** Hand-adapt 32 `docs/` pages under the four dialect rules — 20 command pages rather than 21, and no `reference/session-cost.md` — hand-write `README.md`, and adapt the gate's check 4 to the `skills/<cmd>/SKILL.md` layout and the 35-reference `_shared/` inventory.
 
 Ordering matters for the reason recorded in *upstream reservoir defects*: a constraint enforced in one edition only breaks there forever while the lax upstream refills it. The gate ships in canonical first so the other two inherit an enforced rule rather than a described one.
 
@@ -200,6 +229,8 @@ Ordering matters for the reason recorded in *upstream reservoir defects*: a cons
 - `plugins/dev-workflows/README.md` is under 60 lines in all three editions.
 - No table cell in any documented file exceeds 200 characters, enforced by check 6.
 - All 21 commands (20 in copilot) have a page; checks 4 and 3 pass in both directions.
+- Every command page names the role that runs it, and the role matches `references/cost-emission.md` §7 rather than the old README prose. `/release-notes` explains both its PM and its Dev variant, and states the discriminator between them.
+- `docs/roles-and-phases.md` covers every role and every cost-attribution phase that appears in §7, including `vi-update` once D2 is fixed.
 - `./scripts/check-docs.sh --selftest` passes, and each of checks 1–6 has been observed failing against its own fixture before being trusted.
 - `diff -rq` between the canonical and mgd `plugins/dev-workflows/` trees reports exactly five differing files.
 - Every claim on every page was derived from `commands/`, `agents/`, `references/`, or `hooks/` during this change — not carried across from the old README — and the discrepancies found are listed in the canonical PR body.

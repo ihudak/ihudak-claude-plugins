@@ -43,7 +43,7 @@ Two `dev-workflows` subagents are dispatched: `vi-reviewer` (Phase 4, Opus-pinne
 - **Documentation grounding** (optional, on by default) — turned off with `--no-docs`; a miss is a silent skip, never a gate.
 - **No repos.** `/update-vi` is cwd-agnostic and product-level — it never mounts or scans code.
 
-**`/update-vi` is the one authoring command deliberately excluded from `require-on-main`.** Every other VI-lifecycle producer gates its optional grounding input through that consumer entry point; `/update-vi` never executes it at all, on any input. Its authoritative base is the Jira import (above), not a gated specs artifact, so subjecting the secondary grounding to `require-on-main` would block a legitimate refresh purely because an unrelated ARD happened to sit on an unmerged branch — the command reports that state instead of stopping on it.
+**`/update-vi` is the one authoring command deliberately excluded from `require-on-main`.** It never executes that consumer entry point at all, on any input. Its authoritative base is the Jira import (above), not a gated specs artifact, so subjecting the secondary grounding to `require-on-main` would block a legitimate refresh purely because an unrelated ARD happened to sit on an unmerged branch — the command reports that state instead of stopping on it.
 
 ## What it produces
 

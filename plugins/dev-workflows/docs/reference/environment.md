@@ -10,7 +10,7 @@
 
 **When unset.** The gating command stops immediately, names `SPECS_PATH` explicitly in its message, and offers `choices: ["Set SPECS_PATH (enter the path)", "Cancel"]` — it never silently substitutes the vault, the current working directory, or any other path.
 
-**When it points somewhere unreadable.** The `specs-preflight` and `require-on-main` git entry points share one gate: `$SPECS_PATH` must be an existing directory, `git -C "$SPECS_PATH" rev-parse --git-dir` must succeed, and the resolved `.git` directory must be writable (a read-only specs mount is a normal state in this container setup, so `.git` is tested specifically rather than the worktree). When that gate fails, the affected step is a silent no-op rather than a hard stop — the artifact the run would have written or verified there is instead treated as `unmanaged`, and that state is surfaced in the run's own output rather than swallowed. See [Roles and phases](../roles-and-phases.md) for what a stop or an `unmanaged` result means for the next command in the chain.
+**When it points somewhere unreadable.** Two separate gates apply, and they differ in strictness. The bookkeeping entry point, `specs-preflight`, requires `$SPECS_PATH` to be an existing directory, `git -C "$SPECS_PATH" rev-parse --git-dir` to succeed, **and** the resolved `.git` directory to be **writable** (tested specifically rather than the worktree, since a read-only specs mount is a normal state in this container setup); a failed gate is a silent no-op — the feedback/cost/follow-up bookkeeping that step would have written simply is not committed. The deliverable-verification entry point, `require-on-main`, needs only the first two conditions — a **readable** git dir is enough, writability is not required, since this gate only reads; a failed gate here returns the state `unmanaged`, and the caller proceeds exactly as it did before this handoff machinery existed — no artifact is verified, and nothing is reported as a stop. [Roles and phases](../roles-and-phases.md) covers the two states you meet more often mid-pipeline — an artifact stuck on an unmerged branch, and one that is simply absent from the default branch — but not `unmanaged`, since that is this environment condition (an unset or unmanageable `$SPECS_PATH`), not a workflow state.
 
 **Directory layout.** See the layout block at the end of this page.
 
@@ -64,7 +64,7 @@
 
 ## `$DEV_WORKFLOWS_COST_PRICES`
 
-- **`$DEV_WORKFLOWS_COST_PRICES`** — an optional override path for the token-price table session-cost reporting prices against; no default is needed, because the plugin ships one.
+- **`$DEV_WORKFLOWS_COST_PRICES`** — optional override path for the token-price table session-cost reporting prices against; the plugin ships its own default price table, so setting this is never required.
 
 **Resolution.** First-found-wins, three tiers: `$DEV_WORKFLOWS_COST_PRICES` (a path) → a repo-local `cost-prices.yaml` → the bundled `${CLAUDE_PLUGIN_ROOT}/references/cost-prices.yaml`. Whichever file resolves must carry a top-level `models:` map keyed by model id (`input`/`output`/`cache_read`/`cache_write_5m`/`cache_write_1h`, in USD per million tokens) — a file missing that wrapper, whether it is the override or the shipped default, prices every model as `cost_usd: null` rather than raising an error.
 

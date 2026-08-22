@@ -114,4 +114,3 @@ If the orchestrator passes a `model_routing` block (see
 This agent itself runs under whichever model the orchestrator selected.
 Opus is reserved for `vuln-research` planning and the post-impl review — not
 required for the actual file edits.
-

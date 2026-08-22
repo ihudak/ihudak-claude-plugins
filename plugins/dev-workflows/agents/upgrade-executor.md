@@ -96,4 +96,3 @@ This agent itself runs under whichever model the orchestrator selected.
 For SIGNIFICANT / HIGH-RISK upgrades the orchestrator may still leave this
 agent on the current model or Sonnet — Opus is reserved for the planner
 and the post-impl review.
-

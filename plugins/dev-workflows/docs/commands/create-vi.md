@@ -4,7 +4,7 @@ Turns a refined `idea.md` plus a user-supplied Jira key into a high-quality, pro
 
 ## Who runs it
 
-`/create-vi` runs in the [pm](../roles-and-phases.md#pm--product-management) role, cost-attribution phase [vi-creation](../roles-and-phases.md#vi-creation) — the same phase `/idea` emits, since the VI it authors has no downstream specification or design yet.
+`/create-vi` runs in the [pm](../roles-and-phases.md#pm--product-management) role, cost-attribution phase [vi-creation](../roles-and-phases.md#vi-creation) — the same phase [`/idea`](idea.md) emits, since the VI it authors has no downstream specification or design yet.
 
 ## Synopsis
 
@@ -41,11 +41,11 @@ Two `dev-workflows` subagents are dispatched: `vi-reviewer` (Phase 4, Opus-pinne
 
 - **`<JIRA-KEY>`** — mandatory; absent or malformed stops the run with `CREATE_VI_NEEDS_KEY`, naming the required `/dev-workflows:create-vi <KEY> @<idea.md>` form.
 - **`idea.md`**, resolved by a five-rung ladder that stops at the first hit (Phase 0). **The first two rungs gate differently, and the difference is not visible anywhere else:**
-  - **In-contract — `<KEY>`'s own feature folder.** This is the default when no `@path` is given. It is gated via `require-on-main`: absent falls through to the next rung without stopping (`/idea` is not a prerequisite for `/create-vi`); present and merged onto the specs repo's default branch is used as-is, never relocated again (`/idea` already did that); present on an unmerged plugin branch is a hard stop, naming the branch and any open pull request.
+  - **In-contract — `<KEY>`'s own feature folder.** This is the default when no `@path` is given. It is gated via `require-on-main`: absent falls through to the next rung without stopping ([`/idea`](idea.md) is not a prerequisite for `/create-vi`); present and merged onto the specs repo's default branch is used as-is, never relocated again ([`/idea`](idea.md) already did that); present on an unmerged plugin branch is a hard stop, naming the branch and any open pull request.
   - **Out-of-contract — an explicit `@<path>` argument.** Read exactly where it sits — never relocated, never gated via `require-on-main` at all — and reported once as out-of-contract.
-  - The remaining rungs (a same-session `/idea` output, a picker over recently-discovered `idea.md` files under `$VAULT_PATH/Projects`, or a manual path) are all out-of-contract, handled the same way as `@<path>`. If every rung is exhausted, the run proceeds with no idea and grills the VI from scratch.
+  - The remaining rungs (a same-session [`/idea`](idea.md) output, a picker over recently-discovered `idea.md` files under `$VAULT_PATH/Projects`, or a manual path) are all out-of-contract, handled the same way as `@<path>`. If every rung is exhausted, the run proceeds with no idea and grills the VI from scratch.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH` and offers to enter a path or cancel.
-- **An existing VI for `<KEY>`**, checked by a frontmatter glob in the feature folder. `/create-vi` is greenfield-only: if one is found, the run redirects to `/dev-workflows:update-vi <KEY>` (or, with `--from-vi`, offers to update the existing VI instead of seeding a fresh one).
+- **An existing VI for `<KEY>`**, checked by a frontmatter glob in the feature folder. `/create-vi` is greenfield-only: if one is found, the run redirects to [`/dev-workflows:update-vi <KEY>`](update-vi.md) (or, with `--from-vi`, offers to update the existing VI instead of seeding a fresh one).
 - **The `--from-vi` seed** (optional) — resolved Jira-import-first with a 3-day freshness check; used read-only, never as content to copy.
 - **Documentation grounding and vault prior art** (optional, on by default) — each turned off with `--no-docs` / `--no-prior-art`; a miss of either is always a silent skip, never a gate.
 - **No repos.** `/create-vi` is cwd-agnostic and product-level — it never mounts or scans code.
@@ -60,7 +60,7 @@ Two `dev-workflows` subagents are dispatched: `vi-reviewer` (Phase 4, Opus-pinne
 - **Phase 3.6 — Structural pre-lint** (`../../references/pre-lint.md`, run inline, no agent). Advisory only — mechanical findings are fixed inline, content gaps are left for the grill; it never blocks.
 - **Phase 4 — `vi-reviewer`**, Opus-pinned by frontmatter (`model: opus`, no override), reviewing the whole VI against `../../references/vi-format.md`. `PASS` / `PASS WITH RECOMMENDATIONS` proceeds. `BLOCK` triggers one inline fix cycle and one re-review; if still `BLOCK`, each unresolved BLOCKER is escalated per `../../references/escalation-rules.md`'s "Review verdict BLOCK" choices (provide manual fix notes, defer to a follow-up issue, override and accept, or cancel). If no Opus model resolves at all, the run degrades to the best available model and records the degradation rather than hard-blocking.
 
-**Deliberately not captured:** `release_versions`, `change_type`, and `release_notes_category` are Jira-mirror fields — set as Jira dropdowns on the ticket and returned by the importer on the round-trip, never authored here. `vi-reviewer` neither requires nor validates them; `/release-notes` is what reads them, from the import.
+**Deliberately not captured:** `release_versions`, `change_type`, and `release_notes_category` are Jira-mirror fields — set as Jira dropdowns on the ticket and returned by the importer on the round-trip, never authored here. `vi-reviewer` neither requires nor validates them; [`/release-notes`](release-notes.md) is what reads them, from the import.
 
 ## Example
 
@@ -77,7 +77,7 @@ The run resolves the feature folder, reads `idea.md` directly (no `idea-reader` 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off at the `vi-creation` seam.
 - [`/idea`](idea.md) — the upstream command that authors and relocates the `idea.md` this command consumes.
 - [`/update-vi`](update-vi.md) — where an already-existing VI for `<KEY>` is refreshed instead.
-- `/create-ard` and `/epics` — the two role handoffs `/create-vi`'s Phase 6 offers; each gets its own command page in a later task.
+- [`/create-ard`](create-ard.md) and [`/epics`](epics.md) — the two role handoffs `/create-vi`'s Phase 6 offers.
 - [Model routing](../reference/model-routing.md) — the classification and Opus fallback chain `vi-reviewer` runs under.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Resume and checkpoints](../reference/resume-and-checkpoints.md) — the terminal Phase 7 bookkeeping every run emits.
 - [`vi-format.md`](../../references/vi-format.md) — the canonical structure the VI is authored and reviewed against.

@@ -1,6 +1,6 @@
 # /update-vi
 
-Refreshes an existing Value Increment against its Jira source — routine updates and the rarer obstacle-driven re-do alike — gated by the same Opus review as `/create-vi`.
+Refreshes an existing Value Increment against its Jira source — routine updates and the rarer obstacle-driven re-do alike — gated by the same Opus review as [`/create-vi`](create-vi.md).
 
 ## Who runs it
 
@@ -32,7 +32,7 @@ flowchart TD
     p6 --> p7["Phase 7 — Session maintenance, feedback & cost"]
 ```
 
-Two `dev-workflows` subagents are dispatched: `vi-reviewer` (Phase 4, Opus-pinned) and `impl-maintenance` (Phase 7, session lessons-learned), both against the model recorded in `model_routing`. A third agent, `dt-style-guide:dt-style-checker`, runs in Phase 3.5 exactly as it does in `/create-vi` — a non-gating quality pass from a separate plugin, not counted in the dispatch total above.
+Two `dev-workflows` subagents are dispatched: `vi-reviewer` (Phase 4, Opus-pinned) and `impl-maintenance` (Phase 7, session lessons-learned), both against the model recorded in `model_routing`. A third agent, `dt-style-guide:dt-style-checker`, runs in Phase 3.5 exactly as it does in [`/create-vi`](create-vi.md) — a non-gating quality pass from a separate plugin, not counted in the dispatch total above.
 
 ## What it needs
 
@@ -54,9 +54,9 @@ Two `dev-workflows` subagents are dispatched: `vi-reviewer` (Phase 4, Opus-pinne
 
 ## Gates
 
-- **Phase 3.5 — Dynatrace style check**, mirroring `/create-vi` exactly: `dt-style-guide:dt-style-checker` applies MAJOR fixes inline and re-runs once; a non-gating quality pass, skipped gracefully when the `dt-style-guide` plugin is not installed.
+- **Phase 3.5 — Dynatrace style check**, mirroring [`/create-vi`](create-vi.md) exactly: `dt-style-guide:dt-style-checker` applies MAJOR fixes inline and re-runs once; a non-gating quality pass, skipped gracefully when the `dt-style-guide` plugin is not installed.
 - **Phase 3.6 — Structural pre-lint** (`../../references/pre-lint.md`), advisory only — mechanical findings fixed inline, content gaps left for the grill.
-- **Phase 4 — `vi-reviewer`**, Opus-pinned by frontmatter (`model: opus`, no override), reviewing the whole updated VI against `../../references/vi-format.md`. `PASS` / `PASS WITH RECOMMENDATIONS` proceeds. `BLOCK` triggers one inline fix cycle and one re-review; a persistent `BLOCK` is escalated per `../../references/escalation-rules.md`'s "Review verdict BLOCK" choices, exactly as in `/create-vi`.
+- **Phase 4 — `vi-reviewer`**, Opus-pinned by frontmatter (`model: opus`, no override), reviewing the whole updated VI against `../../references/vi-format.md`. `PASS` / `PASS WITH RECOMMENDATIONS` proceeds. `BLOCK` triggers one inline fix cycle and one re-review; a persistent `BLOCK` is escalated per `../../references/escalation-rules.md`'s "Review verdict BLOCK" choices, exactly as in [`/create-vi`](create-vi.md).
 
 ## Example
 
@@ -72,7 +72,7 @@ The run resolves the feature folder, pulls the current Jira-imported VI plus its
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off at the `vi-update` seam.
 - [`/create-vi`](create-vi.md) — the greenfield sibling this command's Phase 0 redirects a caller to when `<KEY>` has no VI yet.
-- `/create-ard`, `/specify`, and `/release-notes` — the role re-runs `/update-vi`'s Phase 6 offers when an ARD, spec, or release note already exists; each gets its own command page in a later task.
+- [`/create-ard`](create-ard.md), [`/specify`](specify.md), and [`/release-notes`](release-notes.md) — the role re-runs `/update-vi`'s Phase 6 offers when an ARD, spec, or release note already exists.
 - [Model routing](../reference/model-routing.md) — the classification and Opus fallback chain `vi-reviewer` runs under.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Resume and checkpoints](../reference/resume-and-checkpoints.md) — the terminal Phase 7 bookkeeping every run emits.
 - [`vi-format.md`](../../references/vi-format.md) — the canonical structure the VI is updated and reviewed against.

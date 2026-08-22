@@ -75,6 +75,7 @@ granted, so this agent can never ask the user directly. The orchestrator owns th
 - Leave all changes **uncommitted** — no git commits, no PRs.
 - Process one component per invocation.
 - The baseline provided by the orchestrator is authoritative; do not re-run it.
+- NEVER dispatch any subagent other than `test-baseliner`. That one dispatch is your entire `Task` authority. **Never dispatch a reviewer of your own.** Review is the caller's to schedule, not yours. Your caller deliberately runs no reviewer on some paths — a SIMPLE / MODERATE run is classified out of the Opus `code-review` gate on purpose — so a reviewer you spawn silently overrides the caller's own gate policy. Its verdict has no standing either: the caller never sees it, and you cannot act on it without exceeding your brief.
 
 ## Model Routing
 
@@ -95,4 +96,3 @@ This agent itself runs under whichever model the orchestrator selected.
 For SIGNIFICANT / HIGH-RISK upgrades the orchestrator may still leave this
 agent on the current model or Sonnet — Opus is reserved for the planner
 and the post-impl review.
-

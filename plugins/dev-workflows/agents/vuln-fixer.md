@@ -93,6 +93,7 @@ granted, so this agent can never ask the user directly. The orchestrator owns th
 - Process one CVE per invocation.
 - Never push to `main`/`master` — always use a dedicated fix branch.
 - Always include the `Co-authored-by: Claude` trailer (see `/vuln`).
+- NEVER dispatch any subagent other than `test-baseliner`. That one dispatch is your entire `Task` authority. **Never dispatch a reviewer of your own.** Review is the caller's to schedule, not yours. Your caller deliberately runs no reviewer on some paths — a SIMPLE / MODERATE run is classified out of the Opus `code-review` gate on purpose — so a reviewer you spawn silently overrides the caller's own gate policy. Its verdict has no standing either: the caller never sees it, and you cannot act on it without exceeding your brief.
 
 ## Model Routing
 
@@ -113,4 +114,3 @@ If the orchestrator passes a `model_routing` block (see
 This agent itself runs under whichever model the orchestrator selected.
 Opus is reserved for `vuln-research` planning and the post-impl review — not
 required for the actual file edits.
-

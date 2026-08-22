@@ -299,11 +299,13 @@ unconditional `### Alternatives considered` and its four dependency categories, 
 two new checks. Plan: `docs/superpowers/plans/2026-08-22-design-it-twice.md`; spec:
 `docs/superpowers/specs/2026-08-22-design-it-twice-design.md`.
 
-## Post-round review wave — 2.56.1 — SHIPPED (2026-08-22)
+## Post-round review wave — 2.56.1 + 2.56.2 — SHIPPED & MERGED (2026-08-22)
 A comprehensive review of rounds 2 → 3b along three axes — every agent's tool grants, every
-producer→consumer data path, and the plan/design docs — found **three** live defects, all fixed in all
-three editions: canonical `882a200` / mgd **PR #4** / Copilot `96607d3`; dev-workflows **2.56.1** /
-**2.26.1**.
+producer→consumer data path, and the plan/design docs — found **four** live defects, all fixed and
+merged in all three editions. **2.56.1** (canonical `882a200` / mgd PR #4 `664ea98` / Copilot
+`96607d3`) carried the first three; **2.56.2** (canonical `64b8dae` / mgd PR #5 `566a7de` / Copilot
+`73d4cb9`, Copilot **2.26.1**→**2.26.2**) carried the fourth, which this entry had briefly recorded as
+"left as-is" before the bugs-first policy was applied to it.
 
 - **`doc-fixer`'s `NEEDS HUMAN` stop had no consumer anywhere** (since 1.1.0). Its own hard rules say the
   caller "reads it to decide whether re-running the review is worth doing" and "must surface the deferred
@@ -324,6 +326,14 @@ three editions: canonical `882a200` / mgd **PR #4** / Copilot `96607d3`; dev-wor
 - **`/design`'s `model_routing` `detection_model` comment read `# code-scanner`** while three agents route
   on that chain (`code-scanner`, `interface-designer`, `impl-maintenance`).
 
+- **`api-guideline-reviewer` declared an unused `Bash` grant** (2.56.2). It reviews OpenAPI specs by
+  reading them, names no executable, and `references/api-guidelines/` holds only markdown and a YAML
+  template. Every other read-only reviewer declares `["Read", "Glob", "Grep"]`; every other `Bash` holder
+  either uses it or bounds it explicitly. Its sibling `guideline-reviewer` keeps `Bash` — it really does
+  run `references/guidelines/check_guidelines.py` — so the pair now diverges at the agent level for a
+  real reason. Both commands' `allowed-tools` left unchanged: each is a thin dispatcher and the pair
+  declares an identical set, so narrowing them would be speculative.
+
 **What the review found clean.** No agent is instructed to do anything its tool grant forbids; every
 `Bash` grant is bounded or used — `api-guideline-reviewer`'s was neither, and the unused grant was
 dropped in **2.56.2** rather than carried (bugs-first). All counts re-derived rather than trusted: `code-review` 11, `doc-reviewer` 18,
@@ -333,6 +343,17 @@ all four rules. One candidate finding was **withdrawn** on inspection — `/impl
 like it never read `review-fixer`'s `NEEDS HUMAN`, but `implement.md:496` scopes the plan-conflict
 handler to "BLOCK **and** PASS WITH RECOMMENDATIONS", and a deferred-BLOCKER `NEEDS HUMAN` cannot occur
 on a PWR verdict. Reporting it would have been the unreachable-guard class this same review flagged.
+
+**The class-sweep was then run, and found nothing further.** 2.56.1's lesson — when a fix is "wire up
+X's unread signal", the axis is *every producer of that kind of signal*, not every caller of X — was
+applied as a check: all 23 status enums and stop flags across the 34 agents enumerated, producers diffed
+against consumers. Both `Stop condition flag` producers now have all five consumers. Eleven statuses
+showed zero command-side branches; every one was chased and cleared. Most are `test-baseliner` statuses
+the agent *reads* rather than emits. The genuine returns — `BUILD_FAILED`, `BASELINE_FAILED`, `REVERTED`,
+`TEST_REGRESSION_KEPT`/`_REVERTED` — are **not** the dead-gate class: neither agent states a caller
+obligation, each has already resolved the state before returning, and `references/handoff/*.md` declares
+the full enum with per-status meanings feeding the results table. The four agents with no `## Output`
+section are exactly those four, for exactly that reason. **Zero known open defects.**
 
 **Verification discipline used:** every check was shown to return 0 on the pre-fix tree (`b456ceb`) and
 non-zero after — nine checks, none vacuous. The three rounds' dominant defect was a verification pattern

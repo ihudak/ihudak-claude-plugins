@@ -199,10 +199,15 @@ following the constraint cost. What this take is bad at.]
 
 ```bash
 cd /workspace/ihudak-claude-plugins/plugins/dev-workflows
-grep -c "^## " agents/interface-designer.md                    # expect 4 (Inputs/Method/Output/Hard rules)
-grep -cE "^## (Interface|Usage example|What it hides|Dependency strategy|Trade-offs)$" agents/interface-designer.md
-# ^ expect 0 — those five are INSIDE the fenced output block, not real headings. If this returns 5,
-#   the fence was lost and the file's structure is broken.
+# CORRECTED — the original two checks here were wrong and were retired during Task 1's fix rounds.
+# They demanded a 4-space-indented fence, which in CommonMark stops being a fence at all. The house
+# convention (code-review, doc-reviewer, risk-planner, review-fixer) is a column-0 fence wrapping a
+# `## <report title>` line and `###` fields. grep is line-based and counts the in-fence wrapper.
+grep -c '^## ' agents/interface-designer.md      # expect 5 — 4 real sections + the in-fence wrapper
+grep -cE '^### (Interface|Usage example|What it hides|Dependency strategy|Trade-offs)$' agents/interface-designer.md   # expect 5
+grep -c '^#### ' agents/interface-designer.md    # expect 0
+grep -cE '^ +```' agents/interface-designer.md   # expect 0 — no indented fence
+grep -c '^```' agents/interface-designer.md      # expect 2
 grep -c "read-failure contract" agents/interface-designer.md   # expect 1
 ls agents/*.md | wc -l                                          # expect 34 (baseline 33 + 1)
 cd /workspace/ihudak-claude-plugins && claude plugin validate .
@@ -392,8 +397,10 @@ EOF
 - Consumes: `interface-designer` (Task 1), the contested signals and category names (Task 3), the
   `### Alternatives considered` block (Task 2).
 - Produces: the flag token **`--design-twice`**; the three Phase 5 report strings Task 8's residue audit
-  greps for (`Interface fan-out: ran`, `Interface fan-out: offered and declined`,
-  `Interface fan-out: not offered`).
+  audits. These are the three **outcomes** the report must distinguish — `ran`, `offered and declined`,
+  `not offered` — rendered as one bracket-enumerated template line, NOT three literal strings. Tasks 8
+  and 10 grep the decomposed forms (`Interface fan-out` ≥2, `not offered` ≥1) accordingly; do not write
+  a check against the three full phrases, because none of them exists as a continuous substring.
 
 **This task carries the spec's §8 risk.** A described-but-unwired offer is the defect the whole spec is
 guarding against. Every step below must land in the command's **flow**, not beside it.

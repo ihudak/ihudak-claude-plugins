@@ -55,13 +55,45 @@ The role collapse touches files that are `cp`-ported to `mgd-claude-plugins` and
 
 ---
 
-## F. Gate findings accepted but NOT fixed — deliberate, with grounds
+## F. Gate findings — two built, four deferred on verified grounds
 
-From the adversarial gate review (2026-08-22). Each was verified; each is left standing for a stated reason, so a later reader does not re-raise it as new.
+From the adversarial gate review (2026-08-22). The first pass of this section deferred six items
+on the strength of "latent — nothing in the tree triggers it today". **That phrasing was an
+assumption, not a check.** Every ground below has since been re-derived against the tree; two of
+the six turned out not to be latent at all, only unbuilt, and were built.
 
-1. **`RUNTIME_VARS` is an unaudited silencer** (`scripts/check-docs.sh`). Adding a name to that exclusion list kills both directions of check 5 permanently, and `--selftest` cannot see it. The scan recurses `references/`, which holds vendored third-party guidance — a `$MY_SERVICE_TOKEN` in an API-guidelines example would demand that name appear in the user-facing `getting-started.md`, and the tempting fix is an exclusion. **Not fixed** because the mechanism that would defend it (a per-entry justification the gate verifies) is a larger design than this branch should carry. The list is short and every current entry is justified in §E above.
-2. **No check verifies a written count.** A 22nd command with a page and a link passes while `plugins/dev-workflows/README.md` says "twenty-one slash commands"; likewise "34 agents", "98 files", "four hooks", "six user-settable variables". **Not fixed** — the inventories themselves are gated in both directions, so a drifted prose numeral is a stale sentence rather than an undocumented artifact. Worth a check 9 later.
-3. **`slugify()` diverges from GitHub on non-ASCII headings** (`Über-config` → `ber-config`) and never generates GitHub's `-1` duplicate disambiguator, so a correct `#notes-1` would fail check 2. **Not fixed** — latent: no heading in the tree is non-ASCII or duplicated. Fix it the day one is added.
-4. **Check 1 ignores two CommonMark link forms and rejects two others** — `[x](file.md "Title")` and `[x](<file.md>)` fail; reference-style `[x][t]` and raw `<a href>` are never extracted. **Not fixed** — the tree uses none of these forms, and the checked form is the one the docs convention uses.
-5. **Check 3 treats `docs/README.md` as the sole reachability root**, so a page linked only from the plugin README would read as an orphan. **Not fixed** — currently vacuous, since every page is reachable from the index, and the index is the intended entry point.
-6. **Check 6 flags tables inside `~~~` fences and skips indented table rows.** **Not fixed** — no such construct exists in the tree; both are false-positive-shaped, so they fail loudly rather than silently.
+### Built after re-examination
+
+1. **Prose counts are now gated — `check-docs.sh` check 9.** check 4 gated the inventories in both
+   directions but nothing gated the *sentences* stating their size, so a 22nd command with a page and
+   an index link would pass while `README.md` still said "twenty-one slash commands" — and the reader
+   meets the sentence before the table. Six counts are now derived from the tree and compared:
+   commands, agents, reference files, hooks, skills, and user-settable environment variables (that last
+   derived from check 5's own scan, so the two can never disagree about what "user-settable" means).
+   The check fires in **two** modes — a wrong number, and a count sentence *reworded away*, which is the
+   vacuous-pass mode that would otherwise silence it. Both have selftest cases. All six counts were
+   verified correct at the time of writing, so this closes a hole rather than a defect.
+2. **`RUNTIME_VARS` is now frozen against a checked constant.** Every name in that list silences both
+   directions of check 5 for that variable, permanently, and no fixture mutation can reveal it. Changing
+   it now trips a tripwire that names the risk and demands the justification comment be updated in the
+   same edit. The tripwire is self-referential — it guards a constant in the file that runs it — so
+   `--selftest` structurally cannot exercise it; it is verified out-of-band instead (mutate a copy of the
+   script, watch check 5 fail), and the script says so where the constant is defined.
+
+### Deferred — each ground re-derived against the tree, not assumed
+
+3. **`slugify()` diverges from GitHub on non-ASCII *letters*** (`Über-config` → `ber-config`) and never
+   generates GitHub's `-1` duplicate-heading disambiguator. **Verified vacuous:** the only non-ASCII
+   character in any heading across all 34 pages is the em-dash `—`, which the review confirmed slugify
+   handles identically to github-slugger; and no file contains a duplicate heading. Fix it the day a
+   non-ASCII letter or a repeated heading is added — both are one-line changes.
+4. **Check 1 rejects `[x](file.md "Title")` and `[x](<file.md>)`, and never extracts reference-style
+   `[x][t]` or raw `<a href>`.** **Verified vacuous:** zero occurrences of all four forms across
+   `docs/`, the plugin README, and the repo-root README. The one apparent hit is `[A-Z][A-Z0-9_]*`
+   inside a backticked regex, which is not a link.
+5. **Check 3 treats `docs/README.md` as the sole reachability root**, so a page linked only from the
+   plugin README would read as a false orphan. **Verified vacuous:** all 34 pages are reachable from the
+   index, which is the intended entry point; check 3 reports zero orphans.
+6. **Check 6 flags tables inside `~~~` fences and skips indented table rows.** **Verified vacuous:** no
+   `~~~` fence and no indented table row exists in `docs/` or either README. Both are false-positive
+   shaped — they would fail loudly rather than pass silently, which is the safe direction to be wrong in.

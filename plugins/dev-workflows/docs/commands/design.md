@@ -4,7 +4,7 @@ Takes over a merged specification from the specs repo's main branch, grounds str
 
 ## Who runs it
 
-`/design` runs in the [dev](../roles-and-phases.md#dev--build-and-deliver) role, cost-attribution phase [planning](../roles-and-phases.md#planning) — being in this phase means an engineering `design.md` is being authored from a merged specification, grounded strictly in the mounted code.
+`/design` runs in the [dev](../roles-and-phases.md#dev--build-verify-and-deliver) role, cost-attribution phase [planning](../roles-and-phases.md#planning) — being in this phase means an engineering `design.md` is being authored from a merged specification, grounded strictly in the mounted code.
 
 ## Synopsis
 

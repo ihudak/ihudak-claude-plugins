@@ -9,7 +9,7 @@ commands so the routing graph and the offer rules live in ONE place (the same sh
 
 1. **Guidance-only** — the offer NAMES the next command(s); it NEVER auto-invokes anything.
 2. **Role-labeled** — it names the concrete command(s) for the next step, tagged with the owning
-   role (PM / PA / PE / Team), even on a handoff — one person may wear several hats and just keep
+   role (PM / PA / PE / Dev), even on a handoff — one person may wear several hats and just keep
    going. Never a bare "hand off to PA".
 3. **Adaptive to outcome** — a clean run points forward; a BLOCK / incomplete / cancelled run
    recommends resolving THAT first, not advancing.
@@ -60,16 +60,16 @@ not required.
 
 - `/dev-workflows:create-ard <VI>` (VI-level) → PE → `/dev-workflows:epics <VI>` (recommended) or `/dev-workflows:specify <VI>`.
   *(No `/dev-workflows:design` — no Epics yet.)*
-- `/dev-workflows:create-ard <VI> <Epic>` (Epic-level) → `/dev-workflows:specify <VI> <Epic>` (recommended) or Team →
+- `/dev-workflows:create-ard <VI> <Epic>` (Epic-level) → `/dev-workflows:specify <VI> <Epic>` (recommended) or Dev →
   `/dev-workflows:design <VI> <Epic>`.
 
 **PE — breakdown & specification**
 
 - `/dev-workflows:specify <VI>` (VI-level spec) → `/dev-workflows:epics <VI>`.
 - `/dev-workflows:epics <VI>` → `/dev-workflows:specify <VI> <Epic>` (per Epic); optional PA → `/dev-workflows:create-ard <VI> <Epic>`.
-- `/dev-workflows:specify <VI> <Epic>` (Epic-level spec) → Team → `/dev-workflows:design <VI> <Epic>`.
+- `/dev-workflows:specify <VI> <Epic>` (Epic-level spec) → Dev → `/dev-workflows:design <VI> <Epic>`.
 
-**Team/Dev — build**
+**Dev — build**
 
 - `/dev-workflows:design <VI> <Epic>` → optionally `/dev-workflows:ready <VI> <Epic>` (verify readiness) →
   `/dev-workflows:implement <VI> <Epic>`.

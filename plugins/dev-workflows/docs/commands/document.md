@@ -4,7 +4,7 @@ Writes or updates product documentation — either a full Jira-driven feature-do
 
 ## Who runs it
 
-`/document` runs in the [dev](../roles-and-phases.md#dev--build-and-deliver) role, cost-attribution phase [documenting](../roles-and-phases.md#documenting) — being in this phase means product documentation is being written or updated for a shipped feature. Both of its modes emit the same fixed `phase: documenting, role: dev` pair to the cost report; unlike [`/release-notes`](release-notes.md), which infers its phase from whether engineering artifacts exist yet, `/document` never has to infer anything — a documentation run is dev-phase work regardless of which mode wrote it.
+`/document` runs in the [dev](../roles-and-phases.md#dev--build-verify-and-deliver) role, cost-attribution phase [documenting](../roles-and-phases.md#documenting) — being in this phase means product documentation is being written or updated for a shipped feature. Both of its modes emit the same fixed `phase: documenting, role: dev` pair to the cost report; unlike [`/release-notes`](release-notes.md), which infers its phase from whether engineering artifacts exist yet, `/document` never has to infer anything — a documentation run is dev-phase work regardless of which mode wrote it.
 
 ## Synopsis
 

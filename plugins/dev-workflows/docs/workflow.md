@@ -17,12 +17,10 @@ flowchart TD
         epics["/epics"]
         specify["/specify"]
     end
-    subgraph DEV["Dev — build"]
+    subgraph DEV["Dev — build, verify & deliver"]
         design["/design"] --> implement["/implement"]
         implement --> document["/document"]
         document --> rndev["/dev-workflows:release-notes (final)"]
-    end
-    subgraph QA["Team — verification & gates"]
         ready["/ready"]
     end
     subgraph ANY["Anytime — improve the plugin & utilities"]
@@ -35,6 +33,7 @@ flowchart TD
     createvi -->|VI| epics
     createard -->|ARD| epics
     epics -->|Epic drafts| specify
+    createvi -->|VI-level spec| specify
     specify -->|specification.md| design
     ready -. verifies ARD/spec/design .-> implement
 ```
@@ -50,8 +49,7 @@ The diagram above shows where each command sits in the pipeline; [Roles and phas
 | **PM** | `/idea`, `/create-vi`, `/update-vi`, and an early `/release-notes` | `idea.md` in `$VAULT_PATH`, then the VI in `$SPECS_PATH/specifications/<KEY>-<slug>/` |
 | **PA** | `/create-ard` (optional) | the ARD, in the same specs feature folder as the VI |
 | **PE** | `/epics`, `/specify` | Epic drafts in `$VAULT_PATH/jira-drafts/<VI-KEY>/`; `specification.md` on the specs repo's default branch |
-| **Dev** | `/design`, `/implement`, `/document`, and a final `/release-notes` | `design.md` on the specs repo's default branch; code + PR in `$REPOS_PATH`; product docs in the docs repo |
-| **Team** | `/ready` | a read-only `SUPPORTED` / `PARTIAL` / `NOT-SUPPORTED` verdict — sets no status |
+| **Dev** | `/design`, `/implement`, `/document`, `/ready`, and a final `/release-notes` | `design.md` on the specs repo's default branch; code + PR in `$REPOS_PATH`; product docs in the docs repo; a read-only readiness verdict that sets no status |
 
 See [Roles and phases](roles-and-phases.md) for what each role owns, consumes, and hands off — this table only shows where the commands sit.
 
@@ -60,11 +58,11 @@ See [Roles and phases](roles-and-phases.md) for what each role owns, consumes, a
 - **`$SPECS_PATH/specifications/<KEY>-<slug>/`** — the shared, team-visible home for the VI, the ARD, `specification.md`, and `design.md`. Each authoring command lands its file here, then hands it onto the specs repo's default branch for the next command to find.
 - **`$VAULT_PATH`** — the personal store: `idea.md` before a Jira key exists, the imported `jira-products/<KEY>/` tree, `jira-drafts/<VI-KEY>/` Epic drafts, and release-notes drafts.
 - **`$REPOS_PATH`** — the mounted code clones. `/implement` and, outside the VI pipeline, `/upgrade` work here on a feature branch but leave changes uncommitted; `/vuln`, also outside the VI pipeline, is the one that commits and opens a pull request, per fixed CVE. Product documentation itself is written into the external docs repo, not here.
-- **Plugin bookkeeping** — feedback, cost, and follow-up files — lives under `<VI-dir>/dev-workflows/` inside `$SPECS_PATH`, committed and pushed alongside the specs artifacts it describes.
+- **Plugin bookkeeping** — feedback and session-cost files — lives under `<VI-dir>/dev-workflows/` inside `$SPECS_PATH`, committed and pushed alongside the specs artifacts it describes. Follow-up tasks are the one exception: they land in your vault first and reach this directory only when no vault is available — see [Follow-ups](reference/follow-ups.md) for the full ladder.
 
 ## Sources of truth
 
-- **Jira** is the source of truth for workflow *status*. An external import tool pulls the ticket tree into `$VAULT_PATH/jira-products/<KEY>/`; the plugin reads that status but never sets it — `/ready` verifies it against the ARD/spec/design record instead of writing it.
+- **Jira** is the source of truth for workflow *status* — [`workflow-states.md`](../references/workflow-states.md), which owns the VI and Epic status ladders, says so outright and stores no status of its own, only interprets one. An external import tool pulls the ticket tree into `$VAULT_PATH/jira-products/<KEY>/`, every command reads the status from there, and none writes it back. `/ready` is the command that looks most like an exception and is not one: it verifies a declared status against the ARD/spec/design record and reports, rather than changing it.
 - **The specs repo's default branch** is the source of truth for whether a phase's deliverable is actually *done*. A producing command lands its artifact there; the next command in the chain refuses to start expensive work until it finds the artifact on that branch, not merely written to disk. See [Roles and phases](roles-and-phases.md) for what happens when the artifact is on an unmerged branch instead, or missing entirely.
 
 ## Cross-cutting commands

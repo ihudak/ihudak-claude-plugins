@@ -38,23 +38,16 @@ Every phase ends the same way: a producing command lands its deliverable on the 
 - **Hands over at the seam:** `/specify` gates on the VI the same way `/create-ard` does — an absent VI falls back to the Jira export and is reported rather than silent, and the hard stop is an unmerged VI, never a missing one. `/epics` has no VI gate at all; its one gated input is an optional VI-level `specification.md`, whose absence is a silent skip (`vi_spec_present: false`). `/specify` lands `specification.md` onto the specs repo's default branch, and `/design` refuses to start until it finds that specification there.
 - **Cost phase(s):** `epic-refinement` (`/epics`), `specification` (`/specify`) — both role `pe`.
 
-## Dev — build and deliver
+## Dev — build, verify, and deliver
 
-- **Owns:** the engineering design, the implementation, and the documentation of the shipped feature.
-- **Runs:** `/design`, `/implement`, `/document`; also the final run of `/release-notes`, once a specification or design already exists.
-- **Consumes:** the merged `specification.md` (plus the ARD, when one exists), then the merged `design.md`, then the code under `$REPOS_PATH`.
-- **Produces:** `design.md`, landed on the specs repo's default branch; code and a pull request in `$REPOS_PATH`; product documentation in the external docs repo; the final release-notes draft.
-- **Hands over at the seam:** `/design` is the one hard exception to the optional-input rule above — it stops outright if `specification.md` is not found on the specs repo's default branch. It then lands `design.md` the same way. `/implement` gates its own in-scope `specification.md` / `design.md` the same way `/create-ard` and `/specify` gate the VI — an unmerged one is a hard stop, but an absent one is not: the run behaves exactly as it did before this gate existed, and a direct-prompt run (which resolves no in-scope spec/design at all) is unaffected either way.
-- **Cost phase(s):** `planning` (`/design`), `implementation` (`/implement`), `documenting` (`/document`) — all role `dev`.
+- **Owns:** the engineering design, the implementation, and the documentation of the shipped feature — plus verifying that a declared Jira status is actually justified by the artifacts on record, which this role checks but never sets.
+- **Runs:** `/design`, `/implement`, `/document`, `/ready`; also the final run of `/release-notes`, once a specification or design already exists.
+- **Consumes:** the merged `specification.md` (plus the ARD, when one exists), then the merged `design.md`, then the code under `$REPOS_PATH`; `/ready` additionally consumes the declared Jira workflow status for the VI or Epic in question.
+- **Produces:** `design.md`, landed on the specs repo's default branch; code and a pull request in `$REPOS_PATH`; product documentation in the external docs repo; the final release-notes draft; and, from `/ready`, a `SUPPORTED` / `PARTIAL` / `NOT-SUPPORTED` verdict plus an optional `_readiness.md` snapshot, committed and handed off only behind your consent.
+- **Hands over at the seam:** `/design` is the one hard exception to the optional-input rule above — it stops outright if `specification.md` is not found on the specs repo's default branch. It then lands `design.md` the same way. `/implement` gates its own in-scope `specification.md` / `design.md` the same way `/create-ard` and `/specify` gate the VI — an unmerged one is a hard stop, but an absent one is not: the run behaves exactly as it did before this gate existed, and a direct-prompt run (which resolves no in-scope spec/design at all) is unaffected either way. `/ready` is the opposite extreme, and the exception named [above](#the-handover-model): it is the sole caller that keeps running past a stop another command would treat as fatal, turning an unmerged or missing artifact into a finding that caps its verdict at `PARTIAL` instead of halting.
+- **Cost phase(s):** `planning` (`/design`), `implementation` (`/implement`), `documenting` (`/document`), `readiness` (`/ready`) — all role `dev`.
 
-## Team — verification
-
-- **Owns:** verifying that a Jira status is actually justified by the artifacts on record — it never sets status.
-- **Runs:** `/ready`.
-- **Consumes:** the Jira workflow status, plus the ARD, `specification.md`, and `design.md` for the VI or Epic in question.
-- **Produces:** a `SUPPORTED` / `PARTIAL` / `NOT-SUPPORTED` verdict; optionally a `_readiness.md` snapshot, committed and handed off only behind your consent.
-- **Hands over at the seam:** as [above](#the-handover-model), `/ready` is the sole caller that keeps running past a stop another command would treat as fatal — an artifact on an unmerged branch, or missing entirely, becomes a finding that caps the verdict at `PARTIAL` instead of halting the run.
-- **Cost phase:** `readiness`, role `team`.
+**Why there is no separate verification role.** `/ready` reads a status and reports on it; it writes no artifact anyone downstream consumes, and it is normally run by the same person who just wrote the design or is about to start the implementation. Giving it a lane of its own would suggest a handover that does not happen — so it sits in `dev`, the role that already owns everything it verifies.
 
 ## Cost-attribution phases
 
@@ -94,7 +87,7 @@ Emitted by `/document`, role `dev`. Being in this phase means product documentat
 
 ### readiness
 
-Emitted by `/ready`, role `team`. Being in this phase means a Jira status is being checked against the ARD / spec / design record, never changed.
+Emitted by `/ready`, role `dev`. Being in this phase means a Jira status is being checked against the ARD / spec / design record, never changed.
 
 ---
 

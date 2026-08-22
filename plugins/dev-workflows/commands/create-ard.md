@@ -149,7 +149,7 @@ Write the ARD file(s) into the feature folder. Then **offer** (commit-when-asked
 
 ## Phase 7 — Next-step offer (adaptive)
 - **VI-level ARD:** if the VI has 0 Epics → `choices: ["Hand to a Product Engineer — /dev-workflows:epics <VI> (then create them in Jira + re-import) (PE) (Recommended)", "Author a VI-level spec — /dev-workflows:specify <VI> (PE)", "Stop here", "Other… (describe)"]`; else offer `/dev-workflows:specify <VI>` (PE). *(No `/design` — no Epics yet.)* Either way, `/dev-workflows:specify` won't treat this ARD as available until the pull request above is merged — until then it architects without it, same as if none existed.
-- **Epic-level ARD:** `choices: ["Author the spec — /dev-workflows:specify <VI> <Epic> (PE) (Recommended)", "Hand to the team — /dev-workflows:design <VI> <Epic> (Team)", "Stop here", "Other… (describe)"]`. **Epic fan-out** — repeat this ARD for a sibling Epic: `/dev-workflows:create-ard <VI> <another-Epic>`. Both `/dev-workflows:specify` and `/dev-workflows:design` wait the same way — this ARD is invisible to them until its pull request above is merged.
+- **Epic-level ARD:** `choices: ["Author the spec — /dev-workflows:specify <VI> <Epic> (PE) (Recommended)", "Hand to Dev — /dev-workflows:design <VI> <Epic> (Dev)", "Stop here", "Other… (describe)"]`. **Epic fan-out** — repeat this ARD for a sibling Epic: `/dev-workflows:create-ard <VI> <another-Epic>`. Both `/dev-workflows:specify` and `/dev-workflows:design` wait the same way — this ARD is invisible to them until its pull request above is merged.
 
 Guidance only — never auto-invokes another command. Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`.
 
@@ -157,9 +157,9 @@ Guidance only — never auto-invokes another command. Per `${CLAUDE_PLUGIN_ROOT}
 
 The resume pointer is written in the terminal cost phase (Phase 8), per
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. The next step hands off from PA
-to PE/Team, so:
+to PE/Dev, so:
 
-- **Handing to PE (`/dev-workflows:epics <VI>` / `/dev-workflows:specify <VI> <Epic>`) or Team (`/dev-workflows:design <VI> <Epic>`), even yourself?** → run **`/clear`** for a clean slate; the ARD is on disk.
+- **Handing to PE (`/dev-workflows:epics <VI>` / `/dev-workflows:specify <VI> <Epic>`) or Dev (`/dev-workflows:design <VI> <Epic>`), even yourself?** → run **`/clear`** for a clean slate; the ARD is on disk.
 - Continuing to draft more ARD areas yourself right now? → **`/compact`** is fine.
 - Consider **`/rename <VI-ID>-<slug>-pa`** so you can find this session later.
 
@@ -177,7 +177,7 @@ Terminal phase — runs after Phase 7, NEVER interrupts an earlier phase.
 `resume.md` write runs later, in the terminal cost phase, per
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the
 guidance only), then a
-PA→PE/Team handoff suggestion (`/clear`) + `/rename <VI-ID>-<slug>-pa`. Guidance only, never auto-run.
+PA→PE/Dev handoff suggestion (`/clear`) + `/rename <VI-ID>-<slug>-pa`. Guidance only, never auto-run.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`) with a compact handoff: command `/create-ard`; what was authored (ARD scope + grounded repos); key events (grounding gaps/descopes, BLOCK reviews — or 'none'); workarounds; the `ard-reviewer` verdict; test result N/A; project root = the feature folder.
 2. **Persist plugin feedback (automatic).** Cite `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6) with the report, `command: /create-ard`, the run's `jira_key`, `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no plugin-facing signal — nothing persisted").

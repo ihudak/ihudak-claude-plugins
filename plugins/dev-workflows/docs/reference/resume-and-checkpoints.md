@@ -26,7 +26,7 @@ Any secret, credential, token, or other sensitive value that might otherwise lan
 
 ## The suggestion: `/compact` or `/clear`
 
-Every next-step option a command offers already carries a role label — see [Roles and phases](../roles-and-phases.md) for what PM, PA, PE, Dev, and Team each own. The context-hygiene suggestion reads those same labels rather than hardcoding a per-command verdict:
+Every next-step option a command offers already carries a role label — see [Roles and phases](../roles-and-phases.md) for what PM, PA, PE, and Dev each own. The context-hygiene suggestion reads those same labels rather than hardcoding a per-command verdict:
 
 - **Staying in the same role** for the next step (`/design E1` → `/design E2`, Dev → Dev) → **`/compact`** — the context is still relevant, so keep the thread going.
 - **Moving to a different role** (`/epics` PE → `/design` Dev) → **`/clear`** is the better default when one person is wearing both hats, since the prior role's reasoning becomes noise for the next one; `/compact` still works fine if you're continuing right away yourself.
@@ -39,7 +39,7 @@ A run doesn't have to finish to earn a checkpoint. `/implement`'s own mid-phase 
 
 ## The `/rename` aid
 
-Within this rename-aid set, a VI key is first available at `/release-notes`, and every PA/PE/Team/Dev command that takes a `<VI>` argument (`/create-ard`, `/epics`, `/specify`, `/design`, `/ready`, `/implement`, `/document`, `/release-notes`) prints a suggested `/rename <VI-ID>-<slug>-<role>` line, so you can find this session again later in `claude --resume` by name instead of by scrolling. `<role>` is the lane tag of the command that just finished — pm, pa, pe, dev, or team. `/idea` and `/create-vi` are excluded from this aid: idea refinement is short, it usually runs before the paste-into-Jira-and-reimport round trip that mints the VI key in the first place, so there is often no key yet to name the session after — and on the rarer runs that do carry one already, the phase is still short enough that naming the session isn't worth automatically suggesting.
+Within this rename-aid set, a VI key is first available at `/release-notes`, and every PA/PE/Dev command that takes a `<VI>` argument (`/create-ard`, `/epics`, `/specify`, `/design`, `/ready`, `/implement`, `/document`, `/release-notes`) prints a suggested `/rename <VI-ID>-<slug>-<role>` line, so you can find this session again later in `claude --resume` by name instead of by scrolling. `<role>` is the lane tag of the command that just finished — pm, pa, pe, or dev. `/idea` and `/create-vi` are excluded from this aid: idea refinement is short, it usually runs before the paste-into-Jira-and-reimport round trip that mints the VI key in the first place, so there is often no key yet to name the session after — and on the rarer runs that do carry one already, the phase is still short enough that naming the session isn't worth automatically suggesting.
 
 ## The contract
 

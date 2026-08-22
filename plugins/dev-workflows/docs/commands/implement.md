@@ -4,7 +4,7 @@ Classifies a task's risk, creates a branch, plans and implements the change, wri
 
 ## Who runs it
 
-`/implement` runs in the [dev](../roles-and-phases.md#dev--build-and-deliver) role, cost-attribution phase [implementation](../roles-and-phases.md#implementation) — being in this phase means code is actually being written, tested, and reviewed.
+`/implement` runs in the [dev](../roles-and-phases.md#dev--build-verify-and-deliver) role, cost-attribution phase [implementation](../roles-and-phases.md#implementation) — being in this phase means code is actually being written, tested, and reviewed.
 
 ## Synopsis
 

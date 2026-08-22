@@ -264,6 +264,30 @@ claimed `code-review` had 8 dimensions (it already had 10) and `epic-reviewer` 9
   against an imagined file reports on the imagined file.** Derive every expected value from the tree in
   front of you, and when a check disagrees with the tree, suspect the check first.
 
+## Harvest round 3a — items 5 + 7 — IN PROGRESS (2026-08-22)
+Items 5 and 7 taken as one small bounded round; item 6 (design-it-twice) deliberately left for its own
+architectural cycle, because it adds a parallel sub-agent fan-out to `/design` with its own gate, cost
+story, and `design-reviewer` implications — bundling it with two additive hardening items would either
+rush it or stall them.
+
+**Item 7's second half is DROPPED, and this is the reason — do not re-derive it as a gap.** The
+upstream rule says a reviewer must return findings as text and never route them through a
+findings-reporting tool the host may offer. In these editions that rule can never fire: all eight
+gating reviewers (`code-review`, `doc-reviewer`, `epic-reviewer`, `vi-reviewer`, `ard-reviewer`,
+`spec-reviewer`, `design-reviewer`, `readiness-reviewer`) declare `tools: ["Read", "Glob", "Grep"]`, so
+no such tool is in reach. Adding it would be a rule stated, counted, and never executed — the exact
+class round 2 closed — and round 2's own patch gate forbids a fix that "guards no state the finding did
+not demonstrate". If a reviewer's tool list is ever widened, revisit this.
+
+**A rationale correction worth keeping.** The dispatch bound on the three `Task`-holding agents was
+nearly justified as "review arrives from the caller, so a self-spawned reviewer duplicates that seat".
+That is **false on half the paths**: `/document` direct mode runs no `doc-reviewer` at all
+(`CLAUDE.md` — "deliberately lightweight"), and the SIMPLE / MODERATE paths of `/vuln` and `/upgrade`
+run no `code-review`. The rule ships instead on **authority**: the caller owns the gate policy, the
+absence of a reviewer on the light paths is a deliberate design choice, and a worker that spawns its
+own reviewer silently overrides that choice while producing a verdict nobody consumes. True on every
+path.
+
 ## NEXT: harvest items 5–7 — named backlog, NOT rejected
 These three were surveyed on 2026-08-21 and **deliberately left out of round 2**, for one reason only:
 round 2 was scoped to a single discipline — verify what you assert — and these three are a different

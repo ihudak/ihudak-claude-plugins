@@ -19,7 +19,7 @@ claude plugin install obsidian-llm-wiki@ihudak-plugins
 claude plugin install acli@ihudak-plugins
 ```
 
-`dev-workflows` is the pipeline this documentation covers. `dt-style-guide` gives `/document` and `/epics` a fallback prose linter when a repo has none of its own. `obsidian-llm-wiki` and `acli` back the vault import and Jira tooling that several commands assume is already in place — install all four together.
+`dev-workflows` is the pipeline this documentation covers. `dt-style-guide` is the primary style checker for `/epics`, and a fallback prose linter for `/document` when the target docs repo has none configured. `obsidian-llm-wiki` compiles your vault into a persistent, cross-referenced wiki with task management. `acli` is a reference skill for the Atlassian CLI, covering Jira and Confluence operations from the command line. None of the four imports Jira tickets into your vault — that is a separate, external tool, `jira-workitem-import`, which populates `$VAULT_PATH/jira-products/<KEY>/` in the structure every Jira-driven command expects; install it too before you run `/specify`, `/document`, or any other Jira-driven command (the inline-prompt `/idea` walked below needs none of this).
 
 ## Update
 
@@ -43,7 +43,7 @@ The **shared, team-visible repository for the AI-authored documents** — the Va
 
 ### `REPOS_PATH`
 
-Where your code clones live — one directory, or a colon-separated list of them. Defaults to `/workspace`. Repos are matched by their `git remote get-url origin` slug, **never by directory name** — a repo cloned under any path, or renamed on disk, is still found correctly as long as its `origin` remote is intact. This is the detail that surprises people, so it is worth saying plainly here.
+Where your code clones live — one directory, or a colon-separated list of them. It has a sensible built-in default, so most readers never need to set it at all; see [Environment](reference/environment.md) for the exact value and resolution order. Repos are matched by their `git remote get-url origin` slug, **never by directory name** — a repo cloned under any path, or renamed on disk, is still found correctly as long as its `origin` remote is intact. This is the detail that surprises people, so it is worth saying plainly here.
 
 ### `DOCS_PATH`
 
@@ -79,6 +79,6 @@ Here is what to expect:
 
 1. **A bounded grill.** `/idea` asks you up to ten questions, one at a time, to sharpen the idea before writing anything — scope, who it is for, what "done" looks like. Answer as best you can; a question you cannot answer yet becomes a logged `[NEEDS CLARIFICATION]` marker rather than a blocker.
 2. **A written brief.** It writes `idea.md` — a lean one-page brief — into `VAULT_PATH`. If `DOCS_PATH` is set and readable, the idea is also checked against what is already documented, and if your vault has prior related work, that surfaces too.
-3. **A handoff, once a Jira key exists.** The moment you create the corresponding Jira ticket, re-running `/idea` (or the next command, `/create-vi <KEY>`) relocates `idea.md` into `$SPECS_PATH/specifications/<KEY>-<slug>/` and lands it on the specs repo's default branch, ready for the next role to pick up.
+3. **A handoff, once a Jira key exists.** The moment you create the corresponding Jira ticket, re-running `/idea` relocates `idea.md` into `$SPECS_PATH/specifications/<KEY>-<slug>/` and lands it on the specs repo's default branch, where the next command, `/create-vi <KEY>`, finds it and takes over — `/create-vi` never does the relocating itself.
 
 From here, [Workflow overview](workflow.md) shows where every other command sits relative to `/idea`, and [Roles and phases](roles-and-phases.md) says what happens at each handoff along the way.

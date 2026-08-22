@@ -325,8 +325,8 @@ three editions: canonical `882a200` / mgd **PR #4** / Copilot `96607d3`; dev-wor
   on that chain (`code-scanner`, `interface-designer`, `impl-maintenance`).
 
 **What the review found clean.** No agent is instructed to do anything its tool grant forbids; every
-`Bash` grant is bounded except `api-guideline-reviewer`'s, which is unused (left as-is, pre-existing and
-harmless). All counts re-derived rather than trusted: `code-review` 11, `doc-reviewer` 18,
+`Bash` grant is bounded or used — `api-guideline-reviewer`'s was neither, and the unused grant was
+dropped in **2.56.2** rather than carried (bugs-first). All counts re-derived rather than trusted: `code-review` 11, `doc-reviewer` 18,
 `epic-reviewer` 19, nine Opus pins, thirty-four agents in twelve places across three editions.
 `--design-twice` documented in all six required places in all three editions. Copilot dialect clean on
 all four rules. One candidate finding was **withdrawn** on inspection — `/implement`'s PWR branch looked

@@ -89,7 +89,9 @@ present for `MODERATE`+ or whenever the change touches that concern, else a one-
    - two or more adapters are plausible for the same seam;
    - the interface spans a process or network boundary, so its shape decides what can be tested locally;
    - three or more callers share the shape;
-   - the interview has produced two defensible shapes and no discriminating argument between them.
+   - two or more candidate shapes for the same interface are already recorded in `_design-session.md` and
+     none has been eliminated (count the recorded candidates — do not judge whether an argument between
+     them is "discriminating"; that is the unobservable form this list exists to avoid).
 6. **## Data flow** (scaled) — how data moves through the changed path; state transitions; persistence.
 7. **## Error handling & edge cases** (scaled) — failure modes, boundaries, and the defined behaviour
    for each.

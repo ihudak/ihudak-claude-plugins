@@ -7,11 +7,11 @@
 
 ## 1. Problem
 
-`plugins/dev-workflows/README.md` is **379 lines and 74,620 bytes**. That ratio is the defect: an average of 197 bytes per line, with a single table row reaching **2,177 characters**. Three sections carry 50,565 of those bytes:
+`plugins/dev-workflows/README.md` is **379 lines and 74,620 bytes**. That ratio is the defect: an average of 197 bytes per line, with a single table row reaching **2,177 characters**, whose longest cell is **2,066**. Three sections carry 50,565 of those bytes:
 
 | Section | Bytes | Lines | Shape |
 |---|---|---|---|
-| `## Commands` | 20,534 | 43 | 19 table rows, cells up to 2,177 characters |
+| `## Commands` | 20,534 | 43 | 19 table rows, cells up to 2,066 characters, in rows up to 2,177 |
 | `## Reference docs` | 16,764 | 57 | 36 bullets, paragraph-length |
 | `## Agents` | 13,267 | 42 | 34 table rows |
 

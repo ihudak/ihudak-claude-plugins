@@ -437,7 +437,7 @@ opened); the `Specs repo:` outcome line from `commit-artifacts`
 (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full;
 and the `### Next step` recommendation (below).
 
-On a SIGNIFICANT / HIGH-RISK run, the report states exactly one of the Phase 5 interface fan-out outcomes:
+The report always states exactly one of the Phase 5 interface fan-out outcomes — Phase 5 always runs in `/design`, so this line is unconditional:
 
 - **Interface fan-out:** [one of — `ran — <interface>, 3 takes, chose <A|B|C|hybrid>` | `offered and declined — <interface>` | `not offered — no contested interface (no signal in design-format.md ## Seams)`]
 

@@ -71,11 +71,33 @@ present for `MODERATE`+ or whenever the change touches that concern, else a one-
    relocate it? if only relocate, it may not earn its keep); the **two-adapters heuristic** (one
    hypothetical consumer = a *speculative* seam — do not introduce it yet; introduce a seam when a
    second real consumer exists — YAGNI for seams).
+   **Classify each seam's dependency category** — it decides how the seam can be tested, and
+   `## Test strategy` keys off it:
+   - **in-process** — pure computation, in-memory state, no I/O. Test through the interface directly;
+     no adapter needed.
+   - **local-substitutable** — a real local stand-in exists (PGLite for Postgres, an in-memory
+     filesystem). Test with the stand-in; the seam is internal, so no port at the external interface.
+   - **remote-but-owned** — your own service across a network boundary. Define a **port** at the seam;
+     an in-memory adapter for tests, HTTP/gRPC for production.
+   - **true-external** — a third party you do not control. Injected port; tests supply a mock adapter.
+
+   A category implying only one adapter is a hypothetical seam — the two-adapters heuristic above
+   already says not to introduce it yet.
+
+   **When an interface is *contested*** — any one of these — `/design` Phase 5 offers the three-take
+   interface fan-out (`--design-twice` forces it):
+   - two or more adapters are plausible for the same seam;
+   - the interface spans a process or network boundary, so its shape decides what can be tested locally;
+   - three or more callers share the shape;
+   - the interview has produced two defensible shapes and no discriminating argument between them.
 6. **## Data flow** (scaled) — how data moves through the changed path; state transitions; persistence.
 7. **## Error handling & edge cases** (scaled) — failure modes, boundaries, and the defined behaviour
    for each.
 8. **## Test strategy** (core) — what is tested and how (unit / integration / e2e), keyed to the seams;
    cite existing test prior art in the scanned repos.
+   Key each seam's approach to the **dependency category** recorded for it in `## Seams` — a
+   remote-but-owned seam tested without a port, or a true-external dependency tested without a mock
+   adapter, is a mismatch `design-reviewer` flags.
 9. **## Risks & mitigations** (scaled) — engineering risks (performance, concurrency, data-loss, blast
    radius) and the mitigation or explicit acceptance for each.
 10. **## Migration / rollout / backward-compatibility** (scaled) — schema/data migration, feature

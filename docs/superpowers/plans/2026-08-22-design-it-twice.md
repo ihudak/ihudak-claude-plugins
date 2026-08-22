@@ -240,7 +240,7 @@ EOF
 
 **Interfaces:**
 - Produces: the requirement Task 5's reviewer check reads, and the section Task 4's comparison writes
-  into. The phrase **`## Alternatives considered`** is used verbatim by Tasks 4 and 5.
+  into. The phrase **`### Alternatives considered`** (THREE hashes) is used verbatim by Tasks 4 and 5. Task 2's Step 1 block is authoritative on the hash count; an earlier draft of this line said two, and an anchored `^##` grep against the wrong form would silently miss the real heading.
 
 - [ ] **Step 1: Extend section 3.** Locate this text (section 3 of `## Sections (in order)`):
 
@@ -333,7 +333,9 @@ Append immediately after it, at the same indentation:
    - two or more adapters are plausible for the same seam;
    - the interface spans a process or network boundary, so its shape decides what can be tested locally;
    - three or more callers share the shape;
-   - the interview has produced two defensible shapes and no discriminating argument between them.
+   - two or more candidate shapes for the same interface are already recorded in `_design-session.md` and
+     none has been eliminated (count the recorded candidates — do not judge whether an argument between
+     them is "discriminating"; that is the unobservable form this list exists to avoid).
 ```
 
 - [ ] **Step 2: Extend section 8 (`## Test strategy`)** — cross-reference, do not restate. Locate

@@ -1,0 +1,45 @@
+# /prompt
+
+Logs a corrective interaction — a dev-workflows command produced something wrong and you're fixing it — then performs the correction directly.
+
+## Who runs it
+
+`/prompt` runs outside the role pipeline — no role, no cost-attribution phase (`references/cost-emission.md` never mentions it). [Workflow overview](../workflow.md#cross-cutting-commands) groups it under Plugin improvement, alongside [`/feedback`](feedback.md), [`/prompt-brainstorm`](prompt-brainstorm.md), and [`/prompt-grill-me`](prompt-grill-me.md). Of the three commands that capture a corrective interaction, `/prompt` is the one that just applies the fix — no hand-off, no interrogation. Run it whenever you correct a command's output yourself; logging the correction is what turns a one-off fix into signal the maintainer can act on for every other engineer hitting the same thing.
+
+## Synopsis
+
+```
+/prompt <corrective request>
+```
+
+`$ARGUMENTS` is the corrective request itself, captured **verbatim** as the User prompt block — never paraphrased. Phase 1 infers which command's output you're correcting from recent context, asking only if genuinely ambiguous; if none applies, it records `n/a`.
+
+## What it needs
+
+- **`$ARGUMENTS` itself, verbatim** — the correction to apply, and the corrective-triple's User prompt block.
+- **Recent session context**, to infer the target `command` (or ask once if ambiguous).
+- **`$SPECS_PATH`** — only for the specs-preflight/commit-artifacts bookkeeping; the correction itself is applied to your target files directly, wherever they are, never to the specs repo.
+
+## What it produces
+
+Performs the correction directly against your target files — those edits are never staged or committed by this command. It then appends an `origin: prompt` entry (Friction, User prompt verbatim, Resolution — a one-line summary of the fix just applied) via the same specs-first ladder [Session feedback](../reference/session-feedback.md) describes, committed and pushed by the terminal `commit-artifacts` step.
+
+## Gates
+
+No reviewer and no fix cycle — `/prompt` **is** the fix, applied once, directly, with nothing downstream to re-check it. The only checkpoints are the specs-repo git guards (`specs-preflight`, `commit-artifacts`, `../../references/specs-repo-git.md`); a `prompt` entry is never silently skipped.
+
+## Example
+
+```
+/dev-workflows:prompt "design.md skipped the Alternatives considered section — add it back, listing the constraint each declined take optimised for"
+```
+
+The command applies the fix to `design.md` directly, confirms the inferred `command` (`/design`), and logs the corrective triple — Friction, your verbatim request, and the one-line Resolution — to the VI's feedback file.
+
+## See also
+
+- [Session feedback](../reference/session-feedback.md) — the entry format, including the two extra prose blocks a `prompt`-origin entry carries.
+- [`/feedback`](feedback.md) — logs a standalone note with no corrective triple and no fix.
+- [`/prompt-brainstorm`](prompt-brainstorm.md) and [`/prompt-grill-me`](prompt-grill-me.md) — the same corrective triple, explored with a brainstorming skill or interrogated inline instead of applied directly.
+- [Workflow overview](../workflow.md#cross-cutting-commands) — where these four commands sit relative to the role pipeline.
+- [`specs-repo-git.md`](../../references/specs-repo-git.md) — the `specs-preflight` and `commit-artifacts` entry points this command runs.

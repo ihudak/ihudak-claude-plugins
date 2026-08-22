@@ -21,10 +21,13 @@ Versions follow semver at the plugin level.
   verification concentrate), and **seam placement** (whether the boundary falls where things actually
   vary) — named axes instead of impressions, so the comparison is repeatable. Declining costs nothing:
   the interview continues and `### Alternatives considered` is filled by hand as it always was.
-- **`--design-twice`** forces the fan-out even when no contested-interface signal fired. It forces the
-  *opportunity*, not the spend — the offer still runs through its normal accept/decline choice.
-- **`### Alternatives considered` is now unconditional** in `design-format.md`'s `## Architecture`
-  section — every `design.md` records at least one genuinely rejected alternative and why, whether or
+- **`--design-twice`** forces the fan-out even when no contested-interface signal fired: the offer is
+  skipped and the three takes are dispatched directly. A user who typed the flag has already given the
+  answer the offer would ask for, so re-asking would be a prompt that changes nothing. The offer itself
+  carries **no `(Recommended)` marker on either option** — it is shown only once the interface is already
+  contested, so no option is safe to recommend across the runs that reach it.
+- **`### Alternatives considered` is now unconditional** in `design-format.md`'s
+  `## Architecture & components` section — every `design.md` records at least one genuinely rejected alternative and why, whether or
   not the fan-out ran. `risk-planner` already holds plans to this bar ("name at least one alternative
   that was rejected and the reason"); a design was the weaker artifact for not matching it. Making it
   unconditional turns the fan-out into a quality upgrade to a requirement that already fires every time,

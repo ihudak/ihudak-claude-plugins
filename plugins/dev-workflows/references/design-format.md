@@ -85,13 +85,15 @@ present for `MODERATE`+ or whenever the change touches that concern, else a one-
    already says not to introduce it yet.
 
    **When an interface is *contested*** — any one of these — `/design` Phase 5 offers the three-take
-   interface fan-out (`--design-twice` forces it):
+   interface fan-out; `--design-twice` forces the fan-out itself, with no offer:
    - two or more adapters are plausible for the same seam;
    - the interface spans a process or network boundary, so its shape decides what can be tested locally;
    - three or more callers share the shape;
    - two or more candidate shapes for the same interface are already recorded in `_design-session.md` and
      none has been eliminated (count the recorded candidates — do not judge whether an argument between
-     them is "discriminating"; that is the unobservable form this list exists to avoid).
+     them is "discriminating"; that is the unobservable form this list exists to avoid). `/design`
+     Phase 5 records each live candidate as it arises, not only the settled outcome — that is what makes
+     this signal countable.
 6. **## Data flow** (scaled) — how data moves through the changed path; state transitions; persistence.
 7. **## Error handling & edge cases** (scaled) — failure modes, boundaries, and the defined behaviour
    for each.

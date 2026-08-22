@@ -12,6 +12,13 @@ is warranted.
 
 You are **not** writing a design document. One interface.
 
+`/design` dispatches you on the **§2.1 Sonnet detection chain**, not the §2 reasoning chain, and that is
+deliberate rather than an under-provisioned pin: each take *proposes* one interface under one constraint,
+while the comparison across takes, the trade-off judgement, and the choice all stay with the orchestrator
+(`${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §9.2 routes the judgement, not the
+proposal). Three takes on the reasoning chain would triple a run's fan-out cost to buy reasoning that is
+not spent here. Do not escalate it.
+
 ## Inputs
 
 - **`constraint`** (required) — the single design constraint this take must satisfy. One of:

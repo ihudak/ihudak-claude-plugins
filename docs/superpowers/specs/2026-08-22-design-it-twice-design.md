@@ -195,6 +195,20 @@ without anyone learning it had. With it, a handful of runs tells you which.
 - `CLAUDE.md`'s agent ledger gains an `interface-designer` row naming `/design` as its only caller.
 - `README.md`'s agent table gains a row.
 
+### 9.1 Mermaid — deliberately unchanged
+
+`README.md` carries two mermaid diagrams. **Neither changes**, and this is recorded so a later reader
+does not "helpfully" edit one into inconsistency:
+
+- **Diagram 1** (PM/PA/PE/Dev/QA pipeline overview) shows `/design` as a *node* in a command-to-command
+  graph (`design["/design"] --> implement["/implement"]`). This round changes no command's inputs,
+  outputs, or position in the pipeline.
+- **Diagram 2** is `/implement`'s internal workflow. This round does not touch `/implement`.
+
+There is **no `/design` internals diagram**, and this round does not create one. `/implement` has one
+because it is the most complex command in the plugin, not because internals diagrams are the
+convention.
+
 ### 9.2 Documenting `--design-twice` — six places, derived from how `--deep` is documented
 
 A flag in this plugin is not documented by mentioning it once. Derived 2026-08-22 from `/idea`'s
@@ -217,22 +231,8 @@ name each:
 6. **`CLAUDE.md`** — wherever the behaviour is stated as an invariant, so the flag and the rule it
    overrides are described in one place rather than two that can drift.
 
-All six exist in each of the three editions, with Copilot's paths mapped per §10.5 and its colon-form
-command names (`design:`, never `/design`).
-
-### 9.1 Mermaid — deliberately unchanged
-
-`README.md` carries two mermaid diagrams. **Neither changes**, and this is recorded so a later reader
-does not "helpfully" edit one into inconsistency:
-
-- **Diagram 1** (PM/PA/PE/Dev/QA pipeline overview) shows `/design` as a *node* in a command-to-command
-  graph (`design["/design"] --> implement["/implement"]`). This round changes no command's inputs,
-  outputs, or position in the pipeline.
-- **Diagram 2** is `/implement`'s internal workflow. This round does not touch `/implement`.
-
-There is **no `/design` internals diagram**, and this round does not create one. `/implement` has one
-because it is the most complex command in the plugin, not because internals diagrams are the
-convention.
+All six exist in each of the three editions, with Copilot's paths mapped to its own layout and its
+colon-form command names (`design:`, never `/design`) — the cross-edition check in §10 item 5.
 
 ## 10. Verification
 

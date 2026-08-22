@@ -288,7 +288,10 @@ absence of a reviewer on the light paths is a deliberate design choice, and a wo
 own reviewer silently overrides that choice while producing a verdict nobody consumes. True on every
 path.
 
-## NEXT: harvest items 5–7 — named backlog, NOT rejected
+## NEXT: harvest item 6 — named backlog, NOT rejected
+> **Items 5 and 7a are no longer backlog** — they are being implemented in round 3a above, and item 7b
+> is dropped there with its reason. The three entries below are kept as originally written so the
+> survey record stays intact; read them as history for 5 and 7, and as live backlog for **item 6 only**.
 These three were surveyed on 2026-08-21 and **deliberately left out of round 2**, for one reason only:
 round 2 was scoped to a single discipline — verify what you assert — and these three are a different
 kind of change. They were **not** considered and rejected, they are **not** covered by anything round 2

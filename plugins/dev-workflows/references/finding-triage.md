@@ -21,6 +21,11 @@ is a claim about consequence and can be checked against the thing it names. A li
 a rule matched or it did not, and there is nothing to trace. `/document` and `/epics` each dispatch
 `doc-fixer` more than once; this step attaches to the **reviewer-fed dispatch only**.
 
+A review that returns the `Diff: unreadable at <path>` marker never reaches this step. That verdict
+reports a capture failure, not a finding about the change: there is no location to verify it at, and its
+own BLOCKER says so. The caller stops on the marker (`/implement`, `/vuln`, `/upgrade` each check the
+review's first line before acting on the verdict), so no fixer is dispatched and nothing is triaged.
+
 ## The step
 
 For each finding, **before any grouping or deduplication**:

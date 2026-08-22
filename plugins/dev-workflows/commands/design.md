@@ -117,7 +117,7 @@ model_routing:
   classification: <SIMPLE|MODERATE|SIGNIFICANT|HIGH-RISK>
   reason: <one-line>
   current_model: <the model this orchestrator/grill is running under>
-  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # code-scanner
+  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # code-scanner, interface-designer, impl-maintenance
   review_model:    <§2 Opus chain>     # design-reviewer (frontmatter-pinned; recorded, no override)
   authoring_model: <= current_model>   # the interactive grill + design.md authoring (session model, not a delegated subagent)
   opus_available: <true if a §2 Opus model resolved, else false>

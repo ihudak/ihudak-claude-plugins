@@ -23,11 +23,11 @@ flowchart TD
     p0["Phase 0 — Load"] --> p1["Phase 1 — Clarification"]
     p1 --> p15["Phase 1.5 — Classify"]
     p15 --> p2["Phase 2 — Plan + approval"]
-    p2 --> p2526["Phase 2.5 — Resolve applicable ARD / Phase 2.6 — VI-level spec enrichment (optional)"]
+    p2 --> p2526["Phase 2.5 — Resolve applicable ARD (optional) / Phase 2.6 — VI-level spec enrichment (optional)"]
     p2526 --> p3["Phase 3 — Read Jira hierarchy"]
-    p3 --> p3536["Phase 3.5 — Refinement-mode gate / Phase 3.6 — Documentation grounding dispatch"]
+    p3 --> p3536["Phase 3.5 — Refinement-mode gate (conditional) / Phase 3.6 — Documentation grounding dispatch"]
     p3536 --> d1{"Code examination on/off? (Phase 1)"}
-    d1 -- "on" --> p45["Phase 4 — Resolve repos / Phase 5 — Parallel code scanning"]
+    d1 -- "on" --> p45["Phase 4 — Resolve repos (conditional) / Phase 5 — Parallel code scanning (conditional)"]
     d1 -- "off" --> p6["Phase 6 — Write Epics"]
     p45 --> p6
     p6 --> p616263["Phase 6.1 — Resolve clarifications / 6.2 — Dynatrace style check / 6.3 — Structural pre-lint"]
@@ -36,7 +36,7 @@ flowchart TD
     p8 --> p91011["Phase 9 — Final Report / 10 — Emit follow-up tasks / 11 — Session cost"]
 ```
 
-Six `dev-workflows` subagents are dispatched: `jira-reader` (Phase 3, `depth: vi-plus-epics`), `code-scanner` (Phase 5, one instance per confirmed repo, up to 4 concurrent, only when code scan is ON), `epic-writer` (Phase 6, the sole author of the Epic drafts), `doc-fixer` (Phases 6.2 and 7, fixing style violations and surviving BLOCKER/MAJOR review findings), `epic-reviewer` (Phase 7, Opus-pinned), and `impl-maintenance` (Phase 8, session lessons-learned). The detection-tier agents (and `epic-writer` when the run is `MODERATE`) run at `detection_model`; `epic-reviewer` keeps its frontmatter Opus pin.
+Seven `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 3.6, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `jira-reader` (Phase 3, `depth: vi-plus-epics`), `code-scanner` (Phase 5, one instance per confirmed repo, up to 4 concurrent, only when code scan is ON), `epic-writer` (Phase 6, the sole author of the Epic drafts), `doc-fixer` (Phases 6.2 and 7, fixing style violations and surviving BLOCKER/MAJOR review findings), `epic-reviewer` (Phase 7, Opus-pinned), and `impl-maintenance` (Phase 8, session lessons-learned). The detection-tier agents (and `epic-writer` when the run is `MODERATE`) run at `detection_model`; `epic-reviewer` keeps its frontmatter Opus pin.
 
 ## What it needs
 
@@ -50,7 +50,7 @@ Six `dev-workflows` subagents are dispatched: `jira-reader` (Phase 3, `depth: vi
 
 One `.md` file per new or refined Epic, under the resolved output directory: `$VAULT_PATH/jira-drafts/<VI-KEY>/` when `$VAULT_PATH` is set, or a derived `epic-drafts/<VI-KEY>/` beside the imported hierarchy otherwise — deliberately outside `jira-products/`, which is wiped on every Jira re-import. `epic-writer` also writes `_coverage.md` (VI-holistic requirement coverage; never pasted to Jira). Refined team-Epic files are keyed by their real Jira id (`<EPIC-KEY>.md`); net-new drafts are slug-named.
 
-**`/epics` never creates a branch.** Its git writes are confined to `$SPECS_PATH`, and only to its bounded session-artifact paths — the Epic drafts themselves are never committed by this command at all; git hygiene of the write target (the vault or the derived output directory) is the user's own responsibility. This is unlike [`/create-vi`](create-vi.md), [`/create-ard`](create-ard.md), [`/specify`](specify.md), and [`/design`](design.md), each of which offers a branch + commit + push + pull-request handoff for its own deliverable.
+**`/epics` never creates a branch.** Its git writes are confined to `$SPECS_PATH`, and only to its bounded session-artifact paths — the Epic drafts themselves are never committed by this command at all; git hygiene of the write target (the vault or the derived output directory) is the user's own responsibility. This is unlike the eight commands that do offer a branch + commit + push + pull-request handoff for their own deliverable — [`/idea`](idea.md), [`/create-vi`](create-vi.md), [`/update-vi`](update-vi.md), [`/create-ard`](create-ard.md), [`/specify`](specify.md), [`/design`](design.md), [`/implement`](implement.md), and [`/ready`](ready.md).
 
 ## Gates
 

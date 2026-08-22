@@ -26,7 +26,7 @@ Opus-gated quality gates, plus the lighter-weight planners and style checkers th
 
 ## Readers and scanners
 
-Read-only discovery and grounding — each returns a structured digest and never modifies what it reads.
+Read-only discovery and grounding — each returns a structured digest rather than editing anything. `test-baseliner` is the one that touches the working tree at all: it holds `Bash` because its job is to *run* the suite, so build and coverage output appears as a side effect.
 
 | Agent | Model | Tools | What it does | Used by |
 |---|---|---|---|---|
@@ -54,7 +54,7 @@ Produce artifact content from a structured handoff. None of these run git.
 
 ## Fixers
 
-Apply targeted patches for findings a reviewer or linter already surfaced; the caller re-runs the gate afterward.
+Apply changes the caller has already decided on, rather than deciding anything themselves. `doc-fixer` and `review-fixer` patch findings a reviewer or linter surfaced, and the caller re-runs the gate afterward; `upgrade-executor` applies an upgrade plan and runs the build, and `vuln-fixer` applies the version change `vuln-research` resolved.
 
 | Agent | Model | Tools | What it does | Used by |
 |---|---|---|---|---|

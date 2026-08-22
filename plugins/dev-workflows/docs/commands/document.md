@@ -29,10 +29,10 @@ For writing child Epic drafts from a VI, use [`/epics`](epics.md). For release n
 ```mermaid
 flowchart TD
     IN["/document"] --> MD{"Jira input, or @file / free text? (Mode detection)"}
-    MD -- "Jira mode" --> A0["Phase 0 — Load, resolve docs repo + profile"]
+    MD -- "Jira mode" --> A0["Phase 0 — Load and dispatch"]
     A0 --> A12["Phase 1 — Clarification / 1.5 — Classify / 2 — Plan + approval"]
     A12 --> A345["Phase 3 — Read Jira / 4 — Resolve repos / 4.5 — Determine space(s)"]
-    A345 --> A59["Phase 5 — Diff summarisation / 5.5 — Locations / 5.6 — Images / 5.6.5 — Counterpart grounding / 5.7 — Plan docs / 5.8 — Discrepancy analysis / 5.9 — Write-strategy approval"]
+    A345 --> A59["Phase 5 — Parallel diff summarisation / 5.5 — Find documentation locations / 5.6 — Images / 5.6.5 — Counterpart-space reference discovery / 5.7 — Plan the documentation / 5.8 — Discrepancy analysis & user decision / 5.9 — Write-strategy approval"]
     A59 --> A665["Phase 6.1 — CDN handoff / 6.2 — Branch setup / 6.3 — Write / 6.4 — Style check / 6.5 — Render verification"]
     A665 --> A7["Phase 7 — Doc review gate"]
     A7 --> A886["Phase 8 — Maintenance / 8.5 — Finish & handoff / 8.6 — Maintenance proposals"]

@@ -18,7 +18,7 @@
 | review an API spec or a UI against guidelines | [`/api-guideline-reviewer`](commands/api-guideline-reviewer.md), [`/guideline-reviewer`](commands/guideline-reviewer.md) |
 | understand what a run cost | [Session cost](reference/session-cost.md) |
 
-Three pages orient you before you touch a command: [Getting started](getting-started.md) installs the plugin and sets your environment variables; [Workflow overview](workflow.md) shows the whole pipeline as one diagram; [Roles and phases](roles-and-phases.md) says what each role owns and hands off. Every other page below documents one command or one shared subsystem in isolation.
+Three pages orient you before you touch a command: [Getting started](getting-started.md) installs the plugin and sets your environment variables; [Workflow overview](workflow.md) shows the whole pipeline as one diagram; [Roles and phases](roles-and-phases.md) says what each role owns and hands off. Every other page below documents one command, one shared subsystem, or — for [Agents](reference/agents.md) and [References](reference/references.md) — one whole inventory.
 
 ## Commands
 

@@ -23,7 +23,7 @@ The two git entry points that bound every write into the specs repo, plus the na
 
 - `specs-repo-git.md` — the two git entry points every bookkeeping write against the specs repo runs through: a start-of-run preflight and a terminal artifact commit, both bounded to plugin-created branches and enumerated paths, never fatal.
 - `phase-handoff.md` — the two phase-boundary git entry points: a producer step that lands a phase's deliverable on the specs repo's default branch, and a consumer gate that requires the deliverable be there before expensive work starts.
-- `branch-naming.md` — how every branch-creating command decides a branch name: the target repo's own documented convention always wins, and this doc supplies one only when the repo documents none.
+- `branch-naming.md` — how the five commands that branch in a code repo (`/implement`, `/document`, `/docs-profile`, `/upgrade`, `/vuln`) decide a branch name; the specs-repo handoff branches are named by `phase-handoff.md` §2.2 instead: the target repo's own documented convention always wins, and this doc supplies one only when the repo documents none.
 - `finish-and-handoff.md` — the mechanics `/document` (Jira mode) uses for its inline-profiling-branch handling and its finish-and-handoff step: squash, opt-in push, copy-paste PR draft.
 - `read-only-repos.md` — how to detect a read-only repository mount, what to skip when one is found, and how to resolve a ref and read from it without ever attempting a write.
 
@@ -54,7 +54,7 @@ Read-only, advisory context-gathering — never a gate, never a write into the s
 The bookkeeping every long-running command emits around its actual work — cost, feedback, follow-ups, hygiene, and the maintenance loop that feeds tooling improvements back in.
 
 - `cost-emission.md` — the session-cost subsystem every VI-lifecycle command's terminal "Session cost" phase cites: how a run's dollar cost is computed, attributed, and persisted.
-- `feedback-emission.md` — the session-feedback emitter every command's automatic maintenance phase (and `/feedback`/`/prompt*`) cites to capture friction about the plugin itself.
+- `feedback-emission.md` — the session-feedback emitter the thirteen workflow commands' automatic maintenance phase (and `/feedback`/`/prompt*`) cites to capture friction about the plugin itself.
 - `followup-emission.md` — the follow-up task and journal emitter a terminal "Emit follow-up tasks" phase cites in `/document`, `/release-notes`, `/epics`, `/implement`, and `/ready`.
 - `next-phase-offer.md` — the plugin-wide contract for the next-phase offer every pipeline command surfaces at the end of its run, naming the natural next command(s).
 - `session-hygiene.md` — the plugin-wide contract for session-hygiene suggestions: flush resume-critical state to disk, then suggest the right context action, after a big command finishes or a long run checkpoints.
@@ -76,12 +76,12 @@ Six subtrees carry vendored guidance too large or too domain-specific to enumera
 
 - `api-guidelines/` (24) — vendored Dynatrace REST API and IAM permission naming guidance, consulted by `/api-guideline-reviewer`.
 - `guidelines/` (11) — vendored Dynatrace Experience Standards, consulted by `/guideline-reviewer`.
-- `handoff/` (10) — one input/output document-format contract per agent, read by the agent itself rather than by the dispatching command.
+- `handoff/` (10) — one input/output document-format contract per agent, usually read by the agent itself rather than by the dispatching command — `handoff/test-baseliner.md` is the exception, read by `vuln-fixer` and `upgrade-executor`, which dispatch it.
 - `dynatrace-docs/` (6) — dynatrace-docs authoring conventions (frontmatter, changelog, anchors, multi-space writing, render verification, the docs-profile schema), consulted by `/docs-profile`, `/document`, and the `dynatrace-docs-frontmatter` skill.
 - `upgrade/` (3) — component-specific upgrade guidance, consulted by `upgrade-planner` and `upgrade-executor`.
 - `fix-vuln/` (2) — CVE-remediation guidance, consulted by `vuln-research` and `vuln-fixer`.
 
-Each subtree also holds the vendored data or template files named in the introduction above, which is why its `*.md` count here is smaller than `find <dir> -type f` would report.
+Three of these subtrees (`api-guidelines/`, `guidelines/`, `dynatrace-docs/`) also hold the vendored data or template files named in the introduction above, so their `*.md` count here is smaller than `find <dir> -type f` would report; `handoff/`, `upgrade/`, and `fix-vuln/` are markdown only, and for those the two counts agree.
 
 ## Skills
 

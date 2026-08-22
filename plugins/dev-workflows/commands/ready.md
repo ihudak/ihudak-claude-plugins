@@ -354,8 +354,7 @@ plugin-gap halt (see Invariants).
    The next phase runs once it is merged." or the declined/gate-failed/nothing-to-commit variant]
 
    ### Next step
-   [Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. SUPPORTED → Dev →
-   `/dev-workflows:implement <VI> [<Epic>]`. PARTIAL / NOT-SUPPORTED → resolve the named gaps above and update the
+   [Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. SUPPORTED → `/dev-workflows:implement <VI> [<Epic>]` (same lane, no handoff). PARTIAL / NOT-SUPPORTED → resolve the named gaps above and update the
    Jira status to match reality, then re-run `/dev-workflows:ready <VI> [<Epic>]`.]
 
    ### Context hygiene

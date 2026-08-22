@@ -462,7 +462,7 @@ The report always states exactly one of the Phase 5 interface fan-out outcomes w
 
 ### Next step
 
-End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): hand to the team → `/dev-workflows:implement <VI> <Epic>` (depth), which will not start against this design until the pull request above is merged; the **Epic fan-out** `/dev-workflows:design <VI> <another-Epic>` designs a sibling Epic (breadth, no merge wait — a different Epic's design). If the run BLOCKED or `design.md` has open questions, recommend resolving those first.
+End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): → `/dev-workflows:implement <VI> <Epic>` (depth, still Dev), which will not start against this design until the pull request above is merged; the **Epic fan-out** `/dev-workflows:design <VI> <another-Epic>` designs a sibling Epic (breadth, no merge wait — a different Epic's design). If the run BLOCKED or `design.md` has open questions, recommend resolving those first.
 
 ### Context hygiene
 

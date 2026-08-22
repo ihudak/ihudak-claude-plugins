@@ -38,9 +38,11 @@ flowchart TD
     ready -. verifies ARD/spec/design .-> implement
 ```
 
+The diagram draws the ARD reaching `/epics`, but that is one of five consumers: `/epics`, `/specify`, `/design`, `/implement`, and `/ready` all resolve the applicable ARD once it exists. The edge is drawn once to keep the diagram readable, not because the others do not consult it.
+
 The diagram above shows where each command sits in the pipeline; [Roles and phases](roles-and-phases.md) says what each role is accountable for and what it hands over at each seam.
 
-**Three command names collide with a Claude Code built-in of the same name: `/release-notes`, `/upgrade`, and `/statusline`.** Typing the bare form reaches Claude Code's own command instead of the plugin's, so use the qualified form — `/dev-workflows:release-notes`, `/dev-workflows:upgrade`, `/dev-workflows:statusline` — for those three. Every other command in this plugin works either way, and the diagram above spells out the qualified form only where it is required.
+**Three command names collide with a Claude Code built-in of the same name: `/release-notes`, `/upgrade`, and `/statusline`.** Typing the bare form reaches Claude Code's own command instead of the plugin's, so use the qualified form — `/dev-workflows:release-notes`, `/dev-workflows:upgrade`, `/dev-workflows:statusline` — for those three. No other command in this plugin is known to collide today, so the rest work either way, and the diagram above spells out the qualified form only where it is required.
 
 ## Roles
 
@@ -49,7 +51,7 @@ The diagram above shows where each command sits in the pipeline; [Roles and phas
 | **PM** | `/idea`, `/create-vi`, `/update-vi`, and an early `/release-notes` | `idea.md` in `$VAULT_PATH`, then the VI in `$SPECS_PATH/specifications/<KEY>-<slug>/` |
 | **PA** | `/create-ard` (optional) | the ARD, in the same specs feature folder as the VI |
 | **PE** | `/epics`, `/specify` | Epic drafts in `$VAULT_PATH/jira-drafts/<VI-KEY>/`; `specification.md` on the specs repo's default branch |
-| **Dev** | `/design`, `/implement`, `/document`, `/ready`, and a final `/release-notes` | `design.md` on the specs repo's default branch; code + PR in `$REPOS_PATH`; product docs in the docs repo; a read-only readiness verdict that sets no status |
+| **Dev** | `/design`, `/implement`, `/document`, `/ready`, and a final `/release-notes` | `design.md` on the specs repo's default branch; code on a branch in `$REPOS_PATH`, left uncommitted; product docs in the docs repo; a read-only readiness verdict that sets no status |
 
 See [Roles and phases](roles-and-phases.md) for what each role owns, consumes, and hands off — this table only shows where the commands sit.
 

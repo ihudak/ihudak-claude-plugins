@@ -35,12 +35,12 @@ flowchart TD
     p6 --> p7["Phase 7 — Session maintenance, feedback & cost"]
 ```
 
-Two `dev-workflows` subagents are dispatched: `vi-reviewer` (Phase 4, Opus-pinned) and `impl-maintenance` (Phase 7, session lessons-learned), both against the model recorded in `model_routing`. A third agent, `dt-style-guide:dt-style-checker`, runs in Phase 3.5 when the separate `dt-style-guide` plugin is installed — a non-gating quality pass, not part of the dispatch count above because it ships in a different plugin.
+Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2.5, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `vi-reviewer` (Phase 4, Opus-pinned), and `impl-maintenance` (Phase 7, session lessons-learned), each against the model recorded in `model_routing`. A fourth agent, `dt-style-guide:dt-style-checker`, runs in Phase 3.5 when the separate `dt-style-guide` plugin is installed — a non-gating quality pass, not part of the dispatch count above because it ships in a different plugin.
 
 ## What it needs
 
 - **`<JIRA-KEY>`** — mandatory; absent or malformed stops the run with `CREATE_VI_NEEDS_KEY`, naming the required `/dev-workflows:create-vi <KEY> @<idea.md>` form.
-- **`idea.md`**, resolved by a five-rung ladder that stops at the first hit (Phase 0). **The first two rungs gate differently, and the difference is not visible anywhere else:**
+- **`idea.md`**, resolved by a five-rung ladder that stops at the first hit (Phase 0). **The first two rungs gate differently, and the difference is easy to miss:**
   - **In-contract — `<KEY>`'s own feature folder.** This is the default when no `@path` is given. It is gated via `require-on-main`: absent falls through to the next rung without stopping ([`/idea`](idea.md) is not a prerequisite for `/create-vi`); present and merged onto the specs repo's default branch is used as-is, never relocated again ([`/idea`](idea.md) already did that); present on an unmerged plugin branch is a hard stop, naming the branch and any open pull request.
   - **Out-of-contract — an explicit `@<path>` argument.** Read exactly where it sits — never relocated, never gated via `require-on-main` at all — and reported once as out-of-contract.
   - The remaining rungs (a same-session [`/idea`](idea.md) output, a picker over recently-discovered `idea.md` files under `$VAULT_PATH/Projects`, or a manual path) are all out-of-contract, handled the same way as `@<path>`. If every rung is exhausted, the run proceeds with no idea and grills the VI from scratch.
@@ -60,7 +60,7 @@ Two `dev-workflows` subagents are dispatched: `vi-reviewer` (Phase 4, Opus-pinne
 - **Phase 3.6 — Structural pre-lint** (`../../references/pre-lint.md`, run inline, no agent). Advisory only — mechanical findings are fixed inline, content gaps are left for the grill; it never blocks.
 - **Phase 4 — `vi-reviewer`**, Opus-pinned by frontmatter (`model: opus`, no override), reviewing the whole VI against `../../references/vi-format.md`. `PASS` / `PASS WITH RECOMMENDATIONS` proceeds. `BLOCK` triggers one inline fix cycle and one re-review; if still `BLOCK`, each unresolved BLOCKER is escalated per `../../references/escalation-rules.md`'s "Review verdict BLOCK" choices (provide manual fix notes, defer to a follow-up issue, override and accept, or cancel). If no Opus model resolves at all, the run degrades to the best available model and records the degradation rather than hard-blocking.
 
-**Deliberately not captured:** `release_versions`, `change_type`, and `release_notes_category` are Jira-mirror fields — set as Jira dropdowns on the ticket and returned by the importer on the round-trip, never authored here. `vi-reviewer` neither requires nor validates them; [`/release-notes`](release-notes.md) is what reads them, from the import.
+**Deliberately not captured:** `release_versions`, `change_type`, and `release_notes_category` are Jira-mirror fields — set as Jira dropdowns on the ticket and returned by the importer on the round-trip, never authored here. `vi-reviewer` neither requires nor validates them; [`/release-notes`](release-notes.md) reads two of the three (`change_type` and `release_notes_category`, as `imported_*`) and explicitly never parses `release_versions`; it is what reads them, from the import.
 
 ## Example
 

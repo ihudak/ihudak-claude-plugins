@@ -32,7 +32,7 @@ flowchart TD
     p6 --> p7["Phase 7 — Session maintenance, feedback & cost"]
 ```
 
-Two `dev-workflows` subagents are dispatched: `vi-reviewer` (Phase 4, Opus-pinned) and `impl-maintenance` (Phase 7, session lessons-learned), both against the model recorded in `model_routing`. A third agent, `dt-style-guide:dt-style-checker`, runs in Phase 3.5 exactly as it does in [`/create-vi`](create-vi.md) — a non-gating quality pass from a separate plugin, not counted in the dispatch total above.
+Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `vi-reviewer` (Phase 4, Opus-pinned), and `impl-maintenance` (Phase 7, session lessons-learned), each against the model recorded in `model_routing`. A fourth agent, `dt-style-guide:dt-style-checker`, runs in Phase 3.5 exactly as it does in [`/create-vi`](create-vi.md) — a non-gating quality pass from a separate plugin, not counted in the dispatch total above.
 
 ## What it needs
 
@@ -71,7 +71,7 @@ The run resolves the feature folder, pulls the current Jira-imported VI plus its
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off at the `vi-update` seam.
-- [`/create-vi`](create-vi.md) — the greenfield sibling this command's Phase 0 redirects a caller to when `<KEY>` has no VI yet.
+- [`/create-vi`](create-vi.md) — the greenfield sibling that authors a VI from scratch; this command's Phase 0 does not redirect to it — an unimported `<KEY>` stops and asks you to run the workitem importer first.
 - [`/create-ard`](create-ard.md), [`/specify`](specify.md), and [`/release-notes`](release-notes.md) — the role re-runs `/update-vi`'s Phase 6 offers when an ARD, spec, or release note already exists.
 - [Model routing](../reference/model-routing.md) — the classification and Opus fallback chain `vi-reviewer` runs under.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Resume and checkpoints](../reference/resume-and-checkpoints.md) — the terminal Phase 7 bookkeeping every run emits.

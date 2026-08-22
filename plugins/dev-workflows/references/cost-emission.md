@@ -277,6 +277,7 @@ Fixed per-command labels, with one inferred exception:
 | `/release-notes` | **inferred** | **inferred** |
 | `/idea` | vi-creation | pm |
 | `/create-vi` | vi-creation | pm |
+| `/update-vi` | vi-update | pm |
 | `/create-ard` | architecture | pa |
 
 **`/release-notes` inference (PM VI-run vs. dev documenting-run).** The

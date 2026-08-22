@@ -1,0 +1,285 @@
+#!/usr/bin/env bash
+# Guards plugins/dev-workflows/docs/ against the drift that splitting prose invites.
+#
+# Splitting one README into 34 pages multiplies the places drift can hide. Every
+# check below exists because a specific failure was observed -- in this plugin, or
+# in the two restructures this one follows (dynatrace-managed-mcp#214,
+# ai-containers#78).
+#
+# --selftest mutates a copy of the passing fixture once per check and asserts the
+# gate rejects it. Without that, the fixtures are decorative: a gate that cannot
+# be shown to fail proves nothing when it passes. ai-containers' equivalent gate
+# passed vacuously on its first run, examining nothing, because its file list came
+# from `git ls-files` while the new pages were still untracked.
+set -uo pipefail
+
+PLUGIN_REL="plugins/dev-workflows"
+FAILURES=0
+
+fail() { printf 'FAIL check %s: %s\n' "$1" "$2" >&2; FAILURES=$((FAILURES + 1)); }
+note() { printf '  %s\n' "$1" >&2; }
+
+# ---------------------------------------------------------------- check 1 + 2
+# Every relative link resolves, and every #anchor resolves to a real heading in
+# whichever file it names. A bare `#anchor` names no file, so a file-existence
+# check cannot see it -- that is why check 2 is separate. ai-containers' split
+# broke 24 anchors this way.
+slugify() { # GitHub heading -> anchor. NEWLINE-TERMINATED: without it every
+            # slug concatenates into one line and no anchor ever matches.
+  printf '%s\n' "$1" \
+    | tr '[:upper:]' '[:lower:]' \
+    | sed -E 's/`//g; s/[^a-z0-9 _-]//g; s/ /-/g'
+}
+
+check_links_and_anchors() {
+  local root="$1" f target anchor path abs heading_file
+  while IFS= read -r f; do
+    while IFS= read -r link; do
+      target="${link%%#*}"
+      anchor="${link#*#}"
+      [ "$anchor" = "$link" ] && anchor=""
+      if [ -n "$target" ]; then
+        path="$(dirname "$f")/$target"
+        abs="$(cd "$(dirname "$path")" 2>/dev/null && pwd)/$(basename "$path")"
+        if [ ! -e "$abs" ]; then
+          fail 1 "$f -> $target (no such file)"
+          continue
+        fi
+        heading_file="$abs"
+      else
+        heading_file="$f"
+      fi
+      if [ -n "$anchor" ] && [ -f "$heading_file" ]; then
+        # Collect first, match second. `... | grep -qx` would exit on the first
+        # match, SIGPIPE the producer, and `pipefail` would report that as a
+        # failure -- turning a VALID anchor into a check-2 error. Same defect
+        # ai-containers#78 caught in its own new gate.
+        local slugs
+        slugs=$(grep -E '^#{1,6} ' "$heading_file" 2>/dev/null \
+                | sed -E 's/^#{1,6} //' \
+                | while IFS= read -r h; do slugify "$h"; done)
+        if ! grep -qx -- "$anchor" <<<"$slugs"; then
+          fail 2 "$f -> ${target:-(this file)}#$anchor (no such heading)"
+        fi
+      fi
+    done < <(grep -oE '\]\([^)#][^)]*\)|\]\(#[^)]*\)' "$f" \
+             | sed -E 's/^\]\(//; s/\)$//' \
+             | grep -vE '^(https?|mailto):')
+  done < <(find "$root/$PLUGIN_REL/docs" -name '*.md' 2>/dev/null)
+}
+
+# ------------------------------------------------------------------- check 3
+# No orphan pages. Reachability is transitive from docs/README.md, so a page
+# linked only from another orphan is still an orphan.
+check_orphans() {
+  local root="$1" docs="$1/$PLUGIN_REL/docs" seen frontier next f target abs
+  [ -f "$docs/README.md" ] || { fail 3 "docs/README.md is missing -- nothing to reach from"; return; }
+  seen="$(cd "$docs" && pwd)/README.md"
+  frontier="$seen"
+  while [ -n "$frontier" ]; do
+    next=""
+    while IFS= read -r f; do
+      [ -f "$f" ] || continue
+      while IFS= read -r target; do
+        abs="$(cd "$(dirname "$(dirname "$f")/../$(basename "$f")")" 2>/dev/null; cd "$(dirname "$f")" && cd "$(dirname "$target")" 2>/dev/null && pwd)/$(basename "$target")"
+        [ -f "$abs" ] || continue
+        case "$seen" in *"$abs"*) continue ;; esac
+        seen="$seen
+$abs"
+        next="$next
+$abs"
+      done < <(grep -oE '\]\([^)#][^):]*\.md[^)]*\)' "$f" | sed -E 's/^\]\(//; s/\)$//; s/#.*$//')
+    done < <(printf '%s\n' "$frontier")
+    frontier="$next"
+  done
+  while IFS= read -r f; do
+    case "$seen" in *"$f"*) ;; *) fail 3 "orphan page (unreachable from docs/README.md): ${f#$root/}" ;; esac
+  done < <(cd "$docs" && find . -name '*.md' -exec sh -c 'cd "$(dirname "$1")" && printf "%s/%s\n" "$(pwd)" "$(basename "$1")"' _ {} \;)
+}
+
+# ------------------------------------------------------------------- check 4
+# Inventory agrees in BOTH directions, over reference FILES not reference
+# markdown -- references/ holds 98 files of which 5 are not markdown, and one of
+# those (cost-prices.yaml) is user-overridable and therefore user-facing.
+# Every inventory is derived from the edition being checked, never from a number
+# written into a page.
+check_inventory() {
+  local root="$1" p="$1/$PLUGIN_REL" d="$1/$PLUGIN_REL/docs" n
+
+  # commands <-> docs/commands/
+  while IFS= read -r n; do
+    [ -f "$d/commands/$n.md" ] || fail 4 "command '$n' has no page at docs/commands/$n.md"
+  done < <(ls "$p/commands"/*.md 2>/dev/null | sed 's|.*/||; s|\.md$||')
+  while IFS= read -r n; do
+    [ -f "$p/commands/$n.md" ] || fail 4 "docs/commands/$n.md names no real command"
+  done < <(ls "$d/commands"/*.md 2>/dev/null | sed 's|.*/||; s|\.md$||')
+
+  # agents <-> docs/reference/agents.md
+  while IFS= read -r n; do
+    grep -q "\`$n\`" "$d/reference/agents.md" 2>/dev/null || fail 4 "agent '$n' is absent from reference/agents.md"
+  done < <(ls "$p/agents"/*.md 2>/dev/null | sed 's|.*/||; s|\.md$||')
+  while IFS= read -r n; do
+    [ -f "$p/agents/$n.md" ] || fail 4 "reference/agents.md names '$n', which is not an agent"
+  done < <(grep -oE '^\| `[a-z-]+`' "$d/reference/agents.md" 2>/dev/null | tr -d '|` ')
+
+  # reference FILES <-> docs/reference/references.md
+  while IFS= read -r n; do
+    grep -q "$n" "$d/reference/references.md" 2>/dev/null || fail 4 "reference file '$n' is absent from reference/references.md"
+  done < <({ ls "$p/references"/*.md 2>/dev/null; ls "$p/references"/*.yaml 2>/dev/null; \
+             ls "$p/references/model-routing"/*.md 2>/dev/null; } | sed 's|.*/||')
+
+  # reference subtree counts
+  local dir count claimed
+  for dir in api-guidelines guidelines handoff dynatrace-docs upgrade fix-vuln; do
+    [ -d "$p/references/$dir" ] || continue
+    count=$(find "$p/references/$dir" -name '*.md' | wc -l | tr -d ' ')
+    claimed=$(grep -oE "\`$dir/\` \(([0-9]+)\)" "$d/reference/references.md" 2>/dev/null | grep -oE '[0-9]+' | head -1)
+    [ "$claimed" = "$count" ] || fail 4 "reference/references.md says $dir/ has '${claimed:-nothing}', tree has $count"
+  done
+
+  # hooks <-> docs/reference/hooks.md
+  while IFS= read -r n; do
+    grep -q "\`$n\`" "$d/reference/hooks.md" 2>/dev/null || fail 4 "hook '$n' is absent from reference/hooks.md"
+  done < <(ls "$p/hooks"/*.sh 2>/dev/null | sed 's|.*/||; s|\.sh$||')
+}
+
+# ------------------------------------------------------------------- check 5
+# Environment variables agree in both directions. The scan covers commands/,
+# agents/, references/, hooks/ and skills/ -- narrowing it to the first three
+# would let a variable only a hook reads look documented-but-unread. The
+# runtime-exclusion list is written in, so a SEVENTH user-settable variable fails
+# this check rather than passing silently. That silent pass is exactly how
+# GIT_USER_INITIALS and DEV_WORKFLOWS_COST_PRICES came to be missing from the
+# section named after them (defect D4).
+RUNTIME_VARS="CLAUDE_PLUGIN_ROOT ARGUMENTS OSTYPE BASH_SOURCE BASH_REMATCH ROOT OWNER_REPO"
+
+check_env_vars() {
+  local root="$1" p="$1/$PLUGIN_REL" d="$1/$PLUGIN_REL/docs" v
+  local read_vars documented
+  read_vars=$(grep -rhoE '\$\{?[A-Z][A-Z0-9_]{2,}\}?' \
+                "$p/commands" "$p/agents" "$p/references" "$p/hooks" "$p/skills" 2>/dev/null \
+              | tr -d '${}' | sort -u)
+  for v in $read_vars; do
+    case " $RUNTIME_VARS " in *" $v "*) continue ;; esac
+    grep -q "$v" "$d/reference/environment.md" 2>/dev/null \
+      || fail 5 "\$$v is read by the plugin but absent from reference/environment.md"
+    grep -q "$v" "$d/getting-started.md" 2>/dev/null \
+      || fail 5 "\$$v is read by the plugin but absent from getting-started.md"
+  done
+  documented=$(grep -oE '\*\*`\$?[A-Z][A-Z0-9_]{2,}`\*\*' "$d/reference/environment.md" 2>/dev/null | tr -d '*`$')
+  for v in $documented; do
+    grep -qx -- "$v" <<<"$read_vars" \
+      || fail 5 "reference/environment.md documents \$$v, which the plugin never reads"
+  done
+}
+
+# ------------------------------------------------------------------- check 6
+# No table cell over 200 characters. This is the readability invariant the whole
+# restructure exists to establish, and the one a future edit will silently
+# violate: today's README carries a single cell of 2,177 characters.
+check_table_cells() {
+  local root="$1" files hits h
+  files=$( { find "$root/$PLUGIN_REL/docs" -name '*.md' 2>/dev/null
+             [ -f "$root/$PLUGIN_REL/README.md" ] && printf '%s\n' "$root/$PLUGIN_REL/README.md"; } )
+  [ -n "$files" ] || return 0
+  hits=$(while IFS= read -r f; do
+           [ -n "$f" ] || continue
+           awk -v FILE="${f#$root/}" '
+             /^```/    { infence = !infence; next }
+             infence   { next }
+             /^\|/ {
+               n = split($0, cells, "|")
+               for (i = 2; i < n; i++) {
+                 c = cells[i]; gsub(/^ +| +$/, "", c)
+                 if (length(c) > 200)
+                   printf "%s:%d cell is %d chars (max 200)\n", FILE, NR, length(c)
+               }
+             }' "$f"
+         done <<<"$files")
+  [ -n "$hits" ] || return 0
+  while IFS= read -r h; do [ -n "$h" ] && fail 6 "$h"; done <<<"$hits"
+}
+
+# ------------------------------------------------------------------- check 7
+# getting-started.md carries the install and update commands INLINE rather than
+# linking out, because a getting-started page whose first step is a link has
+# failed at its one job. That makes it the only page under docs/ carrying edition
+# identity, so it is pinned: its command lines must match the repo-root README's
+# Installation section exactly, in both directions.
+check_install_block() {
+  local root="$1" a b
+  a=$(grep -oE '^claude plugin (marketplace (add|update)|install) .*' "$root/README.md" 2>/dev/null | sort)
+  b=$(grep -oE '^claude plugin (marketplace (add|update)|install) .*' "$root/$PLUGIN_REL/docs/getting-started.md" 2>/dev/null | sort)
+  if [ -z "$a" ]; then fail 7 "repo-root README.md has no 'claude plugin ...' command lines to pin against"; return; fi
+  if [ "$a" != "$b" ]; then
+    fail 7 "getting-started.md install commands differ from the repo-root README"
+    note "only in root README: $(comm -23 <(printf '%s\n' "$a") <(printf '%s\n' "$b") | tr '\n' ' ')"
+    note "only in getting-started: $(comm -13 <(printf '%s\n' "$a") <(printf '%s\n' "$b") | tr '\n' ' ')"
+  fi
+}
+
+# ------------------------------------------------------------------ selftest
+# One passing fixture tree; each check gets a mutation of a fresh copy. Asserting
+# the exit code alone would let a mutation that trips a DIFFERENT check register
+# as success, so each case also asserts which check fired.
+selftest() {
+  local here fixture tmp rc=0
+  here=$(cd "$(dirname "$0")" && pwd)
+  fixture="$here/fixtures/docs/pass"
+  [ -d "$fixture" ] || { echo "SELFTEST FAIL: fixture tree missing at $fixture" >&2; exit 2; }
+
+  expect_pass() {
+    tmp=$(mktemp -d); cp -R "$fixture/." "$tmp/"
+    if "$0" --root "$tmp" >/dev/null 2>&1; then printf 'ok    %s\n' "$1"
+    else printf 'FAIL  %s: expected exit 0\n' "$1"; rc=1; fi
+    rm -rf "$tmp"
+  }
+  expect_fail() { # <description> <check-number> <mutation-shell>
+    tmp=$(mktemp -d); cp -R "$fixture/." "$tmp/"
+    ( cd "$tmp" && eval "$3" )
+    local out; out=$("$0" --root "$tmp" 2>&1); local got=$?
+    if [ "$got" -eq 1 ] && printf '%s' "$out" | grep -q "FAIL check $2"; then
+      printf 'ok    %s (check %s fired)\n' "$1" "$2"
+    else
+      printf 'FAIL  %s: expected exit 1 with "FAIL check %s", got exit %s\n' "$1" "$2" "$got"; rc=1
+    fi
+    rm -rf "$tmp"
+  }
+
+  expect_pass "the unmutated fixture passes every check"
+  expect_fail "a broken relative link is rejected"  1 "sed -i.bak 's|(reference/hooks.md)|(reference/nope.md)|' plugins/dev-workflows/docs/README.md"
+  expect_fail "a broken anchor is rejected"         2 "sed -i.bak 's|(getting-started.md#install)|(getting-started.md#no-such-heading)|' plugins/dev-workflows/docs/README.md"
+  expect_fail "an orphan page is rejected"          3 "printf '# Orphan\n\nUnreachable.\n' > plugins/dev-workflows/docs/orphan.md"
+  expect_fail "an undocumented command is rejected" 4 "printf -- '---\nname: delta\n---\n' > plugins/dev-workflows/commands/delta.md"
+  expect_fail "an undocumented env var is rejected" 5 "printf 'Reads \$NEW_SETTABLE_VAR here.\n' >> plugins/dev-workflows/commands/alpha.md"
+  expect_fail "an over-long table cell is rejected" 6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"x\"; printf \"\\n| a | %s |\\n|---|---|\\n| b | c |\\n\", s}' >> plugins/dev-workflows/docs/reference/hooks.md"
+  expect_fail "a drifted install block is rejected" 7 "sed -i.bak 's|claude plugin install dev-workflows@fixture-plugins|claude plugin install dev-workflows@drifted|' plugins/dev-workflows/docs/getting-started.md"
+
+  if [ "$rc" -eq 0 ]; then echo "SELFTEST PASS"; else echo "SELFTEST FAIL"; fi
+  exit "$rc"
+}
+
+# ---------------------------------------------------------------------- main
+[ "${1:-}" = "--selftest" ] && selftest
+
+ROOT="."
+if [ "${1:-}" = "--root" ]; then
+  [ $# -lt 2 ] && { echo "Usage: $0 [--root <dir>] | --selftest" >&2; exit 2; }
+  ROOT="$2"
+fi
+[ -d "$ROOT" ] || { echo "Usage: $0 [--root <dir>] | --selftest" >&2; exit 2; }
+ROOT="$(cd "$ROOT" && pwd)"
+[ -d "$ROOT/$PLUGIN_REL/docs" ] || { fail 4 "$PLUGIN_REL/docs does not exist"; echo "FAIL: $FAILURES problem(s)" >&2; exit 1; }
+
+check_links_and_anchors "$ROOT"
+check_orphans           "$ROOT"
+check_inventory         "$ROOT"
+check_env_vars          "$ROOT"
+check_table_cells       "$ROOT"
+check_install_block     "$ROOT"
+
+if [ "$FAILURES" -gt 0 ]; then
+  echo "FAIL: $FAILURES problem(s) under $PLUGIN_REL" >&2
+  exit 1
+fi
+echo "PASS: docs are consistent with the plugin under $PLUGIN_REL"

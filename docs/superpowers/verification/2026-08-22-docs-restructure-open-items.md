@@ -55,45 +55,34 @@ The role collapse touches files that are `cp`-ported to `mgd-claude-plugins` and
 
 ---
 
-## F. Gate findings — two built, four deferred on verified grounds
+## F. Gate findings — all fourteen built, none deferred
 
-From the adversarial gate review (2026-08-22). The first pass of this section deferred six items
-on the strength of "latent — nothing in the tree triggers it today". **That phrasing was an
-assumption, not a check.** Every ground below has since been re-derived against the tree; two of
-the six turned out not to be latent at all, only unbuilt, and were built.
+From the adversarial gate review (2026-08-22). This section went through three states, and the
+history is the point.
 
-### Built after re-examination
+**First pass:** six items deferred as "latent — nothing in the tree triggers it today."
+**Second pass:** challenged, the grounds were re-derived instead of restated. Two were not latent
+at all, only unbuilt, and were built (check 9, and the `RUNTIME_VARS` tripwire).
+**Third pass:** challenged again — *"a bug that isn't from today's work is still a bug; deferred
+for whom, and when?"* — the remaining four had no owner and no trigger date, which makes "deferred"
+a synonym for abandoned. They are now fixed. The real reason they were deferred was that the run was
+optimising for closing out, not that the fixes were expensive: **three of the four were one to three
+lines.**
 
-1. **Prose counts are now gated — `check-docs.sh` check 9.** check 4 gated the inventories in both
-   directions but nothing gated the *sentences* stating their size, so a 22nd command with a page and
-   an index link would pass while `README.md` still said "twenty-one slash commands" — and the reader
-   meets the sentence before the table. Six counts are now derived from the tree and compared:
-   commands, agents, reference files, hooks, skills, and user-settable environment variables (that last
-   derived from check 5's own scan, so the two can never disagree about what "user-settable" means).
-   The check fires in **two** modes — a wrong number, and a count sentence *reworded away*, which is the
-   vacuous-pass mode that would otherwise silence it. Both have selftest cases. All six counts were
-   verified correct at the time of writing, so this closes a hole rather than a defect.
-2. **`RUNTIME_VARS` is now frozen against a checked constant.** Every name in that list silences both
-   directions of check 5 for that variable, permanently, and no fixture mutation can reveal it. Changing
-   it now trips a tripwire that names the risk and demands the justification comment be updated in the
-   same edit. The tripwire is self-referential — it guards a constant in the file that runs it — so
-   `--selftest` structurally cannot exercise it; it is verified out-of-band instead (mutate a copy of the
-   script, watch check 5 fail), and the script says so where the constant is defined.
+Worse, the test itself had been wrong. Three of the four were not dormant hazards but gate bugs that
+**fail on correct content** — legal CommonMark that would have turned the build red for no reason.
+That is not latent; it is a landmine with a trip-wire pointed at the next author.
 
-### Deferred — each ground re-derived against the tree, not assumed
+| Was deferred | What it actually was | Fix |
+|---|---|---|
+| `slugify()` deletes non-ASCII letters | A **correct** `#über-config` link failed check 2 — the letter was stripped, yielding `ber-config` | Probe once for a UTF-8 locale (`C.UTF-8` and three fallbacks) and lowercase through it; `[:alnum:]` instead of `[a-z0-9]`. When no UTF-8 locale exists the gate says so out loud rather than mis-resolving in silence |
+| No `-1` duplicate-heading disambiguator | A correct link to the second `## Notes` failed check 2 | One `awk` line: first occurrence bare, then `-1`, `-2` |
+| Check 1 rejects `[x](f.md "Title")` / `[x](<f.md>)` | Legal CommonMark resolved as a literal path and failed | Two `sed` clauses in the extractor |
+| Check 3's single reachability root | A page linked only from the plugin README was a **false orphan** | Seed the frontier with the plugin README too |
+| Check 6 and `~~~` fences | A table inside a `~~~` fence was measured and flagged | Extend the fence pattern |
+| Check 6 skips indented rows | An over-long cell in an indented row was **never measured** — the one vacuous-pass of the six | `^[[:space:]]*\|` |
 
-3. **`slugify()` diverges from GitHub on non-ASCII *letters*** (`Über-config` → `ber-config`) and never
-   generates GitHub's `-1` duplicate-heading disambiguator. **Verified vacuous:** the only non-ASCII
-   character in any heading across all 34 pages is the em-dash `—`, which the review confirmed slugify
-   handles identically to github-slugger; and no file contains a duplicate heading. Fix it the day a
-   non-ASCII letter or a repeated heading is added — both are one-line changes.
-4. **Check 1 rejects `[x](file.md "Title")` and `[x](<file.md>)`, and never extracts reference-style
-   `[x][t]` or raw `<a href>`.** **Verified vacuous:** zero occurrences of all four forms across
-   `docs/`, the plugin README, and the repo-root README. The one apparent hit is `[A-Z][A-Z0-9_]*`
-   inside a backticked regex, which is not a link.
-5. **Check 3 treats `docs/README.md` as the sole reachability root**, so a page linked only from the
-   plugin README would read as a false orphan. **Verified vacuous:** all 34 pages are reachable from the
-   index, which is the intended entry point; check 3 reports zero orphans.
-6. **Check 6 flags tables inside `~~~` fences and skips indented table rows.** **Verified vacuous:** no
-   `~~~` fence and no indented table row exists in `docs/` or either README. Both are false-positive
-   shaped — they would fail loudly rather than pass silently, which is the safe direction to be wrong in.
+All six legal constructs now live in the fixture, so the standing pass-case proves the gate accepts
+them; five new fail-cases prove it still rejects the broken forms. Selftest: **33 cases, 9 checks.**
+
+**Nothing from the review is outstanding.**

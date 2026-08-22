@@ -24,11 +24,27 @@ note() { printf '  %s\n' "$1" >&2; }
 # whichever file it names. A bare `#anchor` names no file, so a file-existence
 # check cannot see it -- that is why check 2 is separate. ai-containers' split
 # broke 24 anchors this way.
+# GitHub KEEPS non-ASCII letters in an anchor and lowercases them, so `## Uber-config`
+# spelled with an umlaut anchors as the umlauted form. Doing that needs a UTF-8 locale: in a
+# C/ASCII locale `[:alnum:]` excludes those letters and they are deleted outright, so a
+# CORRECT link would fail check 2. Probe for a usable locale once, at startup.
+SLUG_LOCALE=""
+for _l in C.UTF-8 C.utf8 en_US.UTF-8 en_US.utf8; do
+  if [ "$(printf '\303\234\n' | LC_ALL="$_l" sed -E 's/.*/\L&/' 2>/dev/null)" = "$(printf '\303\274')" ]; then
+    SLUG_LOCALE="$_l"; break
+  fi
+done
+
 slugify() { # GitHub heading -> anchor. NEWLINE-TERMINATED: without it every
             # slug concatenates into one line and no anchor ever matches.
-  printf '%s\n' "$1" \
-    | tr '[:upper:]' '[:lower:]' \
-    | sed -E 's/`//g; s/[^a-z0-9 _-]//g; s/ /-/g'
+  if [ -n "$SLUG_LOCALE" ]; then
+    printf '%s\n' "$1" \
+      | LC_ALL="$SLUG_LOCALE" sed -E 's/.*/\L&/; s/`//g; s/[^[:alnum:] _-]//g; s/ /-/g'
+  else
+    printf '%s\n' "$1" \
+      | tr '[:upper:]' '[:lower:]' \
+      | sed -E 's/`//g; s/[^a-z0-9 _-]//g; s/ /-/g'
+  fi
 }
 
 strip_fences() { # drop fenced code blocks: an illustrative link inside a ```markdown
@@ -66,13 +82,14 @@ check_links_and_anchors() {
                                                              # a .sh file's `# comment` is not one
         slugs=$(strip_fences "$heading_file" 2>/dev/null | grep -E '^#{1,6} ' \
                 | sed -E 's/^#{1,6} //' \
-                | while IFS= read -r h; do slugify "$h"; done)
+                | while IFS= read -r h; do slugify "$h"; done \
+                | awk '{ c = seen[$0]++; if (c == 0) print; else print $0 "-" c }')
         if ! grep -qx -- "$anchor" <<<"$slugs"; then
           fail 2 "$f -> ${target:-(this file)}#$anchor (no such heading)"
         fi
       fi
     done < <(strip_fences "$f" | grep -oE '\]\([^)#][^)]*\)|\]\(#[^)]*\)' \
-             | sed -E 's/^\]\(//; s/\)$//' \
+             | sed -E 's/^\]\(//; s/\)$//; s/[[:space:]]+"[^"]*"$//; s/^<//; s/>$//' \
              | grep -vE '^(https?|mailto):')
   done < <({ find "$root/$PLUGIN_REL/docs" -name '*.md' 2>/dev/null
              [ -f "$root/$PLUGIN_REL/README.md" ] && printf '%s\n' "$root/$PLUGIN_REL/README.md"
@@ -86,6 +103,8 @@ check_orphans() {
   local root="$1" docs="$1/$PLUGIN_REL/docs" seen frontier next f target abs
   [ -f "$docs/README.md" ] || { fail 3 "docs/README.md is missing -- nothing to reach from"; return; }
   seen="$(cd "$docs" && pwd)/README.md"
+  [ -f "$1/$PLUGIN_REL/README.md" ] && seen="$seen
+$(cd "$1/$PLUGIN_REL" && pwd)/README.md"
   frontier="$seen"
   while [ -n "$frontier" ]; do
     next=""
@@ -239,9 +258,9 @@ check_table_cells() {
   hits=$(while IFS= read -r f; do
            [ -n "$f" ] || continue
            awk -v FILE="${f#$root/}" '
-             /^```/    { infence = !infence; next }
+             /^[ \t]*(```|~~~)/ { infence = !infence; next }
              infence   { next }
-             /^\|/ {
+             /^[[:space:]]*\|/ {
                n = split($0, cells, "|")
                last = ($0 ~ /\|[[:space:]]*$/) ? n - 1 : n   # no trailing pipe => the final field IS a cell
                for (i = 2; i <= last; i++) {
@@ -438,6 +457,11 @@ selftest() {
   expect_fail "a drifted emit-cost call site is rejected"      8 "sed -i.bak 's|\`command: /alpha\`, \`phase: fixture-phase\`, \`role: pm\`|\`command: /alpha\`, \`role: pm\`, \`phase: fixture-phase\`|' plugins/dev-workflows/commands/alpha.md"
   expect_fail "a drifted prose count is rejected"              9 "printf -- '---\nname: gamma\n---\n' > plugins/dev-workflows/commands/gamma.md && printf -- '# /gamma\n\nPage.\n' > plugins/dev-workflows/docs/commands/gamma.md && sed -i.bak 's|(commands/alpha.md)|(commands/alpha.md), [\`/gamma\`](commands/gamma.md)|' plugins/dev-workflows/docs/README.md"
   expect_fail "a count sentence reworded away is rejected"     9 "sed -i.bak 's|one slash commands|a handful of slash commands|' plugins/dev-workflows/README.md"
+  expect_fail "a wrong non-ASCII anchor is rejected"           2 "printf '\n[bad](#uber-config)\n' >> plugins/dev-workflows/docs/commands/alpha.md"
+  expect_fail "a wrong duplicate-heading index is rejected"    2 "printf '\n[bad](#notes-2)\n' >> plugins/dev-workflows/docs/commands/alpha.md"
+  expect_fail "a titled link to a missing file is rejected"    1 "printf '\n[bad](nope.md \"T\")\n' >> plugins/dev-workflows/docs/commands/alpha.md"
+  expect_fail "an angle-bracket link to a missing file is rejected" 1 "printf '\n[bad](<nope.md>)\n' >> plugins/dev-workflows/docs/commands/alpha.md"
+  expect_fail "an over-long INDENTED table cell is rejected"   6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"q\"; printf \"\n  | a | %s |\n  |---|---|\n\", s}' >> plugins/dev-workflows/docs/reference/agents.md"
   expect_fail "a section-7 row for a non-emitting command is rejected" 8 "sed -i.bak 's;| \`/alpha\` | fixture-phase | pm |;| \`/alpha\` | fixture-phase | pm |\n| \`/omega\` | fixture-phase | pm |;' plugins/dev-workflows/references/cost-emission.md"
 
   if [ "$rc" -eq 0 ]; then echo "SELFTEST PASS"; else echo "SELFTEST FAIL"; fi
@@ -456,6 +480,7 @@ fi
 ROOT="$(cd "$ROOT" && pwd)"
 [ -d "$ROOT/$PLUGIN_REL/docs" ] || { fail 4 "$PLUGIN_REL/docs does not exist"; echo "FAIL: $FAILURES problem(s)" >&2; exit 1; }
 
+[ -n "$SLUG_LOCALE" ] || note "no UTF-8 locale found; anchors whose heading contains a non-ASCII letter cannot be verified in this environment"
 check_links_and_anchors "$ROOT"
 check_orphans           "$ROOT"
 check_inventory         "$ROOT"

@@ -1,6 +1,6 @@
 # Model routing reference
 
-Every pipeline command classifies its own task before doing real work, and that classification decides whether an Opus planner and an Opus review gate join the run. This page covers the four things a user can observe or influence about that; the full policy — including the mechanics agents don't need restated here — lives in `classification.md` and is linked at the end.
+Every pipeline command classifies its own task before doing real work, and that classification decides how much planning, authoring, and review rigor the rest of the run applies — and, for two commands, which model the session itself must be running on. This page covers the four things a user can observe or influence about that; the full policy — including the mechanics agents don't need restated here — lives in `classification.md` and is linked at the end.
 
 ## What gets classified
 
@@ -15,9 +15,13 @@ All fourteen pipeline commands that load the `model-routing` skill run this clas
 
 ## What classification changes
 
-`SIMPLE` and `MODERATE` continue on whatever model the session is already running, with no extra Opus step added on their account.
+`SIMPLE` and `MODERATE` continue on whatever model the session is already running, with nothing extra added on their account.
 
-`SIGNIFICANT` and `HIGH-RISK` add two mandatory steps: planning (or a planning critique) delegated to an Opus sub-agent before implementation starts, and a dedicated Opus code-review gate after implementation completes and before tests run. Several authoring commands' own reviewer agents already carry a fixed Opus pin in their frontmatter and run unconditionally, independent of this classification — [Agents reference](agents.md) has the complete list of which agents are pinned and which commands dispatch them. For those commands, what classification changes is the planner step, not whether the review itself runs on Opus.
+`SIGNIFICANT` and `HIGH-RISK` change different things depending on which command you're running, because two distinct patterns share this classification:
+
+- **`/implement` and `/upgrade`** delegate planning (or a planning critique) to a dedicated Opus sub-agent (`risk-planner`) before implementation starts, then add a separate Opus `code-review` gate afterward, before tests run; at `SIMPLE`/`MODERATE` neither one is dispatched at all.
+- **The reviewer-gated authoring and documentation commands** — `/create-vi`, `/create-ard`, `/specify`, `/design`, `/document`, `/epics`, and `/ready` among them — already run their own reviewer agent on Opus by a fixed frontmatter pin, on every run regardless of classification; there is no separate delegated planner sub-agent in this pattern. What classification changes here is grill depth and authoring rigor, not whether the review runs on Opus — [Agents reference](agents.md) carries the complete list of which agents are pinned and which commands dispatch them.
+- **`/design` and `/create-ard` add a further, stricter gate:** at `SIGNIFICANT`/`HIGH-RISK` they require the session itself to already be running on an Opus-tier model, because their authoring happens inline rather than through a delegated sub-agent. If it isn't, the run stops and offers to relaunch on Opus, with an explicit override to proceed anyway that gets logged in the final report. `/specify` and `/create-vi` don't gate this way on the same classification — they degrade to the best available model and record the degradation instead of stopping.
 
 ## What floors a classification
 

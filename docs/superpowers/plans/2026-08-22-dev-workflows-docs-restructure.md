@@ -279,7 +279,7 @@ check_env_vars() {
 # ------------------------------------------------------------------- check 6
 # No table cell over 200 characters. This is the readability invariant the whole
 # restructure exists to establish, and the one a future edit will silently
-# violate: today's README carries a single cell of 2,177 characters.
+# violate: today's README carries a single cell of 2,066 characters (in a table row 2,177 characters long).
 check_table_cells() {
   local root="$1" files hits h
   files=$( { find "$root/$PLUGIN_REL/docs" -name '*.md' 2>/dev/null

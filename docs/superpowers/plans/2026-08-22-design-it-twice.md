@@ -85,8 +85,9 @@ report rather than silently resolve.
 **Interfaces:**
 - Produces: agent name **`interface-designer`**, dispatched by Task 4 as
   `Agent (subagent_type: "dev-workflows:interface-designer")`.
-- Produces: the five output headings Task 4's comparison reads field-by-field — `## Interface`,
-  `## Usage example`, `## What it hides`, `## Dependency strategy`, `## Trade-offs`.
+- Produces: a `## Interface proposal` wrapper around the five output headings Task 4's comparison reads
+  field-by-field — `### Interface`, `### Usage example`, `### What it hides`, `### Dependency strategy`,
+  `### Trade-offs`.
 - Produces: input field names `constraint`, `problem_frame`, `code_context`, `dependency_category`.
 
 - [ ] **Step 1: Confirm the branch and a clean tree.**
@@ -163,20 +164,22 @@ You are **not** writing a design document. One interface.
 Return exactly this shape, no preamble:
 
 ```markdown
-## Interface
+## Interface proposal
+
+### Interface
 [Signatures, and the facts a caller must know that a signature does not carry: invariants, ordering
 constraints, error modes, required configuration. Real names, real types.]
 
-## Usage example
+### Usage example
 [How a caller actually uses it — the dominant case, in code.]
 
-## What it hides
+### What it hides
 [The behaviour that sits behind the seam and never reaches the caller.]
 
-## Dependency strategy
+### Dependency strategy
 [The seam's dependency category, and the adapters it implies. If you classified it yourself, say so.]
 
-## Trade-offs
+### Trade-offs
 [Where leverage is high — behaviour reached per unit of interface learned. Where it is thin. What
 following the constraint cost. What this take is bad at.]
 ```
@@ -437,31 +440,46 @@ If the second returns 0, step 1.3 did not land — the command will mis-parse it
 intertwined tracks are described and before Phase 5.5, insert:
 
 ```markdown
-**Interface fan-out (offered, not automatic).** When the interview reaches an interface decision that
-is **contested** — any signal in `${CLAUDE_PLUGIN_ROOT}/references/design-format.md` `## Seams`, or
-`--design-twice` was passed — say which interface is contested, which signal fired, and your own read of
-the trade-off, then offer:
+**Interface fan-out (offered on a signal; forced by `--design-twice`).** When the interview reaches an
+interface decision that is **contested** — any signal in `${CLAUDE_PLUGIN_ROOT}/references/design-format.md`
+`## Seams` — say which interface is contested, which signal fired, and your own read of the trade-off,
+then offer. **Neither option carries a `(Recommended)` marker, and neither is recommended by default**:
+this list is shown only once the interface is *already* contested, so which way to go depends on how
+contested it actually is — a judgement that belongs to the user rather than to a marker, per the
+"no option safe to recommend" remedy in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
 
 ```
-choices: ["Design it three ways (3 parallel takes, then compare)", "Decide it in the interview (Recommended when one shape is clearly right)", "Other… (describe)"]
+choices: ["Design it three ways (3 parallel takes, then compare)", "Decide it in the interview", "Other… (describe)"]
 ```
 
-Declining costs nothing and changes nothing: the interview continues and the `### Alternatives
-considered` requirement is satisfied by hand as it would have been anyway. With `--design-twice`, still
-offer — the flag forces the *opportunity*, not the spend.
+Declining costs nothing and changes nothing: the interview continues and the `### Alternatives considered` requirement is satisfied by hand as it would have been anyway.
 
-On acceptance, dispatch **three takes in a single response** (the plugin's existing parallel fan-out
-pattern), each blind to the others:
+**With `--design-twice` the offer does not run at all.** The flag forces the **fan-out**, not the
+opportunity: say that the flag forced it and on which interface, then dispatch the three takes directly.
+A user who typed the flag has already given the answer the offer would ask for, and re-asking is a
+prompt that changes nothing.
 
-→ Agent (subagent_type: "dev-workflows:interface-designer", model: `<detection_model — §2.1 chain>`) ×3:
+On acceptance — or immediately, when `--design-twice` forced it — dispatch **three takes in a single
+response** (the plugin's existing parallel fan-out pattern), each blind to the others. One constraint per
+take, labelled **A**, **B**, and **C** in that order; those are the labels the Final report's
+`chose <A|B|C|hybrid>` refers to:
+
+→ Agent (subagent_type: "dev-workflows:interface-designer", model: `<detection_model — §2.1 Sonnet chain>`) ×3:
   > "Produce one interface proposal for this brief:
   >
-  > constraint: [Minimise the interface | Maximise flexibility | Optimise for the most common caller]
+  > constraint: [A — Minimise the interface | B — Maximise flexibility | C — Optimise for the most common caller]
   > problem_frame: [what the interface is for, the constraints any proposal must satisfy, the seam it sits at]
   > code_context: [the Phase 4 code-scanner findings for the relevant repo(s) — inline, or an absolute path]
   > dependency_category: [the seam's category if already settled, else omit]"
 
-When the three return, present them, then compare **on named axes, not impressions**: **depth**
+**Handle a take that stops.** A take returning `status: BLOCKED` could not read its `code_context` (the
+read-failure contract in `${CLAUDE_PLUGIN_ROOT}/references/context-management.md`). Name the unreadable path, and do
+**not** count it as a take. Then either re-dispatch that one constraint with a valid `code_context`, or
+proceed with the takes that did return — saying which constraint is missing and that the comparison runs
+on fewer than three. Never write the missing take yourself: a constraint the fan-out never explored is a
+gap in the comparison, not a gap for the orchestrator to fill.
+
+When the takes return, present them, then compare **on named axes, not impressions**: **depth**
 (behaviour reached per unit of interface a caller must learn), **locality** (where change, bugs, and
 verification concentrate), **seam placement** (whether the boundary falls where things actually vary).
 Give an opinionated recommendation, and propose a **hybrid** where the strongest ideas split across
@@ -473,10 +491,11 @@ takes in `### Alternatives considered` (take, constraint, why it lost) per
 ```
 
 - [ ] **Step 4: The Phase 5 report line.** In the command's Final report section, add a line that
-states exactly one of these on a SIGNIFICANT / HIGH-RISK run:
+states exactly one of these whenever the run reaches the Final report (the offer is not
+classification-gated, so gating the line would leave a MODERATE fan-out invisible):
 
 ```markdown
-- **Interface fan-out:** [one of — `ran — <interface>, 3 takes, chose <A|B|C|hybrid>` | `offered and declined — <interface>` | `not offered — no contested interface (no signal in design-format.md ## Seams)`]
+- **Interface fan-out:** [one of — `ran — <interface>, <N> of 3 takes returned, chose <A|B|C|hybrid>` — `<N>` counted from the takes that actually returned, naming the constraint of any that returned `BLOCKED` | `offered and declined — <interface>` | `not offered — no contested interface (no signal in design-format.md ## Seams)`]
 ```
 
 **The third value is the point of this step.** Without it, "the contested-interface signals are too
@@ -854,7 +873,7 @@ Written **last**, after the final fix wave.
 
 **Spec coverage.** §3 → Task 1; §4.1/§4.3/§4.4 → Task 4 Step 3; §4.5 → Task 4 Step 1 + §9.2 → Task 4
 Steps 1–2 and Task 8 Step 5; §5 → Task 2; §6 → Task 3; §7 → Task 5; §8.1 → Task 4 Step 4; §9 → Task 8;
-§9.1 → Task 8 Step 7; §10 → Task 10; §10.5 → Tasks 6–7.
+§9.1 → Task 8 Step 7; §10 → Task 10; §10 item 5 (cross-edition) → Tasks 6–7.
 
 **Known plan-level decisions.** (a) **Confirmed while writing this plan:** `design.md` has **zero**
 flag-stripping steps today (`grep -c "minus every recognised flag" commands/design.md` → 0), because it

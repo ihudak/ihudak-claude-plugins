@@ -682,9 +682,11 @@ a section.
 adds no new reference file and needs no new bullet — **confirm that** rather than assuming, and say so
 in the report.
 
-- [ ] **Step 4: `.github/copilot-instructions.md`** — apply the equivalent of Task 8's `CLAUDE.md`
-edits **where a target exists**. This file is asymmetric with the Claude editions; if a section this
-round would extend is absent, skip it **with a stated reason**. Do not invent a section.
+- [ ] **Step 4: `.github/copilot-instructions.md` — NOT this task.** Task 8 owns it, together with
+`CLAUDE.md` in the two Claude editions, so all three editions' instruction files are edited in one pass
+and stay consistent. An earlier draft of this plan assigned it to **both** Task 7 and Task 8; the
+implementer of Task 7 caught the duplication and reported it rather than silently choosing. If you are
+executing Task 7, skip this file entirely.
 
 - [ ] **Step 5: Verify no dialect leaked.**
 

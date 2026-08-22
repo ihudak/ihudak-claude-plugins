@@ -31,6 +31,13 @@ slugify() { # GitHub heading -> anchor. NEWLINE-TERMINATED: without it every
     | sed -E 's/`//g; s/[^a-z0-9 _-]//g; s/ /-/g'
 }
 
+strip_fences() { # drop fenced code blocks: an illustrative link inside a ```markdown
+                 # block is not a real link, and a `#` line inside one is not a heading.
+                 # check 6 has always stripped fences; checks 1 and 2 did not, which made
+                 # them fail on correct content AND accept anchors that do not exist.
+  awk '/^[ \t]*(```|~~~)/ { infence = !infence; next } !infence' "$1"
+}
+
 check_links_and_anchors() {
   local root="$1" f target anchor path abs heading_file
   while IFS= read -r f; do
@@ -55,14 +62,16 @@ check_links_and_anchors() {
         # failure -- turning a VALID anchor into a check-2 error. Same defect
         # ai-containers#78 caught in its own new gate.
         local slugs
-        slugs=$(grep -E '^#{1,6} ' "$heading_file" 2>/dev/null \
+        case "$heading_file" in *.md) ;; *) continue ;; esac  # only markdown has headings;
+                                                             # a .sh file's `# comment` is not one
+        slugs=$(strip_fences "$heading_file" 2>/dev/null | grep -E '^#{1,6} ' \
                 | sed -E 's/^#{1,6} //' \
                 | while IFS= read -r h; do slugify "$h"; done)
         if ! grep -qx -- "$anchor" <<<"$slugs"; then
           fail 2 "$f -> ${target:-(this file)}#$anchor (no such heading)"
         fi
       fi
-    done < <(grep -oE '\]\([^)#][^)]*\)|\]\(#[^)]*\)' "$f" \
+    done < <(strip_fences "$f" | grep -oE '\]\([^)#][^)]*\)|\]\(#[^)]*\)' \
              | sed -E 's/^\]\(//; s/\)$//' \
              | grep -vE '^(https?|mailto):')
   done < <({ find "$root/$PLUGIN_REL/docs" -name '*.md' 2>/dev/null
@@ -126,7 +135,7 @@ check_inventory() {
 
   # reference FILES <-> docs/reference/references.md
   while IFS= read -r n; do
-    grep -q "$n" "$d/reference/references.md" 2>/dev/null || fail 4 "reference file '$n' is absent from reference/references.md"
+    grep -qF "\`$n\`" "$d/reference/references.md" 2>/dev/null || fail 4 "reference file '$n' is absent from reference/references.md"
   done < <({ ls "$p/references"/*.md 2>/dev/null; ls "$p/references"/*.yaml 2>/dev/null; \
              ls "$p/references/model-routing"/*.md 2>/dev/null; } | sed 's|.*/||')
   while IFS= read -r n; do
@@ -137,13 +146,22 @@ check_inventory() {
   # reference subtree counts -- *.md only: these subtrees also carry vendored
   # non-markdown data/templates that are not user-facing reference pages, so
   # counting everything would fail this check on files docs/ never claims.
+  # Derived from the tree, never hardcoded: a hardcoded list cannot see a NEW subtree,
+  # which is how a whole directory of reference docs would ship undocumented.
+  # model-routing/ is excluded deliberately -- its *.md are inventoried file-by-file above.
   local dir count claimed
-  for dir in api-guidelines guidelines handoff dynatrace-docs upgrade fix-vuln; do
-    [ -d "$p/references/$dir" ] || continue
+  for dir in $(ls -d "$p/references"/*/ 2>/dev/null | sed 's|/*$||; s|.*/||'); do
+    [ "$dir" = "model-routing" ] && continue
     count=$(find "$p/references/$dir" -name '*.md' | wc -l | tr -d ' ')
     claimed=$(grep -oE "\`$dir/\` \(([0-9]+)\)" "$d/reference/references.md" 2>/dev/null | grep -oE '[0-9]+' | head -1)
     [ "$claimed" = "$count" ] || fail 4 "reference/references.md says $dir/ has '${claimed:-nothing}', tree has $count"
   done
+  # ...and the reverse: a subtree the page claims but the tree no longer has. Without this,
+  # `rm -rf references/upgrade/` passes while the page still advertises `upgrade/` (3).
+  while IFS= read -r dir; do
+    [ -n "$dir" ] || continue
+    [ -d "$p/references/$dir" ] || fail 4 "reference/references.md claims subtree $dir/, which does not exist"
+  done < <(grep -oE '`[a-z][a-z0-9-]*/` \([0-9]+\)' "$d/reference/references.md" 2>/dev/null | sed 's|`||g; s|/.*||')
 
   # hooks <-> docs/reference/hooks.md
   while IFS= read -r n; do
@@ -180,12 +198,13 @@ check_env_vars() {
               | tr -d '${}' | sort -u)
   for v in $read_vars; do
     case " $RUNTIME_VARS " in *" $v "*) continue ;; esac
-    grep -q "$v" "$d/reference/environment.md" 2>/dev/null \
+    grep -qw "$v" "$d/reference/environment.md" 2>/dev/null \
       || fail 5 "\$$v is read by the plugin but absent from reference/environment.md"
-    grep -q "$v" "$d/getting-started.md" 2>/dev/null \
+    grep -qw "$v" "$d/getting-started.md" 2>/dev/null \
       || fail 5 "\$$v is read by the plugin but absent from getting-started.md"
   done
-  documented=$(grep -oE '\*\*`\$?[A-Z][A-Z0-9_]{2,}`\*\*' "$d/reference/environment.md" 2>/dev/null | tr -d '*`$')
+  documented=$(grep -oE '^#+ `\$?[A-Z][A-Z0-9_]{2,}`|\*\*`\$?[A-Z][A-Z0-9_]{2,}`\*\*' \
+                 "$d/reference/environment.md" 2>/dev/null | sed 's/^#* //' | tr -d '*`$')
   for v in $documented; do
     grep -qx -- "$v" <<<"$read_vars" \
       || fail 5 "reference/environment.md documents \$$v, which the plugin never reads"
@@ -199,7 +218,8 @@ check_env_vars() {
 check_table_cells() {
   local root="$1" files hits h
   files=$( { find "$root/$PLUGIN_REL/docs" -name '*.md' 2>/dev/null
-             [ -f "$root/$PLUGIN_REL/README.md" ] && printf '%s\n' "$root/$PLUGIN_REL/README.md"; } )
+             [ -f "$root/$PLUGIN_REL/README.md" ] && printf '%s\n' "$root/$PLUGIN_REL/README.md"
+             [ -f "$root/README.md" ] && printf '%s\n' "$root/README.md"; } )
   [ -n "$files" ] || return 0
   hits=$(while IFS= read -r f; do
            [ -n "$f" ] || continue
@@ -208,7 +228,8 @@ check_table_cells() {
              infence   { next }
              /^\|/ {
                n = split($0, cells, "|")
-               for (i = 2; i < n; i++) {
+               last = ($0 ~ /\|[[:space:]]*$/) ? n - 1 : n   # no trailing pipe => the final field IS a cell
+               for (i = 2; i <= last; i++) {
                  c = cells[i]; gsub(/^ +| +$/, "", c)
                  if (length(c) > 200)
                    printf "%s:%d cell is %d chars (max 200)\n", FILE, NR, length(c)
@@ -227,8 +248,8 @@ check_table_cells() {
 # Installation section exactly, in both directions.
 check_install_block() {
   local root="$1" a b
-  a=$(grep -oE '^claude plugin (marketplace (add|update)|install) .*' "$root/README.md" 2>/dev/null | sort)
-  b=$(grep -oE '^claude plugin (marketplace (add|update)|install) .*' "$root/$PLUGIN_REL/docs/getting-started.md" 2>/dev/null | sort)
+  a=$(grep -oE '^claude plugin (marketplace (add|update)|install|reinstall) .*' "$root/README.md" 2>/dev/null | sort)
+  b=$(grep -oE '^claude plugin (marketplace (add|update)|install|reinstall) .*' "$root/$PLUGIN_REL/docs/getting-started.md" 2>/dev/null | sort)
   if [ -z "$a" ]; then fail 7 "repo-root README.md has no 'claude plugin ...' command lines to pin against"; return; fi
   if [ "$a" != "$b" ]; then
     fail 7 "getting-started.md install commands differ from the repo-root README"
@@ -280,6 +301,19 @@ check_cost_attribution() {
     grep -qF "$cmd|" <<<"$calls" \
       || fail 8 "cost-emission.md section 7 attributes $cmd, which passes emit-cost no fixed phase/role"
   done <<<"$table"
+
+  # Extractor-coverage assertion. Every command file that mentions emit-cost must yield a
+  # triple; otherwise a reworded call site makes this check go QUIET, and the message above
+  # would blame the table for what is really an extractor miss. `/document` is the live
+  # example -- it calls emit-cost twice under parenthesised names.
+  local f n
+  for f in "$p/commands"/*.md; do
+    [ -f "$f" ] || continue
+    grep -q 'emit-cost' "$f" || continue
+    n="/$(basename "$f" .md)"
+    grep -qF "$n|" <<<"$calls" \
+      || fail 8 "commands$(basename "$f" .md | sed 's|^|/|').md calls emit-cost but no phase/role triple matched -- the EXTRACTOR has drifted, not the table; fix the regex, never the row"
+  done
 }
 
 # ------------------------------------------------------------------ selftest
@@ -324,6 +358,17 @@ selftest() {
   expect_fail "a documented nonexistent skill is rejected" 4 "printf '\n| \`ghost-skill\` | Yes | fixture mutation |\n' >> plugins/dev-workflows/docs/reference/references.md"
   expect_fail "an unattributed emit-cost call is rejected" 8 "printf -- '---\nname: zeta\n---\n\nCall \`emit-cost\` with \`command: /zeta\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' > plugins/dev-workflows/commands/zeta.md && printf -- '# /zeta\n\nFixture page.\n' > plugins/dev-workflows/docs/commands/zeta.md && sed -i.bak 's|(commands/alpha.md)|(commands/alpha.md), [\`/zeta\`](commands/zeta.md)|' plugins/dev-workflows/docs/README.md"
   expect_fail "a drifted attributed role is rejected"      8 "sed -i.bak 's;| \`/alpha\` | fixture-phase | pm |;| \`/alpha\` | fixture-phase | pe |;' plugins/dev-workflows/references/cost-emission.md"
+  expect_fail "a broken link in the ROOT README is rejected" 1 "sed -i.bak 's|(plugins/dev-workflows/README.md)|(plugins/dev-workflows/NOPE.md)|' README.md"
+  expect_fail "a broken bare #anchor is rejected"   2 "printf '\n[self](#no-such-heading-here)\n' >> plugins/dev-workflows/docs/README.md"
+  expect_fail "a documented nonexistent agent is rejected"     4 "printf '\n| \`ghost-agent\` | fixture |\n' >> plugins/dev-workflows/docs/reference/agents.md"
+  expect_fail "a documented nonexistent hook is rejected"      4 "printf '\n| \`ghost-hook\` | fixture |\n' >> plugins/dev-workflows/docs/reference/hooks.md"
+  expect_fail "a documented nonexistent reference file is rejected" 4 "printf '\n- \`ghost-ref.md\`\n' >> plugins/dev-workflows/docs/reference/references.md"
+  expect_fail "a claimed-but-absent subtree is rejected"       4 "rm -rf plugins/dev-workflows/references/handoff"
+  expect_fail "an undocumented NEW subtree is rejected"        4 "mkdir -p plugins/dev-workflows/references/brandnew && printf '# x\n' > plugins/dev-workflows/references/brandnew/x.md"
+  expect_fail "a documented-but-unread env var is rejected"    5 "printf '\n**\`\$PHANTOM_VAR\`** — never read anywhere.\n' >> plugins/dev-workflows/docs/reference/environment.md"
+  expect_fail "an over-long cell in the ROOT README is rejected" 6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"x\"; printf \"\n| a | %s |\n|---|---|\n| b | c |\n\", s}' >> README.md"
+  expect_fail "a drifted reinstall command is rejected"        7 "printf '\nclaude plugin reinstall dev-workflows@fixture-plugins\n' >> plugins/dev-workflows/docs/getting-started.md"
+  expect_fail "a drifted emit-cost call site is rejected"      8 "sed -i.bak 's|\`command: /alpha\`, \`phase: fixture-phase\`, \`role: pm\`|\`command: /alpha\`, \`role: pm\`, \`phase: fixture-phase\`|' plugins/dev-workflows/commands/alpha.md"
   expect_fail "a section-7 row for a non-emitting command is rejected" 8 "sed -i.bak 's;| \`/alpha\` | fixture-phase | pm |;| \`/alpha\` | fixture-phase | pm |\n| \`/omega\` | fixture-phase | pm |;' plugins/dev-workflows/references/cost-emission.md"
 
   if [ "$rc" -eq 0 ]; then echo "SELFTEST PASS"; else echo "SELFTEST FAIL"; fi

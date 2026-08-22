@@ -52,3 +52,16 @@ Carriers changed: `references/cost-emission.md` §7, `references/workflow-states
 ## Carried forward, outside this branch
 
 The role collapse touches files that are `cp`-ported to `mgd-claude-plugins` and hand-adapted for `ihudak-copilot-plugins`. Both editions still carry the five-role vocabulary and the retired `QA` label wherever their own copies of these references live. The port is its own change — see the cross-repo porting notes before starting it.
+
+---
+
+## F. Gate findings accepted but NOT fixed — deliberate, with grounds
+
+From the adversarial gate review (2026-08-22). Each was verified; each is left standing for a stated reason, so a later reader does not re-raise it as new.
+
+1. **`RUNTIME_VARS` is an unaudited silencer** (`scripts/check-docs.sh`). Adding a name to that exclusion list kills both directions of check 5 permanently, and `--selftest` cannot see it. The scan recurses `references/`, which holds vendored third-party guidance — a `$MY_SERVICE_TOKEN` in an API-guidelines example would demand that name appear in the user-facing `getting-started.md`, and the tempting fix is an exclusion. **Not fixed** because the mechanism that would defend it (a per-entry justification the gate verifies) is a larger design than this branch should carry. The list is short and every current entry is justified in §E above.
+2. **No check verifies a written count.** A 22nd command with a page and a link passes while `plugins/dev-workflows/README.md` says "twenty-one slash commands"; likewise "34 agents", "98 files", "four hooks", "six user-settable variables". **Not fixed** — the inventories themselves are gated in both directions, so a drifted prose numeral is a stale sentence rather than an undocumented artifact. Worth a check 9 later.
+3. **`slugify()` diverges from GitHub on non-ASCII headings** (`Über-config` → `ber-config`) and never generates GitHub's `-1` duplicate disambiguator, so a correct `#notes-1` would fail check 2. **Not fixed** — latent: no heading in the tree is non-ASCII or duplicated. Fix it the day one is added.
+4. **Check 1 ignores two CommonMark link forms and rejects two others** — `[x](file.md "Title")` and `[x](<file.md>)` fail; reference-style `[x][t]` and raw `<a href>` are never extracted. **Not fixed** — the tree uses none of these forms, and the checked form is the one the docs convention uses.
+5. **Check 3 treats `docs/README.md` as the sole reachability root**, so a page linked only from the plugin README would read as an orphan. **Not fixed** — currently vacuous, since every page is reachable from the index, and the index is the intended entry point.
+6. **Check 6 flags tables inside `~~~` fences and skips indented table rows.** **Not fixed** — no such construct exists in the tree; both are false-positive-shaped, so they fail loudly rather than silently.

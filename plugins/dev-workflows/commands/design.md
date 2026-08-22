@@ -1,6 +1,6 @@
 ---
 name: design
-description: Jira-driven engineering-design workflow (Dev phase). Takes over a merged specification.md from the specs repo's main branch, grounds strictly in the fully-mounted implementation code, and authors a reviewed engineering design.md through a relentless one-question-at-a-time grill that challenges the spec and designs the implementation; gates on the Opus design-reviewer and lands design.md + the spec's engineering-review edits on main via branch + PR for /implement.
+description: Jira-driven engineering-design workflow (Dev phase). Takes over a merged specification.md from the specs repo's main branch, grounds strictly in the fully-mounted implementation code, and authors a reviewed engineering design.md through a relentless one-question-at-a-time grill that challenges the spec and designs the implementation; gates on the Opus design-reviewer and lands design.md + the spec's engineering-review edits on main via branch + PR for /implement. Optional --design-twice forces the Phase 5 interface fan-out even when no contested-interface signal fired.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -18,12 +18,14 @@ Key distinction from `/specify`: `/specify` (PE) *authors* the requirements spec
 (soft repo gate); `/design` (Dev) *challenges* that spec and *designs* the implementation, and must see
 **all** implementation repos — its repo gate is **strict** (hard-stop on any unmounted repo).
 
+Flags: `--design-twice` forces the Phase 5 interface fan-out on the run's load-bearing interface, even when no contested-interface signal fired (`references/design-format.md` `## Seams`).
+
 ---
 
 ## Phase 0 — Resolve input
 
-1. **Resolve the Jira input via the shared front-end.** Execute
-   `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against `$ARGUMENTS`. `/design` is
+1. **Resolve the Jira input via the shared front-end.** Classify `$ARGUMENTS` minus every recognised flag (`--design-twice`) before resolving — strip it first, exactly as `commands/idea.md`'s Phase 1 strips its own flags: an unstripped `--design-twice` is parsed as part of the Jira key and the run resolves the wrong feature, or fails. Execute
+   `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against the stripped `$ARGUMENTS`. `/design` is
    **jira-driven only**: expect `mode: jira-driven`. The front-end owns the `$VAULT_PATH` /
    `jira-products` validation, Fallbacks A/B **and D/E**, and the VI-selector (key-or-directory) +
    focus-Epic grammar. Carry forward:
@@ -241,6 +243,39 @@ before code. A residual engineering unknown that truly cannot be resolved is eit
 `design.md` `- [ ]` that will **block handoff** (Phase 6/7). A repo gap surfacing here → hard-stop (the
 Phase 3 strict gate); resumable from `_design-session.md`.
 
+**Interface fan-out (offered, not automatic).** When the interview reaches an interface decision that
+is **contested** — any signal in `${CLAUDE_PLUGIN_ROOT}/references/design-format.md` `## Seams`, or
+`--design-twice` was passed — say which interface is contested, which signal fired, and your own read of
+the trade-off, then offer:
+
+```
+choices: ["Design it three ways (3 parallel takes, then compare)", "Decide it in the interview (Recommended when one shape is clearly right)", "Other… (describe)"]
+```
+
+Declining costs nothing and changes nothing: the interview continues and the `### Alternatives considered` requirement is satisfied by hand as it would have been anyway. With `--design-twice`, still
+offer — the flag forces the *opportunity*, not the spend.
+
+On acceptance, dispatch **three takes in a single response** (the plugin's existing parallel fan-out
+pattern), each blind to the others:
+
+→ Agent (subagent_type: "dev-workflows:interface-designer", model: `<detection_model — §2.1 chain>`) ×3:
+  > "Produce one interface proposal for this brief:
+  >
+  > constraint: [Minimise the interface | Maximise flexibility | Optimise for the most common caller]
+  > problem_frame: [what the interface is for, the constraints any proposal must satisfy, the seam it sits at]
+  > code_context: [the Phase 4 code-scanner findings for the relevant repo(s) — inline, or an absolute path]
+  > dependency_category: [the seam's category if already settled, else omit]"
+
+When the three return, present them, then compare **on named axes, not impressions**: **depth**
+(behaviour reached per unit of interface a caller must learn), **locality** (where change, bugs, and
+verification concentrate), **seam placement** (whether the boundary falls where things actually vary).
+Give an opinionated recommendation, and propose a **hybrid** where the strongest ideas split across
+takes — that is a common outcome, not indecision.
+
+The user chooses. Record the chosen interface in `## Interfaces / contracts`, and record the losing
+takes in `### Alternatives considered` (take, constraint, why it lost) per
+`${CLAUDE_PLUGIN_ROOT}/references/design-format.md` section 3. Then resume the interview.
+
 ---
 
 ## Phase 5.5 — Structural pre-lint
@@ -401,6 +436,10 @@ confirmed repo set (and any removed-from-scope); the `design-reviewer` verdict; 
 opened); the `Specs repo:` outcome line from `commit-artifacts`
 (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full;
 and the `### Next step` recommendation (below).
+
+On a SIGNIFICANT / HIGH-RISK run, the report states exactly one of the Phase 5 interface fan-out outcomes:
+
+- **Interface fan-out:** [one of — `ran — <interface>, 3 takes, chose <A|B|C|hybrid>` | `offered and declined — <interface>` | `not offered — no contested interface (no signal in design-format.md ## Seams)`]
 
 ### Next step
 

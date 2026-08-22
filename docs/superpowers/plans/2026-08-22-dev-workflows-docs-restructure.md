@@ -614,8 +614,25 @@ Expected: the link list contains only paths under `docs/`; the `diff` is empty; 
 
 - [ ] **Step 5: Verify no table cell regressed**
 
-Run: `./scripts/check-docs.sh --root . 2>&1 | grep 'check 6' || echo "no check-6 failures"`
-Expected: `no check-6 failures`
+Run:
+
+```bash
+# A. Checks 2, 3 and 6 must be clean for the pages this task wrote. The `grep -v` is the
+# task boundary, not a workaround: the pre-existing plugins/dev-workflows/README.md carries
+# 45 over-long table cells, and check 6 first becomes able to see them the moment docs/
+# exists, because before that the gate short-circuits. Those 45 belong to Task 14.
+./scripts/check-docs.sh --root . 2>&1 | grep -E 'check (2|3|6)' | grep -v 'dev-workflows/README.md' \
+  || echo "checks 2, 3, 6 clean"
+
+# B. Check 1 is red BY DESIGN until Task 13: docs/README.md links forward to pages later
+# tasks create. Asserting "check 1 is clean" would be unachievable, and ignoring check 1
+# entirely would let a genuine typo hide among the expected failures. So assert the real
+# invariant instead — every unresolved target is a PLANNED page:
+PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
+./scripts/check-docs.sh --root . 2>&1 | grep 'check 1' | sed -E 's/.*-> ([^ ]+) .*/\1/' | sort -u \
+  | grep -vE "$PLANNED" || echo "every unresolved link targets a planned page — no typos"
+```
+Expected: `checks 2, 3, 6 clean` and `every unresolved link targets a planned page — no typos`.
 
 - [ ] **Step 6: Commit**
 
@@ -998,8 +1015,21 @@ Expected: empty. A non-empty diff means the sample was retyped rather than copie
 
 - [ ] **Step 6: Verify the four pages are reachable and clean**
 
-Run: `./scripts/check-docs.sh --root . 2>&1 | grep -E 'check (1|2|3|6)' || echo "checks 1, 2, 3, 6 clean"`
-Expected: `checks 1, 2, 3, 6 clean`
+Run: `# A. Checks 2, 3 and 6 must be clean for the pages this task wrote. The `grep -v` is the
+# task boundary, not a workaround: the pre-existing plugins/dev-workflows/README.md carries
+# 45 over-long table cells, and check 6 first becomes able to see them the moment docs/
+# exists, because before that the gate short-circuits. Those 45 belong to Task 14.
+./scripts/check-docs.sh --root . 2>&1 | grep -E 'check (2|3|6)' | grep -v 'dev-workflows/README.md' \
+  || echo "checks 2, 3, 6 clean"
+
+# B. Check 1 is red BY DESIGN until Task 13: docs/README.md links forward to pages later
+# tasks create. Asserting "check 1 is clean" would be unachievable, and ignoring check 1
+# entirely would let a genuine typo hide among the expected failures. So assert the real
+# invariant instead — every unresolved target is a PLANNED page:
+PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
+./scripts/check-docs.sh --root . 2>&1 | grep 'check 1' | sed -E 's/.*-> ([^ ]+) .*/\1/' | sort -u \
+  | grep -vE "$PLANNED" || echo "every unresolved link targets a planned page — no typos"`
+Expected: `checks 2, 3, 6 clean` and `every unresolved link targets a planned page — no typos`
 
 - [ ] **Step 7: Commit**
 
@@ -1119,9 +1149,22 @@ for n in idea create-vi update-vi; do
     grep -qF "$s" "$P" || echo "$n MISSING $s"
   done
 done
-./scripts/check-docs.sh --root . 2>&1 | grep -E 'check (1|2|3|6)' || echo "checks 1, 2, 3, 6 clean"
+# A. Checks 2, 3 and 6 must be clean for the pages this task wrote. The `grep -v` is the
+# task boundary, not a workaround: the pre-existing plugins/dev-workflows/README.md carries
+# 45 over-long table cells, and check 6 first becomes able to see them the moment docs/
+# exists, because before that the gate short-circuits. Those 45 belong to Task 14.
+./scripts/check-docs.sh --root . 2>&1 | grep -E 'check (2|3|6)' | grep -v 'dev-workflows/README.md' \
+  || echo "checks 2, 3, 6 clean"
+
+# B. Check 1 is red BY DESIGN until Task 13: docs/README.md links forward to pages later
+# tasks create. Asserting "check 1 is clean" would be unachievable, and ignoring check 1
+# entirely would let a genuine typo hide among the expected failures. So assert the real
+# invariant instead — every unresolved target is a PLANNED page:
+PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
+./scripts/check-docs.sh --root . 2>&1 | grep 'check 1' | sed -E 's/.*-> ([^ ]+) .*/\1/' | sort -u \
+  | grep -vE "$PLANNED" || echo "every unresolved link targets a planned page — no typos"
 ```
-Expected: no `MISSING` lines; `checks 1, 2, 3, 6 clean`.
+Expected: no `MISSING` lines; `checks 2, 3, 6 clean` and `every unresolved link targets a planned page — no typos`.
 
 - [ ] **Step 6: Commit**
 
@@ -1241,9 +1284,22 @@ for n in create-ard epics specify; do
     grep -qF "$s" "$P" || echo "$n MISSING $s"
   done
 done
-./scripts/check-docs.sh --root . 2>&1 | grep -E 'check (1|2|3|6)' || echo "checks 1, 2, 3, 6 clean"
+# A. Checks 2, 3 and 6 must be clean for the pages this task wrote. The `grep -v` is the
+# task boundary, not a workaround: the pre-existing plugins/dev-workflows/README.md carries
+# 45 over-long table cells, and check 6 first becomes able to see them the moment docs/
+# exists, because before that the gate short-circuits. Those 45 belong to Task 14.
+./scripts/check-docs.sh --root . 2>&1 | grep -E 'check (2|3|6)' | grep -v 'dev-workflows/README.md' \
+  || echo "checks 2, 3, 6 clean"
+
+# B. Check 1 is red BY DESIGN until Task 13: docs/README.md links forward to pages later
+# tasks create. Asserting "check 1 is clean" would be unachievable, and ignoring check 1
+# entirely would let a genuine typo hide among the expected failures. So assert the real
+# invariant instead — every unresolved target is a PLANNED page:
+PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
+./scripts/check-docs.sh --root . 2>&1 | grep 'check 1' | sed -E 's/.*-> ([^ ]+) .*/\1/' | sort -u \
+  | grep -vE "$PLANNED" || echo "every unresolved link targets a planned page — no typos"
 ```
-Expected: no `MISSING` lines; `checks 1, 2, 3, 6 clean`.
+Expected: no `MISSING` lines; `checks 2, 3, 6 clean` and `every unresolved link targets a planned page — no typos`.
 
 - [ ] **Step 6: Commit**
 
@@ -1358,9 +1414,22 @@ for n in design implement; do
     grep -qF "$s" "$P" || echo "$n MISSING $s"
   done
 done
-./scripts/check-docs.sh --root . 2>&1 | grep -E 'check (1|2|3|6)' || echo "checks 1, 2, 3, 6 clean"
+# A. Checks 2, 3 and 6 must be clean for the pages this task wrote. The `grep -v` is the
+# task boundary, not a workaround: the pre-existing plugins/dev-workflows/README.md carries
+# 45 over-long table cells, and check 6 first becomes able to see them the moment docs/
+# exists, because before that the gate short-circuits. Those 45 belong to Task 14.
+./scripts/check-docs.sh --root . 2>&1 | grep -E 'check (2|3|6)' | grep -v 'dev-workflows/README.md' \
+  || echo "checks 2, 3, 6 clean"
+
+# B. Check 1 is red BY DESIGN until Task 13: docs/README.md links forward to pages later
+# tasks create. Asserting "check 1 is clean" would be unachievable, and ignoring check 1
+# entirely would let a genuine typo hide among the expected failures. So assert the real
+# invariant instead — every unresolved target is a PLANNED page:
+PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
+./scripts/check-docs.sh --root . 2>&1 | grep 'check 1' | sed -E 's/.*-> ([^ ]+) .*/\1/' | sort -u \
+  | grep -vE "$PLANNED" || echo "every unresolved link targets a planned page — no typos"
 ```
-Expected: no `MISSING` lines; `checks 1, 2, 3, 6 clean`.
+Expected: no `MISSING` lines; `checks 2, 3, 6 clean` and `every unresolved link targets a planned page — no typos`.
 
 - [ ] **Step 5: Commit**
 
@@ -1474,9 +1543,22 @@ for n in document release-notes; do
 done
 # the dual-role page must name both roles and the discriminator
 grep -qi 'specification.md' plugins/dev-workflows/docs/commands/release-notes.md || echo "release-notes: discriminator not stated"
-./scripts/check-docs.sh --root . 2>&1 | grep -E 'check (1|2|3|6)' || echo "checks 1, 2, 3, 6 clean"
+# A. Checks 2, 3 and 6 must be clean for the pages this task wrote. The `grep -v` is the
+# task boundary, not a workaround: the pre-existing plugins/dev-workflows/README.md carries
+# 45 over-long table cells, and check 6 first becomes able to see them the moment docs/
+# exists, because before that the gate short-circuits. Those 45 belong to Task 14.
+./scripts/check-docs.sh --root . 2>&1 | grep -E 'check (2|3|6)' | grep -v 'dev-workflows/README.md' \
+  || echo "checks 2, 3, 6 clean"
+
+# B. Check 1 is red BY DESIGN until Task 13: docs/README.md links forward to pages later
+# tasks create. Asserting "check 1 is clean" would be unachievable, and ignoring check 1
+# entirely would let a genuine typo hide among the expected failures. So assert the real
+# invariant instead — every unresolved target is a PLANNED page:
+PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
+./scripts/check-docs.sh --root . 2>&1 | grep 'check 1' | sed -E 's/.*-> ([^ ]+) .*/\1/' | sort -u \
+  | grep -vE "$PLANNED" || echo "every unresolved link targets a planned page — no typos"
 ```
-Expected: no `MISSING` lines, no discriminator warning, `checks 1, 2, 3, 6 clean`.
+Expected: no `MISSING` lines, no discriminator warning, `checks 2, 3, 6 clean` and `every unresolved link targets a planned page — no typos`.
 
 - [ ] **Step 5: Commit**
 
@@ -1589,9 +1671,22 @@ for n in ready vuln upgrade; do
   done
 done
 grep -q 'team' plugins/dev-workflows/docs/commands/ready.md || echo "ready: role should be 'team' per cost-emission section 7"
-./scripts/check-docs.sh --root . 2>&1 | grep -E 'check (1|2|3|6)' || echo "checks 1, 2, 3, 6 clean"
+# A. Checks 2, 3 and 6 must be clean for the pages this task wrote. The `grep -v` is the
+# task boundary, not a workaround: the pre-existing plugins/dev-workflows/README.md carries
+# 45 over-long table cells, and check 6 first becomes able to see them the moment docs/
+# exists, because before that the gate short-circuits. Those 45 belong to Task 14.
+./scripts/check-docs.sh --root . 2>&1 | grep -E 'check (2|3|6)' | grep -v 'dev-workflows/README.md' \
+  || echo "checks 2, 3, 6 clean"
+
+# B. Check 1 is red BY DESIGN until Task 13: docs/README.md links forward to pages later
+# tasks create. Asserting "check 1 is clean" would be unachievable, and ignoring check 1
+# entirely would let a genuine typo hide among the expected failures. So assert the real
+# invariant instead — every unresolved target is a PLANNED page:
+PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
+./scripts/check-docs.sh --root . 2>&1 | grep 'check 1' | sed -E 's/.*-> ([^ ]+) .*/\1/' | sort -u \
+  | grep -vE "$PLANNED" || echo "every unresolved link targets a planned page — no typos"
 ```
-Expected: no `MISSING` lines, no role warning, `checks 1, 2, 3, 6 clean`.
+Expected: no `MISSING` lines, no role warning, `checks 2, 3, 6 clean` and `every unresolved link targets a planned page — no typos`.
 
 - [ ] **Step 6: Commit**
 

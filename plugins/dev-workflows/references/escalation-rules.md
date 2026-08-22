@@ -174,14 +174,14 @@ The condition gates the prompt, so the `(Recommended — <why>)` reason annotati
 
 `choices: ["Provide manual fix notes (you'll be prompted)", "Defer to a follow-up issue (record in Phase 9 report)", "Override and accept the finding", "Cancel the whole run"]`
 
-Used in `/document` Phase 7 when `doc-reviewer` returns BLOCK a second time.
+Used in `/document` Phase 7 at either of two points: when `doc-fixer` returns `Stop condition flag: NEEDS HUMAN` — it deferred a BLOCKER as needing a human decision, so no re-review runs — or when `doc-reviewer` returns BLOCK a second time.
 Escalate per unresolved BLOCKER individually.
 
 ## Review verdict BLOCK (unresolved after one fix cycle) — /epics
 
 `choices: ["Provide manual fix notes (you'll be prompted)", "Defer to a follow-up issue (record in Phase 9 report)", "Override and accept the finding", "Cancel the whole run", "Other… (describe)"]`
 
-Used in `/epics` Phase 7 when `epic-reviewer` returns BLOCK a second time.
+Used in `/epics` Phase 7 at either of two points: when `doc-fixer` returns `Stop condition flag: NEEDS HUMAN` — it deferred a BLOCKER as needing a human decision, so no re-review runs — or when `epic-reviewer` returns BLOCK a second time.
 Escalate per unresolved BLOCKER individually. "Defer" means the finding goes
 into an Epic-refinement note in the draft itself (appended as a
 `## Refinement notes` section) in addition to the Phase 9 report.

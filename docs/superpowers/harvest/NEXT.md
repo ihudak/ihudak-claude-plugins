@@ -193,7 +193,7 @@ of the dynatrace-docs case → `iv-gu/PRODUCT-17753-add-oauth`, and the no-ident
 1 NIT fixed — `DOCUMENTATION-GUIDELINES.md` added to canonical `/vuln` + `/upgrade` inline lists for
 cross-edition parity). Versions: dev-workflows **2.41.0** (canonical + mgd) / **2.11.0** (Copilot).
 
-## Harvest round 2 — "verify what you assert" — ON BRANCH ONLY (2026-08-21)
+## Harvest round 2 — "verify what you assert" — SHIPPED (2026-08-21; merged 2026-08-22)
 Second harvest from the same four upstreams (BMAD-METHOD, github/spec-kit, obra/superpowers,
 mattpocock/skills), surveyed against the 2026-07-29 baseline. 383 upstream commits in the window; four
 Tier-1 items adopted, all converging on one rule stated once and applied at three stations: **do not
@@ -245,9 +245,24 @@ claimed `code-review` had 8 dimensions (it already had 10) and `epic-reviewer` 9
   canonical's).
 - **Versioned.** dev-workflows **2.54.0** (canonical + mgd) / **2.24.0** (Copilot) — all six
   `plugin.json` / `marketplace.json` files carry it, and every edition's `CHANGELOG.md` has the entry.
-- **Still on the branch: not merged, not pushed** in any of the three repos — each branch is ahead of
-  both its local `main` and `origin/main`. Merge + push is the remaining step; pushes are now
-  authorised (see Standing constraints).
+- **Merged and pushed** in all three repos on 2026-08-22. Canonical `0f51443` and Copilot `8d2885f`
+  merged directly; mgd went through **PR #1** (`6db9e9c`) rather than a direct push, because
+  `Dynatrace-Internal/mgd-claude-plugins` requires PRs on `main` and the account's bypass privilege
+  would have skipped the org's review gate on a shared internal repo. Prefer the PR route there again.
+- **Two Criticals were found by the final whole-branch review, after every per-task review had passed.**
+  Both lived in the *seam between two tasks*, which no single task's diff contained: the triage step's
+  survivor list never reached the fixer (while the fixer had just been told it may not dismiss
+  anything — this would have left the plugin **worse** than the branch point), and `review-fixer`'s
+  `NEEDS HUMAN` stop was consumed only by `/implement`, not by its `/vuln` and `/upgrade` siblings —
+  the 2.39.2→2.39.3 precedent repeating inside the round that adopted the rule against it. Cross-cutting
+  review is not redundant with per-task review; it is the only thing that sees seams.
+- **Twenty-two defects in the round's own plan were found and fixed during execution; none shipped.**
+  Eleven were broken verification patterns — wrong inflection, wrong case, wrong file, wrong code-span
+  shape, a working-tree comparison that passed vacuously, a check that halted on a healthy tree, and a
+  `cp` that destroyed the very identity file its own task forbade copying. Two would have required
+  damaging correct content to satisfy. The recurring root cause: **a verification pattern written
+  against an imagined file reports on the imagined file.** Derive every expected value from the tree in
+  front of you, and when a check disagrees with the tree, suspect the check first.
 
 ## NEXT: harvest items 5–7 — named backlog, NOT rejected
 These three were surveyed on 2026-08-21 and **deliberately left out of round 2**, for one reason only:

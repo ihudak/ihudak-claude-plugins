@@ -76,7 +76,7 @@ Every task's requirements implicitly include this section. Values are copied ver
 
 **Files:**
 - Create: `scripts/check-docs.sh`
-- Create: `scripts/fixtures/docs/pass/` (a minimal plugin tree, 16 files, listed in Step 2)
+- Create: `scripts/fixtures/docs/pass/` (a minimal plugin tree, 18 files, listed in Step 2)
 - Modify: `.github/workflows/validate-catalog.yml`
 
 **Interfaces:**
@@ -175,7 +175,7 @@ check_orphans() {
     while IFS= read -r f; do
       [ -f "$f" ] || continue
       while IFS= read -r target; do
-        abs="$(cd "$(dirname "$(dirname "$f")/../$(basename "$f")")" 2>/dev/null; cd "$(dirname "$f")" && cd "$(dirname "$target")" 2>/dev/null && pwd)/$(basename "$target")"
+        abs="$(cd "$(dirname "$f")" && cd "$(dirname "$target")" 2>/dev/null && pwd)/$(basename "$target")"
         [ -f "$abs" ] || continue
         case "$seen" in *"$abs"*) continue ;; esac
         seen="$seen
@@ -221,8 +221,14 @@ check_inventory() {
     grep -q "$n" "$d/reference/references.md" 2>/dev/null || fail 4 "reference file '$n' is absent from reference/references.md"
   done < <({ ls "$p/references"/*.md 2>/dev/null; ls "$p/references"/*.yaml 2>/dev/null; \
              ls "$p/references/model-routing"/*.md 2>/dev/null; } | sed 's|.*/||')
+  while IFS= read -r n; do
+    [ -f "$p/references/$n" ] || [ -f "$p/references/model-routing/$n" ] \
+      || fail 4 "reference/references.md names '$n', which is not a reference file"
+  done < <(grep -oE '`[A-Za-z0-9_.-]+\.(md|yaml)`' "$d/reference/references.md" 2>/dev/null | tr -d '`')
 
-  # reference subtree counts
+  # reference subtree counts -- *.md only: these subtrees also carry vendored
+  # non-markdown data/templates that are not user-facing reference pages, so
+  # counting everything would fail this check on files docs/ never claims.
   local dir count claimed
   for dir in api-guidelines guidelines handoff dynatrace-docs upgrade fix-vuln; do
     [ -d "$p/references/$dir" ] || continue
@@ -235,6 +241,9 @@ check_inventory() {
   while IFS= read -r n; do
     grep -q "\`$n\`" "$d/reference/hooks.md" 2>/dev/null || fail 4 "hook '$n' is absent from reference/hooks.md"
   done < <(ls "$p/hooks"/*.sh 2>/dev/null | sed 's|.*/||; s|\.sh$||')
+  while IFS= read -r n; do
+    [ -f "$p/hooks/$n.sh" ] || fail 4 "reference/hooks.md names '$n', which is not a hook"
+  done < <(grep -oE '^\| `[a-z-]+`' "$d/reference/hooks.md" 2>/dev/null | tr -d '|` ')
 }
 
 # ------------------------------------------------------------------- check 5
@@ -332,7 +341,7 @@ selftest() {
     tmp=$(mktemp -d); cp -R "$fixture/." "$tmp/"
     ( cd "$tmp" && eval "$3" )
     local out; out=$("$0" --root "$tmp" 2>&1); local got=$?
-    if [ "$got" -eq 1 ] && printf '%s' "$out" | grep -q "FAIL check $2"; then
+    if [ "$got" -eq 1 ] && grep -q "FAIL check $2" <<<"$out"; then
       printf 'ok    %s (check %s fired)\n' "$1" "$2"
     else
       printf 'FAIL  %s: expected exit 1 with "FAIL check %s", got exit %s\n' "$1" "$2" "$got"; rc=1
@@ -345,6 +354,7 @@ selftest() {
   expect_fail "a broken anchor is rejected"         2 "sed -i.bak 's|(getting-started.md#install)|(getting-started.md#no-such-heading)|' plugins/dev-workflows/docs/README.md"
   expect_fail "an orphan page is rejected"          3 "printf '# Orphan\n\nUnreachable.\n' > plugins/dev-workflows/docs/orphan.md"
   expect_fail "an undocumented command is rejected" 4 "printf -- '---\nname: delta\n---\n' > plugins/dev-workflows/commands/delta.md"
+  expect_fail "a drifted subtree count is rejected" 4 "sed -i.bak 's|\`handoff/\` (2)|\`handoff/\` (3)|' plugins/dev-workflows/docs/reference/references.md"
   expect_fail "an undocumented env var is rejected" 5 "printf 'Reads \$NEW_SETTABLE_VAR here.\n' >> plugins/dev-workflows/commands/alpha.md"
   expect_fail "an over-long table cell is rejected" 6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"x\"; printf \"\\n| a | %s |\\n|---|---|\\n| b | c |\\n\", s}' >> plugins/dev-workflows/docs/reference/hooks.md"
   expect_fail "a drifted install block is rejected" 7 "sed -i.bak 's|claude plugin install dev-workflows@fixture-plugins|claude plugin install dev-workflows@drifted|' plugins/dev-workflows/docs/getting-started.md"
@@ -383,10 +393,10 @@ Then: `chmod +x scripts/check-docs.sh`
 
 - [ ] **Step 2: Build the passing fixture tree**
 
-Create `scripts/fixtures/docs/pass/` — a minimal plugin that satisfies every check. Exactly these 16 files:
+Create `scripts/fixtures/docs/pass/` — a minimal plugin that satisfies every check. Exactly these 18 files:
 
 ```bash
-mkdir -p scripts/fixtures/docs/pass/plugins/dev-workflows/{commands,agents,references/model-routing,hooks,skills,docs/{commands,reference}}
+mkdir -p scripts/fixtures/docs/pass/plugins/dev-workflows/{commands,agents,references/model-routing,references/handoff,hooks,skills,docs/{commands,reference}}
 cd scripts/fixtures/docs/pass
 
 cat > README.md <<'EOF'
@@ -432,12 +442,14 @@ claude plugin install dev-workflows@fixture-plugins
 claude plugin marketplace update fixture-plugins
 ```
 
-Set `$SPECS_PATH` before your first run.
+Set `$SPECS_PATH` before your first run. See [Hooks](reference/hooks.md) for the fixture hook.
 EOF
 
 printf '# /alpha\n\nA fixture command page.\n' > plugins/dev-workflows/docs/commands/alpha.md
 printf '# Agents\n\n| Agent | Role |\n|---|---|\n| `beta` | fixture |\n' > plugins/dev-workflows/docs/reference/agents.md
-printf '# References\n\n- `gamma.md`\n- `cost-prices.yaml`\n- `classification.md`\n' > plugins/dev-workflows/docs/reference/references.md
+printf '# References\n\n- `gamma.md`\n- `cost-prices.yaml`\n- `classification.md`\n- `handoff/` (2) — fixture subtree.\n' > plugins/dev-workflows/docs/reference/references.md
+printf '# One\n\nA fixture handoff doc.\n' > plugins/dev-workflows/references/handoff/one.md
+printf '# Two\n\nAnother fixture handoff doc.\n' > plugins/dev-workflows/references/handoff/two.md
 printf '# Environment\n\n- **`SPECS_PATH`** — the fixture variable.\n' > plugins/dev-workflows/docs/reference/environment.md
 printf '# Hooks\n\n| Hook | Trigger |\n|---|---|\n| `notify-fixture` | Stop |\n' > plugins/dev-workflows/docs/reference/hooks.md
 ```
@@ -446,7 +458,7 @@ printf '# Hooks\n\n| Hook | Trigger |\n|---|---|\n| `notify-fixture` | Stop |\n'
 
 Run: `./scripts/check-docs.sh --selftest`
 
-Expected: eight `ok` lines then `SELFTEST PASS` —
+Expected: nine `ok` lines then `SELFTEST PASS` —
 
 ```
 ok    the unmutated fixture passes every check
@@ -457,6 +469,7 @@ ok    an undocumented command is rejected (check 4 fired)
 ok    an undocumented env var is rejected (check 5 fired)
 ok    an over-long table cell is rejected (check 6 fired)
 ok    a drifted install block is rejected (check 7 fired)
+ok    a drifted subtree count is rejected (check 4 fired)
 SELFTEST PASS
 ```
 

@@ -307,7 +307,7 @@ When a `specification.md`/`design.md` is in scope, extract its **in-scope** `[Ux
 the planner could not get a red-capable repro, so its hypotheses are absent by design and the rest of
 the plan rests on unverified theory. Do NOT fall through to the normal approval gate — its Recommended
 option is "Approve & implement now", which is exactly the proceed-on-a-guess outcome
-`${CLAUDE_PLUGIN_ROOT}/references/bug-diagnosis.md` step 1 forbids. Surface the planner's "Tried:" list
+`${CLAUDE_PLUGIN_ROOT}/references/bug-diagnosis.md` step 1 forbids. Surface the planner's `Tried:` line
 verbatim and ask:
 
 ```

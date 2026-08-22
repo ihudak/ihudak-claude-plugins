@@ -1,6 +1,6 @@
 # dev-workflows
 
-A role-based pipeline of twenty-one slash commands — idea refinement through Value Increment authoring, architecture, specification, design, implementation, and documentation, plus CVE remediation and dependency upgrades — with Opus-backed risk planning, code review, and doc/design review gates across the pipeline.
+A role-based pipeline of twenty-one slash commands. Its spine runs idea refinement → Value Increment → architecture → Epic breakdown → specification → design → implementation → readiness → documentation → release notes, with Opus-backed risk planning, code review, and doc/design review gates along the way; around that spine sit CVE remediation, dependency upgrades, guideline reviews, and the plugin's own feedback commands. The table below is the complete list.
 
 > Part of the `ihudak-plugins` marketplace — see the [repo-root setup guide](../../README.md) for marketplace install + prerequisites.
 
@@ -13,11 +13,12 @@ Every command owns one role's step in the pipeline and hands a concrete artifact
 | PM | [`/idea`](docs/commands/idea.md), [`/create-vi`](docs/commands/create-vi.md), [`/update-vi`](docs/commands/update-vi.md), [`/release-notes`](docs/commands/release-notes.md) *(early run)* | Refine a raw idea, author or refresh the Value Increment, and draft an early release-notes note. |
 | PA *(optional)* | [`/create-ard`](docs/commands/create-ard.md) | Ground an architecture decision in the mounted implementation code. |
 | PE | [`/epics`](docs/commands/epics.md), [`/specify`](docs/commands/specify.md) | Break a VI into Epics, then author an org-standard specification through a grill. |
-| Dev | [`/design`](docs/commands/design.md), [`/implement`](docs/commands/implement.md), [`/document`](docs/commands/document.md), [`/release-notes`](docs/commands/release-notes.md) | Design against the spec, implement — code-review traces in-scope `[Uxx]`/`[ACxx]`/`[TCxx]` against the diff — document, and draft release notes. |
-| Team | [`/ready`](docs/commands/ready.md) | Verify a Jira status against the ARD, spec, and design record; read-only. |
+| Dev | [`/design`](docs/commands/design.md), [`/implement`](docs/commands/implement.md), [`/ready`](docs/commands/ready.md), [`/document`](docs/commands/document.md), `/release-notes` *(final run)* | Design against the spec, implement it under review gates, verify a Jira status against the record, document the result, and draft release notes. |
 | Anytime — maintenance | [`/vuln`](docs/commands/vuln.md), [`/upgrade`](docs/commands/upgrade.md), [`/docs-profile`](docs/commands/docs-profile.md), [`/statusline`](docs/commands/statusline.md) | Remediate a CVE, upgrade a dependency, profile a docs repo, or install the status line. |
 | Anytime — guideline review | [`/api-guideline-reviewer`](docs/commands/api-guideline-reviewer.md), [`/guideline-reviewer`](docs/commands/guideline-reviewer.md) | Review an OpenAPI spec or app UI against Dynatrace guidelines. |
 | Anytime — plugin feedback | [`/feedback`](docs/commands/feedback.md), [`/prompt`](docs/commands/prompt.md), [`/prompt-brainstorm`](docs/commands/prompt-brainstorm.md), [`/prompt-grill-me`](docs/commands/prompt-grill-me.md) | Log friction about the plugin itself, or capture and act on a correction. |
+
+[`/release-notes`](docs/commands/release-notes.md) is the one command in two rows — the same command run at two points in a Value Increment's life, attributed by inference rather than a fixed role.
 
 ## Documentation
 

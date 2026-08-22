@@ -368,7 +368,7 @@ persists the plugin-facing slice of its report as session feedback.
 `resume.md` write runs later, in the terminal cost phase, per
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the
 guidance only), then a
-same-role `/compact` suggestion + `/rename <VI-ID>-<slug>-team`. Guidance only, never auto-run.
+same-role `/compact` suggestion + `/rename <VI-ID>-<slug>-dev`. Guidance only, never auto-run.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
    > "Analyse this session and return a Lessons Learned report.
@@ -468,7 +468,7 @@ End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/
 
 The resume pointer is written in the terminal cost phase (Phase 9), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
 
-- **Continuing on this Epic (`/dev-workflows:ready` / `/dev-workflows:implement <VI> <Epic>`) or the next Epic (`/dev-workflows:design <VI> <Epic2>`) — all still Team?** → run **`/compact`** — context stays relevant.
-- Consider **`/rename <VI-ID>-<slug>-team`** to relocate this session later.
+- **Continuing on this Epic (`/dev-workflows:ready` / `/dev-workflows:implement <VI> <Epic>`) or the next Epic (`/dev-workflows:design <VI> <Epic2>`) — all still Dev?** → run **`/compact`** — context stays relevant.
+- Consider **`/rename <VI-ID>-<slug>-dev`** to relocate this session later.
 
 Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.

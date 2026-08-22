@@ -4,7 +4,7 @@ Verifies whether the ARD, specification, and design artifacts on record actually
 
 ## Who runs it
 
-`/ready` runs in the [team](../roles-and-phases.md#team--verification) role, cost-attribution phase [readiness](../roles-and-phases.md#readiness) — being in this phase means a Jira status is being checked against the ARD / spec / design record, never changed.
+`/ready` runs in the [dev](../roles-and-phases.md#dev--build-verify-and-deliver) role, cost-attribution phase [readiness](../roles-and-phases.md#readiness) — being in this phase means a Jira status is being checked against the ARD / spec / design record, never changed.
 
 ## Synopsis
 
@@ -12,7 +12,7 @@ Verifies whether the ARD, specification, and design artifacts on record actually
 /ready <VI-KEY | Epic-KEY | jira-export-dir> [<Epic-KEY>]
 ```
 
-`$ARGUMENTS` resolves through the shared Jira-input front-end's two-key grammar: the first positional is a VI selector (a VI JiraID under `$VAULT_PATH/jira-products/`, a nested Epic JiraID whose parent VI is auto-resolved, or a jira-export directory); an optional trailing Epic key narrows the check to that one Epic. `/ready` is **jira-driven only** — a plain prompt with no Jira input stops with `READY_NEEDS_JIRA`. A **null** focus Epic is a first-class **VI-level** check against the VI ladder in `workflow-states.md`, not something that must be resolved down to a single Epic. Contrast `/design`'s own null-`focus_key` handling: a VI dir holding a **flat `specification.md`** (a stand-alone Epic, or a broad VI-level spec) skips any picker and designs at the VI level itself — exactly as `/ready`'s null-focus check does; only once the VI dir holds **multiple spec'd Epic subfolders** does `/design` render a picker that narrows the run down to one Epic (a single spec'd Epic subfolder auto-selects with no picker either, but still narrows to that one Epic). The two commands agree on the flat-spec case and diverge only once Epic subfolders multiply.
+`$ARGUMENTS` resolves through the shared Jira-input front-end's two-key grammar: the first positional is a VI selector (a VI JiraID under `$VAULT_PATH/jira-products/`, a nested Epic JiraID whose parent VI is auto-resolved, or a jira-export directory); an optional trailing Epic key narrows the check to that one Epic. `/ready` is **jira-driven only** — a plain prompt with no Jira input stops with `READY_NEEDS_JIRA`. A **null** focus Epic is a first-class **VI-level** check against the VI ladder in `workflow-states.md`, not something that must be resolved down to a single Epic. Contrast `/design`'s own null-`focus_key` handling: a VI dir holding a **flat `specification.md`** (a stand-alone Epic, or a broad VI-level spec) skips any picker and designs at the VI level itself — exactly as `/ready`'s null-focus check does; only once the VI dir holds **multiple spec'd Epic subfolders** does `/design` render a picker that narrows the run down to one Epic (a single spec'd Epic subfolder auto-selects with no picker either, but still narrows to that one Epic). The two commands agree on the flat-spec case; they part company as soon as the VI dir holds spec'd Epic subfolders at all — one auto-selects `/design` down to that Epic and several put a picker in front of it, while `/ready`'s null focus stays at the VI level either way.
 
 ## How it runs
 
@@ -28,7 +28,7 @@ flowchart TD
     p3 --> p4["Phase 4 — Readiness review"]
     p4 --> p5["Phase 5 — Write report"]
     p5 --> d1{"Hand off _readiness.md? (§4.3 consent choice)"}
-    d1 -->|"Branch + commit + push + PR"| p678["Phase 6 — Maintenance / Phase 7 — Follow-ups / Phase 8 — Session cost"]
+    d1 -->|"Branch + commit + push + PR"| p678["Phase 6 — Post-run maintenance & feedback / Phase 7 — Emit follow-up tasks / Phase 8 — Session cost"]
     d1 -->|"Write only — no commit"| p678
 ```
 
@@ -67,8 +67,8 @@ The run resolves `PROD-5678` as the focus Epic, reads its declared Jira status a
 
 ## See also
 
-- [Roles and phases](../roles-and-phases.md) — what the `team` role owns, including the handover-model exception `/ready` gets: the sole caller allowed to keep going past a stop every other command treats as fatal.
-- [`/design`](design.md) — the command whose `specification.md` is the one gated input in the pipeline that genuinely stops on absence; `/ready` reads the same class of gated artifacts and never stops on any of them.
+- [Roles and phases](../roles-and-phases.md) — what the `dev` role owns, including the handover-model exception `/ready` gets: the sole caller allowed to keep going past a stop every other command treats as fatal, and why verification is not a lane of its own.
+- [`/design`](design.md) — the opposite extreme on the same gate: `/design` stops outright when its `specification.md` is absent, the only gated input in the pipeline that does, while `/ready` reads that same class of artifacts and never stops on any of them.
 - [`/create-ard`](create-ard.md) and [`/specify`](specify.md) — the upstream commands whose ARD and `specification.md` `/ready` verifies (via `design.md`, whose upstream is `/design`, in the same chain).
 - [Model routing](../reference/model-routing.md) — the classification rules and the `readiness-reviewer` Opus pin, including its Sonnet-floor fallback.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Follow-ups](../reference/follow-ups.md) — the terminal Phase 6–8 bookkeeping every run emits.

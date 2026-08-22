@@ -4,7 +4,7 @@ Drafts a customer-facing release-notes summary for a Jira Value Increment or tic
 
 ## Who runs it
 
-`/release-notes` is the plugin's one **dual-role** command — the same command runs at two different points in a VI's life, and `emit-cost` tells them apart by inference rather than by a fixed label. `references/cost-emission.md` §7 gives the discriminator, and it is deliberately narrow: **the presence of downstream engineering artifacts** — any `specification.md` or `design.md` under the VI's specs dir. **None present** → phase [vi-creation](../roles-and-phases.md#vi-creation), role [pm](../roles-and-phases.md#pm--product-management) — the VI exists but no engineering work has started, and Epics may or may not exist yet. **Either present** → phase [documenting](../roles-and-phases.md#documenting), role [dev](../roles-and-phases.md#dev--build-and-deliver) — the dev re-run, once a specification or design is in scope.
+`/release-notes` is the plugin's one **dual-role** command — the same command runs at two different points in a VI's life, and `emit-cost` tells them apart by inference rather than by a fixed label. `references/cost-emission.md` §7 gives the discriminator, and it is deliberately narrow: **the presence of downstream engineering artifacts** — any `specification.md` or `design.md` under the VI's specs dir. **None present** → phase [vi-creation](../roles-and-phases.md#vi-creation), role [pm](../roles-and-phases.md#pm--product-management) — the VI exists but no engineering work has started, and Epics may or may not exist yet. **Either present** → phase [documenting](../roles-and-phases.md#documenting), role [dev](../roles-and-phases.md#dev--build-verify-and-deliver) — the dev re-run, once a specification or design is in scope.
 
 **Epic presence is deliberately not part of the signal.** A VI can have drafted Epics — via [`/epics`](epics.md) — while still entirely in PM/PE hands: nothing about an Epic draft implies engineering has started on it. Keying the discriminator on Epics would misattribute that ordinary PM-phase VI as a dev run. Specs and designs are the right signal because they can only exist once [`/specify`](specify.md) or [`/design`](design.md) has actually run against the VI — an Epic drafted by `/epics` never gets close to producing either.
 
@@ -68,13 +68,23 @@ The run makes **zero external API calls**: PR URLs (when diff grounding is on) a
 
 ## Example
 
-Draft a release note once a VI's design is underway (the dev re-run — `specification.md` or `design.md` already exists under its specs dir):
+One invocation, two runs — the command is the same either time, and only the inferred phase differs.
+
+**The PM's early run**, with the VI opened and nothing specified or designed yet:
 
 ```
 /dev-workflows:release-notes PROD-1234
 ```
 
-The run checks `relevant_for_release_notes`, asks about diff grounding (default: Jira content only) and the output destination, classifies as `MODERATE`, reads the Jira ticket, resolves `$DOCS_PATH` grounding if configured, infers `run_phase: dev` from the merged `specification.md`, renders the draft via `release-notes-writer` — including a documentation redirect link, since the dev phase is the one where that link makes sense — runs the optional style gate, and writes the persistent draft with a reminder to paste it into Jira. The identical command, run earlier against the same VI before any spec or design existed, would have inferred `run_phase: pm` and rendered without the documentation link — everything else about the run is the same.
+The run checks `relevant_for_release_notes`, asks about diff grounding (default: Jira content only) and the output destination, classifies as `MODERATE`, reads the Jira ticket, resolves `$DOCS_PATH` grounding if configured, and finds neither `specification.md` nor `design.md` under the VI's specs dir — so it infers `run_phase: pm` and renders the draft via `release-notes-writer` with no documentation redirect link, because the feature isn't built and there is no page to point at yet. It then runs the optional style gate and writes the persistent draft with a reminder to paste it into Jira.
+
+**The dev's later re-run**, once a specification or design is on record:
+
+```
+/dev-workflows:release-notes PROD-1234
+```
+
+Byte for byte the same command, and every step above happens the same way. The single difference is what the specs dir now contains: `run_phase` infers as `dev`, so the draft may carry a documentation redirect short link. Same destination question, same classification, same style gate, same paste-into-Jira reminder.
 
 ## See also
 

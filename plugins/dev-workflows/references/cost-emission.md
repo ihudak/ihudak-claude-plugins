@@ -272,7 +272,7 @@ Fixed per-command labels, with one inferred exception:
 | `/epics` | epic-refinement | pe |
 | `/design` | planning | dev |
 | `/implement` | implementation | dev |
-| `/ready` | readiness | team |
+| `/ready` | readiness | dev |
 | `/document` | documenting | dev |
 | `/release-notes` | **inferred** | **inferred** |
 | `/idea` | vi-creation | pm |

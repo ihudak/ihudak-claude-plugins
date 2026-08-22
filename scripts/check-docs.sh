@@ -195,7 +195,7 @@ check_env_vars() {
 # ------------------------------------------------------------------- check 6
 # No table cell over 200 characters. This is the readability invariant the whole
 # restructure exists to establish, and the one a future edit will silently
-# violate: today's README carries a single cell of 2,177 characters.
+# violate: the README this replaced carried a single cell of 2,066 characters.
 check_table_cells() {
   local root="$1" files hits h
   files=$( { find "$root/$PLUGIN_REL/docs" -name '*.md' 2>/dev/null
@@ -237,6 +237,51 @@ check_install_block() {
   fi
 }
 
+# ------------------------------------------------------------------- check 8
+# Cost attribution agrees in BOTH directions: every command that hands emit-cost a
+# fixed phase/role pair has a row in references/cost-emission.md section 7 carrying
+# those same two values, and every section-7 row names a real command. Defect D2 --
+# /update-vi emitting `phase: vi-update, role: pm` with no section-7 row -- was found
+# by a one-off inline grep and defended by nothing afterwards, which is how it had
+# survived since the command shipped. `/document` is the shape that defeats a naive
+# grep: it calls emit-cost twice, as `/document (Jira mode)` and `/document (direct
+# mode)`, against a single `/document` row.
+emit_cost_calls() { # <plugin-dir>  ->  lines of  <command>|<phase>|<role>
+  local p="$1" f
+  for f in "$p/commands"/*.md; do
+    [ -f "$f" ] || continue
+    tr '\n' ' ' < "$f" | tr -s ' ' \
+      | grep -oE '`command: /[a-z-]+( \([A-Za-z]+ mode\))?`, `phase: [a-z-]+`, `role: [a-z]+`' \
+      | sed -E 's/`command: //; s/ \([A-Za-z]+ mode\)//; s/`, `phase: /|/; s/`, `role: /|/; s/`$//'
+  done | sort -u
+}
+
+check_cost_attribution() {
+  local root="$1" p="$1/$PLUGIN_REL" table calls line cmd phase role want
+  table=$(sed -n '/^## 7\./,/^## 8\./p' "$p/references/cost-emission.md" 2>/dev/null \
+          | grep -oE '^\| `/[a-z-]+` \| [^|]+ \| [^|]+ \|' \
+          | sed -E 's/^\| `//; s/` \| /|/; s/ \| /|/; s/ *\|$//; s/\*//g; s/ *\| */|/g')
+  [ -n "$table" ] || { fail 8 "references/cost-emission.md has no section-7 attribution table"; return; }
+  calls=$(emit_cost_calls "$p")
+  [ -n "$calls" ] || { fail 8 "no emit-cost call site found in commands/ -- the extractor has stopped matching"; return; }
+
+  while IFS='|' read -r cmd phase role; do
+    [ -n "$cmd" ] || continue
+    want=$(grep -F "$cmd|" <<<"$table" | head -1)
+    if [ -z "$want" ]; then
+      fail 8 "$cmd emits phase/role '$phase'/'$role' but has no row in cost-emission.md section 7"
+    elif [ "$want" != "$cmd|$phase|$role" ]; then
+      fail 8 "$cmd emits '$phase'/'$role'; cost-emission.md section 7 says '${want#*|}'"
+    fi
+  done <<<"$calls"
+
+  while IFS='|' read -r cmd phase role; do
+    [ -n "$cmd" ] || continue
+    grep -qF "$cmd|" <<<"$calls" \
+      || fail 8 "cost-emission.md section 7 attributes $cmd, which passes emit-cost no fixed phase/role"
+  done <<<"$table"
+}
+
 # ------------------------------------------------------------------ selftest
 # One passing fixture tree; each check gets a mutation of a fresh copy. Asserting
 # the exit code alone would let a mutation that trips a DIFFERENT check register
@@ -276,6 +321,10 @@ selftest() {
   expect_fail "an undocumented env var is rejected" 5 "printf 'Reads \$NEW_SETTABLE_VAR here.\n' >> plugins/dev-workflows/commands/alpha.md"
   expect_fail "an over-long table cell is rejected" 6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"x\"; printf \"\\n| a | %s |\\n|---|---|\\n| b | c |\\n\", s}' >> plugins/dev-workflows/docs/reference/hooks.md"
   expect_fail "a drifted install block is rejected" 7 "sed -i.bak 's|claude plugin install dev-workflows@fixture-plugins|claude plugin install dev-workflows@drifted|' plugins/dev-workflows/docs/getting-started.md"
+  expect_fail "a documented nonexistent skill is rejected" 4 "printf '\n| \`ghost-skill\` | Yes | fixture mutation |\n' >> plugins/dev-workflows/docs/reference/references.md"
+  expect_fail "an unattributed emit-cost call is rejected" 8 "printf -- '---\nname: zeta\n---\n\nCall \`emit-cost\` with \`command: /zeta\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' > plugins/dev-workflows/commands/zeta.md && printf -- '# /zeta\n\nFixture page.\n' > plugins/dev-workflows/docs/commands/zeta.md && sed -i.bak 's|(commands/alpha.md)|(commands/alpha.md), [\`/zeta\`](commands/zeta.md)|' plugins/dev-workflows/docs/README.md"
+  expect_fail "a drifted attributed role is rejected"      8 "sed -i.bak 's;| \`/alpha\` | fixture-phase | pm |;| \`/alpha\` | fixture-phase | pe |;' plugins/dev-workflows/references/cost-emission.md"
+  expect_fail "a section-7 row for a non-emitting command is rejected" 8 "sed -i.bak 's;| \`/alpha\` | fixture-phase | pm |;| \`/alpha\` | fixture-phase | pm |\n| \`/omega\` | fixture-phase | pm |;' plugins/dev-workflows/references/cost-emission.md"
 
   if [ "$rc" -eq 0 ]; then echo "SELFTEST PASS"; else echo "SELFTEST FAIL"; fi
   exit "$rc"
@@ -299,6 +348,7 @@ check_inventory         "$ROOT"
 check_env_vars          "$ROOT"
 check_table_cells       "$ROOT"
 check_install_block     "$ROOT"
+check_cost_attribution  "$ROOT"
 
 if [ "$FAILURES" -gt 0 ]; then
   echo "FAIL: $FAILURES problem(s) under $PLUGIN_REL" >&2

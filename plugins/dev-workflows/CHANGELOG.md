@@ -4,6 +4,47 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.56.0] — 2026-08-22
+
+### Added
+- **`interface-designer` agent (new).** Produces **one** interface proposal for **one** contested
+  interface under **one** named design constraint, read-only, dispatched three times in parallel and
+  blind to each other so the takes genuinely diverge instead of converging on what an agent imagines its
+  siblings will say. A design's interface is the highest-leverage decision it makes and the hardest to
+  walk back once callers depend on it — a single pass tends to anchor on the first workable shape rather
+  than surface the trade-off space.
+- **`/design` Phase 5 offers a three-take interface fan-out** when the interview reaches an interface
+  decision that is **contested** — two or more plausible adapters, a shape spanning a process/network
+  boundary, three or more callers sharing it, or two or more recorded candidate shapes with none
+  eliminated (`references/design-format.md` `## Seams`). The three takes are compared on **depth**
+  (behaviour reached per unit of interface a caller must learn), **locality** (where change, bugs, and
+  verification concentrate), and **seam placement** (whether the boundary falls where things actually
+  vary) — named axes instead of impressions, so the comparison is repeatable. Declining costs nothing:
+  the interview continues and `### Alternatives considered` is filled by hand as it always was.
+- **`--design-twice`** forces the fan-out even when no contested-interface signal fired. It forces the
+  *opportunity*, not the spend — the offer still runs through its normal accept/decline choice.
+- **`### Alternatives considered` is now unconditional** in `design-format.md`'s `## Architecture`
+  section — every `design.md` records at least one genuinely rejected alternative and why, whether or
+  not the fan-out ran. `risk-planner` already holds plans to this bar ("name at least one alternative
+  that was rejected and the reason"); a design was the weaker artifact for not matching it. Making it
+  unconditional turns the fan-out into a quality upgrade to a requirement that already fires every time,
+  rather than a prerequisite that only exists when the fan-out is chosen — so declining the fan-out never
+  reads as skipping a step.
+- **Four dependency categories** — `in-process`, `local-substitutable`, `remote-but-owned`,
+  `true-external` — now classify each seam in `## Seams` and decide how `## Test strategy` tests it: a
+  port with an in-memory adapter for `remote-but-owned`, a mock adapter for `true-external`, no adapter
+  needed for the first two. A category implying only one plausible adapter is a hypothetical seam under
+  the existing two-adapters heuristic — it should not exist yet.
+- **`design-reviewer` gains two checks.** Every named seam's dependency category is cross-checked against
+  its test strategy — a `remote-but-owned` seam tested without a port, or a `true-external` dependency
+  tested without a mock adapter, is a `MAJOR`; a `MODERATE`+ design with an uncategorized seam is a
+  `MINOR`. `### Alternatives considered` must be present **and substantive** — missing is `MAJOR`, and an
+  alternative nobody would have shipped ("we considered not having an interface") is `MAJOR` too, because
+  it satisfies the check while teaching the reader nothing, which is worse than the check failing openly.
+- **The `/design` final report always states the fan-out outcome** — `ran`, `offered and declined`, or
+  `not offered — no contested interface`. A run where the signal was too narrow to fire is now visible in
+  the report instead of silently indistinguishable from a run where the fan-out was never relevant.
+
 ## [2.55.0] — 2026-08-22
 
 ### Added

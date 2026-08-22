@@ -1,6 +1,6 @@
 # dev-workflows
 
-A role-based pipeline of twenty-one slash commands — idea refinement through Value Increment authoring, architecture, specification, design, implementation, and documentation, plus CVE remediation and dependency upgrades — with Opus-backed planning and review gates at every authoring and build phase.
+A role-based pipeline of twenty-one slash commands — idea refinement through Value Increment authoring, architecture, specification, design, implementation, and documentation, plus CVE remediation and dependency upgrades — with Opus-backed risk planning, code review, and doc/design review gates across the pipeline.
 
 > Part of the `ihudak-plugins` marketplace — see the [repo-root setup guide](../../README.md) for marketplace install + prerequisites.
 
@@ -14,7 +14,7 @@ Every command owns one role's step in the pipeline and hands a concrete artifact
 | PA *(optional)* | [`/create-ard`](docs/commands/create-ard.md) | Ground an architecture decision in the mounted implementation code. |
 | PE | [`/epics`](docs/commands/epics.md), [`/specify`](docs/commands/specify.md) | Break a VI into Epics, then author an org-standard specification through a grill. |
 | Dev | [`/design`](docs/commands/design.md), [`/implement`](docs/commands/implement.md), [`/document`](docs/commands/document.md), [`/release-notes`](docs/commands/release-notes.md) | Design against the spec, implement — code-review traces in-scope `[Uxx]`/`[ACxx]`/`[TCxx]` against the diff — document, and draft release notes. |
-| QA | [`/ready`](docs/commands/ready.md) | Verify a Jira status against the ARD, spec, and design record; read-only. |
+| Team | [`/ready`](docs/commands/ready.md) | Verify a Jira status against the ARD, spec, and design record; read-only. |
 | Anytime — maintenance | [`/vuln`](docs/commands/vuln.md), [`/upgrade`](docs/commands/upgrade.md), [`/docs-profile`](docs/commands/docs-profile.md), [`/statusline`](docs/commands/statusline.md) | Remediate a CVE, upgrade a dependency, profile a docs repo, or install the status line. |
 | Anytime — guideline review | [`/api-guideline-reviewer`](docs/commands/api-guideline-reviewer.md), [`/guideline-reviewer`](docs/commands/guideline-reviewer.md) | Review an OpenAPI spec or app UI against Dynatrace guidelines. |
 | Anytime — plugin feedback | [`/feedback`](docs/commands/feedback.md), [`/prompt`](docs/commands/prompt.md), [`/prompt-brainstorm`](docs/commands/prompt-brainstorm.md), [`/prompt-grill-me`](docs/commands/prompt-grill-me.md) | Log friction about the plugin itself, or capture and act on a correction. |

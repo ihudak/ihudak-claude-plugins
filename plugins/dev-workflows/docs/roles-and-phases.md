@@ -4,7 +4,7 @@
 
 ## The handover model
 
-Every phase but one ends the same way: a producing command lands its deliverable on the specs repo's default branch, and the next command in the chain refuses to start any expensive work until it finds that deliverable actually on the branch — not merely written to disk, and not merely committed to a branch of its own. Two states show up often enough that you will actually hit them.
+Every phase ends the same way: a producing command lands its deliverable on the specs repo's default branch — not merely written to disk, and not merely committed to a branch of its own. What the next command in the chain does when that hasn't happened yet depends on which state it finds, and two states show up often enough that you will actually hit them.
 
 - **The artifact exists but sits on an unmerged branch** — a pull request open, or one that never got opened. The next command stops cold and names the branch (and the open PR, if there is one) rather than guessing at content that might still change underneath it.
 - **The artifact does not exist on any branch at all.** The next command treats it as absent and falls back to whatever it already did before this artifact existed — an absent optional input is never promoted into a new prerequisite. `/design`'s `specification.md` is the one exception: it is not optional, and its absence is a hard stop.
@@ -17,7 +17,7 @@ Every phase but one ends the same way: a producing command lands its deliverable
 - **Runs:** `/idea`, `/create-vi`, `/update-vi`; also the early run of `/release-notes`, before any specification or design exists yet.
 - **Consumes:** a prompt, file, community post, RFE, or existing VI as its source; then a refined `idea.md` plus a user-supplied Jira key.
 - **Produces:** `idea.md` in `$VAULT_PATH` before a Jira key exists, then `<KEY>_<slug>.md` written to `$SPECS_PATH/specifications/<KEY>-<slug>/`; an early release-notes draft.
-- **Hands over at the seam:** `/idea` relocates and lands `idea.md`, and `/create-vi` / `/update-vi` land the VI, each onto the specs repo's default branch; `/create-ard`, `/epics`, and `/specify` each refuse to start until they find the VI there.
+- **Hands over at the seam:** `/idea` relocates and lands `idea.md`, and `/create-vi` / `/update-vi` land the VI, each onto the specs repo's default branch. `/create-ard` and `/specify` each gate on the VI there — an absent VI falls back to reading the Jira export directly instead of stopping (reported, not silent), and the hard stop is an unmerged VI, never a missing one. `/epics` reads the VI unconditionally through `jira-reader`, with no VI gate at all — see PE below for the input it does gate.
 - **Cost phase(s):** `vi-creation` (`/idea`, `/create-vi`), `vi-update` (`/update-vi`) — both role `pm`.
 
 ## PA — product architecture
@@ -35,7 +35,7 @@ Every phase but one ends the same way: a producing command lands its deliverable
 - **Runs:** `/epics`, `/specify`.
 - **Consumes:** the VI, plus the ARD when one exists and any Epics already drafted.
 - **Produces:** Epic drafts under `$VAULT_PATH/jira-drafts/<VI-KEY>/`; `specification.md`, landed on the specs repo's default branch.
-- **Hands over at the seam:** both commands refuse to start until the VI is found on the specs repo's default branch (`/epics` also checks for an optional VI-level `specification.md`); `/specify` lands `specification.md` the same way, and `/design` refuses to start until it finds that specification there.
+- **Hands over at the seam:** `/specify` gates on the VI the same way `/create-ard` does — an absent VI falls back to the Jira export and is reported rather than silent, and the hard stop is an unmerged VI, never a missing one. `/epics` has no VI gate at all; its one gated input is an optional VI-level `specification.md`, whose absence is a silent skip (`vi_spec_present: false`). `/specify` lands `specification.md` onto the specs repo's default branch, and `/design` refuses to start until it finds that specification there.
 - **Cost phase(s):** `epic-refinement` (`/epics`), `specification` (`/specify`) — both role `pe`.
 
 ## Dev — build and deliver
@@ -44,7 +44,7 @@ Every phase but one ends the same way: a producing command lands its deliverable
 - **Runs:** `/design`, `/implement`, `/document`; also the final run of `/release-notes`, once a specification or design already exists.
 - **Consumes:** the merged `specification.md` (plus the ARD, when one exists), then the merged `design.md`, then the code under `$REPOS_PATH`.
 - **Produces:** `design.md`, landed on the specs repo's default branch; code and a pull request in `$REPOS_PATH`; product documentation in the external docs repo; the final release-notes draft.
-- **Hands over at the seam:** `/design` is the one hard exception to the optional-input rule above — it stops outright if `specification.md` is not found on the specs repo's default branch. It then lands `design.md` the same way, and `/implement` refuses to start on its in-scope `specification.md` / `design.md` until they are there.
+- **Hands over at the seam:** `/design` is the one hard exception to the optional-input rule above — it stops outright if `specification.md` is not found on the specs repo's default branch. It then lands `design.md` the same way. `/implement` gates its own in-scope `specification.md` / `design.md` the same way `/create-ard` and `/specify` gate the VI — an unmerged one is a hard stop, but an absent one is not: the run behaves exactly as it did before this gate existed, and a direct-prompt run (which resolves no in-scope spec/design at all) is unaffected either way.
 - **Cost phase(s):** `planning` (`/design`), `implementation` (`/implement`), `documenting` (`/document`) — all role `dev`.
 
 ## Team — verification

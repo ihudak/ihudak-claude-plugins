@@ -4,6 +4,36 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.55.0] — 2026-08-22
+
+### Added
+- **Bug-diagnosis evidence gate.** `bug-diagnosis.md` gains a **redaction** section — the discipline has
+  you show commands, their output, and captured artifacts, and a HAR file or core dump carries auth
+  headers — plus step 1's **completion criterion**: name **one** command you have *already run at least
+  once*, showing the invocation and its redacted output. Red-capable, deterministic, fast, agent-runnable.
+  *No red-capable command, no step 2.* Flaky bugs get reproduction-rate guidance: raise the rate until the
+  bug is debuggable rather than chasing a clean repro.
+- **`risk-planner` can now run the repro it reasons about.** It gains ``Bash`` for that purpose alone —
+  bounded to the repro and read-only commands, never mutating the working tree, index, `HEAD`, or branch
+  state. A plan is produced *before* the user has approved any action, so a repro that would itself mutate
+  the tree is described rather than run. It must show the repro it ran, or **withhold the ranking** and say
+  what it tried; ``/implement`` Phase 2B consumes that with a Help / Proceed-and-record / Cancel choice instead
+  of falling through to "Approve & implement now". Ranking a bug's causes without ever observing it reads as
+  confident work and is exactly what the criterion exists to prevent.
+- **Dispatch bounds on the three agents that hold ``Task``.** `docs-style-checker`, `upgrade-executor`,
+  and `vuln-fixer` each name their single legitimate target and may never spawn a reviewer. The bound rests
+  on **authority, not redundancy**: the caller owns the gate policy, and on some paths it deliberately runs
+  no reviewer at all — so a reviewer a worker spawns silently overrides that choice while producing a verdict
+  nobody consumes. Each agent cites the mechanism its *own* caller uses — mode for `docs-style-checker`,
+  classification for the other two.
+
+### Notes
+- `code-review` deliberately does **not** gain ``Bash``. Its verdict gates the test run, and its hard rule
+  "NEVER modify files" would become unenforceable.
+- The upstream rule that reviewers must not route findings through a host findings-reporting tool was
+  **considered and dropped**: all eight gating reviewers declare restrictive tool lists, so it could never
+  fire. Recorded in `NEXT.md` so it is not re-derived as a gap.
+
 ## [2.54.0] — 2026-08-21
 
 ### Added

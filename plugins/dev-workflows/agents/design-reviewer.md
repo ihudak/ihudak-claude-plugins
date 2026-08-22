@@ -55,8 +55,18 @@ The caller passes:
   seam justified by a single hypothetical adapter, no second real consumer) → `MAJOR` if it drives the
   design's structure, else `MINOR`. Cite the deep-module / deletion-test / two-adapters vocabulary in
   `${CLAUDE_PLUGIN_ROOT}/references/design-format.md`.
+  Each named seam carries a **dependency category** (`in-process` / `local-substitutable` /
+  `remote-but-owned` / `true-external`, per `${CLAUDE_PLUGIN_ROOT}/references/design-format.md`
+  `## Seams`), and the test strategy matches it — a `remote-but-owned` seam tested without a port, or a
+  `true-external` dependency tested without a mock adapter, → `MAJOR`. A seam with no category on a
+  `MODERATE`+ design → `MINOR`.
 - **Architecture coherence:** components and data flow are consistent; an interface referenced by no
   component (or vice-versa) → `MAJOR`.
+  **Alternatives considered** is present and **substantive**: at least one genuinely plausible
+  rejected alternative with the reason it lost. Missing → `MAJOR`. Present but theatre (an
+  "alternative" nobody would have shipped — "we considered not having an interface") → `MAJOR`; it is
+  worse than absent, because it satisfies the check while teaching the reader nothing. When the Phase 5
+  fan-out ran, the losing takes should appear here named by constraint.
 - **Risk coverage (SIGNIFICANT/HIGH-RISK):** a risky dimension named in the spec/classification with no
   entry in **Risks & mitigations** → `MAJOR` (`SIGNIFICANT`) / `BLOCKER` (`HIGH-RISK`).
 - **Verbatim duplication of the spec:** a design section restating a `specification.md` section verbatim

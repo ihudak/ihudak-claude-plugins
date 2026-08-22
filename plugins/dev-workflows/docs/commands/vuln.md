@@ -16,7 +16,7 @@ Each argument token is either `JIRA-ID:CVE-ID` (e.g. `MGD-2423:CVE-2023-46604`) 
 
 ## How it runs
 
-`/vuln` is the plugin's **only `## Step N` command** — five steps, where every other command uses `## Phase N`; the diagram below reproduces its Step headings verbatim, exactly as every other command's diagram reproduces Phase headings.
+`/vuln` is the plugin's **only `## Step N` command** — five steps, where every other command that uses either heading dialect uses `## Phase N` (the two standalone reviewers, `/api-guideline-reviewer` and `/guideline-reviewer`, use neither — they carry no top-level headings at all); the diagram below adapts its Step headings rather than reproducing them verbatim — it drops Step 0's "(mandatory)" qualifier, and splits Step 3's single heading into two rewritten labels, one per classification path.
 
 ```mermaid
 flowchart TD

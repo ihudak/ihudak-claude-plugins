@@ -82,3 +82,12 @@ Six subtrees carry vendored guidance too large or too domain-specific to enumera
 - `fix-vuln/` (2) — CVE-remediation guidance, consulted by `vuln-research` and `vuln-fixer`.
 
 Each subtree also holds the vendored data or template files named in the introduction above, which is why its `*.md` count here is smaller than `find <dir> -type f` would report.
+
+## Skills
+
+Two skills ship under `skills/` — reusable guidance packaged for the `Skill` tool, distinct from a `references/` file that a command or agent reads directly by path.
+
+| Skill | Invocable | What it's for |
+|---|---|---|
+| `model-routing` | No — loaded internally, at the classification step, by the 14 pipeline commands whose slash-command bodies cannot expand `${CLAUDE_PLUGIN_ROOT}` themselves | Resolves `references/model-routing/classification.md` and hands the caller the task-complexity classification rules and the model fallback chain. |
+| `dynatrace-docs-frontmatter` | Yes | Applies dynatrace-docs frontmatter conventions — changelog entries, managed-docs owners, core metadata fields — when editing a page under `dynatrace/_content/**` or `managed/_content/**`. |

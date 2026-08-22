@@ -10,7 +10,7 @@ Every command owns one role's step in the pipeline and hands a concrete artifact
 
 | Role | Commands | What it does |
 |------|----------|--------------|
-| PM | [`/idea`](docs/commands/idea.md), [`/create-vi`](docs/commands/create-vi.md), [`/update-vi`](docs/commands/update-vi.md) | Refine a raw idea and author or refresh the Value Increment that frames it. |
+| PM | [`/idea`](docs/commands/idea.md), [`/create-vi`](docs/commands/create-vi.md), [`/update-vi`](docs/commands/update-vi.md), [`/release-notes`](docs/commands/release-notes.md) *(early run)* | Refine a raw idea, author or refresh the Value Increment, and draft an early release-notes note. |
 | PA *(optional)* | [`/create-ard`](docs/commands/create-ard.md) | Ground an architecture decision in the mounted implementation code. |
 | PE | [`/epics`](docs/commands/epics.md), [`/specify`](docs/commands/specify.md) | Break a VI into Epics, then author an org-standard specification through a grill. |
 | Dev | [`/design`](docs/commands/design.md), [`/implement`](docs/commands/implement.md), [`/document`](docs/commands/document.md), [`/release-notes`](docs/commands/release-notes.md) | Design against the spec, implement — code-review traces in-scope `[Uxx]`/`[ACxx]`/`[TCxx]` against the diff — document, and draft release notes. |

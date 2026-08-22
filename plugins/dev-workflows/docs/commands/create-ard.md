@@ -4,7 +4,7 @@ Grounds on the mounted implementation repos it discovers and authors an Architec
 
 ## Who runs it
 
-`/create-ard` runs in the [pa](../roles-and-phases.md#pa--product-architecture) role, cost-attribution phase [architecture](../roles-and-phases.md#architecture) — the plugin's one optional phase, since a simple, single-repo VI may genuinely not need an ARD at all (Phase 0 step 5 offers an "optionality advisory" for exactly that case, and lets the architect proceed anyway).
+`/create-ard` runs in the [pa](../roles-and-phases.md#pa--product-architecture) role, cost-attribution phase [architecture](../roles-and-phases.md#architecture) — an optional phase, since a simple, single-repo VI may genuinely not need an ARD at all (Phase 0 step 5 offers an "optionality advisory" for exactly that case, and lets the architect proceed anyway).
 
 ## Synopsis
 
@@ -30,7 +30,7 @@ flowchart TD
     p7 --> p8["Phase 8 — Session maintenance, feedback & cost"]
 ```
 
-Four `dev-workflows` subagents are dispatched: `jira-reader` (Phase 2, only when no authored VI file is present on the specs repo's default branch), `code-scanner` (Phase 3, one instance per confirmed repo, up to 4 concurrent per batch), `ard-reviewer` (Phase 5, Opus-pinned), and `impl-maintenance` (Phase 8, session lessons-learned). The detection-tier agents run at `detection_model` (the §2.1 Sonnet chain); `ard-reviewer` runs at `review_model` (the §2 Opus chain, frontmatter-pinned, no override). The interview and the ARD authoring itself run inline on the session's own `current_model` rather than through a delegated subagent.
+Four `dev-workflows` subagents are dispatched: `jira-reader` (Phase 2 — for a VI-level run, only when no authored VI file is present on the specs repo's default branch; for an Epic-level run, always, scoped to the Epic), `code-scanner` (Phase 3, one instance per confirmed repo, up to 4 concurrent per batch), `ard-reviewer` (Phase 5, Opus-pinned), and `impl-maintenance` (Phase 8, session lessons-learned). The detection-tier agents run at `detection_model` (the §2.1 Sonnet chain); `ard-reviewer` runs at `review_model` (the §2 Opus chain, frontmatter-pinned, no override). The interview and the ARD authoring itself run inline on the session's own `current_model` rather than through a delegated subagent.
 
 ## What it needs
 
@@ -66,7 +66,7 @@ The run resolves the VI (from the merged VI file if present, else the Jira expor
 
 ## See also
 
-- [Roles and phases](../roles-and-phases.md) — what the `pa` role owns, the one optional phase in the pipeline.
+- [Roles and phases](../roles-and-phases.md) — what the `pa` role owns, an optional phase in the pipeline.
 - [`/create-vi`](create-vi.md) — the upstream command that authors the VI `/create-ard` reads.
 - [`/epics`](epics.md), [`/specify`](specify.md), and [`/design`](design.md) — the downstream commands `/create-ard`'s Phase 7 offers, each of which consults the merged ARD once it lands.
 - [`/ready`](ready.md) and [`/implement`](implement.md) — the two remaining consumers of `[AD#N]` invariants via `ard-resolution.md`.

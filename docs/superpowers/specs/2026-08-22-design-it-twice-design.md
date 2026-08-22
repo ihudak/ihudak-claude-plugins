@@ -113,7 +113,7 @@ The user chooses. The interview resumes with the chosen interface settled.
 
 Forces the fan-out on the run's load-bearing interface even when no §4.1 signal fired. It exists
 because the user may know the interface is hard before the grill discovers it. It is **not** the
-mitigation for §8's risk — §5 and §7 are.
+mitigation for §8's risk — §5 (the unconditional requirement) and §8.1 (instrumenting the silence) are.
 
 **Deliberately not named `--deep`.** On `/idea`, `--deep` switches a *bounded* grill to relentless.
 `/design`'s grill is already relentless, so `--deep` there would either be a no-op or mean something

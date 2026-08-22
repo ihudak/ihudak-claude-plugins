@@ -299,6 +299,45 @@ unconditional `### Alternatives considered` and its four dependency categories, 
 two new checks. Plan: `docs/superpowers/plans/2026-08-22-design-it-twice.md`; spec:
 `docs/superpowers/specs/2026-08-22-design-it-twice-design.md`.
 
+## Post-round review wave — 2.56.1 — SHIPPED (2026-08-22)
+A comprehensive review of rounds 2 → 3b along three axes — every agent's tool grants, every
+producer→consumer data path, and the plan/design docs — found **three** live defects, all fixed in all
+three editions: canonical `882a200` / mgd **PR #4** / Copilot `96607d3`; dev-workflows **2.56.1** /
+**2.26.1**.
+
+- **`doc-fixer`'s `NEEDS HUMAN` stop had no consumer anywhere** (since 1.1.0). Its own hard rules say the
+  caller "reads it to decide whether re-running the review is worth doing" and "must surface the deferred
+  BLOCKERs to the user and stop the automated cycle" — and `grep -c 'Stop condition'` returned **0** in
+  `/document`, `/epics`, and both Copilot skills. Three sites closed. `/epics`' style cycle deliberately
+  gets none: `dt-style-checker` caps at `MAJOR`, so the flag cannot fire there — `doc-fixer.md` now
+  records that reachability map so the absence is not later "fixed" into an unreachable guard.
+  **2.54.0 fixed this exact class for `review-fixer`** across its three callers, then scoped the sweep to
+  `review-fixer` and never asked whether the plugin's *other* fixer emitted the same flag. It did. Round 2
+  also *added* a defer path to `doc-fixer` (the patch gate), raising the flag's firing rate against a
+  consumer that was never there.
+- **A `code-review` `BLOCK` from an unreadable diff was indistinguishable from a substantive one.** It now
+  carries the literal first-line marker `Diff: unreadable at <path>`, mirroring `test-writer`'s, checked
+  by all three code commands before triage. The plugin already handled the three sibling cases in these
+  exact words — an orchestrator bug, not a user choice — for `test_diff_file`, `research_file`, and
+  `plan_file`; `review_diff_file` was the fourth and the only one left out. `finding-triage.md` states the
+  marker's exception, so the new rule does not contradict its own table.
+- **`/design`'s `model_routing` `detection_model` comment read `# code-scanner`** while three agents route
+  on that chain (`code-scanner`, `interface-designer`, `impl-maintenance`).
+
+**What the review found clean.** No agent is instructed to do anything its tool grant forbids; every
+`Bash` grant is bounded except `api-guideline-reviewer`'s, which is unused (left as-is, pre-existing and
+harmless). All counts re-derived rather than trusted: `code-review` 11, `doc-reviewer` 18,
+`epic-reviewer` 19, nine Opus pins, thirty-four agents in twelve places across three editions.
+`--design-twice` documented in all six required places in all three editions. Copilot dialect clean on
+all four rules. One candidate finding was **withdrawn** on inspection — `/implement`'s PWR branch looked
+like it never read `review-fixer`'s `NEEDS HUMAN`, but `implement.md:496` scopes the plan-conflict
+handler to "BLOCK **and** PASS WITH RECOMMENDATIONS", and a deferred-BLOCKER `NEEDS HUMAN` cannot occur
+on a PWR verdict. Reporting it would have been the unreachable-guard class this same review flagged.
+
+**Verification discipline used:** every check was shown to return 0 on the pre-fix tree (`b456ceb`) and
+non-zero after — nine checks, none vacuous. The three rounds' dominant defect was a verification pattern
+written against an imagined file, so a check that cannot go red proves nothing.
+
 ## The 2026-08-21 survey — all three items now closed
 > **Nothing in this section is live backlog any more.** Items 5 and 7a shipped in round 3a above; item 7b
 > is dropped there with its reason; item 6 shipped in round 3b above. The three entries below are kept

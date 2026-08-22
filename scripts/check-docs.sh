@@ -81,7 +81,7 @@ check_orphans() {
     while IFS= read -r f; do
       [ -f "$f" ] || continue
       while IFS= read -r target; do
-        abs="$(cd "$(dirname "$(dirname "$f")/../$(basename "$f")")" 2>/dev/null; cd "$(dirname "$f")" && cd "$(dirname "$target")" 2>/dev/null && pwd)/$(basename "$target")"
+        abs="$(cd "$(dirname "$f")" && cd "$(dirname "$target")" 2>/dev/null && pwd)/$(basename "$target")"
         [ -f "$abs" ] || continue
         case "$seen" in *"$abs"*) continue ;; esac
         seen="$seen
@@ -127,8 +127,14 @@ check_inventory() {
     grep -q "$n" "$d/reference/references.md" 2>/dev/null || fail 4 "reference file '$n' is absent from reference/references.md"
   done < <({ ls "$p/references"/*.md 2>/dev/null; ls "$p/references"/*.yaml 2>/dev/null; \
              ls "$p/references/model-routing"/*.md 2>/dev/null; } | sed 's|.*/||')
+  while IFS= read -r n; do
+    [ -f "$p/references/$n" ] || [ -f "$p/references/model-routing/$n" ] \
+      || fail 4 "reference/references.md names '$n', which is not a reference file"
+  done < <(grep -oE '`[A-Za-z0-9_.-]+\.(md|yaml)`' "$d/reference/references.md" 2>/dev/null | tr -d '`')
 
-  # reference subtree counts
+  # reference subtree counts -- *.md only: these subtrees also carry vendored
+  # non-markdown data/templates that are not user-facing reference pages, so
+  # counting everything would fail this check on files docs/ never claims.
   local dir count claimed
   for dir in api-guidelines guidelines handoff dynatrace-docs upgrade fix-vuln; do
     [ -d "$p/references/$dir" ] || continue
@@ -141,6 +147,9 @@ check_inventory() {
   while IFS= read -r n; do
     grep -q "\`$n\`" "$d/reference/hooks.md" 2>/dev/null || fail 4 "hook '$n' is absent from reference/hooks.md"
   done < <(ls "$p/hooks"/*.sh 2>/dev/null | sed 's|.*/||; s|\.sh$||')
+  while IFS= read -r n; do
+    [ -f "$p/hooks/$n.sh" ] || fail 4 "reference/hooks.md names '$n', which is not a hook"
+  done < <(grep -oE '^\| `[a-z-]+`' "$d/reference/hooks.md" 2>/dev/null | tr -d '|` ')
 }
 
 # ------------------------------------------------------------------- check 5
@@ -238,7 +247,7 @@ selftest() {
     tmp=$(mktemp -d); cp -R "$fixture/." "$tmp/"
     ( cd "$tmp" && eval "$3" )
     local out; out=$("$0" --root "$tmp" 2>&1); local got=$?
-    if [ "$got" -eq 1 ] && printf '%s' "$out" | grep -q "FAIL check $2"; then
+    if [ "$got" -eq 1 ] && grep -q "FAIL check $2" <<<"$out"; then
       printf 'ok    %s (check %s fired)\n' "$1" "$2"
     else
       printf 'FAIL  %s: expected exit 1 with "FAIL check %s", got exit %s\n' "$1" "$2" "$got"; rc=1
@@ -251,6 +260,7 @@ selftest() {
   expect_fail "a broken anchor is rejected"         2 "sed -i.bak 's|(getting-started.md#install)|(getting-started.md#no-such-heading)|' plugins/dev-workflows/docs/README.md"
   expect_fail "an orphan page is rejected"          3 "printf '# Orphan\n\nUnreachable.\n' > plugins/dev-workflows/docs/orphan.md"
   expect_fail "an undocumented command is rejected" 4 "printf -- '---\nname: delta\n---\n' > plugins/dev-workflows/commands/delta.md"
+  expect_fail "a drifted subtree count is rejected" 4 "sed -i.bak 's|\`handoff/\` (2)|\`handoff/\` (3)|' plugins/dev-workflows/docs/reference/references.md"
   expect_fail "an undocumented env var is rejected" 5 "printf 'Reads \$NEW_SETTABLE_VAR here.\n' >> plugins/dev-workflows/commands/alpha.md"
   expect_fail "an over-long table cell is rejected" 6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"x\"; printf \"\\n| a | %s |\\n|---|---|\\n| b | c |\\n\", s}' >> plugins/dev-workflows/docs/reference/hooks.md"
   expect_fail "a drifted install block is rejected" 7 "sed -i.bak 's|claude plugin install dev-workflows@fixture-plugins|claude plugin install dev-workflows@drifted|' plugins/dev-workflows/docs/getting-started.md"

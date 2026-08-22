@@ -45,24 +45,24 @@ You are **not** writing a design document. One interface.
 
 Return exactly this shape, no preamble:
 
-    ```markdown
-    ## Interface
-    [Signatures, and the facts a caller must know that a signature does not carry: invariants, ordering
-    constraints, error modes, required configuration. Real names, real types.]
+```markdown
+#### Interface
+[Signatures, and the facts a caller must know that a signature does not carry: invariants, ordering
+constraints, error modes, required configuration. Real names, real types.]
 
-    ## Usage example
-    [How a caller actually uses it — the dominant case, in code.]
+#### Usage example
+[How a caller actually uses it — the dominant case, in code.]
 
-    ## What it hides
-    [The behaviour that sits behind the seam and never reaches the caller.]
+#### What it hides
+[The behaviour that sits behind the seam and never reaches the caller.]
 
-    ## Dependency strategy
-    [The seam's dependency category, and the adapters it implies. If you classified it yourself, say so.]
+#### Dependency strategy
+[The seam's dependency category, and the adapters it implies. If you classified it yourself, say so.]
 
-    ## Trade-offs
-    [Where leverage is high — behaviour reached per unit of interface learned. Where it is thin. What
-    following the constraint cost. What this take is bad at.]
-    ```
+#### Trade-offs
+[Where leverage is high — behaviour reached per unit of interface learned. Where it is thin. What
+following the constraint cost. What this take is bad at.]
+```
 
 ## Hard rules
 

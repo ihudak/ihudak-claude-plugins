@@ -18,7 +18,7 @@ The first token of `$ARGUMENTS` is the target repo path (default: the current wo
 
 - **A docs repository** — a writeable git work tree carrying at least one docs-repo signal (a doc `package.json` script, `.docstack/`, `.vale.ini`, a `*/_content/` directory, or `_snippets/`). Zero signals asks before continuing rather than refusing outright; not a work tree, or not writeable, stops with a named error.
 - Nothing from `$SPECS_PATH` or `$VAULT_PATH` — the scan and the write both happen inside the target repo itself, and this command runs no specs-preflight and no `commit-artifacts` step.
-- **`$GIT_USER_INITIALS`** (optional) — used only in standalone mode's branch-naming ladder, when the repo documents no branch convention of its own.
+- **`$GIT_USER_INITIALS`** (optional) — used in standalone mode's branch-naming ladder, both to fill an identity placeholder in a convention the repo already documents, and as the fallback prefix when the repo documents no convention at all.
 
 ## What it produces
 
@@ -26,7 +26,7 @@ A two-stage read: a Sonnet-tier detection pass (mechanical repo scanning — pac
 
 ## Gates
 
-No reviewer agent, and no Opus review gate in the code-review sense — the field-level confirmation (and, on a refresh, the diff-approval prompt) is the only checkpoint before anything is written, and nothing downstream re-reviews the profile.
+No reviewer agent, and no Opus review gate in the code-review sense — every checkpoint here is a user confirmation rather than an automated review: whether to proceed at all when no docs-repo signal is detected (Phase 0), each field the synthesis flagged as unconfirmed plus a field-level diff before overwriting an existing profile (Phase 4), and the branch name and a dirty working tree before anything is written (Phase 5). Nothing downstream re-reviews the profile once written.
 
 ## Example
 

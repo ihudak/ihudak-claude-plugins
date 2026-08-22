@@ -1,7 +1,7 @@
 # Design format (embedded authority)
 
 The canonical structure and per-section rules for an engineering `design.md`. `/design` authors
-against this file; `design-reviewer` reviews against it, and `/ready` reads its `- **Repos**:` header. **Net-new — authored for the dev-workflows
+against this file; `design-reviewer` reviews against it, `interface-designer` reads its `## Seams` dependency categories, and `/ready` reads its `- **Repos**:` header. **Net-new — authored for the dev-workflows
 plugin, no import source** (unlike `specification-format.md`, which is a snapshot from
 `mgd-specifications`).
 

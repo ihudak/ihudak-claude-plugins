@@ -75,7 +75,7 @@ That is not latent; it is a landmine with a trip-wire pointed at the next author
 
 | Was deferred | What it actually was | Fix |
 |---|---|---|
-| `slugify()` deletes non-ASCII letters | A **correct** `#über-config` link failed check 2 — the letter was stripped, yielding `ber-config` | Probe once for a UTF-8 locale (`C.UTF-8` and three fallbacks) and lowercase through it; `[:alnum:]` instead of `[a-z0-9]`. When no UTF-8 locale exists the gate says so out loud rather than mis-resolving in silence |
+| `slugify()` deletes non-ASCII letters | A **correct** `#über-config` link failed check 2 — the letter was stripped, yielding `ber-config` | Slug generation moved to `python3`, which casefolds and classifies Unicode **regardless of locale**. The first attempt at this only probed for a UTF-8 locale and *announced* the gap when none was found — a disclaimer, not a fix, since the gate still mis-resolved. `python3` is already a hard requirement of this repo's CI (`validate-catalog.py` runs in the same job), so it costs no new dependency. Verified byte-identical to the old path across all 292 headings in the tree, and verified correct under a forced `LC_ALL=C` |
 | No `-1` duplicate-heading disambiguator | A correct link to the second `## Notes` failed check 2 | One `awk` line: first occurrence bare, then `-1`, `-2` |
 | Check 1 rejects `[x](f.md "Title")` / `[x](<f.md>)` | Legal CommonMark resolved as a literal path and failed | Two `sed` clauses in the extractor |
 | Check 3's single reachability root | A page linked only from the plugin README was a **false orphan** | Seed the frontier with the plugin README too |

@@ -24,34 +24,39 @@ note() { printf '  %s\n' "$1" >&2; }
 # whichever file it names. A bare `#anchor` names no file, so a file-existence
 # check cannot see it -- that is why check 2 is separate. ai-containers' split
 # broke 24 anchors this way.
-# GitHub KEEPS non-ASCII letters in an anchor and lowercases them, so `## Uber-config`
-# spelled with an umlaut anchors as the umlauted form. Doing that needs a UTF-8 locale: in a
-# C/ASCII locale `[:alnum:]` excludes those letters and they are deleted outright, so a
-# CORRECT link would fail check 2. Probe for a usable locale once, at startup.
-SLUG_LOCALE=""
-for _l in C.UTF-8 C.utf8 en_US.UTF-8 en_US.utf8; do
-  if [ "$(printf '\303\234\n' | LC_ALL="$_l" sed -E 's/.*/\L&/' 2>/dev/null)" = "$(printf '\303\274')" ]; then
-    SLUG_LOCALE="$_l"; break
-  fi
-done
-
-slugify() { # GitHub heading -> anchor. NEWLINE-TERMINATED: without it every
-            # slug concatenates into one line and no anchor ever matches.
-  if [ -n "$SLUG_LOCALE" ]; then
-    printf '%s\n' "$1" \
-      | LC_ALL="$SLUG_LOCALE" sed -E 's/.*/\L&/; s/`//g; s/[^[:alnum:] _-]//g; s/ /-/g'
-  else
-    printf '%s\n' "$1" \
-      | tr '[:upper:]' '[:lower:]' \
-      | sed -E 's/`//g; s/[^a-z0-9 _-]//g; s/ /-/g'
-  fi
-}
-
+# GitHub KEEPS non-ASCII letters in an anchor and lowercases them, and disambiguates a
+# repeated heading as name, name-1, name-2. Neither is expressible in `tr`/`sed` without a
+# UTF-8 locale -- in a C/ASCII locale those letters are deleted outright, so a CORRECT link
+# fails check 2. python3 casefolds and classifies Unicode regardless of locale, and it is
+# already a hard requirement of this repo's CI (scripts/validate-catalog.py runs in the same
+# job), so this adds no dependency. The shell path is kept only for a bare environment with
+# no python3, and it announces its own limitation instead of mis-resolving in silence.
 strip_fences() { # drop fenced code blocks: an illustrative link inside a ```markdown
                  # block is not a real link, and a `#` line inside one is not a heading.
                  # check 6 has always stripped fences; checks 1 and 2 did not, which made
                  # them fail on correct content AND accept anchors that do not exist.
   awk '/^[ \t]*(```|~~~)/ { infence = !infence; next } !infence' "$1"
+}
+
+HAVE_PY=0; command -v python3 >/dev/null 2>&1 && HAVE_PY=1
+
+slug_list() { # <markdown file> -> one GitHub anchor per heading, in document order
+  if [ "$HAVE_PY" = 1 ]; then
+    strip_fences "$1" | grep -E '^#{1,6} ' | sed -E 's/^#{1,6} //' | python3 -c '
+import sys
+seen = {}
+for line in sys.stdin:
+    h = line.rstrip("\n").replace("`", "").lower()
+    s = "".join(c for c in h if c.isalnum() or c in " _-").replace(" ", "-")
+    n = seen.get(s, 0); seen[s] = n + 1
+    print(s if n == 0 else "%s-%d" % (s, n))
+'
+  else
+    strip_fences "$1" | grep -E '^#{1,6} ' | sed -E 's/^#{1,6} //' \
+      | tr '[:upper:]' '[:lower:]' \
+      | sed -E 's/`//g; s/[^a-z0-9 _-]//g; s/ /-/g' \
+      | awk '{ c = seen[$0]++; if (c == 0) print; else print $0 "-" c }'
+  fi
 }
 
 check_links_and_anchors() {
@@ -80,10 +85,7 @@ check_links_and_anchors() {
         local slugs
         case "$heading_file" in *.md) ;; *) continue ;; esac  # only markdown has headings;
                                                              # a .sh file's `# comment` is not one
-        slugs=$(strip_fences "$heading_file" 2>/dev/null | grep -E '^#{1,6} ' \
-                | sed -E 's/^#{1,6} //' \
-                | while IFS= read -r h; do slugify "$h"; done \
-                | awk '{ c = seen[$0]++; if (c == 0) print; else print $0 "-" c }')
+        slugs=$(slug_list "$heading_file" 2>/dev/null)
         if ! grep -qx -- "$anchor" <<<"$slugs"; then
           fail 2 "$f -> ${target:-(this file)}#$anchor (no such heading)"
         fi
@@ -480,7 +482,7 @@ fi
 ROOT="$(cd "$ROOT" && pwd)"
 [ -d "$ROOT/$PLUGIN_REL/docs" ] || { fail 4 "$PLUGIN_REL/docs does not exist"; echo "FAIL: $FAILURES problem(s)" >&2; exit 1; }
 
-[ -n "$SLUG_LOCALE" ] || note "no UTF-8 locale found; anchors whose heading contains a non-ASCII letter cannot be verified in this environment"
+[ "$HAVE_PY" = 1 ] || note "python3 not found; falling back to ASCII slugs -- anchors whose heading contains a non-ASCII letter cannot be verified here"
 check_links_and_anchors "$ROOT"
 check_orphans           "$ROOT"
 check_inventory         "$ROOT"

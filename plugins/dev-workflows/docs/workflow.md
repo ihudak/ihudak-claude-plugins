@@ -22,7 +22,7 @@ flowchart TD
         implement --> document["/document"]
         document --> rndev["/dev-workflows:release-notes (final)"]
     end
-    subgraph QA["QA — verification & gates"]
+    subgraph QA["Team — verification & gates"]
         ready["/ready"]
     end
     subgraph ANY["Anytime — improve the plugin & utilities"]

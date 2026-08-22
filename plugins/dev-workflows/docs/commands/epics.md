@@ -16,7 +16,7 @@ The positional input resolves through the shared Jira-input front-end: a **VI Ji
 
 ## How it runs
 
-`/epics` has 20 `## Phase` headings — more than any other command in the plugin. The diagram below collapses adjacent phases that form one user-visible step, and shows the one real fork that changes which phases run at all: whether code examination is on.
+`/epics` has 20 `## Phase` headings — the second-most in the plugin, after `/document`'s 37. The diagram below collapses adjacent phases that form one user-visible step, and shows the one real fork that changes which phases run at all: whether code examination is on.
 
 ```mermaid
 flowchart TD
@@ -50,7 +50,7 @@ Six `dev-workflows` subagents are dispatched: `jira-reader` (Phase 3, `depth: vi
 
 One `.md` file per new or refined Epic, under the resolved output directory: `$VAULT_PATH/jira-drafts/<VI-KEY>/` when `$VAULT_PATH` is set, or a derived `epic-drafts/<VI-KEY>/` beside the imported hierarchy otherwise — deliberately outside `jira-products/`, which is wiped on every Jira re-import. `epic-writer` also writes `_coverage.md` (VI-holistic requirement coverage; never pasted to Jira). Refined team-Epic files are keyed by their real Jira id (`<EPIC-KEY>.md`); net-new drafts are slug-named.
 
-**`/epics` is the one authoring command that never branches.** Its git writes are confined to `$SPECS_PATH`, and only to its bounded session-artifact paths — the Epic drafts themselves are never committed by this command at all; git hygiene of the write target (the vault or the derived output directory) is the user's own responsibility. This is a genuine difference from every neighbouring authoring command, each of which offers a branch + commit + push + pull-request handoff for its deliverable.
+**`/epics` is the one authoring command in this pipeline that never branches.** Its git writes are confined to `$SPECS_PATH`, and only to its bounded session-artifact paths — the Epic drafts themselves are never committed by this command at all; git hygiene of the write target (the vault or the derived output directory) is the user's own responsibility. This is a genuine difference from every neighbouring authoring command, each of which offers a branch + commit + push + pull-request handoff for its deliverable.
 
 ## Gates
 
@@ -70,7 +70,7 @@ The run resolves the VI, asks for the output directory and whether to scan code 
 
 ## See also
 
-- [Roles and phases](../roles-and-phases.md) — what the `pe` role owns, including the VI-level `specification.md` gate this is the only command with.
+- [Roles and phases](../roles-and-phases.md) — what the `pe` role owns, including `/epics`' Phase 2.6 gate, which always targets the VI dir's `specification.md` rather than a nested per-Epic one, since Epics don't exist yet when `/epics` runs.
 - [`/create-vi`](create-vi.md) and [`/create-ard`](create-ard.md) — the upstream commands whose VI and (optional) ARD `/epics` reads.
 - [`/specify`](specify.md) — the downstream command normally run once per drafted Epic; a VI with 0 Epics that reaches `/specify` first is itself offered a link back to `/epics`, but nothing gates the order.
 - [Model routing](../reference/model-routing.md) — the classification rules and the `epic-reviewer` Opus pin.

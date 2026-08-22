@@ -1146,7 +1146,7 @@ Derive with the block above. Expected findings, to check your derivation against
 
 - [ ] **Step 2: Add the `## How it runs` diagram**
 
-All three commands in this batch dispatch ≥2 subagents (`/idea` 3, `/create-vi` 2, `/update-vi` 2), so all three get a diagram. Labels come from the `## Phase N` headings verbatim; a diagram may collapse consecutive phases into one node where they form a single user-visible step, but **may never introduce a node no heading backs**. Node budgets: `/idea` ≤9, `/create-vi` ≤12, `/update-vi` ≤11.
+All three commands in this batch dispatch ≥2 subagents (`/idea` 3, `/create-vi` 2, `/update-vi` 2), so all three get a diagram. Phase-node labels come from the `## Phase N` headings verbatim, and a diagram may collapse consecutive phases into one node where they form a single user-visible step. A diagram may **also carry decision nodes**, whose labels come from the command's own branching construct — its classification step, a `choices:` gate, a documented if/else — never from invention. This is stated explicitly because the `/implement` diagram Task 10 must move **verbatim** already carries two un-headed decision nodes, `C{"Classify complexity (model-routing)"}` and `G{"SIGNIFICANT · HIGH-RISK?"}`; a rule forbidding them would contradict that instruction. Diagram a real fork where the command has one; a linear chain of headings is a numbered list and gains nothing from being drawn. Node budgets: `/idea` ≤9, `/create-vi` ≤12, `/update-vi` ≤11.
 
 Verify the counting rule yourself rather than trusting the numbers above:
 ```bash

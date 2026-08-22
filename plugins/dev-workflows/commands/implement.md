@@ -282,7 +282,7 @@ choices: ["Approve & implement now (Recommended)", "Revise plan", "Cancel"]
 
 Once the file map is returned, delegate planning to Opus.
 
-When a `specification.md`/`design.md` is in scope, extract its **in-scope** `[Uxx]`/`[ACxx]`/`[TCxx]` IDs (reuse the specs resolved in Phase 0) into `in_scope_ids` for the review dispatch below. When `task_shape: bug`, the plan will lead with a repro step and a ranked-hypotheses section — surface them in the normal plan-approval gate (no extra interrupt).
+When a `specification.md`/`design.md` is in scope, extract its **in-scope** `[Uxx]`/`[ACxx]`/`[TCxx]` IDs (reuse the specs resolved in Phase 0) into `in_scope_ids` for the review dispatch below. When `task_shape: bug`, the plan will lead with a repro step and a ranked-hypotheses section — surface them in the normal plan-approval gate (no extra interrupt) **when the ranking is present**. When the planner instead returns `Ranking withheld — no red-capable repro`, the withheld-repro branch below fires first and the normal gate does not run.
 
 → Agent (subagent_type: "dev-workflows:risk-planner"):  # planning_model — §2 Opus chain; frontmatter-pinned, recorded in model_routing, no override added
   > "Produce the risk-weighted plan for the following brief:
@@ -303,7 +303,22 @@ When a `specification.md`/`design.md` is in scope, extract its **in-scope** `[Ux
 
 **If the return contains `### Re-classification`:** surface it to the user, ask for confirmation of the revised level with a `choices` prompt (`["Accept revised classification (Recommended)", "Override and stay SIGNIFICANT/HIGH-RISK", "Cancel"]`). If the user accepts, **fall back to Phase 2A** (standard plan) using the codebase context already captured above (the `summary_file` path) — the Phase 1.7 **multi-source codebase summary** when `fan_out = true`, otherwise the Explore summary — and do not re-run exploration. Accepting here is the user exercising the **plan-approval override** of the multi-source SIGNIFICANT floor (Phase 1.6); that is the sanctioned way to leave the fan_out floor. If the user overrides, re-invoke risk-planner with an additional constraint stating the classification is intentional; do not down-classify again. If the user cancels, stop and summarize.
 
-**If the return is a full plan:** present it to the user verbatim and ask:
+**If the return is a full plan whose `### Hypotheses (ranked)` section contains `Ranking withheld`:**
+the planner could not get a red-capable repro, so its hypotheses are absent by design and the rest of
+the plan rests on unverified theory. Do NOT fall through to the normal approval gate — its Recommended
+option is "Approve & implement now", which is exactly the proceed-on-a-guess outcome
+`${CLAUDE_PLUGIN_ROOT}/references/bug-diagnosis.md` step 1 forbids. Surface the planner's `Tried:` line
+verbatim and ask:
+
+```
+choices: ["Help construct a repro (you'll be prompted for what to try)", "Proceed without a repro (recorded in the Phase 5 report)", "Cancel"]
+```
+
+- **Help construct a repro** → take the user's suggestion, re-dispatch `risk-planner` with it carried in the brief, and re-enter this branch on the new return.
+- **Proceed without a repro** → record it in the Phase 5 report's `### Assumptions & limitations` as `No repro: <what the planner tried>` and continue to the normal full-plan gate below.
+- **Cancel** → stop.
+
+**If the return is a full plan** (ranking present, or the user chose to proceed without a repro)**:** present it to the user verbatim and ask:
 
 ```
 "Opus-planned. What would you like to do?"
@@ -773,6 +788,7 @@ directory; no user name is ever written (§10 privacy).
 - WHEN `fan_out` is true and a theme stays inconclusive: run round 2 (§8.5) when round 1 left an evidence anchor to seed it, and name every still-unresolved theme — including one that never entered round 2 for lack of an anchor — in the summary's `## Unresolved` section and the risk-planner brief's `Unresolved scan themes:` field; NEVER fold it in as an ordinary gap
 - WHEN a `specification.md`/`design.md` is in scope on a SIGNIFICANT / HIGH-RISK run: extract its in-scope IDs, pass `applicable_spec` to `code-review`, report conformance in Phase 5, and escalate unresolved `missing`/`contradicts` as `- [ ]` notes on the spec/design — never silently
 - WHEN `task_shape: bug` on a SIGNIFICANT / HIGH-RISK run: risk-planner follows `bug-diagnosis.md` (repro-first + ranked hypotheses), and all `[DEBUG-xxxx]` instrumentation is stripped before the Opus-review diff is captured
+- WHEN `task_shape: bug`: the ranked hypotheses MUST be backed by a repro `risk-planner` **actually ran** — its `### Hypotheses (ranked)` block carries the command, its redacted output, and the reproduction rate (`bug-diagnosis.md` step 1's completion criterion). If it returns "Ranking withheld — no red-capable repro", do NOT proceed to implementation on a guess: surface what it tried and ask `choices: ["Help construct a repro (you'll be prompted for what to try)", "Proceed without a repro (recorded in the Phase 5 report)", "Cancel"]`. Proceeding is the user's call to make explicitly, never the default.
 - ALWAYS fan out `code-scanner` one-per-repo in a single response, capped at 4 concurrent — never sequentially
 - NEVER silently skip a referenced `@dir` that is missing or unrecognized — surface it and ask (classification.md §8.4)
 - Scanning agents (`jira-reader`, `code-scanner`) are pinned to the §2.1 detection (Sonnet) chain like every mechanical step (never inherit the session model); escalate a single scanner to Opus only when one repo slice is oversized

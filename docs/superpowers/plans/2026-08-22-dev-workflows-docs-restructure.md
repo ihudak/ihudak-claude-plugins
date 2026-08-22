@@ -628,7 +628,11 @@ Run:
 # tasks create. Asserting "check 1 is clean" would be unachievable, and ignoring check 1
 # entirely would let a genuine typo hide among the expected failures. So assert the real
 # invariant instead — every unresolved target is a PLANNED page:
-PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
+# Accepts BOTH path shapes: `commands/x.md` as seen from docs/README.md, and the bare
+# `x.md` a sibling link from inside docs/commands/ produces. Without the bare form a command
+# page cannot link forward to a sibling page a later task creates, which would force every
+# such link to be written as a code span and swept back later — residue by construction.
+PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md|(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
 ./scripts/check-docs.sh --root . 2>&1 | grep 'check 1' | sed -E 's/.*-> ([^ ]+) .*/\1/' | sort -u \
   | grep -vE "$PLANNED" || echo "every unresolved link targets a planned page — no typos"
 ```
@@ -959,7 +963,11 @@ Run:
 # tasks create. Asserting "check 1 is clean" would be unachievable, and ignoring check 1
 # entirely would let a genuine typo hide among the expected failures. So assert the real
 # invariant instead — every unresolved target is a PLANNED page:
-PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
+# Accepts BOTH path shapes: `commands/x.md` as seen from docs/README.md, and the bare
+# `x.md` a sibling link from inside docs/commands/ produces. Without the bare form a command
+# page cannot link forward to a sibling page a later task creates, which would force every
+# such link to be written as a code span and swept back later — residue by construction.
+PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md|(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
 ./scripts/check-docs.sh --root . 2>&1 | grep 'check 1' | sed -E 's/.*-> ([^ ]+) .*/\1/' | sort -u \
   | grep -vE "$PLANNED" || echo "every unresolved link targets a planned page — no typos"
 ```
@@ -1048,7 +1056,11 @@ Run: `# A. Checks 2, 3 and 6 must be clean for the pages this task wrote. The `g
 # tasks create. Asserting "check 1 is clean" would be unachievable, and ignoring check 1
 # entirely would let a genuine typo hide among the expected failures. So assert the real
 # invariant instead — every unresolved target is a PLANNED page:
-PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
+# Accepts BOTH path shapes: `commands/x.md` as seen from docs/README.md, and the bare
+# `x.md` a sibling link from inside docs/commands/ produces. Without the bare form a command
+# page cannot link forward to a sibling page a later task creates, which would force every
+# such link to be written as a code span and swept back later — residue by construction.
+PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md|(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
 ./scripts/check-docs.sh --root . 2>&1 | grep 'check 1' | sed -E 's/.*-> ([^ ]+) .*/\1/' | sort -u \
   | grep -vE "$PLANNED" || echo "every unresolved link targets a planned page — no typos"`
 Expected: `checks 2, 3, 6 clean` and `every unresolved link targets a planned page — no typos`
@@ -1182,7 +1194,11 @@ done
 # tasks create. Asserting "check 1 is clean" would be unachievable, and ignoring check 1
 # entirely would let a genuine typo hide among the expected failures. So assert the real
 # invariant instead — every unresolved target is a PLANNED page:
-PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
+# Accepts BOTH path shapes: `commands/x.md` as seen from docs/README.md, and the bare
+# `x.md` a sibling link from inside docs/commands/ produces. Without the bare form a command
+# page cannot link forward to a sibling page a later task creates, which would force every
+# such link to be written as a code span and swept back later — residue by construction.
+PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md|(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
 ./scripts/check-docs.sh --root . 2>&1 | grep 'check 1' | sed -E 's/.*-> ([^ ]+) .*/\1/' | sort -u \
   | grep -vE "$PLANNED" || echo "every unresolved link targets a planned page — no typos"
 ```
@@ -1317,7 +1333,11 @@ done
 # tasks create. Asserting "check 1 is clean" would be unachievable, and ignoring check 1
 # entirely would let a genuine typo hide among the expected failures. So assert the real
 # invariant instead — every unresolved target is a PLANNED page:
-PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
+# Accepts BOTH path shapes: `commands/x.md` as seen from docs/README.md, and the bare
+# `x.md` a sibling link from inside docs/commands/ produces. Without the bare form a command
+# page cannot link forward to a sibling page a later task creates, which would force every
+# such link to be written as a code span and swept back later — residue by construction.
+PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md|(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
 ./scripts/check-docs.sh --root . 2>&1 | grep 'check 1' | sed -E 's/.*-> ([^ ]+) .*/\1/' | sort -u \
   | grep -vE "$PLANNED" || echo "every unresolved link targets a planned page — no typos"
 ```
@@ -1447,7 +1467,11 @@ done
 # tasks create. Asserting "check 1 is clean" would be unachievable, and ignoring check 1
 # entirely would let a genuine typo hide among the expected failures. So assert the real
 # invariant instead — every unresolved target is a PLANNED page:
-PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
+# Accepts BOTH path shapes: `commands/x.md` as seen from docs/README.md, and the bare
+# `x.md` a sibling link from inside docs/commands/ produces. Without the bare form a command
+# page cannot link forward to a sibling page a later task creates, which would force every
+# such link to be written as a code span and swept back later — residue by construction.
+PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md|(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
 ./scripts/check-docs.sh --root . 2>&1 | grep 'check 1' | sed -E 's/.*-> ([^ ]+) .*/\1/' | sort -u \
   | grep -vE "$PLANNED" || echo "every unresolved link targets a planned page — no typos"
 ```
@@ -1576,7 +1600,11 @@ grep -qi 'specification.md' plugins/dev-workflows/docs/commands/release-notes.md
 # tasks create. Asserting "check 1 is clean" would be unachievable, and ignoring check 1
 # entirely would let a genuine typo hide among the expected failures. So assert the real
 # invariant instead — every unresolved target is a PLANNED page:
-PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
+# Accepts BOTH path shapes: `commands/x.md` as seen from docs/README.md, and the bare
+# `x.md` a sibling link from inside docs/commands/ produces. Without the bare form a command
+# page cannot link forward to a sibling page a later task creates, which would force every
+# such link to be written as a code span and swept back later — residue by construction.
+PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md|(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
 ./scripts/check-docs.sh --root . 2>&1 | grep 'check 1' | sed -E 's/.*-> ([^ ]+) .*/\1/' | sort -u \
   | grep -vE "$PLANNED" || echo "every unresolved link targets a planned page — no typos"
 ```
@@ -1704,7 +1732,11 @@ grep -q 'team' plugins/dev-workflows/docs/commands/ready.md || echo "ready: role
 # tasks create. Asserting "check 1 is clean" would be unachievable, and ignoring check 1
 # entirely would let a genuine typo hide among the expected failures. So assert the real
 # invariant instead — every unresolved target is a PLANNED page:
-PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
+# Accepts BOTH path shapes: `commands/x.md` as seen from docs/README.md, and the bare
+# `x.md` a sibling link from inside docs/commands/ produces. Without the bare form a command
+# page cannot link forward to a sibling page a later task creates, which would force every
+# such link to be written as a code span and swept back later — residue by construction.
+PLANNED='^(getting-started\.md|workflow\.md|roles-and-phases\.md|commands/(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|(api-guideline-reviewer|create-ard|create-vi|design|docs-profile|document|epics|feedback|guideline-reviewer|idea|implement|prompt|prompt-brainstorm|prompt-grill-me|ready|release-notes|specify|statusline|update-vi|upgrade|vuln)\.md|reference/(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md|(agents|references|environment|hooks|model-routing|session-cost|session-feedback|follow-ups|resume-and-checkpoints)\.md)$'
 ./scripts/check-docs.sh --root . 2>&1 | grep 'check 1' | sed -E 's/.*-> ([^ ]+) .*/\1/' | sort -u \
   | grep -vE "$PLANNED" || echo "every unresolved link targets a planned page — no typos"
 ```

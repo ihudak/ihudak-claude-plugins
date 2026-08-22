@@ -55,6 +55,13 @@ present for `MODERATE`+ or whenever the change touches that concern, else a one-
    a diagram or bullet decomposition. Name real modules/files where the code scan revealed them.
    Favor **deep modules** (small interface, substantial implementation — see `## Seams` for the
    depth / deletion-test / two-adapters vocabulary).
+   **Record at least one rejected alternative, and why** — as a short `### Alternatives considered`
+   block inside this section. This is **unconditional**: it applies to every design, whether or not the
+   Phase 5 interface fan-out ran. `risk-planner` already demands the same of plans ("Name at least one
+   alternative that was rejected and the reason"); a design is the weaker artifact if it does not. When
+   the fan-out ran, the losing takes fill this with real trade-offs and are named as such (take,
+   constraint, why it lost); otherwise the author names alternatives by hand. An "alternative" that was
+   never plausible ("we considered not having an interface") is theatre — see `design-reviewer`.
 4. **## Interfaces / contracts** (core) — exact signatures, API shapes, schemas, events, config keys
    the change introduces or alters. Concrete types, not prose promises.
 5. **## Seams** (scaled) — where the change is exercised under test; prefer the **highest** seam that

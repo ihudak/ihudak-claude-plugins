@@ -190,8 +190,23 @@ check_inventory() {
 # section named after them (defect D4).
 RUNTIME_VARS="CLAUDE_PLUGIN_ROOT ARGUMENTS OSTYPE BASH_SOURCE BASH_REMATCH ROOT OWNER_REPO"
 
+# NOTE: this tripwire is self-referential -- it guards a constant in THIS file, and --selftest
+# only ever mutates a copy of the fixture tree, never the script. It is therefore verified
+# out-of-band (mutate a copy of this script, run it against any tree, see check 5 fail).
+# Frozen copy. RUNTIME_VARS is a SILENCER: every name in it kills both directions of
+# check 5 for that variable, permanently, and no mutation of the fixture can reveal it.
+# Changing the list must therefore be a deliberate, reviewed act -- so it trips this
+# tripwire and the editor has to update both. Each current entry is justified:
+#   CLAUDE_PLUGIN_ROOT ARGUMENTS OSTYPE BASH_SOURCE BASH_REMATCH -- runtime/shell, not user-settable
+#   ROOT       -- hook-local shell variable (hooks/changelog-owners-reminder.sh)
+#   OWNER_REPO -- template placeholder in references/phase-handoff.md
+RUNTIME_VARS_FROZEN="ARGUMENTS BASH_REMATCH BASH_SOURCE CLAUDE_PLUGIN_ROOT OSTYPE OWNER_REPO ROOT"
+
 check_env_vars() {
   local root="$1" p="$1/$PLUGIN_REL" d="$1/$PLUGIN_REL/docs" v
+  local now; now=$(printf '%s\n' $RUNTIME_VARS | sort | tr '\n' ' ' | sed 's/ $//')
+  [ "$now" = "$RUNTIME_VARS_FROZEN" ] \
+    || fail 5 "RUNTIME_VARS changed -- every entry silences check 5 for that variable; justify it in the comment above and update RUNTIME_VARS_FROZEN in the same edit"
   local read_vars documented
   read_vars=$(grep -rhoE '\$\{?[A-Z][A-Z0-9_]{2,}\}?' \
                 "$p/commands" "$p/agents" "$p/references" "$p/hooks" "$p/skills" 2>/dev/null \
@@ -316,6 +331,58 @@ check_cost_attribution() {
   done
 }
 
+# ------------------------------------------------------------------- check 9
+# Prose counts. check 4 gates the INVENTORIES in both directions, but not the sentences
+# that state their size. A 22nd command with a page and an index link passes check 4 while
+# `plugins/dev-workflows/README.md` still says "twenty-one slash commands" -- and a reader
+# meets the sentence before the table. Same for the agent, reference-file, hook, skill and
+# environment-variable totals.
+_word2num() {
+  case "$1" in
+    one) echo 1 ;; two) echo 2 ;; three) echo 3 ;; four) echo 4 ;; five) echo 5 ;;
+    six) echo 6 ;; seven) echo 7 ;; eight) echo 8 ;; nine) echo 9 ;; ten) echo 10 ;;
+    twenty-one) echo 21 ;; thirty-four) echo 34 ;; ninety-eight) echo 98 ;;
+    *) echo "$1" ;;
+  esac
+}
+
+check_prose_counts() {
+  local root="$1" p="$1/$PLUGIN_REL" d="$1/$PLUGIN_REL/docs"
+  local raw claimed actual label file pat
+
+  _one() { # <label> <file> <extended-regex whose match STARTS with the numeral> <actual>
+    label="$1"; file="$2"; pat="$3"; actual="$4"
+    [ -f "$file" ] || return 0
+    raw=$(grep -ohE "$pat" "$file" 2>/dev/null | head -1 | awk '{print $1}')
+    if [ -z "$raw" ]; then
+      fail 9 "$label: no count sentence found in ${file#$root/} -- the wording drifted, so nothing is being checked"
+      return 0
+    fi
+    claimed=$(_word2num "$raw")
+    [ "$claimed" = "$actual" ] \
+      || fail 9 "$label: ${file#$root/} says $raw ($claimed), tree has $actual"
+  }
+
+  _one "commands"        "$p/README.md"                  '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) slash commands'    "$(ls "$p/commands"/*.md 2>/dev/null | wc -l | tr -d ' ')"
+  _one "agents"          "$d/reference/agents.md"        '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) agents'           "$(ls "$p/agents"/*.md 2>/dev/null | wc -l | tr -d ' ')"
+  _one "reference files" "$d/reference/references.md"    '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) files'           "$(find "$p/references" -type f 2>/dev/null | wc -l | tr -d ' ')"
+  _one "hooks"           "$d/reference/hooks.md"         '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) hooks'                   "$(ls "$p/hooks"/*.sh 2>/dev/null | wc -l | tr -d ' ')"
+  _one "skills"          "$d/README.md"                  '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) bundled skills'           "$(ls -d "$p/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')"
+
+  # The user-settable total is derived the same way check 5 derives its scan, so the two
+  # can never disagree about what "user-settable" means.
+  local read_vars n_settable v
+  read_vars=$(grep -rhoE '\$\{?[A-Z][A-Z0-9_]{2,}\}?' \
+                "$p/commands" "$p/agents" "$p/references" "$p/hooks" "$p/skills" 2>/dev/null \
+              | tr -d '${}' | sort -u)
+  n_settable=0
+  for v in $read_vars; do
+    case " $RUNTIME_VARS " in *" $v "*) continue ;; esac
+    n_settable=$((n_settable + 1))
+  done
+  _one "environment variables" "$d/reference/environment.md" '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) user-settable' "$n_settable"
+}
+
 # ------------------------------------------------------------------ selftest
 # One passing fixture tree; each check gets a mutation of a fresh copy. Asserting
 # the exit code alone would let a mutation that trips a DIFFERENT check register
@@ -369,6 +436,8 @@ selftest() {
   expect_fail "an over-long cell in the ROOT README is rejected" 6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"x\"; printf \"\n| a | %s |\n|---|---|\n| b | c |\n\", s}' >> README.md"
   expect_fail "a drifted reinstall command is rejected"        7 "printf '\nclaude plugin reinstall dev-workflows@fixture-plugins\n' >> plugins/dev-workflows/docs/getting-started.md"
   expect_fail "a drifted emit-cost call site is rejected"      8 "sed -i.bak 's|\`command: /alpha\`, \`phase: fixture-phase\`, \`role: pm\`|\`command: /alpha\`, \`role: pm\`, \`phase: fixture-phase\`|' plugins/dev-workflows/commands/alpha.md"
+  expect_fail "a drifted prose count is rejected"              9 "printf -- '---\nname: gamma\n---\n' > plugins/dev-workflows/commands/gamma.md && printf -- '# /gamma\n\nPage.\n' > plugins/dev-workflows/docs/commands/gamma.md && sed -i.bak 's|(commands/alpha.md)|(commands/alpha.md), [\`/gamma\`](commands/gamma.md)|' plugins/dev-workflows/docs/README.md"
+  expect_fail "a count sentence reworded away is rejected"     9 "sed -i.bak 's|one slash commands|a handful of slash commands|' plugins/dev-workflows/README.md"
   expect_fail "a section-7 row for a non-emitting command is rejected" 8 "sed -i.bak 's;| \`/alpha\` | fixture-phase | pm |;| \`/alpha\` | fixture-phase | pm |\n| \`/omega\` | fixture-phase | pm |;' plugins/dev-workflows/references/cost-emission.md"
 
   if [ "$rc" -eq 0 ]; then echo "SELFTEST PASS"; else echo "SELFTEST FAIL"; fi
@@ -394,6 +463,7 @@ check_env_vars          "$ROOT"
 check_table_cells       "$ROOT"
 check_install_block     "$ROOT"
 check_cost_attribution  "$ROOT"
+check_prose_counts      "$ROOT"
 
 if [ "$FAILURES" -gt 0 ]; then
   echo "FAIL: $FAILURES problem(s) under $PLUGIN_REL" >&2

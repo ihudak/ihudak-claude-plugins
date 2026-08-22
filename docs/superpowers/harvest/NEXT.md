@@ -290,8 +290,10 @@ absence of a reviewer on the light paths is a deliberate design choice, and a wo
 own reviewer silently overrides that choice while producing a verdict nobody consumes. True on every
 path.
 
-## Harvest round 3b — item 6 — SHIPPED, all three editions, on branch pending merge (2026-08-22)
-`iv-gu/design-it-twice` — canonical/mgd `2.56.0`, Copilot `2.26.0`. The `interface-designer` agent, the
+## Harvest round 3b — item 6 — SHIPPED, all three editions, merged (2026-08-22)
+Canonical `b456ceb` and Copilot `0a79666` merged directly; mgd went through **PR #3** (`0847555`),
+the same route PR #1 took, because `Dynatrace-Internal/mgd-claude-plugins` requires PRs on `main`.
+Versions: canonical/mgd `2.56.0`, Copilot `2.26.0`. The `interface-designer` agent, the
 three-take Phase 5 fan-out in `/design` with `--design-twice` forcing it, `design-format.md`'s
 unconditional `### Alternatives considered` and its four dependency categories, and `design-reviewer`'s
 two new checks. Plan: `docs/superpowers/plans/2026-08-22-design-it-twice.md`; spec:

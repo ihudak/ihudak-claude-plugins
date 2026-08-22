@@ -76,7 +76,7 @@ Every task's requirements implicitly include this section. Values are copied ver
 
 **Files:**
 - Create: `scripts/check-docs.sh`
-- Create: `scripts/fixtures/docs/pass/` (a minimal plugin tree, 13 files, listed in Step 2)
+- Create: `scripts/fixtures/docs/pass/` (a minimal plugin tree, 16 files, listed in Step 2)
 - Modify: `.github/workflows/validate-catalog.yml`
 
 **Interfaces:**
@@ -1803,7 +1803,10 @@ Expected: **no output**. Any output means a new `docs/` page used a spec-ID lite
 ```bash
 wc -lc plugins/dev-workflows/README.md
 find plugins/dev-workflows/docs -name '*.md' | wc -l
-awk '/^```/{f=!f;next} f{next} /^\|/{n=split($0,c,"|"); for(i=2;i<n;i++){gsub(/^ +| +$/,"",c[i]); if(length(c[i])>m) m=length(c[i])}} END{print "longest table cell:", m}' plugins/dev-workflows/README.md plugins/dev-workflows/docs/**/*.md plugins/dev-workflows/docs/*.md
+find plugins/dev-workflows/docs -name '*.md' -print0 | xargs -0 awk -v m=0 '
+  /^```/{f=!f;next} f{next}
+  /^\|/{n=split($0,c,"|"); for(i=2;i<n;i++){gsub(/^ +| +$/,"",c[i]); if(length(c[i])>m) m=length(c[i])}}
+  END{print "longest table cell:", m}' plugins/dev-workflows/README.md -
 ```
 Expected: README under 60 lines; `34` pages; longest table cell at most 200.
 

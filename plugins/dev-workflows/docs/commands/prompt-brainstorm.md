@@ -4,7 +4,7 @@ Logs a corrective interaction, then hands off to `superpowers:brainstorming` to 
 
 ## Who runs it
 
-`/prompt-brainstorm` runs outside the role pipeline — no role, no cost-attribution phase (`references/cost-emission.md` never mentions it). [Workflow overview](../workflow.md#cross-cutting-commands) groups it under Plugin improvement, alongside [`/feedback`](feedback.md), [`/prompt`](prompt.md), and [`/prompt-grill-me`](prompt-grill-me.md). Reach for this one when a command's output was wrong in a way that needs **exploring**, not a quick one-shot fix — same logging, different next step. Every run logged here is signal the maintainer can act on, so use it rather than fixing things quietly and moving on.
+`/prompt-brainstorm` runs outside the role pipeline and, alone with [`/prompt-grill-me`](prompt-grill-me.md) among the four feedback commands, emits **no** cost entry — deliberately. Its Phase 3 cedes the session to the brainstorming skill, so the expensive part of the run happens after this command's last controllable step; a cost line written here would price only the logging prologue and report a misleadingly small figure (`references/cost-emission.md` §7). [Workflow overview](../workflow.md#cross-cutting-commands) groups it under Plugin improvement, alongside [`/feedback`](feedback.md), [`/prompt`](prompt.md), and [`/prompt-grill-me`](prompt-grill-me.md). Reach for this one when a command's output was wrong in a way that needs **exploring**, not a quick one-shot fix — same logging, different next step. Every run logged here is signal the maintainer can act on, so use it rather than fixing things quietly and moving on.
 
 ## Synopsis
 

@@ -71,6 +71,23 @@ ladder using `jira_key` and `source`, format the entry per §1 (`origin:
 manual`), and append per §3 (manual entries are never silently skipped — on an
 `id` collision append a numeric suffix and warn). Write silently.
 
+**Then emit session cost.** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md`
+and call its `emit-cost` entry point with `command: /feedback`, `phase: inferred`,
+`role: inferred`, `target_command: <the Phase 2 `command` metadata field, or `n/a`>`, the run's
+`jira_key` (or `null`) and `source`, and `plugin_version`. **`target_command` is
+required** — §7 has no other source for it, so omitting it silently mis-attributes
+every note to `plugin-feedback`/`n/a`. The cost phase resolves the real labels from the **target
+command** recorded above, per §7: a target with a fixed `phase`/`role` is
+inherited outright, so correcting a `/specify` output is priced as
+`specification`/`pe`; a target of `n/a`, a target with no §7 row, or a target
+that is itself one of the four feedback commands resolves to
+`phase: plugin-feedback`, `role: n/a`. A keyless run lands in §9's pending file
+exactly as `/idea`'s does. Surface the persisted path (or the report-only
+notice). This runs BEFORE the commit step below, per the emitter tail in
+`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §5 (feedback -> follow-ups ->
+cost -> `resume.md` -> `commit-artifacts`; this command has no follow-ups or
+`resume.md` step, so it goes feedback -> cost -> commit).
+
 **Then commit session artifacts (terminal).** Cite
 `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
 `commit-artifacts` entry point (§4) inline. It stages ONLY the §2.1 bounded

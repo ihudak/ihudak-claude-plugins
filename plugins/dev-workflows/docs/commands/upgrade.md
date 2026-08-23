@@ -4,7 +4,7 @@ Upgrades libraries, frameworks, runtimes, or build tools to specified or latest 
 
 ## Who runs it
 
-`/upgrade` runs **outside the VI pipeline** — it has no cost-attribution phase and no role. It emits **no cost attribution at all**: it has no Value Increment to attribute spend to, and `references/cost-emission.md` never mentions it (`grep -c 'upgrade' plugins/dev-workflows/references/cost-emission.md` → `0`). The `phase:` values it does pass to `upgrade-planner` and `upgrade-executor` — `full`, `verify-resume`, `regression-resume` — belong to a completely different vocabulary: the model-routing **resume protocol**, saying how much of a single component's own re-entered work must be redone after a review or a failed test, not where a run sits in the product lifecycle. The two vocabularies share the field name `phase` and nothing else — see [Roles and phases](../roles-and-phases.md#cost-attribution-phases) for the fuller distinction.
+`/upgrade` runs **outside the VI pipeline** — it has no cost-attribution phase and no role. It emits **no cost attribution at all**: it has no Value Increment to attribute spend to, and `references/cost-emission.md` never mentions it ( The `phase:` values it does pass to `upgrade-planner` and `upgrade-executor` — `full`, `verify-resume`, `regression-resume` — belong to a completely different vocabulary: the model-routing **resume protocol**, saying how much of a single component's own re-entered work must be redone after a review or a failed test, not where a run sits in the product lifecycle. The two vocabularies share the field name `phase` and nothing else — see [Roles and phases](../roles-and-phases.md#cost-attribution-phases) for the fuller distinction.
 
 ## Synopsis
 

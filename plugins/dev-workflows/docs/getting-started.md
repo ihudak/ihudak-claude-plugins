@@ -15,11 +15,13 @@ claude plugin marketplace add ihudak/ihudak-claude-plugins
 ```bash
 claude plugin install dev-workflows@ihudak-plugins
 claude plugin install dt-style-guide@ihudak-plugins
-claude plugin install obsidian-llm-wiki@ihudak-plugins
-claude plugin install acli@ihudak-plugins
 ```
 
-`dev-workflows` is the pipeline this documentation covers. `dt-style-guide` is the primary style checker for `/epics`, and a fallback prose linter for `/document` when the target docs repo has none configured. `obsidian-llm-wiki` compiles your vault into a persistent, cross-referenced wiki with task management. `acli` is a reference skill for the Atlassian CLI, covering Jira and Confluence operations from the command line. None of the four imports Jira tickets into your vault — that is a separate, external tool, [`jira-workitem-import`](https://github.com/ivan-gudak/jira-workitem-import), which populates `$VAULT_PATH/jira-products/<KEY>/` in the structure every Jira-driven command expects; install it too before you run `/specify`, `/document`, or any other Jira-driven command (the inline-prompt `/idea` walked below needs none of this).
+`dev-workflows` is the pipeline this documentation covers. `dt-style-guide` is the one other plugin it genuinely reaches for: it is the primary style checker for `/epics` and for the Value Increment commands, and a fallback prose linter for `/document` when the target docs repo has none configured. Every command that uses it degrades gracefully when it is absent, so it is *recommended*, not required.
+
+**What you also need, and it is not a plugin.** No plugin in this marketplace imports Jira tickets into your vault. That is a separate external tool — [`jira-workitem-import`](https://github.com/ivan-gudak/jira-workitem-import) — which populates `$VAULT_PATH/jira-products/<KEY>/` in the exact structure every Jira-driven command expects. Install it before `/specify`, `/document`, `/epics`, or any other Jira-driven command. The inline-prompt `/idea` walked through below needs none of it.
+
+**What you do not need for this plugin.** The marketplace also ships `obsidian-llm-wiki` (compiling a vault into a cross-referenced wiki) and `acli` (an Atlassian CLI reference skill). Neither is used by `dev-workflows` — `acli` is referenced nowhere in it, and `references/followup-emission.md` states outright that it has no runtime dependency on `obsidian-llm-wiki`; it only *mirrors* that plugin's vault task conventions so follow-ups land in a shape your vault already understands. Install them if you want them for their own sake; see the [marketplace README](../../../README.md).
 
 ## Update
 

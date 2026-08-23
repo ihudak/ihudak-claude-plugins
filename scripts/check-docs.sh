@@ -280,18 +280,36 @@ check_table_cells() {
 # getting-started.md carries the install and update commands INLINE rather than
 # linking out, because a getting-started page whose first step is a link has
 # failed at its one job. That makes it the only page under docs/ carrying edition
-# identity, so it is pinned: its command lines must match the repo-root README's
-# Installation section exactly, in both directions.
+# identity, so it is pinned to the repo-root README.
+#
+# It is a SUBSET pin, not equality: the root README documents the whole
+# marketplace, while this page documents ONE plugin and should install only what
+# that plugin actually needs. (dev-workflows references `dt-style-guide` 32 times;
+# `acli` zero, and `references/followup-emission.md` states outright that it has no
+# runtime dependency on `obsidian-llm-wiki`.) So every line HERE must appear verbatim
+# in the root README -- which is what catches a drifted marketplace name or command
+# form -- but the root README may list more.
 check_install_block() {
-  local root="$1" a b
-  a=$(grep -oE '^claude plugin (marketplace (add|update)|install|reinstall) .*' "$root/README.md" 2>/dev/null | sort)
-  b=$(grep -oE '^claude plugin (marketplace (add|update)|install|reinstall) .*' "$root/$PLUGIN_REL/docs/getting-started.md" 2>/dev/null | sort)
+  local root="$1" a b extra line
+  a=$(grep -oE '^claude plugin (marketplace (add|update)|install|reinstall) .*' "$root/README.md" 2>/dev/null | sort -u)
+  b=$(grep -oE '^claude plugin (marketplace (add|update)|install|reinstall) .*' "$root/$PLUGIN_REL/docs/getting-started.md" 2>/dev/null | sort -u)
   if [ -z "$a" ]; then fail 7 "repo-root README.md has no 'claude plugin ...' command lines to pin against"; return; fi
-  if [ "$a" != "$b" ]; then
-    fail 7 "getting-started.md install commands differ from the repo-root README"
-    note "only in root README: $(comm -23 <(printf '%s\n' "$a") <(printf '%s\n' "$b") | tr '\n' ' ')"
-    note "only in getting-started: $(comm -13 <(printf '%s\n' "$a") <(printf '%s\n' "$b") | tr '\n' ' ')"
+  if [ -z "$b" ]; then fail 7 "getting-started.md has no 'claude plugin ...' command lines -- it must carry them inline"; return; fi
+
+  extra=$(comm -13 <(printf '%s\n' "$a") <(printf '%s\n' "$b"))
+  if [ -n "$extra" ]; then
+    fail 7 "getting-started.md carries install commands the repo-root README does not"
+    while IFS= read -r line; do [ -n "$line" ] && note "only in getting-started: $line"; done <<<"$extra"
   fi
+
+  # The marketplace add/update lines are the edition identity itself -- a reader who
+  # follows this page must be able to add and update the marketplace from it alone.
+  for line in 'marketplace add' 'marketplace update'; do
+    grep -q "^claude plugin $line " <<<"$b" \
+      || fail 7 "getting-started.md is missing its 'claude plugin $line' line"
+  done
+  grep -q "^claude plugin install ${PLUGIN_REL##*/}@" <<<"$b" \
+    || fail 7 "getting-started.md does not install ${PLUGIN_REL##*/} itself"
 }
 
 # ------------------------------------------------------------------- check 8
@@ -464,6 +482,8 @@ selftest() {
   expect_fail "a titled link to a missing file is rejected"    1 "printf '\n[bad](nope.md \"T\")\n' >> plugins/dev-workflows/docs/commands/alpha.md"
   expect_fail "an angle-bracket link to a missing file is rejected" 1 "printf '\n[bad](<nope.md>)\n' >> plugins/dev-workflows/docs/commands/alpha.md"
   expect_fail "an over-long INDENTED table cell is rejected"   6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"q\"; printf \"\n  | a | %s |\n  |---|---|\n\", s}' >> plugins/dev-workflows/docs/reference/agents.md"
+  expect_fail "a missing marketplace-add line is rejected"     7 "sed -i.bak '/claude plugin marketplace add/d' plugins/dev-workflows/docs/getting-started.md"
+  expect_fail "getting-started not installing the plugin itself is rejected" 7 "sed -i.bak '/claude plugin install dev-workflows@/d' plugins/dev-workflows/docs/getting-started.md"
   expect_fail "a section-7 row for a non-emitting command is rejected" 8 "sed -i.bak 's;| \`/alpha\` | fixture-phase | pm |;| \`/alpha\` | fixture-phase | pm |\n| \`/omega\` | fixture-phase | pm |;' plugins/dev-workflows/references/cost-emission.md"
 
   if [ "$rc" -eq 0 ]; then echo "SELFTEST PASS"; else echo "SELFTEST FAIL"; fi

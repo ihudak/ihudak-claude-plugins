@@ -5,6 +5,7 @@
 ```bash
 claude plugin marketplace add example/fixture-plugins
 claude plugin install dev-workflows@fixture-plugins
+claude plugin install extra-plugin@fixture-plugins
 claude plugin marketplace update fixture-plugins
 ```
 

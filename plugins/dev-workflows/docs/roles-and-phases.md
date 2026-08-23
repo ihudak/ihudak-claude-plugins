@@ -51,7 +51,7 @@ Every phase ends the same way: a producing command lands its deliverable on the 
 
 ## Cost-attribution phases
 
-Every VI-lifecycle command tags its cost line with a `phase` and a `role`. Nine phases exist; each entry below names the command that emits it and what being in that phase means.
+Every cost-emitting command tags its cost line with a `phase` and a `role`. Ten phases exist; each entry below names the command that emits it and what being in that phase means. The first nine are lifecycle phases; the tenth exists for spend that belongs to no phase at all.
 
 ### vi-creation
 
@@ -88,6 +88,10 @@ Emitted by `/document`, role `dev`. Being in this phase means product documentat
 ### readiness
 
 Emitted by `/ready`, role `dev`. Being in this phase means a Jira status is being checked against the ARD / spec / design record, never changed.
+
+### plugin-feedback
+
+Emitted by `/prompt` and `/feedback`, role `n/a`. Being in this phase means the run was about **the plugin itself** rather than the product, and no lifecycle phase owns it. Neither command reaches this phase by default: each first tries to inherit the labels of the command it is correcting or remarking on, so a `/prompt` against a `/specify` output is priced as `specification`/`pe`. This phase is the fallback for a run with no target command, a target that emits no cost of its own, or a target that is itself a feedback command. `role: n/a` is the absence of a role recorded rather than guessed — aggregation should treat it as unattributed, never fold it into `dev`.
 
 ---
 

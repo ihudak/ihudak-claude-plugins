@@ -4,7 +4,7 @@ Logs a manual note about the dev-workflows plugin itself — friction you hit, o
 
 ## Who runs it
 
-`/feedback` runs outside the role pipeline — no role, no cost-attribution phase (`references/cost-emission.md` never mentions it). [Workflow overview](../workflow.md#cross-cutting-commands) groups it under Plugin improvement, alongside its three siblings — [`/prompt`](prompt.md), [`/prompt-brainstorm`](prompt-brainstorm.md), and [`/prompt-grill-me`](prompt-grill-me.md). It is tied to no other command and can be run any time, about any friction you hit or improvement you want. This is one of the four commands that make the plugin better over time — use it whenever something is off, not only when it's dramatic; a small annoyance logged now is easier for the maintainer to act on than one nobody ever wrote down.
+`/feedback` runs outside the role pipeline, but it does report its cost: it passes `phase: inferred, role: inferred` and the cost phase **inherits the labels of the command the note is about** (`references/cost-emission.md` §7). A note untied to any command — the common case — resolves to `plugin-feedback`/`n/a`. [Workflow overview](../workflow.md#cross-cutting-commands) groups it under Plugin improvement, alongside its three siblings — [`/prompt`](prompt.md), [`/prompt-brainstorm`](prompt-brainstorm.md), and [`/prompt-grill-me`](prompt-grill-me.md). It is tied to no other command and can be run any time, about any friction you hit or improvement you want. This is one of the four commands that make the plugin better over time — use it whenever something is off, not only when it's dramatic; a small annoyance logged now is easier for the maintainer to act on than one nobody ever wrote down.
 
 ## Synopsis
 

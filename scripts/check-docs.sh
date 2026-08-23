@@ -232,10 +232,21 @@ check_inventory() {
     [ -f "$p/hooks/$n.sh" ] || fail 4 "reference/hooks.md names '$n', which is not a hook"
   done < <(grep -oE '^\| `[a-z-]+`' "$d/reference/hooks.md" 2>/dev/null | tr -d '|` ')
 
-  # skills <-> docs/reference/references.md
-  while IFS= read -r n; do
-    grep -q "\`$n\`" "$d/reference/references.md" 2>/dev/null || fail 4 "skill '$n' is absent from reference/references.md"
-  done < <(ls -d "$p/skills"/*/ 2>/dev/null | sed 's|/*$||; s|.*/||')
+  # skills <-> docs/reference/references.md -- the FORWARD direction (every skills/
+  # directory must be documented as a skill) is inert where $CMD_DIR IS "skills": there,
+  # skills/ holds this edition's COMMANDS (already covered by the command inventory
+  # above) plus $CMD_EXCLUDE (a reference directory, not a skill), so demanding each be
+  # documented as a skill would be false. The REVERSE direction (a documented skill must
+  # be real) stays active in every edition -- it catches a stale/phantom claim in
+  # references.md regardless of what skills/ holds, and the command inventory does not
+  # cover that direction.
+  if [ "$CMD_DIR" = "skills" ]; then
+    note "check 4 skills forward-check not applicable: skills/ is this edition's \$CMD_DIR, already covered by the command inventory above"
+  else
+    while IFS= read -r n; do
+      grep -q "\`$n\`" "$d/reference/references.md" 2>/dev/null || fail 4 "skill '$n' is absent from reference/references.md"
+    done < <(ls -d "$p/skills"/*/ 2>/dev/null | sed 's|/*$||; s|.*/||')
+  fi
   while IFS= read -r n; do
     [ -d "$p/skills/$n" ] || fail 4 "reference/references.md names skill '$n', which is not a skill"
   done < <(grep -oE '^\| `[a-z-]+`' "$d/reference/references.md" 2>/dev/null | tr -d '|` ')
@@ -466,7 +477,14 @@ check_prose_counts() {
   _one "agents"          "$d/reference/agents.md"        '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) agents'           "$(ls "$p/agents"/*.md 2>/dev/null | wc -l | tr -d ' ')"
   _one "reference files" "$d/reference/references.md"    '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) files'           "$(find "$p/$REF_DIR" -type f 2>/dev/null | wc -l | tr -d ' ')"
   _one "hooks"           "$d/reference/hooks.md"         '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) hooks'                   "$(ls "$p/hooks"/*.sh 2>/dev/null | wc -l | tr -d ' ')"
-  _one "skills"          "$d/README.md"                  '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) bundled skills'           "$(ls -d "$p/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')"
+  # Inert where $CMD_DIR IS "skills" (see check 4's skills forward-check, same reason):
+  # ls -d "$p/skills"/*/ would count this edition's commands plus $CMD_EXCLUDE, not
+  # bundled skills -- there is no separate "N bundled skills" sentence to state there.
+  if [ "$CMD_DIR" = "skills" ]; then
+    note "check 9 skills-count assertion not applicable: skills/ is this edition's \$CMD_DIR, already counted by the commands assertion above"
+  else
+    _one "skills"          "$d/README.md"                  '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) bundled skills'           "$(ls -d "$p/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')"
+  fi
 
   # The user-settable total is derived the same way check 5 derives its scan, so the two
   # can never disagree about what "user-settable" means.
@@ -542,7 +560,11 @@ selftest() {
   expect_fail "an undocumented NEW subtree is rejected"        4 "mkdir -p $PLUGIN_REL/$REF_DIR/brandnew && printf '# x\n' > $PLUGIN_REL/$REF_DIR/brandnew/x.md"
   expect_fail "a documented-but-unread env var is rejected"    5 "printf '\n**\`\$PHANTOM_VAR\`** — never read anywhere.\n' >> $PLUGIN_REL/docs/reference/environment.md"
   expect_fail "an over-long cell in the ROOT README is rejected" 6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"x\"; printf \"\n| a | %s |\n|---|---|\n| b | c |\n\", s}' >> README.md"
-  expect_fail "a drifted reinstall command is rejected"        7 "printf '\n$CLI plugin reinstall ${PLUGIN_REL##*/}@fixture-plugins\n' >> $PLUGIN_REL/docs/getting-started.md"
+  # ${CLI_VERBS##*|} is the LAST verb in the alternation -- every edition has one by
+  # construction (canonical "reinstall", copilot "update") -- so this is extracted by
+  # check 7 in every edition, regardless of which verbs exist there. The target names
+  # a line absent from the root README, so it is extracted AND counts as extra.
+  expect_fail "an install line absent from the root README is rejected" 7 "printf '\n$CLI plugin ${CLI_VERBS##*|} ${PLUGIN_REL##*/}@extra-fixture-target\n' >> $PLUGIN_REL/docs/getting-started.md"
   expect_fail "a drifted prose count is rejected"              9 "mkdir -p $(dirname $(cmd_file $PLUGIN_REL gamma)) 2>/dev/null; printf -- '---\nname: gamma\n---\n' > $(cmd_file $PLUGIN_REL gamma) && printf -- '# /gamma\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/gamma.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/gamma\`]($DOC_CMD_DIR/gamma.md)|' $PLUGIN_REL/docs/README.md"
   expect_fail "a count sentence reworded away is rejected"     9 "sed -i.bak 's|one slash commands|a handful of slash commands|' $PLUGIN_REL/README.md"
   expect_fail "a wrong non-ASCII anchor is rejected"           2 "printf '\n[bad](#uber-config)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"

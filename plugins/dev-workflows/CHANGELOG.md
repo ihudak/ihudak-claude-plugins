@@ -4,6 +4,17 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.58.0] — 2026-08-23
+
+### Added
+- **`/prompt` and `/feedback` now emit a session-cost entry, inheriting the labels of the command they are about.** Both already resolved a **target command** (the one whose output is being corrected or remarked on) and a `jira_key`; neither used them for cost. Each now calls `emit-cost` with `phase: inferred, role: inferred`, and `references/cost-emission.md` §7 resolves the real values from that target: a `/prompt` correcting a `/specify` output is priced as `specification`/`pe`, one correcting a `/design` output as `planning`/`dev`. **The cost of fixing a phase's output belongs to that phase** — so "what did specifying cost" now includes the cost of making the spec right, rather than pooling every correction in a bucket of its own.
+- **New cost phase `plugin-feedback`, with `role: n/a`.** The fallback when no target resolves, when the target emits no cost of its own (`/vuln`, `/upgrade`, `/docs-profile`, `/statusline`, the two guideline reviewers), or when the target is itself a feedback command — a correction to a correction has no lifecycle phase, and inheriting from an inferred row would regress with no base case. `n/a` is the **absence** of a role recorded rather than guessed; aggregation must treat it as unattributed and never fold it into `dev`. Ten phases now, nine of them lifecycle.
+- **`check-docs.sh` check 9 gained the cost-emitting count** — derived from the same extractor check 8 uses. This is the exact count that went stale the moment these two commands started emitting ("Eleven commands emit a cost entry"), and nothing was guarding it. It fires on a wrong number and on the sentence being reworded away. Its numeral matching is now case-insensitive, since a count can open a sentence; the word map gained eleven through fourteen. Selftest 35 → 36.
+
+### Changed
+- **`/prompt-brainstorm` and `/prompt-grill-me` still emit nothing, and the reason is now written down** rather than left as an unexplained absence. Both end at a Phase 3 that *cedes the session* — a hand-off to `superpowers:brainstorming`, or a long interactive grill — so the expensive part of the run happens after the command's last controllable step. A cost line written there would price only the logging prologue and report a misleadingly small figure, and a wrong number is worse than a missing one because it gets aggregated and trusted. The same constraint already puts their `commit-artifacts` step *before* the hand-off (`references/specs-repo-git.md` §4).
+- `references/cost-emission.md` §7 introduced itself as having "one inferred exception" and now has three. `docs/reference/session-cost.md`, `docs/roles-and-phases.md`, `docs/reference/session-feedback.md`, and the four feedback command pages all carried claims this change falsified — every one of them said these commands had no cost phase and that `cost-emission.md` "never mentions" them.
+
 ## [2.57.0] — 2026-08-22
 
 ### Added

@@ -264,7 +264,7 @@ that model exactly as before).
 
 ## 7. Attribution (phase / role / keys)
 
-Fixed per-command labels, with one inferred exception:
+Fixed per-command labels, with three inferred exceptions:
 
 | Command | phase | role |
 |---------|-------|------|
@@ -279,6 +279,8 @@ Fixed per-command labels, with one inferred exception:
 | `/create-vi` | vi-creation | pm |
 | `/update-vi` | vi-update | pm |
 | `/create-ard` | architecture | pa |
+| `/prompt` | **inferred** | **inferred** |
+| `/feedback` | **inferred** | **inferred** |
 
 **`/release-notes` inference (PM VI-run vs. dev documenting-run).** The
 discriminator is the presence of **downstream engineering artifacts** — any
@@ -289,6 +291,38 @@ discriminator is the presence of **downstream engineering artifacts** — any
   which is fine, since a freshly created VI with no Epics is exactly the PM case).
 - **Either present -> `phase: documenting`, `role: dev`** (the dev re-run, when
   VI + Epics + specs + design + code all exist).
+
+**`/prompt` and `/feedback` inference (inherit the corrected command's labels).**
+Both resolve a **target command** — the command whose output is being corrected
+or remarked on — or `n/a`. The discriminator is that target:
+
+- **Target has a fixed `phase`/`role` in the table above -> inherit both.** A
+  `/prompt` correcting a `/specify` output is `specification`/`pe` spend; one
+  correcting a `/design` output is `planning`/`dev`. This is the point of the
+  rule: the cost of fixing a phase's output belongs to that phase, so "what did
+  specifying cost" includes the cost of making the spec right.
+- **Target is `/release-notes` -> resolve ITS inference first**, then inherit the
+  result. One level only; `/release-notes` never resolves to another inferred row.
+- **Target is `n/a`, or a command with no row above -> `phase: plugin-feedback`,
+  `role: n/a`.** The second case covers `/vuln`, `/upgrade`, `/docs-profile`,
+  `/statusline`, and the two guideline reviewers, none of which emits cost and so
+  has nothing to inherit.
+- **Target is one of the four feedback commands themselves -> treat as `n/a`.**
+  A correction to a correction has no lifecycle phase of its own, and inheriting
+  from an inferred row would regress without a base case.
+
+`role: n/a` is **not a fifth role** — it is the absence of one, recorded rather
+than guessed, and aggregation should treat it as unattributed rather than folding
+it into `dev`.
+
+**`/prompt-brainstorm` and `/prompt-grill-me` deliberately emit no cost entry.**
+Both cede the session at their Phase 3 — a hand-off, or a long interactive grill —
+so the expensive part of the run happens after the command's last controllable
+step. A terminal cost phase there would price only the logging prologue and report
+a figure that is misleadingly small, and a wrong number is worse than a missing one
+because it is aggregated and trusted. This is the same constraint that already puts
+their `commit-artifacts` step *before* the hand-off rather than at the end (§4 of
+`specs-repo-git.md`).
 
 **Epic presence is deliberately NOT part of the signal** — a VI can have drafted
 Epics while still in PM/PE hands, so keying on Epics would misattribute the PM

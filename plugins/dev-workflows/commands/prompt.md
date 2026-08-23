@@ -59,8 +59,10 @@ the entry with the two extra prose blocks (`origin: prompt`), and appends per §
 
 **Then emit session cost.** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md`
 and call its `emit-cost` entry point with `command: /prompt`, `phase: inferred`,
-`role: inferred`, the run's `jira_key` (or `null`) and `source`, and
-`plugin_version`. The cost phase resolves the real labels from the **target
+`role: inferred`, `target_command: <the Phase 1 target command, or `n/a`>`, the run's
+`jira_key` (or `null`) and `source`, and `plugin_version`. **`target_command` is
+required** — §7 has no other source for it, so omitting it silently mis-attributes
+every correction to `plugin-feedback`/`n/a`. The cost phase resolves the real labels from the **target
 command** recorded above, per §7: a target with a fixed `phase`/`role` is
 inherited outright, so correcting a `/specify` output is priced as
 `specification`/`pe`; a target of `n/a`, a target with no §7 row, or a target

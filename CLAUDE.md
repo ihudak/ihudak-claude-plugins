@@ -315,6 +315,8 @@ claude plugin reinstall dev-workflows@ihudak-plugins
 
 Use the same pattern for any other plugin in this marketplace.
 
+Refreshing the whole marketplace does the same thing for every plugin installed from it, in one step — `claude plugin marketplace update ihudak-plugins` (see [Getting started](plugins/dev-workflows/docs/getting-started.md)). Reinstalling a single plugin, as above, is still the right call when only one plugin needs picking up.
+
 ## Behavioral guardrails (Karpathy) — marketplace-specific notes
 
 These notes complement the user-scope Claude guidance. They add only the

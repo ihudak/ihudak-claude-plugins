@@ -4,6 +4,11 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.58.5] — 2026-08-23
+
+### Fixed
+- **`CLAUDE.md`'s "Updating installed plugins after editing" section only told the reader to reinstall the affected plugin**, while `docs/getting-started.md` correctly attributes "the latest command, agent, hook, and reference content" to `claude plugin marketplace update ihudak-plugins` — a whole-marketplace refresh that, per the maintainer, already refreshes every plugin installed from it. The two files reading differently invited exactly the confusion a review flagged. Added a sentence noting the one-step marketplace-refresh alternative; kept the `reinstall` guidance, which is still the right call for a single plugin.
+
 ## [2.58.4] — 2026-08-23
 
 ### Fixed

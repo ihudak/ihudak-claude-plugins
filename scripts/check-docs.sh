@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Guards plugins/dev-workflows/docs/ against the drift that splitting prose invites.
+# Guards the plugin's docs/ tree against the drift that splitting prose invites.
 #
-# Splitting one README into 34 pages multiplies the places drift can hide. Every
+# Splitting one README into a multi-page tree multiplies the places drift can hide. Every
 # check below exists because a specific failure was observed -- in this plugin, or
 # in the two restructures this one follows (dynatrace-managed-mcp#214,
 # ai-containers#78).

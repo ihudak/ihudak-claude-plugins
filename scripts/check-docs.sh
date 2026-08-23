@@ -34,6 +34,26 @@ CLI_REQUIRED="marketplace add|marketplace update"   # copilot: marketplace add|u
                                      # updates with `plugin update --all`, not a marketplace verb.
 HAS_COST=1                           # copilot: 0 -- no cost subsystem exists there
 
+# RUNTIME_VARS is a SILENCER: every name in it kills both directions of check 5 (env-var doc
+# agreement) for that variable, permanently -- no mutation of the fixture tree can reveal a
+# missing entry, so changing this list is a deliberate, reviewed act. Each edition's host and
+# hooks inject differently-named runtime variables, so this pair is edition identity, not
+# shared body. Each current entry here is justified:
+#   CLAUDE_PLUGIN_ROOT ARGUMENTS OSTYPE BASH_SOURCE BASH_REMATCH -- runtime/shell, not user-settable
+#   ROOT       -- hook-local shell variable (hooks/changelog-owners-reminder.sh)
+#   OWNER_REPO -- template placeholder in $REF_DIR/phase-handoff.md
+RUNTIME_VARS="CLAUDE_PLUGIN_ROOT ARGUMENTS OSTYPE BASH_SOURCE BASH_REMATCH ROOT OWNER_REPO"
+                                     # copilot: BASH_REMATCH BASH_SOURCE MODEL_ROUTING OSTYPE
+                                     # OWNER_REPO PLUGIN_ROOT ROOT -- reads no ARGUMENTS; adds
+                                     # MODEL_ROUTING (hook-local, hooks/preload-context.sh:52)
+                                     # and PLUGIN_ROOT (host-injected plugin-root path)
+# NOTE: this tripwire is self-referential -- it guards a constant in THIS file, and --selftest
+# only ever mutates a copy of the fixture tree, never the script. It is therefore verified
+# out-of-band (mutate a copy of this script, run it against any tree, see check 5 fail).
+# Frozen (sorted) copy -- check_env_vars() asserts RUNTIME_VARS still sorts to exactly this,
+# so a silent edit to the list above fails check 5 instead of passing quietly.
+RUNTIME_VARS_FROZEN="ARGUMENTS BASH_REMATCH BASH_SOURCE CLAUDE_PLUGIN_ROOT OSTYPE OWNER_REPO ROOT"
+
 FAILURES=0
 
 fail() { printf 'FAIL check %s: %s\n' "$1" "$2" >&2; FAILURES=$((FAILURES + 1)); }
@@ -261,20 +281,6 @@ check_inventory() {
 # this check rather than passing silently. That silent pass is exactly how
 # GIT_USER_INITIALS and DEV_WORKFLOWS_COST_PRICES came to be missing from the
 # section named after them (defect D4).
-RUNTIME_VARS="CLAUDE_PLUGIN_ROOT ARGUMENTS OSTYPE BASH_SOURCE BASH_REMATCH ROOT OWNER_REPO"
-
-# NOTE: this tripwire is self-referential -- it guards a constant in THIS file, and --selftest
-# only ever mutates a copy of the fixture tree, never the script. It is therefore verified
-# out-of-band (mutate a copy of this script, run it against any tree, see check 5 fail).
-# Frozen copy. RUNTIME_VARS is a SILENCER: every name in it kills both directions of
-# check 5 for that variable, permanently, and no mutation of the fixture can reveal it.
-# Changing the list must therefore be a deliberate, reviewed act -- so it trips this
-# tripwire and the editor has to update both. Each current entry is justified:
-#   CLAUDE_PLUGIN_ROOT ARGUMENTS OSTYPE BASH_SOURCE BASH_REMATCH -- runtime/shell, not user-settable
-#   ROOT       -- hook-local shell variable (hooks/changelog-owners-reminder.sh)
-#   OWNER_REPO -- template placeholder in $REF_DIR/phase-handoff.md
-RUNTIME_VARS_FROZEN="ARGUMENTS BASH_REMATCH BASH_SOURCE CLAUDE_PLUGIN_ROOT OSTYPE OWNER_REPO ROOT"
-
 check_env_vars() {
   local root="$1" p="$1/$PLUGIN_REL" d="$1/$PLUGIN_REL/docs" v
   local now; now=$(printf '%s\n' $RUNTIME_VARS | sort | tr '\n' ' ' | sed 's/ $//')

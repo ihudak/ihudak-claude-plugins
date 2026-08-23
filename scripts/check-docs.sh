@@ -28,6 +28,10 @@ REF_FLAT_EXTRA="model-routing"       # canonical: references/model-routing/*.md 
 DOC_CMD_DIR="commands"               # copilot: skills
 CLI="claude"                         # copilot: copilot
 CLI_VERBS="marketplace add|marketplace update|install|reinstall"   # copilot: marketplace add|install|update
+CLI_REQUIRED="marketplace add|marketplace update"   # copilot: marketplace add|update -- the verb
+                                     # phrases getting-started.md must carry inline. A subset
+                                     # of CLI_VERBS; differs per edition because Copilot
+                                     # updates with `plugin update --all`, not a marketplace verb.
 HAS_COST=1                           # copilot: 0 -- no cost subsystem exists there
 
 FAILURES=0
@@ -237,9 +241,10 @@ check_inventory() {
 }
 
 # ------------------------------------------------------------------- check 5
-# Environment variables agree in both directions. The scan covers commands/,
-# agents/, references/, hooks/ and skills/ -- narrowing it to the first three
-# would let a variable only a hook reads look documented-but-unread. The
+# Environment variables agree in both directions. The scan covers the command
+# dir ($CMD_DIR), agents/, the reference dir ($REF_DIR), hooks/, and the literal
+# skills/ -- narrowing it to the first three would let a variable only a hook
+# reads look documented-but-unread. The
 # runtime-exclusion list is written in, so a SEVENTH user-settable variable fails
 # this check rather than passing silently. That silent pass is exactly how
 # GIT_USER_INITIALS and DEV_WORKFLOWS_COST_PRICES came to be missing from the
@@ -340,12 +345,17 @@ check_install_block() {
     while IFS= read -r line; do [ -n "$line" ] && note "only in getting-started: $line"; done <<<"$extra"
   fi
 
-  # The marketplace add/update lines are the edition identity itself -- a reader who
-  # follows this page must be able to add and update the marketplace from it alone.
-  for line in 'marketplace add' 'marketplace update'; do
+  # The required verbs are the edition identity itself -- a reader who follows this
+  # page must be able to perform them from it alone. CLI_REQUIRED is pipe-separated;
+  # split on it without leaking the IFS change past this loop.
+  local _saved_ifs="$IFS"
+  IFS='|'
+  for line in $CLI_REQUIRED; do
+    IFS="$_saved_ifs"
     grep -q "^$CLI plugin $line " <<<"$b" \
       || fail 7 "getting-started.md is missing its '$CLI plugin $line' line"
   done
+  IFS="$_saved_ifs"
   grep -q "^$CLI plugin install ${PLUGIN_REL##*/}@" <<<"$b" \
     || fail 7 "getting-started.md does not install ${PLUGIN_REL##*/} itself"
 }

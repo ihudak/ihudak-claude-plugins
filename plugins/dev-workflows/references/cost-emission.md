@@ -1,8 +1,10 @@
 # Session Cost Emission — Shared Reference
 
 Single source of truth for the dev-workflows session-cost subsystem. The terminal
-"Session cost" phase of every VI-lifecycle command (`/idea`, `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/epics`,
-`/design`, `/implement`, `/ready`, `/document`, `/release-notes`) cites this file and
+"Session cost" phase of every cost-emitting command — the eleven VI-lifecycle ones
+(`/idea`, `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/epics`,
+`/design`, `/implement`, `/ready`, `/document`, `/release-notes`) plus `/prompt`
+and `/feedback`, which are not VI-lifecycle and infer their labels per §7 — cites this file and
 executes its steps inline through the single `emit-cost` entry point (§11). The
 orchestrator owns every prompt; this reference owns session-artifact resolution,
 the chained-checkpoint model, the transcript-window computation, the price table,
@@ -306,11 +308,16 @@ not attempt to infer it from anything else.
   specifying cost" includes the cost of making the spec right.
 - **Target is `/release-notes` -> resolve ITS inference first**, then inherit the
   result. One level only; `/release-notes` never resolves to another inferred row.
+  **If no VI dir resolves** — a keyless run, which both callers explicitly support —
+  its discriminator cannot be evaluated at all, so do **not** fall through to its
+  "none present" branch: that would attribute a keyless plugin correction to
+  `vi-creation`/`pm`, which is exactly the guess `role: n/a` exists to forbid.
+  Treat it as the `n/a` case below.
 - **Target is `n/a`, or a command with no row above -> `phase: plugin-feedback`,
   `role: n/a`.** The second case covers `/vuln`, `/upgrade`, `/docs-profile`,
   `/statusline`, and the two guideline reviewers, none of which emits cost and so
   has nothing to inherit.
-- **Target is one of the four feedback commands themselves -> treat as `n/a`.**
+- **Target is `/feedback`, `/prompt`, `/prompt-brainstorm` or `/prompt-grill-me` -> treat as `n/a`.**
   A correction to a correction has no lifecycle phase of its own, and inheriting
   from an inferred row would regress without a base case.
 
@@ -318,16 +325,24 @@ not attempt to infer it from anything else.
 than guessed, and aggregation should treat it as unattributed rather than folding
 it into `dev`.
 
-**`/prompt-brainstorm` and `/prompt-grill-me` deliberately emit no cost entry.**
-Both cede the session at their Phase 3 — a hand-off, or a long interactive grill —
-so the expensive part of the run happens after the command's last controllable
-step. A terminal cost phase there would price only the logging prologue and report
-a figure that is misleadingly small, and a wrong number is worse than a missing one
-because it is aggregated and trusted. This is the same constraint that already puts
-their `commit-artifacts` step *before* the hand-off rather than at the end (§4 of
-`specs-repo-git.md`).
+**`/prompt-brainstorm` and `/prompt-grill-me` emit no cost entry — a structural
+limit, not a preference.** Both cede the session at their Phase 3 (a hand-off to
+another skill, or a long interactive grill), so there is no later point at which
+the command still controls execution: a cost phase can only run *before* the
+expensive work, where it would price the logging prologue alone. The same
+constraint already puts their `commit-artifacts` step before the hand-off rather
+than at the end (`specs-repo-git.md` §4).
 
-**Epic presence is deliberately NOT part of the signal** — a VI can have drafted
+**What that costs, stated plainly.** Because neither calls `emit-cost`, neither
+advances the §3 checkpoint — so their spend is **not lost, it is misattributed**:
+per §3's semantics, activity between commands rolls into the next command's
+bucket, and a long grill followed by `/implement` is priced as
+`implementation`/`dev`. That is a *larger* error than a small one would have been,
+and it is the reason this is recorded as a known limitation rather than a design
+we are happy with. Fixing it needs a cost hook that survives the hand-off, which
+the current entry point does not provide.
+
+**Epic presence is deliberately NOT part of `/release-notes`'s signal** — a VI can have drafted
 Epics while still in PM/PE hands, so keying on Epics would misattribute the PM
 run. Cheap to check; matches the real workflow. Still a heuristic —
 reattributable at aggregation time (cost < quality).
@@ -418,8 +433,10 @@ Inputs:
   - `/prompt`, `/feedback` — resolved from `target_command`, which **cannot** be
     re-derived from disk (it lives in the run's own context). It is passed in.
 - `target_command` — **required when `command` is `/prompt` or `/feedback`.** The
-  exact slash-command name whose output is being corrected or remarked on, or
-  `n/a`. This is the same value the run writes as the feedback entry's `command:`
+  §7 **row name** of the command whose output is being corrected or remarked on, or
+  `n/a`. Note this is the bare row name (`/document`), not the mode-qualified form
+  the `command` field above uses (`/document (Jira mode)`) — a qualified value
+  matches no row and would silently degrade to `plugin-feedback`/`n/a`. This is the same value the run writes as the feedback entry's `command:`
   field, so the two never disagree. Omitting it is a caller error: §7 has no other
   source for it, and the entry would silently fall back to
   `plugin-feedback`/`n/a`, quietly mis-attributing every correction.

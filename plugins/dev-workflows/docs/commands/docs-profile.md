@@ -4,7 +4,7 @@ Scans a documentation repository and writes or refreshes its machine-readable `.
 
 ## Who runs it
 
-`/docs-profile` runs outside the role pipeline — no role, no cost-attribution phase (`references/cost-emission.md` never mentions it). [Workflow overview](../workflow.md#cross-cutting-commands) groups it under Setup and review utilities, alongside [`/statusline`](statusline.md), [`/api-guideline-reviewer`](api-guideline-reviewer.md), and [`/guideline-reviewer`](guideline-reviewer.md). Unlike those three siblings, `/docs-profile` does invoke the [model-routing](../reference/model-routing.md) skill — it classifies itself `SIGNIFICANT`, since a wrong profile steers every later [`/document`](document.md) run.
+`/docs-profile` runs outside the role pipeline — no role, no cost-attribution phase (`references/cost-emission.md` gives it no attribution row — it appears there only in §7's list of commands with nothing to inherit). [Workflow overview](../workflow.md#cross-cutting-commands) groups it under Setup and review utilities, alongside [`/statusline`](statusline.md), [`/api-guideline-reviewer`](api-guideline-reviewer.md), and [`/guideline-reviewer`](guideline-reviewer.md). Unlike those three siblings, `/docs-profile` does invoke the [model-routing](../reference/model-routing.md) skill — it classifies itself `SIGNIFICANT`, since a wrong profile steers every later [`/document`](document.md) run.
 
 ## Synopsis
 

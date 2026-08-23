@@ -68,10 +68,10 @@ Ahead of the review, Phase 5.5 runs a structural pre-lint against the drafted `d
 Design a per-Epic implementation for an Epic whose specification is already merged:
 
 ```
-/dev-workflows:design PROD-1234 PROD-5678
+/dev-workflows:design PRODUCT-1234 EPIC-98760
 ```
 
-The run resolves `PROD-5678` as the focus Epic within VI `PROD-1234`, gates its `specification.md` on the specs repo's main branch, resolves any ARD, derives and confirms the implementation repos, hard-stops if any is unmounted, scans the confirmed set, then grills you through challenging the spec and designing the implementation — offering the three-take interface fan-out if a seam turns out contested. Once `design-reviewer` passes, it offers to branch, commit, push, and open a pull request; once that pull request is merged, `/dev-workflows:implement PROD-1234 PROD-5678` can start.
+The run resolves `EPIC-98760` as the focus Epic within VI `PRODUCT-1234`, gates its `specification.md` on the specs repo's main branch, resolves any ARD, derives and confirms the implementation repos, hard-stops if any is unmounted, scans the confirmed set, then grills you through challenging the spec and designing the implementation — offering the three-take interface fan-out if a seam turns out contested. Once `design-reviewer` passes, it offers to branch, commit, push, and open a pull request; once that pull request is merged, `/dev-workflows:implement PRODUCT-1234 EPIC-98760` can start.
 
 ## See also
 

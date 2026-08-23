@@ -1,6 +1,6 @@
 # /guideline-reviewer
 
-Reviews Dynatrace app code and UI against the Dynatrace Experience Standards (GUIDElines).
+Reviews app code and UI against the vendored Experience Standards (GUIDElines).
 
 ## Who runs it
 
@@ -21,7 +21,7 @@ Reviews Dynatrace app code and UI against the Dynatrace Experience Standards (GU
 
 ## What it produces
 
-The `guideline-reviewer` subagent's verdict against the mandatory Dynatrace Experience Standards: AppHeader, DataTable, FilterField, Connections, Permissions, Settings, Dashboards, accessibility/WCAG, terminology, and Grail-naming findings, each pointing at the offending file or element. Unlike [`/api-guideline-reviewer`](api-guideline-reviewer.md)'s agent, this one's frontmatter also grants `Bash` alongside `Read`, `Glob`, and `Grep` — but the command itself still writes nothing and applies no fix.
+The `guideline-reviewer` subagent's verdict against the mandatory Experience Standards: AppHeader, DataTable, FilterField, Connections, Permissions, Settings, Dashboards, accessibility/WCAG, terminology, and Grail-naming findings, each pointing at the offending file or element. Unlike [`/api-guideline-reviewer`](api-guideline-reviewer.md)'s agent, this one's frontmatter also grants `Bash` alongside `Read`, `Glob`, and `Grep` — but the command itself still writes nothing and applies no fix.
 
 ## Gates
 

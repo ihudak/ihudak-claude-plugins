@@ -4,6 +4,8 @@ Logs a corrective interaction — a dev-workflows command produced something wro
 
 ## Who runs it
 
+> **Correct through this command, not through a plain prompt.** Replying in the session and talking the model into a better answer gets you the better answer and nothing else. The same correction routed through `/prompt` gets you the identical fixed output *plus* a durable record of the path — the unsatisfactory result, your corrections, and the result you settled on — which is the signal the plugin is actually improved from. See [Session feedback](../reference/session-feedback.md).
+
 `/prompt` runs outside the role pipeline — no role, no cost-attribution phase (`references/cost-emission.md` never mentions it). [Workflow overview](../workflow.md#cross-cutting-commands) groups it under Plugin improvement, alongside [`/feedback`](feedback.md), [`/prompt-brainstorm`](prompt-brainstorm.md), and [`/prompt-grill-me`](prompt-grill-me.md). Of the three commands that capture a corrective interaction, `/prompt` is the one that just applies the fix — no hand-off, no interrogation. Run it whenever you correct a command's output yourself; logging the correction is what turns a one-off fix into signal the maintainer can act on for every other engineer hitting the same thing.
 
 ## Synopsis

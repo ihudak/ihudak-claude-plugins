@@ -1,6 +1,6 @@
 # /api-guideline-reviewer
 
-Reviews OpenAPI specification files against the vendored Dynatrace REST API and IAM permission naming guidelines.
+Reviews OpenAPI specification files against the vendored REST API and IAM permission naming guidelines.
 
 ## Who runs it
 

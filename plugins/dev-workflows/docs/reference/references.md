@@ -74,8 +74,8 @@ What the plugin needs installed or configured around it, independent of any sing
 
 Six subtrees carry vendored guidance too large or too domain-specific to enumerate file-by-file; each is counted here instead.
 
-- `api-guidelines/` (24) — vendored Dynatrace REST API and IAM permission naming guidance, consulted by `/api-guideline-reviewer`.
-- `guidelines/` (11) — vendored Dynatrace Experience Standards, consulted by `/guideline-reviewer`.
+- `api-guidelines/` (24) — vendored REST API and IAM permission naming guidance, consulted by `/api-guideline-reviewer`.
+- `guidelines/` (11) — vendored Experience Standards, consulted by `/guideline-reviewer`.
 - `handoff/` (10) — one input/output document-format contract per agent, usually read by the agent itself rather than by the dispatching command — `handoff/test-baseliner.md` is the exception, read by `vuln-fixer` and `upgrade-executor`, which dispatch it.
 - `dynatrace-docs/` (6) — dynatrace-docs authoring conventions (frontmatter, changelog, anchors, multi-space writing, render verification, the docs-profile schema), consulted by `/docs-profile`, `/document`, and the `dynatrace-docs-frontmatter` skill.
 - `upgrade/` (3) — component-specific upgrade guidance, consulted by `upgrade-planner` and `upgrade-executor`.

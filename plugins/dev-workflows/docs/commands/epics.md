@@ -63,7 +63,7 @@ Ahead of the review, Phase 6.2 runs `dt-style-checker` as the **primary** style 
 Split a VI with two existing Epics not yet covering all its scope:
 
 ```
-/dev-workflows:epics PROD-1234
+/dev-workflows:epics PRODUCT-1234
 ```
 
 The run resolves the VI, asks for the output directory and whether to scan code (default on, repos auto-derived from sibling Epics' PR links), resolves any VI-level ARD and specification, reads the Jira hierarchy at `vi-plus-epics` depth, scans the confirmed repos in batches of up to 4, delegates the drafting to `epic-writer`, runs the Dynatrace style check and structural pre-lint, then `epic-reviewer`. On a passing verdict it reports the Epics written and `_coverage.md`'s gap list, and recommends `/dev-workflows:specify <VI> <Epic>` per drafted Epic as the next step — Epic drafting itself was never committed, so publishing the Epics to Jira remains a manual step.

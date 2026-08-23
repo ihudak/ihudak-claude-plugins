@@ -161,8 +161,8 @@ resolution) — none of them wants a parent.
 2. **none** → `NOT_FOUND`.
 3. **exactly one** → that file.
 4. **several** → the **most recently modified**. Copies genuinely disagree: one
-   `PRODUCT-14902` export reads `Post GA` and another `Release Preparation`, and
-   `PRODUCT-14589` has three copies of which two still carry its pre-rewrite summary.
+   `PRODUCT-1234` export reads `Post GA` and another `Release Preparation`, and
+   `PRODUCT-1235` has three copies of which two still carry its pre-rewrite summary.
    Picking arbitrarily reports a stale identity.
 
 Returns `{ path, issue_type, status, summary, export_date }`, read from the file's

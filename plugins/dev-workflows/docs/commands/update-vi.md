@@ -63,7 +63,7 @@ Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2, read-o
 Refresh a VI with new call notes, after the specs draft has already been reviewed once:
 
 ```
-/dev-workflows:update-vi PROD-1234 @call-notes.md
+/dev-workflows:update-vi PRODUCT-1234 @call-notes.md
 ```
 
 The run resolves the feature folder, pulls the current Jira-imported VI plus its comments as the authoritative base, reads the call notes as secondary grounding, confirms the scope of the update (refresh vs. re-do), grills you relentlessly while diffing against the base rather than starting from blank, runs the style check and pre-lint, then `vi-reviewer`. On a passing verdict it archives the prior VI, writes the refreshed canonical VI, offers to open a pull request, and reminds you to paste the update into Jira and re-import it.

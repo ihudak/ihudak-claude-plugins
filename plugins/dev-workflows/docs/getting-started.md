@@ -59,7 +59,13 @@ An optional path to your own price table, overriding the bundled `references/cos
 
 ## Install the status line
 
-Run `/dev-workflows:statusline` once, right after installing. It installs the plugin's multi-line status line (session identity, git, context, cost, tokens, rate limits) into `~/.claude/settings.json` and enables the cost snapshot that session-cost reporting reads. It is idempotent and backs up anything it would overwrite.
+**Worth doing before your first real run.** Two things come out of it.
+
+The visible half is a permanent multi-line status line at the bottom of your terminal — session identity, git state, context usage, running cost, tokens, and rate limits — so you can see a long command spending your budget while it spends it, rather than finding out in the final report.
+
+The half you don't see is the **cost cross-check**. Session-cost reporting works without the status line: it reads the session transcript and prices it against the bundled table. What the status line adds is a second, independent figure — Claude Code's own reported cost, captured per render — which the cost phase differences into a per-invocation delta. Where the two disagree, the gap is the signal that the bundled price table has drifted and needs refreshing. Install it and you get both numbers; skip it and you still get a cost report, just without anything to calibrate it against. (Even with it installed, the first cost phase of a session has no baseline yet and omits the second figure; it appears from the second command onward.)
+
+See [Session cost](reference/session-cost.md) for what the report contains and where it lands. The command is idempotent, backs up anything it would overwrite, and changes no workflow-command behaviour.
 
 ```
 /dev-workflows:statusline

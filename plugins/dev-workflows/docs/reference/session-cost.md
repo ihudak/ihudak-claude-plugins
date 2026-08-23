@@ -46,13 +46,13 @@ Here is one persisted entry, copied verbatim from the shared reference this page
 ## 2026-07-09T14:22:33Z — /implement — implementation
 
 ```yaml
-id: PRODUCT-14902-15001-implement-2026-07-09T14:22:33Z   # timestamp => unique
+id: PRODUCT-1234-98760-implement-2026-07-09T14:22:33Z   # timestamp => unique
 date: 2026-07-09T14:22:33Z
 command: /implement
 phase: implementation
 role: dev
-vi: PRODUCT-14902
-epic: PRODUCT-15001            # present only when an Epic key is in scope
+vi: PRODUCT-1234
+epic: EPIC-98760            # present only when an Epic key is in scope
 plugin_version: 2.10.0
 duration_s: 1284
 cost_computed_usd: 3.4821

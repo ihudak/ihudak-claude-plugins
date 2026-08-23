@@ -352,6 +352,9 @@ check_install_block() {
   IFS='|'
   for line in $CLI_REQUIRED; do
     IFS="$_saved_ifs"
+    [ -n "$line" ] || continue   # guards a doubled '|' in a hand-edited CLI_REQUIRED,
+                                  # which would otherwise yield one empty-string split
+                                  # field and grep for a malformed pattern
     grep -q "^$CLI plugin $line " <<<"$b" \
       || fail 7 "getting-started.md is missing its '$CLI plugin $line' line"
   done
@@ -518,41 +521,52 @@ selftest() {
   }
 
   expect_pass "the unmutated fixture passes every check"
-  expect_fail "a broken relative link is rejected"  1 "sed -i.bak 's|(reference/hooks.md)|(reference/nope.md)|' plugins/dev-workflows/docs/README.md"
-  expect_fail "a broken link in the plugin README is rejected" 1 "sed -i.bak 's|(docs/README.md)|(docs/NOPE.md)|' plugins/dev-workflows/README.md"
-  expect_fail "a broken anchor is rejected"         2 "sed -i.bak 's|(getting-started.md#install)|(getting-started.md#no-such-heading)|' plugins/dev-workflows/docs/README.md"
-  expect_fail "an orphan page is rejected"          3 "printf '# Orphan\n\nUnreachable.\n' > plugins/dev-workflows/docs/orphan.md"
-  expect_fail "an undocumented command is rejected" 4 "printf -- '---\nname: delta\n---\n' > plugins/dev-workflows/commands/delta.md"
-  expect_fail "a drifted subtree count is rejected" 4 "sed -i.bak 's|\`handoff/\` (2)|\`handoff/\` (3)|' plugins/dev-workflows/docs/reference/references.md"
-  expect_fail "an undocumented skill is rejected"    4 "mkdir -p plugins/dev-workflows/skills/epsilon && printf -- '---\nname: epsilon\n---\n' > plugins/dev-workflows/skills/epsilon/SKILL.md"
-  expect_fail "an undocumented env var is rejected" 5 "printf 'Reads \$NEW_SETTABLE_VAR here.\n' >> plugins/dev-workflows/commands/alpha.md"
-  expect_fail "an over-long table cell is rejected" 6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"x\"; printf \"\\n| a | %s |\\n|---|---|\\n| b | c |\\n\", s}' >> plugins/dev-workflows/docs/reference/hooks.md"
-  expect_fail "a drifted install block is rejected" 7 "sed -i.bak 's|claude plugin install dev-workflows@fixture-plugins|claude plugin install dev-workflows@drifted|' plugins/dev-workflows/docs/getting-started.md"
-  expect_fail "a documented nonexistent skill is rejected" 4 "printf '\n| \`ghost-skill\` | Yes | fixture mutation |\n' >> plugins/dev-workflows/docs/reference/references.md"
-  expect_fail "an unattributed emit-cost call is rejected" 8 "printf -- '---\nname: zeta\n---\n\nCall \`emit-cost\` with \`command: /zeta\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' > plugins/dev-workflows/commands/zeta.md && printf -- '# /zeta\n\nFixture page.\n' > plugins/dev-workflows/docs/commands/zeta.md && sed -i.bak 's|(commands/alpha.md)|(commands/alpha.md), [\`/zeta\`](commands/zeta.md)|' plugins/dev-workflows/docs/README.md"
-  expect_fail "a drifted attributed role is rejected"      8 "sed -i.bak 's;| \`/alpha\` | fixture-phase | pm |;| \`/alpha\` | fixture-phase | pe |;' plugins/dev-workflows/references/cost-emission.md"
-  expect_fail "a broken link in the ROOT README is rejected" 1 "sed -i.bak 's|(plugins/dev-workflows/README.md)|(plugins/dev-workflows/NOPE.md)|' README.md"
-  expect_fail "a broken bare #anchor is rejected"   2 "printf '\n[self](#no-such-heading-here)\n' >> plugins/dev-workflows/docs/README.md"
-  expect_fail "a documented nonexistent agent is rejected"     4 "printf '\n| \`ghost-agent\` | fixture |\n' >> plugins/dev-workflows/docs/reference/agents.md"
-  expect_fail "a documented nonexistent hook is rejected"      4 "printf '\n| \`ghost-hook\` | fixture |\n' >> plugins/dev-workflows/docs/reference/hooks.md"
-  expect_fail "a documented nonexistent reference file is rejected" 4 "printf '\n- \`ghost-ref.md\`\n' >> plugins/dev-workflows/docs/reference/references.md"
-  expect_fail "a claimed-but-absent subtree is rejected"       4 "rm -rf plugins/dev-workflows/references/handoff"
-  expect_fail "an undocumented NEW subtree is rejected"        4 "mkdir -p plugins/dev-workflows/references/brandnew && printf '# x\n' > plugins/dev-workflows/references/brandnew/x.md"
-  expect_fail "a documented-but-unread env var is rejected"    5 "printf '\n**\`\$PHANTOM_VAR\`** — never read anywhere.\n' >> plugins/dev-workflows/docs/reference/environment.md"
+  expect_fail "a broken relative link is rejected"  1 "sed -i.bak 's|(reference/hooks.md)|(reference/nope.md)|' $PLUGIN_REL/docs/README.md"
+  expect_fail "a broken link in the plugin README is rejected" 1 "sed -i.bak 's|(docs/README.md)|(docs/NOPE.md)|' $PLUGIN_REL/README.md"
+  expect_fail "a broken anchor is rejected"         2 "sed -i.bak 's|(getting-started.md#install)|(getting-started.md#no-such-heading)|' $PLUGIN_REL/docs/README.md"
+  expect_fail "an orphan page is rejected"          3 "printf '# Orphan\n\nUnreachable.\n' > $PLUGIN_REL/docs/orphan.md"
+  expect_fail "an undocumented command is rejected" 4 "mkdir -p $(dirname $(cmd_file $PLUGIN_REL delta)) 2>/dev/null; printf -- '---\nname: delta\n---\n' > $(cmd_file $PLUGIN_REL delta)"
+  expect_fail "a drifted subtree count is rejected" 4 "sed -i.bak 's|\`handoff/\` (2)|\`handoff/\` (3)|' $PLUGIN_REL/docs/reference/references.md"
+  expect_fail "an undocumented skill is rejected"    4 "mkdir -p $PLUGIN_REL/skills/epsilon && printf -- '---\nname: epsilon\n---\n' > $PLUGIN_REL/skills/epsilon/SKILL.md"
+  expect_fail "an undocumented env var is rejected" 5 "printf 'Reads \$NEW_SETTABLE_VAR here.\n' >> $(cmd_file $PLUGIN_REL alpha)"
+  expect_fail "an over-long table cell is rejected" 6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"x\"; printf \"\\n| a | %s |\\n|---|---|\\n| b | c |\\n\", s}' >> $PLUGIN_REL/docs/reference/hooks.md"
+  expect_fail "a drifted install block is rejected" 7 "sed -i.bak 's|$CLI plugin install ${PLUGIN_REL##*/}@fixture-plugins|$CLI plugin install ${PLUGIN_REL##*/}@drifted|' $PLUGIN_REL/docs/getting-started.md"
+  expect_fail "a documented nonexistent skill is rejected" 4 "printf '\n| \`ghost-skill\` | Yes | fixture mutation |\n' >> $PLUGIN_REL/docs/reference/references.md"
+  expect_fail "a broken link in the ROOT README is rejected" 1 "sed -i.bak 's|($PLUGIN_REL/README.md)|($PLUGIN_REL/NOPE.md)|' README.md"
+  expect_fail "a broken bare #anchor is rejected"   2 "printf '\n[self](#no-such-heading-here)\n' >> $PLUGIN_REL/docs/README.md"
+  expect_fail "a documented nonexistent agent is rejected"     4 "printf '\n| \`ghost-agent\` | fixture |\n' >> $PLUGIN_REL/docs/reference/agents.md"
+  expect_fail "a documented nonexistent hook is rejected"      4 "printf '\n| \`ghost-hook\` | fixture |\n' >> $PLUGIN_REL/docs/reference/hooks.md"
+  expect_fail "a documented nonexistent reference file is rejected" 4 "printf '\n- \`ghost-ref.md\`\n' >> $PLUGIN_REL/docs/reference/references.md"
+  expect_fail "a claimed-but-absent subtree is rejected"       4 "rm -rf $PLUGIN_REL/$REF_DIR/handoff"
+  expect_fail "an undocumented NEW subtree is rejected"        4 "mkdir -p $PLUGIN_REL/$REF_DIR/brandnew && printf '# x\n' > $PLUGIN_REL/$REF_DIR/brandnew/x.md"
+  expect_fail "a documented-but-unread env var is rejected"    5 "printf '\n**\`\$PHANTOM_VAR\`** — never read anywhere.\n' >> $PLUGIN_REL/docs/reference/environment.md"
   expect_fail "an over-long cell in the ROOT README is rejected" 6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"x\"; printf \"\n| a | %s |\n|---|---|\n| b | c |\n\", s}' >> README.md"
-  expect_fail "a drifted reinstall command is rejected"        7 "printf '\nclaude plugin reinstall dev-workflows@fixture-plugins\n' >> plugins/dev-workflows/docs/getting-started.md"
-  expect_fail "a drifted emit-cost call site is rejected"      8 "sed -i.bak 's|\`command: /alpha\`, \`phase: fixture-phase\`, \`role: pm\`|\`command: /alpha\`, \`role: pm\`, \`phase: fixture-phase\`|' plugins/dev-workflows/commands/alpha.md"
-  expect_fail "a drifted prose count is rejected"              9 "printf -- '---\nname: gamma\n---\n' > plugins/dev-workflows/commands/gamma.md && printf -- '# /gamma\n\nPage.\n' > plugins/dev-workflows/docs/commands/gamma.md && sed -i.bak 's|(commands/alpha.md)|(commands/alpha.md), [\`/gamma\`](commands/gamma.md)|' plugins/dev-workflows/docs/README.md"
-  expect_fail "a count sentence reworded away is rejected"     9 "sed -i.bak 's|one slash commands|a handful of slash commands|' plugins/dev-workflows/README.md"
-  expect_fail "a wrong non-ASCII anchor is rejected"           2 "printf '\n[bad](#uber-config)\n' >> plugins/dev-workflows/docs/commands/alpha.md"
-  expect_fail "a wrong duplicate-heading index is rejected"    2 "printf '\n[bad](#notes-2)\n' >> plugins/dev-workflows/docs/commands/alpha.md"
-  expect_fail "a titled link to a missing file is rejected"    1 "printf '\n[bad](nope.md \"T\")\n' >> plugins/dev-workflows/docs/commands/alpha.md"
-  expect_fail "an angle-bracket link to a missing file is rejected" 1 "printf '\n[bad](<nope.md>)\n' >> plugins/dev-workflows/docs/commands/alpha.md"
-  expect_fail "an over-long INDENTED table cell is rejected"   6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"q\"; printf \"\n  | a | %s |\n  |---|---|\n\", s}' >> plugins/dev-workflows/docs/reference/agents.md"
-  expect_fail "a missing marketplace-add line is rejected"     7 "sed -i.bak '/claude plugin marketplace add/d' plugins/dev-workflows/docs/getting-started.md"
-  expect_fail "getting-started not installing the plugin itself is rejected" 7 "sed -i.bak '/claude plugin install dev-workflows@/d' plugins/dev-workflows/docs/getting-started.md"
-  expect_fail "a drifted cost-emitting count is rejected"      9 "sed -i.bak 's|One commands emit a cost entry|Five commands emit a cost entry|' plugins/dev-workflows/docs/reference/session-cost.md"
-  expect_fail "a section-7 row for a non-emitting command is rejected" 8 "sed -i.bak 's;| \`/alpha\` | fixture-phase | pm |;| \`/alpha\` | fixture-phase | pm |\n| \`/omega\` | fixture-phase | pm |;' plugins/dev-workflows/references/cost-emission.md"
+  expect_fail "a drifted reinstall command is rejected"        7 "printf '\n$CLI plugin reinstall ${PLUGIN_REL##*/}@fixture-plugins\n' >> $PLUGIN_REL/docs/getting-started.md"
+  expect_fail "a drifted prose count is rejected"              9 "mkdir -p $(dirname $(cmd_file $PLUGIN_REL gamma)) 2>/dev/null; printf -- '---\nname: gamma\n---\n' > $(cmd_file $PLUGIN_REL gamma) && printf -- '# /gamma\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/gamma.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/gamma\`]($DOC_CMD_DIR/gamma.md)|' $PLUGIN_REL/docs/README.md"
+  expect_fail "a count sentence reworded away is rejected"     9 "sed -i.bak 's|one slash commands|a handful of slash commands|' $PLUGIN_REL/README.md"
+  expect_fail "a wrong non-ASCII anchor is rejected"           2 "printf '\n[bad](#uber-config)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
+  expect_fail "a wrong duplicate-heading index is rejected"    2 "printf '\n[bad](#notes-2)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
+  expect_fail "a titled link to a missing file is rejected"    1 "printf '\n[bad](nope.md \"T\")\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
+  expect_fail "an angle-bracket link to a missing file is rejected" 1 "printf '\n[bad](<nope.md>)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
+  expect_fail "an over-long INDENTED table cell is rejected"   6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"q\"; printf \"\n  | a | %s |\n  |---|---|\n\", s}' >> $PLUGIN_REL/docs/reference/agents.md"
+  expect_fail "a missing marketplace-add line is rejected"     7 "sed -i.bak '/$CLI plugin marketplace add/d' $PLUGIN_REL/docs/getting-started.md"
+  expect_fail "a missing second required-verb line is rejected" 7 "sed -i.bak '/$CLI plugin ${CLI_REQUIRED##*|}/d' $PLUGIN_REL/docs/getting-started.md"
+  expect_fail "getting-started not installing the plugin itself is rejected" 7 "sed -i.bak '/$CLI plugin install ${PLUGIN_REL##*/}@/d' $PLUGIN_REL/docs/getting-started.md"
+  expect_fail "a drifted emit-cost call site is rejected"      8 "sed -i.bak 's|\`command: /alpha\`, \`phase: fixture-phase\`, \`role: pm\`|\`command: /alpha\`, \`role: pm\`, \`phase: fixture-phase\`|' $(cmd_file $PLUGIN_REL alpha)"
+
+  # The cost subsystem (check 8, and check 9's cost-emitting-commands sentence) does not
+  # exist in every edition -- check_cost_attribution and that half of check_prose_counts
+  # both return immediately when HAS_COST=0, so a mutation that only a cost check can see
+  # would never trip a failure there and would falsely report this selftest case itself as
+  # broken. Skip the four cases that depend on the cost subsystem being active.
+  if [ "$HAS_COST" = 1 ]; then
+    expect_fail "an unattributed emit-cost call is rejected" 8 "mkdir -p $(dirname $(cmd_file $PLUGIN_REL zeta)) 2>/dev/null; printf -- '---\nname: zeta\n---\n\nCall \`emit-cost\` with \`command: /zeta\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' > $(cmd_file $PLUGIN_REL zeta) && printf -- '# /zeta\n\nFixture page.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/zeta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/zeta\`]($DOC_CMD_DIR/zeta.md)|' $PLUGIN_REL/docs/README.md"
+    expect_fail "a drifted attributed role is rejected"      8 "sed -i.bak 's;| \`/alpha\` | fixture-phase | pm |;| \`/alpha\` | fixture-phase | pe |;' $PLUGIN_REL/$REF_DIR/cost-emission.md"
+    expect_fail "a section-7 row for a non-emitting command is rejected" 8 "sed -i.bak 's;| \`/alpha\` | fixture-phase | pm |;| \`/alpha\` | fixture-phase | pm |\n| \`/omega\` | fixture-phase | pm |;' $PLUGIN_REL/$REF_DIR/cost-emission.md"
+    expect_fail "a drifted cost-emitting count is rejected"  9 "sed -i.bak 's|One commands emit a cost entry|Five commands emit a cost entry|' $PLUGIN_REL/docs/reference/session-cost.md"
+  else
+    printf 'skip  4 cost cases (this edition has no cost subsystem)\n'
+  fi
 
   if [ "$rc" -eq 0 ]; then echo "SELFTEST PASS"; else echo "SELFTEST FAIL"; fi
   exit "$rc"

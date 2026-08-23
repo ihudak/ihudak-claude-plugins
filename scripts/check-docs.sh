@@ -380,6 +380,7 @@ _word2num() {
   case "$1" in
     one) echo 1 ;; two) echo 2 ;; three) echo 3 ;; four) echo 4 ;; five) echo 5 ;;
     six) echo 6 ;; seven) echo 7 ;; eight) echo 8 ;; nine) echo 9 ;; ten) echo 10 ;;
+    eleven) echo 11 ;; twelve) echo 12 ;; thirteen) echo 13 ;; fourteen) echo 14 ;;
     twenty-one) echo 21 ;; thirty-four) echo 34 ;; ninety-eight) echo 98 ;;
     *) echo "$1" ;;
   esac
@@ -392,7 +393,9 @@ check_prose_counts() {
   _one() { # <label> <file> <extended-regex whose match STARTS with the numeral> <actual>
     label="$1"; file="$2"; pat="$3"; actual="$4"
     [ -f "$file" ] || return 0
-    raw=$(grep -ohE "$pat" "$file" 2>/dev/null | head -1 | awk '{print $1}')
+    # -i, and lowercase the captured numeral: a count sentence may open a sentence
+    # ("Thirteen commands emit ...") or sit mid-sentence ("twenty-one slash commands").
+    raw=$(grep -ohEi "$pat" "$file" 2>/dev/null | head -1 | awk '{print tolower($1)}')
     if [ -z "$raw" ]; then
       fail 9 "$label: no count sentence found in ${file#$root/} -- the wording drifted, so nothing is being checked"
       return 0
@@ -420,6 +423,13 @@ check_prose_counts() {
     n_settable=$((n_settable + 1))
   done
   _one "environment variables" "$d/reference/environment.md" '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) user-settable' "$n_settable"
+
+  # The size of the cost-emitting set is prose too, and it is the count that went stale the
+  # moment /prompt and /feedback started emitting. Derived from the same extractor check 8 uses.
+  local n_emit
+  n_emit=$(emit_cost_calls "$p" | cut -d'|' -f1 | sort -u | grep -c . || true)
+  _one "cost-emitting commands" "$d/reference/session-cost.md" \
+       '(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|twenty-one|thirty-four|ninety-eight|[0-9]+) commands emit a cost entry' "$n_emit"
 }
 
 # ------------------------------------------------------------------ selftest
@@ -484,6 +494,7 @@ selftest() {
   expect_fail "an over-long INDENTED table cell is rejected"   6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"q\"; printf \"\n  | a | %s |\n  |---|---|\n\", s}' >> plugins/dev-workflows/docs/reference/agents.md"
   expect_fail "a missing marketplace-add line is rejected"     7 "sed -i.bak '/claude plugin marketplace add/d' plugins/dev-workflows/docs/getting-started.md"
   expect_fail "getting-started not installing the plugin itself is rejected" 7 "sed -i.bak '/claude plugin install dev-workflows@/d' plugins/dev-workflows/docs/getting-started.md"
+  expect_fail "a drifted cost-emitting count is rejected"      9 "sed -i.bak 's|One commands emit a cost entry|Five commands emit a cost entry|' plugins/dev-workflows/docs/reference/session-cost.md"
   expect_fail "a section-7 row for a non-emitting command is rejected" 8 "sed -i.bak 's;| \`/alpha\` | fixture-phase | pm |;| \`/alpha\` | fixture-phase | pm |\n| \`/omega\` | fixture-phase | pm |;' plugins/dev-workflows/references/cost-emission.md"
 
   if [ "$rc" -eq 0 ]; then echo "SELFTEST PASS"; else echo "SELFTEST FAIL"; fi

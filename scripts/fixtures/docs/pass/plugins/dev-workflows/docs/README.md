@@ -8,3 +8,4 @@
 - [Hooks](reference/hooks.md)
 
 The fixture documents one bundled skills.
+- [Session cost](reference/session-cost.md) — fixture cost page.

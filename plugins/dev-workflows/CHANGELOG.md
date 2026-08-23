@@ -4,6 +4,14 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.58.4] — 2026-08-23
+
+### Fixed
+- **`docs/getting-started.md` overstated repo-matching, silent degradation, and the `dt-style-guide` relationship.** Its `$REPOS_PATH` paragraph claimed repos are "matched by their `origin` slug, never by directory name" as a blanket rule — but `docs/reference/environment.md` says that's true only where a repo is resolved from a PR URL (`/document`, `/epics`, `/release-notes`); `/idea`, `/create-ard`, and `/design` instead list top-level directories and match on basenames, so a repo renamed on disk is *not* found by those three. Its environment-variables paragraph claimed only `$DOCS_PATH` and `$DEV_WORKFLOWS_COST_PRICES` degrade silently — `environment.md` also documents `$REPOS_PATH`'s `/workspace` default as taking over silently; three of the four optional variables degrade silently, not two. And its dependencies paragraph called `dt-style-guide` "the one other plugin it genuinely reaches for" (unscoped — `superpowers:brainstorming` is reached for too, four lines later on the same page) and said every command using it "degrades gracefully when it is absent" — false for `/document`, where an absent `dt-style-guide` with no other configured linter is a real coverage hole that `gate-ledger.md` §5 forces an explicit choice about, never a silent no-op. All three corrected in place.
+- **`CLAUDE.md` said the docs selftest runs 36 cases; it runs 37.** Re-derived by actually running `./scripts/check-docs.sh --selftest` rather than trusting the prose.
+- **`references/handoff/upgrade-executor.md:18` cited the Copilot edition's orchestrator location.** "The orchestrator (`upgrade/SKILL.md` Phase 2 Step 1)" is Copilot's file layout; in this edition the orchestrator is `commands/upgrade.md`, and the baseline capture the comment describes is Phase 2 prep's Step 2. Legacy staleness predating the Copilot port, not a back-leak from it — the same file already gets the reference right two other places in the same block.
+- **`.github/workflows/validate-catalog.yml`'s header comment never mentioned `scripts/check-docs.sh`, though the workflow runs it**, and its step name read "Check docs" where mgd and the Copilot edition both say "Check docs against the plugin tree." Added the missing header paragraph (Copilot's shape, verified accurate here too) and renamed the step so all three editions match byte-for-byte on this file.
+
 ## [2.58.3] — 2026-08-23
 
 ### Fixed

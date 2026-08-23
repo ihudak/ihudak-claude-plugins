@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "dev-workflows",
-      "version": "2.58.1",
+      "version": "2.58.2",
       "description": "Twenty-one slash commands covering the full product-development lifecycle — /idea → /create-vi → /create-ard → /specify → /design → /epics → /implement → /document → /release-notes → /ready — plus /vuln (CVE remediation), /upgrade, /update-vi, /docs-profile, /api-guideline-reviewer, /guideline-reviewer, /statusline, and the /feedback and /prompt utilities. Thirty-four reusable subagents and four hooks. Opus-backed gates review every artifact: plans, code, product docs, Epics, specifications, designs, ARDs, Value Increments, and readiness. Each phase hands its artifact to the next through the specs repo's default branch — the producer commits, pushes, and opens a PR; the consumer refuses to start until it has landed. Optional read-only grounding on shipped product docs, tracked vault prior art, and mounted code repositories.",
       "author": {
         "name": "Ivan Gudak",

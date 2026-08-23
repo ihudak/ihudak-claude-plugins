@@ -21,6 +21,8 @@ claude plugin install dt-style-guide@ihudak-plugins
 
 **What you also need, and it is not a plugin.** No plugin in this marketplace imports Jira tickets into your vault. That is a separate external tool — [`jira-workitem-import`](https://github.com/ivan-gudak/jira-workitem-import) — which populates `$VAULT_PATH/jira-products/<KEY>/` in the exact structure every Jira-driven command expects. Install it before `/specify`, `/document`, `/epics`, or any other Jira-driven command. The inline-prompt `/idea` walked through below needs none of it.
 
+**One more that is not in this marketplace.** [`superpowers`](https://github.com/obra/superpowers) is a separate Claude Code plugin, recommended rather than required: `/prompt-brainstorm` cedes its Phase 3 to `superpowers:brainstorming`, and the brainstorm → plan → subagent-driven-development flow this plugin's own development uses comes from it. Without it that one hand-off has nowhere to go; everything else degrades gracefully. Note that *grilling* is **not** an external dependency — the relentless-interrogation technique the authoring commands run is bundled here, in `references/grilling-technique.md`.
+
 **What you do not need for this plugin.** The marketplace also ships `obsidian-llm-wiki` (compiling a vault into a cross-referenced wiki) and `acli` (an Atlassian CLI reference skill). Neither is used by `dev-workflows` — `acli` is referenced nowhere in it, and `references/followup-emission.md` states outright that it has no runtime dependency on `obsidian-llm-wiki`; it only *mirrors* that plugin's vault task conventions so follow-ups land in a shape your vault already understands. Install them if you want them for their own sake; see the [marketplace README](../../../README.md).
 
 ## Update

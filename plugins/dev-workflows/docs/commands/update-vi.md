@@ -72,7 +72,7 @@ The run resolves the feature folder, pulls the current Jira-imported VI plus its
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off at the `vi-update` seam.
 - [`/create-vi`](create-vi.md) — the greenfield sibling that authors a VI from scratch; this command's Phase 0 does not redirect to it — an unimported `<KEY>` stops and asks you to run the workitem importer first.
-- [`/create-ard`](create-ard.md), [`/specify`](specify.md), and [`/release-notes`](release-notes.md) — the role re-runs `/update-vi`'s Phase 6 offers when an ARD, spec, or release note already exists.
+- [`/create-ard`](create-ard.md), [`/specify`](specify.md), [`/epics`](epics.md), and [`/release-notes`](release-notes.md) — the role re-runs `/update-vi`'s Phase 6 offers when an ARD, spec, or release note already exists.
 - [Model routing](../reference/model-routing.md) — the classification and Opus fallback chain `vi-reviewer` runs under.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Resume and checkpoints](../reference/resume-and-checkpoints.md) — the terminal Phase 7 bookkeeping every run emits.
 - [`vi-format.md`](../../references/vi-format.md) — the canonical structure the VI is updated and reviewed against.

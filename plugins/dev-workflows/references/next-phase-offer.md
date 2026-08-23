@@ -54,7 +54,7 @@ not required.
   `/dev-workflows:create-vi` redirects an existing-VI call, or when a later phase forces a VI
   refresh. After the paste-into-Jira + re-import round-trip it offers:
   `/dev-workflows:release-notes <VI>` (PM), `/dev-workflows:create-ard <VI>` (PA, if one exists),
-  `/dev-workflows:specify <VI>` (PE, if one exists).
+  `/dev-workflows:epics <VI>` (PE), `/dev-workflows:specify <VI>` (PE, if one exists).
 
 **PA — architecture (optional)**
 

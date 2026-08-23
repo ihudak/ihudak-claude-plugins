@@ -69,7 +69,7 @@ Ahead of the review, Phase 5.5 runs a structural pre-lint (`../../references/pre
 Author a specification for a single Epic already selected:
 
 ```
-/dev-workflows:specify PROD-1234 PROD-1250
+/dev-workflows:specify PRODUCT-1234 EPIC-98761
 ```
 
 The run resolves the VI and the named focus Epic (skipping the picker, since it was given explicitly), reads the full Epic subtree, resolves any applicable ARD, derives and lightly scans mounted repos, grills you relentlessly through Problem statement → Scope → User stories → Acceptance criteria → Test cases, runs the structural pre-lint, then `spec-reviewer`. On a passing verdict it offers to branch, commit, push, and open a pull request; if this Epic came from a multi-Epic VI's picker, it then offers to loop straight into the next sibling Epic.

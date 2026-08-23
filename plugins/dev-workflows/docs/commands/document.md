@@ -95,7 +95,7 @@ Jira mode also runs a Phase 5.8 **discrepancy analysis** whenever the Jira narra
 Document a shipped VI once every Epic under it is implemented (Jira mode):
 
 ```
-/dev-workflows:document PROD-1234
+/dev-workflows:document PRODUCT-1234
 ```
 
 The run resolves the docs repo and profile, asks for output path / PR filter / screenshot intent, classifies (typically `SIGNIFICANT`), reads the Jira hierarchy, resolves the PR repos, determines the applicable space(s), summarises the diffs in parallel, locates write targets, reviews images, plans the documentation, resolves any Jira/spec/code discrepancy, writes the pages via `doc-writer`, runs the style check and render verification, gates on `doc-reviewer`, and closes with the four maintenance agents plus the Final Report — recommending `/dev-workflows:release-notes <VI>` next, once every Epic is documented.

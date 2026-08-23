@@ -164,7 +164,7 @@ Return YAML exactly as defined in `${CLAUDE_PLUGIN_ROOT}/references/handoff/rele
 - NEVER invent an end-of-life or end-of-support date; record a `field: deprecation_eol`
   gap and use the `<!-- TODO: end-of-life date -->` placeholder instead.
 - NEVER write or modify files. This agent renders; the command writes.
-- NEVER include a Jira ID/key (e.g. `PRODUCT-14902`, `[[KEY]]`, or a browse URL)
+- NEVER include a Jira ID/key (e.g. `PRODUCT-1234`, `[[KEY]]`, or a browse URL)
   anywhere in `context_label`, `feature_title`, `prose`, or `combined_rendered`. The draft is
   pasted into the ticket's Jira release-notes field; the automation associates the ID.
 - NEVER include a Bitbucket/GitHub/GitLab PR URL or PR number in any output field.

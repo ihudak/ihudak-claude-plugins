@@ -67,10 +67,10 @@ Pre-Phase 3.5 captures a test baseline **before any source file is edited**, on 
 Implement one Epic from a multi-Epic VI whose specification and design are already merged:
 
 ```
-/dev-workflows:implement PROD-1234 PROD-5678
+/dev-workflows:implement PRODUCT-1234 EPIC-98760
 ```
 
-The run resolves `PROD-5678` as the focus Epic, gates its in-scope `specification.md`/`design.md` on the specs repo's main branch, classifies the task (typically `SIGNIFICANT` once a merged design is in scope), delegates planning to `risk-planner`, creates a feature branch, captures the test baseline, implements, writes tests, runs the Opus code review and triage, verifies against the baseline, and closes with the four Phase 4 maintenance agents and the Final Report — recommending the next Epic, or `/dev-workflows:document` once every Epic under the VI is implemented.
+The run resolves `EPIC-98760` as the focus Epic, gates its in-scope `specification.md`/`design.md` on the specs repo's main branch, classifies the task (typically `SIGNIFICANT` once a merged design is in scope), delegates planning to `risk-planner`, creates a feature branch, captures the test baseline, implements, writes tests, runs the Opus code review and triage, verifies against the baseline, and closes with the four Phase 4 maintenance agents and the Final Report — recommending the next Epic, or `/dev-workflows:document` once every Epic under the VI is implemented.
 
 ## See also
 

@@ -1,6 +1,6 @@
 # Session feedback
 
-Session feedback captures friction and improvement signals about **the dev-workflows plugin itself** — never about the target project you happened to be working in — and persists them per-VI into the specs repo, so the plugin maintainer can aggregate what went wrong or felt awkward across every engineer who used it. It shares its per-VI home, `<VI-dir>/dev-workflows/`, with the cost and follow-up files described elsewhere in this reference section, but is otherwise a separate mechanism: no dedup *between the three subsystems*, no cross-reference, and its own file per VI rather than per session.
+Session feedback captures two different signals about **the dev-workflows plugin itself** — what you report, and what your corrections reveal — never about the target project you happened to be working in, and persists them per-VI into the specs repo, so the plugin maintainer can aggregate what went wrong or felt awkward across every engineer who used it. It shares its per-VI home, `<VI-dir>/dev-workflows/`, with the cost and follow-up files described elsewhere in this reference section, but is otherwise a separate mechanism: no dedup *between the three subsystems*, no cross-reference, and its own file per VI rather than per session.
 
 ## What gets logged, and by what
 
@@ -8,6 +8,16 @@ Two capture paths feed the same file, distinguished by their `origin`:
 
 - **Automatic (`origin: auto`)** — every one of the thirteen workflow commands' post-run maintenance phase (the fourteen `model-routing` pipeline commands minus `/docs-profile`, which has no such phase) reuses the existing `impl-maintenance` agent's Lessons Learned report and projects the plugin-facing slice out of it: command workflow improvements, new agents or skills the plugin should offer, and gaps in the plugin's own reference docs, plus the key observations that triggered them. Target-project advice — `CLAUDE.md` rule suggestions, hooks for the repo you're working in — is deliberately discarded here; that stays in the in-session maintenance report, since it is for your current repo, not the plugin maintainer. A routine session with nothing plugin-facing to report writes nothing at all — no empty entry, byte-identical to a run where this phase did not exist. There is also a narrower automatic case, `emit-block`, used when a run halts because the plugin itself lacked something it needed (a missing capability, a missing reference doc) — it logs one `origin: auto`, `impact: blocker` entry directly, since no full maintenance report exists yet on an abandoned mid-flight run.
 - **User-invoked, four commands.** `/feedback <text>` logs a manual note about the plugin, tied to no other command, with `origin: manual`. `/prompt`, `/prompt-brainstorm`, and `/prompt-grill-me` each capture a corrective interaction — a command produced something wrong and you fixed it — with `origin: prompt`, and act on the correction their own way. `/prompt` is the one that acts first — its Phase 2 applies the fix, and Phase 3 persists the record of it; `/prompt-brainstorm` hands off to a brainstorming skill to redesign it together, and `/prompt-grill-me` interrogates the fix inline with a bounded grill. All three log first, then act.
+
+### Why `/prompt*` is the more valuable of the two
+
+`/feedback` and `/prompt*` are not two spellings of the same thing, and the difference is worth understanding before you pick one.
+
+`/feedback` records **what you say about the plugin** — a judgement, in your words, at a moment when something annoyed you. Useful, but it is a report of a problem.
+
+`/prompt*` records **what you did about a bad result**. When a command produces something you are not happy with and you correct it through one of these commands, the entry captures the whole path: the unsatisfactory output, every correction you made, and the output you settled on. That triple — *bad result → the corrections → good result* — is far more actionable than a complaint, because it does not just say the command got it wrong; it demonstrates what right looks like and the reasoning that got there. Aggregated across many runs, those paths are the raw material for improving the command itself: a correction you had to make by hand three times is a rule the command should have applied on its own.
+
+**So correct through `/prompt*`, not through a plain prompt.** If you simply reply in the session and talk the model into a better answer, you get the better answer and nothing else. Routing the same correction through `/prompt`, `/prompt-brainstorm`, or `/prompt-grill-me` gets you the same fixed output **and** a durable, structured record of how you got there — committed and pushed alongside the run's other artifacts, where it can actually be aggregated. (These four commands emit feedback, not a cost entry; the eleven cost-emitting commands are listed in [Session cost](session-cost.md).) The three differ only in how much help you want while fixing it — `/prompt` applies the fix directly, `/prompt-brainstorm` hands off to a brainstorming skill to redesign it with you, `/prompt-grill-me` interrogates the fix with a bounded grill.
 
 **`origin: manual` and `origin: prompt` entries are never silently skipped.** Because you invoked one of these four commands, the invocation itself is the signal of intent — unlike the automatic path, there is no "nothing to report" outcome. If a new entry's `id` happens to collide with an existing one, it is appended anyway with a numeric suffix rather than dropped, and a near-identical collision is flagged with a warning. Automatic entries behave the opposite way: before appending an `origin: auto` entry, the existing `id:` values in the file are checked, and a match is skipped as `SKIP — already logged` — because `id` is built from a stable `<KEY>-<command>-<short-slug>` shape, re-running a pipeline never double-logs the same automatic signal twice.
 
@@ -26,7 +36,7 @@ One file per VI, `<KEY>-feedback.md`, opening with frontmatter written once on c
 ```yaml
 ---
 type: dev-workflows-feedback
-vi: PRODUCT-14902
+vi: PRODUCT-1234
 slug: env-ag-update-window
 ---
 ```
@@ -37,12 +47,12 @@ Each logged entry is a dated heading, a fenced YAML block, and prose — appende
 ## 2026-07-09 — /document — missing-capability
 
 ```yaml
-id: PRODUCT-14902-document-saas-managed-split
+id: PRODUCT-1234-document-saas-managed-split
 date: 2026-07-09
 command: /document           # controlled: exact command name, or n/a
 plugin_version: 2.9.0
 origin: auto                 # auto | manual | prompt
-author: ivan.gudak@dynatrace.com
+author: you@example.com
 category: missing-capability # controlled, extensible, reuse-first
 impact: friction             # blocker | friction | polish
 ```

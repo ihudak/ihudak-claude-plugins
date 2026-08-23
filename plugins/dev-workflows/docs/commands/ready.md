@@ -60,10 +60,10 @@ Because `/ready` authors nothing, there is no fixer to dispatch and no `BLOCK`/r
 Check whether an Epic is really ready to move into `Refined`:
 
 ```
-/dev-workflows:ready PROD-1234 PROD-5678
+/dev-workflows:ready PRODUCT-1234 EPIC-98760
 ```
 
-The run resolves `PROD-5678` as the focus Epic, reads its declared Jira status and the VI's via `jira-reader`, resolves any applicable ARD, locates the Epic's `specification.md`/`design.md` and checks each against the specs repo's default branch (never stopping on what it finds), builds the coverage map and status-expectation checklist, and dispatches `readiness-reviewer`. It prints the verdict with its coverage roll-up and Findings, writes `_readiness.md` into the Epic subdir, and offers to commit and hand it off — declining leaves the snapshot written but uncommitted.
+The run resolves `EPIC-98760` as the focus Epic, reads its declared Jira status and the VI's via `jira-reader`, resolves any applicable ARD, locates the Epic's `specification.md`/`design.md` and checks each against the specs repo's default branch (never stopping on what it finds), builds the coverage map and status-expectation checklist, and dispatches `readiness-reviewer`. It prints the verdict with its coverage roll-up and Findings, writes `_readiness.md` into the Epic subdir, and offers to commit and hand it off — declining leaves the snapshot written but uncommitted.
 
 ## See also
 

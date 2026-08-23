@@ -19,7 +19,7 @@ vault path + key (used by `/epics` and `/release-notes`):
 
 ```yaml
 # Form 1 — explicit export root:
-jira_export_root: <absolute path to the ticket export dir, e.g. .../jira-products/PRODUCT-14902>
+jira_export_root: <absolute path to the ticket export dir, e.g. .../jira-products/PRODUCT-1234>
 jira_key:         <e.g. JIRA-12345>
 depth:            full | vi-plus-epics | vi-only
 

@@ -59,10 +59,10 @@ Before the review, Phase 4.5 runs a structural pre-lint (`../../references/pre-l
 Author a VI-level ARD, grounding on the two repos the VI's themes point at:
 
 ```
-/dev-workflows:create-ard PROD-1234
+/dev-workflows:create-ard PRODUCT-1234
 ```
 
-The run resolves the VI (from the merged VI file if present, else the Jira export), lists top-level directories under `$REPOS_PATH`, proposes a theme-to-repo mapping and asks you to confirm it, scans the confirmed repos with `code-scanner`, grills you relentlessly through Context, Grounding findings, Architecture decisions, Cross-repo approach, Stack & invariants, Edge cases & risks, and Open questions, runs the structural pre-lint, then `ard-reviewer`. On a passing verdict it offers to branch, commit, push, and open a pull request, then offers the adaptive next step — `/dev-workflows:epics PROD-1234` if the VI has no Epics yet, or `/dev-workflows:specify PROD-1234` otherwise.
+The run resolves the VI (from the merged VI file if present, else the Jira export), lists top-level directories under `$REPOS_PATH`, proposes a theme-to-repo mapping and asks you to confirm it, scans the confirmed repos with `code-scanner`, grills you relentlessly through Context, Grounding findings, Architecture decisions, Cross-repo approach, Stack & invariants, Edge cases & risks, and Open questions, runs the structural pre-lint, then `ard-reviewer`. On a passing verdict it offers to branch, commit, push, and open a pull request, then offers the adaptive next step — `/dev-workflows:epics PRODUCT-1234` if the VI has no Epics yet, or `/dev-workflows:specify PRODUCT-1234` otherwise.
 
 ## See also
 

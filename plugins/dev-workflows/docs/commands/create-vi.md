@@ -67,7 +67,7 @@ Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2.5, read
 Author a Value Increment for an already-created empty ticket, from a refined idea:
 
 ```
-/dev-workflows:create-vi PROD-1234 @idea.md --hybrid
+/dev-workflows:create-vi PRODUCT-1234 @idea.md --hybrid
 ```
 
 The run resolves the feature folder, reads `idea.md` directly (no `idea-reader` — it is the plugin's own format), grounds it against docs and vault prior art, grills you relentlessly through the spine (Problem, Goal, Target audience, User Stories, Acceptance Criteria, Scope, Success Metrics) plus any adapt-in clusters the idea warrants, runs the style check and pre-lint, then `vi-reviewer`. On a passing verdict it offers to branch, commit, push, and open a pull request, and reminds you to paste the VI into Jira and re-import it.

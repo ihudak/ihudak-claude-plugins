@@ -199,7 +199,7 @@ File-level frontmatter (written once on creation):
 ```yaml
 ---
 type: dev-workflows-cost
-vi: PRODUCT-14902
+vi: PRODUCT-1234
 session: <sid8>
 ---
 ```
@@ -212,13 +212,13 @@ one session are two lines):
 ## 2026-07-09T14:22:33Z — /implement — implementation
 
 ```yaml
-id: PRODUCT-14902-15001-implement-2026-07-09T14:22:33Z   # timestamp => unique
+id: PRODUCT-1234-98760-implement-2026-07-09T14:22:33Z   # timestamp => unique
 date: 2026-07-09T14:22:33Z
 command: /implement
 phase: implementation
 role: dev
-vi: PRODUCT-14902
-epic: PRODUCT-15001            # present only when an Epic key is in scope
+vi: PRODUCT-1234
+epic: EPIC-98760            # present only when an Epic key is in scope
 plugin_version: 2.10.0
 duration_s: 1284
 cost_computed_usd: 3.4821
@@ -272,11 +272,12 @@ Fixed per-command labels, with one inferred exception:
 | `/epics` | epic-refinement | pe |
 | `/design` | planning | dev |
 | `/implement` | implementation | dev |
-| `/ready` | readiness | team |
+| `/ready` | readiness | dev |
 | `/document` | documenting | dev |
 | `/release-notes` | **inferred** | **inferred** |
 | `/idea` | vi-creation | pm |
 | `/create-vi` | vi-creation | pm |
+| `/update-vi` | vi-update | pm |
 | `/create-ard` | architecture | pa |
 
 **`/release-notes` inference (PM VI-run vs. dev documenting-run).** The

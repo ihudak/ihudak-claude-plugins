@@ -368,7 +368,7 @@ persists the plugin-facing slice of its report as session feedback.
 `resume.md` write runs later, in the terminal cost phase, per
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the
 guidance only), then a
-same-role `/compact` suggestion + `/rename <VI-ID>-<slug>-team`. Guidance only, never auto-run.
+same-role `/compact` suggestion + `/rename <VI-ID>-<slug>-dev`. Guidance only, never auto-run.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
    > "Analyse this session and return a Lessons Learned report.
@@ -462,13 +462,13 @@ The report always states exactly one of the Phase 5 interface fan-out outcomes w
 
 ### Next step
 
-End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): hand to the team → `/dev-workflows:implement <VI> <Epic>` (depth), which will not start against this design until the pull request above is merged; the **Epic fan-out** `/dev-workflows:design <VI> <another-Epic>` designs a sibling Epic (breadth, no merge wait — a different Epic's design). If the run BLOCKED or `design.md` has open questions, recommend resolving those first.
+End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): → `/dev-workflows:implement <VI> <Epic>` (depth, still Dev), which will not start against this design until the pull request above is merged; the **Epic fan-out** `/dev-workflows:design <VI> <another-Epic>` designs a sibling Epic (breadth, no merge wait — a different Epic's design). If the run BLOCKED or `design.md` has open questions, recommend resolving those first.
 
 ### Context hygiene
 
 The resume pointer is written in the terminal cost phase (Phase 9), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
 
-- **Continuing on this Epic (`/dev-workflows:ready` / `/dev-workflows:implement <VI> <Epic>`) or the next Epic (`/dev-workflows:design <VI> <Epic2>`) — all still Team?** → run **`/compact`** — context stays relevant.
-- Consider **`/rename <VI-ID>-<slug>-team`** to relocate this session later.
+- **Continuing on this Epic (`/dev-workflows:ready` / `/dev-workflows:implement <VI> <Epic>`) or the next Epic (`/dev-workflows:design <VI> <Epic2>`) — all still Dev?** → run **`/compact`** — context stays relevant.
+- Consider **`/rename <VI-ID>-<slug>-dev`** to relocate this session later.
 
 Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.

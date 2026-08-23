@@ -354,8 +354,7 @@ plugin-gap halt (see Invariants).
    The next phase runs once it is merged." or the declined/gate-failed/nothing-to-commit variant]
 
    ### Next step
-   [Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. SUPPORTED → Team →
-   `/dev-workflows:implement <VI> [<Epic>]`. PARTIAL / NOT-SUPPORTED → resolve the named gaps above and update the
+   [Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. SUPPORTED → `/dev-workflows:implement <VI> [<Epic>]` (same lane, no handoff). PARTIAL / NOT-SUPPORTED → resolve the named gaps above and update the
    Jira status to match reality, then re-run `/dev-workflows:ready <VI> [<Epic>]`.]
 
    ### Context hygiene
@@ -363,9 +362,9 @@ plugin-gap halt (see Invariants).
    `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1, recording the readiness
    verdict as a carry-forward line. Then:
 
-   - **SUPPORTED → `/dev-workflows:implement <VI> [<Epic>]` (still Team)?** → run **`/compact`** — context stays relevant.
+   - **SUPPORTED → `/dev-workflows:implement <VI> [<Epic>]` (still Dev)?** → run **`/compact`** — context stays relevant.
    - **PARTIAL / NOT-SUPPORTED → resolving the gaps yourself now?** → **`/compact`**.
-   - Consider **`/rename <VI-ID>-<slug>-team`** to relocate this session later.
+   - Consider **`/rename <VI-ID>-<slug>-dev`** to relocate this session later.
 
    Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
    ```
@@ -525,7 +524,7 @@ Terminal phase — runs after Phase 7 and NEVER interrupts an earlier phase. Rec
 token-cost contribution to the VI by citing `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and
 calling its single `emit-cost` entry point. **Cost ALWAYS runs** — it never "writes nothing".
 
-Call `emit-cost` with `command: /ready`, `phase: readiness`, `role: team`, the run's `jira_key` (or
+Call `emit-cost` with `command: /ready`, `phase: readiness`, `role: dev`, the run's `jira_key` (or
 `null`) and `source`, and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the session transcript + subagents
 (§1), loads and **advances the chained checkpoint** (§3), runs `scripts/session-cost.py` to compute the
@@ -607,4 +606,4 @@ whatever branch Phase 5 left checked out), and NEVER writes to Jira or into `jir
   byte-identical to before
 - ALL written claims trace to Jira keys (from `jira-reader`) or artifact paths actually read; never
   invent content the sources don't contain
-- ALWAYS end with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write — carrying the verdict as carry-forward — runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a same-role `/compact` suggestion + `/rename <VI-ID>-<slug>-team`; guidance only, never auto-run.
+- ALWAYS end with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write — carrying the verdict as carry-forward — runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a same-role `/compact` suggestion + `/rename <VI-ID>-<slug>-dev`; guidance only, never auto-run.

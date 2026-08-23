@@ -68,12 +68,12 @@ sensitive value.
 
 ## 2. The suggestion — role-aware (reads next-phase-offer's role labels)
 
-`next-phase-offer.md` already role-labels every next option (PM / PA / PE / Team). For
+`next-phase-offer.md` already role-labels every next option (PM / PA / PE / Dev). For
 each next option the offer names, compare its role to the just-finished command's role:
 
-- **Same role** (e.g. `/design E1 → /design E2`, Team→Team) → suggest **`/compact`** —
+- **Same role** (e.g. `/design E1 → /design E2`, Dev→Dev) → suggest **`/compact`** —
   context still relevant, keep the thread.
-- **Different role** (e.g. `/epics` PE → `/design` Team) → suggest **`/clear`** as the
+- **Different role** (e.g. `/epics` PE → `/design` Dev) → suggest **`/clear`** as the
   better choice when one person keeps wearing both hats (the prior role's reasoning is
   now noise). `/compact` still works if continuing right away; a genuinely different
   person just starts fresh and re-reads disk.
@@ -96,12 +96,12 @@ own `next-phase-offer` output already carries. The role graph is owned by
 
 ## 4. Session-name aid
 
-The VI-Key is first available at **`/release-notes`** and is present for every PA/PE/Team
+The VI-Key is first available at **`/release-notes`** and is present for every PA/PE/Dev
 command (`/create-ard`, `/epics`, `/specify`, `/design`, `/ready`, `/implement`,
 `/document`, `/release-notes` — all take `<VI>`). For those, print a suggested
 `/rename <VI-ID>-<slug>-<role>` line so the user can relocate the session in
 `claude --resume` later (e.g. after going home). `<role>` is the just-finished command's
-lane tag (pm / pa / pe / team). Guidance-only — a command cannot run `/rename` itself.
+lane tag (pm / pa / pe / dev). Guidance-only — a command cannot run `/rename` itself.
 
 **`/idea` and `/create-vi` are excluded** from the rename aid: the PM ideation phase is
 short, and on the common path it runs *before* the paste-into-Jira + re-import round-trip

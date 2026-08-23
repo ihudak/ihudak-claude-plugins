@@ -1,0 +1,44 @@
+# /feedback
+
+Logs a manual note about the dev-workflows plugin itself — friction you hit, or an improvement you want — for the maintainer to aggregate across engineers.
+
+## Who runs it
+
+`/feedback` runs outside the role pipeline — no role, no cost-attribution phase (`references/cost-emission.md` never mentions it). [Workflow overview](../workflow.md#cross-cutting-commands) groups it under Plugin improvement, alongside its three siblings — [`/prompt`](prompt.md), [`/prompt-brainstorm`](prompt-brainstorm.md), and [`/prompt-grill-me`](prompt-grill-me.md). It is tied to no other command and can be run any time, about any friction you hit or improvement you want. This is one of the four commands that make the plugin better over time — use it whenever something is off, not only when it's dramatic; a small annoyance logged now is easier for the maintainer to act on than one nobody ever wrote down.
+
+## Synopsis
+
+```
+/feedback [<note>]
+```
+
+`$ARGUMENTS` is the note text — the friction you hit and the improvement you want, in your own words. Leave it empty and Phase 1 asks for it directly; it never guesses at content you didn't express.
+
+## What it needs
+
+- **The note itself** — friction plus a suggested improvement. The command lightly tidies wording but never invents content you didn't say.
+- **Confirmed metadata**, resolved in one grouped prompt: `command` (inferred from recent context, or `n/a`), `category` (a controlled, reuse-first vocabulary), and `impact` (`blocker | friction | polish`).
+- **`$SPECS_PATH`** — the specs-preflight step at Phase 0 settles the branch before anything is written; it is silent when the repo is already clean and on its default branch.
+
+## What it produces
+
+An `origin: manual` entry appended to the plugin's per-VI feedback file — see [Session feedback](../reference/session-feedback.md) for the exact entry format and the specs-first ladder that resolves where the file lands; `/feedback` doesn't restate that logic here. The terminal `commit-artifacts` step then commits and pushes it, printed as a `Specs repo:` outcome line. This command never commits into a docs/code repo, the vault, or your current working directory — only `$SPECS_PATH`'s bounded artifact paths.
+
+## Gates
+
+No reviewer and no branch of its own. The only two checkpoints are the specs-repo git guards — `specs-preflight` at the start, `commit-artifacts` at the end (`../../references/specs-repo-git.md`) — and a manual entry is never silently skipped: an `id` collision appends with a numeric suffix and a warning rather than dropping the note.
+
+## Example
+
+```
+/dev-workflows:feedback "The /specify grill re-asked a question I'd already answered in the ticket description"
+```
+
+The command confirms the inferred `command` (`/specify`) and `category`, appends the entry to that VI's `<KEY>-feedback.md`, and commits it to the specs repo.
+
+## See also
+
+- [Session feedback](../reference/session-feedback.md) — the entry format, the two capture paths, and the specs-first ladder that resolves where a note lands.
+- [`/prompt`](prompt.md), [`/prompt-brainstorm`](prompt-brainstorm.md), and [`/prompt-grill-me`](prompt-grill-me.md) — the three sibling commands that log a corrective interaction (`origin: prompt`) rather than a standalone note.
+- [Workflow overview](../workflow.md#cross-cutting-commands) — where these four commands sit relative to the role pipeline.
+- [`specs-repo-git.md`](../../references/specs-repo-git.md) — the `specs-preflight` and `commit-artifacts` entry points every one of these four commands runs.

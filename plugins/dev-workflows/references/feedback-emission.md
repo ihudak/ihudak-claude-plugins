@@ -44,7 +44,7 @@ File-level frontmatter, written once on creation:
 ```yaml
 ---
 type: dev-workflows-feedback
-vi: PRODUCT-14902
+vi: PRODUCT-1234
 slug: env-ag-update-window
 ---
 ```
@@ -58,7 +58,7 @@ Each entry is appended as a dated H2 header + a fenced YAML block + prose:
 ## 2026-07-09 — /document — missing-capability
 
 ```yaml
-id: PRODUCT-14902-document-saas-managed-split
+id: PRODUCT-1234-document-saas-managed-split
 date: 2026-07-09
 command: /document           # controlled: exact command name, or n/a
 plugin_version: 2.9.0

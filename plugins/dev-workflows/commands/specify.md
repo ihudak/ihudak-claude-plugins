@@ -537,14 +537,14 @@ Report: feature-folder path; stage/user-story/AC/TC counts; open-question count;
 
 ### Next step
 
-End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): **Epic-level spec** (`<VI> <Epic>`) → hand to the team → `/dev-workflows:design <VI> <Epic>`, which will not start until this spec's pull request above is merged, and the **Epic fan-out** `/dev-workflows:specify <VI> <another-Epic>` for a sibling Epic (breadth); **VI-level spec** (`<VI>` only) → `/dev-workflows:epics <VI>` (PE), which stops rather than skipping — the spec exists but isn't yet on main — until this pull request above is merged. If the run BLOCKED or left open `- [ ]` items, recommend resolving those first.
+End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): **Epic-level spec** (`<VI> <Epic>`) → hand to Dev → `/dev-workflows:design <VI> <Epic>`, which will not start until this spec's pull request above is merged, and the **Epic fan-out** `/dev-workflows:specify <VI> <another-Epic>` for a sibling Epic (breadth); **VI-level spec** (`<VI>` only) → `/dev-workflows:epics <VI>` (PE), which stops rather than skipping — the spec exists but isn't yet on main — until this pull request above is merged. If the run BLOCKED or left open `- [ ]` items, recommend resolving those first.
 
 ### Context hygiene
 
 The resume pointer is written in the terminal cost phase (Phase 9), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
 
 - **VI-level spec → `/dev-workflows:epics <VI>` (still PE)?** → run **`/compact`** — context still relevant.
-- **Epic-level spec → Team `/dev-workflows:design <VI> <Epic>` (even yourself)?** → run **`/clear`** for a clean slate.
+- **Epic-level spec → Dev `/dev-workflows:design <VI> <Epic>` (even yourself)?** → run **`/clear`** for a clean slate.
 - Consider **`/rename <VI-ID>-<slug>-pe`** to relocate this session later.
 
 Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.

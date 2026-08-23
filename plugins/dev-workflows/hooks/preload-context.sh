@@ -8,7 +8,7 @@
 #                                         JiraID (jira-driven via the shared
 #                                         Jira-input front-end)
 #   • /document                         → Jira context iff the argument is a
-#                                         JiraID (e.g. /document PRODUCT-14902);
+#                                         JiraID (e.g. /document PRODUCT-1234);
 #                                         free-text / @file → silent (direct-edit
 #                                         mode owns its own git hygiene and never
 #                                         invokes Opus)

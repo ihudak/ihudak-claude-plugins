@@ -43,3 +43,9 @@ jobs:
 
       - name: Check requirement-ID grammar
         run: ./scripts/check-id-grammar.sh --root .
+
+      - name: Self-test the docs gate
+        run: ./scripts/check-docs.sh --selftest
+
+      - name: Check docs
+        run: ./scripts/check-docs.sh --root .

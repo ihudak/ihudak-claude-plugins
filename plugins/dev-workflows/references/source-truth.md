@@ -295,7 +295,7 @@ marker explaining the gap. See §7 for the marker format.
   `<JIRA_KEY>-implementation-gaps.md`. Same hard rule as for release-notes:
   **NEVER `/tmp/`** — container restarts wipe it.
 
-## 6. Example (real, from PRODUCT-14902)
+## 6. Example (drawn from a real run)
 
 Jira "User Story" said:
 

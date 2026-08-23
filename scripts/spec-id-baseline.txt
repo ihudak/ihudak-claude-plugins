@@ -16,6 +16,15 @@
 # excluded all three editions produce this file's numbers exactly, so drift in
 # one edition is now visible as a difference from the other two.
 #
+# 2026-08-22 (2.57.0): regenerated at -1 for each of [Uxx], [ACxx], [TCxx]. The
+# docs restructure retired the old README's converge-check sentence, and the single
+# clause in plugins/dev-workflows/README.md that still carried all three
+# placeholders was being kept only to hold these counts steady -- the census
+# constraining the corpus instead of describing it. That clause is now plain
+# English. Verified before regenerating: the ONLY delta from the previous baseline
+# was -1 on each of the three placeholder forms; every concrete [U01]/[AC01]/[TC01]
+# -style identifier is unmoved, which is what the tripwire actually guards.
+#
 # Regenerate, preserving this header:
 #   ( grep '^#' scripts/spec-id-baseline.txt; \
 #     grep -rhoE '\[U0[0-9]+\]|\[AC0[0-9]+\]|\[TC0[0-9]+\]|\[Uxx\]|\[ACxx\]|\[TCxx\]' \
@@ -29,10 +38,10 @@
 #   | diff <(grep -v '^#' scripts/spec-id-baseline.txt) -
       1 [AC01]
       1 [AC03]
-     19 [ACxx]
+     18 [ACxx]
       2 [TC01]
       1 [TC07]
-     17 [TCxx]
+     16 [TCxx]
       1 [U01]
       1 [U02]
-     21 [Uxx]
+     20 [Uxx]

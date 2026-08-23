@@ -69,8 +69,10 @@ inherited outright, so correcting a `/specify` output is priced as
 that is itself one of the four feedback commands resolves to
 `phase: plugin-feedback`, `role: n/a`. A keyless run lands in §9's pending file
 exactly as `/idea`'s does. Surface the persisted path (or the report-only
-notice). This runs BEFORE the commit step below, per the emitter tail in §4 of
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`.
+notice). This runs BEFORE the commit step below, per the emitter tail in
+`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §5 (feedback -> follow-ups ->
+cost -> `resume.md` -> `commit-artifacts`; this command has no follow-ups or
+`resume.md` step, so it goes feedback -> cost -> commit).
 
 **Then commit session artifacts (terminal).** Cite
 `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its

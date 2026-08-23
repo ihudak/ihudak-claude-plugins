@@ -6,7 +6,7 @@ Logs a corrective interaction — a dev-workflows command produced something wro
 
 > **Correct through this command, not through a plain prompt.** Replying in the session and talking the model into a better answer gets you the better answer and nothing else. The same correction routed through `/prompt` gets you the identical fixed output *plus* a durable record of the path — the unsatisfactory result, your corrections, and the result you settled on — which is the signal the plugin is actually improved from. See [Session feedback](../reference/session-feedback.md).
 
-`/prompt` runs outside the role pipeline, but it does report its cost: it passes `phase: inferred, role: inferred` and the cost phase **inherits the labels of the command it corrected** (`references/cost-emission.md` §7). Correcting a `/specify` output is priced as `specification`/`pe`; correcting a `/design` output as `planning`/`dev` — the cost of fixing a phase's output belongs to that phase. With no target command it resolves to `plugin-feedback`/`n/a`. [Workflow overview](../workflow.md#cross-cutting-commands) groups it under Plugin improvement, alongside [`/feedback`](feedback.md), [`/prompt-brainstorm`](prompt-brainstorm.md), and [`/prompt-grill-me`](prompt-grill-me.md). Of the three commands that capture a corrective interaction, `/prompt` is the one that just applies the fix — no hand-off, no interrogation. Run it whenever you correct a command's output yourself; logging the correction is what turns a one-off fix into signal the maintainer can act on for every other engineer hitting the same thing.
+`/prompt` runs outside the role pipeline, but it does report its cost: it passes `phase: inferred, role: inferred` and the cost phase **inherits the labels of the command it corrected** (`references/cost-emission.md` §7). Correcting a `/specify` output is priced as `specification`/`pe`; correcting a `/design` output as `planning`/`dev` — the cost of fixing a phase's output belongs to that phase. With no target command it resolves to [`plugin-feedback`](../roles-and-phases.md#plugin-feedback)/`n/a`. [Workflow overview](../workflow.md#cross-cutting-commands) groups it under Plugin improvement, alongside [`/feedback`](feedback.md), [`/prompt-brainstorm`](prompt-brainstorm.md), and [`/prompt-grill-me`](prompt-grill-me.md). Of the three commands that capture a corrective interaction, `/prompt` is the one that just applies the fix — no hand-off, no interrogation. Run it whenever you correct a command's output yourself; logging the correction is what turns a one-off fix into signal the maintainer can act on for every other engineer hitting the same thing.
 
 ## Synopsis
 
@@ -20,12 +20,14 @@ Logs a corrective interaction — a dev-workflows command produced something wro
 
 - **`$ARGUMENTS` itself, verbatim** — the correction to apply, and the corrective-triple's User prompt block.
 - **Recent session context**, to infer the target `command` (or ask once if ambiguous).
-- **`$SPECS_PATH`** — only for the specs-preflight/commit-artifacts bookkeeping; the correction itself is applied to your target files directly, wherever they are, never to the specs repo.
+- **`$SPECS_PATH`** — for the feedback entry, the session-cost entry, and the specs-preflight/commit-artifacts bookkeeping; the correction itself is applied to your target files directly, wherever they are, never to the specs repo.
 
 ## What it produces
 
 Performs the correction directly against your target files — those edits are never staged or committed by this command. It then appends an `origin: prompt` entry (Friction, User prompt verbatim, Resolution — a one-line summary of the fix just applied) via the same specs-first ladder [Session feedback](../reference/session-feedback.md) describes, committed and pushed by the terminal `commit-artifacts` step.
 
+
+A **session-cost entry** too, since this command now reports its own spend: `phase`/`role` inherited from the target command, or [`plugin-feedback`](../roles-and-phases.md#plugin-feedback)/`n/a` when there is nothing to inherit. It lands beside the feedback entry under `$SPECS_PATH`, or in the keyless pending file — see [Session cost](../reference/session-cost.md).
 ## Gates
 
 No reviewer and no fix cycle — `/prompt` **is** the fix, applied once, directly, with nothing downstream to re-check it. The only checkpoints are the specs-repo git guards (`specs-preflight`, `commit-artifacts`, `../../references/specs-repo-git.md`); a `prompt` entry is never silently skipped.

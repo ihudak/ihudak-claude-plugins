@@ -51,7 +51,7 @@ Every phase ends the same way: a producing command lands its deliverable on the 
 
 ## Cost-attribution phases
 
-Every cost-emitting command tags its cost line with a `phase` and a `role`. Ten phases exist; each entry below names the command that emits it and what being in that phase means. The first nine are lifecycle phases; the tenth exists for spend that belongs to no phase at all.
+Every cost-emitting command tags its cost line with a `phase` and a `role`. Ten phases exist; each entry below names the command that emits it and what being in that phase means. The first nine are lifecycle phases; the tenth exists for spend that belongs to no phase at all. Each of the nine can also be reached **by inheritance**: `/prompt` and `/feedback` adopt the phase and role of whatever they are correcting, so a correction to a `/specify` output is a second entry in `specification`. Only the commands named below emit a phase *directly*.
 
 ### vi-creation
 
@@ -95,4 +95,4 @@ Emitted by `/prompt` and `/feedback`, role `n/a`. Being in this phase means the 
 
 ---
 
-**A second, unrelated `phase:` vocabulary exists in this plugin.** The model-routing resume phases — `full`, `verify-resume`, `regression-resume` — are what `/vuln` and `/upgrade` pass to their fixer/executor agents to say how far a re-entered run should re-execute after a review or a failed test. Neither `/vuln` nor `/upgrade` emits a cost-attribution phase at all; they sit outside the nine phases above entirely. The two vocabularies share a field name, `phase`, and nothing else — one names where a run sits in the product lifecycle, the other names how much of a single command's own work must be redone.
+**A second, unrelated `phase:` vocabulary exists in this plugin.** The model-routing resume phases — `full`, `verify-resume`, `regression-resume` — are what `/vuln` and `/upgrade` pass to their fixer/executor agents to say how far a re-entered run should re-execute after a review or a failed test. Neither `/vuln` nor `/upgrade` emits a cost-attribution phase at all; they sit outside the ten phases above entirely. The two vocabularies share a field name, `phase`, and nothing else — one names where a run sits in the product lifecycle, the other names how much of a single command's own work must be redone.

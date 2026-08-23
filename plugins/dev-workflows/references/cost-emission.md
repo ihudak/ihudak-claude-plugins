@@ -293,8 +293,11 @@ discriminator is the presence of **downstream engineering artifacts** — any
   VI + Epics + specs + design + code all exist).
 
 **`/prompt` and `/feedback` inference (inherit the corrected command's labels).**
-Both resolve a **target command** — the command whose output is being corrected
-or remarked on — or `n/a`. The discriminator is that target:
+The discriminator is **`target_command`**, passed in by the caller per §11 — the
+command whose output is being corrected or remarked on, or `n/a`. Unlike
+`/release-notes`'s discriminator, this one is **not** re-derivable from disk: it
+lives in the run's own context, so the caller must supply it and `emit-cost` must
+not attempt to infer it from anything else.
 
 - **Target has a fixed `phase`/`role` in the table above -> inherit both.** A
   `/prompt` correcting a `/specify` output is `specification`/`pe` spend; one
@@ -396,8 +399,9 @@ and acceptable.
 ## 11. Caller contract — `emit-cost`
 
 One entry point. Every caller supplies `command`, `phase`, `role` (or the
-`inferred` marker for `/release-notes`), `jira_key` (or `null`), `source`, and
-`plugin_version`. `emit-cost` does the rest; it NEVER commits, NEVER writes
+`inferred` marker — `/release-notes`, `/prompt`, `/feedback`), `jira_key` (or
+`null`), `source`, and `plugin_version`; `/prompt` and `/feedback` additionally
+supply `target_command`. `emit-cost` does the rest; it NEVER commits, NEVER writes
 into a docs/code repo or the current working directory, and NEVER fails the
 run. The cost entry is committed later, once, by the run's terminal
 `commit-artifacts` step (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`
@@ -406,8 +410,19 @@ run. The cost entry is committed later, once, by the run's terminal
 Inputs:
 - `command` — the exact slash-command name (e.g. `/implement`,
   `/document (Jira mode)`, `/document (direct mode)`).
-- `phase`, `role` — the §7 labels; for `/release-notes` pass `inferred` and let
-  §7 resolve them from `specification.md` / `design.md` presence.
+- `phase`, `role` — the §7 labels, or the `inferred` marker for the three
+  commands §7 resolves. The three resolve from **different** data, and each must
+  therefore be given it:
+  - `/release-notes` — resolved from `specification.md` / `design.md` presence
+    under the VI's specs dir. `emit-cost` reads that itself; nothing is passed.
+  - `/prompt`, `/feedback` — resolved from `target_command`, which **cannot** be
+    re-derived from disk (it lives in the run's own context). It is passed in.
+- `target_command` — **required when `command` is `/prompt` or `/feedback`.** The
+  exact slash-command name whose output is being corrected or remarked on, or
+  `n/a`. This is the same value the run writes as the feedback entry's `command:`
+  field, so the two never disagree. Omitting it is a caller error: §7 has no other
+  source for it, and the entry would silently fall back to
+  `plugin-feedback`/`n/a`, quietly mis-attributing every correction.
 - `jira_key` (or `null`), `source` (`vault | directory | none`).
 - `plugin_version` — read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`
   (`python3 -c "import json;print(json.load(open('<path>'))['version'])"`).

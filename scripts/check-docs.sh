@@ -264,8 +264,11 @@ check_env_vars() {
   [ "$now" = "$RUNTIME_VARS_FROZEN" ] \
     || fail 5 "RUNTIME_VARS changed -- every entry silences check 5 for that variable; justify it in the comment above and update RUNTIME_VARS_FROZEN in the same edit"
   local read_vars documented
+  # `skills` stays a literal fifth root: in editions where CMD_DIR is not "skills"
+  # there is still a skills/ tree to scan, and in editions where it is, sort -u
+  # dedupes. Dropping it is invisible until someone adds a $VAR only under skills/.
   read_vars=$(grep -rhoE '\$\{?[A-Z][A-Z0-9_]{2,}\}?' \
-                "$p/$CMD_DIR" "$p/agents" "$p/$REF_DIR" "$p/hooks" 2>/dev/null \
+                "$p/$CMD_DIR" "$p/agents" "$p/$REF_DIR" "$p/hooks" "$p/skills" 2>/dev/null \
               | tr -d '${}' | sort -u)
   for v in $read_vars; do
     case " $RUNTIME_VARS " in *" $v "*) continue ;; esac
@@ -455,7 +458,7 @@ check_prose_counts() {
   # can never disagree about what "user-settable" means.
   local read_vars n_settable v
   read_vars=$(grep -rhoE '\$\{?[A-Z][A-Z0-9_]{2,}\}?' \
-                "$p/$CMD_DIR" "$p/agents" "$p/$REF_DIR" "$p/hooks" 2>/dev/null \
+                "$p/$CMD_DIR" "$p/agents" "$p/$REF_DIR" "$p/hooks" "$p/skills" 2>/dev/null \
               | tr -d '${}' | sort -u)
   n_settable=0
   for v in $read_vars; do

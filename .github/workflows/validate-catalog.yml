@@ -18,6 +18,13 @@ name: Validate plugin catalog
 # form, never the dash form that Jira auto-links to an unrelated ticket on paste.
 # It is here rather than in a hook because a gate whose enforcement lives only in
 # someone's memory is how the description-length rule regressed three times.
+#
+# It also runs scripts/check-docs.sh, which guards dev-workflows/docs/ against
+# drift from the shipped plugin tree (links/anchors, orphan pages, command/agent/
+# reference/hook inventories in both directions, env-var docs, table-cell width,
+# and the getting-started.md install-block / identity-quarantine pin). Each gate's
+# --selftest runs immediately before its --root check, in the same order: a gate
+# that has stopped being able to fail must turn the build red, not green.
 
 on:
   push:
@@ -47,5 +54,5 @@ jobs:
       - name: Self-test the docs gate
         run: ./scripts/check-docs.sh --selftest
 
-      - name: Check docs
+      - name: Check docs against the plugin tree
         run: ./scripts/check-docs.sh --root .

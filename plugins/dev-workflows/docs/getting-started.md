@@ -17,7 +17,7 @@ claude plugin install dev-workflows@ihudak-plugins
 claude plugin install dt-style-guide@ihudak-plugins
 ```
 
-`dev-workflows` is the pipeline this documentation covers. `dt-style-guide` is the one other plugin it genuinely reaches for: it is the primary style checker for `/epics` and for the Value Increment commands, and a fallback prose linter for `/document` when the target docs repo has none configured. Every command that uses it degrades gracefully when it is absent, so it is *recommended*, not required.
+`dev-workflows` is the pipeline this documentation covers. `dt-style-guide` is the one other plugin **in this marketplace** it genuinely reaches for: it is the primary style checker for `/epics` and for the Value Increment commands, and a fallback prose linter for `/document` when the target docs repo has none configured. Most commands that use it degrade gracefully when it is absent — `/document` is the exception: there, an absent `dt-style-guide` with no other prose linter configured is a real coverage hole, not a no-op, and `gate-ledger.md` §5 forces an explicit choice — fix by hand, proceed without the check, or cancel the run — before the run continues. It is still *recommended*, not required.
 
 **What you also need, and it is not a plugin.** No plugin in this marketplace imports Jira tickets into your vault. That is a separate external tool — [`jira-workitem-import`](https://github.com/ivan-gudak/jira-workitem-import) — which populates `$VAULT_PATH/jira-products/<KEY>/` in the exact structure every Jira-driven command expects. Install it before `/specify`, `/document`, `/epics`, or any other Jira-driven command. The inline-prompt `/idea` walked through below needs none of it.
 
@@ -35,7 +35,7 @@ Run this whenever you want the latest command, agent, hook, and reference conten
 
 ## What you set on your machine
 
-`dev-workflows` reads six environment variables. Two are required for the pipeline to have anywhere to write (`VAULT_PATH`, `SPECS_PATH`); the rest are read where relevant and degrade gracefully — a missing optional one degrades rather than fails — though only `$DOCS_PATH` and `$DEV_WORKFLOWS_COST_PRICES` degrade *silently*; an unset `$GIT_USER_INITIALS` walks its fallback ladder and, if that comes up empty, the command asks you before creating a branch. Export the ones you use in your shell profile. For defaults, resolution order, and the exact directory layout each one expects, see [Environment](reference/environment.md); this section explains what each variable *is*.
+`dev-workflows` reads six environment variables. Two are required for the pipeline to have anywhere to write (`VAULT_PATH`, `SPECS_PATH`); the rest are read where relevant and degrade gracefully — a missing optional one degrades rather than fails — and `$REPOS_PATH`, `$DOCS_PATH`, and `$DEV_WORKFLOWS_COST_PRICES` all degrade *silently*; only `$GIT_USER_INITIALS` does not — it walks its fallback ladder and, if that comes up empty, the command asks you before creating a branch. Export the ones you use in your shell profile. For defaults, resolution order, and the exact directory layout each one expects, see [Environment](reference/environment.md); this section explains what each variable *is*.
 
 ### `VAULT_PATH`
 
@@ -47,7 +47,7 @@ The **shared, team-visible repository for the AI-authored documents** — the Va
 
 ### `REPOS_PATH`
 
-Where your code clones live — one directory, or a colon-separated list of them. It has a sensible built-in default, so most readers never need to set it at all; see [Environment](reference/environment.md) for the exact value and resolution order. Repos are matched by their `git remote get-url origin` slug, **never by directory name** — a repo cloned under any path, or renamed on disk, is still found correctly as long as its `origin` remote is intact. This is the detail that surprises people, so it is worth saying plainly here.
+Where your code clones live — one directory, or a colon-separated list of them. It has a sensible built-in default, so most readers never need to set it at all; see [Environment](reference/environment.md) for the exact value and resolution order. Matching depends on how a command finds the repo. Where a command resolves a repo from a pull-request URL — `/document`, `/epics`, `/release-notes` — it is matched by its `git remote get-url origin` slug, **never by directory name**, so a clone renamed on disk is still found as long as its `origin` remote is intact. The commands that instead discover repos to offer you — `/idea`, `/create-ard`, `/design` — list top-level directories under `$REPOS_PATH` and match on their **basenames**, so a repo renamed on disk is *not* found by those three. This is the detail that surprises people, so it is worth saying plainly here.
 
 ### `DOCS_PATH`
 

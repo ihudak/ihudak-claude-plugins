@@ -15,7 +15,7 @@ phase: full                # full (default) | verify-resume | regression-resume 
 regression_decision: keep-anyway  # keep-anyway | revert — REQUIRED on phase: regression-resume only;
                             # the orchestrator obtains this from the user (subagents cannot prompt
                             # the user directly — see /upgrade "Handling Test Failures")
-baseline:                    # The orchestrator (upgrade/SKILL.md Phase 2 Step 1)
+baseline:                    # The orchestrator (commands/upgrade.md Phase 2 prep, Step 2)
                              # ALWAYS captures the baseline before invoking this
                              # agent — this agent never re-baselines.
                              # On phase: verify-resume the orchestrator MUST

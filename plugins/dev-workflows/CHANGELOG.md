@@ -4,6 +4,11 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.58.3] — 2026-08-23
+
+### Fixed
+- **`/update-vi`'s forward-path offer omitted `/epics`.** `references/next-phase-offer.md`, `commands/update-vi.md`'s Phase 6 `choices` array, and `docs/commands/update-vi.md`'s See-also line each named only `/release-notes`, `/create-ard`, and `/specify` as the destinations re-offered after a refresh. Confirmed with the maintainer: `/update-vi` offers the same four forward paths as `/create-vi`, including `/epics` — `/update-vi` improves a VI that `/create-vi` created, so everything downstream is identical, and the omission was an understatement rather than a deliberate exclusion. Added `/epics <VI>` (PE) alongside the other three in all three sites; the existing "(if one exists)" qualifiers on `/create-ard` and `/specify` are untouched.
+
 ## [2.58.2] — 2026-08-23
 
 ### Fixed

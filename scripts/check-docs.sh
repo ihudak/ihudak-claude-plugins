@@ -169,8 +169,9 @@ $abs"
 
 # ------------------------------------------------------------------- check 4
 # Inventory agrees in BOTH directions, over reference FILES not reference
-# markdown -- references/ holds 98 files of which 5 are not markdown, and one of
-# those (cost-prices.yaml) is user-overridable and therefore user-facing.
+# markdown -- in the edition this was found in, the reference dir ($REF_DIR) held 98
+# files of which 5 were not markdown, and one of those (cost-prices.yaml) is
+# user-overridable and therefore user-facing.
 # Every inventory is derived from the edition being checked, never from a number
 # written into a page.
 check_inventory() {
@@ -217,7 +218,7 @@ check_inventory() {
     [ "$claimed" = "$count" ] || fail 4 "reference/references.md says $dir/ has '${claimed:-nothing}', tree has $count"
   done
   # ...and the reverse: a subtree the page claims but the tree no longer has. Without this,
-  # `rm -rf references/upgrade/` passes while the page still advertises `upgrade/` (3).
+  # `rm -rf $REF_DIR/upgrade/` passes while the page still advertises `upgrade/` (3).
   while IFS= read -r dir; do
     [ -n "$dir" ] || continue
     [ -d "$p/$REF_DIR/$dir" ] || fail 4 "reference/references.md claims subtree $dir/, which does not exist"
@@ -260,7 +261,7 @@ RUNTIME_VARS="CLAUDE_PLUGIN_ROOT ARGUMENTS OSTYPE BASH_SOURCE BASH_REMATCH ROOT 
 # tripwire and the editor has to update both. Each current entry is justified:
 #   CLAUDE_PLUGIN_ROOT ARGUMENTS OSTYPE BASH_SOURCE BASH_REMATCH -- runtime/shell, not user-settable
 #   ROOT       -- hook-local shell variable (hooks/changelog-owners-reminder.sh)
-#   OWNER_REPO -- template placeholder in references/phase-handoff.md
+#   OWNER_REPO -- template placeholder in $REF_DIR/phase-handoff.md
 RUNTIME_VARS_FROZEN="ARGUMENTS BASH_REMATCH BASH_SOURCE CLAUDE_PLUGIN_ROOT OSTYPE OWNER_REPO ROOT"
 
 check_env_vars() {
@@ -328,7 +329,7 @@ check_table_cells() {
 # It is a SUBSET pin, not equality: the root README documents the whole
 # marketplace, while this page documents ONE plugin and should install only what
 # that plugin actually needs. (dev-workflows references `dt-style-guide` 32 times;
-# `acli` zero, and `references/followup-emission.md` states outright that it has no
+# `acli` zero, and `$REF_DIR/followup-emission.md` states outright that it has no
 # runtime dependency on `obsidian-llm-wiki`.) So every line HERE must appear verbatim
 # in the root README -- which is what catches a drifted marketplace name or command
 # form -- but the root README may list more.
@@ -365,7 +366,7 @@ check_install_block() {
 
 # ------------------------------------------------------------------- check 8
 # Cost attribution agrees in BOTH directions: every command that hands emit-cost a
-# fixed phase/role pair has a row in references/cost-emission.md section 7 carrying
+# fixed phase/role pair has a row in $REF_DIR/cost-emission.md section 7 carrying
 # those same two values, and every section-7 row names a real command. Defect D2 --
 # /update-vi emitting `phase: vi-update, role: pm` with no section-7 row -- was found
 # by a one-off inline grep and defended by nothing afterwards, which is how it had
@@ -429,7 +430,7 @@ check_cost_attribution() {
 # ------------------------------------------------------------------- check 9
 # Prose counts. check 4 gates the INVENTORIES in both directions, but not the sentences
 # that state their size. A 22nd command with a page and an index link passes check 4 while
-# `plugins/dev-workflows/README.md` still says "twenty-one slash commands" -- and a reader
+# `$PLUGIN_REL/README.md` still says "twenty-one slash commands" -- and a reader
 # meets the sentence before the table. Same for the agent, reference-file, hook, skill and
 # environment-variable totals.
 _word2num() {

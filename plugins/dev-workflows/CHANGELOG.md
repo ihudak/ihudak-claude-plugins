@@ -4,6 +4,11 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.58.2] — 2026-08-23
+
+### Fixed
+- **`docs/getting-started.md` listed every prerequisite except the one external plugin the pipeline actually cedes control to.** It named `dt-style-guide`, `jira-workitem-import`, and the two marketplace siblings that are *not* needed — and omitted `superpowers`, which `/prompt-brainstorm` hands its Phase 3 to. The repo-root README has carried it as a recommended weak dependency all along; the new page did not inherit it. Added, with the distinction that matters: **brainstorming is external, grilling is not** — the relentless-interrogation technique the authoring commands run is bundled at `references/grilling-technique.md`, so only the brainstorm hand-off has an outside dependency.
+
 ## [2.58.1] — 2026-08-23
 
 ### Fixed

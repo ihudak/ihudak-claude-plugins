@@ -4,6 +4,13 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [2.58.1] — 2026-08-23
+
+### Fixed
+- **Two review findings reported as fixed in 2.58.0 were not.** One was skipped by an accidental no-op in the batch edit that applied the wave (the "before" and "after" strings were identical, so the loop's guard silently passed over it) and was then reported as applied without re-reading the file; the other was never addressed at all. Both are real and both are fixed here. The reporting error is the more useful half: a fix wave that reports from its own script's intent rather than from the resulting file will always over-report, which is the same failure shape as a verification table asserting PASS for a check that never ran.
+  - `docs/commands/prompt.md` claimed "the only checkpoints are the specs-repo git guards". `references/cost-emission.md` §9's reconciliation is a **suggest-and-confirm** offer that fires "whenever any command resolves a VI key and pending files exist" — and as of 2.58.0 `/prompt` runs a cost phase and resolves a `jira_key`, so it is reachable. The page now names both interrupt sources. (Its Phase 3 "Write silently" line is unchanged and still correct: it describes the feedback append, which is silent; the cost step that follows it is a separate step.)
+  - `commands/prompt.md` Phase 1 offers `"Other… (describe)"`, whose answer is free text, while §11 requires `target_command` to be a bare §7 row name. Phase 1 now normalises the answer onto a row name before it travels, and uses `n/a` when it names none — an unnormalised value matches no row and silently degrades the entry to `plugin-feedback`/`n/a`, the exact failure the 2.58.0 chain fix existed to prevent.
+
 ## [2.58.0] — 2026-08-23
 
 ### Added

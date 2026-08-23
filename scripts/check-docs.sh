@@ -13,11 +13,45 @@
 # from `git ls-files` while the new pages were still untracked.
 set -uo pipefail
 
-PLUGIN_REL="plugins/dev-workflows"
+# ---------------------------------------------------------------- edition config
+# THE ONLY PART OF THIS FILE THAT DIFFERS BETWEEN EDITIONS. Never copy it across.
+# Everything below is byte-identical in ihudak-claude-plugins, mgd-claude-plugins
+# and ihudak-copilot-plugins, so a fix to the gate ports by plain `cp` of the body.
+PLUGIN_REL="plugins/dev-workflows"   # copilot: dev-workflows
+CMD_DIR="commands"                   # copilot: skills
+CMD_SUFFIX=".md"                     # copilot: /SKILL.md
+CMD_EXCLUDE=""                       # copilot: _shared
+REF_DIR="references"                 # copilot: skills/_shared
+REF_FLAT_EXTRA="model-routing"       # canonical: references/model-routing/*.md is a
+                                     # subtree of reference FILES; copilot: "" (its
+                                     # model-routing.md is a flat file in _shared)
+DOC_CMD_DIR="commands"               # copilot: skills
+CLI="claude"                         # copilot: copilot
+CLI_VERBS="marketplace add|marketplace update|install|reinstall"   # copilot: marketplace add|install|update
+HAS_COST=1                           # copilot: 0 -- no cost subsystem exists there
+
 FAILURES=0
 
 fail() { printf 'FAIL check %s: %s\n' "$1" "$2" >&2; FAILURES=$((FAILURES + 1)); }
 note() { printf '  %s\n' "$1" >&2; }
+
+# ---------------------------------------------------------- shared: command enumeration
+# A "command" is $CMD_DIR/<name>$CMD_SUFFIX. When $CMD_SUFFIX names a path (it contains a
+# slash -- e.g. copilot's "/SKILL.md"), each command is a DIRECTORY holding that file, so
+# enumeration walks directories and excludes $CMD_EXCLUDE (a directory that is not a
+# command, e.g. copilot's "_shared"). Otherwise $CMD_SUFFIX is a flat filename suffix and
+# enumeration globs files directly -- $CMD_EXCLUDE plays no role there, since a bare
+# directory never matches the glob.
+cmd_names() { # <plugin-dir> -> one command name per line
+  local p="$1" b
+  case "$CMD_SUFFIX" in
+    */*) ls -d "$p/$CMD_DIR"/*/ 2>/dev/null | sed 's|/*$||; s|.*/||' | grep -vxF "${CMD_EXCLUDE:-__none__}" ;;
+    *)   ls "$p/$CMD_DIR"/*"$CMD_SUFFIX" 2>/dev/null | while IFS= read -r b; do
+           b="$(basename "$b")"; printf '%s\n' "${b%$CMD_SUFFIX}"
+         done ;;
+  esac
+}
+cmd_file() { printf '%s/%s/%s%s\n' "$1" "$CMD_DIR" "$2" "$CMD_SUFFIX"; } # <plugin-dir> <name> -> its file path
 
 # ---------------------------------------------------------------- check 1 + 2
 # Every relative link resolves, and every #anchor resolves to a real heading in
@@ -138,13 +172,14 @@ $abs"
 check_inventory() {
   local root="$1" p="$1/$PLUGIN_REL" d="$1/$PLUGIN_REL/docs" n
 
-  # commands <-> docs/commands/
+  # commands <-> docs/$DOC_CMD_DIR/
   while IFS= read -r n; do
-    [ -f "$d/commands/$n.md" ] || fail 4 "command '$n' has no page at docs/commands/$n.md"
-  done < <(ls "$p/commands"/*.md 2>/dev/null | sed 's|.*/||; s|\.md$||')
+    [ -n "$n" ] || continue
+    [ -f "$d/$DOC_CMD_DIR/$n.md" ] || fail 4 "command '$n' has no page at docs/$DOC_CMD_DIR/$n.md"
+  done < <(cmd_names "$p")
   while IFS= read -r n; do
-    [ -f "$p/commands/$n.md" ] || fail 4 "docs/commands/$n.md names no real command"
-  done < <(ls "$d/commands"/*.md 2>/dev/null | sed 's|.*/||; s|\.md$||')
+    [ -f "$(cmd_file "$p" "$n")" ] || fail 4 "docs/$DOC_CMD_DIR/$n.md names no real command"
+  done < <(ls "$d/$DOC_CMD_DIR"/*.md 2>/dev/null | sed 's|.*/||; s|\.md$||')
 
   # agents <-> docs/reference/agents.md
   while IFS= read -r n; do
@@ -157,10 +192,10 @@ check_inventory() {
   # reference FILES <-> docs/reference/references.md
   while IFS= read -r n; do
     grep -qF "\`$n\`" "$d/reference/references.md" 2>/dev/null || fail 4 "reference file '$n' is absent from reference/references.md"
-  done < <({ ls "$p/references"/*.md 2>/dev/null; ls "$p/references"/*.yaml 2>/dev/null; \
-             ls "$p/references/model-routing"/*.md 2>/dev/null; } | sed 's|.*/||')
+  done < <({ ls "$p/$REF_DIR"/*.md 2>/dev/null; ls "$p/$REF_DIR"/*.yaml 2>/dev/null; \
+             [ -n "$REF_FLAT_EXTRA" ] && ls "$p/$REF_DIR/$REF_FLAT_EXTRA"/*.md 2>/dev/null; } | sed 's|.*/||')
   while IFS= read -r n; do
-    [ -f "$p/references/$n" ] || [ -f "$p/references/model-routing/$n" ] \
+    [ -f "$p/$REF_DIR/$n" ] || { [ -n "$REF_FLAT_EXTRA" ] && [ -f "$p/$REF_DIR/$REF_FLAT_EXTRA/$n" ]; } \
       || fail 4 "reference/references.md names '$n', which is not a reference file"
   done < <(grep -oE '`[A-Za-z0-9_.-]+\.(md|yaml)`' "$d/reference/references.md" 2>/dev/null | tr -d '`')
 
@@ -171,9 +206,9 @@ check_inventory() {
   # which is how a whole directory of reference docs would ship undocumented.
   # model-routing/ is excluded deliberately -- its *.md are inventoried file-by-file above.
   local dir count claimed
-  for dir in $(ls -d "$p/references"/*/ 2>/dev/null | sed 's|/*$||; s|.*/||'); do
-    [ "$dir" = "model-routing" ] && continue
-    count=$(find "$p/references/$dir" -name '*.md' | wc -l | tr -d ' ')
+  for dir in $(ls -d "$p/$REF_DIR"/*/ 2>/dev/null | sed 's|/*$||; s|.*/||'); do
+    [ -n "$REF_FLAT_EXTRA" ] && [ "$dir" = "$REF_FLAT_EXTRA" ] && continue
+    count=$(find "$p/$REF_DIR/$dir" -name '*.md' | wc -l | tr -d ' ')
     claimed=$(grep -oE "\`$dir/\` \(([0-9]+)\)" "$d/reference/references.md" 2>/dev/null | grep -oE '[0-9]+' | head -1)
     [ "$claimed" = "$count" ] || fail 4 "reference/references.md says $dir/ has '${claimed:-nothing}', tree has $count"
   done
@@ -181,7 +216,7 @@ check_inventory() {
   # `rm -rf references/upgrade/` passes while the page still advertises `upgrade/` (3).
   while IFS= read -r dir; do
     [ -n "$dir" ] || continue
-    [ -d "$p/references/$dir" ] || fail 4 "reference/references.md claims subtree $dir/, which does not exist"
+    [ -d "$p/$REF_DIR/$dir" ] || fail 4 "reference/references.md claims subtree $dir/, which does not exist"
   done < <(grep -oE '`[a-z][a-z0-9-]*/` \([0-9]+\)' "$d/reference/references.md" 2>/dev/null | sed 's|`||g; s|/.*||')
 
   # hooks <-> docs/reference/hooks.md
@@ -230,7 +265,7 @@ check_env_vars() {
     || fail 5 "RUNTIME_VARS changed -- every entry silences check 5 for that variable; justify it in the comment above and update RUNTIME_VARS_FROZEN in the same edit"
   local read_vars documented
   read_vars=$(grep -rhoE '\$\{?[A-Z][A-Z0-9_]{2,}\}?' \
-                "$p/commands" "$p/agents" "$p/references" "$p/hooks" "$p/skills" 2>/dev/null \
+                "$p/$CMD_DIR" "$p/agents" "$p/$REF_DIR" "$p/hooks" 2>/dev/null \
               | tr -d '${}' | sort -u)
   for v in $read_vars; do
     case " $RUNTIME_VARS " in *" $v "*) continue ;; esac
@@ -291,10 +326,10 @@ check_table_cells() {
 # form -- but the root README may list more.
 check_install_block() {
   local root="$1" a b extra line
-  a=$(grep -oE '^claude plugin (marketplace (add|update)|install|reinstall) .*' "$root/README.md" 2>/dev/null | sort -u)
-  b=$(grep -oE '^claude plugin (marketplace (add|update)|install|reinstall) .*' "$root/$PLUGIN_REL/docs/getting-started.md" 2>/dev/null | sort -u)
-  if [ -z "$a" ]; then fail 7 "repo-root README.md has no 'claude plugin ...' command lines to pin against"; return; fi
-  if [ -z "$b" ]; then fail 7 "getting-started.md has no 'claude plugin ...' command lines -- it must carry them inline"; return; fi
+  a=$(grep -oE "^$CLI plugin ($CLI_VERBS) .*" "$root/README.md" 2>/dev/null | sort -u)
+  b=$(grep -oE "^$CLI plugin ($CLI_VERBS) .*" "$root/$PLUGIN_REL/docs/getting-started.md" 2>/dev/null | sort -u)
+  if [ -z "$a" ]; then fail 7 "repo-root README.md has no '$CLI plugin ...' command lines to pin against"; return; fi
+  if [ -z "$b" ]; then fail 7 "getting-started.md has no '$CLI plugin ...' command lines -- it must carry them inline"; return; fi
 
   extra=$(comm -13 <(printf '%s\n' "$a") <(printf '%s\n' "$b"))
   if [ -n "$extra" ]; then
@@ -305,10 +340,10 @@ check_install_block() {
   # The marketplace add/update lines are the edition identity itself -- a reader who
   # follows this page must be able to add and update the marketplace from it alone.
   for line in 'marketplace add' 'marketplace update'; do
-    grep -q "^claude plugin $line " <<<"$b" \
-      || fail 7 "getting-started.md is missing its 'claude plugin $line' line"
+    grep -q "^$CLI plugin $line " <<<"$b" \
+      || fail 7 "getting-started.md is missing its '$CLI plugin $line' line"
   done
-  grep -q "^claude plugin install ${PLUGIN_REL##*/}@" <<<"$b" \
+  grep -q "^$CLI plugin install ${PLUGIN_REL##*/}@" <<<"$b" \
     || fail 7 "getting-started.md does not install ${PLUGIN_REL##*/} itself"
 }
 
@@ -322,23 +357,26 @@ check_install_block() {
 # grep: it calls emit-cost twice, as `/document (Jira mode)` and `/document (direct
 # mode)`, against a single `/document` row.
 emit_cost_calls() { # <plugin-dir>  ->  lines of  <command>|<phase>|<role>
-  local p="$1" f
-  for f in "$p/commands"/*.md; do
+  local p="$1" f n
+  while IFS= read -r n; do
+    [ -n "$n" ] || continue
+    f=$(cmd_file "$p" "$n")
     [ -f "$f" ] || continue
     tr '\n' ' ' < "$f" | tr -s ' ' \
       | grep -oE '`command: /[a-z-]+( \([A-Za-z]+ mode\))?`, `phase: [a-z-]+`, `role: [a-z]+`' \
       | sed -E 's/`command: //; s/ \([A-Za-z]+ mode\)//; s/`, `phase: /|/; s/`, `role: /|/; s/`$//'
-  done | sort -u
+  done < <(cmd_names "$p") | sort -u
 }
 
 check_cost_attribution() {
+  [ "$HAS_COST" = 1 ] || { note "check 8 not applicable: this edition has no cost subsystem"; return; }
   local root="$1" p="$1/$PLUGIN_REL" table calls line cmd phase role want
-  table=$(sed -n '/^## 7\./,/^## 8\./p' "$p/references/cost-emission.md" 2>/dev/null \
+  table=$(sed -n '/^## 7\./,/^## 8\./p' "$p/$REF_DIR/cost-emission.md" 2>/dev/null \
           | grep -oE '^\| `/[a-z-]+` \| [^|]+ \| [^|]+ \|' \
           | sed -E 's/^\| `//; s/` \| /|/; s/ \| /|/; s/ *\|$//; s/\*//g; s/ *\| */|/g')
-  [ -n "$table" ] || { fail 8 "references/cost-emission.md has no section-7 attribution table"; return; }
+  [ -n "$table" ] || { fail 8 "$REF_DIR/cost-emission.md has no section-7 attribution table"; return; }
   calls=$(emit_cost_calls "$p")
-  [ -n "$calls" ] || { fail 8 "no emit-cost call site found in commands/ -- the extractor has stopped matching"; return; }
+  [ -n "$calls" ] || { fail 8 "no emit-cost call site found in $CMD_DIR/ -- the extractor has stopped matching"; return; }
 
   while IFS='|' read -r cmd phase role; do
     [ -n "$cmd" ] || continue
@@ -360,14 +398,16 @@ check_cost_attribution() {
   # triple; otherwise a reworded call site makes this check go QUIET, and the message above
   # would blame the table for what is really an extractor miss. `/document` is the live
   # example -- it calls emit-cost twice under parenthesised names.
-  local f n
-  for f in "$p/commands"/*.md; do
+  local f n cn
+  while IFS= read -r cn; do
+    [ -n "$cn" ] || continue
+    f=$(cmd_file "$p" "$cn")
     [ -f "$f" ] || continue
     grep -q 'emit-cost' "$f" || continue
-    n="/$(basename "$f" .md)"
+    n="/$cn"
     grep -qF "$n|" <<<"$calls" \
-      || fail 8 "commands$(basename "$f" .md | sed 's|^|/|').md calls emit-cost but no phase/role triple matched -- the EXTRACTOR has drifted, not the table; fix the regex, never the row"
-  done
+      || fail 8 "$CMD_DIR/$cn$CMD_SUFFIX calls emit-cost but no phase/role triple matched -- the EXTRACTOR has drifted, not the table; fix the regex, never the row"
+  done < <(cmd_names "$p")
 }
 
 # ------------------------------------------------------------------- check 9
@@ -405,9 +445,9 @@ check_prose_counts() {
       || fail 9 "$label: ${file#$root/} says $raw ($claimed), tree has $actual"
   }
 
-  _one "commands"        "$p/README.md"                  '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) slash commands'    "$(ls "$p/commands"/*.md 2>/dev/null | wc -l | tr -d ' ')"
+  _one "commands"        "$p/README.md"                  '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) slash commands'    "$(cmd_names "$p" | wc -l | tr -d ' ')"
   _one "agents"          "$d/reference/agents.md"        '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) agents'           "$(ls "$p/agents"/*.md 2>/dev/null | wc -l | tr -d ' ')"
-  _one "reference files" "$d/reference/references.md"    '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) files'           "$(find "$p/references" -type f 2>/dev/null | wc -l | tr -d ' ')"
+  _one "reference files" "$d/reference/references.md"    '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) files'           "$(find "$p/$REF_DIR" -type f 2>/dev/null | wc -l | tr -d ' ')"
   _one "hooks"           "$d/reference/hooks.md"         '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) hooks'                   "$(ls "$p/hooks"/*.sh 2>/dev/null | wc -l | tr -d ' ')"
   _one "skills"          "$d/README.md"                  '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) bundled skills'           "$(ls -d "$p/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')"
 
@@ -415,7 +455,7 @@ check_prose_counts() {
   # can never disagree about what "user-settable" means.
   local read_vars n_settable v
   read_vars=$(grep -rhoE '\$\{?[A-Z][A-Z0-9_]{2,}\}?' \
-                "$p/commands" "$p/agents" "$p/references" "$p/hooks" "$p/skills" 2>/dev/null \
+                "$p/$CMD_DIR" "$p/agents" "$p/$REF_DIR" "$p/hooks" 2>/dev/null \
               | tr -d '${}' | sort -u)
   n_settable=0
   for v in $read_vars; do
@@ -426,10 +466,14 @@ check_prose_counts() {
 
   # The size of the cost-emitting set is prose too, and it is the count that went stale the
   # moment /prompt and /feedback started emitting. Derived from the same extractor check 8 uses.
-  local n_emit
-  n_emit=$(emit_cost_calls "$p" | cut -d'|' -f1 | sort -u | grep -c . || true)
-  _one "cost-emitting commands" "$d/reference/session-cost.md" \
-       '(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|twenty-one|thirty-four|ninety-eight|[0-9]+) commands emit a cost entry' "$n_emit"
+  if [ "$HAS_COST" = 1 ]; then
+    local n_emit
+    n_emit=$(emit_cost_calls "$p" | cut -d'|' -f1 | sort -u | grep -c . || true)
+    _one "cost-emitting commands" "$d/reference/session-cost.md" \
+         '(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|twenty-one|thirty-four|ninety-eight|[0-9]+) commands emit a cost entry' "$n_emit"
+  else
+    note "check 9 cost-emitting-commands assertion not applicable: this edition has no cost subsystem"
+  fi
 }
 
 # ------------------------------------------------------------------ selftest

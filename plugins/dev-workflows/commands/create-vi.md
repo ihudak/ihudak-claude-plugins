@@ -142,7 +142,7 @@ Then author the profile's **adapt-in clusters**, each **pulled only when the ide
 
 ## Phase 3.5 — Prose style check
 
-Run a corporate style check on the authored VI **before** the review gate. This
+Run a prose style check on the authored VI **before** the review gate. This
 is a **quality enhancement, not a gate** — it never blocks the handoff.
 `vi-reviewer` (Phase 4) judges content; style / terminology is checked here
 (mirrors `/epics` Phase 6.2).

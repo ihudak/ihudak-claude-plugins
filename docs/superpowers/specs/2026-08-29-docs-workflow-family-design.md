@@ -76,42 +76,44 @@ Three new agents only — `docs-auditor`, `ia-planner`, `drift-detector`. Everyt
 ```mermaid
 flowchart TD
     repos[("code repos")]
+
     subgraph COLD["Cold start — Spec 1"]
         init["/docs-init — scaffold, Vale, two builds"]
         brand["/docs-brand — logo and colours"]
         audit["/docs-audit — surfaces crossed with Diátaxis"]
     end
+
+    profile[("docs-profile.yml")]
+    serve["/docs-serve — run the site, anytime"]
+    backlog[("docs-backlog.yml")]
+
     subgraph ITER["Iteration — Spec 2"]
         write["/docs-write — one unit"]
         verify["/docs-verify — resolve claims"]
     end
-    subgraph KEEP["Drift — Spec 3"]
-        drift["/docs-drift"]
-    end
-    profile[("docs-profile.yml")]
-    backlog[("docs-backlog.yml")]
+
     pages[("docs/ pages")]
-    serve["/docs-serve — background docs server"]
+
+    subgraph KEEP["Drift — Spec 3"]
+        drift["/docs-drift — re-check evidence"]
+    end
 
     repos --> init
     init -->|inline| brand
     init --> profile
+    profile --> serve
     repos --> audit
     profile --> audit
     audit --> backlog
     backlog --> write
-    write --> pages
-    write --> verify
-    verify --> pages
-    verify -->|"status: published"| backlog
+    write -->|drafted| verify
+    verify -->|"verified → published"| pages
+    pages --> drift
     repos --> drift
-    backlog --> drift
     drift -->|"status: stale"| backlog
-    profile --> serve
-    pages --> serve
 ```
 
-Read the diagram as three loops sharing two artefacts. `docs-profile.yml` is what makes the generator choice invisible to everything downstream (D9); `docs-backlog.yml` is what makes "what next" and "are we done" answerable at all. `/docs-serve` sits outside every loop because it is a utility, not a stage — it works on any profiled docs repo, including one this family never scaffolded.
+Three stages sharing two artefacts, with one loop: drift closes back onto the backlog rather than running off the end. `docs-profile.yml` is what makes the generator choice invisible to everything downstream (D9); `docs-backlog.yml` is what makes "what next" and "are we done" answerable at all. `/docs-serve` hangs off the profile rather than sitting in a stage, because it is a utility available from the moment the repo is profiled — and it works on any profiled docs repo, including one this family never scaffolded.
 
 ---
 

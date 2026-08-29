@@ -1,7 +1,7 @@
-# Value Increment format (embedded authority)
+# Product Requirements Document format (embedded authority)
 
-The canonical structure and per-section rules for a `<KEY>_<slug>.md` VI file (frontmatter `issue_type: ValueIncrement`). `/create-vi` and `/update-vi` author
-against this file; `vi-reviewer` reviews against it, and `/release-notes` reads its Jira-mirror fields. The VI is **product-level** (a PRD): what / why /
+The canonical structure and per-section rules for a `<KEY>_<slug>.md` PRD file (frontmatter `issue_type: ValueIncrement`). `/create-prd` and `/update-prd` author
+against this file; `prd-reviewer` reviews against it, and `/release-notes` reads its Jira-mirror fields. The PRD is **product-level** (a PRD): what / why /
 for-whom, **not** how — no implementation detail. A mandatory **spine** (always present) plus an
 **adapt-in menu** whose clusters are pulled only when the idea warrants them (never an empty section).
 
@@ -15,7 +15,7 @@ for-whom, **not** how — no implementation detail. A mandatory **spine** (alway
 
 ```yaml
 ---
-title: <human-readable VI title>
+title: <human-readable PRD title>
 summary: <one-line>
 issue_type: ValueIncrement
 status: <e.g. draft>
@@ -25,12 +25,12 @@ priority: <e.g. Major>
 labels: [ ... ]
 relevant_for_release_notes: <yes | no>
 sources:                     # PROPAGATED from idea.md's recorded provenance — not the literal idea.md
-  - provenance: rfe | vi | community-post | prompt | markdown
+  - provenance: rfe | prd | community-post | prompt | markdown
     ref: <RFE key | post URL | ...>
-derived_from: <path to the idea.md this VI was built from>
-seeded_from_vi: <VI key or path when this VI was seeded from another VI via `/create-vi --from-vi`; omit otherwise>
-revision_of: <path to the archived prior VI snapshot; written by `/update-vi` on refresh; omit otherwise>
-built_from_import: <YYYY-MM-DD of the Jira import the `/update-vi` refresh was built from; omit otherwise>
+derived_from: <path to the idea.md this PRD was built from>
+seeded_from_prd: <PRD key or path when this PRD was seeded from another PRD via `/create-prd --from-prd`; omit otherwise>
+revision_of: <path to the archived prior PRD snapshot; written by `/update-prd` on refresh; omit otherwise>
+built_from_import: <YYYY-MM-DD of the Jira import the `/update-prd` refresh was built from; omit otherwise>
 jira_key: <KEY>
 ---
 ```
@@ -75,7 +75,7 @@ deciding it in Jira costs, so the question buys nothing.
 
 ## Quality rules
 
-- **No implementation detail** anywhere — the VI is product-level (algorithms, data structures, code paths, internal APIs belong to the ARD / spec / design).
+- **No implementation detail** anywhere — the PRD is product-level (algorithms, data structures, code paths, internal APIs belong to the ARD / spec / design).
 - **Internally consistent** — no requirement contradicts another or the scope: no `[AC#N]` delivering an Out-of-scope behaviour, no `## Goal` asserting a scope the `## Scope` section contradicts, no conflicting `[US#N]`. A deliberately-kept tension is recorded under `## Assumptions & open questions`, never left implicit in a requirement.
 - **FR / UC must not restate US** — reference by ID; each adds capability/behaviour, not a paraphrase.
 - Acceptance criteria and success metrics are **externally observable**.

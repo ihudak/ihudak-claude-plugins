@@ -134,7 +134,7 @@ Used for the description segment (§1.2) or the §1.4 `<slug>`:
 
 - `/implement` — derived from the description: lowercase kebab-case, max 40 chars, punctuation and special characters stripped
 - `/document` (doc-edit mode) — derived from the description: lowercase kebab-case, max 40 chars, punctuation and special characters stripped
-- `/document` (Jira mode) — first 4–6 content words of the VI summary, kebab-case
+- `/document` (Jira mode) — first 4–6 content words of the PRD summary, kebab-case
 - `/docs-profile` — `docs-profile`
 - `/vuln` — `<CVE-ID>`
 - `/upgrade` — `upgrade-<component>-to-<version>`, or `upgrade-<first>-and-<N>-more` for a batch

@@ -373,7 +373,7 @@ This plugin is a **fallback** for the `docs-style-checker` agent in `dev-workflo
   never invokes `prose-style-checker` separately; `NOT_CONFIGURED` means neither was
   available.
 - **`/epics`** Phase 6.2 invokes `prose-style-checker` directly (Epic drafts are
-  vault-internal and have no repo linter). `/create-vi`, `/update-vi`, and
+  vault-internal and have no repo linter). `/create-prd`, `/update-prd`, and
   `/release-notes` invoke it directly too.
 - **`/prose-review-pr` and `/prose-review-docs`** are standalone — invoke them directly
   without going through the `dev-workflows` pipeline.

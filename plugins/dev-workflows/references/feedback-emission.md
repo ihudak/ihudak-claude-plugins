@@ -8,7 +8,7 @@ owns the entry format, the persistence ladder, dedup/attribution, the
 plugin-facing predicate, and the caller contract.
 
 **Purpose.** Capture friction and improvement signals about the **dev-workflows
-plugin itself** and persist them per-VI into the **specs repo** so the plugin
+plugin itself** and persist them per-PRD into the **specs repo** so the plugin
 maintainer can aggregate feedback across engineers. Feedback reaches the
 maintainer only if it lands in the committed, pushed specs repo — hence the
 persistence ladder is **specs-first** (§2), and hence every command's terminal
@@ -25,7 +25,7 @@ a declared install-time dependency.
 **Relationship to B4 (`followup-emission.md`).** B4 captures the *engineer's own*
 follow-up actions → vault-first, audience = the engineer. This feature captures
 *plugin* friction → specs-first, audience = the maintainer. Both share the
-`<VI-dir>/dev-workflows/` per-VI area. **No dedup between them** — different
+`<PRD-dir>/dev-workflows/` per-PRD area. **No dedup between them** — different
 purpose, different audience.
 
 **Relationship to `impl-maintenance`.** The automatic surface reuses the existing
@@ -36,7 +36,7 @@ session itself.
 
 ## 1. Entry format (machine-friendly hybrid)
 
-One file per VI, named `<KEY>-feedback.md`. Deterministic YAML for
+One file per PRD, named `<KEY>-feedback.md`. Deterministic YAML for
 filtering/clustering; prose for human judgment.
 
 File-level frontmatter, written once on creation:
@@ -44,13 +44,13 @@ File-level frontmatter, written once on creation:
 ```yaml
 ---
 type: dev-workflows-feedback
-vi: PRODUCT-1234
+prd: PRODUCT-1234
 slug: env-ag-update-window
 ---
 ```
 
-- `vi` — the run's Jira key, or `n/a` when no key resolved.
-- `slug` — the feature slug from the VI dir, or the ISO date on a keyless file.
+- `prd` — the run's Jira key, or `n/a` when no key resolved.
+- `slug` — the feature slug from the PRD dir, or the ISO date on a keyless file.
 
 Each entry is appended as a dated H2 header + a fenced YAML block + prose:
 
@@ -96,13 +96,13 @@ back in review because the two products differ here.
 **deterministic** (no interactive vault-path prompt, consistent with silent
 capture, §5). Walk the ladder top-down and stop at the first tier that applies:
 
-1. **`$SPECS_PATH` resolvable + writable + the VI dir exists** — the dir matched
+1. **`$SPECS_PATH` resolvable + writable + the PRD dir exists** — the dir matched
    by `$SPECS_PATH/{specs|specifications|vis}/…/<KEY>{-|_}<slug>/…` →
-   `<VI-dir>/dev-workflows/<KEY>-feedback.md`. *[primary — the whole point]*
-2. **`$SPECS_PATH` writable but no VI dir matched** (no `jira_key`, or no
+   `<PRD-dir>/dev-workflows/<KEY>-feedback.md`. *[primary — the whole point]*
+2. **`$SPECS_PATH` writable but no PRD dir matched** (no `jira_key`, or no
    matching spec dir) → `$SPECS_PATH/dev-workflows-feedback/<KEY-or-date>.md` at
    the specs-repo root. Still committed & aggregated; notice:
-   `unfiled — move under the VI dir if it belongs to one.`
+   `unfiled — move under the PRD dir if it belongs to one.`
 3. **No `$SPECS_PATH` (unset / missing / read-only) AND the vault is writable**
    (`$VAULT_PATH` set **and** an existing directory **and**
    writable) → `$VAULT_PATH/dev-workflows/feedback/<KEY>-feedback.md`, with a

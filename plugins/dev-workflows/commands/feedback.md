@@ -1,13 +1,13 @@
 ---
 name: feedback
-description: Log a manual note about the dev-workflows plugin itself — friction you hit or an improvement you want — to the per-VI feedback file in the specs repo, for the plugin maintainer to aggregate. Tied to no command; run any time.
+description: Log a manual note about the dev-workflows plugin itself — friction you hit or an improvement you want — to the per-PRD feedback file in the specs repo, for the plugin maintainer to aggregate. Tied to no command; run any time.
 allowed-tools: Read Edit Write Bash Glob Grep
 ---
 
 Log session feedback about the dev-workflows plugin: $ARGUMENTS
 
 `/feedback` captures a **manual note about the dev-workflows plugin itself** —
-friction you hit, or an improvement you want — and persists it per-VI into the
+friction you hit, or an improvement you want — and persists it per-PRD into the
 specs repo so the plugin maintainer can aggregate feedback across engineers. It
 is tied to **no command** and can be run any time. You author the prose; the
 command fills the metadata and writes the entry. `origin: manual`.

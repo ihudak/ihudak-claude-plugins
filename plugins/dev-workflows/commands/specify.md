@@ -1,20 +1,20 @@
 ---
 name: specify
-description: Jira-driven specification-authoring workflow (PE phase). Reads a Jira Epic/VI from exported markdown, lightly grounds in code, and authors an org-standard specification.md through a relentless one-question-at-a-time grill; gates on the Opus spec-reviewer and lands the spec on the specs repo's main branch via branch + PR for the /design dev take-over.
+description: Jira-driven specification-authoring workflow (PE phase). Reads a Jira Epic/PRD from exported markdown, lightly grounds in code, and authors an org-standard specification.md through a relentless one-question-at-a-time grill; gates on the Opus spec-reviewer and lands the spec on the specs repo's main branch via branch + PR for the /design dev take-over.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
 Author a product specification for the Jira item: $ARGUMENTS
 
 `/specify` is the **PE-phase specification-authoring** workflow — the specification step of the PM→PA→PE→Dev pipeline
-(`/specify` → `specification.md`; then `/design` → `design.md` + `plan.md`). Given a Jira Epic (or VI)
+(`/specify` → `specification.md`; then `/design` → `design.md` + `plan.md`). Given a Jira Epic (or PRD)
 key or an imported-Jira directory, it reads the item from pre-exported markdown, lightly scans code to
 ground feasibility, and authors an org-standard `specification.md` through a relentless
 one-question-at-a-time grill — resolving open questions live instead of stopping. It gates on the
 Opus `spec-reviewer` and offers to land the spec on the specs repo's main branch (via branch + PR) as
 `Published: no`.
 
-Key distinction from `/epics`: `/epics` *splits* a VI into Epic drafts; `/specify` *authors one
+Key distinction from `/epics`: `/epics` *splits* a PRD into Epic drafts; `/specify` *authors one
 specification* for a single item (typically an Epic). Run `/epics` first, then `/specify` per Epic.
 
 ---
@@ -24,15 +24,15 @@ specification* for a single item (typically an Epic). Run `/epics` first, then `
 1. **Resolve the Jira input via the shared front-end.** Execute
    `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against `$ARGUMENTS`. `/specify` is
    **jira-driven only**: expect `mode: jira-driven`. The front-end owns the `$VAULT_PATH` /
-   `jira-products` validation, Fallbacks A/B **and D/E**, and the VI-selector (key-or-directory) +
+   `jira-products` validation, Fallbacks A/B **and D/E**, and the PRD-selector (key-or-directory) +
    focus-Epic grammar. Carry forward:
-   - `jira_key` — the resolved **top-level** key: the **VI** when a focus Epic is present, or the
+   - `jira_key` — the resolved **top-level** key: the **PRD** when a focus Epic is present, or the
      stand-alone top-level item's own key otherwise.
-   - `focus_key` — the **Epic** to center on within `jira_export_root`, or `null` for a bare VI /
+   - `focus_key` — the **Epic** to center on within `jira_export_root`, or `null` for a bare PRD /
      stand-alone item / directory.
    - `jira_export_root`, `source`.
 
-   Define `<VI>` = `jira_key` and `<EPIC>` = `focus_key` (may be `null`). Downstream steps use these
+   Define `<PRD>` = `jira_key` and `<EPIC>` = `focus_key` (may be `null`). Downstream steps use these
    two symbols in place of the old single `<KEY>`.
 
    If the front-end returns `mode: direct` (no Jira input), stop with
@@ -46,31 +46,31 @@ specification* for a single item (typically an Epic). Run `/epics` first, then `
 
 3. **Resolve the feature folder.** Derive provisional kebab-case slugs from the relevant
    Jira item title(s) (from the index/summary — finalized once `jira-reader` runs in Phase 2, but a
-   provisional slug is enough to check for existing folders now): `<vslug>` for the `<VI>` title, and
+   provisional slug is enough to check for existing folders now): `<vslug>` for the `<PRD>` title, and
    `<eslug>` for the `<EPIC>` title when `focus_key` is set.
 
-   - **Resolve/derive the VI (top-level) dir:** `specifications/<VI>-<vslug>/`. Look for an existing
-     dir at `specifications/<VI>{-|_}<vslug-or-other-slug>/` — honor an existing dir matched by
+   - **Resolve/derive the PRD (top-level) dir:** `specifications/<PRD>-<vslug>/`. Look for an existing
+     dir at `specifications/<PRD>{-|_}<vslug-or-other-slug>/` — honor an existing dir matched by
      key-number (tolerate a stray `-`/`_` after the key, and a pre-existing slug that doesn't exactly
-     match a freshly-derived one — a human may have adjusted it). Create `<VI>-<vslug>` (hyphen) only
+     match a freshly-derived one — a human may have adjusted it). Create `<PRD>-<vslug>` (hyphen) only
      if no such dir exists yet.
    - **Resolve the feature folder itself**, by case:
-     - `focus_key` set (an Epic nested under a VI) →
-       `specifications/<VI>-<vslug>/<EPIC>-<eslug>/` — a per-Epic subfolder under the VI dir
+     - `focus_key` set (an Epic nested under a PRD) →
+       `specifications/<PRD>-<vslug>/<EPIC>-<eslug>/` — a per-Epic subfolder under the PRD dir
        (`<eslug>` = kebab of the Epic title). Apply the same honor-an-existing-dir tolerance to the
        `<EPIC>-<eslug>` segment.
-     - `focus_key` null **and** the item is a **VI** for which the broad-VI-spec choice is made
-       (Phase 2, Step A) → `specifications/<VI>-<vslug>/specification.md` — flat at the VI-dir level, no
-       per-Epic subfolder; the feature folder is the VI dir itself.
-     - `focus_key` null **and** the item is a **stand-alone top-level Epic** (no parent VI) →
+     - `focus_key` null **and** the item is a **PRD** for which the broad-PRD-spec choice is made
+       (Phase 2, Step A) → `specifications/<PRD>-<vslug>/specification.md` — flat at the PRD-dir level, no
+       per-Epic subfolder; the feature folder is the PRD dir itself.
+     - `focus_key` null **and** the item is a **stand-alone top-level Epic** (no parent PRD) →
        `specifications/<EPIC>-<eslug>/`, where `<EPIC>` here is this item's own key (== `jira_key`,
-       since `focus_key` is null) — top-level, keyed by the Epic, no VI wrapper. Physically this is
-       the same dir the VI-dir step above already resolved (`specifications/<VI>-<vslug>/` with
-       `<VI>` = `<EPIC>` = `jira_key`), so no separate resolution step is needed: the two null-`focus_key`
+       since `focus_key` is null) — top-level, keyed by the Epic, no PRD wrapper. Physically this is
+       the same dir the PRD-dir step above already resolved (`specifications/<PRD>-<vslug>/` with
+       `<PRD>` = `<EPIC>` = `jira_key`), so no separate resolution step is needed: the two null-`focus_key`
        cases share one physical target, `specifications/<jira_key>-<slug>/`, with `specification.md`
        written flat inside it either way.
    - All delimiters this step writes are hyphens; matching an existing dir tolerates a stray `-`/`_`.
-     Neither the VI dir nor the feature folder is created here — the first phase that writes to it
+     Neither the PRD dir nor the feature folder is created here — the first phase that writes to it
      (Phase 2's `idea.md` write, in a fresh run) creates it.
 
 4. **Detect a prior run.** If a `_session.md` exists in the resolved feature folder, record that a
@@ -87,7 +87,7 @@ when the specs repo is clean and on its default branch. If a guard fires, emit i
 it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
 `commit-artifacts` step skips on it.
 
-**Gate the VI.** Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against the VI file in `specifications/<VI>-<vslug>/` — **resolve its actual name on the ref first**: `git -C "$SPECS_PATH" ls-tree --name-only "origin/<default>" "specifications/<VI>-<vslug>/"` filtered to `<VI>_*.md`, falling back to the derived `<VI>_<vslug>.md` only when that listing is empty. A human-adjusted slug is a supported state — `/create-vi` and this command's own Phase 2 reader both locate the VI by glob plus frontmatter, and the feature folder is matched by key-number for the same reason — so gating an exact derived filename would report `absent` for a VI that is present, and would let a slug-drifted file on a plugin branch escape the rows D/E stop entirely. Map its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4. Otherwise (`stopped: false`): on `pass`/`pass_amending`, proceed — Phase 2 still reads the item from Jira via `jira-reader` exactly as today; the merged VI is a grounding confirmation, not a new content source; on `absent`, `/specify`'s existing Jira-export behaviour is unaffected — but report it: *"No authored VI on `<default>` for `<VI>` — specifying from the Jira export at `<path>`. If a VI exists on a branch, this run would have stopped; it does not, so none does."*; on `unmanaged`, behave exactly as before this feature — reachable here even after step 2's own `$SPECS_PATH` check, since that check only rejects an unset value, never an invalid path or a non-git directory.
+**Gate the PRD.** Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against the PRD file in `specifications/<PRD>-<vslug>/` — **resolve its actual name on the ref first**: `git -C "$SPECS_PATH" ls-tree --name-only "origin/<default>" "specifications/<PRD>-<vslug>/"` filtered to `<PRD>_*.md`, falling back to the derived `<PRD>_<vslug>.md` only when that listing is empty. A human-adjusted slug is a supported state — `/create-prd` and this command's own Phase 2 reader both locate the PRD by glob plus frontmatter, and the feature folder is matched by key-number for the same reason — so gating an exact derived filename would report `absent` for a PRD that is present, and would let a slug-drifted file on a plugin branch escape the rows D/E stop entirely. Map its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4. Otherwise (`stopped: false`): on `pass`/`pass_amending`, proceed — Phase 2 still reads the item from Jira via `jira-reader` exactly as today; the merged PRD is a grounding confirmation, not a new content source; on `absent`, `/specify`'s existing Jira-export behaviour is unaffected — but report it: *"No authored PRD on `<default>` for `<PRD>` — specifying from the Jira export at `<path>`. If a PRD exists on a branch, this run would have stopped; it does not, so none does."*; on `unmanaged`, behave exactly as before this feature — reachable here even after step 2's own `$SPECS_PATH` check, since that check only rejects an unset value, never an invalid path or a non-git directory.
 
 ---
 
@@ -127,7 +127,7 @@ Use `choices` arrays; the last choice in every array MUST be `"Other… (describ
    recording it.
 
 Also display (for user context): resolved feature folder; resolved `jira_export_root`; resolved
-`jira_key` (VI); resolved `focus_key` (Epic, or 'none — VI-level'); resolved `$REPOS_PATH`; resolved
+`jira_key` (PRD); resolved `focus_key` (Epic, or 'none — PRD-level'); resolved `$REPOS_PATH`; resolved
 `$SPECS_PATH`.
 
 ---
@@ -138,7 +138,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 
 ```yaml
 model_routing:
-  classification: MODERATE        # typical; SIGNIFICANT possible for large/cross-cutting VIs
+  classification: MODERATE        # typical; SIGNIFICANT possible for large/cross-cutting PRDs
   reason: <one-line>
   current_model: <the model this orchestrator/grill is running under>
   detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # jira-reader, code-scanner
@@ -155,20 +155,20 @@ The grill + authoring run inline on `current_model` (interactive judgment — no
 ## Phase 2 — Read Jira
 
 Phase 2 reads Jira in **two steps, cheap before expensive**. Step A settles *granularity* — the
-input's type and, for a multi-Epic VI, *which* Epic — with a cheap `vi-plus-epics` read (and, when
+input's type and, for a multi-Epic PRD, *which* Epic — with a cheap `prd-plus-epics` read (and, when
 needed, the progress-aware picker), resolving `focus_key`. Only then does Step B spend the full-depth
 read, now scoped to the resolved Epic. This ordering resolves a null `focus_key` by a cheap
-enumeration **before** any expensive full read, so the full read never pulls a whole multi-Epic VI
+enumeration **before** any expensive full read, so the full read never pulls a whole multi-Epic PRD
 subtree the grill would only discard. When `focus_key` is already set on entry, Step A is skipped and
 Phase 2 is just the full read (Step B).
 
 ### Step A — Resolve granularity + focus Epic (cheap enumeration + picker)
 
 **Skip this step entirely when `focus_key` is already set on entry** — any two-token form
-(`<VI-Key> <Epic-Key>`, `<dir> <Epic-Key>`) or a bare `<Epic-Key>` auto-resolved to its parent VI in
+(`<PRD-Key> <Epic-Key>`, `<dir> <Epic-Key>`) or a bare `<Epic-Key>` auto-resolved to its parent PRD in
 Phase 0. The Epic is already chosen, so go straight to Step B.
 
-Otherwise (`focus_key` is null), dispatch `jira-reader` at the **cheap** `depth: vi-plus-epics` to
+Otherwise (`focus_key` is null), dispatch `jira-reader` at the **cheap** `depth: prd-plus-epics` to
 determine the item's type and enumerate its child Epics *without* reading the full Story/Sub-task
 subtree:
 
@@ -177,7 +177,7 @@ subtree:
   >
   > jira_export_root: [resolved jira_export_root]
   > jira_key:         [resolved jira_key]
-  > depth:      vi-plus-epics"
+  > depth:      prd-plus-epics"
 
 Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Jira key dir not found`
 rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On
@@ -186,19 +186,19 @@ rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key"
 Epic-picker pattern** documented in `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`
 (§ Progress-aware Epic picker), applied here with `/specify`'s own done-predicate:
 
-- **Stand-alone top-level Epic** (the item is itself an Epic, no parent VI) → no picker; the item
+- **Stand-alone top-level Epic** (the item is itself an Epic, no parent PRD) → no picker; the item
   *is* the focus. Set `focus_key` = the item (== `jira_key`). The feature folder stays the flat
   `specifications/<jira_key>-<slug>/` resolved in Phase 0 — a stand-alone Epic has no distinct parent
-  VI, so `<VI>` == `<EPIC>` and there is no self-nested subfolder (Phase 0 step 3's
+  PRD, so `<PRD>` == `<EPIC>` and there is no self-nested subfolder (Phase 0 step 3's
   shared-physical-target note). Proceed to Step B.
-- **VI with exactly 1 Epic** → no picker; auto-select it. Set `focus_key` = that Epic and emit a
+- **PRD with exactly 1 Epic** → no picker; auto-select it. Set `focus_key` = that Epic and emit a
   one-line notice (e.g. `Single child Epic <EPIC> '<title>' — authoring its spec.`). Re-point the
   feature folder to that Epic's per-Epic subfolder (see *Re-pointing* below). Proceed to Step B.
-- **VI with ≥2 Epics** → render the **progress-aware picker**, one row per child Epic. For each Epic,
+- **PRD with ≥2 Epics** → render the **progress-aware picker**, one row per child Epic. For each Epic,
   first resolve its **actual** feature folder the same way Phase 0 step 3 does: look under
-  `specifications/<VI>-<vslug>/` for an existing dir matched by that Epic's key-number (tolerate a
+  `specifications/<PRD>-<vslug>/` for an existing dir matched by that Epic's key-number (tolerate a
   stray `-`/`_` after the key, and a pre-existing slug that doesn't exactly match a freshly-derived
-  one), falling back to the freshly-derived `specifications/<VI>-<vslug>/<EPIC>-<eslug>/` only when no
+  one), falling back to the freshly-derived `specifications/<PRD>-<vslug>/<EPIC>-<eslug>/` only when no
   such dir exists — this keeps a human-adjusted Epic dir slug from mis-displaying as ○ not-started.
   Compute each Epic's status from `/specify`'s **done-predicate** against that resolved folder:
   - **○ not started** — no `specification.md` and no `_session.md` there → selectable.
@@ -209,30 +209,30 @@ Epic-picker pattern** documented in `${CLAUDE_PLUGIN_ROOT}/references/jira-input
     selecting it offers *revise*.
   Default cursor = the first actionable row (in-progress before not-started). Render as a `choices`
   array: one entry per Epic (its ○/◐/● marker + key + title), then an explicit
-  **"Author one broad VI-level spec instead"** choice, then `"Other… (describe)"`.
+  **"Author one broad PRD-level spec instead"** choice, then `"Other… (describe)"`.
   - On selecting an Epic → set `focus_key` = that Epic; re-point the feature folder to its per-Epic
     subfolder (see *Re-pointing* below).
-  - On **"Author one broad VI-level spec instead"** → leave `focus_key` = null; the feature folder
-    stays the flat VI-dir path `specifications/<VI>-<vslug>/` (Phase 0 step 3's `focus_key`-null VI
-    case). Step B then reads the whole VI subtree.
-- **VI with 0 Epics** → this VI hasn't been split yet. Offer the existing without-Epics choices:
-  `choices: ["Split into Epics first with /dev-workflows:epics, then create them in Jira and re-import (Recommended)", "Author one broad VI-level spec now", "Cancel", "Other… (describe)"]`
+  - On **"Author one broad PRD-level spec instead"** → leave `focus_key` = null; the feature folder
+    stays the flat PRD-dir path `specifications/<PRD>-<vslug>/` (Phase 0 step 3's `focus_key`-null PRD
+    case). Step B then reads the whole PRD subtree.
+- **PRD with 0 Epics** → this PRD hasn't been split yet. Offer the existing without-Epics choices:
+  `choices: ["Split into Epics first with /dev-workflows:epics, then create them in Jira and re-import (Recommended)", "Author one broad PRD-level spec now", "Cancel", "Other… (describe)"]`
   `/specify` does NOT create Jira Epics itself (zero external API) — on "Split…", stop and guide the
-  user through the manual round-trip (see the Phase 7 round-trip note). On "Author one broad VI-level
+  user through the manual round-trip (see the Phase 7 round-trip note). On "Author one broad PRD-level
   spec now", leave `focus_key` = null and proceed to Step B.
 
 **Re-pointing the feature folder after the picker.** When Step A sets `focus_key` to an Epic (the
 single-Epic and ≥2-Epic-selection cases), the feature folder becomes that Epic's per-Epic subfolder
-`specifications/<VI>-<vslug>/<EPIC>-<eslug>/` (Phase 0 step 3's `focus_key`-set case), superseding the
-provisional VI-level folder confirmed in Phase 1 — Phase 0 already marks that folder provisional until
+`specifications/<PRD>-<vslug>/<EPIC>-<eslug>/` (Phase 0 step 3's `focus_key`-set case), superseding the
+provisional PRD-level folder confirmed in Phase 1 — Phase 0 already marks that folder provisional until
 `jira-reader` runs. Re-detect a prior run there (a `_session.md` → a resume is available for that
-Epic). The stand-alone-Epic and broad-VI-spec cases leave the Phase 0 folder unchanged.
+Epic). The stand-alone-Epic and broad-PRD-spec cases leave the Phase 0 folder unchanged.
 
 ### Step B — Full Epic-scoped read
 
 With granularity settled and `focus_key` resolved, dispatch `jira-reader` at `depth: full` — richer
-than Step A's `vi-plus-epics`, because `/specify` needs the full linked subtree (Stories/Sub-tasks) as
-the raw material for user stories, acceptance criteria, and test cases; `vi-plus-epics` would starve
+than Step A's `prd-plus-epics`, because `/specify` needs the full linked subtree (Stories/Sub-tasks) as
+the raw material for user stories, acceptance criteria, and test cases; `prd-plus-epics` would starve
 the grill of exactly the detail it needs.
 
 → Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §2.1 Sonnet chain>`):
@@ -246,12 +246,12 @@ Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Ji
 rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On
 `OK`:
 
-- **Epic-scope the read.** `jira-reader` is dispatched with `jira_key` = the VI and returns the
-  **whole VI** linked-item hierarchy (`jira-reader` itself is unchanged). When `focus_key` is set,
+- **Epic-scope the read.** `jira-reader` is dispatched with `jira_key` = the PRD and returns the
+  **whole PRD** linked-item hierarchy (`jira-reader` itself is unchanged). When `focus_key` is set,
   **scope the returned hierarchy to `focus_key`'s subtree** — the Epic itself plus its linked
   Stories/Sub-tasks (`linked_items` whose `parent` chain leads to `focus_key`) — filtering
   in-orchestrator and discarding sibling Epics' subtrees before feeding the downstream phases. When
-  `focus_key` is null (broad VI-level spec), use the whole VI subtree as today. Everything below —
+  `focus_key` is null (broad PRD-level spec), use the whole PRD subtree as today. Everything below —
   themes, `idea.md`, the Phase 5 raw material — derives from this scoped `focus_key` subtree.
 - Extract **capability themes** and component/product mentions from the scoped subtree — feeds
   Phase 3's repo derivation and Phase 4's `code-scanner` dispatches.
@@ -266,7 +266,7 @@ rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key"
 
 ## Phase 2.5 — Resolve applicable ARD (optional)
 
-Resolve any ARD for this item by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with `<VI>`, `<EPIC>` (`focus_key`), and `$SPECS_PATH`. On `status: none`, **skip and proceed exactly as before**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr`. On `status: found`, keep the spec's user stories + scope consistent with the returned `invariants` + `guidance_summary` during the Phase 5 grill; record a necessary deviation under the spec's `### Open questions` (never edit the ARD). Pass the `invariants` to `spec-reviewer` in Phase 6 as `applicable_ard`.
+Resolve any ARD for this item by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with `<PRD>`, `<EPIC>` (`focus_key`), and `$SPECS_PATH`. On `status: none`, **skip and proceed exactly as before**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr`. On `status: found`, keep the spec's user stories + scope consistent with the returned `invariants` + `guidance_summary` during the Phase 5 grill; record a necessary deviation under the spec's `### Open questions` (never edit the ARD). Pass the `invariants` to `spec-reviewer` in Phase 6 as `applicable_ard`.
 
 ---
 
@@ -329,7 +329,7 @@ For each repo in the batch:
   >   switch_to_default_branch: [true if Phase 1 chose 'fetch + pull default branch' (default) or 'fetch only'; false if 'no refresh']
   >   pull: [true if 'fetch + pull default branch'; false otherwise]"
 
-**Documentation grounding (optional).** Run `resolve-docs-grounding specify` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the scoped Epic/VI goal, `jira_key` = the focus key, `themes` = the Phase 2 capability themes. Carry the digest into the Phase 5 grill with **grill-rank** consumption. When OFF, skip silently.
+**Documentation grounding (optional).** Run `resolve-docs-grounding specify` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the scoped Epic/PRD goal, `jira_key` = the focus key, `themes` = the Phase 2 capability themes. Carry the digest into the Phase 5 grill with **grill-rank** consumption. When OFF, skip silently.
 
 Handle per-repo status after the batch returns:
 
@@ -417,22 +417,22 @@ Then **offer** (commit-when-asked — never automatic), presenting `${CLAUDE_PLU
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
 
-On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: spec`; `feature_folder` = the Epic subfolder for a **per-Epic** spec (a VI + focus Epic) or a **stand-alone-Epic** spec (`<EPIC>` = `focus_key`, which for a stand-alone Epic equals `jira_key`), or the VI dir for a **broad VI-level** spec (`focus_key` null) — Epic keys are globally unique, so the per-Epic form needs no VI prefix, and both forms use hyphens; §2.2 derives `spec/<EPIC>-<eslug>` or `spec/<VI>-<vslug>` from that folder, matching today's branch names; `deliverable_paths` = `specification.md`, `_session.md`, `_glossary.md`, and the rendered `.html`; `title: <EPIC|VI> Add specification`; and `body_facts` = the stage/user-story/AC/TC counts, the open-question count, and the `spec-reviewer` verdict. **Merged-to-main = ready for the dev-team handover** — Devs and `/design` read the spec from `main`, never from the branch, and `require-on-main` now enforces that rather than merely stating it. Emit its §4.1 outcome line in the Final report.
+On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: spec`; `feature_folder` = the Epic subfolder for a **per-Epic** spec (a PRD + focus Epic) or a **stand-alone-Epic** spec (`<EPIC>` = `focus_key`, which for a stand-alone Epic equals `jira_key`), or the PRD dir for a **broad PRD-level** spec (`focus_key` null) — Epic keys are globally unique, so the per-Epic form needs no PRD prefix, and both forms use hyphens; §2.2 derives `spec/<EPIC>-<eslug>` or `spec/<PRD>-<vslug>` from that folder, matching today's branch names; `deliverable_paths` = `specification.md`, `_session.md`, `_glossary.md`, and the rendered `.html`; `title: <EPIC|PRD> Add specification`; and `body_facts` = the stage/user-story/AC/TC counts, the open-question count, and the `spec-reviewer` verdict. **Merged-to-main = ready for the dev-team handover** — Devs and `/design` read the spec from `main`, never from the branch, and `require-on-main` now enforces that rather than merely stating it. Emit its §4.1 outcome line in the Final report.
 
-### Next Epic (after a per-Epic spec from a multi-Epic VI)
+### Next Epic (after a per-Epic spec from a multi-Epic PRD)
 
-When this run authored a **per-Epic** spec that was selected from Step A's ≥2-Epics picker, offer — once Phase 7's write/commit completes — to continue with a sibling Epic under the same VI:
+When this run authored a **per-Epic** spec that was selected from Step A's ≥2-Epics picker, offer — once Phase 7's write/commit completes — to continue with a sibling Epic under the same PRD:
 ```
 choices: ["Next Epic — re-open the picker (Recommended)", "Stop here", "Other… (describe)"]
 ```
-On **"Next Epic"**, **re-render the Phase 2 Step A progress-aware picker minus the just-completed Epic** — recompute each remaining Epic's ○/◐/● state from its feature folder, so the freshly-authored spec now shows **● done** and drops out of the actionable set — then, on selection, set `focus_key` to the new Epic and loop back through Phase 2 Step B → Phases 3–7 for it. This offer does **not** apply to a stand-alone Epic, a single-Epic VI, or a broad VI-level spec — there is no sibling to advance to.
+On **"Next Epic"**, **re-render the Phase 2 Step A progress-aware picker minus the just-completed Epic** — recompute each remaining Epic's ○/◐/● state from its feature folder, so the freshly-authored spec now shows **● done** and drops out of the actionable set — then, on selection, set `focus_key` to the new Epic and loop back through Phase 2 Step B → Phases 3–7 for it. This offer does **not** apply to a stand-alone Epic, a single-Epic PRD, or a broad PRD-level spec — there is no sibling to advance to.
 
 ### Jira round-trip (document to the user — they will otherwise miss it)
 
 The end-to-end flow:
-1. `/dev-workflows:epics <VI>` drafts child Epic definitions.
+1. `/dev-workflows:epics <PRD>` drafts child Epic definitions.
 2. **You create those Epics in Jira** (manual — `/specify`/`/epics` never call Jira).
-3. **You re-import** the VI to `$VAULT_PATH/jira-products/<KEY>` so the new Epics appear in the export.
+3. **You re-import** the PRD to `$VAULT_PATH/jira-products/<KEY>` so the new Epics appear in the export.
 4. `/dev-workflows:specify <each Epic>` reads the Epic from the refreshed export and authors its `specification.md`.
 
 Steps 2–3 are the round-trip; without them `/specify` cannot see the Epics.
@@ -451,8 +451,8 @@ persists the plugin-facing slice of its report as session feedback.
 `resume.md` write runs later, in the terminal cost phase, per
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the
 guidance only), then a
-span suggestion (VI-level→`/dev-workflows:epics` `/compact`; Epic-level→`/dev-workflows:design` `/clear`) +
-`/rename <VI-ID>-<slug>-pe`. Guidance only, never auto-run.
+span suggestion (PRD-level→`/dev-workflows:epics` `/compact`; Epic-level→`/dev-workflows:design` `/clear`) +
+`/rename <PRD-ID>-<slug>-pe`. Guidance only, never auto-run.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
    > "Analyse this session and return a Lessons Learned report.
@@ -490,7 +490,7 @@ file inside `$SPECS_PATH`, alongside the feature folder — the intended home.
 
 Terminal phase — the NEW final operational phase; runs after Phase 8 (feedback)
 and NEVER interrupts an earlier phase. Records this command's token-cost
-contribution to the VI by citing
+contribution to the PRD by citing
 `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and calling its single
 `emit-cost` entry point. Unlike feedback, **cost ALWAYS runs** — it never "writes
 nothing".
@@ -501,15 +501,15 @@ the run's `jira_key` (or `null`) and `source`, and `plugin_version` (read from
 transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),
 runs `scripts/session-cost.py` to compute the per-model token-cost delta against
 the price table (§4), records the optional statusline cross-check (§5), and
-appends one per-invocation entry to `<VI-dir>/dev-workflows/cost/<sid8>.md` via
+appends one per-invocation entry to `<PRD-dir>/dev-workflows/cost/<sid8>.md` via
 the specs-first ladder (§8) — pending + opportunistic move-then-delete
-reconciliation (§9) when no VI key resolves. **The checkpoint advances even in
+reconciliation (§9) when no PRD key resolves. **The checkpoint advances even in
 the pending / report-only tiers.** Surface the persisted path (or the
 report-only notice) as this phase's only output.
 
 **Write the resume pointer.** Cite
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and write/overwrite
-`<VI-dir>/dev-workflows/resume.md` now — after the cost entry above, so the
+`<PRD-dir>/dev-workflows/resume.md` now — after the cost entry above, so the
 pointer reflects the completed run, and before the commit step below, so it is
 included in it. Redact per §1. Silent; the printed `### Context hygiene`
 guidance already appeared in the report.
@@ -537,14 +537,14 @@ Report: feature-folder path; stage/user-story/AC/TC counts; open-question count;
 
 ### Next step
 
-End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): **Epic-level spec** (`<VI> <Epic>`) → hand to Dev → `/dev-workflows:design <VI> <Epic>`, which will not start until this spec's pull request above is merged, and the **Epic fan-out** `/dev-workflows:specify <VI> <another-Epic>` for a sibling Epic (breadth); **VI-level spec** (`<VI>` only) → `/dev-workflows:epics <VI>` (PE), which stops rather than skipping — the spec exists but isn't yet on main — until this pull request above is merged. If the run BLOCKED or left open `- [ ]` items, recommend resolving those first.
+End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): **Epic-level spec** (`<PRD> <Epic>`) → hand to Dev → `/dev-workflows:design <PRD> <Epic>`, which will not start until this spec's pull request above is merged, and the **Epic fan-out** `/dev-workflows:specify <PRD> <another-Epic>` for a sibling Epic (breadth); **PRD-level spec** (`<PRD>` only) → `/dev-workflows:epics <PRD>` (PE), which stops rather than skipping — the spec exists but isn't yet on main — until this pull request above is merged. If the run BLOCKED or left open `- [ ]` items, recommend resolving those first.
 
 ### Context hygiene
 
 The resume pointer is written in the terminal cost phase (Phase 9), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
 
-- **VI-level spec → `/dev-workflows:epics <VI>` (still PE)?** → run **`/compact`** — context still relevant.
-- **Epic-level spec → Dev `/dev-workflows:design <VI> <Epic>` (even yourself)?** → run **`/clear`** for a clean slate.
-- Consider **`/rename <VI-ID>-<slug>-pe`** to relocate this session later.
+- **PRD-level spec → `/dev-workflows:epics <PRD>` (still PE)?** → run **`/compact`** — context still relevant.
+- **Epic-level spec → Dev `/dev-workflows:design <PRD> <Epic>` (even yourself)?** → run **`/clear`** for a clean slate.
+- Consider **`/rename <PRD-ID>-<slug>-pe`** to relocate this session later.
 
 Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.

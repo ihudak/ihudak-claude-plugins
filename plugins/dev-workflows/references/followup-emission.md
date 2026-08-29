@@ -87,13 +87,13 @@ most-durable first. `vault_writable` = `$VAULT_PATH` is set **and**
 is an existing directory **and** the path is writable.
 
 1. **Vault writable** → emit vault tasks (§2) + verbose notes (§3). *[primary]*
-2. **No vault; `$SPECS_PATH` resolvable and the VI spec dir exists** — the dir
+2. **No vault; `$SPECS_PATH` resolvable and the PRD spec dir exists** — the dir
    matched by `$SPECS_PATH/{specs|specifications|vis}/…/<KEY>{-|_}<slug>/…` →
-   write `<VI-dir>/dev-workflows/<KEY>-followups.md` (§4.1). Durable, VI-scoped,
+   write `<PRD-dir>/dev-workflows/<KEY>-followups.md` (§4.1). Durable, PRD-scoped,
    git-tracked (the specs repo), and NOT a code repo. Verbose "journal" content
    is inlined as sections of that same file (no `Journal.md` outside a vault);
    the task line links the section.
-3. **No vault; no `$SPECS_PATH` VI dir; `source = directory`** → write beside
+3. **No vault; no `$SPECS_PATH` PRD dir; `source = directory`** → write beside
    the imported Jira directory:
    `<parent-of-jira_export_root>/<KEY>-followups.md` (the imported hierarchy's
    parent — the same area under which /epics and /release-notes place their
@@ -116,13 +116,13 @@ behaviour — zero regression) and the pipeline never fails.
 - **Write fails mid-insert** (read-only mount / permission) → drop to the next
   tier, same notice.
 
-### 4.1 Shared per-VI artifact area under `$SPECS_PATH`
+### 4.1 Shared per-PRD artifact area under `$SPECS_PATH`
 
-`<VI-dir>/dev-workflows/` (a subdir of the VI's `$SPECS_PATH` spec dir) is the
-home for dev-workflows per-VI artifacts written outside the vault. This feature
+`<PRD-dir>/dev-workflows/` (a subdir of the PRD's `$SPECS_PATH` spec dir) is the
+home for dev-workflows per-PRD artifacts written outside the vault. This feature
 writes `<KEY>-followups.md` there; planned future extensions (session feedback,
-session cost reporting) share the same directory. This keeps the VI spec dir
-uncluttered and groups all dev-workflows output for a VI in one place.
+session cost reporting) share the same directory. This keeps the PRD spec dir
+uncluttered and groups all dev-workflows output for a PRD in one place.
 
 ## 5. Idempotency / dedupe
 

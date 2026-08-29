@@ -1,6 +1,6 @@
 # Prose formatting — no hard-wrap (embedded — shared reference)
 
-Every authored artifact (VI, Epic, ARD, spec, design, product doc, release note, idea) is reviewed
+Every authored artifact (PRD, Epic, ARD, spec, design, product doc, release note, idea) is reviewed
 in Obsidian or IntelliJ Idea — both soft-wrap markdown to the pane width — and is routinely
 copy-pasted into Jira. Hard-wrapping prose at a fixed column width (the common ~80–100 char
 convention for raw-terminal readability) is redundant in both viewers and actively harmful in

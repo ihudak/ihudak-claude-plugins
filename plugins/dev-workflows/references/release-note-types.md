@@ -33,7 +33,7 @@ first match, in this order:
 1. **Breaking change** — the change forces customers to act to avoid disruption.
 2. **Bug fix** — the change is a completed correction restoring intended behavior.
 3. **New technology support** — anything else that adds or enhances a capability. **For a Value
-   Increment this is the overwhelmingly common case**; do not reach for `Bug fix` because a VI
+   Increment this is the overwhelmingly common case**; do not reach for `Bug fix` because a PRD
    mentions fixing something.
 
 Tie-breakers:
@@ -91,9 +91,9 @@ Fixed an issue where the **GET account audits** endpoint of the Account Manageme
 ### Feature update
 - Lead with **customer value**, present tense; mention a previous limitation only as a subordinate
   clause or a later sentence.
-- **Link to documentation only on a dev-phase run.** `/release-notes` runs twice in a VI's life, and
+- **Link to documentation only on a dev-phase run.** `/release-notes` runs twice in a PRD's life, and
   the two runs have different link realities:
-  - **PM phase** — no `specification.md` and no `design.md` under the VI's specs dir. The feature is
+  - **PM phase** — no `specification.md` and no `design.md` under the PRD's specs dir. The feature is
     not built and the documentation does not exist yet. **Omit the link entirely**; do not ask for one.
   - **Dev phase** — either file is present (the same signal
     `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` §7 uses to infer `phase`/`role`). The author
@@ -124,8 +124,8 @@ destination and the note always has room. Which titled destination is independen
 `Breaking change` may itself be a deprecation.
 
 **Trigger** — one or more of:
-- The VI deprecates a capability, or a new capability supersedes/deprecates an old one.
-- The whole VI is a deprecation.
+- The PRD deprecates a capability, or a new capability supersedes/deprecates an old one.
+- The whole PRD is a deprecation.
 
 **When triggered**, the Summary carries a **deprecation note** — a trailing `> Note:` line or a short
 labeled sentence — stating:
@@ -138,7 +138,7 @@ required end-of-life date is not available, record a `gaps[]` entry (`field: dep
 `recommended_action: "ask user"`) and place a `<!-- TODO: end-of-life date -->` placeholder in the
 draft prose. Format dates per the prose-style (e.g. `November 30, 2026`).
 
-Not every VI deprecates something. Raise this only on the trigger above, and ask only for what the VI
+Not every PRD deprecates something. Raise this only on the trigger above, and ask only for what the PRD
 does not already state.
 
 ## 6. General rules (all destinations)
@@ -157,7 +157,7 @@ does not already state.
 
 **Change Type — two rungs:**
 
-1. **Imported VI frontmatter** — `change_type` from the re-imported Jira VI (surfaced by
+1. **Imported PRD frontmatter** — `change_type` from the re-imported Jira PRD (surfaced by
    `jira-reader`). Authoritative: when present, no confirmation prompt fires.
 
    Two imported values are **not routable** and fall through to rung 2 (§2 inference): `not applicable`
@@ -169,11 +169,11 @@ does not already state.
 
 **`{{#context}}` label — one rung.** It is your organization's product/solution taxonomy (e.g. `Platform`,
 `Application Observability | Distributed Tracing`, `Infrastructure Observability | Kubernetes`) and it
-is exactly the VI's `release_notes_category`:
+is exactly the PRD's `release_notes_category`:
 
-1. **Imported VI frontmatter** — `release_notes_category` from the re-imported Jira VI. Use it
+1. **Imported PRD frontmatter** — `release_notes_category` from the re-imported Jira PRD. Use it
    verbatim as the label.
 2. **Absent → omit the `{{#context}}` line.** Never infer it, never guess it, never ask for it.
 
-Both are Jira dropdowns the PM sets on the ticket; neither is authored in the VI (see
-`${CLAUDE_PLUGIN_ROOT}/references/vi-format.md`).
+Both are Jira dropdowns the PM sets on the ticket; neither is authored in the PRD (see
+`${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`).

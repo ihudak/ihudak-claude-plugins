@@ -7,7 +7,7 @@ ones, leave content gaps for the author, then proceed to the reviewer. Pre-lint 
 on its own; the reviewer remains the gate.
 
 Each caller cites this file, states its **artifact type** and the **file(s)** to check, runs three
-things — the **Universal checks**, then the **Jira-key collision** check when the artifact is a VI, an
+things — the **Universal checks**, then the **Jira-key collision** check when the artifact is a PRD, an
 ARD, or an Epic file, then its **artifact-specific block** — and surfaces the findings. Severities: **BLOCKER**
 (missing required section, duplicate ID, stray generic placeholder), **MAJOR** (a structural rule
 broken), **MINOR** (ID gap, informational count). Inline-fix only the mechanical (renumber a duplicate
@@ -23,14 +23,14 @@ ID, delete a stray placeholder token); anything needing content goes back to the
 3. **Required-section presence** — every mandatory heading listed for the artifact is present
    (`grep -nF '## <heading>' <file>`). A missing required heading → BLOCKER.
 
-## Jira-key collision (VI, ARD, Epic files only)
+## Jira-key collision (PRD, ARD, Epic files only)
 
 An artifact whose body is pasted into Jira must contain no token Jira will auto-link. Run:
 
     grep -nE '\b[A-Z]{2,10}-[0-9]+\b' <file>
 
-For the VI, run against the body **below the frontmatter** — `/create-vi` pastes only that, and the
-frontmatter's `jira_key:` / `ref:` / `seeded_from_vi:` / `revision_of:` legitimately carry keys.
+For the PRD, run against the body **below the frontmatter** — `/create-prd` pastes only that, and the
+frontmatter's `jira_key:` / `ref:` / `seeded_from_prd:` / `revision_of:` legitimately carry keys.
 For the ARD, scan **below the frontmatter**. For Epic files, scan the entire file (the template has no frontmatter).
 
 Discard a hit ONLY when it is a deliberate Jira reference: inside a wikilink (`[[KEY-123]]`), inside
@@ -44,13 +44,13 @@ Classify every surviving hit into exactly one of three branches, and name the br
 The ARD is not itself pasted into Jira, but `epic-writer` copies its `AD` references into Epic
 drafts, which are. Catching it at the source is cheaper than catching it downstream.
 
-## VI — `<KEY>_<slug>.md` (`/create-vi`; format `vi-format.md`)
+## PRD — `<KEY>_<slug>.md` (`/create-prd`; format `prd-format.md`)
 
 - Required headings: `## Problem`, `## Goal`, `## Target audience`, `## User Stories`,
   `## Acceptance Criteria`, `## Scope`, `## Success Metrics`.
 - ID series: `[US#N]` (in `### [US#N]:` headings), `[AC#N]`, `[SM#N]` — each contiguous from 1.
   Plus `[SMC#N]` (counter-metrics), `[UC#N]`, `[FR#N]` when those adapt-in clusters are present.
-- Report the count of `[NEEDS CLARIFICATION]` (a relentless-grilled VI should converge to 0; >0 → MINOR).
+- Report the count of `[NEEDS CLARIFICATION]` (a relentless-grilled PRD should converge to 0; >0 → MINOR).
 
 ## ARD — `*_ARD.md` (`/create-ard`; format `ard-format.md`)
 
@@ -78,7 +78,7 @@ drafts, which are. Catching it at the source is cheaper than catching it downstr
 - Acceptance criteria are Given/When/Then bullets (`grep -nE '^- Given .*, when .*, then ' <file>`;
   a `## Acceptance criteria` section with zero G/W/T bullets → MAJOR).
 - `[NEEDS CLARIFICATION]` count ≤ 3 per Epic (epic-writer cap; >3 → MAJOR).
-- `## Covers` references parent-VI IDs in bracketed form (`[US#N]`/`[AC#N]`/`[SM#N]`); Epics do not
+- `## Covers` references parent-PRD IDs in bracketed form (`[US#N]`/`[AC#N]`/`[SM#N]`); Epics do not
   mint their own criterion IDs.
 - A `_coverage.md` file is present in the output dir.
 - Refined Epic files (keyed `<EPIC-KEY>.md`, from `/epics` refinement mode) carry a `**Team:**` line

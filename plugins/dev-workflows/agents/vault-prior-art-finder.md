@@ -17,7 +17,7 @@ themes:          <optional capability themes from the caller, or []>
 known_refs:      <optional [{path | jira_key, has_summary}] the caller already holds, or []>
 ```
 
-Each `known_refs` entry carries **either** a `path` or a `jira_key`, never both required. A supplied Value Increment arrives as a key — resolving it to a vault item directory is this agent's job, not the caller's.
+Each `known_refs` entry carries **either** a `path` or a `jira_key`, never both required. A supplied Product Requirements Document arrives as a key — resolving it to a vault item directory is this agent's job, not the caller's.
 
 Refuse to run without `vault_path` and a non-empty `feature_summary`. If `vault_path` is not an existing readable directory, return `status: ERROR` with a one-line `notes` (the caller treats this as OFF and proceeds).
 
@@ -41,7 +41,7 @@ Score each candidate's frontmatter plus its first ~60 body lines against `featur
 
 These are references the caller already holds. Resolve each to an item first:
 
-- **`jira_key`** — find the item whose work document carries `jira.id: <KEY>`. Nothing found is not an error: return the entry with `item_dir: null` and whatever `resolve-export-for-key` yields for status, so a supplied VI with no vault note is still reported.
+- **`jira_key`** — find the item whose work document carries `jira.id: <KEY>`. Nothing found is not an error: return the entry with `item_dir: null` and whatever `resolve-export-for-key` yields for status, so a supplied PRD with no vault note is still reported.
 - **`path`** — use it directly.
 
 Then classify and status-resolve them exactly like any other match, returning them with `discovered_by: source`. When `has_summary: true`, **omit** `salient_summary` — the caller already has one and a second costs its context twice.

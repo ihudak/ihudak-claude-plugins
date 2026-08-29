@@ -1,16 +1,16 @@
 ---
 name: document
-description: Jira-driven feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in example-docs default → on-demand /docs-profile) and the VI's specs dir under /workspace. Phase 4.5 determines/confirms the applicable space(s). Optional cloud|self-hosted constraint scopes the run to one space. Reads a Value Increment hierarchy from exported markdown, resolves PR diffs in parallel, synthesises product documentation, and gates on style-check and Opus doc review. Optional --counterpart <JiraID|PR-url> grounds a space-constrained run on the other space's existing docs (read-only).
+description: Jira-driven feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in example-docs default → on-demand /docs-profile) and the PRD's specs dir under /workspace. Phase 4.5 determines/confirms the applicable space(s). Optional cloud|self-hosted constraint scopes the run to one space. Reads a Product Requirements Document hierarchy from exported markdown, resolves PR diffs in parallel, synthesises product documentation, and gates on style-check and Opus doc review. Optional --counterpart <JiraID|PR-url> grounds a space-constrained run on the other space's existing docs (read-only).
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
-Generate product documentation for the Jira Value Increment: $ARGUMENTS
+Generate product documentation for the Jira Product Requirements Document: $ARGUMENTS
 
 Signature: `PRODUCT-NNNN [cloud|self-hosted] [--counterpart <JiraID|PR-url>]`. The optional second token is a **space constraint**, not a target list. When you pass `cloud` or `self-hosted`, the command documents **only that space** and leaves the OTHER space's rendered output unchanged (Cloud pages stay as they are when you pass `self-hosted`, and vice-versa). When you omit it, the command **determines the applicable space(s)** from the Jira hierarchy and the resolved repos, then confirms with you. `both` is intentionally NOT an accepted value — omit the argument to cover both spaces. `--counterpart <JiraID | PR-url>` is an optional named flag (valid only on a space-constrained run) that points at the OTHER space's documentation for this feature — a Jira key or a PR URL (merged or not). It is used as **read-only grounding**; on a both-space run it is rejected. See Phase 5.6.5.
 
-`/document` (Jira mode) is the **Jira-driven feature-documentation** workflow. Given a Jira Value Increment key, it reads the full Jira hierarchy from pre-exported markdown in the user's Obsidian vault, resolves PR URLs to local git repos, runs parallel PR-diff summaries, synthesises product documentation, runs style-check + Opus review gates, and writes the output to the current working directory (a product docs repository).
+`/document` (Jira mode) is the **Jira-driven feature-documentation** workflow. Given a Jira Product Requirements Document key, it reads the full Jira hierarchy from pre-exported markdown in the user's Obsidian vault, resolves PR URLs to local git repos, runs parallel PR-diff summaries, synthesises product documentation, runs style-check + Opus review gates, and writes the output to the current working directory (a product docs repository).
 
-For small one-off doc edits, use direct mode (below). For writing child Epic drafts from a VI, use `/epics`. For release notes, use `/release-notes` — this command never writes release-notes / what's-new pages, because those are generated from Jira by the docs team's automation.
+For small one-off doc edits, use direct mode (below). For writing child Epic drafts from a PRD, use `/epics`. For release notes, use `/release-notes` — this command never writes release-notes / what's-new pages, because those are generated from Jira by the docs team's automation.
 
 ---
 
@@ -302,10 +302,10 @@ Invoke `jira-reader` with `depth: full`:
 
 Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Jira key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`) and act accordingly. On `OK`, store the handoff for downstream phases.
 
-When `focus_key` is set (explicit `<VI> <Epic>`), also derive `focus_items` = the
+When `focus_key` is set (explicit `<PRD> <Epic>`), also derive `focus_items` = the
 focus Epic plus every linked item beneath it (its Stories / Sub-tasks). The
 change-scoped phases below consume `focus_items` in place of the full hierarchy —
-Phase 5 (diff summarisation) and Phase 5.7 (doc planning) — while VI-descriptive
+Phase 5 (diff summarisation) and Phase 5.7 (doc planning) — while PRD-descriptive
 phases (e.g. Phase 4.5 space determination) keep the full handoff. When `focus_key`
 is null, every phase uses the full hierarchy exactly as today.
 
@@ -330,13 +330,13 @@ From the `jira-reader` handoff `pull_requests` list:
      ```
    - **`missing` is non-empty** — present ONE consolidated gate (not one prompt per slug):
      ```
-     This VI's Jira PRs span <N> repositories. <M> mounted, <K> missing:
+     This PRD's Jira PRs span <N> repositories. <M> mounted, <K> missing:
 
        ✓ <mounted slug>            ✓ <mounted slug>
        ✗ <missing slug>            (<n> <status> PRs — not found under $REPOS_PATH)
 
      Missing repos are skipped: their code won't be diff-summarised or checked
-     against the VI's requirements, so the discrepancy analysis will be partial.
+     against the PRD's requirements, so the discrepancy analysis will be partial.
 
      choices: ["Mount the missing repo(s) now — I'll wait, then re-scan (Recommended)", "Proceed without them — Jira-only for the missing repos", "Cancel", "Specify a different absolute path for a missing repo", "Other… (describe)"]
      ```
@@ -359,7 +359,7 @@ Resolve `target_spaces` — one of `[cloud]`, `[self-hosted]`, or `[cloud, self-
   ```
 
 - **If `space_constraint` is `none`** → run a **first-pass determination** from cheap signals already in hand, then confirm with the user:
-  1. **Jira text/labels** — scan the `jira-reader` handoff (VI + linked Epics: summaries, descriptions, labels, components) for explicit "Cloud", "Self-hosted", or "both" mentions. Explicit wording is the strongest signal.
+  1. **Jira text/labels** — scan the `jira-reader` handoff (PRD + linked Epics: summaries, descriptions, labels, components) for explicit "Cloud", "Self-hosted", or "both" mentions. Explicit wording is the strongest signal.
   2. **Resolved-repo leaning** — use the Phase-4 `repo_slug → repo_path` map as a **hint, not authority**: cluster/Self-hosted-oriented repos (e.g. names containing `cluster`, `self-hosted`, `server`, `appliance`) lean `self-hosted`; Cloud-service repos lean `cloud`. A mix of both leans `[cloud, self-hosted]`.
   3. **Specs presence/name** — if `specs_dir` was resolved in Phase 0, a `cloud`/`self-hosted` hint in its name reinforces the guess; absence is neutral.
 
@@ -389,9 +389,9 @@ For each repo, in the same Agent message:
   > repo_url_slug: <repo slug, e.g. "cluster">
   > pr_refs:     [ ... full PR entries from jira-reader handoff, filtered to this repo (and, when focus_key is set, to focus_items) ... ]
   > context:    |
-  >   [1–2 sentences: VI goal + themes relevant to this repo]
+  >   [1–2 sentences: PRD goal + themes relevant to this repo]
   > jira_keys_hierarchy:
-  >   [VI key + every linked_items key from jira-reader; when focus_key is set, restrict to focus_items — the focus Epic + its linked descendants]
+  >   [PRD key + every linked_items key from jira-reader; when focus_key is set, restrict to focus_items — the focus Epic + its linked descendants]
   > refresh:
   >   fetch: [false if Phase 1 chose 'no refresh'; true otherwise]
   >   pull:  [true if Phase 1 chose 'fetch + pull default branch'; false otherwise]"
@@ -466,7 +466,7 @@ Build this list only when `new_images_wanted` is `true` (Phase 1); when `false`,
      -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.gif" -o -iname "*.svg" -o -iname "*.webp" \) 2>/dev/null
    ```
    When `specs_dir` is `none`, this source contributes nothing.
-2. **`jira-reader` `attachments[]`** — the image paths enumerated under the VI's `attachments/` dirs (Phase 3 handoff `attachments[].path`; these live under `jira-products/<VI-dir>/…`, so this covers screenshots developers attached in Jira). May be empty.
+2. **`jira-reader` `attachments[]`** — the image paths enumerated under the PRD's `attachments/` dirs (Phase 3 handoff `attachments[].path`; these live under `jira-products/<PRD-dir>/…`, so this covers screenshots developers attached in Jira). May be empty.
 3. **Recursive scan of `<project_dir>`** — when Phase 1 resolved a `<project_dir>` (the persistent Obsidian project folder under `$VAULT_PATH/Projects`), recursively scan it for image files:
    ```bash
    find "<project_dir>" -type f \
@@ -524,7 +524,7 @@ When both lists are empty, skip presenting this prompt — there is nothing to s
 
 For any **manual** free-text paths, accept any absolute filesystem path (vault, `/tmp`, home, the docs repo); accept multiple (one per line or space-separated). Validate each path exists and has an image extension (`.png|.jpg|.jpeg|.gif|.svg|.webp`); drop and report any that don't.
 
-When you need to **add a new image** for this feature (a screenshot the docs should have but no source yet holds — including a replacement source for an accepted existing-image entry), place it in the **Projects VI-dir** — `<project_dir>` (i.e. `$VAULT_PATH/Projects/<VI-dir>/…`, e.g. its `Doc screenshots/` subfolder). **Never** put it under `jira-products/`: that directory is regenerated on every Jira import, so a manually-added image there is lost on the next import. `jira-products` is a read-only source (developer-attached Jira screenshots, via source 2); authored/curated images belong in the Projects folder.
+When you need to **add a new image** for this feature (a screenshot the docs should have but no source yet holds — including a replacement source for an accepted existing-image entry), place it in the **Projects PRD-dir** — `<project_dir>` (i.e. `$VAULT_PATH/Projects/<PRD-dir>/…`, e.g. its `Doc screenshots/` subfolder). **Never** put it under `jira-products/`: that directory is regenerated on every Jira import, so a manually-added image there is lost on the next import. `jira-products` is a read-only source (developer-attached Jira screenshots, via source 2); authored/curated images belong in the Projects folder.
 
 The selected add-list paths populate the existing **`screenshots[]`** passed to `doc-planner` in Phase 5.7 — the downstream placement machinery (per-screenshot `dest`/`staging`/`upload_note`, `image_policy`) is unchanged. An accepted item — from either list — carries into Phase 6.1 for its CDN URL. The outcome is recorded as `existing_image_decisions[]` (schema above; matches `doc-writer`'s input contract) and carried in the Phase 6.3 handoff file alongside `cdn_urls`.
 
@@ -545,7 +545,7 @@ Invoke `counterpart-finder`:
   > target_space:       [the single member of target_spaces]
   > counterpart_space:  [the profile.spaces[] space not in target_spaces]
   > profile:            [Phase 0 profile]
-  > feature_summary:    [2–4 sentences from the jira-reader themes + VI goal]
+  > feature_summary:    [2–4 sentences from the jira-reader themes + PRD goal]
   > jira_key:           [<JIRA_KEY> (focus_key when set)]
   > counterpart_ref:    [the --counterpart value from Phase 0, or null]
   > diff_highlights:    [key filenames/symbols from the Phase 5 diff summaries, optional]"
@@ -1077,7 +1077,7 @@ choices: ["Push <branch> to origin now", "Skip — I'll push later", "Cancel"]
 
 Per `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md` §4–§5:
 1. **Detect the host** from the docs repo's `git remote get-url origin` (Bitbucket Cloud / Bitbucket Server / GitHub / other).
-2. **Compose the draft**: title (per `commit_convention`); body — what was documented, the output files, the Phase 6.5 render-verification summary, deferred style/review/render items, a link to the Jira VI. When Phase 5.8 recorded any `document-as-spec` / `skip-and-report` decision, prepend a banner: `> ⚠ DO NOT MERGE until <JIRA_KEY>-implementation-gaps.md is resolved.` A qualifying `document-as-code` decision (§7.5) does NOT get this banner even though it also produces a gaps file — the docs correctly describe what shipped, so the PR is mergeable; only the source ticket needs correcting.
+2. **Compose the draft**: title (per `commit_convention`); body — what was documented, the output files, the Phase 6.5 render-verification summary, deferred style/review/render items, a link to the Jira PRD. When Phase 5.8 recorded any `document-as-spec` / `skip-and-report` decision, prepend a banner: `> ⚠ DO NOT MERGE until <JIRA_KEY>-implementation-gaps.md is resolved.` A qualifying `document-as-code` decision (§7.5) does NOT get this banner even though it also produces a gaps file — the docs correctly describe what shipped, so the PR is mergeable; only the source ticket needs correcting.
 3. **Write + show**: write `<JIRA_KEY>-pr-draft.md` to the vault project folder (`find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"`; ask if none) AND print it.
 4. **Host footer**: Bitbucket → "open a PR in the web UI and paste the title + body"; GitHub → additionally offer `gh pr create --title "<title>" --body-file <pr-draft path>` that the user may run; other → "open a PR and paste the title + body". Bitbucket offers no CLI to open one — a host capability limit, not a policy: the plugin does open a pull request on a host with a CLI, but only in the separate GitHub-hosted specs repo (`$SPECS_PATH`), via a different flow — never in this docs repo (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.6).
 
@@ -1137,7 +1137,7 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 - Opus available: [yes | no]
 
 ### Jira hierarchy summary
-- VI: [<KEY>] [summary, 1 line]
+- PRD: [<KEY>] [summary, 1 line]
 - Linked items: [count by type — e.g. "3 Epics, 7 Stories, 2 Sub-tasks, 1 Research"]
 - Themes: [2–4 bullet points from jira-reader]
 
@@ -1211,14 +1211,14 @@ List each gap (claim, decision) with its own status line — never print the DO-
 [When Phase 8.5 ran: "Branch <name> — squashed to N commit(s); pushed to origin: <yes/no>; PR draft: <pr-draft path>." When Phase 8.5 was skipped (no branch/commits): "Working tree has uncommitted changes. /document (Jira mode) writes but does not commit the docs write target in non-git contexts; this run's $SPECS_PATH session artifacts are committed separately by the terminal step."]
 
 ### Next step
-[Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. Once **all** the VI's Epics are documented, draft/finalize the release note → `/dev-workflows:release-notes <VI>` (VI-level; run once, not per Epic). If the review BLOCKED, resolve that first.]
+[Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. Once **all** the PRD's Epics are documented, draft/finalize the release note → `/dev-workflows:release-notes <PRD>` (PRD-level; run once, not per Epic). If the review BLOCKED, resolve that first.]
 
 ### Context hygiene
 
 The resume pointer is written in the terminal cost phase (Phase 11), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
 
-- **On to `/dev-workflows:release-notes <VI>` (still Dev — a spec or design exists by now, so this is the late run)?** → run **`/compact`** — context stays relevant.
-- Consider **`/rename <VI-ID>-<slug>-dev`** to relocate this session later.
+- **On to `/dev-workflows:release-notes <PRD>` (still Dev — a spec or design exists by now, so this is the late run)?** → run **`/compact`** — context stays relevant.
+- Consider **`/rename <PRD-ID>-<slug>-dev`** to relocate this session later.
 
 Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
 ```
@@ -1257,7 +1257,7 @@ into the docs repo or the current working directory.
 
 Terminal phase — the NEW final operational phase; runs after Phase 10 (the
 follow-up phase) and NEVER interrupts an earlier phase. Records this command's
-token-cost contribution to the VI by citing
+token-cost contribution to the PRD by citing
 `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and calling its single
 `emit-cost` entry point. Unlike feedback, **cost ALWAYS runs** — it never "writes
 nothing".
@@ -1268,15 +1268,15 @@ Call `emit-cost` with `command: /document (Jira mode)`, `phase: documenting`,
 transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),
 runs `scripts/session-cost.py` to compute the per-model token-cost delta against
 the price table (§4), records the optional statusline cross-check (§5), and
-appends one per-invocation entry to `<VI-dir>/dev-workflows/cost/<sid8>.md` via
+appends one per-invocation entry to `<PRD-dir>/dev-workflows/cost/<sid8>.md` via
 the specs-first ladder (§8) — pending + opportunistic move-then-delete
-reconciliation (§9) when no VI key resolves. **The checkpoint advances even in
+reconciliation (§9) when no PRD key resolves. **The checkpoint advances even in
 the pending / report-only tiers.** Surface the persisted path (or the
 report-only notice) as this phase's only output.
 
 **Then write the resume pointer.** Cite
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and write/overwrite
-`<VI-dir>/dev-workflows/resume.md` now — after the cost entry above, so the
+`<PRD-dir>/dev-workflows/resume.md` now — after the cost entry above, so the
 pointer reflects the completed run, and before the commit step below, so it
 is included in it. Redact per §1. Silent; the printed `### Context hygiene`
 guidance already appeared in the Phase 9 report.
@@ -1329,7 +1329,7 @@ name is ever written (§10 privacy).
 - ALWAYS end the Phase 9 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked; omitted in direct doc-edit mode (Mode B)
 - ALL written claims must be traceable to Jira keys or PR diffs — attribution goes in the run's return payload and the commit message, NEVER inline in the rendered page (`${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1)
 - For `image_policy: cdn_upload_required`, NEVER copy user-provided screenshots into the repo — stage under `<screenshot_staging_dir>`, the ticket's persistent Obsidian project folder under `$VAULT_PATH` (never the docs repo, never `/tmp`) — and surface in the Phase 9 `### Screenshots to upload manually` section
-- ALWAYS end the Phase 9 report with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a docs→PM handoff suggestion (`/clear`) + `/rename <VI-ID>-<slug>-dev`; guidance only, never auto-run. **Mode B (direct doc-edit) omits this** — no VI context.
+- ALWAYS end the Phase 9 report with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a docs→PM handoff suggestion (`/clear`) + `/rename <PRD-ID>-<slug>-dev`; guidance only, never auto-run. **Mode B (direct doc-edit) omits this** — no PRD context.
 
 ---
 
@@ -1343,7 +1343,7 @@ If the argument starts with `@`, treat it as a path to a markdown file. Resolve 
 - the change is small and the content is already in the user's head or the file, **not** scattered across Jira items and PR diffs
 - no tests, no branch (still true — the specs-repo preflight creates none, `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2), no code review, and no commit of the doc edit are warranted
 
-For net-new documentation assembled from a Jira hierarchy plus PR diffs, use Jira mode (above). For writing child Epic drafts from a Value Increment, use `/epics`.
+For net-new documentation assembled from a Jira hierarchy plus PR diffs, use Jira mode (above). For writing child Epic drafts from a Product Requirements Document, use `/epics`.
 
 No model-routing reminder is injected for this command — classification still happens but is always SIMPLE or MODERATE, and Opus is never invoked.
 
@@ -1706,7 +1706,7 @@ into the docs repo or the current working directory.
 
 Terminal phase — the NEW final operational phase; runs after Phase 6 (the
 follow-up phase) and NEVER interrupts an earlier phase. Records this command's
-token-cost contribution to the VI by citing
+token-cost contribution to the PRD by citing
 `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and calling its single
 `emit-cost` entry point. Unlike feedback, **cost ALWAYS runs** — it never "writes
 nothing".
@@ -1718,9 +1718,9 @@ and `plugin_version` (read from
 transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),
 runs `scripts/session-cost.py` to compute the per-model token-cost delta against
 the price table (§4), records the optional statusline cross-check (§5), and
-appends one per-invocation entry to `<VI-dir>/dev-workflows/cost/<sid8>.md` via
+appends one per-invocation entry to `<PRD-dir>/dev-workflows/cost/<sid8>.md` via
 the specs-first ladder (§8) — pending + opportunistic move-then-delete
-reconciliation (§9) when no VI key resolves. **The checkpoint advances even in
+reconciliation (§9) when no PRD key resolves. **The checkpoint advances even in
 the pending / report-only tiers.** Surface the persisted path (or the
 report-only notice) as this phase's only output.
 

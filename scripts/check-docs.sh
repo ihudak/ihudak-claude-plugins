@@ -385,7 +385,7 @@ check_install_block() {
 # Cost attribution agrees in BOTH directions: every command that hands emit-cost a
 # fixed phase/role pair has a row in $REF_DIR/cost-emission.md section 7 carrying
 # those same two values, and every section-7 row names a real command. Defect D2 --
-# /update-vi emitting `phase: vi-update, role: pm` with no section-7 row -- was found
+# /update-prd emitting `phase: prd-update, role: pm` with no section-7 row -- was found
 # by a one-off inline grep and defended by nothing afterwards, which is how it had
 # survived since the command shipped. `/document` is the shape that defeats a naive
 # grep: it calls emit-cost twice, as `/document (Jira mode)` and `/document (direct

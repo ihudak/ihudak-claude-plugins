@@ -1,16 +1,16 @@
 ---
 name: idea
-description: Idea-refinement workflow (PM phase, front of the VI-creation flow). Takes one source — an inline prompt, a markdown file (with wikilinks/images), a community post, or an exported Jira ticket (product feedback, or an existing Value Increment the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-vi. Writes to the vault (keyless); no Jira, no code; once a Jira key resolves it relocates `idea.md` into `$SPECS_PATH/specifications/<KEY>-<slug>/`, and on a completed handoff also opens a pull request for it (`references/phase-handoff.md` §2) — declining leaves it relocated but not on the default branch; its session artifacts are committed by `commit-artifacts`.
+description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (with wikilinks/images), a community post, or an exported Jira ticket (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Writes to the vault (keyless); no Jira, no code; once a Jira key resolves it relocates `idea.md` into `$SPECS_PATH/specifications/<KEY>-<slug>/`, and on a completed handoff also opens a pull request for it (`references/phase-handoff.md` §2) — declining leaves it relocated but not on the default branch; its session artifacts are committed by `commit-artifacts`.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
 Refine an idea into `idea.md`: $ARGUMENTS
 
-`/idea` is the **front door of the VI-creation flow** (PM phase) — upstream of `/create-vi` (future) and
+`/idea` is the **front door of the PRD-creation flow** (PM phase) — upstream of `/create-prd` (future) and
 the existing pipeline. It ingests one source, refines it through a grill, and writes a lean one-page
-`idea.md` (per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`) that seeds the Value Increment. It is
-**not** a VI: no Jira write, no code change. Output lands keyless in the vault;
-`/idea` relocates it under `$SPECS_PATH` itself once a Jira key exists (Phase 5); `/create-vi <KEY>` then finds it there and does not move it.
+`idea.md` (per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`) that seeds the Product Requirements Document. It is
+**not** a PRD: no Jira write, no code change. Output lands keyless in the vault;
+`/idea` relocates it under `$SPECS_PATH` itself once a Jira key exists (Phase 5); `/create-prd <KEY>` then finds it there and does not move it.
 
 Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless (until convergence).
 `--no-docs` and `--no-prior-art` each turn off one grounding source (see Phase 1).
@@ -68,10 +68,10 @@ Classify `$ARGUMENTS` **minus every recognised flag** (`--deep`, `--no-docs`, `-
    (`${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`), then type it from the export's
    **`issue_type` frontmatter** — never from the project prefix, which is a coincidence of Jira
    configuration:
-   - `ValueIncrement` → **vi** — an existing VI. Prior art the user supplied.
+   - `ValueIncrement` → **prd** — an existing PRD. Prior art the user supplied.
    - `Product Need` → **rfe** — product feedback, handled as demand evidence exactly as today.
    - anything else → name the actual `issue_type` in the confirmation below and let the user choose;
-     **default vi**, since a tracked delivery item is closer to prior art than to demand evidence.
+     **default prd**, since a tracked delivery item is closer to prior art than to demand evidence.
 
    `NOT_FOUND` from the entry point is handled as today (an environment/user halt, never `emit-block`).
 2. An existing `.md` path or an `@wikilink` → **markdown** (a community post is just a markdown file,
@@ -83,7 +83,7 @@ Classify `$ARGUMENTS` **minus every recognised flag** (`--deep`, `--no-docs`, `-
 
 **A — the key resolved but its `issue_type` is neither `ValueIncrement` nor `Product Need`.** Name the actual `issue_type` in prose beside the list, never inside an option:
 ```
-choices: ["Read this as a vi — an existing Value Increment (Recommended)", "Read this as an rfe — product feedback", "Cancel", "Other… (describe)"]
+choices: ["Read this as a prd — an existing Product Requirements Document (Recommended)", "Read this as an rfe — product feedback", "Cancel", "Other… (describe)"]
 ```
 
 **B — the argument is path-like (contains `/`, ends in `.md`, or starts with `@`) but resolved to no existing file.** Without this gate it falls through precedence rule 3 to **prompt** and the path string itself becomes the raw idea text — a mistyped path silently ingested as prose:
@@ -91,7 +91,7 @@ choices: ["Read this as a vi — an existing Value Increment (Recommended)", "Re
 choices: ["Re-enter the path (Recommended)", "Read the argument as a prompt — the literal text is the idea", "Cancel", "Other… (describe)"]
 ```
 
-**Everything else** — a `.md` path or `@wikilink` that resolves, a key typed `ValueIncrement` or `Product Need`, and plain prose — is unambiguous. State the resolution in one line that invites correction and **proceed without waiting**; the list would have one plausible answer. (A dedicated `--as prompt|markdown|rfe|vi` override is future work — this inline confirmation covers a mis-detection.)
+**Everything else** — a `.md` path or `@wikilink` that resolves, a key typed `ValueIncrement` or `Product Need`, and plain prose — is unambiguous. State the resolution in one line that invites correction and **proceed without waiting**; the list would have one plausible answer. (A dedicated `--as prompt|markdown|rfe|prd` override is future work — this inline confirmation covers a mis-detection.)
 
 Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
 
@@ -107,7 +107,7 @@ Dispatch `idea-reader` to read the source and return a structured digest:
   > "Ingest this idea source and return the structured digest:
   >
   > argument:        [the resolved argument]
-  > provenance_hint: [prompt | markdown | community-post | rfe | vi from Phase 1]
+  > provenance_hint: [prompt | markdown | community-post | rfe | prd from Phase 1]
   > vault_path:      [resolved $VAULT_PATH]"
 
 Wait for the digest. If `status: NOT_FOUND` (invalid key / missing file), surface:
@@ -116,7 +116,7 @@ choices: ["Re-enter the source", "Cancel", "Other… (describe)"]
 ```
 This is an environment/user halt — do NOT `emit-block`. On `OK`, carry forward `raw_context`,
 `signals`, `images`, `candidate_title`, `candidate_slug`, `source_refs`, `provenance`, `tracked` (a
-`vi` source only), and the followed/broken wikilinks — `source_refs`/`provenance` feed the `sources:`
+`prd` source only), and the followed/broken wikilinks — `source_refs`/`provenance` feed the `sources:`
 frontmatter entry in Phase 4, and `tracked` seeds `## Prior art`.
 
 ---
@@ -127,9 +127,9 @@ Dispatch both grounding agents **in a single response** so they run in parallel.
 
 **Docs.** Run `resolve-docs-grounding idea` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the `idea-reader` digest's problem/outcome, `themes` = its signals; **omit `jira_key`** (idea is keyless, so the git-grep backstop is skipped). When OFF, skip silently.
 
-**Prior art.** Using the `resolve-prior-art idea` result already obtained in Phase 1: when `prior_art: ON`, `dispatch-prior-art-finder` per `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md` with `feature_summary` = the same problem/outcome, `themes` = the digest's signals, and `known_refs` built from the reader's digest: every `wikilinks_followed` path and every filesystem-path `source_refs` ref as `{path, has_summary: true}` (`idea-reader` already summarised them), plus — for a `vi` source — `{jira_key: <KEY>, has_summary: true}`. Passing the key rather than a path is deliberate: the orchestrator does not know which vault directory holds that VI, and resolving it is the finder's job. The supplied VI is then classified and status-resolved by the same code path as a discovered one. When OFF, skip silently.
+**Prior art.** Using the `resolve-prior-art idea` result already obtained in Phase 1: when `prior_art: ON`, `dispatch-prior-art-finder` per `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md` with `feature_summary` = the same problem/outcome, `themes` = the digest's signals, and `known_refs` built from the reader's digest: every `wikilinks_followed` path and every filesystem-path `source_refs` ref as `{path, has_summary: true}` (`idea-reader` already summarised them), plus — for a `prd` source — `{jira_key: <KEY>, has_summary: true}`. Passing the key rather than a path is deliberate: the orchestrator does not know which vault directory holds that PRD, and resolving it is the finder's job. The supplied PRD is then classified and status-resolved by the same code path as a discovered one. When OFF, skip silently.
 
-Carry both digests into Phase 3 with **grill-rank** consumption — challenges from the two compete together for the ≤10 question slots, they do not add slots. Carry `area_proposal` and the `vi` source's match into Phase 4.
+Carry both digests into Phase 3 with **grill-rank** consumption — challenges from the two compete together for the ≤10 question slots, they do not add slots. Carry `area_proposal` and the `prd` source's match into Phase 4.
 
 ---
 
@@ -202,7 +202,7 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
 
   | Row | Included when | Text |
   |---|---|---|
-  | 1 | `provenance: vi` | `Rewrite <KEY> — reuse its Jira key; write into <item-dir>/` when the finder resolved one, else `Rewrite <KEY> — reuse its Jira key; write to <container default>/<candidate_slug>/` |
+  | 1 | `provenance: prd` | `Rewrite <KEY> — reuse its Jira key; write into <item-dir>/` when the finder resolved one, else `Rewrite <KEY> — reuse its Jira key; write to <container default>/<candidate_slug>/` |
   | 2 | `area_proposal.path` non-null, `confidence: high`, **and** it differs from the container default | `New idea under <area_proposal.path>/<candidate_slug>/` |
   | 3 | always | `New idea — a new Jira key will be minted; write to <container default>/<candidate_slug>/ as detected` |
   | 4 | always | `Enter a different path` |
@@ -214,31 +214,31 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
   `prior_art` entry with the highest `match_confidence`, ties broken by array order — and its
   `relation`: `supersedes_self` → row 1 **when present, else row 3**; every other relation → row 2
   when present, else row 3. `supersedes_self` needs its own fallback because it is reachable for **any**
-  `known_refs` entry — a `markdown` source that wikilinks a VI work document can carry it — while row 1
-  ships only for `provenance: vi`.
+  `known_refs` entry — a `markdown` source that wikilinks a PRD work document can carry it — while row 1
+  ships only for `provenance: prd`.
   **When there is no top match at all — prior-art grounding OFF, an invalid `$VAULT_PATH`, a non-vault
   write root, or the finder returning `EMPTY` — recommend row 3.** That state is reachable precisely
-  because row 1 fires on `provenance: vi` alone, and nothing is then known about whether this is a
+  because row 1 fires on `provenance: prd` alone, and nothing is then known about whether this is a
   rewrite; the neutral default is the one that mints no Jira key. Every branch must name a row that is
   actually in the array, or the gate renders with nothing marked. Never recommend row 1 without
-  `supersedes_self` — extending and paralleling a VI are as common as rewriting one, and a wrong
+  `supersedes_self` — extending and paralleling a PRD are as common as rewriting one, and a wrong
   default here silently mints or fails to mint a Jira key. Validate every chosen path sits inside the
   resolved write root and is writable.
 
-  Record the choice as **`vi_disposition`** — `rewrite` for row 1, `new` for every other row — and carry
-  it into Phase 5. **When the gate does not fire at all, `vi_disposition` is `new`.** Row 1 keys only on
-  `provenance: vi`, never on the finder resolving anything, so a `vi` source always reaches this question
+  Record the choice as **`prd_disposition`** — `rewrite` for row 1, `new` for every other row — and carry
+  it into Phase 5. **When the gate does not fire at all, `prd_disposition` is `new`.** Row 1 keys only on
+  `provenance: prd`, never on the finder resolving anything, so a `prd` source always reaches this question
   even when prior-art grounding is OFF or the key has no vault work document — the disposition decides
   whether the user is told to mint a Jira key, which is not an advisory matter and must not depend on an
-  advisory, user-disableable subsystem. This is the only point in the flow where the three shapes of a supplied VI (extend,
+  advisory, user-disableable subsystem. This is the only point in the flow where the three shapes of a supplied PRD (extend,
   parallel, rewrite-in-place) can be told apart.
 - **`## Prior art`:** write the section per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` when
-  Phase 2.5 returned any `prior_art` entry **or** the source is `vi`; omit it entirely otherwise. A `vi`
+  Phase 2.5 returned any `prior_art` entry **or** the source is `prd`; omit it entirely otherwise. A `prd`
   source contributes its Phase 2 `tracked` block (key, status, summary) even when prior-art grounding is
   OFF — it is prior art the user handed over, not something the finder discovered — and appears there
-  **and** in `sources:`. Merge by Jira key so a supplied VI the finder also matched yields one bullet: the finder's entry wins,
+  **and** in `sources:`. Merge by Jira key so a supplied PRD the finder also matched yields one bullet: the finder's entry wins,
   because it is a strict superset of `tracked` (it adds `relation`, `match_reason`, and a vault path). A
-  finder match with `jira_key: null` cannot collide — a supplied VI always has a key.
+  finder match with `jira_key: null` cannot collide — a supplied PRD always has a key.
 - **`## Feasibility grounding`:** write the section per
   `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` when Phase 2.6 ran **and** returned at least one
   finding; omit it entirely otherwise. Head it with each grounded repo as `<repo>@<scanned_ref>`; give
@@ -261,12 +261,12 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
 
 Report where `idea.md` was written and its `status`, then offer the next phase — **adapted to status**:
 
-- **`vi_disposition: rewrite`, `status: refined`** — the key is already known from the `vi` source, so there is **no round trip for the key** — but the git consent choice below still applies; a known key says nothing about whether the user consented to a branch and a pull request. Relocate `idea.md` to `$SPECS_PATH/specifications/<KEY>-<slug>/idea.md` (resolve the folder by key-number, tolerating a human-adjusted slug), then present `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim: `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`. On the first choice, execute `handoff-to-main` (§2) with `prefix: idea`, `feature_folder` = the relocation target above (`$SPECS_PATH/specifications/<KEY>-<slug>/`), `deliverable_paths` = the relocated file, `title: <KEY> Refine idea for <summary>`, `body_facts` = the idea's Problem/Goal one-liner, its `vi_disposition`, and any open prior-art matches, then report the §4.1 outcome line. On the second choice, report the §4.1 declined-outcome line — `idea.md` is relocated but not on the default branch; the next phase will stop until it is.
-- **`vi_disposition: new`, `status: refined`** — ask: `choices: ["Create the Jira workitem now and give me the key — I'll complete the handoff (Recommended)", "Leave it in the vault — I'll hand it off later", "Cancel", "Other… (describe)"]`. On a key matching `^[A-Z][A-Z0-9_]*-\d+$`, relocate `idea.md` to `$SPECS_PATH/specifications/<KEY>-<slug>/idea.md` exactly as above, then present the same §4.3 consent choice and proceed exactly as above — `handoff-to-main` on its first option, the §4.1 declined-outcome line on its second. On the second choice of **this** bullet's own Jira-key offer ("Leave it in the vault…"), report plainly: *"Not handed off — `idea.md` stays at `<path>`. `/create-vi <KEY>` will not find it; use the out-of-contract form `/dev-workflows:create-vi <KEY> @<path>`."*
-- **`status: draft`** (N open `[NEEDS CLARIFICATION]`) — **never hand off**, regardless of `vi_disposition`, and do not ask. By the governing principle the phase is not finished, so there is nothing to hand over. Report the N open items and offer `--deep` (`/dev-workflows:idea @<idea.md path> --deep`), or the out-of-contract route (`/dev-workflows:create-vi <KEY-or-JIRA-KEY> @<idea.md path>`, which will grill you on the rest). State explicitly that no branch or pull request was created.
+- **`prd_disposition: rewrite`, `status: refined`** — the key is already known from the `prd` source, so there is **no round trip for the key** — but the git consent choice below still applies; a known key says nothing about whether the user consented to a branch and a pull request. Relocate `idea.md` to `$SPECS_PATH/specifications/<KEY>-<slug>/idea.md` (resolve the folder by key-number, tolerating a human-adjusted slug), then present `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim: `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`. On the first choice, execute `handoff-to-main` (§2) with `prefix: idea`, `feature_folder` = the relocation target above (`$SPECS_PATH/specifications/<KEY>-<slug>/`), `deliverable_paths` = the relocated file, `title: <KEY> Refine idea for <summary>`, `body_facts` = the idea's Problem/Goal one-liner, its `prd_disposition`, and any open prior-art matches, then report the §4.1 outcome line. On the second choice, report the §4.1 declined-outcome line — `idea.md` is relocated but not on the default branch; the next phase will stop until it is.
+- **`prd_disposition: new`, `status: refined`** — ask: `choices: ["Create the Jira workitem now and give me the key — I'll complete the handoff (Recommended)", "Leave it in the vault — I'll hand it off later", "Cancel", "Other… (describe)"]`. On a key matching `^[A-Z][A-Z0-9_]*-\d+$`, relocate `idea.md` to `$SPECS_PATH/specifications/<KEY>-<slug>/idea.md` exactly as above, then present the same §4.3 consent choice and proceed exactly as above — `handoff-to-main` on its first option, the §4.1 declined-outcome line on its second. On the second choice of **this** bullet's own Jira-key offer ("Leave it in the vault…"), report plainly: *"Not handed off — `idea.md` stays at `<path>`. `/create-prd <KEY>` will not find it; use the out-of-contract form `/dev-workflows:create-prd <KEY> @<path>`."*
+- **`status: draft`** (N open `[NEEDS CLARIFICATION]`) — **never hand off**, regardless of `prd_disposition`, and do not ask. By the governing principle the phase is not finished, so there is nothing to hand over. Report the N open items and offer `--deep` (`/dev-workflows:idea @<idea.md path> --deep`), or the out-of-contract route (`/dev-workflows:create-prd <KEY-or-JIRA-KEY> @<idea.md path>`, which will grill you on the rest). State explicitly that no branch or pull request was created.
 
 Also report any prior art found — matched keys with their statuses, and the alternative container path
-when one exists — **whether or not the gate fired**, so the user can relocate before `/create-vi` makes
+when one exists — **whether or not the gate fired**, so the user can relocate before `/create-prd` makes
 the path sticky.
 
 Also report the code grounding when Phase 2.6 ran: the grounded repos with their `scanned_ref`s, any
@@ -275,14 +275,14 @@ and — first, because it is the most consequential thing a run can produce — 
 one was written. A reframing that changed the idea's Problem section must not be reported only inside
 the file.
 
-`/create-vi` is a separate command; this offer is guidance the user acts on — it never auto-invokes
+`/create-prd` is a separate command; this offer is guidance the user acts on — it never auto-invokes
 another command. (Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — the plugin-wide
 next-phase-offer contract; `/idea` is one reference implementation.)
 
 ### Context hygiene
 
-Continuing to `/dev-workflows:create-vi` (still the PM phase)? → run **`/compact`** to free context; your
-`idea.md` is already on disk. (No resume pointer or `/rename` label here — the VI-Key is
+Continuing to `/dev-workflows:create-prd` (still the PM phase)? → run **`/compact`** to free context; your
+`idea.md` is already on disk. (No resume pointer or `/rename` label here — the PRD-Key is
 minted later, and the ideation phase is short.) Guidance only — see
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
 
@@ -300,7 +300,7 @@ abandoned at the block still records the gap. NEVER `emit-block` for an environm
 
 **Session-hygiene invariant.** End Phase 5 with a `### Context hygiene` note per
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — a same-role `/compact` suggestion
-(no `resume.md`, no `/rename`: pre-VI, short PM phase). Guidance only, never auto-run.
+(no `resume.md`, no `/rename`: pre-PRD, short PM phase). Guidance only, never auto-run.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
    > "Analyse this session and return a Lessons Learned report.
@@ -321,13 +321,13 @@ abandoned at the block still records the gap. NEVER `emit-block` for an environm
    ladder, and writes silently. Surface the persisted path (or "no plugin-facing signal — nothing
    persisted").
 3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and call its
-   `emit-cost` entry point with `command: /idea`, `phase: vi-creation`, `role: pm`, `jira_key: null`,
+   `emit-cost` entry point with `command: /idea`, `phase: prd-creation`, `role: pm`, `jira_key: null`,
    the run's `source`, and `plugin_version`. A keyless run writes to the pending ladder (§9) and
    **advances the chained checkpoint** (§3); surface the persisted path (or the report-only notice).
 4. **Commit session artifacts (terminal).** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`
    and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages
    ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `NOISSUE Add dev-workflows
-   session artifacts (/idea)` (this run is keyless — no VI-Key exists yet), and pushes. It NEVER
+   session artifacts (/idea)` (this run is keyless — no PRD-Key exists yet), and pushes. It NEVER
    touches a code/docs repo, the vault, or the current working directory; NEVER force-pushes; NEVER
    fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting
    that notice. Hold its §6 outcome line for the Final report.
@@ -345,7 +345,7 @@ path (or notice); the `Specs repo:` outcome line from `commit-artifacts`
 (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; any
 prior art found (keys + statuses), any `status_conflict` a match reported (both values and the export's
 date — it is the signal that catches a broken sync) and any `notes` the finder returned; the resolved
-`vi_disposition`; the code grounding outcome — the grounded repos with their `scanned_ref`s, any
+`prd_disposition`; the code grounding outcome — the grounded repos with their `scanned_ref`s, any
 descoped or inconclusive ones, and — first, because it is the most consequential thing a run can
 produce — the **Reframing** line if one was written; or, when no scan ran, `code grounding: off` (no
 `--ground-code`) or `code grounding: declined at the repo gate` (`--ground-code` given, "Ground

@@ -4,6 +4,29 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [4.0.0] — 2026-08-29
+
+### Changed — BREAKING: Value Increment renamed to PRD
+
+"Value Increment" is SAFe/organization-specific vocabulary that reads as opaque to anyone outside the team that coined it. The artifact is a Product Requirements Document, so the plugin now calls it that. This is vocabulary only — no phase, gate, or workflow edge changed behaviour.
+
+- **Commands:** `/create-vi` → **`/create-prd`**, `/update-vi` → **`/update-prd`**. The `--from-vi` seed flag is now `--from-prd`.
+- **Agent:** `vi-reviewer` → **`prd-reviewer`** (`dev-workflows:prd-reviewer`).
+- **References:** `references/vi-format.md` → **`prd-format.md`**; `references/vi-source-resolution.md` → **`prd-source-resolution.md`** (its `resolve-existing-vi` procedure is now `resolve-existing-prd`).
+- **Specs-repo branch prefix:** the six-prefix authority is now `^(idea|prd|ard|spec|design|ready)/` — the `vi/` prefix became `prd/`.
+- **Cost and feedback records:** the `vi:` key is now `prd:`, and the attributed phases `vi-creation` / `vi-update` are now `prd-creation` / `prd-update`.
+- **Enum values:** `jira-reader`'s `depth: vi-only` → `prd-only` and `vi-plus-epics` → `prd-plus-epics`; the `/idea` source type and `provenance:` value `vi` → `prd`; the ARD `scope: vi | epic` → `prd | epic`; `seeded_from_vi` → `seeded_from_prd`.
+
+**`ValueIncrement` is deliberately unchanged.** It is a Jira `issue_type` value read from exported frontmatter — external system data, not this plugin's vocabulary. `/idea` still types a source from it; the mapping target is now `prd` rather than `vi`. No Jira configuration changes.
+
+Nothing depends on a project-key prefix: every key match in the plugin is the same generic `^[A-Z][A-Z0-9_]*-\d+$`, so the rename carries no parsing risk.
+
+### Migration
+- Invoke `/create-prd` and `/update-prd`; the old command names are gone, with no aliases.
+- Anything dispatching `dev-workflows:vi-reviewer` must use `dev-workflows:prd-reviewer`.
+- **Cost and feedback records already emitted keep the old `vi:` key and the `vi-creation` / `vi-update` phase labels.** Aggregating a cost series across this release means treating the old and new labels as the same phase — this release splits that series, which is the deliberate cost of not carrying the old vocabulary forever.
+- **Specs-repo branches already named `vi/...` are no longer recognized as plugin-created.** `specs-preflight` leaves any unrecognized named branch alone rather than acting on it, so this is safe by default: such a branch is simply never switched away from or deleted. Rename or merge it by hand if you want the old behaviour.
+
 ## [3.0.0] — 2026-08-29
 
 ### Changed — BREAKING: vendor-neutral de-branding

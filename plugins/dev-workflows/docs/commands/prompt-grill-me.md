@@ -27,7 +27,7 @@ An `origin: prompt` entry (Friction, User prompt verbatim, Resolution fixed at `
 
 ## Gates
 
-No reviewer — the bounded grill itself is the only structure, and it is bounded on purpose: it stops at 5 questions rather than running to convergence the way `/create-vi`'s or `/design`'s relentless grills do.
+No reviewer — the bounded grill itself is the only structure, and it is bounded on purpose: it stops at 5 questions rather than running to convergence the way `/create-prd`'s or `/design`'s relentless grills do.
 
 ## Example
 

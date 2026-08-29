@@ -6,9 +6,9 @@
 jira_reader_handoff: <full YAML from jira-reader; see ${CLAUDE_PLUGIN_ROOT}/references/handoff/jira-reader.md output schema>
 diff_summaries:      <optional array of diff-summarizer outputs; one entry per repo; omit when diff-grounding is off>
 code_repos:          <optional array of {slug, path}; provided when diff-grounding is on — enables the writer's Source-truth check>
-imported_change_type:            <change_type from the imported VI frontmatter (jira-reader handoff); null otherwise>
-imported_release_notes_category: <release_notes_category from the imported VI frontmatter; null otherwise — used verbatim as the {{#context}} label>
-run_phase:                       <"pm" | "dev" — inferred by the command from whether specification.md / design.md exist under the VI's specs dir; gates the release-note-types.md §4 documentation-link rule only>
+imported_change_type:            <change_type from the imported PRD frontmatter (jira-reader handoff); null otherwise>
+imported_release_notes_category: <release_notes_category from the imported PRD frontmatter; null otherwise — used verbatim as the {{#context}} label>
+run_phase:                       <"pm" | "dev" — inferred by the command from whether specification.md / design.md exist under the PRD's specs dir; gates the release-note-types.md §4 documentation-link rule only>
 model_routing:
   classification: MODERATE
   reason: <from orchestrator>

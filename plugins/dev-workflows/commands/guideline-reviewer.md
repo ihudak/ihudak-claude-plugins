@@ -8,9 +8,21 @@ Review app code and UI for compliance with public UI design-system and accessibi
 
 If `$ARGUMENTS` is empty, ask the user which files or components to review.
 
+**`--rules <path>`** (optional) — an organization's own UI rule directory, layered over the bundled baseline. Set it aside from `$ARGUMENTS` before resolving the files to review, and pass it to the agent as `rules_path`. Absent, the agent resolves an overlay itself from `<repo-root>/.dev-workflows/ui-guidelines/` then `$UI_GUIDELINES_PATH`, falling back silently to the bundled baseline.
+
 Dispatch the review to the `guideline-reviewer` subagent:
 
 → Agent (subagent_type: "dev-workflows:guideline-reviewer"):
-  > "Review the following app code and UI for compliance with public UI design-system and accessibility standards: $ARGUMENTS"
+  > "Review the following app code and UI for compliance with public UI design-system and accessibility standards: $ARGUMENTS
+  >
+  > Run the deterministic accessibility check first, per your `## Deterministic Accessibility Check` section: detect the target repo's own `eslint-plugin-jsx-a11y` configuration and, if it is configured, run the repo's own lint scoped to the files under review; otherwise detect a runtime axe harness (`jest-axe`, `cypress-axe`, `@axe-core/playwright`, `@axe-core/cli`) and record it WITHOUT running it — a review has no rendered app. Neither configured ⇒ skip silently and review as normal. Never install anything, never prompt, never fail the run over missing tooling.
+  >
+  > Merge the linter's findings rather than duplicating them: a finding it reported deterministically is not re-raised by your review pass. Cite the axe-core `ruleId` and W3C ACT rule id from `references/guidelines/accessibility.md` alongside the WCAG success criterion on every accessibility finding that has one, and never invent an id.
+  >
+  > rules_path: [the --rules value, or omit]
+  >
+  > Resolve the rule overlay per your `## Rule Overlay` section and open the report with the `rules_source:` and `a11y_check:` lines (`eslint-jsx-a11y` | `harness-detected:<name>` | `none`)."
 
-Surface the subagent's verdict to the user.
+Surface the subagent's verdict to the user, including its `a11y_check:` line and, when a runtime harness was detected, its statement that the harness was **not** executed. Never restate a detected-but-unrun harness as a check that ran.
+
+`a11y_check: none` is a normal outcome, not a problem to report: mention it once as the recorded value and do not suggest the user install tooling.

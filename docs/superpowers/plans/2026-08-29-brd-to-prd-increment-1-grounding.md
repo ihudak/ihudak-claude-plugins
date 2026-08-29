@@ -72,8 +72,14 @@ The commands sentence in `plugins/dev-workflows/README.md` reads "twenty-one sla
 
 ```bash
 expect_fail "check 9: word-form command count that disagrees with the tree" 9 \
-  "sed -i.bak 's/twenty-one slash commands/twenty-four slash commands/' plugins/dev-workflows/README.md && rm -f plugins/dev-workflows/README.md.bak"
+  "sed -i.bak 's/one slash commands/twenty-four slash commands/' plugins/dev-workflows/README.md && rm -f plugins/dev-workflows/README.md.bak"
 ```
+
+**The mutation targets the fixture's wording, not the repository's.** `selftest()` copies
+`scripts/fixtures/docs/pass/` and mutates the copy; that fixture's README reads *"A fixture plugin of
+one slash commands."* and its tree holds exactly one command. A `sed` written against the real
+repository's "twenty-one" would match nothing, the mutation would be a silent no-op, and the case
+would fail forever because no check fired. Read the fixture before writing the mutation.
 
 - [ ] **Step 2: Run the selftest to verify the new case fails**
 
@@ -139,6 +145,14 @@ Expected: `FAIL check 4: reference file 'brd-addressing' is absent from referenc
 
 In `plugins/dev-workflows/docs/reference/references.md`, add a row naming `` `brd-addressing.md` `` with a one-line description in the same style as its neighbours, and change the count sentence from `98 files` to `99 files`.
 
+**`references.md` carries more than the gated number.** Its opening paragraph states an arithmetic
+reconciliation — total files, top-level markdown files, how many are named individually, the
+subtree sum, and what is accounted for against the total. Check 9 sees only the total, but leaving
+the rest stale is the drift this repository has a documented history of. Update every figure the
+new file changes: the total, the top-level count, the "N of the M" clause, the `36 + 1 + 1 = 38`
+arithmetic, and the `38 + 55 = 93 accounted for, against 98 files on disk` sentence. The
+"remaining five" non-markdown files are unchanged.
+
 - [ ] **Step 4: Run the gate triple to verify it passes**
 
 Run: the gate triple.
@@ -191,6 +205,14 @@ Expected: `FAIL check 4: reference file 'brd-format' is absent from reference/re
 - [ ] **Step 3: Add the docs entry and the count**
 
 Add the `` `brd-format.md` `` row to `docs/reference/references.md`; change `99 files` to `100 files`.
+
+**`references.md` carries more than the gated number.** Its opening paragraph states an arithmetic
+reconciliation — total files, top-level markdown files, how many are named individually, the
+subtree sum, and what is accounted for against the total. Check 9 sees only the total, but leaving
+the rest stale is the drift this repository has a documented history of. Update every figure the
+new file changes: the total, the top-level count, the "N of the M" clause, the `36 + 1 + 1 = 38`
+arithmetic, and the `38 + 55 = 93 accounted for, against 98 files on disk` sentence. The
+"remaining five" non-markdown files are unchanged.
 
 - [ ] **Step 4: Run the gate triple to verify it passes**
 
@@ -249,6 +271,14 @@ State that `covered` sums `covered-here` and `covered-by`, and that `superseded-
 Expected: `FAIL check 4: reference file 'coverage-ledger-format' is absent from reference/references.md` and check 9 reporting tree has 101.
 
 - [ ] **Step 3: Add the docs entry and the count** — change `100 files` to `101 files`.
+
+**`references.md` carries more than the gated number.** Its opening paragraph states an arithmetic
+reconciliation — total files, top-level markdown files, how many are named individually, the
+subtree sum, and what is accounted for against the total. Check 9 sees only the total, but leaving
+the rest stale is the drift this repository has a documented history of. Update every figure the
+new file changes: the total, the top-level count, the "N of the M" clause, the `36 + 1 + 1 = 38`
+arithmetic, and the `38 + 55 = 93 accounted for, against 98 files on disk` sentence. The
+"remaining five" non-markdown files are unchanged.
 
 - [ ] **Step 4: Run the gate triple to verify it passes**
 
@@ -312,6 +342,14 @@ State the failure this prevents: a checkout can report hundreds of modified file
 Expected: `FAIL check 4: reference file 'grounding-format' is absent from reference/references.md` and check 9 reporting tree has 102.
 
 - [ ] **Step 3: Add the docs entry and the count** — change `101 files` to `102 files`.
+
+**`references.md` carries more than the gated number.** Its opening paragraph states an arithmetic
+reconciliation — total files, top-level markdown files, how many are named individually, the
+subtree sum, and what is accounted for against the total. Check 9 sees only the total, but leaving
+the rest stale is the drift this repository has a documented history of. Update every figure the
+new file changes: the total, the top-level count, the "N of the M" clause, the `36 + 1 + 1 = 38`
+arithmetic, and the `38 + 55 = 93 accounted for, against 98 files on disk` sentence. The
+"remaining five" non-markdown files are unchanged.
 
 - [ ] **Step 4: Run the gate triple to verify it passes**
 

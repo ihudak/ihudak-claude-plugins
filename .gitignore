@@ -13,3 +13,6 @@ settings-local.json
 # Python bytecode
 __pycache__/
 *.py[cod]
+
+# subagent-driven-development scratch (ledger, briefs, review packages)
+.superpowers/

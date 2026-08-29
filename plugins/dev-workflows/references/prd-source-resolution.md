@@ -1,15 +1,15 @@
-# Resolving an existing VI (Jira-import-first — shared reference)
+# Resolving an existing PRD (Jira-import-first — shared reference)
 
-The authoritative text of an **existing** Value Increment lives in **Jira**, not in the `$SPECS_PATH`
-markdown. `/create-vi` writes the VI to `$SPECS_PATH` as the *initial* draft; once it is pasted into
+The authoritative text of an **existing** Product Requirements Document lives in **Jira**, not in the `$SPECS_PATH`
+markdown. `/create-prd` writes the PRD to `$SPECS_PATH` as the *initial* draft; once it is pasted into
 Jira it is edited by people (and gains comments) there, while the specs draft stays frozen. Any workflow
-that consumes an existing VI — `/update-vi` (its base) and `/create-vi --from-vi` (its seed) — MUST read
-the re-imported Jira VI first.
+that consumes an existing PRD — `/update-prd` (its base) and `/create-prd --from-prd` (its seed) — MUST read
+the re-imported Jira PRD first.
 
 This is an **adjacent** policy to `references/source-truth.md` (which governs code-vs-docs verification):
-this file governs *which artifact holds the current VI text*, not code truth. Do not conflate them.
+this file governs *which artifact holds the current PRD text*, not code truth. Do not conflate them.
 
-## Procedure — `resolve-existing-vi <KEY>`
+## Procedure — `resolve-existing-prd <KEY>`
 
 1. **Validate** `<KEY>` against `^[A-Z][A-Z0-9_]*-\d+$`. Malformed → stop and report.
 2. **Jira import first.** Look for `$VAULT_PATH/jira-products/<KEY>/**/<KEY>.md` and its sibling
@@ -24,7 +24,7 @@ this file governs *which artifact holds the current VI text*, not code truth. Do
    `choices: ["Re-import <KEY> now — I'll wait (Recommended)", "Proceed with the current import", "Cancel", "Other… (describe)"]`.
 5. **Secondary grounding (read-only; never the base):** the frozen `$SPECS_PATH` specs draft (glob
    `<KEY>_*.md`, `issue_type: ValueIncrement`), any `*_ARD.md`, `specification.md`, and — for
-   `/update-vi` — a user-supplied `@transcript` / notes path. These enrich the grill; they never override
+   `/update-prd` — a user-supplied `@transcript` / notes path. These enrich the grill; they never override
    the Jira import.
 
 Product-level only — this reads markdown/comments; it mounts no repos and runs no code scan.

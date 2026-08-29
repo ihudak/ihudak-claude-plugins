@@ -17,7 +17,7 @@ write_targets:          <confirmed list from doc-location-finder + user; each ha
 screenshots:            [<array of user-provided absolute image paths; possibly empty>]
 screenshot_staging_dir: <absolute dir the command resolved for cdn_upload_required staging — a persistent Obsidian project folder under $VAULT_PATH; null when no screenshots were provided>
 code_repos:             <array of {slug, path} for source-truth verification; the clones resolved for diff-summarizer; [] when unavailable>
-specs_dir:              <absolute path to the VI's spec folder (PRODUCT-NNNN*), or null; the authoritative intended-behavior source>
+specs_dir:              <absolute path to the PRD's spec folder (PRODUCT-NNNN*), or null; the authoritative intended-behavior source>
 repo_root:              <absolute path to the docs repo root>
 profile:                <the resolved docs-profile (built-in example-docs default, in-repo, or generated); supplies spaces[], cross_space_override, shared_registries, tokens>
 target_spaces:          <the run's resolved space set: [cloud] | [self-hosted] | [cloud, self-hosted]>
@@ -36,7 +36,7 @@ For `example-docs` this resolves to `CONTRIBUTING.md` `## PR checklist` — both
 
 For each write target:
 
-1. **Decide what topics the page must cover.** Typical topics, sourced from the VI goal + Epic summaries + diff summaries:
+1. **Decide what topics the page must cover.** Typical topics, sourced from the PRD goal + Epic summaries + diff summaries:
    - "How to use" — end-user workflow
    - "How to configure" / "Setup" — settings, prerequisites
    - "Reference" — options, flags, schema fields
@@ -100,7 +100,7 @@ For each write target:
 8. **Flag gaps the writer cannot fill from inputs alone.** Examples:
    - "Feature requires a DB-migration note but no migration steps were found in Jira or diffs."
    - "Screenshot provided for the config UI but the Jira items don't describe the default setting."
-   - "Feature is mentioned in the VI goal but no PR was merged yet; only Jira content is available."
+   - "Feature is mentioned in the PRD goal but no PR was merged yet; only Jira content is available."
 
    For each gap, set a `recommended_action`:
    - `"ask user"` — the caller prompts inline before approval.
@@ -109,7 +109,7 @@ For each write target:
 
 9. **Source-truth verification (per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`).** For every user-visible claim the checklist would put in a topic `notes:` (option lists, UI labels, menu paths, defaults, counts, mode names), establish the **intended** phrasing, then verify it against `code_repos` using the techniques in `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §3. Record results in `verification_warnings[]` (schema below). **Do NOT rewrite the topic notes to match source** — preserve the original (intended) phrasing; the orchestrator + user resolve discrepancies in `/document` Phase 5.8.
 
-   - **When `specs_dir` is non-null, the spec markdown is the authoritative "intended" source** (`${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §3.0, §4.2). Read the spec tree **selectively** via the `spec-markdown` technique: the VI spec (`PRODUCT-<key>*.md` or `specification.md` at the spec-dir root), `epics/epic-*.md`, and each `epics/<epic>/requirements.md` + `design.md` (these four classes are authoritative intended); treat `tasks.md` only as a secondary "planned" signal; **ignore** `idea.md`, `prompt.md`, and any rendered HTML mirrors. Capture each user-visible claim's intended phrasing from the spec into `spec_phrasing`. When no spec covers a given claim, fall back to the Jira phrasing as that claim's intended source. Then verify intended-vs-**code** via the §3 techniques as usual. A spec phrasing that differs from the Jira narrative (regardless of whether code matches the spec) is recorded as `finding: SPEC-VS-JIRA` (the spec is authoritative; the Jira ticket is the side that drifted).
+   - **When `specs_dir` is non-null, the spec markdown is the authoritative "intended" source** (`${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §3.0, §4.2). Read the spec tree **selectively** via the `spec-markdown` technique: the PRD spec (`PRODUCT-<key>*.md` or `specification.md` at the spec-dir root), `epics/epic-*.md`, and each `epics/<epic>/requirements.md` + `design.md` (these four classes are authoritative intended); treat `tasks.md` only as a secondary "planned" signal; **ignore** `idea.md`, `prompt.md`, and any rendered HTML mirrors. Capture each user-visible claim's intended phrasing from the spec into `spec_phrasing`. When no spec covers a given claim, fall back to the Jira phrasing as that claim's intended source. Then verify intended-vs-**code** via the §3 techniques as usual. A spec phrasing that differs from the Jira narrative (regardless of whether code matches the spec) is recorded as `finding: SPEC-VS-JIRA` (the spec is authoritative; the Jira ticket is the side that drifted).
    - **When `specs_dir` is null/empty, behave as today** (two-way Jira-vs-code): the intended phrasing is the Jira phrasing, and set `spec_phrasing: "(no spec)"` on every entry.
 
    When `code_repos` is empty/omitted, emit one entry per user-visible claim with `finding: NOT_FOUND`, `technique: no-source-evidence`, `source_phrasing: "(not verifiable)"` (and `spec_phrasing: "(no spec)"` when `specs_dir` is also null).

@@ -11,7 +11,7 @@ result is consumed*. It is **read-only**: these commands never write into
 `$DOCS_PATH`. Every miss is a **silent, non-blocking skip** — never an error,
 never `emit-block`.
 
-Consumers: `/idea`, `/create-vi`, `/update-vi`, `/create-ard`, `/specify`
+Consumers: `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`
 (grill-rank consumption); `/epics`, `/release-notes` (writer-attach consumption).
 `/document` does **not** consume this file — it only uses `$DOCS_PATH` as a
 write-target discovery hint (see its Phase 0).
@@ -93,7 +93,7 @@ default for this retrieval agent):
   >
   > docs_path:       <docs_root>
   > feature_summary: <2–4 sentences: the goal + capability themes for this run>
-  > jira_key:        <the VI/Epic/ticket key, or omit for keyless /idea>
+  > jira_key:        <the PRD/Epic/ticket key, or omit for keyless /idea>
   > themes:          [capability themes, or []]"
 ```
 
@@ -103,7 +103,7 @@ On `status: EMPTY`, proceed as today; the digest simply adds nothing.
 
 ## Consumption
 
-**`grill-rank`** (`/idea`, `/create-vi`, `/update-vi`, `/create-ard`, `/specify`):
+**`grill-rank`** (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`):
 Feed `docs_references` to the grill as positive grounding (facts to build on,
 analogous precedents to model after, building-block altitude/permissions).
 **Rank** each `docs_challenges` entry into the command's existing

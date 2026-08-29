@@ -6,9 +6,9 @@
 | understand the whole pipeline first | [Workflow overview](workflow.md) |
 | know what my role is responsible for | [Roles and phases](roles-and-phases.md) |
 | turn a raw idea into something actionable | [`/idea`](commands/idea.md) |
-| write or refresh a Value Increment | [`/create-vi`](commands/create-vi.md), [`/update-vi`](commands/update-vi.md) |
+| write or refresh a Product Requirements Document | [`/create-prd`](commands/create-prd.md), [`/update-prd`](commands/update-prd.md) |
 | record an architecture decision | [`/create-ard`](commands/create-ard.md) |
-| break a VI into Epics | [`/epics`](commands/epics.md) |
+| break a PRD into Epics | [`/epics`](commands/epics.md) |
 | write a specification, then a design | [`/specify`](commands/specify.md), [`/design`](commands/design.md) |
 | build the thing | [`/implement`](commands/implement.md) |
 | document it, then announce it | [`/document`](commands/document.md), [`/release-notes`](commands/release-notes.md) |
@@ -24,15 +24,15 @@ Three pages orient you before you touch a command: [Getting started](getting-sta
 ## Commands
 
 - [`/api-guideline-reviewer`](commands/api-guideline-reviewer.md) — review an OpenAPI spec against the bundled REST API and IAM permission naming guidelines.
-- [`/create-ard`](commands/create-ard.md) — author an Architecture Requirements/Decision Document for a VI, or for one Epic inside it, grounded on the mounted code.
-- [`/create-vi`](commands/create-vi.md) — turn a refined idea plus a Jira key into a reviewed Value Increment.
+- [`/create-ard`](commands/create-ard.md) — author an Architecture Requirements/Decision Document for a PRD, or for one Epic inside it, grounded on the mounted code.
+- [`/create-prd`](commands/create-prd.md) — turn a refined idea plus a Jira key into a reviewed Product Requirements Document.
 - [`/design`](commands/design.md) — take over a merged specification and author a reviewed engineering design, grounded strictly in the mounted code.
 - [`/docs-profile`](commands/docs-profile.md) — scan a docs repository and write or refresh the machine-readable profile `/document` consumes.
 - [`/document`](commands/document.md) — write or update product documentation: a one-shot direct edit, or the full Jira-driven feature-documentation workflow.
-- [`/epics`](commands/epics.md) — break a Value Increment into reviewed child Epic drafts.
+- [`/epics`](commands/epics.md) — break a Product Requirements Document into reviewed child Epic drafts.
 - [`/feedback`](commands/feedback.md) — log a note about the plugin itself, for the maintainer to aggregate.
 - [`/guideline-reviewer`](commands/guideline-reviewer.md) — review app code and UI against the bundled UI design-system and accessibility guidelines.
-- [`/idea`](commands/idea.md) — refine a raw prompt, file, community post, or existing VI into a one-page idea brief.
+- [`/idea`](commands/idea.md) — refine a raw prompt, file, community post, or existing PRD into a one-page idea brief.
 - [`/implement`](commands/implement.md) — classify, plan, implement, test, and review a code change end to end.
 - [`/prompt`](commands/prompt.md) — log a correction you just made to a command's output, then apply the fix directly.
 - [`/prompt-brainstorm`](commands/prompt-brainstorm.md) — log a correction, then hand off to `superpowers:brainstorming` to redesign it together.
@@ -41,7 +41,7 @@ Three pages orient you before you touch a command: [Getting started](getting-sta
 - [`/release-notes`](commands/release-notes.md) — draft a release-notes Summary for a ticket, shaped by the destination it resolves to.
 - [`/specify`](commands/specify.md) — author an org-standard specification for one Jira item through a relentless grill.
 - [`/statusline`](commands/statusline.md) — install the plugin's multi-line status line into your Claude Code settings.
-- [`/update-vi`](commands/update-vi.md) — refresh an existing Value Increment against its Jira source.
+- [`/update-prd`](commands/update-prd.md) — refresh an existing Product Requirements Document against its Jira source.
 - [`/upgrade`](commands/upgrade.md) — plan and execute a library, framework, runtime, or build-tool upgrade.
 - [`/vuln`](commands/vuln.md) — research and fix a CVE, one dependency or code change at a time.
 

@@ -4,9 +4,9 @@
 # modifiers are NOT applied (interactive Claude Code sessions bill at standard rates).
 #
 # PERMANENT (standard) rates only -- never promotional/introductory rates. Cost figures
-# must stay comparable across VIs over time: a temporary promo (e.g. Sonnet 5's $2/$10
+# must stay comparable across PRDs over time: a temporary promo (e.g. Sonnet 5's $2/$10
 # introductory price through 2026-08-31) would make identical work look cheaper now and
-# dearer later, distorting cross-VI efficiency comparisons. So Sonnet 5 is keyed at its
+# dearer later, distorting cross-PRD efficiency comparisons. So Sonnet 5 is keyed at its
 # standard $3/$15, matching Sonnet 4.5/4.6.
 #
 # Keys cover every model the plugin's routing policy can reach: the Opus chain (§2),

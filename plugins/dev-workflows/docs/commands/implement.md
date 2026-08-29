@@ -12,9 +12,9 @@ Classifies a task's risk, creates a branch, plans and implements the change, wri
 /implement <JiraID [<Epic-KEY>]> | <jira-export-dir> | <prompt> [@file…] [@spec-folder] [@repo…]
 ```
 
-`$ARGUMENTS` resolves through the shared Jira-input front-end — the same one `/document` uses: a **JiraID** token is discovered under `$VAULT_PATH/jira-products/` and typed as the VI or the Epic itself; a directory that inspects as a **Jira-export** is read as `jira_export_root`; a directory that inspects as a **spec folder** (holding `prompt.md` and/or a `*-design.md`) contributes to `specs`; a directory that is a git repo is a scan target; everything else — free text, or an `@file` — is `direct` mode. Multiple inputs of the same kind are allowed, and every `@path` is classified by inspection, never by matching the path string.
+`$ARGUMENTS` resolves through the shared Jira-input front-end — the same one `/document` uses: a **JiraID** token is discovered under `$VAULT_PATH/jira-products/` and typed as the PRD or the Epic itself; a directory that inspects as a **Jira-export** is read as `jira_export_root`; a directory that inspects as a **spec folder** (holding `prompt.md` and/or a `*-design.md`) contributes to `specs`; a directory that is a git repo is a scan target; everything else — free text, or an `@file` — is `direct` mode. Multiple inputs of the same kind are allowed, and every `@path` is classified by inspection, never by matching the path string.
 
-`/implement` implements **one Epic per run**. When the resolved item already names a focus Epic (an explicit `<VI> <Epic>`, or a bare nested Epic key), that Epic is the scope. When the VI is bare, a cheap Jira read classifies it: a stand-alone Epic proceeds directly; a VI with exactly one Epic sets that Epic as the scope automatically; a VI with two or more Epics renders a **progress-aware picker** — each row showing the Epic's own Jira status (done/closed/resolved greyed and not default-selectable; in-progress/in-review marked distinctly; anything else selectable), plus the explicit choice to implement one broad VI-level slice instead; a VI with no Epics offers to split with `/dev-workflows:epics` first, or to implement a broad VI-level slice. Selecting an Epic scopes that run only — there is no "next Epic" loop, because code-writing is heavy and branchy enough that each run targets one Epic.
+`/implement` implements **one Epic per run**. When the resolved item already names a focus Epic (an explicit `<PRD> <Epic>`, or a bare nested Epic key), that Epic is the scope. When the PRD is bare, a cheap Jira read classifies it: a stand-alone Epic proceeds directly; a PRD with exactly one Epic sets that Epic as the scope automatically; a PRD with two or more Epics renders a **progress-aware picker** — each row showing the Epic's own Jira status (done/closed/resolved greyed and not default-selectable; in-progress/in-review marked distinctly; anything else selectable), plus the explicit choice to implement one broad PRD-level slice instead; a PRD with no Epics offers to split with `/dev-workflows:epics` first, or to implement a broad PRD-level slice. Selecting an Epic scopes that run only — there is no "next Epic" loop, because code-writing is heavy and branchy enough that each run targets one Epic.
 
 ## How it runs
 
@@ -64,19 +64,19 @@ Pre-Phase 3.5 captures a test baseline **before any source file is edited**, on 
 
 ## Example
 
-Implement one Epic from a multi-Epic VI whose specification and design are already merged:
+Implement one Epic from a multi-Epic PRD whose specification and design are already merged:
 
 ```
 /dev-workflows:implement PRODUCT-1234 EPIC-98760
 ```
 
-The run resolves `EPIC-98760` as the focus Epic, gates its in-scope `specification.md`/`design.md` on the specs repo's main branch, classifies the task (typically `SIGNIFICANT` once a merged design is in scope), delegates planning to `risk-planner`, creates a feature branch, captures the test baseline, implements, writes tests, runs the Opus code review and triage, verifies against the baseline, and closes with the four Phase 4 maintenance agents and the Final Report — recommending the next Epic, or `/dev-workflows:document` once every Epic under the VI is implemented.
+The run resolves `EPIC-98760` as the focus Epic, gates its in-scope `specification.md`/`design.md` on the specs repo's main branch, classifies the task (typically `SIGNIFICANT` once a merged design is in scope), delegates planning to `risk-planner`, creates a feature branch, captures the test baseline, implements, writes tests, runs the Opus code review and triage, verifies against the baseline, and closes with the four Phase 4 maintenance agents and the Final Report — recommending the next Epic, or `/dev-workflows:document` once every Epic under the PRD is implemented.
 
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `dev` role owns, including how an unmerged in-scope spec/design stops the run while an absent one does not.
 - [`/design`](design.md) — the upstream command whose merged `design.md` `/implement` gates on when it's in scope (a resolved `specification.md` with no `design.md` yet is gated the same way, independently).
-- [`/document`](document.md) — the downstream command, run once every Epic under the VI is implemented.
+- [`/document`](document.md) — the downstream command, run once every Epic under the PRD is implemented.
 - [Model routing](../reference/model-routing.md) — the classification rules, the multi-source floor, and the Opus fallback chain `risk-planner` and `code-review` resolve against.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Follow-ups](../reference/follow-ups.md) — the terminal Phase 5–7 bookkeeping every run emits.
 - [`finding-triage.md`](../../references/finding-triage.md) — the triage step run between `code-review` and `review-fixer`.

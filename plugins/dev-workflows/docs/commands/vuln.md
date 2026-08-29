@@ -4,7 +4,7 @@ Researches CVEs via NVD, applies dependency and code fixes one at a time, and ve
 
 ## Who runs it
 
-`/vuln` runs **outside the VI pipeline** — it has no cost-attribution phase and no role. It emits **no cost attribution at all**: it has no Value Increment to attribute spend to, and `references/cost-emission.md` never mentions it ( The `phase:` values it does pass to `vuln-research` and `vuln-fixer` — `full`, `verify-resume`, `regression-resume` — belong to a completely different vocabulary: the model-routing **resume protocol**, saying how much of a single command's own re-entered work must be redone after a review or a failed test, not where a run sits in the product lifecycle. The two vocabularies share the field name `phase` and nothing else — see [Roles and phases](../roles-and-phases.md#cost-attribution-phases) for the fuller distinction.
+`/vuln` runs **outside the PRD pipeline** — it has no cost-attribution phase and no role. It emits **no cost attribution at all**: it has no Product Requirements Document to attribute spend to, and `references/cost-emission.md` never mentions it ( The `phase:` values it does pass to `vuln-research` and `vuln-fixer` — `full`, `verify-resume`, `regression-resume` — belong to a completely different vocabulary: the model-routing **resume protocol**, saying how much of a single command's own re-entered work must be redone after a review or a failed test, not where a run sits in the product lifecycle. The two vocabularies share the field name `phase` and nothing else — see [Roles and phases](../roles-and-phases.md#cost-attribution-phases) for the fuller distinction.
 
 ## Synopsis
 
@@ -42,7 +42,7 @@ Two `dev-workflows` subagents are dispatched explicitly by name in Step 2 and St
 
 One feature branch, commit, and pull request **per fixed CVE, in the code repo itself** — `vuln-fixer` never pushes directly to `main`/`master`. Branch and commit conventions are resolved per `../../references/branch-naming.md`, preferring the repo's own documented convention. A Step 4 result table (CVE, library, version change, classification, result, PR) and a `### Review triage` section naming every finding reviewed and dismissed, with reasons, for CVEs that went through Opus review. An `impl-maintenance` Lessons Learned report, always tagged `Command run: /vuln`.
 
-No cost entry is ever written (see [Who runs it](#who-runs-it) above), and no `resume.md` is written for `/vuln` — its durable state is already the branch and PR on disk, not a VI-scoped artifact. The terminal `commit-artifacts` step still runs, committing only `$SPECS_PATH`'s bounded session-artifact paths — never the code repo `vuln-fixer` just fixed.
+No cost entry is ever written (see [Who runs it](#who-runs-it) above), and no `resume.md` is written for `/vuln` — its durable state is already the branch and PR on disk, not a PRD-scoped artifact. The terminal `commit-artifacts` step still runs, committing only `$SPECS_PATH`'s bounded session-artifact paths — never the code repo `vuln-fixer` just fixed.
 
 ## Gates
 
@@ -62,7 +62,7 @@ Both CVEs are researched in parallel via `vuln-research`; each `READY` result is
 
 ## See also
 
-- [`/upgrade`](upgrade.md) — the plugin's other maintenance command outside the VI pipeline, sharing the same no-cost-attribution fact, the same resume-phase vocabulary, and the same review/triage/fixer/test gate shape for version bumps instead of CVEs.
+- [`/upgrade`](upgrade.md) — the plugin's other maintenance command outside the PRD pipeline, sharing the same no-cost-attribution fact, the same resume-phase vocabulary, and the same review/triage/fixer/test gate shape for version bumps instead of CVEs.
 - [`/implement`](implement.md) — the pipeline command `/vuln` borrows its review machinery from: `code-review`, `review-fixer`, and `../../references/finding-triage.md`.
 - [Roles and phases](../roles-and-phases.md#cost-attribution-phases) — the closing note distinguishing the cost-attribution `phase:` vocabulary from the resume-protocol `phase:` vocabulary `/vuln` passes.
 - [Session cost](../reference/session-cost.md) — states plainly that `/vuln` and `/upgrade` emit no cost attribution at all.

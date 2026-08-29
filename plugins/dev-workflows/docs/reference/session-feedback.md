@@ -1,6 +1,6 @@
 # Session feedback
 
-Session feedback captures two different signals about **the dev-workflows plugin itself** — what you report, and what your corrections reveal — never about the target project you happened to be working in, and persists them per-VI into the specs repo, so the plugin maintainer can aggregate what went wrong or felt awkward across every engineer who used it. It shares its per-VI home, `<VI-dir>/dev-workflows/`, with the cost and follow-up files described elsewhere in this reference section, but is otherwise a separate mechanism: no dedup *between the three subsystems*, no cross-reference, and its own file per VI rather than per session.
+Session feedback captures two different signals about **the dev-workflows plugin itself** — what you report, and what your corrections reveal — never about the target project you happened to be working in, and persists them per-PRD into the specs repo, so the plugin maintainer can aggregate what went wrong or felt awkward across every engineer who used it. It shares its per-PRD home, `<PRD-dir>/dev-workflows/`, with the cost and follow-up files described elsewhere in this reference section, but is otherwise a separate mechanism: no dedup *between the three subsystems*, no cross-reference, and its own file per PRD rather than per session.
 
 ## What gets logged, and by what
 
@@ -25,18 +25,18 @@ None of this pauses the run for approval. Capture is silent and high-recall by d
 
 ## Where files land
 
-The primary target is `<VI-dir>/dev-workflows/<KEY>-feedback.md` — one file per VI, resolved the same specs-first way session cost is — follow-ups deliberately run the opposite, vault-first ladder: walk down a ladder and stop at the first tier that applies. `$SPECS_PATH` writable with the VI directory matched is the primary case; `$SPECS_PATH` writable but no VI directory found writes to `$SPECS_PATH/dev-workflows-feedback/<KEY-or-date>.md` at the specs-repo root instead, marked unfiled so it can be moved under the right VI dir later; no `$SPECS_PATH` but a writable vault falls back to `$VAULT_PATH/dev-workflows/feedback/<KEY>-feedback.md` with a loud warning that it will not auto-aggregate to the maintainer; an imported Jira directory with neither available writes beside that directory; and if nothing resolves at all, the entry stays in the run's own printed output and is never written into your current working directory, since that may be a code repository. In every non-primary tier the entry also stays visible in the run's final output, so nothing is silently lost even when it can't be filed where it belongs.
+The primary target is `<PRD-dir>/dev-workflows/<KEY>-feedback.md` — one file per PRD, resolved the same specs-first way session cost is — follow-ups deliberately run the opposite, vault-first ladder: walk down a ladder and stop at the first tier that applies. `$SPECS_PATH` writable with the PRD directory matched is the primary case; `$SPECS_PATH` writable but no PRD directory found writes to `$SPECS_PATH/dev-workflows-feedback/<KEY-or-date>.md` at the specs-repo root instead, marked unfiled so it can be moved under the right PRD dir later; no `$SPECS_PATH` but a writable vault falls back to `$VAULT_PATH/dev-workflows/feedback/<KEY>-feedback.md` with a loud warning that it will not auto-aggregate to the maintainer; an imported Jira directory with neither available writes beside that directory; and if nothing resolves at all, the entry stays in the run's own printed output and is never written into your current working directory, since that may be a code repository. In every non-primary tier the entry also stays visible in the run's final output, so nothing is silently lost even when it can't be filed where it belongs.
 
 **Committing and pushing this file alongside your specs is expected and encouraged, not clutter.** Feedback only reaches the maintainer once it lands in the committed, pushed specs repo, so every command's terminal step commits and pushes it as a matter of course — team-visible feedback across engineers is the entire point of this feature.
 
 ## Entry format
 
-One file per VI, `<KEY>-feedback.md`, opening with frontmatter written once on creation:
+One file per PRD, `<KEY>-feedback.md`, opening with frontmatter written once on creation:
 
 ```yaml
 ---
 type: dev-workflows-feedback
-vi: PRODUCT-1234
+prd: PRODUCT-1234
 slug: env-ag-update-window
 ---
 ```

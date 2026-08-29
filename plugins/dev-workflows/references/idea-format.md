@@ -1,7 +1,7 @@
 # Idea format (embedded authority)
 
-The canonical structure and per-section rules for a refined `idea.md`. `/idea` is the only caller — it authors against this file. `/create-vi` consumes the resulting `idea.md` **artifact**, not this format doc, and never cites it. A lean one-page brief — the seed a Value Increment is built
-from, NOT a mini-VI.
+The canonical structure and per-section rules for a refined `idea.md`. `/idea` is the only caller — it authors against this file. `/create-prd` consumes the resulting `idea.md` **artifact**, not this format doc, and never cites it. A lean one-page brief — the seed a Product Requirements Document is built
+from, NOT a mini-PRD.
 
 ## Frontmatter
 
@@ -10,7 +10,7 @@ from, NOT a mini-VI.
 title: <candidate human-readable title>
 slug: <candidate-kebab-slug>
 sources:
-  - provenance: rfe | vi | markdown | community-post | prompt | doc-grounding
+  - provenance: rfe | prd | markdown | community-post | prompt | doc-grounding
     ref: <path | JIRA-KEY | url>
 created: <YYYY-MM-DD>
 status: draft | refined        # refined IFF zero open [NEEDS CLARIFICATION] remain
@@ -50,7 +50,7 @@ belong in **Feasibility grounding** (Section 7).
 ## Section 6 — Prior art (optional)
 
 `## Prior art` — tracked initiatives in the vault that this idea covers, continues, parallels, or
-rewrites. **Write it when prior art was discovered *or* the source is a `vi`; omit it entirely
+rewrites. **Write it when prior art was discovered *or* the source is a `prd`; omit it entirely
 otherwise.** One bullet per entry, in one of two shapes.
 
 **Discovered** — the finder matched the item, so every slot has a source:
@@ -59,7 +59,7 @@ otherwise.** One bullet per entry, in one of two shapes.
 - [[<work doc>]] (<JIRA-KEY>, <status>) — <relation>: <one line>
 ```
 
-**Supplied only** — a `vi` source the finder did not match (grounding off, or no vault work document
+**Supplied only** — a `prd` source the finder did not match (grounding off, or no vault work document
 for the key). The `tracked` block carries `jira_key`, `status`, and `summary` and nothing else — no
 `relation`, no `match_reason`, no vault path — so the bullet omits the wikilink and the relation
 rather than inventing either:
@@ -80,7 +80,7 @@ that entry's `match_reason` — why this initiative bears on the idea.
 The **Jira key is the durable identifier**; the wikilink is a convenience that dangles once a vault item
 is renamed, so both are carried and a later reader re-resolves by key. An entry with no Jira key carries
 only the wikilink, and that is accepted. Never fabricate a key or a status — an unresolved status is
-written as `status unknown`. A `vi` source appears here **and** in `sources:`: `sources` answers how the
+written as `status unknown`. A `prd` source appears here **and** in `sources:`: `sources` answers how the
 idea arrived, `## Prior art` answers what it must stay consistent with.
 
 ## Section 7 — Feasibility grounding (optional)

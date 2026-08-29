@@ -71,8 +71,8 @@ useful — which is the test that the split is real rather than cosmetic.
 
 | Increment | Delivers | Useful on its own because |
 |---|---|---|
-| **1 — Grounding** | `/brd-intake`, `/brd-ground`, `/brd-split`, four references, three agents | A grounded BRD with a defect log, verified findings and a coverage ledger is worth having even if no customer loop is ever run |
-| **2 — Decisions and the customer loop** | `/brd-interview`, `/brd-package`, `/brd-reconcile`, four references, three agents | Produces a reviewable package and ingests the answer; the seeds are written but not yet consumed |
+| **1 — Grounding** | `/brd-intake`, `/brd-ground`, `/brd-split`, four references, four agents | A grounded BRD with a defect log, verified findings and a coverage ledger is worth having even if no customer loop is ever run |
+| **2 — Decisions and the customer loop** | `/brd-interview`, `/brd-package`, `/brd-reconcile`, four references, two agents | Produces a reviewable package and ingests the answer; the seeds are written but not yet consumed |
 | **3 — Handoff and documentation** | `--from-brd` on `/create-prd`, `/create-ard`, `/specify`; all documentation | Connects the route to the existing pipeline |
 
 Increment 1 writes the artifacts increments 2 and 3 consume — the finding contract, the ledger,

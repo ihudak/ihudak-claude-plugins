@@ -1,0 +1,450 @@
+# OpenAPI 3.1 starter template.
+#
+# Sources:
+#   - OpenAPI Specification 3.1 ....... https://spec.openapis.org/oas/v3.1.0.html
+#   - Zalando RESTful API Guidelines .. https://opensource.zalando.com/restful-api-guidelines/
+#   - Google API Improvement Proposals  https://google.aip.dev/
+#   - RFC 9110 (HTTP Semantics) ....... https://www.rfc-editor.org/rfc/rfc9110.html
+#   - RFC 9457 (Problem Details) ...... https://www.rfc-editor.org/rfc/rfc9457.html
+#   - RFC 6749 (OAuth 2.0) ............ https://www.rfc-editor.org/rfc/rfc6749.html
+#
+# Every value below is a placeholder. Replace `example` / `Example-` / `api.example.com`
+# with your own organization's names, once, consistently.
+#
+# Version consistency rule (see "API Versioning.md"): the major version in
+# `info.version`, in every `servers[].url`, and in every `x-gateway-url`
+# must be the same number.
+
+openapi: '3.1.0'
+
+info:
+  title: 'Widget Service'
+  description: |
+    # Overview
+    Manages widgets and their metadata.
+    ## Subsection
+    Keep this short. Link out to product documentation instead of duplicating it here.
+  version: '1.0.0'
+  x-audience: 'external-public'   # external-public | external-partner | company-internal | component-internal
+  license:
+    name: 'Apache-2.0'
+    identifier: 'Apache-2.0'
+  contact:
+    name: 'Widget Service team'
+    url: 'https://docs.example.com/widget-service'
+
+tags:
+  - name: 'Widgets'
+    description: 'Create, read, update and delete widgets.'
+
+servers:
+  # See "General Structure.md" and "OpenAPI.md" for the two-URL model.
+  #
+  # url            - base URL on the service itself, relative.
+  #                  audience-segment = "public" | "partner" | "internal" | "operations"
+  # x-gateway-url  - base URL on the API gateway, relative to the gateway root.
+  - url: '/public/v1'
+    x-gateway-url: '/widget-service/v1'
+    description: 'Service-relative base path; the gateway maps it to /widget-service/v1'
+  - url: 'https://api.example.com/widget-service/v1'
+    description: 'Public base URL'
+
+# Document-level default. An operation may narrow it, but must never drop it
+# silently: use `security: []` on an operation only for a genuinely public endpoint.
+security:
+  - oauth2:
+      - 'example:widgets:read'
+
+paths:
+
+  /widgets:
+    parameters:
+      - $ref: '#/components/parameters/tenantHeader'
+    get:
+      operationId: 'listWidgets'
+      summary: 'List widgets'
+      description: 'Returns a page of widgets. Supports filtering, sorting and pagination.'
+      tags:
+        - 'Widgets'
+      security:
+        - oauth2:
+            - 'example:widgets:read'
+      parameters:
+        - $ref: '#/components/parameters/filterParam'
+        - $ref: '#/components/parameters/sortParam'
+        - $ref: '#/components/parameters/pageKeyParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+      responses:
+        '200':
+          description: 'A page of widgets.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WidgetList'
+        '4XX':
+          $ref: '#/components/responses/GeneralError'
+        '5XX':
+          $ref: '#/components/responses/GeneralError'
+        default:
+          $ref: '#/components/responses/GeneralError'
+    post:
+      operationId: 'createWidget'
+      summary: 'Create a widget'
+      description: 'Creates a new widget and returns it.'
+      tags:
+        - 'Widgets'
+      security:
+        - oauth2:
+            - 'example:widgets:write'
+      requestBody:
+        description: 'The widget to create. `id`, `createTime` and `version` are assigned by the service and are ignored on input.'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Widget'
+      responses:
+        '201':
+          description: 'The widget was created.'
+          headers:
+            Location:
+              description: 'URL of the created widget, usable directly with GET.'
+              schema:
+                type: 'string'
+                format: 'uri-reference'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Widget'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '4XX':
+          $ref: '#/components/responses/GeneralError'
+        '5XX':
+          $ref: '#/components/responses/GeneralError'
+        default:
+          $ref: '#/components/responses/GeneralError'
+
+  /widgets/{widget-id}:
+    parameters:
+      - $ref: '#/components/parameters/tenantHeader'
+      - $ref: '#/components/parameters/widgetIdParam'
+    get:
+      operationId: 'getWidget'
+      summary: 'Get a widget'
+      description: 'Returns a single widget by id.'
+      tags:
+        - 'Widgets'
+      security:
+        - oauth2:
+            - 'example:widgets:read'
+      responses:
+        '200':
+          description: 'The requested widget.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Widget'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '4XX':
+          $ref: '#/components/responses/GeneralError'
+        '5XX':
+          $ref: '#/components/responses/GeneralError'
+        default:
+          $ref: '#/components/responses/GeneralError'
+    delete:
+      operationId: 'deleteWidget'
+      summary: 'Delete a widget'
+      description: 'Deletes a widget. Deleting an already deleted widget returns 404.'
+      tags:
+        - 'Widgets'
+      security:
+        - oauth2:
+            - 'example:widgets:delete'
+      responses:
+        '204':
+          description: 'The widget was deleted. The response body is empty.'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '4XX':
+          $ref: '#/components/responses/GeneralError'
+        '5XX':
+          $ref: '#/components/responses/GeneralError'
+        default:
+          $ref: '#/components/responses/GeneralError'
+
+components:
+
+  securitySchemes:
+    # OAuth 2.0 client credentials is the only permitted flow (see "Authentication.md").
+    oauth2:
+      type: 'oauth2'
+      description: "This API uses OAuth 2.0 with the 'client credentials' flow."
+      flows:
+        clientCredentials:
+          tokenUrl: 'https://sso.example.com/oauth2/token'   # placeholder, replaced per environment
+          scopes:
+            # Scope grammar: {service}:{resource}:{action} - see the permission guidelines.
+            'example:widgets:read': 'Read widgets'
+            'example:widgets:write': 'Create or update widgets'
+            'example:widgets:delete': 'Delete widgets'
+
+  parameters:
+    # Context headers carry the organization's single declared prefix ("Example-" here)
+    # and are stripped by the gateway before the document is published.
+    tenantHeader:
+      in: 'header'
+      name: 'Example-Tenant'
+      description: 'Tenant context header, set by the API gateway.'
+      schema:
+        type: 'string'
+      required: true
+
+    appContextHeader:
+      in: 'header'
+      name: 'Example-App-Context'
+      description: 'Calling application id, set by the API gateway.'
+      schema:
+        type: 'string'
+      required: false
+
+    widgetIdParam:
+      in: 'path'
+      name: 'widget-id'
+      description: 'Id of the widget.'
+      required: true
+      schema:
+        type: 'string'
+        format: 'uuid'
+
+    filterParam:
+      in: 'query'
+      name: 'filter'
+      description: 'Filter expression restricting the returned widgets.'
+      required: false
+      schema:
+        type: 'string'
+
+    sortParam:
+      in: 'query'
+      name: 'sort'
+      description: "Comma-separated field names; prefix a name with '-' for descending order."
+      required: false
+      style: 'form'
+      explode: false
+      schema:
+        type: 'array'
+        items:
+          type: 'string'
+
+    pageKeyParam:
+      in: 'query'
+      name: 'page-key'
+      description: 'Opaque cursor to the next page, taken verbatim from nextPageKey.'
+      required: false
+      schema:
+        type: 'string'
+
+    pageSizeParam:
+      in: 'query'
+      name: 'page-size'
+      description: 'Requested number of entries per page. Defaults to 100, maximum 1000.'
+      required: false
+      schema:
+        type: 'integer'
+        format: 'int32'
+        minimum: 1
+        maximum: 1000
+        default: 100
+
+  schemas:
+
+    Widget:
+      type: 'object'
+      description: 'A widget.'
+      properties:
+        id:
+          type: 'string'
+          format: 'uuid'
+          description: 'Unique id of the widget, assigned by the service.'
+          readOnly: true
+        name:
+          type: 'string'
+          description: 'Human readable name of the widget.'
+          maxLength: 200
+        state:
+          type: 'string'
+          description: 'Lifecycle state of the widget.'
+          enum:
+            - 'DRAFT'
+            - 'ACTIVE'
+            - 'ARCHIVED'
+        createTime:
+          type: 'string'
+          format: 'date-time'
+          description: 'RFC 3339 timestamp of the creation, in UTC.'
+          readOnly: true
+        version:
+          type: 'string'
+          description: 'Optimistic locking version; maintained by the service.'
+          readOnly: true
+      required:
+        - 'name'
+
+    WidgetList:
+      type: 'object'
+      description: 'A page of widgets.'
+      properties:
+        widgets:
+          type: 'array'
+          description: 'The widgets on this page. Empty if the filter matched nothing.'
+          items:
+            $ref: '#/components/schemas/Widget'
+        nextPageKey:
+          type: 'string'
+          description: 'Cursor to the next page. Absent on the last page.'
+        totalCount:
+          type: 'integer'
+          format: 'int64'
+          description: 'Total number of widgets matching the request at the time it was processed.'
+      required:
+        - 'widgets'
+
+    ErrorEnvelope:
+      type: 'object'
+      description: 'Wrapper carrying a single error.'
+      properties:
+        error:
+          $ref: '#/components/schemas/Error'
+      required:
+        - 'error'
+
+    Error:
+      type: 'object'
+      description: 'Standard error response.'
+      properties:
+        code:
+          type: 'integer'
+          format: 'int32'
+          description: 'The error code; the HTTP status code by default.'
+        message:
+          type: 'string'
+          description: 'Short, precise description of the error.'
+        help:
+          type: 'string'
+          format: 'uri'
+          description: 'URL pointing to further information about this error.'
+        details:
+          $ref: '#/components/schemas/ErrorDetails'
+      required:
+        - 'code'
+        - 'message'
+
+    ErrorDetails:
+      type: 'object'
+      description: 'Optional details of the error.'
+      properties:
+        errorRef:
+          type: 'string'
+          format: 'uuid'
+          description: 'Reference to this occurrence in the service logs.'
+        traceId:
+          type: 'string'
+          description: 'Trace id from the W3C Trace Context traceparent header.'
+        errorCode:
+          type: 'string'
+          description: 'Service-specific error code in UpperCamelCase. All values must be documented.'
+        constraintViolations:
+          type: 'array'
+          description: 'Input parameters (path, query, request body) that failed validation.'
+          items:
+            $ref: '#/components/schemas/ConstraintViolation'
+        missingScopes:
+          type: 'array'
+          description: 'Scopes required to execute the request. Set on 403 responses.'
+          items:
+            type: 'string'
+
+    ConstraintViolation:
+      type: 'object'
+      description: 'A constraint violation caused by invalid input.'
+      properties:
+        path:
+          type: 'string'
+          description: 'Path of the parameter that caused the violation.'
+        parameterLocation:
+          type: 'string'
+          description: 'Where the violating parameter was supplied.'
+          enum:
+            - 'PATH'
+            - 'QUERY'
+            - 'HEADER'
+            - 'PAYLOAD_BODY'
+        message:
+          type: 'string'
+          description: 'Description of the constraint violation.'
+      required:
+        - 'message'
+
+  responses:
+    BadRequest:
+      description: 'Malformed request or invalid parameters.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Unauthorized:
+      description: 'The client is not authenticated.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Forbidden:
+      description: 'The authenticated client lacks the required permissions.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    NotFound:
+      description: 'The requested resource does not exist.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Conflict:
+      description: 'The write conflicted with a concurrent change (optimistic locking).'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    TooManyRequests:
+      description: 'The client sent too many requests.'
+      headers:
+        Retry-After:
+          description: 'Seconds to wait before retrying.'
+          schema:
+            type: 'integer'
+            format: 'int32'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    InternalServerError:
+      description: 'Unspecified server error.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    ServiceUnavailable:
+      description: 'The service is temporarily unavailable.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    GeneralError:
+      description: 'Error.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'

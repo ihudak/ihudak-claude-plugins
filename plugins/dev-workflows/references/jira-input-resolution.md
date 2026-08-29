@@ -39,9 +39,9 @@ stop with a clear error).
 3. `jira_key` = `<KEY>`; `source = vault`.
 4. Resolve `specs` (§ Specs resolution).
 
-**Note:** the VI-selector rule below (§ VI selector + optional focus Epic) refines step 2's existence
+**Note:** the PRD-selector rule below (§ PRD selector + optional focus Epic) refines step 2's existence
 check for a single JiraID — one that is not a top-level `jira-products/` dir is not a Fallback-B miss
-but triggers nested-Epic auto-resolve to its parent VI.
+but triggers nested-Epic auto-resolve to its parent PRD.
 
 ### jira-driven — directory token (works *without* `$VAULT_PATH`)
 
@@ -62,17 +62,17 @@ merge into `specs`. A JiraID **and** a spec-folder directory may be given togeth
 (`PRODUCT-123 @/path/to/specs`): the JiraID fixes the hierarchy, the spec-folder
 contributes/overrides `specs`.
 
-### VI selector + optional focus Epic (two-key grammar)
+### PRD selector + optional focus Epic (two-key grammar)
 
-The first positional is a **VI selector** — either a **VI JiraID** (resolved under
-`$VAULT_PATH/jira-products/<VI-Key>`, a bare key with **no slug**; requires `$VAULT_PATH`) or a
+The first positional is a **PRD selector** — either a **PRD JiraID** (resolved under
+`$VAULT_PATH/jira-products/<PRD-Key>`, a bare key with **no slug**; requires `$VAULT_PATH`) or a
 **jira-export directory** (content-classified as a jira-export; used directly as `jira_export_root`;
 **no `$VAULT_PATH` needed**). An optional **focus Epic** (a JiraID) may follow either form.
 
-- **Single VI JiraID** — classify against `jira-products/`: a **top-level dir** → a VI or stand-alone
+- **Single PRD JiraID** — classify against `jira-products/`: a **top-level dir** → a PRD or stand-alone
   item (`jira_export_root = jira-products/<KEY>`, `source = vault`, `focus_key = null`); **not a
-  top-level dir** → a **nested Epic**: auto-resolve its parent VI by scanning `jira-products/*/` for a
-  child dir named `<KEY>` containing `<KEY>.md` (one parent → that VI is `jira_export_root`,
+  top-level dir** → a **nested Epic**: auto-resolve its parent PRD by scanning `jira-products/*/` for a
+  child dir named `<KEY>` containing `<KEY>.md` (one parent → that PRD is `jira_export_root`,
   `focus_key = <KEY>`; zero → Fallback D; ≥2 → Fallback E).
 - **jira-export directory** — `jira_export_root` = the dir, `source = directory`, no `$VAULT_PATH`.
   This is what Fallback A already points users to.
@@ -81,14 +81,14 @@ The first positional is a **VI selector** — either a **VI JiraID** (resolved u
 
 | Input | Root | `$VAULT_PATH`? | `focus_key` |
 |---|---|---|---|
-| `<VI-Key>` | `jira-products/<VI-Key>` | required | null |
-| `<Epic-Key>` | parent VI (auto-resolved) | required | the Epic |
-| `<VI-Key> <Epic-Key>` | `jira-products/<VI-Key>` | required | the Epic |
+| `<PRD-Key>` | `jira-products/<PRD-Key>` | required | null |
+| `<Epic-Key>` | parent PRD (auto-resolved) | required | the Epic |
+| `<PRD-Key> <Epic-Key>` | `jira-products/<PRD-Key>` | required | the Epic |
 | `<dir>` | `<dir>` | not needed | null |
 | `<dir> <Epic-Key>` | `<dir>` | not needed | the Epic |
 
 Directory tokens stay **content-classified** (jira-export vs spec-folder), so `<dir> <Epic-Key>` never
-collides with the existing `<VI-Key> @spec-folder` form (a spec-folder feeds `specs`, not the root).
+collides with the existing `<PRD-Key> @spec-folder` form (a spec-folder feeds `specs`, not the root).
 
 ### direct
 
@@ -105,14 +105,14 @@ order:
 1. **`$SPECS_PATH` set →** locate a `specs`/`specifications`/`vis` root inside
    `$SPECS_PATH`, then resolve by **matching folders on the Jira key-number**
    (tolerate `-`/`_` separators and a trailing slug):
-   - **`focus_key` set →** prefer the nested per-Epic home: under the VI folder
-     matching `jira_key` (`<VI>{-|_}<vslug>/`), the Epic folder matching `focus_key`
+   - **`focus_key` set →** prefer the nested per-Epic home: under the PRD folder
+     matching `jira_key` (`<PRD>{-|_}<vslug>/`), the Epic folder matching `focus_key`
      (`<focus_key>{-|_}<eslug>/`), holding `specification.md`, `design.md`, and any
      other `.md`. If that nested Epic folder does not exist, **fall back** to the
-     VI-flat resolution below (so nothing pre-foundation breaks).
-   - **`focus_key` null →** the VI-flat resolution: a `<jira_key>`-prefixed folder
+     PRD-flat resolution below (so nothing pre-foundation breaks).
+   - **`focus_key` null →** the PRD-flat resolution: a `<jira_key>`-prefixed folder
      (`<jira_key>{-|_}<slug>/…/*.md`) holding the `.md` specs/plans — for a
-     stand-alone item, a broad VI-level slice, or a legacy pre-foundation layout.
+     stand-alone item, a broad PRD-level slice, or a legacy pre-foundation layout.
 2. **Directory case →** a passed spec-folder, or specs found inside
    `jira_export_root`.
 3. **None found →** `specs: []`. The **consuming command** applies its policy:
@@ -127,10 +127,10 @@ order:
   `choices: ["Re-enter the Jira key", "Treat the text as a direct edit instead", "Cancel"]`
 - **C — multiple jira-export directories:** list them;
   `choices: ["<first> (Recommended)", "<other candidates…>", "Cancel"]`
-- **D — Epic key given but not found** (single-key: no parent VI contains it; two-key/dir:
-  `<root>/<Epic>/` missing): `choices: ["Re-enter the Epic key", "Pass <VI> <Epic> explicitly", "Cancel"]`
-- **E — nested Epic key found under multiple VIs:** list the candidate VIs;
-  `choices: ["<first> (Recommended)", "<other VIs…>", "Cancel"]`
+- **D — Epic key given but not found** (single-key: no parent PRD contains it; two-key/dir:
+  `<root>/<Epic>/` missing): `choices: ["Re-enter the Epic key", "Pass <PRD> <Epic> explicitly", "Cancel"]`
+- **E — nested Epic key found under multiple PRDs:** list the candidate PRDs;
+  `choices: ["<first> (Recommended)", "<other PRDs…>", "Cancel"]`
 
 ## Output contract
 
@@ -142,7 +142,7 @@ mode:             jira-driven | direct
 source:           vault | directory | none
 jira_key:         <KEY> | null
 jira_export_root: <abs path to the ticket export dir> | null   # → jira-reader (jira_export_root input)
-focus_key:        <EPIC key> | null    # Epic to center on within jira_export_root; null for a bare VI/stand-alone/dir
+focus_key:        <EPIC key> | null    # Epic to center on within jira_export_root; null for a bare PRD/stand-alone/dir
 specs:            [<abs paths>]    # specs/plans; may be []
 direct_prompt:    <free-text> | null
 direct_files:     [<abs paths>]
@@ -150,10 +150,10 @@ direct_files:     [<abs paths>]
 
 ## Entry point — `resolve-export-for-key <KEY>`
 
-Locates the export for **one exact key**, at any depth. Distinct from the VI-selector
-rule above, which deliberately resolves a nested Epic *up to its parent VI*; this one
+Locates the export for **one exact key**, at any depth. Distinct from the PRD-selector
+rule above, which deliberately resolves a nested Epic *up to its parent PRD*; this one
 never walks upward. Consumed by `/idea` (source typing), `idea-reader` (export
-location for `rfe`/`vi` sources), and `vault-prior-art-finder` (status
+location for `rfe`/`prd` sources), and `vault-prior-art-finder` (status
 resolution) — none of them wants a parent.
 
 1. `candidates` = every `$VAULT_PATH/jira-products/**/<KEY>/<KEY>.md` (**any depth**
@@ -169,26 +169,26 @@ Returns `{ path, issue_type, status, summary, export_date }`, read from the file
 frontmatter; `export_date` is the file's modification date.
 
 **Additive.** No existing caller's behavior changes: the resolution steps, the
-VI-selector rule, the fallback prompts, and the output contract above are untouched.
+PRD-selector rule, the fallback prompts, and the output contract above are untouched.
 
 ## Progress-aware Epic picker (opt-in per command)
 
 For an **Epic-unit** command given a top-level key with `focus_key = null`, first determine the item's
-type from a cheap `jira-reader depth: vi-plus-epics` read, then:
+type from a cheap `jira-reader depth: prd-plus-epics` read, then:
 
 - **The item is itself an Epic** (stand-alone/top-level) → no picker; proceed for it directly.
-- **VI with exactly 1 Epic** → no picker; auto-proceed for that Epic.
-- **VI with ≥2 Epics** → render a status-aware picker. Status comes from the command's own output
+- **PRD with exactly 1 Epic** → no picker; auto-proceed for that Epic.
+- **PRD with ≥2 Epics** → render a status-aware picker. Status comes from the command's own output
   artifact (its **done-predicate**), one row per Epic:
   - **○ not started** — no artifact → selectable.
   - **◐ in progress** — a resume file exists but no final artifact → selectable as resume.
   - **● done** — artifact exists → shown greyed, not default-selectable; selecting offers revise.
   Default cursor = first actionable (in-progress before not-started). Include an explicit
-  "Author one broad VI-level artifact instead" choice. After finishing one, offer
-  "Next Epic? [picker] / Stop here". Resume stacks across sessions (VI picker + the command's own
+  "Author one broad PRD-level artifact instead" choice. After finishing one, offer
+  "Next Epic? [picker] / Stop here". Resume stacks across sessions (PRD picker + the command's own
   per-item resume file).
-- **VI with 0 Epics** → the command's no-Epics policy (e.g. split with `/epics` first, or a broad
-  VI-level artifact).
+- **PRD with 0 Epics** → the command's no-Epics policy (e.g. split with `/epics` first, or a broad
+  PRD-level artifact).
 
-This pattern is **policy-neutral in the resolver** — it is invoked by Epic-unit commands only; VI-level
-commands (`/epics`, `/document`, `/release-notes`) never use it and must keep working for un-split VIs.
+This pattern is **policy-neutral in the resolver** — it is invoked by Epic-unit commands only; PRD-level
+commands (`/epics`, `/document`, `/release-notes`) never use it and must keep working for un-split PRDs.

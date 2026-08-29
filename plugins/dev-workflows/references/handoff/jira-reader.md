@@ -6,13 +6,13 @@
 # Form 1 — preferred (from the jira-input-resolution front-end): explicit export root.
 jira_export_root: <absolute path to the ticket export dir, e.g. .../jira-products/PRODUCT-1234>
 jira_key:         <e.g. JIRA-12345>
-depth:            full | vi-plus-epics | vi-only
+depth:            full | prd-plus-epics | prd-only
 
 # Form 2 — legacy (/epics, /release-notes): vault path + key
 # (export root is derived as <vault_path>/jira-products/<jira_key>).
 vault_path: <absolute path, e.g. /home/user/obsidian-vault>
 jira_key:   <e.g. JIRA-12345>
-depth:      full | vi-plus-epics | vi-only
+depth:      full | prd-plus-epics | prd-only
 
 model_routing:
   classification: SIGNIFICANT | MODERATE
@@ -44,8 +44,8 @@ value_increment:
 
 requirements_source: native | derived
 requirements:
-  - id:   <US#N | AC#N | SM#N | SMC#N | FR#N | UC#N | R1..>   # native VI id (always emitted in
-          # `#` form, even when the source VI used the legacy dash form), else synthetic
+  - id:   <US#N | AC#N | SM#N | SMC#N | FR#N | UC#N | R1..>   # native PRD id (always emitted in
+          # `#` form, even when the source PRD used the legacy dash form), else synthetic
     type: story | criterion | metric | functional | usecase | derived
     text: <requirement text>
 
@@ -56,7 +56,7 @@ linked_items:
     summary:    <text>
     parent:     <key | null>
     role:       root | linked | epic_child
-    # Epic-only, populated ONLY at depth: vi-plus-epics (absent at other depths):
+    # Epic-only, populated ONLY at depth: prd-plus-epics (absent at other depths):
     refinement_candidate: true | false   # true = empty/almost-empty shell (no real Scope/Description/AC beyond summary + importer boilerplate)
     team:       <verbatim, e.g. "[DTT] Team Storage"; "" if absent>
     scope_hint: <the Epic's description/scope free-text if present, else its summary>
@@ -77,7 +77,7 @@ themes:
   - <short phrase, 5–10 words, summarising a recurring capability topic>
   # 2–4 items
 
-attachments:            # image files found under the VI's attachments/ dirs (paths only, not read)
+attachments:            # image files found under the PRD's attachments/ dirs (paths only, not read)
   - path:   <absolute path to the image file>
     item:   <the Jira key whose folder it was found under>
   # empty list when no attachments/ directories exist or no image files are present

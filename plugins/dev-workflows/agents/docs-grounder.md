@@ -14,7 +14,7 @@ never a writer, never a gate.**
 ```yaml
 docs_path:       <absolute path to the docs root ($DOCS_PATH); a single directory>
 feature_summary: <2–4 sentences: the goal + what this run is about>
-jira_key:        <optional — a VI/Epic/ticket key; enables the git-grep backstop>
+jira_key:        <optional — a PRD/Epic/ticket key; enables the git-grep backstop>
 themes:          <optional capability themes from the caller, or []>
 ```
 

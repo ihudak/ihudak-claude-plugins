@@ -1,13 +1,13 @@
 ---
 name: release-notes
-description: Jira-driven release-notes drafting. Reads a Value Increment (or any ticket) from exported markdown, optionally grounds in PR diffs, renders an example-docs release-notes body, runs a light prose-style-checker gate, and writes a persistent draft to paste into Jira's release-notes field.
+description: Jira-driven release-notes drafting. Reads a Product Requirements Document (or any ticket) from exported markdown, optionally grounds in PR diffs, renders an example-docs release-notes body, runs a light prose-style-checker gate, and writes a persistent draft to paste into Jira's release-notes field.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
 Draft release notes for the Jira ticket: $ARGUMENTS
 
 `/release-notes` produces a **customer-facing release-notes draft** for a Jira
-Value Increment (or any ticket) from pre-exported markdown in the user's Obsidian vault.
+Product Requirements Document (or any ticket) from pre-exported markdown in the user's Obsidian vault.
 It optionally grounds the prose in merged PR diffs, renders the example-docs authored
 release-notes body — a `{{#context}}` label + `### title` + prose for the `feature-updates` /
 `breaking-changes` destinations, or one bare past-tense sentence for `fixes` — with **no
@@ -109,7 +109,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 
 ## Phase 2 — Worthiness check + plan/approval
 
-1. **Worthiness gate.** Read `relevant_for_release_notes` directly from the **imported VI frontmatter**
+1. **Worthiness gate.** Read `relevant_for_release_notes` directly from the **imported PRD frontmatter**
    under `jira_export_root` (this phase runs before Phase 3, so there is no `jira-reader` handoff yet,
    and `jira-reader` does not surface this field in any case). NEVER read it from the authored specs
    draft.
@@ -133,29 +133,29 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 
 ## Phase 3 — Read Jira
 
-Invoke `jira-reader`. Use `depth: vi-only` when diff grounding is OFF; `depth: full` when ON (to collect PR URLs from the hierarchy's `## Pull Requests` sections).
+Invoke `jira-reader`. Use `depth: prd-only` when diff grounding is OFF; `depth: full` when ON (to collect PR URLs from the hierarchy's `## Pull Requests` sections).
 
 → Agent (subagent_type: "dev-workflows:jira-reader"):
   > "Return the structured handoff for this brief:
   >
   > jira_export_root: [resolved jira_export_root]
   > jira_key:         [resolved jira_key]
-  > depth:      [vi-only | full]"
+  > depth:      [prd-only | full]"
 
-When `focus_key` is set (explicit `<VI> <Epic>`), scope the **Phase 6 render input**
+When `focus_key` is set (explicit `<PRD> <Epic>`), scope the **Phase 6 render input**
 to the focus Epic's subtree — the focus Epic plus its linked descendants — so the
-release note covers that Epic's user-facing changes rather than the whole VI. This
+release note covers that Epic's user-facing changes rather than the whole PRD. This
 scopes only what Phase 6 renders; it does not mutate the stored handoff that other
-phases read. When `focus_key` is null, the draft covers the whole ticket/VI exactly as
+phases read. When `focus_key` is null, the draft covers the whole ticket/PRD exactly as
 today.
 
 If `status: NOT_FOUND` / `EMPTY`, surface `["Re-enter key", "Cancel"]`.
 
 On `OK`, capture `imported_change_type` and `imported_release_notes_category` from the jira-reader
 handoff's `value_increment` block (null when absent). Do NOT parse `release_versions` — the draft
-carries one Summary and never names a version. Do NOT read the authored specs-draft VI for these
-fields: they are Jira-mirror fields (`${CLAUDE_PLUGIN_ROOT}/references/vi-format.md`), so an authored
-VI never carries them.
+carries one Summary and never names a version. Do NOT read the authored specs-draft PRD for these
+fields: they are Jira-mirror fields (`${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`), so an authored
+PRD never carries them.
 
 ---
 
@@ -192,9 +192,9 @@ Diff grounding is opt-in and advisory here: a repo the user skips degrades the g
 
 ## Phase 6 — Render the draft
 
-**Resolve `run_phase`.** `/release-notes` runs at two points in a VI's life, and the
+**Resolve `run_phase`.** `/release-notes` runs at two points in a PRD's life, and the
 `release-note-types.md` §4 documentation-link rule depends on which. Reuse the existing signal from
-`${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` §7 — glob the VI's specs dir
+`${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` §7 — glob the PRD's specs dir
 (`$SPECS_PATH/specifications/<jira_key>-*/`) for `specification.md` and `design.md`:
 
 - **neither present** → `run_phase: pm`. The feature is not built and its documentation does not
@@ -295,15 +295,15 @@ If `prose-style` is not installed, skip this phase and note "style check skipped
    - Reminder: paste this into the ticket's Jira release-notes field — the docs automation adds the {{#internal-note}} metadata and emits it into example-docs.
 
    ### Next step
-   [leaf/closure per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked: the release note is drafted. If earlier pipeline phases remain, continue — hand to PA → `/dev-workflows:create-ard <VI>` or PE → `/dev-workflows:epics <VI>`; if the change is already built and documented, the VI is fully processed.]
+   [leaf/closure per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked: the release note is drafted. If earlier pipeline phases remain, continue — hand to PA → `/dev-workflows:create-ard <PRD>` or PE → `/dev-workflows:epics <PRD>`; if the change is already built and documented, the PRD is fully processed.]
 
    ### Context hygiene
 
    The resume pointer is written in the terminal cost phase (Phase 11), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
 
-   - **Release note drafted and the VI fully processed?** → nothing to suggest — you're done.
-   - **A PA/PE phase still pending for this VI (e.g. `/dev-workflows:create-ard`, `/dev-workflows:epics`), even yourself?** → run **`/clear`** before switching roles.
-   - Consider **`/rename <VI-ID>-<slug>-<role>`** to relocate this session later — `<role>` is this run's inferred lane (`pm` on the early run, `dev` once a spec or design exists).
+   - **Release note drafted and the PRD fully processed?** → nothing to suggest — you're done.
+   - **A PA/PE phase still pending for this PRD (e.g. `/dev-workflows:create-ard`, `/dev-workflows:epics`), even yourself?** → run **`/clear`** before switching roles.
+   - Consider **`/rename <PRD-ID>-<slug>-<role>`** to relocate this session later — `<role>` is this run's inferred lane (`pm` on the early run, `dev` once a spec or design exists).
 
    Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
    ```
@@ -381,29 +381,29 @@ working directory.
 
 Terminal phase — the NEW final operational phase; runs after Phase 10
 (follow-ups) and NEVER interrupts an earlier phase. Records this command's
-token-cost contribution to the VI by citing
+token-cost contribution to the PRD by citing
 `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and calling its single
 `emit-cost` entry point. Unlike feedback, **cost ALWAYS runs**.
 
-`/release-notes` runs at two different phases by two roles (a PM's early bare-VI
+`/release-notes` runs at two different phases by two roles (a PM's early bare-PRD
 run and a dev's documenting re-run), so DO NOT pass a fixed phase/role: call
 `emit-cost` with `command: /release-notes`, `phase: inferred`, `role: inferred`,
 the run's `jira_key` (or `null`) and `source`, and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-cost` applies the §7
-inference: **no `specification.md` or `design.md` under the VI's specs dir ->
-`phase: vi-creation`, `role: pm`; either present -> `phase: documenting`, `role:
+inference: **no `specification.md` or `design.md` under the PRD's specs dir ->
+`phase: prd-creation`, `role: pm`; either present -> `phase: documenting`, `role:
 dev`.** Epic presence is deliberately NOT part of the signal. It then resolves
 the transcript + subagents (§1), **advances the chained checkpoint** (§3), runs
 `scripts/session-cost.py` against the price table (§4), records the optional
 statusline cross-check (§5), and appends one entry to
-`<VI-dir>/dev-workflows/cost/<sid8>.md` via the specs-first ladder (§8) — pending
-+ reconciliation (§9) when no VI key resolves. **The checkpoint advances even in
+`<PRD-dir>/dev-workflows/cost/<sid8>.md` via the specs-first ladder (§8) — pending
++ reconciliation (§9) when no PRD key resolves. **The checkpoint advances even in
 the pending / report-only tiers.** Surface the persisted path (or the
 report-only notice) as this phase's only output.
 
 **Then write the resume pointer.** Cite
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and write/overwrite
-`<VI-dir>/dev-workflows/resume.md` now — after the cost entry above, so the
+`<PRD-dir>/dev-workflows/resume.md` now — after the cost entry above, so the
 pointer reflects the completed run, and before the commit step below, so it
 is included in it. Redact per §1. Silent; the printed `### Context hygiene`
 guidance already appeared in the Phase 8 report.
@@ -442,5 +442,5 @@ current working directory; no user name is ever written (§10).
 - ALWAYS use `choices` arrays; the last choice is always `"Other… (describe)"`.
 - Light gate only — no Opus review, no tests, no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none), and no commit of the draft or of anything in a docs/code repo, the vault, or the current working directory. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
-- ALWAYS end the Phase 8 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked; the pipeline leaf (adaptive: continue any pending PA/PE phase, else the VI is fully processed).
-- ALWAYS end the Phase 8 report with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a leaf-aware suggestion (done → nothing; pending role → `/clear`) + `/rename <VI-ID>-<slug>-<role>` using this run's inferred lane (`pm` or `dev`, per the Phase 6 inference); guidance only, never auto-run.
+- ALWAYS end the Phase 8 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked; the pipeline leaf (adaptive: continue any pending PA/PE phase, else the PRD is fully processed).
+- ALWAYS end the Phase 8 report with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a leaf-aware suggestion (done → nothing; pending role → `/clear`) + `/rename <PRD-ID>-<slug>-<role>` using this run's inferred lane (`pm` or `dev`, per the Phase 6 inference); guidance only, never auto-run.

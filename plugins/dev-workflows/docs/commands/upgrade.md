@@ -4,7 +4,7 @@ Upgrades libraries, frameworks, runtimes, or build tools to specified or latest 
 
 ## Who runs it
 
-`/upgrade` runs **outside the VI pipeline** — it has no cost-attribution phase and no role. It emits **no cost attribution at all**: it has no Value Increment to attribute spend to, and `references/cost-emission.md` never mentions it ( The `phase:` values it does pass to `upgrade-planner` and `upgrade-executor` — `full`, `verify-resume`, `regression-resume` — belong to a completely different vocabulary: the model-routing **resume protocol**, saying how much of a single component's own re-entered work must be redone after a review or a failed test, not where a run sits in the product lifecycle. The two vocabularies share the field name `phase` and nothing else — see [Roles and phases](../roles-and-phases.md#cost-attribution-phases) for the fuller distinction.
+`/upgrade` runs **outside the PRD pipeline** — it has no cost-attribution phase and no role. It emits **no cost attribution at all**: it has no Product Requirements Document to attribute spend to, and `references/cost-emission.md` never mentions it ( The `phase:` values it does pass to `upgrade-planner` and `upgrade-executor` — `full`, `verify-resume`, `regression-resume` — belong to a completely different vocabulary: the model-routing **resume protocol**, saying how much of a single component's own re-entered work must be redone after a review or a failed test, not where a run sits in the product lifecycle. The two vocabularies share the field name `phase` and nothing else — see [Roles and phases](../roles-and-phases.md#cost-attribution-phases) for the fuller distinction.
 
 ## Synopsis
 
@@ -45,7 +45,7 @@ flowchart TD
 
 Upgraded component version(s) applied on a freshly created feature branch, left **uncommitted** — `/upgrade` never commits the upgrade itself, unlike `/vuln`, which does commit and open a PR for each CVE fix. An Upgrade Summary table (component, before/after version, classification, review verdict, status, notes) and a `### Review triage` section for every `SIGNIFICANT`/`HIGH-RISK` component that went through Opus review. An `impl-maintenance` Lessons Learned report, always tagged `Command run: /upgrade`.
 
-No cost entry is ever written (see [Who runs it](#who-runs-it) above), and no `resume.md` is written for `/upgrade` — its durable state is already the uncommitted branch on disk, not a VI-scoped artifact. The terminal `commit-artifacts` step still runs, committing only `$SPECS_PATH`'s bounded session-artifact paths — never the code repo `/upgrade` just changed.
+No cost entry is ever written (see [Who runs it](#who-runs-it) above), and no `resume.md` is written for `/upgrade` — its durable state is already the uncommitted branch on disk, not a PRD-scoped artifact. The terminal `commit-artifacts` step still runs, committing only `$SPECS_PATH`'s bounded session-artifact paths — never the code repo `/upgrade` just changed.
 
 ## Gates
 
@@ -65,7 +65,7 @@ Upgrade a framework to its latest stable release and a runtime to its latest LTS
 
 ## See also
 
-- [`/vuln`](vuln.md) — the plugin's other maintenance command outside the VI pipeline, sharing the same no-cost-attribution fact, the same resume-phase vocabulary, and the same review/triage/fixer/test gate shape for CVEs instead of version bumps.
+- [`/vuln`](vuln.md) — the plugin's other maintenance command outside the PRD pipeline, sharing the same no-cost-attribution fact, the same resume-phase vocabulary, and the same review/triage/fixer/test gate shape for CVEs instead of version bumps.
 - [`/implement`](implement.md) — the pipeline command `/upgrade` borrows its review machinery from: `risk-planner`, `code-review`, `review-fixer`, and `../../references/finding-triage.md`.
 - [Roles and phases](../roles-and-phases.md#cost-attribution-phases) — the closing note distinguishing the cost-attribution `phase:` vocabulary from the resume-protocol `phase:` vocabulary `/upgrade` passes.
 - [Session cost](../reference/session-cost.md) — states plainly that `/vuln` and `/upgrade` emit no cost attribution at all.

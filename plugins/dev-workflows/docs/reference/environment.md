@@ -8,7 +8,7 @@
 
 **Resolution.** Read straight from the shell environment — there is no config file, CLI flag, or derived fallback that feeds it. Every command that writes into it validates it at its own gating step (Phase 0 in most commands, Step 0 in `/vuln`) before doing any expensive work.
 
-**When unset.** The six commands that gate on it — `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/design`, `/ready` — stop immediately, name `SPECS_PATH` explicitly, and offer `choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`. `/epics` and `/release-notes` instead degrade: `/epics` skips the artifact steps that need it, and `/release-notes` falls back to `run_phase: pm`. No command silently substitutes the vault, the current working directory, or any other path.
+**When unset.** The six commands that gate on it — `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`, `/ready` — stop immediately, name `SPECS_PATH` explicitly, and offer `choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`. `/epics` and `/release-notes` instead degrade: `/epics` skips the artifact steps that need it, and `/release-notes` falls back to `run_phase: pm`. No command silently substitutes the vault, the current working directory, or any other path.
 
 **When it points somewhere unreadable.** Two separate gates apply, and they differ in strictness. The bookkeeping entry point, `specs-preflight`, requires `$SPECS_PATH` to be an existing directory, `git -C "$SPECS_PATH" rev-parse --git-dir` to succeed, **and** the resolved `.git` directory to be **writable** (tested specifically rather than the worktree, since a read-only specs mount is a normal state in this container setup); a failed gate is a silent no-op, and because the terminal `commit-artifacts` step applies the same writability gate, the feedback/cost/follow-up bookkeeping never gets committed either — `specs-preflight` only declines to prepare for a commit that step would then decline to make. The deliverable-verification entry point, `require-on-main`, needs only the first two conditions — a **readable** git dir is enough, writability is not required, since this gate only reads; a failed gate here returns the state `unmanaged`, and the caller proceeds exactly as it did before this handoff machinery existed — no artifact is verified, and nothing is reported as a stop. [Roles and phases](../roles-and-phases.md) covers the two states you meet more often mid-pipeline — an artifact stuck on an unmerged branch, and one that is simply absent from the default branch — but not `unmanaged`, since that is this environment condition (an unset or unmanageable `$SPECS_PATH`), not a workflow state.
 
@@ -20,7 +20,7 @@
 
 **Resolution.** Read straight from the shell environment, exactly like `$SPECS_PATH` — no derived fallback exists.
 
-**When unset.** Behavior depends on the command. `/idea` validates it must be set, an existing directory, and writable before doing anything else; if any of that fails it stops and offers `choices: ["Enter a directory to write idea.md into", "Cancel", "Other… (describe)"]`, and a user-supplied directory is validated the same way and used as the write root for that run — it never falls back to the current working directory, since that may be a code repository. Jira-driven commands that accept an already-imported export directory as their input (`/epics`, `/release-notes`) degrade gracefully instead: with `$VAULT_PATH` unset, `/epics` writes Epic drafts to a derived `epic-drafts/<jira_key>/` directory beside the import rather than under `jira-drafts/<VI-KEY>/`, and `/release-notes` resolves its draft destination the same way.
+**When unset.** Behavior depends on the command. `/idea` validates it must be set, an existing directory, and writable before doing anything else; if any of that fails it stops and offers `choices: ["Enter a directory to write idea.md into", "Cancel", "Other… (describe)"]`, and a user-supplied directory is validated the same way and used as the write root for that run — it never falls back to the current working directory, since that may be a code repository. Jira-driven commands that accept an already-imported export directory as their input (`/epics`, `/release-notes`) degrade gracefully instead: with `$VAULT_PATH` unset, `/epics` writes Epic drafts to a derived `epic-drafts/<jira_key>/` directory beside the import rather than under `jira-drafts/<PRD-KEY>/`, and `/release-notes` resolves its draft destination the same way.
 
 **When it points somewhere unreadable.** The same validation that catches "unset" catches "exists but not writable" — both trip the same stop-and-offer path in `/idea`; a command with the graceful-degradation behavior above treats an invalid `$VAULT_PATH` the same way it treats an unset one.
 
@@ -54,7 +54,7 @@
 
 - **`$GIT_USER_INITIALS`** — your branch identity string; no default, and the plugin never fails when it is absent.
 
-**Resolution.** It is rung 1 of a five-rung identity ladder applied by the five commands that name branches in a *code* repo (`/implement`, `/document` in both modes, `/docs-profile`, `/upgrade`, `/vuln`) — the specs-repo handoff branches (`idea/`, `vi/`, `ard/`, `spec/`, `design/`, `ready/`) are named by `phase-handoff.md` §2.2 instead and never enter it. The rungs run in order, stopping at the first non-empty result: `$GIT_USER_INITIALS` (used verbatim, never with a trailing `/`) → `git config user.initials` (same semantics, set once per repo or globally) → inference from existing branch names (a candidate accepted at ≥30% of a sampled 200 branches and ≥3 occurrences) → a mandatory prompt if all three yield nothing.
+**Resolution.** It is rung 1 of a five-rung identity ladder applied by the five commands that name branches in a *code* repo (`/implement`, `/document` in both modes, `/docs-profile`, `/upgrade`, `/vuln`) — the specs-repo handoff branches (`idea/`, `prd/`, `ard/`, `spec/`, `design/`, `ready/`) are named by `phase-handoff.md` §2.2 instead and never enter it. The rungs run in order, stopping at the first non-empty result: `$GIT_USER_INITIALS` (used verbatim, never with a trailing `/`) → `git config user.initials` (same semantics, set once per repo or globally) → inference from existing branch names (a candidate accepted at ≥30% of a sampled 200 branches and ≥3 occurrences) → a mandatory prompt if all three yield nothing.
 
 **When unset.** The ladder simply falls through to rung 2, then 3, then the prompt — there is no error, only degradation to a less certain source. Where the target repo's documented branch-naming convention has no name-or-initials segment at all, the variable is simply unused for that repo regardless of whether it is set.
 
@@ -82,10 +82,10 @@ The four directory-valued variables above expect this layout. `$GIT_USER_INITIAL
 $VAULT_PATH/                        # personal store (e.g. an Obsidian vault; any markdown-backed store works)
   jira-products/<KEY>/              # Jira hierarchy from jira-workitem-import (input; regenerated on each import)
   Projects/<area>/<slug>/           # idea.md and other project working files
-  jira-drafts/<VI-KEY>/             # Epic drafts written by /epics
+  jira-drafts/<PRD-KEY>/             # Epic drafts written by /epics
 
 $SPECS_PATH/                        # shared, team-visible store
-  specifications/<KEY>-<slug>/      # the Value Increment, the ARD, specification.md, design.md
+  specifications/<KEY>-<slug>/      # the Product Requirements Document, the ARD, specification.md, design.md
     dev-workflows/                  # bookkeeping: feedback, cost, resume.md; follow-ups only with no vault
 
 $REPOS_PATH/                        # code clones, one directory or a colon-separated list (default /workspace)

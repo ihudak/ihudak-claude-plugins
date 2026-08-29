@@ -1,6 +1,6 @@
 # Grilling technique (embedded — shared reference)
 
-The interview technique the authoring commands (`/idea`, `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/design`) and `/prompt-grill-me` use to
+The interview technique the authoring commands (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`) and `/prompt-grill-me` use to
 refine an artifact one decision at a time. Embedded here so callers have **no runtime dependency**;
 technique adapted from mattpocock grill-me/grilling. Each caller cites this file and states its own
 **depth** and **stage list**; this reference owns only the mechanics.
@@ -25,12 +25,12 @@ callers) rather than self-answered. Never grill yourself into a fabricated decis
 ## Depth (the caller chooses)
 
 - **Bounded** — a capped set of the highest Impact×Uncertainty questions, then stop; unresolved high-impact gaps are recorded (e.g. `[NEEDS CLARIFICATION]`). Used by `/idea` (≤10; `--deep` switches to relentless) and `/prompt-grill-me` (≤5).
-- **Relentless** — keep walking the tree until convergence, no cap. Used by `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/design`.
+- **Relentless** — keep walking the tree until convergence, no cap. Used by `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`.
 
 ## Ambiguity taxonomy (gap-categories, altitude-aware)
 
 Categories the grill scans to *find* gaps — they feed the existing **Impact × Uncertainty** ranking of what to ask. This is **not** a user-facing menu and adds **no** mandatory questions: bounded callers still cap at their stated bound; relentless callers still stop at convergence. Scale the categories to the caller's altitude:
 
 - **All altitudes:** overloaded/fuzzy **terminology**; **pre-mortem / assumption audit** (which unstated assumption, if wrong, breaks this?); **second-order effects** (what does this change downstream?).
-- **Product altitude** (`/idea`, `/create-vi`): unstated **quality expectations** (implied latency, scale, availability, or compliance expectations) framed as product outcomes — not engineering NFRs.
+- **Product altitude** (`/idea`, `/create-prd`): unstated **quality expectations** (implied latency, scale, availability, or compliance expectations) framed as product outcomes — not engineering NFRs.
 - **Engineering altitude** (`/specify`, `/design`): the full **NFR** set (performance, scalability, reliability, observability, security/compliance); **integration / external-dependency** gaps; **implicit enum branch** (a field with N values where only some are specified — the rest are an untested branch).

@@ -16,8 +16,8 @@ The orchestrator writes a **handoff file** (a temp file) and passes its absolute
 - `existing_epics` — for non-duplication
 - `output_dir` — the resolved output directory (default `$VAULT_PATH/jira-drafts/<JIRA_KEY>/`)
 - `vi_goal`, `jira_key`
-- `requirements` + `requirements_source` — the VI requirement inventory (from jira-reader); the coverage ground truth.
-- `applicable_ard` — the VI-level ARD `invariants` (AD#N) + `guidance_summary`, or absent when no ARD resolved.
+- `requirements` + `requirements_source` — the PRD requirement inventory (from jira-reader); the coverage ground truth.
+- `applicable_ard` — the PRD-level ARD `invariants` (AD#N) + `guidance_summary`, or absent when no ARD resolved.
 - `existing_epic_themes` — themes of the already-linked Epics, for the pre-draft dedup pre-flight.
 - `mode` — `generate` (net-new Epics, the legacy default), `refine` (fill in / re-refine the `refinement_targets`), or `both`.
 - `refinement_targets` — list of `{key, team, scope_hint, current_body_path}` for the empty/existing Epics to fill in (present only when `mode` is `refine` or `both`; empty otherwise). `current_body_path` is the imported Epic file, e.g. `<jira_export_root>/<EPIC-KEY>/<EPIC-KEY>.md`.
@@ -32,7 +32,7 @@ Return `status: BLOCKED` with the specific gap when: the handoff file is missing
 1. **Dedup enumeration.** For each Epic you are about to draft, compare its theme
    against `existing_epic_themes`. If it overlaps an existing Epic, do NOT draft a
    near-duplicate — record in `notes`: `theme <X> already covered by <KEY> → skip | merge`.
-2. **Sizing / sequencing.** Prefer fewer, larger Epics when the VI direction is
+2. **Sizing / sequencing.** Prefer fewer, larger Epics when the PRD direction is
    already validated; split only at a genuine risk or feedback-loop boundary.
    Order the Epics so that none depends on a later one (supports the reviewer's
    independence check).
@@ -49,10 +49,10 @@ For each new Epic, emit a markdown file under the resolved output directory (def
 **Team:** <assigned team, refinement mode only — verbatim, e.g. [DTT] Team Storage; omit this line for net-new Epics>
 
 ## Goal
-<one sentence, tied concretely to the parent VI's outcome — NOT a technical milestone>
+<one sentence, tied concretely to the parent PRD's outcome — NOT a technical milestone>
 
 ## Business value
-<1–2 sentences linking the Epic to the VI's outcome; concrete, not boilerplate>
+<1–2 sentences linking the Epic to the PRD's outcome; concrete, not boilerplate>
 
 ## Scope
 
@@ -72,25 +72,25 @@ For each new Epic, emit a markdown file under the resolved output directory (def
 <one line: this Epic is verifiable standalone by <observable test> and delivers <value> without any not-yet-built Epic>
 
 ## Dependencies
-- <other Epics under this VI or elsewhere, repos, teams, external systems — named>
+- <other Epics under this PRD or elsewhere, repos, teams, external systems — named>
 - ...
 
 ## Covers
-- <VI requirement IDs this Epic satisfies, bracketed — e.g. [US#2], [AC#4], [AC#5], [SM#1]>
+- <PRD requirement IDs this Epic satisfies, bracketed — e.g. [US#2], [AC#4], [AC#5], [SM#1]>
 
 ## Suggested stories
 - <high-level breakdown; each story plausibly pickup-ready without further scoping>
 - ...
 
 ## References
-- Parent VI: [[<JIRA_KEY>]]
+- Parent PRD: [[<JIRA_KEY>]]
 - [Source: <path>#<Section>] — <code anchor from code-scanner evidence, when relevant>
 - ...
 ```
 
 Create the output directory if missing — your `Write` tool auto-creates parent directories (no shell). Write every Epic file before proceeding to the downstream clarification / style / review phases.
 
-Traceability: every claim in each Epic must be traceable to the handoff `jira_reader_handoff` (Jira key + which item type — VI goal, existing Epic summary, Story theme) or `code_scanner_outputs` (`evidence.path` + symbols). Do not invent content the sources don't contain. `docs_grounding` (when present) is a **consistency reference** — align terminology and avoid contradicting shipped behavior with it — but it is never itself a source of new Epic claims; every Epic claim still traces to `jira_reader_handoff` or `code_scanner_outputs`.
+Traceability: every claim in each Epic must be traceable to the handoff `jira_reader_handoff` (Jira key + which item type — PRD goal, existing Epic summary, Story theme) or `code_scanner_outputs` (`evidence.path` + symbols). Do not invent content the sources don't contain. `docs_grounding` (when present) is a **consistency reference** — align terminology and avoid contradicting shipped behavior with it — but it is never itself a source of new Epic claims; every Epic claim still traces to `jira_reader_handoff` or `code_scanner_outputs`.
 
 **Write restrictions** (enforced by invariants):
 - NEVER write inside `jira-products/` — re-created on every import.
@@ -100,7 +100,7 @@ Traceability: every claim in each Epic must be traceable to the handoff `jira_re
 
 ## Uncertainty markers
 
-Where you genuinely cannot infer a detail from the VI or code-scanner sources,
+Where you genuinely cannot infer a detail from the PRD or code-scanner sources,
 insert an inline `[NEEDS CLARIFICATION: <specific question>]` at that point in
 the draft INSTEAD of silently guessing. Rules:
 
@@ -108,7 +108,7 @@ the draft INSTEAD of silently guessing. Rules:
   Epic — say so in `notes` rather than over-marking.
 - **Priority:** dependencies > acceptance criteria > scope. **Never** mark Goal
   or Business value (those must be inferable — an un-inferable goal is a broken
-  VI, out of your remit).
+  PRD, out of your remit).
 - Record every marker in the return field `clarifications_needed[]` as
   `{epic, section, question, suggested_answer}` — always propose your best-guess
   `suggested_answer` so the orchestrator's clarification gate can offer it.
@@ -120,7 +120,7 @@ When `mode` is `refine` or `both`, treat every entry in `refinement_targets[]` a
 - **Iterate, don't regenerate.** Read the target's `current_body_path` (the imported Epic file) first. Preserve any real scope/acceptance content already there; fill the gaps and improve — never blow away existing substance.
 - **Keyed filename.** Write each refined Epic to `<output_dir>/<key>.md` using its real Jira Epic key (e.g. `PROJ-12573.md`) — NOT a slug. Slug-named files (`<slug>.md`) are reserved for net-new Epics with no Jira ID yet.
 - **Surface the team.** Emit the template's `**Team:** <team>` line under the H1. When `team` is empty, emit `**Team:** [NEEDS CLARIFICATION — team not found in import]` and add a matching `clarifications_needed[]` entry.
-- **Partition the VI.** Distribute the VI `requirements[]` across the refinement targets; each target's `## Covers` lists only its slice. Two targets must not silently claim the same requirement.
+- **Partition the PRD.** Distribute the PRD `requirements[]` across the refinement targets; each target's `## Covers` lists only its slice. Two targets must not silently claim the same requirement.
 - **Cross-team dependencies are expected.** When one team-Epic depends on another (e.g. a framework Epic that must land first), name the other Epic by key in `## Dependencies`. Such inter-target dependencies are legal (they encode build order) — do not suppress them.
 - **Undrawable boundaries** → a `[NEEDS CLARIFICATION]` marker in the affected Epic + a `clarifications_needed[]` entry (subject to the ≤3-per-Epic cap).
 
@@ -145,19 +145,19 @@ _source: native | derived_
 
 - Rows = the handoff `requirements[]`. "Covered by" counts BOTH existing linked
   Epics AND the new drafts. `_source:` echoes `requirements_source`; when any
-  `spec-story`/`spec-criterion` row is present (a VI-level spec was folded in
-  by `/epics` Phase 2.6), append ` + VI-level spec` to it (e.g.
-  `_source: native + VI-level spec_`).
+  `spec-story`/`spec-criterion` row is present (a PRD-level spec was folded in
+  by `/epics` Phase 2.6), append ` + PRD-level spec` to it (e.g.
+  `_source: native + PRD-level spec_`).
 - Roll-up: `READY` (0 gaps) · `NEEDS WORK` (≥1 gap, none fundamental) ·
   `NOT READY` (gaps you judge fundamental). `P% = covered/total`.
 - **Focus mode:** when the handoff `scope` targets a single focus Epic, still
-  recompute `_coverage.md` VI-holistically (all existing Epics + the re-drafted
+  recompute `_coverage.md` PRD-holistically (all existing Epics + the re-drafted
   focus Epic) — never a single-Epic view.
 - **Refinement mode:** refined targets appear in "Covered by" as `<KEY> (refined)`; net-new drafts as `<slug> (new)`; untouched existing Epics as `<KEY> (exist)`. Requirements no target covers are `❌ gap` rows — the leftover the `/epics` Phase 6.1 gate routes.
 
 ## ARD conformance (only when `applicable_ard` is present)
 
-Keep each Epic's scope + acceptance criteria consistent with the VI-level `AD#N`
+Keep each Epic's scope + acceptance criteria consistent with the PRD-level `AD#N`
 invariants and `guidance_summary`. When an Epic MUST deviate from an `AD#N`,
 record — in that Epic draft, NEVER in the ARD — a line:
 `- ARD deviation: [<AD#N id>] — <what deviates> — <why> — flag: architect`

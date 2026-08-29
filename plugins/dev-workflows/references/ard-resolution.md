@@ -7,23 +7,23 @@ convention live in ONE place.
 
 ## Inputs
 
-`vi` (VI key), `epic` (or `null`), `area` (or `null`), `$SPECS_PATH`.
+`prd` (PRD key), `epic` (or `null`), `area` (or `null`), `$SPECS_PATH`.
 
 ## Resolution (most-specific first)
 
-1. Resolve the VI dir `$SPECS_PATH/specifications/<VI>-<vslug>/` — match by key-number, tolerating a
+1. Resolve the PRD dir `$SPECS_PATH/specifications/<PRD>-<vslug>/` — match by key-number, tolerating a
    stray `-`/`_` and a human-adjusted slug (the same rule the other commands use).
 2. Collect candidate ARD files:
-   - **Epic-level** (`epic` set): `<VI>-<vslug>/<EPIC>-<eslug>/<EPIC>_ARD.md` and any
+   - **Epic-level** (`epic` set): `<PRD>-<vslug>/<EPIC>-<eslug>/<EPIC>_ARD.md` and any
      `<EPIC>-<area>_ARD.md` (the area-scoped file when `area` is given, else every per-area ARD) **plus**
-     the VI-level `<VI>-<vslug>/<VI>_ARD.md` for inherited invariants.
-   - **VI-level** (`epic` null): only `<VI>-<vslug>/<VI>_ARD.md`.
+     the PRD-level `<PRD>-<vslug>/<PRD>_ARD.md` for inherited invariants.
+   - **PRD-level** (`epic` null): only `<PRD>-<vslug>/<PRD>_ARD.md`.
 3. Parse each file's `## Architecture decisions` into `AD#N {id, binds, prevents, rule, source}` where
-   `source` ∈ `vi | epic | area`. VI-level `AD#N` are the inherited base; Epic/area `AD#N` layer on top
+   `source` ∈ `prd | epic | area`. PRD-level `AD#N` are the inherited base; Epic/area `AD#N` layer on top
    (Epic/area wins on any conflict — contradictions were already blocked by `ard-reviewer` at authoring).
    Accept **both** `### [AD#N]:` and the legacy `### [AD-N]:`, and ALWAYS emit the `#` form in `id`. <!-- id-grammar-ok: legacy reader tolerance -->
-   This resolver is a **reader**, and an ARD has no `/update-ard` to convert it the way `/update-vi`
-   converts a VI, so a dash-form ARD authored by a pre-2.53.0 install on another machine would never
+   This resolver is a **reader**, and an ARD has no `/update-ard` to convert it the way `/update-prd`
+   converts a PRD, so a dash-form ARD authored by a pre-2.53.0 install on another machine would never
    drain. Failing to parse it is silent in the worst way: the file still resolves `status: found`, but
    with an empty `invariants` list every consumer's ARD-conformance dimension is skipped exactly as if
    no ARD existed — a binding architecture document enforcing nothing, under a run that reports success.
@@ -37,7 +37,7 @@ branch: <carrying branch> | null   # present only when status: unmerged
 pr: <open pull request number> | null   # present only when status: unmerged
 invariants:
   - id: AD#1
-    source: vi | epic | area
+    source: prd | epic | area
     binds: <text>
     prevents: <text>
     rule: <testable statement>
@@ -70,11 +70,11 @@ deviation record as *allowed-but-flagged* (the architect adjudicates), **without
 
 ## Consumers (informative)
 
-- `/create-ard` — reads the inherited VI-level ARD on an Epic-level run (`epic: null` maps to VI-level-only); `AD#N` = the invariants the newly-authored Epic-level `AD#N` must not contradict; `ard-reviewer` checks non-contradiction directly against the drafted file — no separate deviation-record path.
-- `/design` — Epic-level ARD = design guidance; VI-level `AD#N` = inherited invariants; deviations → a `## ARD deviations` section in `design.md` + an open question.
+- `/create-ard` — reads the inherited PRD-level ARD on an Epic-level run (`epic: null` maps to PRD-level-only); `AD#N` = the invariants the newly-authored Epic-level `AD#N` must not contradict; `ard-reviewer` checks non-contradiction directly against the drafted file — no separate deviation-record path.
+- `/design` — Epic-level ARD = design guidance; PRD-level `AD#N` = inherited invariants; deviations → a `## ARD deviations` section in `design.md` + an open question.
 - `/implement` — Jira mode only; `AD#N` = implementation guardrails; deviations → the Phase 5 report. Direct mode → `none`.
 - `/specify` — keep user stories + scope consistent with `AD#N` + scope; deviations → the spec's `### Open questions`.
-- `/epics` — VI-level only (`epic: null`, Epics do not exist yet); `AD#N` = inherited invariants the drafted Epics must respect; deviations → a `- ARD deviation: …` line in the Epic draft + the Phase 9 report.
-- `/ready` — VI-level + Epic-level `AD#N` = inherited invariants passed to `readiness-reviewer` as `applicable_ard`; read-only — it never authors a deviation record, only checks the artifacts it reads for an existing one.
+- `/epics` — PRD-level only (`epic: null`, Epics do not exist yet); `AD#N` = inherited invariants the drafted Epics must respect; deviations → a `- ARD deviation: …` line in the Epic draft + the Phase 9 report.
+- `/ready` — PRD-level + Epic-level `AD#N` = inherited invariants passed to `readiness-reviewer` as `applicable_ard`; read-only — it never authors a deviation record, only checks the artifacts it reads for an existing one.
 
-The other five pass `invariants` to their reviewer as `applicable_ard`; the reviewer's ARD-conformance dimension is skipped entirely when it is absent. `/create-ard` alone does not: it inherits VI-level `AD#N` read-only straight into its own grill and drafting (Phase 4), and `ard-reviewer` checks non-contradiction directly against the drafted file, never via that field.
+The other five pass `invariants` to their reviewer as `applicable_ard`; the reviewer's ARD-conformance dimension is skipped entirely when it is absent. `/create-ard` alone does not: it inherits PRD-level `AD#N` read-only straight into its own grill and drafting (Phase 4), and `ard-reviewer` checks non-contradiction directly against the drafted file, never via that field.

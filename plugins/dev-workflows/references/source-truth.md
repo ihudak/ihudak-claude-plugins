@@ -31,7 +31,7 @@ doesn't (PM intent, sprint planning, agreed scope, customer expectations).
 
 **When a spec is provided, the spec markdown is the authoritative "intended"
 source.** Some runs (notably `/document`) pass an implementation spec —
-the Value Increment spec, its child Epic specs, and the synthesised
+the Product Requirements Document spec, its child Epic specs, and the synthesised
 `requirements.md` / `design.md`. When that spec is present, *it* defines the
 intended behaviour: it is the agreed, current contract for what should ship.
 Jira then **corroborates** the spec (it is the older customer-narrative
@@ -43,7 +43,7 @@ the comparison is the original two-way (Jira vs. code).
 
 The authoritative file set, when a spec is provided:
 
-- **Authoritative ("intended"):** the VI spec markdown, the child Epic spec
+- **Authoritative ("intended"):** the PRD spec markdown, the child Epic spec
   markdown, and the synthesised `requirements.md` and `design.md`.
 - **Secondary:** `tasks.md` (implementation breakdown — supporting, not
   contractual).
@@ -81,7 +81,7 @@ from what shipped.
 
 The **"intended"** phrasing for every claim is taken from the **spec markdown
 when a spec is provided**, falling back to the Jira description when no spec is
-present. When a spec is present, the authoritative file set is: the VI spec
+present. When a spec is present, the authoritative file set is: the PRD spec
 markdown, the child Epic spec markdown, and the synthesised `requirements.md`
 and `design.md`; `tasks.md` is secondary (supporting, not contractual); and
 `idea.md`, `prompt.md`, and any rendered HTML mirrors are ignored. The
@@ -124,7 +124,7 @@ specificity:
 
 When the run provides a spec, read the spec tree to establish the
 authoritative **intended** phrasing for each claim before verifying it against
-code. Read the VI spec markdown, the child Epic spec markdown, and the
+code. Read the PRD spec markdown, the child Epic spec markdown, and the
 synthesised `requirements.md` / `design.md`; treat `tasks.md` as secondary;
 ignore `idea.md`, `prompt.md`, and any rendered HTML mirrors.
 
@@ -327,7 +327,7 @@ The §7 table for this discrepancy (with the added **Spec** column) reads:
 narrative is the side that drifted; with no spec the **Spec** cell would read
 `(no spec)`.
 
-A complementary example from the same VI, also caught by manual review:
+A complementary example from the same PRD, also caught by manual review:
 the Jira "UI changes" section described renaming `Settings > Updates` to
 `Settings > Deployment`. The source (`ClusterSettingsMenu.java:1404`)
 still has `.withTitle("Updates")` — zero hits for any "Deployment" rename

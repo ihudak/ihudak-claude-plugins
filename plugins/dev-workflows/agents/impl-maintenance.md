@@ -21,7 +21,7 @@ The caller passes a **compact session handoff**:
 - **Command run** — which command variant executed this session. One of
   `/implement`, `/document` (direct mode), `/document` (Jira mode), `/epics`,
   `/vuln`, `/upgrade`, `/design`, `/specify`, `/release-notes`, `/idea`,
-  `/create-vi`, `/create-ard`, `/ready`. This field
+  `/create-prd`, `/create-ard`, `/ready`. This field
   scopes any "Command workflow improvements" suggestions to the right command.
 - **What was done** — 1-paragraph summary (classification, component/CVE/task, scope)
 - **Key events** — things that went unexpectedly: BLOCK reviews, test regressions,

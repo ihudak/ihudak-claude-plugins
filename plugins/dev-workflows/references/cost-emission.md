@@ -1,20 +1,20 @@
 # Session Cost Emission — Shared Reference
 
 Single source of truth for the dev-workflows session-cost subsystem. The terminal
-"Session cost" phase of every cost-emitting command — the eleven VI-lifecycle ones
-(`/idea`, `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/epics`,
+"Session cost" phase of every cost-emitting command — the eleven PRD-lifecycle ones
+(`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`,
 `/design`, `/implement`, `/ready`, `/document`, `/release-notes`) plus `/prompt`
-and `/feedback`, which are not VI-lifecycle and infer their labels per §7 — cites this file and
+and `/feedback`, which are not PRD-lifecycle and infer their labels per §7 — cites this file and
 executes its steps inline through the single `emit-cost` entry point (§11). The
 orchestrator owns every prompt; this reference owns session-artifact resolution,
 the chained-checkpoint model, the transcript-window computation, the price table,
 the report format, the persistence ladder, pending/reconciliation, and the
 optional statusline augmentation.
 
-**Purpose.** Know how many **dollars** a Value Increment (VI) cost across its
+**Purpose.** Know how many **dollars** a Product Requirements Document (PRD) cost across its
 whole lifecycle, broken down by **phase**, **role**, and **model** — persisted
-per-VI into the specs repo so the maintainer can aggregate spend across every
-engineer and team. A VI's cost is the sum of per-command cost lines contributed
+per-PRD into the specs repo so the maintainer can aggregate spend across every
+engineer and team. A PRD's cost is the sum of per-command cost lines contributed
 by every session that worked on it; summing is a read-time concern for the
 maintainer — the plugin only ever appends immutable per-invocation measurements.
 
@@ -25,10 +25,10 @@ transcript. Every assistant message carries `.message.usage` + `.message.model`;
 by the accuracy of the price table — an accepted trade (cost accuracy is
 explicitly secondary to code/doc quality).
 
-**Relationship to siblings.** Shares the `<VI-dir>/dev-workflows/` per-VI home
+**Relationship to siblings.** Shares the `<PRD-dir>/dev-workflows/` per-PRD home
 with `feedback-emission.md` / `followup-emission.md` and the self-contained
 emitter pattern, but diverges deliberately: a **`cost/` subdir with per-session
-files** (merge-safety under massive team fan-out — the largest VI to date was
+files** (merge-safety under massive team fan-out — the largest PRD to date was
 worked by 23 teams) and **no dedup / no prose** (pure measurement, append-only).
 No dedup or cross-reference between the three. This subsystem does NOT use the
 `impl-maintenance` agent.
@@ -105,10 +105,10 @@ dev-workflows command's END in the same session.
   back to the checkpoint file — **even in the pending / report-only tiers (§8),
   so the next command's window is correct.** The write is a plain overwrite of
   the transient local file (no git, no specs repo).
-- **Semantics (for users):** the whole session's spend is attributed to the VI;
+- **Semantics (for users):** the whole session's spend is attributed to the PRD;
   activity between commands rolls into the next command's bucket; the
   pre-first-command and post-last-command tails are unattributed (~0 for a clean
-  per-VI container session). Per-command costs therefore sum to the session total
+  per-PRD container session). Per-command costs therefore sum to the session total
   minus those tails.
 
 ## 4. Price table
@@ -158,7 +158,7 @@ model the routing policy can reach — the Opus chain and the Sonnet chain —
 in `classification.md` currently reaches it**; a maintainer refreshes them when
 Anthropic's prices change. **Permanent standard
 rates are used deliberately — never promotional/introductory rates** — so cost
-stays comparable across VIs over time (a temporary promo would make identical
+stays comparable across PRDs over time (a temporary promo would make identical
 work look cheaper now and dearer later, distorting efficiency comparisons).
 
 ## 5. Statusline augmentation (optional — "Option B")
@@ -191,8 +191,8 @@ installed (via `/dev-workflows:statusline`):
 
 ## 6. Report artifact & entry format
 
-**Location (merge-safe by construction):** one file per session under the VI's
-shared area — `<VI-dir>/dev-workflows/cost/<sid8>.md`. No two sessions share a
+**Location (merge-safe by construction):** one file per session under the PRD's
+shared area — `<PRD-dir>/dev-workflows/cost/<sid8>.md`. No two sessions share a
 file -> no merge conflicts across many teams or one person's N sessions. **No
 user name anywhere in the file** (§10).
 
@@ -201,7 +201,7 @@ File-level frontmatter (written once on creation):
 ```yaml
 ---
 type: dev-workflows-cost
-vi: PRODUCT-1234
+prd: PRODUCT-1234
 session: <sid8>
 ---
 ```
@@ -219,7 +219,7 @@ date: 2026-07-09T14:22:33Z
 command: /implement
 phase: implementation
 role: dev
-vi: PRODUCT-1234
+prd: PRODUCT-1234
 epic: EPIC-98760            # present only when an Epic key is in scope
 plugin_version: 2.10.0
 duration_s: 1284
@@ -277,22 +277,22 @@ Fixed per-command labels, with three inferred exceptions:
 | `/ready` | readiness | dev |
 | `/document` | documenting | dev |
 | `/release-notes` | **inferred** | **inferred** |
-| `/idea` | vi-creation | pm |
-| `/create-vi` | vi-creation | pm |
-| `/update-vi` | vi-update | pm |
+| `/idea` | prd-creation | pm |
+| `/create-prd` | prd-creation | pm |
+| `/update-prd` | prd-update | pm |
 | `/create-ard` | architecture | pa |
 | `/prompt` | **inferred** | **inferred** |
 | `/feedback` | **inferred** | **inferred** |
 
-**`/release-notes` inference (PM VI-run vs. dev documenting-run).** The
+**`/release-notes` inference (PM PRD-run vs. dev documenting-run).** The
 discriminator is the presence of **downstream engineering artifacts** — any
-`specification.md` or `design.md` under the VI's specs dir:
+`specification.md` or `design.md` under the PRD's specs dir:
 
-- **None present -> `phase: vi-creation`, `role: pm`** (the PM's early run: the VI
+- **None present -> `phase: prd-creation`, `role: pm`** (the PM's early run: the PRD
   exists but no engineering work has started — Epics may or may not exist yet,
-  which is fine, since a freshly created VI with no Epics is exactly the PM case).
+  which is fine, since a freshly created PRD with no Epics is exactly the PM case).
 - **Either present -> `phase: documenting`, `role: dev`** (the dev re-run, when
-  VI + Epics + specs + design + code all exist).
+  PRD + Epics + specs + design + code all exist).
 
 **`/prompt` and `/feedback` inference (inherit the corrected command's labels).**
 The discriminator is **`target_command`**, passed in by the caller per §11 — the
@@ -308,10 +308,10 @@ not attempt to infer it from anything else.
   specifying cost" includes the cost of making the spec right.
 - **Target is `/release-notes` -> resolve ITS inference first**, then inherit the
   result. One level only; `/release-notes` never resolves to another inferred row.
-  **If no VI dir resolves** — a keyless run, which both callers explicitly support —
+  **If no PRD dir resolves** — a keyless run, which both callers explicitly support —
   its discriminator cannot be evaluated at all, so do **not** fall through to its
   "none present" branch: that would attribute a keyless plugin correction to
-  `vi-creation`/`pm`, which is exactly the guess `role: n/a` exists to forbid.
+  `prd-creation`/`pm`, which is exactly the guess `role: n/a` exists to forbid.
   Treat it as the `n/a` case below.
 - **Target is `n/a`, or a command with no row above -> `phase: plugin-feedback`,
   `role: n/a`.** The second case covers `/vuln`, `/upgrade`, `/docs-profile`,
@@ -342,13 +342,13 @@ and it is the reason this is recorded as a known limitation rather than a design
 we are happy with. Fixing it needs a cost hook that survives the hand-off, which
 the current entry point does not provide.
 
-**Epic presence is deliberately NOT part of `/release-notes`'s signal** — a VI can have drafted
+**Epic presence is deliberately NOT part of `/release-notes`'s signal** — a PRD can have drafted
 Epics while still in PM/PE hands, so keying on Epics would misattribute the PM
 run. Cheap to check; matches the real workflow. Still a heuristic —
 reattributable at aggregation time (cost < quality).
 
-**Keys.** Reuse the existing VI-dir resolution (the two-key `<VI> <Epic>` grammar
-+ specs-dir matching already used by feedback/followups). Record `vi` always and
+**Keys.** Reuse the existing PRD-dir resolution (the two-key `<PRD> <Epic>` grammar
++ specs-dir matching already used by feedback/followups). Record `prd` always and
 `epic` when an Epic key is in scope.
 
 ## 8. Persistence ladder (specs-first; never cwd)
@@ -356,10 +356,10 @@ reattributable at aggregation time (cost < quality).
 Reuse `feedback-emission.md`'s specs-first ladder, targeting the **`cost/`**
 subdir. Walk top-down; stop at the first tier that applies:
 
-1. `$SPECS_PATH` writable **and** the VI dir exists (matched by
+1. `$SPECS_PATH` writable **and** the PRD dir exists (matched by
    `$SPECS_PATH/{specs|specifications|vis}/…/<KEY>{-|_}<slug>/…`) ->
-   `<VI-dir>/dev-workflows/cost/<sid8>.md`. *[primary]*
-2. `$SPECS_PATH` writable but no VI dir (or no key resolved) -> **pending** (§9).
+   `<PRD-dir>/dev-workflows/cost/<sid8>.md`. *[primary]*
+2. `$SPECS_PATH` writable but no PRD dir (or no key resolved) -> **pending** (§9).
 3. No `$SPECS_PATH`, vault writable (`$VAULT_PATH` set **and**
    an existing, writable dir) ->
    `$VAULT_PATH/dev-workflows/cost/<sid8>.md` with the loud notice:
@@ -375,19 +375,19 @@ mount / permission) drops to the next tier with the same notice.
 
 ## 9. Pending & reconciliation (keyless runs)
 
-When no VI key resolves (idea refinement, pre-VI work), write the entry to a
+When no PRD key resolves (idea refinement, pre-PRD work), write the entry to a
 pending file:
 
 ```
 $SPECS_PATH/dev-workflows-cost/pending-<date>-<sid8>.md
 ```
 
-(same `type: dev-workflows-cost` format; `vi: n/a`).
+(same `type: dev-workflows-cost` format; `prd: n/a`).
 
 **Opportunistic suggest-and-confirm reconciliation.** Whenever any command
-resolves a VI key **and** pending files exist, the cost phase lists them (each
+resolves a PRD key **and** pending files exist, the cost phase lists them (each
 summarized by date / session / commands / total) and offers to relocate their
-entries into `<VI-dir>/dev-workflows/cost/<sid8>.md`:
+entries into `<PRD-dir>/dev-workflows/cost/<sid8>.md`:
 
 - **Same-session `<sid8>` match is pre-selected** as the likely one -> the
   create-in-markdown -> create-in-Jira -> import -> keyed-command flow becomes
@@ -395,7 +395,7 @@ entries into `<VI-dir>/dev-workflows/cost/<sid8>.md`:
 - New-session pending files are listed for the user to pick.
 - No match -> leave for manual relocation, or accept the partial loss.
 - **Relocation moves, then DELETES.** On a confirmed relocation the pending
-  file's entries are appended into `<VI-dir>/dev-workflows/cost/<sid8>.md` and the
+  file's entries are appended into `<PRD-dir>/dev-workflows/cost/<sid8>.md` and the
   **pending file is deleted** (move, not copy) so it never re-surfaces. Each
   pending file is relocated atomically; a failed/partial move leaves the file in
   place for a safe retry. Pending files the user *declines* are left in place and
@@ -429,7 +429,7 @@ Inputs:
   commands §7 resolves. The three resolve from **different** data, and each must
   therefore be given it:
   - `/release-notes` — resolved from `specification.md` / `design.md` presence
-    under the VI's specs dir. `emit-cost` reads that itself; nothing is passed.
+    under the PRD's specs dir. `emit-cost` reads that itself; nothing is passed.
   - `/prompt`, `/feedback` — resolved from `target_command`, which **cannot** be
     re-derived from disk (it lives in the run's own context). It is passed in.
 - `target_command` — **required when `command` is `/prompt` or `/feedback`.** The

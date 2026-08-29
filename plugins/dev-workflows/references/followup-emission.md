@@ -137,7 +137,7 @@ re-insert.
 Emit a task ONLY for signals whose action lands OUTSIDE the current change or
 requires a MANUAL human step:
 
-- Files/pages owned by others (non-allowlisted, override-copy, owner surfaced).
+- Files/pages owned by others (the owner was surfaced and the edit is theirs to make).
 - Implementation gaps (Jira vs source; the `<KEY>-implementation-gaps.md`
   draft) → the task links the draft; verbose context → a note (§3).
 - Manual publish steps: screenshots to upload (CDN), "paste release notes into

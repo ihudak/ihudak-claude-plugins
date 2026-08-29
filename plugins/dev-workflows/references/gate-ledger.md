@@ -67,7 +67,7 @@ gate_ledger:
 | `style_check` | 6.4 | ≥1 file written | the repo linter ladder **plus** `prose-style-checker` complementary | `prose-style-checker` alone |
 | `repo_checklist` | 6.4 | the repo publishes authoring/verification guidance | `repo_verification_gates` applied to the written files | none |
 | `build_check` | 6.5 S1 | write context is a buildable repo | `commands.per_space.<space>.build` for every space in the render verification set (`docs-profiles/render-verification.md` §2), else whole-repo `commands.build` | the Step 2 dev-server boot |
-| `render_smoke_check` | 6.5 S2 | buildable repo with ≥1 affected page | dev servers for the target **and** protected spaces | the manual pages-to-visit table |
+| `render_smoke_check` | 6.5 S2 | buildable repo with ≥1 affected page | the dev server of every space that owns an affected page | the manual pages-to-visit table |
 | `image_review` | 5.6 | ≥1 candidate image (to add or possibly-stale) | the two-list review with per-occurrence decisions | none |
 
 The registry mixes three shapes. Most entries are **output-verification** gates — they hold written (or about-to-be-written) content against a source of truth: `source_truth_verification`, `style_check`, `repo_checklist`, `build_check`, `render_smoke_check`. `toolchain_preflight` is an **environment preflight** — it runs before the run has any content at all, and checks the tools the other gates need rather than any output. `image_review` is an **input-side** gate — it accounts for a decision about what goes in, not a check on what came out. All three shapes are registered because the accountability need is identical: an unattributed image skip, like an unattributed missing tool, is exactly the failure mode this ledger exists to prevent.
@@ -82,7 +82,7 @@ silently absent from the ledger.
 other **four** ids never appear in a direct-mode ledger — not even as `NOT_APPLICABLE`:
 
 - `source_truth_verification` — direct mode has no Phase 5.8, no `jira-reader`, and no `code_repos`.
-- `build_check` and `render_smoke_check` — direct mode has no Phase 6.5 and no `target_spaces`.
+- `build_check` and `render_smoke_check` — direct mode has no Phase 6.5 and no resolved profile to take build or dev-server commands from.
 - `image_review` — direct mode has no Phase 5.6, and none of the sources that phase builds its two lists from (the specs scan, the Jira attachments, the vault project folder, and the `extend-existing` write targets Phase 5.5 confirms). The candidate lists are the orchestrator's own in both modes — `doc-planner` neither supplies nor reads them — so their absence here is about the missing phase and its missing inputs, not about the planner.
 
 Direct mode has no `doc-planner`, so its orchestrator extracts `repo_verification_gates` itself per

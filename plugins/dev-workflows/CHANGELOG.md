@@ -4,6 +4,30 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [5.0.0] — 2026-08-29
+
+### Removed — BREAKING: cross-space writing
+
+`/document` could author one page so it rendered differently in two documentation "spaces" (product editions) — conditional wrappers, copies into a second content tree, manifest allowlists, and counterpart-space grounding. That existed because one vendor ships two editions. Most documentation sets are single-product, and this was the largest source of intricacy in the command.
+
+**Multiple content roots still work.** `profile.spaces[]` remains a plain list; a page is written into whichever root already owns it, and per-root lint / build / dev-server commands still route by that root. What is gone is *cross*-space writing.
+
+- **Command signature** is now `/document <KEY>`. The `[cloud|self-hosted]` space-constraint token and the `--counterpart <JiraID|PR-url>` flag are removed, with their Phase 0 parsing and all four clarification prompts.
+- **Phases removed:** 4.5 (determine applicable spaces), 5.6.5 (counterpart-space discovery), and 5.9 (write-strategy approval — its entire body was the `conditional`/`override-copy` choice, so with one write behaviour there was nothing left to approve). Surviving phases are **not** renumbered; 4.5, 5.6.5 and 5.9 are simply unused.
+- **Agent removed:** `counterpart-finder` (34 subagents → 33).
+- **Reference removed:** `references/docs-profiles/multi-space-writing.md` (subtree 6 → 5 markdown files).
+- **Write strategies collapsed away** — no one-valued enum survives. `write_strategies[]` is gone from the orchestrator, `doc-writer`, and `doc-planner`. `doc-planner` still records each target's `space` (the `spaces[].id` whose root prefixes the path), which is what keeps per-root command routing meaningful.
+- **Profile fields removed:** `cross_space_override`, `shared_registries`, and `tokens.project_conditionals`, along with `/docs-profile`'s detection of all three.
+- **`doc-location-finder`'s announcement-page exemption** is gone; `profile.announcement_pages` itself is kept. The hard rule that replaced the space filter bounds targets to the profile's declared content roots, and announcement pages sit inside one, so no exemption is needed.
+- **`render-verification.md` §4** (delta-marker extraction and the invariant check) removed; §5 → §4, §6 → §5. Only §2 was cited externally, so no cross-reference broke.
+- **The `gating` field** is gone from `existing_image_decisions[]`. It recorded the enclosing project conditional and had no other source; the load-bearing `occurrence` locator is untouched.
+- **`doc-writer`'s routing BLOCKER was dropped, not rewritten.** It blocked when a target's home space fell outside the requested set. Rewriting it as "blocks when the path matches no declared content root" would have been a *new* gate that could false-fire on a legitimate write outside a declared root, so it was removed rather than reinterpreted.
+
+### Migration
+- Drop the space token and `--counterpart` from any saved `/document` invocation; both are now parse errors rather than ignored arguments.
+- **A profile still declaring `cross_space_override`, `shared_registries`, or `tokens.project_conditionals` is not an error** — the fields are simply no longer read. Remove them when convenient; nothing breaks if you don't.
+- Pages already carrying `{{#if project='…'}}` wrappers are left exactly as they are. Nothing rewrites them, and nothing validates them any more — they are now ordinary page content as far as this plugin is concerned. A repo that genuinely needs conditional rendering should keep handling it through its own docs toolchain.
+
 ## [4.0.0] — 2026-08-29
 
 ### Changed — BREAKING: Value Increment renamed to PRD

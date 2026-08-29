@@ -1,6 +1,6 @@
 ---
 name: docs-profile
-description: Scan a documentation repository and write/refresh a machine-readable docs-profile (.dev-workflows/docs-profile.yml) plus complementary CLAUDE.md guidance, as a reviewable PR. Captures spaces, dev-servers, cross-space override/shadowing, shared registries, gen3/Classic tokens, links, announcement pages, branch-naming, images, and prerequisites; defers changelog/owners to the docs-frontmatter skill. Bootstraps or refreshes the profile that /document consumes.
+description: Scan a documentation repository and write/refresh a machine-readable docs-profile (.dev-workflows/docs-profile.yml) plus complementary CLAUDE.md guidance, as a reviewable PR. Captures content roots, per-space dev-servers and lint/build/format commands, templating tokens, links, announcement pages, branch-naming, images, and prerequisites; defers changelog/owners to the docs-frontmatter skill. Bootstraps or refreshes the profile that /document consumes.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -10,7 +10,7 @@ Profile the documentation repository: $ARGUMENTS
 
 `/docs-profile` **bootstraps or refreshes** the machine-readable docs-profile that `/document` (Jira mode) consumes. It scans a documentation repository, synthesises a `.dev-workflows/docs-profile.yml` (and complementary CLAUDE.md guidance) that conforms to `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`, then writes the result as a **reviewable PR** — branch + commit + a drafted PR message. It never pushes or auto-merges.
 
-The command is **generic** — it works on any docs repo — but produces a richer profile when it detects a multi-space / docstack repo (it then populates `cross_space_override` and `shared_registries`; a single-space repo omits them).
+The command is **generic** — it works on any docs repo. A repo publishing one documentation set gets a single `spaces[]` entry; a repo publishing several gets one entry per content root, plus the per-space dev-server and lint/build/format commands that go with them.
 
 It does **not** re-specify changelog or owners rules. Those are owned by the `docs-frontmatter` skill (+ `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/changelog-guidelines.md`, `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/default-owners.txt`); the profile's `frontmatter:` fields are **pointers only**.
 
@@ -80,16 +80,14 @@ Dispatch a **read-only** detection subagent **pinned to the §2.1 mid-tier chain
   > Gather and report, each with the file path + a short verbatim excerpt as evidence:
   >
   > 1. **package.json scripts** — every script whose name matches `*:start`, `*:lint`, `*:build`, `docs:*`, `format`/`prettier`. For each `*:start` script, extract the dev-server port and base path (grep the script and any referenced config — e.g. `--port`, `PORT=`, a `base`/`basePath` in a docusaurus/mkdocs/eleventy/vitepress config). Note whether two `*:start` servers can run concurrently (distinct ports → concurrent; shared port / single server → sequential).
-  > 2. **Cross-space override manifest** — presence and shape of `self-hosted/docstack.jsonc` (or any `docstack.jsonc`): the allowlist block that pulls `../cloud/_content/...` pages, and whether it has an `ignore` list. Quote the allowlist + ignore keys.
-  > 3. **Shared registries** — presence of `schema-ids.yml` and `schema-mappings.yml` (search the tree); report their paths and whether both exist.
-  > 4. **Templating tokens** — grep the content roots for: `{{tag kind='latest'}}` (gen3/Latest marker), `::app-settings::` (gen3 settings breadcrumb), and `{{#if project=` (project conditionals — list the distinct project values seen, e.g. cloud/self-hosted/classic).
-  > 5. **Content + snippet roots** — every `*/_content` and every `*/_snippets` directory (e.g. `cloud/_content`, `cloud/_snippets`, `self-hosted/_content`, `self-hosted/_snippets`). This determines the `spaces[]` list: one rendered space per content root.
-  > 6. **Branch-naming + internal-link conventions** — read CONTRIBUTING.md, CONTRIBUTION.md, README.md, DOCUMENTATION-GUIDELINES.md, and CLAUDE.md at the repo root (and `.claude/`). Quote any documented branch-naming pattern (e.g. `<initials>/<JIRA-KEY>-<slug>`) and any internal-link convention (e.g. `[text](<postid>)` where postid comes from target frontmatter).
-  > 7. **Image policy** — any documented rule for screenshots/images (CDN-hosted vs committed binaries); quote the source.
-  > 8. **Prerequisites** — anything a dev server needs before `*:start` boots (e.g. a `.docstack` toolchain / shim, an axios version pin, an env var); quote the source.
-  > 9. **Announcement pages** — hand-authored destination pages inside an otherwise automation-owned tree (e.g. a release-notes / what's-new tree). Detection signal: a page under such a tree whose frontmatter does NOT carry `meta.content-type: release-notes` (absent, or any other value) AND whose `git log` shows human PR commits rather than automation. For each match, record its `postid` (frontmatter `postid:`), its repo-relative `path`, and a proposed `kinds` list inferred from the page title and headings (e.g. an "End-of-life announcements" page → `[deprecation, end-of-life, shutdown, sunset]`). Report `announcement_pages: []` explicitly when none are found.
+  > 2. **Templating tokens** — grep the content roots for the repo's own inline markers, e.g. `{{tag kind='latest'}}` (gen3/Latest marker) and `::app-settings::` (gen3 settings breadcrumb). Report each marker's exact spelling and where it occurs.
+  > 3. **Content + snippet roots** — every `*/_content` and every `*/_snippets` directory (e.g. `cloud/_content`, `cloud/_snippets`, `self-hosted/_content`, `self-hosted/_snippets`). This determines the `spaces[]` list: one rendered space per content root.
+  > 4. **Branch-naming + internal-link conventions** — read CONTRIBUTING.md, CONTRIBUTION.md, README.md, DOCUMENTATION-GUIDELINES.md, and CLAUDE.md at the repo root (and `.claude/`). Quote any documented branch-naming pattern (e.g. `<initials>/<JIRA-KEY>-<slug>`) and any internal-link convention (e.g. `[text](<postid>)` where postid comes from target frontmatter).
+  > 5. **Image policy** — any documented rule for screenshots/images (CDN-hosted vs committed binaries); quote the source.
+  > 6. **Prerequisites** — anything a dev server needs before `*:start` boots (e.g. a `.docstack` toolchain / shim, an axios version pin, an env var); quote the source.
+  > 7. **Announcement pages** — hand-authored destination pages inside an otherwise automation-owned tree (e.g. a release-notes / what's-new tree). Detection signal: a page under such a tree whose frontmatter does NOT carry `meta.content-type: release-notes` (absent, or any other value) AND whose `git log` shows human PR commits rather than automation. For each match, record its `postid` (frontmatter `postid:`), its repo-relative `path`, and a proposed `kinds` list inferred from the page title and headings (e.g. an "End-of-life announcements" page → `[deprecation, end-of-life, shutdown, sunset]`). Report `announcement_pages: []` explicitly when none are found.
   >
-  > Return one section per item above. For anything not found, say `not found` explicitly — do not guess. End with a one-paragraph summary: single-space vs multi-space, and whether this looks like a docstack repo."
+  > Return one section per item above. For anything not found, say `not found` explicitly — do not guess. End with a one-paragraph summary: how many content roots the repo publishes, and whether each has its own dev server and lint/build scripts."
 
 **Wait for the detection report.** If the agent returns nothing usable or fails, gather the same facts yourself via Glob/Grep/Read (read-only) before Phase 3 — but still record `detection_model` as the chain you attempted.
 
@@ -110,14 +108,13 @@ On the §2 powerful chain (`planning_model`), turn the detection report into a d
   > - Emit `schema_version: 1` and one `spaces[]` entry per detected content root (`id`, `content_root`, `snippet_root`, `base_path`). `spaces[]` is required and non-empty.
   > - `dev_servers`: one `servers[]` entry per `*:start` script with its `command`, `port`, `base_path`; set `concurrent: false` unless detection proved two servers can run at once.
   > - `commands`: `lint`, `format`, and any commit-hook chain detected.
-  > - **Multi-space / docstack only:** include `cross_space_override` (manifest path + the last-write-wins shadowing mechanism + the `ignore`-to-win rule) and `shared_registries` (the `schema-ids.yml` / `schema-mappings.yml` lock-step rule). **Single-space repo:** OMIT both.
-  > - `tokens`: only the markers detection actually found (`latest_tag`, `gen3_settings_breadcrumb`, `project_conditionals`).
+  > - `tokens`: only the markers detection actually found (e.g. `latest_tag`, `gen3_settings_breadcrumb`).
   > - `internal_links.convention`, `branch_naming.pattern`, `images.policy`, `prerequisites[]`: fill from detection; leave a field out rather than inventing it.
-  > - `announcement_pages[]`: one entry per page found by detection item 9 (Announcement pages), each `{postid, path, kinds}`. Emit `announcement_pages: []` explicitly when detection found none — do not omit the key.
-  > - `commands.per_space:` — when `package.json` (or the repo's task runner) exposes **per-space** lint / build / format scripts whose names correspond to entries in `spaces[]` (e.g. `docs:lint` + `self-hosted:lint` for spaces `cloud` + `self-hosted`), record them under `commands.per_space.<space id>`. Map the script name to the space id by the space's `content_root` (`cloud/_content` ⇒ script prefix `docs`), never by guessing. Omit `per_space` entirely for a single-space repo, or when only whole-repo scripts exist.
+  > - `announcement_pages[]`: one entry per page found by detection item 7 (Announcement pages), each `{postid, path, kinds}`. Emit `announcement_pages: []` explicitly when detection found none — do not omit the key.
+  > - `commands.per_space:` — when `package.json` (or the repo's task runner) exposes **per-space** lint / build / format scripts whose names correspond to entries in `spaces[]` (e.g. `docs:lint` + `self-hosted:lint` for spaces `cloud` + `self-hosted`), record them under `commands.per_space.<space id>`. Map the script name to the space id by the space's `content_root` (`cloud/_content` ⇒ script prefix `docs`), never by guessing. Omit `per_space` entirely when the repo has one content root, or when only whole-repo scripts exist.
   > - `frontmatter:` is **POINTERS ONLY** — set `owned_by_skill: docs-frontmatter`, `changelog_guidelines: references/docs-profiles/changelog-guidelines.md`, `default_owners: references/docs-profiles/default-owners.txt`. NEVER copy any changelog or owners rule text into the profile.
   > - Mark every field as `detected` (grounded in the report) or `needs-confirmation` (inferred / not found) so the orchestrator knows what to ask in Phase 4.
-  > - Separately, draft minimal complementary **CLAUDE.md additions** ONLY for conventions not already covered by the docs-frontmatter skill or its reminder hook (e.g. the cross-space shadowing gotcha, the shared-registry lock-step rule, dev-server sequencing). Do NOT restate changelog/owners — defer to the skill."
+  > - Separately, draft minimal complementary **CLAUDE.md additions** ONLY for conventions not already covered by the docs-frontmatter skill or its reminder hook (e.g. dev-server sequencing, a repo-specific snippet or token convention). Do NOT restate changelog/owners — defer to the skill."
 
 **Wait for the synthesis.** Hold the drafted `docs-profile.yml` and the drafted CLAUDE.md additions for Phase 4. If Opus was unavailable and the synthesis fell back to Sonnet, note it in `model_routing.notes` and carry it to Phase 6.
 
@@ -191,7 +188,7 @@ Produce a reviewable PR in the **target repo** (never the plugin). **Never push 
    git -C <repo-root> commit -m "docs: add/refresh .dev-workflows/docs-profile.yml"
    ```
 
-6. **Draft the PR message.** **Inline mode** (`--inline`): skip this step — control returns to `/document` (Jira mode), which owns the single PR draft (its Phase 8.5). **Standalone:** Detect the host (`git -C <repo-root> remote get-url origin`) and draft a copy-paste-ready PR title + body for Bitbucket or GitHub (whichever the remote indicates). Title e.g. `docs: bootstrap docs-profile for /document`; body summarising the profile (spaces, dev-servers, cross-space override, tokens, branch-naming, images, prerequisites) and the CLAUDE.md additions. **Do not push, do not open the PR via any CLI** — present the branch name + the drafted message for the user to push and open themselves.
+6. **Draft the PR message.** **Inline mode** (`--inline`): skip this step — control returns to `/document` (Jira mode), which owns the single PR draft (its Phase 8.5). **Standalone:** Detect the host (`git -C <repo-root> remote get-url origin`) and draft a copy-paste-ready PR title + body for Bitbucket or GitHub (whichever the remote indicates). Title e.g. `docs: bootstrap docs-profile for /document`; body summarising the profile (spaces, dev-servers, commands, tokens, branch-naming, images, prerequisites) and the CLAUDE.md additions. **Do not push, do not open the PR via any CLI** — present the branch name + the drafted message for the user to push and open themselves.
 
 ---
 
@@ -208,15 +205,15 @@ Output a structured report — do NOT ask any closing confirmation:
 SIGNIFICANT — cross-cutting synthesis of the whole docs repo; output steers all later /document runs
 
 ### Target repo
-<resolved git root>  (single-space | multi-space / docstack)
+<resolved git root>  (<N> content root(s))
 
 ### Profile written
 <repo-root>/.dev-workflows/docs-profile.yml  (bootstrapped | refreshed)
 
 ### Fields: detected vs user-supplied
-- detected: [spaces, dev_servers, commands, cross_space_override, shared_registries, tokens, internal_links, announcement_pages, branch_naming, images, prerequisites — list those that were detected]
+- detected: [spaces, dev_servers, commands, tokens, internal_links, announcement_pages, branch_naming, images, prerequisites — list those that were detected]
 - user-supplied: [list the fields confirmed/filled in Phase 4]
-- omitted: [e.g. "cross_space_override + shared_registries — single-space repo"]
+- omitted: [e.g. "commands.per_space — the repo has only whole-repo scripts"]
 - frontmatter: pointers only → docs-frontmatter skill (+ changelog-guidelines.md, default-owners.txt); changelog/owners NOT re-specified
 
 ### CLAUDE.md additions
@@ -253,7 +250,6 @@ Branch <name> created with 1 commit on <repo-root>. NOT pushed and NOT merged �
 - ALWAYS run the synthesis on the §2 powerful (Opus) chain via the `task` `model:` override
 - ALWAYS conform the written profile to `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`
 - ALWAYS treat `frontmatter:` as pointers to the docs-frontmatter skill; NEVER copy changelog/owners rules into the profile
-- OMIT `cross_space_override` and `shared_registries` for a single-space repo; include them only when a multi-space / docstack repo is detected
 - ALWAYS show a field-level diff and confirm before overwriting an existing `.dev-workflows/docs-profile.yml` (idempotent refresh)
 - ALWAYS write the profile to `.dev-workflows/docs-profile.yml` in the TARGET repo — never the plugin
 - NEVER push or auto-merge — output a reviewable PR (branch + commit + drafted PR message) for the user to push

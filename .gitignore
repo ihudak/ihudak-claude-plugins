@@ -9,3 +9,7 @@ settings-local.json
 
 # IntelliJ Idea
 .idea/
+
+# Python bytecode
+__pycache__/
+*.py[cod]

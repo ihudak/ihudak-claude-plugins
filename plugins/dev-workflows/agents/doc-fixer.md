@@ -1,14 +1,14 @@
 ---
 name: doc-fixer
-description: Applies targeted fixes for BLOCKER and MAJOR findings from a doc-reviewer or epic-reviewer report, or for violations from docs-style-checker / dt-style-checker. Mirrors review-fixer for the docs domain. Returns a structured fix report; caller re-runs the reviewer. Shared between `/document` and `/epics`. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Applies targeted fixes for BLOCKER and MAJOR findings from a doc-reviewer or epic-reviewer report, or for violations from docs-style-checker / prose-style-checker. Mirrors review-fixer for the docs domain. Returns a structured fix report; caller re-runs the reviewer. Shared between `/document` and `/epics`. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "Write", "Edit"]
 ---
 
-Post-review doc fixer. Receives the output of a `doc-reviewer` agent run (product docs), an `epic-reviewer` agent run (Epic drafts), or a style-checker violations list (`docs-style-checker` or `dt-style-checker`), and applies targeted fixes for BLOCKER and MAJOR findings. The caller is responsible for re-running the reviewer / style check after this agent returns.
+Post-review doc fixer. Receives the output of a `doc-reviewer` agent run (product docs), an `epic-reviewer` agent run (Epic drafts), or a style-checker violations list (`docs-style-checker` or `prose-style-checker`), and applies targeted fixes for BLOCKER and MAJOR findings. The caller is responsible for re-running the reviewer / style check after this agent returns.
 
-Analogous to `review-fixer` (code). Doc-type-agnostic because every source resolves to the same `file`/`line`/`severity`/`message`/`suggestion` shape: `docs-style-checker` and `dt-style-checker` emit it as keyed fields (`message`, `suggestion`); `doc-reviewer` and `epic-reviewer` emit the same content as a prose bullet (`- [severity] path:line — [observation]` followed by a `Suggestion:` line) — read `[observation]` as `message`.
+Analogous to `review-fixer` (code). Doc-type-agnostic because every source resolves to the same `file`/`line`/`severity`/`message`/`suggestion` shape: `docs-style-checker` and `prose-style-checker` emit it as keyed fields (`message`, `suggestion`); `doc-reviewer` and `epic-reviewer` emit the same content as a prose bullet (`- [severity] path:line — [observation]` followed by a `Suggestion:` line) — read `[observation]` as `message`.
 
-Do NOT invoke for PASS verdicts. Only invoke when the verdict is BLOCK or PASS WITH RECOMMENDATIONS and there are MAJOR findings to apply, or when `docs-style-checker` / `dt-style-checker` returned `status: VIOLATIONS_FOUND`.
+Do NOT invoke for PASS verdicts. Only invoke when the verdict is BLOCK or PASS WITH RECOMMENDATIONS and there are MAJOR findings to apply, or when `docs-style-checker` / `prose-style-checker` returned `status: VIOLATIONS_FOUND`.
 
 ## Inputs
 
@@ -93,4 +93,4 @@ Return this exact shape (no preamble):
 - NEVER change an image reference's kind (local vs. CDN URL) unless the finding explicitly says so.
 - NEVER return without the `Stop condition flag` line — the caller reads it to decide whether re-running the review is worth doing.
 - If `Stop condition flag` is `NEEDS HUMAN`, the caller must surface the deferred BLOCKERs to the user and stop the automated cycle.
-- The flag can only be `NEEDS HUMAN` where a `BLOCKER` can reach you, which depends on the source: `doc-reviewer` and `epic-reviewer` both emit `BLOCK` on at least one BLOCKER, and `docs-style-checker` maps a linter's own blocking failure to `BLOCKER`. `dt-style-checker` caps at `MAJOR` and never emits a BLOCKER, so a dispatch fed only by it always returns `CLEAR` — a caller on that path (`/epics`' style cycle) needs no stop handling, and adding some would guard a state nothing reaches.
+- The flag can only be `NEEDS HUMAN` where a `BLOCKER` can reach you, which depends on the source: `doc-reviewer` and `epic-reviewer` both emit `BLOCK` on at least one BLOCKER, and `docs-style-checker` maps a linter's own blocking failure to `BLOCKER`. `prose-style-checker` caps at `MAJOR` and never emits a BLOCKER, so a dispatch fed only by it always returns `CLEAR` — a caller on that path (`/epics`' style cycle) needs no stop handling, and adding some would guard a state nothing reaches.

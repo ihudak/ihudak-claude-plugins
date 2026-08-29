@@ -58,20 +58,20 @@ Each entry is appended as a dated H2 header + a fenced YAML block + prose:
 ## 2026-07-09 — /document — missing-capability
 
 ```yaml
-id: PRODUCT-1234-document-saas-managed-split
+id: PRODUCT-1234-document-cloud-self-hosted-split
 date: 2026-07-09
 command: /document           # controlled: exact command name, or n/a
 plugin_version: 2.9.0
 origin: auto                 # auto | manual | prompt
-author: ivan.gudak@dynatrace.com
+author: jane.doe@example.com
 category: missing-capability # controlled, extensible, reuse-first
 impact: friction             # blocker | friction | polish
 ```
 
-**Friction:** One page covered both SaaS and Managed; the SaaS half got pushed
+**Friction:** One page covered both Cloud and Self-hosted; the Cloud half got pushed
 back in review because the two products differ here.
 
-**Suggested improvement:** Add an optional `saas|managed` parameter to
+**Suggested improvement:** Add an optional `cloud|self-hosted` parameter to
 `/document` so the run scopes to one product.
 ````
 
@@ -143,7 +143,7 @@ mount / permission) drops to the next tier with the same notice.
 Persist **only** signals about the dev-workflows plugin itself:
 
 - Command workflow improvements (a command should behave differently — e.g. the
-  `saas|managed` scoping case).
+  `cloud|self-hosted` scoping case).
 - New agents / skills the plugin should offer.
 - Gaps in the plugin's own reference docs (`${CLAUDE_PLUGIN_ROOT}/references/**`).
 - Corrective interactions captured by `/prompt*` (any command output the user

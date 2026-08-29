@@ -40,7 +40,7 @@ flowchart TD
 
 The `d1` fork is the Phase 1 diff-grounding choice, default OFF — Jira content alone is usually enough for a release note; it decides `jira-reader`'s `depth` before Phase 3 even runs (`vi-only` when off, `full` when on, so PR links are collected), and only Phase 4's repo resolution and Phase 5's `diff-summarizer` batches are actually skipped on the "off" path.
 
-Four `dev-workflows` subagents are dispatched: `jira-reader` (Phase 3), `docs-grounder` (Phase 5.5, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `release-notes-writer` (Phase 6, the sole author of the rendered draft), and `impl-maintenance` (Phase 9, alongside no other maintenance agents — `/release-notes` has none of `/document`'s or `/implement`'s three general-purpose maintenance dispatches). `diff-summarizer` (Phase 5) is a fifth agent, dispatched only when diff grounding is on. `dt-style-checker` and `dt-doc-fixer` (Phase 7) belong to the separate `dt-style-guide` plugin and run only when it's installed.
+Four `dev-workflows` subagents are dispatched: `jira-reader` (Phase 3), `docs-grounder` (Phase 5.5, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `release-notes-writer` (Phase 6, the sole author of the rendered draft), and `impl-maintenance` (Phase 9, alongside no other maintenance agents — `/release-notes` has none of `/document`'s or `/implement`'s three general-purpose maintenance dispatches). `diff-summarizer` (Phase 5) is a fifth agent, dispatched only when diff grounding is on. `prose-style-checker` and `prose-fixer` (Phase 7) belong to the separate `prose-style` plugin and run only when it's installed.
 
 ## What it needs
 
@@ -60,7 +60,7 @@ The draft is written to a **persistent** destination — the ticket's Obsidian p
 
 ## Gates
 
-**Light gate only.** There is no Opus review, no tests, and no branch created by this command — `specs-preflight` may switch `$SPECS_PATH` between branches that already exist and were created by the plugin, but it creates none. The one optional gate is a **style check** (Phase 7): when the user chose it and the `dt-style-guide` plugin is installed, `dt-style-checker` runs against the rendered draft and, on the auto-fix choice, `dt-doc-fixer` applies safe fixes; when `dt-style-guide` is not installed, the phase is skipped with a note in the report rather than blocked on.
+**Light gate only.** There is no Opus review, no tests, and no branch created by this command — `specs-preflight` may switch `$SPECS_PATH` between branches that already exist and were created by the plugin, but it creates none. The one optional gate is a **style check** (Phase 7): when the user chose it and the `prose-style` plugin is installed, `prose-style-checker` runs against the rendered draft and, on the auto-fix choice, `prose-fixer` applies safe fixes; when `prose-style` is not installed, the phase is skipped with a note in the report rather than blocked on.
 
 **The worthiness gate is the run's real stop point**, and it fires before any of the run's expensive work — though not before *anything*: Phase 0 resolves the input, Phase 1 asks every user-facing question, and Phase 1.5 classifies, all ahead of it. Phase 2 then reads `relevant_for_release_notes` straight from the imported VI frontmatter — never from the authored specs draft — and an explicit `false` halts the run with `RELEASE_NOTES_NOT_RELEVANT` unless the user overrides it.
 

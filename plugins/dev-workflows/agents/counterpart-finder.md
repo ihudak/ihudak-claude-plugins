@@ -10,8 +10,8 @@ Find the counterpart space's documentation for a feature so the writer can groun
 
 ```yaml
 repo_root:          <absolute path to the docs repo root>
-target_space:       saas | managed        # the space THIS run documents
-counterpart_space:  saas | managed        # the OTHER space to search (never equal to target_space)
+target_space:       cloud | self-hosted        # the space THIS run documents
+counterpart_space:  cloud | self-hosted        # the OTHER space to search (never equal to target_space)
 profile:            <resolved docs-profile — supplies spaces[].content_root, cross_space_override>
 feature_summary:    <2–4 sentences from jira-reader themes + VI goal>
 jira_key:           <the VI / focus Jira key, e.g. PRODUCT-1234>
@@ -25,7 +25,7 @@ Refuse to run without `repo_root`, `target_space`, `counterpart_space`, and a no
 
 ### Layer 1 — auto discovery (always runs)
 
-1. **Scope to the counterpart content root.** From `profile.spaces[]`, take the `content_root` (and `snippet_root`) whose space is `counterpart_space` (dynatrace-docs: `dynatrace/_content` for `saas`, `managed/_content` for `managed`). Search only under those roots.
+1. **Scope to the counterpart content root.** From `profile.spaces[]`, take the `content_root` (and `snippet_root`) whose space is `counterpart_space` (example-docs: `cloud/_content` for `cloud`, `self-hosted/_content` for `self-hosted`). Search only under those roots.
 2. **Keyword-overlap search.** Apply the `doc-location-finder` scoring technique: index each page's frontmatter (`title`/`description`/`tags`) + first 50 body lines, score keyword overlap against `feature_summary` (minus stopwords) plus `diff_highlights`. Keep matches above the overlap threshold.
 3. **Merge-commit backstop.** Run `git -C <repo_root> log --all -E --grep="<jira_key>" -n 20 --name-only` and union any counterpart-root pages it touched (catches a page named unlike the feature).
 4. Read each match and extract the grounding digest (see Output).
@@ -38,7 +38,7 @@ Refuse to run without `repo_root`, `target_space`, `counterpart_space`, and a no
 
 ### For every match (both layers)
 
-- **is_shared_into_target**: `true` when `profile.cross_space_override` already pulls this page's `content_root`-relative path into the `target_space` render (e.g. it appears in the Managed docstack allowlist). This is the "target may already be covered" signal.
+- **is_shared_into_target**: `true` when `profile.cross_space_override` already pulls this page's `content_root`-relative path into the `target_space` render (e.g. it appears in the Self-hosted docstack allowlist). This is the "target may already be covered" signal.
 - **screenshots_seen**: enumerate image references on the page (paths only), each flagged `comprehension_only: true`. NEVER stage, copy, or return these as candidate images.
 
 ## Output
@@ -69,4 +69,4 @@ notes: <when EMPTY: why nothing found; when a ref was unresolved: which and why>
 - NEVER search or return pages outside `counterpart_space`'s content roots.
 - NEVER add, stage, copy, or recommend a counterpart screenshot as a doc image — `screenshots_seen` is comprehension-only.
 - NEVER make HTTPS/REST calls to Bitbucket. Reuse `diff-summarizer`'s local-git strategies; gh is allowed only for github.com, only when installed, with local-git fallback.
-- NEVER carry space-specific UI paths/URLs/labels into `salient_summary` — summarise the feature, not the SaaS/Managed specifics.
+- NEVER carry space-specific UI paths/URLs/labels into `salient_summary` — summarise the feature, not the Cloud/Self-hosted specifics.

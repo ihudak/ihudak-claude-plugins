@@ -136,7 +136,7 @@ labeled sentence — stating:
 **Dates** — never invent them. Derive a date from the source only when the source states it. If a
 required end-of-life date is not available, record a `gaps[]` entry (`field: deprecation_eol`,
 `recommended_action: "ask user"`) and place a `<!-- TODO: end-of-life date -->` placeholder in the
-draft prose. Format dates per the dt-style-guide (e.g. `November 30, 2026`).
+draft prose. Format dates per the prose-style (e.g. `November 30, 2026`).
 
 Not every VI deprecates something. Raise this only on the trigger above, and ask only for what the VI
 does not already state.
@@ -150,7 +150,7 @@ does not already state.
   the PM sets the dropdown in Jira.
 - Translate the technical change into customer-value language (product and UI terms).
 - Assert only what the source supports; preserve the facts the source supports.
-- These rules complement, and do not duplicate, the dt-style-guide checks run in the command's
+- These rules complement, and do not duplicate, the prose-style checks run in the command's
   style-gate phase.
 
 ## 7. Sourcing the Change Type and the `{{#context}}` label
@@ -167,7 +167,7 @@ does not already state.
 2. **Infer** — classify per §2. When confidence is low, record the `field: change_type` gap so the
    command can confirm the shape.
 
-**`{{#context}}` label — one rung.** It is the Dynatrace Solution taxonomy (e.g. `Platform`,
+**`{{#context}}` label — one rung.** It is your organization's product/solution taxonomy (e.g. `Platform`,
 `Application Observability | Distributed Tracing`, `Infrastructure Observability | Kubernetes`) and it
 is exactly the VI's `release_notes_category`:
 

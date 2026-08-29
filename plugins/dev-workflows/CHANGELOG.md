@@ -4,6 +4,33 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.0.0] — 2026-08-29
+
+### Changed — BREAKING: vendor-neutral de-branding
+
+This release removes organization-specific content and naming so the plugin ships cleanly as open source. Several identifiers changed; see Migration below.
+
+- **The `dt-style-guide` plugin became `prose-style`.** Its agents are now `prose-style:prose-style-checker` and `prose-style:prose-fixer` (were `dt-style-guide:dt-style-checker` / `dt-doc-fixer`). Every dispatch site in `/document`, `/epics`, `/release-notes`, `/create-vi`, and `/update-vi` was re-pointed, along with `docs-style-checker`'s fallback chain. The phase formerly named "Dynatrace style check" is now "Prose style check".
+- **`references/dynatrace-docs/` became `references/docs-profiles/`**, and the `dynatrace-docs-frontmatter` skill became `docs-frontmatter`. `managed-owners.txt` became `default-owners.txt`.
+- **The built-in docs profile is now a generic worked example** (`example-docs`, spaces `cloud` / `self-hosted`) rather than one specific private repo. `/document`'s optional space token is now `[cloud|self-hosted]`. A real repo supplies its own `.dev-workflows/docs-profile.yml`, which overrides the built-in default exactly as before — run `/docs-profile` once to generate it.
+- **`references/guidelines/` was rewritten against public standards** — Apple Human Interface Guidelines, Material Design 3, Microsoft Fluent 2, W3C WCAG 2.2 and the ARIA Authoring Practices Guide, and Nielsen Norman Group heuristics — replacing content summarized from an internal wiki. `grail-naming.md` became `data-naming.md`. `/guideline-reviewer` now reviews against generic component vocabulary (app header, data table, filter field) rather than one design system's component names.
+- **`references/api-guidelines/` was rewritten against public sources** — Google AIP, the Zalando RESTful API Guidelines, the Microsoft REST API Guidelines, OpenAPI 3.1, and the relevant RFCs. `/api-guideline-reviewer` keeps all five of its capabilities (version consistency, naming conventions, scope format, HTTP status codes, schema composition).
+
+### Added
+- **`frontmatter.owners_spaces` in the docs-profile schema** — the space ids whose pages require an owners block. The `changelog-owners-reminder` hook and the `docs-frontmatter` skill now resolve content roots and owners policy from the applicable profile (in-repo `.dev-workflows/docs-profile.yml`, else the built-in default) instead of hardcoding either a specific repo's paths or the example's. The hook parses the profile with a tolerant line scan, so it never depends on PyYAML and never raises.
+
+### Fixed
+- **The de-branding pass initially made two *trigger conditions* match the generic example rather than any real repo** — `changelog-owners-reminder.py`'s content-root matcher and the `docs-frontmatter` skill's description. Both previously matched one specific repo's paths; genericising the example silently narrowed them to a fiction, so neither would fire on a real docs repo. Both are now profile-driven, which is strictly more general than either prior state, and the skill's trigger names observable concepts (a docs page, a page changelog, page owners) rather than example paths.
+- **`changelog-owners-reminder.py` resolved its owners file through the pre-rename directory.** The path is assembled with `os.path.join` rather than written as a literal, so a path-level search-and-replace could not see it; the hook would have silently stopped emitting the owners reminder.
+- **`check_guidelines.py`'s settings-before-help ordering check compared positions inside `import` statements rather than the markup**, so it could pass on genuinely out-of-order markup. Import and require lines are now blanked (offsets preserved, so reported line numbers stay correct) before ordering comparisons.
+- **An accessibility rule asserted a WCAG exception that does not exist** — "include placeholder text in all input fields (enables WCAG color contrast exception)". Placeholder text is text and must meet the 4.5:1 ratio of SC 1.4.3. The rule now reads: a placeholder is a hint, never a label, and must meet 4.5:1.
+- Roughly 14 dead image links, a malformed RFC link, a wrong template path, and a broken `#delete` anchor in the API guidelines (the anchor fixed by adding the missing `## Delete` section).
+
+### Migration
+- Any in-repo `.dev-workflows/docs-profile.yml` using `frontmatter.managed_owners` must rename that key to `frontmatter.default_owners`.
+- Anything dispatching `dt-style-guide:dt-style-checker` or `dt-style-guide:dt-doc-fixer` by name must use `prose-style:prose-style-checker` / `prose-style:prose-fixer`.
+- `/document <KEY> saas|managed` is now `/document <KEY> cloud|self-hosted` under the built-in profile; a repo-supplied profile defines its own space ids and is unaffected.
+
 ## [2.58.5] — 2026-08-23
 
 ### Fixed

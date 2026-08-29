@@ -64,9 +64,9 @@ Update the VI live against `${CLAUDE_PLUGIN_ROOT}/references/vi-format.md`, appl
 
 ---
 
-## Phase 3.5 — Dynatrace style check
+## Phase 3.5 — Prose style check
 
-Run the corporate style check on the updated VI **before** the review gate (quality enhancement, never a gate) — mirror `/create-vi` Phase 3.5 (Agent `dt-style-guide:dt-style-checker`, `doc_type: vi`, `detection_model`); apply MAJOR fixes inline and re-run once; skip gracefully if the agent is unavailable.
+Run the corporate style check on the updated VI **before** the review gate (quality enhancement, never a gate) — mirror `/create-vi` Phase 3.5 (Agent `prose-style:prose-style-checker`, `doc_type: vi`, `detection_model`); apply MAJOR fixes inline and re-run once; skip gracefully if the agent is unavailable.
 
 ---
 
@@ -138,4 +138,4 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git 
 
 ## Final report
 
-Report: the canonical VI path + the archived snapshot path; which sections changed; the Jira-import date the update was built from; open-question count; the `vi-reviewer` verdict; the Dynatrace style-check outcome; the `Phase handoff:` outcome line from `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1); the Jira round-trip reminder; resolved model routing (+ any Opus degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; and the next-step recommendations.
+Report: the canonical VI path + the archived snapshot path; which sections changed; the Jira-import date the update was built from; open-question count; the `vi-reviewer` verdict; the prose style-check outcome; the `Phase handoff:` outcome line from `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1); the Jira round-trip reminder; resolved model routing (+ any Opus degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; and the next-step recommendations.

@@ -70,7 +70,7 @@ Classify the **relation** to the new work and extract the grounding digest:
 
 - `same_feature` — the docs cover this very capability.
 - `analogous_precedent` — a *different* but parallel feature to model the new one
-  on (e.g. new ActiveGate autoupdate ↔ documented OneAgent autoupdate: shared
+  on (e.g. new gateway autoupdate ↔ documented host-agent autoupdate: shared
   update window, parallel versioning). Often the highest-value match; produces no
   contradiction.
 - `building_block` — an existing documented thing the new work sits on (e.g. new

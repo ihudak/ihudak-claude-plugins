@@ -1,0 +1,79 @@
+# Built-in default profile for example-docs (dev-workflows).
+# Used by /document when the resolved docs repo is recognized as
+# example-docs and no in-repo .dev-workflows/docs-profile.yml is present.
+# An in-repo profile, if present, overrides this file.
+schema_version: 1
+repo:
+  name: example-docs
+spaces:
+  - id: cloud
+    content_root: cloud/_content
+    snippet_root: cloud/_snippets
+    base_path: /docs
+  - id: self-hosted
+    content_root: self-hosted/_content
+    snippet_root: self-hosted/_snippets
+    base_path: /self-hosted
+dev_servers:
+  concurrent: false
+  readiness_timeout_seconds: 120
+  servers:
+    - space: cloud
+      command: "pnpm cloud:start"
+      port: 4000
+      base_path: /docs
+    - space: self-hosted
+      command: "pnpm self-hosted:start"
+      port: 4001
+      base_path: /self-hosted
+commands:
+  lint: "pnpm docs:lint"
+  format: "pnpm prettier -w"
+  commit_hook: "husky pre-commit -> lint-staged -> pnpm prettier -w"
+  per_space:
+    cloud:
+      lint: "pnpm docs:lint"
+      build: "pnpm cloud:build"
+      format: "pnpm cloud:format"
+    self-hosted:
+      lint: "pnpm self-hosted:lint"
+      build: "pnpm self-hosted:build"
+      format: "pnpm self-hosted:format"
+cross_space_override:
+  manifest: self-hosted/docstack.jsonc
+  mechanism: "the self-hosted manifest pulls an allowlist of ../cloud/_content/... pages; last-write-wins by path silently shadows a self-hosted/_content override"
+  rule: "to make a self-hosted/_content override win, add the shared cloud path to the allowlist block's `ignore`"
+shared_registries:
+  - files: [schema-ids.yml, schema-mappings.yml]
+    when: "renaming/retitling/creating a settings-schema page under cloud/_content/api/settings/schemas/"
+    rule: "update the `text:` entry in BOTH files in lock-step"
+tokens:
+  latest_tag: "{{tag kind='latest'}}"
+  gen3_settings_breadcrumb: "::app-settings::"
+  project_conditionals: "{{#if project='cloud'}}…{{/if}} / project='self-hosted' / project='classic'"
+internal_links:
+  convention: "[text](<postid>); postid comes from target frontmatter; verify it exists before linking"
+announcement_pages:
+  - postid: end-of-life
+    path: cloud/_content/whats-new/technology/end-of-life-announcements.md
+    kinds: [deprecation, end-of-life, shutdown, sunset]
+  - postid: eos-announcements
+    path: cloud/_content/whats-new/technology/end-of-support-news.md
+    kinds: [end-of-support]
+  - postid: new-technology-support
+    path: cloud/_content/whats-new/technology/index.md
+    kinds: [new-technology]
+branch_naming:
+  pattern: "<initials>/<JIRA-KEY>-<short-slug>"
+commit_convention: "<JIRA-KEY> <summary>"
+frontmatter:
+  owned_by_skill: docs-frontmatter
+  changelog_guidelines: references/docs-profiles/changelog-guidelines.md
+  default_owners: references/docs-profiles/default-owners.txt
+  # Space ids whose pages require an owners block. Absent/empty = never checked.
+  owners_spaces: [self-hosted]
+images:
+  policy: "CDN-hosted; the user uploads to CDN and supplies links; docs reference the URLs; never commit binaries. A CDN URL is immutable. Every new or replacing screenshot is a new URL, and the docs edit is always a URL swap. An image is never refreshed in place."
+prerequisites:
+  - "a dev server may need a working .docstack toolchain (e.g. an axios>=1.16 shim) before `*:start` boots"
+  - "the lint command needs a build folder: run a `*:start` (serve) once in a fresh clone before the first `*:lint`, or lint exits non-zero with no content findings (CONTRIBUTING.md, 'Other useful scripts/tasks')"

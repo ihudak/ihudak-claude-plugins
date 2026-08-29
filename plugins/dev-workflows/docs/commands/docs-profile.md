@@ -22,7 +22,7 @@ The first token of `$ARGUMENTS` is the target repo path (default: the current wo
 
 ## What it produces
 
-A two-stage read: a Sonnet-tier detection pass (mechanical repo scanning — package scripts, cross-space override manifests, shared registries, templating tokens, content/snippet roots, branch-naming and image conventions, prerequisites, announcement pages), then an Opus-tier synthesis that turns the detection report into a draft `docs-profile.yml` conforming to `dynatrace-docs/docs-profile-schema.md`. After you fill any gap the synthesis flagged, it writes `<repo-root>/.dev-workflows/docs-profile.yml` plus minimal CLAUDE.md additions on a new branch, as one commit, then drafts a copy-paste-ready PR title and body. **It never pushes, and never opens the PR itself** — you push the branch and open the PR yourself. An existing profile is refreshed, never silently overwritten: a field-level diff is shown and confirmed before any change is applied.
+A two-stage read: a Sonnet-tier detection pass (mechanical repo scanning — package scripts, cross-space override manifests, shared registries, templating tokens, content/snippet roots, branch-naming and image conventions, prerequisites, announcement pages), then an Opus-tier synthesis that turns the detection report into a draft `docs-profile.yml` conforming to `docs-profiles/docs-profile-schema.md`. After you fill any gap the synthesis flagged, it writes `<repo-root>/.dev-workflows/docs-profile.yml` plus minimal CLAUDE.md additions on a new branch, as one commit, then drafts a copy-paste-ready PR title and body. **It never pushes, and never opens the PR itself** — you push the branch and open the PR yourself. An existing profile is refreshed, never silently overwritten: a field-level diff is shown and confirmed before any change is applied.
 
 ## Gates
 
@@ -31,7 +31,7 @@ No reviewer agent, and no Opus review gate in the code-review sense — every ch
 ## Example
 
 ```
-/dev-workflows:docs-profile ~/repos/dynatrace-docs
+/dev-workflows:docs-profile ~/repos/example-docs
 ```
 
 Detects it as a multi-space docstack repo, drafts `spaces[]`, `dev_servers`, `cross_space_override`, and `shared_registries` from the Sonnet-tier scan, synthesises the full profile on Opus, asks about any field the synthesis flagged as unconfirmed, writes `.dev-workflows/docs-profile.yml` plus CLAUDE.md additions on a new branch, commits, and prints the branch name and a drafted PR title/body for you to push.

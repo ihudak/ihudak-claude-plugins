@@ -1,7 +1,7 @@
-# dynatrace-docs changelog entries — writing guidelines
+# example-docs changelog entries — writing guidelines
 
 Single source of truth for writing `changelog:` frontmatter entries on
-dynatrace-docs pages. Applied by the `dynatrace-docs-frontmatter` skill and, in the `/document` write path, read directly by `doc-planner`, `doc-writer`, and `doc-reviewer`.
+example-docs pages. Applied by the `docs-frontmatter` skill and, in the `/document` write path, read directly by `doc-planner`, `doc-writer`, and `doc-reviewer`.
 
 ## Format
 
@@ -28,7 +28,7 @@ changelog:
 - **Meaningful entries.** Terse, from the customer's point of view. Don't write
   vague descriptions like "Updated page to match the new UI." Answer "to what
   effect?" — highlight significant changes, new features, or deletions.
-- **No internal render mechanics.** Never name the publishing machinery in an entry — "Managed-only", "SaaS-only", "space", "conditional", "override". Readers of a page do not know those concepts exist. Describe what changed for the customer on the page they are reading; the space something renders in is the build's business, not theirs.
+- **No internal render mechanics.** Never name the publishing machinery in an entry — "Self-hosted-only", "Cloud-only", "space", "conditional", "override". Readers of a page do not know those concepts exist. Describe what changed for the customer on the page they are reading; the space something renders in is the build's business, not theirs.
 - **Never on first publish.** Do not create a changelog entry when a page is
   first published; the published timestamp is used instead.
 - **No "hidden" entries.** "Hiding" is an internal unpublish mechanism, not
@@ -56,7 +56,7 @@ changelog:
 | Page title | Changelog description | Notes |
 |---|---|---|
 | Infrastructure Monitoring mode | Clarified information around auto-injection and added a section on filtering hosts based on injection status. | ✔️ Complete sentence; ends with a period; 107 characters. |
-| Start/stop/restart ActiveGate | Described how to start/stop/restart all ActiveGate services, not just the main service. | ✔️ Complete sentence; ends with a period. |
+| Start/stop/restart the agent | Described how to start/stop/restart all agent services, not just the main service. | ✔️ Complete sentence; ends with a period. |
 | Synthetic events | Additional JavaScript event example on changing the user for each monitor execution | ✔️ Phrase; **no** period. |
 | Webhooks | Moved Webhooks documentation from the Notification section to the Developer section; links and content remain the same. | ✔️ Page-move with from/to; ends with a period; 117 characters. |
 | Managing labels | New page, split from earlier page on managing labels and templates | ✔️ New-page entry; phrase; **no** period. |
@@ -65,11 +65,12 @@ changelog:
 | Credential vault | Created topic. | ❌ Too thin and wrong noun. Rewrite as "Added a new page on storing and using credentials in the credential vault." |
 | Uninstall <anything> | How to uninstall the application module | ❌ Don't reuse a section heading. Rewrite as "Added a section on uninstalling the application module." |
 
-## Owners policy (managed pages)
+## Owners policy (self-hosted pages)
 
-- Applies to changed pages under `managed/_content/**` only.
-- Ensure every ID in `managed-owners.txt` is present in the page's `owners:`
+- Applies to changed pages under `self-hosted/_content/**` only.
+- Ensure every ID in `default-owners.txt` is present in the page's `owners:`
   list. **Union only — never remove existing owners.**
-- The public marketplace ships only `ivan.gudak`. When this plugin moves to the
-  internal Dynatrace repo, add the remaining managed owners to
-  `managed-owners.txt` (one ID per line) — no code change required.
+- `default-owners.txt` ships a placeholder ID as part of the built-in worked
+  example. A real docs repo replaces it — point `frontmatter.default_owners` at
+  the repo's own list, or edit this one (one ID per line) — no code change
+  required.

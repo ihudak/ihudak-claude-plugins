@@ -6,7 +6,7 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 
 Fix security vulnerabilities: $ARGUMENTS
 
-Each argument token is either `JIRA-ID:CVE-ID` (e.g. `MGD-2423:CVE-2023-46604`) or a bare `CVE-ID` (e.g. `CVE-2023-46604`). Parse and filter each token, research all CVEs first, then fix them one at a time.
+Each argument token is either `JIRA-ID:CVE-ID` (e.g. `PROJ-2423:CVE-2023-46604`) or a bare `CVE-ID` (e.g. `CVE-2023-46604`). Parse and filter each token, research all CVEs first, then fix them one at a time.
 
 ---
 

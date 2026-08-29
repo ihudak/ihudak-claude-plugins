@@ -3,7 +3,7 @@
 #
 # Splitting one README into a multi-page tree multiplies the places drift can hide. Every
 # check below exists because a specific failure was observed -- in this plugin, or
-# in the two restructures this one follows (dynatrace-managed-mcp#214,
+# in the two restructures this one follows (a sibling managed-plugins repo,
 # ai-containers#78).
 #
 # --selftest mutates a copy of the passing fixture once per check and asserts the
@@ -345,7 +345,7 @@ check_table_cells() {
 #
 # It is a SUBSET pin, not equality: the root README documents the whole
 # marketplace, while this page documents ONE plugin and should install only what
-# that plugin actually needs. (dev-workflows references `dt-style-guide` 32 times;
+# that plugin actually needs. (dev-workflows references `prose-style` 32 times;
 # `acli` zero, and `$REF_DIR/followup-emission.md` states outright that it has no
 # runtime dependency on `obsidian-llm-wiki`.) So every line HERE must appear verbatim
 # in the root README -- which is what catches a drifted marketplace name or command

@@ -1,77 +1,84 @@
 # Ready-made Dashboards
 
-**Source:** [https://dt-rnd.atlassian.net/wiki/spaces/PLAT/pages/785187419](https://dt-rnd.atlassian.net/wiki/spaces/PLAT/pages/785187419)
+**Sources:** [Material 2: Data visualization](https://m2.material.io/design/communication/data-visualization.html) · [Material 2: Responsive layout grid](https://m2.material.io/design/layout/responsive-layout-grid.html) · [Apple HIG: Charts](https://developer.apple.com/design/human-interface-guidelines/charts) · [Apple HIG: Color](https://developer.apple.com/design/human-interface-guidelines/color) · [Material 3: Color roles](https://m3.material.io/styles/color/roles) · [WCAG 2.2 SC 1.4.1 Use of Color](https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html) · [SC 1.4.3 Contrast (Minimum)](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html) · [SC 1.4.11 Non-text Contrast](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html) · [SC 1.4.10 Reflow](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html) · [NN/g: Dashboards and preattentive attributes](https://www.nngroup.com/articles/dashboards-preattentive/) · [NN/g: Visibility of System Status](https://www.nngroup.com/articles/visibility-system-status/)
 
 ## Summary
-Quality standards for ready-made dashboards that demonstrate Dynatrace value, are immediately useful, and show dashboard capabilities. Mandatory for all dashboards published on Playground or production environments.
+Quality standards for **ready-made dashboards** — dashboards a product ships to its users rather than dashboards a user builds. A ready-made dashboard must render correctly with no configuration on first open, answer a stated question above the fold, and be readable without colour vision. These rules are mandatory for any dashboard published to a sample environment or shipped in a product.
 
 ## Mandatory Rules
 
 ### DO
-- Ensure dashboards contain no errors or warnings in their default configuration
-- Set all values, entities, references, DQL code correctly in default state, cluster, and timeframe
-- Include both entity ID field (e.g., dt.entity.host) and name field (e.g., host.name) in DQL results for intents to work
-- Configure variables, segments, visualization settings, query limits, query options, and timeframe correctly by default
-- Ensure variables contain more than one option and are referenced at least once
-- Use industry-standard names for options and variables (e.g., `Yes`, `No` with capital letter, not ALLCAPS)
-- Include a markdown tile with H3 title (`###`) limited to 50 characters
-- Add a short value statement limited to 300 characters using default font style
-- Provide 1-2 important links to data onboarding/getting started
-- Keep introduction and links in one line without scrolling inside markdown tile
-- Use sentence case for titles (per Dynatrace Content Style Guide)
-- Prioritize most relevant data above the fold (~768px to 1080px high)
-- Use WCAG 2.0 AA accessible color coding:
-  - Red threshold: `#c4233b` (Colors.Theme.Critical.70)
-  - Green threshold: `#2f6863` (Colors.Theme.Success.70)
-  - Yellow threshold: `#ECA440` (Colors.Theme.Warning.70)
-- Use white for trends/values displayed over color-coded backgrounds
-- Use graph charts for trends over time, tables for details
-- Use all screen real estate without horizontal gaps
-- Ensure responsive layout works at 650px mobile breakpoint
-- Limit to max 6 "simple" tiles (single values) per row
-- Limit to max 4 "heavy" tiles (charts, tables, markdown) per row
-- Limit to 1 tile requiring horizontal scrolling per row
-- Use H3 (`###`) for section titles, H5 (`#####`) for subtitles if needed
-- Use one full-width empty markdown tile to separate section title from previous section
-- Use the **Description** feature (not markdown) to describe a single tile
-- Add comments to DQL code explaining what and why
-- Add a footer with expanded explanations, documentation links, and learning resources
+- Render with no errors and no warnings in the default configuration, on a fresh account, at the default time range
+- Set every default explicitly: data source, entity references, query text, time range, and any environment or cluster selector
+- Return both the stable identifier field and the human-readable name field for every entity a tile links from, so navigation from the tile resolves
+- Give every variable a default that produces data, at least two selectable options, and at least one tile that references it
+- Name variables and their options in plain product vocabulary, in sentence case (`Yes`, `No` — not `YES`, `NO`, not `y`/`n`)
+- Open with an introduction tile carrying an H3 (`###`) title of at most 50 characters
+- Follow the title with a value statement of at most 300 characters in the default body style, saying what question the dashboard answers
+- Include one or two links to onboarding or getting-started material in the introduction tile
+- Keep the introduction tile's content visible without scrolling inside the tile
+- Use sentence case for every tile title and section heading
+- Put the most decision-relevant tiles above the fold — assume a usable viewport height of 768–1080 CSS pixels
+- Pick colours that pass WCAG contrast against their own background: 4.5:1 for text (SC 1.4.3), 3:1 for chart strokes, thresholds, and other meaningful graphics (SC 1.4.11)
+- Take threshold and status colours from the design system's semantic colour roles (error / warning / success) rather than hand-picked hex values, so themes and dark mode follow ([Material 3: Color roles](https://m3.material.io/styles/color/roles), [Apple HIG: Color](https://developer.apple.com/design/human-interface-guidelines/color))
+- Pair every colour-coded state with a label, a shape, or a value, so the dashboard reads without colour (SC 1.4.1)
+- Verify contrast of value text rendered over a colour-coded background, in both light and dark themes
+- Use a line or area chart for change over time, a bar chart for comparison across categories, and a table for detail and lookup ([Material: Data visualization](https://m2.material.io/design/communication/data-visualization.html))
+- Fill the grid without leaving gaps between tiles; align tiles to the layout grid ([Material: Responsive layout grid](https://m2.material.io/design/layout/responsive-layout-grid.html))
+- Keep the layout usable down to a narrow breakpoint (around 650 CSS pixels) without two-dimensional scrolling (SC 1.4.10)
+- Cap a row at 6 single-value tiles, or 4 heavy tiles (chart, table, or long text)
+- Allow at most one tile per row that requires horizontal scrolling to read
+- Use H3 (`###`) for section titles and H5 (`#####`) for subtitles, with no skipped levels
+- Separate a new section from the one above it with a single full-width spacing tile
+- Describe a single tile with the tile's own description affordance, not with an adjacent text tile
+- Comment non-obvious query code with what it returns and why that filter or aggregation is there
+- Close with a footer holding deeper explanation, documentation links, and learning resources
+- Show an explicit loading state per tile and an explicit "no data" state distinguishable from an error (NN/g: [Visibility of System Status](https://www.nngroup.com/articles/visibility-system-status/))
 
 ### DON'T
-- Make users troubleshoot dashboard, variables, or timeframes to resolve errors
-- Start with error state, "No options available", or "Select an option" state
-- Use confusing names or internal jargon
-- Skip the introduction and getting started links
-- Use generic names (e.g., "Technology overview")
-- Repeat the dashboard name in the title
-- Have empty space or less relevant data above the fold
-- Use enormous tiles or values above the fold
-- Fill entire space with a single tile
-- Use color combinations that fail WCAG 2.0 contrast checks
-- Create gaps in the layout
-- Use more than 6 horizontal elements in a row
-- Use markdown to describe a single tile
-- Give users a blank slate dashboard without help
-- Overwhelm users with content available in documentation
+- Ship a dashboard whose first render requires the user to fix a variable, a time range, or a data source before anything appears
+- Open in an error state, a "No options available" state, or a "Select an option to continue" state
+- Use internal jargon, code names, or query fragments as a tile title
+- Omit the introduction tile or the getting-started links
+- Title a dashboard or tile generically ("Overview", "Technology overview", "Metrics")
+- Repeat the dashboard name in a tile title
+- Leave empty space or low-value tiles above the fold
+- Fill the whole first screen with a single oversized tile or a single oversized number
+- Use a colour pair that fails the WCAG contrast requirement for its role, in either theme
+- Encode a state only in colour — red and green bars with no labels are unreadable to roughly one in twelve male users
+- Leave layout gaps or misaligned tile edges
+- Put more than 6 elements in one row
+- Use a free-text tile to caption the tile next to it
+- Ship a blank dashboard with no guidance for a user who has not onboarded the data yet
+- Reproduce documentation on the dashboard — link to it
 
 ## Scenarios
 
-### Playground Environment
-- Double-check for permission-related errors
-- Contact Playground team for resolution
+### Sample and demo environments
+- Verify the dashboard against an account with only the permissions a new user is granted; a dashboard that renders for an admin and errors for everyone else is not ready
+- Check every tile after a permission-scoped render, not just the first screen
 
-### Variable Naming Conventions
-- Use `*` symbol (provided by Dashboards UI) to show all data
-- Use `Yes`, `No` (capitalized, not ALLCAPS)
+### Variable naming conventions
+- Use the platform's own "all values" token for the unfiltered case rather than inventing a sentinel string
+- Capitalise option labels as sentence case (`Yes`, `No`); reserve all-caps for acronyms
+
+### Chart selection
+- Trend over time → line or area chart
+- Comparison across a small category set → bar chart
+- Part-to-whole with fewer than about five parts → stacked bar; avoid pie charts for more than about five slices ([Apple HIG: Charts](https://developer.apple.com/design/human-interface-guidelines/charts))
+- Exact values, many dimensions, or lookup → table
+- Single headline number with a trend → single-value tile with a sparkline
 
 ---
 
 ## Open Questions / Ambiguities
 
-1. **Grid system undefined**: Document references a "6-column grid as a starting reference" but doesn't specify exact pixel widths for columns.
+1. **Grid column widths are undefined**: The rules assume a layout grid but do not fix column counts or pixel widths. [Material's responsive layout grid](https://m2.material.io/design/layout/responsive-layout-grid.html) gives 4/8/12 columns by breakpoint; adopt those unless the product's own grid says otherwise.
 
-2. **Fold height range too broad**: The fold height range (768px to 1080px) is broad - unclear which specific height should be the target for "above the fold" content.
+2. **Fold height is a range, not a target**: 768–1080 CSS pixels covers most desktop viewports but does not name a design target. Design to the lower bound (768) so the dashboard is correct on the smallest common viewport.
 
-3. **Maximum dashboard length unspecified**: No specific guidance on maximum dashboard length/scroll depth.
+3. **Maximum dashboard length is unspecified**: No guidance limits scroll depth. As a working rule, a ready-made dashboard that needs more than about three screens is two dashboards.
 
-4. **"Medium-height information density" subjective**: Referenced without specific metrics or examples.
+4. **"Information density" is subjective**: References to medium information density carry no metric. Treat tile-count-per-row caps as the enforceable proxy and density as a review discussion.
+
+5. **Theme coverage**: Contrast must hold in every theme the product ships. Where a dashboard hard-codes a colour, it will pass in one theme and fail in the other; that is why semantic colour roles are mandatory above.

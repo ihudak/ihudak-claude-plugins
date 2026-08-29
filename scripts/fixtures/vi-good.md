@@ -14,4 +14,4 @@ As a PM, I want an export, so that I can share it.
 
 ## References
 - [[PRODUCT-123]]
-- [[MGD-8605]]
+- [[PROJ-8605]]

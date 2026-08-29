@@ -82,7 +82,7 @@ valid — Obsidian Tasks does not require tags.
 
 ### 2.6 — Jira tickets
 
-Pattern: uppercase letters + dash + digits (e.g., `MGD-7211`).
+Pattern: uppercase letters + dash + digits (e.g., `PROJ-7211`).
 To find the Jira base URL, follow the detection steps in `task-rules.md`
 (search existing tasks → ask user → or skip linking).
 

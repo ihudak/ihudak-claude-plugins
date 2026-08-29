@@ -1,6 +1,6 @@
 # /api-guideline-reviewer
 
-Reviews OpenAPI specification files against the vendored REST API and IAM permission naming guidelines.
+Reviews OpenAPI specification files against the bundled REST API and IAM permission-naming guidelines, distilled from public sources (Google AIP, the Zalando and Microsoft REST API guidelines, OpenAPI 3.1, and the relevant RFCs).
 
 ## Who runs it
 

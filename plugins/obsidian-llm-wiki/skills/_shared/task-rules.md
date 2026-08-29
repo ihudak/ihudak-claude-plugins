@@ -100,7 +100,7 @@ Use only when the prompt explicitly describes a recurring task.
 
 ## Jira Ticket Linking
 
-When the prompt mentions a Jira ticket ID (e.g., `MGD-7211`, `PRODUCT-8313`):
+When the prompt mentions a Jira ticket ID (e.g., `PROJ-7211`, `PRODUCT-8313`):
 
 **Detecting the Jira base URL** (run once per session, cache the result):
 

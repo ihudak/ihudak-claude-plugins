@@ -27,7 +27,7 @@ flowchart TD
     p15 --> p2["Phase 2 — Read the seed"]
     p2 --> p25["Phase 2.5 — Grounding: documentation + vault prior art (optional)"]
     p25 --> p3["Phase 3 — Author via grill"]
-    p3 --> p35["Phase 3.5 — Dynatrace style check"]
+    p3 --> p35["Phase 3.5 — Prose style check"]
     p35 --> p36["Phase 3.6 — Structural pre-lint"]
     p36 --> p4["Phase 4 — Review gate"]
     p4 --> p5["Phase 5 — Handoff"]
@@ -35,7 +35,7 @@ flowchart TD
     p6 --> p7["Phase 7 — Session maintenance, feedback & cost"]
 ```
 
-Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2.5, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `vi-reviewer` (Phase 4, Opus-pinned), and `impl-maintenance` (Phase 7, session lessons-learned), each against the model recorded in `model_routing`. A fourth agent, `dt-style-guide:dt-style-checker`, runs in Phase 3.5 when the separate `dt-style-guide` plugin is installed — a non-gating quality pass, not part of the dispatch count above because it ships in a different plugin.
+Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2.5, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `vi-reviewer` (Phase 4, Opus-pinned), and `impl-maintenance` (Phase 7, session lessons-learned), each against the model recorded in `model_routing`. A fourth agent, `prose-style:prose-style-checker`, runs in Phase 3.5 when the separate `prose-style` plugin is installed — a non-gating quality pass, not part of the dispatch count above because it ships in a different plugin.
 
 ## What it needs
 
@@ -56,7 +56,7 @@ Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2.5, read
 
 ## Gates
 
-- **Phase 3.5 — Dynatrace style check** (`dt-style-guide:dt-style-checker`, when that plugin is installed). A quality enhancement, not a gate: MAJOR findings are fixed inline and the checker re-runs once; remaining MINOR/NIT findings are only reported. Skipped gracefully, with a note in the final report, when `dt-style-guide` is not installed.
+- **Phase 3.5 — Prose style check** (`prose-style:prose-style-checker`, when that plugin is installed). A quality enhancement, not a gate: MAJOR findings are fixed inline and the checker re-runs once; remaining MINOR/NIT findings are only reported. Skipped gracefully, with a note in the final report, when `prose-style` is not installed.
 - **Phase 3.6 — Structural pre-lint** (`../../references/pre-lint.md`, run inline, no agent). Advisory only — mechanical findings are fixed inline, content gaps are left for the grill; it never blocks.
 - **Phase 4 — `vi-reviewer`**, Opus-pinned by frontmatter (`model: opus`, no override), reviewing the whole VI against `../../references/vi-format.md`. `PASS` / `PASS WITH RECOMMENDATIONS` proceeds. `BLOCK` triggers one inline fix cycle and one re-review; if still `BLOCK`, each unresolved BLOCKER is escalated per `../../references/escalation-rules.md`'s "Review verdict BLOCK" choices (provide manual fix notes, defer to a follow-up issue, override and accept, or cancel). If no Opus model resolves at all, the run degrades to the best available model and records the degradation rather than hard-blocking.
 

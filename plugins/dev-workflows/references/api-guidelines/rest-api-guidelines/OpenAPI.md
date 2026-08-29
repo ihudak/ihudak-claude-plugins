@@ -1,176 +1,181 @@
 # Introduction
-All APIs **must** be documented by the implementing service using an [OpenAPI document](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#openapi-document). This applies to public APIs as well as operational APIs. 
-The OpenAPI document **must** be interactively browsable using a [Swagger UI](https://swagger.io/tools/swagger-ui/) hosted on the API Gateway. Each API version **must** be represented by a separate document. Internal APIs **may** be documented as well if they are e.g., used by services outside of the platform but within the company's VPN. Examples would be statistic APIs called by the Cluster Data Hub or internal integration APIs with Cloud Control or SPINE.
+
+**Sources:** [OpenAPI Specification 3.1](https://spec.openapis.org/oas/v3.1.0.html), [OpenAPI Initiative](https://www.openapis.org/), [Zalando — API design and documentation](https://opensource.zalando.com/restful-api-guidelines/#101), [Zalando — API Audience (`x-audience`)](https://opensource.zalando.com/restful-api-guidelines/#219), [Google AIP-136 — Custom methods](https://google.aip.dev/136), [RFC 6749 — OAuth 2.0](https://www.rfc-editor.org/rfc/rfc6749.html), [OpenAPI Generator](https://openapi-generator.tech/)
+
+All APIs **must** be documented by the implementing service with an [OpenAPI document](https://spec.openapis.org/oas/v3.1.0.html#openapi-document). This applies to public APIs as well as to partner, internal and operational APIs. Each API version **must** be described by a separate document.
+
+The OpenAPI document **must** be browsable in a rendered API reference (Swagger UI, Redoc, or an equivalent renderer) for every audience that has consumers outside the owning team.
 
 # Template File
 
-[OpenAPI Spec Template File](../rest-api-guidelines/template/openapi-template.yaml)
+[OpenAPI Spec Template File](../template/openapi-template.yaml)
 
 # Format
-- The OpenAPI document **must** be exposed in the [YAML](https://yaml.org/) format and [OpenAPI version 3.0.x](https://spec.openapis.org/) with the name _openapi.yaml_. 
-- OpenAPI versions older than 3 **must not** be used. 
-- When the file is served by the service the `Content-Type` header **must** be set to `application/openapi+yaml`.
 
-# Location on the K8s Service
-The OpenAPI document must be located on the API version root of the K8s service like this:
+- The OpenAPI document **must** be published in [YAML](https://yaml.org/) format under the name _openapi.yaml_.
+- The `openapi` field **must** be `3.1.x`. `3.0.x` **may** be used where a required tool does not yet support 3.1; in that case the document **must** state which tool forces it.
+- OpenAPI versions older than 3.0 **must not** be used.
+- When the file is served by the service, the `Content-Type` header **must** be set to `application/openapi+yaml`.
+
+# Location on the Service
+
+The OpenAPI document **must** be located at the API version root of the service:
 ```
-<k8s-service-name>.<k8s-namespace>/<api-type>/[<api-identifier>/]<version>/openapi.yaml
+<service-host>/<audience-segment>/[<api-identifier>/]<version>/openapi.yaml
 ```
-This structure corresponds to the API structure shown in the [General Structure](../rest-api-guidelines/General%20Structure.md) section. 
+This mirrors the API structure described in [General Structure](../rest-api-guidelines/General%20Structure.md).
 
 #### Examples
 ```
 -- Public API (no api-identifier)
-app-registry.app-gateway/public/v1/apps
-app-registry.app-gateway/public/v1/app-icons
-app-registry.app-gateway/public/v1/openapi.yaml
+app-registry.internal/public/v1/apps
+app-registry.internal/public/v1/app-icons
+app-registry.internal/public/v1/openapi.yaml
 
 -- Public API (using api-identifier)
-app-registry.app-gateway/public/app-registry-api/v1/apps
-app-registry.app-gateway/public/app-registry-api/v1/app-icons
-app-registry.app-gateway/public/app-registry-api/v1/openapi.yaml
+app-registry.internal/public/app-registry-api/v1/apps
+app-registry.internal/public/app-registry-api/v1/app-icons
+app-registry.internal/public/app-registry-api/v1/openapi.yaml
 
--- Reserved API (no api-identifier) 
-app-registry.app-gateway/reserved/v1/hidden-apps
-app-registry.app-gateway/reserved/v1/openapi.yaml 
+-- Partner API (no api-identifier)
+app-registry.internal/partner/v1/hidden-apps
+app-registry.internal/partner/v1/openapi.yaml
 
-– Reserved API (using api-identifier) 
-app-registry.app-gateway/reserved/app-registry-api/v1/hidden-apps
-app-registry.app-gateway/reserved/app-registry-api/v1/openapi.yaml 
-
--- Operational API (no api-identifier)
-app-registry.app-gateway/operations/v1/some-resource
-app-registry.app-gateway/operations/v1/openapi.yaml
-
--- Operational API (using api-identifier) 
-app-registry.app-gateway/operations/ops/v1/some-resource 
-app-registry.app-gateway/operations/ops/v1/openapi.yaml
+-- Operational API (using api-identifier)
+app-registry.internal/operations/ops/v1/some-resource
+app-registry.internal/operations/ops/v1/openapi.yaml
 
 -- Internal API
-platform-management.platform-core/internal/v1/tenants
-platform-management.platform-core/internal/v1/openapi.yaml
+platform-management.core/internal/v1/tenants
+platform-management.core/internal/v1/openapi.yaml
 
--- 1 K8s service with 2 APIs
-persistence-service.storage/public/query-api/v1/query:execute
-persistence-service.storage/public/query-api/v1/query:validate
-persistence-service.storage/public/query-api/v1/openapi.yaml 
+-- 1 service with 2 APIs
+persistence.storage/public/query-api/v1/queries:execute
+persistence.storage/public/query-api/v1/queries:validate
+persistence.storage/public/query-api/v1/openapi.yaml
 
-persistence-service.storage/public/entity-model-api/v2/models
-persistence-service.storage/public/entity-model-api/v2/openapi.yaml
+persistence.storage/public/entity-model-api/v2/models
+persistence.storage/public/entity-model-api/v2/openapi.yaml
 ```
 
 # Location on the API Gateway
-The API gateway maps the _api-type_ to the appropriate main namespace on the gateway (see [Public APIs](../rest-api-guidelines/General%20Structure.md#public-apis), [Reserved APIs](../rest-api-guidelines/General%20Structure.md#reserved-apis), [Internal APIs](../rest-api-guidelines/General%20Structure.md#internal-apis), [Operational APIs](../rest-api-guidelines/General%20Structure.md#operational-apis)).
 
-The API Gateway provides separate Swagger UI paths for _public_, _reserved_ and _internal/operations_ APIs on the main namespaces `platform`, `platform-reserved` and `platform-internal`:
-
-```
--- public APIs
-/platform/swagger-ui/index.html
-
-–- reserved APIs
-/platform-reserved/swagger-ui/index.html
-
--- internal and operational APIs
-/platform-internal/swagger-ui/index.html
-```
-
-Each Swagger UI shows all OpenAPI documents available in the particular main namespace, covering all services and APIs within the namespace.
+The gateway maps each audience to its own root path (see [Public APIs](../rest-api-guidelines/General%20Structure.md#public-apis), [Partner APIs](../rest-api-guidelines/General%20Structure.md#partner-apis), [Internal APIs](../rest-api-guidelines/General%20Structure.md#internal-apis), [Operational APIs](../rest-api-guidelines/General%20Structure.md#operational-apis)) and **should** publish a separate rendered reference per audience, so that a document is never reachable by an audience it was not written for.
 
 #### Examples
 ```
--- public API without api identifier
-/platform/app-registry/v1/apps
-/platform/app-registry/v1/app-icons
-/platform/app-registry/v1/openapi.yaml
+-- public API
+https://api.example.com/app-registry/v1/apps
+https://api.example.com/app-registry/v1/openapi.yaml
 
-– reserved API without api identifier
-/platform-reserved/app-registry/v1/hidden-apps
-/platform-reserved/app-registry/v1/openapi.yaml
+-- partner API
+https://api.example.com/partner/app-registry/v1/hidden-apps
+https://api.example.com/partner/app-registry/v1/openapi.yaml
 
--- operational API
-/platform-internal/app-registry/operations/v1/some-resource
-/platform-internal/app-registry/operations/v1/openapi.yaml
-
--- internal API
-/platform-internal/platform-management/internal/v1/tenants
-/platform-internal/platform-management/internal/v1/openapi.yaml
+-- internal / operational API
+https://internal.example.com/platform-management/internal/v1/tenants
+https://internal.example.com/app-registry/operations/v1/openapi.yaml
 ```
 
 # OpenAPI Document Content
-The OpenAPI document **may** contain any OpenAPI language construct that is supported by OpenAPI 3.0.x. If the document describes a platform service API exposed on the API Gateway it **must** contain several mandatory entries to be handled correctly on the API Gateway.
+
+The OpenAPI document **may** contain any construct supported by OpenAPI 3.1. If the document describes an API exposed on the API gateway, it **must** additionally contain the mandatory entries below so that the gateway and the code generators can process it.
+
+## API Audience
+
+The document **must** declare its audience with the `x-audience` extension on the `info` object, using exactly one of the four values defined in [General Structure](../rest-api-guidelines/General%20Structure.md#api-audience):
+
+```
+info:
+  title: 'My Service'
+  version: '1.0.0'
+  x-audience: 'external-public'   # external-public | external-partner | company-internal | component-internal
+```
 
 ## API Gateway Path
-The API path on the API Gateway is different from the path on the K8s service. The mapping is done in the API Gateway and is described under [General Structure](../rest-api-guidelines/General%20Structure.md). The document **must** contain the Dynatrace vendor extension `x-api-gateway-url` with the API Gateway mapping information in the servers section:
+
+The API path on the gateway differs from the path on the service. The mapping is owned by the gateway and described in [General Structure](../rest-api-guidelines/General%20Structure.md). The document **must** declare it with the `x-gateway-url` extension inside the `servers` entry:
 
 ```
 servers:
-  # base url in the k8s cluster is relative, api-type = "public" | "reserved" | "internal" | "operations"
-  - url: '/<api-type>[/<api-identifier>]/<api-version>'
+  # base url on the service is relative; audience-segment = "public" | "partner" | "internal" | "operations"
+  - url: '/<audience-segment>[/<api-identifier>]/v<major version>'
 
-  # base url in the API gateway is relative to the API gateway root url, api-location = "platform" | "platform-reserved" | "platform-internal"
-    x-api-gateway-url: '/<api-location>[/<service namespace>]/<public service name>/<api version>'
+  # base url on the gateway, relative to the gateway root url
+    x-gateway-url: '[/<service namespace>]/<public service name>/v<major version>'
 ```
 
-This information is e.g. used by code generators to build SDKs both for usage within the platform and from outside of the platform. The API gateway will remove the `x-api-gateway-url` extension dynamically when exposing the document since it is not needed for users of the API.
+This information is used by code generators to build clients for use both inside and outside the system. The gateway removes the `x-gateway-url` extension when it publishes the document, since consumers of the API do not need it.
 
 ## Version consistency
-The API version specified in the OpenAPI document (i.e. the `version` field) **must** match the version information in the URL. Details are described [here](../rest-api-guidelines/API%20Versioning.md#api-version-in-the-url).
 
-## Dt-Tenant Header
-If the API accepts the [tenant context](../rest-api-guidelines/API%20Context%20Information.md#tenant-context) it **must** contain the  `Dt-Tenant` header:
+The API version specified in the OpenAPI document (the `info.version` field) **must** match the version information in the URL. All three locations — `info.version`, `servers[].url`, and `x-gateway-url` where present — **must** agree on the major version. Details are described in [API Versioning](../rest-api-guidelines/API%20Versioning.md#version-consistency).
+
+## Context Headers
+
+If the API accepts the [tenant context](../rest-api-guidelines/API%20Context%20Information.md#tenant-context), the document **must** declare the header as a reusable parameter:
 ```
 components:
   parameters:
-    dtTenantHeader:
+    tenantHeader:
       in: header
-      name: Dt-Tenant
-      description: Dynatrace tenant context header
+      name: Example-Tenant
+      description: Tenant context header
       schema:
         type: string
       required: true
 ```
-The `Dt-Tenant` header will be removed from the document when exposing it on the API Gateway since it is only used within the platform and is actually generated by the API Gateway. This header is e.g., used by code generators to build the service interface.
 
-## Dt-App-Context Header
-If the API accepts the [application context](../rest-api-guidelines/API%20Context%20Information.md#application-context) it **must** contain the `Dt-App-Context` header:
-```
-components:
-  parameters:
-    dtAppContextHeader:
-      in: header
-      name: Dt-App-Context
-      description: Dynatrace application context context header
-      schema:
-        type: string
-      required: true
-```
-The `Dt-App-Context` header will be removed from the document when exposing it on the API Gateway since it is only used within the platform and is actually generated by the API Gateway. This header is e.g. used by code generators to build the service interface.
+If the API accepts the [application context](../rest-api-guidelines/API%20Context%20Information.md#application-context), the document **must** declare `Example-App-Context` the same way.
+
+Context headers are set by the gateway and are meaningful only inside the system. The gateway therefore removes them from the document when it publishes it. They are declared in the source document because code generators use them to build the server-side interface.
+
+The header prefix (`Example-` here) is a placeholder for the organization's single declared prefix. Whatever prefix is chosen, it **must** be the same in every document the organization publishes, and it **must not** be `X-` ([RFC 6648](https://www.rfc-editor.org/rfc/rfc6648.html)).
 
 ## Authentication Context
-If the API accepts the [authentication context](../rest-api-guidelines/API%20Context%20Information.md#authentication-context) it **must** contain the appropriate oauth2 flow:
+
+If the API accepts the [authentication context](../rest-api-guidelines/API%20Context%20Information.md#authentication-context), the document **must** declare the OAuth 2.0 flow:
 ```
 components:
-  # see https://swagger.io/docs/specification/authentication/oauth2/
   securitySchemes:
-    ssoAuth:
+    oauth2:
       type: oauth2
-      description: This API uses oauth2 with the 'client credentials' flow
-      flows: 
+      description: This API uses OAuth 2.0 with the 'client credentials' flow
+      flows:
         clientCredentials:
-          tokenUrl: https://token.url    ## placeholder to be replaced in the API Gateway
-          scopes:                        ## scope naming see https://dynatrace.sharepoint.com/sites/Platform/SitePages/IAM-Permission-Guidelines.aspx
-            <service name>:<resource>:<action>: access scope        
-            <service name>:<resource>:<action>: access scope
+          tokenUrl: https://sso.example.com/oauth2/token   ## placeholder, replaced per environment
+          scopes:                                          ## scope naming: see the permission guidelines
+            example:widgets:read: Read widgets
+            example:widgets:write: Create or update widgets
 ```
-oauth2 client credentials flow is the only allowed security schema. See [Authentication](../rest-api-guidelines/Authentication.md) for additional details.
+
+- The document **must** declare exactly one OAuth 2.0 security scheme.
+- That scheme **must** declare the `clientCredentials` flow and **must not** declare any other flow (`authorizationCode`, `implicit`, `password`).
+- The security scheme name **must** be the same across every API in the organization. This template uses `oauth2`.
+- Every operation **must** carry a `security` requirement naming that scheme with at least one scope, either on the operation or inherited from the document-level `security` field.
+- Other authentication schemes (`http basic`, `apiKey`, …) **must not** be declared. See [Authentication](../rest-api-guidelines/Authentication.md).
 
 ## Additional Guidelines
-### OperationId
-The `operationId` is a unique string in the OpenAPI specification that is used to identify an operation. This field is used by the Dynatrace code generators to specify the generated method names. Therefore, these rules apply to the `operationId`:
-- `operationId` **must** be present on each endpoint
-- The name of the `operationId` **must** start with a verb to be better suited as a method name during code generation.
-- Changing `operationId` **must** be treated like a breaking change of the API since it affects the generated SDKs. Although the API itself does not change on the raw HTTP level, its representation on the SDK level (TS and Java) changes and will break client code on SDK updates
 
-### oneOf, anyOf, allOf
-Combination of schemas **should** be avoided since it is often confusing. `allOf` must not be used since it is not supported by the Dynatrace code generators. If combination of schemas is still required, `oneOf` must be used, it is the least confusing option and also supported by the code generators.
+### OperationId
+
+The `operationId` is a unique string in the OpenAPI document that identifies an operation. Code generators use it to name the generated methods. These rules therefore apply:
+
+- `operationId` **must** be present on every operation.
+- `operationId` **must** be unique across the whole document ([OpenAPI 3.1, Operation Object](https://spec.openapis.org/oas/v3.1.0.html#operation-object)).
+- `operationId` **must** start with a verb, so that it reads as a method name after generation (e.g. `listWidgets`, `getWidget`, `createWidget`).
+- `operationId` **must** be in _lowerCamelCase_.
+- Changing an `operationId` **must** be treated as a breaking change of the API, because it changes generated client code even though the HTTP surface is unchanged.
+
+### Schema Composition — oneOf, anyOf, allOf
+
+Combining schemas is a frequent source of confusion for readers and of divergent output across code generators. Composition **should** therefore be avoided where a flat schema will do. Where it is required, these rules apply:
+
+- Polymorphic alternatives **must** be expressed with `oneOf` plus a [`discriminator`](https://spec.openapis.org/oas/v3.1.0.html#discriminator-object). A `oneOf` without a discriminator forces every consumer to guess the variant by trial validation.
+- `anyOf` **should not** be used. Its validation semantics (one *or more* branches match) are almost never what an API means, and generators render it inconsistently.
+- `allOf` **must not** be used to merge two or more named schemas. Where `allOf` is used at all, it **must** contain at most one `$ref` plus at most one inline object schema — the single generator-safe extension pattern.
+- An `allOf` branch **must not** redefine a property that the referenced schema already defines. The result is ambiguous and generators disagree about which definition wins.
+- A schema object **must not** combine `allOf`, `oneOf` and `anyOf` at the same level.
+- Composition **must not** be nested: a schema referenced from an `allOf` **must not** itself use `allOf`. Deep inheritance chains are what make generated models unreadable.
+
+An organization whose toolchain cannot process `allOf` at all **may** tighten the third rule to "`allOf` **must not** be used; use `oneOf` where a combination is genuinely required". A tightening like that **must** be stated explicitly in the organization's API style guide, so that a reviewer can apply it consistently. See also [DTO Inheritance](../rest-api-guidelines/Miscellaneous.md#dto-inheritance).

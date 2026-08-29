@@ -20,7 +20,7 @@ once:
 
 Note on what is deliberately NOT checked: the ``description`` in a catalog
 entry and in the matching ``plugin.json`` are not required to be identical.
-They are independently authored in practice -- Copilot's ``dt-style-guide``
+They are independently authored in practice -- Copilot's ``prose-style``
 blurbs, for instance, share no wording at all -- so an equality check would
 fail on correct content. The half-fix it might have caught (Copilot's
 marketplace trimmed to 964 while its plugin.json stayed at 2091) is already

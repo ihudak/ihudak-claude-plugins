@@ -140,14 +140,14 @@ Then author the profile's **adapt-in clusters**, each **pulled only when the ide
 
 ---
 
-## Phase 3.5 — Dynatrace style check
+## Phase 3.5 — Prose style check
 
-Run a corporate style check on the authored VI **before** the review gate. This
+Run a prose style check on the authored VI **before** the review gate. This
 is a **quality enhancement, not a gate** — it never blocks the handoff.
 `vi-reviewer` (Phase 4) judges content; style / terminology is checked here
 (mirrors `/epics` Phase 6.2).
 
-→ Agent (subagent_type: "dt-style-guide:dt-style-checker", model: `<detection_model — §2.1 Sonnet chain>`):
+→ Agent (subagent_type: "prose-style:prose-style-checker", model: `<detection_model — §2.1 Sonnet chain>`):
   > "Run the style check for this brief:
   >
   > files:    [absolute path to <KEY>_<slug>.md]
@@ -158,13 +158,13 @@ Act on the return:
 - **`OK`** — proceed to Phase 4.
 - **`VIOLATIONS_FOUND`** — the orchestrator/grill applies the **MAJOR** fixes
   **inline** (no delegated writer — consistent with Phase 4's inline-fix model),
-  then re-runs `dt-style-checker` **once**. Remaining MINOR/NIT are recorded in
+  then re-runs `prose-style-checker` **once**. Remaining MINOR/NIT are recorded in
   the final report.
 - **`ERROR`** — surface the reason and proceed to Phase 4 (non-gating).
 
-If `dt-style-checker` is unavailable (agent not found — the `dt-style-guide`
+If `prose-style-checker` is unavailable (agent not found — the `prose-style`
 plugin is not installed), **skip this phase gracefully** and note
-`SKIPPED (dt-style-checker unavailable)` in the final report.
+`SKIPPED (prose-style-checker unavailable)` in the final report.
 
 ---
 
@@ -267,4 +267,4 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git 
 
 ## Final report
 
-Report: the VI path + profile; US/AC/SM counts + which adapt-in clusters were included; open-question count; the `vi-reviewer` verdict; the Dynatrace style-check outcome (`OK` | `N fixed, M remaining` | `SKIPPED`); the `Phase handoff:` outcome line from `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1); the Jira round-trip reminder; resolved model routing (+ any Opus degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; and the next-step recommendations.
+Report: the VI path + profile; US/AC/SM counts + which adapt-in clusters were included; open-question count; the `vi-reviewer` verdict; the prose style-check outcome (`OK` | `N fixed, M remaining` | `SKIPPED`); the `Phase handoff:` outcome line from `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1); the Jira round-trip reminder; resolved model routing (+ any Opus degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; and the next-step recommendations.

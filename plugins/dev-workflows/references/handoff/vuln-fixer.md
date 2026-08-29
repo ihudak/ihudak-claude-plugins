@@ -36,7 +36,7 @@ model_routing:                     # optional; set by orchestrator for SIGNIFICA
 ## Research Report (single CVE)
 ### CVE-2023-46604
 status: READY
-jira: MGD-2423
+jira: PROJ-2423
 description: "Apache ActiveMQ RCE via ClassInfo deserialization"
 library: activemq-broker
 ecosystem: Maven
@@ -62,7 +62,7 @@ files:
 ```markdown
 ## Vuln Fix Result: CVE-2023-46604
 status: SUCCESS         # SUCCESS | BUILD_FAILED | TEST_REGRESSION | REVERTED | SKIPPED_BY_USER | AWAITING_REVIEW | BASELINE_FAILED | BLOCKED
-branch: fix/MGD-2423-CVE-2023-46604
+branch: fix/PROJ-2423-CVE-2023-46604
 pr_url: https://github.com/org/repo/pull/42
 tests_before: 47
 tests_after: 47

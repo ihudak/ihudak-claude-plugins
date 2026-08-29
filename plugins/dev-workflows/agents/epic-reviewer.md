@@ -9,7 +9,7 @@ Deep post-write reviewer for **Epic drafts** produced by `/epics`. Uses the stro
 
 Invoked from `/epics` Phase 7, after the writer (Phase 6) has drafted one `.md` file per Epic under the resolved output directory (default `$VAULT_PATH/jira-drafts/<VI-KEY>/`). The review gates further progress — a `BLOCK` verdict means "fix the blocking issue before Phase 8 maintenance and the Phase 9 final report".
 
-Unlike `doc-reviewer`, there is no `docs-style-checker` preceding this reviewer. Epic drafts are vault-internal and not subject to product-docs prose linting — corporate style compliance matters at product-docs publication time, not at Epic scoping time.
+Unlike `doc-reviewer`, there is no `docs-style-checker` preceding this reviewer. Epic drafts are vault-internal and not subject to product-docs prose linting — prose style compliance matters at product-docs publication time, not at Epic scoping time.
 
 ## Inputs
 
@@ -33,7 +33,7 @@ Refuse to review without the written file paths and the `jira-reader` handoff. T
 3. When a `code-scanner` output is present, cross-check the "References" and "Suggested stories" sections: every code path cited must exist in a `code-scanner` `evidence.path`. If an Epic cites a path not found in any scan output, flag it.
 4. Read `_coverage.md`. Cross-check every row against the passed `requirements[]`: a requirement no existing-or-new Epic covers (`❌ gap`) is a MAJOR coverage finding; a `## Covers` id absent from `requirements[]` is a MINOR stale reference.
 5. Check epic independence: an Epic whose value cannot be delivered without a not-yet-existing Epic (read `## Independent Test` + `## Dependencies`) is a MAJOR finding.
-6. Check internal terminology consistency: the same concept named differently across the batch is a MINOR/NIT finding (corporate terminology vs the style guide is dt-style-checker's job — out of scope here).
+6. Check internal terminology consistency: the same concept named differently across the batch is a MINOR/NIT finding (corporate terminology vs the style guide is prose-style-checker's job — out of scope here).
 7. Flag any unresolved `[NEEDS CLARIFICATION]` marker as a BLOCKER.
 8. When `applicable_ard` is present, check each Epic against the `AD#N` invariants: a violating Epic WITHOUT a matching `- ARD deviation: … flag: architect` line is a BLOCKER; WITH one it is allowed-but-flagged. When absent, skip this dimension.
 9. For each dimension below, record findings in the shared severity schema (`BLOCKER` / `MAJOR` / `MINOR` / `NIT`). Skip dimensions that are clearly not applicable, but say so explicitly (`"N/A — reason"`).
@@ -55,7 +55,7 @@ Refuse to review without the written file paths and the `jira-reader` handoff. T
 | Identifier grammar | Every requirement ID the Epic cites — in `## Covers`, in prose, in a table cell — is in bracketed `#` form (`[US#N]`, `[AC#N]`, `[SM#N]`, and `[AD#N]` for an inherited ARD decision). A surviving dash-form ID, bracketed (`[AC-1]`) or bare (`US-2, AC-4`), is a **BLOCKER**: an Epic draft is pasted into Jira, where a key-shaped token auto-links to an unrelated real ticket in any project sharing the prefix, and the vault importer rewrites it into `[[[AC-1]]]` on export. `## Covers` is the site to check first — it is the one that historically emitted bare tokens. <!-- id-grammar-ok: BLOCKER rule must name the forbidden form -->
 | Requirement coverage | Every VI requirement in `requirements[]` is covered by an existing or new Epic; `❌ gap` rows in `_coverage.md` → MAJOR. A `Covers` id not in `requirements[]` → MINOR. `requirements[]` may also include `spec-story`/`spec-criterion` rows sourced from a VI-level spec (via `/epics` Phase 2.6) — treat them identically to VI requirements (uncovered → MAJOR). |
 | Epic independence | Each Epic delivers its value without any not-yet-built Epic. A forward dependency on an Epic that does not yet exist → MAJOR (resequence/merge). **Exception (refinement mode):** a dependency between two Epics in the same refined `refinement_targets` set is legal (it encodes real cross-team build order) and is judged by the Cross-team dependency sanity dimension, not flagged here. |
-| Terminology drift (internal) | The same concept is named consistently across all Epics in the batch. Inconsistency → MINOR/NIT. Corporate terminology is dt-style-checker's job, not this dimension. |
+| Terminology drift (internal) | The same concept is named consistently across all Epics in the batch. Inconsistency → MINOR/NIT. Corporate terminology is prose-style-checker's job, not this dimension. |
 | ARD conformance (conditional) | Only when `applicable_ard` is present: an Epic violating a VI-level `AD#N` without a matching `- ARD deviation: … flag: architect` line → BLOCKER; with one → allowed-but-flagged. Absent → dimension skipped. |
 | Refinement completeness (conditional) | Only when the brief includes `refinement_targets`: every target is actually filled — a still-empty target (no real Scope/Acceptance content beyond the summary) is a BLOCKER. Absent → dimension skipped. |
 | Partition integrity (conditional) | Only in refinement mode: the union of the refined targets' `## Covers` spans the intended VI slice with no silent overlap (two targets claiming the same requirement without a stated split → MAJOR) and no unflagged uncovered requirement. Absent → skipped. |
@@ -150,7 +150,7 @@ Return this exact shape (no preamble, no chatter):
 - NEVER modify files. The reviewer reads; the caller (via `doc-fixer`) writes.
 - NEVER return a PASS verdict if a BLOCKER finding exists.
 - NEVER skip a dimension silently — either report findings or say "N/A — reason".
-- NEVER flag a style / prose nitpick above MINOR. Epic drafts are vault-internal; corporate style compliance is handled separately by `dt-style-checker` (Phase 6.2 of `/epics`) — this reviewer focuses on content quality, not style.
+- NEVER flag a style / prose nitpick above MINOR. Epic drafts are vault-internal; prose style compliance is handled separately by `prose-style-checker` (Phase 6.2 of `/epics`) — this reviewer focuses on content quality, not style.
 - NEVER treat the absence of a `code-scanner` output as a finding. The user may have opted out of code examination in Phase 1; in that case the "References" dimension is evaluated on Jira links alone.
 - NEVER invent a duplicate-Epic finding without a concrete overlap. Name the existing Epic key(s) and the overlapping scope bullet(s) explicitly in the observation.
 - NEVER recommend running tests. Epic drafts have no test suite and no build step; `epic-reviewer` verdicts gate the Phase 8 maintenance step only.

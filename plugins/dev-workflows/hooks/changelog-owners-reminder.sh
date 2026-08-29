@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# PostToolUse (Edit|Write|MultiEdit): warn-only reminder for dynatrace-docs
-# frontmatter conventions (changelog entry on change; managed-docs owners).
+# PostToolUse (Edit|Write|MultiEdit): warn-only reminder for example-docs
+# frontmatter conventions (changelog entry on change; self-hosted-docs owners).
 # Delegates to the Python logic, passing the payload through on stdin.
 # Always exits 0 — must never block Claude.
 

@@ -27,7 +27,7 @@ Then squash:
   commit as a distinct first commit; otherwise `git merge-base <base_branch> HEAD`.
 - mechanics: `git add` the docs-repo changes → `git reset --soft <squash-base>`
   → one `git commit -m "<message>"`.
-- message follows `profile.commit_convention` when present (dynatrace-docs:
+- message follows `profile.commit_convention` when present (example-docs:
   `<JIRA-KEY> <summary>`); for a repo with no such field, infer from recent
   `git log` / `CONTRIBUTING` (a ticket-key prefix, or a conventional-commits
   `docs:` prefix), else fall back to `<JIRA_KEY> <summary>`. The Jira key carries

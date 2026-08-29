@@ -1,10 +1,10 @@
 # /idea
 
-Refines one raw source — a prompt, a file, a community post, or an exported Jira ticket — into a lean `idea.md` brief that seeds [`/create-vi`](create-vi.md).
+Refines one raw source — a prompt, a file, a community post, or an exported Jira ticket — into a lean `idea.md` brief that seeds [`/create-prd`](create-prd.md).
 
 ## Who runs it
 
-`/idea` runs in the [pm](../roles-and-phases.md#pm--product-management) role, cost-attribution phase [vi-creation](../roles-and-phases.md#vi-creation) — the same phase [`/create-vi`](create-vi.md) emits, since at this point in the pipeline no specification or design exists yet for the item being refined.
+`/idea` runs in the [pm](../roles-and-phases.md#pm--product-management) role, cost-attribution phase [prd-creation](../roles-and-phases.md#prd-creation) — the same phase [`/create-prd`](create-prd.md) emits, since at this point in the pipeline no specification or design exists yet for the item being refined.
 
 ## Synopsis
 
@@ -16,7 +16,7 @@ The single positional argument is classified into one of four source forms (Phas
 
 - **An inline prompt** — plain text with no recognised flags stripped from it; the argument text itself becomes the raw idea.
 - **A markdown file or `@wikilink`** — an existing `.md` path, including a community post (typically under `Projects/Products/…`, tagged `community-post`) or a previously-written `idea.md` handed back for re-refinement.
-- **An exported Jira ticket** — a key matching `^[A-Z][A-Z0-9_]*-\d+$`, resolved via `resolve-export-for-key` and then typed from the export's own `issue_type` frontmatter, never from the project prefix: `ValueIncrement` reads as an existing VI (prior art the user supplied), `Product Need` reads as product feedback (an RFE); any other `issue_type` is named to the user, who chooses, defaulting to VI.
+- **An exported Jira ticket** — a key matching `^[A-Z][A-Z0-9_]*-\d+$`, resolved via `resolve-export-for-key` and then typed from the export's own `issue_type` frontmatter, never from the project prefix: `ValueIncrement` reads as an existing PRD (prior art the user supplied), `Product Need` reads as product feedback (an RFE); any other `issue_type` is named to the user, who chooses, defaulting to PRD.
 
 Four flags: `--deep` switches the grill from bounded (≤10 questions) to relentless (runs to convergence, no cap); `--ground-code [<repo>[,<repo>…]]` turns on the optional Phase 2.6 code-grounding scan — bare, the repo set is derived from mounted directories and the idea's themes, with a value it scans exactly the named repos; `--no-docs` turns off documentation grounding; `--no-prior-art` turns off vault prior-art discovery.
 
@@ -49,11 +49,11 @@ Four subagents are dispatched along this path: `idea-reader` (Phase 2, ingests t
 
 `idea.md`, authored against `../../references/idea-format.md`. While the run is keyless it is written under `$VAULT_PATH` — by default at `<container(source path)>/<candidate_slug>/idea.md`, where the container follows the vault prior-art derivation (a source already grouped under `Projects/Products/` lands beside its neighbours; everything else resolves to `Projects/ideas/`). Once a Jira key resolves, Phase 5 relocates the file to `$SPECS_PATH/specifications/<KEY>-<slug>/idea.md` and, behind a consent choice, hands it off onto the specs repo's default branch (opening a pull request) or reports it as relocated-but-not-yet-handed-off if the user declines.
 
-**Relocation is `/idea`'s alone.** [`/create-vi <KEY>`](create-vi.md) finds `idea.md` at that path afterward and never moves it itself — an explicit `@<path>` argument to [`/create-vi`](create-vi.md) is a separate, out-of-contract read that is likewise never relocated.
+**Relocation is `/idea`'s alone.** [`/create-prd <KEY>`](create-prd.md) finds `idea.md` at that path afterward and never moves it itself — an explicit `@<path>` argument to [`/create-prd`](create-prd.md) is a separate, out-of-contract read that is likewise never relocated.
 
 ## Gates
 
-`/idea` has no reviewer agent — its bounded grill is the gate. By default the grill asks at most 10 questions across the ranked ambiguity gaps (problem clarity, target users, desired outcome, scope, evidence sufficiency, success signal, terminology) and then stops; any remaining high-impact gaps become `[NEEDS CLARIFICATION]` markers in `idea.md`, capped at 3, with reasonable defaults recorded as Assumptions instead. `--deep` removes the bound and runs the grill to convergence. There is no style check and no structural pre-lint in this command — both first appear in [`/create-vi`](create-vi.md). A `status: draft` `idea.md` (any open `[NEEDS CLARIFICATION]`) is never handed off, regardless of what else the run resolved.
+`/idea` has no reviewer agent — its bounded grill is the gate. By default the grill asks at most 10 questions across the ranked ambiguity gaps (problem clarity, target users, desired outcome, scope, evidence sufficiency, success signal, terminology) and then stops; any remaining high-impact gaps become `[NEEDS CLARIFICATION]` markers in `idea.md`, capped at 3, with reasonable defaults recorded as Assumptions instead. `--deep` removes the bound and runs the grill to convergence. There is no style check and no structural pre-lint in this command — both first appear in [`/create-prd`](create-prd.md). A `status: draft` `idea.md` (any open `[NEEDS CLARIFICATION]`) is never handed off, regardless of what else the run resolved.
 
 ## Example
 
@@ -67,8 +67,8 @@ The run validates `$VAULT_PATH`, classifies the argument as a prompt, ingests it
 
 ## See also
 
-- [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off at the `vi-creation` seam.
-- [`/create-vi`](create-vi.md) — the next phase; finds `idea.md` once `/idea` has relocated and handed it off.
+- [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off at the `prd-creation` seam.
+- [`/create-prd`](create-prd.md) — the next phase; finds `idea.md` once `/idea` has relocated and handed it off.
 - [Model routing](../reference/model-routing.md) — the classification and model-fallback rules `/idea` applies in Phase 0.
 - [Session cost](../reference/session-cost.md) and [Session feedback](../reference/session-feedback.md) — the terminal Phase 6 bookkeeping every run emits.
 - [`idea-format.md`](../../references/idea-format.md) — the canonical structure `idea.md` is authored against.

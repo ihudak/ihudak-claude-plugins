@@ -20,9 +20,9 @@ if [ "${1:-}" = "--selftest" ]; then
       rc=1
     fi
   }
-  expect "numeric dash forms are rejected"      1 "$here/fixtures/vi-bad.md"
-  expect "placeholder dash forms are rejected"  1 "$here/fixtures/vi-bad-placeholders.md"
-  expect "hash forms and real keys are accepted" 0 "$here/fixtures/vi-good.md"
+  expect "numeric dash forms are rejected"      1 "$here/fixtures/prd-bad.md"
+  expect "placeholder dash forms are rejected"  1 "$here/fixtures/prd-bad-placeholders.md"
+  expect "hash forms and real keys are accepted" 0 "$here/fixtures/prd-good.md"
   expect "a nonexistent root is an error"       2 "$here/fixtures/no-such-file.md"
   if [ "$rc" -eq 0 ]; then
     echo "SELFTEST PASS"
@@ -52,7 +52,7 @@ fi
 # The number class is [NnXx0-9] everywhere, and identical on all four
 # alternations. It covers literal numbers plus every placeholder letter these
 # docs actually use -- N, n, x and X. Narrowing it has already cost us once:
-# the class was [N0-9] when the conversion ran, so `[SM-Cx]` in vi-reviewer.md
+# the class was [N0-9] when the conversion ran, so `[SM-Cx]` in prd-reviewer.md
 # passed the gate green and had to be found and fixed by hand (2c56b57).
 # A bracketed `[US-n]` slipped through the same way while the bare `US-n` was
 # caught, because the two branches disagreed about lowercase n.
@@ -81,7 +81,7 @@ EXCLUDED_SUBTREES='^\./(docs|\.remember|\.superpowers|scripts/fixtures)/'
 # purpose. Sanctioned users -- 10 marked lines across 6 files, in three kinds:
 #   * reader tolerance (6): jira-reader's five parse rules, and ard-resolution's
 #     parse of `## Architecture decisions` -- these ACCEPT the legacy form;
-#   * authoring BLOCKER rules (3): vi-reviewer, ard-reviewer, epic-reviewer --
+#   * authoring BLOCKER rules (3): prd-reviewer, ard-reviewer, epic-reviewer --
 #     these FORBID it in a file their own command just wrote;
 #   * readiness-reviewer's MINOR rule (1) -- it REPORTS the legacy form in an
 #     artifact the run did not author, without gating the verdict.

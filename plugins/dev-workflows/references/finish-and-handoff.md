@@ -60,7 +60,7 @@ Compose the draft and BOTH write and show it:
 - **title**: per `commit_convention` (e.g. `<JIRA-KEY> <summary>`).
 - **body**: what was documented; the output files; the Phase 6.5
   render-verification summary; deferred style/review/render items; a link back
-  to the Jira VI.
+  to the Jira PRD.
 - **DO-NOT-MERGE banner** at the very top WHEN Phase 5.8 recorded any
   `document-as-spec` / `skip-and-report` decision:
   `> ⚠ DO NOT MERGE until <JIRA_KEY>-implementation-gaps.md is resolved.`

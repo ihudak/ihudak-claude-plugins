@@ -13,8 +13,8 @@ repo_root:          <absolute path to the docs repo root>
 target_space:       cloud | self-hosted        # the space THIS run documents
 counterpart_space:  cloud | self-hosted        # the OTHER space to search (never equal to target_space)
 profile:            <resolved docs-profile — supplies spaces[].content_root, cross_space_override>
-feature_summary:    <2–4 sentences from jira-reader themes + VI goal>
-jira_key:           <the VI / focus Jira key, e.g. PRODUCT-1234>
+feature_summary:    <2–4 sentences from jira-reader themes + PRD goal>
+jira_key:           <the PRD / focus Jira key, e.g. PRODUCT-1234>
 counterpart_ref:    <optional: a Jira key or PR URL passed via --counterpart; null when absent>
 diff_highlights:    <optional: key filenames/symbols from diff-summarizer to seed topical search>
 ```

@@ -11,11 +11,11 @@ Everything here is **guidance-only** — the plugin NEVER auto-invokes `/compact
 `/clear`, or `/rename`. The goal is to stop relying on a human to keep asking "prepare
 for a compact/clear": the pipeline does the prep and prompts the choice itself.
 
-## 1. Prepare-checkpoint (runs FIRST — unconditional for VI-scoped runs)
+## 1. Prepare-checkpoint (runs FIRST — unconditional for PRD-scoped runs)
 
 At command finalization — AFTER the deliverable artifact is saved/committed, AFTER
 `emit-cost` / feedback / follow-up, and BEFORE the terminal `commit-artifacts` step
-(`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4) — a VI-scoped run
+(`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4) — a PRD-scoped run
 writes/overwrites a **resume pointer**. It runs regardless of which suggestion (or none)
 fires: **prepare always, suggest adaptively.**
 
@@ -36,14 +36,14 @@ uncommitted, since `commit-artifacts` runs after cost. Prepare-first is still sa
 the write happens before the run ends, and therefore before the user can act on the
 printed suggestion.
 
-**Skipped** (no VI anchor to write against): `/idea` (pre-VI, keyless), `/implement`
+**Skipped** (no PRD anchor to write against): `/idea` (pre-PRD, keyless), `/implement`
 **direct** mode, `/document` **doc-edit** mode (Mode B), `/vuln`, `/upgrade`. There the
 durable state is the artifact / branch / PR already on disk; no resume pointer is written.
 
 **Location** (mirror `followup-emission.md` §4 resolution):
 
-1. `$SPECS_PATH` resolvable + writable + the VI dir exists → `<VI-dir>/dev-workflows/resume.md`. *[primary]*
-2. `$SPECS_PATH` writable but no VI dir matched → skip the file; rely on the printed `### Next step`.
+1. `$SPECS_PATH` resolvable + writable + the PRD dir exists → `<PRD-dir>/dev-workflows/resume.md`. *[primary]*
+2. `$SPECS_PATH` writable but no PRD dir matched → skip the file; rely on the printed `### Next step`.
 3. No `$SPECS_PATH`; `$VAULT_PATH` writable → `$VAULT_PATH/dev-workflows/resume/<KEY>-resume.md`.
 4. Neither writable → skip the file; the suggestion still fires with a one-line
    `⚠ could not persist a resume pointer — set $SPECS_PATH or $VAULT_PATH`.
@@ -56,8 +56,8 @@ log). It is intentionally tiny:
 
 - **Last completed:** <command> <args> — <phase or 'command complete'> (<ISO datetime>)
 - **Artifact:** <relative path to the deliverable just written/committed, or 'none (read-only)'>
-- **Next step:** <the exact next command from ### Next step, or 'VI fully processed'>
-- **Suggested session name:** <VI-ID>-<slug>-<role>   (omit this line when no VI-Key exists yet — e.g. /create-vi)
+- **Next step:** <the exact next command from ### Next step, or 'PRD fully processed'>
+- **Suggested session name:** <PRD-ID>-<slug>-<role>   (omit this line when no PRD-Key exists yet — e.g. /create-prd)
 - **Carry-forward decisions:** <0–N one-line decisions the next phase needs that are NOT already in the artifact; 'none' if none>
 ```
 
@@ -77,7 +77,7 @@ each next option the offer names, compare its role to the just-finished command'
   better choice when one person keeps wearing both hats (the prior role's reasoning is
   now noise). `/compact` still works if continuing right away; a genuinely different
   person just starts fresh and re-reads disk.
-- Next options **span both** (e.g. `/create-vi` → PM `/release-notes` OR hand to PA/PE) →
+- Next options **span both** (e.g. `/create-prd` → PM `/release-notes` OR hand to PA/PE) →
   present **both branches**: "continuing as PM → `/compact`; handing off (even to
   yourself) → `/clear`."
 - **User is done / ending the session** → suggest nothing.
@@ -96,18 +96,18 @@ own `next-phase-offer` output already carries. The role graph is owned by
 
 ## 4. Session-name aid
 
-The VI-Key is first available at **`/release-notes`** and is present for every PA/PE/Dev
+The PRD-Key is first available at **`/release-notes`** and is present for every PA/PE/Dev
 command (`/create-ard`, `/epics`, `/specify`, `/design`, `/ready`, `/implement`,
-`/document`, `/release-notes` — all take `<VI>`). For those, print a suggested
-`/rename <VI-ID>-<slug>-<role>` line so the user can relocate the session in
+`/document`, `/release-notes` — all take `<PRD>`). For those, print a suggested
+`/rename <PRD-ID>-<slug>-<role>` line so the user can relocate the session in
 `claude --resume` later (e.g. after going home). `<role>` is the just-finished command's
 lane tag (pm / pa / pe / dev). Guidance-only — a command cannot run `/rename` itself.
 
-**`/idea` and `/create-vi` are excluded** from the rename aid: the PM ideation phase is
+**`/idea` and `/create-prd` are excluded** from the rename aid: the PM ideation phase is
 short, and on the common path it runs *before* the paste-into-Jira + re-import round-trip
-that mints the VI, so there is usually no VI-ID to name a session after. Two runs do carry
-one — a `vi`-provenance `/idea` source, and a `vi_disposition: rewrite` run whose key is
-the VI being rewritten — but the phase stays short enough that no label is auto-suggested
+that mints the PRD, so there is usually no PRD-ID to name a session after. Two runs do carry
+one — a `prd`-provenance `/idea` source, and a `prd_disposition: rewrite` run whose key is
+the PRD being rewritten — but the phase stays short enough that no label is auto-suggested
 either way; the PM names the session manually if they want one.
 
 ## 5. Contract (5 rules)
@@ -115,7 +115,7 @@ either way; the PM names the session manually if they want one.
 1. **Guidance-only** — never auto-invokes `/compact`, `/clear`, or `/rename`.
 2. **Prepare-first** — the disk flush (resume pointer) always happens before the run
    ends, so acting on the printed suggestion is safe. Prepare is unconditional
-   (VI-scoped); only the suggestion is adaptive. The canonical terminal order is:
+   (PRD-scoped); only the suggestion is adaptive. The canonical terminal order is:
    **deliverable + handoff → feedback → follow-ups → cost → `resume.md` →
    `commit-artifacts` → the run's last printed output**. What binds every
    command is the **emitter tail** — feedback → follow-ups → cost →
@@ -128,7 +128,7 @@ either way; the PM names the session manually if they want one.
    (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4).
 3. **Role-aware via a single graph** — the compact/clear split reads
    `next-phase-offer.md`'s role labels; the role graph is not duplicated here.
-4. **Mode-aware** — direct / doc-edit / non-pipeline / pre-VI runs (no VI anchor) → no
+4. **Mode-aware** — direct / doc-edit / non-pipeline / pre-PRD runs (no PRD anchor) → no
    `resume.md`, no `/rename`, and the suggestion degrades to a plain optional `/compact`
    note (or is omitted, consistent with `next-phase-offer`'s mode-aware omission).
 5. **Never blocks** — a nudge appended to the Final Report, exactly like the next-phase offer.

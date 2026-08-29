@@ -19,8 +19,8 @@ Resolution is Jira-key-first and deterministic — there is no interactive "pick
 Vault availability is checked first, and the write target degrades through a fallback ladder, most-durable option first:
 
 1. **Vault writable** → the project-file/`Tasks.md` split above, as the primary case.
-2. **No vault, but `$SPECS_PATH` resolves to the VI's own spec directory** → `<VI-dir>/dev-workflows/<KEY>-followups.md`, with any verbose note inlined as a section of that same file rather than a separate `Journal.md`, since there is no vault to hold one.
-3. **No vault, no matching `$SPECS_PATH` VI directory, but the run's source was an imported Jira directory** → written beside that imported directory, the same place `/epics` and `/release-notes` already drop their own no-vault output.
+2. **No vault, but `$SPECS_PATH` resolves to the PRD's own spec directory** → `<PRD-dir>/dev-workflows/<KEY>-followups.md`, with any verbose note inlined as a section of that same file rather than a separate `Journal.md`, since there is no vault to hold one.
+3. **No vault, no matching `$SPECS_PATH` PRD directory, but the run's source was an imported Jira directory** → written beside that imported directory, the same place `/epics` and `/release-notes` already drop their own no-vault output.
 4. **Nothing resolvable** → report-only: the follow-ups stay in the run's Final Report and nothing is written anywhere. The plugin never writes into your current working directory on this path, since it may be a code repository.
 
 Every non-vault tier also keeps the follow-ups visible in the Final Report, so a degraded write location never means lost information — only a less durable one, flagged with a notice naming the fallback path used.

@@ -27,15 +27,15 @@ Flags: `--design-twice` forces the Phase 5 interface fan-out on the run's load-b
 1. **Resolve the Jira input via the shared front-end.** Classify `$ARGUMENTS` minus every recognised flag (`--design-twice`) before resolving — strip it first, exactly as `commands/idea.md`'s Phase 1 strips its own flags: an unstripped `--design-twice` is parsed as part of the Jira key and the run resolves the wrong feature, or fails. Execute
    `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against the stripped `$ARGUMENTS`. `/design` is
    **jira-driven only**: expect `mode: jira-driven`. The front-end owns the `$VAULT_PATH` /
-   `jira-products` validation, Fallbacks A/B **and D/E**, and the VI-selector (key-or-directory) +
+   `jira-products` validation, Fallbacks A/B **and D/E**, and the PRD-selector (key-or-directory) +
    focus-Epic grammar. Carry forward:
-   - `jira_key` — the resolved **top-level** key: the **VI** when a focus Epic is present, or the
-     stand-alone top-level item's own key otherwise. Define `<VI>` = `jira_key`.
-   - `focus_key` — the **Epic** to design within its VI, or `null` for a bare VI / stand-alone item /
+   - `jira_key` — the resolved **top-level** key: the **PRD** when a focus Epic is present, or the
+     stand-alone top-level item's own key otherwise. Define `<PRD>` = `jira_key`.
+   - `focus_key` — the **Epic** to design within its PRD, or `null` for a bare PRD / stand-alone item /
      directory. Define `<EPIC>` = `focus_key` (may be `null`).
 
    If the front-end returns `mode: direct`, stop with
-   `DESIGN_NEEDS_JIRA: /design needs a Jira key (a VI or an Epic) or an imported-Jira directory.` —
+   `DESIGN_NEEDS_JIRA: /design needs a Jira key (a PRD or an Epic) or an imported-Jira directory.` —
    `/design` has no direct-prompt behaviour. **`/design` uses the front-end only to parse the grammar
    and classify the key; it does NOT call `jira-reader` and does NOT read the Jira export for content —
    the requirements source of truth is the merged `specification.md` in the specs repo.**
@@ -53,21 +53,21 @@ it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run �
 
 *(The preflight runs here, before the gate below, because `require-on-main` performs **no** `fetch` of its own — §3.2 — and relies on this step's best-effort one. Gating first would test never-fetched refs: a just-merged artifact would be missed on `origin/<default>` while the stale remote-tracking ref for its deleted branch still carries it, producing a false row D/E stop. `specs-preflight` self-gates on `$SPECS_PATH`, so it is safe this early.)*
 
-3. **Map onto the specs repo + require the spec on main.** Derive provisional kebab-case slugs from the relevant Jira title(s): `<vslug>` for `<VI>`, and `<eslug>` for `<EPIC>` when `focus_key` is set.
-   - **Resolve the VI dir:** `specifications/<VI>-<vslug>/` — honor an existing dir matched by key-number (tolerate a stray `-`/`_` after the key and a human-adjusted slug); use the freshly derived `<VI>-<vslug>` only if none exists.
+3. **Map onto the specs repo + require the spec on main.** Derive provisional kebab-case slugs from the relevant Jira title(s): `<vslug>` for `<PRD>`, and `<eslug>` for `<EPIC>` when `focus_key` is set.
+   - **Resolve the PRD dir:** `specifications/<PRD>-<vslug>/` — honor an existing dir matched by key-number (tolerate a stray `-`/`_` after the key and a human-adjusted slug); use the freshly derived `<PRD>-<vslug>` only if none exists.
    - **Resolve the feature folder** by case:
-     - **`focus_key` set** → the per-Epic home `specifications/<VI>-<vslug>/<EPIC>-<eslug>/` (same honor-existing tolerance on the `<EPIC>-<eslug>` segment); the target is `specification.md` there.
-     - **`focus_key` null** → resolved in step 4 (Granularity): either the flat VI dir (stand-alone Epic / broad VI spec) or a per-Epic subfolder the picker selects.
+     - **`focus_key` set** → the per-Epic home `specifications/<PRD>-<vslug>/<EPIC>-<eslug>/` (same honor-existing tolerance on the `<EPIC>-<eslug>` segment); the target is `specification.md` there.
+     - **`focus_key` null** → resolved in step 4 (Granularity): either the flat PRD dir (stand-alone Epic / broad PRD spec) or a per-Epic subfolder the picker selects.
    - **Gate the resolved target on main** (the `mgd-specifications` **main** branch is the handoff surface, verified against `origin/<default>` by ref — never a worktree file-existence check). Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against the resolved `specification.md` path — immediately once `focus_key` is set, or once step 4 resolves the target for `focus_key` null — and map its §3.7 return value by `stopped` first, never by `on_main` alone: any stopping state → stop per §4.4, naming the concrete branch/PR state it reports; otherwise (`stopped: false`) `pass` → proceed; `pass_amending` → proceed, printing §3.3's row-B message (this run's own in-progress branch amends `specification.md`, so it legitimately differs from `<default>`) — proceed as-is, never offering a repair here, since that would discard this run's own in-progress amendments; `absent` (row F) → stop: `no specification.md exists yet for this item — run /dev-workflows:specify for it and merge it to the specs repo main first.`; `unmanaged` → behave exactly as before this feature.
 
 4. **Granularity — the Epic is the unit of work; no fan-out. Progress-aware Epic picker.** One
    `design.md` per invocation. Resolve by `focus_key`:
-   - **`focus_key` set** (explicit `<VI> <Epic>` / `<dir> <Epic>`, or a nested-Epic key auto-resolved by
+   - **`focus_key` set** (explicit `<PRD> <Epic>` / `<dir> <Epic>`, or a nested-Epic key auto-resolved by
      the front-end) → the Epic is chosen; the feature folder is its per-Epic home. Skip the picker; go
      to step 5.
-   - **`focus_key` null** → inspect the resolved VI dir in the specs repo:
-     - it holds a **flat `specification.md`** (a stand-alone top-level Epic, or a broad VI-level spec) → one design; the feature folder is the VI dir itself. Skip the picker; go to step 5 (step 3's gate re-applies against this flat path).
-     - it holds **Epic subfolders** → enumerate the **spec'd** ones using the ref test `git -C "$SPECS_PATH" cat-file -e "origin/<default>:specifications/<VI>-<vslug>/<EPIC>-<eslug>/specification.md" 2>/dev/null` (exit 0 = present on `<default>`; the `2>/dev/null` is required — git writes `fatal:` to stderr on absence) — never a worktree file-existence check, which would list a branch-only Epic as designable for a user to select before step 3's gate stops on it. A subfolder that fails the test is excluded from the actionable set and counted in the excluded-count report, with the reason distinguished: *"N Epic(s) excluded — no specification.md; M excluded — specification.md not yet merged to `<default>`."* Then branch on count — this is the reusable **progress-aware Epic-picker pattern** in `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` (§ Progress-aware Epic picker), applied here with `/design`'s own done-predicate and **enumerated from the specs repo** (not `jira-reader`):
+   - **`focus_key` null** → inspect the resolved PRD dir in the specs repo:
+     - it holds a **flat `specification.md`** (a stand-alone top-level Epic, or a broad PRD-level spec) → one design; the feature folder is the PRD dir itself. Skip the picker; go to step 5 (step 3's gate re-applies against this flat path).
+     - it holds **Epic subfolders** → enumerate the **spec'd** ones using the ref test `git -C "$SPECS_PATH" cat-file -e "origin/<default>:specifications/<PRD>-<vslug>/<EPIC>-<eslug>/specification.md" 2>/dev/null` (exit 0 = present on `<default>`; the `2>/dev/null` is required — git writes `fatal:` to stderr on absence) — never a worktree file-existence check, which would list a branch-only Epic as designable for a user to select before step 3's gate stops on it. A subfolder that fails the test is excluded from the actionable set and counted in the excluded-count report, with the reason distinguished: *"N Epic(s) excluded — no specification.md; M excluded — specification.md not yet merged to `<default>`."* Then branch on count — this is the reusable **progress-aware Epic-picker pattern** in `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` (§ Progress-aware Epic picker), applied here with `/design`'s own done-predicate and **enumerated from the specs repo** (not `jira-reader`):
        - **exactly 1 spec'd Epic** → no picker; auto-select it; re-point the feature folder to its per-Epic subfolder; emit a one-line notice.
        - **≥2 spec'd Epics** → render the picker, one `choices` entry per spec'd Epic (its ○/◐/● marker + key + title), then `"Other… (describe)"`. Compute each Epic's state from `/design`'s **done-predicate** against that Epic's resolved folder:
          - **○ not started** — a `specification.md` exists there but no `design.md` and no `_design-session.md` → selectable.
@@ -100,7 +100,7 @@ MUST be `"Other… (describe)"`.
 4. **Repos search base (`$REPOS_PATH`).** Read `${REPOS_PATH:-/workspace}` (may be colon-separated):
    `choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]`
 
-Also display (context): resolved feature folder; resolved `<VI>` / `<EPIC>` (or 'none — VI-level');
+Also display (context): resolved feature folder; resolved `<PRD>` / `<EPIC>` (or 'none — PRD-level');
 resolved `$SPECS_PATH`; resolved `$REPOS_PATH`.
 
 ---
@@ -152,7 +152,7 @@ or inherit them). **No Jira re-read** — the spec is the requirements source of
 
 ## Phase 2.5 — Resolve applicable ARD (optional)
 
-Resolve any ARD for this item by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with `<VI>`, `<EPIC>` (`focus_key`), and `$SPECS_PATH`. On `status: none`, **skip the rest of this phase and proceed exactly as before** (no ARD in play). On `status: unmerged`, **stop**, naming the returned `branch` and any `pr`. On `status: found`, carry the returned `invariants` (VI-level inherited + Epic-level `AD#N`) and `guidance_summary` into Phase 5 — the design is authored **within** them, and a necessary deviation is recorded in a `## ARD deviations` section of `design.md` + as a `- [ ]` open question (never edit the ARD). The `invariants` list is passed to `design-reviewer` in Phase 6 as `applicable_ard`.
+Resolve any ARD for this item by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with `<PRD>`, `<EPIC>` (`focus_key`), and `$SPECS_PATH`. On `status: none`, **skip the rest of this phase and proceed exactly as before** (no ARD in play). On `status: unmerged`, **stop**, naming the returned `branch` and any `pr`. On `status: found`, carry the returned `invariants` (PRD-level inherited + Epic-level `AD#N`) and `guidance_summary` into Phase 5 — the design is authored **within** them, and a necessary deviation is recorded in a `## ARD deviations` section of `design.md` + as a `- [ ]` open question (never edit the ARD). The `invariants` list is passed to `design-reviewer` in Phase 6 as `applicable_ard`.
 
 ---
 
@@ -342,9 +342,9 @@ Write the feature folder: `design.md` (flat, alongside `specification.md`), the 
 Then **offer** (commit-when-asked — never automatic), presenting `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's choice array verbatim:
 `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`
 
-On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: design`; `feature_folder` as resolved in Phase 0 — the per-Epic subfolder for a **per-Epic** or **stand-alone-Epic** design (`<EPIC>` = `focus_key`, which for a stand-alone Epic equals `jira_key`), or the VI dir for a **broad VI-level** design (`focus_key` null); Epic keys are globally unique, so the per-Epic form needs no VI prefix — §2.2 derives `design/<EPIC>-<eslug>` or `design/<VI>-<vslug>` from it, matching today's branch names, both forms using hyphens; `deliverable_paths` = `design.md`, the amended `specification.md`, `_design-session.md`, and `_design-glossary.md`; `title: <EPIC|VI> Add engineering design`; and `body_facts` = the `design.md` sections authored, the spec-challenge count (`## Engineering review` notes / new spec `- [ ]`), the confirmed repo set, and the `design-reviewer` verdict. **Merged-to-main = ready for `/implement`.** Emit its §4.1 outcome line in the Final report.
+On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: design`; `feature_folder` as resolved in Phase 0 — the per-Epic subfolder for a **per-Epic** or **stand-alone-Epic** design (`<EPIC>` = `focus_key`, which for a stand-alone Epic equals `jira_key`), or the PRD dir for a **broad PRD-level** design (`focus_key` null); Epic keys are globally unique, so the per-Epic form needs no PRD prefix — §2.2 derives `design/<EPIC>-<eslug>` or `design/<PRD>-<vslug>` from it, matching today's branch names, both forms using hyphens; `deliverable_paths` = `design.md`, the amended `specification.md`, `_design-session.md`, and `_design-glossary.md`; `title: <EPIC|PRD> Add engineering design`; and `body_facts` = the `design.md` sections authored, the spec-challenge count (`## Engineering review` notes / new spec `- [ ]`), the confirmed repo set, and the `design-reviewer` verdict. **Merged-to-main = ready for `/implement`.** Emit its §4.1 outcome line in the Final report.
 
-### Next Epic (after a per-Epic design from a multi-Epic VI)
+### Next Epic (after a per-Epic design from a multi-Epic PRD)
 
 When this run designed a per-Epic Epic selected from Phase 0's ≥2-Epics picker, offer — once the
 write/commit completes:
@@ -352,7 +352,7 @@ write/commit completes:
 On **"Next Epic"**, re-render the Phase 0 picker **minus the just-completed Epic** (recompute each
 remaining Epic's ○/◐/● state — the freshly-authored design now shows **● done** and drops out of the
 actionable set), then, on selection, loop back through Phases 2–7 for the selected Epic. This offer does
-not apply to a stand-alone Epic, a single-Epic VI, or a broad VI-level design.
+not apply to a stand-alone Epic, a single-Epic PRD, or a broad PRD-level design.
 
 ## Phase 8 — Session maintenance & feedback
 
@@ -368,7 +368,7 @@ persists the plugin-facing slice of its report as session feedback.
 `resume.md` write runs later, in the terminal cost phase, per
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the
 guidance only), then a
-same-role `/compact` suggestion + `/rename <VI-ID>-<slug>-dev`. Guidance only, never auto-run.
+same-role `/compact` suggestion + `/rename <PRD-ID>-<slug>-dev`. Guidance only, never auto-run.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
    > "Analyse this session and return a Lessons Learned report.
@@ -406,7 +406,7 @@ file inside `$SPECS_PATH`, alongside the feature folder — the intended home.
 
 Terminal phase — the NEW final operational phase; runs after Phase 8 (feedback)
 and NEVER interrupts an earlier phase. Records this command's token-cost
-contribution to the VI by citing
+contribution to the PRD by citing
 `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and calling its single
 `emit-cost` entry point. Unlike feedback, **cost ALWAYS runs** — it never "writes
 nothing".
@@ -417,15 +417,15 @@ run's `jira_key` (or `null`) and `source`, and `plugin_version` (read from
 transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),
 runs `scripts/session-cost.py` to compute the per-model token-cost delta against
 the price table (§4), records the optional statusline cross-check (§5), and
-appends one per-invocation entry to `<VI-dir>/dev-workflows/cost/<sid8>.md` via
+appends one per-invocation entry to `<PRD-dir>/dev-workflows/cost/<sid8>.md` via
 the specs-first ladder (§8) — pending + opportunistic move-then-delete
-reconciliation (§9) when no VI key resolves. **The checkpoint advances even in
+reconciliation (§9) when no PRD key resolves. **The checkpoint advances even in
 the pending / report-only tiers.** Surface the persisted path (or the
 report-only notice) as this phase's only output.
 
 **Write the resume pointer.** Cite
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and write/overwrite
-`<VI-dir>/dev-workflows/resume.md` now — after the cost entry above, so the
+`<PRD-dir>/dev-workflows/resume.md` now — after the cost entry above, so the
 pointer reflects the completed run, and before the commit step below, so it is
 included in it. Redact per §1. Silent; the printed `### Context hygiene`
 guidance already appeared in the report.
@@ -462,13 +462,13 @@ The report always states exactly one of the Phase 5 interface fan-out outcomes w
 
 ### Next step
 
-End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): → `/dev-workflows:implement <VI> <Epic>` (depth, still Dev), which will not start against this design until the pull request above is merged; the **Epic fan-out** `/dev-workflows:design <VI> <another-Epic>` designs a sibling Epic (breadth, no merge wait — a different Epic's design). If the run BLOCKED or `design.md` has open questions, recommend resolving those first.
+End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): → `/dev-workflows:implement <PRD> <Epic>` (depth, still Dev), which will not start against this design until the pull request above is merged; the **Epic fan-out** `/dev-workflows:design <PRD> <another-Epic>` designs a sibling Epic (breadth, no merge wait — a different Epic's design). If the run BLOCKED or `design.md` has open questions, recommend resolving those first.
 
 ### Context hygiene
 
 The resume pointer is written in the terminal cost phase (Phase 9), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
 
-- **Continuing on this Epic (`/dev-workflows:ready` / `/dev-workflows:implement <VI> <Epic>`) or the next Epic (`/dev-workflows:design <VI> <Epic2>`) — all still Dev?** → run **`/compact`** — context stays relevant.
-- Consider **`/rename <VI-ID>-<slug>-dev`** to relocate this session later.
+- **Continuing on this Epic (`/dev-workflows:ready` / `/dev-workflows:implement <PRD> <Epic>`) or the next Epic (`/dev-workflows:design <PRD> <Epic2>`) — all still Dev?** → run **`/compact`** — context stays relevant.
+- Consider **`/rename <PRD-ID>-<slug>-dev`** to relocate this session later.
 
 Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.

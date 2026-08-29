@@ -15,12 +15,12 @@ Writes or updates product documentation — either a full Jira-driven feature-do
 
 **A reader needs to know which mode a run is in before anything else on this page applies.** `/document` selects between two structurally different pipelines from the first argument token, and everything below — inputs, outputs, and gates — differs by mode:
 
-- **Jira mode (Mode A)** — the input resolves `jira-driven` through the shared front-end: a JiraID token (optionally followed by `cloud` or `self-hosted`), or a directory that inspects as a Jira export. This is the **feature-documentation** pipeline: read a VI's full Jira hierarchy, resolve its PR diffs, and synthesise product documentation for it.
+- **Jira mode (Mode A)** — the input resolves `jira-driven` through the shared front-end: a JiraID token (optionally followed by `cloud` or `self-hosted`), or a directory that inspects as a Jira export. This is the **feature-documentation** pipeline: read a PRD's full Jira hierarchy, resolve its PR diffs, and synthesise product documentation for it.
 - **Direct mode (Mode B)** — everything else: a leading `@file` token, free-text prose, or a non-Jira-export directory. This is the **one-shot doc-edit** pipeline: apply a described change to existing pages with no Jira and no PR resolution at all.
 
 The optional `cloud`/`self-hosted` token after a JiraID is a **space constraint**, not a target list: it scopes a Jira-mode run to documenting one space only, leaving the other space's rendered output untouched. Omitting it lets Phase 4.5 determine and confirm the applicable space(s) once the Jira hierarchy and repos are resolved. `both` is deliberately not an accepted value — omit the argument to cover both spaces. `--counterpart <JiraID|PR-url>` is valid only on a space-constrained run; it points at the *other* space's existing documentation for the same feature and is consumed as read-only grounding, never copied into the written page.
 
-For writing child Epic drafts from a VI, use [`/epics`](epics.md). For release notes, use [`/release-notes`](release-notes.md) — `/document` never writes release-notes or what's-new pages, since those are generated from Jira by the docs team's own automation. For a change that touches both code and docs, use [`/implement`](implement.md) instead of either mode of this command.
+For writing child Epic drafts from a PRD, use [`/epics`](epics.md). For release notes, use [`/release-notes`](release-notes.md) — `/document` never writes release-notes or what's-new pages, since those are generated from Jira by the docs team's own automation. For a change that touches both code and docs, use [`/implement`](implement.md) instead of either mode of this command.
 
 ## How it runs
 
@@ -54,7 +54,7 @@ Ten `dev-workflows` subagents are dispatched, none shared by both modes except `
 **Direct mode** needs the doc-edit description itself — an `@file` or free text — and expects the content to already be in the user's head or the file, not scattered across Jira items and PR diffs; that's the boundary with Jira mode. It works from whatever `cwd` is: when `cwd` is not a git repository, Phase 0 records all three of direct mode's gates and skips the checklist extraction, rather than stopping the run. Its toolchain preflight is sourced only from the repo's own config signals and documented `Prerequisites` — there is no profile in direct mode, since a profile is a Jira-mode/docs-repo concept.
 
 **Jira mode** needs:
-- **A resolved Jira input** via the shared front-end — a JiraID or a Jira-export directory. Jira mode never gates this VI on being merged anywhere: nothing in the command calls `require-on-main`, so it reads the hierarchy straight from the export via `jira-reader` regardless of what specs artifacts exist or where they live.
+- **A resolved Jira input** via the shared front-end — a JiraID or a Jira-export directory. Jira mode never gates this PRD on being merged anywhere: nothing in the command calls `require-on-main`, so it reads the hierarchy straight from the export via `jira-reader` regardless of what specs artifacts exist or where they live.
 - **A writable docs repository**, resolved cwd-preferred: the git root of `cwd` when it carries a docs signal (a `*:build`/`*:lint`/`docs:*` script, a `.docstack/`/`mkdocs.yml`/`antora.yml`/`.vale.ini`/`DOCUMENTATION-GUIDELINES.md` file, or any `_snippets/` directory), else the `$DOCS_PATH` hint (default `/workspace/docs`), else a docs repo discovered under `$REPOS_PATH` by signal (an in-repo profile, or a docs signal — never by repository name), else an explicit ask. A resolved path that fails `test -w` stops the run with `REPO_NOT_WRITEABLE`.
 - **A docs-profile** — loaded in-repo, from the built-in default (which applies only to a repo shaped like the bundled worked example), or generated on demand by an inline `/docs-profile` run for any other repo that has none; a custom repo whose profiling run is cancelled stops with `PROFILE_REQUIRED`.
 - **Additive `specs`** (optional, from `$SPECS_PATH` or a passed directory) — never gated; an empty list proceeds without prompting. When present, it feeds Phase 5.8's three-way Jira/spec/code discrepancy check instead of the plain Jira/code two-way one.
@@ -62,7 +62,7 @@ Ten `dev-workflows` subagents are dispatched, none shared by both modes except `
 
 ## What it produces
 
-**Direct mode** produces edits to the target file(s) in `cwd`, left **uncommitted** — the user manages git manually for a doc edit, and this mode creates no branch and no commit, ever. It always runs its four Phase 4 maintenance agents (documentation, knowledge base, instructions, `impl-maintenance`) and, on any accepted proposal, applies it uncommitted alongside the doc edit. It ends with a Phase 5 report; there is no next-step recommendation printed, since a one-shot edit has no VI to hand off.
+**Direct mode** produces edits to the target file(s) in `cwd`, left **uncommitted** — the user manages git manually for a doc edit, and this mode creates no branch and no commit, ever. It always runs its four Phase 4 maintenance agents (documentation, knowledge base, instructions, `impl-maintenance`) and, on any accepted proposal, applies it uncommitted alongside the doc edit. It ends with a Phase 5 report; there is no next-step recommendation printed, since a one-shot edit has no PRD to hand off.
 
 **Jira mode** produces one or more product-doc pages, written by `doc-writer` into the resolved docs repo at the confirmed write targets. When the write context is `docs_repo` (or a `non_docs_repo` the user confirmed), Phase 6.2 creates a feature branch before writing, the orchestrator commits `doc-writer`'s output, and Phase 8.5 squashes the run into clean history and offers a push plus pull request; for `obsidian` or `plain_dir` contexts nothing is ever branched or committed there. When Phase 5.8 records a `document-as-spec`, `skip-and-report`, or qualifying `document-as-code` decision, a `<KEY>-implementation-gaps.md` bug-report draft is also written to the ticket's vault project folder. The run ends with a Phase 9 Final Report (Jira hierarchy summary, repos analysed, PRs in scope, output files, branch, the verification-gates table, render verification, review verdict and triage, the four maintenance summaries, screenshots staged for manual upload, implementation gaps, deferred items) followed by Phase 10 follow-ups and Phase 11 session cost.
 
@@ -92,13 +92,13 @@ Jira mode also runs a Phase 5.8 **discrepancy analysis** whenever the Jira narra
 
 ## Example
 
-Document a shipped VI once every Epic under it is implemented (Jira mode):
+Document a shipped PRD once every Epic under it is implemented (Jira mode):
 
 ```
 /dev-workflows:document PRODUCT-1234
 ```
 
-The run resolves the docs repo and profile, asks for output path / PR filter / screenshot intent, classifies (typically `SIGNIFICANT`), reads the Jira hierarchy, resolves the PR repos, determines the applicable space(s), summarises the diffs in parallel, locates write targets, reviews images, plans the documentation, resolves any Jira/spec/code discrepancy, writes the pages via `doc-writer`, runs the style check and render verification, gates on `doc-reviewer`, and closes with the four maintenance agents plus the Final Report — recommending `/dev-workflows:release-notes <VI>` next, once every Epic is documented.
+The run resolves the docs repo and profile, asks for output path / PR filter / screenshot intent, classifies (typically `SIGNIFICANT`), reads the Jira hierarchy, resolves the PR repos, determines the applicable space(s), summarises the diffs in parallel, locates write targets, reviews images, plans the documentation, resolves any Jira/spec/code discrepancy, writes the pages via `doc-writer`, runs the style check and render verification, gates on `doc-reviewer`, and closes with the four maintenance agents plus the Final Report — recommending `/dev-workflows:release-notes <PRD>` next, once every Epic is documented.
 
 A same-session typo fix on an unrelated page runs direct mode instead — `/dev-workflows:document @note.md` or a free-text description — which skips Jira and PR resolution entirely, explores the target file and its neighbours, plans, edits, runs the mandatory style check, and ends with a report; no branch, no commit, and no reviewer gate.
 
@@ -106,8 +106,8 @@ A same-session typo fix on an unrelated page runs direct mode instead — `/dev-
 
 - [Roles and phases](../roles-and-phases.md) — what the `dev` role owns, including why both of this command's modes emit the same fixed `documenting`/`dev` cost attribution.
 - [`/implement`](implement.md) — the command to use instead for a change that touches both code and docs.
-- [`/epics`](epics.md) — writes child Epic drafts from a VI; a different output from either mode of this command.
-- [`/release-notes`](release-notes.md) — the recommended next step once a VI is fully documented, and the sibling command whose own phase/role IS inferred rather than fixed.
+- [`/epics`](epics.md) — writes child Epic drafts from a PRD; a different output from either mode of this command.
+- [`/release-notes`](release-notes.md) — the recommended next step once a PRD is fully documented, and the sibling command whose own phase/role IS inferred rather than fixed.
 - [Model routing](../reference/model-routing.md) — the classification rules, and the `doc-planner` / `doc-writer` / `doc-reviewer` Opus pins used in Jira mode only.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Follow-ups](../reference/follow-ups.md) — the terminal bookkeeping both modes emit, at Phase 9–11 in Jira mode and Phase 5–7 in direct mode.
 - [`finding-triage.md`](../../references/finding-triage.md) — the triage step run between `doc-reviewer` and `doc-fixer` in Jira mode only.

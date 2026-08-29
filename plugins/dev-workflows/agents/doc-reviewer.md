@@ -15,7 +15,7 @@ Do NOT invoke for Epic drafts — those go through `epic-reviewer`. The two revi
 
 The caller passes a structured brief:
 
-- **Task description** — one-paragraph summary of the feature being documented and the VI key.
+- **Task description** — one-paragraph summary of the feature being documented and the PRD key.
 - **Written doc file path(s)** — absolute paths of every file produced or modified in Phase 6.3.
 - **Jira directory path** — `<vault_path>/jira-products/<JIRA_KEY>/` so the reviewer can cross-check claims.
 - **Diff summaries** — the array of `diff-summarizer` outputs from Phase 5.

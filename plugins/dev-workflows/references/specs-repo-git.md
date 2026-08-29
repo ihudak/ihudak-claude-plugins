@@ -7,7 +7,7 @@ printed output; this reference owns the gates, the bounded write authority, the
 branch policy, and the failure discipline — the same shape as
 `feedback-emission.md`, `cost-emission.md`, and `followup-emission.md`.
 
-**Purpose.** The per-VI `dev-workflows/` area exists so feedback, cost,
+**Purpose.** The per-PRD `dev-workflows/` area exists so feedback, cost,
 follow-ups, and the resume pointer reach the **plugin maintainer**. They reach
 the maintainer only if they are committed and pushed. The emitters deliberately
 never commit — they run mid-run, often from inside someone else's repository,
@@ -25,7 +25,7 @@ loop: a **run-start** flush and branch disposition (`specs-preflight`, §3) and 
    fire; a `cd` would corrupt their git state.
 2. **Bounded paths.** Only §2.1 paths are ever staged. `git add -A` is never
    issued at repository scope — always `git add -A -- <literal paths>`.
-3. **Bounded branches.** Only branches matching `^(idea|vi|ard|spec|design|ready)/`
+3. **Bounded branches.** Only branches matching `^(idea|prd|ard|spec|design|ready)/`
    are the plugin's to switch away from or delete (§2.2).
 4. **Never destructive.** No `push --force`, no `push -f`, no `branch -D`, no
    `merge`, no `rebase`, no `reset`, and never delete an `index.lock`.
@@ -51,7 +51,7 @@ set is ever staged.
 ```
 
 Sources: `feedback-emission.md` §2 tiers 1–2, `cost-emission.md` §8 tier 1 and
-§9 pending, `followup-emission.md` §4 (the shared per-VI area),
+§9 pending, `followup-emission.md` §4 (the shared per-PRD area),
 `session-hygiene.md` §1 (resume tier 1).
 
 **Staging is by enumeration, not by glob.** Pathspec glob magic (`:(glob)`) is
@@ -68,7 +68,7 @@ fragile to express and to review. The procedure is:
    `git -C "$SPECS_PATH" add -A -- <path> [<path>…]`.
 
 `-A` is used deliberately: `cost-emission.md` §9 relocates a pending cost file
-into a VI directory and then **deletes** the pending file, and that deletion
+into a PRD directory and then **deletes** the pending file, and that deletion
 must be staged. `-A` states that intent explicitly, and it was strictly
 required before git 2.0, where `git add <path>` did not stage a deletion. On
 git ≥ 2.0 a plain `git add -- <path>` stages a deletion for a literal path too
@@ -78,7 +78,7 @@ do not justify it by claiming plain `git add` cannot stage the deletion.
 ### 2.2 Branches
 
 **The plugin manages only branches it created.** A branch is plugin-owned when
-its name matches `^(idea|vi|ard|spec|design|ready)/`.
+its name matches `^(idea|prd|ard|spec|design|ready)/`.
 
 Any other **named** branch — the user's own work, a hand-made branch — is left
 alone and never switched away from (§3.3 G2). The run's artifacts are still
@@ -117,15 +117,15 @@ the ancestry test. On failure (offline, auth), use the existing local
 last-fetched ref`. Never fatal.
 
 **Run key set:** every Jira key the run is scoped to, taking each key already
-resolved at the call site. A VI-scoped run contributes its VI key. A run invoked
-as `<VI> <Epic>` (`/create-ard`, `/specify`, `/design`, `/ready`) contributes
-**both** — the Epic is as much this run's key as the VI is, and §3.5 must
+resolved at the call site. A PRD-scoped run contributes its PRD key. A run invoked
+as `<PRD> <Epic>` (`/create-ard`, `/specify`, `/design`, `/ready`) contributes
+**both** — the Epic is as much this run's key as the PRD is, and §3.5 must
 recognise a branch named for either (§3.6). When no key is resolved at the call
 site the set is empty and the run is **keyless**. Both are correct behaviour —
-no command needs to defer its preflight in order to obtain a key. `/create-vi`
+no command needs to defer its preflight in order to obtain a key. `/create-prd`
 is structurally keyless here (its key is minted by the Jira round-trip in a
-later phase), and keyless is the right classification for it: a new VI must not
-stack on another VI's branch.
+later phase), and keyless is the right classification for it: a new PRD must not
+stack on another PRD's branch.
 
 **This run key set is the preflight's, and only the preflight's.** It exists to
 match branches in §3.5 and is resolved at the *start* of the run.
@@ -143,7 +143,7 @@ notice, never a quiet line.
 |---|---|---|
 | G0 | **HEAD is detached** | **Hand off, and set `specs_git: blocked` for the whole run** — `commit-artifacts` (§4) must also skip. §5 notice at **blocking** severity. See §3.7. |
 | G1 | Any dirty **OTHER** path (§2.1) | **Hand off** — no commit, no branch switch, no push. §5 notice at **advisory** severity, listing the paths. Those files are not the plugin's, and switching branches would carry them. **This does NOT set `specs_git: blocked`**: the terminal `commit-artifacts` still runs, because it stages only artifact paths and is safe beside unrelated dirt. Losing the artifacts to protect files the step never touches would be the worse failure. |
-| G2 | On a **named** branch that is neither the default branch nor a match for `^(idea\|vi\|ard\|spec\|design\|ready)/` | **Leave it; stay on it.** §5 notice at **advisory** severity, naming the branch, so the user knows where this run's artifacts will land. The commit is safe — a named branch cannot be lost — so `commit-artifacts` proceeds. The plugin manages only branches it created (§2.2). |
+| G2 | On a **named** branch that is neither the default branch nor a match for `^(idea\|prd\|ard\|spec\|design\|ready)/` | **Leave it; stay on it.** §5 notice at **advisory** severity, naming the branch, so the user knows where this run's artifacts will land. The commit is safe — a named branch cannot be lost — so `commit-artifacts` proceeds. The plugin manages only branches it created (§2.2). |
 
 ### 3.4 Stage 2 — flush leftovers
 
@@ -170,13 +170,13 @@ First matching row applies.
 | B3 | Plugin branch, unmerged, branch key matches **any** key in the run key set (§3.2) | **Stay on it.** See §3.6. |
 | B4 | Plugin branch, unmerged, branch key matches **no** key in the set, or the set is empty (keyless run) | Switch to default, `git -C "$SPECS_PATH" pull --ff-only`. **Leave the branch and its pull request alone.** Report the branch name. |
 
-**Branch key extraction:** strip the `idea/`, `vi/`, `ard/`, `spec/`, `design/`,
+**Branch key extraction:** strip the `idea/`, `prd/`, `ard/`, `spec/`, `design/`,
 or `ready/` prefix, then take the leading token matching
 `[A-Z][A-Z0-9_]*-[0-9]+`. No match → treat as matching no key in the set (B4).
 
 **No auto-merge, deliberately.** No row above creates a merge commit or merges a
 branch into the default branch, and none should be added. The routing here
-already resolves every case, and an auto-merge would push an unreviewed VI or
+already resolves every case, and an auto-merge would push an unreviewed PRD or
 ARD past the very pull request the command opened for it one phase earlier. B2
 handles the only case where a merge would otherwise be needed — a branch already
 merged upstream — with cleanup instead. If auto-merge is ever wanted, it slots
@@ -192,11 +192,11 @@ B3 now exists for two reasons.
 
 **Second, `/ready`'s explicit checkout.** The user may choose to proceed on the current checkout rather than switch to the default branch. Switching off it mid-run while the readiness report still claims that checkout is the one that was read would make the report false.
 
-**The same shape reaches Epic-scoped runs — which is why §3.2 resolves a key *set*, not a single key.** `/specify <VI> <Epic>` authors `specification.md` on `spec/<EPIC>-<eslug>`, a branch keyed by the **Epic**. The follow-up `/design <VI> <Epic>` run resolves the VI as its primary key, so a single-key comparison would read branch key ≠ run key, fall through to B4, and switch away from the branch holding the very `specification.md` `/design`'s resume depends on — the same reachability loss described above, one key earlier in the chain. Matching the branch key against **any** key in the set keeps B3 in force for the `<VI> <Epic>` invocations (`/create-ard`, `/specify`, `/design`, `/ready`) exactly as it holds for VI-scoped ones.
+**The same shape reaches Epic-scoped runs — which is why §3.2 resolves a key *set*, not a single key.** `/specify <PRD> <Epic>` authors `specification.md` on `spec/<EPIC>-<eslug>`, a branch keyed by the **Epic**. The follow-up `/design <PRD> <Epic>` run resolves the PRD as its primary key, so a single-key comparison would read branch key ≠ run key, fall through to B4, and switch away from the branch holding the very `specification.md` `/design`'s resume depends on — the same reachability loss described above, one key earlier in the chain. Matching the branch key against **any** key in the set keeps B3 in force for the `<PRD> <Epic>` invocations (`/create-ard`, `/specify`, `/design`, `/ready`) exactly as it holds for PRD-scoped ones.
 
-The failure this section used to defend against — `/create-ard` continuing silently against the wrong source when the authored VI file existed only on an unmerged branch — is now caught loudly instead: `phase-handoff.md` §3.3 rows D and E stop that run rather than letting it proceed, so the defense moved there.
+The failure this section used to defend against — `/create-ard` continuing silently against the wrong source when the authored PRD file existed only on an unmerged branch — is now caught loudly instead: `phase-handoff.md` §3.3 rows D and E stop that run rather than letting it proceed, so the defense moved there.
 
-B3 keeps the working tree containing the artifact the run is about to read or amend. The cost is that the follow-up command's own branch is cut from the earlier branch rather than from the default — a stacked branch. That is correct: an ARD genuinely depends on its VI and a design on its spec, and stacking is the honest representation.
+B3 keeps the working tree containing the artifact the run is about to read or amend. The cost is that the follow-up command's own branch is cut from the earlier branch rather than from the default — a stacked branch. That is correct: an ARD genuinely depends on its PRD and a design on its spec, and stacking is the honest representation.
 
 ### 3.7 Detached HEAD is blocking, not merely skipped
 
@@ -269,7 +269,7 @@ than one invocation.
 
 ### 4.1 Where the commit lands
 
-- **A command that opened a specs-repo branch at handoff** (`/idea`, `/create-vi`, `/update-vi`, `/create-ard`, `/specify`, `/design`, `/implement`, `/ready`) — on that `idea|vi|ard|spec|design|ready/*` branch, so the push updates the pull request already open. Two commits on one branch: the deliverable, then the artifacts.
+- **A command that opened a specs-repo branch at handoff** (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`, `/implement`, `/ready`) — on that `idea|prd|ard|spec|design|ready/*` branch, so the push updates the pull request already open. Two commits on one branch: the deliverable, then the artifacts.
 - **The same command when the user declined git at handoff** ("just write the
   files — I'll handle git") — the repo is still on the default branch and the
   deliverable is uncommitted there. `commit-artifacts` still runs and commits
@@ -347,7 +347,7 @@ If ignored: nothing is lost — your files stay uncommitted, and this run's
 ⚠ SPECS REPO — ON A BRANCH THIS PLUGIN DID NOT CREATE
 
 Found:    <SPECS_PATH> is on branch `<branch>`, which is neither the default
-          branch (`<default>`) nor a plugin branch (idea/ vi/ ard/ spec/
+          branch (`<default>`) nor a plugin branch (idea/ prd/ ard/ spec/
           design/ ready/).
 Not done: the preflight did not switch away from it — the plugin manages only
           branches it created. This run's artifacts WILL be committed, on

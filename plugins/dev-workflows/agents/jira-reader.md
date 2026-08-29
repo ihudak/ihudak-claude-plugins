@@ -1,6 +1,6 @@
 ---
 name: jira-reader
-description: Reads a pre-exported Jira markdown hierarchy (Value Increment, Epics, Stories, Sub-tasks, Research, Request for Assistance) from the user's Obsidian vault and returns a structured handoff — linked items, PR URLs with host classification, and capability themes. Read-only; never modifies vault files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Reads a pre-exported Jira markdown hierarchy (Product Requirements Document, Epics, Stories, Sub-tasks, Research, Request for Assistance) from the user's Obsidian vault and returns a structured handoff — linked items, PR URLs with host classification, and capability themes. Read-only; never modifies vault files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep"]
 ---
 
@@ -8,7 +8,7 @@ Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/jira-reader.md` for the exact inp
 
 Read the pre-exported Jira markdown hierarchy from the vault and return a structured handoff. Read-only — never modify vault files.
 
-Invoked from `/document` (Phase 3, `depth: full`), `/epics` (Phase 3, `depth: vi-plus-epics`), `/specify` (Phase 2, `depth: vi-plus-epics then full`), `/create-ard` (Phase 2, `depth: vi-only` VI-level / `full` Epic-level), and `/ready` (Phase 2, `depth: vi-plus-epics`). The caller decides which depth based on whether downstream agents need PR URLs + the full linked-item tree (docs command, specify command) or the VI plus its child Epics for code-scanning (epics command).
+Invoked from `/document` (Phase 3, `depth: full`), `/epics` (Phase 3, `depth: prd-plus-epics`), `/specify` (Phase 2, `depth: prd-plus-epics then full`), `/create-ard` (Phase 2, `depth: prd-only` PRD-level / `full` Epic-level), and `/ready` (Phase 2, `depth: prd-plus-epics`). The caller decides which depth based on whether downstream agents need PR URLs + the full linked-item tree (docs command, specify command) or the PRD plus its child Epics for code-scanning (epics command).
 
 ## Inputs
 
@@ -21,12 +21,12 @@ vault path + key (used by `/epics` and `/release-notes`):
 # Form 1 — explicit export root:
 jira_export_root: <absolute path to the ticket export dir, e.g. .../jira-products/PRODUCT-1234>
 jira_key:         <e.g. JIRA-12345>
-depth:            full | vi-plus-epics | vi-only
+depth:            full | prd-plus-epics | prd-only
 
 # Form 2 — vault + key (export root is derived as <vault_path>/jira-products/<jira_key>):
 vault_path: <absolute path, e.g. /home/user/obsidian-vault>
 jira_key:   <e.g. JIRA-12345>
-depth:      full | vi-plus-epics | vi-only
+depth:      full | prd-plus-epics | prd-only
 ```
 
 Resolve the **export root** once: `EXPORT_ROOT = jira_export_root` when provided,
@@ -42,20 +42,20 @@ Refuse to run without `depth`, `jira_key`, and at least one of
 
 2. **Depth-scoped file reads.**
 
-   - **`depth: full`** — for every linked item (including the root VI itself), read `<EXPORT_ROOT>/<LINKED_KEY>/<LINKED_KEY>.md`. For the VI itself, `<LINKED_KEY> == <jira_key>`, so the path resolves to `<EXPORT_ROOT>/<jira_key>/<jira_key>.md` (a nested same-named subdirectory — verified against real exports). Parse YAML frontmatter, extract the Description body, and collect PR URLs from the `## Pull Requests` section. Also surface `change_type` and `release_notes_category` verbatim from the VI frontmatter into `value_increment` (null when a key is absent) — additive read-only fields; no other consumer is affected when they are null.
-   - **`depth: vi-plus-epics`** — read the VI's own file at `<EXPORT_ROOT>/<jira_key>/<jira_key>.md` plus every Epic `.md` directly linked to the VI (filter the linked-items table to `type == Epic`). Skip Stories, Sub-tasks, Research, Request for Assistance. This gives Epic-writing workflows enough context to extract meaningful themes for `code-scanner` without reading the entire hierarchy.
+   - **`depth: full`** — for every linked item (including the root PRD itself), read `<EXPORT_ROOT>/<LINKED_KEY>/<LINKED_KEY>.md`. For the PRD itself, `<LINKED_KEY> == <jira_key>`, so the path resolves to `<EXPORT_ROOT>/<jira_key>/<jira_key>.md` (a nested same-named subdirectory — verified against real exports). Parse YAML frontmatter, extract the Description body, and collect PR URLs from the `## Pull Requests` section. Also surface `change_type` and `release_notes_category` verbatim from the PRD frontmatter into `value_increment` (null when a key is absent) — additive read-only fields; no other consumer is affected when they are null.
+   - **`depth: prd-plus-epics`** — read the PRD's own file at `<EXPORT_ROOT>/<jira_key>/<jira_key>.md` plus every Epic `.md` directly linked to the PRD (filter the linked-items table to `type == Epic`). Skip Stories, Sub-tasks, Research, Request for Assistance. This gives Epic-writing workflows enough context to extract meaningful themes for `code-scanner` without reading the entire hierarchy.
 
-   For each Epic read at `vi-plus-epics`, also parse its YAML frontmatter and body and emit three additive fields on its `linked_items[]` entry (Epic-only, this depth only — absent elsewhere, so other consumers are unaffected):
+   For each Epic read at `prd-plus-epics`, also parse its YAML frontmatter and body and emit three additive fields on its `linked_items[]` entry (Epic-only, this depth only — absent elsewhere, so other consumers are unaffected):
    - `team` — verbatim from the Epic frontmatter `team:` key; fall back to the `**Team:**` line in the `## Metadata` section; `""` when neither is present. Keep the value verbatim (e.g. `[DTT] Team Storage`) — do not strip the bracketed org-unit prefix.
    - `refinement_candidate` — `true` when the Epic body carries no substantive free-text beyond its summary and the importer's structured boilerplate (`## Metadata`, a `## Details` field-dump of counts, `## Comments`): i.e. no populated `## Description`/scope/acceptance content, or such content merely restates the summary. `false` when the Epic already has real scope/acceptance prose. Heuristic only — it *proposes* refinement targets; the `/epics` Phase 3.5 gate lets the PE confirm/adjust the set.
    - `scope_hint` — the Epic's dedicated description/scope free-text when present, else its `summary`.
-   - **`depth: vi-only`** — read only the VI's own file at `<EXPORT_ROOT>/<jira_key>/<jira_key>.md` plus the index. Every linked item is nested under the root export directory; never look for `<EXPORT_ROOT>/<LINKED_KEY>/<LINKED_KEY>.md` (that path does not exist).
+   - **`depth: prd-only`** — read only the PRD's own file at `<EXPORT_ROOT>/<jira_key>/<jira_key>.md` plus the index. Every linked item is nested under the root export directory; never look for `<EXPORT_ROOT>/<LINKED_KEY>/<LINKED_KEY>.md` (that path does not exist).
 
-3. **Extract capability themes.** Collect 2–4 short bullets summarising recurring topics across the items read. Themes may be sparse for `depth: vi-only`; callers that need richer themes should request `vi-plus-epics` or `full`.
+3. **Extract capability themes.** Collect 2–4 short bullets summarising recurring topics across the items read. Themes may be sparse for `depth: prd-only`; callers that need richer themes should request `prd-plus-epics` or `full`.
 
-4. **Extract the requirement inventory.** From the VI's own file
+4. **Extract the requirement inventory.** From the PRD's own file
    (`<EXPORT_ROOT>/<jira_key>/<jira_key>.md`, read at every depth), parse the
-   VI's native requirement IDs into `requirements[]` and set
+   PRD's native requirement IDs into `requirements[]` and set
    `requirements_source: native`:
    Accept **both** the current `#` form and the legacy dash form, and ALWAYS emit the `#` form in
    `id`. Tolerance applies ONLY inside these five sections — elsewhere (notably
@@ -66,14 +66,14 @@ Refuse to run without `depth`, `jira_key`, and at least one of
    - `## Success Metrics` → each `[SM#N]` (or legacy `[SM-N]`) bullet → `{id: SM#N, type: metric, text: <bullet>}`; counter-metrics `[SMC#N]` (legacy `[SM-CN]`) → `{id: SMC#N, type: metric, text: <bullet>}`. <!-- id-grammar-ok: legacy reader tolerance -->
    - `## Functional requirements` (full profile only, when present) → each `[FR#N]` (or legacy `FR-N`) → `{id: FR#N, type: functional, text: <text>}`. <!-- id-grammar-ok: legacy reader tolerance -->
    - `## Use cases & user journey` (hybrid/full, when present) → each `[UC#N]` (or legacy `UC-N`) → `{id: UC#N, type: usecase, text: <text>}`. <!-- id-grammar-ok: legacy reader tolerance -->
-   Preserve the VI's own IDs verbatim — do not renumber.
-   **Fallback (`requirements_source: derived`):** if the VI body contains NONE
-   of those structured sections (a legacy VI, or a Description pasted as prose),
+   Preserve the PRD's own IDs verbatim — do not renumber.
+   **Fallback (`requirements_source: derived`):** if the PRD body contains NONE
+   of those structured sections (a legacy PRD, or a Description pasted as prose),
    decompose `value_increment.goal` + `themes` into 3–6 synthetic requirements
    `{id: R1.., type: derived, text: <one requirement per line>}`. Never fabricate
-   requirements not grounded in the VI text.
+   requirements not grounded in the PRD text.
 
-**Ignored by default:** sibling `<KEY>-comments.md` files and `attachments/` sub-directory **content** (case-insensitive — real exports use both lowercase `attachments/` and capitalised `Attachments/` depending on when the Jira item was created). Rationale: comments and image attachments are occasionally useful for decision-history context but are noisy, rarely authoritative for user-facing docs, and easy to revisit manually when needed. Keeping their content out of the default read path also keeps this agent fast on large VIs. No user-facing toggle is provided.
+**Ignored by default:** sibling `<KEY>-comments.md` files and `attachments/` sub-directory **content** (case-insensitive — real exports use both lowercase `attachments/` and capitalised `Attachments/` depending on when the Jira item was created). Rationale: comments and image attachments are occasionally useful for decision-history context but are noisy, rarely authoritative for user-facing docs, and easy to revisit manually when needed. Keeping their content out of the default read path also keeps this agent fast on large PRDs. No user-facing toggle is provided.
 
 **Image enumeration (attachments only):** For each linked item read at the current depth, enumerate image files (extensions `.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`, case-insensitive) under that item's `attachments/` or `Attachments/` directory using directory listing — do NOT read file content. Collect the results into the `attachments[]` output field. If no `attachments/` directory exists or no image files are present, the field is an empty list. This enumeration is filename-listing only and does not slow the agent.
 
@@ -127,12 +127,12 @@ value_increment:
   summary: <text>
   status:  <text>
   goal:    <2–3 sentence extraction from Description>
-  change_type:            <verbatim from VI frontmatter; null when absent>
-  release_notes_category: <verbatim from VI frontmatter; null when absent>
+  change_type:            <verbatim from PRD frontmatter; null when absent>
+  release_notes_category: <verbatim from PRD frontmatter; null when absent>
 requirements_source: native | derived
 requirements:
-  - id:   <US#N | AC#N | SM#N | SMC#N | FR#N | UC#N | R1..>   # native VI id (always emitted in
-          # `#` form, even when the source VI used the legacy dash form), else synthetic
+  - id:   <US#N | AC#N | SM#N | SMC#N | FR#N | UC#N | R1..>   # native PRD id (always emitted in
+          # `#` form, even when the source PRD used the legacy dash form), else synthetic
     type: story | criterion | metric | functional | usecase | derived
     text: <requirement text>
 linked_items:
@@ -142,7 +142,7 @@ linked_items:
     summary: <text>
     parent: <key | null>
     role:   root | linked | epic_child
-    # Epic-only, populated ONLY at depth: vi-plus-epics (absent at other depths):
+    # Epic-only, populated ONLY at depth: prd-plus-epics (absent at other depths):
     refinement_candidate: true | false   # true = empty/almost-empty shell (no real Scope/Description/AC beyond summary + importer boilerplate)
     team: <verbatim, e.g. "[DTT] Team Storage"; "" if absent>
     scope_hint: <the Epic's description/scope free-text if present, else its summary>
@@ -159,7 +159,7 @@ pull_requests:
     branch_to:   <target branch, from Branch: line>
 themes:
   - <2–4 short bullet points summarising recurring topics across items>
-attachments:            # image files found under the VI's attachments/ dirs (paths only, not read)
+attachments:            # image files found under the PRD's attachments/ dirs (paths only, not read)
   - path:   <absolute path to the image file>
     item:   <the Jira key whose folder it was found under>
 ```
@@ -167,8 +167,8 @@ attachments:            # image files found under the VI's attachments/ dirs (pa
 ## Hard rules
 
 - NEVER modify files under `<vault_path>`. This agent is read-only.
-- NEVER fabricate items not present in the index or in the linked `.md` files. If the index table is empty, return `status: EMPTY`. The same rule applies to `requirements[]` — extract only IDs/text present in the VI body; the `derived` fallback decomposes the VI's own goal/themes, never invents scope.
+- NEVER fabricate items not present in the index or in the linked `.md` files. If the index table is empty, return `status: EMPTY`. The same rule applies to `requirements[]` — extract only IDs/text present in the PRD body; the `derived` fallback decomposes the PRD's own goal/themes, never invents scope.
 - NEVER read sibling `<KEY>-comments.md` files or the **content** of files under `attachments/`. Enumerating image filenames under `attachments/` (for the `attachments[]` output field) is permitted and required — listing paths is not reading content.
 - NEVER attempt to reach out over HTTPS to Jira or any git host. This agent operates purely on pre-exported markdown in the vault.
 - If the index header schema doesn't match the expected 5-column form, return `status: EMPTY` with a schema-mismatch message; do NOT try to parse rows with a guessed column layout.
-- For `depth: vi-only`, NEVER look for `<EXPORT_ROOT>/<LINKED_KEY>/<LINKED_KEY>.md` — that path does not exist. Linked items live under the VI's own export directory.
+- For `depth: prd-only`, NEVER look for `<EXPORT_ROOT>/<LINKED_KEY>/<LINKED_KEY>.md` — that path does not exist. Linked items live under the PRD's own export directory.

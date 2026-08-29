@@ -1,25 +1,25 @@
 ---
 name: ready
-description: Status-anchored readiness gate. Reads the Jira workflow status of a VI/Epic and verifies the ARD/spec/design artifacts justify it and the next transition; returns SUPPORTED / PARTIAL / NOT-SUPPORTED with a coverage roll-up. Never sets Jira status; never stops on an unmerged artifact (a readiness finding capping the verdict at PARTIAL) or a missing one (recorded as a coverage gap) — neither is a run-stopping gate. Commits its `_readiness.md` deliverable only via consent, never automatically. Gates on the Opus readiness-reviewer.
+description: Status-anchored readiness gate. Reads the Jira workflow status of a PRD/Epic and verifies the ARD/spec/design artifacts justify it and the next transition; returns SUPPORTED / PARTIAL / NOT-SUPPORTED with a coverage roll-up. Never sets Jira status; never stops on an unmerged artifact (a readiness finding capping the verdict at PARTIAL) or a missing one (recorded as a coverage gap) — neither is a run-stopping gate. Commits its `_readiness.md` deliverable only via consent, never automatically. Gates on the Opus readiness-reviewer.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
 Verify readiness for AI-driven development for the Jira item: $ARGUMENTS
 
-`/ready` is the **status-anchored readiness gate**. Given a Jira VI (or VI + Epic) key, it reads the
+`/ready` is the **status-anchored readiness gate**. Given a Jira PRD (or PRD + Epic) key, it reads the
 **declared** Jira workflow status — never inferred, never re-derived — and checks whether the
 ARD/spec/design artifacts that actually exist, taken together, justify that status and the *next*
 transition, against the rubric in `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`. It returns
 `SUPPORTED` / `PARTIAL` / `NOT-SUPPORTED` with a requirement coverage roll-up and named gaps, gated on
 the Opus `readiness-reviewer`.
 
-Key distinction from every other pipeline command: `/ready` **authors nothing** in the VI/Epic/ARD/spec/design sense — it never writes any of those, and it never touches Jira. Its only authored write is an overwritten `_readiness.md` snapshot under `$SPECS_PATH`, and it branches only via the `phase-handoff.md` §4.3 consent choice to hand that snapshot off, creating `ready/<KEY>-<slug>` — `specs-preflight` itself still creates none, switching `$SPECS_PATH` only between branches that already exist and are plugin-created (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2). `_readiness.md` is likewise committed only through that same §4.3 choice, never automatically — declining leaves it uncommitted; the terminal `commit-artifacts` step commits ONLY the run's bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1), which `_readiness.md` is not. Where `/design`'s repo gate is a **strict, hard-stop** mount check because it is about to ground code decisions, `/ready`'s repo check is **best-effort presence only** — it never scans code, it only notes whether a needed repo is mounted.
+Key distinction from every other pipeline command: `/ready` **authors nothing** in the PRD/Epic/ARD/spec/design sense — it never writes any of those, and it never touches Jira. Its only authored write is an overwritten `_readiness.md` snapshot under `$SPECS_PATH`, and it branches only via the `phase-handoff.md` §4.3 consent choice to hand that snapshot off, creating `ready/<KEY>-<slug>` — `specs-preflight` itself still creates none, switching `$SPECS_PATH` only between branches that already exist and are plugin-created (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2). `_readiness.md` is likewise committed only through that same §4.3 choice, never automatically — declining leaves it uncommitted; the terminal `commit-artifacts` step commits ONLY the run's bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1), which `_readiness.md` is not. Where `/design`'s repo gate is a **strict, hard-stop** mount check because it is about to ground code decisions, `/ready`'s repo check is **best-effort presence only** — it never scans code, it only notes whether a needed repo is mounted.
 
 Key distinction from every other consumer of `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3 (`require-on-main`) and `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md`: every other caller stops when a gated ARD/spec/design resolves off the specs repo's default branch; `/ready` **never** does. That state becomes a readiness finding — "authored but not handed off" — that caps the eventual verdict at `PARTIAL`; an artifact that is absent outright is recorded as missing in the coverage roll-up, exactly as before this feature. Reporting readiness is `/ready`'s whole function, so a run that stops instead of reporting has failed at the one thing it exists to do.
 
 Key distinction from `/design`'s Epic-picker behavior: `/ready`'s two-key grammar treats a **null**
-`focus_key` as a first-class **VI-level** check (workflow-states.md's VI ladder), not something that
-must be resolved down to a single Epic. Pass an explicit `<VI> <Epic>` to scope the check to one Epic
+`focus_key` as a first-class **PRD-level** check (workflow-states.md's PRD ladder), not something that
+must be resolved down to a single Epic. Pass an explicit `<PRD> <Epic>` to scope the check to one Epic
 (the Epic ladder) instead.
 
 ---
@@ -29,10 +29,10 @@ must be resolved down to a single Epic. Pass an explicit `<VI> <Epic>` to scope 
 1. **Resolve the Jira input via the shared front-end.** Execute
    `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against `$ARGUMENTS`. `/ready` is
    **jira-driven only**: expect `mode: jira-driven`. The front-end owns the `$VAULT_PATH` /
-   `jira-products` validation, Fallbacks A/B **and D/E**, and the VI-selector (key-or-directory) +
+   `jira-products` validation, Fallbacks A/B **and D/E**, and the PRD-selector (key-or-directory) +
    focus-Epic grammar. Carry forward `jira_key`, `focus_key`, `jira_export_root`, `source`.
 
-   Define **`<VI>` = `jira_key`** and **`<EPIC>` = `focus_key`** (may be `null`) — the two-key grammar.
+   Define **`<PRD>` = `jira_key`** and **`<EPIC>` = `focus_key`** (may be `null`) — the two-key grammar.
 
    If the front-end returns `mode: direct` (no Jira input), stop with
    `READY_NEEDS_JIRA: /ready needs a Jira key or an imported-Jira directory.` — `/ready` has no
@@ -57,12 +57,12 @@ step skips on it.
      `choices: ["I've switched to a clean main — re-check", "Proceed anyway on the current checkout (read-only; noted in the report)", "Cancel", "Other… (describe)"]`
    - Clean `main`/`master` → proceed silently.
 
-4. **Map onto the specs repo (VI dir + optional Epic subdir).** Resolve the VI dir
-   `$SPECS_PATH/specifications/<VI>-<vslug>/` by **key-number match** (tolerate a stray `-`/`_` after
+4. **Map onto the specs repo (PRD dir + optional Epic subdir).** Resolve the PRD dir
+   `$SPECS_PATH/specifications/<PRD>-<vslug>/` by **key-number match** (tolerate a stray `-`/`_` after
    the key and a human-adjusted slug — the same tolerance `ard-resolution.md` and `/design` use). When
    `focus_key` is set, additionally resolve the per-Epic subdir
-   `<VI-dir>/<EPIC>-<eslug>/` by the same tolerance. **Unlike `/design`, a missing dir is NOT a hard
-   stop** — an early-lifecycle VI (e.g. `Open` / `Problem stated`) legitimately has no specs-repo
+   `<PRD-dir>/<EPIC>-<eslug>/` by the same tolerance. **Unlike `/design`, a missing dir is NOT a hard
+   stop** — an early-lifecycle PRD (e.g. `Open` / `Problem stated`) legitimately has no specs-repo
    footprint yet, and "nothing exists" is itself readiness-relevant data, not an error. Record whichever
    dir(s) resolved (or "not found — no specs-repo footprint yet").
 
@@ -77,21 +77,21 @@ best-effort-checks repos under `$REPOS_PATH`; cwd need not be inside either.
 MUST be `"Other… (describe)"`.
 
 1. **Confirm the resolved scope.**
-   `choices: ["Use <VI dir> [+ <Epic subdir>] (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]`
+   `choices: ["Use <PRD dir> [+ <Epic subdir>] (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]`
 
 2. **Artifact inventory (mechanical presence + handoff check — no content judgment yet).** By mode:
-   - **VI-level** (`focus_key` null) — locate `<VI-dir>/<VI>_ARD.md` (resolved via Phase 2.5, not here) and `<VI-dir>/specification.md` (a VI-level spec is optional per `workflow-states.md`); then enumerate **every** Epic subdirectory under `<VI-dir>` that matches a key-number pattern, and for each locate `{<EPIC>_ARD.md, specification.md, design.md}` — this is per-Epic and plural, because a VI's "Ready for Implementation" status requires **every in-scope Epic** to carry spec + design (`workflow-states.md`'s VI row).
-   - **Epic-level** (`focus_key` set) — locate the VI-level `<VI-dir>/<VI>_ARD.md` (inherited invariants) plus the single focus Epic's `{<EPIC>_ARD.md, specification.md, design.md}` under `<VI-dir>/<EPIC>-<eslug>/`.
+   - **PRD-level** (`focus_key` null) — locate `<PRD-dir>/<PRD>_ARD.md` (resolved via Phase 2.5, not here) and `<PRD-dir>/specification.md` (a PRD-level spec is optional per `workflow-states.md`); then enumerate **every** Epic subdirectory under `<PRD-dir>` that matches a key-number pattern, and for each locate `{<EPIC>_ARD.md, specification.md, design.md}` — this is per-Epic and plural, because a PRD's "Ready for Implementation" status requires **every in-scope Epic** to carry spec + design (`workflow-states.md`'s PRD row).
+   - **Epic-level** (`focus_key` set) — locate the PRD-level `<PRD-dir>/<PRD>_ARD.md` (inherited invariants) plus the single focus Epic's `{<EPIC>_ARD.md, specification.md, design.md}` under `<PRD-dir>/<EPIC>-<eslug>/`.
 
    For each `specification.md` and `design.md` path located above (the `_ARD.md` files are handled by Phase 2.5's `ard-resolution.md`, not here), execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against its repo-relative path and map its §3.7 return value by `stopped` first, never by `on_main` alone — never a stop, per this command's defining trait: `stopped: false` with `on_main: pass`/`pass_amending` → **present** (with its absolute path); `stopped: false` with `on_main: absent` → **missing**, exactly as before this feature (§3.4's `/ready` row — this is row F only, never rows D/E, which also read `absent` on `origin/<default>` but return `stopped: true`); `stopped: false` with `on_main: unmanaged` → fall back to a raw filesystem presence check, exactly as before this feature (row H's own silent-skip contract); `stopped: true` → still never a stop for `/ready` — map the row to exactly one of three ⚠ reasons, never conflating them, because they are three different repository states, not one: rows D/E → ⚠ **authored only on `<branch>`, not merged** (naming the branch and any open PR); rows C′/C after a failed retry → ⚠ **on `<default>` but your local checkout is stale or dirty, so it could not be confirmed**; rows G/I (including the run's own `specs_git: blocked`) → ⚠ **could not be verified against any ref** (naming the returned `degraded` clause where present). Each is recorded verbatim as a readiness finding — `/ready` itself never asks a further question, retries, or stops on top of what came back: row C's own prompt-once-and-re-test-once (`phase-handoff.md` §3.3 row C, `:139-143`) and row C′'s own immediate stop naming the blocking files are `require-on-main`'s contract, already executed synchronously inside this very step; `/ready` only records whichever `stopped`/`degraded` state the call returned. Record each ARD as present (with its absolute path) or absent — its on-main state is Phase 2.5's job. Do not open/read file contents yet beyond what's needed for these checks — full reads happen in Phase 4 via the reviewer.
 
 3. **Quick Jira status peek (display only — not the ground truth).** Read
    `<jira_export_root>/<jira_key>-index.md`'s `| Key | Type | Status | Summary | Role |` table directly
-   (mechanical — no subagent) and note the `Status` column for `<VI>` and, when set, `<EPIC>`. This is
+   (mechanical — no subagent) and note the `Status` column for `<PRD>` and, when set, `<EPIC>`. This is
    for **Phase 1 display context only**; Phase 2's `jira-reader` read is the authoritative source the
    reviewer verifies against.
 
-4. **Display** (context, no further prompt): resolved cwd; resolved VI dir (+ Epic subdir); resolved
+4. **Display** (context, no further prompt): resolved cwd; resolved PRD dir (+ Epic subdir); resolved
    `$SPECS_PATH`; the artifact inventory table from step 2; the status peek from step 3.
 
 No branching context is shown — nothing here branches this run; the only branch `/ready` ever creates is `ready/<KEY>-<slug>`, and only later, at Phase 5's handoff, and only on the §4.3 consent choice. `specs-preflight` itself still creates none, switching `$SPECS_PATH` only between branches that already exist and are plugin-created, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2.
@@ -102,8 +102,8 @@ No branching context is shown — nothing here branches this run; the only branc
 
 Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the
 classification rules, then classify the task as exactly one of: `SIMPLE`, `MODERATE`, `SIGNIFICANT`, or
-`HIGH-RISK`. Readiness verification is typically **MODERATE** (bounded scope, a single VI or Epic,
-read-only, no code changes) — escalate to `SIGNIFICANT` only for an unusually large multi-Epic VI where
+`HIGH-RISK`. Readiness verification is typically **MODERATE** (bounded scope, a single PRD or Epic,
+read-only, no code changes) — escalate to `SIGNIFICANT` only for an unusually large multi-Epic PRD where
 the coverage chain spans many Epics/repos. State the classification and a one-sentence reason.
 
 `/ready` has **no delegated writer/implementation subagent** — the Phase 3 skeleton is deterministic and
@@ -113,7 +113,7 @@ frontmatter-pinned, mandatory regardless of tier). Resolve the per-step routing 
 
 ```yaml
 model_routing:
-  classification: MODERATE        # typical; SIGNIFICANT possible for a large multi-Epic VI
+  classification: MODERATE        # typical; SIGNIFICANT possible for a large multi-Epic PRD
   reason: <one-line>
   current_model: <the model this orchestrator is running under>
   detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # jira-reader (Phase 2); the Phase 3 deterministic skeleton is mechanical and runs orchestrator-inline, not delegated
@@ -130,7 +130,7 @@ falls to the Sonnet floor — record the degradation in `notes` and the final re
 
 ## Phase 2 — Read ground truth
 
-Invoke `jira-reader` with `depth: vi-plus-epics` — this is the authoritative status/requirement source
+Invoke `jira-reader` with `depth: prd-plus-epics` — this is the authoritative status/requirement source
 the reviewer verifies the declared status against (never Phase 1's status peek).
 
 → Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
@@ -138,17 +138,17 @@ the reviewer verifies the declared status against (never Phase 1's status peek).
   >
   > jira_export_root: [resolved jira_export_root]
   > jira_key:         [resolved jira_key]
-  > depth:      vi-plus-epics"
+  > depth:      prd-plus-epics"
 
 Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Jira key dir not found`
 rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On `OK`,
 carry forward:
 
-- `value_increment.status` — the VI's declared status (VI ladder).
+- `value_increment.status` — the PRD's declared status (PRD ladder).
 - `linked_items[]` filtered to `type == Epic` and their `.status` — each Epic's declared status (Epic
   ladder). When `focus_key` is set, validate it is among these; if not, surface
   `READY_FOCUS_NOT_FOUND: <focus_key> is not a linked Epic of <jira_key>.` with
-  `choices: ["Check VI-level readiness instead (the whole VI)", "Re-enter the Epic key", "Cancel"]`.
+  `choices: ["Check PRD-level readiness instead (the whole PRD)", "Re-enter the Epic key", "Cancel"]`.
 - `requirements[]` (+ `requirements_source`) — the coverage ground truth for Phase 3(a).
 
 These declared statuses are passed to the reviewer **exactly as read** — never inferred, never
@@ -159,12 +159,12 @@ re-derived (per `readiness-reviewer.md`'s hard rules).
 ## Phase 2.5 — Resolve ARD
 
 Resolve any applicable ARD by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with
-`vi = jira_key`, `epic = focus_key` (may be `null`), and `$SPECS_PATH`.
+`prd = jira_key`, `epic = focus_key` (may be `null`), and `$SPECS_PATH`.
 
 - **`status: none`** (including `$SPECS_PATH` unset/unresolvable) → the ARD dimension is **inactive** for
   this run — no prompt, no extra output, `readiness-reviewer`'s ARD-conformance dimension is skipped
   entirely (no-regression, per `ard-resolution.md`).
-- **`status: found`** → carry the returned `invariants` (`AD#N` list, VI-level inherited +
+- **`status: found`** → carry the returned `invariants` (`AD#N` list, PRD-level inherited +
   Epic-level when in scope) forward to Phase 4 as `applicable_ard`. `/ready` never edits the ARD and
   never authors a deviation record itself — it only checks whether one already exists in the artifacts
   it reads (an artifact that violates an `AD#N` **without** a matching
@@ -190,7 +190,7 @@ artifact". **Acknowledge the limitation** (carried to the final report's Assumpt
 ID-grep, not semantic matching — an artifact may cover a requirement thematically without repeating its
 literal ID; `readiness-reviewer` reads the full artifact text and can catch what the grep misses.
 
-**(b) Status-expectation checklist.** Look up the declared VI status (and, when in scope, each Epic
+**(b) Status-expectation checklist.** Look up the declared PRD status (and, when in scope, each Epic
 status) on the matching ladder in `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`, list that
 status's "Expected artifacts" column, and mark each expected artifact present ✅, absent ❌, or — per
 Phase 1's `require-on-main` check and Phase 2.5's `status: unmerged` handling — ⚠, carrying forward
@@ -230,18 +230,18 @@ and a pointer to the rubric.
 → Agent (subagent_type: "dev-workflows:readiness-reviewer", model: `<review_model — §2 Opus chain; frontmatter-pinned, recorded, no override>`):
   > "Review readiness for this brief:
   >
-  > Task description: [one paragraph: <VI> [+ <EPIC>], the declared status(es), what is being verified]
+  > Task description: [one paragraph: <PRD> [+ <EPIC>], the declared status(es), what is being verified]
   > requirements:            [paste the requirements[] array from Phase 2]
   > coverage_map:            [paste Phase 3(a)]
   > status_expectation:      [paste Phase 3(b), plus the workflow-states.md rubric reference]
   > repo_availability:       [paste Phase 3(c)]
   > artifact paths:
-  >   VI:      [<VI-dir>/<VI>.md if read, or the jira-reader handoff's VI summary]
+  >   PRD:      [<PRD-dir>/<PRD>.md if read, or the jira-reader handoff's PRD summary]
   >   ARD:     [absolute path(s), or 'none']
   >   Epics:   [absolute path(s) in scope]
   >   specs:   [absolute path(s) in scope]
   >   designs: [absolute path(s) in scope]
-  > declared_status:         [VI: <status>; Epics: <key>=<status>, …]
+  > declared_status:         [PRD: <status>; Epics: <key>=<status>, …]
   > applicable_ard:          [the Phase 2.5 invariants, or omit entirely if status was none]
   > workflow_states_rubric:  ${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md"
 
@@ -259,20 +259,20 @@ plugin-gap halt (see Invariants).
    Jira status(es) exactly as read in Phase 2, the verdict, the coverage roll-up (N/M requirements
    covered, P%, each ❌ gap requirement ID named), and the full Findings section from Phase 4.
 
-2. **Write `_readiness.md`**, **overwriting** any prior run, to the VI dir (VI-level) or the Epic subdir
+2. **Write `_readiness.md`**, **overwriting** any prior run, to the PRD dir (PRD-level) or the Epic subdir
    (Epic-level):
 
    ```markdown
    ---
    type: dev-workflows-readiness
-   vi: <JIRA_KEY>
-   epic: <FOCUS_KEY>            # omitted when VI-level (focus_key null)
+   prd: <JIRA_KEY>
+   epic: <FOCUS_KEY>            # omitted when PRD-level (focus_key null)
    ---
 
    # Readiness check — <run timestamp, ISO 8601 UTC>
 
    - Specs repo rev: <short HEAD>
-   - Checked status: VI=<status>[, Epic <KEY>=<status>, …]
+   - Checked status: PRD=<status>[, Epic <KEY>=<status>, …]
    - Verdict: SUPPORTED | PARTIAL | NOT-SUPPORTED
 
    ## Coverage roll-up
@@ -293,8 +293,8 @@ plugin-gap halt (see Invariants).
    `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim:
    `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`.
    On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2)
-   with `prefix: ready`; `feature_folder` = the VI dir or Epic subdir step 2 wrote into;
-   `deliverable_paths` = `_readiness.md`; `title: <VI|EPIC> Update readiness snapshot`; and `body_facts` =
+   with `prefix: ready`; `feature_folder` = the PRD dir or Epic subdir step 2 wrote into;
+   `deliverable_paths` = `_readiness.md`; `title: <PRD|EPIC> Update readiness snapshot`; and `body_facts` =
    the verdict, the coverage roll-up (N/M, P%), and the checked Jira status(es). Because `_readiness.md`
    is overwritten every run, §2.2's collision rule fires on most re-runs against an already-merged prior
    branch — expect the `-2`/`-3` substitution, and report it via the §4.1 outcome line as that section
@@ -315,13 +315,13 @@ plugin-gap halt (see Invariants).
    - Opus available: [yes | no]
 
    ### Scope
-   - VI: <JIRA_KEY> — [summary]
-   - Epic: <FOCUS_KEY> — [summary] — _or_ "none — VI-level check"
+   - PRD: <JIRA_KEY> — [summary]
+   - Epic: <FOCUS_KEY> — [summary] — _or_ "none — PRD-level check"
    - Specs repo rev: <short HEAD>
 
    ### Declared status (Phase 2 — authoritative)
-   - VI: <status>
-   - Epic <KEY>: <status> — _or omit when VI-level_
+   - PRD: <status>
+   - Epic <KEY>: <status> — _or omit when PRD-level_
 
    ### Artifact inventory (Phase 1)
    [present ✅ / absent ❌ / authored, not handed off ⚠ (branch/PR named) per artifact, one line each]
@@ -330,7 +330,7 @@ plugin-gap halt (see Invariants).
    [SUPPORTED | PARTIAL | NOT-SUPPORTED]
 
    ### Requirement coverage
-   [N/M covered (P%); list each ❌ gap requirement ID] — _or_ "derived (coarse) — VI had no structured requirements"
+   [N/M covered (P%); list each ❌ gap requirement ID] — _or_ "derived (coarse) — PRD had no structured requirements"
 
    ### Findings
    [readiness-reviewer's Findings section, by dimension]
@@ -354,17 +354,17 @@ plugin-gap halt (see Invariants).
    The next phase runs once it is merged." or the declined/gate-failed/nothing-to-commit variant]
 
    ### Next step
-   [Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. SUPPORTED → `/dev-workflows:implement <VI> [<Epic>]` (same lane, no handoff). PARTIAL / NOT-SUPPORTED → resolve the named gaps above and update the
-   Jira status to match reality, then re-run `/dev-workflows:ready <VI> [<Epic>]`.]
+   [Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. SUPPORTED → `/dev-workflows:implement <PRD> [<Epic>]` (same lane, no handoff). PARTIAL / NOT-SUPPORTED → resolve the named gaps above and update the
+   Jira status to match reality, then re-run `/dev-workflows:ready <PRD> [<Epic>]`.]
 
    ### Context hygiene
    The resume pointer is written in the terminal cost phase (Phase 8), per
    `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1, recording the readiness
    verdict as a carry-forward line. Then:
 
-   - **SUPPORTED → `/dev-workflows:implement <VI> [<Epic>]` (still Dev)?** → run **`/compact`** — context stays relevant.
+   - **SUPPORTED → `/dev-workflows:implement <PRD> [<Epic>]` (still Dev)?** → run **`/compact`** — context stays relevant.
    - **PARTIAL / NOT-SUPPORTED → resolving the gaps yourself now?** → **`/compact`**.
-   - Consider **`/rename <VI-ID>-<slug>-dev`** to relocate this session later.
+   - Consider **`/rename <PRD-ID>-<slug>-dev`** to relocate this session later.
 
    Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
    ```
@@ -392,7 +392,7 @@ a. `project_root` = `$SPECS_PATH` for this run (where `_readiness.md` was writte
 b. Compose a **change summary block**:
 
 ```
-Implementation: [one-sentence: readiness check for <VI> [<Epic>], verdict SUPPORTED | PARTIAL | NOT-SUPPORTED]
+Implementation: [one-sentence: readiness check for <PRD> [<Epic>], verdict SUPPORTED | PARTIAL | NOT-SUPPORTED]
 Change type: docs
 Classification: MODERATE
 Files changed:
@@ -409,7 +409,7 @@ concurrently.
 > [paste change summary block]
 >
 > The project root is the specs repo (`$SPECS_PATH`). Look only for internal documentation files that
-> reference readiness gates or the `dev-workflows/` per-VI artifact area (e.g. a
+> reference readiness gates or the `dev-workflows/` per-PRD artifact area (e.g. a
 > `dev-workflows/README.md` index).
 > Determine if any such file needs updating.
 > Skip if: no such file exists or readiness runs aren't indexed centrally.
@@ -422,7 +422,7 @@ concurrently.
 >
 > Check ~/.claude/memory/ (global) and .claude/memory/ (project-level) for existing knowledge files.
 > Determine if a new knowledge entry is warranted — look for: recurring readiness-gate gaps for this
-> VI-family, non-obvious status/artifact mismatches uncovered, repo-availability surprises.
+> PRD-family, non-obvious status/artifact mismatches uncovered, repo-availability surprises.
 > If YES: append to the most appropriate existing file (never create a new file if an existing one fits)
 > using this format:
 > ### [Short title]
@@ -430,7 +430,7 @@ concurrently.
 > - **Insight**: the learned rule, pattern, or gotcha
 > - **When it applies**: conditions under which this matters
 > - **Date**: YYYY-MM-DD
-> - **Ref**: [first 60 chars of the Jira key + VI summary]
+> - **Ref**: [first 60 chars of the Jira key + PRD summary]
 > Return: file updated/created and summary of entry, OR 'no update required'."
 
 **Agent 3 — Instructions** (general-purpose):
@@ -521,7 +521,7 @@ handoff, the only commit this run makes before Phase 8), and NEVER writes into `
 ## Phase 8 — Session cost
 
 Terminal phase — runs after Phase 7 and NEVER interrupts an earlier phase. Records this command's
-token-cost contribution to the VI by citing `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and
+token-cost contribution to the PRD by citing `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and
 calling its single `emit-cost` entry point. **Cost ALWAYS runs** — it never "writes nothing".
 
 Call `emit-cost` with `command: /ready`, `phase: readiness`, `role: dev`, the run's `jira_key` (or
@@ -529,8 +529,8 @@ Call `emit-cost` with `command: /ready`, `phase: readiness`, `role: dev`, the ru
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the session transcript + subagents
 (§1), loads and **advances the chained checkpoint** (§3), runs `scripts/session-cost.py` to compute the
 per-model token-cost delta against the price table (§4), records the optional statusline cross-check
-(§5), and appends one per-invocation entry to `<VI-dir>/dev-workflows/cost/<sid8>.md` via the
-specs-first ladder (§8) — pending + opportunistic move-then-delete reconciliation (§9) when no VI key
+(§5), and appends one per-invocation entry to `<PRD-dir>/dev-workflows/cost/<sid8>.md` via the
+specs-first ladder (§8) — pending + opportunistic move-then-delete reconciliation (§9) when no PRD key
 resolves. **The checkpoint advances even in the pending / report-only tiers.**
 
 Emit this phase's own short output:
@@ -541,7 +541,7 @@ Emit this phase's own short output:
 ```
 
 **Then write the resume pointer.** Cite `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and
-write/overwrite `<VI-dir>/dev-workflows/resume.md` now — after the cost entry above, so the pointer
+write/overwrite `<PRD-dir>/dev-workflows/resume.md` now — after the cost entry above, so the pointer
 reflects the completed run, and before the commit step below, so it is included in it. Redact per §1.
 Silent; the printed `### Context hygiene` guidance already appeared in the Phase 5 report.
 
@@ -606,4 +606,4 @@ whatever branch Phase 5 left checked out), and NEVER writes to Jira or into `jir
   byte-identical to before
 - ALL written claims trace to Jira keys (from `jira-reader`) or artifact paths actually read; never
   invent content the sources don't contain
-- ALWAYS end with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write — carrying the verdict as carry-forward — runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a same-role `/compact` suggestion + `/rename <VI-ID>-<slug>-dev`; guidance only, never auto-run.
+- ALWAYS end with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write — carrying the verdict as carry-forward — runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a same-role `/compact` suggestion + `/rename <PRD-ID>-<slug>-dev`; guidance only, never auto-run.

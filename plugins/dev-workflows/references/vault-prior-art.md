@@ -2,9 +2,9 @@
 
 An idea rarely starts on empty ground. The vault already tracks initiatives that cover the same capability, precede it, parallel it in the other product, or *are* it under a different description. Reaching that prior art **before** authoring changes what gets authored; reaching it afterwards changes only how much gets rewritten.
 
-Prior art arrives two ways and this file governs both. **Supplied** — the user hands `/idea` a Value Increment key. **Discovered** — `vault-prior-art-finder` searches the vault. Both produce the same digest, resolve status the same way, and land in the same `## Prior art` section.
+Prior art arrives two ways and this file governs both. **Supplied** — the user hands `/idea` a Product Requirements Document key. **Discovered** — `vault-prior-art-finder` searches the vault. Both produce the same digest, resolve status the same way, and land in the same `## Prior art` section.
 
-Consumers: `/idea` (grill-rank, write path, `## Prior art`, handoff) and `/create-vi` (grill-rank). **Read-only** — neither ever writes into a matched item. **Advisory only** — never a gate, never a reviewer BLOCKER. Every miss is a silent, non-blocking skip.
+Consumers: `/idea` (grill-rank, write path, `## Prior art`, handoff) and `/create-prd` (grill-rank). **Read-only** — neither ever writes into a matched item. **Advisory only** — never a gate, never a reviewer BLOCKER. Every miss is a silent, non-blocking skip.
 
 ## Procedure — `resolve-prior-art <command-name>`
 
@@ -12,7 +12,7 @@ Consumers: `/idea` (grill-rank, write path, `## Prior art`, handoff) and `/creat
 2. **Resolve the root.** `vault_root = $VAULT_PATH`. Unlike `$DOCS_PATH` this has **no default** — `$VAULT_PATH` is a write root, and write roots deliberately do not default.
 3. **Validity gate — ON only when all hold** (else `OFF` with a one-line reason):
    - `$VAULT_PATH` is non-empty and is an existing, readable directory;
-   - **`/idea` only** — the run writes into that vault: when `/idea` fell back to a user-supplied write root, return `OFF`, `reason: "write root is not the vault"`. This check does not apply to `/create-vi`, which writes to `$SPECS_PATH` by design and never into the vault; applying it there would resolve `OFF` on every run.
+   - **`/idea` only** — the run writes into that vault: when `/idea` fell back to a user-supplied write root, return `OFF`, `reason: "write root is not the vault"`. This check does not apply to `/create-prd`, which writes to `$SPECS_PATH` by design and never into the vault; applying it there would resolve `OFF` on every run.
    - at least one of `Projects/Products/` and `Projects/ideas/` exists under it.
 4. **Return** `{ prior_art, vault_root, reason }`.
 
@@ -43,7 +43,7 @@ Run only when `prior_art: ON`. Dispatch in the **same response** as `dispatch-do
   > known_refs:      [{path: <abs path> | jira_key: <KEY>, has_summary: true|false}, …]"
 ```
 
-A `known_refs` entry carries **either** a `path` **or** a `jira_key`. A supplied `vi` source has only a key — the caller does not know which vault directory holds it, and resolving that is the finder's job. A followed wikilink has only a path.
+A `known_refs` entry carries **either** a `path` **or** a `jira_key`. A supplied `prd` source has only a key — the caller does not know which vault directory holds it, and resolving that is the finder's job. A followed wikilink has only a path.
 
 Wait for the digest. On `status: ERROR` or any dispatch failure, treat as `prior_art: OFF` and proceed (record one line in the final report). On `status: EMPTY`, proceed; the digest simply adds nothing.
 
@@ -54,7 +54,7 @@ Roots: `<vault_root>/Projects/Products/**` and `<vault_root>/Projects/ideas/**`.
 A path is **excluded** when it:
 
 - contains a `Jira - <KEY>/` directory segment — those are immutable snapshots from an older decentralized import, superseded by `jira-products/`;
-- belongs to an item whose work document carries `type: valuepack`, or whose Jira `issue_type` is `Value Pack` — the Value Pack layer is abandoned, and this plugin operates at Value Increment level and below;
+- belongs to an item whose work document carries `type: valuepack`, or whose Jira `issue_type` is `Value Pack` — the Value Pack layer is abandoned, and this plugin operates at Product Requirements Document level and below;
 - lies under any `_archive/` segment.
 
 ## Status resolution
@@ -99,7 +99,7 @@ Given an absolute path `P` inside the write root, its **container** is:
 
 An idea is written at `<container>/<candidate_slug>/idea.md`. Cases 2 and 3 are the **flat containers** — they name a root, not a specific area.
 
-**Choosing `P` for a Jira-key source.** A key has no vault path of its own; its export lives under `jira-products/`, outside `Projects/`, and would always fall to case 3. Instead `P` = the **vault item directory** whose work document carries `jira.id: <KEY>`, when one exists; absent otherwise. So a VI key yields its grouper — a *new sibling* beside the VI, which is right for extending or paralleling it and wrong for rewriting it in place. The write-path gate decides that; this derivation stays a pure path→path function and never guesses intent.
+**Choosing `P` for a Jira-key source.** A key has no vault path of its own; its export lives under `jira-products/`, outside `Projects/`, and would always fall to case 3. Instead `P` = the **vault item directory** whose work document carries `jira.id: <KEY>`, when one exists; absent otherwise. So a PRD key yields its grouper — a *new sibling* beside the PRD, which is right for extending or paralleling it and wrong for rewriting it in place. The write-path gate decides that; this derivation stays a pure path→path function and never guesses intent.
 
 **The top match** — used by `area_proposal` below and by `/idea`'s write-path gate — is the `prior_art` entry with the highest `match_confidence`, ties broken by array order. `prior_art` is returned ranked, so the top match is its first entry among those tied at the highest confidence. Defining this once matters: two consumers pick a row and a path from it, and "highest-confidence" is ambiguous the moment two entries tie.
 
@@ -115,7 +115,7 @@ The closed term sets. `idea-format.md` and `vault-prior-art-finder` both cite th
 |---|---|
 | `same_capability` | The item covers this very capability. |
 | `predecessor_phase` | This idea is the next phase of that item. |
-| `analogous_precedent` | A **parallel** initiative to model this one on — typically the same capability in the other product (an existing cloud-edition Value Increment ↔ a new self-hosted one on the newer UI stack). It produces no contradiction by itself; the question is where alignment is required and where divergence is deliberate. |
+| `analogous_precedent` | A **parallel** initiative to model this one on — typically the same capability in the other product (an existing cloud-edition Product Requirements Document ↔ a new self-hosted one on the newer UI stack). It produces no contradiction by itself; the question is where alignment is required and where divergence is deliberate. |
 | `supersedes_self` | This idea **rewrites the very item it came from**, in place: same goal, different approach, same Jira key. |
 | `adjacent_initiative` | Related but distinct work. |
 
@@ -132,13 +132,13 @@ The closed term sets. `idea-format.md` and `vault-prior-art-finder` both cite th
 
 ## Consumption
 
-**`grill-rank`** (`/idea`, `/create-vi`) — feed `prior_art` to the grill as positive grounding. **Rank** each `prior_art_challenges` entry into the command's existing Impact × Uncertainty gap list together with `docs_challenges`; do **not** append. A challenge competes for a question slot and never adds one — this preserves `/idea`'s ≤10-question bound.
+**`grill-rank`** (`/idea`, `/create-prd`) — feed `prior_art` to the grill as positive grounding. **Rank** each `prior_art_challenges` entry into the command's existing Impact × Uncertainty gap list together with `docs_challenges`; do **not** append. A challenge competes for a question slot and never adds one — this preserves `/idea`'s ≤10-question bound.
 
-**`## Prior art`** (`/idea`) — the durable carrier, written per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`. Fed from both directions: discovered matches and a supplied `vi` source alike.
+**`## Prior art`** (`/idea`) — the durable carrier, written per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`. Fed from both directions: discovered matches and a supplied `prd` source alike.
 
-**Write path** (`/idea` Phase 4) — the container derivation supplies the provenance default; `area_proposal` and a supplied `vi` source supply the gate's rows.
+**Write path** (`/idea` Phase 4) — the container derivation supplies the provenance default; `area_proposal` and a supplied `prd` source supply the gate's rows.
 
-**Handoff** (`/idea` Phase 5) — matched keys with statuses, plus `vi_disposition`.
+**Handoff** (`/idea` Phase 5) — matched keys with statuses, plus `prd_disposition`.
 
 ## Bounding
 

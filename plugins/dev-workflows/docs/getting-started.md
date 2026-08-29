@@ -17,7 +17,7 @@ claude plugin install dev-workflows@ihudak-plugins
 claude plugin install prose-style@ihudak-plugins
 ```
 
-`dev-workflows` is the pipeline this documentation covers. `prose-style` is the one other plugin **in this marketplace** it genuinely reaches for: it is the primary style checker for `/epics` and for the Value Increment commands, and a fallback prose linter for `/document` when the target docs repo has none configured. Most commands that use it degrade gracefully when it is absent — `/document` is the exception: there, an absent `prose-style` with no other prose linter configured is a real coverage hole, not a no-op, and `gate-ledger.md` §5 forces an explicit choice — fix by hand, proceed without the check, or cancel the run — before the run continues. It is still *recommended*, not required.
+`dev-workflows` is the pipeline this documentation covers. `prose-style` is the one other plugin **in this marketplace** it genuinely reaches for: it is the primary style checker for `/epics` and for the Product Requirements Document commands, and a fallback prose linter for `/document` when the target docs repo has none configured. Most commands that use it degrade gracefully when it is absent — `/document` is the exception: there, an absent `prose-style` with no other prose linter configured is a real coverage hole, not a no-op, and `gate-ledger.md` §5 forces an explicit choice — fix by hand, proceed without the check, or cancel the run — before the run continues. It is still *recommended*, not required.
 
 **What you also need, and it is not a plugin.** No plugin in this marketplace imports Jira tickets into your vault. That is a separate external tool — [`jira-workitem-import`](https://github.com/ivan-gudak/jira-workitem-import) — which populates `$VAULT_PATH/jira-products/<KEY>/` in the exact structure every Jira-driven command expects. Install it before `/specify`, `/document`, `/epics`, or any other Jira-driven command. The inline-prompt `/idea` walked through below needs none of it.
 
@@ -43,7 +43,7 @@ Your **personal** knowledge store — where your own working files live, not the
 
 ### `SPECS_PATH`
 
-The **shared, team-visible repository for the AI-authored documents** — the Value Increment, the ARD, `specification.md`, and `design.md`, each under `specifications/<KEY>-<slug>/`. This is the reason a second store exists at all: it is the medium through which one role hands work to the next. A producing command lands its artifact on the specs repo's default branch, and the next command in the chain refuses to start expensive work until it finds that artifact there — not merely written to disk, and not merely committed to a branch of its own. See [Roles and phases](roles-and-phases.md) for what each seam hands over and what happens when an artifact is missing or stuck on an unmerged branch.
+The **shared, team-visible repository for the AI-authored documents** — the Product Requirements Document, the ARD, `specification.md`, and `design.md`, each under `specifications/<KEY>-<slug>/`. This is the reason a second store exists at all: it is the medium through which one role hands work to the next. A producing command lands its artifact on the specs repo's default branch, and the next command in the chain refuses to start expensive work until it finds that artifact there — not merely written to disk, and not merely committed to a branch of its own. See [Roles and phases](roles-and-phases.md) for what each seam hands over and what happens when an artifact is missing or stuck on an unmerged branch.
 
 ### `REPOS_PATH`
 
@@ -79,7 +79,7 @@ Claude Code ships its own built-in `/statusline` command, so typing the bare for
 
 ## Your first run
 
-`/idea` is the pipeline's entry point, and it needs no Jira key — which makes it the honest place to try the plugin for the first time. Point it at whatever you already have in mind: an inline prompt, a markdown file, a community post, or an existing VI you want to extend.
+`/idea` is the pipeline's entry point, and it needs no Jira key — which makes it the honest place to try the plugin for the first time. Point it at whatever you already have in mind: an inline prompt, a markdown file, a community post, or an existing PRD you want to extend.
 
 ```
 /idea a lightweight way for on-call engineers to silence a noisy alert for one hour without editing the alerting rule
@@ -89,6 +89,6 @@ Here is what to expect:
 
 1. **A bounded grill.** `/idea` asks you up to ten questions, one at a time, to sharpen the idea before writing anything — scope, who it is for, what "done" looks like. Answer as best you can; a question you cannot answer yet becomes a logged `[NEEDS CLARIFICATION]` marker rather than a blocker.
 2. **A written brief.** It writes `idea.md` — a lean one-page brief — into `VAULT_PATH`. If `DOCS_PATH` is set and readable, the idea is also checked against what is already documented, and if your vault has prior related work, that surfaces too.
-3. **A handoff, once a Jira key exists.** The moment you create the corresponding Jira ticket, re-running `/idea` relocates `idea.md` into `$SPECS_PATH/specifications/<KEY>-<slug>/` and lands it on the specs repo's default branch, where the next command, `/create-vi <KEY>`, finds it and takes over — `/create-vi` never does the relocating itself.
+3. **A handoff, once a Jira key exists.** The moment you create the corresponding Jira ticket, re-running `/idea` relocates `idea.md` into `$SPECS_PATH/specifications/<KEY>-<slug>/` and lands it on the specs repo's default branch, where the next command, `/create-prd <KEY>`, finds it and takes over — `/create-prd` never does the relocating itself.
 
 From here, [Workflow overview](workflow.md) shows where every other command sits relative to `/idea`, and [Roles and phases](roles-and-phases.md) says what happens at each handoff along the way.

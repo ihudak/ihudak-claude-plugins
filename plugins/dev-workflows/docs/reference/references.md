@@ -6,9 +6,9 @@
 
 The canonical structure each artifact type is authored and reviewed against, plus the shared conventions every authoring command applies while writing one.
 
-- `idea-format.md` — canonical structure and per-section rules for a refined idea brief; `/idea` is the only author and cites it directly, while `/create-vi` consumes the resulting artifact without citing this format doc.
-- `vi-format.md` — canonical structure and per-section rules for a Value Increment file; `/create-vi` and `/update-vi` author against it, `vi-reviewer` reviews against it, and `/release-notes` reads its Jira-mirror fields.
-- `vi-source-resolution.md` — the Jira-import-first resolution ladder for an existing Value Increment: once a VI has been pasted into Jira and gained comments, Jira — not the specs-repo markdown — is authoritative.
+- `idea-format.md` — canonical structure and per-section rules for a refined idea brief; `/idea` is the only author and cites it directly, while `/create-prd` consumes the resulting artifact without citing this format doc.
+- `prd-format.md` — canonical structure and per-section rules for a Product Requirements Document file; `/create-prd` and `/update-prd` author against it, `prd-reviewer` reviews against it, and `/release-notes` reads its Jira-mirror fields.
+- `prd-source-resolution.md` — the Jira-import-first resolution ladder for an existing Product Requirements Document: once a PRD has been pasted into Jira and gained comments, Jira — not the specs-repo markdown — is authoritative.
 - `ard-format.md` — canonical structure and rules for an Architecture Requirements/Decision Document; `ard-reviewer` reviews against it and `/ready` reads its `grounded_repos:` frontmatter.
 - `specification-format.md` — canonical structure and per-stage rules for a product specification; `/specify` authors against it and `spec-reviewer` reviews against it. An embedded snapshot, not a net-new format.
 - `design-format.md` — canonical structure and per-section rules for an engineering design; `/design` authors against it, `design-reviewer` reviews against it, `interface-designer` reads its `## Seams` categories, and `/ready` reads its repos header.
@@ -37,7 +37,7 @@ The gates a written artifact passes through before it counts as done, and the di
 - `pre-lint.md` — deterministic, grep-expressible structural checks a reviewer-gated command runs against a just-authored artifact before spending an Opus review pass on mechanical structure.
 - `source-truth.md` — the Implementation-vs-Description discrepancy-escalation protocol: how to verify a user-visible claim against shipped source, and what to do when Jira and source disagree.
 - `escalation-rules.md` — the canonical `choices:` arrays for escalation decision points, so every stop-and-ask prompt across the plugin offers consistently-shaped options.
-- `workflow-states.md` — maps each Jira workflow status on the VI and Epic ladders to its owning role, the command that drives the transition into it, and the artifacts expected to exist at that status; the rubric `readiness-reviewer` applies.
+- `workflow-states.md` — maps each Jira workflow status on the PRD and Epic ladders to its owning role, the command that drives the transition into it, and the artifacts expected to exist at that status; the rubric `readiness-reviewer` applies.
 - `ard-resolution.md` — given a Jira item, resolves any applicable ARD(s) into a normalized context (or `none`); cited by every command that must honor an ARD's invariants as implementation guardrails.
 - `bug-diagnosis.md` — the bug-diagnosis discipline `/implement` follows for a bug-shaped task: a deterministic repro before hypothesizing, ranked falsifiable hypotheses, tagged and cleaned-up instrumentation, a regression test at a correct seam.
 
@@ -53,7 +53,7 @@ Read-only, advisory context-gathering — never a gate, never a write into the s
 
 The bookkeeping every long-running command emits around its actual work — cost, feedback, follow-ups, hygiene, and the maintenance loop that feeds tooling improvements back in.
 
-- `cost-emission.md` — the session-cost subsystem every VI-lifecycle command's terminal "Session cost" phase cites: how a run's dollar cost is computed, attributed, and persisted.
+- `cost-emission.md` — the session-cost subsystem every PRD-lifecycle command's terminal "Session cost" phase cites: how a run's dollar cost is computed, attributed, and persisted.
 - `feedback-emission.md` — the session-feedback emitter the thirteen workflow commands' automatic maintenance phase (and `/feedback`/`/prompt*`) cites to capture friction about the plugin itself.
 - `followup-emission.md` — the follow-up task and journal emitter a terminal "Emit follow-up tasks" phase cites in `/document`, `/release-notes`, `/epics`, `/implement`, and `/ready`.
 - `next-phase-offer.md` — the plugin-wide contract for the next-phase offer every pipeline command surfaces at the end of its run, naming the natural next command(s).

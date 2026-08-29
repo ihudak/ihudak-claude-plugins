@@ -73,6 +73,46 @@ Spec 2 is largely a re-wiring of agents that already exist. Spec 3 is meaningles
 
 Three new agents only — `docs-auditor`, `ia-planner`, `drift-detector`. Everything else already exists.
 
+```mermaid
+flowchart TD
+    repos[("code repos")]
+    subgraph COLD["Cold start — Spec 1"]
+        init["/docs-init — scaffold, Vale, two builds"]
+        brand["/docs-brand — logo and colours"]
+        audit["/docs-audit — surfaces crossed with Diátaxis"]
+    end
+    subgraph ITER["Iteration — Spec 2"]
+        write["/docs-write — one unit"]
+        verify["/docs-verify — resolve claims"]
+    end
+    subgraph KEEP["Drift — Spec 3"]
+        drift["/docs-drift"]
+    end
+    profile[("docs-profile.yml")]
+    backlog[("docs-backlog.yml")]
+    pages[("docs/ pages")]
+    serve["/docs-serve — background docs server"]
+
+    repos --> init
+    init -->|inline| brand
+    init --> profile
+    repos --> audit
+    profile --> audit
+    audit --> backlog
+    backlog --> write
+    write --> pages
+    write --> verify
+    verify --> pages
+    verify -->|"status: published"| backlog
+    repos --> drift
+    backlog --> drift
+    drift -->|"status: stale"| backlog
+    profile --> serve
+    pages --> serve
+```
+
+Read the diagram as three loops sharing two artefacts. `docs-profile.yml` is what makes the generator choice invisible to everything downstream (D9); `docs-backlog.yml` is what makes "what next" and "are we done" answerable at all. `/docs-serve` sits outside every loop because it is a utility, not a stage — it works on any profiled docs repo, including one this family never scaffolded.
+
 ---
 
 ## 5. The coverage model
@@ -516,7 +556,12 @@ Classification is usually MODERATE for a single unit. The one genuinely new gate
 
 ### 12.2 `/docs-verify <unit-id>` (Spec 2)
 
-Composes or loads the unit's walkthrough (§8.3), renders it as a checklist, records `confirmed`/`differs`/`blocked` per step with observed text on `differs`, resolves marked claims, and collects image slots for CDN upload. v2 adds a browser backend behind the same file format.
+**Two backends, matching the two implementations of the evidence contract (§8.2)** — one command, not two:
+
+- **`audience: user`** — composes or loads the unit's walkthrough (§8.3), renders it as a checklist, records `confirmed`/`differs`/`blocked` per step with the observed text on `differs`, and collects image slots for CDN upload.
+- **`audience: engineering`** — re-reads the claims against the code and the specs-repo artefacts they cite, delegating to `references/source-truth.md`. No walkthrough; the same status transition.
+
+Both resolve marked claims and move the unit `drafted → verified`. v2 adds a browser driver behind the user backend, with no change to the file format.
 
 ### 12.3 `/docs-drift` (Spec 3)
 
@@ -541,14 +586,89 @@ For each surface, diff `sources[].ref` → `HEAD` restricted to the surface's ev
 |---|---|---|
 | Commands | 21 | 28 |
 | Agents | 33 | 36 |
-| `docs/` pages | 34 | 41 + new reference pages |
+| `docs/` pages | 34 | 45 (7 command pages + 4 reference pages) |
 | Reference files | 98 | 98 + `references/docs-workflow/*` |
 
 `scripts/check-docs.sh` enforces command/agent/reference/hook/skill inventories in both directions plus prose counts in six places; every number above must be updated in the same change, and the gate will name each stale one. `scripts/check-id-grammar.sh` applies to the new reference files. The `plugin.json` and `marketplace.json` descriptions are capped at 1024 characters and are already tight: the new capability **replaces** wording, it never appends.
 
 ---
 
-## 14. Non-goals
+## 14. Documentation deliverable
+
+`scripts/check-docs.sh` fails the build until this is complete, so it is **part of the change, not a follow-up**. The checks that bite here are the command / agent / reference inventories in both directions, the six prose counts, the 200-character table-cell cap, and the identity quarantine — no page under `docs/` may name a marketplace or a container repo, `getting-started.md` being the single sanctioned exception.
+
+Every claim on every new page is derived from **the thing that runs it**: a synopsis from the command's argument-parsing phase, phases from its `## Phase` headings, gates from its reviewer dispatch, the agent inventory from `agents/`. Not from this design document, which will drift from the implementation the moment the implementation starts.
+
+### 14.1 Plugin README
+
+The README is a role-indexed pointer table, not prose. The family adds one row and extends one:
+
+| Role | Commands | What it does |
+|------|----------|--------------|
+| Docs | `/docs-init`, `/docs-audit`, `/docs-write`, `/docs-verify`, `/docs-drift` | Scaffold a documentation repository, audit what is missing, then write, verify and maintain it one unit at a time. |
+
+`/docs-brand` and `/docs-serve` join the existing *Anytime — maintenance* row beside `/docs-profile`, because both are utilities you reach for at any point rather than stages of the pipeline.
+
+The README also carries **the family diagram from §4**, under a `## Documentation workflow` heading placed directly after the role table. A reader deciding whether this family is for them needs the shape before the command list; a table of seven command names does not convey that three of them form a loop. Every cell stays under 200 characters.
+
+### 14.2 New `docs/` pages
+
+Seven command pages under `docs/commands/` — `docs-init.md`, `docs-brand.md`, `docs-serve.md`, `docs-audit.md`, `docs-write.md`, `docs-verify.md`, `docs-drift.md` — each following the established page shape: synopsis, when to use it, prerequisites, phases, gates, outputs, failure modes.
+
+Four reference pages under `docs/reference/`, mirroring the new `references/docs-workflow/` directory:
+
+| Page | Covers |
+|---|---|
+| `docs-coverage-model.md` | Surfaces, the Diátaxis crossing, the four prioritisation signals, the definition of done (§5) |
+| `docs-backlog.md` | The backlog schema, the unit status lifecycle, why surfaces and units are separate tables (§8.1) |
+| `docs-evidence.md` | The evidence contract and the walkthrough spec, including the marked-claim rule (§8.2, §8.3) |
+| `docs-visibility.md` | The two-build model, both traps, and the two output-level gates (§9) |
+
+`docs/README.md` gains rows in the "I want to…" table — *start documenting a project that has no docs* → `/docs-init`, `/docs-audit`; *write the next page* → `/docs-write`; *check the docs still match the code* → `/docs-drift`; *open the docs in a browser* → `/docs-serve`. `docs/workflow.md` gains the family as a fourth stage on the existing pipeline diagram, and `docs/roles-and-phases.md` gains the Docs role.
+
+### 14.3 Which diagram lives where
+
+| Diagram | Lives in | Why there |
+|---|---|---|
+| Family data flow (§4) | Plugin README, `docs/workflow.md`, `docs/reference/docs-coverage-model.md` | It is the only view that shows the three loops and the two shared artefacts |
+| Unit status lifecycle (below) | `docs/reference/docs-backlog.md` | It is the schema's `status` enum, drawn — so it belongs beside the schema |
+| `/docs-write` pipeline (below) | `docs/commands/docs-write.md` | Matches the per-command linear phase-chain convention already used by `idea.md`, `design.md`, `document.md` |
+
+**Unit status lifecycle:**
+
+```mermaid
+stateDiagram-v2
+    [*] --> missing
+    missing --> drafted: /docs-write grounds and drafts
+    drafted --> verified: /docs-verify resolves every marked claim
+    verified --> published: page committed to the docs repo
+    published --> stale: /docs-drift finds the evidence changed
+    stale --> drafted: /docs-write re-drafts against new evidence
+```
+
+`drafted → published` is deliberately **not** a legal transition. That single missing edge is what stops the coverage grid reporting green on prose nobody checked, and it is the reason `verified` exists as a state rather than a boolean on the page.
+
+**`/docs-write` pipeline** — the chain is almost entirely existing machinery, which is the point:
+
+```mermaid
+flowchart TD
+    u["Resolve the unit from docs-backlog.yml"] --> g["Ground per the evidence contract"]
+    g --> w["doc-writer drafts the page"]
+    w --> s["docs-style-checker — Vale, then prose-style-checker"]
+    s --> f1["doc-fixer applies style findings"]
+    f1 --> r["doc-reviewer at Opus"]
+    r --> t["Orchestrator triage — finding-triage.md"]
+    t --> f2["doc-fixer applies survivors only"]
+    f2 --> st["Update the unit's status"]
+```
+
+### 14.4 Counts to update in the same change
+
+`check-docs.sh` cross-checks six inventories plus the cost-emitting set against prose counts scattered across the tree. Each must move together: commands 21 → 28, agents 33 → 36, reference files 98 → 98 plus `references/docs-workflow/*`, docs pages 34 → 45. `CLAUDE.md`'s command list, agent list and workflow map are updated in the same commit, and each new command that hands `emit-cost` a fixed `phase`/`role` pair needs its matching row in `references/cost-emission.md` §7 — check 8 fails in both directions, so a row without a command is as red as a command without a row.
+
+---
+
+## 15. Non-goals
 
 - **No authentication implementation.** The family produces a public and an internal build; protecting the internal host is the project's infrastructure choice.
 - **No hosting or deployment.** CI builds both outputs; where they are deployed is out of scope.
@@ -560,7 +680,7 @@ For each surface, diff `sources[].ref` → `HEAD` restricted to the surface's ev
 
 ---
 
-## 15. Risks
+## 16. Risks
 
 | Risk | Mitigation |
 |---|---|
@@ -574,7 +694,7 @@ For each surface, diff `sources[].ref` → `HEAD` restricted to the surface's ev
 
 ---
 
-## 16. Open questions
+## 17. Open questions
 
 1. **Does `docs-frontmatter` need to own the evidence frontmatter block?** The skill owns frontmatter for docs repos. The evidence block (§8.2) is new frontmatter. Either the skill absorbs it or the family declares a reserved key it does not touch. To settle in Spec 2, when the block's shape is exercised.
 2. **Tutorial selection UX.** The audit proposes candidates and a human picks; whether that is an interactive prompt in `/docs-audit` or a marked section of the backlog to edit is unsettled.

@@ -47,7 +47,7 @@ Each logged entry is a dated heading, a fenced YAML block, and prose — appende
 ## 2026-07-09 — /document — missing-capability
 
 ```yaml
-id: PRODUCT-1234-document-cloud-self-hosted-split
+id: PRODUCT-1234-document-image-alt-text
 date: 2026-07-09
 command: /document           # controlled: exact command name, or n/a
 plugin_version: 2.9.0
@@ -57,11 +57,11 @@ category: missing-capability # controlled, extensible, reuse-first
 impact: friction             # blocker | friction | polish
 ```
 
-**Friction:** One page covered both Cloud and Self-hosted; the Cloud half got pushed
-back in review because the two products differ here.
+**Friction:** Three screenshots landed without alt text and the page got pushed
+back in review; the image phase collects URLs but never prompts for a description.
 
-**Suggested improvement:** Add an optional `cloud|self-hosted` parameter to
-`/document` so the run scopes to one product.
+**Suggested improvement:** Have the image phase ask for alt text per image at
+collection time, so the gap is caught before the page is written.
 ````
 
 `category` is a controlled but extensible vocabulary — reuse an existing value when it fits rather than minting a near-duplicate, so signals cluster instead of fragmenting: `missing-capability`, `wrong-output`, `ambiguous-prompt`, `missing-reference-doc`, `model-routing`, `manual-workaround`, `false-positive`, `docs-ux`, `other`. `impact` is `blocker`, `friction`, or `polish`. `author` comes from `git config user.email` in the specs repo, best-effort, `unknown` if it can't be resolved — the git commit author is the second, authoritative identity layer once the entry is actually committed and pushed. An `origin: prompt` entry carries two additional prose blocks after Friction and Suggested improvement: **User prompt** (your corrective request, verbatim) and **Resolution** (what the AI actually did in response).

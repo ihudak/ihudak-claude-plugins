@@ -28,7 +28,7 @@ changelog:
 - **Meaningful entries.** Terse, from the customer's point of view. Don't write
   vague descriptions like "Updated page to match the new UI." Answer "to what
   effect?" — highlight significant changes, new features, or deletions.
-- **No internal render mechanics.** Never name the publishing machinery in an entry — "Self-hosted-only", "Cloud-only", "space", "conditional", "override". Readers of a page do not know those concepts exist. Describe what changed for the customer on the page they are reading; the space something renders in is the build's business, not theirs.
+- **No internal render mechanics.** Never name the publishing machinery in an entry — "Self-hosted-only", "Cloud-only", "space", "content root". Readers of a page do not know those concepts exist. Describe what changed for the customer on the page they are reading; where something renders is the build's business, not theirs.
 - **Never on first publish.** Do not create a changelog entry when a page is
   first published; the published timestamp is used instead.
 - **No "hidden" entries.** "Hiding" is an internal unpublish mechanism, not

@@ -28,7 +28,7 @@ plugins/
 
 ## Active plugin: dev-workflows
 
-`plugins/dev-workflows/` provides twenty-one slash commands — `/implement`, `/document`, `/docs-profile`, `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/api-guideline-reviewer`, `/guideline-reviewer`, `/idea`, `/create-prd`, `/create-ard`, `/specify`, `/design`, `/feedback`, `/prompt`, `/prompt-brainstorm`, `/prompt-grill-me`, `/statusline`, `/ready`, and `/update-prd` — plus thirty-four reusable subagents, four hooks, and reference docs.
+`plugins/dev-workflows/` provides twenty-one slash commands — `/implement`, `/document`, `/docs-profile`, `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/api-guideline-reviewer`, `/guideline-reviewer`, `/idea`, `/create-prd`, `/create-ard`, `/specify`, `/design`, `/feedback`, `/prompt`, `/prompt-brainstorm`, `/prompt-grill-me`, `/statusline`, `/ready`, and `/update-prd` — plus thirty-three reusable subagents, four hooks, and reference docs.
 
 The live `dev-workflows` workflow relies on a larger set of helper agents and
 workflow roles; see the taxonomy and workflow map below.
@@ -148,7 +148,7 @@ in their prompt; they do not re-read the file.
 /implement           → [require-on-main: in-scope specification.md/design.md] → [Phase 1.6 input scale assessment] → (multi-source? → [jira-reader → code-scanner×N (parallel, cap 4) → §8.5 narrow round 2] → synthesis, unresolved themes named) → [risk-planner@Opus plan critique] → [code-review@Opus] → [triage: verify each finding] → review-fixer → test-writer → tests → impl-maintenance → [handoff-to-main: escalated spec/design notes, when any] → commit-artifacts
 /document (direct)   → [docs-style-checker] → [doc-fixer] → impl-maintenance → commit-artifacts
 /docs-profile        → scans docs repo → writes/refreshes .dev-workflows/docs-profile.yml + CLAUDE.md guidance → PR
-/document (Jira)     → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [counterpart-finder (space-constrained runs)] → [doc-planner] → [discrepancy-escalation (Phase 5.8)] → writing → [docs-style-checker → prose-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [triage: verify each finding] → [doc-fixer] → impl-maintenance → commit-artifacts   (Phase 0 hint: prefers ${DOCS_PATH:-/workspace/docs} as a docs-repo discovery hint — write-target only, no docs-grounder consumption)
+/document (Jira)     → jira-reader → [diff-summarizer×N (parallel)] → [doc-location-finder] → [doc-planner] → [discrepancy-escalation (Phase 5.8)] → writing → [docs-style-checker → prose-style-checker fallback] → [doc-fixer] → [doc-reviewer] → [triage: verify each finding] → [doc-fixer] → impl-maintenance → commit-artifacts   (Phase 0 hint: prefers ${DOCS_PATH:-/workspace/docs} as a docs-repo discovery hint — write-target only, no docs-grounder consumption)
 /epics               → [resolve-docs-grounding — a deliberate exception to §5 rule 2's ordering] → [require-on-main: PRD-level specification.md] → jira-reader → [docs-grounder] → [code-scanner×N (parallel, optional)] → writing → [prose-style-checker] → [doc-fixer] → [epic-reviewer@Opus] → [triage: verify each finding] → [doc-fixer] → impl-maintenance → commit-artifacts
 /release-notes       → jira-reader → [diff-summarizer×N (parallel, optional)] → [docs-grounder] → [release-notes-writer: resolve destination + shape per destination + source the {{#context}} label + detect deprecation] → [prose-style-checker → prose-fixer (optional)] → write draft (destination-shaped Summary; paste into Jira) → impl-maintenance → commit-artifacts
 /vuln                → vuln-research → vuln-fixer → [code-review@Opus] → [triage: verify each finding] → review-fixer → tests → impl-maintenance → commit-artifacts
@@ -168,7 +168,6 @@ All seventeen in-scope commands additionally run `specs-preflight` at run start 
                       └── doc-reviewer       (used by /document Jira mode)
                       └── doc-fixer          (used by /document, /epics)
                       └── doc-location-finder (used by /document Jira mode)
-                      └── counterpart-finder (used by /document Jira mode, space-constrained runs)
                       └── doc-planner        (used by /document Jira mode)
                       └── docs-style-checker (used by /document, both modes)
                       └── epic-reviewer      (used by /epics)
@@ -228,7 +227,6 @@ Key invariants for `/document` (Jira mode) and `/epics`:
 - Branch setup happens **before** writing output files — never after
 - Branch policy: `/epics` never branches. `/document` classifies its write context against the resolved `docs_repo_path` (not necessarily cwd) — walk up for `.obsidian/` → `obsidian` (never branch); else `git rev-parse` plus docs signals → `docs_repo` (branch opt-in, confirmed at plan approval) or `non_docs_repo` (user confirmation promotes it to `docs_repo` behaviour); else `plain_dir` (never branch)
 - `doc-location-finder` (docs flow) identifies write targets before writing begins
-- Counterpart-space grounding (`counterpart-finder`, Phase 5.6.5) runs only on space-constrained runs; it is **read-only** — never copies counterpart-space-specific detail or screenshots into the target doc; `--counterpart <JiraID|PR-url>` reaches an unmerged counterpart PR by reusing `/document`'s existing PR-diff resolver (`diff-summarizer`, no new external-API surface); nothing found ⇒ the run behaves exactly as today
 - `doc-planner` (docs flow) synthesizes Jira + diffs into a documentation checklist
 - `docs-style-checker` + `doc-fixer` lint prose after writing, before the review gate; style check is mandatory — falls back to `prose-style-checker`; `NOT_CONFIGURED` only when nothing is available
 - For epics, `prose-style-checker` is the primary style checker; skip gracefully if `prose-style` is not installed

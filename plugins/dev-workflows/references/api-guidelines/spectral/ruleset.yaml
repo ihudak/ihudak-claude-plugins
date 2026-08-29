@@ -1,0 +1,940 @@
+# ==============================================================================
+# Executable REST API guidelines — Spectral ruleset
+# ==============================================================================
+#
+# This file makes the machine-checkable half of `references/api-guidelines/`
+# executable. It is run by the `api-guideline-reviewer` agent as a deterministic
+# pre-pass; whatever it reports is authoritative, and the LLM review passes cover
+# only what a linter cannot express (semantic naming quality, resource
+# modelling, documentation adequacy).
+#
+# ------------------------------------------------------------------------------
+# HOW AN ORGANIZATION ADOPTS THIS FILE
+# ------------------------------------------------------------------------------
+# EXTEND it; do not edit it in place. Editing in place means every plugin update
+# overwrites your organization's decisions. Instead, put a `.spectral.yaml` at
+# the root of the API repository:
+#
+#     extends:
+#       - <path-or-url-to>/references/api-guidelines/spectral/ruleset.yaml
+#     rules:
+#       # Your prefix instead of the placeholder `Example-`:
+#       api-tenant-header-canonical-spelling:
+#         then:
+#           functionOptions:
+#             notMatch: '^(?!Acme-Tenant$).*[Tt]enant'
+#       api-custom-header-org-prefix:      # and api-response-header-org-prefix
+#         then:
+#           functionOptions:
+#             match: '^(Acme-[A-Z][A-Za-z0-9]*(-[A-Z0-9][A-Za-z0-9]*)*|Accept|...)$'
+#       # Turn a rule off, or re-severity it:
+#       api-operation-id-verb-first: warn
+#
+# Five rules carry a placeholder literal that an organization is expected to
+# replace exactly once, and then never again:
+#
+#   * api-tenant-header-canonical-spelling  — the tenant header spelling
+#   * api-custom-header-org-prefix          — the org-wide custom-header prefix,
+#   * api-response-header-org-prefix          on request and response headers
+#                                             respectively (keep the two in step)
+#   * api-security-scheme-name-consistent   — the org-wide security-scheme id
+#   * api-operation-id-verb-first           — the verb list, which is necessarily
+#                                             open-ended
+#
+# Those five are the literals the guideline text calls "the organization's single
+# declared X". They are shipped with the placeholders used throughout
+# `references/api-guidelines/` and in `template/openapi-template.yaml`, so the
+# bundled template lints clean out of the box.
+#
+# ------------------------------------------------------------------------------
+# WHAT THIS RULESET DELIBERATELY DOES NOT CHECK
+# ------------------------------------------------------------------------------
+# Spectral's built-in functions evaluate one matched node at a time. They cannot
+# compare two nodes, and this ruleset does not pretend otherwise. The following
+# guideline requirements stay with the LLM review passes; each is named here so
+# a reviewer knows the gate is theirs, not the linter's:
+#
+#   1. VERSION AGREEMENT. `api-info-version-semver`,
+#      `api-server-url-major-version` and `api-gateway-url-major-version` each
+#      check their own field's SHAPE. That the major version in `info.version`,
+#      in every `servers[].url` and in every `x-gateway-url` is the SAME number
+#      (API Versioning.md § Version consistency) is a cross-field comparison and
+#      is not expressible with Spectral's built-in functions. A custom JavaScript
+#      function would express it; a declarative YAML ruleset cannot.
+#   2. `allOf` PROPERTY REDEFINITION. OpenAPI.md forbids an `allOf` branch from
+#      redefining a property the referenced schema already defines. Detecting it
+#      means resolving the `$ref` and intersecting two property sets.
+#   3. ERROR-ENVELOPE CONFORMANCE. That a 4xx/5xx response body actually uses the
+#      organization's error envelope (Common Schemas.md) needs the envelope's
+#      schema identity, which is per-organization.
+#   4. SEMANTIC NAMING. Whether a name is a noun, a plural, a verb, American
+#      English, or "overly generic" (Conventions.md § Naming Conventions) is a
+#      judgement. `api-operation-id-verb-first` approximates one corner of it
+#      with an open verb list and is therefore a warning, not an error.
+#   5. CONDITIONAL DOCUMENT REQUIREMENTS. Whether `x-gateway-url` is required at
+#      all (OpenAPI.md: only for APIs exposed on the gateway), and whether
+#      `deprecated` must be set (API Versioning.md: only for a deprecated service
+#      version), both depend on facts outside the document.
+#
+# ------------------------------------------------------------------------------
+# SEVERITY MAPPING (Conventions.md § RFC 2119 keywords)
+# ------------------------------------------------------------------------------
+#   error  <- MUST / MUST NOT / REQUIRED       ("violation is considered a mistake")
+#   warn   <- SHOULD / SHOULD NOT / RECOMMENDED
+#   info   <- advisory
+# A rule whose mechanical form is weaker than the guideline it implements is
+# demoted one level and says so in its description.
+# ==============================================================================
+
+extends:
+  - [spectral:oas, recommended]
+
+aliases:
+  ApiOperation:
+    - "$.paths[*][get,put,post,delete,options,head,patch,trace]"
+  ApiHeaderParameter:
+    - "$..parameters[?(@ && @.in === 'header')]"
+  ApiCompositeSchema:
+    - "$..[?(@ && (@.allOf || @.oneOf || @.anyOf))]"
+
+overrides:
+  # The bundled starter template deliberately ships a component LIBRARY: Swagger
+  # Documentation.md states that the template "already contains the most common
+  # error responses", and API Context Information.md declares the application
+  # context header as optional. An operation draws from that library selectively,
+  # so unused reusable components are the template's purpose, not a defect. The
+  # rule stays ON (at its inherited severity) for every real specification.
+  - files:
+      - "../template/openapi-template.yaml"
+    rules:
+      oas3-unused-component: "off"
+
+rules:
+
+  # --------------------------------------------------------------------------
+  # Inherited rules re-severitied to match the guidelines' RFC 2119 keywords
+  # --------------------------------------------------------------------------
+
+  # Authentication.md: "All API endpoints must be protected by at least one
+  # permission scope." This inherited rule is the one that verifies each scope
+  # named in a `security` requirement is DECLARED in the scheme's `scopes` map
+  # (@stoplight/spectral-rulesets oasSecurityDefined). MUST -> error.
+  oas3-operation-security-defined: error
+
+  # Swagger Documentation.md § Paths: "A summary and/or description must be
+  # provided ... For parameters (query, path, header)." Off by default upstream.
+  oas3-parameter-description: warn
+
+  # --------------------------------------------------------------------------
+  # Document shape and version consistency
+  # (OpenAPI.md, API Versioning.md § Version consistency)
+  # --------------------------------------------------------------------------
+
+  api-openapi-version-supported:
+    description: >-
+      OpenAPI.md § Format: the `openapi` field must be 3.1.x; 3.0.x may be used
+      only where a required tool does not yet support 3.1. Versions older than
+      3.0 must not be used.
+    message: "`openapi: {{value}}` is not a supported OpenAPI version — use 3.1.x (3.0.x only where a named tool forces it)."
+    severity: error
+    documentationUrl: https://spec.openapis.org/oas/v3.1.0.html
+    given: "$.openapi"
+    then:
+      function: pattern
+      functionOptions:
+        match: '^3\.[01]\.\d+$'
+
+  api-openapi-version-3-1-preferred:
+    description: >-
+      OpenAPI.md § Format: 3.0.x may be used only where a required tool does not
+      yet support 3.1, and the document must then state which tool forces it.
+    message: "`openapi: {{value}}` is not 3.1.x — state in `info.description` which tool forces 3.0.x, or migrate."
+    severity: warn
+    documentationUrl: https://spec.openapis.org/oas/v3.1.0.html
+    given: "$.openapi"
+    then:
+      function: pattern
+      functionOptions:
+        match: '^3\.1\.\d+$'
+
+  api-info-version-semver:
+    description: >-
+      API Versioning.md § Version Consistency: the full semantic version
+      (major.minor.patch) must be the value of `info.version`.
+    message: "`info.version` must be a full semantic version (major.minor.patch), not `{{value}}`."
+    severity: error
+    documentationUrl: https://semver.org/
+    given: "$.info"
+    then:
+      - field: version
+        function: truthy
+      - field: version
+        function: pattern
+        functionOptions:
+          match: '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
+
+  api-server-url-major-version:
+    description: >-
+      API Versioning.md § Version Consistency and § API Version in the URL: the
+      major version must be part of every `servers[].url`, as a lowercase `v`
+      followed by a decimal integer (`v0.<minor>` during initial development).
+      Shape only — see this file's header for why the cross-field AGREEMENT with
+      `info.version` is not checkable here.
+    message: "`servers[].url` `{{value}}` carries no `/v<major>` segment."
+    severity: error
+    documentationUrl: https://opensource.zalando.com/restful-api-guidelines/#115
+    given: "$.servers[*].url"
+    then:
+      function: pattern
+      functionOptions:
+        match: '(^|/)v(0\.\d+|[1-9]\d*)(/|$)'
+
+  api-gateway-url-major-version:
+    description: >-
+      API Versioning.md § Version Consistency: the major version must be part of
+      the `x-gateway-url` extension wherever that extension is present. Shape
+      only, as above.
+    message: "`x-gateway-url` `{{value}}` carries no `/v<major>` segment."
+    severity: error
+    documentationUrl: https://opensource.zalando.com/restful-api-guidelines/#115
+    given: "$.servers[*].x-gateway-url"
+    then:
+      function: pattern
+      functionOptions:
+        match: '(^|/)v(0\.\d+|[1-9]\d*)(/|$)'
+
+  api-no-version-in-path:
+    description: >-
+      Swagger Documentation.md § The Service Name: the service version must be
+      the last segment of the `servers` URL and must not appear in the `paths`
+      section of the document.
+    message: "Path `{{property}}` carries a version segment; the version belongs in `servers[].url`, not in `paths`."
+    severity: error
+    documentationUrl: https://opensource.zalando.com/restful-api-guidelines/#115
+    given: "$.paths.*~"
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: '(^|/)v\d+(\.\d+)?(/|$)'
+
+  api-audience-declared:
+    description: >-
+      General Structure.md § API Audience and OpenAPI.md § API Audience: every
+      API must declare exactly one audience with the `x-audience` extension on
+      the `info` object.
+    message: "`info.x-audience` must be declared as exactly one of external-public | external-partner | company-internal | component-internal."
+    severity: error
+    documentationUrl: https://opensource.zalando.com/restful-api-guidelines/#219
+    given: "$.info"
+    then:
+      - field: x-audience
+        function: truthy
+      - field: x-audience
+        function: enumeration
+        functionOptions:
+          values:
+            - external-public
+            - external-partner
+            - company-internal
+            - component-internal
+
+  # --------------------------------------------------------------------------
+  # Naming conventions (Conventions.md § Naming Conventions, Custom Methods.md)
+  # --------------------------------------------------------------------------
+
+  api-schema-property-lower-camel-case:
+    description: >-
+      Conventions.md § Field Names: field names must be lowerCamelCase, and must
+      not use snake_case, kebab-case or UpperCamelCase.
+    message: "Schema property `{{property}}` must be lowerCamelCase."
+    severity: error
+    documentationUrl: https://google.aip.dev/140
+    # `resolved: false` so a component schema referenced from N operations is
+    # reported once at its definition rather than N times at each use site.
+    resolved: false
+    given: "$..properties.*~"
+    then:
+      function: casing
+      functionOptions:
+        type: camel
+        disallowDigits: false
+
+  api-query-param-kebab-case:
+    description: >-
+      Conventions.md § Query Parameters: query parameter names must be
+      kebab-case.
+    message: "Query parameter `{{value}}` must be kebab-case."
+    severity: error
+    documentationUrl: https://opensource.zalando.com/restful-api-guidelines/#naming
+    resolved: false
+    given: "$..parameters[?(@ && @.in === 'query')].name"
+    then:
+      function: casing
+      functionOptions:
+        type: kebab
+        disallowDigits: false
+
+  api-path-param-kebab-case:
+    description: >-
+      Conventions.md § Path Parameters: path parameter names are customer-facing
+      (they are rendered in the API reference) and must be kebab-case. That they
+      are also singular nouns is a judgement and stays with the review passes.
+    message: "Path parameter `{{value}}` must be kebab-case."
+    severity: error
+    documentationUrl: https://www.rfc-editor.org/rfc/rfc6570.html
+    resolved: false
+    given: "$..parameters[?(@ && @.in === 'path')].name"
+    then:
+      function: casing
+      functionOptions:
+        type: kebab
+        disallowDigits: false
+
+  api-enum-value-upper-snake-case:
+    description: >-
+      Conventions.md § Field Values: enum values must be single words in
+      UPPER_SNAKE_CASE. This includes enums used in query parameters.
+      Non-string enum members are skipped.
+    message: "Enum value `{{value}}` must be UPPER_SNAKE_CASE."
+    severity: error
+    documentationUrl: https://opensource.zalando.com/restful-api-guidelines/#240
+    resolved: false
+    given: "$..enum[*]"
+    then:
+      function: pattern
+      functionOptions:
+        match: '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$'
+
+  api-path-segments-kebab-case:
+    description: >-
+      Conventions.md § Collection Names (collection ids should be kebab-case)
+      and Custom Methods.md (a custom method is separated from the path by a
+      colon and its name must be kebab-case). Demoted to a warning because the
+      collection-name half of the rule is a SHOULD.
+    message: "Path `{{property}}` has a segment that is not kebab-case, a `{kebab-case}` template, or a `:kebab-case` custom method."
+    severity: warn
+    documentationUrl: https://google.aip.dev/136
+    given: "$.paths.*~"
+    then:
+      function: pattern
+      functionOptions:
+        match: '^(/(\{[a-z0-9]+(-[a-z0-9]+)*\}|[a-z0-9]+(-[a-z0-9]+)*(:[a-z0-9]+(-[a-z0-9]+)*)?))+$'
+
+  api-operation-id-lower-camel-case:
+    description: >-
+      OpenAPI.md § OperationId: `operationId` must be in lowerCamelCase, because
+      code generators use it verbatim to name the generated method.
+    message: "`operationId: {{value}}` must be lowerCamelCase."
+    severity: error
+    documentationUrl: https://spec.openapis.org/oas/v3.1.0.html#operation-object
+    given: "#ApiOperation"
+    then:
+      field: operationId
+      function: casing
+      functionOptions:
+        type: camel
+        disallowDigits: false
+
+  api-operation-id-verb-first:
+    description: >-
+      OpenAPI.md § OperationId: `operationId` must start with a verb, so that it
+      reads as a method name after generation. Demoted to a warning because the
+      verb list below is necessarily open-ended — extend it in your own ruleset
+      rather than editing this file.
+    message: "`operationId: {{value}}` does not start with a recognised verb (listWidgets, getWidget, createWidget, …). Extend `api-operation-id-verb-first` if the verb is legitimate."
+    severity: warn
+    documentationUrl: https://spec.openapis.org/oas/v3.1.0.html#operation-object
+    given: "#ApiOperation.operationId"
+    then:
+      function: pattern
+      functionOptions:
+        match: '^(get|list|create|update|replace|patch|delete|batch|search|query|add|remove|set|clear|start|stop|cancel|restart|pause|resume|validate|execute|run|import|export|upload|download|generate|send|submit|enable|disable|activate|deactivate|archive|restore|move|copy|rename|count|check|verify|refresh|sync|publish|install|uninstall|register|subscribe|rotate|revoke|grant|assign|attach|link|apply|reset|retry|trigger|invoke|describe|preview|deploy|migrate|upgrade|initialize|complete|acknowledge|confirm|notify|schedule|clone|purge|rebuild|evaluate|calculate|aggregate|summarize|estimate|tag|label|annotate|share|invite|report|audit|track|monitor)([A-Z0-9].*)?$'
+
+  api-array-query-param-form-explode-false:
+    description: >-
+      Conventions.md § Query Parameters: array query parameters should be
+      encoded with `style: form` and `explode: false`, so that they serialise as
+      `?my-param=value1,value2`.
+    message: "Array query parameter must set `style: form` and `explode: false`."
+    severity: warn
+    documentationUrl: https://opensource.zalando.com/restful-api-guidelines/#154
+    resolved: false
+    given: "$..parameters[?(@ && @.in === 'query')]"
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          if:
+            type: object
+            required: [schema]
+            properties:
+              schema:
+                type: object
+                required: [type]
+                properties:
+                  type:
+                    const: array
+          then:
+            type: object
+            required: [style, explode]
+            properties:
+              style:
+                const: form
+              explode:
+                const: false
+
+  # --------------------------------------------------------------------------
+  # Authentication and permission scopes
+  # (Authentication.md, OpenAPI.md § Authentication Context,
+  #  permission-guidelines/Introduction.md § Permissions in a Nutshell)
+  # --------------------------------------------------------------------------
+
+  api-security-requirement-present:
+    description: >-
+      OpenAPI.md § Authentication Context: every operation must carry a
+      `security` requirement, either on the operation or inherited from the
+      document-level `security` field. Authentication.md: all API endpoints must
+      be protected by at least one permission scope. This rule is evaluated over
+      the whole document because the inheritance makes it a cross-node question;
+      `api-operation-security-explicit` gives the per-operation location.
+    message: "At least one operation has no `security` requirement and the document declares no document-level `security` to inherit."
+    severity: error
+    documentationUrl: https://spec.openapis.org/oas/v3.1.0.html#security-requirement-object
+    given: "$"
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          anyOf:
+            - required: [security]
+            - properties:
+                paths:
+                  type: object
+                  additionalProperties:
+                    type: object
+                    properties:
+                      get: { required: [security] }
+                      put: { required: [security] }
+                      post: { required: [security] }
+                      delete: { required: [security] }
+                      options: { required: [security] }
+                      head: { required: [security] }
+                      patch: { required: [security] }
+                      trace: { required: [security] }
+
+  api-operation-security-explicit:
+    description: >-
+      Swagger Documentation.md § Paths: the required permission scopes must be
+      visible for each path, rendered from the `security` requirement. An
+      operation that declares none relies on document-level inheritance, which
+      renders less clearly. `security: []` (a genuinely public endpoint per
+      Authentication.md) satisfies this rule; whether that is justified is a
+      review-pass question.
+    message: "Operation declares no `security` requirement of its own — its scopes are visible per path only if the document-level `security` covers it."
+    severity: warn
+    documentationUrl: https://opensource.zalando.com/restful-api-guidelines/#105
+    given: "#ApiOperation"
+    then:
+      field: security
+      function: truthy
+
+  api-scope-name-format:
+    description: >-
+      permission-guidelines/Introduction.md § Permissions in a Nutshell: a
+      permission must consist of exactly three colon-separated segments
+      `{service-name}:{resource}:{action}`; every segment must be non-empty
+      lowercase kebab-case, the `{resource}` segment may additionally carry dots
+      to qualify a nested resource, and a permission must not contain uppercase
+      characters, whitespace or a wildcard.
+    message: "Scope `{{value}}` does not match the permission grammar `{service}:{resource}:{action}` (lowercase kebab-case segments; dots allowed only in the resource segment)."
+    severity: error
+    documentationUrl: https://www.rfc-editor.org/rfc/rfc6749.html#section-3.3
+    given: "$..security[*][*][*]"
+    then:
+      function: pattern
+      functionOptions:
+        match: '^[a-z0-9]+(-[a-z0-9]+)*:[a-z0-9]+(-[a-z0-9]+)*(\.[a-z0-9]+(-[a-z0-9]+)*)*:[a-z0-9]+(-[a-z0-9]+)*$'
+
+  api-scope-declaration-format:
+    description: >-
+      The same permission grammar, applied where the scopes are DECLARED — the
+      `scopes` map of the OAuth 2.0 flow — so that a misspelled declaration is
+      caught even before an operation references it.
+    message: "Declared scope `{{property}}` does not match the permission grammar `{service}:{resource}:{action}`."
+    severity: error
+    documentationUrl: https://www.rfc-editor.org/rfc/rfc6749.html#section-3.3
+    given: "$.components.securitySchemes[*].flows[*].scopes.*~"
+    then:
+      function: pattern
+      functionOptions:
+        match: '^[a-z0-9]+(-[a-z0-9]+)*:[a-z0-9]+(-[a-z0-9]+)*(\.[a-z0-9]+(-[a-z0-9]+)*)*:[a-z0-9]+(-[a-z0-9]+)*$'
+
+  api-scope-no-version-segment:
+    description: >-
+      permission-guidelines/Introduction.md: a permission must not encode a
+      version. Permissions outlive API versions — `document:documents:read`
+      covers v1 and v2 of the document service alike.
+    message: "Scope `{{value}}` encodes a version segment; permissions outlive API versions and must not carry one."
+    severity: error
+    documentationUrl: https://cloud.google.com/iam/docs/permissions-reference
+    given:
+      - "$..security[*][*][*]"
+      - "$.components.securitySchemes[*].flows[*].scopes.*~"
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: '(^|:)v\d+(\.\d+)*(:|$)'
+
+  api-security-scheme-oauth2-only:
+    description: >-
+      Authentication.md: other authentication methods must not be used or
+      declared — `type: http, scheme: basic` and `type: apiKey` in particular.
+      The gateway owns the public authentication method.
+    message: "Security scheme `{{property}}` declares `type: {{value}}`; only `oauth2` may be declared."
+    severity: error
+    documentationUrl: https://spec.openapis.org/oas/v3.1.0.html#security-scheme-object
+    given: "$.components.securitySchemes[*]"
+    then:
+      field: type
+      function: enumeration
+      functionOptions:
+        values:
+          - oauth2
+
+  api-oauth2-client-credentials-only:
+    description: >-
+      OpenAPI.md § Authentication Context and Authentication.md: the OAuth 2.0
+      scheme must declare the `clientCredentials` flow and must not declare any
+      other flow. `implicit` and `password` are deprecated for new applications
+      by the OAuth 2.0 Security Best Current Practice.
+    message: "The OAuth 2.0 scheme must declare `clientCredentials` and no other flow."
+    severity: error
+    documentationUrl: https://www.rfc-editor.org/rfc/rfc6749.html#section-4.4
+    given: "$.components.securitySchemes[?(@ && @.type === 'oauth2')].flows"
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          required: [clientCredentials]
+          additionalProperties: false
+          properties:
+            clientCredentials: {}
+
+  api-security-scheme-name-consistent:
+    description: >-
+      OpenAPI.md § Authentication Context: "The security scheme name must be the
+      same across every API in the organization. This template uses `oauth2`."
+      The literal below is one of the four an adopting organization replaces
+      once, in its own ruleset.
+    message: "Security scheme is named `{{property}}`; the organization's single declared scheme name is `oauth2`."
+    severity: error
+    documentationUrl: https://spec.openapis.org/oas/v3.1.0.html#security-scheme-object
+    given: "$.components.securitySchemes.*~"
+    then:
+      function: enumeration
+      functionOptions:
+        values:
+          - oauth2
+
+  api-authorization-header-not-declared:
+    description: >-
+      Authentication.md: the `Authorization` header must not be declared as a
+      parameter in the OpenAPI document — it is implied by the security scheme,
+      and declaring it exposes the internal bearer-JWT mechanism.
+    message: "`Authorization` must not be declared as a header parameter; it is implied by the OAuth 2.0 security scheme."
+    severity: error
+    documentationUrl: https://www.rfc-editor.org/rfc/rfc6750.html
+    resolved: false
+    given: "#ApiHeaderParameter.name"
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: '^[Aa]uthorization$'
+
+  # --------------------------------------------------------------------------
+  # HTTP status codes
+  # (Conventions.md § HTTP Response Codes, Swagger Documentation.md § HTTP
+  #  Response Codes)
+  # --------------------------------------------------------------------------
+
+  api-response-code-registered:
+    description: >-
+      Conventions.md § HTTP Response Codes: APIs must use only status codes
+      registered at IANA, and must not define proprietary status codes (9xx
+      codes must not be used). The OpenAPI range keys 1XX–5XX and `default` are
+      permitted.
+    message: "Response key `{{property}}` is not an IANA-registered HTTP status code, an OpenAPI range key (1XX–5XX), or `default`."
+    severity: error
+    documentationUrl: https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
+    given: "#ApiOperation.responses.*~"
+    then:
+      function: enumeration
+      functionOptions:
+        values:
+          - "default"
+          - "1XX"
+          - "2XX"
+          - "3XX"
+          - "4XX"
+          - "5XX"
+          - "100"
+          - "101"
+          - "102"
+          - "103"
+          - "200"
+          - "201"
+          - "202"
+          - "203"
+          - "204"
+          - "205"
+          - "206"
+          - "207"
+          - "208"
+          - "226"
+          - "300"
+          - "301"
+          - "302"
+          - "303"
+          - "304"
+          - "305"
+          - "306"
+          - "307"
+          - "308"
+          - "400"
+          - "401"
+          - "402"
+          - "403"
+          - "404"
+          - "405"
+          - "406"
+          - "407"
+          - "408"
+          - "409"
+          - "410"
+          - "411"
+          - "412"
+          - "413"
+          - "414"
+          - "415"
+          - "416"
+          - "417"
+          - "418"
+          - "421"
+          - "422"
+          - "423"
+          - "424"
+          - "425"
+          - "426"
+          - "428"
+          - "429"
+          - "431"
+          - "451"
+          - "500"
+          - "501"
+          - "502"
+          - "503"
+          - "504"
+          - "505"
+          - "506"
+          - "507"
+          - "508"
+          - "510"
+          - "511"
+
+  api-no-redirect-response:
+    description: >-
+      Conventions.md § Redirect Codes: HTTP 3xx redirection codes should not be
+      used unless an API explicitly works with content type `text/html`. A JSON
+      API should return 404 instead.
+    message: "Response `{{property}}` is a 3xx redirect; a JSON API should not redirect (return 404 instead, or 307/308 if a redirect is unavoidable)."
+    severity: warn
+    documentationUrl: https://www.rfc-editor.org/rfc/rfc9110.html#section-15.4
+    given: "#ApiOperation.responses.*~"
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: '^3(\d\d|XX)$'
+
+  api-default-error-response:
+    description: >-
+      Swagger Documentation.md § HTTP Response Codes: the specification must
+      always contain a default that covers all error codes — either the OpenAPI
+      `default` response or the two range definitions `4XX` and `5XX`.
+    message: "Operation must declare a `default` response, or both `4XX` and `5XX`, to cover all error codes."
+    severity: error
+    documentationUrl: https://spec.openapis.org/oas/v3.1.0.html#responses-object
+    given: "#ApiOperation.responses"
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          anyOf:
+            - required: ["default"]
+            - required: ["4XX", "5XX"]
+
+  # --------------------------------------------------------------------------
+  # Schema composition (OpenAPI.md § Schema Composition — oneOf, anyOf, allOf)
+  #
+  # Six bullets in OpenAPI.md. Five are expressed below. The sixth — "an `allOf`
+  # branch must not redefine a property that the referenced schema already
+  # defines" — needs the `$ref` resolved and the two property sets intersected,
+  # which no built-in Spectral function does; it stays with the review passes
+  # (see this file's header, gap 2).
+  # --------------------------------------------------------------------------
+
+  api-oneof-requires-discriminator:
+    description: >-
+      OpenAPI.md: polymorphic alternatives must be expressed with `oneOf` plus a
+      `discriminator`. A `oneOf` without one forces every consumer to guess the
+      variant by trial validation.
+    message: "`oneOf` must be accompanied by a `discriminator`."
+    severity: error
+    documentationUrl: https://spec.openapis.org/oas/v3.1.0.html#discriminator-object
+    resolved: false
+    given: "$..[?(@ && @.oneOf)]"
+    then:
+      field: discriminator
+      function: truthy
+
+  api-no-anyof:
+    description: >-
+      OpenAPI.md: `anyOf` should not be used. Its validation semantics (one or
+      more branches match) are almost never what an API means, and generators
+      render it inconsistently.
+    message: "`anyOf` should not be used — use `oneOf` with a `discriminator`, or flatten the schema."
+    severity: warn
+    documentationUrl: https://spec.openapis.org/oas/v3.1.0.html#schema-object
+    resolved: false
+    given: "$..[?(@ && @.anyOf)]"
+    then:
+      field: anyOf
+      function: undefined
+
+  api-allof-single-ref-plus-inline:
+    description: >-
+      OpenAPI.md: `allOf` must not be used to merge two or more named schemas.
+      Where `allOf` is used at all it must contain at most one `$ref` plus at
+      most one inline object schema — the single generator-safe extension
+      pattern. Evaluated unresolved, because a resolved document has no `$ref`
+      left to count.
+    message: "`allOf` must contain at most one `$ref` plus at most one inline object schema."
+    severity: error
+    documentationUrl: https://spec.openapis.org/oas/v3.1.0.html#schema-object
+    resolved: false
+    given: "$..allOf"
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          $schema: "https://json-schema.org/draft/2020-12/schema"
+          type: array
+          maxItems: 2
+          allOf:
+            - contains:
+                type: object
+                required: ["$ref"]
+              minContains: 0
+              maxContains: 1
+            - contains:
+                type: object
+                not:
+                  required: ["$ref"]
+              minContains: 0
+              maxContains: 1
+
+  api-no-mixed-composition-keywords:
+    description: >-
+      OpenAPI.md: a schema object must not combine `allOf`, `oneOf` and `anyOf`
+      at the same level.
+    message: "A schema must not combine `allOf`, `oneOf` and `anyOf` at the same level."
+    severity: error
+    documentationUrl: https://spec.openapis.org/oas/v3.1.0.html#schema-object
+    resolved: false
+    given: "#ApiCompositeSchema"
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          not:
+            anyOf:
+              - required: ["allOf", "oneOf"]
+              - required: ["allOf", "anyOf"]
+              - required: ["oneOf", "anyOf"]
+
+  api-no-nested-allof:
+    description: >-
+      OpenAPI.md: composition must not be nested — a schema referenced from an
+      `allOf` must not itself use `allOf`. Deep inheritance chains are what make
+      generated models unreadable. Evaluated on the RESOLVED document, so that
+      nesting reached through a `$ref` is caught, not only inline nesting.
+    message: "Composition must not be nested: a schema inside `allOf` uses `allOf` itself."
+    severity: error
+    documentationUrl: https://spec.openapis.org/oas/v3.1.0.html#schema-object
+    given: "$..allOf[*].allOf"
+    then:
+      function: undefined
+
+  # OPTIONAL TIGHTENING, shipped OFF.
+  # OpenAPI.md: "An organization whose toolchain cannot process `allOf` at all
+  # MAY tighten the third rule to '`allOf` must not be used; use `oneOf` where a
+  # combination is genuinely required'. A tightening like that MUST be stated
+  # explicitly in the organization's API style guide, so that a reviewer can
+  # apply it consistently." Enabling this rule in your own ruleset IS that
+  # explicit statement. It supersedes `api-allof-single-ref-plus-inline`, which
+  # you should then set to `off`.
+  #
+  # api-no-allof:
+  #   description: >-
+  #     This organization's toolchain cannot process `allOf`; use `oneOf` with a
+  #     discriminator where a combination is genuinely required.
+  #   message: "`allOf` must not be used."
+  #   severity: error
+  #   resolved: false
+  #   given: "$..[?(@ && @.allOf)]"
+  #   then:
+  #     field: allOf
+  #     function: undefined
+
+  # --------------------------------------------------------------------------
+  # Header hygiene
+  # (Conventions.md § Headers, API Context Information.md § Header naming,
+  #  RFC 6648)
+  # --------------------------------------------------------------------------
+
+  api-header-no-x-prefix:
+    description: >-
+      Conventions.md § Headers and API Context Information.md § Header naming:
+      the `X-` prefix is deprecated by RFC 6648 and must not be used for new
+      headers. This also covers `X-Forwarded-For`, which API Context
+      Information.md forbids as an audit source because any client can set it.
+    message: "Header parameter `{{value}}` uses the deprecated `X-` prefix (RFC 6648)."
+    severity: error
+    documentationUrl: https://www.rfc-editor.org/rfc/rfc6648.html
+    resolved: false
+    given: "#ApiHeaderParameter.name"
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: '^[Xx]-'
+
+  api-response-header-no-x-prefix:
+    description: >-
+      The same RFC 6648 ban, applied to response headers and to reusable header
+      components. Split from `api-header-no-x-prefix` only because Spectral
+      reaches a response header by its key and a parameter by its `name` field,
+      and the two need different messages.
+    message: "Response header `{{property}}` uses the deprecated `X-` prefix (RFC 6648)."
+    severity: error
+    documentationUrl: https://www.rfc-editor.org/rfc/rfc6648.html
+    resolved: false
+    given: "$..headers.*~"
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: '^[Xx]-'
+
+  api-header-hyphenated-title-case:
+    description: >-
+      Conventions.md § Headers: header names should use hyphenated title case
+      (`Content-Type`, `Retry-After`). The W3C Trace Context names
+      (`traceparent`, `tracestate`) are lowercase by their own specification and
+      are exempt.
+    message: "Header parameter `{{value}}` should use hyphenated title case (e.g. `Example-App-Context`, `Retry-After`)."
+    severity: warn
+    documentationUrl: https://www.rfc-editor.org/rfc/rfc9110.html#section-5.1
+    resolved: false
+    given: "#ApiHeaderParameter.name"
+    then:
+      function: pattern
+      functionOptions:
+        match: '^(traceparent|tracestate|[A-Z][A-Za-z0-9]*(-[A-Z0-9][A-Za-z0-9]*)*)$'
+
+  api-response-header-hyphenated-title-case:
+    description: >-
+      The same hyphenated-title-case convention, applied to response headers and
+      reusable header components.
+    message: "Response header `{{property}}` should use hyphenated title case (e.g. `Example-Response-Source`, `Retry-After`)."
+    severity: warn
+    documentationUrl: https://www.rfc-editor.org/rfc/rfc9110.html#section-5.1
+    resolved: false
+    given: "$..headers.*~"
+    then:
+      function: pattern
+      functionOptions:
+        match: '^(traceparent|tracestate|[A-Z][A-Za-z0-9]*(-[A-Z0-9][A-Za-z0-9]*)*)$'
+
+  api-tenant-header-canonical-spelling:
+    description: >-
+      OpenAPI.md § Context Headers and API Context Information.md § Tenant
+      Context: the tenant context travels in ONE org-wide REQUEST header
+      spelling, used identically in every document the organization publishes.
+      This rule pins that literal: any header parameter whose name contains
+      "tenant" must be spelled exactly `Example-Tenant`. It is the check that
+      catches spelling drift (`X-Tenant`, `DT-Tenant`, `DtTenant`,
+      `Example-TenantId`) across operations and across documents, which no prose
+      criterion can. Replace the literal once, in your own ruleset — see this
+      file's header.
+    message: "Header parameter `{{value}}` is a tenant header spelled differently from the organization's single declared spelling `Example-Tenant`."
+    severity: error
+    documentationUrl: https://opensource.zalando.com/restful-api-guidelines/#headers
+    resolved: false
+    given: "#ApiHeaderParameter.name"
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: '^(?!Example-Tenant$).*[Tt]enant'
+
+  api-custom-header-org-prefix:
+    description: >-
+      API Context Information.md § Header naming and Conventions.md § Headers:
+      every custom header must carry the organization's single declared prefix
+      (`Example-` here) so that it can never collide with a field registered by
+      IANA later. Standard headers are exempt and are listed in the pattern.
+      Replace the prefix once, in your own ruleset — see this file's header.
+    message: "Header parameter `{{value}}` is neither a standard header nor prefixed with the organization's declared prefix `Example-`."
+    severity: warn
+    documentationUrl: https://www.rfc-editor.org/rfc/rfc6648.html
+    resolved: false
+    given: "#ApiHeaderParameter.name"
+    then:
+      function: pattern
+      functionOptions:
+        match: '^(Example-[A-Z][A-Za-z0-9]*(-[A-Z0-9][A-Za-z0-9]*)*|traceparent|tracestate|Accept|Accept-Encoding|Accept-Language|Accept-Ranges|Age|Allow|Authorization|Cache-Control|Content-Disposition|Content-Encoding|Content-Language|Content-Length|Content-Location|Content-Range|Content-Type|Cookie|Date|Deprecation|ETag|Expect|Expires|Forwarded|From|Host|If-Match|If-Modified-Since|If-None-Match|If-Range|If-Unmodified-Since|Last-Modified|Link|Location|Origin|Prefer|Preference-Applied|Range|Referer|Retry-After|Server|Set-Cookie|Sunset|User-Agent|Vary|Warning|WWW-Authenticate)$'
+
+  api-response-header-org-prefix:
+    description: >-
+      The same single-prefix rule, applied to response headers and reusable
+      header components — API Context Information.md § Response Context defines
+      `Example-Response-Source` as a response header, so response headers carry
+      the prefix too.
+    message: "Response header `{{property}}` is neither a standard header nor prefixed with the organization's declared prefix `Example-`."
+    severity: warn
+    documentationUrl: https://www.rfc-editor.org/rfc/rfc6648.html
+    resolved: false
+    given: "$..headers.*~"
+    then:
+      function: pattern
+      functionOptions:
+        match: '^(Example-[A-Z][A-Za-z0-9]*(-[A-Z0-9][A-Za-z0-9]*)*|traceparent|tracestate|Accept|Accept-Encoding|Accept-Language|Accept-Ranges|Age|Allow|Authorization|Cache-Control|Content-Disposition|Content-Encoding|Content-Language|Content-Length|Content-Location|Content-Range|Content-Type|Cookie|Date|Deprecation|ETag|Expect|Expires|Forwarded|From|Host|If-Match|If-Modified-Since|If-None-Match|If-Range|If-Unmodified-Since|Last-Modified|Link|Location|Origin|Prefer|Preference-Applied|Range|Referer|Retry-After|Server|Set-Cookie|Sunset|User-Agent|Vary|Warning|WWW-Authenticate)$'
+
+  # --------------------------------------------------------------------------
+  # Documentation completeness that is mechanically checkable
+  # (Swagger Documentation.md § Paths)
+  # --------------------------------------------------------------------------
+
+  api-request-body-description:
+    description: >-
+      Swagger Documentation.md § Paths: a summary and/or description must be
+      provided for request bodies. Whether the description is ADEQUATE stays
+      with the review passes; only its presence is checked here.
+    message: "`requestBody` must carry a description."
+    severity: warn
+    documentationUrl: https://opensource.zalando.com/restful-api-guidelines/#101
+    given: "#ApiOperation.requestBody"
+    then:
+      field: description
+      function: truthy

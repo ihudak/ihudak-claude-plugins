@@ -4,6 +4,26 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [5.1.0] — 2026-08-29
+
+### Added — machine-checkable rules, and an overlay for the ones that cannot ship publicly
+
+The de-branding in 3.0.0 replaced vendored internal rules with public standards. That trade was right, but it cost the *mechanically checkable* half: the vendored copy named concrete literals a reviewer could grep for, and prose criteria have to be interpreted. This restores enforcement from public sources, and gives organization-specific rules a private home.
+
+- **`/api-guideline-reviewer` now lints with Spectral.** A new `references/api-guidelines/spectral/ruleset.yaml` extends `spectral:oas` with **40 custom rules** covering version consistency, naming, scope grammar, status codes, schema composition, and header hygiene — including the canonical tenant-header spelling, the literal check that degraded most in 3.0.0. Every rule was verified to fire against a purpose-built violating fixture, so none ships inert. Pass 0 runs the lint before the LLM passes; its findings are authoritative for the rules it covers and are not re-raised by the review.
+- **`/guideline-reviewer` findings now carry checkable identifiers.** `references/guidelines/accessibility.md` cites axe-core `ruleId`s and **W3C ACT Rule** ids alongside the WCAG criterion each rule already cited — 51 axe ids and 35 ACT ids, all verified against the shipped axe-core bundle and the W3C published index. The reviewer runs the target repo's own `eslint-plugin-jsx-a11y` when configured.
+- **A rule overlay for both reviewers**, resolved exactly as `prose-style` resolves its own: `--rules <path>` → `<repo-root>/.dev-workflows/{ui,api}-guidelines/` → `$UI_GUIDELINES_PATH` / `$API_GUIDELINES_PATH` → the bundled baseline. First hit wins; two overlays are never merged. This is where rules with no public equivalent belong — a proprietary design system's component contract, an internal scope grammar — kept private instead of shipped.
+- **Two new environment variables:** `$UI_GUIDELINES_PATH` and `$API_GUIDELINES_PATH` (six user-settable → eight). Both optional; every miss is a silent fall-through to the baseline.
+
+### Honesty constraints, deliberately encoded
+- **axe-core needs a rendered DOM and cannot run against source files.** `accessibility.md` says so in a "what can actually run" table, and the agent is forbidden from claiming a rule executed when it only cited one: *a review reporting an axe rule id is naming the rule a violation would trip, not reporting a rule that ran*. A runtime harness (`jest-axe`, `cypress-axe`, `@axe-core/playwright`) is **detected and named, never executed** — a review has no rendered app.
+- Rules with **no** deterministic equivalent are marked as reviewer judgement rather than given a fabricated id.
+- A **version-agreement** Spectral rule was deliberately not shipped: cross-field comparison needs `@root` inside a JSONPath filter, which behaved inconsistently under test. The three per-field format rules ship; the agreement check is named as an LLM-pass responsibility instead of shipped flaky.
+
+### Changed
+- `api-guideline-reviewer`'s agent frontmatter now grants `Bash` (it must run the linter).
+- The bundled OpenAPI template gained a `requestBody` description — it violated the new ruleset, and `Swagger Documentation.md` requires one. The rule was not loosened to make it pass; one inherited rule (`oas3-unused-component`) is scoped off **for the template file only**, because a starter's reusable error responses are unused by design.
+
 ## [5.0.0] — 2026-08-29
 
 ### Removed — BREAKING: cross-space writing

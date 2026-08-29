@@ -97,6 +97,7 @@ paths:
         - oauth2:
             - 'example:widgets:write'
       requestBody:
+        description: 'The widget to create. `id`, `createTime` and `version` are assigned by the service and are ignored on input.'
         required: true
         content:
           application/json:

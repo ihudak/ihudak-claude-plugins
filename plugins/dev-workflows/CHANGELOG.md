@@ -4,27 +4,30 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
-## [5.1.0] — 2026-08-29
+## [3.0.0] — 2026-08-29
 
-### Added — machine-checkable rules, and an overlay for the ones that cannot ship publicly
+One release, one exercise: make the marketplace publishable as open source. It removes organization-specific content and naming, retires vocabulary that only made sense inside one company, drops a feature that existed only because one vendor ships two product editions, and restores machine-checkable enforcement from public sources. It is a single major because it is a single migration — everything below applies at once.
 
-The de-branding in 3.0.0 replaced vendored internal rules with public standards. That trade was right, but it cost the *mechanically checkable* half: the vendored copy named concrete literals a reviewer could grep for, and prose criteria have to be interpreted. This restores enforcement from public sources, and gives organization-specific rules a private home.
+### Changed — BREAKING: vendor-neutral de-branding
 
-- **`/api-guideline-reviewer` now lints with Spectral.** A new `references/api-guidelines/spectral/ruleset.yaml` extends `spectral:oas` with **40 custom rules** covering version consistency, naming, scope grammar, status codes, schema composition, and header hygiene — including the canonical tenant-header spelling, the literal check that degraded most in 3.0.0. Every rule was verified to fire against a purpose-built violating fixture, so none ships inert. Pass 0 runs the lint before the LLM passes; its findings are authoritative for the rules it covers and are not re-raised by the review.
-- **`/guideline-reviewer` findings now carry checkable identifiers.** `references/guidelines/accessibility.md` cites axe-core `ruleId`s and **W3C ACT Rule** ids alongside the WCAG criterion each rule already cited — 51 axe ids and 35 ACT ids, all verified against the shipped axe-core bundle and the W3C published index. The reviewer runs the target repo's own `eslint-plugin-jsx-a11y` when configured.
-- **A rule overlay for both reviewers**, resolved exactly as `prose-style` resolves its own: `--rules <path>` → `<repo-root>/.dev-workflows/{ui,api}-guidelines/` → `$UI_GUIDELINES_PATH` / `$API_GUIDELINES_PATH` → the bundled baseline. First hit wins; two overlays are never merged. This is where rules with no public equivalent belong — a proprietary design system's component contract, an internal scope grammar — kept private instead of shipped.
-- **Two new environment variables:** `$UI_GUIDELINES_PATH` and `$API_GUIDELINES_PATH` (six user-settable → eight). Both optional; every miss is a silent fall-through to the baseline.
+- **The `dt-style-guide` plugin became `prose-style`.** Its agents are now `prose-style:prose-style-checker` and `prose-style:prose-fixer` (were `dt-style-guide:dt-style-checker` / `dt-doc-fixer`). Every dispatch site in `/document`, `/epics`, `/release-notes`, `/create-prd`, and `/update-prd` was re-pointed, along with `docs-style-checker`'s fallback chain. The phase formerly named "Dynatrace style check" is now "Prose style check". `prose-style` also gains a pluggable overlay: it ships a vendor-neutral baseline and layers your own style guide on top.
+- **`references/dynatrace-docs/` became `references/docs-profiles/`**, the `dynatrace-docs-frontmatter` skill became `docs-frontmatter`, and `managed-owners.txt` became `default-owners.txt`.
+- **The built-in docs profile is now a generic worked example** (`example-docs`) rather than one specific private repo. A real repo supplies its own `.dev-workflows/docs-profile.yml`, which overrides the built-in default — run `/docs-profile` once to generate it.
+- **`references/guidelines/` was rewritten against public standards** — Apple Human Interface Guidelines, Material Design 3, Microsoft Fluent 2, W3C WCAG 2.2 and the ARIA Authoring Practices Guide, and Nielsen Norman Group heuristics — replacing content summarized from an internal wiki. `grail-naming.md` became `data-naming.md`. `/guideline-reviewer` reviews against generic component vocabulary (app header, data table, filter field) rather than one design system's component names.
+- **`references/api-guidelines/` was rewritten against public sources** — Google AIP, the Zalando RESTful API Guidelines, the Microsoft REST API Guidelines, OpenAPI 3.1, and the relevant RFCs.
 
-### Honesty constraints, deliberately encoded
-- **axe-core needs a rendered DOM and cannot run against source files.** `accessibility.md` says so in a "what can actually run" table, and the agent is forbidden from claiming a rule executed when it only cited one: *a review reporting an axe rule id is naming the rule a violation would trip, not reporting a rule that ran*. A runtime harness (`jest-axe`, `cypress-axe`, `@axe-core/playwright`) is **detected and named, never executed** — a review has no rendered app.
-- Rules with **no** deterministic equivalent are marked as reviewer judgement rather than given a fabricated id.
-- A **version-agreement** Spectral rule was deliberately not shipped: cross-field comparison needs `@root` inside a JSONPath filter, which behaved inconsistently under test. The three per-field format rules ship; the agreement check is named as an LLM-pass responsibility instead of shipped flaky.
+### Changed — BREAKING: Value Increment renamed to PRD
 
-### Changed
-- `api-guideline-reviewer`'s agent frontmatter now grants `Bash` (it must run the linter).
-- The bundled OpenAPI template gained a `requestBody` description — it violated the new ruleset, and `Swagger Documentation.md` requires one. The rule was not loosened to make it pass; one inherited rule (`oas3-unused-component`) is scoped off **for the template file only**, because a starter's reusable error responses are unused by design.
+"Value Increment" is SAFe/organization-specific vocabulary that reads as opaque to anyone outside the team that coined it. The artifact is a Product Requirements Document, so the plugin calls it that. Vocabulary only — no phase, gate, or workflow edge changed behaviour.
 
-## [5.0.0] — 2026-08-29
+- **Commands:** `/create-vi` → **`/create-prd`**, `/update-vi` → **`/update-prd`**; the `--from-vi` seed flag is now `--from-prd`.
+- **Agent:** `vi-reviewer` → **`prd-reviewer`**.
+- **References:** `vi-format.md` → **`prd-format.md`**; `vi-source-resolution.md` → **`prd-source-resolution.md`** (`resolve-existing-vi` → `resolve-existing-prd`).
+- **Branch prefix:** the six-prefix authority is now `^(idea|prd|ard|spec|design|ready)/`.
+- **Records:** the cost/feedback `vi:` key is now `prd:`; phases `vi-creation` / `vi-update` are now `prd-creation` / `prd-update`.
+- **Enums:** `depth: vi-only` → `prd-only`, `vi-plus-epics` → `prd-plus-epics`; `/idea`'s source type and `provenance:` `vi` → `prd`; ARD `scope: vi | epic` → `prd | epic`; `seeded_from_vi` → `seeded_from_prd`.
+
+**`ValueIncrement` is deliberately unchanged** — a Jira `issue_type` value read from exported frontmatter, external system data rather than this plugin's vocabulary. Only the mapping target changed. No Jira configuration changes. Nothing depends on a project-key prefix: every key match is the same generic `^[A-Z][A-Z0-9_]*-\d+$`, so the rename carries no parsing risk.
 
 ### Removed — BREAKING: cross-space writing
 
@@ -32,72 +35,52 @@ The de-branding in 3.0.0 replaced vendored internal rules with public standards.
 
 **Multiple content roots still work.** `profile.spaces[]` remains a plain list; a page is written into whichever root already owns it, and per-root lint / build / dev-server commands still route by that root. What is gone is *cross*-space writing.
 
-- **Command signature** is now `/document <KEY>`. The `[cloud|self-hosted]` space-constraint token and the `--counterpart <JiraID|PR-url>` flag are removed, with their Phase 0 parsing and all four clarification prompts.
-- **Phases removed:** 4.5 (determine applicable spaces), 5.6.5 (counterpart-space discovery), and 5.9 (write-strategy approval — its entire body was the `conditional`/`override-copy` choice, so with one write behaviour there was nothing left to approve). Surviving phases are **not** renumbered; 4.5, 5.6.5 and 5.9 are simply unused.
+- **Command signature** is now `/document <KEY>` — there is no space-constraint token and no `--counterpart` flag.
+- **Phases removed:** 4.5, 5.6.5, and 5.9 (write-strategy approval — its entire body was the `conditional`/`override-copy` choice). Surviving phases are **not** renumbered; those three numbers are simply unused.
 - **Agent removed:** `counterpart-finder` (34 subagents → 33).
-- **Reference removed:** `references/docs-profiles/multi-space-writing.md` (subtree 6 → 5 markdown files).
-- **Write strategies collapsed away** — no one-valued enum survives. `write_strategies[]` is gone from the orchestrator, `doc-writer`, and `doc-planner`. `doc-planner` still records each target's `space` (the `spaces[].id` whose root prefixes the path), which is what keeps per-root command routing meaningful.
-- **Profile fields removed:** `cross_space_override`, `shared_registries`, and `tokens.project_conditionals`, along with `/docs-profile`'s detection of all three.
-- **`doc-location-finder`'s announcement-page exemption** is gone; `profile.announcement_pages` itself is kept. The hard rule that replaced the space filter bounds targets to the profile's declared content roots, and announcement pages sit inside one, so no exemption is needed.
-- **`render-verification.md` §4** (delta-marker extraction and the invariant check) removed; §5 → §4, §6 → §5. Only §2 was cited externally, so no cross-reference broke.
-- **The `gating` field** is gone from `existing_image_decisions[]`. It recorded the enclosing project conditional and had no other source; the load-bearing `occurrence` locator is untouched.
-- **`doc-writer`'s routing BLOCKER was dropped, not rewritten.** It blocked when a target's home space fell outside the requested set. Rewriting it as "blocks when the path matches no declared content root" would have been a *new* gate that could false-fire on a legitimate write outside a declared root, so it was removed rather than reinterpreted.
+- **Reference removed:** `docs-profiles/multi-space-writing.md` (subtree 6 → 5 markdown files).
+- **Write strategies collapsed away** — no one-valued enum survives. `doc-planner` still records each target's `space`, which keeps per-root command routing meaningful.
+- **Profile fields removed:** `cross_space_override`, `shared_registries`, `tokens.project_conditionals`, and `/docs-profile`'s detection of all three.
+- **`doc-location-finder`'s announcement-page exemption** removed; `profile.announcement_pages` itself kept.
+- **`render-verification.md` §4** removed; §5 → §4, §6 → §5.
+- **The `gating` field** removed from `existing_image_decisions[]`.
+- **`doc-writer`'s routing BLOCKER was dropped, not rewritten** — reinterpreting it as "no declared content root matches" would have been a *new* gate that could false-fire on a legitimate write outside a root.
 
-### Migration
-- Drop the space token and `--counterpart` from any saved `/document` invocation; both are now parse errors rather than ignored arguments.
-- **A profile still declaring `cross_space_override`, `shared_registries`, or `tokens.project_conditionals` is not an error** — the fields are simply no longer read. Remove them when convenient; nothing breaks if you don't.
-- Pages already carrying `{{#if project='…'}}` wrappers are left exactly as they are. Nothing rewrites them, and nothing validates them any more — they are now ordinary page content as far as this plugin is concerned. A repo that genuinely needs conditional rendering should keep handling it through its own docs toolchain.
+### Added — machine-checkable rules, and an overlay for what cannot ship publicly
 
-## [4.0.0] — 2026-08-29
+Replacing vendored internal rules with public standards was right, but it cost the *mechanically checkable* half: the vendored copy named concrete literals a reviewer could grep for, and prose criteria have to be interpreted. This restores enforcement from public sources and gives organization-specific rules a private home.
 
-### Changed — BREAKING: Value Increment renamed to PRD
+- **`/api-guideline-reviewer` lints with Spectral.** `references/api-guidelines/spectral/ruleset.yaml` extends `spectral:oas` with **40 custom rules** across version consistency, naming, scope grammar, status codes, schema composition, and header hygiene — including the canonical tenant-header spelling, the literal check the rewrite cost most. Every rule was verified to fire against a purpose-built violating fixture, so none ships inert.
+- **`/guideline-reviewer` findings carry checkable identifiers** — 51 axe-core `ruleId`s and 35 **W3C ACT Rule** ids beside the WCAG criteria, all verified against the shipped axe-core bundle and the W3C published index. The reviewer runs the target repo's own `eslint-plugin-jsx-a11y` when configured.
+- **A rule overlay for both reviewers**, resolved exactly as `prose-style` resolves its own: `--rules <path>` → `<repo-root>/.dev-workflows/{ui,api}-guidelines/` → `$UI_GUIDELINES_PATH` / `$API_GUIDELINES_PATH` → the bundled baseline. First hit wins. This is where rules with no public equivalent belong — kept private instead of shipped.
+- **`frontmatter.owners_spaces` in the docs-profile schema** — the space ids whose pages require an owners block. The `changelog-owners-reminder` hook and the `docs-frontmatter` skill resolve content roots and owners policy from the applicable profile instead of hardcoding paths. The hook parses with a tolerant line scan, so it never depends on PyYAML and never raises.
+- **Two new environment variables:** `$UI_GUIDELINES_PATH` and `$API_GUIDELINES_PATH` (six user-settable → eight). Both optional; every miss falls through silently.
 
-"Value Increment" is SAFe/organization-specific vocabulary that reads as opaque to anyone outside the team that coined it. The artifact is a Product Requirements Document, so the plugin now calls it that. This is vocabulary only — no phase, gate, or workflow edge changed behaviour.
-
-- **Commands:** `/create-vi` → **`/create-prd`**, `/update-vi` → **`/update-prd`**. The `--from-vi` seed flag is now `--from-prd`.
-- **Agent:** `vi-reviewer` → **`prd-reviewer`** (`dev-workflows:prd-reviewer`).
-- **References:** `references/vi-format.md` → **`prd-format.md`**; `references/vi-source-resolution.md` → **`prd-source-resolution.md`** (its `resolve-existing-vi` procedure is now `resolve-existing-prd`).
-- **Specs-repo branch prefix:** the six-prefix authority is now `^(idea|prd|ard|spec|design|ready)/` — the `vi/` prefix became `prd/`.
-- **Cost and feedback records:** the `vi:` key is now `prd:`, and the attributed phases `vi-creation` / `vi-update` are now `prd-creation` / `prd-update`.
-- **Enum values:** `jira-reader`'s `depth: vi-only` → `prd-only` and `vi-plus-epics` → `prd-plus-epics`; the `/idea` source type and `provenance:` value `vi` → `prd`; the ARD `scope: vi | epic` → `prd | epic`; `seeded_from_vi` → `seeded_from_prd`.
-
-**`ValueIncrement` is deliberately unchanged.** It is a Jira `issue_type` value read from exported frontmatter — external system data, not this plugin's vocabulary. `/idea` still types a source from it; the mapping target is now `prd` rather than `vi`. No Jira configuration changes.
-
-Nothing depends on a project-key prefix: every key match in the plugin is the same generic `^[A-Z][A-Z0-9_]*-\d+$`, so the rename carries no parsing risk.
-
-### Migration
-- Invoke `/create-prd` and `/update-prd`; the old command names are gone, with no aliases.
-- Anything dispatching `dev-workflows:vi-reviewer` must use `dev-workflows:prd-reviewer`.
-- **Cost and feedback records already emitted keep the old `vi:` key and the `vi-creation` / `vi-update` phase labels.** Aggregating a cost series across this release means treating the old and new labels as the same phase — this release splits that series, which is the deliberate cost of not carrying the old vocabulary forever.
-- **Specs-repo branches already named `vi/...` are no longer recognized as plugin-created.** `specs-preflight` leaves any unrecognized named branch alone rather than acting on it, so this is safe by default: such a branch is simply never switched away from or deleted. Rename or merge it by hand if you want the old behaviour.
-
-## [3.0.0] — 2026-08-29
-
-### Changed — BREAKING: vendor-neutral de-branding
-
-This release removes organization-specific content and naming so the plugin ships cleanly as open source. Several identifiers changed; see Migration below.
-
-- **The `dt-style-guide` plugin became `prose-style`.** Its agents are now `prose-style:prose-style-checker` and `prose-style:prose-fixer` (were `dt-style-guide:dt-style-checker` / `dt-doc-fixer`). Every dispatch site in `/document`, `/epics`, `/release-notes`, `/create-vi`, and `/update-vi` was re-pointed, along with `docs-style-checker`'s fallback chain. The phase formerly named "Dynatrace style check" is now "Prose style check".
-- **`references/dynatrace-docs/` became `references/docs-profiles/`**, and the `dynatrace-docs-frontmatter` skill became `docs-frontmatter`. `managed-owners.txt` became `default-owners.txt`.
-- **The built-in docs profile is now a generic worked example** (`example-docs`, spaces `cloud` / `self-hosted`) rather than one specific private repo. `/document`'s optional space token is now `[cloud|self-hosted]`. A real repo supplies its own `.dev-workflows/docs-profile.yml`, which overrides the built-in default exactly as before — run `/docs-profile` once to generate it.
-- **`references/guidelines/` was rewritten against public standards** — Apple Human Interface Guidelines, Material Design 3, Microsoft Fluent 2, W3C WCAG 2.2 and the ARIA Authoring Practices Guide, and Nielsen Norman Group heuristics — replacing content summarized from an internal wiki. `grail-naming.md` became `data-naming.md`. `/guideline-reviewer` now reviews against generic component vocabulary (app header, data table, filter field) rather than one design system's component names.
-- **`references/api-guidelines/` was rewritten against public sources** — Google AIP, the Zalando RESTful API Guidelines, the Microsoft REST API Guidelines, OpenAPI 3.1, and the relevant RFCs. `/api-guideline-reviewer` keeps all five of its capabilities (version consistency, naming conventions, scope format, HTTP status codes, schema composition).
-
-### Added
-- **`frontmatter.owners_spaces` in the docs-profile schema** — the space ids whose pages require an owners block. The `changelog-owners-reminder` hook and the `docs-frontmatter` skill now resolve content roots and owners policy from the applicable profile (in-repo `.dev-workflows/docs-profile.yml`, else the built-in default) instead of hardcoding either a specific repo's paths or the example's. The hook parses the profile with a tolerant line scan, so it never depends on PyYAML and never raises.
+### Honesty constraints, deliberately encoded
+- **axe-core needs a rendered DOM and cannot run against source files.** `accessibility.md` says so in a "what can actually run" table, and the agent may not claim a rule executed when it only cited one: *a review reporting an axe rule id is naming the rule a violation would trip, not reporting a rule that ran*. A runtime harness (`jest-axe`, `cypress-axe`, `@axe-core/playwright`) is **detected and named, never executed**.
+- Rules with **no** deterministic equivalent are marked reviewer judgement rather than given a fabricated id.
+- A **version-agreement** Spectral rule was deliberately not shipped: it needs `@root` inside a JSONPath filter, which behaved inconsistently under test. The three per-field format rules ship; the agreement check is named an LLM-pass responsibility rather than shipped flaky.
 
 ### Fixed
-- **`/document`'s docs-repo discovery was keyed to a repository name.** Step (b) searched `$REPOS_PATH` for a checkout named after one specific repo, and the `$DOCS_PATH` hint required that repo's exact file layout; after de-branding both matched a name nothing has, leaving two of four discovery paths inert. Discovery is now signal-based — an in-repo `.dev-workflows/docs-profile.yml`, or a generic docs signal — and no repository name is special-cased. `is_known_docs_repo` is now honestly scoped to "matches the bundled worked example's layout", which is the only thing the built-in default profile can legitimately claim.
-- **The de-branding pass initially made two *trigger conditions* match the generic example rather than any real repo** — `changelog-owners-reminder.py`'s content-root matcher and the `docs-frontmatter` skill's description. Both previously matched one specific repo's paths; genericising the example silently narrowed them to a fiction, so neither would fire on a real docs repo. Both are now profile-driven, which is strictly more general than either prior state, and the skill's trigger names observable concepts (a docs page, a page changelog, page owners) rather than example paths.
+- **`/document`'s docs-repo discovery was keyed to a repository name.** Step (b) searched `$REPOS_PATH` for a checkout named after one specific repo, and the `$DOCS_PATH` hint required that repo's exact layout; after de-branding both matched a name nothing has, leaving two of four discovery paths inert. Discovery is now signal-based, and no repository name is special-cased.
+- **Two *trigger conditions* were briefly narrowed to the generic example** — `changelog-owners-reminder.py`'s content-root matcher and the `docs-frontmatter` skill's description. Both previously matched one specific repo; genericising the example silently narrowed them to a fiction. Both are now profile-driven, which is strictly more general than either prior state.
 - **`changelog-owners-reminder.py` resolved its owners file through the pre-rename directory.** The path is assembled with `os.path.join` rather than written as a literal, so a path-level search-and-replace could not see it; the hook would have silently stopped emitting the owners reminder.
-- **`check_guidelines.py`'s settings-before-help ordering check compared positions inside `import` statements rather than the markup**, so it could pass on genuinely out-of-order markup. Import and require lines are now blanked (offsets preserved, so reported line numbers stay correct) before ordering comparisons.
-- **An accessibility rule asserted a WCAG exception that does not exist** — "include placeholder text in all input fields (enables WCAG color contrast exception)". Placeholder text is text and must meet the 4.5:1 ratio of SC 1.4.3. The rule now reads: a placeholder is a hint, never a label, and must meet 4.5:1.
-- Roughly 14 dead image links, a malformed RFC link, a wrong template path, and a broken `#delete` anchor in the API guidelines (the anchor fixed by adding the missing `## Delete` section).
+- **`check_guidelines.py`'s settings-before-help ordering check compared positions inside `import` statements** rather than the markup, so it could pass on genuinely out-of-order markup.
+- **An accessibility rule asserted a WCAG exception that does not exist** — "include placeholder text in all input fields (enables WCAG color contrast exception)". Placeholder text must meet the 4.5:1 ratio of SC 1.4.3.
+- **The bundled OpenAPI template** gained a `requestBody` description — it violated the new ruleset and the guideline requires one. The rule was not loosened; one inherited rule (`oas3-unused-component`) is scoped off for the template file only, because a starter's reusable error responses are unused by design.
+- Roughly 14 dead image links, a malformed RFC link, a wrong template path, and a broken `#delete` anchor in the API guidelines.
 
 ### Migration
-- Any in-repo `.dev-workflows/docs-profile.yml` using `frontmatter.managed_owners` must rename that key to `frontmatter.default_owners`.
-- Anything dispatching `dt-style-guide:dt-style-checker` or `dt-style-guide:dt-doc-fixer` by name must use `prose-style:prose-style-checker` / `prose-style:prose-fixer`.
-- `/document <KEY> saas|managed` is now `/document <KEY> cloud|self-hosted` under the built-in profile; a repo-supplied profile defines its own space ids and is unaffected.
+
+Everything here applies together — this is one upgrade from 2.x, not several.
+
+- **Commands:** use `/create-prd` and `/update-prd`; `/prose-review-pr`, `/prose-review-docs`, `/prose-style-refresh` replace the `/dt-review-*` trio. No aliases; the old names are gone.
+- **Agents:** `dev-workflows:vi-reviewer` → `dev-workflows:prd-reviewer`; `dt-style-guide:dt-style-checker` / `dt-doc-fixer` → `prose-style:prose-style-checker` / `prose-style:prose-fixer`.
+- **`/document` takes only a Jira key.** Drop any space token and any `--counterpart` flag from saved invocations — both are now parse errors rather than ignored arguments.
+- **Docs profile:** rename `frontmatter.managed_owners` to `frontmatter.default_owners`. A profile still declaring `cross_space_override`, `shared_registries`, or `tokens.project_conditionals` is **not** an error — those fields are simply no longer read.
+- **Pages carrying `{{#if project='…'}}` wrappers are left exactly as they are.** Nothing rewrites or validates them; they are ordinary page content now. A repo that needs conditional rendering should handle it in its own docs toolchain.
+- **Cost and feedback records already emitted keep the old `vi:` key and `vi-creation` / `vi-update` phase labels.** Aggregating a cost series across this release means treating old and new labels as the same phase.
+- **Specs-repo branches named `vi/...` are no longer recognized as plugin-created.** `specs-preflight` leaves unrecognized named branches alone, so this is safe by default — such a branch is simply never switched away from or deleted.
 
 ## [2.58.5] — 2026-08-23
 

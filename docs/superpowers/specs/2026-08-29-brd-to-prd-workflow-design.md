@@ -50,7 +50,7 @@ This design adds a second route into the PRD, converging on the same `/create-pr
 
 ## 2. Scope and decomposition
 
-Six new commands, three modified commands, six new agents, seven new references, a new
+Six new commands, three modified commands, six new agents, eight new references, a new
 documentation page with its own diagram, six command pages, and four updated pages.
 
 | Phase | Command | Ends with |
@@ -71,7 +71,7 @@ useful — which is the test that the split is real rather than cosmetic.
 
 | Increment | Delivers | Useful on its own because |
 |---|---|---|
-| **1 — Parent-level grounding** | `/brd-intake`, `/brd-ground`, `/brd-split`, three references, three agents | A grounded BRD with a defect log, verified findings and a coverage ledger is worth having even if no customer loop is ever run |
+| **1 — Grounding** | `/brd-intake`, `/brd-ground`, `/brd-split`, four references, three agents | A grounded BRD with a defect log, verified findings and a coverage ledger is worth having even if no customer loop is ever run |
 | **2 — Decisions and the customer loop** | `/brd-interview`, `/brd-package`, `/brd-reconcile`, four references, three agents | Produces a reviewable package and ingests the answer; the seeds are written but not yet consumed |
 | **3 — Handoff and documentation** | `--from-brd` on `/create-prd`, `/create-ard`, `/specify`; all documentation | Connects the route to the existing pipeline |
 
@@ -109,6 +109,8 @@ refusing to start until its predecessor's artifact landed on the specs default b
 | D14 | **Free-text customer input never becomes a decision without operator confirmation.** | Normalising prose into a decision register is inference. Promoting inference to customer authority silently is the one way this workflow could fabricate a mandate. |
 | D15 | **The parent BRD holds a coverage ledger; every requirement has a recorded fate.** | Without it, nothing detects a requirement that every slice quietly deferred — the failure a long BRD most invites. |
 | D16 | **No real customer or vendor is named anywhere in the plugin.** | The roles are `customer` and `delivery team`. Any worked example ships synthetic. |
+| D17 | **A slice is a BRD.** There is no lesser "slice" object: a slice runs the same commands, holds the same artifacts, can itself be sliced, and can depend on any other BRD at any level. | Two object types would mean two sets of commands, two sets of gates, and a rule for which applies. One recursive object costs nothing and expresses `008-01 -> 008`, `009 -> 008-01` and `009-01 -> 002` identically. |
+| D18 | **The rendered bundle is committed to the specs repo.** | It serves a git-capable customer directly and a zip-only customer via one command, and it is the permanent record of exactly what was sent — which is what makes D13's byte-identical property checkable months later. The cost is a derived duplicate in the repo. |
 
 ---
 
@@ -119,27 +121,35 @@ PRD, each with its own Jira key).
 
 ```
 $SPECS_PATH/specifications/
-  <BRD-KEY>-<slug>/                      # parent — holds no PRD
+  <BRD-KEY>-<slug>/                      # a BRD at any level
     brd/
-      source/<original BRD file(s)>      # verbatim, never edited (D11)
+      source/<original BRD file(s)>      # verbatim, never edited (D11); markdown only
       brd-inventory.md                   # every requirement -> stable BRD-FR-NNN
       brd-defect-log.md                  # DEF-NNN + resolution
     coverage-ledger.md                   # one row per BRD-FR-NNN (D15)
+    brd-link.md                          # parent key (if any), claimed BRD-FR-NNN, depends-on
     grounding/
       baselines.md                       # repo -> commit SHA, and how each was verified
       code-grounding.md                  # CG-NNN
       design-grounding.md                # DG-NNN
-    slices.md                            # proposed/confirmed slices + rationale
-  <SLICE-KEY>-<slug>/                    # a real dev-workflows PRD feature folder
-    brd-link.md                          # parent key, claimed BRD-FR-NNN, inherited CG/DG IDs
     decisions.md                          # V-NNN, C-NNN, A-NNN
     prd-seed.md   ard-seed.md   spec-seed.md
+    slices.md                            # child BRDs, if this one was split
     self-review-<YYYYMMDD>.md
     customer-review-prompt-<YYYYMMDD>.md
     customer-review-<YYYYMMDD>.md
+    customer-delivery-note-<YYYYMMDD>.md  # covering letter; NOT part of the bundle
     reconciliation-<YYYYMMDD>.md
-    <SLICE-KEY>_<slug>.md                # the PRD, authored by /create-prd --from-brd
+    bundle-<YYYYMMDD>/                   # de-Obsidianised, plain markdown + images (D18)
+    <BRD-KEY>_<slug>.md                  # the PRD, once /create-prd --from-brd has run
+    <CHILD-KEY>-<slug>/                  # a slice: the same structure, recursively
 ```
+
+A slice is the same object one level down (D17). It inherits `brd/source/` and its inventory
+rows from its parent rather than re-intaking a document that does not separately exist;
+everything from `/brd-ground` onwards runs at its own level. Only a BRD that has been through
+`/create-prd --from-brd` holds a `<BRD-KEY>_<slug>.md`; a parent that was fully sliced normally
+holds none.
 
 ### 4.1 The coverage ledger
 
@@ -149,12 +159,12 @@ One row per `BRD-FR-NNN`:
 |---|---|
 | `id` | `BRD-FR-NNN` |
 | `text` | verbatim requirement text (or its first sentence + a source anchor) |
-| `disposition` | `covered-by: <SLICE-KEY>` / `deferred-to: <parent>` / `rejected: DEF-NNN` / `superseded-by: BRD-FR-NNN` / `unallocated` |
+| `disposition` | `covered-by: <CHILD-BRD-KEY>` / `deferred-to: <this BRD>` / `rejected: DEF-NNN` / `superseded-by: BRD-FR-NNN` / `unallocated` |
 | `defects` | `DEF-NNN` list |
 | `evidence` | `CG-NNN` / `DG-NNN` list |
 
 `/brd-split` cannot complete while any row is `unallocated`. `/create-prd --from-brd` refuses a
-slice whose `brd-link.md` claims a row not allocated to it.
+BRD whose `brd-link.md` claims a row not allocated to it.
 
 ### 4.2 Identifier namespaces
 
@@ -169,6 +179,28 @@ slice whose `brd-link.md` claims a row not allocated to it.
 | `SR-NNN` | A self-review finding | slice, per dated review |
 
 IDs are never reused and never renumbered. A retired ID keeps its number with a terminal status.
+
+`V`, `C`, `A` and `SR` are scoped to one BRD at its own level; `BRD-FR`, `DEF`, `CG` and `DG` are
+scoped to the BRD that owns the source document, and a slice cites its parent's.
+
+### 4.3 Keys and addressing
+
+Key grammar: `^[A-Z][A-Z0-9_]*(-\d+)+$` — `EPIC-008` and `EPIC-008-01` are both valid, to any
+depth. Keys are validated for shape only and **never checked against Jira**: a BRD is a markdown
+file in `$SPECS_PATH`, not a ticket.
+
+Every command takes the full key and resolves it itself — there is no `--slice` flag. Resolution
+walks `specifications/` and then one level deeper, matching by key-number and tolerating a stray
+`-`/`_` and a human-adjusted slug, exactly as the existing feature-folder resolution does at the
+top level. `EPIC-008-01` therefore resolves to
+`specifications/EPIC-008-<slug>/EPIC-008-01-<slug>/` without the caller naming the path.
+
+**This is the one place the design reaches outside its own commands.** `/create-prd`,
+`/create-ard`, `/epics`, `/specify`, `/design` and `/ready` all resolve a PRD dir as flat
+`specifications/<KEY>-<slug>/`, so a nested PRD is invisible to them today. Each needs the same
+one-level-deep fallback: when the flat match fails, search `specifications/*/` before reporting
+absent. Six commands touched, one shared rule — extracted into `references/brd-addressing.md` so
+it is defined once (§12).
 
 ---
 
@@ -398,7 +430,7 @@ The prompt instructs the reviewer, at the top and again in the output section: *
 bundle, write exactly one new file, modify nothing in the package.** An agent asked to review
 documents will otherwise edit them.
 
-Output filename: `<SLICE-KEY> Customer Review <YYYYMMDD>.md`. The prompt names where to save it
+Output filename: `<BRD-KEY> Customer Review <YYYYMMDD>.md`. The prompt names where to save it
 and states in one line that this file is the only thing to send back.
 
 ### 8.5 The delivery note
@@ -408,8 +440,8 @@ comes back**, and anything that must not sit buried inside a document. Not a per
 
 ### 8.6 Reconciliation
 
-`/brd-reconcile <SLICE-KEY> @<path>` accepts the returned file from anywhere: it copies it into
-the slice folder under the canonical name, commits it to the specs repo, and only then ingests.
+`/brd-reconcile <BRD-KEY> @<path>` accepts the returned file from anywhere: it copies it into
+the BRD folder under the canonical name, commits it to the specs repo, and only then ingests.
 
 - **Schema mode** — the file matches `customer-review-schema.md`; parsed directly.
 - **Free-text mode** — `customer-review-reader` drafts the same schema from prose, and **every
@@ -421,9 +453,10 @@ rows; the coverage ledger is updated.
 
 ### 8.7 Propagation and the stale-reference sweep
 
-Slices declare `depends-on: <SLICE-KEY>` in `brd-link.md`.
+Every BRD declares `depends-on: [<BRD-KEY>, ...]` in `brd-link.md` — naming any other BRD at
+any level (D17).
 
-**Propagation.** When an upstream slice's decisions change, every dependent slice is swept for
+**Propagation.** When a depended-on BRD's decisions change, every dependent BRD is swept for
 decisions and findings citing a changed ID. Each is forced to a disposition:
 `inherited-unchanged | reverted | reopened | withdrawn`.
 
@@ -449,9 +482,12 @@ rather than automatic.
 **Produces:** `brd/source/`, `brd/brd-inventory.md`, `brd/brd-defect-log.md`,
 `coverage-ledger.md` skeleton.
 
-`<BRD-KEY>` is the key the BRD itself is tracked under — validated for shape only
-(`^[A-Z][A-Z0-9_]*-\d+$`), never against Jira, exactly as `/create-prd` validates its key. It
-names the parent folder and is **not** a PRD key: no PRD is ever written there.
+`<BRD-KEY>` names the BRD folder. Shape-validated per §4.3 only; never checked against Jira.
+
+**The source must be markdown.** A PDF is rejected with a message saying so. Conversion is the
+operator's step, deliberately: the source becomes immutable (D11) and every `BRD-FR-NNN` anchors
+into it, so an unchecked machine conversion must not silently become the record of what the
+customer asked for.
 
 Phases: resolve the parent folder → copy the BRD verbatim → `brd-reader` extracts
 `BRD-FR-NNN` → the orchestrator classifies defects interactively (`ambiguity | conflict |
@@ -462,15 +498,16 @@ untestable | unsourced | duplicate | scope-leak`) → write the ledger with ever
 sorting its sections by altitude into the three seed files. This is the migration path for work
 already done by hand.
 
-### 9.2 `/brd-ground <BRD-KEY> [--slice <SLICE-KEY>] [--derivation-matrix|--no-derivation-matrix] [--no-design]`
+### 9.2 `/brd-ground <BRD-KEY> [--derivation-matrix|--no-derivation-matrix] [--no-design] [--rebaseline]`
 
 **Preconditions:** intake artifacts on the specs default branch; `$REPOS_PATH` resolvable.
 **Produces:** `baselines.md`, `code-grounding.md`, `design-grounding.md`.
 
-The first run is parent-level and grounds the whole BRD. `--slice <SLICE-KEY>` re-runs the
-grounding scoped to one slice after `/brd-split` — used when a new baseline has landed, or when
-an upstream slice has shipped and the code has moved beneath a slice not yet packaged. A
-re-run supersedes findings by ID rather than renumbering them (§4.2).
+Runs at whatever level its key names (D17): `/brd-ground EPIC-008` grounds the whole BRD,
+`/brd-ground EPIC-008-01` grounds that slice against its own claimed requirements. `--rebaseline`
+re-runs against moved code — when an upstream BRD has shipped and the ground beneath a
+not-yet-packaged slice has changed. A re-run supersedes findings by ID rather than renumbering
+them (§4.2), so every citation in an already-sent package still resolves.
 
 Phases: resolve repos by `git remote` slug (as `/epics` Phase 4 does) → **baseline integrity
 gate** (§5.2) → fan out `code-grounder`, one per repo, ≤4 concurrent → `design-grounder` over the
@@ -481,16 +518,30 @@ Read-only against repositories throughout, per `references/read-only-repos.md`.
 ### 9.3 `/brd-split <BRD-KEY>`
 
 **Preconditions:** every finding carries a verifier verdict.
-**Produces:** `slices.md`, one slice folder per confirmed slice with `brd-link.md`, an updated ledger.
+**Produces:** `slices.md`, one nested child-BRD folder per confirmed slice with its own
+`brd-link.md`, and an updated ledger.
 
 Proposes slices from the grounded picture — what is buildable, what is blocked, what depends on
-what — then takes a Jira key per confirmed slice. Cannot complete while any ledger row is
-`unallocated`; a row may be resolved as `deferred-to: <parent>`, which is an explicit choice, not
-a silent omission.
+what — then takes a key per confirmed slice and creates its folder *inside* this one (§4).
 
-### 9.4 `/brd-interview <SLICE-KEY> [--round N]`
+**Allocation is walked, not assumed.** The command cannot complete while any ledger row is
+`unallocated`, and it presents each remaining row one at a time with four choices: assign to a
+named slice, defer to this BRD (`deferred-to`), reject citing a `DEF-NNN`, or mark superseded by
+another `BRD-FR-NNN`. Deferring is a real allocation — the point is that a requirement's fate is
+recorded, not that everything must be built.
 
-**Preconditions:** the slice's ledger allocation is complete.
+**Every `brd-*` command's final report ends with the ledger line**, so the state is visible
+without running anything:
+
+```
+ledger: 47 requirements — 31 covered, 12 deferred, 2 rejected, 2 unallocated
+```
+
+Re-running `/brd-split` on a fully-allocated BRD is a no-op that prints the ledger.
+
+### 9.4 `/brd-interview <BRD-KEY> [--round N]`
+
+**Preconditions:** this BRD's ledger allocation is complete.
 **Produces:** `decisions.md` (`V-NNN`, `A-NNN`), the `[C]` question set for packaging.
 
 Generates the question set, tags every question, **answers every `[G]` from the findings without
@@ -498,21 +549,47 @@ asking**, puts `[V]` to the operator via `AskUserQuestion` one round at a time, 
 for the customer. Records argumentation for each `[V]`. Re-tags any `[G]` grounding could not
 settle.
 
-### 9.5 `/brd-package <SLICE-KEY> [--depends-on <SLICE-KEY>...]`
+**Rounds.** Round 1 is generated from the grounding; each later round holds the questions that
+only became askable once the previous round was answered. With no flag, the command continues at
+the first round holding undisposed questions, and when all are closed proposes a new round only
+if findings or decisions have changed since the last one. `--round N` targets one round: resume
+it if open, or re-open it if closed — recorded as a re-open with its cause, under the same rule
+that governs reopening a decision (§6.2).
+
+### 9.5 `/brd-package <BRD-KEY> [--depends-on <BRD-KEY>...]`
 
 **Preconditions:** the interview's open rounds are closed.
-**Produces:** `self-review-<date>.md`, `customer-review-prompt-<date>.md`, the delivery note, the
-bundle manifest, and a de-Obsidianised bundle tree.
+**Produces**, all inside the BRD folder and committed via the normal handoff:
+
+| Artifact | Purpose | In the bundle? |
+|---|---|---|
+| `self-review-<date>.md` | The adversarial pass and its dispositions | yes |
+| `customer-review-prompt-<date>.md` | The self-contained prompt the customer pastes | yes |
+| `bundle-<date>/` | De-Obsidianised plain markdown + images, plus a manifest | it *is* the bundle |
+| `customer-delivery-note-<date>.md` | The covering letter | **no** — it is the email, not a package document |
+
+`--depends-on` accepts any BRD key at any level (D17), so a slice depending on another BRD's
+decisions and a BRD depending on a sibling BRD express identically. Named packages are copied
+into the bundle marked *not for re-review*.
 
 Phases: `brd-package-reviewer` → disposition of every `SR-NNN` (gate) → render the prompt with
-the schema inlined → render the delivery note → assemble the bundle including any dependency
-packages marked *not for re-review* → emit the repo→SHA table.
+the schema inlined → render the delivery note → assemble `bundle-<date>/` including dependency
+packages → emit the repo→SHA table.
 
-### 9.6 `/brd-reconcile <SLICE-KEY> @<review-file>`
+**Delivery, both ways.** The bundle is committed (D18), so a customer with repository access
+pulls it. For everyone else the final report prints the absolute path and a ready-to-run archive
+command. The delivery note is written to a file **and printed in full in the console report**,
+so it can be pasted into an email without opening anything.
 
-**Preconditions:** a packaged slice.
+The note is held to a hard length rule and states only: which BRD this is, what is attached,
+which repositories at which commits, **which file is the prompt**, **which file comes back**, and
+anything that must not sit buried inside a document.
+
+### 9.6 `/brd-reconcile <BRD-KEY> @<review-file>`
+
+**Preconditions:** a packaged BRD.
 **Produces:** `customer-review-<date>.md` (canonicalised), `reconciliation-<date>.md`, updated
-register, ledger, defect log, and bannered snapshots; propagation dispositions in dependent slices.
+register, ledger, defect log, and bannered snapshots; propagation dispositions in dependent BRDs.
 
 ---
 
@@ -520,14 +597,20 @@ register, ledger, defect log, and bannered snapshots; propagation dispositions i
 
 | Command | Change |
 |---|---|
-| `/create-prd` | New `--from-brd <parent-BRD-folder>`. Reads `prd-seed.md` and `decisions.md` from the slice folder. The grill is restricted to gaps: it may fill anything the seed does not settle, and may **not** reopen a `V-NNN` or `C-NNN` (D3). Refuses if any ledger row the slice claims is unallocated. Defaults the profile to `--full`. Writes `brd_parent:` and `brd_slice:` into the PRD frontmatter. |
-| `/create-ard` | New `--from-brd <parent-BRD-folder>`. Reads `ard-seed.md` plus the architecture-altitude findings; `CG`/`DG` findings seed the ARD's grounding-findings section, architecture decisions seed `AD#N`. Marks each consumed item `consumed_by: ARD`. |
-| `/specify` | New `--from-brd <parent-BRD-folder>`. Reads `spec-seed.md`, including the derivation matrix. Marks each consumed item `consumed_by: specification`. |
+| `/create-prd` | New `--from-brd`. Reads `prd-seed.md` and `decisions.md` from the resolved BRD folder. The grill is restricted to gaps: it may fill anything the seed does not settle, and may **not** reopen a `V-NNN` or `C-NNN` (D3). Refuses if any ledger row this BRD claims is unallocated. Defaults the profile to `--full`. Writes `brd_key:` and `brd_parent:` into the PRD frontmatter. |
+| `/create-ard` | New `--from-brd`. Reads `ard-seed.md` plus the architecture-altitude findings; `CG`/`DG` findings seed the ARD's grounding-findings section, architecture decisions seed `AD#N`. Marks each consumed item `consumed_by: ARD`. |
+| `/specify` | New `--from-brd`. Reads `spec-seed.md`, including the derivation matrix. Marks each consumed item `consumed_by: specification`. |
 
-`--from-brd` takes the **parent BRD folder** (`$SPECS_PATH/specifications/<BRD-KEY>-<slug>/`), not
-the slice folder and not a file. The slice is identified by the command's own positional key.
-Accept a bare `<BRD-KEY>` as shorthand and resolve it the way the other commands resolve feature
-folders — by key-number, tolerating a stray `-`/`_` and a human-adjusted slug.
+`--from-brd` is a **switch, not a path**: the positional key already identifies the BRD, and §4.3
+resolves it. `/create-prd EPIC-008-01 --from-brd` reads that BRD folder's `prd-seed.md` and
+`decisions.md`. A path may be given (`--from-brd <dir>`) for a BRD folder outside the normal
+layout, but it is never required.
+
+**Shared change — nested resolution.** Per §4.3, six commands (`/create-prd`, `/create-ard`,
+`/epics`, `/specify`, `/design`, `/ready`) resolve a PRD dir as flat `specifications/<KEY>-<slug>/`
+and cannot see a nested one. Each gains the same one-level-deep fallback, defined once in
+`references/brd-addressing.md`. This is the only change this design makes to command behaviour
+outside its own family, and it is additive: a flat key resolves exactly as it does today.
 
 ---
 
@@ -559,6 +642,7 @@ All six are read-only with respect to code repositories.
 | `coverage-ledger-format.md` | Ledger rows and the allocation gate |
 | `customer-review-schema.md` | The schema the customer's reviewer fills, rendered inline into the prompt |
 | `bundle-packaging.md` | De-Obsidianising, degradation tiers, plugin-free rendering, the delivery note's length rule |
+| `brd-addressing.md` | The key grammar, one-level-deep resolution, and the shared fallback the six existing commands adopt |
 
 **Reused unchanged:** `specs-repo-git.md`, `phase-handoff.md`, `read-only-repos.md`,
 `model-routing`, `grilling-technique.md`, `escalation-rules.md`, `prd-format.md`,
@@ -573,29 +657,34 @@ All six are read-only with respect to code repositories.
 
 ```mermaid
 flowchart TD
-    subgraph PARENT["BRD parent — one per source BRD"]
-        intake["/brd-intake"] --> ground["/brd-ground"]
-        ground --> split["/brd-split"]
-    end
-    subgraph SLICE["Per slice — one per PRD"]
-        interview["/brd-interview"] --> package["/brd-package"]
-        package --> wait{{"customer reviews\noff-platform"}}
-        wait --> reconcile["/brd-reconcile"]
-    end
-    subgraph PRDROUTE["Into the existing pipeline"]
-        createprd["/create-prd --from-brd"]
-        createard["/create-ard --from-brd"]
-        specify["/specify --from-brd"]
-    end
+    intake["/brd-intake<br/>BRD file -> inventory, defects, ledger"]
+    ground["/brd-ground<br/>code + design grounding, verified"]
+    split["/brd-split<br/>child BRDs; every requirement allocated"]
+    interview["/brd-interview<br/>G answered, V decided, C held"]
+    package["/brd-package<br/>self-review, prompt, bundle, delivery note"]
+    wait{{"customer reviews off-platform<br/>plain markdown, no plugin"}}
+    reconcile["/brd-reconcile<br/>freeze, correct, propagate, sweep"]
+    createprd["/create-prd --from-brd"]
+    createard["/create-ard --from-brd"]
+    specify["/specify --from-brd"]
+    epics["/epics"]
+    design["/design"]
 
-    split --> interview
+    intake --> ground --> split
+    split -->|"each child BRD, same commands"| ground
+    ground --> interview --> package --> wait --> reconcile
     reconcile -->|prd-seed| createprd
     reconcile -->|ard-seed| createard
     reconcile -->|spec-seed| specify
-    createprd --> createard
-    createard --> specify
-    reconcile -.->|"upstream decisions changed"| interview
+    createprd --> createard --> epics --> specify --> design
+    reconcile -.->|"a dependency's decisions changed"| interview
 ```
+
+A BRD and a slice are the same object (D17), so the diagram has one loop rather than two lanes:
+`/brd-split` produces child BRDs that re-enter at `/brd-ground`. A BRD that is fully sliced stops
+at `split`; a BRD that is built continues to `interview`. `/brd-intake` runs only where a source
+document exists — a child inherits its parent's.
+
 
 Beneath the diagram, a **parameter table** — one row per command, required and optional
 arguments spelled out, because users navigate the procedure from the diagram and must not have
@@ -603,15 +692,17 @@ to open six command pages to find that `--from-brd` takes the parent BRD folder:
 
 | Command | Required | Optional | Notes |
 |---|---|---|---|
-| `/brd-intake` | `<BRD-KEY> @<brd-file>` | `--sort-existing <dir>` | `<BRD-KEY>` names the parent folder; it is not a PRD key |
-| `/brd-ground` | `<BRD-KEY>` | `--slice <SLICE-KEY>`, `--derivation-matrix`, `--no-design` | Needs `$REPOS_PATH` |
-| `/brd-split` | `<BRD-KEY>` | — | Takes one Jira key per slice |
-| `/brd-interview` | `<SLICE-KEY>` | `--round N` | Resumable per round |
-| `/brd-package` | `<SLICE-KEY>` | `--depends-on <SLICE-KEY>…` | Dependency packages ship *not for re-review* |
-| `/brd-reconcile` | `<SLICE-KEY> @<review-file>` | — | The file may be anywhere; it is canonicalised |
-| `/create-prd` | `<SLICE-KEY>` | `--from-brd <parent-BRD-folder>` | Decisions frozen; profile defaults to `--full` |
-| `/create-ard` | `<SLICE-KEY>` | `--from-brd <parent-BRD-folder>` | Consumes `ard-seed.md` |
-| `/specify` | `<SLICE-KEY>` | `--from-brd <parent-BRD-folder>` | Consumes `spec-seed.md` |
+| `/brd-intake` | `<BRD-KEY> @<brd-file>` | `--sort-existing <dir>` | Markdown only; a PDF is rejected. `<BRD-KEY>` names the folder, not a ticket |
+| `/brd-ground` | `<BRD-KEY>` | `--rebaseline`, `--derivation-matrix`, `--no-design` | Any level: `EPIC-008` or `EPIC-008-01`. Needs `$REPOS_PATH` |
+| `/brd-split` | `<BRD-KEY>` | — | Walks every unallocated requirement; children nest inside |
+| `/brd-interview` | `<BRD-KEY>` | `--round N` | No flag = continue the first open round; `N` resumes or re-opens one |
+| `/brd-package` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…` | Writes `bundle-<date>/` + prints the delivery note |
+| `/brd-reconcile` | `<BRD-KEY> @<review-file>` | — | The file may be anywhere; it is canonicalised and committed |
+| `/create-prd` | `<BRD-KEY>` | `--from-brd` | A switch, not a path. Decisions frozen; profile defaults to `--full` |
+| `/create-ard` | `<BRD-KEY>` | `--from-brd` | Consumes `ard-seed.md` |
+| `/specify` | `<BRD-KEY>` | `--from-brd` | Consumes `spec-seed.md` |
+
+Keys are resolved at any nesting depth (§4.3) — `EPIC-008-01` never needs a path.
 
 Also updated: six pages under `docs/commands/`; `docs/roles-and-phases.md` (the route is
 PM-owned, with `/brd-ground` PM-initiated and PA/Dev-executed, and `[V]` answers in
@@ -633,15 +724,16 @@ both appear in one picture; `README.md`; `CHANGELOG.md`; the marketplace descrip
 
 ## 15. Build order
 
-1. References `grounding-format.md`, `brd-format.md`, `coverage-ledger-format.md` — the contracts
-   everything else writes against.
+1. References `brd-addressing.md`, `grounding-format.md`, `brd-format.md`,
+   `coverage-ledger-format.md` — the contracts everything else writes against.
 2. `/brd-intake` + `brd-reader`.
 3. `/brd-ground` + `code-grounder`, `design-grounder`, `grounding-verifier`.
 4. `/brd-split`.
 5. `interview-tagging.md`, `decision-register-format.md`, `/brd-interview`.
 6. `customer-review-schema.md`, `bundle-packaging.md`, `/brd-package` + `brd-package-reviewer`.
 7. `/brd-reconcile` + `customer-review-reader`.
-8. `--from-brd` on `/create-prd`, then `/create-ard`, then `/specify`.
+8. The one-level-deep resolution fallback in the six existing commands (§10), then `--from-brd`
+   on `/create-prd`, then `/create-ard`, then `/specify`.
 9. Documentation.
 
 Steps 2–4 are independently useful without the rest: a grounded BRD with a defect log and a

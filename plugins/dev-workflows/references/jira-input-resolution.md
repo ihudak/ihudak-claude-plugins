@@ -20,7 +20,7 @@ stop with a clear error).
 - **Path** — a `@path` token, or a bare path that exists on disk (a directory; or,
   in direct mode, a file).
 - **Command-specific trailing option** — consumed by the command *after* this
-  resolution (`/document`: an optional `saas` | `managed` token). Not resolved here.
+  resolution (`/document`: an optional `cloud` | `self-hosted` token). Not resolved here.
 - **Free-text** — anything else (the direct-mode prompt).
 
 ## Mode decision

@@ -12,7 +12,7 @@ Researches CVEs via NVD, applies dependency and code fixes one at a time, and ve
 /vuln <JIRA-ID:CVE-ID | CVE-ID> [<JIRA-ID:CVE-ID | CVE-ID>…]
 ```
 
-Each argument token is either `JIRA-ID:CVE-ID` (e.g. `MGD-2423:CVE-2023-46604`) or a bare `CVE-ID` (e.g. `CVE-2023-46604`) — multiple tokens fix multiple CVEs in one run. A non-CVE token (`CWE-*`, an OWASP pattern) is filtered out with a warning rather than passed through. Every token is parsed and every CVE researched **before** any fix is applied.
+Each argument token is either `JIRA-ID:CVE-ID` (e.g. `PROJ-2423:CVE-2023-46604`) or a bare `CVE-ID` (e.g. `CVE-2023-46604`) — multiple tokens fix multiple CVEs in one run. A non-CVE token (`CWE-*`, an OWASP pattern) is filtered out with a warning rather than passed through. Every token is parsed and every CVE researched **before** any fix is applied.
 
 ## How it runs
 
@@ -55,10 +55,10 @@ A `TEST_REGRESSION` result on either path hands the decision to the orchestrator
 Fix one CVE tied to a Jira ticket and one bare CVE in the same run:
 
 ```
-/dev-workflows:vuln MGD-2423:CVE-2023-46604 CVE-2024-99999
+/dev-workflows:vuln PROJ-2423:CVE-2023-46604 CVE-2024-99999
 ```
 
-Both CVEs are researched in parallel via `vuln-research`; each `READY` result is finalized to a classification and fixed sequentially — `MGD-2423:CVE-2023-46604` typically as a dependency-only `MODERATE` bump with tests run fresh, `CVE-2024-99999` escalated if its fix requires code changes, gated by Opus review and triage before tests. Step 4 prints the result table, review triage, and the `impl-maintenance` report; the run closes with the `Specs repo:` outcome line for the bounded session-artifact commit.
+Both CVEs are researched in parallel via `vuln-research`; each `READY` result is finalized to a classification and fixed sequentially — `PROJ-2423:CVE-2023-46604` typically as a dependency-only `MODERATE` bump with tests run fresh, `CVE-2024-99999` escalated if its fix requires code changes, gated by Opus review and triage before tests. Step 4 prints the result table, review triage, and the `impl-maintenance` report; the run closes with the `Specs repo:` outcome line for the bounded session-artifact commit.
 
 ## See also
 

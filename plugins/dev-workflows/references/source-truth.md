@@ -95,7 +95,7 @@ source code:
 |---|---|
 | **Enum / dropdown options** (e.g. "Latest / Previous / Older stable") | Settings schema JSON (`*.schema.json` under `settings-schemas/`), data source classes (`*DataSource.java`), Java/TypeScript `enum` declarations, OpenAPI schema `enum:` fields |
 | **UI labels and button text** (e.g. "Add update window", "Update now to target version") | `displayName:` / `label:` / `title:` constants in schema JSON, `i18n` / `.properties` resource bundles, React/Angular templates, `addItemButton:` metadata in schema files |
-| **Menu paths** (e.g. "Settings > Deployment > ActiveGate updates") | UI route definitions, navigation manifests, `schemaGroups:` in schema files, `meta:` blocks |
+| **Menu paths** (e.g. "Settings > Deployment > Gateway updates") | UI route definitions, navigation manifests, `schemaGroups:` in schema files, `meta:` blocks |
 | **Default values** | Schema `default:` fields, constant declarations (`DEFAULT_*`, `final static …`), `uiDefaultValue:` metadata |
 | **Feature flags / maturity gates** | `featureFlag:` metadata in schemas, `@FeatureFlag` annotations, FF config files |
 | **API endpoint paths, params, response shapes** | OpenAPI specs in the source repo, REST controller / resource implementations, request/response DTOs |
@@ -302,7 +302,7 @@ Jira "User Story" said:
 > A specific stable version available on the cluster (e.g., `1.327`).
 > [implied 3 presets: Latest / Previous / specific]
 
-Source — `cluster-repo/shared/core.platform.autoupdate/src/main/java/com/dynatrace/core/platform/autoupdate/activegate/settings/datasource/PrivateActiveGateAutoUpdateDataSource.java` lines 35–38:
+Source — `cluster-repo/shared/core.platform.autoupdate/src/main/java/com/example/core/platform/autoupdate/agent/settings/datasource/PrivateAgentAutoUpdateDataSource.java` lines 35–38:
 
 ```java
 public static final String LATEST_VALUE = "latest";
@@ -322,7 +322,7 @@ main version). The Jira "User Story" missed "Older".
 - v1.8.0 surfaces the discrepancy as a §7 table and asks the user.
 
 The §7 table for this discrepancy (with the added **Spec** column) reads:
-`| 1 | Target version preset list | "Latest, Previous, specific" | "Latest, Previous, Older, specific" | "Latest, Previous, Older, specific" | …/PrivateActiveGateAutoUpdateDataSource.java:35 | CONTRADICTED |`
+`| 1 | Target version preset list | "Latest, Previous, specific" | "Latest, Previous, Older, specific" | "Latest, Previous, Older, specific" | …/PrivateAgentAutoUpdateDataSource.java:35 | CONTRADICTED |`
 — here a spec was provided and its phrasing matched the code, so the Jira
 narrative is the side that drifted; with no spec the **Spec** cell would read
 `(no spec)`.
@@ -358,7 +358,7 @@ Build a single ask_user prompt showing every discrepancy in a table:
 ```
 | # | Claim                      | Jira                                       | Spec                                | Code                                | Source location                                 | Verdict      |
 |---|----------------------------|--------------------------------------------|-------------------------------------|-------------------------------------|-------------------------------------------------|--------------|
-| 1 | Target version preset list | "Latest stable, Previous stable, specific" | "Latest, Previous, Older, specific" | "Latest, Previous, Older, specific" | …/PrivateActiveGateAutoUpdateDataSource.java:35 | CONTRADICTED |
+| 1 | Target version preset list | "Latest stable, Previous stable, specific" | "Latest, Previous, Older, specific" | "Latest, Previous, Older, specific" | …/PrivateAgentAutoUpdateDataSource.java:35 | CONTRADICTED |
 | 2 | Menu rename                | "Settings > Updates → Settings > Deployment" | "Settings > Updates"              | "Settings > Updates" (unchanged)    | …/ClusterSettingsMenu.java:1404                 | NOT_FOUND    |
 | 3 | Deferral window default    | "deferred until window closes"             | "deferred to next window"           | "deferred to next window"           | …/UpdateWindowSettings.java:88                  | SPEC-VS-JIRA |
 ```
@@ -425,7 +425,7 @@ discrepancy_decisions:
     jira_phrasing:    "Latest stable, Previous stable, specific"
     spec_phrasing:    "Latest, Previous, Older, specific"
     source_phrasing:  "Latest, Previous, Older, specific"
-    source_location:  ".../PrivateActiveGateAutoUpdateDataSource.java:35"
+    source_location:  ".../PrivateAgentAutoUpdateDataSource.java:35"
     decision:         "document-as-spec"
     rationale:        <user-provided text if "Other...">
   - number:           2

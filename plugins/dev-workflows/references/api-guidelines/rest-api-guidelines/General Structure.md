@@ -1,181 +1,182 @@
 # General Structure
-The Dynatrace Analytics Platform consists of a collection of services that interact with each other. 
-The smallest building block is a _physical K8s service_ which provides APIs containing several REST endpoints. For details see [General Concepts](https://dynatrace.sharepoint.com/sites/Platform/SitePages/General-Concepts.aspx).
 
-- K8s services **may** expose some of their APIs publicly on the API Gateway. An exposed API is referred to as a _public service_ (or _platform service_) on the API Gateway.
-- Some K8s services **may** expose APIs on the API Gateway which are intended to be only used by Dynatrace Apps but not customer Apps. Those APIs are referred to as _reserved service_. 
-- K8s services **may** contain purely internal APIs intended for other K8s services to use.
-- K8s service **may** contain operational APIs used by Ops or DevOps employees for e.g. debugging purposes. Such APIs are exposed on the API gateway within the corporate network only for e.g. DevOps Apps.
+**Sources:** [Zalando — API Audience (`x-audience`)](https://opensource.zalando.com/restful-api-guidelines/#219), [Zalando — Naming](https://opensource.zalando.com/restful-api-guidelines/#naming), [Google AIP-122 — Resource names](https://google.aip.dev/122), [RFC 3986 — URI Generic Syntax](https://www.rfc-editor.org/rfc/rfc3986.html), [OpenAPI Specification 3.1 — Server Object](https://spec.openapis.org/oas/v3.1.0.html#server-object)
 
-## K8s Services and APIs
-K8s services **should** group APIs into a predefined set of _API-Types_:
+A system is a collection of services that interact with each other. The smallest building block is a single deployed *service* which provides one or more APIs, each containing several REST endpoints.
 
-|API-Type	    |API Properties                                                                           |
-|---------------|-----------------------------------------------------------------------------------------|
-|/public/	    | <ul><li>Always publicly exposed by the API Gateway</li><li>Used by customers and inside of the Dynatrace Platform by other services</li><li>REST APIs only</li></ul>                                              |
-|/reserved/	    | <ul><li>Always exposed by the API Gateway (reachable from the internet)</li><li>Not documented or advertised to customers (e.g., hidden in Swagger UI)</li><li>Used only by Dynatrace Apps (not customer Apps)</li><li>REST APIs and Websockets are allowed</li></ul> |
-|/internal/	    | <ul><li>Never publicly exposed by the API Gateway</li><li>Mainly used only by other services in the Analytics Platform</li><li>Exception: APIs exposed on the internal path of the API Gateway used by e.g. DT Clusters or central services</li><li>REST APIs and Websockets are allowed</li></ul> |
-|/operations/	| <ul><li>Never publicly exposed by the API Gateway</li><li>Non-functional features like statistics, debug APIs, test APIs, etc. used by DT infrastructure services like CDH, CI, DT Operator, CWS, etc.</li><li>Often used by Debug Apps or DevOps Apps for ACE or Dev Teams</li><li>REST APIs only</li></ul> |
+- A service **may** expose some of its APIs publicly on the API gateway. Such an API is referred to as a _public API_.
+- A service **may** expose APIs on the gateway that are intended for first-party or contracted partner clients but not for the general public. Such APIs are referred to as _partner APIs_.
+- A service **may** contain purely internal APIs intended for other services in the same system to use.
+- A service **may** contain operational APIs used by operators for debugging, deployment or monitoring purposes.
 
-If a K8s service hosts more than one API within one API-Type, it **must** separate these APIs using an _API-identifier_. The API-identifier may be omitted if the service provides only one API. K8s service APIs must be [versioned](../rest-api-guidelines/API%20Versioning.md).
+## API Audience
 
-Service URLs inside of the Analytics Platform K8s Cluster **should** follow this URL structure:
+Every API **must** declare its intended audience in the OpenAPI document using the `x-audience` extension on the `info` object. The value **must** be one of the following four, and an API **must** declare exactly one:
+
+| `x-audience`         | API Properties                                                                          |
+|----------------------|-----------------------------------------------------------------------------------------|
+| `external-public`    | <ul><li>Always publicly exposed by the API gateway</li><li>Used by customers and by other services inside the system</li><li>REST only</li><li>Strongest backward-compatibility obligation</li></ul> |
+| `external-partner`   | <ul><li>Exposed by the API gateway (reachable from the internet)</li><li>Not documented or advertised to the general public (e.g., hidden in the rendered reference)</li><li>Used only by first-party or contracted partner clients</li><li>REST and WebSockets are allowed</li></ul> |
+| `company-internal`   | <ul><li>Never publicly exposed by the API gateway</li><li>Used by other services in the same system, or by internal clients reachable only on a private network</li><li>REST and WebSockets are allowed</li></ul> |
+| `component-internal` | <ul><li>Never publicly exposed by the API gateway</li><li>Non-functional endpoints — statistics, debug, deployment, test</li><li>Consumed by operators and infrastructure components only</li><li>REST only</li></ul> |
+
+Splitting an API by audience is a *design* decision, not a deployment detail: an endpoint's audience determines its compatibility obligations ([API Versioning](../rest-api-guidelines/API%20Versioning.md)) and whether it appears in published documentation ([Swagger Documentation](../rest-api-guidelines/Swagger%20Documentation.md)).
+
+## Services and APIs
+
+If a service hosts more than one API for the same audience, it **must** separate them using an _API identifier_. The API identifier **may** be omitted if the service provides only one such API. All service APIs **must** be [versioned](../rest-api-guidelines/API%20Versioning.md).
+
+Service-local URLs **should** follow this structure:
 ```
-"http://<k8s-service-name>.<k8s-namespace>/<api-type>/[<api-identifier>/]<version>/<api resources>"
+http://<service-host>/<audience-segment>/[<api-identifier>/]<version>/<api resources>
 ```
+where `<audience-segment>` is the deployment's own routing segment for the audience — commonly `public`, `partner`, `internal`, `operations`.
 
 ### Examples
 ```
-app-registry.app-gateway/public/v1/apps                           -- no api-identifier
-app-registry.app-gateway/public/app-registry-api/v1/apps          -- alternative using an api-identifier
+app-registry.internal/public/v1/apps                              -- no api-identifier
+app-registry.internal/public/app-registry-api/v1/apps             -- alternative using an api-identifier
 
-persistence-service.storage/public/query-api/v1/query:execute     -- 1 K8s service with 2 APIs
-persistence-service.storage/public/query-api/v1/query:validate
-persistence-service.storage/public/entity-model-api/v2/models
-ingest-service.storage/public/log-ingest/v2/logs                  -- 2nd service in k8s namespace "storage"
-ingest-service.storage/public/metric-ingest/v1/metrics
+persistence.storage/public/query-api/v1/queries:execute           -- 1 service with 2 APIs
+persistence.storage/public/query-api/v1/queries:validate
+persistence.storage/public/entity-model-api/v2/models
+ingest.storage/public/log-ingest/v2/logs                          -- 2nd service in the same namespace "storage"
+ingest.storage/public/metric-ingest/v1/metrics
 ```
 
-## Public APIs 
-All services are directly accessible only within the Analytics Platform K8s Cluster. External access from the Internet is always passing through the API Gateway. Therefore, each externally exposed K8s service needs to be mapped to a path entry in the publicly exposed URL. If a service uses API-identifiers they will be mapped as a public service name in the path. If the API identifier is omitted the K8s service name will be mapped as a public service name. 
+## Public APIs
 
-The API Gateway ensures that all public service APIs are represented under the main namespace _platform_: 
+Services are directly reachable only inside the system. External access always passes through the API gateway, so every externally exposed service must be mapped to a path entry in the publicly exposed URL. If a service uses API identifiers, the identifier is mapped as the public service name; if it is omitted, the service name is used.
+
+Public APIs **must** be reachable under a single stable root path:
 ```
-https://<root>/platform/<public service name>/<version>/<api resources>
+https://<root>/<public service name>/v<major version>/<api resources>
 ```
-![Public API Mapping](../rest-api-guidelines/img/public%20api%20mapping.png)
 
 ### Examples
-#### API on the K8s Service:
+#### API on the service:
 ```
-app-registry.app-gateway/public/v1/apps​                               -- no api-identifier 
-app-registry.app-gateway/public/app-registry-api/v1/apps              -- alternative using an api-identifier 
+app-registry.internal/public/v1/apps                              -- no api-identifier
+app-registry.internal/public/app-registry-api/v1/apps             -- alternative using an api-identifier
 ```
 
-#### Public API on the API Gateway:
+#### Public API on the API gateway:
 ```
-/platform/swagger-ui/index.html                                       -- general swagger ui
-
-/platform/app-registry/v1/apps                                        -- mapped either from api-identifier or service name
-/platform/app-registry/v1/openapi.yaml                                -- swagger spec (Open API 3.x) per service
+https://api.example.com/app-registry/v1/apps                      -- mapped from api-identifier or service name
+https://api.example.com/app-registry/v1/openapi.yaml              -- OpenAPI document (3.1) per API
 ```
 
 ### Public Service Namespaces
-In most cases the default URL structure is sufficient to map K8s services to public services. But in some rare corner cases this approach may not be sufficient. Especially when multiple K8s services contribute to a single logical representation on the API Gateway it **may** be necessary to group several public services into a _service namespace_ which is mapped to the k8s namespace of the services. This allows to still maintain individual services versions instead of forcing one public service version on both K8s services. K8s services contributing to one service namespace **should** be kept in one K8s namespace with the same name.
 
-General Structure:
+In most cases the default URL structure is enough to map a service to a public service. In some cases it is not — especially when multiple services contribute to a single logical public surface. Those services **may** be grouped into a _service namespace_, which lets each service keep its own version instead of forcing one shared version on all of them. Services contributing to one service namespace **should** be deployed in one deployment namespace of the same name.
+
+General structure:
 ```
-<root>/platform/<service namespace>/<public service name>/<version>/<api resources>
+https://<root>/<service namespace>/<public service name>/v<major version>/<api resources>
 ```
 
 ### Examples
-The most important use case is Grail data access which is covered by 2 K8s services ("persistence-service" and "ingest-service"):
+
+A storage system covered by two services (`persistence` and `ingest`):
 
 ```
-persistence-service.storage/public/query-api/v1/query:execute           -- 1 K8s service with 2 APIs
-persistence-service.storage/public/query-api/v1/query:validate
-persistence-service.storage/public/entity-model-api/v2/models
+persistence.storage/public/query-api/v1/queries:execute
+persistence.storage/public/query-api/v1/queries:validate
+persistence.storage/public/entity-model-api/v2/models
 
-ingest-service.storage/public/log-ingest/v2/logs                        -- 2nd service in k8s namespace "storage"
-ingest-service.storage/public/metric-ingest/v1/metrics
+ingest.storage/public/log-ingest/v2/logs
+ingest.storage/public/metric-ingest/v1/metrics
 ```
 
-On the API Gateway those 2 services are grouped into the namespace "storage":
+On the API gateway those two services are grouped into the namespace `storage`:
 
 ```
-/platform/storage/queries/v1/query:execute
-/platform/storage/queries/v1/query:validate
-/platform/storage/entity-model/v1/models
+https://api.example.com/storage/queries/v1/queries:execute
+https://api.example.com/storage/queries/v1/queries:validate
+https://api.example.com/storage/entity-model/v1/models
 
-/platform/storage/log-ingest/v2/logs
-/platform/storage/metric-ingest/v1/metrics
+https://api.example.com/storage/log-ingest/v2/logs
+https://api.example.com/storage/metric-ingest/v1/metrics
 ```
 
-Service namespaces are also useful when it comes to defining [IAM permissions](https://dynatrace.sharepoint.com/sites/Platform/SitePages/IAM-Permission-Guidelines.aspx) on the the whole namespace (e.g. "storage:metrics:read" or "storage:metrics:write").
+Service namespaces are also what makes a namespace-wide permission expressible — e.g. `storage:metrics:read` or `storage:metrics:write` (see [Permission Guidelines](../permission-guidelines/Introduction.md)).
 
-## Reserved APIs
-The API Gateway ensures that all _reserved_ service APIs are represented under the main namespace _platform-reserved_:
-```
-https://<root>/platform-reserved/<reserved service name>/<version>/<api resources>
-```
-![Reserved API Mapping](../rest-api-guidelines/img/reserved%20api%20mapping.png)
+## Partner APIs
 
-Reserved APIs are technically public, since they are reachable from the internet. But they are logically treated differently from public APIs:
-- Hidden in the Swagger UI in PROD
-- Not documented in the developer portal
-- Intended to be used only by Dynatrace Apps, not customer Apps
-- Have relaxed backward compatibility requirements since they are not used by customers
+Partner APIs (`x-audience: external-partner`) **must** be exposed under a root path distinct from the public one, so that a client cannot reach a partner endpoint by guessing a public URL:
+```
+https://<root>/partner/<service name>/v<major version>/<api resources>
+```
+
+Partner APIs are technically public, since they are reachable from the internet, but they are logically treated differently:
+- Hidden from the published API reference in production
+- Not documented in the public developer portal
+- Intended for first-party or contracted clients only
+- Relaxed backward-compatibility requirements compared to public APIs, because the client set is known and can be migrated
 
 ### Examples
-#### API on the K8s Service:
 ```
-app-registry.app-gateway/reserved/v1/apps​                             -- no api-identifier 
-app-registry.app-gateway/reserved/app-registry-api/v1/apps            -- alternative using an api-identifier 
+-- on the service
+app-registry.internal/partner/v1/apps
+app-registry.internal/partner/app-registry-api/v1/apps
+
+-- on the API gateway
+https://api.example.com/partner/app-registry/v1/apps
+https://api.example.com/partner/app-registry/v1/openapi.yaml       -- non-production environments only
 ```
 
-#### Reserved API on the API Gateway:
-```
-/platform-reserved/swagger-ui/index.html                              –- swagger ui (DEV and HARD only)
-
-/platform-reserved/app-registry/v1/apps                               -- mapped either from api-identifier or service name
-/platform-reserved/app-registry/v1/openapi.yaml                       -- swagger spec (Open API 3.x) per service (DEV and HARD only)
-```
 ## Internal APIs
 
-K8s services **may** provide APIs not supposed to be publicly exposed on the API Gateway. On the K8s service such APIs **must** be grouped in the _internal_ API-Type.
+A service **may** provide APIs that are not meant to be exposed publicly. On the service, such APIs **must** be grouped under the internal audience segment.
 
-On the API Gateway internal APIs **must not** be published to customers but **may** be exposed to Dynatrace clients outside of the Analytics Platform K8s Cluster. Internal APIs **must** be [versioned](../rest-api-guidelines/API%20Versioning.md).
- 
-The API Gateway **may** expose some internal service APIs under the main namespace platform-internal:
+The gateway **must not** publish internal APIs to external clients, but **may** expose them to internal clients outside the system on a private route:
 ```
-<root>/platform-internal/<service name>/<api type>/<api-identifier>/<version>/<api resources>"
+https://<internal root>/<service name>/<audience-segment>/[<api-identifier>/]<version>/<api resources>
 ```
-Note that the _platform-internal_ path is only accessible from within the corporate network and requires special permissions.
+Internal APIs **must** be [versioned](../rest-api-guidelines/API%20Versioning.md). The internal route is reachable only from the private network and requires separate permissions.
 
 ### Examples
 ```
-function-proxy.app-gateway/public/function-executor/v2/executions
-function-proxy.app-gateway/internal/function-executor/v1/async-executions   -- available in the platform for other services
+function-proxy.internal/public/function-executor/v2/executions
+function-proxy.internal/internal/function-executor/v1/async-executions   -- available to other services
 
-platform-management.platform-core/internal/v1/tenants
+platform-management.core/internal/v1/tenants
 ```
 
-One API is "exposed" internally on the API gateway:
+Exposed on the internal route:
 ```
-platform-internal/platform-management/internal/v1/tenants                   -- available for e.g. CloudControl
+https://internal.example.com/platform-management/internal/v1/tenants
 ```
 
 ## Operational APIs
-K8s services **may** provide APIs that serve an operational purpose like a “Debug API” or APIs used by Dynatrace deployment or monitoring components. On the K8s service such APIs **must** be grouped in the _operations_ API-Type.
 
-On the API Gateway operational APIs **must not** be published to customers. Operational APIs are inherently internal and are accessed via a separate route for security reasons (details will come later). Operational APIs **must** be [versioned](../rest-api-guidelines/API%20Versioning.md).
-The API Gateway ensures that all operational service APIs are represented under the main namespace platform-internal: 
+A service **may** provide APIs that serve an operational purpose — a debug API, or an API used by deployment or monitoring components. Such APIs **must** be grouped under the operations audience segment and **must** be [versioned](../rest-api-guidelines/API%20Versioning.md) unless they are used exclusively by humans (see [API Versioning](../rest-api-guidelines/API%20Versioning.md#where-to-apply)).
+
+Operational APIs **must not** be published to external clients. They are accessed on the private route for security reasons:
 ```
-<root>/platform-internal/<service name>/<api type>/<api-identifier>/<version>/<api resources>
+https://<internal root>/<service name>/operations/[<api-identifier>/]<version>/<api resources>
 ```
-![Operations API Mapping](../rest-api-guidelines/img/operations%20api%20mapping.png)
-Note that the _platform-internal_ path is only accessible from within the corporate network and requires internal Ops/DevOps permissions.
- 
+
 ### Examples
 ```
-app-registry.app-gateway/operations/devops/v1
-app-registry.app-gateway/operations/ops/v3
-app-registry.app-gateway/operations/test/v2
+app-registry.internal/operations/devops/v1
+app-registry.internal/operations/ops/v3
+app-registry.internal/operations/test/v2
 ```
 
-"exposed" internally on the API gateway:
+Exposed on the internal route:
 ```
-platform-internal/app-registry/operations/devops/v1
-platform-internal/app-registry/operations/ops/v3
-platform-internal/app-registry/operations/test/v2
+https://internal.example.com/app-registry/operations/devops/v1
+https://internal.example.com/app-registry/operations/ops/v3
+https://internal.example.com/app-registry/operations/test/v2
 ```
 
-Recommended API-identifiers for operational APIs are:
+Recommended API identifiers for operational APIs:
 
 | API-identifier   | Purpose	                                                                           | Examples                    |
 | ---------------- |-------------------------------------------------------------------------------------- | --------------------------- |
-| devops           | Dev-Ops API usually only used by the developers of the service mainly for debugging and proactive monitoring purposes.	| Enable a debug flag|
-| ops              | Mainly used by ACE, Support or Sales Engineers. Typically these APIs represent a less detailed and less intrusive feature set as devops APIs.	| <ul><li>Trigger a thread dump</li><li> Rotate or revoke a secret </li></ul> |
-| deployment       | Deployment endpoints used during service rollout or other maintenance tasks.	       | Trigger a post-update migration step |
-| statistics       | Expose statistics data to Dynatrace backend systems like the CDH.                     |                             |
-| test             | APIs only used by tests (e.g. by the CWS).	                                           |                             |
+| devops           | API used by the developers of the service itself, mainly for debugging and proactive monitoring.	| Enable a debug flag |
+| ops              | Used by support and operations engineers. Typically a less detailed and less intrusive feature set than the devops API.	| <ul><li>Trigger a thread dump</li><li>Rotate or revoke a secret</li></ul> |
+| deployment       | Endpoints used during rollout or other maintenance tasks.	                           | Trigger a post-update migration step |
+| statistics       | Expose statistics data to internal reporting systems.                                 |                             |
+| test             | APIs used only by automated tests.	                                                   |                             |

@@ -9,16 +9,16 @@ Writes or updates product documentation — either a full Jira-driven feature-do
 ## Synopsis
 
 ```
-/document <PRODUCT-NNNN> [saas|managed] [--counterpart <JiraID|PR-url>]
+/document <PRODUCT-NNNN> [cloud|self-hosted] [--counterpart <JiraID|PR-url>]
 /document <@file | free-text doc-edit description>
 ```
 
 **A reader needs to know which mode a run is in before anything else on this page applies.** `/document` selects between two structurally different pipelines from the first argument token, and everything below — inputs, outputs, and gates — differs by mode:
 
-- **Jira mode (Mode A)** — the input resolves `jira-driven` through the shared front-end: a JiraID token (optionally followed by `saas` or `managed`), or a directory that inspects as a Jira export. This is the **feature-documentation** pipeline: read a VI's full Jira hierarchy, resolve its PR diffs, and synthesise product documentation for it.
+- **Jira mode (Mode A)** — the input resolves `jira-driven` through the shared front-end: a JiraID token (optionally followed by `cloud` or `self-hosted`), or a directory that inspects as a Jira export. This is the **feature-documentation** pipeline: read a VI's full Jira hierarchy, resolve its PR diffs, and synthesise product documentation for it.
 - **Direct mode (Mode B)** — everything else: a leading `@file` token, free-text prose, or a non-Jira-export directory. This is the **one-shot doc-edit** pipeline: apply a described change to existing pages with no Jira and no PR resolution at all.
 
-The optional `saas`/`managed` token after a JiraID is a **space constraint**, not a target list: it scopes a Jira-mode run to documenting one space only, leaving the other space's rendered output untouched. Omitting it lets Phase 4.5 determine and confirm the applicable space(s) once the Jira hierarchy and repos are resolved. `both` is deliberately not an accepted value — omit the argument to cover both spaces. `--counterpart <JiraID|PR-url>` is valid only on a space-constrained run; it points at the *other* space's existing documentation for the same feature and is consumed as read-only grounding, never copied into the written page.
+The optional `cloud`/`self-hosted` token after a JiraID is a **space constraint**, not a target list: it scopes a Jira-mode run to documenting one space only, leaving the other space's rendered output untouched. Omitting it lets Phase 4.5 determine and confirm the applicable space(s) once the Jira hierarchy and repos are resolved. `both` is deliberately not an accepted value — omit the argument to cover both spaces. `--counterpart <JiraID|PR-url>` is valid only on a space-constrained run; it points at the *other* space's existing documentation for the same feature and is consumed as read-only grounding, never copied into the written page.
 
 For writing child Epic drafts from a VI, use [`/epics`](epics.md). For release notes, use [`/release-notes`](release-notes.md) — `/document` never writes release-notes or what's-new pages, since those are generated from Jira by the docs team's own automation. For a change that touches both code and docs, use [`/implement`](implement.md) instead of either mode of this command.
 
@@ -55,8 +55,8 @@ Ten `dev-workflows` subagents are dispatched, none shared by both modes except `
 
 **Jira mode** needs:
 - **A resolved Jira input** via the shared front-end — a JiraID or a Jira-export directory. Jira mode never gates this VI on being merged anywhere: nothing in the command calls `require-on-main`, so it reads the hierarchy straight from the export via `jira-reader` regardless of what specs artifacts exist or where they live.
-- **A writable docs repository**, resolved cwd-preferred: the git root of `cwd` when it carries a docs signal (a `*:build`/`*:lint`/`docs:*` script, a `.docstack/`/`mkdocs.yml`/`antora.yml`/`.vale.ini`/`DOCUMENTATION-GUIDELINES.md` file, or any `_snippets/` directory), else the `$DOCS_PATH` hint (default `/workspace/docs`), else a `dynatrace-docs` clone found under `$REPOS_PATH`, else an explicit ask. A resolved path that fails `test -w` stops the run with `REPO_NOT_WRITEABLE`.
-- **A docs-profile** — loaded in-repo, from the built-in `dynatrace-docs` default, or generated on demand by an inline `/docs-profile` run for a custom repo that has none; a custom repo whose profiling run is cancelled stops with `PROFILE_REQUIRED`.
+- **A writable docs repository**, resolved cwd-preferred: the git root of `cwd` when it carries a docs signal (a `*:build`/`*:lint`/`docs:*` script, a `.docstack/`/`mkdocs.yml`/`antora.yml`/`.vale.ini`/`DOCUMENTATION-GUIDELINES.md` file, or any `_snippets/` directory), else the `$DOCS_PATH` hint (default `/workspace/docs`), else an `example-docs` clone found under `$REPOS_PATH`, else an explicit ask. A resolved path that fails `test -w` stops the run with `REPO_NOT_WRITEABLE`.
+- **A docs-profile** — loaded in-repo, from the built-in `example-docs` default, or generated on demand by an inline `/docs-profile` run for a custom repo that has none; a custom repo whose profiling run is cancelled stops with `PROFILE_REQUIRED`.
 - **Additive `specs`** (optional, from `$SPECS_PATH` or a passed directory) — never gated; an empty list proceeds without prompting. When present, it feeds Phase 5.8's three-way Jira/spec/code discrepancy check instead of the plain Jira/code two-way one.
 - **Mounted repos under `$REPOS_PATH`**, matched to each in-scope PR by its `git remote get-url origin` slug. A slug with zero matches is never silently dropped — it is escalated once, in a single consolidated gate covering every missing repo in the run, not one prompt per slug.
 
@@ -70,7 +70,7 @@ Independent of either mode's own writes, the terminal `commit-artifacts` step co
 
 ## Gates
 
-**`docs-style-checker` is mandatory in both modes** and dispatched unconditionally — the orchestrator never skips it on its own judgement of which linters are installed. It runs the repo's primary linter (Vale or equivalent) and, when the `dt-style-guide` plugin is installed, `dt-style-checker` as a complementary semantic pass, merging both finding sets; violations go to `doc-fixer`.
+**`docs-style-checker` is mandatory in both modes** and dispatched unconditionally — the orchestrator never skips it on its own judgement of which linters are installed. It runs the repo's primary linter (Vale or equivalent) and, when the `prose-style` plugin is installed, `prose-style-checker` as a complementary semantic pass, merging both finding sets; violations go to `doc-fixer`.
 
 Every gate's outcome is recorded in a run-scoped `gate_ledger` with six possible outcomes — `RAN`, `DEGRADED`, `FAILED`, `UNAVAILABLE`, `SKIPPED_BY_USER`, `NOT_APPLICABLE` — and no outcome is orchestrator-assignable to mean "I decided this wasn't necessary": `UNAVAILABLE` must be converted to one of the other five before the run proceeds, `SKIPPED_BY_USER` must carry the user's decision verbatim, and `NOT_APPLICABLE` must name the unmet precondition. **Every gate in the registry appends its row when that gate completes; a missing row, an unconverted `UNAVAILABLE`, or an unattributed skip is a `doc-reviewer` BLOCKER.** Jira mode's registry has seven gate ids:
 

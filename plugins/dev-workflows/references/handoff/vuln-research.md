@@ -7,7 +7,7 @@
 repo: /absolute/path/to/repo
 cves:
   - id: CVE-2023-46604
-    jira: MGD-2423        # omit if no Jira ticket
+    jira: PROJ-2423        # omit if no Jira ticket
   - id: CVE-2024-12345    # bare CVE, no Jira
 ecosystem_hint: java      # optional; helps when auto-detection is ambiguous
 model_routing:            # optional; if present, echo back in output.
@@ -26,7 +26,7 @@ model_routing:            # optional; if present, echo back in output.
 
 ### CVE-2023-46604
 status: READY             # READY | NOT_IN_REPO | LOOKUP_FAILED | SKIP_NON_CVE
-jira: MGD-2423
+jira: PROJ-2423
 description: "Apache ActiveMQ RCE via ClassInfo deserialization"
 library: activemq-broker
 ecosystem: Maven

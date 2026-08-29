@@ -1,47 +1,52 @@
 # General
-SDKs are auto generated using the [Dynatrace code generator](https://bitbucket.lab.dynatrace.org/projects/APPFW/repos/sdk-generator/browse). The focus is on Typescript SDKs for Browser and Dynatrace Function usage.
 
-Since SDKs are the main contact point for customers to interact with the platform APIs, they **must** follow general naming and structure guidelines for an overall good developer experience.
+**Sources:** [OpenAPI Generator](https://openapi-generator.tech/), [OpenAPI Specification 3.1 — Operation Object](https://spec.openapis.org/oas/v3.1.0.html#operation-object), [Semantic Versioning 2.0.0](https://semver.org/), [Google AIP-185 — Versioning](https://google.aip.dev/185), [Zalando — Compatibility](https://opensource.zalando.com/restful-api-guidelines/#compatibility)
+
+Client SDKs are generated from the published OpenAPI documents, using a generator such as [OpenAPI Generator](https://openapi-generator.tech/). A generated client is often the main contact point between a consumer and the API, so SDKs **must** follow common naming and structure guidelines for a coherent developer experience.
+
+Because the SDK surface is derived mechanically from the OpenAPI document, several things that look cosmetic in the document are breaking changes in the SDK. In particular, `operationId` **must** be treated as part of the public contract (see [OpenAPI — OperationId](../rest-api-guidelines/OpenAPI.md#operationid)).
 
 # SDK Naming
-The common naming schema for all SDKs is: 
+
+The common naming schema for all SDKs is:
 ```
 client[-<service namespace>]-<service name>[-v<major version>]
 ```
-_\<service namespace>_ **must** be the same name that is used for the [namespace](../rest-api-guidelines/General%20Structure.md#public-service-namespaces) if the service contains one.
 
-_\<service name>_ **must** be the same name that is used to [publicly represent the service on the API Gateway](../rest-api-guidelines/General%20Structure.md#public-apis).
+_\<service namespace>_ **must** be the same name used for the [service namespace](../rest-api-guidelines/General%20Structure.md#public-service-namespaces), if the service belongs to one.
 
-_\<major version>_ **must** be the major service API version part. For APIs which are still [under development](../rest-api-guidelines/API%20Versioning.md#url-format-during-initial-development-of-an-api) (represented by using a version of 0.x) the minor part of the API version **must** be appended without separator.
+_\<service name>_ **must** be the same name used to [publicly represent the service on the API gateway](../rest-api-guidelines/General%20Structure.md#public-apis).
 
-_\<major version>_ **must** be skipped if the API version is 1.x which in many cases is the only available API version for a very long time.
+_\<major version>_ **must** be the major API version. For APIs still [under initial development](../rest-api-guidelines/API%20Versioning.md#url-format-during-initial-development-of-an-api) (version 0.x) the minor part **must** be appended without a separator.
 
-_\<major version>_ **must** be added if the API version is >= 2.x.
+_\<major version>_ **must** be omitted if the API version is 1.x — for many services that is the only version for a long time.
+
+_\<major version>_ **must** be present if the API version is 2.x or higher.
 
 #### Examples
 ```
 Document Service v1.2.3 ==> client-document-service
 Document Service v2.3.4 ==> client-document-service-v2
-Query API v0.2.1 ==> client-query-v02
-App registry v1.1.2 ==> client-app-engine-registry       -- registry lives in a namespace named 'app-engine'
+Query API v0.2.1        ==> client-query-v02
+App Registry v1.1.2     ==> client-app-engine-registry       -- registry lives in a namespace named 'app-engine'
 ```
 
 # SDK Versioning
-Each SDK package represents one platform service API with a specific API version. The API version is an integral part of the SDK and therefore added to the name of the SDK package. Still, SDKs require a separate SDK version which is independent of the API version to allow rebuilds of the same SDK using updated generator or template versions or to support additional target language versions.
 
-So, it is possible to use different SDK versions representing the exact same service API version without forcing an artificial API version update just for the sake of differentiating the SDKs from each other.
+Each SDK package represents one service API at one API version. The API version is part of the package name. The SDK additionally carries its own version, independent of the API version, so that the same API version can be re-released with an updated generator, template, or target-language version.
+
+This means several SDK versions may represent exactly the same service API version, without forcing an artificial API version bump just to differentiate the packages.
 
 # SDK Metadata
-The generator ensures that each SDK package contains the detailed meta-data about the SDK itself and the represented API version as well.
 
-The exact SDK version is provided in the _package.json_ file:
-![SDK Version](../rest-api-guidelines/img/sdk%20version.png)
+Every generated SDK package **must** carry metadata about both the SDK itself and the API version it represents:
 
-The exact API version is provided in the _dynatrace-metadata.json_ file which also contains information about the generator and template version used during code generation:
+- The SDK package version **must** be declared in the package manifest of the target ecosystem (e.g. `package.json`, `pom.xml`, `pyproject.toml`).
+- A generated metadata file **must** record the exact API version (`info.version` from the source document), the source document's URL or path, the generator name and version, and the template version used.
 
-![API Version](../rest-api-guidelines/img/sdk%20api%20version.png)
+Recording the generator and template version is what makes a regenerated client diff explainable: without it, a behavioural change in generated code cannot be attributed to either the API or the toolchain.
 
-# SDK Links
-SDKs in Bitbucket: https://bitbucket.lab.dynatrace.org/projects/APPFW/repos/dynatrace-sdk/browse/packages
+# Publishing
 
-Wiki: https://dev-wiki.dynatrace.org/pages/viewpage.action?spaceKey=ruxit&title=FAQ%3A+Autogenerated+SDK%27s+based+on+OpenAPI+specs
+- An SDK **must** be published only from an OpenAPI document that has been released — never from a working copy.
+- An SDK **must not** be hand-edited after generation. Anything that cannot be expressed in the OpenAPI document belongs in a thin, separately versioned wrapper package, not in the generated output.

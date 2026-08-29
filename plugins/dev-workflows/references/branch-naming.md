@@ -14,7 +14,7 @@ Commands that consume this: `/implement`, `/document` (both modes), `/docs-profi
 
 In priority order, look at the **target repo's** root for `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`, and `CLAUDE.md` (plus `.claude/`). Grep each for a branch-naming section — case-insensitive, patterns like "Branch name", "Branch naming", "naming your branch".
 
-Extract both the **pattern** and any surrounding **guide** prose; real conventions often state the rule in prose the pattern alone does not capture. Example (`dynatrace-docs/CONTRIBUTING.md`):
+Extract both the **pattern** and any surrounding **guide** prose; real conventions often state the rule in prose the pattern alone does not capture. Example (`example-docs/CONTRIBUTING.md`):
 
 ```
 <your-name-or-initials>/<JIRA-ISSUE-KEY>-<short-branch-name>
@@ -62,7 +62,7 @@ Used to fill an identity placeholder (§1.2) or the whole prefix (§1.4). Apply 
 echo "$GIT_USER_INITIALS"
 ```
 
-If set and non-empty, use it **verbatim** (never append a trailing `/` — the caller inserts separators). This is the recommended way to lock one identifier across every workflow and every repository, which is exactly what conventions like dynatrace-docs' "choose an identifier and stick to it" ask for. Examples: `GIT_USER_INITIALS=iv-gu` → `iv-gu`; `GIT_USER_INITIALS=ivgu` → `ivgu`.
+If set and non-empty, use it **verbatim** (never append a trailing `/` — the caller inserts separators). This is the recommended way to lock one identifier across every workflow and every repository, which is exactly what conventions like example-docs' "choose an identifier and stick to it" ask for. Examples: `GIT_USER_INITIALS=iv-gu` → `iv-gu`; `GIT_USER_INITIALS=ivgu` → `ivgu`.
 
 ### 2.2 `git config user.initials`
 

@@ -118,7 +118,7 @@ the draft INSTEAD of silently guessing. Rules:
 When `mode` is `refine` or `both`, treat every entry in `refinement_targets[]` as an Epic to **fill in**, not a duplicate to avoid:
 
 - **Iterate, don't regenerate.** Read the target's `current_body_path` (the imported Epic file) first. Preserve any real scope/acceptance content already there; fill the gaps and improve — never blow away existing substance.
-- **Keyed filename.** Write each refined Epic to `<output_dir>/<key>.md` using its real Jira Epic key (e.g. `MGD-12573.md`) — NOT a slug. Slug-named files (`<slug>.md`) are reserved for net-new Epics with no Jira ID yet.
+- **Keyed filename.** Write each refined Epic to `<output_dir>/<key>.md` using its real Jira Epic key (e.g. `PROJ-12573.md`) — NOT a slug. Slug-named files (`<slug>.md`) are reserved for net-new Epics with no Jira ID yet.
 - **Surface the team.** Emit the template's `**Team:** <team>` line under the H1. When `team` is empty, emit `**Team:** [NEEDS CLARIFICATION — team not found in import]` and add a matching `clarifications_needed[]` entry.
 - **Partition the VI.** Distribute the VI `requirements[]` across the refinement targets; each target's `## Covers` lists only its slice. Two targets must not silently claim the same requirement.
 - **Cross-team dependencies are expected.** When one team-Epic depends on another (e.g. a framework Epic that must land first), name the other Epic by key in `## Dependencies`. Such inter-target dependencies are legal (they encode build order) — do not suppress them.

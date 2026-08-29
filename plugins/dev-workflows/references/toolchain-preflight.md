@@ -26,7 +26,7 @@ de-duplicate by binary name.
 
 1. **The resolved profile.** Take the **first whitespace-separated token** of every `commands.*` value
    (including every `commands.per_space.<space>.*` value) and every `dev_servers.servers[].command`.
-   `"pnpm dynatrace:lint"` ⇒ `pnpm`. Add every entry in `profile.prerequisites` as a named
+   `"pnpm docs:lint"` ⇒ `pnpm`. Add every entry in `profile.prerequisites` as a named
    prerequisite (these are prose, not binaries — record them for reporting, and check them only when
    the prose names a checkable path or binary).
 2. **Repo config signals**, checked at `repo_root`:
@@ -96,7 +96,7 @@ choices: ["Cancel — re-run in the docs container (Recommended)", "Continue any
 Example consequence line:
 
 > With `vale` and `pnpm` missing, this run would record `style_check` **DEGRADED** (only
-> `dt-style-checker` runs — the repo's own linter, the one CI will run on your PR, would not),
+> `prose-style-checker` runs — the repo's own linter, the one CI will run on your PR, would not),
 > `build_check` **UNAVAILABLE**, and `render_smoke_check` **UNAVAILABLE**.
 
 - **"Cancel"** → stop the run. Nothing has been written.

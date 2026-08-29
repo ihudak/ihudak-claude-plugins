@@ -1,35 +1,35 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "ihudak-plugins",
-  "description": "Ivan Gudak's private Claude Code plugin marketplace — productivity and workflow tools",
+  "description": "Ivan Gudak's open-source Claude Code plugin marketplace — productivity and workflow tools",
   "owner": {
     "name": "Ivan Gudak",
-    "email": "ivan.gudak@dynatrace.com"
+    "email": "ihudak@gmail.com"
   },
   "plugins": [
     {
       "name": "dev-workflows",
-      "version": "2.58.5",
+      "version": "3.0.0",
       "description": "Twenty-one slash commands covering the full product-development lifecycle — /idea → /create-vi → /create-ard → /specify → /design → /epics → /implement → /document → /release-notes → /ready — plus /vuln (CVE remediation), /upgrade, /update-vi, /docs-profile, /api-guideline-reviewer, /guideline-reviewer, /statusline, and the /feedback and /prompt utilities. Thirty-four reusable subagents and four hooks. Opus-backed gates review every artifact: plans, code, product docs, Epics, specifications, designs, ARDs, Value Increments, and readiness. Each phase hands its artifact to the next through the specs repo's default branch — the producer commits, pushes, and opens a PR; the consumer refuses to start until it has landed. Optional read-only grounding on shipped product docs, tracked vault prior art, and mounted code repositories.",
       "author": {
         "name": "Ivan Gudak",
-        "email": "ivan.gudak@dynatrace.com"
+        "email": "ihudak@gmail.com"
       },
       "category": "development",
       "source": "./plugins/dev-workflows",
       "homepage": "https://github.com/ihudak/ihudak-claude-plugins/tree/main/plugins/dev-workflows"
     },
     {
-      "name": "dt-style-guide",
-      "version": "0.2.4",
-      "description": "Dynatrace corporate style guide checker and writing-aid plugin. Enforces terminology, trademarks, voice/tone, grammar, formatting, and inclusive-language rules from styleguide.dynatrace.com. Includes /dt-review-pr (review PR doc changes), /dt-review-docs (review files/directories with optional --fix), /dt-style-refresh (update vendored rules), a dt-style-checker agent, a dt-doc-fixer agent, a dt-style-rules skill, and vendored reference docs. Acts as a fallback for dev-workflows when no repo-configured prose linter is available.",
+      "name": "prose-style",
+      "version": "0.3.0",
+      "description": "Pluggable prose style checker and writing aid for documentation, planning documents, and release notes. Ships a vendor-neutral baseline — terminology, word list, voice and tone, grammar, formatting, UI interactions, inclusive language, and prose accessibility — distilled from the Microsoft, Google, and Apple style guides, Chicago, the Conscious Style Guide, and WCAG. Point it at your own organization's style guide and the overlay augments or overrides that baseline; every resolution miss falls back silently. Provides /prose-review-pr, /prose-review-docs (with --fix), /prose-style-refresh, a prose-style-checker agent, a prose-fixer agent, and a prose-style-rules skill.",
       "author": {
         "name": "Ivan Gudak",
-        "email": "ivan.gudak@dynatrace.com"
+        "email": "ihudak@gmail.com"
       },
       "category": "writing",
-      "source": "./plugins/dt-style-guide",
-      "homepage": "https://github.com/ihudak/ihudak-claude-plugins/tree/main/plugins/dt-style-guide"
+      "source": "./plugins/prose-style",
+      "homepage": "https://github.com/ihudak/ihudak-claude-plugins/tree/main/plugins/prose-style"
     },
     {
       "name": "obsidian-llm-wiki",
@@ -37,7 +37,7 @@
       "description": "LLM Wiki pattern for an active Obsidian vault. Ten slash commands (/wiki-init, /wiki-ingest, /wiki-scan, /wiki-query, /wiki-save, /wiki-lint, /wiki-hot, /wiki-tags-refresh, /wiki-task, /wiki-tasks-extract) compile knowledge from meetings, projects, daily notes, and raw sources into a persistent, cross-referenced wiki at wiki/, with integrated task management via Obsidian Tasks. Supports Claude Code and GitHub Copilot as first-class agents with session-continuity hooks.",
       "author": {
         "name": "Ivan Gudak",
-        "email": "ivan.gudak@dynatrace.com"
+        "email": "ihudak@gmail.com"
       },
       "category": "productivity",
       "source": "./plugins/obsidian-llm-wiki",

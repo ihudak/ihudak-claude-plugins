@@ -10,7 +10,7 @@ companion degrades the feature, never breaks the run.
 | Companion | Used by | Relationship | Fallback when absent |
 |-----------|---------|--------------|----------------------|
 | `superpowers` (skill `brainstorming`) | `/prompt-brainstorm` | Recommended | Embedded technique; no hard dependency. |
-| `dt-style-guide` (in this marketplace) | `docs-style-checker`; planning-doc style checks | Optional companion | `docs-style-checker` falls back to it when no repo-configured prose linter exists; `/epics` and `/release-notes` skip the style gate entirely if it is absent. |
+| `prose-style` (in this marketplace) | `docs-style-checker`; planning-doc style checks | Optional companion | `docs-style-checker` falls back to it when no repo-configured prose linter exists; `/epics` and `/release-notes` skip the style gate entirely if it is absent. |
 
 ## Related external tooling (not a plugin)
 
@@ -20,5 +20,5 @@ companion degrades the feature, never breaks the run.
 
 ## Marketplace siblings (independent plugins, same marketplace)
 
-`dt-style-guide` and `obsidian-llm-wiki` ship in the `ihudak-plugins` marketplace alongside
+`prose-style` and `obsidian-llm-wiki` ship in the `ihudak-plugins` marketplace alongside
 dev-workflows but are versioned independently.

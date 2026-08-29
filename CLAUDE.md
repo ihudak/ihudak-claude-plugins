@@ -325,5 +325,5 @@ marketplace-specific behaviors that are easy to forget during workflow edits.
 
 ## Git
 
-- `origin` → `git@github-ig.com:ihudak/ihudak-claude-plugins.git`
+- `origin` → `git@github.com:ihudak/ihudak-claude-plugins.git`
 - Default branch: `main`

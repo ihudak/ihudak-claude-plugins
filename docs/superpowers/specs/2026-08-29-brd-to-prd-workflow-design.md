@@ -110,6 +110,8 @@ refusing to start until its predecessor's artifact landed on the specs default b
 | D15 | **The parent BRD holds a coverage ledger; every requirement has a recorded fate.** | Without it, nothing detects a requirement that every slice quietly deferred — the failure a long BRD most invites. |
 | D16 | **No real customer or vendor is named anywhere in the plugin.** | The roles are `customer` and `delivery team`. Any worked example ships synthetic. |
 | D17 | **A slice is a BRD.** There is no lesser "slice" object: a slice runs the same commands, holds the same artifacts, can itself be sliced, and can depend on any other BRD at any level. | Two object types would mean two sets of commands, two sets of gates, and a rule for which applies. One recursive object costs nothing and expresses `008-01 -> 008`, `009 -> 008-01` and `009-01 -> 002` identically. |
+| D19 | **Grounding findings carry a `horizon`, and a decision may not rest solely on one that a prerequisite will overturn.** | A finding is true of a pinned commit. When a prerequisite BRD is approved but unbuilt, some findings are true now and false after it ships. A decision resting on such a finding is built on ground that is about to move. Catching this by hand worked once and should not have to. |
+| D20 | **A package whose prerequisite is not yet customer-reviewed may ship, loudly.** | Blocking would fully serialise delivery and let a slow customer stall everything downstream. Instead the delivery note and the customer prompt both name which prerequisite decisions are still provisional and which positions here depend on them — the customer is told what could still move. |
 | D18 | **The rendered bundle is committed to the specs repo.** | It serves a git-capable customer directly and a zip-only customer via one command, and it is the permanent record of exactly what was sent — which is what makes D13's byte-identical property checkable months later. The cost is a derived duplicate in the repo. |
 
 ---
@@ -159,12 +161,19 @@ One row per `BRD-FR-NNN`:
 |---|---|
 | `id` | `BRD-FR-NNN` |
 | `text` | verbatim requirement text (or its first sentence + a source anchor) |
-| `disposition` | `covered-by: <CHILD-BRD-KEY>` / `deferred-to: <this BRD>` / `rejected: DEF-NNN` / `superseded-by: BRD-FR-NNN` / `unallocated` |
+| `disposition` | `covered-here` / `covered-by: <CHILD-BRD-KEY>` / `deferred-to: <this BRD>` / `rejected: DEF-NNN` / `superseded-by: BRD-FR-NNN` / `unallocated` |
 | `defects` | `DEF-NNN` list |
 | `evidence` | `CG-NNN` / `DG-NNN` list |
 
 `/brd-split` cannot complete while any row is `unallocated`. `/create-prd --from-brd` refuses a
 BRD whose `brd-link.md` claims a row not allocated to it.
+
+**PRD eligibility is read from the ledger, not decided in advance.** A BRD gets a PRD if and only
+if at least one row is `covered-here`. If every row is `covered-by: <CHILD>` or `deferred-to`, the
+BRD was fully sliced and holds no PRD of its own: `/create-prd` on it refuses and names the
+children that do. This means slicing everything and slicing partially are both supported without
+the operator having to declare which they are doing — the ledger records what happened and the
+command reads it.
 
 ### 4.2 Identifier namespaces
 
@@ -209,7 +218,7 @@ it is defined once (§12).
 ### 5.1 Finding contract
 
 Every finding carries an ID, a verdict from a closed set, `file:line` evidence (or an explicit
-statement of why none exists), a pinned commit, and an altitude tag (§7).
+statement of why none exists), a pinned commit, an altitude tag (§7), and a **horizon** (§5.6).
 
 | Verdict | Meaning |
 |---|---|
@@ -269,6 +278,38 @@ A finding without a verifier verdict is not evidence. `/brd-interview` refuses t
 every `CG`/`DG` finding carries one. Findings inherited from another team's report, or from an
 earlier run of this workflow, are unverified by definition and must be re-derived.
 
+### 5.6 Prerequisites and the forward baseline
+
+A BRD declares `depends-on: [<BRD-KEY>, ...]` in `brd-link.md`. Prerequisites are **not** limited
+to a parent or sibling: a BRD may depend on any other BRD at any level (D17), which is how a
+slice of one BRD depends on a slice of a different BRD.
+
+Grounding therefore reads two things: the pinned commit, and the **frozen decisions of every
+declared prerequisite**. It never reads speculation — only decisions already recorded in a
+prerequisite's register. From that, each finding gets a horizon:
+
+| `horizon` | Meaning |
+|---|---|
+| `current` | True of the pinned commit, and no declared prerequisite's decisions change it |
+| `will-change` | True of the pinned commit, but a prerequisite decision makes it false once built — the finding **names that decision** |
+
+The motivating shape: a finding says a mechanism does not exist, and a prerequisite BRD has
+already decided to build exactly that mechanism. The finding is not wrong, and must not be
+deleted — it is true of the code under review. It is simply not something to build a decision on.
+
+**Prerequisite readiness** is reported by `/brd-ground` and again by `/brd-package`, per declared
+prerequisite:
+
+```
+prerequisites: EPIC-008-01 — decisions frozen, customer-reviewed 2026-08-27, not yet built
+               EPIC-002    — decisions frozen, NOT customer-reviewed
+```
+
+A prerequisite whose decisions are not yet frozen contributes no `will-change` horizons at all,
+and is reported as such: there is nothing stable enough to ground against.
+
+---
+
 ---
 
 ## 6. Interview and the decision register
@@ -303,6 +344,7 @@ argumentation: |
   <why — mandatory>
 evidence: [CG-012, DG-003]
 altitude: product | architecture | implementation
+conditional_on: <BRD-KEY>/<decision-id>   # omitted unless the decision depends on a prerequisite
 status: open | decided | reopened | superseded | withdrawn
 consumed_by: PRD | ARD | specification | none
 round: 2
@@ -315,6 +357,18 @@ customer challenges it weeks later, and cannot be safely reopened.
 customer decision, and the reopening records its cause. `withdrawn` is a first-class status so
 that a withdrawn request (for instance a BRD amendment the customer's answer made unnecessary)
 stops being asked for in customer-facing text.
+
+**A decision may not rest solely on a `will-change` finding** (D19). When every finding a decision
+cites has `horizon: will-change`, `/brd-interview` refuses to close it and offers three ways out:
+
+| Resolution | Recorded as |
+|---|---|
+| Re-base it on a `current` finding | the decision's `evidence` list changes |
+| Make it explicitly conditional on the prerequisite | `conditional_on: <BRD-KEY>/<decision-id>` |
+| Defer it until the prerequisite ships | `status: open`, with the blocking prerequisite named |
+
+A `conditional_on` decision is automatically swept by `/brd-reconcile` when that prerequisite's
+decisions change (§8.7) — the condition is what makes the propagation sweep able to find it.
 
 **Assumptions get IDs.** `A-NNN` records something the package asserts without evidence. Every
 open `A-NNN` is automatically surfaced in the customer review prompt. An assumption that never
@@ -408,9 +462,11 @@ Assembled from the package, never hand-written, in a fixed order:
 5. The single most important claim to verify first
 6. Review scope
 7. The decisions the customer must make — each traceable to a `[C]` question or an open `A-NNN`
-8. **Where to attack us hardest** — every open `A-NNN` and every `accepted-risk` `SR-NNN`
-9. The required output file, its exact name, and the inlined schema
-10. What this session cannot settle
+8. **What could still move** — every declared prerequisite whose decisions are not yet
+   customer-reviewed, and every position here that is `conditional_on` one of them (D20)
+9. **Where to attack us hardest** — every open `A-NNN` and every `accepted-risk` `SR-NNN`
+10. The required output file, its exact name, and the inlined schema
+11. What this session cannot settle
 
 ### 8.3 Degradation tiers
 
@@ -460,6 +516,12 @@ any level (D17).
 decisions and findings citing a changed ID. Each is forced to a disposition:
 `inherited-unchanged | reverted | reopened | withdrawn`.
 
+Decisions carrying `conditional_on` (§6.2) are the sweep's first target and the reason the field
+exists: they are the positions that were knowingly built on a prerequisite, and they must be
+revisited whether or not they happen to cite a changed ID directly. Findings with
+`horizon: will-change` are re-evaluated in the same pass — once the prerequisite is built and a
+`--rebaseline` run has happened, they become `SUPERSEDED` by their re-grounded replacements.
+
 **Stale cross-reference sweep.** After propagation, every artifact under the parent is searched
 for the changed IDs *and* for prose asserting a now-superseded position. Updating a register
 while a value document still states the old position is the characteristic failure of this
@@ -498,10 +560,15 @@ untestable | unsourced | duplicate | scope-leak`) → write the ledger with ever
 sorting its sections by altitude into the three seed files. This is the migration path for work
 already done by hand.
 
-### 9.2 `/brd-ground <BRD-KEY> [--derivation-matrix|--no-derivation-matrix] [--no-design] [--rebaseline]`
+### 9.2 `/brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-design] [--rebaseline]`
 
 **Preconditions:** intake artifacts on the specs default branch; `$REPOS_PATH` resolvable.
 **Produces:** `baselines.md`, `code-grounding.md`, `design-grounding.md`.
+
+`--depends-on` declares a prerequisite and persists it to `brd-link.md`; it is additive, so
+prerequisites accumulate across runs and can also be edited in the file directly. Grounding reads
+each prerequisite's frozen decisions and assigns every finding a horizon (§5.6), then reports
+prerequisite readiness.
 
 Runs at whatever level its key names (D17): `/brd-ground EPIC-008` grounds the whole BRD,
 `/brd-ground EPIC-008-01` grounds that slice against its own claimed requirements. `--rebaseline`
@@ -582,8 +649,9 @@ command. The delivery note is written to a file **and printed in full in the con
 so it can be pasted into an email without opening anything.
 
 The note is held to a hard length rule and states only: which BRD this is, what is attached,
-which repositories at which commits, **which file is the prompt**, **which file comes back**, and
-anything that must not sit buried inside a document.
+which repositories at which commits, **which file is the prompt**, **which file comes back**, any
+prerequisite whose decisions are still provisional (D20), and anything else that must not sit
+buried inside a document.
 
 ### 9.6 `/brd-reconcile <BRD-KEY> @<review-file>`
 
@@ -597,7 +665,7 @@ register, ledger, defect log, and bannered snapshots; propagation dispositions i
 
 | Command | Change |
 |---|---|
-| `/create-prd` | New `--from-brd`. Reads `prd-seed.md` and `decisions.md` from the resolved BRD folder. The grill is restricted to gaps: it may fill anything the seed does not settle, and may **not** reopen a `V-NNN` or `C-NNN` (D3). Refuses if any ledger row this BRD claims is unallocated. Defaults the profile to `--full`. Writes `brd_key:` and `brd_parent:` into the PRD frontmatter. |
+| `/create-prd` | New `--from-brd`. Reads `prd-seed.md` and `decisions.md` from the resolved BRD folder. The grill is restricted to gaps: it may fill anything the seed does not settle, and may **not** reopen a `V-NNN` or `C-NNN` (D3). Refuses if any ledger row this BRD claims is unallocated, and refuses when the ledger shows no `covered-here` row (the BRD was fully sliced — it names the children instead). Defaults the profile to `--full`. Writes `brd_key:`, `brd_parent:` and `depends_on:` into the PRD frontmatter, so a PRD's prerequisites are visible to `/epics` and `/ready` without reading the BRD tree. |
 | `/create-ard` | New `--from-brd`. Reads `ard-seed.md` plus the architecture-altitude findings; `CG`/`DG` findings seed the ARD's grounding-findings section, architecture decisions seed `AD#N`. Marks each consumed item `consumed_by: ARD`. |
 | `/specify` | New `--from-brd`. Reads `spec-seed.md`, including the derivation matrix. Marks each consumed item `consumed_by: specification`. |
 
@@ -693,12 +761,12 @@ to open six command pages to find that `--from-brd` takes the parent BRD folder:
 | Command | Required | Optional | Notes |
 |---|---|---|---|
 | `/brd-intake` | `<BRD-KEY> @<brd-file>` | `--sort-existing <dir>` | Markdown only; a PDF is rejected. `<BRD-KEY>` names the folder, not a ticket |
-| `/brd-ground` | `<BRD-KEY>` | `--rebaseline`, `--derivation-matrix`, `--no-design` | Any level: `EPIC-008` or `EPIC-008-01`. Needs `$REPOS_PATH` |
+| `/brd-ground` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…`, `--rebaseline`, `--derivation-matrix`, `--no-design` | Any level. `--depends-on` persists to `brd-link.md`. Needs `$REPOS_PATH` |
 | `/brd-split` | `<BRD-KEY>` | — | Walks every unallocated requirement; children nest inside |
 | `/brd-interview` | `<BRD-KEY>` | `--round N` | No flag = continue the first open round; `N` resumes or re-opens one |
 | `/brd-package` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…` | Writes `bundle-<date>/` + prints the delivery note |
 | `/brd-reconcile` | `<BRD-KEY> @<review-file>` | — | The file may be anywhere; it is canonicalised and committed |
-| `/create-prd` | `<BRD-KEY>` | `--from-brd` | A switch, not a path. Decisions frozen; profile defaults to `--full` |
+| `/create-prd` | `<BRD-KEY>` | `--from-brd` | A switch, not a path. Decisions frozen; profile `--full`. Refuses a fully-sliced BRD |
 | `/create-ard` | `<BRD-KEY>` | `--from-brd` | Consumes `ard-seed.md` |
 | `/specify` | `<BRD-KEY>` | `--from-brd` | Consumes `spec-seed.md` |
 

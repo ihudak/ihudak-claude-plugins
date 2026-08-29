@@ -455,7 +455,9 @@ _word2num() {
     one) echo 1 ;; two) echo 2 ;; three) echo 3 ;; four) echo 4 ;; five) echo 5 ;;
     six) echo 6 ;; seven) echo 7 ;; eight) echo 8 ;; nine) echo 9 ;; ten) echo 10 ;;
     eleven) echo 11 ;; twelve) echo 12 ;; thirteen) echo 13 ;; fourteen) echo 14 ;;
-    twenty-one) echo 21 ;; thirty-four) echo 34 ;; ninety-eight) echo 98 ;;
+    fifteen) echo 15 ;; sixteen) echo 16 ;;
+    twenty-one) echo 21 ;; twenty-two) echo 22 ;; twenty-three) echo 23 ;; twenty-four) echo 24 ;;
+    thirty-four) echo 34 ;; ninety-eight) echo 98 ;;
     *) echo "$1" ;;
   esac
 }
@@ -479,7 +481,7 @@ check_prose_counts() {
       || fail 9 "$label: ${file#$root/} says $raw ($claimed), tree has $actual"
   }
 
-  _one "commands"        "$p/README.md"                  '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) slash commands'    "$(cmd_names "$p" | wc -l | tr -d ' ')"
+  _one "commands"        "$p/README.md"                  '(one|two|three|four|five|six|seven|eight|nine|ten|fifteen|sixteen|twenty-one|twenty-two|twenty-three|twenty-four|thirty-four|ninety-eight|[0-9]+) slash commands'    "$(cmd_names "$p" | wc -l | tr -d ' ')"
   _one "agents"          "$d/reference/agents.md"        '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) agents'           "$(ls "$p/agents"/*.md 2>/dev/null | wc -l | tr -d ' ')"
   _one "reference files" "$d/reference/references.md"    '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) files'           "$(find "$p/$REF_DIR" -type f 2>/dev/null | wc -l | tr -d ' ')"
   _one "hooks"           "$d/reference/hooks.md"         '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) hooks'                   "$(ls "$p/hooks"/*.sh 2>/dev/null | wc -l | tr -d ' ')"
@@ -511,7 +513,7 @@ check_prose_counts() {
     local n_emit
     n_emit=$(emit_cost_calls "$p" | cut -d'|' -f1 | sort -u | grep -c . || true)
     _one "cost-emitting commands" "$d/reference/session-cost.md" \
-         '(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|twenty-one|thirty-four|ninety-eight|[0-9]+) commands emit a cost entry' "$n_emit"
+         '(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|twenty-one|twenty-two|twenty-three|twenty-four|thirty-four|ninety-eight|[0-9]+) commands emit a cost entry' "$n_emit"
   else
     note "check 9 cost-emitting-commands assertion not applicable: this edition has no cost subsystem"
   fi
@@ -573,6 +575,8 @@ selftest() {
   expect_fail "an install line absent from the root README is rejected" 7 "printf '\n$CLI plugin ${CLI_VERBS##*|} ${PLUGIN_REL##*/}@extra-fixture-target\n' >> $PLUGIN_REL/docs/getting-started.md"
   expect_fail "a drifted prose count is rejected"              9 "mkdir -p $(dirname $(cmd_file $PLUGIN_REL gamma)) 2>/dev/null; printf -- '---\nname: gamma\n---\n' > $(cmd_file $PLUGIN_REL gamma) && printf -- '# /gamma\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/gamma.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/gamma\`]($DOC_CMD_DIR/gamma.md)|' $PLUGIN_REL/docs/README.md"
   expect_fail "a count sentence reworded away is rejected"     9 "sed -i.bak 's|one slash commands|a handful of slash commands|' $PLUGIN_REL/README.md"
+  expect_fail "check 9: word-form command count that disagrees with the tree" 9 \
+    "sed -i.bak 's/one slash commands/twenty-four slash commands/' $PLUGIN_REL/README.md"
   expect_fail "a wrong non-ASCII anchor is rejected"           2 "printf '\n[bad](#uber-config)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
   expect_fail "a wrong duplicate-heading index is rejected"    2 "printf '\n[bad](#notes-2)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
   expect_fail "a titled link to a missing file is rejected"    1 "printf '\n[bad](nope.md \"T\")\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"

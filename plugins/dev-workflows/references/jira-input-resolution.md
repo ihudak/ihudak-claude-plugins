@@ -19,8 +19,8 @@ stop with a clear error).
 - **JiraID** — matches `^[A-Z][A-Z0-9]+-[0-9]+`.
 - **Path** — a `@path` token, or a bare path that exists on disk (a directory; or,
   in direct mode, a file).
-- **Command-specific trailing option** — consumed by the command *after* this
-  resolution (`/document`: an optional `cloud` | `self-hosted` token). Not resolved here.
+- **Command-specific trailing option** — a flag or keyword the calling command
+  parses for itself *after* this resolution. Not resolved here.
 - **Free-text** — anything else (the direct-mode prompt).
 
 ## Mode decision

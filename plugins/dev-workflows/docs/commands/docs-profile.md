@@ -34,7 +34,7 @@ No reviewer agent, and no Opus review gate in the code-review sense — every ch
 /dev-workflows:docs-profile ~/repos/example-docs
 ```
 
-Detects it as a multi-space docstack repo, drafts `spaces[]`, `dev_servers`, `cross_space_override`, and `shared_registries` from the Sonnet-tier scan, synthesises the full profile on Opus, asks about any field the synthesis flagged as unconfirmed, writes `.dev-workflows/docs-profile.yml` plus CLAUDE.md additions on a new branch, commits, and prints the branch name and a drafted PR title/body for you to push.
+Detects its content roots, drafts `spaces[]` and `dev_servers` from the Sonnet-tier scan, synthesises the full profile on Opus, asks about any field the synthesis flagged as unconfirmed, writes `.dev-workflows/docs-profile.yml` plus CLAUDE.md additions on a new branch, commits, and prints the branch name and a drafted PR title/body for you to push.
 
 ## See also
 

@@ -9,16 +9,16 @@ Writes or updates product documentation — either a full Jira-driven feature-do
 ## Synopsis
 
 ```
-/document <PRODUCT-NNNN> [cloud|self-hosted] [--counterpart <JiraID|PR-url>]
+/document <PRODUCT-NNNN>
 /document <@file | free-text doc-edit description>
 ```
 
 **A reader needs to know which mode a run is in before anything else on this page applies.** `/document` selects between two structurally different pipelines from the first argument token, and everything below — inputs, outputs, and gates — differs by mode:
 
-- **Jira mode (Mode A)** — the input resolves `jira-driven` through the shared front-end: a JiraID token (optionally followed by `cloud` or `self-hosted`), or a directory that inspects as a Jira export. This is the **feature-documentation** pipeline: read a PRD's full Jira hierarchy, resolve its PR diffs, and synthesise product documentation for it.
+- **Jira mode (Mode A)** — the input resolves `jira-driven` through the shared front-end: a JiraID token, or a directory that inspects as a Jira export. This is the **feature-documentation** pipeline: read a PRD's full Jira hierarchy, resolve its PR diffs, and synthesise product documentation for it.
 - **Direct mode (Mode B)** — everything else: a leading `@file` token, free-text prose, or a non-Jira-export directory. This is the **one-shot doc-edit** pipeline: apply a described change to existing pages with no Jira and no PR resolution at all.
 
-The optional `cloud`/`self-hosted` token after a JiraID is a **space constraint**, not a target list: it scopes a Jira-mode run to documenting one space only, leaving the other space's rendered output untouched. Omitting it lets Phase 4.5 determine and confirm the applicable space(s) once the Jira hierarchy and repos are resolved. `both` is deliberately not an accepted value — omit the argument to cover both spaces. `--counterpart <JiraID|PR-url>` is valid only on a space-constrained run; it points at the *other* space's existing documentation for the same feature and is consumed as read-only grounding, never copied into the written page.
+Jira mode takes the key and nothing else. Where each page is written follows from the page itself: Phase 5.5 resolves every write target against the content roots the resolved profile declares, and Phase 6.3 writes each page into the root that owns it. A repo whose profile declares several content roots is handled the same way — a page is edited where it lives, and the per-root lint, build, and dev-server commands are selected from the root that owns it.
 
 For writing child Epic drafts from a PRD, use [`/epics`](epics.md). For release notes, use [`/release-notes`](release-notes.md) — `/document` never writes release-notes or what's-new pages, since those are generated from Jira by the docs team's own automation. For a change that touches both code and docs, use [`/implement`](implement.md) instead of either mode of this command.
 
@@ -47,7 +47,7 @@ flowchart TD
 
 The `MD` fork is the command's own `## Mode detection` section, run once before either pipeline starts. Both branches share one thing ahead of the split: a `specs-preflight` pass against `$SPECS_PATH`, run before dispatch so it covers Mode B as well as Mode A.
 
-Ten `dev-workflows` subagents are dispatched, none shared by both modes except `docs-style-checker`, `doc-fixer`, and `impl-maintenance`. Jira-mode-only: `jira-reader` (Phase 3, `depth: full`), `diff-summarizer` (Phase 5, up to 4 concurrent per batch), `doc-location-finder` (Phase 5.5), `counterpart-finder` (Phase 5.6.5, only on a single-space run), `doc-planner` (Phase 5.7, pinned to the Opus `planning_model` chain), `doc-writer` (Phase 6.3, also Opus-pinned — the sole author of the written pages; the orchestrator prepares its handoff and commits its output, but never writes pages itself), and `doc-reviewer` (Phase 7, Opus-pinned by its own frontmatter). Shared by both modes: `docs-style-checker` (Phase 6.4 in Jira mode, Phase 3.5 in direct mode), `doc-fixer` (invoked from the style-check phase in either mode, plus Phase 7 in Jira mode), and `impl-maintenance` (Phase 8 in Jira mode, Phase 4 in direct mode, alongside three general-purpose maintenance agents in a single dispatch). Direct mode additionally dispatches a read-only general-purpose exploration agent at Phase 2A before drafting its plan — so even the lighter pipeline dispatches well over the two-subagent floor.
+Nine `dev-workflows` subagents are dispatched, none shared by both modes except `docs-style-checker`, `doc-fixer`, and `impl-maintenance`. Jira-mode-only: `jira-reader` (Phase 3, `depth: full`), `diff-summarizer` (Phase 5, up to 4 concurrent per batch), `doc-location-finder` (Phase 5.5), `doc-planner` (Phase 5.7, pinned to the Opus `planning_model` chain), `doc-writer` (Phase 6.3, also Opus-pinned — the sole author of the written pages; the orchestrator prepares its handoff and commits its output, but never writes pages itself), and `doc-reviewer` (Phase 7, Opus-pinned by its own frontmatter). Shared by both modes: `docs-style-checker` (Phase 6.4 in Jira mode, Phase 3.5 in direct mode), `doc-fixer` (invoked from the style-check phase in either mode, plus Phase 7 in Jira mode), and `impl-maintenance` (Phase 8 in Jira mode, Phase 4 in direct mode, alongside three general-purpose maintenance agents in a single dispatch). Direct mode additionally dispatches a read-only general-purpose exploration agent at Phase 2A before drafting its plan — so even the lighter pipeline dispatches well over the two-subagent floor.
 
 ## What it needs
 

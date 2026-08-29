@@ -31,7 +31,7 @@ Three pages orient you before you touch a command: [Getting started](getting-sta
 - [`/document`](commands/document.md) — write or update product documentation: a one-shot direct edit, or the full Jira-driven feature-documentation workflow.
 - [`/epics`](commands/epics.md) — break a Value Increment into reviewed child Epic drafts.
 - [`/feedback`](commands/feedback.md) — log a note about the plugin itself, for the maintainer to aggregate.
-- [`/guideline-reviewer`](commands/guideline-reviewer.md) — review app code and UI against the bundled Experience Standards.
+- [`/guideline-reviewer`](commands/guideline-reviewer.md) — review app code and UI against the bundled UI design-system and accessibility guidelines.
 - [`/idea`](commands/idea.md) — refine a raw prompt, file, community post, or existing VI into a one-page idea brief.
 - [`/implement`](commands/implement.md) — classify, plan, implement, test, and review a code change end to end.
 - [`/prompt`](commands/prompt.md) — log a correction you just made to a command's output, then apply the fix directly.

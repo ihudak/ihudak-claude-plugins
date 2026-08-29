@@ -1,6 +1,6 @@
 # ihudak-claude-plugins
 
-Ivan Gudak's private Claude Code plugin marketplace.
+Ivan Gudak's open-source Claude Code plugin marketplace.
 
 ## Plugins
 

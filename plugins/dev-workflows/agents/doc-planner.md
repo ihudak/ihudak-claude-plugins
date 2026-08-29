@@ -19,9 +19,7 @@ screenshot_staging_dir: <absolute dir the command resolved for cdn_upload_requir
 code_repos:             <array of {slug, path} for source-truth verification; the clones resolved for diff-summarizer; [] when unavailable>
 specs_dir:              <absolute path to the PRD's spec folder (PRODUCT-NNNN*), or null; the authoritative intended-behavior source>
 repo_root:              <absolute path to the docs repo root>
-profile:                <the resolved docs-profile (built-in example-docs default, in-repo, or generated); supplies spaces[], cross_space_override, shared_registries, tokens>
-target_spaces:          <the run's resolved space set: [cloud] | [self-hosted] | [cloud, self-hosted]>
-counterpart_references: <array of counterpart-finder entries (read-only grounding); [] when none or on a both-space run. Each: {source_kind, path|pr_ref, space, salient_summary, section_outline, is_shared_into_target, screenshots_seen[], match_confidence}>
+profile:                <the resolved docs-profile (built-in example-docs default, in-repo, or generated); supplies spaces[], tokens, internal_links>
 ```
 
 Refuse to run without `jira_reader_handoff`, `write_targets`, and `repo_root`.
@@ -45,7 +43,7 @@ For each write target:
 
    Not every target needs every topic. For `extend-existing`, pick only the topics the existing page doesn't already cover.
 
-   When a topic's content presents mutually exclusive options (alternative setup paths, alternative configurations, and similarly-shaped either/or content), plan its callout placement per `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §2: each option's callout is planned adjacent to that option, never as an **unqualified** trailing block after the whole set; a callout that applies to the whole set is planned into the lead-in, before the options. §2 rule 3 is an explicit alternative: when a callout must stay adjacent to the whole set, plan it to name its own scope in its first clause (e.g. *"This applies only to the built-in cluster registry."*). Record the placement in the topic's `notes`. Do not restate §2's rules here — cite it. (The one-line operational paraphrase above is deliberate and stays, as does its twin in `doc-writer.md` step 10: in this file pair the planner and the writer each carry their own short operational version of a cited rule, with §2 the authority both defer to. It is not duplication to collapse.)
+   When a topic's content presents mutually exclusive options (alternative setup paths, alternative configurations, and similarly-shaped either/or content), plan its callout placement per `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §2: each option's callout is planned adjacent to that option, never as an **unqualified** trailing block after the whole set; a callout that applies to the whole set is planned into the lead-in, before the options. §2 rule 3 is an explicit alternative: when a callout must stay adjacent to the whole set, plan it to name its own scope in its first clause (e.g. *"This applies only to the built-in cluster registry."*). Record the placement in the topic's `notes`. Do not restate §2's rules here — cite it. (The one-line operational paraphrase above is deliberate and stays, as does its twin in `doc-writer.md` step 9: in this file pair the planner and the writer each carry their own short operational version of a cited rule, with §2 the authority both defer to. It is not duplication to collapse.)
 
 2. **Map topics to sources.** Each topic records which `jira-reader` keys and/or which `diff-summarizer` PR URLs back it up, for the Phase 6.3 writer's traceability requirement. A topic with no source attribution is a candidate gap (see step 7).
 
@@ -114,23 +112,7 @@ For each write target:
 
    When `code_repos` is empty/omitted, emit one entry per user-visible claim with `finding: NOT_FOUND`, `technique: no-source-evidence`, `source_phrasing: "(not verifiable)"` (and `spec_phrasing: "(no spec)"` when `specs_dir` is also null).
 
-10. **Ground on the counterpart space (read-only).** When `counterpart_references` is non-empty:
-    - **Consult, don't copy.** Use each entry's `salient_summary` and `section_outline` to inform topic/section planning for the *target* space — concepts, terminology, and completeness. Author the plan for the target space; do NOT copy the counterpart's space-specific detail (see the cross-space rule below).
-    - **Write-strategy signal.** An entry with `is_shared_into_target: true` is strong evidence the target render is already served by that shared page — prefer `conditional` (an in-place `{{#if project='<target>'}}` delta) over a new `content_root` page, and flag in `notes` that the target "may already be covered".
-    - **Screenshots.** `screenshots_seen` are comprehension-only — never plan them as target images.
-
-11. **Recommend a per-target multi-space write strategy** (per `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/multi-space-writing.md`). For each write target:
-    - Determine its **home space** by matching `target_path` against each `profile.spaces[].content_root`/`snippet_root` prefix.
-    - Determine `rendered_in` and `space_scope`: a page is **`shared`** when `profile.cross_space_override` pulls its home `content_root` into another space's render (in example-docs, a `cloud`-home page under `cloud/_content` is pulled into the Self-hosted render, so `rendered_in: [cloud, self-hosted]`); otherwise **`single`** (`rendered_in: [<home space>]`).
-    - Recommend `write_strategy.strategy`:
-      - **`plain`** — no protection needed: a `single` page whose home space is in `target_spaces`, OR a `[cloud, self-hosted]` run whose planned content is identical for every space the page renders in.
-      - **`conditional`** — the page is `shared` and the planned change is localized (a single added block, localized wording, or one differing value) AND it must NOT alter the render of a space outside `target_spaces` (or must differ per space within a both-spaces run). The shared source is edited in place; the delta is wrapped in `{{#if project='<target_space>'}}…{{/if}}`.
-      - **`override-copy`** — the page is `shared` and the divergence is structural (new sections, large rewrite). The page is copied into the destination space's `content_root` and the shared path is added to `cross_space_override`'s `ignore` allowlist.
-    - Set `write_strategy.target_space` to the space the change is **for**: for `conditional`, the `project='…'` value of the wrapped delta; for `override-copy`, the destination space the copy lands in; for `plain`, the page's home space.
-    - Set `write_strategy.rationale` to a 1-line justification grounded in the divergence you estimated (used by Phase 5.9's table).
-    - This recommendation is **advisory** — the orchestrator presents it for approval/override in Phase 5.9 before any write. Do NOT write files.
-
-    **Known residual (deliberate, do not "fix" by inventing a branch).** The three strategies above cover no case for a `single` page whose home space is *outside* `target_spaces` — `plain` requires the home space to be in `target_spaces`, and `conditional` / `override-copy` both require a `shared` page. Such a target should never reach this step (Phase 4.5/5.5 honour `target_spaces`), and if one does, `doc-writer`'s routing rule returns `status: BLOCKED` naming the target and its resolved home space, so it fails loudly rather than silently. Do not paper over it with a fourth branch here — that would convert a caller defect into a quietly written page in an untouched space.
+10. **Record each target's content root.** Match `target_path` against each `profile.spaces[].content_root`/`snippet_root` prefix and record the matching `spaces[].id` as the target's `space`. It is bookkeeping, not a decision — the page is written where it already lives — and it makes the checklist self-describing for the reviewer, who otherwise has to re-derive the root from the path. A target matching no declared root gets `space: null` and a `notes` line saying so — do not guess one from the directory name.
 
 ## Output — the documentation checklist
 
@@ -151,12 +133,7 @@ component_patterns:              # recurring content shapes observed in the step
 checklist:
   - target_path: <absolute path>
     kind:        extend-existing | new-page-in-existing-section | new-section
-    space_scope: shared | single          # shared = rendered in >1 space (per profile.cross_space_override); single = its home space only
-    rendered_in: [<space id>, ...]         # the spaces this page's render appears in
-    write_strategy:                        # advisory; approved/overridden in /document Phase 5.9
-      strategy:    conditional | override-copy | plain
-      rationale:   <1-line justification grounded in the estimated divergence>
-      target_space: <space id>             # conditional → the {{#if project='<target_space>'}} value; override-copy → the destination space the copy lands in; plain → the home space
+    space:       <the profile.spaces[].id whose content_root/snippet_root prefixes target_path; null when none does>
     topics:
       - name:    <"How to use" | "Setup" | "Reference" | "Migration" | etc.>
         sources: [<Jira key | PR URL>, ...]
@@ -206,7 +183,6 @@ The `component_patterns` bullet below (no fabricated `evidence`, no second scan)
 - The `repo_verification_gates` block obeys `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §6 in full — never emit an entry that cannot be checked against the files this run writes, never paraphrase a repo gate into a different requirement, and never let a repo gate silently override a built-in reference.
 - NEVER propose a changelog-only frontmatter update on a page with no other planned change: if a target's `topics:` is empty AND `frontmatter_updates.other:` is empty AND the only change is `frontmatter_updates.changelog`, drop the target from the checklist entirely (a changelog entry with no corresponding content change is meaningless).
 - NEVER let a cross-product "minimal touch" parity reference introduce content specific to the OTHER product's implementation. When extending product X's page about a feature shipped by product Y, plan `topics[].notes` as a one-line cross-link to Y's dedicated page — do NOT inline Y's implementation detail (throttling rules, enum values, precedence). Example: noting on `host-agent-update` that update windows are shared with the gateway component is fine; copying the per-pool gateway throttling rule onto the host-agent page is not.
-- The same rule applies **cross-space**: when grounding on a `counterpart_references` page, never plan target-doc content that carries the counterpart space's specific UI paths, URLs, labels, defaults, or screenshots. Consult the counterpart for concepts/terminology/structure; author target-space specifics from the target space's own source.
 - NEVER write or modify files. This agent plans; the writer writes.
 - NEVER copy screenshots anywhere — only compute `dest` / `staging` paths and record them. The writer performs the actual file moves.
 - For `image_policy == cdn_upload_required`, the `staging` path MUST be under the caller-provided `screenshot_staging_dir` (a persistent Obsidian project folder under `$VAULT_PATH`, which is always host-mounted). NEVER stage inside `repo_root` (a repo mounted as a docker repo-volume is not on the host and is lost on restart) and NEVER use `/tmp` (in-image, ephemeral). If `screenshot_staging_dir` is null while a screenshot needs cdn staging, emit a gap with `recommended_action: "ask user"`.
@@ -218,4 +194,3 @@ The `component_patterns` bullet below (no fabricated `evidence`, no second scan)
 - NEVER decide a topic is "done" without naming at least one source. If a topic has no source, it is a gap.
 - If `repo_root` looks wrong (no markdown files, no frontmatter conventions, no `_snippets/` sibling of candidate target directories), note it in `gaps` with `recommended_action: "ask user"`.
 - NEVER propose an automation-generated path as a `target_path`: a page whose frontmatter carries `meta.content-type: release-notes`, anything under `_data/release-notes/…`, and anything under `_snippets/release-notes/…`. Those pages are generated from Jira by the docs team's automation and a manual write would be overwritten; release notes are produced by the `/release-notes` command. **A page declared in `profile.announcement_pages` is exempt** — announcement pages are hand-authored and nothing generates them.
-- NEVER pick `override-copy` over `conditional` to "play it safe" — an override-copy duplicates a whole page and must then be maintained in two places. Recommend `override-copy` ONLY for genuinely structural divergence; localized deltas are `conditional`. The user can still override either way in Phase 5.9. NEVER write files or perform the copy/`ignore` edit yourself — Phase 6.3 does that.

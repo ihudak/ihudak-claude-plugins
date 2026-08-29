@@ -1,12 +1,12 @@
 ---
 name: document
-description: Jira-driven feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in example-docs default → on-demand /docs-profile) and the PRD's specs dir under /workspace. Phase 4.5 determines/confirms the applicable space(s). Optional cloud|self-hosted constraint scopes the run to one space. Reads a Product Requirements Document hierarchy from exported markdown, resolves PR diffs in parallel, synthesises product documentation, and gates on style-check and Opus doc review. Optional --counterpart <JiraID|PR-url> grounds a space-constrained run on the other space's existing docs (read-only).
+description: Jira-driven feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in example-docs default → on-demand /docs-profile) and the PRD's specs dir under /workspace. Reads a Product Requirements Document hierarchy from exported markdown, resolves PR diffs in parallel, synthesises product documentation, and gates on style-check and Opus doc review.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
 Generate product documentation for the Jira Product Requirements Document: $ARGUMENTS
 
-Signature: `PRODUCT-NNNN [cloud|self-hosted] [--counterpart <JiraID|PR-url>]`. The optional second token is a **space constraint**, not a target list. When you pass `cloud` or `self-hosted`, the command documents **only that space** and leaves the OTHER space's rendered output unchanged (Cloud pages stay as they are when you pass `self-hosted`, and vice-versa). When you omit it, the command **determines the applicable space(s)** from the Jira hierarchy and the resolved repos, then confirms with you. `both` is intentionally NOT an accepted value — omit the argument to cover both spaces. `--counterpart <JiraID | PR-url>` is an optional named flag (valid only on a space-constrained run) that points at the OTHER space's documentation for this feature — a Jira key or a PR URL (merged or not). It is used as **read-only grounding**; on a both-space run it is rejected. See Phase 5.6.5.
+Signature: `PRODUCT-NNNN` — the Jira Product Requirements Document key, and nothing else. Phase 5.5 resolves each write target against the content roots the resolved profile declares, and Phase 6.3 writes each page into the root that owns it.
 
 `/document` (Jira mode) is the **Jira-driven feature-documentation** workflow. Given a Jira Product Requirements Document key, it reads the full Jira hierarchy from pre-exported markdown in the user's Obsidian vault, resolves PR URLs to local git repos, runs parallel PR-diff summaries, synthesises product documentation, runs style-check + Opus review gates, and writes the output to the current working directory (a product docs repository).
 
@@ -18,7 +18,7 @@ For small one-off doc edits, use direct mode (below). For writing child Epic dra
 
 `/document` has **two modes**, selected by the first argument token:
 
-- **Jira mode (Mode A)** — the input resolves `jira-driven` via the shared front-end (`${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`): a first token matching a JiraID (`^[A-Z][A-Z0-9]+-[0-9]+`), optionally followed by `cloud` | `self-hosted`, **or** a directory that inspects as a Jira-export (contains `<KEY>-index.md`). The front-end's Fallback B handles a JiraID-shaped token with no `jira-products/<KEY>` folder.
+- **Jira mode (Mode A)** — the input resolves `jira-driven` via the shared front-end (`${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`): a first token matching a JiraID (`^[A-Z][A-Z0-9]+-[0-9]+`), **or** a directory that inspects as a Jira-export (contains `<KEY>-index.md`). The front-end's Fallback B handles a JiraID-shaped token with no `jira-products/<KEY>` folder.
 - **Direct mode (Mode B)** — the input resolves `direct` (a leading `@file` token, free-text prose, or a non-Jira-export directory, which Mode B handles via its existing "anything else" path).
 
 **Specs-repo preflight.** Cite
@@ -71,7 +71,7 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 
    **Confirm writeable.** Once `docs_repo_path` is resolved, run `test -w <docs_repo_path>`. If it fails, stop with the named error `REPO_NOT_WRITEABLE: <docs_repo_path> is not writeable.`
 
-3. **Does the built-in default profile apply?** Set `is_known_docs_repo` = `true` only when the resolved `docs_repo_path` matches the **built-in default profile's own layout** — it contains every `spaces[].content_root` that profile declares, plus its `cross_space_override` manifest. This is a narrow test for "this repo is shaped like the bundled example", not a test for "this is a docs repo"; a real repo almost always answers `false` here and is served by its own in-repo profile at step 4(a), or by on-demand profiling at 4(c). Directory name is **never** a factor.
+3. **Does the built-in default profile apply?** Set `is_known_docs_repo` = `true` only when the resolved `docs_repo_path` matches the **built-in default profile's own layout** — it contains every `spaces[].content_root` and `snippet_root` that profile declares. This is a narrow test for "this repo is shaped like the bundled example", not a test for "this is a docs repo"; a real repo almost always answers `false` here and is served by its own in-repo profile at step 4(a), or by on-demand profiling at 4(c). Directory name is **never** a factor.
 
 4. **Resolve the profile** (record `profile_source`). The profile steers all later phases' conventions. Resolve in this order:
    - **(a) In-repo profile →** `in-repo`. If `<docs_repo_path>/.dev-workflows/docs-profile.yml` exists, load it. `profile_source: in-repo`.
@@ -91,44 +91,18 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 5. **Specs (additive).** Use the `specs` list from the front-end (§Specs
    resolution — `$SPECS_PATH` then the directory case). `specs: []` is fine —
    specs are additive context for `/document`; proceed without prompting. For
-   the downstream phases that scan or cite a single specs location (the Phase 4.5
-   space hint, the Phase 5.6 image scan, the Phase 5.7 `doc-planner` dispatch,
-   and the Phase 5.8 three-way analysis), also record `specs_dir` = the directory
+   the downstream phases that scan or cite a single specs location (the Phase 5.6
+   image scan, the Phase 5.7 `doc-planner` dispatch, and the Phase 5.8 three-way
+   analysis), also record `specs_dir` = the directory
    containing the resolved `specs` (their common parent — e.g. the
    `$SPECS_PATH/…/<KEY>…/` folder, or the directory they were found in), or
    `none` when `specs` is empty.
 
 6. **Classify write context** for later branch/write decisions — computed against the resolved `docs_repo_path` (not necessarily cwd). Walk up from `docs_repo_path` looking for `.obsidian/`; if found, context = `obsidian`. Else if `git -C <docs_repo_path> rev-parse --show-toplevel` succeeds AND at least one docs signal from step 2 is present, context = `docs_repo`. Else if it succeeds with no docs signals, context = `non_docs_repo` (step 2 has already asked the user; their confirmation promotes this to `docs_repo` behaviour). Else context = `plain_dir`. In a normal run, Phase 0's docs-repo resolution (steps 2–3) yields a real docs repo (`docs_repo`) or a user-confirmed `non_docs_repo`; `obsidian` and `plain_dir` are **defensive guards** (they forbid branch/commit) rather than expected write targets.
 
-   Record the resolved context — it drives Phase 6.2 (branch setup) and Phase 6.3 write rules. When `docs_repo_path` differs from cwd, record **both** and note that the writing phases (Phase 5.9, Phase 6.3) consume `docs_repo_path`, not cwd, for every write.
+   Record the resolved context — it drives Phase 6.2 (branch setup) and Phase 6.3 write rules. When `docs_repo_path` differs from cwd, record **both** and note that Phase 6.3 consumes `docs_repo_path`, not cwd, for every write.
 
-7. **Parse the optional space constraint.** Read `$ARGUMENTS` as `<JIRA_KEY> [space]` — the same `$ARGUMENTS` already split for `<JIRA_KEY>` in step 1. **First set aside any `--counterpart <value>` flag pair** (parsed in step 8) so it is never mistaken for the space token; the space constraint is then the first remaining whitespace-separated token after `<JIRA_KEY>` (if any).
-   - **No second token** → `space_constraint = none`. Phase 4.5 will determine and confirm the applicable space(s).
-   - **Second token is `cloud` or `self-hosted`** (case-insensitive) → `space_constraint = <space>`. This is a deliberate scoping decision by the user, so Phase 4.5 skips its determination step and records `target_spaces = [space_constraint]` directly.
-   - **Second token present but not `cloud`/`self-hosted`** (e.g. `both`, a typo, or extra free text) → do NOT silently guess. Reject it and ask:
-     ```
-     "'<token>' is not a valid space constraint. The constraint scopes the run to a single space; to cover both, omit the argument and let the command determine the applicable space(s). How would you like to proceed?"
-     choices: ["Drop the constraint — auto-determine (Recommended)", "cloud", "self-hosted", "Cancel"]
-     ```
-     "Drop the constraint" → `space_constraint = none`. "cloud"/"self-hosted" → `space_constraint = <choice>`. "Cancel" → stop.
-
-8. **Parse the optional `--counterpart` flag.** Scan `$ARGUMENTS` for a `--counterpart <value>` token (named flag; `<value>` is the next whitespace-separated token, a Jira key `^[A-Z][A-Z0-9]+-[0-9]+` or a URL). Record `counterpart_ref = <value>` (default `null` when absent).
-   - **`--counterpart` present but `space_constraint == none`** (both-space run) → do NOT silently accept. Ask:
-     ```
-     "--counterpart grounds a single documented space on the OTHER space, so it needs a space constraint (cloud|self-hosted). This run covers both spaces. How would you like to proceed?"
-     choices: ["Drop --counterpart — cover both spaces (Recommended)", "Constrain to cloud", "Constrain to self-hosted", "Cancel"]
-     ```
-     "Drop" → `counterpart_ref = null`. "Constrain to cloud/self-hosted" → set `space_constraint` accordingly and keep `counterpart_ref`. "Cancel" → stop.
-   - **`--counterpart` value malformed** (not a Jira key or URL) → do NOT guess. Ask:
-     ```
-     "'<value>' isn't a valid --counterpart target. It should be a Jira key (e.g. PROJ-1234) or a PR URL. How would you like to proceed?"
-     choices: ["Re-enter a valid Jira key / PR URL", "Drop --counterpart (Recommended)", "Cancel"]
-     ```
-     "Re-enter" → take the new value. "Drop" → `counterpart_ref = null`. "Cancel" → stop.
-
-   When both the both-space-run rejection and a malformed value apply, resolve the both-space rejection first, then re-validate any value the user keeps.
-
-9. **Toolchain preflight.** Execute `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` against
+7. **Toolchain preflight.** Execute `${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md` against
    the resolved `docs_repo_path` and the profile loaded in step 4. Derive the required set from all
    three sources (profile commands including `commands.per_space`, repo config signals, the repo's
    documented `Prerequisites`), check each, and build the `toolchain` block.
@@ -171,7 +145,6 @@ Before clarification, show a readiness table summarizing what Phase 0 resolved:
 | Profile | `profile_source`: `<in-repo \| built-in \| generated>` |
 | Toolchain | `<all required tools present>` OR `<N missing: vale, pnpm — user chose to continue>`; writing into `<docs_repo_path>`[ (cwd is `<cwd>`)] |
 | Specs | `<specs_dir>` or `none` |
-| Space constraint | `<space_constraint>` (`cloud` \| `self-hosted` \| `none` → auto-determine in Phase 4.5) |
 | Code repos | resolved later in Phase 4 (slug→clone match under `$REPOS_PATH`) |
 
 All discovery defaults to `/workspace` (`${REPOS_PATH:-/workspace}`); on a host, or when a path is missing, the command asks rather than guessing.
@@ -224,7 +197,6 @@ Also display (for user context):
 - Whether branching will happen (only when context is `docs_repo` — confirmed at plan approval)
 - Resolved `$REPOS_PATH`
 - Resolved `$VAULT_PATH` and `<JIRA_KEY>`
-- Space scope — show `space_constraint` (Phase 0 step 7): `cloud`/`self-hosted` means `target_spaces` is already fixed to that single space; `none` means the applicable space(s) are auto-determined and confirmed in Phase 4.5 (after the Jira read and repo resolution). Once Phase 4.5 has run, the resolved `target_spaces` is the authoritative value displayed here.
 
 ---
 
@@ -250,9 +222,9 @@ model_routing:
   notes: <any §2 / §2.1 fallback or degradation>
 ```
 
-Each subagent dispatch below cites which chain it uses (the §9 role→chain map): `doc-planner` → `planning_model`; `jira-reader`, `diff-summarizer`, `doc-location-finder`, `counterpart-finder`, `docs-style-checker`, `doc-fixer`, and the Phase 8 maintenance agents → `detection_model`; `doc-reviewer` keeps its own frontmatter Opus pin (recorded as `review_model`, no override added).
+Each subagent dispatch below cites which chain it uses (the §9 role→chain map): `doc-planner` → `planning_model`; `jira-reader`, `diff-summarizer`, `doc-location-finder`, `docs-style-checker`, `doc-fixer`, and the Phase 8 maintenance agents → `detection_model`; `doc-reviewer` keeps its own frontmatter Opus pin (recorded as `review_model`, no override added).
 
-**Orchestration advisory (window-focused).** `doc-planner` (5.7) and `doc-writer` (6.3) run on the §2 Opus chain regardless of session; only coordination + the interactive gates (4.5, 5.8 decision, 5.9, 6.1) run on `current_model`. So:
+**Orchestration advisory (window-focused).** `doc-planner` (5.7) and `doc-writer` (6.3) run on the §2 Opus chain regardless of session; only coordination + the interactive gates (5.8 decision, 6.1) run on `current_model`. So:
 
 - **`current_model` is on the §2 chain** → no advisory.
 - **`current_model` is NOT on the §2 chain and `opus_available: true`** → the heavy synthesis + writing are already on Opus; the residual risk is the orchestrator's **context window** on a **large multi-repo ticket**. Offer relaunch **only** on such a ticket — that condition gates the prompt, so once the list is shown the recommendation holds unconditionally (per the `(Recommended)`-marker rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`):
@@ -275,7 +247,6 @@ Present a concise plan:
 - Parallelism plan (up to 4 `diff-summarizer` instances per batch; up to 4 repos per Agent message)
 - Write context + whether branching will happen
 - Screenshots: `new_images_wanted` (yes/no, from Phase 1). Phase 5.6 always runs: when yes, its add-list candidates are gathered and confirmed there (specs scan + Jira `attachments[]` + manual paths) — list "candidates resolved in Phase 5.6"; either way, Phase 5.6 also reviews the images already on the edited pages for staleness.
-- Target space(s): the resolved `target_spaces` (`[cloud]` / `[self-hosted]` / `[cloud, self-hosted]`). State whether it came from the `space_constraint` argument (and that the other space's render is left unchanged) or from the Phase 4.5 auto-determination the user confirmed. If Phase 4.5 hasn't run yet (auto-determine, `space_constraint = none`), list "TBD — determined and confirmed in Phase 4.5".
 
 Ask:
 ```
@@ -305,8 +276,8 @@ Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Ji
 When `focus_key` is set (explicit `<PRD> <Epic>`), also derive `focus_items` = the
 focus Epic plus every linked item beneath it (its Stories / Sub-tasks). The
 change-scoped phases below consume `focus_items` in place of the full hierarchy —
-Phase 5 (diff summarisation) and Phase 5.7 (doc planning) — while PRD-descriptive
-phases (e.g. Phase 4.5 space determination) keep the full handoff. When `focus_key`
+Phase 5 (diff summarisation) and Phase 5.7 (doc planning) — while every phase that
+describes the PRD as a whole keeps the full handoff. When `focus_key`
 is null, every phase uses the full hierarchy exactly as today.
 
 ---
@@ -346,31 +317,6 @@ From the `jira-reader` handoff `pull_requests` list:
      - **Cancel** — abort the run.
      - **Specify a different absolute path for a missing repo** (≈ the rule's "Specify a different absolute path") — record the given path as that slug's `repo_path`, move it from `missing` to `mounted`, and re-render.
 6. If any PRs had `host: other` (unsupported host), record them as `unresolved` and carry them into the Phase 9 report; do not block.
-
----
-
-## Phase 4.5 — Determine applicable space(s)
-
-Resolve `target_spaces` — one of `[cloud]`, `[self-hosted]`, or `[cloud, self-hosted]`. This is the set of spaces the documentation will cover; the constraint semantics that *protect* the other space (`{{#if project='…'}}` conditionals or override-copies + `self-hosted/docstack.jsonc` `ignore` allowlisting) are Phase 5.9, so this phase only carries `target_spaces` forward.
-
-- **If `space_constraint` is set** (`cloud` or `self-hosted`, from Phase 0 step 7) → set `target_spaces = [space_constraint]` and skip the determination below. Print:
-  ```
-  Constrained to <space_constraint> (the other space's render is left unchanged — see Phase 5.9 techniques).
-  ```
-
-- **If `space_constraint` is `none`** → run a **first-pass determination** from cheap signals already in hand, then confirm with the user:
-  1. **Jira text/labels** — scan the `jira-reader` handoff (PRD + linked Epics: summaries, descriptions, labels, components) for explicit "Cloud", "Self-hosted", or "both" mentions. Explicit wording is the strongest signal.
-  2. **Resolved-repo leaning** — use the Phase-4 `repo_slug → repo_path` map as a **hint, not authority**: cluster/Self-hosted-oriented repos (e.g. names containing `cluster`, `self-hosted`, `server`, `appliance`) lean `self-hosted`; Cloud-service repos lean `cloud`. A mix of both leans `[cloud, self-hosted]`.
-  3. **Specs presence/name** — if `specs_dir` was resolved in Phase 0, a `cloud`/`self-hosted` hint in its name reinforces the guess; absence is neutral.
-
-  Form a best-guess `target_spaces` from these signals (when they conflict or are silent, default the guess to `both cloud and self-hosted` — under-scoping silently drops a space, which is worse than over-scoping). **Confirm with the user**, ordering the recommended (auto-detected) option first:
-  ```
-  "Determined applicable space(s): <auto-detected> — from [signals that drove it]. Confirm or override:"
-  choices: ["<auto-detected> (Recommended)", "cloud only", "self-hosted only", "both cloud and self-hosted", "Other… (describe)"]
-  ```
-  Map the confirmed choice to `target_spaces`: "cloud only" → `[cloud]`, "self-hosted only" → `[self-hosted]`, "both cloud and self-hosted" → `[cloud, self-hosted]`; "Other… (describe)" takes free text and resolves to one of the three. Record the confirmed `target_spaces`.
-
-Phase 4.5's confirmed value is authoritative — no later phase re-derives `target_spaces` from the full diff/spec analysis; it threads through unchanged into Phase 5.7 (`doc-planner`) and the writing phases.
 
 ---
 
@@ -428,8 +374,7 @@ Invoke `doc-location-finder`:
   > repo_root:       [the resolved docs_repo_path (Phase 0)]
   > feature_summary: [2–4 sentences combining jira-reader themes + value_increment.goal]
   > diff_highlights: [key filenames / symbols from the diff-summarizer per_pr summaries]
-  > target_spaces:   [the resolved target_spaces, or omit for an unconstrained run]
-  > profile:         [the resolved profile — its announcement_pages block]"
+  > profile:         [the resolved profile — its spaces[] content roots and its announcement_pages block]"
 
 Handle the return:
 
@@ -479,12 +424,11 @@ Build this list only when `new_images_wanted` is `true` (Phase 1); when `false`,
 
 ### Existing-image list (staleness review)
 
-**Always build this list** — it does not depend on `new_images_wanted`. The orchestrator owns it (`doc-planner` runs later, at Phase 5.7, and never supplies or reads this list). For every `extend-existing` write target in Phase 5.5's confirmed `write_targets`, read the target file and record **every image reference in document order** — one row per occurrence, not per unique URL: the same URL can recur under different space gating, and each occurrence is decided separately (a `cloud`-gated and a `self-hosted`-gated block can carry the same stale URL, and only one of them may need the fix). For each occurrence record:
+**Always build this list** — it does not depend on `new_images_wanted`. The orchestrator owns it (`doc-planner` runs later, at Phase 5.7, and never supplies or reads this list). For every `extend-existing` write target in Phase 5.5's confirmed `write_targets`, read the target file and record **every image reference in document order** — one row per occurrence, not per unique URL: the same URL can recur several times on one page, and each occurrence is decided separately (two sections can carry the same stale URL, and only one of them may need the fix). For each occurrence record:
 - `target` — the write target's path.
 - `occurrence` — the 1-based index of this image reference within the whole target, counted in document order across **all** image references in the file — never filtered by `old_url`, never scoped to a section.
 - `old_url` — the image reference's current URL/path.
 - `section` — the nearest enclosing heading.
-- `gating` — the enclosing `{{#if project='…'}}` conditional, or `none`.
 
 A target with no image references contributes nothing.
 
@@ -507,11 +451,11 @@ When both lists are empty, skip presenting this prompt — there is nothing to s
     - **Select a subset** → present the deduped candidates and let the user pick which to keep.
     - **Provide screenshot paths manually only** → ignore the auto-discovered candidates; take free text only.
     - **No images after all** → leave `screenshots[]` empty; the add list contributes nothing further.
-  - **Existing-image list**, if non-empty, walks each occurrence in order — showing `target`, `section`, `gating`, and `old_url` — and asks per item (no default is safe to recommend across arbitrary items, so no `(Recommended)` marker):
+  - **Existing-image list**, if non-empty, walks each occurrence in order — showing `target`, `section`, and `old_url` — and asks per item (no default is safe to recommend across arbitrary items, so no `(Recommended)` marker):
     ```
     choices: ["Replace — I'll provide a new screenshot (staged via Phase 6.1)", "Leave as is — still accurate", "Cancel", "Other… (describe)"]
     ```
-    "Replace" appends an `existing_image_decisions[]` entry `{target, occurrence, old_url, new_url, section, gating, decision: accepted}` with `new_url` left pending (Phase 6.1 resolves it) and records the replacement's source (a path from the add list just reviewed, or a new free-text path). "Leave as is" appends the same shape with `decision: declined` and no `new_url`.
+    "Replace" appends an `existing_image_decisions[]` entry `{target, occurrence, old_url, new_url, section, decision: accepted}` with `new_url` left pending (Phase 6.1 resolves it) and records the replacement's source (a path from the add list just reviewed, or a new free-text path). "Leave as is" appends the same shape with `decision: declined` and no `new_url`.
 - **Add-list only — existing images are current** → run the add-list sub-flow above (if non-empty); `existing_image_decisions[] = []` — the user's verbatim choice is the record of the (skipped) existing-image review, not a per-item entry.
 - **Nothing to do — no image work this run** → `screenshots[] = []`, `existing_image_decisions[] = []`.
 - **Cancel** → stop and summarise.
@@ -530,49 +474,6 @@ The selected add-list paths populate the existing **`screenshots[]`** passed to 
 
 ---
 
-## Phase 5.6.5 — Counterpart-space reference discovery
-
-**Run only when `target_spaces` is a single space** (`[cloud]` or `[self-hosted]`). A run that already covers both spaces has no "other" space → skip entirely and carry `counterpart_references = []`. (A `--counterpart` on a both-space run was already resolved in Phase 0.)
-
-The **counterpart space** is the one space in `profile.spaces[]` not in `target_spaces`. Discover its existing documentation for this feature and carry it forward as **read-only grounding** — concepts, terminology, facts, section structure, and comprehension-only screenshots. It is never copied into the target doc and never an image source (Phase 5.6 remains the only image source).
-
-Invoke `counterpart-finder`:
-
-→ Agent (subagent_type: "dev-workflows:counterpart-finder", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
-  > "Discover counterpart-space grounding:
-  >
-  > repo_root:          [docs_repo_path]
-  > target_space:       [the single member of target_spaces]
-  > counterpart_space:  [the profile.spaces[] space not in target_spaces]
-  > profile:            [Phase 0 profile]
-  > feature_summary:    [2–4 sentences from the jira-reader themes + PRD goal]
-  > jira_key:           [<JIRA_KEY> (focus_key when set)]
-  > counterpart_ref:    [the --counterpart value from Phase 0, or null]
-  > diff_highlights:    [key filenames/symbols from the Phase 5 diff summaries, optional]"
-
-Handle the result:
-
-- **`status: EMPTY`** → set `counterpart_references = []`; print the `notes` line and proceed to Phase 5.7 unchanged.
-- **`status: ERROR`** → log the reason, set `counterpart_references = []`, proceed (never block).
-- **`status: OK`** → present the candidates and confirm (**always ask**; pre-select the `match_confidence: high` rows):
-  ```
-  "Found <N> counterpart-space page(s) to ground on:
-   | # | Page | Space | Confidence | Already in <target> render? | Why |
-   ...
-   How should I use these?"
-  choices: ["Ground on the recommended (high-confidence) set (Recommended)", "Pick a subset (you'll choose)", "Provide a --counterpart ref instead (you'll be prompted)", "Skip grounding", "Other… (describe)"]
-  ```
-  - **recommended set** → keep the `high` rows.
-  - **subset** → user picks rows.
-  - **provide a ref** → take a free-text Jira key / PR URL, re-invoke `counterpart-finder` with `counterpart_ref` set, then confirm again.
-  - **skip** → `counterpart_references = []`.
-
-**Shared-page signal.** For any kept reference with `is_shared_into_target: true`, tell the user the target space may **already be covered** by that page (its render is pulled in via `cross_space_override`) — the work may be a small `{{#if project='<target>'}}` delta, not a new page. Carry this into Phase 5.7 (feeds the planner's write-strategy recommendation) and Phase 5.9.
-
-Record the confirmed `counterpart_references[]`. It threads into Phase 5.7 (`doc-planner`) and Phase 6.3 (`doc-writer`); it never alters the Phase 5.6 image set.
-
----
-
 ## Phase 5.7 — Plan the documentation
 
 Invoke `doc-planner`:
@@ -588,9 +489,7 @@ Invoke `doc-planner`:
   > repo_root:            [the resolved docs_repo_path (Phase 0)]
   > code_repos:           [the Phase-4 resolved {slug, path} map; [] if none resolved]
   > specs_dir:            [resolved <specs_dir> from Phase 0, or null]
-  > profile:              [the docs-profile loaded in Phase 0 — drives space routing + the multi-space write strategy]
-  > target_spaces:        [the resolved target_spaces from Phase 4.5: [cloud] | [self-hosted] | [cloud, self-hosted]]
-  > counterpart_references: [the confirmed counterpart_references from Phase 5.6.5; [] when none]"
+  > profile:              [the docs-profile loaded in Phase 0 — supplies the spaces[] content roots, tokens, and link conventions]"
 
 Handle the `status` and `gaps`:
 
@@ -661,45 +560,12 @@ Pass `discrepancy_decisions` to Phase 6.3.
 
 ---
 
-## Phase 5.9 — Write-strategy approval (multi-space safety)
-
-Run this phase when the `doc-planner` checklist contains **any** target whose
-`write_strategy.strategy` is `conditional` or `override-copy` (i.e. at least one
-shared page needs cross-space protection). If every target is `plain`, skip to
-Phase 6.3 — there is nothing to protect.
-
-The mechanics are defined in
-`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/multi-space-writing.md`; this
-phase only confirms the per-page **strategy choice** before Phase 6.3 writes.
-
-1. **Present the recommended strategies** (informational, before asking) — one
-   row per non-`plain` target:
-   ```
-   | # | Page (target_path) | space_scope | rendered_in | Recommended | For space | Rationale |
-   ```
-   `Recommended` is `write_strategy.strategy`; `For space` is `write_strategy.target_space`. Remind the user of the invariant: a `conditional` edits the shared file in place but leaves the protected space's *render* unchanged; an `override-copy` duplicates the page into the other space and allowlists it in `cross_space_override`'s `ignore`.
-
-2. **Batch decision:**
-   ```
-   choices: ["Accept all recommended (Recommended)", "Decide per page", "Cancel", "Other… (describe)"]
-   ```
-
-3. **Per page** (if "Decide per page"): for each non-`plain` target, show the row and:
-   ```
-   choices: ["Conditional — edit shared page in place ({{#if project='…'}})", "Override-copy — separate page in the other space + docstack ignore", "Cancel", "Other… (describe)"]
-   ```
-   The default/recommended choice is the planner's `write_strategy.strategy`, listed first.
-
-4. **Record `write_strategies[]`** keyed by `target_path`: `{target_path, strategy ∈ {conditional, override-copy, plain}, target_space, rationale}`. Targets the planner marked `plain` are carried through as `plain` without prompting. Pass `write_strategies` to Phase 6.3.
-
----
-
 ## Phase 6.1 — CDN image handoff
 
 Run this phase when, in the Phase 5.7 `doc-planner` return, **any** screenshot has `image_policy: cdn_upload_required` — **or** the user picked "Stage for manual upload" under an `ambiguous` target in Phase 6.3 — **or** any Phase 5.6 `existing_image_decisions[]` entry has `decision: accepted`. (When the only image policy in play is `local` and there is no accepted existing-image replacement, skip this phase: local images are copied into the repo at Phase 6.3 with no handoff needed.)
 
 1. **List each affected image** so the decision is informed — one row per image:
-   - target page / anchor it belongs on (from the planner's per-screenshot placement, or — for an existing-image replacement — the `target` / `section` / `gating` recorded in Phase 5.6);
+   - target page / anchor it belongs on (from the planner's per-screenshot placement, or — for an existing-image replacement — the `target` / `section` recorded in Phase 5.6);
    - proposed alt text;
    - the planner's `upload_note`.
 
@@ -752,7 +618,7 @@ No external CLI calls; all git operations are local.
 
 The writing is delegated to the **`doc-writer`** subagent (pinned to the §2 Opus reasoning chain — see `classification.md` §9.2). The orchestrator prepares a structured handoff and dispatches; it does not write pages itself.
 
-1. **Write the handoff file.** Create a temp file (`mktemp`, e.g. `$(mktemp -t dw-<JIRA_KEY>-XXXX.yml)` — never the vault, never the docs repo) containing the `doc-writer` input contract: `jira_reader_handoff`, `diff_summaries`, `write_targets`, `doc_planner_checklist` (+ gap dispositions), `repo_authoring_guidance` (the planner's extracted repo-specific rules), `component_patterns` (the planner's recurring content-shape → dominant-component evidence, per `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §3 — like `repo_authoring_guidance`, a top-level sibling of the planner's `checklist:`, so it must be carried explicitly; `[]` when the sibling sample showed no established pattern), `discrepancy_decisions` (Phase 5.8), `write_strategies` (Phase 5.9), `cdn_handoff_decision` + `cdn_urls` + `screenshot_staging_dir` + `screenshots` + `existing_image_decisions` (Phase 5.6 / 6.1), `target_spaces`, `profile`, `docs_repo_path`, `counterpart_references` (Phase 5.6.5), and `bug_report_destination`. Record its absolute path.
+1. **Write the handoff file.** Create a temp file (`mktemp`, e.g. `$(mktemp -t dw-<JIRA_KEY>-XXXX.yml)` — never the vault, never the docs repo) containing the `doc-writer` input contract: `jira_reader_handoff`, `diff_summaries`, `write_targets`, `doc_planner_checklist` (+ gap dispositions), `repo_authoring_guidance` (the planner's extracted repo-specific rules), `component_patterns` (the planner's recurring content-shape → dominant-component evidence, per `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §3 — like `repo_authoring_guidance`, a top-level sibling of the planner's `checklist:`, so it must be carried explicitly; `[]` when the sibling sample showed no established pattern), `discrepancy_decisions` (Phase 5.8), `cdn_handoff_decision` + `cdn_urls` + `screenshot_staging_dir` + `screenshots` + `existing_image_decisions` (Phase 5.6 / 6.1), `profile`, `docs_repo_path`, and `bug_report_destination`. Record its absolute path.
 
 2. **Dispatch the writer:**
 
@@ -852,8 +718,8 @@ Run this phase after Phase 6.4 **only** when Phase 6.3 wrote files into a builda
 
 ### Step 1 — Build check (gating)
 
-Resolve the build command per space — `profile.commands.per_space.<space>.build`, else the flat `profile.commands.build` — and run it for every space in the **verification set** (`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/render-verification.md` §2): `target_spaces`, plus the protected space of any affected page whose `write_strategy.strategy` is `conditional` or `override-copy`. Do NOT scope the build by which `content_root` the files physically landed in — a `conditional` delta is written into its HOME space's tree but renders only in its `target_space`, so a path-scoped build would run the home space's build (which skips the `{{#if project='…'}}` block outright) and never compile the content the change is actually for. Do NOT re-run the Phase 6.4 prose linter. Classify any failure:
-- **Content failure** (Handlebars won't compile, unresolved snippet include, broken postid/internal link, malformed conditional) → invoke `doc-fixer` (Severities: BLOCKER and MAJOR), then re-run the build once. If failures remain:
+Resolve the build command per space — `profile.commands.per_space.<space>.build`, else the flat `profile.commands.build` — and run it for every space in the **verification set** (`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/render-verification.md` §2): every space whose `content_root` holds at least one affected page. Do NOT re-run the Phase 6.4 prose linter. Classify any failure:
+- **Content failure** (the template won't compile, unresolved snippet include, broken postid/internal link, malformed token) → invoke `doc-fixer` (Severities: BLOCKER and MAJOR), then re-run the build once. If failures remain:
   ```
   choices: ["Proceed to smoke-check anyway", "Show remaining and fix manually", "Cancel"]
   ```
@@ -867,30 +733,25 @@ When the profile declares **no** build command at either level, record "no build
 
 ### Step 2 — Dev-server smoke-check (opt-in, best-effort)
 
-Offer it. Present this list **verbatim** — the "Choice lists are presented verbatim" rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` forbids moving `(Recommended)`, reordering the options, or re-wording them. Dev-server flakiness and a correct static conditional are reasons to say something in prose beside the list; they are never reasons to recommend Skip.
+Offer it. Present this list **verbatim** — the "Choice lists are presented verbatim" rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` forbids moving `(Recommended)`, reordering the options, or re-wording them. Dev-server flakiness and a clean static check are reasons to say something in prose beside the list; they are never reasons to recommend Skip.
 ```
 choices: ["Run smoke-check (Recommended)", "Skip — use the manual table only", "Cancel", "Other… (describe)"]
 ```
 
-When run, boot each space in the **verification set** — `target_spaces` plus, when any affected page's `write_strategy.strategy` is `conditional` or `override-copy`, that strategy's protected space (see `render-verification.md` §2) — **sequentially** (`profile.dev_servers.concurrent: false` forbids overlap). Booting only `target_spaces` can never check the ABSENT half of the §4 invariant. Full mechanics in `render-verification.md`:
+When run, boot each space in the **verification set** — every space whose `content_root` holds at least one affected page (see `render-verification.md` §2) — **sequentially** (`profile.dev_servers.concurrent: false` forbids overlap). Full mechanics in `render-verification.md`:
 1. **Prerequisites (best-effort, never auto-applied).** Verify `profile.prerequisites`. The `.docstack` shim is a local, gitignored dev-environment workaround — check it, NEVER apply it. Unmet → record "smoke-check skipped for `<space>`: prerequisite `<x>` unmet" and use the manual table for that space.
 2. **Boot** `profile.dev_servers.servers[<space>].command` in the background; record the process id.
 3. **Readiness poll** — GET `http://localhost:<port><base_path>/` until HTTP 200 or `profile.dev_servers.readiness_timeout_seconds` seconds (fall back to **120** when absent). On timeout → stop the process, record "smoke-check skipped for `<space>`: not ready", use the manual table for that space.
-4. For each affected page rendered in `<space>`, GET its derived URL (Step 3 route rule) → assert **HTTP 200**.
-5. For each **cross-space** page (its `write_strategy.strategy` is `conditional` or `override-copy`), grep the rendered HTML for the page's **delta marker** (`render-verification.md` §4): PRESENT when `<space>` is the strategy's `target_space`, ABSENT when `<space>` is the protected space.
-6. **Stop the server** (kill the recorded process id) before the next space.
+4. For each affected page in `<space>`, GET its derived URL (Step 3 route rule) → assert **HTTP 200**.
+5. **Stop the server** (kill the recorded process id) before the next space.
 
 Outcomes:
 - **404/500** on an affected page = render defect → treat as a Step 1 content failure (offer `doc-fixer` / surface).
-- **Invariant violation** (a cross-space delta marker present in the protected space's render, or missing from the target space's render) = **Critical** (the 3a protection failed):
-  ```
-  choices: ["Fix manually then retry", "Defer to a follow-up (record in Phase 9)", "Cancel"]
-  ```
 - Any **boot / prerequisite / readiness** problem is best-effort → never blocks; that space falls back to the manual table.
 
 ### Step 3 — "Pages to visit" table (always)
 
-Emit a table, one row per affected page — URL per space the page renders in (`http://localhost:<port><base_path>/<route>`; blank for a space the page does not render in), the page's `write_strategy.strategy`, and what to verify (cross-space: "confirm `<target_space>` shows the change and the `<protected_space>` render is unchanged"; `plain`: "confirm the page renders as intended"). When the smoke-check ran, annotate each cell ✅ 200 / ⚠️ skipped (reason) / ❌ failed.
+Emit a table, one row per affected page — its URL (`http://localhost:<port><base_path>/<route>`, derived against its own space's dev server) and what to verify ("confirm the page renders as intended"). When the smoke-check ran, annotate each row ✅ 200 / ⚠️ skipped (reason) / ❌ failed.
 
 **Route derivation (best-effort):** `<route>` = the page path relative to its space's `content_root` with a trailing `index.md`/`.md` removed. Approximate — a wrong route that 404s in Step 2 simply downgrades that page to the manual table.
 
@@ -927,12 +788,10 @@ Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `revi
   > doc-planner checklist:  [the full YAML from Phase 5.7]
   > style-check report: [the violations output from Phase 6.4 — from docs-style-checker or prose-style-checker; same violation schema regardless of source]
   > gate_ledger:        [the complete gate_ledger block — one row per gate in references/gate-ledger.md §4, including the Phase 0 toolchain_preflight row]
-  > render_verification: [the Phase 6.5 summary — build result; smoke-check per space (passed / skipped with reason); cross-space invariant check result]
+  > render_verification: [the Phase 6.5 summary — build result; smoke-check per space (passed / skipped with reason)]
   > code_repos:         [the Phase-4 resolved {slug, path} map; [] if none resolved]
-  > counterpart_references: [the confirmed counterpart_references from Phase 5.6.5; [] when none — supplies the screenshots_seen provenance and the grounded counterpart space for the 'Cross-space grounding integrity' dimension]
-  > existing_image_decisions: [the Phase 5.6/6.1 stale-image-swap array, one entry per **reviewed occurrence** and each {target, occurrence, old_url, new_url, section, gating, decision}. `[]` when the per-item existing-image review did not run — the existing-image list was empty, or the user chose "Add-list only" / "Nothing to do" at the Phase 5.6 merged prompt. An all-declined review is NOT `[]`: every reviewed occurrence appends an entry, `decision: declined` included. Supplies the swap-completeness evidence for the 'Screenshots' dimension]
-  > profile:            [the resolved docs-profile from Phase 0 — supplies frontmatter.changelog_guidelines and spaces[]]
-  > target_spaces:      [the resolved target_spaces from Phase 4.5]"
+  > existing_image_decisions: [the Phase 5.6/6.1 stale-image-swap array, one entry per **reviewed occurrence** and each {target, occurrence, old_url, new_url, section, decision}. `[]` when the per-item existing-image review did not run — the existing-image list was empty, or the user chose "Add-list only" / "Nothing to do" at the Phase 5.6 merged prompt. An all-declined review is NOT `[]`: every reviewed occurrence appends an entry, `decision: declined` included. Supplies the swap-completeness evidence for the 'Screenshots' dimension]
+  > profile:            [the resolved docs-profile from Phase 0 — supplies frontmatter.changelog_guidelines and spaces[]]"
 
 Act on the verdict:
 
@@ -1132,7 +991,7 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 ### Model Routing
 - Session / writer model (current_model): [model] — [if it ran degraded: "Sonnet; user proceeded past the Phase 1.5 advisory" | "Sonnet; no Opus available" | "on §2 chain — no degradation"]
 - doc-planner synthesis (planning_model): [model]
-- Detection steps — jira-reader, diff-summarizer, doc-location-finder, counterpart-finder, docs-style-checker, doc-fixer, maintenance (detection_model): [model]
+- Detection steps — jira-reader, diff-summarizer, doc-location-finder, docs-style-checker, doc-fixer, maintenance (detection_model): [model]
 - doc-reviewer (review_model): [model]
 - Opus available: [yes | no]
 
@@ -1164,7 +1023,6 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 ### Render verification
 - Build: [ran — pass/fail | unverified (reason) | no build command in profile — boot served as the proof (does NOT apply to example-docs, which defines per-space build commands)]
 - Smoke-check: [per space — passed (N pages, HTTP 200) | skipped (reason)] OR "not run (user skipped)"
-- Cross-space invariant: [verified (markers present in target, absent in protected) | not checked | VIOLATION — see deferred items]
 - Pages to visit: [the Phase 6.5 Step 3 table]
 
 ### Doc review verdict
@@ -1319,7 +1177,7 @@ name is ever written (§10 privacy).
 - ALWAYS append each gate's ledger row at the moment that gate completes, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` — NEVER reconstruct the ledger at Phase 9, and NEVER leave a registry gate without a row
 - NEVER present a phase's `choices:` array in an order, wording, or recommendation other than the one written; the "Choice lists are presented verbatim" rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` binds every prompt in this command
 - ALWAYS invoke `doc-reviewer` before Phase 8 maintenance
-- ALWAYS resolve the `model_routing` block at Phase 1.5 and pin each subagent dispatch to its §9 chain via `model:` — `doc-planner` to the §2 Opus chain, the mechanical steps (`jira-reader`, `diff-summarizer`, `doc-location-finder`, `counterpart-finder`, `docs-style-checker`, `doc-fixer`, maintenance) to the §2.1 Sonnet chain; `doc-reviewer` keeps its frontmatter Opus pin (no override); the inline writer + gates run on `current_model` (advisory only)
+- ALWAYS resolve the `model_routing` block at Phase 1.5 and pin each subagent dispatch to its §9 chain via `model:` — `doc-planner` to the §2 Opus chain, the mechanical steps (`jira-reader`, `diff-summarizer`, `doc-location-finder`, `docs-style-checker`, `doc-fixer`, maintenance) to the §2.1 Sonnet chain; `doc-reviewer` keeps its frontmatter Opus pin (no override); the inline writer + gates run on `current_model` (advisory only)
 - ALWAYS cap review/fix cycles: 1 fix + 1 re-review max
 - ALWAYS pass `Change type: docs` in the Phase 8 change summary block
 - ALWAYS pass `Command run: /document` in the Phase 8 Agent 4 session handoff

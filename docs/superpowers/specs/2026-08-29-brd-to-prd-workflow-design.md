@@ -56,7 +56,7 @@ documentation page with its own diagram, six command pages, and four updated pag
 | Phase | Command | Ends with |
 |---|---|---|
 | Intake | `/brd-intake` | Requirement inventory, defect log, coverage ledger |
-| Grounding | `/brd-ground` | Verified `CG`/`DG` findings against pinned commits |
+| Grounding | `/brd-ground` | Verified `[CG#n]`/`[DG#n]` findings against pinned commits |
 | Slicing | `/brd-split` | Slice folders, every requirement allocated |
 | Interview | `/brd-interview` | Decision register, `[G]`/`[V]`/`[C]` discipline enforced |
 | Packaging | `/brd-package` | Self-review disposed, plugin-free customer bundle |
@@ -110,6 +110,7 @@ refusing to start until its predecessor's artifact landed on the specs default b
 | D15 | **The parent BRD holds a coverage ledger; every requirement has a recorded fate.** | Without it, nothing detects a requirement that every slice quietly deferred — the failure a long BRD most invites. |
 | D16 | **No real customer or vendor is named anywhere in the plugin.** | The roles are `customer` and `delivery team`. Any worked example ships synthetic. |
 | D17 | **A slice is a BRD.** There is no lesser "slice" object: a slice runs the same commands, holds the same artifacts, can itself be sliced, and can depend on any other BRD at any level. | Two object types would mean two sets of commands, two sets of gates, and a rule for which applies. One recursive object costs nothing and expresses `008-01 -> 008`, `009 -> 008-01` and `009-01 -> 002` identically. |
+| D21 | **Every identifier this workflow mints uses the house `[PREFIX#N]` form** — `[BR#n]`, `[DEF#n]`, `[CG#n]`, `[DG#n]`, `[VD#n]`, `[CD#n]`, `[AS#n]`, `[SR#n]`. | `scripts/check-id-grammar.sh` rejects the dash form, and `BRD-FR-001` trips it outright via its `-FR-001` substring. The rule's reason applies with extra force here: these documents are emailed to customers and pasted into trackers, where a dash-form ID auto-links to an unrelated ticket in any project sharing the prefix. |
 | D19 | **Grounding findings carry a `horizon`, and a decision may not rest solely on one that a prerequisite will overturn.** | A finding is true of a pinned commit. When a prerequisite BRD is approved but unbuilt, some findings are true now and false after it ships. A decision resting on such a finding is built on ground that is about to move. Catching this by hand worked once and should not have to. |
 | D20 | **A package whose prerequisite is not yet customer-reviewed may ship, loudly.** | Blocking would fully serialise delivery and let a slow customer stall everything downstream. Instead the delivery note and the customer prompt both name which prerequisite decisions are still provisional and which positions here depend on them — the customer is told what could still move. |
 | D18 | **The rendered bundle is committed to the specs repo.** | It serves a git-capable customer directly and a zip-only customer via one command, and it is the permanent record of exactly what was sent — which is what makes D13's byte-identical property checkable months later. The cost is a derived duplicate in the repo. |
@@ -126,15 +127,15 @@ $SPECS_PATH/specifications/
   <BRD-KEY>-<slug>/                      # a BRD at any level
     brd/
       source/<original BRD file(s)>      # verbatim, never edited (D11); markdown only
-      brd-inventory.md                   # every requirement -> stable BRD-FR-NNN
-      brd-defect-log.md                  # DEF-NNN + resolution
-    coverage-ledger.md                   # one row per BRD-FR-NNN (D15)
-    brd-link.md                          # parent key (if any), claimed BRD-FR-NNN, depends-on
+      brd-inventory.md                   # every requirement -> stable [BR#n]
+      brd-defect-log.md                  # [DEF#n] + resolution
+    coverage-ledger.md                   # one row per [BR#n] (D15)
+    brd-link.md                          # parent key (if any), claimed [BR#n], depends-on
     grounding/
       baselines.md                       # repo -> commit SHA, and how each was verified
-      code-grounding.md                  # CG-NNN
-      design-grounding.md                # DG-NNN
-    decisions.md                          # V-NNN, C-NNN, A-NNN
+      code-grounding.md                  # [CG#n]
+      design-grounding.md                # [DG#n]
+    decisions.md                          # [VD#n], [CD#n], [AS#n]
     prd-seed.md   ard-seed.md   spec-seed.md
     slices.md                            # child BRDs, if this one was split
     self-review-<YYYYMMDD>.md
@@ -155,15 +156,15 @@ holds none.
 
 ### 4.1 The coverage ledger
 
-One row per `BRD-FR-NNN`:
+One row per `[BR#n]`:
 
 | Field | Values |
 |---|---|
-| `id` | `BRD-FR-NNN` |
+| `id` | `[BR#n]` |
 | `text` | verbatim requirement text (or its first sentence + a source anchor) |
-| `disposition` | `covered-here` / `covered-by: <CHILD-BRD-KEY>` / `deferred-to: <this BRD>` / `rejected: DEF-NNN` / `superseded-by: BRD-FR-NNN` / `unallocated` |
-| `defects` | `DEF-NNN` list |
-| `evidence` | `CG-NNN` / `DG-NNN` list |
+| `disposition` | `covered-here` / `covered-by: <CHILD-BRD-KEY>` / `deferred-to: <this BRD>` / `rejected: [DEF#n]` / `superseded-by: [BR#n]` / `unallocated` |
+| `defects` | `[DEF#n]` list |
+| `evidence` | `[CG#n]` / `[DG#n]` list |
 
 `/brd-split` cannot complete while any row is `unallocated`. `/create-prd --from-brd` refuses a
 BRD whose `brd-link.md` claims a row not allocated to it.
@@ -179,17 +180,17 @@ command reads it.
 
 | Prefix | Meaning | Scope |
 |---|---|---|
-| `BRD-FR-NNN` | A requirement in the source BRD | parent |
-| `DEF-NNN` | A defect in the BRD document | parent |
-| `CG-NNN` / `DG-NNN` | A code / design grounding finding | parent |
-| `V-NNN` | A delivery-team decision | slice |
-| `C-NNN` | A customer decision | slice |
-| `A-NNN` | An assumption asserted without evidence | slice |
-| `SR-NNN` | A self-review finding | slice, per dated review |
+| `[BR#n]` | A requirement in the source BRD | parent |
+| `[DEF#n]` | A defect in the BRD document | parent |
+| `[CG#n]` / `[DG#n]` | A code / design grounding finding | parent |
+| `[VD#n]` | A delivery-team decision | slice |
+| `[CD#n]` | A customer decision | slice |
+| `[AS#n]` | An assumption asserted without evidence | slice |
+| `[SR#n]` | A self-review finding | slice, per dated review |
 
 IDs are never reused and never renumbered. A retired ID keeps its number with a terminal status.
 
-`V`, `C`, `A` and `SR` are scoped to one BRD at its own level; `BRD-FR`, `DEF`, `CG` and `DG` are
+`[VD#n]`, `[CD#n]`, `[AS#n]` and `[SR#n]` are scoped to one BRD at its own level; `[BR#n]`, `DEF`, `[CG#n]` and `[DG#n]` are
 scoped to the BRD that owns the source document, and a slice cites its parent's.
 
 ### 4.3 Keys and addressing
@@ -275,7 +276,7 @@ It does **not** check citations. For each finding it independently re-derives th
 repository and returns one of `agree | extend | contradict | unprovable`, with its own evidence.
 
 A finding without a verifier verdict is not evidence. `/brd-interview` refuses to start until
-every `CG`/`DG` finding carries one. Findings inherited from another team's report, or from an
+every `[CG#n]`/`[DG#n]` finding carries one. Findings inherited from another team's report, or from an
 earlier run of this workflow, are unverified by definition and must be re-derived.
 
 ### 5.6 Prerequisites and the forward baseline
@@ -333,16 +334,16 @@ register records which round produced each decision.
 
 ### 6.2 Register shape
 
-Each `V-NNN` / `C-NNN` carries:
+Each `[VD#n]` / `[CD#n]` carries:
 
 ```yaml
-id: V-007
+id: [VD#7]
 statement: <the decision, one sentence>
 options_considered: [<option>, <option>, ...]
 chosen: <option>
 argumentation: |
   <why — mandatory>
-evidence: [CG-012, DG-003]
+evidence: [[CG#12], [DG#3]]
 altitude: product | architecture | implementation
 conditional_on: <BRD-KEY>/<decision-id>   # omitted unless the decision depends on a prerequisite
 status: open | decided | reopened | superseded | withdrawn
@@ -370,18 +371,18 @@ cites has `horizon: will-change`, `/brd-interview` refuses to close it and offer
 A `conditional_on` decision is automatically swept by `/brd-reconcile` when that prerequisite's
 decisions change (§8.7) — the condition is what makes the propagation sweep able to find it.
 
-**Assumptions get IDs.** `A-NNN` records something the package asserts without evidence. Every
-open `A-NNN` is automatically surfaced in the customer review prompt. An assumption that never
+**Assumptions get IDs.** `[AS#n]` records something the package asserts without evidence. Every
+open `[AS#n]` is automatically surfaced in the customer review prompt. An assumption that never
 reaches the customer is a liability disguised as a fact.
 
 ### 6.3 Self-review
 
 `brd-package-reviewer` (§2 Opus chain, frontmatter-pinned) is instructed to attack the package,
-not summarise it. Findings are `SR-NNN`; each requires a disposition:
+not summarise it. Findings are `[SR#n]`; each requires a disposition:
 
 `fixed | accepted-risk | escalated-to-customer | rejected-with-reason`
 
-`/brd-package` will not build a bundle while any `SR` is undisposed. Every `accepted-risk`
+`/brd-package` will not build a bundle while any `[SR#n]` is undisposed. Every `accepted-risk`
 finding is automatically listed in the prompt's "where to attack us hardest" section (§8.2).
 
 ---
@@ -413,7 +414,7 @@ Every finding and decision carries an `altitude`:
 | `implementation` | `spec-seed.md` | `/specify --from-brd` |
 
 `ard-format.md` already wants "Grounding findings (cite `file:line`)" and `AD#N` decisions with
-Binds/Prevents/Rule. `CG`/`DG` findings and architecture-altitude decisions map onto that almost
+Binds/Prevents/Rule. `[CG#n]`/`[DG#n]` findings and architecture-altitude decisions map onto that almost
 one-to-one, which is why the ARD is the right destination rather than a compromise one.
 
 ### 7.3 Consumption tracking
@@ -461,10 +462,10 @@ Assembled from the package, never hand-written, in a fixed order:
 4. Code baselines, with SHAs, and the verification procedure from §5.2 as an instruction to run
 5. The single most important claim to verify first
 6. Review scope
-7. The decisions the customer must make — each traceable to a `[C]` question or an open `A-NNN`
+7. The decisions the customer must make — each traceable to a `[C]` question or an open `[AS#n]`
 8. **What could still move** — every declared prerequisite whose decisions are not yet
    customer-reviewed, and every position here that is `conditional_on` one of them (D20)
-9. **Where to attack us hardest** — every open `A-NNN` and every `accepted-risk` `SR-NNN`
+9. **Where to attack us hardest** — every open `[AS#n]` and every `accepted-risk` `[SR#n]`
 10. The required output file, its exact name, and the inlined schema
 11. What this session cannot settle
 
@@ -501,9 +502,9 @@ the BRD folder under the canonical name, commits it to the specs repo, and only 
 
 - **Schema mode** — the file matches `customer-review-schema.md`; parsed directly.
 - **Free-text mode** — `customer-review-reader` drafts the same schema from prose, and **every
-  inferred decision must be confirmed by the operator before it becomes a `C-NNN`** (D14).
+  inferred decision must be confirmed by the operator before it becomes a `[CD#n]`** (D14).
 
-Then, in order: customer decisions land as frozen `C-NNN`; required corrections are applied;
+Then, in order: customer decisions land as frozen `[CD#n]`; required corrections are applied;
 superseded dated snapshots are bannered, not rewritten (D10); the defect log gains `resolution:`
 rows; the coverage ledger is updated.
 
@@ -547,12 +548,12 @@ rather than automatic.
 `<BRD-KEY>` names the BRD folder. Shape-validated per §4.3 only; never checked against Jira.
 
 **The source must be markdown.** A PDF is rejected with a message saying so. Conversion is the
-operator's step, deliberately: the source becomes immutable (D11) and every `BRD-FR-NNN` anchors
+operator's step, deliberately: the source becomes immutable (D11) and every `[BR#n]` anchors
 into it, so an unchecked machine conversion must not silently become the record of what the
 customer asked for.
 
 Phases: resolve the parent folder → copy the BRD verbatim → `brd-reader` extracts
-`BRD-FR-NNN` → the orchestrator classifies defects interactively (`ambiguity | conflict |
+`[BR#n]` → the orchestrator classifies defects interactively (`ambiguity | conflict |
 untestable | unsourced | duplicate | scope-leak`) → write the ledger with every row
 `unallocated`.
 
@@ -593,8 +594,8 @@ what — then takes a key per confirmed slice and creates its folder *inside* th
 
 **Allocation is walked, not assumed.** The command cannot complete while any ledger row is
 `unallocated`, and it presents each remaining row one at a time with four choices: assign to a
-named slice, defer to this BRD (`deferred-to`), reject citing a `DEF-NNN`, or mark superseded by
-another `BRD-FR-NNN`. Deferring is a real allocation — the point is that a requirement's fate is
+named slice, defer to this BRD (`deferred-to`), reject citing a `[DEF#n]`, or mark superseded by
+another `[BR#n]`. Deferring is a real allocation — the point is that a requirement's fate is
 recorded, not that everything must be built.
 
 **Every `brd-*` command's final report ends with the ledger line**, so the state is visible
@@ -609,7 +610,7 @@ Re-running `/brd-split` on a fully-allocated BRD is a no-op that prints the ledg
 ### 9.4 `/brd-interview <BRD-KEY> [--round N]`
 
 **Preconditions:** this BRD's ledger allocation is complete.
-**Produces:** `decisions.md` (`V-NNN`, `A-NNN`), the `[C]` question set for packaging.
+**Produces:** `decisions.md` (`[VD#n]`, `[AS#n]`), the `[C]` question set for packaging.
 
 Generates the question set, tags every question, **answers every `[G]` from the findings without
 asking**, puts `[V]` to the operator via `AskUserQuestion` one round at a time, and holds `[C]`
@@ -639,7 +640,7 @@ that governs reopening a decision (§6.2).
 decisions and a BRD depending on a sibling BRD express identically. Named packages are copied
 into the bundle marked *not for re-review*.
 
-Phases: `brd-package-reviewer` → disposition of every `SR-NNN` (gate) → render the prompt with
+Phases: `brd-package-reviewer` → disposition of every `[SR#n]` (gate) → render the prompt with
 the schema inlined → render the delivery note → assemble `bundle-<date>/` including dependency
 packages → emit the repo→SHA table.
 
@@ -665,8 +666,8 @@ register, ledger, defect log, and bannered snapshots; propagation dispositions i
 
 | Command | Change |
 |---|---|
-| `/create-prd` | New `--from-brd`. Reads `prd-seed.md` and `decisions.md` from the resolved BRD folder. The grill is restricted to gaps: it may fill anything the seed does not settle, and may **not** reopen a `V-NNN` or `C-NNN` (D3). Refuses if any ledger row this BRD claims is unallocated, and refuses when the ledger shows no `covered-here` row (the BRD was fully sliced — it names the children instead). Defaults the profile to `--full`. Writes `brd_key:`, `brd_parent:` and `depends_on:` into the PRD frontmatter, so a PRD's prerequisites are visible to `/epics` and `/ready` without reading the BRD tree. |
-| `/create-ard` | New `--from-brd`. Reads `ard-seed.md` plus the architecture-altitude findings; `CG`/`DG` findings seed the ARD's grounding-findings section, architecture decisions seed `AD#N`. Marks each consumed item `consumed_by: ARD`. |
+| `/create-prd` | New `--from-brd`. Reads `prd-seed.md` and `decisions.md` from the resolved BRD folder. The grill is restricted to gaps: it may fill anything the seed does not settle, and may **not** reopen a `[VD#n]` or `[CD#n]` (D3). Refuses if any ledger row this BRD claims is unallocated, and refuses when the ledger shows no `covered-here` row (the BRD was fully sliced — it names the children instead). Defaults the profile to `--full`. Writes `brd_key:`, `brd_parent:` and `depends_on:` into the PRD frontmatter, so a PRD's prerequisites are visible to `/epics` and `/ready` without reading the BRD tree. |
+| `/create-ard` | New `--from-brd`. Reads `ard-seed.md` plus the architecture-altitude findings; `[CG#n]`/`[DG#n]` findings seed the ARD's grounding-findings section, architecture decisions seed `AD#N`. Marks each consumed item `consumed_by: ARD`. |
 | `/specify` | New `--from-brd`. Reads `spec-seed.md`, including the derivation matrix. Marks each consumed item `consumed_by: specification`. |
 
 `--from-brd` is a **switch, not a path**: the positional key already identifies the BRD, and §4.3
@@ -686,11 +687,11 @@ outside its own family, and it is additive: a flat key resolves exactly as it do
 
 | Agent | Role | Model |
 |---|---|---|
-| `brd-reader` | Extract the `BRD-FR-NNN` inventory | §2.1 Sonnet chain, pinned — extraction is mechanical |
+| `brd-reader` | Extract the `[BR#n]` inventory | §2.1 Sonnet chain, pinned — extraction is mechanical |
 | `code-grounder` | Forensic per-repo grounding, ≤4 concurrent | No fixed pin; caller assigns, as `code-scanner` does |
 | `design-grounder` | BRD ↔ design-frame reconciliation | No fixed pin; caller assigns |
 | `grounding-verifier` | Independently re-derive findings | **§2 Opus, frontmatter-pinned** — it is a gate and exists to contradict us |
-| `brd-package-reviewer` | Adversarial self-review → `SR-NNN` | **§2 Opus, frontmatter-pinned** — mirrors `prd-reviewer` |
+| `brd-package-reviewer` | Adversarial self-review → `[SR#n]` | **§2 Opus, frontmatter-pinned** — mirrors `prd-reviewer` |
 | `customer-review-reader` | Parse schema mode / normalise free text | No fixed pin; the caller picks per mode |
 
 All six are read-only with respect to code repositories.

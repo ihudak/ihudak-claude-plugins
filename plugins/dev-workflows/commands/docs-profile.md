@@ -1,6 +1,6 @@
 ---
 name: docs-profile
-description: Scan a documentation repository and write/refresh a machine-readable docs-profile (.dev-workflows/docs-profile.yml) plus complementary CLAUDE.md guidance, as a reviewable PR. Captures spaces, dev-servers, cross-space override/shadowing, shared registries, gen3/Classic tokens, links, announcement pages, branch-naming, images, and prerequisites; defers changelog/owners to the dynatrace-docs-frontmatter skill. Bootstraps or refreshes the profile that /document consumes.
+description: Scan a documentation repository and write/refresh a machine-readable docs-profile (.dev-workflows/docs-profile.yml) plus complementary CLAUDE.md guidance, as a reviewable PR. Captures spaces, dev-servers, cross-space override/shadowing, shared registries, gen3/Classic tokens, links, announcement pages, branch-naming, images, and prerequisites; defers changelog/owners to the docs-frontmatter skill. Bootstraps or refreshes the profile that /document consumes.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -8,11 +8,11 @@ Profile the documentation repository: $ARGUMENTS
 
 `$ARGUMENTS` is an optional repo path (default: the current working directory), optionally followed by `--inline`. The `--inline` token is passed when `/document` (Jira mode) invokes this flow inline (its Phase 0 case (c)); it switches this command to **inline mode** — see Phase 5 step 1, step 2, step 6, and Phase 6.
 
-`/docs-profile` **bootstraps or refreshes** the machine-readable docs-profile that `/document` (Jira mode) consumes. It scans a documentation repository, synthesises a `.dev-workflows/docs-profile.yml` (and complementary CLAUDE.md guidance) that conforms to `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/docs-profile-schema.md`, then writes the result as a **reviewable PR** — branch + commit + a drafted PR message. It never pushes or auto-merges.
+`/docs-profile` **bootstraps or refreshes** the machine-readable docs-profile that `/document` (Jira mode) consumes. It scans a documentation repository, synthesises a `.dev-workflows/docs-profile.yml` (and complementary CLAUDE.md guidance) that conforms to `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`, then writes the result as a **reviewable PR** — branch + commit + a drafted PR message. It never pushes or auto-merges.
 
 The command is **generic** — it works on any docs repo — but produces a richer profile when it detects a multi-space / docstack repo (it then populates `cross_space_override` and `shared_registries`; a single-space repo omits them).
 
-It does **not** re-specify changelog or owners rules. Those are owned by the `dynatrace-docs-frontmatter` skill (+ `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/changelog-guidelines.md`, `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/managed-owners.txt`); the profile's `frontmatter:` fields are **pointers only**.
+It does **not** re-specify changelog or owners rules. Those are owned by the `docs-frontmatter` skill (+ `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/changelog-guidelines.md`, `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/default-owners.txt`); the profile's `frontmatter:` fields are **pointers only**.
 
 For one-off doc edits use direct mode; for Jira-driven feature documentation use `/document` (Jira mode).
 
@@ -31,7 +31,7 @@ For one-off doc edits use direct mode; for Jira-driven feature documentation use
    - `package.json` with any doc script (matching `*:start`, `*:build`, `*:lint`, `docs:*`, `prettier`),
    - a `.docstack/` directory,
    - a `.vale.ini` file,
-   - any `*/_content/` directory (e.g. `dynatrace/_content`, `managed/_content`),
+   - any `*/_content/` directory (e.g. `cloud/_content`, `self-hosted/_content`),
    - any `_snippets/` directory.
 
    If **≥ 1** signal is present → proceed silently to Phase 1.
@@ -80,10 +80,10 @@ Dispatch a **read-only** detection subagent **pinned to the §2.1 mid-tier chain
   > Gather and report, each with the file path + a short verbatim excerpt as evidence:
   >
   > 1. **package.json scripts** — every script whose name matches `*:start`, `*:lint`, `*:build`, `docs:*`, `format`/`prettier`. For each `*:start` script, extract the dev-server port and base path (grep the script and any referenced config — e.g. `--port`, `PORT=`, a `base`/`basePath` in a docusaurus/mkdocs/eleventy/vitepress config). Note whether two `*:start` servers can run concurrently (distinct ports → concurrent; shared port / single server → sequential).
-  > 2. **Cross-space override manifest** — presence and shape of `managed/docstack.jsonc` (or any `docstack.jsonc`): the allowlist block that pulls `../dynatrace/_content/...` pages, and whether it has an `ignore` list. Quote the allowlist + ignore keys.
+  > 2. **Cross-space override manifest** — presence and shape of `self-hosted/docstack.jsonc` (or any `docstack.jsonc`): the allowlist block that pulls `../cloud/_content/...` pages, and whether it has an `ignore` list. Quote the allowlist + ignore keys.
   > 3. **Shared registries** — presence of `schema-ids.yml` and `schema-mappings.yml` (search the tree); report their paths and whether both exist.
-  > 4. **Templating tokens** — grep the content roots for: `{{tag kind='latest'}}` (gen3/Latest marker), `::app-settings::` (gen3 settings breadcrumb), and `{{#if project=` (project conditionals — list the distinct project values seen, e.g. saas/managed/classic).
-  > 5. **Content + snippet roots** — every `*/_content` and every `*/_snippets` directory (e.g. `dynatrace/_content`, `dynatrace/_snippets`, `managed/_content`, `managed/_snippets`). This determines the `spaces[]` list: one rendered space per content root.
+  > 4. **Templating tokens** — grep the content roots for: `{{tag kind='latest'}}` (gen3/Latest marker), `::app-settings::` (gen3 settings breadcrumb), and `{{#if project=` (project conditionals — list the distinct project values seen, e.g. cloud/self-hosted/classic).
+  > 5. **Content + snippet roots** — every `*/_content` and every `*/_snippets` directory (e.g. `cloud/_content`, `cloud/_snippets`, `self-hosted/_content`, `self-hosted/_snippets`). This determines the `spaces[]` list: one rendered space per content root.
   > 6. **Branch-naming + internal-link conventions** — read CONTRIBUTING.md, CONTRIBUTION.md, README.md, DOCUMENTATION-GUIDELINES.md, and CLAUDE.md at the repo root (and `.claude/`). Quote any documented branch-naming pattern (e.g. `<initials>/<JIRA-KEY>-<slug>`) and any internal-link convention (e.g. `[text](<postid>)` where postid comes from target frontmatter).
   > 7. **Image policy** — any documented rule for screenshots/images (CDN-hosted vs committed binaries); quote the source.
   > 8. **Prerequisites** — anything a dev server needs before `*:start` boots (e.g. a `.docstack` toolchain / shim, an axios version pin, an env var); quote the source.
@@ -102,7 +102,7 @@ On the §2 powerful chain (`planning_model`), turn the detection report into a d
 → Agent (subagent_type: "general-purpose", model: `<planning_model — §2 chain: claude-opus-5, fallback per §2>`):
   > "Synthesise a docs-profile from a detection report. This is a planning/synthesis task, not a code change — return the drafted YAML + drafted CLAUDE.md additions, nothing else; do not write files.
   >
-  > Schema (the draft MUST conform exactly): `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/docs-profile-schema.md`
+  > Schema (the draft MUST conform exactly): `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`
   > Detection report: [paste the full Phase 2 report]
   > model_routing: [paste the Phase 1 block]
   >
@@ -114,10 +114,10 @@ On the §2 powerful chain (`planning_model`), turn the detection report into a d
   > - `tokens`: only the markers detection actually found (`latest_tag`, `gen3_settings_breadcrumb`, `project_conditionals`).
   > - `internal_links.convention`, `branch_naming.pattern`, `images.policy`, `prerequisites[]`: fill from detection; leave a field out rather than inventing it.
   > - `announcement_pages[]`: one entry per page found by detection item 9 (Announcement pages), each `{postid, path, kinds}`. Emit `announcement_pages: []` explicitly when detection found none — do not omit the key.
-  > - `commands.per_space:` — when `package.json` (or the repo's task runner) exposes **per-space** lint / build / format scripts whose names correspond to entries in `spaces[]` (e.g. `dynatrace:lint` + `managed:lint` for spaces `saas` + `managed`), record them under `commands.per_space.<space id>`. Map the script name to the space id by the space's `content_root` (`dynatrace/_content` ⇒ script prefix `dynatrace`), never by guessing. Omit `per_space` entirely for a single-space repo, or when only whole-repo scripts exist.
-  > - `frontmatter:` is **POINTERS ONLY** — set `owned_by_skill: dynatrace-docs-frontmatter`, `changelog_guidelines: references/dynatrace-docs/changelog-guidelines.md`, `managed_owners: references/dynatrace-docs/managed-owners.txt`. NEVER copy any changelog or owners rule text into the profile.
+  > - `commands.per_space:` — when `package.json` (or the repo's task runner) exposes **per-space** lint / build / format scripts whose names correspond to entries in `spaces[]` (e.g. `docs:lint` + `self-hosted:lint` for spaces `cloud` + `self-hosted`), record them under `commands.per_space.<space id>`. Map the script name to the space id by the space's `content_root` (`cloud/_content` ⇒ script prefix `docs`), never by guessing. Omit `per_space` entirely for a single-space repo, or when only whole-repo scripts exist.
+  > - `frontmatter:` is **POINTERS ONLY** — set `owned_by_skill: docs-frontmatter`, `changelog_guidelines: references/docs-profiles/changelog-guidelines.md`, `default_owners: references/docs-profiles/default-owners.txt`. NEVER copy any changelog or owners rule text into the profile.
   > - Mark every field as `detected` (grounded in the report) or `needs-confirmation` (inferred / not found) so the orchestrator knows what to ask in Phase 4.
-  > - Separately, draft minimal complementary **CLAUDE.md additions** ONLY for conventions not already covered by the dynatrace-docs-frontmatter skill or its reminder hook (e.g. the cross-space shadowing gotcha, the shared-registry lock-step rule, dev-server sequencing). Do NOT restate changelog/owners — defer to the skill."
+  > - Separately, draft minimal complementary **CLAUDE.md additions** ONLY for conventions not already covered by the docs-frontmatter skill or its reminder hook (e.g. the cross-space shadowing gotcha, the shared-registry lock-step rule, dev-server sequencing). Do NOT restate changelog/owners — defer to the skill."
 
 **Wait for the synthesis.** Hold the drafted `docs-profile.yml` and the drafted CLAUDE.md additions for Phase 4. If Opus was unavailable and the synthesis fell back to Sonnet, note it in `model_routing.notes` and carry it to Phase 6.
 
@@ -182,7 +182,7 @@ Produce a reviewable PR in the **target repo** (never the plugin). **Never push 
    ```
    Then base the branch on the repo's default branch so the profile PR is cut from a clean base: resolve the base (`git -C <repo-root> symbolic-ref --short refs/remotes/origin/HEAD`; fall back to `main`, then `master`) and run `git -C <repo-root> switch <base> && git -C <repo-root> pull --ff-only` (the clean-tree check above already ran; if the fast-forward pull fails, offer the same stash/proceed/cancel choices). Then create the branch: `git -C <repo-root> switch -c <name>` (or `git -C <repo-root> switch <name>` if it already exists).
 
-3. **Write the profile.** Create `<repo-root>/.dev-workflows/` if absent, then write the confirmed `.dev-workflows/docs-profile.yml`. It MUST conform to `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/docs-profile-schema.md`. Apply the confirmed complementary CLAUDE.md additions to the repo's root `CLAUDE.md` (create the file if absent) — minimal, additive, scoped edits only; never restate changelog/owners rules owned by the dynatrace-docs-frontmatter skill.
+3. **Write the profile.** Create `<repo-root>/.dev-workflows/` if absent, then write the confirmed `.dev-workflows/docs-profile.yml`. It MUST conform to `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`. Apply the confirmed complementary CLAUDE.md additions to the repo's root `CLAUDE.md` (create the file if absent) — minimal, additive, scoped edits only; never restate changelog/owners rules owned by the docs-frontmatter skill.
 
 4. **Format / lint.** If the repo has a formatter or linter (the `format`/`lint` commands captured in the profile), run it on the written files; fix anything it flags on those files. Skip silently if none is configured.
 
@@ -217,10 +217,10 @@ SIGNIFICANT — cross-cutting synthesis of the whole docs repo; output steers al
 - detected: [spaces, dev_servers, commands, cross_space_override, shared_registries, tokens, internal_links, announcement_pages, branch_naming, images, prerequisites — list those that were detected]
 - user-supplied: [list the fields confirmed/filled in Phase 4]
 - omitted: [e.g. "cross_space_override + shared_registries — single-space repo"]
-- frontmatter: pointers only → dynatrace-docs-frontmatter skill (+ changelog-guidelines.md, managed-owners.txt); changelog/owners NOT re-specified
+- frontmatter: pointers only → docs-frontmatter skill (+ changelog-guidelines.md, default-owners.txt); changelog/owners NOT re-specified
 
 ### CLAUDE.md additions
-- [what was added to the repo's CLAUDE.md, or "none — all conventions covered by the dynatrace-docs-frontmatter skill"]
+- [what was added to the repo's CLAUDE.md, or "none — all conventions covered by the docs-frontmatter skill"]
 
 ### Branch
 <branch name created>
@@ -251,8 +251,8 @@ Branch <name> created with 1 commit on <repo-root>. NOT pushed and NOT merged �
 - ALWAYS validate the target is a writeable git work tree (Phase 0); stop with a named error if not
 - ALWAYS pin detection to the §2.1 mid-tier Sonnet chain via the `task` `model:` override — never inherit the session model — and record `detection_model`
 - ALWAYS run the synthesis on the §2 powerful (Opus) chain via the `task` `model:` override
-- ALWAYS conform the written profile to `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/docs-profile-schema.md`
-- ALWAYS treat `frontmatter:` as pointers to the dynatrace-docs-frontmatter skill; NEVER copy changelog/owners rules into the profile
+- ALWAYS conform the written profile to `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`
+- ALWAYS treat `frontmatter:` as pointers to the docs-frontmatter skill; NEVER copy changelog/owners rules into the profile
 - OMIT `cross_space_override` and `shared_registries` for a single-space repo; include them only when a multi-space / docstack repo is detected
 - ALWAYS show a field-level diff and confirm before overwriting an existing `.dev-workflows/docs-profile.yml` (idempotent refresh)
 - ALWAYS write the profile to `.dev-workflows/docs-profile.yml` in the TARGET repo — never the plugin

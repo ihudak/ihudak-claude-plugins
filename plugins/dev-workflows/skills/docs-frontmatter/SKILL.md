@@ -1,15 +1,15 @@
 ---
-name: dynatrace-docs-frontmatter
-description: Apply dynatrace-docs frontmatter conventions — changelog entries and managed-docs owners — when creating or editing documentation pages under dynatrace/_content/** or managed/_content/** in the dynatrace-docs repository. Use whenever you change a Dynatrace documentation page's content or frontmatter, or when the user mentions changelog, page owners, or dynatrace-docs frontmatter.
+name: docs-frontmatter
+description: Apply documentation-page frontmatter conventions — changelog entries and page owners — when creating or editing a docs page under any content root declared by the applicable docs profile (an in-repo .dev-workflows/docs-profile.yml, else the built-in default). Use whenever you change a documentation page's content or frontmatter in a docs repository, or when the user mentions a page changelog, page owners, or docs frontmatter.
 user-invocable: true
 allowed-tools: Read, Edit, Glob, Grep, Bash
 ---
 
-# dynatrace-docs frontmatter conventions
+# Documentation frontmatter conventions
 
-Apply when creating or editing `.md` pages under `dynatrace/_content/**` or
-`managed/_content/**` in the `dynatrace-docs` repo. Three conventions, all in the
-page's YAML frontmatter, applied in the same pass: changelog entries, managed-docs
+Apply when creating or editing `.md` pages under any `spaces[].content_root` declared by
+the applicable docs profile. Three conventions, all in the
+page's YAML frontmatter, applied in the same pass: changelog entries, self-hosted-docs
 owners, and the core metadata fields.
 
 ## 1. Changelog (changed existing pages only)
@@ -34,22 +34,22 @@ For every **changed existing** page (NOT brand-new pages — first publish uses 
    ("info", "max"); single paragraph.
 
 Full rules and worked examples (source of truth):
-`${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/changelog-guidelines.md`
+`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/changelog-guidelines.md`
 
-## 2. Owners (changed managed pages only)
+## 2. Owners (changed self-hosted pages only)
 
-For changed pages under `managed/_content/**` that have — or should have — an
+For changed pages in a space listed in `frontmatter.owners_spaces` that have — or should have — an
 `owners:` block, ensure every required ID is present. **Union only — never remove
 existing owners.**
 
 1. Read the required IDs (ignore `#` comments and blank lines):
-   `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/managed-owners.txt`
-2. If the page has no `owners:` block but one is warranted (most managed pages
+   `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/default-owners.txt`
+2. If the page has no `owners:` block but one is warranted (most self-hosted pages
    carry owners), add one containing the required IDs.
 3. If an `owners:` block exists, add any required IDs that are missing and leave
    all existing owners in place.
 
-Pages under `dynatrace/_content/**` (SaaS) are out of scope for the owners rule.
+Pages in a space not listed in `frontmatter.owners_spaces` are out of scope for the owners rule.
 
 ## 3. Metadata fields (all pages)
 
@@ -64,7 +64,7 @@ Set/validate the core frontmatter fields per the guidelines reference:
   not authored here.
 - `meta.i18n-priority` — optional number (lower = higher priority).
 - `meta.generation` — `latest` / `classic` array (advisory; a `latest`-only page
-  that surfaces in Managed breaks the build — use both when unsure).
+  that surfaces in Self-hosted breaks the build — use both when unsure).
 - `published` — creation date on new pages only; never pair it with a first-publish
   changelog entry.
 
@@ -72,12 +72,12 @@ Detect which optional fields the neighbourhood uses by sampling 2–3 adjacent p
 never strip unknown/pre-existing fields.
 
 Full field rules (source of truth):
-`${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/frontmatter-guidelines.md`
+`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/frontmatter-guidelines.md`
 
 ## Notes
 
 - A warn-only `PostToolUse` hook (`changelog-owners-reminder`) reminds about these
   same checks if this skill did not fire; applying the conventions here keeps it
   silent.
-- This does not duplicate the repo's CI (`pnpm dynatrace:lint`); it gets the
+- This does not duplicate the repo's CI (`pnpm docs:lint`); it gets the
   frontmatter right at edit time so the PR is not bounced later.

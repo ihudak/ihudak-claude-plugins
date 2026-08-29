@@ -1,15 +1,15 @@
-# Anchor conventions (dynatrace-docs)
+# Anchor conventions (example-docs)
 
-How `/document` authors, links, and verifies heading anchors on dynatrace-docs
+How `/document` authors, links, and verifies heading anchors on example-docs
 pages — the `{:#id}` syntax, the link forms that reference an anchor, the
 `docstack` tool that validates them, and the rule for reconciling a docs anchor
-against a product `dt-url` deep link.
+against a product deep link.
 
 This is the single source of truth for the mechanics. `doc-writer` (authoring
 anchors and links), `doc-reviewer` (dimension 5 — structural integrity), and
 `doc-planner` (planning section anchors for cross-links) all cite it; none
 inlines these facts. The counts below were measured on 2026-08-10 against the
-docs repo mounted at `/workspace/docs` (`dynatrace/_content` + `managed/_content`)
+docs repo mounted at `/workspace/docs` (`cloud/_content` + `self-hosted/_content`)
 and are cited so no future run re-derives them.
 
 ## 1. One `{:#id}` per heading — multi-anchor is unsupported
@@ -21,7 +21,7 @@ A heading carries at most one hardcoded anchor, written as a kramdown-style
 ## Configure the connector {:#configure-connector}
 ```
 
-**1,580 files** under `dynatrace/_content` + `managed/_content` use this
+**1,580 files** under `cloud/_content` + `self-hosted/_content` use this
 single-anchor syntax (`grep -rEl '^#{1,6} .*\{:#[a-zA-Z0-9_-]+\}\s*$'`).
 Multi-anchor syntax on one heading — `{:#a #b}`, aliasing two ids to the same
 section — appears **0 times** in the repo (`grep -rE '\{:#[^}]*#'`).
@@ -53,8 +53,8 @@ rather than a section.
 
 ## 3. Tooling — `validate-anchors`
 
-The dynatrace-docs repo's `docstack` CLI (invoked via the `docstack` script in
-the dynatrace-docs repo's own `package.json`:
+The example-docs repo's `docstack` CLI (invoked via the `docstack` script in
+the example-docs repo's own `package.json`:
 `"docstack": "node .docstack/dist/apps/cli/bin/cli.mjs"`; it is not a
 standalone binary and is not exposed as its own npm script) exposes a
 `validate-anchors` command:
@@ -68,7 +68,7 @@ An anchor link must target a hardcoded `{:#id}` (§1) — not an id the build
 generates automatically from heading text — or `validate-anchors` flags it.
 Run this before relying on a newly authored anchor link.
 
-## 4. Reconciling a product `dt-url` deep link
+## 4. Reconciling a product deep link
 
 Product code sometimes deep-links straight into a docs page section, e.g. a
 UI element that opens `.../some-page#some-anchor`. When shipped product code

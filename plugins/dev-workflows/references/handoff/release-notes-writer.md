@@ -29,7 +29,7 @@ Refuse to run without `jira_reader_handoff`. Emit exactly one Summary per run.
 status: OK | PARTIAL
 
 release_notes_block:
-  target_format: dynatrace-docs-release-notes-v1
+  target_format: example-docs-release-notes-v1
   change_type:  <one of: "Breaking change" | "New technology support" | "Bug fix">   # selects the destination + shape; NEVER rendered as text
   destination:  <one of: "breaking-changes.md" | "feature-updates.md" | "fixes.md">  # per release-note-types.md §1
   context_label: <the imported release_notes_category verbatim, e.g. "Platform | Settings"; null when the import carries none — the {{#context}} line is then omitted>

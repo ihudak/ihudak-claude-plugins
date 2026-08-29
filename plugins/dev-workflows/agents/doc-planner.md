@@ -19,8 +19,8 @@ screenshot_staging_dir: <absolute dir the command resolved for cdn_upload_requir
 code_repos:             <array of {slug, path} for source-truth verification; the clones resolved for diff-summarizer; [] when unavailable>
 specs_dir:              <absolute path to the VI's spec folder (PRODUCT-NNNN*), or null; the authoritative intended-behavior source>
 repo_root:              <absolute path to the docs repo root>
-profile:                <the resolved docs-profile (built-in dynatrace-docs default, in-repo, or generated); supplies spaces[], cross_space_override, shared_registries, tokens>
-target_spaces:          <the run's resolved space set: [saas] | [managed] | [saas, managed]>
+profile:                <the resolved docs-profile (built-in example-docs default, in-repo, or generated); supplies spaces[], cross_space_override, shared_registries, tokens>
+target_spaces:          <the run's resolved space set: [cloud] | [self-hosted] | [cloud, self-hosted]>
 counterpart_references: <array of counterpart-finder entries (read-only grounding); [] when none or on a both-space run. Each: {source_kind, path|pr_ref, space, salient_summary, section_outline, is_shared_into_target, screenshots_seen[], match_confidence}>
 ```
 
@@ -28,11 +28,11 @@ Refuse to run without `jira_reader_handoff`, `write_targets`, and `repo_root`.
 
 ## Process
 
-**First — read the repo's own authoring guidance (once, not per target).** Scan `repo_root` (and `.claude/`) for whichever of these exist: `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `CLAUDE.md`, `STYLE.md`, `DOCUMENTATION-GUIDELINES.md`. Extract the **authoring / structural** rules a writer must follow — required page sections, voice/tone directives, page templates, structure and naming conventions, prohibited constructs. Distil them into the `repo_authoring_guidance` output block (one bullet per rule, each tagged with its source file). **Ignore** purely operational content (build/setup steps, PR and branch mechanics — branch naming is handled by the command, not here). These rules **augment, never override** the built-in dynatrace-docs references and the `dt-style-guide` checks; when a repo rule conflicts with those, note it rather than silently overriding. Factor the extracted rules into the topic and section planning below. Emit `repo_authoring_guidance: []` when no guidance files exist or none carry authoring rules.
+**First — read the repo's own authoring guidance (once, not per target).** Scan `repo_root` (and `.claude/`) for whichever of these exist: `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `CLAUDE.md`, `STYLE.md`, `DOCUMENTATION-GUIDELINES.md`. Extract the **authoring / structural** rules a writer must follow — required page sections, voice/tone directives, page templates, structure and naming conventions, prohibited constructs. Distil them into the `repo_authoring_guidance` output block (one bullet per rule, each tagged with its source file). **Ignore** purely operational content (build/setup steps, PR and branch mechanics — branch naming is handled by the command, not here). These rules **augment, never override** the built-in example-docs references and the `prose-style` checks; when a repo rule conflicts with those, note it rather than silently overriding. Factor the extracted rules into the topic and section planning below. Emit `repo_authoring_guidance: []` when no guidance files exist or none carry authoring rules.
 
 **Second — extract the repo's pre-PR verification gates from the same files.** The instruction above ignores operational content for *planning* purposes, but a repo's own pre-merge checklist is not noise: it is the list of checks a human reviewer will apply. Follow `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §2–§4 — it owns the heading patterns to look for, what counts as checkable, what to exclude, and the block's schema — and emit the resulting `repo_verification_gates` block. Do NOT restate its rules here; the reference is the single source of truth, and `/document` direct mode follows the same procedure without a planner.
 
-For `dynatrace-docs` this resolves to `CONTRIBUTING.md` `## PR checklist` — both its `### Minimum check (Contributors)` and `### Advanced check (InfoDevs)` subsections.
+For `example-docs` this resolves to `CONTRIBUTING.md` `## PR checklist` — both its `### Minimum check (Contributors)` and `### Advanced check (InfoDevs)` subsections.
 
 For each write target:
 
@@ -49,15 +49,15 @@ For each write target:
 
 2. **Map topics to sources.** Each topic records which `jira-reader` keys and/or which `diff-summarizer` PR URLs back it up, for the Phase 6.3 writer's traceability requirement. A topic with no source attribution is a candidate gap (see step 7).
 
-3. **Plan frontmatter updates** (field rules: `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/frontmatter-guidelines.md`; changelog + owners keep their own references).
-   - `changelog:` — append a dated entry with a customer-readable 1-line change summary and NO Jira key. Create the field if it doesn't exist on an extended page. This is mandatory on every target. Per `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1 (verified against the repo convention — fewer than 5 of dynatrace-docs's 5500+ entries cite an issue key).
-     **Read the guideline before drafting the entry.** When `profile.frontmatter.changelog_guidelines` resolves to a file, read it (for dynatrace-docs: `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/changelog-guidelines.md`) and draft each entry to conform. It is the source of truth for customer point of view, the "to what effect?" test, verb variety, and the period rule. Do NOT restate its rules in the checklist — plan an entry that already satisfies them. When the pointer is absent, the two rules above are the whole requirement.
+3. **Plan frontmatter updates** (field rules: `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/frontmatter-guidelines.md`; changelog + owners keep their own references).
+   - `changelog:` — append a dated entry with a customer-readable 1-line change summary and NO Jira key. Create the field if it doesn't exist on an extended page. This is mandatory on every target. Per `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1 (verified against the repo convention — fewer than 5 of example-docs's 5500+ entries cite an issue key).
+     **Read the guideline before drafting the entry.** When `profile.frontmatter.changelog_guidelines` resolves to a file, read it (for example-docs: `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/changelog-guidelines.md`) and draft each entry to conform. It is the source of truth for customer point of view, the "to what effect?" test, verb variety, and the period rule. Do NOT restate its rules in the checklist — plan an entry that already satisfies them. When the pointer is absent, the two rules above are the whole requirement.
    - `title` — required on new pages; concise, sentence case, no trailing period.
    - `description` — required (SEO); **120–160 characters**. Flag a planned/existing description outside that band.
    - `meta.content-type` — **mandatory on new pages**; pick from the enum (`how-to`, `tutorial`, `explanation`, `reference`, `get-started`, `troubleshooting`, `upgrade`, `best-practices`, `app`, `extension`) by the page's purpose. NEVER `overview` (deprecated); `release-notes` pages are not authored here.
    - `meta.i18n-priority` — a number when the translation priority is known (advisory; omit otherwise).
    - `published` — creation date for new pages only.
-   - `meta.generation`, `readtime` — if present on adjacent pages, include. `meta.generation` is a `latest`/`classic` array (both = `[classic, latest]`; a `latest`-only page that surfaces in Managed breaks the build — use both when unsure). Estimate `readtime` from approximate word count.
+   - `meta.generation`, `readtime` — if present on adjacent pages, include. `meta.generation` is a `latest`/`classic` array (both = `[classic, latest]`; a `latest`-only page that surfaces in Self-hosted breaks the build — use both when unsure). Estimate `readtime` from approximate word count.
    - `tags` — merge, don't duplicate existing values.
    - `owners` — leave to the user to maintain; do NOT touch.
    - Detect existing conventions by sampling 2–3 adjacent pages under the target's directory.
@@ -95,7 +95,7 @@ For each write target:
    - `cross_links.from` — pages that should link to this target (start from `linked_from` in the `doc-location-finder` output; extend with sidebar/nav files if the repo has them).
    - `cross_links.to` — pages this target should link out to (related topics, reference pages that back up the narrative).
 
-   When a cross-link points at a specific **section** rather than a whole page, plan the section anchor and the link form per `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/anchor-conventions.md` §1–§2: one `{:#id}` per heading (multi-anchor is unsupported), and the cross-page `[text](<postid>#<anchor>)` form. Do not restate its rules here — cite it.
+   When a cross-link points at a specific **section** rather than a whole page, plan the section anchor and the link form per `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/anchor-conventions.md` §1–§2: one `{:#id}` per heading (multi-anchor is unsupported), and the cross-page `[text](<postid>#<anchor>)` form. Do not restate its rules here — cite it.
 
 8. **Flag gaps the writer cannot fill from inputs alone.** Examples:
    - "Feature requires a DB-migration note but no migration steps were found in Jira or diffs."
@@ -119,11 +119,11 @@ For each write target:
     - **Write-strategy signal.** An entry with `is_shared_into_target: true` is strong evidence the target render is already served by that shared page — prefer `conditional` (an in-place `{{#if project='<target>'}}` delta) over a new `content_root` page, and flag in `notes` that the target "may already be covered".
     - **Screenshots.** `screenshots_seen` are comprehension-only — never plan them as target images.
 
-11. **Recommend a per-target multi-space write strategy** (per `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/multi-space-writing.md`). For each write target:
+11. **Recommend a per-target multi-space write strategy** (per `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/multi-space-writing.md`). For each write target:
     - Determine its **home space** by matching `target_path` against each `profile.spaces[].content_root`/`snippet_root` prefix.
-    - Determine `rendered_in` and `space_scope`: a page is **`shared`** when `profile.cross_space_override` pulls its home `content_root` into another space's render (in dynatrace-docs, a `saas`-home page under `dynatrace/_content` is pulled into the Managed render, so `rendered_in: [saas, managed]`); otherwise **`single`** (`rendered_in: [<home space>]`).
+    - Determine `rendered_in` and `space_scope`: a page is **`shared`** when `profile.cross_space_override` pulls its home `content_root` into another space's render (in example-docs, a `cloud`-home page under `cloud/_content` is pulled into the Self-hosted render, so `rendered_in: [cloud, self-hosted]`); otherwise **`single`** (`rendered_in: [<home space>]`).
     - Recommend `write_strategy.strategy`:
-      - **`plain`** — no protection needed: a `single` page whose home space is in `target_spaces`, OR a `[saas, managed]` run whose planned content is identical for every space the page renders in.
+      - **`plain`** — no protection needed: a `single` page whose home space is in `target_spaces`, OR a `[cloud, self-hosted]` run whose planned content is identical for every space the page renders in.
       - **`conditional`** — the page is `shared` and the planned change is localized (a single added block, localized wording, or one differing value) AND it must NOT alter the render of a space outside `target_spaces` (or must differ per space within a both-spaces run). The shared source is edited in place; the delta is wrapped in `{{#if project='<target_space>'}}…{{/if}}`.
       - **`override-copy`** — the page is `shared` and the divergence is structural (new sections, large rewrite). The page is copied into the destination space's `content_root` and the shared path is added to `cross_space_override`'s `ignore` allowlist.
     - Set `write_strategy.target_space` to the space the change is **for**: for `conditional`, the `project='…'` value of the wrapped delta; for `override-copy`, the destination space the copy lands in; for `plain`, the page's home space.
@@ -136,7 +136,7 @@ For each write target:
 
 ```yaml
 status:   OK | PARTIAL
-repo_authoring_guidance:        # repo-specific authoring rules from the repo's own guidance files; [] when none. Augments, never overrides, the built-in references + dt-style-guide.
+repo_authoring_guidance:        # repo-specific authoring rules from the repo's own guidance files; [] when none. Augments, never overrides, the built-in references + prose-style.
   - rule:   <one authoring / structural rule the writer must follow>
     source: <file the rule came from, e.g. CONTRIBUTING.md, CLAUDE.md>
 repo_verification_gates:        # the repo's own pre-PR checks that are checkable against the written files; [] when none
@@ -205,7 +205,7 @@ The `component_patterns` bullet below (no fabricated `evidence`, no second scan)
 - NEVER include a Jira key inside `frontmatter_updates.changelog.entry` — see `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1.
 - The `repo_verification_gates` block obeys `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §6 in full — never emit an entry that cannot be checked against the files this run writes, never paraphrase a repo gate into a different requirement, and never let a repo gate silently override a built-in reference.
 - NEVER propose a changelog-only frontmatter update on a page with no other planned change: if a target's `topics:` is empty AND `frontmatter_updates.other:` is empty AND the only change is `frontmatter_updates.changelog`, drop the target from the checklist entirely (a changelog entry with no corresponding content change is meaningless).
-- NEVER let a cross-product "minimal touch" parity reference introduce content specific to the OTHER product's implementation. When extending product X's page about a feature shipped by product Y, plan `topics[].notes` as a one-line cross-link to Y's dedicated page — do NOT inline Y's implementation detail (throttling rules, enum values, precedence). Example: noting on `oneagent-update` that update windows are shared with ActiveGate is fine; copying the per-pool ActiveGate throttling rule onto the OneAgent page is not.
+- NEVER let a cross-product "minimal touch" parity reference introduce content specific to the OTHER product's implementation. When extending product X's page about a feature shipped by product Y, plan `topics[].notes` as a one-line cross-link to Y's dedicated page — do NOT inline Y's implementation detail (throttling rules, enum values, precedence). Example: noting on `host-agent-update` that update windows are shared with the gateway component is fine; copying the per-pool gateway throttling rule onto the host-agent page is not.
 - The same rule applies **cross-space**: when grounding on a `counterpart_references` page, never plan target-doc content that carries the counterpart space's specific UI paths, URLs, labels, defaults, or screenshots. Consult the counterpart for concepts/terminology/structure; author target-space specifics from the target space's own source.
 - NEVER write or modify files. This agent plans; the writer writes.
 - NEVER copy screenshots anywhere — only compute `dest` / `staging` paths and record them. The writer performs the actual file moves.

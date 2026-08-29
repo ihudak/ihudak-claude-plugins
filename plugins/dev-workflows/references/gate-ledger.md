@@ -64,9 +64,9 @@ gate_ledger:
 |---|---|---|---|---|
 | `toolchain_preflight` | 0 | always (runs after profile resolution) | `command -v` / `test -d` over the required set (`toolchain-preflight.md` §2) | none |
 | `source_truth_verification` | 5.8 | ≥1 entry in `code_repos` | claim-class verification per `source-truth.md` §2–§3 | one supplementary direct grep against the resolved local path |
-| `style_check` | 6.4 | ≥1 file written | the repo linter ladder **plus** `dt-style-checker` complementary | `dt-style-checker` alone |
+| `style_check` | 6.4 | ≥1 file written | the repo linter ladder **plus** `prose-style-checker` complementary | `prose-style-checker` alone |
 | `repo_checklist` | 6.4 | the repo publishes authoring/verification guidance | `repo_verification_gates` applied to the written files | none |
-| `build_check` | 6.5 S1 | write context is a buildable repo | `commands.per_space.<space>.build` for every space in the render verification set (`dynatrace-docs/render-verification.md` §2), else whole-repo `commands.build` | the Step 2 dev-server boot |
+| `build_check` | 6.5 S1 | write context is a buildable repo | `commands.per_space.<space>.build` for every space in the render verification set (`docs-profiles/render-verification.md` §2), else whole-repo `commands.build` | the Step 2 dev-server boot |
 | `render_smoke_check` | 6.5 S2 | buildable repo with ≥1 affected page | dev servers for the target **and** protected spaces | the manual pages-to-visit table |
 | `image_review` | 5.6 | ≥1 candidate image (to add or possibly-stale) | the two-list review with per-occurrence decisions | none |
 

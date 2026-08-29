@@ -29,7 +29,7 @@ Refuse to run without `vault_path` and a non-empty `feature_summary`. If `vault_
 
 **Pass 2 — content grep.** Derive salient keywords from `feature_summary` + `themes`, minus stopwords. One `Grep` files-with-matches pass per keyword; drop any keyword exceeding the reference's threshold — it is too generic to discriminate. Union the survivors ordered by keyword-hit count.
 
-Cross-product work needs no special handling: keyword overlap on the capability ("Azure function deployment") finds a SaaS initiative whether or not the idea says "Managed". What that case needs is the *vocabulary* to express it (below), not different retrieval.
+Cross-product work needs no special handling: keyword overlap on the capability ("Azure function deployment") finds a cloud-edition initiative whether or not the idea says "self-hosted". What that case needs is the *vocabulary* to express it (below), not different retrieval.
 
 ### 2. Resolve each shortlisted path to its item
 

@@ -11,7 +11,7 @@ feed the `repo_checklist` gate in `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.
 
 ## 1. Why
 
-A docs repo publishes the checks a human reviewer applies before merging. `dynatrace-docs` puts them
+A docs repo publishes the checks a human reviewer applies before merging. `example-docs` puts them
 in `CONTRIBUTING.md` under `## PR checklist` — a Contributors minimum check and an InfoDevs advanced
 check covering frontmatter fields, changelog conformance, sensitive information, duplicate headings,
 terminology, and "Validate the change. The validation must pass with no errors or warnings."

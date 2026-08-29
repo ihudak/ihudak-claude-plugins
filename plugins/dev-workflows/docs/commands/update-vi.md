@@ -24,7 +24,7 @@ flowchart TD
     p1 --> p15["Phase 1.5 — Classify + model routing"]
     p15 --> p2["Phase 2 — Read the base + grounding"]
     p2 --> p3["Phase 3 — Update via grill"]
-    p3 --> p35["Phase 3.5 — Dynatrace style check"]
+    p3 --> p35["Phase 3.5 — Prose style check"]
     p35 --> p36["Phase 3.6 — Structural pre-lint"]
     p36 --> p4["Phase 4 — Review gate"]
     p4 --> p5["Phase 5 — Handoff (canonical + archive) + Jira round-trip"]
@@ -32,7 +32,7 @@ flowchart TD
     p6 --> p7["Phase 7 — Session maintenance, feedback & cost"]
 ```
 
-Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `vi-reviewer` (Phase 4, Opus-pinned), and `impl-maintenance` (Phase 7, session lessons-learned), each against the model recorded in `model_routing`. A fourth agent, `dt-style-guide:dt-style-checker`, runs in Phase 3.5 exactly as it does in [`/create-vi`](create-vi.md) — a non-gating quality pass from a separate plugin, not counted in the dispatch total above.
+Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `vi-reviewer` (Phase 4, Opus-pinned), and `impl-maintenance` (Phase 7, session lessons-learned), each against the model recorded in `model_routing`. A fourth agent, `prose-style:prose-style-checker`, runs in Phase 3.5 exactly as it does in [`/create-vi`](create-vi.md) — a non-gating quality pass from a separate plugin, not counted in the dispatch total above.
 
 ## What it needs
 
@@ -54,7 +54,7 @@ Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2, read-o
 
 ## Gates
 
-- **Phase 3.5 — Dynatrace style check**, mirroring [`/create-vi`](create-vi.md) exactly: `dt-style-guide:dt-style-checker` applies MAJOR fixes inline and re-runs once; a non-gating quality pass, skipped gracefully when the `dt-style-guide` plugin is not installed.
+- **Phase 3.5 — Prose style check**, mirroring [`/create-vi`](create-vi.md) exactly: `prose-style:prose-style-checker` applies MAJOR fixes inline and re-runs once; a non-gating quality pass, skipped gracefully when the `prose-style` plugin is not installed.
 - **Phase 3.6 — Structural pre-lint** (`../../references/pre-lint.md`), advisory only — mechanical findings fixed inline, content gaps left for the grill.
 - **Phase 4 — `vi-reviewer`**, Opus-pinned by frontmatter (`model: opus`, no override), reviewing the whole updated VI against `../../references/vi-format.md`. `PASS` / `PASS WITH RECOMMENDATIONS` proceeds. `BLOCK` triggers one inline fix cycle and one re-review; a persistent `BLOCK` is escalated per `../../references/escalation-rules.md`'s "Review verdict BLOCK" choices, exactly as in [`/create-vi`](create-vi.md).
 

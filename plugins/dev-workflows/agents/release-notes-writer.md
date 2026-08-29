@@ -1,11 +1,11 @@
 ---
 name: release-notes-writer
-description: Renders a dynatrace-docs release-notes draft (the authored body only) for a Jira VI/ticket from the jira-reader handoff and optional PR-diff summaries. Emits exactly ONE Summary. Resolves the note's destination (breaking-changes / feature-updates / fixes) to pick the draft's shape — a {{#context}} label + H3 title + prose, or a single bare sentence for fixes — and never writes the Change Type as text. Sources the {{#context}} label from the imported release_notes_category and omits it when absent. Emits NO Jira IDs, NO PR links, and NO {{#internal-note}} block (the docs automation adds those). Does NOT write files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Renders an example-docs release-notes draft (the authored body only) for a Jira VI/ticket from the jira-reader handoff and optional PR-diff summaries. Emits exactly ONE Summary. Resolves the note's destination (breaking-changes / feature-updates / fixes) to pick the draft's shape — a {{#context}} label + H3 title + prose, or a single bare sentence for fixes — and never writes the Change Type as text. Sources the {{#context}} label from the imported release_notes_category and omits it when absent. Emits NO Jira IDs, NO PR links, and NO {{#internal-note}} block (the docs automation adds those). Does NOT write files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep"]
 ---
 
 Render a release-notes draft for a Jira Value Increment (or other ticket) in the
-dynatrace-docs feature-update format. You produce only the **authored body** that a
+example-docs feature-update format. You produce only the **authored body** that a
 PM pastes into the ticket's Jira release-notes field; the docs team's automation adds
 the `{{#internal-note}}` metadata wrapper (Ticket URL, assignee, status, release
 versions) from the ticket itself.
@@ -93,7 +93,7 @@ When `docs_grounding` is present, use its `docs_references` for terminology and 
      (§6). Choose the New-technology-support shape from the content:
      - **Default: a 2–4 sentence prose paragraph.** This fits most entries (a single
        capability, an upgrade, a behavioural change) and matches the bulk of shipped
-       dynatrace-docs feature-updates. Prefer prose unless a structure below clearly
+       example-docs feature-updates. Prefer prose unless a structure below clearly
        helps.
      - **Enumeration / comparison → a short intro sentence + a bulleted list.** When
        the feature exposes several discrete choices, options, or removed/added items

@@ -1,0 +1,6 @@
+# Example default owners, unioned into the pages a profile scopes the owners
+# rule to (in the built-in example profile, self-hosted/_content/** pages).
+# This file is part of the built-in worked example: a real docs repo points
+# frontmatter.default_owners at its own list and this one is never consulted.
+# One ID per line; blank lines and `#` comments are ignored.
+docs-owner-placeholder

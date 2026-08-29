@@ -30,7 +30,7 @@ flowchart TD
     d1 -- "on" --> p45["Phase 4 — Resolve repos (conditional) / Phase 5 — Parallel code scanning (conditional)"]
     d1 -- "off" --> p6["Phase 6 — Write Epics"]
     p45 --> p6
-    p6 --> p616263["Phase 6.1 — Resolve clarifications / 6.2 — Dynatrace style check / 6.3 — Structural pre-lint"]
+    p6 --> p616263["Phase 6.1 — Resolve clarifications / 6.2 — Prose style check / 6.3 — Structural pre-lint"]
     p616263 --> p7["Phase 7 — Epic review gate"]
     p7 --> p8["Phase 8 — Post-write maintenance"]
     p8 --> p91011["Phase 9 — Final Report / 10 — Emit follow-up tasks / 11 — Session cost"]
@@ -56,7 +56,7 @@ One `.md` file per new or refined Epic, under the resolved output directory: `$V
 
 Phase 7 dispatches `epic-reviewer`, Opus-pinned, checking goal clarity, acceptance-criteria testability, scope boundaries, and non-duplication with existing Epics under the parent VI. Findings are triaged by the orchestrator (`../../references/finding-triage.md`) before `doc-fixer` ever sees them — each finding verified at the location it names, every dismissal recorded with a reason, survivors only handed to the fixer. `BLOCK` invokes `doc-fixer` for BLOCKER/MAJOR findings and re-reviews once, passing the fixer's own report back as `claims_file` so the re-review falsifies the fixer's account rather than assuming it; an unresolved BLOCKER after that cycle is escalated individually. `PASS WITH RECOMMENDATIONS` fixes MAJOR findings only; `PASS` proceeds. Cap: one fix cycle plus one re-review.
 
-Ahead of the review, Phase 6.2 runs `dt-style-checker` as the **primary** style checker — not a fallback, since Epic drafts are vault-internal with no repo-side prose linter to fall back from. It is skipped gracefully, with a note in the final report, when the separate `dt-style-guide` plugin is not installed. Phase 6.3 then runs a structural pre-lint (`../../references/pre-lint.md`) — advisory only, checking required headings, Given/When/Then acceptance criteria, and the `[NEEDS CLARIFICATION]` cap.
+Ahead of the review, Phase 6.2 runs `prose-style-checker` as the **primary** style checker — not a fallback, since Epic drafts are vault-internal with no repo-side prose linter to fall back from. It is skipped gracefully, with a note in the final report, when the separate `prose-style` plugin is not installed. Phase 6.3 then runs a structural pre-lint (`../../references/pre-lint.md`) — advisory only, checking required headings, Given/When/Then acceptance criteria, and the `[NEEDS CLARIFICATION]` cap.
 
 ## Example
 
@@ -66,7 +66,7 @@ Split a VI with two existing Epics not yet covering all its scope:
 /dev-workflows:epics PRODUCT-1234
 ```
 
-The run resolves the VI, asks for the output directory and whether to scan code (default on, repos auto-derived from sibling Epics' PR links), resolves any VI-level ARD and specification, reads the Jira hierarchy at `vi-plus-epics` depth, scans the confirmed repos in batches of up to 4, delegates the drafting to `epic-writer`, runs the Dynatrace style check and structural pre-lint, then `epic-reviewer`. On a passing verdict it reports the Epics written and `_coverage.md`'s gap list, and recommends `/dev-workflows:specify <VI> <Epic>` per drafted Epic as the next step — Epic drafting itself was never committed, so publishing the Epics to Jira remains a manual step.
+The run resolves the VI, asks for the output directory and whether to scan code (default on, repos auto-derived from sibling Epics' PR links), resolves any VI-level ARD and specification, reads the Jira hierarchy at `vi-plus-epics` depth, scans the confirmed repos in batches of up to 4, delegates the drafting to `epic-writer`, runs the Prose style check and structural pre-lint, then `epic-reviewer`. On a passing verdict it reports the Epics written and `_coverage.md`'s gap list, and recommends `/dev-workflows:specify <VI> <Epic>` per drafted Epic as the next step — Epic drafting itself was never committed, so publishing the Epics to Jira remains a manual step.
 
 ## See also
 

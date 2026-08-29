@@ -1,18 +1,19 @@
 ---
-name: dt-review-pr
+name: prose-review-pr
 description: >
-  Reviews documentation changes from a pull request against the Dynatrace style
-  guide. Accepts a PR number (Bitbucket merge-commit convention) or a source
-  branch name. Extracts changed markdown files, runs dt-style-checker, and
-  optionally runs Vale if the repo has a .vale.ini. Reports violations with
-  file, line, severity, and suggested fix.
-allowed-tools: Read Bash Glob Grep WebFetch
+  Reviews documentation changes from a pull request against the active prose style
+  rules. Accepts a PR number (merge-commit convention) or a source branch name.
+  Extracts changed markdown files, runs prose-style-checker, and optionally runs Vale
+  if the repo has a .vale.ini. Reports violations with file, line, severity, and
+  suggested fix.
+allowed-tools: Read Bash Glob Grep Task
 ---
 
 # Review documentation changes from a pull request
 
-Reviews the markdown files changed in a pull request against the Dynatrace
-corporate style guide. Outputs a structured violation report.
+Reviews the markdown files changed in a pull request against the active prose style
+rules — the plugin's vendor-neutral baseline, plus your organization's overlay when one
+is configured. Outputs a structured violation report.
 
 ## Arguments
 
@@ -21,11 +22,12 @@ The command receives its input via `$ARGUMENTS`. Accepted formats:
 | Format | Example | Behaviour |
 |---|---|---|
 | PR number | `9089` | Finds merge commit or remote branch for that PR |
-| Branch name | `alexander-huetter/noissue-improve-managed-docs` | Diffs the branch against `main` |
-| `--repo <path>` | `--repo /workspace/dynatrace-docs` | Override the repo path (default: current working directory) |
-| `--doc-type <type>` | `--doc-type product-docs` | Passed to dt-style-checker for severity calibration (default: `product-docs`) |
+| Branch name | `feat/improve-install-guide` | Diffs the branch against `main` |
+| `--repo <path>` | `--repo /workspace/product-docs` | Override the repo path (default: current working directory) |
+| `--doc-type <type>` | `--doc-type product-docs` | Passed to prose-style-checker for severity calibration (default: `product-docs`) |
+| `--rules <path>` | `--rules ~/style/rules` | Override overlay discovery; passed to prose-style-checker as `rules_path` |
 
-Arguments can be combined: `9089 --repo /workspace/dynatrace-docs`.
+Arguments can be combined: `9089 --repo /workspace/product-docs`.
 
 If no arguments are provided, ask the user for a PR number or branch name.
 
@@ -37,34 +39,39 @@ Extract from `$ARGUMENTS`:
 - **target**: the PR number (all digits) or branch name (anything else that is not a flag).
 - **repo_path**: value after `--repo`, or the current working directory if absent.
 - **doc_type**: value after `--doc-type`, or `product-docs` if absent.
+- **rules_path**: value after `--rules`, or absent.
 
 If no target is found, ask the user: "Please provide a PR number or source branch name."
 
 ### 2. Resolve changed files
 
-`cd` into `repo_path`. Then:
+Run every git command with `git -C <repo_path>`.
 
 #### 2a. If target is a PR number
 
 ```bash
 # Look for the merge commit in ALL branches/tags
-git log --all --oneline --grep="Pull request #<NUMBER>:" | head -5
+git -C <repo_path> log --all --oneline --grep="Pull request #<NUMBER>:" | head -5
 ```
+
+Repositories that use GitHub's default merge subject line record it differently — if
+the search above finds nothing, retry with `--grep="(#<NUMBER>)"` before falling
+through to the branch search.
 
 - **Merge commit found** (PR is merged):
   - Extract the commit SHA.
-  - Get the diff: `git diff <SHA>^..<SHA> --name-only -- '*.md'`
+  - Get the diff: `git -C <repo_path> diff <SHA>^..<SHA> --name-only -- '*.md'`
   - This gives the list of changed markdown files.
 
 - **No merge commit** (PR is open/unmerged):
   - Search remote branches for the PR number or related branch:
     ```bash
-    git fetch --all --prune 2>/dev/null
-    git branch -r | grep -i "<NUMBER>" | head -5
+    git -C <repo_path> fetch --all --prune 2>/dev/null
+    git -C <repo_path> branch -r | grep -i "<NUMBER>" | head -5
     ```
   - If a matching remote branch is found, diff it:
     ```bash
-    git diff origin/main...origin/<branch> --name-only -- '*.md'
+    git -C <repo_path> diff origin/main...origin/<branch> --name-only -- '*.md'
     ```
   - If no branch is found, tell the user:
     "Could not find PR #<NUMBER> in the local git history or remote branches.
@@ -73,21 +80,19 @@ git log --all --oneline --grep="Pull request #<NUMBER>:" | head -5
 #### 2b. If target is a branch name
 
 ```bash
-# Fetch the branch if not already local
-git fetch origin <branch> 2>/dev/null
-
-# Diff against main
-git diff origin/main...origin/<branch> --name-only -- '*.md'
+git -C <repo_path> fetch origin <branch> 2>/dev/null
+git -C <repo_path> diff origin/main...origin/<branch> --name-only -- '*.md'
 ```
 
 If the diff is empty, also try `main...<branch>` (local branch) and
-`main...remotes/origin/<branch>`.
+`main...remotes/origin/<branch>`. If the repository's default branch is not `main`,
+resolve it with `git -C <repo_path> symbolic-ref refs/remotes/origin/HEAD` and use that.
 
 ### 3. Filter to documentation files
 
 From the list of changed files, keep only `.md` files. Exclude:
-- `CHANGELOG.md`, `README.md`, `CONTRIBUTION.md`, `RELEASING.md` (repo meta files)
-- Files under `node_modules/`, `.git/`, `.docstack/`, `.ci/`, `pr-reviewer/`
+- `CHANGELOG.md`, `README.md`, `CONTRIBUTING.md`, `RELEASING.md` (repo meta files)
+- Files under `node_modules/`, `.git/`, `vendor/`, `build/`, `dist/`
 
 If no documentation files remain after filtering, report:
 "No documentation markdown files were changed in this PR."
@@ -99,36 +104,37 @@ deleted in the PR won't exist — skip those and note them in the report.
 
 For files that exist, resolve to absolute paths.
 
-### 5. Run dt-style-checker
+### 5. Run prose-style-checker
 
-Invoke the `dt-style-checker` agent with:
+Invoke the `prose-style-checker` agent (`subagent_type: prose-style:prose-style-checker`)
+with:
 
 ```yaml
-files:    [<absolute paths of existing changed files>]
-doc_type: <doc_type from arguments>
+files:      [<absolute paths of existing changed files>]
+doc_type:   <doc_type from arguments>
+rules_path: <rules_path from arguments, when provided>
 ```
 
-Collect the violation report.
+Collect the violation report, including its `rules_source` field.
 
 ### 6. Run Vale (optional)
 
 Check if `<repo_path>/.vale.ini` exists. If it does:
 
 ```bash
-# Check if vale is installed
 which vale 2>/dev/null || echo "NOT_INSTALLED"
 ```
 
 If Vale is installed and `.vale.ini` exists, run it on the changed files:
 
 ```bash
-cd <repo_path>
+git -C <repo_path> rev-parse --show-toplevel  # confirm the root, then:
 vale --output=line <file1> <file2> ... 2>&1
 ```
 
 Collect Vale findings separately. If Vale is not installed, note:
 "Vale is not installed — skipping automated linting. Style check is based on
-dt-style-checker only."
+prose-style-checker only."
 
 ### 7. Get the diff context
 
@@ -136,10 +142,10 @@ For each file with violations, get the actual diff hunks to show what changed:
 
 ```bash
 # For merged PRs:
-git diff <SHA>^..<SHA> -- <file>
+git -C <repo_path> diff <SHA>^..<SHA> -- <file>
 
 # For branches:
-git diff origin/main...origin/<branch> -- <file>
+git -C <repo_path> diff origin/main...origin/<branch> -- <file>
 ```
 
 This helps the user see violations in context of what was changed.
@@ -149,10 +155,11 @@ This helps the user see violations in context of what was changed.
 Output a structured report:
 
 ```markdown
-## PR Review: #<NUMBER> (or branch: <name>)
+## PR review: #<NUMBER> (or branch: <name>)
 
 ### Summary
 - Files changed: X documentation files (Y deleted, skipped)
+- Rules: <rules_source — "baseline" or "overlay: <path>">
 - Style violations: X (MAJOR: N, MINOR: N, NIT: N)
 - Vale findings: X (error: N, warning: N, suggestion: N)  — or "N/A (Vale not available)"
 
@@ -162,7 +169,7 @@ Output a structured report:
 
 | Line | Severity | Rule | Message | Suggestion |
 |------|----------|------|---------|------------|
-| 42   | MAJOR    | DT.Terminology.WrongProductName | ... | ... |
+| 42   | MAJOR    | Prose.Terminology.WrongTerm | ... | ... |
 
 <diff context showing the changed lines around the violation>
 
@@ -179,23 +186,29 @@ Output a structured report:
 <Top 3 most impactful things to fix, prioritised by severity>
 ```
 
+The `Rules:` line is the only place the overlay is reported. Do not warn when no overlay
+resolved — the baseline is a valid, complete rule set.
+
 ### 9. Offer to fix
 
 After the report, ask:
 "Would you like me to fix the violations I found? I can apply safe, mechanical
-fixes (terminology, banned words, formatting). Ambiguous cases will be skipped."
+fixes (terminology, excluded words, formatting). Ambiguous cases will be skipped."
 
-If the user says yes, invoke the `dt-doc-fixer` agent with the violation list
-and the file paths.
+If the user says yes, invoke the `prose-fixer` agent
+(`subagent_type: prose-style:prose-fixer`) with the violation list and the file paths.
 
 ## Hard rules
 
-- **Work in any repo** — don't assume dynatrace-docs structure. But optimise for
-  repos with Bitbucket-style merge commit messages (`Pull request #<N>: ...`).
+- **Work in any repo** — don't assume a particular docs-repo layout. Optimise for
+  repos with a merge-commit convention (`Pull request #<N>: …` or `… (#<N>)`), and fall
+  back to branch diffing when neither matches.
 - **Never modify files** during the review phase. Fixes happen only via
-  `dt-doc-fixer` and only when the user explicitly approves.
+  `prose-fixer` and only when the user explicitly approves.
 - **Show violations in diff context** so the user can see what changed alongside
-  what violated the style guide.
+  what violated the style rules.
 - **Respect .gitignore** — don't review generated or vendored files.
+- **A missing overlay is never an error.** Report the resolved rule source once and
+  move on.
 - **If git operations fail**, report the error clearly and suggest the user
   provide a branch name or file paths directly.

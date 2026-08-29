@@ -1,6 +1,6 @@
 ---
 name: release-notes
-description: Jira-driven release-notes drafting. Reads a Value Increment (or any ticket) from exported markdown, optionally grounds in PR diffs, renders a dynatrace-docs release-notes body, runs a light dt-style-checker gate, and writes a persistent draft to paste into Jira's release-notes field.
+description: Jira-driven release-notes drafting. Reads a Value Increment (or any ticket) from exported markdown, optionally grounds in PR diffs, renders an example-docs release-notes body, runs a light prose-style-checker gate, and writes a persistent draft to paste into Jira's release-notes field.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -8,7 +8,7 @@ Draft release notes for the Jira ticket: $ARGUMENTS
 
 `/release-notes` produces a **customer-facing release-notes draft** for a Jira
 Value Increment (or any ticket) from pre-exported markdown in the user's Obsidian vault.
-It optionally grounds the prose in merged PR diffs, renders the dynatrace-docs authored
+It optionally grounds the prose in merged PR diffs, renders the example-docs authored
 release-notes body — a `{{#context}}` label + `### title` + prose for the `feature-updates` /
 `breaking-changes` destinations, or one bare past-tense sentence for `fixes` — with **no
 `{{#internal-note}}`, no Jira IDs, no PR links** (the docs automation adds the metadata
@@ -80,7 +80,7 @@ run — the terminal `commit-artifacts` step skips on it.
     find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<jira_key>*" 2>/dev/null | head -1
     ```
     Default = `<project-dir>/<jira_key>-release-notes.md`. If no project folder
-    is found (e.g. a non-`PRODUCT-` ticket), use the derived default below.
+    is found (e.g. a ticket from a project with no configured destination), use the derived default below.
   - **`$VAULT_PATH` unset** (directory input) → default
     `<parent-of-jira_export_root>/<jira_key>-release-notes.md`.
   Then ask (the Recommended choice is always the resolved file):
@@ -92,9 +92,9 @@ run — the terminal `commit-artifacts` step skips on it.
   `/tmp`). NEVER offer or accept a path inside a docs repo or under
   `jira-products/`.
 
-- **Style check** (default ON when the `dt-style-guide` plugin is installed):
+- **Style check** (default ON when the `prose-style` plugin is installed):
   ```
-  choices: ["Run dt-style-checker then apply safe fixes (Recommended)", "Run dt-style-checker, report only (no auto-fix)", "Skip style check", "Other… (describe)"]
+  choices: ["Run prose-style-checker then apply safe fixes (Recommended)", "Run prose-style-checker, report only (no auto-fix)", "Skip style check", "Other… (describe)"]
   ```
 
 Also display: resolved `jira_export_root`, `jira_key` (plus `$VAULT_PATH` when set), `$REPOS_PATH` (or "N/A — Jira-only"), and the resolved destination.
@@ -246,7 +246,7 @@ end-of-life date is unclear), ask the user:
 choices: ["Enter the end-of-life date (you'll be prompted; end-of-support optional)", "Leave the <!-- TODO: end-of-life date --> marker in the draft", "This isn't a deprecation — drop the note", "Other… (describe)"]
 ```
 On a supplied date, replace the `<!-- TODO: end-of-life date -->` placeholder with the
-end-of-life date (and end-of-support date when given), formatted per the dt-style-guide
+end-of-life date (and end-of-support date when given), formatted per the prose-style
 (e.g. `November 30, 2026`).
 
 When `release-notes-writer` returns `gaps[]` entries that have `jira_phrasing` and `source_phrasing` (source-truth discrepancies), present the discrepancy table and per-claim prompt as in `/document` (Jira mode) Phase 5.8:
@@ -265,13 +265,13 @@ Pass `code_repos` (the Phase-4 resolved map) to the writer when diff-grounding i
 
 ## Phase 7 — Style gate (optional)
 
-If the user chose a style check AND the `dt-style-guide` plugin is installed:
+If the user chose a style check AND the `prose-style` plugin is installed:
 
-→ Agent (subagent_type: "dt-style-guide:dt-style-checker") on the `combined_rendered` draft (write it to the destination first when the destination is a file, or pass it inline). If violations are returned and the user chose auto-fix:
+→ Agent (subagent_type: "prose-style:prose-style-checker") on the `combined_rendered` draft (write it to the destination first when the destination is a file, or pass it inline). If violations are returned and the user chose auto-fix:
 
-→ Agent (subagent_type: "dt-style-guide:dt-doc-fixer") to apply safe fixes.
+→ Agent (subagent_type: "prose-style:prose-fixer") to apply safe fixes.
 
-If `dt-style-guide` is not installed, skip this phase and note "style check skipped — dt-style-guide not installed" in the report.
+If `prose-style` is not installed, skip this phase and note "style check skipped — prose-style not installed" in the report.
 
 ---
 
@@ -291,8 +291,8 @@ If `dt-style-guide` is not installed, skip this phase and note "style check skip
    - Context label: <the {{#context}} value | none — omitted from the draft>
    - Deprecation: <EOL <date> (end-of-support <date | —>) | none>
    - Diff grounding: <on (repos: …) | off>
-   - Style check: <applied N safe fixes | report only (M findings) | skipped (dt-style-guide absent)>
-   - Reminder: paste this into the ticket's Jira release-notes field — the docs automation adds the {{#internal-note}} metadata and emits it into dynatrace-docs.
+   - Style check: <applied N safe fixes | report only (M findings) | skipped (prose-style absent)>
+   - Reminder: paste this into the ticket's Jira release-notes field — the docs automation adds the {{#internal-note}} metadata and emits it into example-docs.
 
    ### Next step
    [leaf/closure per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked: the release note is drafted. If earlier pipeline phases remain, continue — hand to PA → `/dev-workflows:create-ard <VI>` or PE → `/dev-workflows:epics <VI>`; if the change is already built and documented, the VI is fully processed.]

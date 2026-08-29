@@ -1,14 +1,14 @@
-# dynatrace-docs frontmatter fields — writing guidelines
+# example-docs frontmatter fields — writing guidelines
 
-Single source of truth for the **frontmatter metadata fields** on dynatrace-docs
+Single source of truth for the **frontmatter metadata fields** on example-docs
 pages. Companion to
 [`changelog-guidelines.md`](changelog-guidelines.md) (the `changelog:` property)
-and [`managed-owners.txt`](managed-owners.txt) (the `owners:` block) — those two
+and [`default-owners.txt`](default-owners.txt) (the `owners:` block) — those two
 conventions are documented separately and only cross-linked here.
 
-Applied by the `dynatrace-docs-frontmatter` skill and the `/document` docs
+Applied by the `docs-frontmatter` skill and the `/document` docs
 pipeline (`doc-planner` plans, `doc-writer` writes, `doc-reviewer` checks) **only
-under the dynatrace-docs profile** — a generic docs repo is unaffected.
+under the example-docs profile** — a generic docs repo is unaffected.
 
 ## Fields
 
@@ -25,7 +25,7 @@ outside this band is a **warning**, not a hard block.
 ### `meta.content-type` (mandatory)
 
 Mandatory metadata on every new page; visible in the page header. Implements the
-Diátaxis content model extended with Dynatrace-specific types. One of:
+Diátaxis content model extended with product-specific types. One of:
 
 | Value | Use |
 |---|---|
@@ -52,8 +52,8 @@ set it when the page's translation priority is known; otherwise omit.
 ### `meta.generation` (advisory)
 
 Array of `latest` / `classic` (both experiences → `[classic, latest]`). Governs
-which Dynatrace experience the page applies to. **Build caveat:** a page tagged
-`latest`-only that also surfaces in the Managed docs breaks the build — when in
+which product experience the page applies to. **Build caveat:** a page tagged
+`latest`-only that also surfaces in the Self-hosted docs breaks the build — when in
 doubt for cross-experience/deployment/API/CLI content, use both. Advisory here;
 match the convention on adjacent pages.
 

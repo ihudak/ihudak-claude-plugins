@@ -1,12 +1,12 @@
 ---
 name: document
-description: Jira-driven feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in dynatrace-docs default → on-demand /docs-profile) and the VI's specs dir under /workspace. Phase 4.5 determines/confirms the applicable space(s). Optional saas|managed constraint scopes the run to one space. Reads a Value Increment hierarchy from exported markdown, resolves PR diffs in parallel, synthesises product documentation, and gates on style-check and Opus doc review. Optional --counterpart <JiraID|PR-url> grounds a space-constrained run on the other space's existing docs (read-only).
+description: Jira-driven feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in example-docs default → on-demand /docs-profile) and the VI's specs dir under /workspace. Phase 4.5 determines/confirms the applicable space(s). Optional cloud|self-hosted constraint scopes the run to one space. Reads a Value Increment hierarchy from exported markdown, resolves PR diffs in parallel, synthesises product documentation, and gates on style-check and Opus doc review. Optional --counterpart <JiraID|PR-url> grounds a space-constrained run on the other space's existing docs (read-only).
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
 Generate product documentation for the Jira Value Increment: $ARGUMENTS
 
-Signature: `PRODUCT-NNNN [saas|managed] [--counterpart <JiraID|PR-url>]`. The optional second token is a **space constraint**, not a target list. When you pass `saas` or `managed`, the command documents **only that space** and leaves the OTHER space's rendered output unchanged (SaaS pages stay as they are when you pass `managed`, and vice-versa). When you omit it, the command **determines the applicable space(s)** from the Jira hierarchy and the resolved repos, then confirms with you. `both` is intentionally NOT an accepted value — omit the argument to cover both spaces. `--counterpart <JiraID | PR-url>` is an optional named flag (valid only on a space-constrained run) that points at the OTHER space's documentation for this feature — a Jira key or a PR URL (merged or not). It is used as **read-only grounding**; on a both-space run it is rejected. See Phase 5.6.5.
+Signature: `PRODUCT-NNNN [cloud|self-hosted] [--counterpart <JiraID|PR-url>]`. The optional second token is a **space constraint**, not a target list. When you pass `cloud` or `self-hosted`, the command documents **only that space** and leaves the OTHER space's rendered output unchanged (Cloud pages stay as they are when you pass `self-hosted`, and vice-versa). When you omit it, the command **determines the applicable space(s)** from the Jira hierarchy and the resolved repos, then confirms with you. `both` is intentionally NOT an accepted value — omit the argument to cover both spaces. `--counterpart <JiraID | PR-url>` is an optional named flag (valid only on a space-constrained run) that points at the OTHER space's documentation for this feature — a Jira key or a PR URL (merged or not). It is used as **read-only grounding**; on a both-space run it is rejected. See Phase 5.6.5.
 
 `/document` (Jira mode) is the **Jira-driven feature-documentation** workflow. Given a Jira Value Increment key, it reads the full Jira hierarchy from pre-exported markdown in the user's Obsidian vault, resolves PR URLs to local git repos, runs parallel PR-diff summaries, synthesises product documentation, runs style-check + Opus review gates, and writes the output to the current working directory (a product docs repository).
 
@@ -18,7 +18,7 @@ For small one-off doc edits, use direct mode (below). For writing child Epic dra
 
 `/document` has **two modes**, selected by the first argument token:
 
-- **Jira mode (Mode A)** — the input resolves `jira-driven` via the shared front-end (`${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`): a first token matching a JiraID (`^[A-Z][A-Z0-9]+-[0-9]+`), optionally followed by `saas` | `managed`, **or** a directory that inspects as a Jira-export (contains `<KEY>-index.md`). The front-end's Fallback B handles a JiraID-shaped token with no `jira-products/<KEY>` folder.
+- **Jira mode (Mode A)** — the input resolves `jira-driven` via the shared front-end (`${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`): a first token matching a JiraID (`^[A-Z][A-Z0-9]+-[0-9]+`), optionally followed by `cloud` | `self-hosted`, **or** a directory that inspects as a Jira-export (contains `<KEY>-index.md`). The front-end's Fallback B handles a JiraID-shaped token with no `jira-products/<KEY>` folder.
 - **Direct mode (Mode B)** — the input resolves `direct` (a leading `@file` token, free-text prose, or a non-Jira-export directory, which Mode B handles via its existing "anything else" path).
 
 **Specs-repo preflight.** Cite
@@ -56,11 +56,11 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
    Resolve `docs_repo_path` in this order:
 
    - **(a) cwd with signals (preserves today's behavior).** Run `git rev-parse --show-toplevel` from cwd to resolve the git root. If it succeeds **and** ≥ 1 docs signal is present there → `docs_repo_path` = that git root and proceed silently. This keeps every downstream phase that assumes cwd correct.
-   - **(a.5) `$DOCS_PATH` hint.** Else, resolve `${DOCS_PATH:-/workspace/docs}`. If it exists and passes the `is_dynatrace_docs` signal check (see step 3 — contains both `managed/docstack.jsonc` and `dynatrace/_content/`), set `docs_repo_path` = that path and proceed. In an AI container the docs clone is mounted here, so this is the common fast path when cwd carries no docs signals.
-   - **(b) Search for a dynatrace-docs clone.** Else, look under `${REPOS_PATH:-/workspace}` (single dir or colon-separated list) for a `dynatrace-docs` checkout: a top-level directory either named `dynatrace-docs`, or a git root that contains both `dynatrace/_content` and `managed/docstack.jsonc`. If exactly one matches → `docs_repo_path` = that path. If several match, list them and ask which to use (`choices` array, recommended first, last item `"Other… (describe)"`).
+   - **(a.5) `$DOCS_PATH` hint.** Else, resolve `${DOCS_PATH:-/workspace/docs}`. If it exists and carries **≥ 1 docs signal** (the same signal set as (a)) **or** an in-repo `.dev-workflows/docs-profile.yml`, set `docs_repo_path` = that path and proceed. In an AI container the docs clone is mounted here, so this is the common fast path when cwd carries no docs signals. The check is signal-based, never keyed to a particular repository's name or file layout.
+   - **(b) Search for a docs repo.** Else, look under `${REPOS_PATH:-/workspace}` (single dir or colon-separated list) for a git root that carries an in-repo `.dev-workflows/docs-profile.yml` **or** ≥ 1 docs signal from (a)'s set. If exactly one matches → `docs_repo_path` = that path. If several match, list them and ask which to use (`choices` array, a profiled repo recommended first, last item `"Other… (describe)"`). Discovery is by signal, never by repository name — no repo name is special-cased.
    - **(c) Ask.** Else, ask:
      ```
-     "No product-docs-repo signals in this working tree and no dynatrace-docs clone found under ${REPOS_PATH:-/workspace}. The signals I checked in cwd:
+     "No product-docs-repo signals in this working tree and no docs repo found under ${REPOS_PATH:-/workspace}. The signals I checked in cwd:
       - package.json scripts matching *:start, *:build, *:lint, docs:*
       - .docstack/, mkdocs.yml, docusaurus.config.js, antora.yml, .vale.ini, DOCUMENTATION-GUIDELINES.md
       - any _snippets/ directory under the repo root
@@ -71,11 +71,11 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 
    **Confirm writeable.** Once `docs_repo_path` is resolved, run `test -w <docs_repo_path>`. If it fails, stop with the named error `REPO_NOT_WRITEABLE: <docs_repo_path> is not writeable.`
 
-3. **Recognize dynatrace-docs.** Set `is_dynatrace_docs` = `true` when the resolved `docs_repo_path` contains **both** `managed/docstack.jsonc` and `dynatrace/_content/` and — when a git remote is available (`git -C <docs_repo_path> remote get-url origin`) — its slug (last path segment, trailing `.git` stripped) is `dynatrace-docs`. Directory name alone is **not** sufficient; the signals decide.
+3. **Does the built-in default profile apply?** Set `is_known_docs_repo` = `true` only when the resolved `docs_repo_path` matches the **built-in default profile's own layout** — it contains every `spaces[].content_root` that profile declares, plus its `cross_space_override` manifest. This is a narrow test for "this repo is shaped like the bundled example", not a test for "this is a docs repo"; a real repo almost always answers `false` here and is served by its own in-repo profile at step 4(a), or by on-demand profiling at 4(c). Directory name is **never** a factor.
 
 4. **Resolve the profile** (record `profile_source`). The profile steers all later phases' conventions. Resolve in this order:
    - **(a) In-repo profile →** `in-repo`. If `<docs_repo_path>/.dev-workflows/docs-profile.yml` exists, load it. `profile_source: in-repo`.
-   - **(b) dynatrace-docs built-in default →** `built-in`. Else, if `is_dynatrace_docs`, load `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/docs-profile.default.yml`. `profile_source: built-in`.
+   - **(b) Built-in default profile →** `built-in`. Else, if `is_known_docs_repo`, load `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile.default.yml`. `profile_source: built-in`.
    - **(c) Custom repo, no profile →** `generated`. Else (a custom docs repo with no profile), run **inline on-demand profiling**: invoke the `/docs-profile` flow against `docs_repo_path` (Skill tool, `skill: "dev-workflows:docs-profile"`, with `docs_repo_path --inline` as its arguments — the `--inline` token tells profiling to skip its branch-naming prompt and standalone PR-draft handoff, since this command owns the single branch + PR draft) and wait for it to write `<docs_repo_path>/.dev-workflows/docs-profile.yml`. Then load that file. `profile_source: generated`. If the user cancels profiling (it produces no profile), stop with the named error `PROFILE_REQUIRED: a docs-profile is required to write into a custom docs repo; run /dev-workflows:docs-profile or switch to a profiled repo.`
 
    Hold the loaded profile for later phases.
@@ -104,21 +104,21 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 
 7. **Parse the optional space constraint.** Read `$ARGUMENTS` as `<JIRA_KEY> [space]` — the same `$ARGUMENTS` already split for `<JIRA_KEY>` in step 1. **First set aside any `--counterpart <value>` flag pair** (parsed in step 8) so it is never mistaken for the space token; the space constraint is then the first remaining whitespace-separated token after `<JIRA_KEY>` (if any).
    - **No second token** → `space_constraint = none`. Phase 4.5 will determine and confirm the applicable space(s).
-   - **Second token is `saas` or `managed`** (case-insensitive) → `space_constraint = <space>`. This is a deliberate scoping decision by the user, so Phase 4.5 skips its determination step and records `target_spaces = [space_constraint]` directly.
-   - **Second token present but not `saas`/`managed`** (e.g. `both`, a typo, or extra free text) → do NOT silently guess. Reject it and ask:
+   - **Second token is `cloud` or `self-hosted`** (case-insensitive) → `space_constraint = <space>`. This is a deliberate scoping decision by the user, so Phase 4.5 skips its determination step and records `target_spaces = [space_constraint]` directly.
+   - **Second token present but not `cloud`/`self-hosted`** (e.g. `both`, a typo, or extra free text) → do NOT silently guess. Reject it and ask:
      ```
      "'<token>' is not a valid space constraint. The constraint scopes the run to a single space; to cover both, omit the argument and let the command determine the applicable space(s). How would you like to proceed?"
-     choices: ["Drop the constraint — auto-determine (Recommended)", "saas", "managed", "Cancel"]
+     choices: ["Drop the constraint — auto-determine (Recommended)", "cloud", "self-hosted", "Cancel"]
      ```
-     "Drop the constraint" → `space_constraint = none`. "saas"/"managed" → `space_constraint = <choice>`. "Cancel" → stop.
+     "Drop the constraint" → `space_constraint = none`. "cloud"/"self-hosted" → `space_constraint = <choice>`. "Cancel" → stop.
 
 8. **Parse the optional `--counterpart` flag.** Scan `$ARGUMENTS` for a `--counterpart <value>` token (named flag; `<value>` is the next whitespace-separated token, a Jira key `^[A-Z][A-Z0-9]+-[0-9]+` or a URL). Record `counterpart_ref = <value>` (default `null` when absent).
    - **`--counterpart` present but `space_constraint == none`** (both-space run) → do NOT silently accept. Ask:
      ```
-     "--counterpart grounds a single documented space on the OTHER space, so it needs a space constraint (saas|managed). This run covers both spaces. How would you like to proceed?"
-     choices: ["Drop --counterpart — cover both spaces (Recommended)", "Constrain to saas", "Constrain to managed", "Cancel"]
+     "--counterpart grounds a single documented space on the OTHER space, so it needs a space constraint (cloud|self-hosted). This run covers both spaces. How would you like to proceed?"
+     choices: ["Drop --counterpart — cover both spaces (Recommended)", "Constrain to cloud", "Constrain to self-hosted", "Cancel"]
      ```
-     "Drop" → `counterpart_ref = null`. "Constrain to saas/managed" → set `space_constraint` accordingly and keep `counterpart_ref`. "Cancel" → stop.
+     "Drop" → `counterpart_ref = null`. "Constrain to cloud/self-hosted" → set `space_constraint` accordingly and keep `counterpart_ref`. "Cancel" → stop.
    - **`--counterpart` value malformed** (not a Jira key or URL) → do NOT guess. Ask:
      ```
      "'<value>' isn't a valid --counterpart target. It should be a Jira key (e.g. PROJ-1234) or a PR URL. How would you like to proceed?"
@@ -167,11 +167,11 @@ Before clarification, show a readiness table summarizing what Phase 0 resolved:
 | Item | Resolved |
 |---|---|
 | Jira input | source: `<vault \| directory>`; export root: `<jira_export_root>` |
-| Docs repo | `<docs_repo_path>` (`is_dynatrace_docs`: yes/no) — write context `<obsidian \| docs_repo \| non_docs_repo \| plain_dir>` |
+| Docs repo | `<docs_repo_path>` (`is_known_docs_repo`: yes/no) — write context `<obsidian \| docs_repo \| non_docs_repo \| plain_dir>` |
 | Profile | `profile_source`: `<in-repo \| built-in \| generated>` |
 | Toolchain | `<all required tools present>` OR `<N missing: vale, pnpm — user chose to continue>`; writing into `<docs_repo_path>`[ (cwd is `<cwd>`)] |
 | Specs | `<specs_dir>` or `none` |
-| Space constraint | `<space_constraint>` (`saas` \| `managed` \| `none` → auto-determine in Phase 4.5) |
+| Space constraint | `<space_constraint>` (`cloud` \| `self-hosted` \| `none` → auto-determine in Phase 4.5) |
 | Code repos | resolved later in Phase 4 (slug→clone match under `$REPOS_PATH`) |
 
 All discovery defaults to `/workspace` (`${REPOS_PATH:-/workspace}`); on a host, or when a path is missing, the command asks rather than guessing.
@@ -212,7 +212,7 @@ Ask about:
   find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<JIRA_KEY>*" 2>/dev/null | head -1
   ```
   - **Found** → record the matched folder as `<project_dir>` (the project-folder root — reused as an image source in Phase 5.6), and set `<screenshot_staging_dir>` to that project folder's screenshot subfolder: prefer an existing `Doc screenshots/` or `Attachments/` subdirectory; otherwise `Doc screenshots/` (created on first write).
-  - **Not found** (e.g. a non-`PRODUCT-` ticket with no project folder) → `<project_dir>` is null (Phase 5.6's project-folder scan then contributes nothing); ask:
+  - **Not found** (e.g. a ticket whose project has no project folder) → `<project_dir>` is null (Phase 5.6's project-folder scan then contributes nothing); ask:
     ```
     choices: ["Enter an absolute directory under $VAULT_PATH (you'll be prompted)", "Skip — only needed if the docs repo turns out to be cdn_upload_required", "Cancel", "Other… (describe)"]
     ```
@@ -224,7 +224,7 @@ Also display (for user context):
 - Whether branching will happen (only when context is `docs_repo` — confirmed at plan approval)
 - Resolved `$REPOS_PATH`
 - Resolved `$VAULT_PATH` and `<JIRA_KEY>`
-- Space scope — show `space_constraint` (Phase 0 step 7): `saas`/`managed` means `target_spaces` is already fixed to that single space; `none` means the applicable space(s) are auto-determined and confirmed in Phase 4.5 (after the Jira read and repo resolution). Once Phase 4.5 has run, the resolved `target_spaces` is the authoritative value displayed here.
+- Space scope — show `space_constraint` (Phase 0 step 7): `cloud`/`self-hosted` means `target_spaces` is already fixed to that single space; `none` means the applicable space(s) are auto-determined and confirmed in Phase 4.5 (after the Jira read and repo resolution). Once Phase 4.5 has run, the resolved `target_spaces` is the authoritative value displayed here.
 
 ---
 
@@ -275,7 +275,7 @@ Present a concise plan:
 - Parallelism plan (up to 4 `diff-summarizer` instances per batch; up to 4 repos per Agent message)
 - Write context + whether branching will happen
 - Screenshots: `new_images_wanted` (yes/no, from Phase 1). Phase 5.6 always runs: when yes, its add-list candidates are gathered and confirmed there (specs scan + Jira `attachments[]` + manual paths) — list "candidates resolved in Phase 5.6"; either way, Phase 5.6 also reviews the images already on the edited pages for staleness.
-- Target space(s): the resolved `target_spaces` (`[saas]` / `[managed]` / `[saas, managed]`). State whether it came from the `space_constraint` argument (and that the other space's render is left unchanged) or from the Phase 4.5 auto-determination the user confirmed. If Phase 4.5 hasn't run yet (auto-determine, `space_constraint = none`), list "TBD — determined and confirmed in Phase 4.5".
+- Target space(s): the resolved `target_spaces` (`[cloud]` / `[self-hosted]` / `[cloud, self-hosted]`). State whether it came from the `space_constraint` argument (and that the other space's render is left unchanged) or from the Phase 4.5 auto-determination the user confirmed. If Phase 4.5 hasn't run yet (auto-determine, `space_constraint = none`), list "TBD — determined and confirmed in Phase 4.5".
 
 Ask:
 ```
@@ -351,24 +351,24 @@ From the `jira-reader` handoff `pull_requests` list:
 
 ## Phase 4.5 — Determine applicable space(s)
 
-Resolve `target_spaces` — one of `[saas]`, `[managed]`, or `[saas, managed]`. This is the set of spaces the documentation will cover; the constraint semantics that *protect* the other space (`{{#if project='…'}}` conditionals or override-copies + `managed/docstack.jsonc` `ignore` allowlisting) are Phase 5.9, so this phase only carries `target_spaces` forward.
+Resolve `target_spaces` — one of `[cloud]`, `[self-hosted]`, or `[cloud, self-hosted]`. This is the set of spaces the documentation will cover; the constraint semantics that *protect* the other space (`{{#if project='…'}}` conditionals or override-copies + `self-hosted/docstack.jsonc` `ignore` allowlisting) are Phase 5.9, so this phase only carries `target_spaces` forward.
 
-- **If `space_constraint` is set** (`saas` or `managed`, from Phase 0 step 7) → set `target_spaces = [space_constraint]` and skip the determination below. Print:
+- **If `space_constraint` is set** (`cloud` or `self-hosted`, from Phase 0 step 7) → set `target_spaces = [space_constraint]` and skip the determination below. Print:
   ```
   Constrained to <space_constraint> (the other space's render is left unchanged — see Phase 5.9 techniques).
   ```
 
 - **If `space_constraint` is `none`** → run a **first-pass determination** from cheap signals already in hand, then confirm with the user:
-  1. **Jira text/labels** — scan the `jira-reader` handoff (VI + linked Epics: summaries, descriptions, labels, components) for explicit "SaaS", "Managed", or "both" mentions. Explicit wording is the strongest signal.
-  2. **Resolved-repo leaning** — use the Phase-4 `repo_slug → repo_path` map as a **hint, not authority**: cluster/Managed-oriented repos (e.g. names containing `cluster`, `managed`, `server`, `appliance`) lean `managed`; SaaS-service repos lean `saas`. A mix of both leans `[saas, managed]`.
-  3. **Specs presence/name** — if `specs_dir` was resolved in Phase 0, a `saas`/`managed` hint in its name reinforces the guess; absence is neutral.
+  1. **Jira text/labels** — scan the `jira-reader` handoff (VI + linked Epics: summaries, descriptions, labels, components) for explicit "Cloud", "Self-hosted", or "both" mentions. Explicit wording is the strongest signal.
+  2. **Resolved-repo leaning** — use the Phase-4 `repo_slug → repo_path` map as a **hint, not authority**: cluster/Self-hosted-oriented repos (e.g. names containing `cluster`, `self-hosted`, `server`, `appliance`) lean `self-hosted`; Cloud-service repos lean `cloud`. A mix of both leans `[cloud, self-hosted]`.
+  3. **Specs presence/name** — if `specs_dir` was resolved in Phase 0, a `cloud`/`self-hosted` hint in its name reinforces the guess; absence is neutral.
 
-  Form a best-guess `target_spaces` from these signals (when they conflict or are silent, default the guess to `both saas and managed` — under-scoping silently drops a space, which is worse than over-scoping). **Confirm with the user**, ordering the recommended (auto-detected) option first:
+  Form a best-guess `target_spaces` from these signals (when they conflict or are silent, default the guess to `both cloud and self-hosted` — under-scoping silently drops a space, which is worse than over-scoping). **Confirm with the user**, ordering the recommended (auto-detected) option first:
   ```
   "Determined applicable space(s): <auto-detected> — from [signals that drove it]. Confirm or override:"
-  choices: ["<auto-detected> (Recommended)", "saas only", "managed only", "both saas and managed", "Other… (describe)"]
+  choices: ["<auto-detected> (Recommended)", "cloud only", "self-hosted only", "both cloud and self-hosted", "Other… (describe)"]
   ```
-  Map the confirmed choice to `target_spaces`: "saas only" → `[saas]`, "managed only" → `[managed]`, "both saas and managed" → `[saas, managed]`; "Other… (describe)" takes free text and resolves to one of the three. Record the confirmed `target_spaces`.
+  Map the confirmed choice to `target_spaces`: "cloud only" → `[cloud]`, "self-hosted only" → `[self-hosted]`, "both cloud and self-hosted" → `[cloud, self-hosted]`; "Other… (describe)" takes free text and resolves to one of the three. Record the confirmed `target_spaces`.
 
 Phase 4.5's confirmed value is authoritative — no later phase re-derives `target_spaces` from the full diff/spec analysis; it threads through unchanged into Phase 5.7 (`doc-planner`) and the writing phases.
 
@@ -479,7 +479,7 @@ Build this list only when `new_images_wanted` is `true` (Phase 1); when `false`,
 
 ### Existing-image list (staleness review)
 
-**Always build this list** — it does not depend on `new_images_wanted`. The orchestrator owns it (`doc-planner` runs later, at Phase 5.7, and never supplies or reads this list). For every `extend-existing` write target in Phase 5.5's confirmed `write_targets`, read the target file and record **every image reference in document order** — one row per occurrence, not per unique URL: the same URL can recur under different space gating, and each occurrence is decided separately (a `saas`-gated and a `managed`-gated block can carry the same stale URL, and only one of them may need the fix). For each occurrence record:
+**Always build this list** — it does not depend on `new_images_wanted`. The orchestrator owns it (`doc-planner` runs later, at Phase 5.7, and never supplies or reads this list). For every `extend-existing` write target in Phase 5.5's confirmed `write_targets`, read the target file and record **every image reference in document order** — one row per occurrence, not per unique URL: the same URL can recur under different space gating, and each occurrence is decided separately (a `cloud`-gated and a `self-hosted`-gated block can carry the same stale URL, and only one of them may need the fix). For each occurrence record:
 - `target` — the write target's path.
 - `occurrence` — the 1-based index of this image reference within the whole target, counted in document order across **all** image references in the file — never filtered by `old_url`, never scoped to a section.
 - `old_url` — the image reference's current URL/path.
@@ -532,7 +532,7 @@ The selected add-list paths populate the existing **`screenshots[]`** passed to 
 
 ## Phase 5.6.5 — Counterpart-space reference discovery
 
-**Run only when `target_spaces` is a single space** (`[saas]` or `[managed]`). A run that already covers both spaces has no "other" space → skip entirely and carry `counterpart_references = []`. (A `--counterpart` on a both-space run was already resolved in Phase 0.)
+**Run only when `target_spaces` is a single space** (`[cloud]` or `[self-hosted]`). A run that already covers both spaces has no "other" space → skip entirely and carry `counterpart_references = []`. (A `--counterpart` on a both-space run was already resolved in Phase 0.)
 
 The **counterpart space** is the one space in `profile.spaces[]` not in `target_spaces`. Discover its existing documentation for this feature and carry it forward as **read-only grounding** — concepts, terminology, facts, section structure, and comprehension-only screenshots. It is never copied into the target doc and never an image source (Phase 5.6 remains the only image source).
 
@@ -589,7 +589,7 @@ Invoke `doc-planner`:
   > code_repos:           [the Phase-4 resolved {slug, path} map; [] if none resolved]
   > specs_dir:            [resolved <specs_dir> from Phase 0, or null]
   > profile:              [the docs-profile loaded in Phase 0 — drives space routing + the multi-space write strategy]
-  > target_spaces:        [the resolved target_spaces from Phase 4.5: [saas] | [managed] | [saas, managed]]
+  > target_spaces:        [the resolved target_spaces from Phase 4.5: [cloud] | [self-hosted] | [cloud, self-hosted]]
   > counterpart_references: [the confirmed counterpart_references from Phase 5.6.5; [] when none]"
 
 Handle the `status` and `gaps`:
@@ -669,7 +669,7 @@ shared page needs cross-space protection). If every target is `plain`, skip to
 Phase 6.3 — there is nothing to protect.
 
 The mechanics are defined in
-`${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/multi-space-writing.md`; this
+`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/multi-space-writing.md`; this
 phase only confirms the per-page **strategy choice** before Phase 6.3 writes.
 
 1. **Present the recommended strategies** (informational, before asking) — one
@@ -786,7 +786,7 @@ This table governs the **documentation write target only**. Independently of eve
 
 **Mandatory:** the orchestrator MUST dispatch `docs-style-checker` and act on its return — never skip on its own judgement of which linters are installed.
 
-`docs-style-checker` runs the chain **internally**: the repo's primary linter (Vale, etc.) AND — when the `dt-style-guide` plugin is installed — `dt-style-checker` as a complementary semantic / cross-page-consistency pass, merging and deduping both finding sets. The two are complementary, not redundant (Vale: lexical at scale + frontmatter; `dt-style-checker`: engineer jargon, cross-page label consistency, subject-verb agreement, plural/singular label mismatch). The command does NOT invoke `dt-style-checker` separately — the agent already did. It climbs the rungs as a ladder — a detected-but-broken rung does not abandon the ones below it — and, when the caller passes `spaces`, lints each written space with that space's own command.
+`docs-style-checker` runs the chain **internally**: the repo's primary linter (Vale, etc.) AND — when the `prose-style` plugin is installed — `prose-style-checker` as a complementary semantic / cross-page-consistency pass, merging and deduping both finding sets. The two are complementary, not redundant (Vale: lexical at scale + frontmatter; `prose-style-checker`: engineer jargon, cross-page label consistency, subject-verb agreement, plural/singular label mismatch). The command does NOT invoke `prose-style-checker` separately — the agent already did. It climbs the rungs as a ladder — a detected-but-broken rung does not abandon the ones below it — and, when the caller passes `spaces`, lints each written space with that space's own command.
 
 Invoke `docs-style-checker` on the files written in Phase 6.3:
 
@@ -802,12 +802,12 @@ Write the `style_check` ledger row before acting on the return — rewriting the
 `primary_attempts` and `complementary_linter`:
 
 - no file was written in Phase 6.3 → `NOT_APPLICABLE`, `precondition_unmet: "no files written"`.
-- a primary rung succeeded → `RAN`, `mechanism: <primary_linter>` (+ `dt-style-checker` when it ran),
+- a primary rung succeeded → `RAN`, `mechanism: <primary_linter>` (+ `prose-style-checker` when it ran),
   `findings:` = the number of merged violations returned.
-- every primary rung failed but `dt-style-checker` ran → `DEGRADED`, `not_run:` one entry per failed
+- every primary rung failed but `prose-style-checker` ran → `DEGRADED`, `not_run:` one entry per failed
   rung from `primary_attempts`, `ci_still_checks: "<the repo's own linter> runs on the PR in CI"`, and
   `findings:` = the number of merged violations returned.
-- `status: NOT_CONFIGURED` (no primary rung detected AND `dt-style-guide` absent) → `UNAVAILABLE`;
+- `status: NOT_CONFIGURED` (no primary rung detected AND `prose-style` absent) → `UNAVAILABLE`;
   convert it per `gate-ledger.md` §5 before proceeding.
 - `status: ERROR` → `UNAVAILABLE`; convert it per `gate-ledger.md` §5.
 
@@ -818,7 +818,7 @@ number of checklist items that failed against the written files.
 
 Then act on the return:
 
-- **`status: NOT_CONFIGURED`** — no primary rung was detected AND `dt-style-guide` is not installed (the agent already climbed the whole ladder). This is a real coverage hole, not a no-op: the ledger row is `UNAVAILABLE` and `gate-ledger.md` §5 converts it before Phase 7. Never proceed on `NOT_CONFIGURED` without that conversion.
+- **`status: NOT_CONFIGURED`** — no primary rung was detected AND `prose-style` is not installed (the agent already climbed the whole ladder). This is a real coverage hole, not a no-op: the ledger row is `UNAVAILABLE` and `gate-ledger.md` §5 converts it before Phase 7. Never proceed on `NOT_CONFIGURED` without that conversion.
 - **`status: OK`** — the chain ran (primary and/or complementary), zero merged violations. Proceed to Phase 7.
 - **`status: VIOLATIONS_FOUND`** — invoke `doc-fixer` with the violations treated as per their severity. After `doc-fixer` completes, **check its `Stop condition flag`**: `docs-style-checker` maps a linter's own blocking failure to `BLOCKER` (`agents/docs-style-checker.md`), so this dispatch can return `NEEDS HUMAN` — the fixer deferred a blocking violation it could not safely fix. On `NEEDS HUMAN`, surface each deferred BLOCKER with the fixer's reason and ask the user how to resolve it — fix by hand and re-run, or skip the check. A silent re-run only reports the same violation again. The `style_check` gate row stays open until that answer lands and then records its outcome per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` — `RAN` after a hand fix and re-run, `SKIPPED_BY_USER` with the choice quoted verbatim if skipped. Only on `CLEAR` re-run the linter once:
 
@@ -837,7 +837,7 @@ Then act on the return:
 
   When the re-run completes, rewrite the `style_check` row's `findings:` to the post-fix violation count so the Phase 9 table reports what survived, not what was found.
 
-- **`status: ERROR`** — every primary rung AND the `dt-style-checker` pass failed or were unavailable. Surface the error reason, then STOP: the `style_check` row is `UNAVAILABLE`, and the only prompt the user sees is the `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 conversion list. Do NOT ask an ad-hoc question here — §5 owns this decision, and the "Choice lists are presented verbatim" rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` binds it.
+- **`status: ERROR`** — every primary rung AND the `prose-style-checker` pass failed or were unavailable. Surface the error reason, then STOP: the `style_check` row is `UNAVAILABLE`, and the only prompt the user sees is the `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 conversion list. Do NOT ask an ad-hoc question here — §5 owns this decision, and the "Choice lists are presented verbatim" rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` binds it.
 
 ---
 
@@ -848,11 +848,11 @@ Then act on the return:
 - Write context is `obsidian` or `plain_dir` → append BOTH `build_check` and `render_smoke_check` as `NOT_APPLICABLE` with `precondition_unmet` naming the actual context — `"write context is obsidian"` or `"write context is plain_dir"`. These rows are final; the phase does not run.
 - Write context is `docs_repo` or a confirmed `non_docs_repo` → append both provisionally as `RAN`, then rewrite each at the end of this phase per **Ledger (final)** below.
 
-Run this phase after Phase 6.4 **only** when Phase 6.3 wrote files into a buildable docs repo (write context `docs_repo`, or `non_docs_repo` confirmed at Phase 0). Skip for `obsidian` / `plain_dir` (nothing was written into a repo that builds) — the rows above are already recorded. Mechanics: `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/render-verification.md`. "Affected pages" = every file written or modified in Phase 6.3.
+Run this phase after Phase 6.4 **only** when Phase 6.3 wrote files into a buildable docs repo (write context `docs_repo`, or `non_docs_repo` confirmed at Phase 0). Skip for `obsidian` / `plain_dir` (nothing was written into a repo that builds) — the rows above are already recorded. Mechanics: `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/render-verification.md`. "Affected pages" = every file written or modified in Phase 6.3.
 
 ### Step 1 — Build check (gating)
 
-Resolve the build command per space — `profile.commands.per_space.<space>.build`, else the flat `profile.commands.build` — and run it for every space in the **verification set** (`${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/render-verification.md` §2): `target_spaces`, plus the protected space of any affected page whose `write_strategy.strategy` is `conditional` or `override-copy`. Do NOT scope the build by which `content_root` the files physically landed in — a `conditional` delta is written into its HOME space's tree but renders only in its `target_space`, so a path-scoped build would run the home space's build (which skips the `{{#if project='…'}}` block outright) and never compile the content the change is actually for. Do NOT re-run the Phase 6.4 prose linter. Classify any failure:
+Resolve the build command per space — `profile.commands.per_space.<space>.build`, else the flat `profile.commands.build` — and run it for every space in the **verification set** (`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/render-verification.md` §2): `target_spaces`, plus the protected space of any affected page whose `write_strategy.strategy` is `conditional` or `override-copy`. Do NOT scope the build by which `content_root` the files physically landed in — a `conditional` delta is written into its HOME space's tree but renders only in its `target_space`, so a path-scoped build would run the home space's build (which skips the `{{#if project='…'}}` block outright) and never compile the content the change is actually for. Do NOT re-run the Phase 6.4 prose linter. Classify any failure:
 - **Content failure** (Handlebars won't compile, unresolved snippet include, broken postid/internal link, malformed conditional) → invoke `doc-fixer` (Severities: BLOCKER and MAJOR), then re-run the build once. If failures remain:
   ```
   choices: ["Proceed to smoke-check anyway", "Show remaining and fix manually", "Cancel"]
@@ -863,7 +863,7 @@ Resolve the build command per space — `profile.commands.per_space.<space>.buil
   ```
   This is the `gate-ledger.md` §5 conversion for `build_check`, not an orchestrator decision: "Proceed without this check" writes `SKIPPED_BY_USER` with the chosen option quoted verbatim in `user_decision`. Do NOT present this list when the `build_check` row already carries a `user_decision` from Phase 0's preflight naming the same missing tool — the user answered this question before anything was written, and that answer stands. Record the failure reason in the row, keep the existing `user_decision`, and continue to Step 2 without prompting.
 
-When the profile declares **no** build command at either level, record "no build command in profile; build proof deferred to the dev-server boot (Step 2)" and proceed. Under the built-in dynatrace-docs profile this branch does not apply — `commands.per_space.saas.build` and `commands.per_space.managed.build` are both defined.
+When the profile declares **no** build command at either level, record "no build command in profile; build proof deferred to the dev-server boot (Step 2)" and proceed. Under the built-in example-docs profile this branch does not apply — `commands.per_space.cloud.build` and `commands.per_space.self-hosted.build` are both defined.
 
 ### Step 2 — Dev-server smoke-check (opt-in, best-effort)
 
@@ -925,7 +925,7 @@ Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `revi
   > Jira directory path:    [<jira_export_root>]
   > Diff summaries:         [array of diff-summarizer outputs from Phase 5]
   > doc-planner checklist:  [the full YAML from Phase 5.7]
-  > style-check report: [the violations output from Phase 6.4 — from docs-style-checker or dt-style-checker; same violation schema regardless of source]
+  > style-check report: [the violations output from Phase 6.4 — from docs-style-checker or prose-style-checker; same violation schema regardless of source]
   > gate_ledger:        [the complete gate_ledger block — one row per gate in references/gate-ledger.md §4, including the Phase 0 toolchain_preflight row]
   > render_verification: [the Phase 6.5 summary — build result; smoke-check per space (passed / skipped with reason); cross-space invariant check result]
   > code_repos:         [the Phase-4 resolved {slug, path} map; [] if none resolved]
@@ -1062,7 +1062,7 @@ Run this phase only when Phase 6.3 wrote + committed in a git repo (write contex
 Fold the run into clean history before handoff:
 1. Stage the run's uncommitted docs-repo edits — Phase 8 Agent 1 (doc index / cross-links) may have edited without committing; the Phase 6.2 clean-tree check means everything uncommitted is this run's work.
 2. Compute the squash base: if Phase 6.2 recorded `profile_commit` (inline-profiling run), base = `profile_commit` (keeps the profile-config commit as a distinct first commit → two commits); otherwise base = `git merge-base <base_branch> HEAD` (one commit).
-3. `git add` the docs-repo changes → `git reset --soft <squash-base>` → one `git commit`. The message follows `profile.commit_convention` when present (dynatrace-docs: `<JIRA-KEY> <summary>`); for a repo with no such field, infer from recent `git log` / `CONTRIBUTING`, else fall back to `<JIRA_KEY> <summary>`. NEVER put the Jira key in a reader-visible changelog — see `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1.
+3. `git add` the docs-repo changes → `git reset --soft <squash-base>` → one `git commit`. The message follows `profile.commit_convention` when present (example-docs: `<JIRA-KEY> <summary>`); for a repo with no such field, infer from recent `git log` / `CONTRIBUTING`, else fall back to `<JIRA_KEY> <summary>`. NEVER put the Jira key in a reader-visible changelog — see `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1.
 
 ### Step 2 — Offer push
 
@@ -1162,7 +1162,7 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 [One row per gate in the `gate_ledger`, in registry order (`references/gate-ledger.md` §4). "Detail" carries the row's `ci_still_checks` (DEGRADED), `user_decision` (SKIPPED_BY_USER), or `precondition_unmet` (NOT_APPLICABLE) — empty otherwise. When any row is DEGRADED, follow the table with a one-line warning naming what CI will check that this run did not.]
 
 ### Render verification
-- Build: [ran — pass/fail | unverified (reason) | no build command in profile — boot served as the proof (does NOT apply to dynatrace-docs, which defines per-space build commands)]
+- Build: [ran — pass/fail | unverified (reason) | no build command in profile — boot served as the proof (does NOT apply to example-docs, which defines per-space build commands)]
 - Smoke-check: [per space — passed (N pages, HTTP 200) | skipped (reason)] OR "not run (user skipped)"
 - Cross-space invariant: [verified (markers present in target, absent in protected) | not checked | VIOLATION — see deferred items]
 - Pages to visit: [the Phase 6.5 Step 3 table]
@@ -1494,7 +1494,7 @@ After writing the edits and before Phase 4, dispatch `docs-style-checker` on the
 - `OK` → proceed to Phase 4.
 - `NOT_CONFIGURED` / `ERROR` → no primary rung and no complementary pass produced a result, so the gate has no coverage. Record `style_check` as `UNAVAILABLE` and convert it per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 before proceeding. Direct mode has no reviewer gate, so this prompt is the only place the gap surfaces — never proceed past it silently.
 
-Never skip this phase on your own judgement of which linters are installed. `docs-style-checker` runs the chain internally as a **ladder**: each primary rung is tried in turn (a detected-but-broken rung does not abandon the ones below it), and `dt-style-checker` runs as a complementary semantic pass whenever the `dt-style-guide` plugin is installed — so neither the repo's own linter nor the semantic / cross-page class is silently dropped. Write the `style_check` ledger row here — rewriting the preflight's pre-seeded row if there is one, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3's one-row-per-gate rule (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3), carrying the returned `primary_attempts`: `RAN` when a primary rung succeeded; `DEGRADED` when every rung failed but `dt-style-checker` ran, with `not_run:` one `{mechanism, reason}` entry per failed rung and a `ci_still_checks:` line; `UNAVAILABLE` per the bullets above; `NOT_APPLICABLE` with `precondition_unmet: "no files edited"` when Phase 3 changed nothing.
+Never skip this phase on your own judgement of which linters are installed. `docs-style-checker` runs the chain internally as a **ladder**: each primary rung is tried in turn (a detected-but-broken rung does not abandon the ones below it), and `prose-style-checker` runs as a complementary semantic pass whenever the `prose-style` plugin is installed — so neither the repo's own linter nor the semantic / cross-page class is silently dropped. Write the `style_check` ledger row here — rewriting the preflight's pre-seeded row if there is one, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3's one-row-per-gate rule (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3), carrying the returned `primary_attempts`: `RAN` when a primary rung succeeded; `DEGRADED` when every rung failed but `prose-style-checker` ran, with `not_run:` one `{mechanism, reason}` entry per failed rung and a `ci_still_checks:` line; `UNAVAILABLE` per the bullets above; `NOT_APPLICABLE` with `precondition_unmet: "no files edited"` when Phase 3 changed nothing.
 
 After the style check, hold the edited files against the `repo_verification_gates` block extracted in Phase 0 (`${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §5) and append the `repo_checklist` ledger row: `RAN` with `findings:` = the number of entries that failed, or `NOT_APPLICABLE` with `precondition_unmet: "the repo publishes no pre-PR checklist"` when the block is empty. Report any failed entry to the user with its `source` citation — direct mode has no reviewer gate, so this is where the repo's own rules surface.
 
@@ -1750,7 +1750,7 @@ directory; no user name is ever written (§10 privacy).
 ## Invariants (always enforced)
 
 - ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, jira-not-found, cancellation)
-- ALWAYS run Phase 3.5 (style check) after editing — `docs-style-checker` falls back to `dt-style-checker`; never skip style on tool-absence judgement
+- ALWAYS run Phase 3.5 (style check) after editing — `docs-style-checker` falls back to `prose-style-checker`; never skip style on tool-absence judgement
 - NEVER create a git branch — this mode never branches. `specs-preflight` may switch `$SPECS_PATH` between branches that already exist, and only ones the plugin created (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none.
 - NEVER run tests (this command has no test phase)
 - NEVER invoke Opus (no planning agent, no review agent — docs edits are always SIMPLE or MODERATE)

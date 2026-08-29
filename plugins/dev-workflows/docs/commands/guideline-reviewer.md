@@ -1,6 +1,6 @@
 # /guideline-reviewer
 
-Reviews app code and UI against the vendored Experience Standards (GUIDElines).
+Reviews app code and UI against the bundled UI design-system and accessibility guidelines, distilled from public standards (Apple HIG, Material Design 3, Microsoft Fluent 2, W3C WCAG 2.2 and the ARIA Authoring Practices Guide).
 
 ## Who runs it
 
@@ -21,7 +21,7 @@ Reviews app code and UI against the vendored Experience Standards (GUIDElines).
 
 ## What it produces
 
-The `guideline-reviewer` subagent's verdict against the mandatory Experience Standards: AppHeader, DataTable, FilterField, Connections, Permissions, Settings, Dashboards, accessibility/WCAG, terminology, and Grail-naming findings, each pointing at the offending file or element. Unlike [`/api-guideline-reviewer`](api-guideline-reviewer.md)'s agent, this one's frontmatter also grants `Bash` alongside `Read`, `Glob`, and `Grep` — but the command itself still writes nothing and applies no fix.
+The `guideline-reviewer` subagent's verdict against the mandatory design-system and accessibility standards: app header, data table, filter field, connections, permissions, settings, dashboards, accessibility/WCAG, terminology, and data-naming findings, each pointing at the offending file or element. Unlike [`/api-guideline-reviewer`](api-guideline-reviewer.md)'s agent, this one's frontmatter also grants `Bash` alongside `Read`, `Glob`, and `Grep` — but the command itself still writes nothing and applies no fix.
 
 ## Gates
 
@@ -33,7 +33,7 @@ There is no review gate here in the pipeline sense — **this command is the rev
 /dev-workflows:guideline-reviewer app/src/pages/SettingsPage.tsx
 ```
 
-Dispatches `guideline-reviewer` against the named file and prints its verdict against the Experience Standards checklist.
+Dispatches `guideline-reviewer` against the named file and prints its verdict against the guideline checklist.
 
 ## See also
 

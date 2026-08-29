@@ -1,14 +1,14 @@
-# Render verification (dynatrace-docs)
+# Render verification (example-docs)
 
 How `/document` Phase 6.5 proves the documentation it just wrote builds
 and renders — and that cross-space pages honor the 3a render-unchanged invariant
 (the protected space's render is unchanged). See
-`${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/multi-space-writing.md` for the
+`${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/multi-space-writing.md` for the
 write strategies this verifies.
 
 This is the single source of truth for the mechanics; Phase 6.5 cites it and
 stays lean. Read every path, command, and port from the resolved `profile` — do
-not hard-code dynatrace-docs specifics.
+not hard-code example-docs specifics.
 
 "Affected pages" = every file written or modified in Phase 6.3.
 
@@ -20,7 +20,7 @@ declares one for that space, else the flat `profile.commands.build`. Run it for 
 whose `write_strategy.strategy` is `conditional` or `override-copy` — never by which `content_root`
 the written files sit under. A `conditional` delta lives in its home space's tree but renders only in
 its `target_space`, so a path-scoped build compiles the one space that skips the new content.
-For dynatrace-docs that is `pnpm dynatrace:build` and `pnpm managed:build` — both exist, and an
+For example-docs that is `pnpm cloud:build` and `pnpm self-hosted:build` — both exist, and an
 earlier version of this file wrongly claimed the repo had only `commands.lint` and the `*:start`
 servers, which disabled this gate entirely.
 
@@ -28,7 +28,7 @@ Phase 6.5 does NOT re-run the prose linter — that is Phase 6.4's `docs-style-c
 
 Only when a repo genuinely declares **no** build command at either level does the **dev-server boot
 become the build proof** — a server that boots and serves HTTP 200s proves the content compiled. That
-is a fallback for repos without a build, not a description of dynatrace-docs.
+is a fallback for repos without a build, not a description of example-docs.
 
 ## 2. Sequential dev-server smoke-check
 
@@ -67,7 +67,7 @@ Never run two servers at once. Always stop the current one before the next.
 The page URL is `http://localhost:<port><base_path>/<route>`, where `<port>` and
 `<base_path>` come from `profile.dev_servers.servers[<space>]` and `<route>` is
 the page path relative to that space's `content_root` with a trailing `index.md`
-or `.md` removed. Example: `dynatrace/_content/setup/foo/index.md` in the `saas`
+or `.md` removed. Example: `cloud/_content/setup/foo/index.md` in the `cloud`
 space (`base_path: /docs`, port 4000) → `http://localhost:4000/docs/setup/foo`.
 
 This is best-effort. A wrong route that 404s in the smoke-check simply downgrades
@@ -118,6 +118,6 @@ each row ✅ 200 / ⚠️ skipped (reason) / ❌ failed.
 **Static analysis is necessary but never sufficient.** A correct `{{#if project='…'}}` wrapping, a
 clean link-integrity grep, and a verified conditional structure all corroborate the render gate and
 none of them satisfy it. Static greps do not catch Handlebars compile errors, do not prove
-`managed/docstack.jsonc`'s allowlist actually pulls a shared page into the managed render, and do not
-prove a postid resolves in the managed build. A run that has only static evidence has not run this
+`self-hosted/docstack.jsonc`'s allowlist actually pulls a shared page into the self-hosted render, and do not
+prove a postid resolves in the self-hosted build. A run that has only static evidence has not run this
 gate — record `render_smoke_check` accordingly.

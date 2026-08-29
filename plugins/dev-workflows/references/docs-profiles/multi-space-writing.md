@@ -1,7 +1,7 @@
-# Multi-space writing (dynatrace-docs)
+# Multi-space writing (example-docs)
 
 How `/document` Phase 6.3 writes documentation across more than one space
-(SaaS + Managed in dynatrace-docs) while honoring the `saas`/`managed`
+(Cloud + Self-hosted in example-docs) while honoring the `cloud`/`self-hosted`
 constraint — i.e. changing one space's documentation **without altering the
 other space's rendered output**.
 
@@ -9,8 +9,8 @@ This is the single source of truth for the mechanics. The command (Phase 5.9,
 Phase 6.3) and `doc-planner` both cite it; neither inlines these rules.
 
 All paths and rules below come from the resolved `profile` (the built-in
-dynatrace-docs default, an in-repo `.dev-workflows/docs-profile.yml`, or a
-generated one). Read them from the profile — do not hard-code dynatrace-docs
+example-docs default, an in-repo `.dev-workflows/docs-profile.yml`, or a
+generated one). Read them from the profile — do not hard-code example-docs
 specifics.
 
 ## 1. Shared vs single pages
@@ -20,12 +20,12 @@ A page's **home space** is the space whose `content_root`/`snippet_root` prefixe
 its path.
 
 A page is **shared** when its rendered output appears in more than one space.
-In dynatrace-docs this happens through `profile.cross_space_override`: the
-Managed manifest (`cross_space_override.manifest`, e.g. `managed/docstack.jsonc`)
-pulls an allowlist of `dynatrace/_content/...` (SaaS) pages into the Managed
-render. So a page whose home space is `saas` is typically **shared** (rendered
-in both `saas` and `managed`), while a page under the Managed `content_root`
-(`managed/_content/...`) is **single** (rendered only in `managed`).
+In example-docs this happens through `profile.cross_space_override`: the
+Self-hosted manifest (`cross_space_override.manifest`, e.g. `self-hosted/docstack.jsonc`)
+pulls an allowlist of `cloud/_content/...` (Cloud) pages into the Self-hosted
+render. So a page whose home space is `cloud` is typically **shared** (rendered
+in both `cloud` and `self-hosted`), while a page under the Self-hosted `content_root`
+(`self-hosted/_content/...`) is **single** (rendered only in `self-hosted`).
 
 - `space_scope: shared` — rendered in `>1` space; `rendered_in` lists them.
 - `space_scope: single` — rendered in exactly one space (its home space).
@@ -37,11 +37,11 @@ both-spaces run needs the two renders to **differ**.
 
 ## 2. The invariant — render-unchanged ≠ file-untouched
 
-The `saas`/`managed` constraint protects the **rendered output** of the other
+The `cloud`/`self-hosted` constraint protects the **rendered output** of the other
 space, not the source file. It is correct and expected to **edit a shared
 source file** as long as the constrained (protected) space's *render* does not
-change. Adding an `{{#if project='managed'}}…{{/if}}` block to a shared SaaS
-page changes the file but renders nothing new for SaaS — that is the
+change. Adding an `{{#if project='self-hosted'}}…{{/if}}` block to a shared Cloud
+page changes the file but renders nothing new for Cloud — that is the
 small-diff path, not a violation.
 
 ## 3. Two protection strategies
@@ -52,8 +52,8 @@ Edit the **shared source page in place** and wrap the per-space delta in a
 project conditional from `profile.tokens.project_conditionals`:
 
 ```handlebars
-{{#if project='managed'}}
-…content that must render only for Managed…
+{{#if project='self-hosted'}}
+…content that must render only for Self-hosted…
 {{/if}}
 ```
 
@@ -69,16 +69,16 @@ structural changes), copy the page into the **destination space's**
 1. Copy `(<home content_root>)/<rel>` → `(<dest space content_root>)/<rel>`
    (same `<rel>` under each `content_root`). Edit the copy for the dest space.
 2. Add the **shared source path** to the override manifest's `ignore` allowlist
-   per `profile.cross_space_override.rule` — for dynatrace-docs: add the
-   `../dynatrace/_content/<rel>` path to the `ignore` block in
-   `managed/docstack.jsonc` so the Managed override wins and is not silently
-   shadowed by the pulled-in SaaS page. The shadowing is last-write-wins by
-   path: without that `ignore` entry the pulled-in SaaS page wins over the
-   `managed/_content` override, with no error and no build warning. The
+   per `profile.cross_space_override.rule` — for example-docs: add the
+   `../cloud/_content/<rel>` path to the `ignore` block in
+   `self-hosted/docstack.jsonc` so the Self-hosted override wins and is not silently
+   shadowed by the pulled-in Cloud page. The shadowing is last-write-wins by
+   path: without that `ignore` entry the pulled-in Cloud page wins over the
+   `self-hosted/_content` override, with no error and no build warning. The
    mechanism and this remedy are carried by the profile itself —
    `cross_space_override.mechanism` and `cross_space_override.rule` (see
-   `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/docs-profile.default.yml`,
-   field definitions in `${CLAUDE_PLUGIN_ROOT}/references/dynatrace-docs/docs-profile-schema.md`)
+   `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile.default.yml`,
+   field definitions in `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`)
    — read them from the resolved profile, which is authoritative for the repo in
    front of the run.
 
@@ -101,10 +101,10 @@ Phase 5.9 before any file is written.
 ## 5. Shared-registries lock-step
 
 When a write **renames, retitles, or creates** a settings-schema page in the
-condition described by `profile.shared_registries[].when` (for dynatrace-docs:
-a page under `dynatrace/_content/dynatrace-api/environment-api/settings/schemas/`),
+condition described by `profile.shared_registries[].when` (for example-docs:
+a page under `cloud/_content/api/settings/schemas/`),
 update **every** file in that entry's `files` list together, per its `rule`
-(for dynatrace-docs: update the `text:` entry in BOTH `schema-ids.yml` and
+(for example-docs: update the `text:` entry in BOTH `schema-ids.yml` and
 `schema-mappings.yml` in lock-step). The two registries must stay
 byte-for-byte consistent on the shared field.
 
@@ -116,7 +116,7 @@ Before the style/review gates, validate the tokens the write emitted, per
 - **Conditionals are balanced** — every `{{#if project='…'}}` has a matching
   `{{/if}}`.
 - **Project values are valid** — the `project='…'` value is a known space/edition
-  (`saas`, `managed`, `classic`, `latest`); flag anything else.
+  (`cloud`, `self-hosted`, `classic`, `latest`); flag anything else.
 - **gen3/Classic tokens are well-formed** — `profile.tokens.latest_tag`
   (`{{tag kind='latest'}}`) and `profile.tokens.gen3_settings_breadcrumb`
   (`::app-settings::`) are spelled exactly and used in a space that supports them.

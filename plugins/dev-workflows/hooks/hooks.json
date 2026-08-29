@@ -1,5 +1,5 @@
 {
-  "description": "dev-workflows plugin hooks — completion notification, git context injection, test-run notification, and dynatrace-docs frontmatter reminder",
+  "description": "dev-workflows plugin hooks — completion notification, git context injection, test-run notification, and example-docs frontmatter reminder",
   "hooks": {
     "Stop": [
       {

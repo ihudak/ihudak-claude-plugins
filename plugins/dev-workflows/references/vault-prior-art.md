@@ -115,7 +115,7 @@ The closed term sets. `idea-format.md` and `vault-prior-art-finder` both cite th
 |---|---|
 | `same_capability` | The item covers this very capability. |
 | `predecessor_phase` | This idea is the next phase of that item. |
-| `analogous_precedent` | A **parallel** initiative to model this one on — typically the same capability in the other product (an existing SaaS Value Increment ↔ a new Managed one on the 2gen UI). It produces no contradiction by itself; the question is where alignment is required and where divergence is deliberate. |
+| `analogous_precedent` | A **parallel** initiative to model this one on — typically the same capability in the other product (an existing cloud-edition Value Increment ↔ a new self-hosted one on the newer UI stack). It produces no contradiction by itself; the question is where alignment is required and where divergence is deliberate. |
 | `supersedes_self` | This idea **rewrites the very item it came from**, in place: same goal, different approach, same Jira key. |
 | `adjacent_initiative` | Related but distinct work. |
 

@@ -1,12 +1,12 @@
 ---
 name: api-guideline-reviewer
-description: Reviews OpenAPI specification files against Dynatrace REST API and IAM permission naming guidelines. Checks version consistency, required elements, naming conventions, IAM scope format, HTTP status codes, and schema composition. Triggers on 'review OpenAPI', 'API compliance', 'validate API guidelines', 'review IAM permissions'.
+description: Reviews OpenAPI specification files against REST API and IAM permission-naming guidelines. Checks version consistency, required elements, naming conventions, IAM scope format, HTTP status codes, and schema composition. Triggers on 'review OpenAPI', 'API compliance', 'validate API guidelines', 'review IAM permissions'.
 tools: ["Read", "Glob", "Grep"]
 ---
 
 # API Guideline Review
 
-Review OpenAPI specification files for compliance with Dynatrace REST API and IAM permission naming guidelines.
+Review OpenAPI specification files for compliance with REST API and IAM permission-naming guidelines.
 
 ## Before Starting
 
@@ -38,12 +38,13 @@ Load every guideline file listed below before reviewing — never skip one of th
 
 1. **Version Consistency Check**
    - `info.version` must contain full semantic version
-   - `servers.url` must contain major version (e.g., `/public/v2`)
-   - `x-api-gateway-url` must contain matching major version
+   - `servers.url` must contain major version (e.g., `/widget-service/v1`)
+   - `x-gateway-url`, where present, must contain matching major version
 
 2. **Required Elements Check**
-   - `Dt-Tenant` header (exact spelling)
-   - `ssoAuth` security scheme with OAuth2 `clientCredentials` flow only
+   - A single org-wide tenant header, spelled consistently across every operation — hyphenated title case, never an `X-` prefix (RFC 6648)
+   - An `oauth2` security scheme with the OAuth2 `clientCredentials` flow only, named identically across every API in the org
+   - `x-audience` declared per API: `external-public` | `external-partner` | `company-internal` | `component-internal`
    - Every endpoint must have at least one IAM scope
 
 3. **Naming Conventions Check**
@@ -55,7 +56,7 @@ Load every guideline file listed below before reviewing — never skip one of th
 
 4. **IAM Scope Validation**
    For each operation, verify scope matches:
-   - **Service**: from `x-api-gateway-url` path
+   - **Service**: from the `servers.url` (or `x-gateway-url`) path
    - **Resource**: rightmost concrete path segment (or leftmost if ambiguous)
    - **Action**: `read` (GET/HEAD), `write` (POST/PUT/PATCH), `delete` (DELETE), or custom method name
 
@@ -65,17 +66,20 @@ Load every guideline file listed below before reviewing — never skip one of th
    - Error responses must use error envelope
 
 6. **Schema Composition**
-   - `allOf` must not be used (code generator limitation)
-   - Use `oneOf` if schema combination is needed
+   - `oneOf` + `discriminator` required for polymorphism
+   - `anyOf` SHOULD NOT be used
+   - `allOf` MUST NOT merge two or more named schemas; at most one `$ref` plus at most one inline object
+   - No property redefinition, no mixing composition keywords at one level, no nested composition
+   - (An org MAY tighten this back to a flat `allOf` ban; see `OpenAPI.md`)
 
 ### Pass 2: Detailed Verification
 
 Systematically verify edge cases:
 - Exact spelling of well-known field names (`timeZone`, `languageCode`, `countryCode`)
-- Exact header names (`Dt-Tenant`, not `DT-Tenant` or `DtTenant`)
+- Tenant header spelled identically everywhere it appears (no `DT-Tenant`/`DtTenant`-style drift), and not `X-`prefixed
 - All endpoints have security specifications
 - No snake_case in JSON field names
-- Version numbers are consistent across all three locations
+- Version numbers are consistent across `info.version`, `servers[].url`, and `x-gateway-url` where present
 
 ## Output Format
 
@@ -102,18 +106,18 @@ What the specification does well.
 
 ## Classification Rules
 
-**Mistakes (MUST violations)**: Missing required elements, version inconsistency, `allOf` in schemas, proprietary HTTP status codes, missing operationId, incorrect IAM scope format.
+**Mistakes (MUST violations)**: Missing required elements, version inconsistency, disallowed schema composition, proprietary HTTP status codes, missing operationId, incorrect IAM scope format.
 
 **Improvements (SHOULD violations)**: Naming convention deviations, missing recommended response codes, suboptimal pagination, missing documentation elements.
 
 ## Common Violations Checklist
 
-- [ ] Header `Dt-Tenant` spelled exactly (not `DT-Tenant`)
-- [ ] Only `clientCredentials` OAuth2 flow
-- [ ] Version matches in `info.version`, `servers.url`, `x-api-gateway-url`
+- [ ] Tenant header spelled consistently across operations, not `X-`prefixed
+- [ ] Only `clientCredentials` OAuth2 flow, scheme named consistently org-wide
+- [ ] Version matches in `info.version`, `servers[].url`, and `x-gateway-url` where present
 - [ ] Every endpoint has `security` block
 - [ ] IAM scopes follow `{service}:{resource}:{action}` format
-- [ ] No `allOf` schema composition
+- [ ] Schema composition within the bounded `oneOf`/`allOf` rules
 - [ ] Field names in lowerCamelCase
 - [ ] Query parameters in kebab-case
 - [ ] Error responses use error envelope pattern

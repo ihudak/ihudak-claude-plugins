@@ -47,9 +47,12 @@ reads was already independently verified by `/brd-ground`'s own agents.
 - **`<BRD-KEY>`** — mandatory; absent or malformed stops the run with `BRD_SPLIT_NEEDS_KEY`.
 - **An existing BRD folder.** No folder for `<BRD-KEY>` stops the run with `BRD_SPLIT_NOT_FOUND`,
   naming `/brd-intake` as the fix.
-- **Grounding findings already on file.** No `grounding/code-grounding.md` or
-  `grounding/design-grounding.md` at all stops the run with `BRD_SPLIT_NEEDS_GROUNDING`, naming
-  `/brd-ground` as the fix.
+- **`/brd-ground`'s findings already merged to the specs repo's default branch.** Phase 0 gates
+  `grounding/code-grounding.md` on `origin/<default>` via `require-on-main` before reading
+  anything else — an open, unmerged grounding pull request stops the run naming the branch/PR
+  state, and a BRD that has never been grounded at all stops with `BRD_SPLIT_NEEDS_GROUNDING`,
+  naming `/brd-ground` as the fix. This transitively also proves `/brd-intake`'s ledger reached
+  main, since `/brd-ground` gates on it the same way before it will run.
 - **Every finding verified.** A finding with no recorded verifier outcome (`agree` / `extend` /
   `contradict` / `unprovable`) is not evidence this command may act on. Any such finding on file
   stops the run with `BRD_SPLIT_UNVERIFIED: N findings have no verifier verdict — run
@@ -65,8 +68,10 @@ Under `$SPECS_PATH/specifications/<BRD-KEY>-<slug>/`:
   `superseded-by: [BR#n]`.
 - `slices.md` — one block per confirmed slice (its key, its folder, and its buildable / blocked /
   depends-on rationale) plus one block per row deferred this run.
-- One nested folder per confirmed slice, `<BRD-KEY>-<slug>/<CHILD-KEY>-<child-slug>/`, each with
-  its own `brd-link.md` naming its parent and its claimed `[BR#n]` rows.
+- One nested folder per confirmed slice still claiming at least one row after the walk,
+  `<BRD-KEY>-<slug>/<CHILD-KEY>-<child-slug>/`, each with its own `brd-link.md` naming its parent
+  and its claimed `[BR#n]` rows — a slice whose every row ends up resolved elsewhere is either
+  removed or kept empty with a recorded reason (Phase 4).
 
 Behind Phase 6's consent choice, these are committed, pushed, and a pull request opened against
 the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch prefix — skipped
@@ -74,6 +79,9 @@ with a "nothing to commit" report on the no-op path.
 
 ## Gates
 
+- **Phase 0 — grounding merged to main.** `require-on-main` against `grounding/code-grounding.md`
+  runs before anything else is read — an unmerged grounding pull request, or a BRD never grounded
+  at all, stops the run rather than acting on a deliverable that might still change underneath it.
 - **Phase 0 — verification gate.** No slice is proposed and no row may be resolved `covered-here`
   against a claim no one has verified: every grounding finding on file must carry a verifier
   outcome before this command does anything else.
@@ -84,6 +92,9 @@ with a "nothing to commit" report on the no-op path.
   by another `[BR#n]`. `covered-here` is the resolution that makes the whole BRD PRD-eligible, and
   it is what an unsplit BRD reaches for every row — without it, a BRD nobody splits could never
   clear this gate.
+- **Phase 4 — no child left claiming nothing.** A slice whose every proposed row ends the walk
+  resolved elsewhere leaves its child folder claiming no requirement; the run resolves this before
+  moving on, either removing that folder or keeping it with a recorded reason.
 - **No-op on a fully-allocated ledger.** Re-running `/brd-split` once every row already has a
   disposition changes nothing; the run reports the ledger line and stops.
 

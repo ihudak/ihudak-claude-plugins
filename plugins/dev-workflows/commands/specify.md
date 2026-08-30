@@ -52,8 +52,12 @@ specification* for a single item (typically an Epic). Run `/epics` first, then `
    - **Resolve/derive the PRD (top-level) dir:** `specifications/<PRD>-<vslug>/`. Look for an existing
      dir at `specifications/<PRD>{-|_}<vslug-or-other-slug>/` — honor an existing dir matched by
      key-number (tolerate a stray `-`/`_` after the key, and a pre-existing slug that doesn't exactly
-     match a freshly-derived one — a human may have adjusted it). Create `<PRD>-<vslug>` (hyphen) only
-     if no such dir exists yet.
+     match a freshly-derived one — a human may have adjusted it). No match there → apply
+     `${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §4's one-level-deep fallback before
+     concluding none exists; it is reached only on a flat miss, so a flat key resolves exactly as it
+     did before. Create `<PRD>-<vslug>` (hyphen) only if neither level has one. Every later
+     `specifications/<PRD>-<vslug>/` in this command — the PRD gate's `ls-tree` path and Phase 2's
+     per-Epic paths included — names the dir resolved here.
    - **Resolve the feature folder itself**, by case:
      - `focus_key` set (an Epic nested under a PRD) →
        `specifications/<PRD>-<vslug>/<EPIC>-<eslug>/` — a per-Epic subfolder under the PRD dir

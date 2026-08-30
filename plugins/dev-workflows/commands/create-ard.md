@@ -22,7 +22,7 @@ this stage). Zero Jira API.
 ## Phase 0 — Resolve input
 1. **Resolve the Jira input** via `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against `$ARGUMENTS` → `jira_key` (the PRD), `focus_key` (the Epic, or `null`), `jira_export_root`, `source`. Define `<PRD>` = `jira_key`, `<EPIC>` = `focus_key`.
 2. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
-3. **Feature folder.** PRD-level → `specifications/<PRD>-<vslug>/`; Epic-level → `specifications/<PRD>-<vslug>/<EPIC>-<eslug>/`. Honor an existing dir matched by key-number (tolerate `-`/`_` drift). Auto-created on first write.
+3. **Feature folder.** PRD-level → `specifications/<PRD>-<vslug>/`; Epic-level → `specifications/<PRD>-<vslug>/<EPIC>-<eslug>/`. Honor an existing dir matched by key-number (tolerate `-`/`_` drift). No match there → apply `${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §4's one-level-deep fallback before concluding none exists; it is reached only on a flat miss, so a flat key resolves exactly as it did before. Every later `specifications/<PRD>-<vslug>/` in this command — the PRD gate's `ls-tree` path and Phase 2's PRD read included — names the dir resolved here. Auto-created on first write at the flat path — the fallback honors a nested folder that already exists, it never proposes one.
 4. **Prior ARD.** If the target `*_ARD.md` exists → Phase 1 offers refine-vs-fresh.
 5. **Optionality advisory.** Gauge size — the PRD's user-story count / scope breadth / number of candidate repos. For a small, single-repo PRD, note "an ARD may be optional here" and offer `choices: ["Author the ARD anyway", "Stop — no ARD needed", "Other… (describe)"]`.
 

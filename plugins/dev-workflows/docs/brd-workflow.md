@@ -82,6 +82,14 @@ specifications/<BRD-KEY>-<slug>/
 └── <CHILD-KEY>-<child-slug>/    # a slice /brd-split confirmed, same shape recursively
 ```
 
+A slice starts life with three of those files, all written by the parent's `/brd-split` run:
+`brd-link.md`, a `brd/brd-inventory.md` holding the parent's rows it claims (copied verbatim — the
+slice has no `brd/source/` and no `brd/brd-defect-log.md` of its own, and inherits both from its
+parent), and a `coverage-ledger.md` with every row `unallocated`. That is what makes the dashed
+loop above real: `/brd-ground` needs a ledger to gate on and an inventory to read, `/brd-intake`
+never runs on a slice — there is no separate document to intake — and `/brd-split` is the only
+command holding both the parent's rows and the allocation that says which of them the slice claims.
+
 `--sort-existing <dir>` on `/brd-intake` additionally writes `prd-seed.md`, `ard-seed.md`, and
 `spec-seed.md` at the BRD folder's own level — a one-time migration path for a package written by
 hand before this route existed, not an output of the normal flow. See [Workflow

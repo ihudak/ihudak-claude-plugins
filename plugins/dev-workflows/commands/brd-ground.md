@@ -39,14 +39,28 @@ Runs at whatever level `<BRD-KEY>` names (`${CLAUDE_PLUGIN_ROOT}/references/brd-
    (§3.3 G0), carry that flag for the whole run.
 5. **Resolve the BRD folder.** `resolve-brd <BRD-KEY>` (`brd-addressing.md` §2). Absent → stop:
    `BRD_GROUND_NOT_FOUND: no BRD folder found for <BRD-KEY> — run /dev-workflows:brd-intake <BRD-KEY> @<brd-file> first.`
-6. **Gate the intake artifacts on main.** Execute `require-on-main` (`phase-handoff.md` §3)
-   against the resolved BRD folder's `coverage-ledger.md` (the last file `/brd-intake` writes, so
-   its presence on `origin/<default>` implies `brd/brd-inventory.md` and `brd/brd-defect-log.md`
-   landed with it). Map the §3.7 return by `stopped` first: any stopping row → stop, naming the
-   concrete branch/PR state it reports; `pass` → proceed; `pass_amending` → proceed, printing the
-   §3.3 row-B message; `absent` (row F) → stop:
-   `BRD_GROUND_NEEDS_INTAKE: no intake artifacts on main for <BRD-KEY> — run /dev-workflows:brd-intake for it and merge the pull request first.`;
-   `unmanaged` → proceed as before this feature.
+6. **Gate this BRD's own inventory and ledger on main.** Execute `require-on-main`
+   (`phase-handoff.md` §3) against the resolved BRD folder's `coverage-ledger.md`. Whichever
+   command wrote that ledger wrote the inventory beside it in the same handoff commit
+   (`coverage-ledger-format.md` §3's creator table), so its presence on `origin/<default>` implies
+   `brd/brd-inventory.md` landed with it: for a BRD with a source document of its own, that was
+   `/brd-intake`, and `brd/brd-defect-log.md` landed too; for a slice, it was `/brd-split` running
+   on the parent, and there is no defect log to land — a slice reads the parent's
+   (`brd-format.md` §2.1). Map the §3.7 return by `stopped` first: any stopping row → stop, naming
+   the concrete branch/PR state it reports; `pass` → proceed; `pass_amending` → proceed, printing
+   the §3.3 row-B message; `unmanaged` → proceed as before this feature.
+
+   **`absent` (row F) — nothing for this BRD is on any ref — names the fix by level**, because a
+   slice must never be told to run a command that would refuse it. Read the resolved folder's
+   `brd-link.md` from the worktree (it is there whether or not anything reached main) and branch on
+   its `parent:` field:
+   - **No `brd-link.md`, or one with no `parent:`** — this BRD owns its source document. Stop:
+     `BRD_GROUND_NEEDS_INTAKE: no intake artifacts on main for <BRD-KEY> — run /dev-workflows:brd-intake for it and merge the pull request first.`
+   - **`parent: <PARENT-KEY>` present** — this is a slice, and `/brd-intake` is not the fix: a
+     slice has no document of its own to intake (`brd-format.md` §2.1), and the command that writes
+     a slice's ledger and inventory is `/brd-split` on the parent
+     (`coverage-ledger-format.md` §3). Stop:
+     `BRD_GROUND_NEEDS_SPLIT: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory and ledger are not on main — run /dev-workflows:brd-split <PARENT-KEY> and merge the pull request first. Do not run /brd-intake on a slice; it has no source document of its own.`
 7. **Require `$REPOS_PATH`.** Resolve `${REPOS_PATH:-/workspace}` (`docs/reference/environment.md`)
    as one directory or a colon-separated list. If no entry resolves to an existing directory,
    stop naming `REPOS_PATH` (`choices: ["Set REPOS_PATH (enter the path)", "Cancel"]`) — grounding
@@ -261,6 +275,11 @@ frame set cannot be reconciled without an index file; report it and skip that di
 than guessing at frame identity. Renumber into one BRD-wide `[DG#n]` sequence the same way as
 `[CG#n]` above, continuing from the highest `DG#n` already on file.
 
+**Record which frame set each `[DG#n]` came from** as you merge — the dispatch that produced it
+names exactly one `frame_set_dir`, and Phase 7 hands that same directory back to
+`grounding-verifier` so it can re-derive a design-only finding at all. Recovering the association
+after the merge would mean guessing; carrying it forward costs nothing.
+
 A `design-grounder` `notes` entry naming a class-4 gap it deferred for lack of a settling
 `[CG#n]` is carried into the final report verbatim — it is a real, actionable gap, not noise.
 
@@ -302,9 +321,14 @@ to the Opus chain (`review_model`, frontmatter-pinned, no override):
   >   class:    [1-4 — DG#n only, omit for CG#n]
   >   verdict:  [the finding's verdict]
   >   evidence: [the finding's evidence list]
-  >   commit:   [the finding's pinned commit]
+  >   commit:   [the finding's pinned commit — every CG#n and every class-4 DG#n; omit only for a
+  >              class-1/2/3 DG#n, which is pinned to no commit]
   >   cites:    [class-4 DG#n only — the CG#n it cites]
-  > repo_path:  [the repository this finding is pinned against]
+  > repo_path:     [the repository this finding is pinned against — every CG#n; for a class-4
+  >                 DG#n, the repository the cited CG#n is pinned against; omit for a
+  >                 class-1/2/3 DG#n]
+  > frame_set_dir: [every DG#n — the Phase 5 frame set this finding was reconciled against; omit
+  >                 for a CG#n]
   > provenance: [own-run | inherited — see below]"
 
 Supply the finding **exactly as the agent's own Inputs contract declares it** — including
@@ -312,6 +336,20 @@ Supply the finding **exactly as the agent's own Inputs contract declares it** �
 reading either before it finishes its independent re-derivation. That sequencing discipline is the
 agent's to enforce on itself (its Process step 2 is explicit about it); this orchestrator's job is
 only to hand over the full, correctly-shaped record, never to withhold a field the contract lists.
+
+**Which anchor fields go with which finding is that contract's own Inputs table, not this
+command's** — a `[CG#n]` and a class-4 `[DG#n]` rest on code and carry `repo_path` + `commit`; a
+class-1/2/3 `[DG#n]` rests on the frame set alone (`grounding-format.md` §6) and carries
+`frame_set_dir` instead. Two consequences for this dispatch:
+
+- **Always pass `class` for a `[DG#n]`.** The agent's row selection is fail-closed — a `[DG#n]`
+  arriving without a readable `class` is treated as resting on code and refused for want of a
+  commit — so an omitted `class` does not relax the gate, it stops the finding. Phase 5 recorded
+  the class on every `[DG#n]` it merged; pass it through.
+- **Always pass `frame_set_dir` for a `[DG#n]`.** Phase 5 dispatched `design-grounder` once per
+  frame set, so every `[DG#n]` on file traces back to exactly one directory; carry that association
+  forward from Phase 5 rather than re-deriving it here. A class-4 `[DG#n]` gets both it and the
+  code pair — it is the one finding with a foot in each source.
 
 **`provenance` is set per finding, by origin — never by which phase produced it, and never
 blanket.** `own-run` for any finding **this invocation itself produced**, regardless of which
@@ -328,6 +366,30 @@ team's report **or an earlier run of this workflow**," and a finding surviving f
 invocation, unreproduced, is the second of those, regardless of how confident its write-up reads —
 mislabelling it `own-run` would tell the verifier to relax exactly where §5 of its own instructions
 say rigor must not drop.
+
+**Act on `status` first — an `outcome` exists only on `status: OK`.** The four statuses below are
+refusals, not verdicts: the agent performed no re-derivation and returned no `outcome`, and a
+finding carrying no outcome is not evidence and blocks `/brd-split` for as long as it stays on file
+(`grounding-format.md` §8). So none of them may be shrugged off and none may be written:
+
+- **`OK`** — act on `outcome`, below.
+- **`COMMIT_MISMATCH`** — the repository moved between Phase 3's pin and this dispatch. Stop:
+  `BRD_GROUND_VERIFY_COMMIT_MISMATCH: <finding-id> could not be verified — <repo> is at <resolved-HEAD>, not the pinned <commit>. Re-run /dev-workflows:brd-ground from a clean tree.`
+  The same repair as Phase 5's own `COMMIT_MISMATCH`: re-run from Phase 3, which re-pins and
+  re-grounds.
+- **`INPUT_MISSING`** — this orchestrator's dispatch was malformed (most often a `[DG#n]` sent
+  without its `class` or its `frame_set_dir`). Stop, quoting the field and row the agent named, and
+  fire `emit-block` per Phase 11's capture-at-block invariant — a dispatch this command controls
+  getting the contract wrong is a plugin gap, unlike Phase 0's environment halts.
+- **`REPO_MISSING` / `FRAME_SET_MISSING` / `NO_INDEX`** — the source this finding rests on is gone
+  or unusable (a repository unmounted mid-run, a frame set removed or exported without an index
+  since it was ground). Stop, naming the finding and the path the agent reported.
+
+**Nothing reaches Phase 8 unverified.** Any stop above happens before Phase 8's first write, so a
+finding without an outcome is never written into the package; whatever was on file from a previous
+run stands untouched until a clean run replaces it. This is the invariant `/brd-split`'s Phase 0
+gate depends on — it counts findings carrying no outcome and refuses to split while any exists, so
+a run that wrote one would deadlock the route rather than merely leave a gap.
 
 Act on `outcome`:
 - **`agree`** — keep the finding as written; record the outcome alongside it.
@@ -414,7 +476,8 @@ Terminal phase — runs after Phase 10, NEVER interrupts an earlier phase.
 **Capture-at-block invariant.** If an EARLIER phase halts on a plugin / skill / command /
 reference gap, `emit-block` (`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) fires at
 that halt before escalating. None of Phase 0's stops qualify — a missing key, an unresolved BRD,
-an ungated intake artifact, and an unset `$REPOS_PATH` are environment / sequencing halts, never a
+an inventory or ledger not yet on main (`BRD_GROUND_NEEDS_INTAKE` or, for a slice,
+`BRD_GROUND_NEEDS_SPLIT`), and an unset `$REPOS_PATH` are environment / sequencing halts, never a
 plugin capability gap. `BRD_GROUND_DIRTY_TREE` and `BRD_GROUND_NEEDS_REBASELINE` are repository
 state, not a plugin gap, either.
 

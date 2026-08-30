@@ -58,11 +58,16 @@ class cites a `[CG#n]`), and `grounding-verifier` (Phase 7, one per finding, pin
 ## What it needs
 
 - **`<BRD-KEY>`** — mandatory; absent or malformed stops the run with `BRD_GROUND_NEEDS_KEY`.
-- **Intake artifacts already on the specs repo's main branch.** `/brd-ground` gates
-  `coverage-ledger.md` (the last file `/brd-intake` writes) on `origin/<default>` via
-  `require-on-main` before reading anything else; an unmerged pull request stops the run naming
-  the branch/PR state, and a BRD with no intake artifacts at all stops with
-  `BRD_GROUND_NEEDS_INTAKE`.
+- **This BRD's own inventory and ledger already on the specs repo's main branch.** `/brd-ground`
+  gates `coverage-ledger.md` on `origin/<default>` via `require-on-main` before reading anything
+  else; an unmerged pull request stops the run naming the branch/PR state. When nothing for the BRD
+  is on any ref, the stop names the fix by level: a BRD with a source document of its own stops
+  with `BRD_GROUND_NEEDS_INTAKE`, naming `/brd-intake`; a **slice** — a child BRD, recognised by
+  the `parent:` field in its `brd-link.md` — stops with `BRD_GROUND_NEEDS_SPLIT`, naming
+  `/brd-split` on the parent, because a slice has no source document of its own to intake and its
+  ledger and inventory are written by the parent's split
+  ([`brd-format.md`](../../references/brd-format.md) §2.1,
+  [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §3).
 - **`$REPOS_PATH`** — required; resolved as one directory or a colon-separated list. No resolvable
   entry stops the run naming `REPOS_PATH`.
 - **A clean working tree per resolved repository.** The Phase 3 baseline-integrity gate runs

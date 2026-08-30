@@ -52,22 +52,37 @@ Exactly six. Only the last one blocks the gate in §4.
 | `superseded-by: [BR#n]` | Replaced by another requirement, named by its `[BR#n]` |
 | `unallocated` | The initial state; the only one of the six that blocks §4 |
 
-**`unallocated` is the state `/brd-intake` writes for every row** when it first builds the ledger
-(a later task) — no row starts in any other disposition. **Deferring is itself an allocation.**
+**`unallocated` is the state every row is written in when its ledger is first built** — no row
+starts in any other disposition.
+
+**Two commands create a ledger, one per level, and both seed every row `unallocated`:**
+
+| Level | Creator | Rows |
+|---|---|---|
+| A BRD with a source document of its own | `/brd-intake` (`commands/brd-intake.md` Phase 5) | one per `[BR#n]` in the inventory it just extracted |
+| A slice — a child BRD nested in its parent's folder | `/brd-split` (`commands/brd-split.md` Phase 3) | one per `[BR#n]` the slice's `brd-link.md` claims |
+
+`/brd-intake` never runs on a slice — a slice has no document to intake (`brd-format.md` §2.1) — so
+if `/brd-split` did not write the slice's ledger at the moment it created the slice's folder,
+nothing ever would, and the slice could never be ground or split in its own right. `/brd-split` is
+also the only command holding both the parent's rows and the allocation that says which of them the
+slice claims.
+
+**Deferring is itself an allocation.**
 `deferred-to: <this BRD>` discharges the gate exactly as the other four terminal dispositions do;
 the ledger's job is to record a requirement's fate, not to force every requirement to be built.
 
 ## 4. The allocation gate
 
-`/brd-split` (a later task) cannot complete while any row in this BRD's ledger is `unallocated`.
+`/brd-split` cannot complete while any row in this BRD's ledger is `unallocated`.
 It opens the gate by walking every remaining `unallocated` row one at a time and offering a path
 off `unallocated` into one of the five terminal dispositions in §3. Re-running `/brd-split` on a
 BRD whose ledger is already fully allocated is a no-op: nothing changes, and the command still
 reports the ledger line (§6).
 
 **The set of resolutions the command offers, how each one writes its row, and how a row ever
-reaches `covered-here` are `/brd-split`'s own behavior** — see design spec §9.3, or, once it
-exists, `commands/brd-split.md` — **not this reference's.** This file fixes the disposition
+reaches `covered-here` are `/brd-split`'s own behavior** — see `commands/brd-split.md` Phase 4 —
+**not this reference's.** This file fixes the disposition
 vocabulary (§3) and the one rule every caller must honor: no row may stay `unallocated` past this
 gate. It does not fix, and does not re-enumerate, the command's interaction flow — the picker's
 shape is the command's to own, and a count of it recorded here would only drift the next time that

@@ -69,9 +69,16 @@ Under `$SPECS_PATH/specifications/<BRD-KEY>-<slug>/`:
 - `slices.md` — one block per confirmed slice (its key, its folder, and its buildable / blocked /
   depends-on rationale) plus one block per row deferred this run.
 - One nested folder per confirmed slice still claiming at least one row after the walk,
-  `<BRD-KEY>-<slug>/<CHILD-KEY>-<child-slug>/`, each with its own `brd-link.md` naming its parent
-  and its claimed `[BR#n]` rows — a slice whose every row ends up resolved elsewhere is either
-  removed or kept empty with a recorded reason (Phase 4).
+  `<BRD-KEY>-<slug>/<CHILD-KEY>-<child-slug>/`, each holding three files: `brd-link.md` naming its
+  parent and its claimed `[BR#n]` rows; `brd/brd-inventory.md`, the claimed rows copied verbatim
+  from this BRD's inventory under a header naming the parent's `brd/source/`, which every
+  `source_anchor` in it still resolves against
+  ([`brd-format.md`](../../references/brd-format.md) §2.1); and its own `coverage-ledger.md` with
+  every row `unallocated`. Those last two are what let the child re-enter the route: `/brd-ground`
+  gates on the child's ledger and reads the child's inventory, and `/brd-intake` — the only other
+  command that writes either — never runs on a slice, which has no document to intake. A slice
+  whose every row ends up resolved elsewhere is either removed or kept empty with a recorded reason
+  (Phase 4).
 
 Behind Phase 6's consent choice, these are committed, pushed, and a pull request opened against
 the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch prefix — skipped

@@ -215,9 +215,19 @@ runs as a separate pass, on a different agent from whichever wrote the finding i
 
 **The verifier does not check citations.** Confirming that a cited `file:line` exists and contains
 what the finding says proves only that the citation is real — it does not prove the citation
-answers the claim. Instead, `grounding-verifier` independently re-derives the claim from the
-repository, starting from the `[BR#n]` premise rather than from the finding's evidence, and returns
-one of four outcomes, each with its own evidence:
+answers the claim. Instead, `grounding-verifier` independently re-derives the claim **from whatever
+source the finding rests on**, starting from the `[BR#n]` premise rather than from the finding's
+evidence, and returns one of four outcomes, each with its own evidence.
+
+**Which source that is follows from the finding, not from the verifier's convenience.** A `[CG#n]`
+and a class-4 `[DG#n]` rest on code and are re-derived against the repository at the pinned commit,
+`baseline-integrity` (§4) re-run first. A `[DG#n]` of class 1, 2, or 3 rests on the frame set and
+the BRD text alone (§6) — there is no repository behind it and no commit it could be pinned to — so
+it is re-derived against that frame set. Demanding a commit of a design-only finding would leave it
+permanently unverifiable, and a finding that can never carry an outcome can never become evidence
+by the rule below; the verifier's own input contract (`agents/grounding-verifier.md`) is where that
+requirement is stated per finding, and it resolves an absent or unreadable `class` to the code case
+so no code finding can be re-derived without its commit.
 
 | Outcome | Meaning |
 |---|---|

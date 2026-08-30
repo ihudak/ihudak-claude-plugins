@@ -46,6 +46,36 @@ that it did.
 `[BR#n]` numbers are never reused and never renumbered, including across a split: once assigned, an
 id is permanent even if the row it names is later split, superseded, or found defective.
 
+### 2.1 A slice's inventory
+
+A **slice** — a child BRD nested inside its parent's folder (`references/brd-addressing.md` §3) —
+has no source document of its own: the customer supplied one document, and the slice is a partition
+of that document's requirements, not a second document. So a slice holds **no `brd/source/` and no
+`brd/brd-defect-log.md` of its own; it inherits both from its parent**, resolved through the
+`parent:` key in its `brd-link.md`. A slice's `[BR#n]` and `[DEF#n]` ids are its parent's ids,
+unchanged — the identity of a requirement belongs to the BRD that owns the source text, and a slice
+cites it rather than minting its own.
+
+A slice **does** hold its own `brd/brd-inventory.md`: the subset of its parent's rows its
+`brd-link.md` claims, copied row-for-row with `id`, `text`, `source_anchor`, and `defects` verbatim
+from the parent's inventory. The file opens with the two facts a reader needs to follow an anchor
+out of it:
+
+```
+parent: <PARENT-KEY>
+source: <the parent's brd/source/<basename>, relative to the parent's folder>
+```
+
+**Every `source_anchor` in a slice's inventory resolves against that path, never against anything
+inside the slice's own folder** — the slice has no `brd/source/` to resolve into, which is exactly
+why the header names the parent's. A slice inventory is never re-extracted from the source by
+`brd-reader` and never renumbered; copying is the only way it is ever produced, because
+re-extraction would mint a second set of ids for text that already has them.
+
+**`/brd-split` writes a slice's inventory**, at the moment it creates the slice's folder — it is
+the only command holding both the parent's inventory and the allocation that says which rows the
+slice claims. `/brd-intake` never runs on a slice: there is no document to intake.
+
 ## 3. Defect classes
 
 Exactly six. Each fires on a one-line test a reader applies to a single `[BR#n]` (or, for
@@ -79,6 +109,11 @@ of these resolutions:
 | `withdrawn` | the customer withdrew the requirement the defect was raised against |
 | `resolved-by: [CG#n]` | a code- or design-grounding finding settled the defect (typically closing an `unsourced` entry) |
 | `open` | none of the above has happened yet |
+
+There is exactly one defect log per source document, held by the BRD that owns that document; a
+slice reads its parent's rather than keeping one of its own (§2.1). A consumer that must resolve a
+`[DEF#n]` while standing on a slice — `/brd-split`'s `rejected: [DEF#n]` resolution, for one —
+therefore looks it up in the parent's log.
 
 A resolution changes the defect log entry's status only. It never touches `brd/source/`, and it
 never assigns the requirement a disposition — the disposition vocabulary and the artifact that

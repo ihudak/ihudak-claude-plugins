@@ -578,6 +578,121 @@ check_identity_quarantine() {
   done < <(find "$d" -name '*.md' 2>/dev/null | sort)
 }
 
+# ------------------------------------------------------------------ check 11
+# Merge-clause adoption. An offer that names a downstream command whose Phase 0 gate
+# targets an artifact THIS run writes must carry the `<merge-clause>` placeholder, because
+# that command stops while this phase's pull request is open. The placeholder, its
+# resolution table, and the family of commands the rule binds all live in
+# $REF_DIR/next-phase-offer.md; this check only enforces adoption.
+#
+# The failure it exists for is PARTIAL adoption, which is worse than none: a reference
+# claiming family-wide ownership while seven offers still carried a hardcoded clause, or
+# no clause, each naming a command whose gate the offering run itself feeds. That set was
+# found once, by enumerating every option by hand. Nothing re-enumerated it afterwards.
+#
+# Three relations, every one DERIVED, none written in here:
+#   family  -- the `<plugin>:<family>*` glob next-phase-offer.md names as the rule's scope.
+#              Only offers made BY a command of that family are checked, which is what
+#              keeps this off the two pre-existing offers that name the merge in prose and
+#              were deliberately left alone.
+#   targets -- what each command runs `require-on-main` against, read out of
+#              phase-handoff.md's row-F table (column 2's backticked *.md, by basename).
+#   writers -- what a command declares it hands off, read out of its own
+#              `deliverable_paths` = ... `title:` span (same basename form).
+# An offer is REQUIRED to carry the clause when writers(offerer) and targets(offered)
+# intersect. It is never required to DROP one: an offer may carry the clause for a reason
+# this check cannot see, and a check that forbade that would be asserting more than it knows.
+#
+# What it deliberately does NOT catch. It reads the option's TEXT for the placeholder, not
+# the clause the run resolves it to -- whether the resolution table is applied correctly at
+# runtime is not in the file. It cannot see an offer outside a `choices:` array (a prose
+# `### Next step` line is not checked). And its writer relation is the paths the command
+# DECLARES; a file a run writes but never declares is invisible to it, which under-fires
+# rather than over-fires. Every relation coming up empty is a FAILURE, not a pass.
+check_merge_clause() {
+  local root="$1" p="$1/$PLUGIN_REL"
+  local ref="$p/$REF_DIR/next-phase-offer.md" ph="$p/$REF_DIR/phase-handoff.md"
+  local qual="/${PLUGIN_REL##*/}:" glob targets writers offers route_n=0 req_n=0
+  local y f x ln has t need needt
+
+  [ -f "$ref" ] || { fail 11 "$REF_DIR/next-phase-offer.md is missing -- it owns the <merge-clause> placeholder, its resolution table, and the command family the rule binds"; return; }
+  [ -f "$ph" ]  || { fail 11 "$REF_DIR/phase-handoff.md is missing -- its row-F table is where each command's require-on-main target is declared"; return; }
+
+  glob=$(grep -oE "$qual[a-z][a-z0-9-]*\*" "$ref" 2>/dev/null | head -1 | sed "s|^$qual||")
+  [ -n "$glob" ] || { fail 11 "next-phase-offer.md no longer names the command family the <merge-clause> rule binds (expected a \`$qual<family>*\` phrase) -- with no family, this check would examine no offer at all"; return; }
+
+  # targets: one `<command>|<artifact-basename>` line per row-F table cell. Column 2 only --
+  # column 3 routinely cites reference FILES that are not gate targets.
+  targets=$(awk -F'|' '
+    /^\| `?\/[a-z]/ {
+      c1 = $2; c2 = $3; n = 0
+      while (match(c2, /`[^`]*\.md`/)) {
+        t = substr(c2, RSTART + 1, RLENGTH - 2); sub(/.*\//, "", t); tg[++n] = t
+        c2 = substr(c2, RSTART + RLENGTH)
+      }
+      if (n == 0) next
+      while (match(c1, /\/[a-z][a-z0-9-]*/)) {
+        cmd = substr(c1, RSTART + 1, RLENGTH - 1); c1 = substr(c1, RSTART + RLENGTH)
+        for (i = 1; i <= n; i++) print cmd "|" tg[i]
+      }
+    }' "$ph" | sort -u)
+  [ -n "$targets" ] || { fail 11 "$REF_DIR/phase-handoff.md's row-F table yielded no require-on-main target -- the EXTRACTOR has drifted, not the table; fix the parser, never the rows"; return; }
+
+  while IFS= read -r y; do
+    [ -n "$y" ] || continue
+    case "$y" in $glob) ;; *) continue ;; esac
+    f=$(cmd_file "$p" "$y"); [ -f "$f" ] || continue
+    route_n=$((route_n + 1))
+
+    # writers: the backticked *.md paths inside this command's `deliverable_paths` = ...
+    # `title:` span. The `=` is required: the same word appears in prose that lists nothing.
+    writers=$(awk '
+      /`deliverable_paths`[[:space:]]*=/ { span = 1; k = 0 }
+      span {
+        line = $0
+        while (match(line, /`[^`]*\.md`/)) {
+          t = substr(line, RSTART + 1, RLENGTH - 2); sub(/.*\//, "", t); print t
+          line = substr(line, RSTART + RLENGTH)
+        }
+        if ($0 ~ /`title:/ || ++k > 20) span = 0
+      }' "$f" | sort -u)
+
+    # offers: one `<line>|<offered-command>|<0|1 carries the placeholder>` per option.
+    offers=$(awk -v Y="$y" -v Q="$qual" '
+      index($0, "choices: [") {
+        body = substr($0, index($0, "choices: [") + 9)
+        while (match(body, /"[^"]*"/)) {
+          opt = substr(body, RSTART + 1, RLENGTH - 2); body = substr(body, RSTART + RLENGTH)
+          tmp = opt
+          while ((i = index(tmp, Q)) > 0) {
+            rest = substr(tmp, i + length(Q))
+            match(rest, /^[a-z][a-z0-9-]*/)
+            x = substr(rest, 1, RLENGTH); tmp = substr(rest, RLENGTH + 1)
+            if (x != Y) print FNR "|" x "|" (index(opt, "<merge-clause>") ? "1" : "0")
+          }
+        }
+      }' "$f" | sort -u)
+    [ -n "$offers" ] || continue
+
+    while IFS='|' read -r ln x has; do
+      [ -n "$ln" ] || continue
+      need=0; needt=""
+      while IFS= read -r t; do
+        [ -n "$t" ] || continue
+        grep -qxF -- "$t" <<<"$writers" && { need=1; needt="$t"; break; }
+      done < <(grep -F "$x|" <<<"$targets" | sed 's/^[^|]*|//')
+      [ "$need" = 1 ] || continue
+      req_n=$((req_n + 1))
+      [ "$has" = 1 ] || fail 11 "$CMD_DIR/$y$CMD_SUFFIX:$ln offers $qual$x with no <merge-clause>, and this run writes '$needt' -- the artifact $qual$x's require-on-main gate targets, so that command stops while this phase's pull request is open ($REF_DIR/next-phase-offer.md owns the placeholder and its resolution table)"
+    done <<<"$offers"
+  done < <(cmd_names "$p")
+
+  # Coverage assertions. Both states mean the check has gone quiet rather than clean, and a
+  # gate that has stopped being able to fail must turn the build red, not green.
+  [ "$route_n" -gt 0 ] || fail 11 "next-phase-offer.md binds the <merge-clause> rule to '$qual$glob', which matches no command in $CMD_DIR/ -- the family was renamed or retired and this check now examines nothing"
+  [ "$req_n" -gt 0 ] || fail 11 "no offer in the '$glob' family names a command whose require-on-main target that offer's own run writes -- either the route stopped handing off to itself or the EXTRACTOR drifted; fix the parser, never the offers"
+}
+
 # ------------------------------------------------------------------ selftest
 # One passing fixture tree; each check gets a mutation of a fresh copy. Asserting
 # the exit code alone would let a mutation that trips a DIFFERENT check register
@@ -651,12 +766,16 @@ selftest() {
   expect_fail "a compound count whose tail matches a shorter number word is rejected" 9 \
     "mkdir -p $(dirname $(cmd_file $PLUGIN_REL delta)) 2>/dev/null && printf -- '---\nname: delta\n---\n' > $(cmd_file $PLUGIN_REL delta) && printf -- '# /delta\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/delta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/delta\`]($DOC_CMD_DIR/delta.md)|' $PLUGIN_REL/docs/README.md && mkdir -p $(dirname $(cmd_file $PLUGIN_REL epsilon)) 2>/dev/null && printf -- '---\nname: epsilon\n---\n' > $(cmd_file $PLUGIN_REL epsilon) && printf -- '# /epsilon\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/epsilon.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/epsilon\`]($DOC_CMD_DIR/epsilon.md)|' $PLUGIN_REL/docs/README.md && mkdir -p $(dirname $(cmd_file $PLUGIN_REL zeta)) 2>/dev/null && printf -- '---\nname: zeta\n---\n' > $(cmd_file $PLUGIN_REL zeta) && printf -- '# /zeta\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/zeta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/zeta\`]($DOC_CMD_DIR/zeta.md)|' $PLUGIN_REL/docs/README.md && mkdir -p $(dirname $(cmd_file $PLUGIN_REL eta)) 2>/dev/null && printf -- '---\nname: eta\n---\n' > $(cmd_file $PLUGIN_REL eta) && printf -- '# /eta\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/eta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/eta\`]($DOC_CMD_DIR/eta.md)|' $PLUGIN_REL/docs/README.md && sed -i.bak2 's|one slash commands|twenty-five slash commands|' $PLUGIN_REL/README.md"
   # Discriminates the word-boundary anchor on the reference-files alternation specifically: the
-  # fixture ships 6 reference files, so an unanchored "six" matches the tail of "twenty-six" and
-  # compares 6 against 6 -- a wrong claim passing on a coincidentally-correct numeral. Anchored,
-  # nothing matches at a boundary and the count sentence reads as drifted away. Verified red
-  # (this case FAILs) with the anchor stashed, green with it applied.
+  # fixture ships 8 reference files, so an unanchored "eight" matches the tail of "twenty-eight"
+  # and compares 8 against 8 -- a wrong claim passing on a coincidentally-correct numeral.
+  # Anchored, nothing matches at a boundary and the count sentence reads as drifted away. Verified
+  # red (this case FAILs) with the anchor stashed, green with it applied. The numerals track the
+  # fixture: it shipped 6 reference files (and this case read "twenty-six") until check 11's
+  # route fixture added next-phase-offer.md and phase-handoff.md. The assertion is unchanged --
+  # a compound whose tail is a mapped word equal to the real count -- and "twenty-eight" is
+  # unmapped by _word2num for the same reason "twenty-six" was.
   expect_fail "a compound reference-file count whose tail matches a shorter number word is rejected" 9 \
-    "sed -i.bak 's|ships 6 files|ships twenty-six files|' $PLUGIN_REL/docs/reference/references.md"
+    "sed -i.bak 's|ships 8 files|ships twenty-eight files|' $PLUGIN_REL/docs/reference/references.md"
   # Proves _word2num and the commands alternation actually learned "seventeen" -- not merely
   # that an unrecognized word is rejected (every unmapped word already fails check 9 via "no
   # count sentence found", which would make a same-shaped expect_fail case pass whether or not
@@ -701,6 +820,31 @@ selftest() {
   expect_fail "an underivable identity token set is rejected" 10 \
     "sed -i.bak '/^$CLI plugin /d' README.md"
 
+  # Check 11 -- merge-clause adoption. The fixture's route is one command (`alpha`, matched by
+  # the `alpha*` family glob next-phase-offer.md declares) offering `/dev-workflows:omega`,
+  # whose row-F entry gates `alpha-deliverable.md` -- which alpha's own `deliverable_paths`
+  # declares. That is one clause-requiring offer; the live tree has eight.
+  expect_fail "an offer that drops <merge-clause> is rejected" 11 \
+    "sed -i.bak 's| <merge-clause>||' $(cmd_file $PLUGIN_REL alpha)"
+  # The three vacuity guards rewrite through a temp file OUTSIDE the reference dir rather than
+  # with `sed -i.bak`: a stray `.bak` there is a file `find $REF_DIR -type f` counts, so the
+  # mutation would trip check 9's reference-file count too and blur what the case proves.
+  # The three vacuity guards. Each leaves the tree otherwise valid and makes the check examine
+  # nothing, which must be RED: a gate that has stopped being able to fail proves nothing green.
+  expect_fail "a reworded family-scope sentence is rejected" 11 \
+    "sed 's|/${PLUGIN_REL##*/}:alpha\*|the family|' $PLUGIN_REL/$REF_DIR/next-phase-offer.md > np.tmp && mv np.tmp $PLUGIN_REL/$REF_DIR/next-phase-offer.md"
+  expect_fail "a family glob matching no command is rejected" 11 \
+    "sed 's|alpha\*|zulu*|' $PLUGIN_REL/$REF_DIR/next-phase-offer.md > np.tmp && mv np.tmp $PLUGIN_REL/$REF_DIR/next-phase-offer.md"
+  expect_fail "a row-F table with no gated artifact is rejected" 11 \
+    "sed '/alpha-deliverable.md/d; /elsewhere.md/d' $PLUGIN_REL/$REF_DIR/phase-handoff.md > ph.tmp && mv ph.tmp $PLUGIN_REL/$REF_DIR/phase-handoff.md"
+  # ...and the other half of the assertion: the clause is required only where the offering run
+  # writes what the offered command gates. `/dev-workflows:sigma` gates `elsewhere.md`, which no
+  # fixture command declares, so a clause-free offer of it is CORRECT and must stay green. Without
+  # the writer test -- a check that simply demanded the placeholder on every offer -- this case
+  # goes red. Verified red before / green after by stashing the writer test.
+  expect_pass_after "a clause-free offer of a command this run does not feed is accepted" \
+    "printf -- '\nchoices: [\"Hand to the ungated consumer — /${PLUGIN_REL##*/}:sigma <KEY>\", \"Stop here\"]\n' >> $(cmd_file $PLUGIN_REL alpha)"
+
   # The cost subsystem (check 8, and check 9's cost-emitting-commands sentence) does not
   # exist in every edition -- check_cost_attribution and that half of check_prose_counts
   # both return immediately when HAS_COST=0, so a mutation that only a cost check can see
@@ -744,6 +888,7 @@ check_install_block     "$ROOT"
 check_cost_attribution  "$ROOT"
 check_prose_counts      "$ROOT"
 check_identity_quarantine "$ROOT"
+check_merge_clause      "$ROOT"
 
 if [ "$FAILURES" -gt 0 ]; then
   echo "FAIL: $FAILURES problem(s) under $PLUGIN_REL" >&2

@@ -694,7 +694,8 @@ Expected: `FAIL check 2` — the new page is unreachable from `docs/README.md`.
 
 - `docs/README.md` — link `brd-workflow.md` alongside `workflow.md`.
 - `docs/workflow.md` — add the second route into a PRD to the existing mermaid diagram and a sentence naming it, so both routes appear in one picture.
-- `docs/roles-and-phases.md` — add the route: PM-owned, with `/brd-ground` PM-initiated and PA/Dev-executed. **Add the `brd-to-prd` phase subsection AND update the phase count in the same commit** — task 7 deliberately left the count at ten because a count and the section it counts must not be split across commits (Ruling R10). Verify the count against the `###` subsections actually present when you are done.
+- `docs/roles-and-phases.md` — add the route: PM-owned, with `/brd-ground` PM-initiated and PA/Dev-executed.
+- **Carried from task 12 — two pre-existing staleness items the tree now asserts falsely.** `docs/reference/references.md` still says the four BRD reference files are "not yet cited by any command"; three commands now cite them. And `plugins/dev-workflows/README.md`'s role table has never listed `/brd-intake`, `/brd-ground` or `/brd-split`, even though its count sentence includes them. Neither is gated by `check-docs.sh`, which is why both survived. Fix both; locate them by search, not by line number. **Add the `brd-to-prd` phase subsection AND update the phase count in the same commit** — task 7 deliberately left the count at ten because a count and the section it counts must not be split across commits (Ruling R10). Verify the count against the `###` subsections actually present when you are done.
 
 - [ ] **Step 4: Run the gate triple to verify it passes**
 

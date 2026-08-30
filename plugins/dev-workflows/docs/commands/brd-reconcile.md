@@ -104,7 +104,7 @@ Under the BRD folder:
 
 | Artifact | What it is |
 |---|---|
-| `customer-review-<date>.md` | The returned review, copied in byte for byte and committed **before** anything reads it. Stamped with the **customer's** date, not the run's |
+| `customer-review-<date>.md` | The returned review, copied in byte for byte and committed **before** anything reads it. Stamped with the **customer's** date, not the run's; a second review of that date takes a `-<suffix>` |
 | `reconciliation-<date>.md` | What changed, why, which ids, and what still needs a human. Stamped with the run's date; a second pass on the same day appends rather than overwriting |
 
 And it updates, in place: `decisions.md` (the new `[CD#n]`, the superseded `[AS#n]`, the reopened
@@ -139,13 +139,22 @@ drop would look like customer silence. A row citing none of the three is carried
   would freeze customer authority against a document nobody can produce later. Allocation and the
   interview rounds are **not** re-gated: both were gated upstream, and a second differently-worded
   copy of either rule would eventually disagree with the first.
-- **Phase 2 — a returned review is never overwritten.** A destination file that already exists and
-  is byte-identical is a resumed run and proceeds; one that **differs** stops with
-  `BRD_RECONCILE_REVIEW_EXISTS`. Two different reviews under one name leaves nobody able to say which
-  one a `[CD#n]` was frozen from.
+- **Phase 2 — a returned review is never overwritten, and a second one that day is not refused.** A
+  destination that already exists and is byte-identical is a resumed run and proceeds. One that
+  **differs** is a second review carrying the same date — a corrected resend, or two reviewers on the
+  customer side — which is ordinary, not an error: the run prompts for a disambiguating suffix and
+  copies to `customer-review-<date>-<suffix>.md`. A date cannot disambiguate two files genuinely
+  written the same day, and telling the operator to rename the incoming file would be telling them to
+  record a date the review does not carry. Only declining to name a suffix stops the run
+  (`BRD_RECONCILE_REVIEW_EXISTS`).
 - **Phase 4 — the confirmation gate.** No `[CD#n]` is written while any decision the reader returned
   is unconfirmed. The four values are `confirm`, `correct`, `reject` and `ask-the-customer`; the
-  picker carries no free-text entry and no bulk confirmation.
+  picker carries no free-text entry and no bulk confirmation. That omission is enforceable because
+  [`escalation-rules.md`](../../references/escalation-rules.md) carves this picker out **by name** —
+  its standing "one permitted adjustment" would otherwise authorise adding a free-text box to the one
+  picker through which customer authority enters the register. `Cancel` stops the run with **nothing
+  frozen**: no record exists until the freeze phase, so a cancelled walk loses its confirmations and
+  a re-run re-offers every candidate.
 - **Phase 4 — a resumed run never re-asks what it already froze.** A candidate whose target already
   carries a `decided` `[CD#n]` from an earlier pass over the same review is skipped, because two
   customer answers to one question is a contradiction one record cannot hold. A target carrying an
@@ -164,6 +173,13 @@ drop would look like customer silence. A row citing none of the three is carried
   it changes. Rewriting a dated prompt or self-review to match a later position falsifies the record
   the customer's review responds to, and every quotation in that review then points at a sentence
   that no longer exists.
+- **Every phase that writes into another BRD — one guard, not three.** Defect resolutions into a
+  parent's log, sweep dispositions into a dependent's register, and stale-reference corrections into a
+  sibling slice's artifacts are all cross-BRD writes, and each runs `require-on-main` against the
+  target first. Any stopping row — including the artifact being on no ref at all — means **record,
+  never write**, naming the intended change and the branch/PR state. It never stops the run: letting
+  a dependent's open pull request block the prerequisite's own customer loop is the D20 failure
+  arriving from the other direction.
 - **Phase 10 — the sweep gate.** Every position the propagation sweep reaches takes
   `inherited-unchanged`, `reverted`, `reopened` or `withdrawn`, and an `inherited-unchanged` row is
   written too: an item checked and found unaffected and an item never reached are different facts. A

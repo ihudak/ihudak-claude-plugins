@@ -17,7 +17,39 @@ This rule binds every command in the plugin, not only the ones documented below.
 only", "Cancel"]` with the recommendation moved onto Skip, and the render gate was never exercised.
 
 Adding the trailing `"Other… (describe)"` entry where a phase omits it is the one permitted
-adjustment.
+adjustment — **except on the arrays carved out by name below**, where the omission is part of the
+list's meaning and adding the entry is a defect.
+
+## The permitted adjustment does not reach these arrays
+
+A picker whose options are drawn from a **closed vocabulary another authority fixes** has no room for
+a free-text option: a fifth value is one nothing downstream can read, and the orchestrator that wrote
+it has invented a state no consumer handles. Where a command says so in place, this file agrees with
+it rather than authorising the opposite. **On the five arrays below, `"Other… (describe)"` is never
+added:**
+
+| Array | Its closed vocabulary | Owner |
+|---|---|---|
+| the candidate-confirmation picker | `confirm` / `correct` / `reject` / `ask-the-customer` | `commands/brd-reconcile.md`, *Confirm every candidate* |
+| the missing-reason picker | ask the customer, or freeze `status: open` | `commands/brd-reconcile.md`, *Confirm every candidate* |
+| the propagation-sweep picker | `inherited-unchanged` / `reverted` / `reopened` / `withdrawn` | `commands/brd-reconcile.md`, *The propagation sweep* |
+| the will-change resolution picker | the exactly three resolutions of `references/decision-register-format.md` §6 | `commands/brd-interview.md` |
+| the `[SR#n]` disposition picker | `fixed` / `accepted-risk` / `escalated-to-customer` / `rejected-with-reason` | `commands/brd-package.md` |
+
+**The first three are load-bearing beyond tidiness, and the reason is worth carrying.** They are the
+pickers through which a customer's authority enters the decision register, and D14 exists because
+**normalising prose into a register row is inference, and promoting inference to customer authority
+silently is the one way that workflow could fabricate a mandate the customer never gave.** A free-text
+entry on a picker about what the customer decided is a box into which something that is neither their
+decision nor a refusal of it can be typed and then frozen as theirs — the exact route D14 closes,
+re-opened by an adjustment made in good faith against this file. A rule contradicted by its own
+authority is not a rule, so the carve-out is written here, by name, rather than left to each command
+to assert against a reference that overrules it.
+
+`Cancel` is present on every one of the five, so no operator is ever trapped by the absence.
+
+**This list is closed, and it is not a licence to prune elsewhere.** Every other array in the plugin
+takes the trailing entry where its phase omits it, exactly as the paragraph above says.
 
 ## The `(Recommended)` marker is unconditional
 

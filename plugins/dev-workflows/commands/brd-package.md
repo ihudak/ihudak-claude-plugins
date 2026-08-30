@@ -328,7 +328,9 @@ disposition values `agents/brd-package-reviewer.md` fixes, drawn from that agent
 same way `/brd-interview`'s will-change picker draws its three resolutions from
 `decision-register-format.md` §6. It carries **no** `"Other… (describe)"` entry, and that omission is
 required rather than merely permitted: the disposition vocabulary is exactly four values, and a
-fifth would be a disposition nothing downstream can read. `Cancel` stops the run with every
+fifth would be a disposition nothing downstream can read — which is why `escalation-rules.md` names
+this picker in its *The permitted adjustment does not reach these arrays* section rather than leaving
+its own "one permitted adjustment" sentence to overrule the command. `Cancel` stops the run with every
 disposition already taken still written, so nobody is trapped and nothing is lost.
 
 Each disposition carries a recorded reason, and each has a consequence the later phases execute:

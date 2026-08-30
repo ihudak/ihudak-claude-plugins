@@ -482,8 +482,10 @@ specific decision of the prerequisite (`EPIC-008/[VD#3]`, never `EPIC-008` alone
 `status: open` with the blocking prerequisite named.
 
 **This picker carries no `"Other… (describe)"` entry, and that omission is required here rather than
-merely permitted.** `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` calls adding the trailing
-entry "the one permitted adjustment", not a mandatory one; and the rule being applied admits
+merely permitted.** `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` names this picker in its
+*The permitted adjustment does not reach these arrays* section for exactly that reason; it otherwise
+calls adding the trailing entry "the one permitted adjustment", not a mandatory one; and the rule
+being applied admits
 **exactly three** resolutions and says so — "Three resolutions, and exactly three"
 (`decision-register-format.md` §6). An open-ended fourth entry would invite a resolution the rule
 does not have, and the two most likely things an operator would write into it are precisely the two

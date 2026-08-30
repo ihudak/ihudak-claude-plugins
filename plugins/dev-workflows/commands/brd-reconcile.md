@@ -95,6 +95,42 @@ the customer's own voice.
 
 ---
 
+## The cross-BRD write guard
+
+**Three phases below write outside the BRD folder this run was given, and all three take the same
+guard.** They are:
+
+| Phase | What it writes, and where |
+|---|---|
+| *Resolve the defects the review settled* | `customer-amended` and `withdrawn` rows into the **parent's** `brd/brd-defect-log.md`, when this run stands on a slice |
+| *The propagation sweep* | sweep dispositions into a **dependent BRD's** `decisions.md` |
+| *The stale cross-reference sweep* | `updated` corrections into any artifact under the parent, including a **sibling slice's** |
+
+**The rule, once, for all three.** Before writing into an artifact that belongs to a BRD other than
+the one this run was given, execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md`
+§3) against that artifact. Any **stopping** row → **record, never write**: the intended change, the
+artifact, and the concrete branch/PR state the gate reported all go into the reconciliation record
+and the final report, and the file is left exactly as it was. Row F (`absent` — the artifact is on no
+ref at all) is treated the same way and for the same reason: an artifact nobody has handed off is an
+artifact somebody is still working on. `pass`, `pass_amending` and `unmanaged` → write.
+
+**None of this ever stops the run.** The reconciliation is the *prerequisite's* customer loop, and
+letting a dependent's open pull request block it would let any downstream BRD stall the BRD its own
+positions rest on — the D20 failure, arriving from the other direction.
+
+**Why the guard is one rule and not three.** Writing over a register, a defect log or a value
+document that is sitting on somebody else's branch silently overwrites an in-flight run, and the
+person whose work is lost finds out at their next `git status`, not here. That failure does not care
+which of the three paths reached it, so neither does the guard: a rule written once for the
+propagation sweep alone would have left the other two paths open, which is exactly how the second and
+third came to exist.
+
+**What is *not* covered, deliberately:** every artifact inside the BRD folder this run was given.
+Those are gated once, in the *Resolve inputs and gate the sent package* phase, and re-gating each
+write would re-ask a question already answered.
+
+---
+
 ## Phase 0 — Resolve inputs and gate the sent package
 
 1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `brd-key-valid`
@@ -127,10 +163,21 @@ the customer's own voice.
    `require-on-main` (§3) here, before anything else reads a file. Execute it against the resolved
    folder's **most recent `customer-review-prompt-<YYYYMMDD>.md`** — the artifact whose presence
    proves a package was actually built and handed off. Every deliverable one `handoff-to-main` run
-   stages lands in a single commit (§2.3), so its presence on `origin/<default>` implies
+   stages lands in a single commit (§2.3), so on that path its presence on `origin/<default>` implies
    `self-review-<YYYYMMDD>.md`, `customer-delivery-note-<YYYYMMDD>.md` and the whole
    `bundle-<YYYYMMDD>/` merged with it — the artifacts `/brd-package`'s handoff stages together —
-   and `/brd-package`'s own gate on `decisions.md` had already run before any of them existed. Map
+   and `/brd-package`'s own gate on `decisions.md` had already run before any of them existed.
+
+   **That implication holds for the `handoff-to-main` path and for no other**, which matters because
+   this command's own second stop below sends an operator down a hand-committed one: files landed by
+   hand can land in any grouping, or partially. So once the gate passes, **verify the siblings rather
+   than inferring them** — check that `self-review-<YYYYMMDD>.md` and `bundle-<YYYYMMDD>/` of the same
+   date are present, and report by name any that are not. A missing sibling never stops the run — the
+   customer's answer is still their answer — but it is carried into the reconciliation record and the
+   final report as a limit on what this run could check the review against, because a returned
+   quotation with no committed bundle behind it cannot be matched to the document it came from
+   (D13, D18). Inferring the siblings from one file's presence is exactly the assumption the
+   hand-committed path breaks. Map
    the §3.7 return by `stopped` first: any stopping row → stop, naming the concrete branch/PR state
    it reports; `pass` → proceed; `pass_amending` → proceed, printing the §3.3 row-B message;
    `unmanaged` → proceed as before this feature; `absent` (row F) → **split it before stopping**, on
@@ -225,23 +272,55 @@ path nobody else can reproduce; the copy is the record.
    customer's, not this run's.** Naming the copy by today's date would record when the delivery team
    got round to ingesting the review rather than when it was written, and every claim in it is dated
    against the package it answers.
-2. **Copy it to `<BRD-dir>/customer-review-<YYYYMMDD>.md`**, byte for byte, using the review's date.
-   The name follows the BRD folder's own convention — the same `<artifact>-<YYYYMMDD>.md` shape as
-   the prompt, the delivery note and the self-review it sits beside — rather than the spaced filename
-   the customer was asked to send, which was chosen to be legible in a mail client and is not how
-   this folder addresses anything.
-3. **Never overwrite a differing file of that name.** If the destination already exists and is
-   byte-identical to the source, this is a resumed run: proceed, and say so. If it exists and
-   **differs**, stop:
-   `BRD_RECONCILE_REVIEW_EXISTS: <BRD-dir>/customer-review-<YYYYMMDD>.md already exists and differs from the file supplied — a returned review is never overwritten. Either reconcile the review already on file, or rename the supplied file so its own <YYYYMMDD> is the date it was actually written, and re-run.`
-   The escape is named in the message on purpose: where both files carry the same date in their
-   names, step 1 derives the same date twice and there is no prompt to change it from, so renaming
-   the incoming file is the only route through — and an operator who is not told that is stuck at a
-   stop with no exit.
-   A returned review is the customer's document and the counterpart of the immutable source
-   `/brd-intake` copies in (D11): two different reviews under one name leaves nobody able to say
-   which one a `[CD#n]` was frozen from. The byte-identical case is admitted deliberately, and it is
-   what keeps a run that failed after the copy from being unresumable.
+2. **Resolve the canonical name**, which is the date plus, where the date alone is taken, a
+   disambiguating suffix:
+
+   ```
+   <BRD-dir>/customer-review-<YYYYMMDD>.md              # the ordinary case
+   <BRD-dir>/customer-review-<YYYYMMDD>-<suffix>.md     # a second review carrying the same date
+   ```
+
+   The base name follows the BRD folder's own convention — the same `<artifact>-<YYYYMMDD>.md` shape
+   as the prompt, the delivery note and the self-review it sits beside — rather than the spaced
+   filename the customer was asked to send, which was chosen to be legible in a mail client and is
+   not how this folder addresses anything.
+
+   Resolve it as follows, and **never overwrite a differing file**:
+
+   - **Nothing at the base name** → use the base name.
+   - **The base name exists and is byte-identical to the source** → this is a resumed run. Use it,
+     and say so.
+   - **The base name exists and differs** → this is a **second review carrying the same date**, and
+     it is an ordinary state, not an error: a customer sends a corrected resend the same afternoon,
+     or two reviewers on their side each return a file. **Prompt for a disambiguating suffix** — the
+     same plain-text prompt step 1 already owns, asking for a short lowercase slug of
+     `[a-z0-9-]`, 1–24 characters, naming what tells this review apart (`corrected`, `second-reviewer`).
+     Then resolve the suffixed name by these same three tests, re-prompting where the suffixed name
+     is itself taken by something different, naming what is already there so the operator can pick a
+     suffix that is free.
+
+   **A date cannot be the disambiguator, which is why a suffix exists.** Where both files were
+   genuinely written on the same day, step 1 derives the same date from either, and there is nothing
+   truthful to change it to — telling the operator to rename the incoming file would be telling them
+   to record a date the review does not carry, and refusing to ingest it would make the second review
+   permanently unreadable by this command. The suffix is what lets the folder hold two reviews of one
+   date without either of them lying about when it was written. The *Write the reconciliation record*
+   phase already anticipates the same state from the other end — two reviews ingested on one day are
+   two events, and that record appends rather than overwriting — and this is the affordance that
+   makes reaching it possible.
+
+   **A returned review is never overwritten**, whatever the name resolves to. It is the customer's
+   document and the counterpart of the immutable source `/brd-intake` copies in (D11): two different
+   reviews under one name leaves nobody able to say which one a `[CD#n]` was frozen from. The
+   byte-identical case is admitted deliberately, and it is what keeps a run that failed after the copy
+   from being unresumable.
+
+   Only one thing here stops the run, and it is the operator declining to name a suffix at all:
+   `BRD_RECONCILE_REVIEW_EXISTS: <BRD-dir>/customer-review-<YYYYMMDD>.md already exists and differs from the file supplied, and no disambiguating suffix was given — a returned review is never overwritten. Re-run and supply a suffix, or reconcile the review already on file.`
+3. **Copy the source to the resolved canonical name**, byte for byte. Everything below reads that
+   copy, cites that copy, and names that copy — including the suffix, where one was taken, so a
+   `[CD#n]` frozen from the corrected resend is never mistaken for one frozen from the file it
+   replaced.
 4. **Hand it off.** Present `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's choice array
    verbatim:
    ```
@@ -250,7 +329,8 @@ path nobody else can reproduce; the copy is the record.
    On the first choice, execute `handoff-to-main` (`phase-handoff.md` §2) with `prefix: brd` (§2.9's
    table, where `brd` is the prefix every `/brd-*` command shares), `feature_folder` as resolved in
    the *Resolve inputs and gate the sent package* phase, `deliverable_paths` = the canonicalised
-   review alone, and `title: <BRD-KEY> Record the returned customer review <YYYYMMDD>`. Emit its
+   review alone, at the name step 2 resolved, and
+   `title: <BRD-KEY> Record the returned customer review <YYYYMMDD>`. Emit its
    §4.1 outcome line in the final report, labelled as the review's handoff so it is not confused with
    the run's own.
 
@@ -280,7 +360,7 @@ Dispatch `customer-review-reader` **once**, at `detection_model`:
 
 → Agent (subagent_type: "dev-workflows:customer-review-reader", model: `<detection_model>`):
   > "brd_key:     [the BRD key]
-  > review_path: [absolute path to <BRD-dir>/customer-review-<YYYYMMDD>.md — the canonicalised copy]
+  > review_path: [absolute path to the canonicalised copy, at the name the *Canonicalise the returned review* phase resolved — customer-review-<YYYYMMDD>.md, or the suffixed form where it took one]
   > package:
   >   questions:   [path to interview/customer-questions.md]
   >   assumptions: [path to decisions.md]
@@ -354,16 +434,29 @@ the operator, **one at a time, never batched**, with:
 choices: ["Confirm — this is what the customer decided; freeze it", "Correct it — the row does not match the quotation; supply the row that does, and freeze that", "Reject — this is not a customer decision at all; record why", "Ask the customer — the answer is not clear enough to freeze; the question stays open", "Cancel"]
 ```
 
-**This is not an escalation choice list**, and it is not one of the arrays
-`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` owns: its four options are the four fates a
-candidate can take in this command, the same way `/brd-package`'s disposition picker draws its four
-from its reviewer agent's contract and `/brd-interview`'s will-change picker draws its three from
+**This is not an escalation choice list** — its four options are the four fates a candidate can take
+in this command, the same way `/brd-package`'s disposition picker draws its four from its reviewer
+agent's contract and `/brd-interview`'s will-change picker draws its three from
 `decision-register-format.md` §6. It carries **no `"Other… (describe)"` entry and no bulk
 confirmation**, and both omissions are required rather than merely permitted. A free-text fifth
 option in a picker about customer authority is an invitation to write something that is neither the
 customer's decision nor a refusal of it; and a "confirm the rest" entry would return the whole
-mechanism to the state D14 exists to end, in one keystroke. `Cancel` stops the run with every
-confirmation already taken still recorded, so nobody is trapped and nothing is lost.
+mechanism to the state D14 exists to end, in one keystroke.
+
+**That requirement is enforceable only because the shared reference carves this array out by name.**
+`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` otherwise calls adding the trailing
+`"Other… (describe)"` entry "the one permitted adjustment" — which would **authorise** an agent to
+open the exact hole D14 closes, on the authority of the file this command is bound by. Its
+*The permitted adjustment does not reach these arrays* section therefore names this picker, the
+missing-reason picker below and the propagation sweep's, and gives that reason. A rule contradicted
+by its own authority is not a rule, so it is stated in both places or in neither.
+
+**`Cancel` stops the run with nothing frozen, and that is the honest description.** No `[CD#n]`
+exists until the *Freeze the customer decisions* phase runs, so a cancelled walk has written nothing
+to the register and the confirmations taken in it are lost with the session. What survives is what
+was on disk before: the canonicalised review, committed if its handoff was accepted. A re-run reads
+it again and re-offers every candidate — which is exactly why the resume rule below keys on the
+`[CD#n]` records **on file** rather than on anything this phase held in memory.
 
 **Both modes go through this phase, and they are not the same act.** In schema mode the rows come
 back `parsed` — provenance, not promotion — and what the operator is confirming is that the register
@@ -418,8 +511,13 @@ between them.
 
 ## Phase 5 — Freeze the customer decisions as `[CD#n]`
 
-Write one `[CD#n]` per confirmed candidate into `<BRD-dir>/decisions.md`, carrying every field
-`decision-register-format.md` §1 defines:
+Write one `[CD#n]` per confirmed candidate **that is not completing a record that already exists**.
+The *Confirm every candidate* phase's rule is the carve-out and it is repeated here because the mint
+and the exception live in two different phases, which is precisely where this would regress: a
+candidate confirmed against a target already carrying an **`open`** `[CD#n]` **mints nothing** — its
+reason is written as the `argumentation` of that record, which moves to `decided`. Ids are assigned
+once and never reused (§1), and one record holds one `chosen`. Everything else in this phase is
+about a genuinely new record, and each carries every field `decision-register-format.md` §1 defines:
 
 | Field | On a `[CD#n]` this phase writes |
 |---|---|
@@ -583,11 +681,19 @@ resolution — a resolution recorded is not un-recorded by a later reading of it
 and it never assigns the requirement a disposition — the disposition vocabulary belongs to the
 coverage ledger, which the next phase updates.
 
-**On a slice, these rows land in the parent's log.** A slice holds no `brd/brd-defect-log.md` of its
-own and inherits its parent's (`brd-format.md` §2.1), and that lookup is **exactly one hop** because
-nesting is capped at one level — a slice's parent always owns the source document and the log. The
-parent's log therefore joins this run's `deliverable_paths`, and the reconciliation record names it
-by path so nobody looks for a resolution in the folder the command was pointed at.
+**On a slice, these rows land in the parent's log — and that is a cross-BRD write.** A slice holds no
+`brd/brd-defect-log.md` of its own and inherits its parent's (`brd-format.md` §2.1), and that lookup
+is **exactly one hop** because nesting is capped at one level — a slice's parent always owns the
+source document and the log. The parent's log therefore joins this run's `deliverable_paths`, and the
+reconciliation record names it by path so nobody looks for a resolution in the folder the command was
+pointed at.
+
+Because the log belongs to another BRD, **the cross-BRD write guard applies here in full**: run
+`require-on-main` against the parent's `brd/brd-defect-log.md` first, and on any stopping row record
+the resolutions rather than writing them, naming the parent's branch/PR state. A parent whose defect
+log is mid-review is a parent somebody is editing, and a resolution written over it is a defect
+classification lost without trace. On a source-owning BRD the log is this run's own and the guard does
+not fire.
 
 ---
 
@@ -680,8 +786,10 @@ choices: ["Inherited unchanged — the change does not move this position; say w
 ```
 
 **Not an escalation array either**: the four options are the four dispositions the design fixes for
-this sweep, in that order, and a fifth would be a disposition nothing downstream can read. No
-`(Recommended)` marker, and the reason is stated beside the list per the
+this sweep, in that order, and a fifth would be a disposition nothing downstream can read — which is
+why `escalation-rules.md`'s *The permitted adjustment does not reach these arrays* section names this
+picker among the five that never take a trailing `"Other… (describe)"` entry. No `(Recommended)`
+marker, and the reason is stated beside the list per the
 `When no option is safe to recommend` guidance in `escalation-rules.md`: which one is right is a
 judgement about a position in another BRD, taken by whoever owns it, and a marker would invite the
 run to inherit-unchanged its way through a sweep whose whole purpose is to find what did move.
@@ -693,13 +801,11 @@ run to inherit-unchanged its way through a sweep whose whole purpose is to find 
 | `reopened` | `status: reopened` on that record, naming this run's `[CD#n]` as its cause — an incoming customer decision is exactly one of the two causes §4 admits |
 | `withdrawn` | `status: withdrawn` — the question stopped applying rather than being answered differently. It is **not** a tidier spelling of `superseded` (§3), and it is what stops a request from reappearing in the next customer package after the customer has already dealt with it |
 
-**A dependent BRD whose register is in flight is recorded, never written.** Execute `require-on-main`
-(`phase-handoff.md` §3) against each dependent's `decisions.md` before writing into it. Any stopping
-row → that dependent is named in the reconciliation record and in the final report with its concrete
-branch/PR state and the dispositions this run would have written, and **nothing is written into it**.
-This is never a stop of the whole run: writing over a register that is sitting on somebody else's
-open pull request would silently overwrite an in-flight run, and blocking this reconciliation on a
-dependent's review cycle would let any downstream BRD stall the prerequisite's own customer loop.
+**A dependent BRD whose register is in flight is recorded, never written.** This is the *cross-BRD
+write guard* above, applied to each dependent's `decisions.md`: `require-on-main` first, and on any
+stopping row the dependent is named in the reconciliation record and in the final report with its
+concrete branch/PR state and the dispositions this run would have written, with **nothing written
+into it**. It is never a stop of the whole run, for the reason that section gives.
 
 **Findings are named, not superseded.** A `[CG#n]` or `[DG#n]` carrying `horizon: will-change` whose
 named prerequisite decision this run has just frozen is exactly the shape the horizon exists to make
@@ -749,9 +855,16 @@ record, and every dated snapshot.
 
 | Outcome | Meaning |
 |---|---|
-| `updated` | the sentence is corrected, naming the `[CD#n]` that changed it |
+| `updated` | the sentence is corrected, naming the `[CD#n]` that changed it. **Where the artifact belongs to another BRD** — the parent's own, or a sibling slice's — the *cross-BRD write guard* applies: `require-on-main` first, and on a stopping row the hit becomes `needs-a-human` naming that state, never `updated` |
 | `still-true` | the sentence survives the change; **why** it survives is recorded, because "I looked and it was fine" and "I did not look" leave the same trace otherwise |
 | `needs-a-human` | the correction is a judgement this run cannot take, or the hit is inside a dated snapshot; it travels into *what still needs a human* |
+
+**The guard is why this sweep's root being the parent's folder is safe.** Reaching a sibling slice is
+the whole point of rooting it there — a superseded position asserted in a sibling's seed is invisible
+from this BRD's own folder — but reaching it and *writing* into it are two different acts, and the
+second is a cross-BRD write like any other. Without the guard this sweep would be the widest
+unguarded write path in the command: it touches every markdown file under the parent, most of which
+belong to some other BRD.
 
 **A hit inside a dated snapshot is never edited.** It is bannered by the *Banner the superseded dated
 snapshots* phase where that phase's rules reach it, and inside `bundle-<YYYYMMDD>/` it is neither
@@ -801,8 +914,8 @@ choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write 
 
 On the first choice, execute `handoff-to-main` (`phase-handoff.md` §2) with `prefix: brd` (§2.9's
 table), `feature_folder` as resolved in the *Resolve inputs and gate the sent package* phase,
-`deliverable_paths` = `customer-review-<YYYYMMDD>.md` (still listed, so a run whose first handoff was
-declined lands it here), `decisions.md`, `interview/round-<N>.md` and
+`deliverable_paths` = the canonicalised review at its resolved name (still listed, so a run whose
+first handoff was declined lands it here), `decisions.md`, `interview/round-<N>.md` and
 `interview/customer-questions.md`, `coverage-ledger.md`, the defect log's path (**the parent's**, on
 a slice), every dated artifact this run bannered, `reconciliation-<YYYYMMDD>.md`, every dependent
 BRD's `decisions.md` the sweep wrote, and every artifact the stale-reference sweep updated;

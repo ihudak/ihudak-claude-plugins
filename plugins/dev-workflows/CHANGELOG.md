@@ -41,15 +41,19 @@ specification, so the route now runs `/brd-intake` → `/brd-ground` → `/brd-s
   is still `consumed_by: none`, so "nothing was lost" stays checkable rather than hoped for.
 - **A PRD authored from a BRD carries that BRD's identity in its frontmatter** — `brd_key`,
   `brd_parent` and `depends_on`, written from the BRD's own `brd-link.md`, and written only by
-  `/create-prd --from-brd`. `/epics` and `/ready` read a PRD's prerequisites out of exactly those
-  three fields.
+  `/create-prd --from-brd`. They record committed BRD provenance on the PRD itself, and **no command
+  consumes them yet**: neither `/epics` nor `/ready` reads any of the three, and wiring a consumer is
+  separate work with its own review. Recording the provenance now is what makes such a consumer
+  possible at all — re-deriving it later would mean re-reading a BRD tree that may have moved on.
 - **A nested BRD folder is now visible to every command that resolves a PRD directory.**
   `references/brd-addressing.md` §4's one-level-deep fallback was defined but marked not yet
-  adopted; it is now adopted in **eleven files** — nine commands (`/create-prd`, `/update-prd`,
-  `/create-ard`, `/epics`, `/specify`, `/design`, `/ready`, `/idea`, `/release-notes`) plus the two
-  shared authorities `references/ard-resolution.md` and `references/jira-input-resolution.md`,
+  adopted; it is now adopted in **twelve files** — nine commands (`/create-prd`, `/update-prd`,
+  `/create-ard`, `/epics`, `/specify`, `/design`, `/ready`, `/idea`, `/release-notes`) plus three
+  shared authorities: `references/ard-resolution.md` and `references/jira-input-resolution.md`,
   through which `/implement` and `/document` adopt it by delegation without resolving a PRD
-  directory of their own. **The adoption is additive:** the fallback is reached only where the flat
+  directory of their own, and `references/prd-source-resolution.md`, which resolves the frozen specs
+  draft for `/update-prd` and `/create-prd --from-prd` and so needed the fallback in its own right.
+  **The adoption is additive:** the fallback is reached only where the flat
   match already returned nothing, so a key whose folder sits directly under `specifications/`
   resolves exactly as it did before, and a command that creates the folder it did not find still
   creates it flat — the fallback honours a nested folder that exists, it never proposes one.
@@ -72,10 +76,17 @@ specification, so the route now runs `/brd-intake` → `/brd-ground` → `/brd-s
   offered `/update-prd <BRD-KEY>` as the recommended option on finding an existing PRD, and
   `/update-prd` then hard-stopped on the three-segment key. Its validation, and the same regex in
   `references/prd-source-resolution.md` which it executes, now use `brd-addressing.md` §1's grammar —
-  a superset, so a two-segment refresh behaves exactly as before. `ard-reviewer`'s `prd` field and
-  `prd-reviewer`'s `jira_key` check (the latter conditional on a `brd_key` being present, so the
-  `/idea` route keeps the narrower backstop) were widened with them. **`jira-reader` was deliberately
-  not widened** — it validates a tracker key, and no tracker mints a three-segment one.
+  a superset, so a two-segment refresh behaves exactly as before. `ard-reviewer`'s `prd` field was
+  widened with them — on the `--from-brd` route it holds a BRD key. Those three are every folder-side
+  site. `references/ard-format.md`, the format authority for the ARD's own frontmatter, now specifies
+  both shapes rather than only the pre-BRD one: `prd` and `epic` may hold a BRD key, and
+  `derived_from` may name the folder's `ard-seed.md` where it holds no PRD — exactly what
+  `/create-ard` writes and `ard-reviewer` accepts, so writer, reviewer and format authority agree. **`jira-reader` and `prd-reviewer`'s `jira_key` check were deliberately not widened** — both
+  validate a *tracker* key, and no tracker mints a three-segment one. `prd-reviewer` instead excuses
+  an **absent** `jira_key` beside a present `brd_key`, which is exactly the state
+  `/create-prd --from-brd` authors: that reviewer runs at Phase 4, before the round-trip that mints a
+  key, so a correct BRD-route PRD now passes its own gate instead of being flagged for a field it is
+  right not to carry.
 - **`/update-prd` carries `brd_key`, `brd_parent` and `depends_on` through a refresh unchanged.** It
   reads no BRD tree, so a value it dropped was one nothing later could restore, and the first refresh
   of a slice's PRD would have silently made it look like an ordinary one. Carrying an existing value

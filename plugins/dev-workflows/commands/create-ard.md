@@ -405,7 +405,7 @@ from a re-derived title. That name collides with neither `/dev-workflows:create-
 - **Epic-level ARD:** `choices: ["Author the spec — /dev-workflows:specify <PRD> <Epic> (PE) (Recommended) <merge-clause>", "Hand to Dev — /dev-workflows:design <PRD> <Epic> (Dev) <merge-clause>", "Stop here", "Other… (describe)"]`. **Epic fan-out** — repeat this ARD for a sibling Epic: `/dev-workflows:create-ard <PRD> <another-Epic>`; that run inherits the PRD-level ARD, not this Epic-level one, so it waits on nothing this run produced and carries no clause.
 - **`--from-brd` (BRD-level ARD):** a different array, because **the key this run holds is a BRD key
   and only one of the three usual options can be reached with one**:
-  `choices: ["Author this BRD's specification — /dev-workflows:specify <BRD-KEY> --from-brd (PE) (Recommended) <merge-clause>", "Hand to a Product Engineer — /dev-workflows:epics <jira_key> (PE) <merge-clause>", "Stop here", "Other… (describe)"]`
+  `choices: ["Author this BRD's specification — /dev-workflows:specify <BRD-KEY> --from-brd (PE) (Recommended) <merge-clause>", "Hand to a Product Engineer — /dev-workflows:epics <BRD-KEY> (PE) <merge-clause>", "Stop here", "Other… (describe)"]`
   — with the second option **present only when the test below passes, and dropped from the array
   entirely when it does not**.
   - **`/dev-workflows:specify <BRD-KEY> --from-brd` is always reachable from this state.** It takes
@@ -422,8 +422,15 @@ from a re-derived title. That name collides with neither `/dev-workflows:create-
     `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` under the *same* key, reaching this folder at
     either level via `brd-addressing.md` §4's fallback. Passing that test means the BRD was keyed with
     the tracker's own key, so `jira_key` and `<BRD-KEY>` are the same string and the option hands
-    `jira-reader` a real tracker key rather than a folder name (§1). **A minted `jira_key` that differs
-    from `<BRD-KEY>` does not qualify**: under it `ard-resolution.md` resolves a different
+    `jira-reader` a real tracker key rather than a folder name (§1). **The option is written in
+    `<BRD-KEY>`, matching `/dev-workflows:specify`'s sibling site**, because that is the only key this
+    run resolves: no `jira_key` is in hand here — one exists only where the BRD folder happens to hold
+    a PRD carrying one, and this route requires no PRD — and the gate above is written entirely in
+    `<BRD-KEY>` too. Naming `<jira_key>` would name a placeholder nothing on this route binds. This is
+    not a two-keys violation: the gate is what establishes that the BRD key is the key the tracker
+    export is filed under, so the string handed over is a tracker key that happens to be spelled the
+    same as the folder key, and it is offered only where that has been shown.
+    **A minted `jira_key` that differs from `<BRD-KEY>` does not qualify**: under it `ard-resolution.md` resolves a different
     `specifications/` folder, returns `status: none` for this ARD, and `/dev-workflows:epics` proceeds
     with no ARD at all — which is not a wait the merge clause could describe but a permanent blind
     spot, and naming the command there would promise an inheritance that never happens. Where the test

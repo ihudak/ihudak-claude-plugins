@@ -702,7 +702,7 @@ register, ledger, defect log, and bannered snapshots; propagation dispositions i
 
 | Command | Change |
 |---|---|
-| `/create-prd` | New `--from-brd`. Reads `prd-seed.md` and `decisions.md` from the resolved BRD folder. The grill is restricted to gaps: it may fill anything the seed does not settle, and may **not** reopen a `[VD#n]` or `[CD#n]` (D3). Refuses if any ledger row this BRD claims is unallocated, and refuses when the ledger shows no `covered-here` row, saying where the requirements went per `coverage-ledger-format.md` §5 — which is not always a list of children. Defaults the profile to `--full`. Marks each consumed item `consumed_by: PRD`. Writes `brd_key:`, `brd_parent:` and `depends_on:` into the PRD frontmatter, so a PRD's prerequisites are visible to `/epics` and `/ready` without reading the BRD tree. |
+| `/create-prd` | New `--from-brd`. Reads `prd-seed.md` and `decisions.md` from the resolved BRD folder. The grill is restricted to gaps: it may fill anything the seed does not settle, and may **not** reopen a `[VD#n]` or `[CD#n]` (D3). Refuses if any ledger row this BRD claims is unallocated, and refuses when the ledger shows no `covered-here` row, saying where the requirements went per `coverage-ledger-format.md` §5 — which is not always a list of children. Defaults the profile to `--full`. Marks each consumed item `consumed_by: PRD`. Writes `brd_key:`, `brd_parent:` and `depends_on:` into the PRD frontmatter, recording committed BRD provenance on the PRD itself. **No command consumes the three yet** — wiring `/epics` and `/ready` to read them is new behaviour on two commands used heavily by non-BRD routes and is deferred to its own increment; recording the provenance now is what makes such a consumer possible without re-reading a BRD tree that may have moved on. |
 | `/create-ard` | New `--from-brd`. Reads `ard-seed.md` plus the architecture-altitude findings; `[CG#n]`/`[DG#n]` findings seed the ARD's grounding-findings section, architecture decisions seed `AD#N`. Marks each consumed item `consumed_by: ARD`. |
 | `/specify` | New `--from-brd`. Reads `spec-seed.md`, including the derivation matrix. Marks each consumed item `consumed_by: specification`. |
 
@@ -716,16 +716,19 @@ layout, but it is never required.
 and cannot see a nested one. Each gains the same one-level-deep fallback, defined once in
 `references/brd-addressing.md` §4.
 
-**The fallback lands in eleven files and reaches eleven commands, and the two elevens are not the
-same set.** Nine commands adopt it in their own PRD-dir resolution step: the six above, plus
-`/update-prd`, `/idea` and `/release-notes`. Two shared references adopt it as well, because a
+**The fallback lands in twelve files and reaches eleven commands, and neither number is derivable
+from the other.** Nine commands adopt it in their own PRD-dir resolution step: the six above, plus
+`/update-prd`, `/idea` and `/release-notes`. Three shared references adopt it as well, because a
 command that delegates part of its path resolution cannot fix that part in its own file:
-`references/ard-resolution.md` is how any command reaches an ARD, and
-`references/jira-input-resolution.md` is how a command reaches its `specs` file list — so adopting
-only the commands would have left a nested ARD and a nested spec list invisible to every one of
-them. Through those two references the fallback also reaches **`/implement`** (its only route to an
+`references/ard-resolution.md` is how any command reaches an ARD,
+`references/jira-input-resolution.md` is how a command reaches its `specs` file list, and
+`references/prd-source-resolution.md` is how `/update-prd` and `/create-prd --from-prd` reach the
+frozen specs draft that carries a PRD's `jira_key` and `brd_key` — so adopting only the commands
+would have left a nested ARD, a nested spec list and a nested draft invisible to every one of them.
+Through the first two references the fallback also reaches **`/implement`** (its only route to an
 ARD, and to `specs`) and **`/document`** (`specs`), neither of which resolves a PRD dir of its own
-and neither of which appears among the nine.
+and neither of which appears among the nine; the third adds a file without adding a command, since
+both commands that delegate to it are already among the nine.
 
 Three of the nine were not in the original six and are worth naming, because two of them carry a
 **handoff** rather than a resolution of their own: `/create-prd` redirects to **`/update-prd`** when
@@ -737,8 +740,8 @@ the `run_phase` signal was also narrower than the `cost-emission.md` §7 signal 
 `references/brd-addressing.md` §4 carries the authoritative adopter list, as a table rather than a
 count, and this paragraph should be read against it rather than instead of it.
 
-It is additive throughout: a flat key resolves exactly as it does today in every one of the eleven
-files, because the fallback runs only where the flat match already returned nothing. The two shared
+It is additive throughout: a flat key resolves exactly as it does today in every one of the twelve
+files, because the fallback runs only where the flat match already returned nothing. The three shared
 references create nothing, so for them additivity means a flat key returns the same result it
 returned before.
 

@@ -61,8 +61,8 @@ the customer later nodded at it, and a customer answer captured in free text doe
 `[CD#n]` at all until an operator confirms it (D14) — the register records confirmed decisions, and
 normalising prose into one is inference, not authority.
 
-`options_considered` and `chosen` do not apply to an `[AS#n]`, which is not a choice; see §7 for
-what an assumption record carries instead.
+`options_considered` and `chosen` do not apply to an `[AS#n]`, which is not a choice; §7 accounts
+for all eleven of these fields on an assumption record, one by one.
 
 ## 2. `argumentation` is mandatory
 
@@ -192,16 +192,60 @@ firing rests on exactly what it rested on before, minus the record of it.
 
 ## 7. Assumptions — `[AS#n]`
 
-An `[AS#n]` records **something the package asserts without evidence.** It is not a decision and
-carries no `options_considered` and no `chosen`; it reuses §1's `id`, `statement`, `status`, `round`
-and `consumed_by`, and its `evidence` list is empty by definition — an assumption with evidence is a
-finding, and a choice between assumptions is a decision.
+An `[AS#n]` records **something the package asserts without evidence.** It is not a decision: nothing
+was chosen, so nothing was weighed. It uses the same eleven fields as §1, and because `/brd-package`
+will put every open one of them in front of the customer (below), which fields apply is not a
+detail an author may settle for themselves. All eleven are accounted for here.
 
-What replaces `evidence` is the same discipline `references/grounding-format.md` §2 applies to a
-finding that asserts an absence: **the record says why no evidence exists** — what was assumed, and
-what would have to be true for it to hold. "Assumed: the source system emits one record per
-transaction; nothing in the pinned commit reads that feed, so nothing here can confirm it" is an
-assumption record. A bare sentence with no account of its own groundlessness is a claim.
+| §1 field | On an `[AS#n]` |
+|---|---|
+| `id` | **As-is**, under its own prefix: `[AS#1]`, `[AS#2]`, … contiguous within that prefix, assigned once, never renumbered or reused |
+| `statement` | **As-is**: one sentence, saying what is assumed — the assumption itself, never the reason for it and never the reason it is unevidenced |
+| `options_considered` | **Not applicable.** An assumption is an assertion, not a choice between options; a record that weighs options is a decision and takes a `[VD#n]` or `[CD#n]` |
+| `chosen` | **Not applicable**, for the same reason: there is nothing to choose from |
+| `argumentation` | **Different meaning**, still mandatory: for a decision it says why this option beat the others (§2); here it says **why the package is proceeding on the assumption rather than stopping to establish it** — what establishing it would cost, and what depends on not waiting |
+| `evidence` | **Different meaning**, still never blank: it holds **no** `[CG#n]`/`[DG#n]` ids, and instead carries the explicit statement of **why no evidence exists** — see below |
+| `altitude` | **As-is**: an assumption sits at a level like anything else, and the spec's §7 routing needs it for the same reason |
+| `conditional_on` | **As-is**, and omitted when absent: an assumption can rest on a prerequisite's decision exactly as a position can, and §5's sweep must be able to reach it for exactly the same reason |
+| `status` | **Narrowed vocabulary**, from §3's five: an `[AS#n]` reaches `open`, `superseded` and `withdrawn` only. `decided` cannot apply — an assumption is never settled by being chosen; when the customer confirms it, the confirmation is a `[CD#n]` and the assumption is `superseded` by it (below). `reopened` follows `decided`, so it is unreachable too |
+| `consumed_by` | **As-is**, with the same starting-at-`none` rule |
+| `round` | **As-is**: the interview round the assumption was recorded in |
+
+**`evidence` is the field that carries the why-no-evidence explanation.** This is the same
+discipline `references/grounding-format.md` §2 applies to a finding asserting an absence — an
+explicit statement of what was searched and why it fell short, rather than an empty field — applied
+to the record whose whole content is an absence. It does not go in `statement`, which holds the
+assumption and nothing else, and it does not go in `argumentation`, which answers a different
+question: `argumentation` says why we are proceeding anyway, `evidence` says why we cannot do
+better. A reader who confuses the two ends up with a record that argues for the assumption while
+never admitting it is one.
+
+A worked `[AS#n]` against a synthetic BRD `EPIC-008`:
+
+```yaml
+id: [AS#4]
+statement: The upstream feed emits one record per transaction, not one record per batch.
+argumentation: |
+  Every read path this package describes assumes per-transaction grain. Establishing the
+  grain needs a sample the customer has not sent; waiting for one blocks the whole package,
+  and proceeding on a stated assumption the customer can correct in one sentence is cheaper
+  than stalling.
+evidence: |
+  No evidence exists. Nothing in the pinned commit reads this feed — searched the ingestion
+  paths at the pinned commit and found no reader — so the repository cannot settle the grain
+  either way, and no [CG#n] was produced for it.
+altitude: implementation
+status: open
+consumed_by: none
+round: 1
+```
+
+A bare sentence with no account of its own groundlessness is a claim, not an assumption record.
+
+**§6 cannot fire on an `[AS#n]`.** The will-change rule tests the horizons of the findings in an
+`evidence` list, and an assumption's list holds none. That is not a loophole to route a shaky
+position through: a record with findings behind it is not an assumption, and calling one an
+assumption to escape §6 is the evidence-thinning §6 already refuses.
 
 **Every open `[AS#n]` is surfaced in the customer prompt.** Not the ones that seem material, not the
 ones somebody remembered — every open one, automatically, because the selection step is where this

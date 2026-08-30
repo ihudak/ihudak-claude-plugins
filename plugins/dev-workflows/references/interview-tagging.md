@@ -38,8 +38,9 @@ recorded argumentation is for — but it is never handed over as a question for 
 
 **A `[C]` reaches the customer only through the review package**, never through a side channel, and
 the customer's answer becomes a recorded decision only when an operator confirms it (D14). The
-customer answering and the register recording an answer are two separate acts, and this file fixes
-only the first: who may be asked.
+customer answering and the decision register recording an answer are two separate acts
+(`references/decision-register-format.md` §1), and this file fixes only the first: who may be
+asked.
 
 **Tagging precedes asking, always.** A question with no tag is not asked, of anyone. The order is
 load-bearing rather than tidy: a question asked first and classified afterwards has already reached
@@ -155,8 +156,8 @@ package — the customer's turnaround is not a reason to declare the round finis
 questions each of which either has a disposition or does not, an interrupted run resumes at the
 first question without one; it does not restart the round. This matters most for `[C]` questions:
 asking a customer the same question twice is not an inefficiency, it is an invitation to a different
-answer, and two customer answers to one question is a contradiction the register has no way to
-resolve.
+answer, and two customer answers to one question is a contradiction the decision register has no way
+to resolve — one `[CD#n]` record holds one `chosen` (`references/decision-register-format.md` §1).
 
 **Round numbers are permanent and contiguous, and every decision records the round that produced
 it.** That is what makes it answerable later what was known at the time a position was taken — a

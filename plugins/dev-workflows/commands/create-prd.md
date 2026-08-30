@@ -1,6 +1,6 @@
 ---
 name: create-prd
-description: PRD-creation workflow (PM phase, sub-project 2 of the PRD-creation flow). Turns a refined idea.md + a user-supplied JIRA-KEY into a high-quality Product Requirements Document document (spine + adapt-in profiles --lean|--hybrid|--full), authored via a relentless grill against references/prd-format.md, gated by the Opus prd-reviewer, written to $SPECS_PATH/specifications/<KEY>-<slug>/ and published to Jira by paste + re-import. Product-level (no code scan). --from-brd seeds the run from a reconciled BRD instead of an idea: it reads that BRD folder's product-altitude prd-seed.md and decisions.md, defaults the profile to --full, refuses a BRD whose claimed coverage-ledger rows are not all allocated and one whose ledger holds no covered-here row, freezes every [VD#n]/[CD#n] against the grill, and writes brd_key/brd_parent/depends_on into the PRD frontmatter. Offers /release-notes and /create-ard as next steps.
+description: PRD-creation workflow (PM phase, sub-project 2 of the PRD-creation flow). Turns a refined idea.md + a user-supplied JIRA-KEY into a high-quality Product Requirements Document document (spine + adapt-in profiles --lean|--hybrid|--full), authored via a relentless grill against references/prd-format.md, gated by the Opus prd-reviewer, written to $SPECS_PATH/specifications/<KEY>-<slug>/ and published to Jira by paste + re-import. Product-level (no code scan). --from-brd seeds the run from a reconciled BRD instead of an idea: it reads that BRD folder's product-altitude prd-seed.md and decisions.md, defaults the profile to --full, refuses a BRD whose coverage-ledger rows are not all allocated and one whose ledger holds no covered-here row (the rows read are the BRD's own ledger rows, narrowed by brd-link.md claims: only on a slice), freezes every [VD#n]/[CD#n] against the grill, and writes brd_key/brd_parent/depends_on into the PRD frontmatter. Offers /release-notes and /create-ard as next steps.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -42,7 +42,7 @@ Usage: `/create-prd <JIRA-KEY|BRD-KEY> [@idea.md] [--from-prd <PRD-KEY|path>] [-
     different seeds for one PRD — re-run '/dev-workflows:create-prd <KEY>' with exactly one of
     them.`
 
-**Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier run, retry an artifact commit that failed to push, and settle the branch. Prompt-free and silent when the specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal `commit-artifacts` step skips on it.
+**Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `specs-preflight` entry point (§3) inline. **Under `--from-brd`, pass the resolved BRD key as this run's key set** (§3.2 — the route is what decides keyless here, not the command): steps 1–2b above already validated it, this run's branch is `prd/<BRD-KEY>-<slug>`, and an empty set would send a resumed run to §3.5 B4 and duplicate that branch at `-2`. On the `/idea` route the set stays empty, for the reason §3.2 gives. The preflight then: flush any leftover session artifacts from an earlier run, retry an artifact commit that failed to push, and settle the branch. Prompt-free and silent when the specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal `commit-artifacts` step skips on it.
 
 *(The preflight runs here, before the gate below, because `require-on-main` performs **no** `fetch` of its own — §3.2 — and relies on this step's best-effort one. Gating first would test never-fetched refs: a just-merged artifact would be missed on `origin/<default>` while the stale remote-tracking ref for its deleted branch still carries it, producing a false row D/E stop. `specs-preflight` self-gates on `$SPECS_PATH`, so it is safe this early.)*
 
@@ -72,11 +72,36 @@ Usage: `/create-prd <JIRA-KEY|BRD-KEY> [@idea.md] [--from-prd <PRD-KEY|path>] [-
    `CREATE_PRD_BRD_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
    Without `--from-brd`, unchanged: `<SPECS_PATH>/specifications/<KEY>-<slug>/` — `<slug>` from the idea title (else a kebab of the PRD summary). Honor an existing dir matched by key-number (tolerate a stray `-`/`_` and a human-adjusted slug). No match there → apply `${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §4's one-level-deep fallback before concluding none exists; it is reached only on a flat miss, so a flat key resolves exactly as it did before. This is the resolution every mention of the feature folder in this command means, step 3's rung-1 `idea.md` included. Auto-created by the first write (Phase 5) at the flat path — the fallback honors a nested folder that already exists, it never proposes one.
 6. **Prior PRD (frontmatter-based).** Glob `<feature-folder>/<KEY>_*.md` and confirm frontmatter `issue_type: ValueIncrement` (tolerant of any slug). If a PRD is found, this is an **existing PRD** — `/create-prd` is greenfield-only, so **redirect** (see Phase 1) to `/update-prd <KEY>` unless `--from-prd` **or `--from-brd`** is present.
-7. **The BRD gate (`--from-brd` only).** Read `<BRD-dir>/brd-link.md` for the `[BR#n]` set this BRD
-   `claims:`, its `parent:` (absent on a BRD that owns its source document) and any `depends-on:`;
-   then read `<BRD-dir>/coverage-ledger.md` and take the **`disposition` written on each claimed
-   row**. Both refusals below are `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5's
-   rule, applied — that file is the authority for each and neither is restated here.
+7. **The BRD gate (`--from-brd` only).** Read `<BRD-dir>/brd-link.md` for its `parent:` (absent on a
+   BRD that owns its source document) and any `depends-on:`; then read
+   `<BRD-dir>/coverage-ledger.md` and take the **`disposition` written on each row of the gate set
+   defined immediately below**. Both refusals below are
+   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5's rule, applied — that file is the
+   authority for each and neither is restated here.
+
+   **The gate set is this BRD's own ledger rows, and `claims:` narrows it only on a slice.** §5
+   states eligibility over *its ledger rows*, and §3's creator table says what those rows are at each
+   of the two levels a BRD can sit at — so the **level** picks the set, read off `brd-link.md`'s
+   `parent:` exactly as `/brd-split` Phase 0 and `/brd-ground` Phase 0 step 6 read it:
+   - **No `brd-link.md`, or one with no `parent:` — a BRD that owns its source document.** The gate
+     set is **every row of its `coverage-ledger.md`**, which `/brd-intake` wrote one per `[BR#n]` in
+     the inventory it extracted (§3). **`claims:` is not read at this level, and its absence is not a
+     finding.** Only `/brd-split` writes that field, and only into a **child's** `brd-link.md`
+     (`commands/brd-split.md` Phase 3 step 3, and the `covered-by` resolution in its Phase 4);
+     `/brd-ground` and `/brd-package` only preserve a `claims:` another command wrote. On a BRD that
+     was never split the field therefore does not exist — so a gate defined over it would read an
+     **empty** set, find no `covered-here` row in it, and refuse the ordinary never-split BRD that is
+     this route's primary case.
+   - **`parent: <PARENT-KEY>` present — a slice.** The gate set is the rows its `coverage-ledger.md`
+     holds for the `[BR#n]` its `brd-link.md` `claims:`. `/brd-split` wrote the claims list and the
+     ledger together (§3), so the two normally coincide; where they do not, `claims:` is what this
+     slice is answerable for and the narrower set is the right one. A slice claiming nothing has an
+     empty gate set — the standing-empty-child state `/brd-split` Phase 4.5 keeps against a recorded
+     reason — and reaches refusal 2 by the empty-set row of the table below, never refusal 1.
+
+   Every count and list this step and the rest of this command take — `<n>`, each `[BR#n]` list,
+   Phase 1's and the final report's "how many rows are `covered-here`" — is taken over this gate set
+   and over nothing else.
 
    **Read every disposition from the ledger file, never from any `ledger:` line.** §5 says so
    outright and §6.1 says why: that line's `unallocated` term is a *resolved* count that also holds
@@ -85,9 +110,9 @@ Usage: `/create-prd <JIRA-KEY|BRD-KEY> [@idea.md] [--from-prd <PRD-KEY|path>] [-
    satisfied. This command therefore never parses a `ledger:` line and never prints one — that line
    is the `/brd-*` family's final-report convention (§6), and this command is not one of them.
 
-   **Refusal 1 — a claimed row is still `unallocated`.** Stop gracefully:
+   **Refusal 1 — a row of the gate set is still `unallocated`.** Stop gracefully:
    ```
-   CREATE_PRD_BRD_UNALLOCATED: <BRD-KEY>'s coverage-ledger.md still writes `unallocated` on <n> of the rows its brd-link.md claims — <[BR#n] list>. coverage-ledger-format.md §5 makes that a hard refusal: the allocation gate was never satisfied, and an unallocated row is neither an implicit `covered-here` nor an implicit `deferred-to` in either direction. Run '/dev-workflows:brd-split <BRD-KEY>' to walk each one to a terminal disposition, then re-run '/dev-workflows:create-prd <BRD-KEY> --from-brd'.
+   CREATE_PRD_BRD_UNALLOCATED: <BRD-KEY>'s coverage-ledger.md still writes `unallocated` on <n> of the <total> requirement rows this BRD is answerable for <on a slice: — the rows its brd-link.md claims> — <[BR#n] list>. coverage-ledger-format.md §5 makes that a hard refusal: the allocation gate was never satisfied, and an unallocated row is neither an implicit `covered-here` nor an implicit `deferred-to` in either direction. Run '/dev-workflows:brd-split <BRD-KEY>' to walk each one to a terminal disposition, then re-run '/dev-workflows:create-prd <BRD-KEY> --from-brd'.
    ```
    `/dev-workflows:brd-split` is safe to name here **because there is something for it to do**: it is
    the command whose walk exists to move exactly these rows off `unallocated`, and it runs on a
@@ -97,32 +122,42 @@ Usage: `/create-prd <JIRA-KEY|BRD-KEY> [@idea.md] [--from-prd <PRD-KEY|path>] [-
    when they do not. Say so beside the offer, so an operator whose BRD has only been intaken is not
    sent into a second stop to learn the same thing.
 
-   **Refusal 2 — no claimed row is `covered-here`.** The BRD holds no PRD of its own. Refuse, and
-   say **where the requirements went** — which per §5 is *not always a list of children*, so branch
-   on how the state was reached rather than assuming the first case:
+   **Refusal 2 — no row of the gate set is `covered-here`.** The BRD holds no PRD of its own.
+   Refuse, and say **where the requirements went** — which per §5 is *not always a list of children*,
+   so branch on how the state was reached rather than assuming the first case. **Which rows are
+   reachable depends on the level, so read the gate set's level first**: `covered-by` is parent-only
+   (§3), so rows 1 and 2 are reachable only on a BRD that owns its source document and row 3 only on
+   a slice — while row 4 is a gate set with nothing in it at all and is reachable at either:
 
-   | How every claimed row left `covered-here` | What this stop says |
+   | How every row of the gate set left `covered-here` | What this stop says |
    |---|---|
    | Some rows are `covered-by: <CHILD-KEY>` | Name those children — and, per §6.1, resolve each delegated row one hop through the named child's own ledger and say which of them is **not** building the row delegated to it. A child that deferred, rejected or has not allocated it is not somewhere to send the reader |
-   | No row is `covered-by`: this BRD was never split | Name **no** child, because none exists — and say what the claimed rows *did* resolve to rather than calling them all obligations. §5 separates the three remaining dispositions: a `deferred-to` row is a live obligation of this BRD, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it, and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. Then say a PRD needs one row resolved `covered-here` first |
+   | No row is `covered-by`: this BRD was never split | Name **no** child, because none exists — and say what the gate-set rows *did* resolve to rather than calling them all obligations. §5 separates the three remaining dispositions: a `deferred-to` row is a live obligation of this BRD, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it, and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. Then say a PRD needs one row resolved `covered-here` first |
    | No row is `covered-by` because this BRD is a **slice** | The same breakdown, and say why there is nothing to name: `covered-by` is parent-only (§3), so no child can exist below a slice and the ineligible case is reached entirely through the three dispositions above |
+   | The gate set is **empty** — a ledger holding no row at all, or a slice whose `brd-link.md` claims nothing | Report the emptiness and enumerate nothing, because there is nothing to enumerate: no requirement reached any disposition, and naming one would invent it. Say which emptiness it is, and name the one run that can change it — an inventory that yielded no `[BR#n]`, fixed by re-running `/dev-workflows:brd-intake <BRD-KEY> @<brd-file>` over this same folder (an existing folder is a re-run, not a refusal — `/dev-workflows:brd-ground` stops on this same state and says so); or a standing empty child, whose keep-or-remove `/dev-workflows:brd-split <PARENT-KEY>` alone resolves. Unlike the second and third rows, this one has a next command that exists in the state being reported |
 
    In the second and third cases **there is nothing to name and a child must not be invented**; the
    honest report is what each row actually resolved to, and — for the deferred ones — by whom.
    "The requirements are deferred" is the common shape of those two cases, not the whole of them: a
-   BRD whose every claimed row is `rejected` reaches this same refusal owing nobody anything, and
-   saying it deferred them would be false. Stop as:
+   BRD whose every gate-set row is `rejected` reaches this same refusal owing nobody anything, and
+   saying it deferred them would be false. In the fourth there is not even that to report, and
+   saying "the requirements were deferred" of a set holding no requirement would be false twice
+   over. Stop as:
    ```
-   CREATE_PRD_BRD_NOT_ELIGIBLE: no row <BRD-KEY>'s brd-link.md claims is `covered-here`, so this BRD holds no PRD of its own (coverage-ledger-format.md §5). <where the requirements went, per the row above that matches>
+   CREATE_PRD_BRD_NOT_ELIGIBLE: no row of <BRD-KEY>'s coverage-ledger.md <on a slice: that its brd-link.md claims> is `covered-here`, so this BRD holds no PRD of its own (coverage-ledger-format.md §5). <where the requirements went, per the row above that matches>
    ```
 
-   **What this stop may offer, and what it may not.** Only the first case has a next command that
-   exists in the state being reported: `/dev-workflows:create-prd <CHILD-KEY> --from-brd`, offered
-   once per named child **that the one-hop resolution showed is actually building its row** — the
-   children resolving to `deferred`, `rejected`, `unallocated` or `unresolved` are named as facts and
-   offered as nothing. That child run applies this same gate to its **own** ledger, which is the
-   point: the offer is that a PRD is possible there, not a promise that every other row the child
-   claims is already allocated. In the second and third cases **no command is offered at all, and the stop
+   **What this stop may offer, and what it may not.** Two of the four cases have a next command that
+   exists in the state being reported, and they are the first and the last. The **first** offers
+   `/dev-workflows:create-prd <CHILD-KEY> --from-brd`, once per named child **that the one-hop
+   resolution showed is actually building its row** — the children resolving to `deferred`,
+   `rejected`, `unallocated` or `unresolved` are named as facts and offered as nothing. That child
+   run applies this same gate to its **own** ledger, which is the point: the offer is that a PRD is
+   possible there, not a promise that every other row the child claims is already allocated. The
+   **fourth** offers the one run that can put a row into an empty gate set — `/dev-workflows:brd-intake
+   <BRD-KEY> @<brd-file>` on a BRD that owns its source document, `/dev-workflows:brd-split
+   <PARENT-KEY>` on a standing empty child — and neither is a no-op in the state this stop reports.
+   In the second and third cases **no command is offered at all, and the stop
    says why rather than going quiet**: re-running `/dev-workflows:brd-split <BRD-KEY>` on a ledger
    with no `unallocated` row is a no-op that changes nothing (§4), `/dev-workflows:brd-reconcile`
    never allocates, and no row is ever moved back to `unallocated` (§3) — so nothing in this plugin
@@ -136,13 +171,19 @@ Usage: `/create-prd <JIRA-KEY|BRD-KEY> [@idea.md] [--from-prd <PRD-KEY|path>] [-
    omission.** Both are Phase 0 stops, taken before this run has a deliverable, a branch or a
    handoff — so there is no `Phase handoff:` outcome line
    (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1) for a clause to resolve from, and every
-   command they name gates on artifacts **another** run wrote and already merged. Phase 6 holds this
+   command they name either runs no `require-on-main` gate at all (`/dev-workflows:brd-intake`
+   consumes nothing — §5's caller table) or gates on artifacts **another** run wrote and already
+   merged. Phase 6 holds this
    command's only two placeholder sites — its choice array and the bullet that resolves it — and
    nothing on this route adds a third.
 
    Both refusals are read **as this run finds the tree**. Neither is a defect in the BRD: slicing a
    BRD entirely and slicing it partially are both ordinary outcomes (§5), and refusal 2 is what a
-   fully-sliced parent is *supposed* to reach.
+   fully-sliced parent is *supposed* to reach. **Neither is what an unsliced BRD reaches.** A BRD
+   that owns its source document, was ground, and had `/brd-split` walk every inventory row to
+   `covered-here` without carving out a single slice is the route's ordinary shape (§4 — the walk's
+   escape valve exists precisely so an unsplit BRD can complete), it has no `claims:` field and never
+   will, and it passes both refusals here on its ledger's own rows.
 
 `/create-prd` is **cwd-agnostic** and needs **no repos mounted** (product-level; no code scan).
 
@@ -152,7 +193,7 @@ Usage: `/create-prd <JIRA-KEY|BRD-KEY> [@idea.md] [--from-prd <PRD-KEY|path>] [-
 
 Use `choices` arrays; the last choice is always `"Other… (describe)"`.
 
-1. **Confirm** the feature folder, the profile, and the resolved `idea.md` (or "none — grill from scratch"); under `--from-brd`, the BRD folder, the profile (`--full` unless a flag overrode it), and — instead of an idea — a `from BRD:` line naming `<BRD-KEY>`, its `parent:` if it has one, its `depends-on:` if any, how many claimed rows are `covered-here`, and whether `prd-seed.md` and `decisions.md` were found.
+1. **Confirm** the feature folder, the profile, and the resolved `idea.md` (or "none — grill from scratch"); under `--from-brd`, the BRD folder, the profile (`--full` unless a flag overrode it), and — instead of an idea — a `from BRD:` line naming `<BRD-KEY>`, its `parent:` if it has one, its `depends-on:` if any, how many of its gate-set rows (Phase 0 step 7) are `covered-here` out of how many, and whether `prd-seed.md` and `decisions.md` were found.
    - Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
    - Show the `prior art:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md` resolved — `ON <vault-root>` or `OFF (<reason>)` — verbatim (off switch: --no-prior-art). Run `resolve-prior-art create-prd` per that reference to obtain it; it runs exactly once per run.
 2. **Existing-PRD handling** (only if Phase 0 step 6 found a PRD for `<KEY>`):
@@ -292,7 +333,7 @@ Carry both digests into Phase 3 with **grill-rank** consumption. When both are O
 
 Author `<KEY>_<slug>.md` live against `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md` for the selected profile, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md`. Walk the **spine** in dependency order:
 
-1. Frontmatter — `relevant_for_release_notes` (defaults to `yes`; ask only to confirm a `no`); `sources` (propagated), `derived_from`, `seeded_from_prd` (only when `--from-prd` was used), and `jira_key` — **written here only on the `/idea` route**, where the positional token is a key the user minted on the tracker before the run, so it is a tracker identity the moment it is written. **Under `--from-brd` `jira_key` is omitted here**, and the round-trip's step 1 is what writes it, because that step is where a tracker identity is minted for the first time; writing `<BRD-KEY>` into it now would put a `$SPECS_PATH` folder name in the one field every downstream consumer reads as a tracker key, and nothing later could tell a minted key from an un-minted address. Its absence is therefore load-bearing and is read as "no tracker identity yet" by Phase 6's offers and by `${CLAUDE_PLUGIN_ROOT}/references/prd-source-resolution.md` step 2. **Under `--from-brd`, additionally `brd_key`, `brd_parent` and `depends_on`**, per `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`'s frontmatter block, each read from what Phase 0 step 7 already holds and none of them asked of the user: `brd_key` is the resolved BRD key, `brd_parent` is `brd-link.md`'s `parent:` (**omitted** on a BRD that owns its source document, where there is none), and `depends_on` is its `depends-on:` list (**omitted** when empty). Writing them here records the BRD identity and the customer-committed prerequisites on the PRD itself. **No command consumes the three fields yet** — neither `/dev-workflows:epics` nor `/dev-workflows:ready` reads any of them, and wiring a consumer is separate work with its own review. They are written anyway because provenance captured at authoring time is the precondition for any future consumer: re-deriving it later would mean re-reading a BRD tree that may have moved on. `derived_from` is **omitted** on this route — there is no `idea.md` this PRD was built from, and pointing it at a BRD artifact would misname the field; `brd_key` carries that provenance instead. `sources` still carries real provenance: the BRD's own source document, as `provenance: markdown` with `ref:` the path `brd-link.md`'s `source:` names (a slice's resolves against its parent's folder, which is why that header exists). Do NOT ask for `release_versions`, `change_type`, or `release_notes_category` — they are Jira dropdowns the PM sets on the ticket and the importer returns on the round-trip (`${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`); `/release-notes` reads them from the import. Dates and deprecation details also stay out of frontmatter — they belong in the release-notes Summary.
+1. Frontmatter — `relevant_for_release_notes` (defaults to `yes`; ask only to confirm a `no`); `sources` (propagated), `derived_from`, `seeded_from_prd` (only when `--from-prd` was used), and `jira_key` — **written here only on the `/idea` route**, where the positional token is a key the user minted on the tracker before the run, so it is a tracker identity the moment it is written. **Under `--from-brd` `jira_key` is omitted here**, and the round-trip's step 1 is what writes it, because that step is where a tracker identity is minted for the first time; writing `<BRD-KEY>` into it now would put a `$SPECS_PATH` folder name in the one field every downstream consumer reads as a tracker key, and nothing later could tell a minted key from an un-minted address. Its absence is therefore load-bearing and is read as "no tracker identity yet" by Phase 6's offers and by `${CLAUDE_PLUGIN_ROOT}/references/prd-source-resolution.md` step 2. **Under `--from-brd`, additionally `brd_key`, `brd_parent` and `depends_on`**, per `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`'s frontmatter block, each read from what Phase 0 step 7 already holds and none of them asked of the user: `brd_key` is the resolved BRD key, `brd_parent` is `brd-link.md`'s `parent:` (**omitted** on a BRD that owns its source document, where there is none), and `depends_on` is its `depends-on:` list (**omitted** when empty). Writing them here records the BRD identity and the customer-committed prerequisites on the PRD itself. **No command consumes the three fields yet** — neither `/dev-workflows:epics` nor `/dev-workflows:ready` reads any of them, and wiring a consumer is separate work with its own review. They are written anyway because provenance captured at authoring time is the precondition for any future consumer: re-deriving it later would mean re-reading a BRD tree that may have moved on. `derived_from` is **omitted** on this route — there is no `idea.md` this PRD was built from, and pointing it at a BRD artifact would misname the field; `brd_key` carries that provenance instead. `sources` still carries real provenance: the BRD's own source document, as `provenance: markdown` with `ref:` resolved **by level, and never from `brd-link.md`** — no writer of that file emits a `source:` field at either level, so a ref read from there would resolve to nothing. On a BRD that owns its source document, `ref:` is the single file under `<BRD-dir>/brd/source/`, which `/brd-intake` copied in verbatim and which nothing afterwards edits or moves. On a **slice**, `ref:` is the path the `source:` line at the top of `<BRD-dir>/brd/brd-inventory.md` names — the `parent:`/`source:` header `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1 fixes and `/brd-split` writes — which resolves against the **parent's** folder, because a slice holds no `brd/source/` of its own and that header exists precisely so an anchor can be followed out of it. Name the file the ref was read from in the final report, so a reader can tell the two resolutions apart. Do NOT ask for `release_versions`, `change_type`, or `release_notes_category` — they are Jira dropdowns the PM sets on the ticket and the importer returns on the round-trip (`${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`); `/release-notes` reads them from the import. Dates and deprecation details also stay out of frontmatter — they belong in the release-notes Summary.
 2. **Problem**
 3. **Goal** (crisp 2–3 sentences)
 4. **Target audience** (personas)
@@ -571,8 +612,8 @@ Report: the PRD path + profile; US/AC/SM counts + which adapt-in clusters were i
 
 **Under `--from-brd`, additionally:** the `<BRD-KEY>` seeded from and its resolved folder; which of
 `prd-seed.md` and `decisions.md` were present; the frontmatter `brd_key` / `brd_parent` /
-`depends_on` as written (naming any omitted, and why); how many claimed ledger rows are
-`covered-here`, read from `coverage-ledger.md` — **not** as a `ledger:` line, which this command
+`depends_on` as written (naming any omitted, and why); how many of the gate-set ledger rows
+(Phase 0 step 7) are `covered-here`, read from `coverage-ledger.md` — **not** as a `ledger:` line, which this command
 neither parses nor prints (Phase 0 step 7); every `[VD#n]`/`[CD#n]`/`[AS#n]` carried in as a gap
 rather than an input, by id and status; every contradiction Phase 3 recorded rather than decided,
 with the reopening route named for each; every product-altitude item still `consumed_by: none`, by

@@ -26,7 +26,7 @@ specification, so the route now runs `/brd-intake` → `/brd-ground` → `/brd-s
   `prd-seed.md` and `decisions.md` from the resolved BRD folder, profiles to `--full` unless a flag
   overrides it, restricts the grill to what the seed does not settle, and may **not** reopen a
   `[VD#n]` or a `[CD#n]` — a customer signed those off in the review the seed came from. Two Phase 0
-  refusals guard it: a ledger row this BRD claims that is still `unallocated`, and a ledger with no
+  refusals guard it: a ledger row still `unallocated`, and a ledger with no
   `covered-here` row at all, which reports **where the requirements went** per
   `coverage-ledger-format.md` §5 rather than assuming they went to children — a BRD that was never
   split and a slice that deferred everything both reach that state with no child to name. The
@@ -116,6 +116,56 @@ specification, so the route now runs `/brd-intake` → `/brd-ground` → `/brd-s
   round-trip.** `jira-reader` resolves the export directory, not the key, so a recorded `jira_key`
   with no re-import behind it landed both options in `jira-input-resolution.md`'s Fallback B — on the
   `/idea` route as much as under `--from-brd`.
+- **`/create-prd --from-brd` refused the ordinary happy path.** Both Phase 0 refusals were defined
+  over the `[BR#n]` set the BRD's `brd-link.md` `claims:`, and that field is written by exactly one
+  place — `/brd-split`, and only into a **child's** `brd-link.md`. On a BRD that owns its source
+  document and was never split — the two-segment key this route reaches most often — the field does
+  not exist, the claimed set read empty, no row could be `covered-here`, and the command stopped with
+  `CREATE_PRD_BRD_NOT_ELIGIBLE` plus a diagnostic table none of whose rows fitted. The gate set is
+  now defined the way `references/coverage-ledger-format.md` §3's creator table and §5 already
+  defined it: a BRD's **own ledger rows**, which on a source-owning BRD are its inventory's and on a
+  slice are the ones `claims:` narrows to. §1 of that reference stated the slice rule as if it held
+  at both levels and is corrected with it. `/brd-reconcile` Phase 14 computed its `/create-prd`
+  offer the same wrong way and would have withheld it from every unsliced BRD; it now reads the same
+  gate set. The refusals, the diagnostic table and the "where the requirements went" branches are
+  correct at both levels, and a fourth branch covers an **empty** gate set, which reports the
+  emptiness and names the one run that can change it instead of enumerating dispositions that do not
+  exist.
+- **A declined handoff could not be recovered by the command the stop named.** `/brd-ground` and
+  `/brd-package` mapped `require-on-main` row F to a single stop naming the producing command, but
+  that command is a no-op in the state the stop reports: `/brd-split` re-run on a fully-allocated
+  parent stages nothing and opens no pull request, and `/brd-interview`'s no-new-round path does the
+  same — so a slice's or a register's files could never reach the default branch by following the
+  stop. Both now split row F the way `/brd-reconcile` already did: *never produced* names the
+  producer, while *produced but never handed off* (`BRD_GROUND_NOT_HANDED_OFF`,
+  `BRD_PACKAGE_REGISTER_NOT_HANDED_OFF`) asks for the files already on disk to be committed and
+  merged. Each names the producing command only where re-running it would in fact stage them —
+  `/brd-intake` over an existing folder does and is offered as the slower second route, `/brd-split`
+  on a fully-allocated parent and `/brd-interview` on an unchanged BRD do not and are named as dead
+  ends rather than offers.
+- **`/create-prd --from-brd` read a `source:` field nothing writes.** The PRD's `sources` provenance
+  ref was taken from `brd-link.md`'s `source:`; no writer of that file emits one at either level, so
+  the ref resolved to nothing. It is now resolved by level and the file named: the single document
+  under the BRD's own `brd/source/`, or — on a slice, which holds none — the path the `source:`
+  header of its `brd/brd-inventory.md` names, relative to the parent's folder
+  (`references/brd-format.md` §2.1).
+- **A resumed `--from-brd` run duplicated its own branch.** `references/specs-repo-git.md` §3.2
+  declared `/create-prd` structurally keyless, which is true on the `/idea` route and false under
+  `--from-brd`, where the key is resolved at the call site and the branch is `prd/<BRD-KEY>-<slug>`.
+  With an empty key set, §3.5 took B4 and switched away and `phase-handoff.md` §2.2 rule 3 had no key
+  to resolve into, so rule 4 appended `-2` — the same duplication `31c614b` fixed for slice keys,
+  reached by a different door. Keyless is now a property of the **route**: `/create-prd` contributes
+  its BRD key under `--from-brd` and stays keyless on the `/idea` route, with the original reason for
+  keyless intact where it applies. The contributed key is a folder identity used for branch matching
+  only; `jira_key` is untouched and stays two-segment.
+- **Four smaller route-walk findings.** `docs/commands/brd-reconcile.md` never named the route's exit
+  and now carries the three `--from-brd` handovers with their conditions, in its diagram and its
+  worked example — where its own example also printed an unquoted attachment path with spaces, which
+  the positional parser would have read as four tokens. `docs/commands/brd-split.md` said a slice's
+  Phase 7 ends the route, contradicting the command and its own prose, and now names
+  `/brd-interview`. And `BRD_GROUND_DIRTY_TREE` stated only its consequence
+  where every other stop on the route names an action; it now names the three ways to settle the
+  tree and the `--rebaseline` re-run.
 
 Counts are unmoved at 27 commands, 39 agents and 106 reference files: this increment added no
 command, agent or reference file, and both plugin descriptions were re-worded rather than extended,

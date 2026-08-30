@@ -81,8 +81,14 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
   rather than asserting one.
 - **`/brd-interview`'s register already merged to the specs repo's default branch.**
   `require-on-main` runs against `decisions.md` before anything else is read; an unmerged pull
-  request stops the run naming the branch/PR state, and a BRD never interviewed at all stops with
-  `BRD_PACKAGE_NEEDS_INTERVIEW`.
+  request stops the run naming the branch/PR state. Where the gate reports the register is on no ref
+  at all, the run **splits a state the gate cannot**, as [`/brd-reconcile`](brd-reconcile.md) does on
+  its own row F: no `decisions.md` in the folder means no interview ever ran
+  (`BRD_PACKAGE_NEEDS_INTERVIEW`, run [`/brd-interview`](brd-interview.md)), while a register in the
+  folder means the interview ran and its handoff was declined
+  (`BRD_PACKAGE_REGISTER_NOT_HANDED_OFF`, land the files that are already on disk). The second must
+  **not** send the operator back to `/brd-interview`: on an unchanged BRD that command opens no new
+  round, stages nothing, and opens no pull request.
 - **Every interview question settled, or held for the customer.** Any question still *deferred*,
   *needs grounding* or *untagged* stops with `BRD_PACKAGE_ROUND_UNSETTLED` — see
   [Gates](#gates) for why *held for the customer* is the one holding state this command admits.

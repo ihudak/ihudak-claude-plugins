@@ -30,8 +30,12 @@ built. Counting `covered-by` as covered on its own word is what would let the fa
 this file's own arithmetic unremarked.
 
 One ledger exists per BRD, at either of the two levels a BRD can sit — a BRD that owns its source
-document, or a slice one level inside it (`references/brd-addressing.md` §3 caps nesting there) —
-with one row per `[BR#n]` that BRD's `brd-link.md` claims.
+document, or a slice one level inside it (`references/brd-addressing.md` §3 caps nesting there). **What
+its rows are is not the same at both levels**, and §3's creator table is the authority: a
+source-owning BRD gets one row per `[BR#n]` in the inventory `/brd-intake` extracted, while a slice
+gets one row per `[BR#n]` its `brd-link.md` claims. Only a slice has a `claims:` field — `/brd-split`
+writes it, and only into a child — so a consumer that defines a BRD's requirement set over `claims:`
+at both levels reads an empty set on every BRD that was never split.
 
 ## 2. Row shape
 
@@ -138,7 +142,7 @@ picker changes.
   terminal dispositions — `covered-by: <CHILD-KEY>`, `deferred-to: <this BRD>`, `rejected: [DEF#n]`
   or `superseded-by: [BR#n]` — in any mix, and **all four reach this case equally**: eligibility is
   the presence of a `covered-here` row and nothing else, so a disposition bears on it exactly by not
-  being `covered-here`. A BRD whose every claimed row is `rejected` is ineligible owing nobody
+  being `covered-here`. A BRD whose every row is `rejected` is ineligible owing nobody
   anything, and one whose every row was `superseded-by` another `[BR#n]` is ineligible too, even
   though §6.3 excludes those rows from the ledger line's counts — a line the eligibility check never
   reads anyway (see the paragraph below on reading dispositions off the file). This BRD
@@ -151,14 +155,14 @@ picker changes.
   | How every row left `covered-here` | What the consumer says |
   |---|---|
   | Some rows are `covered-by: <CHILD-KEY>` | Name those children — and, per §6.1, which of them did not build the row delegated to it. A child that deferred, rejected or has not allocated it is not somewhere to send the reader |
-  | No row is `covered-by`: the BRD was never split | Name no child, because none exists — and say what the claimed rows *did* resolve to rather than calling them all obligations. The three remaining dispositions say different things: a `deferred-to` row is a live obligation of this BRD, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it, and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. Then say a PRD needs one row resolved `covered-here` first |
+  | No row is `covered-by`: the BRD was never split | Name no child, because none exists — and say what the rows *did* resolve to rather than calling them all obligations. The three remaining dispositions say different things: a `deferred-to` row is a live obligation of this BRD, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it, and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. Then say a PRD needs one row resolved `covered-here` first |
   | No row is `covered-by` because this is a **slice** | The same breakdown, for the reason the paragraph below gives |
 
   "Name the children that do" is right only in the first row. In the other two there is nothing to
   name, and a consumer that goes looking for a child to point at finds none and must not invent
   one — the honest report is what each row actually resolved to, and, for the deferred ones, by whom.
   "The requirements are deferred" is the common shape of those two cases, not the whole of them:
-  a BRD whose every claimed row is `rejected` reaches this same case owing nobody anything, and
+  a BRD whose every row is `rejected` reaches this same case owing nobody anything, and
   saying it deferred them would be false.
 
 **A slice reaches eligibility by exactly this rule**, through the same Phase 4 walk on its own
@@ -166,6 +170,12 @@ ledger. The one difference follows from `covered-by` being parent-only (§3): on
 "not eligible" case is reached entirely through the three remaining terminal dispositions —
 `deferred-to`, `rejected` and `superseded-by`, in any mix — never by rows pointing at children,
 because no child can exist below a slice for a row to point at.
+
+**Eligibility is read over the rows this ledger holds, which §1 and §3 fix per level and which
+`claims:` narrows only on a slice.** A source-owning BRD carries no `claims:` field, so a consumer
+that intersects with one there tests an empty set, finds no `covered-here` row in it, and refuses
+the never-split BRD this route most often reaches — the very case §4's escape valve exists to let
+complete.
 
 This is **read from the ledger, not decided in advance.** Slicing a BRD entirely and slicing it
 only partially are both ordinary, supported outcomes; the ledger is what tells a later consumer

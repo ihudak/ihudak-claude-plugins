@@ -131,9 +131,22 @@ cannot review, and they will not tell you that — they will review it anyway, b
    `interview/customer-questions.md` merged with it — the three files `/brd-interview`'s handoff
    stages together. Map the §3.7 return by `stopped` first: any stopping row → stop, naming the
    concrete branch/PR state it reports; `pass` → proceed; `pass_amending` → proceed, printing the
-   §3.3 row-B message; `unmanaged` → proceed as before this feature; `absent` (row F — no interview
-   has ever run for this BRD) → stop:
-   `BRD_PACKAGE_NEEDS_INTERVIEW: no decision register on file for <BRD-KEY> — run /dev-workflows:brd-interview <BRD-KEY> first.`
+   §3.3 row-B message; `unmanaged` → proceed as before this feature; `absent` (row F — the register
+   is on no ref at all) → **split it before stopping**, on a test row F cannot make, exactly as
+   `/dev-workflows:brd-reconcile` splits its own. Row F covers two states, and sending the second
+   one back to `/brd-interview` walks the operator into a wall:
+
+   - **No `decisions.md` in the folder at all** — no interview has ever run for this BRD.
+     `BRD_PACKAGE_NEEDS_INTERVIEW: no decision register on file for <BRD-KEY> — run /dev-workflows:brd-interview <BRD-KEY> first.`
+   - **A register is in the folder, and on no ref** — the interview ran and its handoff was
+     declined. **Do not send the operator back to `/brd-interview`**: its *Resolve the round* phase
+     opens a new round only on a changed finding, a changed verifier outcome or a moved decision, so
+     on an unchanged BRD it takes the no-new-round path, reaches its handoff phase with nothing
+     staged, reports `nothing to commit` and opens no pull request — `handoff-to-main` stages only
+     the paths *that* run declared (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.3), and the
+     register already on disk is not among them. What is needed is the register already written,
+     landed:
+     `BRD_PACKAGE_REGISTER_NOT_HANDED_OFF: <BRD-KEY>'s decision register is written at <path> but is on no branch — its handoff was declined. Commit and merge decisions.md and the interview/ round records to the specs repo's default branch, then re-run; do not re-run /dev-workflows:brd-interview, whose no-new-round path stages nothing on an unchanged BRD.`
 7. **Gate on the interview's rounds — and read the precondition the only way that is not a
    deadlock.** Read every `interview/round-<N>.md`. Stop unless **every question in every round
    carries either a terminal disposition or the holding state *held for the customer*** — the

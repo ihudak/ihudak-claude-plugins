@@ -943,15 +943,20 @@ each under the precondition the offered command actually enforces rather than un
 
 - **`/dev-workflows:create-prd <BRD-KEY> --from-brd` is offered only where this BRD is
   PRD-eligible**, which is two tests and not one, both read off `coverage-ledger.md` as this run left
-  it and both owned by `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5: **no** row
-  this BRD's `brd-link.md` claims is still `unallocated`, and **at least one** claimed row is
-  `covered-here`. Those are exactly the two refusals that command's own Phase 0 raises
+  it and both owned by `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5: **no** row of
+  this BRD's own ledger is still `unallocated`, and **at least one** of them is `covered-here`.
+  **The rows are this BRD's ledger rows, and `brd-link.md`'s `claims:` narrows them only on a
+  slice** — §3's creator table gives a source-owning BRD one row per inventory `[BR#n]` and writes no
+  `claims:` field for it at all, so testing the offer against a claims list would withhold it from
+  every BRD that was never split, which is the ordinary shape this route most often reconciles. This
+  is the same gate set `/dev-workflows:create-prd`'s Phase 0 step 7 defines, read the same way.
+  Those two tests are exactly the two refusals that command's own Phase 0 raises
   (`CREATE_PRD_BRD_UNALLOCATED` and `CREATE_PRD_BRD_NOT_ELIGIBLE`), so naming the option where either
   fails would hand the operator a run that stops on its first phase. **Read the dispositions off the
   ledger file, never off a `ledger:` line** — that line's `unallocated` term is a *resolved* count
   that also holds rows a child has not walked yet (§6.1), so keying the offer to it would withhold
   the option from a BRD whose own gate is fully satisfied. Where either test fails, **drop the option
-  from the array** and say which one failed: a claimed row still `unallocated` is walked to a
+  from the array** and say which one failed: a row still `unallocated` is walked to a
   terminal disposition by `/dev-workflows:brd-split <BRD-KEY>`, while a BRD with no `covered-here`
   row holds no PRD of its own at all and §5 is where its requirements went — on a `covered-by` row
   the PRD is the named child's to author, not this BRD's. Dropping rather than annotating is right

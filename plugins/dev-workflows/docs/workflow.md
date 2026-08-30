@@ -56,7 +56,7 @@ flowchart TD
 
 The diagram draws the ARD reaching `/epics`, but that is one of five consumers: `/epics`, `/specify`, `/design`, `/implement`, and `/ready` all resolve the applicable ARD once it exists. The edge is drawn once to keep the diagram readable, not because the others do not consult it.
 
-The BRD-to-PRD route hands over at `/brd-reconcile`, and the diagram draws that handover as **three** edges rather than one, because `--from-brd` ships on `/create-prd`, `/create-ard` and `/specify` and `/brd-reconcile`'s next-step phase offers all three against the same BRD key. Only the first is conditional: `/create-prd <BRD-KEY> --from-brd` is offered where the reconciled ledger leaves no claimed row `unallocated` and at least one `covered-here`, which are the two refusals its own Phase 0 raises. `/create-ard <BRD-KEY> --from-brd` and `/specify <BRD-KEY> --from-brd` are offered unconditionally, since neither reads a Jira export, gates a PRD, or reads the ledger. The three are alternatives, not a sequence — neither of the unconditional two waits on the PRD — so `/brd-reconcile` is where the route hands over, not where it ends.
+The BRD-to-PRD route hands over at `/brd-reconcile`, and the diagram draws that handover as **three** edges rather than one, because `--from-brd` ships on `/create-prd`, `/create-ard` and `/specify` and `/brd-reconcile`'s next-step phase offers all three against the same BRD key. Only the first is conditional: `/create-prd <BRD-KEY> --from-brd` is offered where the reconciled ledger leaves no row `unallocated` and at least one `covered-here`, which are the two refusals its own Phase 0 raises. Both are read over the BRD's **own ledger rows**; `brd-link.md`'s `claims:` narrows that set only on a slice, since a BRD owning its source document carries no such field. `/create-ard <BRD-KEY> --from-brd` and `/specify <BRD-KEY> --from-brd` are offered unconditionally, since neither reads a Jira export, gates a PRD, or reads the ledger. The three are alternatives, not a sequence — neither of the unconditional two waits on the PRD — so `/brd-reconcile` is where the route hands over, not where it ends.
 
 The `Off-platform` box is the one node in this diagram no command runs. It is the customer reviewing the bundle with a vanilla agent and nothing installed, and the route waits there — which is why `/brd-reconcile` takes the returned review as an argument rather than looking for it.
 
@@ -72,7 +72,7 @@ The three edges leaving `/brd-reconcile` into the PRD pipeline, as each command'
 
 | Command | Required | Optional | Offered from `/brd-reconcile` |
 |---|---|---|---|
-| `/create-prd` | `<BRD-KEY> --from-brd` | `--from-brd <dir>`, `--lean`/`--hybrid`/`--full` (defaults to `--full` here), `--no-docs`, `--no-prior-art` | Only where no claimed ledger row is `unallocated` and at least one is `covered-here` |
+| `/create-prd` | `<BRD-KEY> --from-brd` | `--from-brd <dir>`, `--lean`/`--hybrid`/`--full` (defaults to `--full` here), `--no-docs`, `--no-prior-art` | Only where no ledger row is `unallocated` and at least one is `covered-here` |
 | `/create-ard` | `<BRD-KEY> --from-brd` | `--from-brd <dir>`, `--no-docs` | Unconditionally — the run gates no PRD, dispatches no `jira-reader`, and reads no ledger |
 | `/specify` | `<BRD-KEY> --from-brd` | `--from-brd <dir>`, `--no-docs` | Unconditionally, on exactly the same terms as `/create-ard` |
 

@@ -108,7 +108,7 @@ not required.
   challenged a code claim. **Advance:** `--from-brd` on `/dev-workflows:create-prd`,
   `/dev-workflows:create-ard` and `/dev-workflows:specify` all ship, and that command's next-step
   phase offers all three off the one BRD key — `/dev-workflows:create-prd <BRD-KEY> --from-brd` only
-  where the reconciled ledger leaves no claimed row `unallocated` and at least one `covered-here`
+  where the reconciled ledger leaves no row `unallocated` and at least one `covered-here`
   (`references/coverage-ledger-format.md` §5, the two refusals its Phase 0 raises), the other two
   unconditionally, since neither dispatches `jira-reader`, neither runs the PRD gate and neither
   reads the ledger. None of the three carries `<merge-clause>`: none of them runs `require-on-main`

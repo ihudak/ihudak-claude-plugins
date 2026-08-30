@@ -103,7 +103,7 @@ overturned.
 whose tree holds nothing the review made false is the state the PRD pipeline is entered from.
 `--from-brd` **ships** on `/create-prd`, `/create-ard` and `/specify`, and `/brd-reconcile`'s
 next-step phase names all three against that same BRD key — `/create-prd --from-brd` only where the
-reconciled ledger leaves no claimed row `unallocated` and at least one `covered-here` (the two
+reconciled ledger leaves no row `unallocated` and at least one `covered-here` (the two
 refusals its own Phase 0 raises), and `/create-ard --from-brd` and `/specify --from-brd`
 unconditionally, since neither dispatches `jira-reader`, neither gates a PRD and neither reads the
 ledger. **The diagram above draws all three**, as the three solid edges leaving `/brd-reconcile`
@@ -127,7 +127,7 @@ each of those three also has a Jira-driven form that this route never uses.
 | `/brd-interview` | `<BRD-KEY>` | `--round N` | Rounds are numbered, permanent and resumable. No flag continues at the first question with no terminal disposition; `--round N` resumes an open round, or re-opens a closed one with its cause recorded |
 | `/brd-package` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…` | Repeatable, and any key at either level is admissible; a mistyped one is warned and dropped, never fatal. Each prerequisite's own package is copied into the bundle, marked *not for re-review* |
 | `/brd-reconcile` | `<BRD-KEY> @<review-file>` | — | The review is taken at whatever path it arrived on, inside `$SPECS_PATH` or not, and is never searched for: the operator names the file, because one this command picked is one nobody submitted |
-| `/create-prd` | `<BRD-KEY> --from-brd` | `--from-brd <dir>`, `--lean`/`--hybrid`/`--full`, `--no-docs`, `--no-prior-art`, `@<idea.md>` | Offered only where no claimed ledger row is `unallocated` and at least one is `covered-here`. Profile defaults to `--full` here; `--from-prd` is refused alongside it |
+| `/create-prd` | `<BRD-KEY> --from-brd` | `--from-brd <dir>`, `--lean`/`--hybrid`/`--full`, `--no-docs`, `--no-prior-art`, `@<idea.md>` | Offered only where no ledger row is `unallocated` and one is `covered-here` (the BRD's own rows; `claims:` narrows them only on a slice). Profile defaults to `--full`; `--from-prd` is refused |
 | `/create-ard` | `<BRD-KEY> --from-brd` | `--from-brd <dir>`, `--no-docs` | Offered unconditionally: the run gates no PRD, dispatches no `jira-reader` and reads no ledger. One key only — a second stops the run (`CREATE_ARD_BRD_NO_EPIC`) |
 | `/specify` | `<BRD-KEY> --from-brd` | `--from-brd <dir>`, `--no-docs` | Offered unconditionally, on exactly the same terms. One key only — a second stops the run (`SPECIFY_BRD_NO_EPIC`) |
 

@@ -48,6 +48,8 @@ commands so the routing graph and the offer rules live in ONE place (the same sh
 
 `Branch name substituted` is an append to another line rather than an outcome of its own — whatever branch the emitted line ends up naming is the branch the clause names. **Only two rows name a branch, and that is the point**: §4.1's declined and gate-failed lines carry none, because on those paths `handoff-to-main` committed nothing, so there is no branch in existence to send anyone to.
 
+**Where this rule applies: the BRD-to-PRD route.** The `<merge-clause>` placeholder is the convention the six `/dev-workflows:brd-*` commands write their offers to, and an offer added to that route carries it. Offers outside the route are outside the rule: `/dev-workflows:create-ard`'s *Next-step offer (adaptive)* phase and `/dev-workflows:specify`'s `### Next step` name the merge in prose without the placeholder, and they are left as they stand — that is the wording those runs have always emitted, and changing it changes those commands, which is work for a review of them. The paragraph above is written for the route that adopted the placeholder, not as a verdict on the offers that predate it.
+
 **Resolving this placeholder is not a rewording.** The array is still presented verbatim per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`'s *Choice lists are presented verbatim*, exactly as `<BRD-KEY>` or `<KEY>` is substituted in the same strings. A command that instead told the orchestrator to *adjust the wording* of an option would be contradicting that convention, which is why the variation lives in a placeholder and not in an instruction.
 
 ## Surface

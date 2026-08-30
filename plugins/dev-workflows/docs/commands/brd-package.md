@@ -87,8 +87,12 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
   *needs grounding* or *untagged* stops with `BRD_PACKAGE_ROUND_UNSETTLED` — see
   [Gates](#gates) for why *held for the customer* is the one holding state this command admits.
 - **Something for the customer to decide.** No `[C]` question, no open `[AS#n]` and no `[VD#n]` at
-  all stops with `BRD_PACKAGE_NOTHING_TO_REVIEW`. A package carrying `[VD#n]` positions and no `[C]`
-  question is legitimate and is packaged.
+  all stops with `BRD_PACKAGE_NOTHING_TO_REVIEW` — reported as a **finished** state rather than a
+  missing step, since every question was settled from verified findings and there is nothing to ask
+  a customer. The stop says outright that another interview round is not the fix (it opens one only
+  on a changed finding or a moved decision) and names the action that can change it:
+  `/brd-ground <BRD-KEY> --rebaseline`, or a decision reopened or superseded in the register. A
+  package carrying `[VD#n]` positions and no `[C]` question is legitimate and is packaged.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH`.
 - **No repository, and no `$REPOS_PATH`.** Every commit this package cites was pinned and proven
   clean by `/brd-ground`; the repo→SHA table is read from that run's `baselines.md`, and the three

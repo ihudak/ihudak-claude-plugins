@@ -94,8 +94,10 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
 
 - **Phase 3 — `brd-reader`** (Sonnet, frontmatter-pinned). Read-only extraction: it proposes a
   `[BR#n]` row per requirement plus unconfirmed `defect_candidates`; it never decides a defect
-  itself. `EMPTY` (no identifiable requirement) short-circuits Phase 4 and writes an empty ledger;
-  `NOT_FOUND` stops the run and surfaces the agent's exact message.
+  itself. `EMPTY` (no identifiable requirement) short-circuits Phase 4 and writes an empty ledger —
+  and the run says so plainly, because the route stops on a claimless BRD: Phase 8 then offers a
+  re-run of this command with a corrected source instead of offering `/brd-ground`, which would
+  refuse the BRD. `NOT_FOUND` stops the run and surfaces the agent's exact message.
 - **Phase 3.5 — `docs-grounder`** (optional). Read-only, advisory, never a gate. Its digest is
   consumed grill-rank: `docs_challenges` are ranked into the order Phase 4 walks its candidates,
   and one may be *raised* as an additional defect candidate — but only as `unsourced` (the

@@ -152,10 +152,21 @@ cannot review, and they will not tell you that — they will review it anyway, b
    names work that is still ours, and packaging around one asks the customer to approve a position
    the delivery team has not finished taking.
 
-8. **Gate on there being something to review.** A package with **no** `[C]` question, **no** open
-   `[AS#n]`, and **no** `[VD#n]` in the register has nothing for a customer to confirm, correct or
-   attack. Stop rather than sending it:
-   `BRD_PACKAGE_NOTHING_TO_REVIEW: <BRD-KEY> holds no [C] question, no open [AS#n] and no [VD#n] — there is nothing for a customer to decide. Run /dev-workflows:brd-interview <BRD-KEY> first.`
+8. **Gate on there being something to review — and report it as a finished state, not a missing
+   step.** A package with **no** `[C]` question, **no** open `[AS#n]`, and **no** `[VD#n]` in the
+   register has nothing for a customer to confirm, correct or attack. Stop rather than sending it:
+   `BRD_PACKAGE_NOTHING_TO_REVIEW: <BRD-KEY> holds no [C] question, no open [AS#n] and no [VD#n] — every question its rounds asked was settled from verified findings, so there is nothing for a customer to confirm, correct or attack. This is a finished state, not a missing step: the delivery team owes the customer no decision here, and a package built from it would ask for a review of nothing. Re-running /dev-workflows:brd-interview <BRD-KEY> is NOT the fix — it opens a new round only when the findings or the decisions have moved, so on an unchanged BRD it reports that nothing is askable and asks nothing. What makes a round askable again is new evidence or a moved position: '/dev-workflows:brd-ground <BRD-KEY> --rebaseline' re-derives the findings against current commits, and a decision reopened or superseded in decisions.md has the same effect. Absent either, this BRD is decided and needs no customer review.`
+
+   **Why the message names grounding rather than another interview round.** The register is reached
+   through `/brd-interview`, so naming it is the reflex — but its *Resolve the round* phase opens a
+   new round only on a changed finding, a changed verifier outcome, or a moved decision, and reports
+   plainly that there is nothing to ask otherwise. Sending an operator there on an unchanged BRD is a
+   next-step offer pointing at a no-op, which is the thing
+   `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` exists to keep out of this route. The
+   condition itself is that phase's to state and is cited, never restated here; what this message
+   owes the operator is the **one action that can satisfy it**, which is a grounding pass, and the
+   plain fact that stopping is a legitimate outcome.
+
    Note what this gate does **not** require: a package with `[VD#n]` decisions and no `[C]` question
    at all is legitimate and is packaged. Positions the delivery team took and argued are exactly the
    thing a customer review is for (`interview-tagging.md` §1 — a `[V]` may be *shown* as a position,

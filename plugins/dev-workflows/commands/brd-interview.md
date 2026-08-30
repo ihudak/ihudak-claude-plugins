@@ -126,9 +126,20 @@ and nothing downstream can tell the difference afterwards.
    `/brd-ground`'s own gate on `coverage-ledger.md` had already run before those findings existed at
    all. Map the §3.7 return by `stopped` first: any stopping row → stop, naming the concrete branch/PR
    state it reports; `pass` → proceed; `pass_amending` → proceed, printing the §3.3 row-B message;
-   `unmanaged` → proceed as before this feature; `absent` (row F — grounding has never run for this
-   BRD) → stop:
-   `BRD_INTERVIEW_NEEDS_GROUNDING: no grounding findings on file for <BRD-KEY> — run /dev-workflows:brd-ground <BRD-KEY> first.`
+   `unmanaged` → proceed as before this feature; `absent` (row F — grounding findings are on no ref at
+   all) → **split it before stopping, on a test row F cannot make**, the way `/brd-reconcile` splits
+   its own row F. Row F covers two states here, and the message for the second one must not name a
+   command that stops on the same emptiness. Read `<BRD-dir>/brd/brd-inventory.md` from the worktree
+   and count its `[BR#n]` rows:
+   - **One or more rows** — grounding simply has not run yet, and running it is the fix:
+     `BRD_INTERVIEW_NEEDS_GROUNDING: no grounding findings on file for <BRD-KEY> — run /dev-workflows:brd-ground <BRD-KEY> first.`
+   - **Zero rows** — there is nothing to ground, so `/brd-ground` stops with
+     `BRD_GROUND_EMPTY_INVENTORY` rather than producing the findings this gate wants, and naming it
+     here would be the loop. The fix is upstream and differs by level, so read the resolved folder's
+     `brd-link.md` from the worktree and branch on its `parent:` field, exactly as the grounding and
+     split gates do:
+     `BRD_INTERVIEW_EMPTY_INVENTORY: <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and no question this command could ask about it — do not run /dev-workflows:brd-ground, which stops on the same emptiness. Re-run '/dev-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder with a source whose requirements brd-reader can identify, and merge that pull request; if the source genuinely states no requirement, this BRD has nothing for the route to carry.`
+     `BRD_INTERVIEW_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to decide. Do not run /dev-workflows:brd-ground, and do not run /dev-workflows:brd-intake on a slice; it has no source document of its own. Either re-run '/dev-workflows:brd-split <PARENT-KEY>' and allocate rows to this slice, or remove the empty slice — that run offers the removal itself.`
 7. **Gate on verification.** Read every `[CG#n]` and `[DG#n]` on file and count those carrying no
    recorded verifier `outcome` (one of the four in
    `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §8). Any count `N` greater than zero →
@@ -577,17 +588,25 @@ its Phase 0 gate. `/brd-reconcile` is the command after that one and is not offe
 a review that has not been asked for yet, and offering it now would name a step out of order. So the
 honest offer is the state this run actually leaves behind.
 
-**Compute the gate before printing the list, from the round records this run just wrote.** Read
-every question in every `interview/round-<N>.md` for this BRD and apply the gate
-`commands/brd-package.md` Phase 0 step 7 (*Gate on the interview's rounds — and read the
-precondition the only way that is not a deadlock*) owns, **exactly as that step states it**. Which
-holding state it admits and which three it refuses is stated there and is deliberately not restated
-here: `/brd-package` is the command that actually refuses the run, so a second copy of its
-precondition sitting in this phase would drift, and the run that reads the drifted copy is this one
-— it would print an offer for a command that then stops on its own gate. Passing that gate →
-`package_offerable: yes`; failing it → `package_offerable: no`, and every question the gate named is
-named beside the list with its round and its holding state. The test is over the whole BRD's rounds,
-not this round alone, because that is what `/brd-package` reads.
+**Compute the gate before printing the list, and compute BOTH halves of it.** `/brd-package` has
+two content gates in its Phase 0, and an offer that evaluates one of them still hands the operator a
+run that stops on the other. Apply both, **exactly as those steps state them**, over the whole BRD's
+rounds and register rather than over this round alone, because that is what `/brd-package` reads:
+
+- `commands/brd-package.md` Phase 0 step 7 (*Gate on the interview's rounds — and read the
+  precondition the only way that is not a deadlock*) — which holding state it admits and which three
+  it refuses is stated there.
+- `commands/brd-package.md` Phase 0 step 8 (*Gate on there being something to review — and report it
+  as a finished state, not a missing step*) — what a package must carry for a customer to have
+  anything to confirm, correct or attack is stated there.
+
+Neither test is restated here, deliberately: `/brd-package` is the command that actually refuses the
+run, so a second copy of either precondition sitting in this phase would drift, and the run that
+reads the drifted copy is this one. Both gates pass → `package_offerable: yes`. Step 7 fails →
+`package_offerable: rounds-unsettled`, and every question that gate named is named beside the list
+with its round and its holding state. Step 7 passes and step 8 fails → `package_offerable: nothing-to-review`,
+which is not a defect in this run: every question was settled from verified findings and the
+delivery team owes the customer no decision.
 
 **`package_offerable: yes`:**
 
@@ -595,19 +614,32 @@ not this round alone, because that is what `/brd-package` reads.
 choices: ["Stop here — this round's decisions are recorded", "Package this BRD for customer review — /dev-workflows:brd-package <BRD-KEY> (once the pull request above is merged)", "Work another round now — /dev-workflows:brd-interview <BRD-KEY> (only if findings or decisions have changed)", "Interview another BRD or slice", "Other… (describe)"]
 ```
 
-**`package_offerable: no` — `/brd-package` is left out rather than offered and refused:**
+**`package_offerable: rounds-unsettled` — `/brd-package` is left out rather than offered and
+refused:**
 
 ```
 choices: ["Stop here — this round's decisions are recorded", "Work another round now — /dev-workflows:brd-interview <BRD-KEY> (the questions named above are still in a holding state the packaging step refuses)", "Re-ground a question no finding bears on yet — /dev-workflows:brd-ground <BRD-KEY>", "Interview another BRD or slice", "Other… (describe)"]
+```
+
+**`package_offerable: nothing-to-review` — say plainly that this BRD is decided, and do not offer
+either the packaging step or another round of this command.** Both would stop or report a no-op: the
+packaging step on its step-8 gate, and this command because it opens a new round only where the
+findings or the decisions have moved, which nothing here has done. What can move them is a fresh
+grounding pass, so that is what the list carries:
+
+```
+choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Re-derive the findings against current commits — /dev-workflows:brd-ground <BRD-KEY> --rebaseline (a changed finding is what makes a new round askable)", "Interview another BRD or slice", "Other… (describe)"]
 ```
 
 **No option carries a `(Recommended)` marker, and that omission is deliberate**, per the
 `When no option is safe to recommend` guidance in
 `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`: which one is right depends entirely on what
 this round left behind. What the gate above decides is only **whether `/brd-package` appears at
-all**; it never promotes an option to recommended. A round the cited gate passes is ready to
-package; a round it refuses is not — which is why that round is not shown the option rather than
-shown it with a caveat.
+all**; it never promotes an option to recommended. A BRD both cited gates pass is ready to package;
+one either gate refuses is not — which is why it is not shown the option rather than shown it with a
+caveat. The `nothing-to-review` list carries no marker for the same reason and one of its own:
+stopping there is a legitimate, finished outcome, and marking a grounding pass "recommended" would
+imply this BRD is unfinished when it is not.
 
 Say plainly what remains, per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — names only,
 never behaviour a command of its own owns: a round still holding a `[C]` stays open, because the
@@ -635,7 +667,9 @@ no-new-round path exactly as on any other.
 **Capture-at-block invariant.** If an EARLIER phase halts on a plugin / skill / command / reference
 gap, `emit-block` (`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) fires at that halt before
 escalating. None of the *Resolve inputs and gate the grounded BRD* stops qualify — a missing or
-malformed key, an unresolved BRD, an ungated or absent grounding deliverable, unverified findings, an
+malformed key, an unresolved BRD, an ungated or absent grounding deliverable, an inventory carrying
+no claim at all (`BRD_INTERVIEW_EMPTY_INVENTORY`, at either level — a fact about the customer's
+document or about what the parent allocated, never about this plugin), unverified findings, an
 unallocated ledger, and an unset `$SPECS_PATH` are environment / sequencing halts, never a plugin
 capability gap. `BRD_INTERVIEW_NO_SUCH_ROUND` is not one either: it is an argument naming a round
 that does not exist.

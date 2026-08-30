@@ -76,6 +76,25 @@ whose decisions are frozen against the customer's own returned words.
 - **`/brd-interview` cites its downstream gate instead of restating it.** Its gated `/brd-package`
   offer held a second copy of a precondition `commands/brd-package.md` owns; the copy is replaced by
   a citation, so the offer and the gate cannot drift apart.
+- **A claimless BRD no longer dead-ends the route.** When `brd-reader` found no requirement in the
+  customer's document, `/brd-ground` reported "nothing to ground" and ended successfully without
+  handing anything off — so `/brd-split` and `/brd-interview` both refused the BRD and named
+  `/brd-ground` as the fix, which would report the same emptiness again. The only exit, re-running
+  `/brd-intake` over the same folder with a corrected source, was documented nowhere. `/brd-ground`
+  now **stops** on a zero-row inventory and names the upstream fix by level; `/brd-split` and
+  `/brd-interview` split their row-F stop on the same zero-row test and name that fix too, saying
+  outright not to run `/brd-ground`; and `/brd-intake` reports the `EMPTY` read as a route-stopping
+  state and offers a corrected re-run instead of offering grounding. Four new stop tokens, each
+  branched for a source-owning BRD and for a slice, because a slice's inventory is its parent's
+  `/brd-split` to write and re-intaking one is never the answer.
+- **`BRD_PACKAGE_NOTHING_TO_REVIEW` names something that helps.** It sent the operator to
+  `/brd-interview`, which opens a new round only when the findings or the decisions have moved and
+  would therefore report a no-op. The stop now reports a **finished** state — every question settled
+  from verified findings, nothing for a customer to decide — says outright that another round is not
+  the fix, and names the one action that changes it, a `--rebaseline` grounding pass or a reopened
+  decision. `/brd-interview`'s own next-step offer was computing only the first of `/brd-package`'s
+  two content gates, so it offered a run that then stopped on the second; it now computes both and
+  carries a third list for the decided-BRD case.
 - **A second fixture-growing selftest case for the docs gate.** Only one of the two prose-count
   alternations taught new number words was exercised end to end; the cost-emitting one was covered
   by inspection alone. The new case grows the fixture to eighteen commands, seventeen of them

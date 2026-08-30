@@ -86,9 +86,14 @@ reads was already independently verified by `/brd-ground`'s own agents.
 - **`/brd-ground`'s findings already merged to the specs repo's default branch.** Phase 0 gates
   `grounding/code-grounding.md` on `origin/<default>` via `require-on-main` before reading
   anything else — an open, unmerged grounding pull request stops the run naming the branch/PR
-  state, and a BRD that has never been grounded at all stops with `BRD_SPLIT_NEEDS_GROUNDING`,
-  naming `/brd-ground` as the fix. This transitively also proves `/brd-intake`'s ledger reached
-  main, since `/brd-ground` gates on it the same way before it will run.
+  state, and a BRD that has never been grounded at all stops naming the fix — but which fix depends
+  on why no findings exist. With at least one `[BR#n]` row in the inventory, grounding simply has
+  not run: `BRD_SPLIT_NEEDS_GROUNDING`, naming `/brd-ground`. With **no** row, there is nothing to
+  ground and `/brd-ground` would stop on the same emptiness, so naming it would be a loop:
+  `BRD_SPLIT_EMPTY_INVENTORY` instead, naming the upstream fix by run mode — `/brd-intake` over the
+  same folder with a corrected source in `full` mode, `/brd-split` on the parent in `allocate-only`.
+  This transitively also proves `/brd-intake`'s ledger reached main, since `/brd-ground` gates on it
+  the same way before it will run.
 - **Every finding verified.** A finding with no recorded verifier outcome (`agree` / `extend` /
   `contradict` / `unprovable`) is not evidence this command may act on. Any such finding on file
   stops the run with `BRD_SPLIT_UNVERIFIED: N findings have no verifier verdict — run

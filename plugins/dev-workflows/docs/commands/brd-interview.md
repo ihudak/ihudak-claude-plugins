@@ -87,8 +87,12 @@ command reads was already independently re-derived by `/brd-ground`'s own verifi
   to exist rather than asserting one.
 - **`/brd-ground`'s findings already merged to the specs repo's default branch.** `require-on-main`
   runs against `grounding/code-grounding.md` before anything else is read; an unmerged grounding pull
-  request stops the run naming the branch/PR state, and a BRD never grounded at all stops with
-  `BRD_INTERVIEW_NEEDS_GROUNDING`.
+  request stops the run naming the branch/PR state, and a BRD never grounded at all stops naming the
+  fix that actually applies: `BRD_INTERVIEW_NEEDS_GROUNDING` when the inventory holds at least one
+  `[BR#n]` row and grounding has simply not run, and `BRD_INTERVIEW_EMPTY_INVENTORY` when it holds
+  none — because then `/brd-ground` has nothing to ground and would stop on the same emptiness, so
+  the fix is upstream (re-intake with a corrected source, or `/brd-split` on the parent for a
+  slice).
 - **Every finding verified.** A finding with no recorded verifier outcome is not evidence, and a
   decision's `evidence` list is a list of findings — so any such finding on file stops the run with
   `BRD_INTERVIEW_UNVERIFIED`.
@@ -184,10 +188,15 @@ The run gates on the grounding being merged and verified and the ledger being fu
 round 1, generates its questions, tags every one of them, answers the `[G]`s from the findings,
 walks the `[V]`s past the operator one at a time, holds the `[C]`s, writes the register, and offers
 to branch, commit, push, and open a pull request. Its next-step offer names
-[`/brd-package`](brd-package.md) **only when every question in every round already carries a
-terminal disposition or is held for the customer** — the same test that command's own gate applies;
-a round still holding a deferred, needs-grounding or untagged question is offered another interview
-round or a re-grounding pass instead, never a run that would refuse it. Re-opening a closed round
+[`/brd-package`](brd-package.md) **only when both of that command's own content gates would pass** —
+every question in every round carrying a terminal disposition or held for the customer, *and* the
+register actually holding something for a customer to decide. A round still holding a deferred,
+needs-grounding or untagged question is offered another interview round or a re-grounding pass
+instead. A BRD whose questions were all settled from the findings — nothing left for a customer at
+all — is told plainly that it is decided and needs no customer review, and is offered a
+`--rebaseline` grounding pass as the one thing that could make a new round askable; neither the
+packaging step nor another round of this command is offered, because both would stop or report a
+no-op. Re-opening a closed round
 later, with its cause recorded:
 
 ```

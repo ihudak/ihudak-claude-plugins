@@ -83,9 +83,19 @@ resolves from the folder itself:
    `coverage-ledger.md` on `origin/<default>` before grounding itself would run, it also implies
    `/brd-intake`'s ledger was on main before this BRD was ever grounded. Map the §3.7 return by
    `stopped` first: any stopping row → stop, naming the concrete branch/PR state it reports;
-   `pass` → proceed; `pass_amending` → proceed, printing the §3.3 row-B message; `absent` (row F,
-   grounding has never run for this BRD at all) → stop:
-   `BRD_SPLIT_NEEDS_GROUNDING: no grounding findings on file for <BRD-KEY> — run /dev-workflows:brd-ground <BRD-KEY> first.`;
+   `pass` → proceed; `pass_amending` → proceed, printing the §3.3 row-B message; `absent` (row F —
+   grounding findings are on no ref at all) → **split it before stopping, on a test row F cannot
+   make**, the way `/brd-reconcile` splits its own row F. Row F covers two states here, and the
+   message for the second one must not name a command that stops on the same emptiness. Read
+   `<BRD-dir>/brd/brd-inventory.md` from the worktree and count its `[BR#n]` rows:
+   - **One or more rows** — grounding simply has not run yet, and running it is the fix:
+     `BRD_SPLIT_NEEDS_GROUNDING: no grounding findings on file for <BRD-KEY> — run /dev-workflows:brd-ground <BRD-KEY> first.`
+   - **Zero rows** — there is nothing to ground, so `/brd-ground` stops with
+     `BRD_GROUND_EMPTY_INVENTORY` rather than producing the findings this gate wants. Naming it here
+     would be the loop, so name the upstream fix instead, by the `split_mode` step 5 already
+     resolved — `full` means this BRD owns its source document, `allocate-only` means it is a slice:
+     `BRD_SPLIT_EMPTY_INVENTORY (split_mode: full): <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and nothing to allocate — do not run /dev-workflows:brd-ground, which stops on the same emptiness. Re-run '/dev-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder with a source whose requirements brd-reader can identify, and merge that pull request; if the source genuinely states no requirement, this BRD has nothing for the route to carry.`
+     `BRD_SPLIT_EMPTY_INVENTORY (split_mode: allocate-only): <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to allocate. Do not run /dev-workflows:brd-ground, and do not run /dev-workflows:brd-intake on a slice; it has no source document of its own. Either re-run '/dev-workflows:brd-split <PARENT-KEY>' and allocate rows to this slice, or remove the empty slice — that run offers the removal itself.`
    `unmanaged` → proceed as before this feature.
 7. **Gate on verification.** Every `[CG#n]`/`[DG#n]` finding carries a verifier `outcome` (one of
    the four in `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §8 — `agree`, `extend`,
@@ -471,8 +481,10 @@ step 8 no-op path exactly as on any other, in either run mode.
 **Capture-at-block invariant.** If an EARLIER phase halts on a plugin / skill / command / reference
 gap, `emit-block` (`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) fires at that halt
 before escalating. None of Phase 0's stops qualify — a missing key, an unresolved BRD, an ungated
-or missing grounding deliverable, unverified findings, and an unset `$SPECS_PATH` are environment /
-sequencing halts, never a plugin capability gap. `BRD_SPLIT_ON_SLICE` is not in that list because it
+or missing grounding deliverable, an inventory carrying no claim at all
+(`BRD_SPLIT_EMPTY_INVENTORY`, in either mode — a fact about the customer's document or about what
+the parent allocated, never about this plugin), unverified findings, and an unset `$SPECS_PATH` are
+environment / sequencing halts, never a plugin capability gap. `BRD_SPLIT_ON_SLICE` is not in that list because it
 is **not a stop**: it is the Phase 0 step 5 notice that this run is `allocate-only`, and the run
 continues through it.
 

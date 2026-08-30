@@ -85,10 +85,36 @@ behaviour, not the behaviour.
    ```
    choices: ["Set REPOS_PATH (enter the path)", "Cancel"]
    ```
-8. **Read the claim list.** From the gated `<BRD-dir>/brd/brd-inventory.md`, extract every
-   `[BR#n]` row's `id` and `text` (`brd-format.md` §2 field shape) — this is the `claims` array
-   every dispatch in Phase 5 draws from. Zero rows (an `EMPTY` intake) → nothing to ground; report
-   that plainly and skip straight to the Terminal phase's ledger line.
+8. **Read the claim list, and stop if there is none.** From the gated
+   `<BRD-dir>/brd/brd-inventory.md`, extract every `[BR#n]` row's `id` and `text`
+   (`brd-format.md` §2 field shape) — this is the `claims` array every dispatch in Phase 5 draws
+   from.
+
+   **Zero rows is a stop, not a quiet completion.** With no claim there is nothing to ground, so
+   this run writes no finding; writing no finding means there is nothing to hand off; and
+   `/brd-split` and `/brd-interview` both gate on exactly that handoff. Reporting "nothing to
+   ground" and ending successfully therefore leaves a BRD whose next two commands refuse it and name
+   **this** command as the fix — sending the operator back here to be told "nothing to ground"
+   again, with the one thing that would change the state named nowhere. The fix for a claimless BRD
+   is always upstream, and it differs by level, so this stop reads the resolved folder's
+   `brd-link.md` from the worktree and branches on its `parent:` field exactly as step 6 does:
+   - **No `brd-link.md`, or one with no `parent:`** — this BRD owns its source document, so its
+     inventory is `/brd-intake`'s to rebuild:
+     `BRD_GROUND_EMPTY_INVENTORY: <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and no finding this run can write. /dev-workflows:brd-split and /dev-workflows:brd-interview both gate on grounding findings, so neither can run until one exists — and re-running this command will report the same emptiness. The fix is upstream: re-run '/dev-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder (an existing BRD folder is a re-run, not a refusal) with a source whose requirements brd-reader can identify, and merge that pull request. If the source genuinely states no requirement, this BRD has nothing for the route to carry and stopping here is the end of it.`
+   - **`parent: <PARENT-KEY>` present** — this is a slice, and `/brd-intake` is not the fix: a slice
+     has no document of its own to intake (`brd-format.md` §2.1), and its inventory is written by
+     `/brd-split` on the parent from the rows that parent delegated to it
+     (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3). A slice reaches this state
+     only as the empty child `/brd-split`'s empty-child check offered to keep with a recorded
+     reason:
+     `BRD_GROUND_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground. Do not run /dev-workflows:brd-intake on a slice; it has no source document of its own. Either re-run '/dev-workflows:brd-split <PARENT-KEY>' and allocate rows to this slice, or remove the empty slice — /dev-workflows:brd-split offers that removal itself.`
+
+   **Why a stop rather than an empty handoff.** Writing an empty `grounding/code-grounding.md` and
+   handing it off would let both downstream gates pass, but it would assert that grounding ran over
+   this BRD when nothing was ever checked, and it would carry `/brd-interview` into generating a
+   round's questions for a BRD with no requirement — leaving an empty round record permanently on
+   file, which no later run may delete or renumber. A stop that names the upstream fix leaves the
+   tree honest and the operator able to act.
 9. **Read `brd-link.md`, if present**, to recover any `depends-on` already recorded from an
    earlier run — Phase 4 merges this run's `--depends-on` into it additively, never replacing it.
 
@@ -616,8 +642,10 @@ Terminal phase — runs after Phase 10, NEVER interrupts an earlier phase.
 reference gap, `emit-block` (`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) fires at
 that halt before escalating. None of Phase 0's stops qualify — a missing key, an unresolved BRD,
 an inventory or ledger not yet on main (`BRD_GROUND_NEEDS_INTAKE` or, for a slice,
-`BRD_GROUND_NEEDS_SPLIT`), and an unset `$REPOS_PATH` are environment / sequencing halts, never a
-plugin capability gap. `BRD_GROUND_DIRTY_TREE`, `BRD_GROUND_NEEDS_REBASELINE`, and Phase 7's
+`BRD_GROUND_NEEDS_SPLIT`), an inventory carrying no claim at all
+(`BRD_GROUND_EMPTY_INVENTORY`, which is a fact about the customer's document or about what the
+parent allocated, not about this plugin), and an unset `$REPOS_PATH` are environment / sequencing
+halts, never a plugin capability gap. `BRD_GROUND_DIRTY_TREE`, `BRD_GROUND_NEEDS_REBASELINE`, and Phase 7's
 `BRD_GROUND_VERIFY_COMMIT_MISMATCH` are repository state, not a plugin gap, either — unlike Phase
 7's `INPUT_MISSING`, which is this command getting its own dispatch contract wrong and does fire
 `emit-block`.

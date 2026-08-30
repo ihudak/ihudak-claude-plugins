@@ -117,38 +117,58 @@ cap.
 
 ## 4. The shared fallback for existing commands
 
-`/create-prd`, `/create-ard`, `/epics`, `/specify`, `/design`, and `/ready` each resolve a PRD
-directory as the flat form `specifications/<KEY>-<slug>/`, which on its own cannot see a nested PRD
-(one produced under a BRD slice, once `/create-prd --from-brd` exists). All six therefore apply the
-same one-level fallback described in §2: when the flat match fails, search exactly one level deeper
-before reporting the PRD absent. One shared rule, defined here once rather than reinvented per
-caller — and adopted by more callers than those six, per the note below.
+Every command outside the `/brd-*` family that addresses a PRD directory resolved it as the flat
+form `specifications/<KEY>-<slug>/`, which on its own cannot see a nested PRD (one produced under a
+BRD slice, once `/create-prd --from-brd` exists). All of them therefore apply the same one-level
+fallback described in §2: when the flat match fails, search exactly one level deeper before
+reporting the PRD absent. One shared rule, defined here once rather than reinvented per caller. The
+adopter list below is the authority on who applies it — **it is longer than the six the design
+originally named**, and it is meant to be read as a list, not summarised as a count.
 
-**Adopted in eight files.** Six commands cite this section from the step that resolves their PRD
-directory: `/create-prd` and `/create-ard` from their *Feature folder* step in *Phase 0 — Resolve
-inputs* and *Phase 0 — Resolve input*; `/epics` from *Resolve the PRD dir* in *Phase 2.6 — PRD-level
-spec enrichment (optional)*; `/specify` from *Resolve the feature folder* and `/design` from *Map
-onto the specs repo + require the spec on main*, both in *Phase 0 — Resolve input*; and `/ready` from
-*Map onto the specs repo (PRD dir + optional Epic subdir)* in the same phase.
+**Adopted in eleven files.** Nine commands cite this section from the step that resolves their PRD
+directory:
 
-Two more files adopt it, and neither is a command — both are **shared authorities the six
-delegate to**, which is why the adopter count and the command count differ:
+| Command | Step (by name) | What the resolved directory is for |
+|---|---|---|
+| `/create-prd` | *Feature folder*, Phase 0 — Resolve inputs | the PRD it authors, and its rung-1 `idea.md` |
+| `/update-prd` | *Feature folder*, Phase 0 — Resolve inputs | the frozen draft, any ARD, and the spec it grounds on |
+| `/create-ard` | *Feature folder*, Phase 0 — Resolve input | the PRD it reads and the ARD it writes |
+| `/epics` | *Resolve the PRD dir*, Phase 2.6 — PRD-level spec enrichment (optional) | the optional PRD-level spec |
+| `/specify` | *Resolve the feature folder*, Phase 0 — Resolve input | the spec it authors, and each Epic subfolder under it |
+| `/design` | *Map onto the specs repo + require the spec on main*, Phase 0 — Resolve input | the merged spec it takes over |
+| `/ready` | *Map onto the specs repo (PRD dir + optional Epic subdir)*, Phase 0 — Resolve input | every artifact it judges |
+| `/idea` | *Phase 5* relocation | where `idea.md` is relocated once a key exists |
+| `/release-notes` | *Resolve `run_phase`*, Phase 6 — Render the draft | the `run_phase` signal |
+
+Two further files adopt it and **neither is a command** — both are shared authorities that commands
+delegate to, which is why the adopter count and the command count differ:
 
 - `references/ard-resolution.md`, from step 1 of its *Resolution (most-specific first)*. It is where
   the fallback reaches an **ARD**: `/create-ard`, `/design`, `/specify`, `/epics` and `/ready`
   delegate ARD lookup to it rather than resolving an ARD path themselves, so their own adoption above
   would not have found an ARD in a nested directory.
 - `references/jira-input-resolution.md`, from the PRD-folder bullet of its *Specs resolution
-  (jira-driven)*. It is where the fallback reaches the **`specs` file list** that shared front-end returns to
-  the commands citing it.
+  (jira-driven)*. It is where the fallback reaches the **`specs` file list** that shared front-end
+  returns to the commands citing it.
 
-**Eight files, and the reach is wider than the six commands.** Two commands adopt it purely **by
-delegation**, appearing nowhere in the list above: `/implement`, which resolves no PRD directory of
-its own and reaches both an ARD and its `specs` list solely by citing those two files, and
-`/document`, which reaches its `specs` list the same way. Counting files rather than commands is what
-keeps that visible — a reader who counted only commands would conclude those two were left flat.
+**Eleven files, eleven commands** — and the two sets are not the same eleven. Two commands adopt it
+purely **by delegation** and appear nowhere in the table: `/implement`, which resolves no PRD
+directory of its own and reaches both an ARD and its `specs` list solely by citing those two
+references, and `/document`, which reaches its `specs` list the same way. Counting files rather than
+commands is what keeps that visible — a reader who counted only the table would conclude those two
+were left flat.
 
-**Adoption is additive, in all eight.** The fallback is reached only where the flat match already
+**Where a handoff crosses two adopters, both must carry it.** `/create-prd` redirects to
+`/update-prd` on finding an existing PRD (its *Prior PRD* step), including one found through this
+fallback; `/idea` relocates `idea.md` into the folder `/create-prd` then reads. A redirect or a
+relocation into a command with a narrower resolution than the one that produced the state is a
+dead-end handoff, which is why those two are in the table rather than deferred as low-risk.
+
+**Not adopters, and correctly so.** The `/brd-*` commands resolve a BRD folder with `resolve-brd`
+(§2), which already searches both levels — the fallback here is §2's rule restated for callers that
+were never wired to it. `/implement` and `/document` are covered by delegation as above.
+
+**Adoption is additive, in all eleven.** The fallback is reached only where the flat match already
 returned nothing, so a key whose folder sits directly under `specifications/` resolves exactly as it
 did before any of them adopted this — and where a command creates the folder it did not find, it
 still creates it flat: the fallback honors a nested folder that exists, it never proposes one.

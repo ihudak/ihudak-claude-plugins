@@ -217,9 +217,10 @@ top level. `EPIC-008-01` therefore resolves to
 `specifications/<KEY>-<slug>/`, so a nested PRD is invisible to them today. Each needs the same
 one-level-deep fallback: when the flat match fails, search `specifications/*/` before reporting
 absent. One shared rule — extracted into `references/brd-addressing.md` so it is defined once (§12).
-**The adopter set is larger than these six**, because five of them delegate part of their path
-resolution to a shared reference rather than resolving it themselves; §10's *Shared change — nested
-resolution* names every file and every command the rule reaches.
+**The adopter set is larger than these six** — three further commands address a PRD dir too, and
+five of the six delegate part of their path resolution to a shared reference rather than resolving
+it themselves. §10's *Shared change — nested resolution* summarises the reach;
+`references/brd-addressing.md` §4 is the authoritative list.
 
 ---
 
@@ -715,17 +716,28 @@ layout, but it is never required.
 and cannot see a nested one. Each gains the same one-level-deep fallback, defined once in
 `references/brd-addressing.md` §4.
 
-**The fallback lands in eight files — the six commands plus two shared references — and reaches
-eight commands: those six, plus `/implement` and `/document`.** Those six commands adopt it in
-their own PRD-dir resolution step. Two shared references adopt it too, because five of the six do not
-resolve every path themselves — they delegate: `references/ard-resolution.md`, which is how any
-command reaches an ARD, and `references/jira-input-resolution.md`, which is how a command reaches its
-`specs` file list. Adopting only the six would therefore have left a nested ARD and a nested spec
-list invisible to all of them. Through those two references the fallback also reaches **`/implement`**
-(its only route to an ARD, and to `specs`) and **`/document`** (`specs`), neither of which resolves a
-PRD dir of its own — so this design's reach outside its own family is those eight commands, not six.
+**The fallback lands in eleven files and reaches eleven commands, and the two elevens are not the
+same set.** Nine commands adopt it in their own PRD-dir resolution step: the six above, plus
+`/update-prd`, `/idea` and `/release-notes`. Two shared references adopt it as well, because a
+command that delegates part of its path resolution cannot fix that part in its own file:
+`references/ard-resolution.md` is how any command reaches an ARD, and
+`references/jira-input-resolution.md` is how a command reaches its `specs` file list — so adopting
+only the commands would have left a nested ARD and a nested spec list invisible to every one of
+them. Through those two references the fallback also reaches **`/implement`** (its only route to an
+ARD, and to `specs`) and **`/document`** (`specs`), neither of which resolves a PRD dir of its own
+and neither of which appears among the nine.
 
-It is additive throughout: a flat key resolves exactly as it does today in every one of the eight
+Three of the nine were not in the original six and are worth naming, because two of them carry a
+**handoff** rather than a resolution of their own: `/create-prd` redirects to **`/update-prd`** when
+it finds an existing PRD, and **`/idea`** relocates `idea.md` into the folder `/create-prd` then
+reads — a command on the receiving end of a handoff needs the same resolution as the one that
+produced the state, or the handoff dead-ends. **`/release-notes`** is the third; its flat glob for
+the `run_phase` signal was also narrower than the `cost-emission.md` §7 signal it says it reuses.
+
+`references/brd-addressing.md` §4 carries the authoritative adopter list, as a table rather than a
+count, and this paragraph should be read against it rather than instead of it.
+
+It is additive throughout: a flat key resolves exactly as it does today in every one of the eleven
 files, because the fallback runs only where the flat match already returned nothing. The two shared
 references create nothing, so for them additivity means a flat key returns the same result it
 returned before.

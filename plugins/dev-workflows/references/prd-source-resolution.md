@@ -11,7 +11,11 @@ this file governs *which artifact holds the current PRD text*, not code truth. D
 
 ## Procedure — `resolve-existing-prd <KEY>`
 
-1. **Validate** `<KEY>` against `^[A-Z][A-Z0-9_]*-\d+$`. Malformed → stop and report.
+1. **Validate** `<KEY>` against `^[A-Z][A-Z0-9_]*(-\d+)+$` — the grammar `references/brd-addressing.md` §1
+   fixes, a superset of the two-segment form, so every key that validated here before still does.
+   The extra depth is needed by both callers: `/update-prd` is redirected to with the key
+   `/create-prd` resolved, and a PRD authored inside a BRD slice by `/create-prd --from-brd` carries a
+   three-segment one. Malformed → stop and report.
 2. **Jira import first.** Look for `$VAULT_PATH/jira-products/<KEY>/**/<KEY>.md` and its sibling
    `<KEY>-comments.md`. Confirm the frontmatter is `issue_type: ValueIncrement`. This import (body +
    comments) is the **authoritative base**.
@@ -19,6 +23,17 @@ this file governs *which artifact holds the current PRD text*, not code truth. D
    `choices: ["Import <KEY> now with the workitem-importer, then I'll re-run (Recommended)", "Cancel", "Other… (describe)"]`.
    Cite the importer: `https://github.com/ivan-gudak/jira-workitem-import`. Never fall back to the frozen
    specs draft as the base.
+
+   **Where the frozen specs draft carries a `brd_key`, say that the workitem may not exist yet.**
+   A BRD key is a folder name in `$SPECS_PATH`, validated for shape and never looked up on a tracker
+   (`references/brd-addressing.md` §1), so a PRD `/create-prd --from-brd` authored can be on disk
+   while no `<KEY>` workitem has ever been created — and "import it" then names a step that cannot be
+   taken. On that path the first move is the **paste** half of `/create-prd`'s Jira round-trip
+   (create the workitem, paste the PRD body into it), and the import follows. Offer that instead of
+   the import-only choice above:
+   `choices: ["Create the <KEY> workitem and paste the PRD body in, then import — I'll wait (Recommended)", "It already exists — import <KEY> now with the workitem-importer", "Cancel", "Other… (describe)"]`.
+   The rule that the import is the authoritative base is unchanged; only the instruction for reaching
+   one is.
 4. **Imported but stale →** if the import file's mtime is older than **3 days**
    (`find "$VAULT_PATH/jira-products/<KEY>" -name "<KEY>.md" -mtime +3`), show the import date and offer:
    `choices: ["Re-import <KEY> now — I'll wait (Recommended)", "Proceed with the current import", "Cancel", "Other… (describe)"]`.

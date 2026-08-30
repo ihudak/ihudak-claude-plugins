@@ -104,11 +104,14 @@ Usage: `/create-prd <JIRA-KEY|BRD-KEY> [@idea.md] [--from-prd <PRD-KEY|path>] [-
    | How every claimed row left `covered-here` | What this stop says |
    |---|---|
    | Some rows are `covered-by: <CHILD-KEY>` | Name those children — and, per §6.1, resolve each delegated row one hop through the named child's own ledger and say which of them is **not** building the row delegated to it. A child that deferred, rejected or has not allocated it is not somewhere to send the reader |
-   | No row is `covered-by`: this BRD was never split | Name **no** child, because none exists. Say every claimed requirement is a live obligation of this BRD, and that a PRD needs one of them resolved `covered-here` first |
-   | No row is `covered-by` because this BRD is a **slice** | The same, and say why there is nothing to name: `covered-by` is parent-only (§3), so on a slice the ineligible case is only ever reached by every row landing `deferred-to` |
+   | No row is `covered-by`: this BRD was never split | Name **no** child, because none exists — and say what the claimed rows *did* resolve to rather than calling them all obligations. §5 separates the three remaining dispositions: a `deferred-to` row is a live obligation of this BRD, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it, and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. Then say a PRD needs one row resolved `covered-here` first |
+   | No row is `covered-by` because this BRD is a **slice** | The same breakdown, and say why there is nothing to name: `covered-by` is parent-only (§3), so no child can exist below a slice and the ineligible case is reached entirely through the three dispositions above |
 
    In the second and third cases **there is nothing to name and a child must not be invented**; the
-   honest report is that the requirements are deferred, and by whom. Stop as:
+   honest report is what each row actually resolved to, and — for the deferred ones — by whom.
+   "The requirements are deferred" is the common shape of those two cases, not the whole of them: a
+   BRD whose every claimed row is `rejected` reaches this same refusal owing nobody anything, and
+   saying it deferred them would be false. Stop as:
    ```
    CREATE_PRD_BRD_NOT_ELIGIBLE: no row <BRD-KEY>'s brd-link.md claims is `covered-here`, so this BRD holds no PRD of its own (coverage-ledger-format.md §5). <where the requirements went, per the row above that matches>
    ```
@@ -405,12 +408,22 @@ Write the feature folder: `<KEY>_<slug>.md`. The in-contract `idea.md` is alread
 
 **Under `--from-brd`, also close the consumption loop before the offer.** The design's *Consumption
 tracking* section (§7.3) has every finding and decision record a `consumed_by`, so that "nothing was
-lost" is checkable rather than hoped for. Set `consumed_by: PRD` on each `prd-seed.md` item and each
-product-altitude `decided` record this PRD actually took content from — and on nothing else: an item
-this run read for context and did not use is still `none`, and marking it consumed would report a
-routing that never happened. This is the **only** write this command makes into `decisions.md`
-(Phase 3), and it is not a `status` change. Everything at product altitude still `none` afterwards
-goes in the final report by id, per §7.3.
+lost" is checkable rather than hoped for. Set `consumed_by: PRD` on each product-altitude
+`decided` record in `decisions.md` this PRD actually took content from — and on nothing else: a
+record this run read for context and did not use is still `none`, and marking it consumed would
+report a routing that never happened. This is the **only** write this command makes into
+`decisions.md` (Phase 3), and it is not a `status` change. Everything at product altitude still
+`none` afterwards goes in the final report by id, per §7.3.
+
+**`prd-seed.md` is reported, not stamped, and the difference is a fact about the authorities rather
+than an inconsistency.** `consumed_by` is a field of a *record*: it is defined on a decision by
+`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1 and on a grounding finding by
+`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §2. The seed carries neither — it is
+altitude-sorted content, and no reference in this plugin fixes an item shape inside it — so there is
+no per-item field to write, and inventing one here would mint a format this command alone
+understood. The seed's consumption is therefore reported at **file** granularity in the final report
+(consumed, or consumed in part with what was left over), and `decisions.md` is the only BRD file
+this run writes to.
 
 Then **offer** (commit-when-asked — never automatic), presenting `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's choice array verbatim:
 
@@ -418,11 +431,11 @@ Then **offer** (commit-when-asked — never automatic), presenting `${CLAUDE_PLU
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
 
-On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: prd`, `feature_folder` as resolved in Phase 0, `deliverable_paths` = the PRD file — **plus, under `--from-brd`, `prd-seed.md` and `decisions.md`**, because the `consumed_by` write above lands in them and an uncommitted consumption record is one no later run can read — `title: <KEY> Add Product Requirements Document — <summary>`, and `body_facts` = the resolved profile (`--lean`/`--hybrid`/`--full`), the adapt-in clusters pulled, the user-story and acceptance-criteria counts, any `[NEEDS CLARIFICATION]` markers carried in, the `prd-reviewer` verdict, and — under `--from-brd` — the `<BRD-KEY>` this PRD was seeded from and how many items were marked `consumed_by: PRD`; emit its §4.1 outcome line in the Final report.
+On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: prd`, `feature_folder` as resolved in Phase 0, `deliverable_paths` = the PRD file — **plus, under `--from-brd`, `decisions.md`**, because the `consumed_by` write above lands there and an uncommitted consumption record is one no later run can read; `prd-seed.md` is not staged, because this run does not write to it — `title: <KEY> Add Product Requirements Document — <summary>`, and `body_facts` = the resolved profile (`--lean`/`--hybrid`/`--full`), the adapt-in clusters pulled, the user-story and acceptance-criteria counts, any `[NEEDS CLARIFICATION]` markers carried in, the `prd-reviewer` verdict, and — under `--from-brd` — the `<BRD-KEY>` this PRD was seeded from and how many items were marked `consumed_by: PRD`; emit its §4.1 outcome line in the Final report.
 
 ### Jira round-trip (document to the user — they will otherwise miss it)
 
-1. **Paste** the PRD body (below the frontmatter) into the Jira workitem `<KEY>`. **Under `--from-brd` that workitem may not exist yet** — a BRD key is a folder name in `$SPECS_PATH`, validated for shape and never looked up on a tracker — so creating it is part of this step, and it is the step that gives the BRD key a tracker identity for the first time.
+1. **Paste** the PRD body (below the frontmatter) into the Jira workitem `<KEY>`. **Under `--from-brd` that workitem may not exist yet** — a BRD key is a folder name in `$SPECS_PATH`, validated for shape and never looked up on a tracker — so creating it is part of this step, and it is the step that gives the BRD key a tracker identity for the first time. **Where the tracker mints a key different from `<BRD-KEY>`** — which it will whenever the BRD key carries a third segment, since a real tracker key does not — set the PRD's `jira_key` to the minted one and leave `brd_key` holding the BRD identity. That is why they are two fields and not one: `/dev-workflows:epics` and `/dev-workflows:release-notes` read the export through `jira-reader`, which accepts a two-segment tracker key and nothing else, so a `jira_key` still carrying a slice key would be refused there. An operator who wants the two to coincide keys the slice with the tracker's key when `/dev-workflows:brd-split` proposes one — a segment count is a naming convention, never a depth declaration (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1), so that is always available.
 2. **Re-import** the PRD to `$VAULT_PATH/jira-products/<KEY>` (via `https://github.com/ivan-gudak/jira-workitem-import`) so the downstream pipeline sees it.
 
 Without these steps the pipeline cannot read the PRD.

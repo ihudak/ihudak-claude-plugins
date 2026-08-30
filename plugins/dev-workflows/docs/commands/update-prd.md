@@ -12,7 +12,7 @@ Refreshes an existing Product Requirements Document against its Jira source — 
 /update-prd <KEY> [@transcript-or-notes ...] [--no-docs]
 ```
 
-- **`<KEY>`** (mandatory) — the existing PRD's Jira key. Format-validated only (`^[A-Z][A-Z0-9_]*-\d+$`).
+- **`<KEY>`** (mandatory) — the existing PRD's Jira key. Format-validated only (`^[A-Z][A-Z0-9_]*(-\d+)+$`). The grammar fixes no depth, and that is what lets [`/create-prd`](create-prd.md) redirect here with a three-segment key — a PRD it authored inside a BRD slice with `--from-brd`. A two-segment key validates exactly as it always did.
 - **`[@transcript-or-notes ...]`** (optional) — one or more paths to a transcript or notes file, read as secondary, read-only grounding for the grill.
 - **`[--no-docs]`** — turns off documentation grounding for the run (see [What it needs](#what-it-needs)).
 
@@ -38,7 +38,7 @@ Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2, read-o
 
 - **`<KEY>`** — mandatory; absent or malformed stops the run with `UPDATE_VI_NEEDS_KEY`.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH` and offers to enter a path or cancel.
-- **The re-imported Jira PRD**, at `$VAULT_PATH/jira-products/<KEY>` (body + `-comments.md`) — the run's **authoritative base**, resolved Jira-import-first. Not yet imported stops the run and asks you to import it first; imported but stale (older than 3 days) offers a re-import rather than stopping outright.
+- **The re-imported Jira PRD**, at `$VAULT_PATH/jira-products/<KEY>` (body + `-comments.md`) — the run's **authoritative base**, resolved Jira-import-first. Not yet imported stops the run and asks you to import it first; imported but stale (older than 3 days) offers a re-import rather than stopping outright. Where the frozen draft carries a `brd_key`, that stop offers a different first move: a BRD key is never looked up on a tracker, so the workitem may not exist to import at all, and the run asks you to create it and paste the PRD body in before importing.
 - **Secondary grounding** (all optional and read-only): a frozen specs-repo draft (`<KEY>_*.md`), any `*_ARD.md`, `specification.md`, and the `@transcript`/notes path(s) passed on the command line. None of these gate the run. Where a discovered `*_ARD.md` or `specification.md` is not on the specs repo's default branch, the Phase 1 confirmation flags it as unapproved — advisory only, never a reason to stop.
 - **Documentation grounding** (optional, on by default) — turned off with `--no-docs`; a miss is a silent skip, never a gate.
 - **No repos.** `/update-prd` is cwd-agnostic and product-level — it never mounts or scans code.

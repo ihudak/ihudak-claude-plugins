@@ -47,7 +47,8 @@ flowchart TD
     ready -. verifies ARD/spec/design .-> implement
     brdpackage -->|bundle sent| brdreview
     brdreview -->|answers come back as one file| brdreconcile
-    brdreconcile -.->|a decision reopened, or questions still held| brdinterview
+    brdreconcile -.->|a decision reopened, or a question askable again| brdinterview
+    brdreconcile -.->|questions still held for the customer| brdpackage
 ```
 
 The diagram draws the ARD reaching `/epics`, but that is one of five consumers: `/epics`, `/specify`, `/design`, `/implement`, and `/ready` all resolve the applicable ARD once it exists. The edge is drawn once to keep the diagram readable, not because the others do not consult it.
@@ -55,6 +56,8 @@ The diagram draws the ARD reaching `/epics`, but that is one of five consumers: 
 The BRD-to-PRD subgraph carries no edge into `/create-prd`: that connection is undrawn because `--from-brd` has not shipped yet, not because the two routes are unrelated. The same goes for `--from-brd` on `/create-ard` and `/specify`. `/brd-reconcile` is where that route ends today.
 
 The `Off-platform` box is the one node in this diagram no command runs. It is the customer reviewing the bundle with a vanilla agent and nothing installed, and the route waits there — which is why `/brd-reconcile` takes the returned review as an argument rather than looking for it.
+
+The two dashed edges leaving `/brd-reconcile` go to different commands on purpose, and are drawn separately rather than merged under one label: a decision the review reopened is settled by another interview round, while a question the customer left unanswered goes back out in the next package. They are the same two edges [BRD workflow](brd-workflow.md) draws, with the same labels — this diagram summarises that one and never disagrees with it.
 
 The diagram above shows where each command sits in the pipeline; [Roles and phases](roles-and-phases.md) says what each role is accountable for and what it hands over at each seam.
 

@@ -107,13 +107,16 @@ whose decisions are frozen against the customer's own returned words.
   §4.1 line the run emitted, mapping every one of its outcomes, and the route's offers carry the
   placeholder instead of a fixed sentence. It is a placeholder rather than an instruction to reword an
   option, so choice arrays are still presented verbatim as `escalation-rules.md` requires.
-- **The four offers that predate the route now resolve their merge clause too.** Scoping the rule to
-  the `/brd-*` family left `/create-prd`, `/create-ard` and `/specify` promising "once the pull
-  request above is merged" on a declined handoff, a failed push, or a nothing-to-commit run — states
-  in which no pull request exists — and left `/update-prd` offering two commands that gate its own
-  PRD with no wait named at all. All four now carry the `<merge-clause>` placeholder on exactly the
-  options whose downstream `require-on-main` target the offering run writes, and each says beside its
-  array which options carry it and why the others do not.
+- **The five offers that predate the route now resolve their merge clause too.** Scoping the rule to
+  the `/brd-*` family left `/create-prd`, `/create-ard`, `/specify` and `/design` promising "once the
+  pull request above is merged" on a declined handoff, a failed push, or a nothing-to-commit run —
+  states in which no pull request exists — and left `/update-prd` offering two commands that gate its
+  own PRD with no wait named at all. All five now carry the `<merge-clause>` placeholder on exactly
+  the options whose downstream `require-on-main` target the offering run writes, and each says beside
+  its array or paragraph which parts carry it and why the others do not. Three of the five are prose
+  `### Next step` sections rather than `choices:` arrays, so no gate can see them — the universal
+  minimum surface the offer contract defines is exactly the surface `check-docs.sh` check 11 does
+  not cover.
 - **`/brd-split`'s no-op decision is taken in both run modes again.** Moving that decision into Phase 0
   step 9 — which runs in `full` mode only — meant a fully-allocated **slice** never reached it, fell
   through into Phase 5 and opened a pull request for a run that changed nothing, contradicting this

@@ -455,8 +455,10 @@ _word2num() {
     one) echo 1 ;; two) echo 2 ;; three) echo 3 ;; four) echo 4 ;; five) echo 5 ;;
     six) echo 6 ;; seven) echo 7 ;; eight) echo 8 ;; nine) echo 9 ;; ten) echo 10 ;;
     eleven) echo 11 ;; twelve) echo 12 ;; thirteen) echo 13 ;; fourteen) echo 14 ;;
-    fifteen) echo 15 ;; sixteen) echo 16 ;;
+    fifteen) echo 15 ;; sixteen) echo 16 ;; seventeen) echo 17 ;; eighteen) echo 18 ;;
+    nineteen) echo 19 ;;
     twenty-one) echo 21 ;; twenty-two) echo 22 ;; twenty-three) echo 23 ;; twenty-four) echo 24 ;;
+    twenty-five) echo 25 ;; twenty-six) echo 26 ;; twenty-seven) echo 27 ;;
     thirty-four) echo 34 ;; ninety-eight) echo 98 ;;
     *) echo "$1" ;;
   esac
@@ -489,7 +491,7 @@ check_prose_counts() {
   # correct numeral rather than failing. (^|[^[:alnum:]_-]) keeps the match from starting mid-word
   # or mid-compound; a captured boundary character is whitespace in every real sentence, so it
   # disappears when `awk '{print $1}'` splits the extracted match.
-  _one "commands"        "$p/README.md"                  '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|fifteen|sixteen|twenty-one|twenty-two|twenty-three|twenty-four|thirty-four|ninety-eight|[0-9]+) slash commands'    "$(cmd_names "$p" | wc -l | tr -d ' ')"
+  _one "commands"        "$p/README.md"                  '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|fifteen|sixteen|seventeen|eighteen|nineteen|twenty-one|twenty-two|twenty-three|twenty-four|twenty-five|twenty-six|twenty-seven|thirty-four|ninety-eight|[0-9]+) slash commands'    "$(cmd_names "$p" | wc -l | tr -d ' ')"
   _one "agents"          "$d/reference/agents.md"        '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) agents'           "$(ls "$p/agents"/*.md 2>/dev/null | wc -l | tr -d ' ')"
   _one "reference files" "$d/reference/references.md"    '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) files'           "$(find "$p/$REF_DIR" -type f 2>/dev/null | wc -l | tr -d ' ')"
   _one "hooks"           "$d/reference/hooks.md"         '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) hooks'                   "$(ls "$p/hooks"/*.sh 2>/dev/null | wc -l | tr -d ' ')"
@@ -521,7 +523,7 @@ check_prose_counts() {
     local n_emit
     n_emit=$(emit_cost_calls "$p" | cut -d'|' -f1 | sort -u | grep -c . || true)
     _one "cost-emitting commands" "$d/reference/session-cost.md" \
-         '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|twenty-one|twenty-two|twenty-three|twenty-four|thirty-four|ninety-eight|[0-9]+) commands emit a cost entry' "$n_emit"
+         '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty-one|twenty-two|twenty-three|twenty-four|twenty-five|twenty-six|twenty-seven|thirty-four|ninety-eight|[0-9]+) commands emit a cost entry' "$n_emit"
   else
     note "check 9 cost-emitting-commands assertion not applicable: this edition has no cost subsystem"
   fi
@@ -539,6 +541,17 @@ selftest() {
 
   expect_pass() {
     tmp=$(mktemp -d); cp -R "$fixture/." "$tmp/"
+    if "$0" --root "$tmp" >/dev/null 2>&1; then printf 'ok    %s\n' "$1"
+    else printf 'FAIL  %s: expected exit 0\n' "$1"; rc=1; fi
+    rm -rf "$tmp"
+  }
+  expect_pass_after() { # <description> <mutation-shell> -- like expect_fail, but the
+    # mutation must still leave every check passing. expect_fail alone cannot prove a
+    # new number word maps to the right value: an unrecognized word already fails check
+    # 9 (no count sentence found), so a mutation that merely stays red proves nothing
+    # about which word landed. This proves the word is both matched AND converted correctly.
+    tmp=$(mktemp -d); cp -R "$fixture/." "$tmp/"
+    ( cd "$tmp" && eval "$2" )
     if "$0" --root "$tmp" >/dev/null 2>&1; then printf 'ok    %s\n' "$1"
     else printf 'FAIL  %s: expected exit 0\n' "$1"; rc=1; fi
     rm -rf "$tmp"
@@ -592,6 +605,15 @@ selftest() {
   # (this case FAILs) with the anchor stashed, green with it applied.
   expect_fail "a compound reference-file count whose tail matches a shorter number word is rejected" 9 \
     "sed -i.bak 's|ships 6 files|ships twenty-six files|' $PLUGIN_REL/docs/reference/references.md"
+  # Proves _word2num and the commands alternation actually learned "seventeen" -- not merely
+  # that an unrecognized word is rejected (every unmapped word already fails check 9 via "no
+  # count sentence found", which would make a same-shaped expect_fail case pass whether or not
+  # "seventeen" was ever added). Grows the fixture to 17 real, fully-inventoried commands and
+  # re-words the count sentence to match, so the WHOLE gate -- not just check 9 -- must pass.
+  # Verified red (this case FAILs: "no count sentence found") with the word2num/alternation
+  # additions stashed, green with them applied.
+  expect_pass_after "a correctly-worded seventeen-command count is accepted" \
+    "for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15 cmd16; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && sed -i.bak 's|one slash commands|seventeen slash commands|' $PLUGIN_REL/README.md"
   expect_fail "a wrong non-ASCII anchor is rejected"           2 "printf '\n[bad](#uber-config)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
   expect_fail "a wrong duplicate-heading index is rejected"    2 "printf '\n[bad](#notes-2)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
   expect_fail "a titled link to a missing file is rejected"    1 "printf '\n[bad](nope.md \"T\")\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"

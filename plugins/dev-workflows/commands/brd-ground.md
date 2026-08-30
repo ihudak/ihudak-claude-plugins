@@ -37,8 +37,11 @@ behaviour, not the behaviour.
    boolean, skips Phase 5's `design-grounder` step. `--no-docs` — boolean, turns documentation
    grounding off for this run (Phase 1 step 0, Phase 4.5). `--rebaseline` — boolean, see Phase 3. `--derivation-matrix`
    / `--no-derivation-matrix` — mutually exclusive; absent means "let Phase 8 decide the default".
-3. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`
-   (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
+3. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`, per the
+   `Required path environment variable unset` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
+   ```
+   choices: ["Set SPECS_PATH (enter the path)", "Cancel"]
+   ```
 4. **Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute
    its `specs-preflight` entry point (§3) inline, **before** the gate below — `require-on-main`
    performs no fetch of its own (`phase-handoff.md` §3.2) and relies on this step's best-effort
@@ -76,8 +79,12 @@ behaviour, not the behaviour.
      `BRD_GROUND_NEEDS_SPLIT: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory and ledger are not on main — run /dev-workflows:brd-split <PARENT-KEY> and merge the pull request first. Do not run /brd-intake on a slice; it has no source document of its own.`
 7. **Require `$REPOS_PATH`.** Resolve `${REPOS_PATH:-/workspace}` (`docs/reference/environment.md`)
    as one directory or a colon-separated list. If no entry resolves to an existing directory,
-   stop naming `REPOS_PATH` (`choices: ["Set REPOS_PATH (enter the path)", "Cancel"]`) — grounding
-   has nothing to check a claim against without at least one mounted repository.
+   stop naming `REPOS_PATH`, per the `Required path environment variable unset` rule in
+   `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` — grounding has nothing to check a claim
+   against without at least one mounted repository:
+   ```
+   choices: ["Set REPOS_PATH (enter the path)", "Cancel"]
+   ```
 8. **Read the claim list.** From the gated `<BRD-dir>/brd/brd-inventory.md`, extract every
    `[BR#n]` row's `id` and `text` (`brd-format.md` §2 field shape) — this is the `claims` array
    every dispatch in Phase 5 draws from. Zero rows (an `EMPTY` intake) → nothing to ground; report
@@ -114,11 +121,14 @@ the manual path:
    assume a `<base>/<slug>` directory name** — resolution is always by remote slug.
 3. Resolve each named repo against the map: one match → use it; multiple matches → auto-prefer
    basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last (show candidates before
-   proceeding); zero matches → escalate:
+   proceeding); zero matches → escalate per the `Repo unresolved (zero matches) — /brd-ground` rule
+   in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
    ```
    choices: ["Skip and continue without this repo", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo", "Other… (describe)"]
    ```
-4. Empty final list (every repo skipped or missing) → escalate:
+4. Empty final list (every repo skipped or missing) → escalate per the `No repos derivable — /epics`
+   rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`, whose `/brd-ground` variant
+   this is:
    ```
    choices: ["List repos to check manually", "Cancel", "Other… (describe)"]
    ```
@@ -441,10 +451,14 @@ blanket.** `own-run` for any finding **this invocation itself produced**, regard
 phase did the producing: Phase 3's baseline `[CG#n]` findings qualify exactly as Phase 5's claim
 findings do, because Phase 3 re-runs `baseline-integrity` and assigns a fresh id every invocation —
 first run or `--rebaseline` alike — never carrying a prior run's baseline finding forward
-unreproduced. `inherited` for a finding **this invocation did not reproduce** — concretely, a
-`--rebaseline` pass where a given repository's `HEAD` had not moved (Phase 3), so Phase 5 skipped
-re-grounding its claims and the pre-existing findings from an earlier invocation stand as they
-were, now being re-checked rather than regenerated. Phrasing the rule by origin rather than by
+unreproduced. `inherited` for a finding **this invocation did not reproduce** — concretely, any re-run in which
+a given repository's `HEAD` still matched its recorded pin, so Phase 3's first bullet skipped
+re-grounding that repository's claims and the pre-existing findings from an earlier invocation
+stand as they were, now being re-checked rather than regenerated. **That bullet fires on a plain
+re-run and on a `--rebaseline` pass alike** — it is keyed on the pin still matching, not on the
+flag — so a plain re-run against an unmoved repository inherits exactly as a `--rebaseline` pass
+over one does. Illustrating only the flagged case would read as though the flag were what made a
+finding `inherited`; the rule is the origin, and the flag never enters it. Phrasing the rule by origin rather than by
 phase number is deliberate: it is immune to a future renumbering the way a phase-keyed rule is not.
 The agent's own Inputs contract and `grounding-format.md` §8 both define `inherited` as "another
 team's report **or an earlier run of this workflow**," and a finding surviving from before this
@@ -653,8 +667,20 @@ recommendation; and end with the ledger line, read fresh from the (unmodified-by
 `coverage-ledger.md`, exactly per `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6:
 
 ```
-ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated
+ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated, <unresolved> unresolved (<delegated> delegated, <not-built> not built)
 ```
 
 `/brd-ground` never changes a ledger disposition — that line simply reports where allocation stands
 going into `/brd-split`.
+
+**Reporting it now reads one child ledger per `covered-by` row.** §6 counts a delegated row through
+the child it names, so on a BRD an earlier `/brd-split` already split, this report resolves each
+`covered-by: <CHILD-KEY>` row one hop into that child's own `coverage-ledger.md`, resolved from the
+working tree by `resolve-brd` (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §2). **This adds
+no precondition and no gate.** A child folder that is absent from the tree this run is standing in —
+its split not yet merged, most commonly — makes that row `unresolved` in the line and nothing more:
+grounding this BRD does not depend on any child, and a run must never stop, degrade, or withhold its
+findings because a child could not be read. Phase 0's `require-on-main` gates stay exactly as they
+are, on this BRD's own inventory and ledger. A slice reaches this with nothing to resolve —
+`covered-by` is unavailable on a slice (`coverage-ledger-format.md` §3), so its line always reports
+zero delegated.

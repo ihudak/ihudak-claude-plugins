@@ -112,6 +112,7 @@ refusing to start until its predecessor's artifact landed on the specs default b
 | D17 | **A slice is a BRD, and nesting is capped at one level.** There is no lesser "slice" object: a slice runs the same commands, holds the same artifacts, and can depend on any other BRD. No BRD folder is ever created inside a slice — `/brd-split` creates no child below one (**amended by R18**; the original row read "a slice is **not** itself sliceable — `/brd-split` refuses on a slice"). | One object type avoids two sets of commands, two sets of gates, and a rule for which applies. The cap is separate and deliberate: a grandchild has no coherent inheritance. A slice inherits `brd/source/` and its defect log from its parent, and a slice's parent is a slice that holds neither — so a grandchild's header would name a path that does not exist and its `rejected: [DEF#n]` resolution would cite a missing file. Chasing to the source-owning root would fix that, but nothing in practice needs three levels, and the cap is one rule instead of two. |
 | R18 | **The cap is on nesting, not on allocation.** `/brd-split` run on a slice skips slice proposal and child creation and still walks the ledger, offering four terminal resolutions instead of five: `covered-by` is unavailable because it names a child BRD and none can exist below a slice. `BRD_SPLIT_ON_SLICE` is a notice, not a run-refusal. | D17 as originally written refused the whole command on a slice, which left every row of every slice `unallocated` forever — so no slice could ever satisfy §4.1's PRD-eligibility rule, and the entire purpose of slicing (each child becomes a PRD) was unreachable. That is the allocation deadlock §4.1 exists to prevent, reintroduced by the cap itself. Seeding a child's ledger `covered-here` at creation was considered and rejected: it removes the operator's ability to defer or reject a row inside a slice, and makes `covered-here` an assumption rather than a decision. |
 | D21 | **Every identifier this workflow mints uses the house `[PREFIX#N]` form** — `[BR#n]`, `[DEF#n]`, `[CG#n]`, `[DG#n]`, `[VD#n]`, `[CD#n]`, `[AS#n]`, `[SR#n]`. | `scripts/check-id-grammar.sh` rejects the dash form, and `BRD-FR-001` trips it outright via its `-FR-001` substring. The rule's reason applies with extra force here: these documents are emailed to customers and pasted into trackers, where a dash-form ID auto-links to an unrelated ticket in any project sharing the prefix. |
+| D23 | **A `covered-by` row is counted as covered only if the child actually covers it.** The parent's ledger line resolves each `covered-by: <CHILD-KEY>` row through that child's own ledger — one hop, which is exhaustive because nesting is capped at one level (D17). A row the child deferred, rejected or left `unallocated` is reported as that, not as covered, and the line names how many rows were delegated and then not built. | Without this the ledger cannot detect the failure §4.1 says it exists for: several children each independently decide a requirement is somebody else's problem, nobody builds it, and nothing notices. Counting `covered-by` unconditionally hid exactly that case — the parent's line read `covered` for a requirement no one would build, so the arithmetic contradicted the purpose statement above it. |
 | D22 | **`/brd-intake` and `/brd-ground` ground on shipped product documentation; `/brd-split` does not. In `/brd-ground`, documentation is a lead and a divergence finding — never evidence for a `[CG#n]`.** | Seven existing commands resolve `references/docs-grounding.md`; omitting it here made the BRD route blind to what the product already ships and documents, which is exactly the signal `/idea` gets from prior art. The restriction on `/brd-ground` is load-bearing: a document is a *claim about* behaviour, not the behaviour. Letting one be cited as evidence would let a confident, stale page satisfy a claim the code does not — the precise failure `NOT-PROVABLE` exists to prevent. Docs may say where to look, and a doc-versus-code divergence is itself worth recording; neither is a citation. `/brd-split` allocates requirements, which documentation does not inform. |
 | D19 | **Grounding findings carry a `horizon`, and a decision may not rest solely on one that a prerequisite will overturn.** | A finding is true of a pinned commit. When a prerequisite BRD is approved but unbuilt, some findings are true now and false after it ships. A decision resting on such a finding is built on ground that is about to move. Catching this by hand worked once and should not have to. |
 | D20 | **A package whose prerequisite is not yet customer-reviewed may ship, loudly.** | Blocking would fully serialise delivery and let a slow customer stall everything downstream. Instead the delivery note and the customer prompt both name which prerequisite decisions are still provisional and which positions here depend on them — the customer is told what could still move. |
@@ -176,8 +177,9 @@ BRD whose `brd-link.md` claims a row not allocated to it.
 
 **PRD eligibility is read from the ledger, not decided in advance.** A BRD gets a PRD if and only
 if at least one row is `covered-here`. If every row is `covered-by: <CHILD>` or `deferred-to`, the
-BRD was fully sliced and holds no PRD of its own: `/create-prd` on it refuses and names the
-children that do. This means slicing everything and slicing partially are both supported without
+BRD holds no PRD of its own: `/create-prd` on it refuses and says **where the requirements went**.
+What there is to say depends on how the state was reached, and one of the three ways names no
+child at all — see `references/coverage-ledger-format.md` §5, which owns this rule. This means slicing everything and slicing partially are both supported without
 the operator having to declare which they are doing — the ledger records what happened and the
 command reads it.
 
@@ -627,8 +629,14 @@ eligible — allocation would deadlock.
 without running anything:
 
 ```
-ledger: 47 requirements — 31 covered, 12 deferred, 2 rejected, 2 unallocated
+ledger: 47 requirements — 29 covered, 13 deferred, 2 rejected, 2 unallocated, 1 unresolved (9 delegated, 4 not built)
 ```
+
+**Counted through the children (D23).** A `covered-by` row is resolved one hop into the named
+child's own ledger before it is counted, so a requirement a child deferred, rejected or never
+allocated is reported as that rather than as covered; a child ledger that cannot be read is
+`unresolved`, never covered; and the trailing pair names how many rows were delegated and how many
+of those are not being built. `references/coverage-ledger-format.md` §6 owns the arithmetic.
 
 Re-running `/brd-split` on a fully-allocated BRD is a no-op that prints the ledger.
 
@@ -691,7 +699,7 @@ register, ledger, defect log, and bannered snapshots; propagation dispositions i
 
 | Command | Change |
 |---|---|
-| `/create-prd` | New `--from-brd`. Reads `prd-seed.md` and `decisions.md` from the resolved BRD folder. The grill is restricted to gaps: it may fill anything the seed does not settle, and may **not** reopen a `[VD#n]` or `[CD#n]` (D3). Refuses if any ledger row this BRD claims is unallocated, and refuses when the ledger shows no `covered-here` row (the BRD was fully sliced — it names the children instead). Defaults the profile to `--full`. Writes `brd_key:`, `brd_parent:` and `depends_on:` into the PRD frontmatter, so a PRD's prerequisites are visible to `/epics` and `/ready` without reading the BRD tree. |
+| `/create-prd` | New `--from-brd`. Reads `prd-seed.md` and `decisions.md` from the resolved BRD folder. The grill is restricted to gaps: it may fill anything the seed does not settle, and may **not** reopen a `[VD#n]` or `[CD#n]` (D3). Refuses if any ledger row this BRD claims is unallocated, and refuses when the ledger shows no `covered-here` row, saying where the requirements went per `coverage-ledger-format.md` §5 — which is not always a list of children. Defaults the profile to `--full`. Writes `brd_key:`, `brd_parent:` and `depends_on:` into the PRD frontmatter, so a PRD's prerequisites are visible to `/epics` and `/ready` without reading the BRD tree. |
 | `/create-ard` | New `--from-brd`. Reads `ard-seed.md` plus the architecture-altitude findings; `[CG#n]`/`[DG#n]` findings seed the ARD's grounding-findings section, architecture decisions seed `AD#N`. Marks each consumed item `consumed_by: ARD`. |
 | `/specify` | New `--from-brd`. Reads `spec-seed.md`, including the derivation matrix. Marks each consumed item `consumed_by: specification`. |
 
@@ -814,7 +822,8 @@ to open six command pages to find that `--from-brd` takes the parent BRD folder:
 | `/create-ard` | `<BRD-KEY>` | `--from-brd` | Consumes `ard-seed.md` |
 | `/specify` | `<BRD-KEY>` | `--from-brd` | Consumes `spec-seed.md` |
 
-Keys are resolved at any nesting depth (§4.3) — `EPIC-008-01` never needs a path.
+Keys are resolved at either level a BRD folder can occupy (§4.3) — `EPIC-008-01` never needs a
+path. Nesting is capped at one level (D17), so those two levels are all there are.
 
 Also updated: six pages under `docs/commands/`; `docs/roles-and-phases.md` (the route is
 PM-owned, with `/brd-ground` PM-initiated and PA/Dev-executed, and `[V]` answers in

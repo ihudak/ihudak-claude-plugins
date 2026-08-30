@@ -74,6 +74,20 @@ This rule binds every command in the plugin, not only the ones documented below.
 Used when `jira-reader` returns `status: NOT_FOUND` or `status: EMPTY`, or when
 Phase 0 of `jira-reader` rejects an invalid `jira_key` format.
 
+## Required path environment variable unset
+
+`choices: ["Set <VAR> (enter the path)", "Cancel"]`
+
+Used when a command stops in Phase 0 because a path environment variable it requires is unset, or
+resolves to nothing that exists. `<VAR>` is that variable's own name, written out — the list names
+the variable the run is missing, never a generic placeholder.
+
+`/brd-intake` (Phase 0 step 5), `/brd-ground` (Phase 0 step 3 for `SPECS_PATH` and Phase 0 step 7
+for `REPOS_PATH`) and `/brd-split` (Phase 0 step 2) cite this rule by name. It is a stop, not a
+degradation: there is no "continue without it" option, because the path is where the run's inputs
+and outputs live. Other commands reproduce the same two-option list inline without naming the
+rule; a citer that names the rule uses the list written here.
+
 ## Repo unresolved (zero matches) — /document
 
 `choices: ["Skip and continue without its PRs", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]`
@@ -88,6 +102,15 @@ slug→clone map.
 Used in `/epics` Phase 4 when a repo slug has zero matches in the
 slug→clone map.
 
+## Repo unresolved (zero matches) — /brd-ground
+
+`choices: ["Skip and continue without this repo", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo", "Other… (describe)"]`
+
+Used in `/brd-ground` Phase 1 step 3 when a repo the operator named has zero matches in the
+slug→clone map. Same options, same order as the `/epics` variant above; the first one drops
+"'s scan" because this command grounds a claim against a repository rather than scanning one for
+capabilities, and skipping it leaves that repository's claims ungrounded rather than unscanned.
+
 ## No repos derivable — /epics
 
 `choices: ["List repos to scan manually", "Proceed without code scan", "Cancel", "Other… (describe)"]`
@@ -99,6 +122,15 @@ with no repos derivable"). The `— /epics` suffix on this heading is historical
 — `/epics` was its first citer — not a scope restriction; the rule now serves
 both commands listed above, and any future citer with the same empty-repo-set
 shape uses it too.
+
+In `/brd-ground` Phase 1 step 4 the *Proceed without code scan* entry is omitted:
+`choices: ["List repos to check manually", "Cancel", "Other… (describe)"]`
+
+and *scan* reads *check*, for the reason the `— /brd-ground` heading above gives. The dropped
+option is not a shortening: grounding has nothing to check a claim against without at least one
+mounted repository, which is why that command already refuses to start with none
+(`commands/brd-ground.md` Phase 0 step 7) — an option offering to proceed anyway would name an
+outcome the command cannot deliver.
 
 ## Repo missing (after resolution)
 

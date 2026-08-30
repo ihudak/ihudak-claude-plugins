@@ -41,8 +41,11 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
    forward to Phase 6. `--no-docs` — boolean; turns documentation grounding off for this run,
    carried to Phase 1's `resolve-docs-grounding` call. Neither changes anything else about Phase 0:
    the BRD source is still required and still gated by step 3.
-5. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`
-   (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
+5. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`, per the
+   `Required path environment variable unset` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
+   ```
+   choices: ["Set SPECS_PATH (enter the path)", "Cancel"]
+   ```
 6. **Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute
    its `specs-preflight` entry point (§3) inline. Prompt-free and silent when the specs repo is
    clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
@@ -141,7 +144,8 @@ Act on `status`:
   forward into Phase 4; nothing here treats a candidate as a decision.
 - **`EMPTY`** — report that the source contained no identifiable requirement. Skip Phase 4 (nothing
   to classify) and write an empty `brd/brd-inventory.md` and `coverage-ledger.md` in Phase 5; the
-  final report's ledger line reads `ledger: 0 requirements — 0 covered, 0 deferred, 0 rejected, 0 unallocated`.
+  final report's ledger line reads
+  `ledger: 0 requirements — 0 covered, 0 deferred, 0 rejected, 0 unallocated, 0 unresolved (0 delegated, 0 not built)`.
 - **`NOT_FOUND`** — surface the agent's exact message and stop; this should not occur (Phase 0/2
   already confirmed the source exists and is markdown), so treat its appearance as worth
   investigating rather than retrying blindly.
@@ -339,9 +343,12 @@ prefix note; the `Specs repo:` outcome line from `commit-artifacts`
 the ledger line, exactly per `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6:
 
 ```
-ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated
+ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated, <unresolved> unresolved (<delegated> delegated, <not-built> not built)
 ```
 
 Since `/brd-intake` writes every row `unallocated`, this run's own line always reads
-`ledger: <N> requirements — 0 covered, 0 deferred, 0 rejected, <N> unallocated` (or the Phase 3
-`EMPTY` line above) — the non-zero counts appear only once `/brd-split` has run.
+`ledger: <N> requirements — 0 covered, 0 deferred, 0 rejected, <N> unallocated, 0 unresolved (0 delegated, 0 not built)`
+(or the Phase 3 `EMPTY` line above) — the non-zero counts appear only once `/brd-split` has run.
+The `covered-by` resolution §6 requires reads no child ledger here and never can: no row this
+command writes is `covered-by`, so the delegated figures are zero by construction rather than by
+omission, and this command gains no precondition from it.

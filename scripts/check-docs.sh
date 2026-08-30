@@ -481,23 +481,25 @@ check_prose_counts() {
       || fail 9 "$label: ${file#$root/} says $raw ($claimed), tree has $actual"
   }
 
-  # Left-anchored: without a boundary, an unenumerated compound like "twenty-five" would let the
-  # bare alternative "five" match its own tail and silently compare the wrong numeral instead of
-  # failing loudly. (^|[^[:alnum:]_-]) keeps the match from starting mid-word or mid-compound;
-  # a captured boundary character is whitespace in every real sentence, so it disappears when
-  # `awk '{print $1}'` splits the extracted match. Same anchor on the cost-emitting alternation
-  # below, for the same reason.
+  # Left-anchored, on EVERY alternation below without exception: without a boundary, an
+  # unenumerated compound like "twenty-five" would let the bare alternative "five" match its own
+  # tail and silently compare the wrong numeral instead of failing loudly. The argument does not
+  # depend on which count a sentence carries, so neither does the anchor -- an assertion left
+  # unanchored is the one an unenumerated compound slips past, and it passes on a coincidentally
+  # correct numeral rather than failing. (^|[^[:alnum:]_-]) keeps the match from starting mid-word
+  # or mid-compound; a captured boundary character is whitespace in every real sentence, so it
+  # disappears when `awk '{print $1}'` splits the extracted match.
   _one "commands"        "$p/README.md"                  '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|fifteen|sixteen|twenty-one|twenty-two|twenty-three|twenty-four|thirty-four|ninety-eight|[0-9]+) slash commands'    "$(cmd_names "$p" | wc -l | tr -d ' ')"
-  _one "agents"          "$d/reference/agents.md"        '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) agents'           "$(ls "$p/agents"/*.md 2>/dev/null | wc -l | tr -d ' ')"
-  _one "reference files" "$d/reference/references.md"    '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) files'           "$(find "$p/$REF_DIR" -type f 2>/dev/null | wc -l | tr -d ' ')"
-  _one "hooks"           "$d/reference/hooks.md"         '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) hooks'                   "$(ls "$p/hooks"/*.sh 2>/dev/null | wc -l | tr -d ' ')"
+  _one "agents"          "$d/reference/agents.md"        '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) agents'           "$(ls "$p/agents"/*.md 2>/dev/null | wc -l | tr -d ' ')"
+  _one "reference files" "$d/reference/references.md"    '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) files'           "$(find "$p/$REF_DIR" -type f 2>/dev/null | wc -l | tr -d ' ')"
+  _one "hooks"           "$d/reference/hooks.md"         '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) hooks'                   "$(ls "$p/hooks"/*.sh 2>/dev/null | wc -l | tr -d ' ')"
   # Inert where $CMD_DIR IS "skills" (see check 4's skills forward-check, same reason):
   # ls -d "$p/skills"/*/ would count this edition's commands plus $CMD_EXCLUDE, not
   # bundled skills -- there is no separate "N bundled skills" sentence to state there.
   if [ "$CMD_DIR" = "skills" ]; then
     note "check 9 skills-count assertion not applicable: skills/ is this edition's \$CMD_DIR, already counted by the commands assertion above"
   else
-    _one "skills"          "$d/README.md"                  '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) bundled skills'           "$(ls -d "$p/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')"
+    _one "skills"          "$d/README.md"                  '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) bundled skills'           "$(ls -d "$p/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')"
   fi
 
   # The user-settable total is derived the same way check 5 derives its scan, so the two
@@ -511,7 +513,7 @@ check_prose_counts() {
     case " $RUNTIME_VARS " in *" $v "*) continue ;; esac
     n_settable=$((n_settable + 1))
   done
-  _one "environment variables" "$d/reference/environment.md" '(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) user-settable' "$n_settable"
+  _one "environment variables" "$d/reference/environment.md" '(^|[^[:alnum:]_-])(one|two|three|four|five|six|seven|eight|nine|ten|twenty-one|thirty-four|ninety-eight|[0-9]+) user-settable' "$n_settable"
 
   # The size of the cost-emitting set is prose too, and it is the count that went stale the
   # moment /prompt and /feedback started emitting. Derived from the same extractor check 8 uses.
@@ -583,6 +585,13 @@ selftest() {
   expect_fail "a count sentence reworded away is rejected"     9 "sed -i.bak 's|one slash commands|a handful of slash commands|' $PLUGIN_REL/README.md"
   expect_fail "a compound count whose tail matches a shorter number word is rejected" 9 \
     "mkdir -p $(dirname $(cmd_file $PLUGIN_REL delta)) 2>/dev/null && printf -- '---\nname: delta\n---\n' > $(cmd_file $PLUGIN_REL delta) && printf -- '# /delta\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/delta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/delta\`]($DOC_CMD_DIR/delta.md)|' $PLUGIN_REL/docs/README.md && mkdir -p $(dirname $(cmd_file $PLUGIN_REL epsilon)) 2>/dev/null && printf -- '---\nname: epsilon\n---\n' > $(cmd_file $PLUGIN_REL epsilon) && printf -- '# /epsilon\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/epsilon.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/epsilon\`]($DOC_CMD_DIR/epsilon.md)|' $PLUGIN_REL/docs/README.md && mkdir -p $(dirname $(cmd_file $PLUGIN_REL zeta)) 2>/dev/null && printf -- '---\nname: zeta\n---\n' > $(cmd_file $PLUGIN_REL zeta) && printf -- '# /zeta\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/zeta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/zeta\`]($DOC_CMD_DIR/zeta.md)|' $PLUGIN_REL/docs/README.md && mkdir -p $(dirname $(cmd_file $PLUGIN_REL eta)) 2>/dev/null && printf -- '---\nname: eta\n---\n' > $(cmd_file $PLUGIN_REL eta) && printf -- '# /eta\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/eta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/eta\`]($DOC_CMD_DIR/eta.md)|' $PLUGIN_REL/docs/README.md && sed -i.bak2 's|one slash commands|twenty-five slash commands|' $PLUGIN_REL/README.md"
+  # Discriminates the word-boundary anchor on the reference-files alternation specifically: the
+  # fixture ships 6 reference files, so an unanchored "six" matches the tail of "twenty-six" and
+  # compares 6 against 6 -- a wrong claim passing on a coincidentally-correct numeral. Anchored,
+  # nothing matches at a boundary and the count sentence reads as drifted away. Verified red
+  # (this case FAILs) with the anchor stashed, green with it applied.
+  expect_fail "a compound reference-file count whose tail matches a shorter number word is rejected" 9 \
+    "sed -i.bak 's|ships 6 files|ships twenty-six files|' $PLUGIN_REL/docs/reference/references.md"
   expect_fail "a wrong non-ASCII anchor is rejected"           2 "printf '\n[bad](#uber-config)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
   expect_fail "a wrong duplicate-heading index is rejected"    2 "printf '\n[bad](#notes-2)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
   expect_fail "a titled link to a missing file is rejected"    1 "printf '\n[bad](nope.md \"T\")\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"

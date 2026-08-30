@@ -22,6 +22,13 @@ past. The ledger exists to make that failure visible: a row left `unallocated` (
 rows that resolve to nothing but `covered-by` pointing at each other's children, is a fact the
 ledger states plainly rather than a gap that only a careful re-read of every child would surface.
 
+**The ledger line is where that promise is kept.** A `covered-by` row records which BRD owns a
+requirement, not that any BRD built it, so §6 resolves every one of them one hop through the named
+child's own ledger before it counts anything: a requirement a child deferred, rejected or never
+allocated is reported as exactly that, and the line names how many were delegated and then not
+built. Counting `covered-by` as covered on its own word is what would let the failure above pass
+this file's own arithmetic unremarked.
+
 One ledger exists per BRD, at either of the two levels a BRD can sit — a BRD that owns its source
 document, or a slice one level inside it (`references/brd-addressing.md` §3 caps nesting there) —
 with one row per `[BR#n]` that BRD's `brd-link.md` claims.
@@ -95,7 +102,12 @@ the ledger's job is to record a requirement's fate, not to force every requireme
 
 `/brd-split` cannot complete while any row in this BRD's ledger is `unallocated`.
 It opens the gate by walking every remaining `unallocated` row one at a time and offering a path
-off `unallocated` into one of the five terminal dispositions in §3. Re-running `/brd-split` on a
+off `unallocated` into a terminal disposition — whichever ones §3 makes available at the level this
+BRD sits at, which is not the same set at both: `covered-by` is parent-only, so a slice's walk
+resolves through fewer than a source-owning BRD's. **No number is written here**, for the same
+reason the paragraph below refuses to re-enumerate the picker: a level-general count is wrong at
+one of the two levels the moment it is written, and a level-specific pair drifts the next time §3
+changes. §3 is where availability is decided; read the count off it. Re-running `/brd-split` on a
 BRD whose ledger is already fully allocated is a no-op: nothing changes, and the command still
 reports the ledger line (§6).
 
@@ -114,10 +126,23 @@ picker changes.
 - **Eligible.** At least one `covered-here` row exists. The BRD may go on to author its own
   `<BRD-KEY>_<slug>.md` once `/create-prd --from-brd` (increment 3) runs against it.
 - **Not eligible.** No row is `covered-here` — every row resolves to `covered-by: <CHILD-KEY>` or
-  `deferred-to: <this BRD>` (with `rejected` and `superseded-by` rows outside the question
-  entirely, per §6). The BRD was fully sliced and holds no PRD of its own. A consumer that reaches
-  this state must refuse to author a PRD here and name the children that do, rather than producing
-  an empty or placeholder document.
+  `deferred-to: <this BRD>` (`rejected` rows are not obligations of anyone, and `superseded-by`
+  rows are excluded from the ledger line entirely per §6.3; neither bears on eligibility). This BRD
+  holds no PRD of its own. A consumer that reaches this state must refuse to author a PRD here and
+  say **where the requirements went**, rather than producing an empty or placeholder document.
+
+  **What there is to say depends on how the state was reached, and one of the three ways names no
+  child at all:**
+
+  | How every row left `covered-here` | What the consumer says |
+  |---|---|
+  | Some rows are `covered-by: <CHILD-KEY>` | Name those children — and, per §6.1, which of them did not build the row delegated to it. A child that deferred, rejected or has not allocated it is not somewhere to send the reader |
+  | No row is `covered-by`: the BRD was never split | Name no child, because none exists. Say that every requirement is a live obligation of this BRD and that a PRD needs one of them resolved `covered-here` first |
+  | No row is `covered-by` because this is a **slice** | The same, for the reason the paragraph below gives |
+
+  "Name the children that do" is right only in the first row. In the other two there is nothing to
+  name, and a consumer that goes looking for a child to point at finds none and must not invent
+  one — the honest report is that the requirements are deferred, and by whom.
 
 **A slice reaches eligibility by exactly this rule**, through the same Phase 4 walk on its own
 ledger. The one difference follows from `covered-by` being parent-only (§3): on a slice, the
@@ -127,9 +152,15 @@ at children.
 This is **read from the ledger, not decided in advance.** Slicing a BRD entirely and slicing it
 only partially are both ordinary, supported outcomes; the ledger is what tells a later consumer
 which one happened, without the operator having declared which they were doing at the time. A row
-still `unallocated` when eligibility is checked means the gate in §4 was never satisfied — a
-consumer must treat that as a hard refusal, never as an implicit `covered-here` or `deferred-to` in
-either direction.
+still `unallocated` **as written on this BRD's own ledger** when eligibility is checked means the
+gate in §4 was never satisfied — a consumer must treat that as a hard refusal, never as an implicit
+`covered-here` or `deferred-to` in either direction.
+
+**Read that from the ledger file, never from the §6 line.** Since §6.1 resolves a delegated row
+through the child that owns it, the line's `unallocated` term also counts rows this BRD wrote
+`covered-by` and a child has not walked yet — rows whose fate this BRD *has* recorded. A consumer
+keying the refusal off that term would hard-refuse a BRD whose own gate is fully satisfied. The
+refusal is about this ledger's own written dispositions, and about nothing else.
 
 ## 6. The ledger line
 
@@ -137,32 +168,155 @@ Every `/brd-*` command's final report ends with exactly one line, so the ledger'
 without opening the file or running anything else:
 
 ```
-ledger: 47 requirements — 31 covered, 12 deferred, 2 rejected, 2 unallocated
+ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated, <unresolved> unresolved (<delegated> delegated, <not-built> not built)
 ```
 
-`covered` sums `covered-here` and `covered-by` rows — the line does not distinguish which produced
-a given count, only that the requirement is spoken for. `deferred`, `rejected`, and `unallocated`
-each count their one matching disposition.
+### 6.1 A `covered-by` row is counted through the child it names
 
-**`superseded-by` rows are excluded from all four counts and from the total.** A superseded row's
-obligation was absorbed into the `[BR#n]` that replaced it; counting it again anywhere in this line
-would double-count the same requirement under two ids.
+Delegating a requirement records **which** BRD owns it (§3); it does not record that the BRD built
+it. So before any count below is taken, every `covered-by: <CHILD-KEY>` row is resolved **one hop** —
+read that child's own `coverage-ledger.md`, take the disposition of its row for the same `[BR#n]` —
+and the parent's row is counted as whatever the child decided:
 
-**Worked example.** A synthetic BRD's ledger holds fourteen rows:
-
-| Disposition | Rows |
+| The child's row for that `[BR#n]` | The parent's `covered-by` row counts as |
 |---|---|
-| `covered-here` | 5 |
-| `covered-by: <CHILD-KEY>` | 3 |
+| `covered-here` | `covered` |
+| `deferred-to` | `deferred` |
+| `rejected` | `rejected` |
+| `unallocated` | `unallocated` |
+| `superseded-by` | excluded from every count and from the total (§6.3) |
+| unreadable | `unresolved` (§6.2) |
+
+**One hop is exhaustive.** `covered-by` is unavailable on a slice (§3), so a child's row can never
+delegate onward, and nesting is capped at one level anyway
+(`references/brd-addressing.md` §3). A child row that nevertheless carries `covered-by` is
+malformed; it is counted `unresolved` rather than followed.
+
+This is the arithmetic §1 promises. The failure §1 names — every child independently deciding the
+same requirement is somebody else's problem — stays invisible while a parent row reading
+`covered-by` counts as covered on its own say-so. Resolved through the child, each such row is
+reported as the `deferred`, `rejected` or `unallocated` it actually is, and the trailing figures
+say how many requirements this BRD handed to a child that the child is not building.
+
+`covered` therefore sums `covered-here` rows and the delegated rows that resolved to `covered`.
+`deferred`, `rejected`, and `unallocated` each sum their own matching disposition on this ledger
+plus the delegated rows that resolved to it. `unresolved` counts nothing but delegated rows whose
+child could not be read.
+
+**Every term in this line is a resolved count, not a census of what the file says**, and the term
+that most visibly differs is `unallocated`. **The line's `unallocated` term does not track §4's
+gate.** §4 is satisfied when no row **as written on this ledger** is `unallocated`; a delegated row
+is written `covered-by` and stays written `covered-by` whatever the child does with it. The very run
+that satisfies the gate seeds each child it creates with rows the child has not walked yet (§3's
+creator table), so a completed `/brd-split` routinely reports a non-zero `unallocated` term for rows
+whose fate this BRD has fully recorded — that is the resolution working, not a gate left open.
+**A consumer testing the gate reads the dispositions in the ledger file; it never reads this line.**
+
+### 6.2 A child ledger that cannot be read is `unresolved`, never `covered`
+
+Resolution reads the child's `coverage-ledger.md` **from the working tree**, through
+`resolve-brd` (`references/brd-addressing.md` §2) — not from git, because this line reports what
+the run can actually see. A delegated row is `unresolved` when no folder resolves for
+`<CHILD-KEY>`; when that folder holds no `coverage-ledger.md`; when the tree the run is standing in
+does not carry the child at all, because the split that created it has not merged; or when the
+child's ledger holds no readable row for that `[BR#n]`.
+
+It gets its own term rather than joining one of the four:
+
+- **Not `covered`** — an absent answer is not a positive one, and counting it as covered is exactly
+  the defect this section exists to remove.
+- **Not `unallocated`** — the parent's row **is** allocated: it carries `covered-by`, a terminal
+  disposition (§3). Reporting an unreadable child under the one disposition this row demonstrably
+  does not have would also put a child nobody could read in the same bucket as a child that *was*
+  read and has simply not walked its ledger yet — two different facts, and the second is the one a
+  reader can act on.
+- **Not dropped** — dropping the row would shrink the total and hide the requirement altogether,
+  which is §1's failure in a new costume.
+
+**`unresolved` is a reporting state, not a disposition.** §3's six are unchanged, no row is ever
+written `unresolved`, it is never offered by any picker, and it never blocks §4. A non-zero
+`unresolved` is a prompt to look at the named child, not a defect in this BRD's allocation.
+
+**The line mixes two provenances, and a reader should know which term came from where.** The ledger
+being reported on is gated wherever a gate exists — `/brd-ground` and `/brd-split` each run
+`require-on-main` over it in their Phase 0 step 6 — while the child ledgers resolved into it are
+read from the working tree and gated by nothing. So a `covered` this line reports for a delegated row can rest
+on a child decision that has not merged and could still change, and an `unresolved` can mean nothing
+worse than a pull request still open. That asymmetry is the price of reporting what the run can
+actually see instead of reporting nothing, and it is why this line is a report and not an input to
+any gate.
+
+### 6.3 `superseded-by` is excluded from every count and from the total
+
+A superseded row's obligation was absorbed into the `[BR#n]` that replaced it; counting it again
+anywhere in this line would double-count the same requirement under two ids. That holds at both
+levels: a row this ledger itself marks `superseded-by`, and a delegated row the child resolved
+`superseded-by`, are both dropped before anything else is computed.
+
+A child's supersession is **not** "delegated and then not built". A child may only supersede a
+`[BR#n]` its own inventory holds, and every id in that inventory is the parent's, copied row for
+row (`commands/brd-split.md` Phase 3 step 4) — so the replacing requirement is a row of *this*
+ledger too, carrying its own fate and its own contribution to this line. Supersession moves an
+obligation; it does not drop one.
+
+### 6.4 The two trailing figures
+
+`<delegated>` counts the `covered-by` rows that survive the §6.3 exclusion. `<not-built>` counts
+those among them the child deferred, rejected, or left `unallocated`.
+
+Every delegated row lands in exactly one of three places, so
+`<delegated>` = the delegated rows the child covers + `<not-built>` + `<unresolved>`.
+
+**Both figures are printed even when both are zero**, and so is a zero `unresolved`: an omitted
+clause is indistinguishable from a check that never ran, and the whole point of §6.1 is that this
+resolution is visible rather than assumed. A BRD with no `covered-by` row at all — never split, or
+a slice, where `covered-by` is unavailable (§3) — reports `0 unresolved (0 delegated, 0 not built)`
+and says so plainly.
+
+### 6.5 Worked example
+
+A synthetic BRD `EPIC-008` holds seventeen ledger rows, seven of them delegated to its one child
+`EPIC-008-01`:
+
+| This BRD's disposition | Rows |
+|---|---|
+| `covered-here` | 4 |
+| `covered-by: EPIC-008-01` | 7 |
 | `deferred-to: <this BRD>` | 2 |
 | `rejected: [DEF#n]` | 1 |
 | `superseded-by: [BR#n]` | 2 |
 | `unallocated` | 1 |
 
-Fourteen rows exist on disk, but the two `superseded-by` rows are dropped before anything else is
-computed, leaving twelve: 5 `covered-here` + 3 `covered-by` = 8 covered, 2 deferred, 1 rejected, 1
-unallocated — 8 + 2 + 1 + 1 = 12 requirements:
+Resolving those seven one hop into `EPIC-008-01`'s own ledger:
+
+| What `EPIC-008-01` did with it | Rows | Counts on `EPIC-008` as |
+|---|---|---|
+| `covered-here` | 2 | `covered` |
+| `deferred-to` | 1 | `deferred` |
+| `rejected` | 1 | `rejected` |
+| `unallocated` | 1 | `unallocated` |
+| `superseded-by` | 1 | excluded (§6.3) |
+| no row for that `[BR#n]` | 1 | `unresolved` (§6.2) |
+
+Three rows are dropped before anything is computed: this BRD's own two `superseded-by` rows, plus
+the one delegated row the child superseded. 17 − 3 = 14 requirements. Six delegated rows survive
+that exclusion; of those, the child covers 2, is not building 3 (1 deferred + 1 rejected +
+1 `unallocated`), and 1 could not be resolved.
+
+- covered = 4 `covered-here` + 2 delegated-and-covered = 6
+- deferred = 2 here + 1 delegated = 3
+- rejected = 1 here + 1 delegated = 2
+- unallocated = 1 here + 1 delegated = 2
+- unresolved = 1
+
+6 + 3 + 2 + 2 + 1 = 14, and 6 delegated = 2 covered + 3 not built + 1 unresolved:
 
 ```
-ledger: 12 requirements — 8 covered, 2 deferred, 1 rejected, 1 unallocated
+ledger: 14 requirements — 6 covered, 3 deferred, 2 rejected, 2 unallocated, 1 unresolved (6 delegated, 3 not built)
 ```
+
+**What the unconditional rule reported instead.** Counting every `covered-by` row as covered on its
+own word, the same ledger read `15 requirements — 11 covered, 2 deferred, 1 rejected, 1 unallocated`:
+three requirements nobody is building were reported as covered, one delegated requirement nobody
+could account for was reported as covered, and a row the child had already superseded was still
+counted as a live requirement. That line is what §1 says the ledger exists to prevent.

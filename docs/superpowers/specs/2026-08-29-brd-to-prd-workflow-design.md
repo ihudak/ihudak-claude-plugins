@@ -718,7 +718,14 @@ All six are read-only with respect to code repositories.
 | `bundle-packaging.md` | De-Obsidianising, degradation tiers, plugin-free rendering, the delivery note's length rule |
 | `brd-addressing.md` | The key grammar, one-level-deep resolution, and the shared fallback the six existing commands adopt |
 
-**Reused unchanged:** `specs-repo-git.md`, `phase-handoff.md`, `read-only-repos.md`,
+**Modified additively:** `phase-handoff.md` — its closed `prefix` vocabulary (`idea`, `prd`, `ard`,
+`spec`, `design`, `ready`) gains **`brd`**, shared by all three `/brd-*` commands the way
+`/create-prd` and `/update-prd` share `prd`. Its row B decides "is this my own in-progress branch?"
+by testing that the branch's prefix is the caller's, so an unlisted value drops this family's
+branches into row C, whose repair offer re-grounds the session on the un-amended copy. Reusing
+`prd` is not an option — it would collide with `/create-prd --from-brd`'s branch on the same key.
+
+**Reused unchanged:** `specs-repo-git.md`, `read-only-repos.md`,
 `model-routing`, `grilling-technique.md`, `escalation-rules.md`, `prd-format.md`,
 `ard-format.md`, `specification-format.md`, `prose-formatting.md`, `finding-triage.md`,
 `cost-emission.md`, `feedback-emission.md`.

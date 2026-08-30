@@ -119,14 +119,17 @@ resolves from the folder itself:
    `unallocated` rows **by construction**, so every later run no-op'd, Phase 4.5 never ran, and the
    only command that can remove an empty child never offered to. Three stops elsewhere on this route
    name this command as the fix for exactly that child, so the no-op has to account for it. The
-   second half needs step 9's enumeration, so **the no-op decision is taken at the end of step 9**,
-   never here.
+   second half needs step 9's enumeration, so **the no-op decision is taken in step 10**, never
+   here.
 
-   **The no-op path stays mode-independent** — both halves are decided by the tree and the ledger,
-   not by the level, so a fully-allocated slice reaches it exactly as a fully-allocated parent does;
-   `allocate-only` has no children and therefore no second half to fail (step 9 is skipped there),
-   and it simply had two fewer phases to skip. The step 5 notice is still emitted and still
-   reported.
+   **Step 10 and not step 9, because step 9 does not run in every mode.** Step 9 is `full` only, so
+   a decision taken inside it is never taken at all on a fully-allocated slice — the run would fall
+   through into Phase 5 and open a pull request for a run that changed nothing, and this command's
+   own Phase 7 promises a slice the opposite. Step 10 runs in both modes, which is what keeps the
+   no-op **mode-independent**: it is decided by the ledger and the tree, not by the level, so a
+   fully-allocated slice reaches it exactly as a fully-allocated parent does. `allocate-only` simply
+   satisfies the second half by construction — no child exists or can be created below a slice — and
+   it had two fewer phases to skip. The step 5 notice is still emitted and still reported.
 9. **Enumerate existing children — `split_mode: full` only.** In `allocate-only` mode there are no
    children and none can be created, so this step is skipped and `covered-by` is not offered in
    Phase 4. In `full` mode: list every immediate subdirectory of `<BRD-dir>` whose name
@@ -136,16 +139,23 @@ resolves from the folder itself:
    Phase 4 even when this run proposes no new slice of its own. **Read each one's `brd-link.md`
    `claims:` list**, and mark every match whose list is empty as a **standing empty child**, noting
    whether it carries a `reason:` field — Phase 4.5 resolves exactly this set, and it is the set the
-   no-op test below needs.
-
-   **Take the no-op decision here, from both halves.** `unallocated_zero` (step 8) **and** no
-   standing empty child → this run is a no-op (§4): nothing in Phases 2–5 and nothing in Phase 4.5
-   has anything left to do, so skip straight to Phase 6 (Handoff), which will report nothing to
-   commit, and the Final Report's ledger line. `unallocated_zero` **but at least one standing empty
-   child** → **not a no-op**: skip Phases 2, 3 and 4 (there is no row to walk and no slice to
-   propose) and run **Phase 4.5 alone**, then Phase 5 and Phase 6 as usual. This is the one path on
-   which Phase 4.5 runs without a walk in front of it, and it exists so that a child kept empty by a
-   deliberate decision is still reachable by the command every other stop on this route names.
+   no-op test in step 10 needs. **Carry the marked set forward even when it is empty** — step 10
+   reads it in both modes, and in `allocate-only`, where this step never ran, it is empty by
+   construction because no child exists or can be created below a slice.
+10. **Take the no-op decision — both modes, always.** This step runs whether or not step 9 did, which
+    is the whole reason it is its own step: the decision must be reached on a slice exactly as on a
+    parent.
+    - `unallocated_zero` (step 8) **and** no standing empty child (step 9, empty by construction in
+      `allocate-only`) → this run is a **no-op** (§4): nothing in Phases 2–5 and nothing in Phase 4.5
+      has anything left to do, so skip straight to Phase 6 (Handoff), which will report nothing to
+      commit, and the Final Report's ledger line. This is the path a fully-allocated slice takes, and
+      the one Phase 7 tells a slice to expect.
+    - `unallocated_zero` **but at least one standing empty child** (`full` only — a slice can have
+      none) → **not a no-op**: skip Phases 2, 3 and 4, which have no row to walk and no slice to
+      propose, and run **Phase 4.5 alone**, then Phase 5 and Phase 6 as usual. This is the one path on
+      which Phase 4.5 runs without a walk in front of it, and it exists so that a child kept empty by
+      a deliberate decision is still reachable by the command every other stop on this route names.
+    - Otherwise → the ordinary run: Phases 2–6 as written, in whichever mode step 5 resolved.
 
 ---
 
@@ -481,7 +491,7 @@ decisions exactly as its parent does, and the register it writes is its own. If 
 work a later increment adds — that switch does **not** ship yet and is not offered:
 
 ```
-choices: ["Decide this slice's open questions — /dev-workflows:brd-interview <BRD-KEY> (Recommended, once the pull request above is merged)", "Stop here — this slice's allocation is complete", "Other… (describe)"]
+choices: ["Decide this slice's open questions — /dev-workflows:brd-interview <BRD-KEY> (Recommended) <merge-clause>", "Stop here — this slice's allocation is complete", "Other… (describe)"]
 ```
 
 **`split_mode: full`** — everything below. Every child folder Phase 3 created, still claiming at
@@ -493,18 +503,17 @@ this run's pull request. Grounding a child is possible only once that pull reque
 `/brd-intake` is never the answer for a child at any point:
 
 ```
-choices: ["Ground each child created above — /dev-workflows:brd-ground <CHILD-KEY> (Recommended, once per non-empty child)", "Decide this BRD's open questions — /dev-workflows:brd-interview <BRD-KEY> (once the pull request above is merged)", "Stop here — this BRD's own allocation is complete", "Other… (describe)"]
+choices: ["Ground each child created above — /dev-workflows:brd-ground <CHILD-KEY> (Recommended, once per non-empty child)", "Decide this BRD's open questions — /dev-workflows:brd-interview <BRD-KEY> <merge-clause>", "Stop here — this BRD's own allocation is complete", "Other… (describe)"]
 ```
 
-**Drop the "once the pull request above is merged" clause where this run opened no pull request.**
-Both lists above carry it, and on three paths it is false: the no-op, the Phase 4.5-only path where
-the operator kept a child unchanged, and any run whose handoff was declined at Phase 6. On the first
-two, everything the offered command gates on is **already** on the default branch — that is why
-those paths had nothing to stage — so telling the operator to wait for a merge that will never
-happen would park them on a run they could start now. Read the §4.1 outcome line this run's handoff
-actually emitted: a pull request opened → keep the clause; `nothing to commit` → drop it and say the
-BRD's artifacts are already on main; a declined or failed handoff → keep it, and name the branch
-that is waiting instead of a pull request.
+**Every merge clause in this phase is the `<merge-clause>` placeholder**, resolved per
+`${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`'s *A next-step offer that names a downstream
+command must also name the merge* rule, which owns the §4.1 outcome map and is not restated here.
+The rule governs **every** mention of the merge in this phase — both choice arrays and the prose
+below — because this command reaches three outcomes that open no pull request: the no-op, the
+Phase 4.5-only path where a standing empty child was kept unchanged, and a declined handoff. It is a
+placeholder and not an instruction to reword an option, so the arrays are still presented verbatim
+per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
 
 **Say what the child's own route looks like when offering it**: after `/brd-ground <CHILD-KEY>`,
 `/brd-split <CHILD-KEY>` runs in `allocate-only` mode (Phase 0 step 5) — it allocates that child's
@@ -519,7 +528,9 @@ omitted. Guidance only — never auto-invokes another command.
 paths.** `/brd-split` is **not** the last command of this route: the walk above just left this
 BRD's ledger with no row `unallocated`, which is the one precondition `/brd-interview` refuses to
 start without, so a fully-allocated BRD — split or not — goes on to have its open questions decided
-rather than stopping. It will not start until this phase's pull request is merged. Recording
+rather than stopping. It will not start until this BRD's artifacts are on the specs repo's default
+branch, and **exactly which words say so are `<merge-clause>`'s to supply** — this sentence is one of
+the mentions that rule governs, not an exception to it. Recording
 decisions is `/dev-workflows:brd-interview`, preparing the customer package is
 `/dev-workflows:brd-package`, and freezing the returned review is `/dev-workflows:brd-reconcile`;
 only the first of those three is the step *after this one*, so only it is offered here. Naming a
@@ -620,8 +631,8 @@ BRD's own rows, before any of this. In `allocate-only` mode there is nothing to 
 `/brd-split` is the only `/brd-*` command that can ever change this line's `unallocated` term as
 written on this ledger — a completed run always leaves **its own** rows with none
 (`coverage-ledger-format.md` §4: "cannot complete while any row in this BRD's ledger is
-`unallocated`"), whether that took an actual walk this run or was already true when Phase 0 step 8
-found nothing left to do. **The reported term can still be non-zero**, and that is the point: a row
+`unallocated`"), whether that took an actual walk this run or was already true before it — step 8
+reads the ledger and records that, and step 10 is where it becomes the no-op decision. **The reported term can still be non-zero**, and that is the point: a row
 this BRD delegated to a child the child has not yet allocated is counted `unallocated` in the line
 (`coverage-ledger-format.md` §6.1) while this BRD's own gate stands satisfied. Report it as what it
 is — a child with work left, named by the `<CHILD-KEY>` the row delegates to — never as this run

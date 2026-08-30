@@ -65,8 +65,8 @@ flowchart TD
     p7 --> p8["Phase 8 — Session maintenance, feedback & cost"]
 ```
 
-A BRD whose ledger has no `unallocated` row when Phase 0 checks it is a no-op **only if it also
-holds no child standing empty**: the run then skips straight from Phase 0 to Phase 6, which reports
+A BRD whose ledger has no `unallocated` row when Phase 0 reads it is a no-op **only if it also
+holds no child standing empty** — a two-part test taken in Phase 0's last step, in both run modes: the run then skips straight from Phase 0 to Phase 6, which reports
 nothing to commit. Holding one, it is not a no-op — Phase 0 skips the walk it has no rows for and
 runs Phase 4.5 alone, which is what keeps a child kept empty by an earlier run reachable by the one
 command that can remove it. Deciding the no-op on the ledger alone made that child unreachable in
@@ -180,7 +180,7 @@ folder per confirmed slice, walks every remaining ledger row to one of the five 
 writes `slices.md`, and offers to branch, commit, push, and open a pull request. Its next-step offer
 names two different keys: [`/brd-interview`](brd-interview.md) on the BRD just allocated — the route
 continues past the split — and [`/brd-ground`](brd-ground.md) on each child the run created, once
-this run's pull request is merged.
+this run's deliverables reach the specs repo's default branch — stated in the offer as the `<merge-clause>` placeholder ([`next-phase-offer.md`](../../references/next-phase-offer.md)) resolves it, since a no-op run and a declined handoff open no pull request to wait on.
 
 ## See also
 

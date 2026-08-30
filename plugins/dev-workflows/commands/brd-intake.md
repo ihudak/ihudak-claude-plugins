@@ -299,10 +299,13 @@ only the operator who has read it can take it. Say beside the list which convers
 actually read, so that judgement has something to stand on.
 
 `/dev-workflows:brd-ground <BRD-KEY>` grounds every `[BR#n]` against the mounted implementation and
-design repos. It will not start reading this BRD's artifacts until the pull request above is merged
-to the specs repo's main — its own Phase 0 gates `coverage-ledger.md` on `origin/<default>` and
-stops with `BRD_GROUND_NEEDS_INTAKE` otherwise — so offering it here is the next step, not an
-instruction to run it before the merge lands. Guidance only — never auto-invokes another command.
+design repos. It will not start reading this BRD's artifacts until they are on the specs repo's
+default branch — its own Phase 0 gates `coverage-ledger.md` on `origin/<default>` and stops with
+`BRD_GROUND_NEEDS_INTAKE` otherwise — so offering it here is the next step, not an instruction to
+run it before that lands. **State the wait as `<merge-clause>` resolves it** from this run's own
+`Phase handoff:` outcome line (`${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`): a declined
+handoff opened no pull request, so telling the operator to wait for one would name a thing that does
+not exist. Guidance only — never auto-invokes another command.
 Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`.
 
 ### Context hygiene

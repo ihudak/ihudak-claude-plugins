@@ -34,6 +34,22 @@ commands so the routing graph and the offer rules live in ONE place (the same sh
 
 **A next-step offer that names a downstream command must also name the merge.** The downstream command executes `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) and stops while this phase's pull request is open, so an offer that reads "next: `/dev-workflows:create-ard <KEY>`" without "once the pull request is merged" sends the user into a stop they were not warned about.
 
+**And it must name it truthfully, which means the clause is never unconditional.** A run that staged nothing, or whose handoff the user declined, opened no pull request — and "once the pull request above is merged" then parks the operator waiting for a merge that will never happen, on a run they could often start immediately. Worse, the two failing outcomes differ: only one of them has a branch to name. So an offer carries the clause as the placeholder **`<merge-clause>`**, resolved from the `Phase handoff:` line `phase-handoff.md` §4.1 actually emitted:
+
+| §4.1 outcome | `<merge-clause>` resolves to |
+|---|---|
+| Committed, pushed, PR opened | `(once the pull request above is merged)` |
+| PR not opened | `(once you open the pull request for <branch> and it is merged)` |
+| Push failed | `(once <branch> is pushed, its pull request opened, and merged)` |
+| Nothing to commit | `(its inputs are already on the default branch — you can run it now)` |
+| Declined by the user | `(once this run's artifacts reach the default branch — they are written but not there)` |
+| Gate failed | `(once this run's artifacts reach the default branch — the handoff did not run)` |
+| Anything else, or unresolvable | `(once this phase's artifacts are on the default branch)` |
+
+`Branch name substituted` is an append to another line rather than an outcome of its own — whatever branch the emitted line ends up naming is the branch the clause names. **Only two rows name a branch, and that is the point**: §4.1's declined and gate-failed lines carry none, because on those paths `handoff-to-main` committed nothing, so there is no branch in existence to send anyone to.
+
+**Resolving this placeholder is not a rewording.** The array is still presented verbatim per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`'s *Choice lists are presented verbatim*, exactly as `<BRD-KEY>` or `<KEY>` is substituted in the same strings. A command that instead told the orchestrator to *adjust the wording* of an option would be contradicting that convention, which is why the variation lives in a placeholder and not in an instruction.
+
 ## Surface
 
 The universal minimum is an adaptive **`### Next step`** section at the END of the command's

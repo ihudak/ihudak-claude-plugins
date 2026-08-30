@@ -611,7 +611,7 @@ delivery team owes the customer no decision.
 **`package_offerable: yes`:**
 
 ```
-choices: ["Stop here — this round's decisions are recorded", "Package this BRD for customer review — /dev-workflows:brd-package <BRD-KEY> (once the pull request above is merged)", "Work another round now — /dev-workflows:brd-interview <BRD-KEY> (only if findings or decisions have changed)", "Interview another BRD or slice", "Other… (describe)"]
+choices: ["Stop here — this round's decisions are recorded", "Package this BRD for customer review — /dev-workflows:brd-package <BRD-KEY> <merge-clause>", "Work another round now — /dev-workflows:brd-interview <BRD-KEY> (only if findings or decisions have changed)", "Interview another BRD or slice", "Other… (describe)"]
 ```
 
 **`package_offerable: rounds-unsettled` — `/brd-package` is left out rather than offered and
@@ -640,6 +640,11 @@ one either gate refuses is not — which is why it is not shown the option rathe
 caveat. The `nothing-to-review` list carries no marker for the same reason and one of its own:
 stopping there is a legitimate, finished outcome, and marking a grounding pass "recommended" would
 imply this BRD is unfinished when it is not.
+
+`<merge-clause>` in that list is the placeholder `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`
+resolves from this run's own `Phase handoff:` outcome line; it is never written as an unconditional
+"once the pull request above is merged", because the no-new-round path reaches the handoff with
+nothing to commit and opens no pull request.
 
 Say plainly what remains, per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — names only,
 never behaviour a command of its own owns: a round still holding a `[C]` stays open, because the

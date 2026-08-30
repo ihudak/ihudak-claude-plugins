@@ -606,8 +606,11 @@ one that has to run before this BRD's requirements all carry a recorded fate —
 of the route**. `/dev-workflows:brd-interview <BRD-KEY>` follows it, and `/brd-split`'s own Phase 7
 is what offers it, so it is not offered here: putting it in this list would name a step out of
 order, since it refuses a ledger that still holds an unallocated row. `/brd-split` will not start
-until this phase's pull request is merged — its own Phase 0 gates
-`grounding/code-grounding.md` on `origin/<default>` — and it carries its own role and
+until this phase's findings are on the specs repo's default branch — its own Phase 0 gates
+`grounding/code-grounding.md` on `origin/<default>`; **which words state that wait are
+`<merge-clause>`'s**, resolved from this run's own `Phase handoff:` outcome line per
+`${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`, since a declined handoff opened no pull
+request to wait on — and it carries its own role and
 cost-attribution row (`docs/roles-and-phases.md`). Guidance only, per
 `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — names only that `/brd-split` exists and
 where it sits in the route, never its behaviour, which `commands/brd-split.md` owns.

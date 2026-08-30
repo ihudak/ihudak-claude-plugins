@@ -703,7 +703,6 @@ check_merge_clause() {
       continue
     fi
 
-
     while IFS='|' read -r ln x has; do
       [ -n "$ln" ] || continue
       need=0; needt=""

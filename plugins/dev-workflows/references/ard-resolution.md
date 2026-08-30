@@ -12,8 +12,17 @@ convention live in ONE place.
 ## Resolution (most-specific first)
 
 1. Resolve the PRD dir `$SPECS_PATH/specifications/<PRD>-<vslug>/` — match by key-number, tolerating a
-   stray `-`/`_` and a human-adjusted slug (the same rule the other commands use).
-2. Collect candidate ARD files:
+   stray `-`/`_` and a human-adjusted slug (the same rule the other commands use). No match there →
+   apply `${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §4's one-level-deep fallback before
+   concluding none exists; it is reached only on a flat miss, so a flat key resolves exactly as it did
+   before.
+
+   **This step is the only route by which that fallback reaches an ARD.** All six consumers below
+   delegate their ARD lookup here, so five of them resolving their *own* PRD dir with the fallback
+   would still not find an ARD in a nested dir — and `/implement` resolves no PRD dir at all, reaching
+   an ARD solely by citing this file.
+2. Collect candidate ARD files **inside the dir step 1 resolved** — every `<PRD>-<vslug>/` below names
+   that dir, never a flat path re-derived from the key:
    - **Epic-level** (`epic` set): `<PRD>-<vslug>/<EPIC>-<eslug>/<EPIC>_ARD.md` and any
      `<EPIC>-<area>_ARD.md` (the area-scoped file when `area` is given, else every per-area ARD) **plus**
      the PRD-level `<PRD>-<vslug>/<PRD>_ARD.md` for inherited invariants.

@@ -11,9 +11,10 @@ name, and `commands/brd-reconcile.md` additionally uses §2's two-level bound in
 both levels for the BRDs that declare a `depends-on` against the one it is reconciling — and cited by
 `references/brd-format.md` and `references/coverage-ledger-format.md` for the key grammar and
 folder resolution neither of them restates.
-§4's fallback for the six existing commands is **also** consumed outside the `/brd-*` family — by
-`/create-prd`, `/create-ard`, `/epics`, `/specify`, `/design` and `/ready`, each from its own
-PRD-directory resolution step; see the adoption note there.
+§4's fallback is **also** consumed outside the `/brd-*` family — by `/create-prd`, `/create-ard`,
+`/epics`, `/specify`, `/design` and `/ready` from their own PRD-directory resolution steps, and by
+`references/ard-resolution.md`, the shared authority all six of those delegate ARD lookup to; see the
+adoption note there.
 
 ## 1. Key grammar
 
@@ -123,14 +124,25 @@ same one-level fallback described in §2: when the flat match fails, search exac
 before reporting the PRD absent. Six commands, one shared rule, defined here once rather than
 reinvented per command.
 
-**Adopted by all six.** Each cites this section from the step that resolves its PRD directory:
-`/create-prd` and `/create-ard` from their *Feature folder* step in *Phase 0 — Resolve inputs* and
-*Phase 0 — Resolve input*; `/epics` from *Resolve the PRD dir* in *Phase 2.6 — PRD-level spec
-enrichment (optional)*; `/specify` from *Resolve the feature folder* and `/design` from *Map onto
-the specs repo + require the spec on main*, both in *Phase 0 — Resolve input*; and `/ready` from
+**Adopted in seven files.** Six commands cite this section from the step that resolves their PRD
+directory: `/create-prd` and `/create-ard` from their *Feature folder* step in *Phase 0 — Resolve
+inputs* and *Phase 0 — Resolve input*; `/epics` from *Resolve the PRD dir* in *Phase 2.6 — PRD-level
+spec enrichment (optional)*; `/specify` from *Resolve the feature folder* and `/design` from *Map
+onto the specs repo + require the spec on main*, both in *Phase 0 — Resolve input*; and `/ready` from
 *Map onto the specs repo (PRD dir + optional Epic subdir)* in the same phase.
 
-**Adoption is additive, in all six.** The fallback is reached only where the flat match already
+The seventh file is `references/ard-resolution.md`, which cites it from step 1 of its *Resolution
+(most-specific first)*. **Seven files, but still six commands touched** — that file is a shared
+authority, not a command, and it is where the fallback reaches an ARD: `/create-ard`, `/design`,
+`/specify`, `/epics` and `/ready` delegate ARD lookup to it rather than resolving an ARD path
+themselves, so their own adoption above would not have found an ARD in a nested directory. `/implement`
+is the reason the distinction is worth stating: it resolves no PRD directory of its own and so appears
+nowhere in the six, yet it reaches this fallback **by delegation** through that file, which is its only
+route to an ARD.
+
+**Adoption is additive, in all seven.** The fallback is reached only where the flat match already
 returned nothing, so a key whose folder sits directly under `specifications/` resolves exactly as it
 did before any of them adopted this — and where a command creates the folder it did not find, it
 still creates it flat: the fallback honors a nested folder that exists, it never proposes one.
+`references/ard-resolution.md` creates nothing at all — it is a reader, so for it the additive claim
+is simply that a flat key returns the same `found` / `none` / `unmerged` it returned before.

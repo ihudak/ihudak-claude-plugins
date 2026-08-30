@@ -281,7 +281,7 @@ downstream command on the route, so offering one here would name a run that stop
 **One or more `[BR#n]` rows — the ordinary case:**
 
 ```
-choices: ["Ground the inventory against code and design — /dev-workflows:brd-ground <BRD-KEY> (Recommended)", "Stop here", "Other… (describe)"]
+choices: ["Ground the inventory against code and design — /dev-workflows:brd-ground <BRD-KEY> (Recommended) <merge-clause>", "Stop here", "Other… (describe)"]
 ```
 
 **Zero `[BR#n]` rows (a Phase 3 `EMPTY` read) — `/dev-workflows:brd-ground` is left out rather than

@@ -434,7 +434,7 @@ cause** and needs no separate rule: Phase 2 never ran, so it has no slice block 
 `slices.md` carries the Phase 0 step 5 notice as its "why" — this BRD is a slice, no child may be
 created below it — followed by its deferral blocks.
 
-Skipped entirely on the no-op path step 9 decides — nothing was walked, so there is nothing new to
+Skipped entirely on the no-op path step 10 decides — nothing was walked, so there is nothing new to
 rationalize. **Not skipped on the Phase 4.5-only path**, where the ledger had no `unallocated` row
 but a standing empty child was resolved: a removal there takes a slice out of the tree, and a
 `slices.md` still listing it would be the stale-record failure this route fixes everywhere else. On
@@ -503,7 +503,7 @@ this run's pull request. Grounding a child is possible only once that pull reque
 `/brd-intake` is never the answer for a child at any point:
 
 ```
-choices: ["Ground each child created above — /dev-workflows:brd-ground <CHILD-KEY> (Recommended, once per non-empty child)", "Decide this BRD's open questions — /dev-workflows:brd-interview <BRD-KEY> <merge-clause>", "Stop here — this BRD's own allocation is complete", "Other… (describe)"]
+choices: ["Ground each child created above — /dev-workflows:brd-ground <CHILD-KEY> (Recommended, once per non-empty child) <merge-clause>", "Decide this BRD's open questions — /dev-workflows:brd-interview <BRD-KEY> <merge-clause>", "Stop here — this BRD's own allocation is complete", "Other… (describe)"]
 ```
 
 **Every merge clause in this phase is the `<merge-clause>` placeholder**, resolved per
@@ -554,7 +554,7 @@ applies to it. Guidance only — nothing is auto-run.
 ## Phase 8 — Session maintenance, feedback & cost
 
 Terminal phase — runs after Phase 7, NEVER interrupts an earlier phase, and runs on the Phase 0
-no-op path step 9 decides exactly as on any other, in either run mode, and on the Phase 4.5-only path too.
+no-op path step 10 decides exactly as on any other, in either run mode, and on the Phase 4.5-only path too.
 
 **Capture-at-block invariant.** If an EARLIER phase halts on a plugin / skill / command / reference
 gap, `emit-block` (`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) fires at that halt
@@ -624,7 +624,7 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 created in Phase 3 and reconciled in Phase 4, and any it found already nested in Phase 0 step 9.
 A child whose ledger cannot be read there contributes `unresolved`, never `covered`
 (`coverage-ledger-format.md` §6.2). **This changes no gate and no precondition of this command**:
-Phase 0's stops, the two-part no-op test step 9 decides, and §4's allocation gate are all decided on this
+Phase 0's stops, the two-part no-op test step 10 decides, and §4's allocation gate are all decided on this
 BRD's own rows, before any of this. In `allocate-only` mode there is nothing to resolve at all —
 `covered-by` is not offered (Phase 4), so the line reports zero delegated.
 

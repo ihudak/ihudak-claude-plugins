@@ -942,7 +942,7 @@ it does not exist yet**, so it is not offered. Neither is `--from-brd` on `/crea
 honest offer is the state this run actually leaves behind:
 
 ```
-choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Work another round — /dev-workflows:brd-interview <BRD-KEY>, where this run reopened a decision or left a question askable", "Package again — /dev-workflows:brd-package <BRD-KEY>, where questions remain for the customer", "Re-ground a moved claim — /dev-workflows:brd-ground <BRD-KEY> --rebaseline", "Reconcile another BRD or slice", "Other… (describe)"]
+choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Work another round — /dev-workflows:brd-interview <BRD-KEY>, where this run reopened a decision or left a question askable", "Package again — /dev-workflows:brd-package <BRD-KEY> <merge-clause>, where questions remain for the customer", "Re-ground a moved claim — /dev-workflows:brd-ground <BRD-KEY> --rebaseline <merge-clause>", "Reconcile another BRD or slice", "Other… (describe)"]
 ```
 
 **No option carries a `(Recommended)` marker, and that omission is deliberate**, per the

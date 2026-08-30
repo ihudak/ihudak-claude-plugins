@@ -598,7 +598,7 @@ offering nothing.
 **No `parent:` — this BRD owns its source document:**
 
 ```
-choices: ["Split the BRD now that every finding carries a verifier outcome — /dev-workflows:brd-split <BRD-KEY> (Recommended)", "Ground another declared prerequisite first", "Stop here", "Other… (describe)"]
+choices: ["Split the BRD now that every finding carries a verifier outcome — /dev-workflows:brd-split <BRD-KEY> (Recommended) <merge-clause>", "Ground another declared prerequisite first", "Stop here", "Other… (describe)"]
 ```
 
 `/dev-workflows:brd-split <BRD-KEY>` is the third command of the BRD-to-PRD route, and the last
@@ -625,7 +625,7 @@ makes this slice PRD-eligible
 formality:
 
 ```
-choices: ["Allocate this slice's ledger — /dev-workflows:brd-split <BRD-KEY> (Recommended; allocate-only — no child is created)", "Ground another declared prerequisite first", "Stop here", "Other… (describe)"]
+choices: ["Allocate this slice's ledger — /dev-workflows:brd-split <BRD-KEY> (Recommended; allocate-only — no child is created) <merge-clause>", "Ground another declared prerequisite first", "Stop here", "Other… (describe)"]
 ```
 
 ### Context hygiene

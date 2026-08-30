@@ -48,6 +48,20 @@ from it — useful on its own, without any of the follow-on work increment 2/3 w
   `references/specs-repo-git.md`.
 - **`docs/brd-workflow.md`** — a route overview page with a Mermaid diagram of the three-command
   loop and each command's parameter table.
+- **`/brd-intake` and `/brd-ground` ground on the shipped product documentation** when `$DOCS_PATH`
+  resolves, bringing the route's consumers of `references/docs-grounding.md` from seven to nine
+  (`--no-docs` turns it off; every miss stays a silent, non-blocking skip). `/brd-intake` consumes
+  it **grill-rank** over Phase 4's defect walk: challenges are ranked into the walk order, and one
+  may be raised as an extra candidate in the two classes documentation can speak to — `unsourced`
+  and `ambiguity` — so a `[DEF#n]` confirmed by a human is the only thing documentation can put on
+  a `[BR#n]` row. `/brd-ground` consumes it **lead-only** (a third mode, defined in
+  `references/docs-grounding.md`): a page may say where to look, and a page the code contradicts is
+  recorded as a divergence in `grounding/code-grounding.md` — but **a document is never evidence
+  for a `[CG#n]`**, because a document is a claim *about* behaviour and citing one would let a
+  stale page satisfy a claim the code does not. A divergence carries no identifier of its own; it
+  names the verified `[CG#n]` it diverges from, so it can never stand on the page alone.
+  `/brd-split` deliberately gets none — it allocates requirements, which documentation does not
+  inform.
 
 - **Nesting is capped at one level, and `/brd-split` refuses a slice.** A slice is a BRD in every
   other respect — same commands, same artifacts, free to depend on any other BRD — but it is not

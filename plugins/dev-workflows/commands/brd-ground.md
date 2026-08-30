@@ -1,6 +1,6 @@
 ---
 name: brd-ground
-description: BRD-grounding workflow (PA phase, second of the BRD-to-PRD route). Pins every mounted repository to a verified commit, grounds every [BR#n] claim against code (code-grounder) and an exported design frame set (design-grounder), independently re-derives every finding (grounding-verifier, Opus), and assigns each finding a current/will-change horizon against declared prerequisite BRDs. Read-only against every repository. Optional --depends-on persists prerequisites to brd-link.md; --derivation-matrix adds an implementation-altitude build list; --rebaseline re-runs against moved code, superseding findings by ID. Offers /brd-split as the next step.
+description: BRD-grounding workflow (PA phase, second of the BRD-to-PRD route). Pins every mounted repository to a verified commit, grounds every [BR#n] claim against code (code-grounder) and an exported design frame set (design-grounder), independently re-derives every finding (grounding-verifier, Opus), and assigns each finding a current/will-change horizon against declared prerequisite BRDs. Read-only against every repository. Grounds on the shipped product documentation when $DOCS_PATH resolves (--no-docs off) — as a lead and a divergence finding, NEVER as evidence for a [CG#n]. Optional --depends-on persists prerequisites to brd-link.md; --derivation-matrix adds an implementation-altitude build list; --rebaseline re-runs against moved code, superseding findings by ID. Offers /brd-split as the next step.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -13,12 +13,17 @@ finding is independently re-derived by a different agent before it counts as evi
 (`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §8) — this command's whole job is to make
 that discipline happen, not to ground anything itself.
 
-Usage: `/brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-design] [--rebaseline]`
+Usage: `/brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-design] [--no-docs] [--rebaseline]`
 
 Runs at either of the two levels `<BRD-KEY>` can name (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md`
 §3) — a BRD that owns its source document, or one of its slices — grounding only the requirements
 that BRD claims. Unlike `/brd-split`, this command refuses neither: a slice is ground exactly as
 its parent is.
+
+**Standing rule, stated in full at Phase 4.5 and binding on every phase: documentation is a lead
+and a divergence finding — it is NEVER evidence for a `[CG#n]`.** No finding this run writes may
+cite a documentation page in its `evidence`, under any verdict. A document is a claim *about*
+behaviour, not the behaviour.
 
 ---
 
@@ -29,7 +34,8 @@ its parent is.
    `BRD_GROUND_NEEDS_KEY: /brd-ground needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/dev-workflows:brd-ground <KEY>'.`
 2. **Flags.** `--depends-on <BRD-KEY>` — repeatable, each consuming the next token; validate each
    with `brd-key-valid` and drop (warn, do not stop the run) any that fail shape. `--no-design` —
-   boolean, skips Phase 5's `design-grounder` step. `--rebaseline` — boolean, see Phase 3. `--derivation-matrix`
+   boolean, skips Phase 5's `design-grounder` step. `--no-docs` — boolean, turns documentation
+   grounding off for this run (Phase 1 step 0, Phase 4.5). `--rebaseline` — boolean, see Phase 3. `--derivation-matrix`
    / `--no-derivation-matrix` — mutually exclusive; absent means "let Phase 8 decide the default".
 3. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`
    (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
@@ -86,6 +92,19 @@ its parent is.
 BRDs carry no PR links to auto-derive a repo list from (unlike `/epics`), so this phase is always
 the manual path:
 
+0. **Resolve documentation grounding, once, before prompting.** Run
+   `resolve-docs-grounding brd-ground` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` and
+   surface the `docs grounding:` line it returns — `ON <root> (retrieval: …)` or `OFF (<reason>)` —
+   **verbatim**, including any index-build, staleness, or shadowing clause it carries (off switch:
+   --no-docs), alongside the repo prompt below. It runs **exactly once per run**, here; Phase 4.5
+   consumes the cached result and never re-resolves. Resolving at the phase that prompts is what
+   puts the only consent-bearing step (an index build, or a refresh that breached its cap) in front
+   of the operator at the moment they are already answering a question, rather than mid-fan-out.
+   The `/epics` consent-ordering exception — resolving *ahead* of a `require-on-main` gate
+   (`commands/epics.md` Phase 2) — is deliberately not taken here: this command's gate is Phase 0's
+   route-sequencing gate, which must stay first so a BRD whose inventory never merged is refused
+   before anything else happens at all, and an index build is a durable, run-independent artifact
+   that a later stop does not waste.
 1. Prompt for the repos in scope for this BRD's claims — a free-text list of short names, one per
    line or space-separated.
 2. **Build a slug→clone map**, exactly as `/epics` Phase 4 does: for each top-level directory
@@ -120,7 +139,7 @@ model_routing:
                                    # the multi-source rule in model-routing/classification.md §1.1
   reason: <one-line>
   current_model: <the model this orchestrator is running under>
-  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # code-grounder, design-grounder (Phase 5)
+  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # docs-grounder (Phase 4.5), code-grounder, design-grounder (Phase 5)
   review_model:    <§2 Opus chain>     # grounding-verifier (frontmatter-pinned; recorded, no override)
   opus_available: <true if a §2 Opus model resolved, else false>
   notes: <any §2/§2.1 fallback or degradation>
@@ -229,6 +248,62 @@ For every declared prerequisite (this run's plus any already on file):
 
 No declared prerequisites at all → `prerequisites: none declared`. Hold this block for the final
 report; Phase 6 also uses it to decide which findings get `horizon: will-change`.
+
+---
+
+## Phase 4.5 — Documentation leads (optional)
+
+Consume the `resolve-docs-grounding brd-ground` result cached in Phase 1 step 0 — never re-run it.
+`docs_grounding: OFF` → skip silently, reporting the `OFF` line once. `docs_grounding: ON` →
+`dispatch-docs-grounder` (`${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`) with
+`feature_summary` = two to four sentences built from the Phase 0 step 8 claim list (what this BRD
+asserts and asks for, in product terms), `jira_key` = `<BRD-KEY>`, and `themes` = the capability
+themes those claims cluster into.
+
+### A document is never evidence for a `[CG#n]`. Never.
+
+**No `[CG#n]` or `[DG#n]` may cite a documentation page in its `evidence`, under any verdict, in
+any phase of this run.** Not as a supporting line, not as a corroborating second source, not as the
+thing that turns a `NOT-PROVABLE` into a `CONFIRMED`. Grounding answers one question — *is this
+claim true of this specific commit?* (`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §1) —
+and a document cannot answer it, because **a document is a claim about behaviour, not the
+behaviour**. It was written by a person, at a date, about a version, and nothing keeps it in step
+with the code. Cite one and a confident, stale page satisfies a claim the code does not: precisely
+the failure `NOT-PROVABLE` exists to make sayable. If the code will not settle a claim, the answer
+is `NOT-PROVABLE`, and a page that seems to settle it changes nothing about that.
+
+This is why the digest is **not** passed into `code-grounder`, `design-grounder`, or
+`grounding-verifier` — none of their input contracts carries a documentation field, and none is to
+be given one. The digest is consumed by this orchestrator alone, in exactly two ways:
+
+1. **As a lead — where to look.** A `docs_references` page naming a subsystem, service, or module
+   that **no repository resolved in Phase 1 covers** is surfaced now, before Phase 5 dispatches
+   anything, with one choice: add that repository and re-resolve it through Phase 1 step 2–3 (then
+   pin it through Phase 3 like any other), or proceed on the record and let the affected claims
+   land as `NOT-PROVABLE`. A lead is a question about coverage, never an answer about behaviour.
+2. **As a divergence — recorded in Phase 8, after verification, never before.** See below.
+
+### A doc-versus-code divergence gets no identifier of its own
+
+**It is recorded without one, and names the `[CG#n]` it diverges from instead.** Two reasons, and
+neither is stylistic:
+
+- **`[CG#n]`/`[DG#n]` cannot carry it.** Those prefixes denote a *finding* — an answer to a `[BR#n]`
+  premise checked against a pinned commit or a frame set (`grounding-format.md` §1, §2). A
+  divergence is not an answer to a `[BR#n]`; it is an observation about two artifacts, neither of
+  which is the requirement. Minting a `[CG#n]` for it would also make it citable and
+  `consumed_by`-able — the exact outcome the rule above forbids.
+- **A new prefix would be worse, not better.** Every `[CG#n]`/`[DG#n]` must carry a verifier
+  outcome or it is not evidence and blocks `/brd-split` (`grounding-format.md` §8). A divergence
+  cannot earn one: `grounding-verifier` re-derives from a pinned repository or from a frame set,
+  and a documentation page is neither, so a new prefix would either need a verification pass this
+  workflow does not have or would sit permanently unverified in the namespace. The existing
+  namespace carries the divergence perfectly well **by reference** — the identifier in the entry is
+  the finding's, never the divergence's.
+
+Because an entry must name a `[CG#n]`, a divergence can never stand on the page alone, and can
+never be written before Phase 7 has verified that finding. That ordering is the safeguard, not a
+formality.
 
 ---
 
@@ -428,6 +503,18 @@ design grounding and why) — one block per finding, carrying every field
 A `--rebaseline` run appends its new findings after the existing ones and marks any finding it
 superseded with `verdict: SUPERSEDED`, id retained, rather than deleting or renumbering it.
 
+**Documentation divergences (only when Phase 4.5 ran).** Append a `## Documentation divergences`
+section to `<BRD-dir>/grounding/code-grounding.md` — appended there, like the derivation matrix
+below, because it is not a produced artifact in its own right. One prose entry per divergence, each
+carrying: the documentation page (path relative to the resolved `docs_root`), what it states, and
+the **`[CG#n]` whose verified evidence it diverges from**, quoted by id. **No entry gets an
+identifier of its own, and no entry may exist without naming a verified `[CG#n]`** (Phase 4.5) —
+so a divergence is always the code contradicting a page, established by a finding, never a page
+asserting anything about the code. A run with docs grounding ON that found no divergence writes the
+section with an explicit "none found" line rather than omitting it; a run with it OFF writes no
+section at all. Nothing in this section is ever copied into a finding's `evidence`, and no ledger
+row's `evidence` column ever names a page.
+
 **Derivation matrix.** Resolve whether it runs: an explicit `--derivation-matrix` /
 `--no-derivation-matrix` wins outright; otherwise default it **on** when the BRD inventory reads
 as reporting- or data-centric (a judgment call this command makes from the claim text — recurring
@@ -508,8 +595,9 @@ state, not a plugin gap, either.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model:
    `<detection_model>`) with a compact handoff: command `/brd-ground`; what was produced (baselines,
-   code/design findings, verifier tally, prerequisite readiness); key events (a dirty-tree stop, a
-   rebaseline, a skipped design pass, an unresolved repo — or "none"); workarounds; test result
+   code/design findings, verifier tally, prerequisite readiness, documentation divergences); key
+   events (a dirty-tree stop, a rebaseline, a skipped design pass, an unresolved repo, docs
+   grounding OFF or a lead that added a repository — or "none"); workarounds; test result
    N/A; project root = the BRD folder.
 2. **Persist plugin feedback (automatic).** Cite `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`
    and call its `emit-auto` entry point (§6) with the Lessons Learned report, `command: /brd-ground`,
@@ -545,7 +633,9 @@ and model routing (+ any Opus degradation); the prerequisite-readiness block fro
 in the two-column form Phase 4 step 3 fixes; finding counts by verdict for `[CG#n]` and `[DG#n]`
 separately, and the verifier
 tally (`agree` / `extend` / `contradict` / `unprovable`) with every `contradict` rewrite named by
-id; whether the derivation matrix ran and why; any `design-grounder` class-4 gap deferred for want
+id; the `docs grounding:` line from Phase 1 step 0 verbatim, any repository a Phase 4.5 lead added,
+and the count of documentation divergences recorded (each named by the `[CG#n]` it diverges from —
+never by an identifier of its own, because it has none); whether the derivation matrix ran and why; any `design-grounder` class-4 gap deferred for want
 of a settling `[CG#n]`; the feedback + cost paths; the `Phase handoff:` outcome line
 (`phase-handoff.md` §4.1); the `Specs repo:` outcome line (`specs-repo-git.md` §6); the next-step
 recommendation; and end with the ledger line, read fresh from the (unmodified-by-this-run)

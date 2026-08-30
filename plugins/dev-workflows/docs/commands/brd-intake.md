@@ -16,7 +16,7 @@ together: `/brd-ground` runs as
 ## Synopsis
 
 ```
-/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>]
+/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]
 ```
 
 - **`<BRD-KEY>`** (mandatory) — a short stable identifier for the BRD. Format-validated only
@@ -27,6 +27,7 @@ together: `/brd-ground` runs as
 - **`[--sort-existing <dir>]`** (optional) — additionally migrate an already-hand-written package
   at `<dir>` into seed files. The source is still required and still gated (Phase 0) — this never
   replaces the extraction, it only adds Phase 6 on top of it.
+- **`[--no-docs]`** (optional) — turn documentation grounding off for this run.
 
 ## How it runs
 
@@ -36,7 +37,8 @@ flowchart TD
     p1 --> p15["Phase 1.5 — Classify + model routing"]
     p15 --> p2["Phase 2 — Copy the source"]
     p2 --> p3["Phase 3 — Extract the inventory"]
-    p3 --> p4["Phase 4 — Confirm defects"]
+    p3 --> p35["Phase 3.5 — Documentation grounding (optional)"]
+    p35 --> p4["Phase 4 — Confirm defects"]
     p4 --> p5["Phase 5 — Write the coverage ledger"]
     p5 --> p6["Phase 6 — Migrate existing work (--sort-existing, optional)"]
     p6 --> p7["Phase 7 — Handoff"]
@@ -44,9 +46,10 @@ flowchart TD
     p8 --> p9["Phase 9 — Session maintenance, feedback & cost"]
 ```
 
-One `dev-workflows` subagent is dispatched: `brd-reader` (Phase 3, frontmatter-pinned to Sonnet —
-its extraction work is mechanical). `impl-maintenance` also runs, in Phase 9, for session
-lessons-learned.
+Two `dev-workflows` subagents are dispatched: `brd-reader` (Phase 3, frontmatter-pinned to Sonnet —
+its extraction work is mechanical) and `docs-grounder` (Phase 3.5, read-only grounding on the
+shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate).
+`impl-maintenance` also runs, in Phase 9, for session lessons-learned.
 
 ## What it needs
 
@@ -59,6 +62,12 @@ lessons-learned.
   for. Converting is the operator's own step, done where the result can be checked against the
   original.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH`.
+- **`$DOCS_PATH`** (optional, default `/workspace/docs`) — documentation grounding, resolved once
+  in Phase 1 and consumed with grill-rank ranking over Phase 4's defect walk. Missing, unreadable,
+  or carrying no markdown file is a silent, non-blocking skip. Turned off explicitly with
+  `--no-docs`. The `/epics` consent-ordering exception does not apply here: `/brd-intake` runs no
+  `require-on-main` gate, so resolving in the ordinary confirmation step already puts the one
+  consent-bearing step ahead of every write.
 - **No repos.** `/brd-intake` is cwd-agnostic and needs no `$REPOS_PATH` — grounding against code
   and design is `/brd-ground`'s job, run later.
 - **No prior `/brd-*` deliverable.** `/brd-intake` is the entry point of the route: it consumes no
@@ -86,6 +95,15 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   `[BR#n]` row per requirement plus unconfirmed `defect_candidates`; it never decides a defect
   itself. `EMPTY` (no identifiable requirement) short-circuits Phase 4 and writes an empty ledger;
   `NOT_FOUND` stops the run and surfaces the agent's exact message.
+- **Phase 3.5 — `docs-grounder`** (optional). Read-only, advisory, never a gate. Its digest is
+  consumed grill-rank: `docs_challenges` are ranked into the order Phase 4 walks its candidates,
+  and one may be *raised* as an additional defect candidate — but only as `unsourced` (the
+  requirement asserts current behaviour a shipped page corroborates or contradicts) or `ambiguity`
+  (the BRD uses a term the docs use for something else). **A `[DEF#n]` is the only thing
+  documentation can put on a `[BR#n]` row, and only Phase 4's human confirmation puts it there.**
+  `docs_references` — what the product already ships and documents — is reported for `/brd-ground`
+  to check against code, and written nowhere; the ledger's `evidence` column stays empty until
+  grounding runs.
 - **Phase 4 — interactive defect confirmation**, not an agent gate: every `defect_candidates` entry
   is walked one class at a time, in the fixed order [`brd-format.md`](../../references/brd-format.md)
   §3 lists its six classes, via `AskUserQuestion`, and only a confirmed candidate is assigned a
@@ -116,7 +134,9 @@ commit, push, and open a pull request.
   and the six defect classes this command confirms against.
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the ledger row shape,
   the six dispositions, and the ledger line every `/brd-*` command's final report ends with.
-- [Agents](../reference/agents.md) — `brd-reader`'s full contract.
+- [`docs-grounding.md`](../../references/docs-grounding.md) — the `$DOCS_PATH` resolution gate,
+  the `docs grounding:` line this command shows verbatim, and the grill-rank consumption mode.
+- [Agents](../reference/agents.md) — `brd-reader`'s and `docs-grounder`'s full contracts.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md),
   and [Resume and checkpoints](../reference/resume-and-checkpoints.md) — the terminal Phase 9
   bookkeeping every run emits.

@@ -1,6 +1,6 @@
 ---
 name: brd-intake
-description: BRD-intake workflow (PM phase, entry point of the BRD-to-PRD flow). Copies a customer-supplied business requirements document into the specs repo verbatim, dispatches brd-reader to extract a [BR#n] requirement inventory, confirms its defect candidates interactively against the six brd-format.md classes, and writes a coverage-ledger.md with every row unallocated. Rejects a non-markdown source rather than converting it. Optional --sort-existing migrates an already-hand-written package into seed files. Offers /brd-ground as the next step.
+description: BRD-intake workflow (PM phase, entry point of the BRD-to-PRD flow). Copies a customer-supplied business requirements document into the specs repo verbatim, dispatches brd-reader to extract a [BR#n] requirement inventory, confirms its defect candidates interactively against the six brd-format.md classes, and writes a coverage-ledger.md with every row unallocated. Rejects a non-markdown source rather than converting it. Grounds on the shipped product documentation when $DOCS_PATH resolves (--no-docs off), consumed grill-rank over the defect walk. Optional --sort-existing migrates an already-hand-written package into seed files. Offers /brd-ground as the next step.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -15,7 +15,7 @@ agent's say-so alone, and writes a coverage ledger in which every requirement st
 `unallocated` — the state `/brd-split`, the route's third command, cannot complete past until each
 row has been given a fate.
 
-Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>]`
+Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
 
 ---
 
@@ -37,9 +37,10 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>]`
    what the customer asked for, with no later step positioned to catch it. Converting is the
    operator's own step, done where they can eyeball the result against the original before handing
    it back to this command.
-4. **`--sort-existing <dir>` (optional).** If present, validate `<dir>` exists; carry it forward to
-   Phase 6. This does not change anything else about Phase 0 — the BRD source is still required and
-   still gated by step 3.
+4. **Optional flags.** `--sort-existing <dir>` — if present, validate `<dir>` exists and carry it
+   forward to Phase 6. `--no-docs` — boolean; turns documentation grounding off for this run,
+   carried to Phase 1's `resolve-docs-grounding` call. Neither changes anything else about Phase 0:
+   the BRD source is still required and still gated by step 3.
 5. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`
    (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
 6. **Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute
@@ -69,6 +70,18 @@ Show, and confirm before writing anything:
 - The BRD folder (existing, or the derived `<BRD-KEY>-<slug>` to be created).
 - The resolved absolute path to `@<brd-file>`.
 - Whether `--sort-existing <dir>` is in play, and its resolved directory.
+- The `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`
+  resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build,
+  staleness, or shadowing clause it carries (off switch: --no-docs). Run
+  `resolve-docs-grounding brd-intake` per that reference to obtain it; it runs **exactly once per
+  run**, here, and Phase 3.5 consumes the cached result rather than re-resolving.
+
+**The `/epics` consent-ordering exception does not apply to this command.** `/epics` resolves docs
+grounding ahead of its `require-on-main` gates because a later stop would sit after the run's only
+consent-bearing step (`commands/epics.md` Phase 2). `/brd-intake` runs no `require-on-main` gate at
+all — it is the route's first command and consumes no prior phase's deliverable (Phase 0) — so
+resolving here, in the ordinary confirmation step, already puts the one consent-bearing step ahead
+of every write and every dispatch.
 
 ```
 choices: ["Proceed with <folder> (Recommended)", "Use a different key or path (you'll be prompted)", "Cancel", "Other… (describe)"]
@@ -85,7 +98,7 @@ model_routing:
   classification: MODERATE        # typical; SIGNIFICANT for an unusually long or heavily-conflicting BRD
   reason: <one-line>
   current_model: <the model this orchestrator is running under>
-  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # brd-reader (frontmatter-pinned to sonnet; recorded, no override)
+  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # brd-reader (frontmatter-pinned to sonnet; recorded, no override); docs-grounder (Phase 3.5)
   authoring_model: <= current_model>   # Phase 1's confirmation and Phase 4's interactive defect classification (session model, not a delegated subagent)
   opus_available: <true if a §2 Opus model resolved, else false>
   notes: <any §2/§2.1 fallback or degradation>
@@ -130,14 +143,52 @@ Act on `status`:
 
 ---
 
+## Phase 3.5 — Documentation grounding (optional)
+
+Consume the `resolve-docs-grounding brd-intake` result cached in Phase 1 — never re-run it. When
+`docs_grounding: OFF`, skip silently and say so once in the final report. When `docs_grounding: ON`,
+`dispatch-docs-grounder` (`${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`) with
+`feature_summary` = two to four sentences drawn from the Phase 3 inventory (what this BRD asks the
+product to do, in the operator's own product terms), `jira_key` = `<BRD-KEY>`, and `themes` = the
+capability themes the inventory rows cluster into. This runs after Phase 3 because the inventory is
+what the summary is built from, and before Phase 4 because Phase 4 is where the digest is consumed.
+
+**Consumption is grill-rank (`docs-grounding.md`), against the Phase 4 defect walk — and a
+`[DEF#n]` is the only thing documentation can ever put on a `[BR#n]` row.** Two effects, both of
+them landing on the row only through Phase 4's existing human confirmation:
+
+- **Ranking.** Rank each `docs_challenges` entry into the order Phase 4 puts candidates to the
+  operator, so a candidate a shipped page bears on is asked earlier. Ranking never adds a question
+  and never removes one — the walk still visits every candidate `brd-reader` returned.
+- **Raising.** A `docs_challenges` entry may be *raised* as an additional defect candidate, but only
+  in the two classes documentation can actually speak to
+  (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §3): `unsourced`, when the requirement asserts
+  current system behaviour a shipped page corroborates or contradicts — the page is what makes the
+  assertion worth grounding, never what settles it; and `ambiguity`, when the BRD uses a term the
+  shipped documentation uses for something else, so two competent readers would implement it
+  differently. A raised candidate is walked, confirmed, and numbered exactly like one `brd-reader`
+  returned, and a rejected one is dropped the same way.
+
+**`docs_references` — what the product already ships and documents — is reported, never written.**
+It is the signal `/idea` gets from prior art, and it is genuinely useful here: a requirement the
+docs describe as already shipped is one `/brd-ground` should check against code first. But it is
+not a defect and it has no field on an inventory or ledger row, so it goes into the final report and
+nowhere else. Nothing docs-derived is ever written into `evidence` — that column stays empty until
+grounding runs (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2), and grounding
+does not accept a document as evidence either (`commands/brd-ground.md` Phase 4.5).
+
+---
+
 ## Phase 4 — Confirm defects
 
 **This is the human-in-the-loop step `brd-reader` cannot do itself.** Every `defect_candidates`
 entry the agent returned is a hypothesis, never a decision (`agents/brd-reader.md`) — confirming or
 rejecting each one, against the customer or the delivery team, is this phase's job alone.
 
-Group the carried-forward candidates by class and walk them **one class at a time**, in the fixed
-order `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §3 lists its six classes. Within a class,
+Group the carried-forward candidates by class — `brd-reader`'s, plus any Phase 3.5 raised from
+documentation, which are walked identically and marked in the report as docs-raised — and walk them
+**one class at a time**, in the fixed order
+`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §3 lists its six classes. Within a class,
 confirm each candidate individually via `AskUserQuestion`:
 
 ```
@@ -239,7 +290,8 @@ capability gap, so `emit-block` never fires from this command's own Phase 0.
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model:
    `<detection_model — §2.1 Sonnet chain>`) with a compact handoff: command `/brd-intake`; what was
    produced (the inventory, the confirmed defect log, the ledger skeleton); key events (a rejected
-   PDF, an `EMPTY` read, unresolved candidates left `open` — or "none"); workarounds; test result
+   PDF, an `EMPTY` read, unresolved candidates left `open`, docs grounding OFF or a docs-raised
+   defect — or "none"); workarounds; test result
    N/A; project root = the BRD folder.
 2. **Persist plugin feedback (automatic).** Cite
    `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6)
@@ -271,8 +323,11 @@ no user name is ever written.
 ## Final report
 
 Report: the BRD folder + source path; the requirement count; the confirmed-defect count by class
-(and how many candidates were rejected); whether Phase 6 wrote seeds and which; resolved model
-routing (+ any Opus degradation); the feedback + cost paths; the `Phase handoff:` outcome line from
+(and how many candidates were rejected, and how many of the confirmed ones were raised from
+documentation rather than by `brd-reader`); the `docs grounding:` line from Phase 1 verbatim, and —
+when it was ON — the `docs_references` list of requirements the shipped documentation describes as
+already built, flagged for `/brd-ground` to check against code; whether Phase 6 wrote seeds and
+which; resolved model routing (+ any Opus degradation); the feedback + cost paths; the `Phase handoff:` outcome line from
 `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1), including the `brd`
 prefix note; the `Specs repo:` outcome line from `commit-artifacts`
 (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6); the next-step recommendation; and end with

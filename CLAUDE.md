@@ -119,7 +119,7 @@ in their prompt; they do not re-read the file.
 
 `plugins/dev-workflows/references/release-note-types.md` is the **single source of truth** for the release-note **destination map** (`breaking-changes.md` / `feature-updates.md` / `fixes.md`), the per-destination **draft shape** (label + title + prose, vs one bare sentence for `fixes`), the per-destination prose rules, the deprecation-note rule (end-of-life date required, end-of-support optional), and Change Type sourcing (import → infer). It is consulted by `release-notes-writer`; `/release-notes` cites it for its own invariants but never re-derives the writer's decision. The Change Type is never rendered as text.
 
-`plugins/dev-workflows/references/docs-grounding.md` is the **single source of truth** for `$DOCS_PATH` documentation grounding — the resolution gate (`${DOCS_PATH:-/workspace/docs}`, read-only, silent-skip), the `resolve-docs-grounding` procedure, and the grill-rank / writer-attach consumption modes; consumed by the seven authoring commands (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, `/release-notes`) — not `/document`.
+`plugins/dev-workflows/references/docs-grounding.md` is the **single source of truth** for `$DOCS_PATH` documentation grounding — the resolution gate (`${DOCS_PATH:-/workspace/docs}`, read-only, silent-skip), the `resolve-docs-grounding` procedure, and the grill-rank / writer-attach consumption modes; consumed by nine commands — grill-rank: `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/brd-intake`; writer-attach: `/epics`, `/release-notes`; lead-only: `/brd-ground` — not `/document`, and deliberately not `/brd-split` (it allocates requirements, which documentation does not inform). In `/brd-ground` a document is a lead and a divergence finding, **never** evidence for a `[CG#n]`, and a doc-versus-code divergence carries no identifier of its own — it names the verified `[CG#n]` it diverges from.
 
 `plugins/dev-workflows/references/vault-prior-art.md` is the **single source of truth** for vault prior-art discovery — the `resolve-prior-art` / `dispatch-prior-art-finder` entry points, the search scope (`Projects/Products/**`, `Projects/ideas/**`) and its exclusions (`Jira - <KEY>/` snapshots, Value Packs, `_archive/`), the status-resolution ladder (work-doc frontmatter before the export, disagreements reported not resolved) with its short-code map, the container derivation shared by `/idea`'s write-path default and `area_proposal`, and the bounding caps. Consumed by `/idea` and `/create-prd`. Read-only and advisory — never a gate; there is no retrieval index and therefore no consent gate.
 
@@ -183,7 +183,7 @@ All twenty in-scope commands additionally run `specs-preflight` at run start —
                       └── interface-designer  (used by /design)
                       └── readiness-reviewer  (used by /ready)
                       └── idea-reader         (used by /idea)
-                      └── docs-grounder       (used by /idea, /create-prd, /update-prd, /create-ard, /specify, /epics, /release-notes)
+                      └── docs-grounder       (used by /idea, /create-prd, /update-prd, /create-ard, /specify, /epics, /release-notes, /brd-intake, /brd-ground)
                       └── vault-prior-art-finder (used by /idea, /create-prd)
 /api-guideline-reviewer → standalone command; reviews OpenAPI specs against REST API + IAM permission-naming guidance
 /guideline-reviewer     → standalone command; reviews code/UI against public design-system + accessibility standards

@@ -152,9 +152,15 @@ at children.
 This is **read from the ledger, not decided in advance.** Slicing a BRD entirely and slicing it
 only partially are both ordinary, supported outcomes; the ledger is what tells a later consumer
 which one happened, without the operator having declared which they were doing at the time. A row
-still `unallocated` when eligibility is checked means the gate in §4 was never satisfied — a
-consumer must treat that as a hard refusal, never as an implicit `covered-here` or `deferred-to` in
-either direction.
+still `unallocated` **as written on this BRD's own ledger** when eligibility is checked means the
+gate in §4 was never satisfied — a consumer must treat that as a hard refusal, never as an implicit
+`covered-here` or `deferred-to` in either direction.
+
+**Read that from the ledger file, never from the §6 line.** Since §6.1 resolves a delegated row
+through the child that owns it, the line's `unallocated` term also counts rows this BRD wrote
+`covered-by` and a child has not walked yet — rows whose fate this BRD *has* recorded. A consumer
+keying the refusal off that term would hard-refuse a BRD whose own gate is fully satisfied. The
+refusal is about this ledger's own written dispositions, and about nothing else.
 
 ## 6. The ledger line
 
@@ -197,6 +203,15 @@ say how many requirements this BRD handed to a child that the child is not build
 plus the delegated rows that resolved to it. `unresolved` counts nothing but delegated rows whose
 child could not be read.
 
+**Every term in this line is a resolved count, not a census of what the file says**, and the term
+that most visibly differs is `unallocated`. **The line's `unallocated` term does not track §4's
+gate.** §4 is satisfied when no row **as written on this ledger** is `unallocated`; a delegated row
+is written `covered-by` and stays written `covered-by` whatever the child does with it. The very run
+that satisfies the gate seeds each child it creates with rows the child has not walked yet (§3's
+creator table), so a completed `/brd-split` routinely reports a non-zero `unallocated` term for rows
+whose fate this BRD has fully recorded — that is the resolution working, not a gate left open.
+**A consumer testing the gate reads the dispositions in the ledger file; it never reads this line.**
+
 ### 6.2 A child ledger that cannot be read is `unresolved`, never `covered`
 
 Resolution reads the child's `coverage-ledger.md` **from the working tree**, through
@@ -210,16 +225,26 @@ It gets its own term rather than joining one of the four:
 
 - **Not `covered`** — an absent answer is not a positive one, and counting it as covered is exactly
   the defect this section exists to remove.
-- **Not `unallocated`** — `unallocated` is the one disposition that blocks §4, and the parent's row
-  is allocated: it carries `covered-by`. Folding an unreadable child into it would report a
-  satisfied gate as unsatisfied, and would falsify the invariant that a completed `/brd-split` run
-  leaves that term at zero.
+- **Not `unallocated`** — the parent's row **is** allocated: it carries `covered-by`, a terminal
+  disposition (§3). Reporting an unreadable child under the one disposition this row demonstrably
+  does not have would also put a child nobody could read in the same bucket as a child that *was*
+  read and has simply not walked its ledger yet — two different facts, and the second is the one a
+  reader can act on.
 - **Not dropped** — dropping the row would shrink the total and hide the requirement altogether,
   which is §1's failure in a new costume.
 
 **`unresolved` is a reporting state, not a disposition.** §3's six are unchanged, no row is ever
 written `unresolved`, it is never offered by any picker, and it never blocks §4. A non-zero
 `unresolved` is a prompt to look at the named child, not a defect in this BRD's allocation.
+
+**The line mixes two provenances, and a reader should know which term came from where.** The ledger
+being reported on is gated wherever a gate exists — `/brd-ground` and `/brd-split` each run
+`require-on-main` over it in their Phase 0 step 6 — while the child ledgers resolved into it are
+read from the working tree and gated by nothing. So a `covered` this line reports for a delegated row can rest
+on a child decision that has not merged and could still change, and an `unresolved` can mean nothing
+worse than a pull request still open. That asymmetry is the price of reporting what the run can
+actually see instead of reporting nothing, and it is why this line is a report and not an input to
+any gate.
 
 ### 6.3 `superseded-by` is excluded from every count and from the total
 

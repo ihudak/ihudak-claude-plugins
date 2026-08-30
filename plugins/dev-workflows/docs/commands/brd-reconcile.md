@@ -71,6 +71,9 @@ flowchart TD
     p12 --> p13["Phase 13 — Handoff"]
     p13 --> p14["Phase 14 — Next steps"]
     p14 --> p15["Phase 15 — Session maintenance, feedback & cost"]
+    p14 -.->|"BRD key + --from-brd — only if no ledger row is unallocated and one is covered-here"| prd["/create-prd (PM)"]
+    p14 -.->|"BRD key + --from-brd"| ard["/create-ard (PA, optional)"]
+    p14 -.->|"BRD key + --from-brd"| spec["/specify (PE)"]
 ```
 
 `customer-review-reader` is dispatched once, on the detection chain. `impl-maintenance` runs in the
@@ -232,14 +235,55 @@ contradiction is invisible from the register, which is the only place anybody lo
   what was sent and its whole value is that it is byte-identical to the customer's copy. An
   overturned bundle document is named in the reconciliation record instead.
 
+## Where the route goes next
+
+This is where the BRD-to-PRD route **hands over**, not where it ends. A reconciled BRD — decisions
+frozen, dependents swept, every artifact under the parent checked — is the state the PRD pipeline
+was waiting for, and Phase 14 offers all three `--from-brd` entry points against the same
+`<BRD-KEY>`, each under the precondition the offered command actually enforces:
+
+| Handover | Offered when | Why |
+|---|---|---|
+| [`/create-prd <BRD-KEY> --from-brd`](create-prd.md) (PM) | **Conditionally** — no ledger row still `unallocated`, and one `covered-here` | Exactly the two refusals its own Phase 0 raises; offering it otherwise hands over a run that stops immediately |
+| [`/create-ard <BRD-KEY> --from-brd`](create-ard.md) (PA, optional) | **Unconditionally** | No `jira-reader`, so no tracker key; no PRD gate, so no wait on a PRD; and it reads neither `claims:` nor the ledger |
+| [`/specify <BRD-KEY> --from-brd`](specify.md) (PE) | **Unconditionally** | The same three reasons, read out of its own Phase 0 rather than assumed symmetric with `/create-prd`'s |
+
+Both `/create-prd` tests are read over the BRD's **own ledger rows** — `brd-link.md`'s `claims:`
+narrows that set only on a slice, since a BRD owning its source document carries no such field — and
+off the ledger **file**, never off a `ledger:` line, whose `unallocated` term is a resolved count
+that also holds rows a child has not walked yet. Where either test fails the option is **dropped from
+the array** rather than annotated, and the text says which one failed: a row still `unallocated` is
+walked to a terminal disposition by [`/brd-split`](brd-split.md), while a BRD with no `covered-here`
+row holds no PRD of its own at all — on a `covered-by` row the PRD is the named child's to author.
+
+Each takes **one** key: a second positional is refused (`CREATE_ARD_BRD_NO_EPIC` / `SPECIFY_BRD_NO_EPIC`),
+so neither of the optional two is ever offered with an Epic beside it. The three are **alternatives,
+not a sequence** — neither of the unconditional two waits on the PRD — and none of them carries the
+`<merge-clause>` placeholder, because none runs `require-on-main` against anything this command
+writes ([`next-phase-offer.md`](../../references/next-phase-offer.md)). No option in Phase 14's array
+carries `(Recommended)`: which one is right depends entirely on what the reconciliation left behind,
+so each option states its own condition in its own text.
+
+The same phase also offers the route's **re-entries** — another [`/brd-interview`](brd-interview.md)
+round where this run reopened a decision, [`/brd-package`](brd-package.md) where questions remain for
+the customer, [`/brd-ground --rebaseline`](brd-ground.md) where the review challenged a code claim,
+and a second `/brd-reconcile` pass on this same review once a dependent recorded-not-written has its
+own register on the default branch.
+
 ## Example
 
 Reconcile the review that came back for a synthetic customer BRD, from wherever the attachment was
 saved:
 
 ```
-/dev-workflows:brd-reconcile EPIC-008 @~/Downloads/EPIC-008 Customer Review 20260415.md
+/dev-workflows:brd-reconcile EPIC-008 "@~/Downloads/EPIC-008 Customer Review 20260415.md"
 ```
+
+The `@<review-file>` token is **quoted**, because the command parses its arguments positionally and
+a returned review routinely arrives under a name with spaces in it — the same reason
+[`/brd-package`](brd-package.md)'s customer-facing note tells reviewers to quote the filename they
+send back. Unquoted, `Customer`, `Review` and `20260415.md` are three further positional tokens and
+the path the run resolves is not the file the customer sent.
 
 The run gates on the package being merged, copies the file to `customer-review-20260415.md` and
 offers to commit it, dispatches `customer-review-reader`, surfaces every schema anomaly before
@@ -250,6 +294,18 @@ the dated prompt and self-review the answers overturned, writes `customer-amende
 and every other dependent starting with its `conditional_on` positions, sweeps every artifact under
 the parent for the changed ids and for prose still asserting the old position, and writes
 `reconciliation-<date>.md`.
+
+Phase 14 then hands the route over. `EPIC-008`'s reconciled ledger leaves no row `unallocated` and
+several `covered-here`, so all three exits are offered against that one key:
+
+```
+/dev-workflows:create-prd EPIC-008 --from-brd
+/dev-workflows:create-ard EPIC-008 --from-brd
+/dev-workflows:specify EPIC-008 --from-brd
+```
+
+Had the run left a row `unallocated`, or left none `covered-here`, the first line would be dropped
+from the offer and the stop would say which test failed; the other two would still be offered.
 
 ## See also
 

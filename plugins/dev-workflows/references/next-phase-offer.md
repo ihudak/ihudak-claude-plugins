@@ -101,12 +101,18 @@ not required.
 - `/dev-workflows:brd-package <BRD-KEY>` → *(the customer reviews it off-platform, and the round
   holding each customer question stays open until the answer comes back)* →
   `/dev-workflows:brd-reconcile <BRD-KEY> @<review-file>` (PM).
-- `/dev-workflows:brd-reconcile <BRD-KEY> @<review-file>` → leaf/closure: the route ends at a
-  reconciled BRD. Re-entry, never advance: another `/dev-workflows:brd-interview <BRD-KEY>` round
-  where this run reopened a decision, `/dev-workflows:brd-package <BRD-KEY>` where questions remain
-  for the customer, or `/dev-workflows:brd-ground <BRD-KEY> --rebaseline` where the review
-  challenged a code claim. `--from-brd` on `/dev-workflows:create-prd`, `/dev-workflows:create-ard`
-  and `/dev-workflows:specify` does **not** ship, so no offer here crosses into the PRD pipeline.
+- `/dev-workflows:brd-reconcile <BRD-KEY> @<review-file>` → the route's hand-over into the PRD
+  pipeline, and its own re-entry. **Re-entry:** another `/dev-workflows:brd-interview <BRD-KEY>`
+  round where this run reopened a decision, `/dev-workflows:brd-package <BRD-KEY>` where questions
+  remain for the customer, or `/dev-workflows:brd-ground <BRD-KEY> --rebaseline` where the review
+  challenged a code claim. **Advance:** `--from-brd` on `/dev-workflows:create-prd`,
+  `/dev-workflows:create-ard` and `/dev-workflows:specify` all ship, and that command's next-step
+  phase offers all three off the one BRD key — `/dev-workflows:create-prd <BRD-KEY> --from-brd` only
+  where the reconciled ledger leaves no row `unallocated` and at least one `covered-here`
+  (`references/coverage-ledger-format.md` §5, the two refusals its Phase 0 raises), the other two
+  unconditionally, since neither dispatches `jira-reader`, neither runs the PRD gate and neither
+  reads the ledger. None of the three carries `<merge-clause>`: none of them runs `require-on-main`
+  against anything `/dev-workflows:brd-reconcile` writes.
 
 **PA — architecture (optional)**
 

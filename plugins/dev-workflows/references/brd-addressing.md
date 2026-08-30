@@ -11,8 +11,12 @@ name, and `commands/brd-reconcile.md` additionally uses §2's two-level bound in
 both levels for the BRDs that declare a `depends-on` against the one it is reconciling — and cited by
 `references/brd-format.md` and `references/coverage-ledger-format.md` for the key grammar and
 folder resolution neither of them restates.
-§4's `--from-brd` fallback for the six existing commands is the one part of this file nothing
-consumes yet; see the note there.
+§4's fallback is **also** consumed outside the `/brd-*` family — by `/create-prd`, `/create-ard`,
+`/epics`, `/specify`, `/design` and `/ready` from their own PRD-directory resolution steps, and by the
+three shared authorities commands delegate to: `references/ard-resolution.md` and
+`references/jira-input-resolution.md` (through which `/implement` and `/document` adopt it without
+resolving a PRD directory of their own) and `references/prd-source-resolution.md` (reached by
+`/update-prd` and `/create-prd --from-prd`); see the adoption note there.
 
 ## 1. Key grammar
 
@@ -115,14 +119,70 @@ cap.
 
 ## 4. The shared fallback for existing commands
 
-`/create-prd`, `/create-ard`, `/epics`, `/specify`, `/design`, and `/ready` each resolve a PRD
-directory today as the flat form `specifications/<KEY>-<slug>/` only — a nested PRD (one produced
-under a BRD slice, once `/create-prd --from-brd` exists) is invisible to all six. Each of those six
-commands is designed to gain the same one-level fallback described in §2: when the flat match
-fails, search exactly one level deeper before reporting the PRD absent. Six commands, one shared
-rule, defined here once rather than reinvented per command.
+Every command outside the `/brd-*` family that addresses a PRD directory resolved it as the flat
+form `specifications/<KEY>-<slug>/`, which on its own cannot see a nested PRD (one `/create-prd
+--from-brd` authors inside a BRD slice). All of them therefore apply the same one-level
+fallback described in §2: when the flat match fails, search exactly one level deeper before
+reporting the PRD absent. One shared rule, defined here once rather than reinvented per caller. The
+adopter list below is the authority on who applies it — **it is longer than the six the design
+originally named**, and it is meant to be read as a list, not summarised as a count.
 
-**Not yet adopted in this increment.** None of the six commands above has been changed to add this
-fallback yet — that lands with the `--from-brd` work in increment 3. This section exists now so the
-rule it states is fixed before six call sites start depending on it, not because any of them
-depend on it today.
+**Adopted in twelve files.** Nine commands cite this section from the step that resolves their PRD
+directory:
+
+| Command | Step (by name) | What the resolved directory is for |
+|---|---|---|
+| `/create-prd` | *Feature folder*, Phase 0 — Resolve inputs | the PRD it authors, and its rung-1 `idea.md` |
+| `/update-prd` | *Feature folder*, Phase 0 — Resolve inputs | the frozen draft, any ARD, and the spec it grounds on |
+| `/create-ard` | *Feature folder*, Phase 0 — Resolve input | the PRD it reads and the ARD it writes |
+| `/epics` | *Resolve the PRD dir*, Phase 2.6 — PRD-level spec enrichment (optional) | the optional PRD-level spec |
+| `/specify` | *Resolve the feature folder*, Phase 0 — Resolve input | the spec it authors, and each Epic subfolder under it |
+| `/design` | *Map onto the specs repo + require the spec on main*, Phase 0 — Resolve input | the merged spec it takes over |
+| `/ready` | *Map onto the specs repo (PRD dir + optional Epic subdir)*, Phase 0 — Resolve input | every artifact it judges |
+| `/idea` | *Phase 5* relocation | where `idea.md` is relocated once a key exists |
+| `/release-notes` | *Resolve `run_phase`*, Phase 6 — Render the draft | the `run_phase` signal |
+
+Three further files adopt it and **none of them is a command** — all three are shared authorities
+that commands delegate to, which is why the adopter count and the command count differ:
+
+- `references/ard-resolution.md`, from step 1 of its *Resolution (most-specific first)*. It is where
+  the fallback reaches an **ARD**: `/create-ard`, `/design`, `/specify`, `/epics` and `/ready`
+  delegate ARD lookup to it rather than resolving an ARD path themselves, so their own adoption above
+  would not have found an ARD in a nested directory.
+- `references/jira-input-resolution.md`, from the PRD-folder bullet of its *Specs resolution
+  (jira-driven)*. It is where the fallback reaches the **`specs` file list** that shared front-end
+  returns to the commands citing it.
+- `references/prd-source-resolution.md`, from step 2 of `resolve-existing-prd`. It is where the
+  fallback reaches the **frozen specs draft** — the file that carries the PRD's `jira_key` and
+  `brd_key` — for `/update-prd` and `/create-prd --from-prd`. Both commands already resolve their own
+  feature folder in the table above, but neither resolves the draft itself: they delegate that to this
+  resolver, so a PRD authored inside a BRD slice would have been invisible to it.
+
+**Twelve files, eleven commands** — and neither number is derivable from the other. Two commands
+adopt it purely **by delegation** and appear nowhere in the table: `/implement`, which resolves no PRD
+directory of its own and reaches both an ARD and its `specs` list solely by citing
+`ard-resolution.md` and `jira-input-resolution.md`, and `/document`, which reaches its `specs` list
+the same way. The third shared authority adds a file without adding a command, because both commands
+that delegate to `prd-source-resolution.md` are already in the table on their own account. Counting
+files rather than commands is what keeps both facts visible — a reader who counted only the table
+would conclude `/implement` and `/document` were left flat, and one who counted only commands would
+miss a shared authority that needed the fallback in its own right.
+
+**Where a handoff crosses two adopters, both must carry it.** `/create-prd` redirects to
+`/update-prd` on finding an existing PRD (its *Prior PRD* step), including one found through this
+fallback; `/idea` relocates `idea.md` into the folder `/create-prd` then reads. A redirect or a
+relocation into a command with a narrower resolution than the one that produced the state is a
+dead-end handoff, which is why those two are in the table rather than deferred as low-risk.
+
+**Not adopters, and correctly so.** The `/brd-*` commands resolve a BRD folder with `resolve-brd`
+(§2), which already searches both levels — the fallback here is §2's rule restated for callers that
+were never wired to it. `/implement` and `/document` are covered by delegation as above.
+
+**Adoption is additive, in all twelve.** The fallback is reached only where the flat match already
+returned nothing, so a key whose folder sits directly under `specifications/` resolves exactly as it
+did before any of them adopted this — and where a command creates the folder it did not find, it
+still creates it flat: the fallback honors a nested folder that exists, it never proposes one.
+None of the three shared authorities creates anything at all — all are readers, so for them the
+additive claim is simply that a flat key returns what it returned before: the same
+`found` / `none` / `unmerged` from `ard-resolution.md`, the same `specs` list from
+`jira-input-resolution.md`, and the same frozen specs draft from `prd-source-resolution.md`.

@@ -66,17 +66,51 @@ behaviour, not the behaviour.
    the concrete branch/PR state it reports; `pass` → proceed; `pass_amending` → proceed, printing
    the §3.3 row-B message; `unmanaged` → proceed as before this feature.
 
-   **`absent` (row F) — nothing for this BRD is on any ref — names the fix by level**, because a
-   slice must never be told to run a command that would refuse it. Read the resolved folder's
-   `brd-link.md` from the worktree (it is there whether or not anything reached main) and branch on
-   its `parent:` field:
+   **`absent` (row F) — nothing for this BRD is on any ref — is split twice before it is reported.**
+   Row F conflates two states: *never produced* and *produced, handoff declined*. Reported as one,
+   the message tells an operator whose files are already written to go and produce them — and on a
+   slice it names `/brd-split`, which in that state is a no-op that stages nothing and can never land
+   those files at all. Split row F **first on whether `coverage-ledger.md` exists in the worktree**,
+   then by level — reading the resolved folder's `brd-link.md` from the worktree (it is there whether
+   or not anything reached main) and branching on its `parent:` field, because a slice must never be
+   told to run a command that would refuse it.
+
+   **(a) No `coverage-ledger.md` in the folder — it was never produced.** The producing run is the
+   fix, and which run that is depends on the level:
    - **No `brd-link.md`, or one with no `parent:`** — this BRD owns its source document. Stop:
-     `BRD_GROUND_NEEDS_INTAKE: no intake artifacts on main for <BRD-KEY> — run /dev-workflows:brd-intake for it and merge the pull request first.`
+     `BRD_GROUND_NEEDS_INTAKE: no intake artifacts on main for <BRD-KEY>, and none in the folder either — run /dev-workflows:brd-intake <BRD-KEY> @<brd-file> for it and merge the pull request first.`
    - **`parent: <PARENT-KEY>` present** — this is a slice, and `/brd-intake` is not the fix: a
      slice has no document of its own to intake (`brd-format.md` §2.1), and the command that writes
      a slice's ledger and inventory is `/brd-split` on the parent
      (`coverage-ledger-format.md` §3). Stop:
-     `BRD_GROUND_NEEDS_SPLIT: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory and ledger are not on main — run /dev-workflows:brd-split <PARENT-KEY> and merge the pull request first. Do not run /brd-intake on a slice; it has no source document of its own.`
+     `BRD_GROUND_NEEDS_SPLIT: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory and ledger exist on no ref and in no folder — run /dev-workflows:brd-split <PARENT-KEY> and merge the pull request first. Do not run /brd-intake on a slice; it has no source document of its own.`
+
+   **(b) `coverage-ledger.md` is in the folder, and on no ref — it was produced and its handoff was
+   declined.** The files exist; what is missing is a commit. **Say so, and name landing them as the
+   action** — one stop code at both levels, because the remedy does not differ:
+   `BRD_GROUND_NOT_HANDED_OFF: <BRD-KEY>'s inventory and ledger are written at <BRD-dir> but are on no branch — their handoff was declined, so nothing is missing but the commit. Commit brd/brd-inventory.md and coverage-ledger.md (and, on a BRD that owns its source document, brd/source/ and brd/brd-defect-log.md beside them) to the specs repo's default branch, then re-run '/dev-workflows:brd-ground <BRD-KEY>'. <the level clause below>`
+
+   **Whether the producing command is also a way out differs by level, so name it only where it
+   is one:**
+   - **A slice — do not name `/brd-split`.** Re-running it on a parent whose ledger is fully
+     allocated and whose children are non-empty is a no-op by its own Phase 0
+     (`coverage-ledger-format.md` §4): it stages nothing, reports `nothing to commit` and opens no
+     pull request. `handoff-to-main` stages only the paths *that* run declared, so the slice's
+     already-written files are OTHER to it
+     (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.3) and can never reach main by that
+     route. The clause reads: `Re-running /dev-workflows:brd-split <PARENT-KEY> will not land them — on a fully-allocated parent it is a no-op that stages nothing and opens no pull request.`
+   - **A BRD that owns its source document — `/brd-intake` is a second, slower way out, and may be
+     named as one.** Its Phase 7 declares exactly these paths, so a re-run over this same folder
+     does stage them and open a pull request. It is second rather than first because it re-extracts
+     the inventory from the source and rewrites the ledger with `disposition: unallocated` on every
+     row (its Phase 5) — harmless in *this* state, where nothing has allocated yet (`/brd-split`
+     gates on findings this run has not written), and it still needs the source file named again.
+     The clause reads: `Re-running '/dev-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder would also land them — it rewrites these files and hands them off — but committing what is already on disk is the direct route.`
+
+   This is the same split `/dev-workflows:brd-reconcile` makes on its own row F
+   (`BRD_RECONCILE_NEEDS_PACKAGE` versus `BRD_RECONCILE_PACKAGE_NOT_HANDED_OFF`), for the same
+   reason: *never produced* and *produced but never handed off* are different facts, and a stop that
+   collapses them names a command that does nothing in the state it is reporting.
 7. **Require `$REPOS_PATH`.** Resolve `${REPOS_PATH:-/workspace}` (`docs/reference/environment.md`)
    as one directory or a colon-separated list. If no entry resolves to an existing directory,
    stop naming `REPOS_PATH`, per the `Required path environment variable unset` rule in
@@ -202,7 +236,14 @@ git -C "<repo>" status --porcelain
 
 1. Record `rev-parse HEAD` as the repo's pinned commit.
 2. `diff --ignore-cr-at-eol --stat` must be empty. Any output → **non-empty content diff, stop**:
-   `BRD_GROUND_DIRTY_TREE: <repo> has content changes at <sha> — grounding it would cite an unidentifiable snapshot.`
+   `BRD_GROUND_DIRTY_TREE: <repo> has content changes at <sha> — grounding it would cite an unidentifiable snapshot. Settle that repository's working tree and re-run '/dev-workflows:brd-ground <BRD-KEY>': commit the changes, stash them, or check out a clean copy — the plugin will not do it for you, because these are your files in a code repository this route never writes to. If the changes are what you want grounded, commit them first and re-run with --rebaseline so the new commit becomes the recorded pin.`
+
+   **Every other stop on this route names a command or an action, and this one must too.** The
+   remedy is the operator's, not the plugin's — `/brd-ground` mounts code repositories read-only and
+   commits to none of them — but "settle the tree, three ways, then re-run this command" is still an
+   action a reader can take, and naming which repository and which commit is what makes it one. Both
+   named re-runs resolve in the state being reported: the BRD folder and its ledger are already
+   gated on main by Phase 0, so nothing about this stop invalidates the command it offers.
 3. For every entry `status --porcelain` reports, compare its working-tree line count against
    `git show <sha>:<path> | wc -l` when the path exists at the pinned commit (an untracked path
    that exists nowhere at the pin has nothing to compare against and is not itself a dirty-pin
@@ -645,7 +686,8 @@ Terminal phase — runs after Phase 10, NEVER interrupts an earlier phase.
 reference gap, `emit-block` (`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) fires at
 that halt before escalating. None of Phase 0's stops qualify — a missing key, an unresolved BRD,
 an inventory or ledger not yet on main (`BRD_GROUND_NEEDS_INTAKE` or, for a slice,
-`BRD_GROUND_NEEDS_SPLIT`), an inventory carrying no claim at all
+`BRD_GROUND_NEEDS_SPLIT`; `BRD_GROUND_NOT_HANDED_OFF` where they exist and were never handed off),
+an inventory carrying no claim at all
 (`BRD_GROUND_EMPTY_INVENTORY`, which is a fact about the customer's document or about what the
 parent allocated, not about this plugin), and an unset `$REPOS_PATH` are environment / sequencing
 halts, never a plugin capability gap. `BRD_GROUND_DIRTY_TREE`, `BRD_GROUND_NEEDS_REBASELINE`, and Phase 7's

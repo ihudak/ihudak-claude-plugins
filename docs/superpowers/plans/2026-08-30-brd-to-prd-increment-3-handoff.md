@@ -22,7 +22,10 @@ Every one was learned in increments 1 and 2.
 - **Bracketed `[PREFIX#N]` identifiers only.** `check-id-grammar.sh` gates `plugins/`.
 - **Cite, do not restate.** Increments 1 and 2 corrected ten violations of this between them.
 - **Cross-references by phase *name*.** Verify any number with a whitespace-tolerant search, and **search by phrase, not line number** — three rounds running, a repeat of a just-corrected phrase survived within a few lines of its fix.
-- **Offers must not name what does not exist in the state they report.** Eleven defects of that anatomy shipped across two increments; check 11 gates placeholder presence on the route family. If the offers PR widened its scope, these commands are now inside it — check.
+- **Offers must not name what does not exist in the state they report.** Eleven defects of that anatomy shipped across two increments, and five more were found in the commands this increment edits. **Check 11 stayed family-scoped to `/brd-*`, refused on measurement** — so `/create-prd`, `/create-ard`, `/specify`, `/design` and `/update-prd` are **NOT** gated. Their offers were converted by hand in the branch immediately before this one.
+- **Do not undo that conversion.** All five of those files now carry `<merge-clause>` placeholders resolved from the run's own `phase-handoff.md` §4.1 outcome. `/create-prd`, `/create-ard` and `/specify` are the three you are about to amend. **Before editing any of them, grep for `<merge-clause>` and note where it sits; after editing, grep again and confirm the same sites survive.** Nothing in this increment should touch them, and the gate will not tell you if you do.
+- **Applying a rule mechanically can produce a false statement.** Two claims in these same files were false on reachable `§4.1` rows and had to be corrected rather than preserved. If you add or reword an offer, check it against every row, not the common one.
+- **The enumeration method for next-step surfaces is `grep -rinE '^[ \t]*#{2,4} .*next'` — unanchored.** The `^`-anchored form misses headings indented inside fenced report templates and made four passes short. Spec §13A records this.
 - No table cell under `plugins/dev-workflows/docs/` over 200 characters. Identity quarantine applies under `docs/` and is now gated by check 10.
 - Gate triple after every task.
 
@@ -69,7 +72,9 @@ Batched: three variations on one contract, and neither carries Task 2's refusal 
 - [ ] **Step 1: `/create-ard`** — reads `ard-seed.md` plus the architecture-altitude findings; `[CG#n]`/`[DG#n]` seed the ARD's grounding-findings section; architecture decisions seed `AD#N`; each consumed item marked `consumed_by: ARD`.
 - [ ] **Step 2: `/specify`** — reads `spec-seed.md` including the derivation matrix; each consumed item marked `consumed_by: specification`.
 - [ ] **Step 3: Verify the `consumed_by` loop closes.** §7.3 says everything still `none` is reported. Say which command reports it and when — if nothing does, that is a finding, not an omission to paper over.
-- [ ] **Step 4: Docs pages from the commands**, gate triple, commit each separately.
+- [ ] **Step 4: Retire the not-yet-shipped claims.** After this task all three commands ship `--from-brd`, so **six sentences in six files become false**: `commands/brd-reconcile.md:942`, `commands/brd-split.md:491` and `:539`, `commands/brd-package.md:699`, `commands/brd-intake.md:270`, and `references/next-phase-offer.md:109`. Locate by phrase, not line number. **`brd-reconcile.md` Phase 14 matters most** — it is the route's terminal command, and it still points at nothing.
+- [ ] **Step 5: `/update-prd` must preserve the three new frontmatter fields** (`brd_key`, `brd_parent`, `depends_on`) that `/create-prd --from-brd` writes. It has no such instruction today, so a refresh would silently drop a PRD's recorded prerequisites — which `/epics` and `/ready` read.
+- [ ] **Step 6: Docs pages from the commands**, gate triple, commit each separately.
 
 ---
 

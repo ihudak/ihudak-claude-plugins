@@ -1,6 +1,6 @@
 # Workflow overview
 
-This is the dev-workflows pipeline top to bottom — every command shown here, in the order the roles typically hand work to each other. `/idea → /create-prd` opens a Product Requirements Document; `/document` and `/release-notes` close it out. A second route into a PRD exists alongside it: `/brd-intake → /brd-ground → /brd-split → /brd-interview → /brd-package → /brd-reconcile` turns a customer-supplied BRD into a grounded, allocated, decided and customer-reviewed requirement inventory instead of a PM-authored idea — see [BRD workflow](brd-workflow.md) for its own diagram and parameter table.
+This is the dev-workflows pipeline top to bottom — every command shown here, in the order the roles typically hand work to each other. `/idea → /create-prd` opens a Product Requirements Document; `/document` and `/release-notes` close it out. A second route into a PRD exists alongside it: `/brd-intake → /brd-ground → /brd-split → /brd-interview → /brd-package → /brd-reconcile` turns a customer-supplied BRD into a grounded, allocated, decided and customer-reviewed requirement inventory instead of a PM-authored idea, then hands over to `/create-prd`, `/create-ard` or `/specify` with `--from-brd` — see [BRD workflow](brd-workflow.md) for its own diagram and parameter table.
 
 ```mermaid
 flowchart TD
@@ -49,19 +49,36 @@ flowchart TD
     brdreview -->|answers come back as one file| brdreconcile
     brdreconcile -.->|a decision reopened, or a question askable again| brdinterview
     brdreconcile -.->|questions still held for the customer| brdpackage
+    brdreconcile -->|BRD key + --from-brd — only if fully allocated and one row covered-here| createvi
+    brdreconcile -->|BRD key + --from-brd — unconditional| createard
+    brdreconcile -->|BRD key + --from-brd — unconditional| specify
 ```
 
 The diagram draws the ARD reaching `/epics`, but that is one of five consumers: `/epics`, `/specify`, `/design`, `/implement`, and `/ready` all resolve the applicable ARD once it exists. The edge is drawn once to keep the diagram readable, not because the others do not consult it.
 
-The BRD-to-PRD subgraph carries no edge into `/create-prd`: that connection is undrawn because `--from-brd` has not shipped yet, not because the two routes are unrelated. The same goes for `--from-brd` on `/create-ard` and `/specify`. `/brd-reconcile` is where that route ends today.
+The BRD-to-PRD route hands over at `/brd-reconcile`, and the diagram draws that handover as **three** edges rather than one, because `--from-brd` ships on `/create-prd`, `/create-ard` and `/specify` and `/brd-reconcile`'s next-step phase offers all three against the same BRD key. Only the first is conditional: `/create-prd <BRD-KEY> --from-brd` is offered where the reconciled ledger leaves no row `unallocated` and at least one `covered-here`, which are the two refusals its own Phase 0 raises. Both are read over the BRD's **own ledger rows**; `brd-link.md`'s `claims:` narrows that set only on a slice, since a BRD owning its source document carries no such field. `/create-ard <BRD-KEY> --from-brd` and `/specify <BRD-KEY> --from-brd` are offered unconditionally, since neither reads a Jira export, gates a PRD, or reads the ledger. The three are alternatives, not a sequence — neither of the unconditional two waits on the PRD — so `/brd-reconcile` is where the route hands over, not where it ends.
 
 The `Off-platform` box is the one node in this diagram no command runs. It is the customer reviewing the bundle with a vanilla agent and nothing installed, and the route waits there — which is why `/brd-reconcile` takes the returned review as an argument rather than looking for it.
 
-The two dashed edges leaving `/brd-reconcile` go to different commands on purpose, and are drawn separately rather than merged under one label: a decision the review reopened is settled by another interview round, while a question the customer left unanswered goes back out in the next package. They are the same two edges [BRD workflow](brd-workflow.md) draws, with the same labels — this diagram summarises that one and never disagrees with it.
+The two dashed edges leaving `/brd-reconcile` go to different commands on purpose, and are drawn separately rather than merged under one label: a decision the review reopened is settled by another interview round, while a question the customer left unanswered goes back out in the next package. They are the same two edges [BRD workflow](brd-workflow.md) draws, with the same labels — as are the three handover edges above them, and every other BRD edge here: all twelve edges that page draws appear in this diagram unchanged, in style and in label, so this diagram summarises that one and never disagrees with it.
 
 The diagram above shows where each command sits in the pipeline; [Roles and phases](roles-and-phases.md) says what each role is accountable for and what it hands over at each seam.
 
 **Three command names collide with a Claude Code built-in of the same name: `/release-notes`, `/upgrade`, and `/statusline`.** Typing the bare form reaches Claude Code's own command instead of the plugin's, so use the qualified form — `/dev-workflows:release-notes`, `/dev-workflows:upgrade`, `/dev-workflows:statusline` — for those three. No other command in this plugin is known to collide today, so the rest work either way, and the diagram above spells out the qualified form only where it is required.
+
+## Parameters at the BRD-to-PRD handoff
+
+The three edges leaving `/brd-reconcile` into the PRD pipeline, as each command's own argument parsing defines them. [BRD workflow](brd-workflow.md#parameters) carries the same table for the six `/brd-*` commands upstream of them.
+
+| Command | Required | Optional | Offered from `/brd-reconcile` |
+|---|---|---|---|
+| `/create-prd` | `<BRD-KEY> --from-brd` | `--from-brd <dir>`, `--lean`/`--hybrid`/`--full` (defaults to `--full` here), `--no-docs`, `--no-prior-art` | Only where no ledger row is `unallocated` and at least one is `covered-here` |
+| `/create-ard` | `<BRD-KEY> --from-brd` | `--from-brd <dir>`, `--no-docs` | Unconditionally — the run gates no PRD, dispatches no `jira-reader`, and reads no ledger |
+| `/specify` | `<BRD-KEY> --from-brd` | `--from-brd <dir>`, `--no-docs` | Unconditionally, on exactly the same terms as `/create-ard` |
+
+`--from-brd` is a **switch, not a path** on all three rows: the positional key already identifies the BRD folder, so the optional `<dir>` is only ever for a BRD folder outside the normal layout. On `/create-prd` it is additionally mutually exclusive with `--from-prd`, which is a second seed for the same PRD.
+
+`<BRD-KEY>` is `^[A-Z][A-Z0-9_]*(-\d+)+$` — **two segments or three**, so the slice `EPIC-008-01` is as valid as `EPIC-008`, and all three commands resolve a BRD folder at either level. It is checked for shape only and never against a tracker: a BRD is a markdown file under `$SPECS_PATH`, not a ticket. Each of the three takes exactly **one** key; `/create-ard` and `/specify` stop on a second positional key, because a BRD has no Epics yet.
 
 ## Roles
 

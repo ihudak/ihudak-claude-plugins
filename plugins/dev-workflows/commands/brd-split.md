@@ -487,8 +487,14 @@ a fate for every requirement it claims, which is exactly the precondition
 that is the real next step for this slice and it is offered by name. A slice reaches its own
 decisions exactly as its parent does, and the register it writes is its own. If any row reached
 `covered-here` the slice is also PRD-eligible
-(`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5) for the `/create-prd --from-brd`
-work a later increment adds — that switch does **not** ship yet and is not offered:
+(`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5), which is one of the two tests
+`/dev-workflows:create-prd <BRD-KEY> --from-brd` — a switch that **ships** — applies in its own Phase
+0. It is still not offered here, and the reason is the register rather than the ledger: that run
+seeds its PRD from this slice's `decisions.md`, which `/dev-workflows:brd-interview` has not written
+yet, so starting it from here would author a PRD off an allocation and no decisions at all. The route
+crosses into the PRD pipeline from `/dev-workflows:brd-reconcile`'s own next-step offer, once the
+customer answers are frozen — three commands further on, which is why only the next one is named
+here:
 
 ```
 choices: ["Decide this slice's open questions — /dev-workflows:brd-interview <BRD-KEY> (Recommended) <merge-clause>", "Stop here — this slice's allocation is complete", "Other… (describe)"]
@@ -535,9 +541,15 @@ decisions is `/dev-workflows:brd-interview`, preparing the customer package is
 `/dev-workflows:brd-package`, and freezing the returned review is `/dev-workflows:brd-reconcile`;
 only the first of those three is the step *after this one*, so only it is offered here. Naming a
 child's grounding and this BRD's interview in one list is deliberate — they are different keys, and
-an operator who created children has both to do. `/create-prd --from-brd`, which would carry an
-allocated BRD into a Product Requirements Document, does **not** ship yet, and neither does
-`--from-brd` on `/create-ard` or `/specify`; none of them is offered on either path.
+an operator who created children has both to do. `--from-brd` on `/create-prd`, `/create-ard` and
+`/specify` all **ship**, and none of the three is offered on either path — for the same reason
+`/dev-workflows:brd-package` and `/dev-workflows:brd-reconcile` are not, that they sit further down
+the route than the step after this one. All three read an altitude seed and this BRD's decision
+register out of its folder, `/dev-workflows:brd-interview` is the command that writes that register,
+and an `open` or `reopened` record may not be consumed downstream while it is open
+(`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §3) — which is what the interview and
+then the customer loop exist to close. `/dev-workflows:brd-reconcile`'s next-step phase is where the
+three are offered, each under the precondition its own Phase 0 enforces.
 
 ### Context hygiene
 

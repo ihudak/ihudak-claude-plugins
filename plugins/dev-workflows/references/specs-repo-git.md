@@ -116,16 +116,40 @@ the ancestry test. On failure (offline, auth), use the existing local
 `origin/<default>` ref and note `offline — ancestry checked against the
 last-fetched ref`. Never fatal.
 
-**Run key set:** every Jira key the run is scoped to, taking each key already
-resolved at the call site. A PRD-scoped run contributes its PRD key. A run invoked
-as `<PRD> <Epic>` (`/create-ard`, `/specify`, `/design`, `/ready`) contributes
-**both** — the Epic is as much this run's key as the PRD is, and §3.5 must
-recognise a branch named for either (§3.6). When no key is resolved at the call
-site the set is empty and the run is **keyless**. Both are correct behaviour —
-no command needs to defer its preflight in order to obtain a key. `/create-prd`
-is structurally keyless here (its key is minted by the Jira round-trip in a
-later phase), and keyless is the right classification for it: a new PRD must not
-stack on another PRD's branch.
+**Run key set:** every key the run is scoped to — the identity each of this run's
+own branches is *named for* — taking each key already resolved at the call site.
+A PRD-scoped run contributes its PRD key. A run invoked as `<PRD> <Epic>`
+(`/create-ard`, `/specify`, `/design`, `/ready`) contributes **both** — the Epic
+is as much this run's key as the PRD is, and §3.5 must recognise a branch named
+for either (§3.6). When no key is resolved at the call site the set is empty and
+the run is **keyless**. Both are correct behaviour — no command needs to defer
+its preflight in order to obtain a key.
+
+**Keyless is a property of the route, not of the command**, and `/create-prd` is
+where the two routes diverge:
+
+- **On the `/idea` route** it is structurally keyless here: its key is minted by
+  the Jira round-trip in a later phase, and keyless is the right classification
+  for it — a new PRD must not stack on another PRD's branch.
+- **Under `--from-brd` it is not keyless**, and classifying it so is a defect
+  rather than a conservative default. The positional token is a **BRD key**,
+  resolved and validated at the call site by that command's own Phase 0 step 1 —
+  before this preflight runs — the deliverable is written into that BRD's folder,
+  and the branch `handoff-to-main` names is `prd/<BRD-KEY>-<slug>`. So the run
+  contributes that BRD key. Without it, a `--from-brd` run interrupted after its
+  branch exists takes **B4** on its own in-progress branch and switches away;
+  `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.2 rule 3 then cannot
+  resolve `branch-key` into an empty set, so rule 4 appends `-2` and the run
+  duplicates its own branch. The reason keyless is right on the other route is
+  untouched: it is about not stacking a *new* PRD on another PRD's branch, and a
+  `--from-brd` run reusing the branch it opened for **this** BRD key is not that.
+
+**The contributed key is a folder identity, and contributing it widens no tracker
+identity.** This set exists to match branch names in §3.5 and nothing else; a
+three-segment slice key is matched here exactly as a two-segment one is (§3.5,
+*A two-segment key resolves exactly as it did before*). `jira_key` is minted by
+the Jira round-trip, stays two-segment, and is not written by this route's
+authoring phase at all.
 
 **This run key set is the preflight's, and only the preflight's.** It exists to
 match branches in §3.5 and is resolved at the *start* of the run.
@@ -167,12 +191,49 @@ First matching row applies.
 |---|---|---|
 | B1 | On the default branch | Nothing further. |
 | B2 | Plugin branch, and `git -C "$SPECS_PATH" merge-base --is-ancestor HEAD origin/<default>` succeeds (already merged upstream) | Switch to default, `git -C "$SPECS_PATH" pull --ff-only`, `git -C "$SPECS_PATH" branch -d <branch>`. If `-d` fails, report and skip — **never `-D`**. If `pull --ff-only` fails (the local default branch has diverged), report and continue on default **without** pulling — never merge, rebase, or reset. |
-| B3 | Plugin branch, unmerged, branch key matches **any** key in the run key set (§3.2) | **Stay on it.** See §3.6. |
-| B4 | Plugin branch, unmerged, branch key matches **no** key in the set, or the set is empty (keyless run) | Switch to default, `git -C "$SPECS_PATH" pull --ff-only`. **Leave the branch and its pull request alone.** Report the branch name. |
+| B3 | Plugin branch, unmerged, `branch-key` (below) resolves the branch to **any** key in the run key set (§3.2) | **Stay on it.** See §3.6. |
+| B4 | Plugin branch, unmerged, `branch-key` resolves the branch to **no** key in the set, or the set is empty (keyless run) | Switch to default, `git -C "$SPECS_PATH" pull --ff-only`. **Leave the branch and its pull request alone.** Report the branch name. |
 
-**Branch key extraction:** strip the `idea/`, `prd/`, `ard/`, `spec/`, `design/`,
-`ready/`, or `brd/` prefix, then take the leading token matching
-`[A-Z][A-Z0-9_]*-[0-9]+`. No match → treat as matching no key in the set (B4).
+**Branch key resolution — `branch-key <branch>`.** The branch's key is resolved
+*against the run key set*, by testing the keys the run already holds. It is never
+extracted from the branch name as free text.
+
+1. Strip the `idea/`, `prd/`, `ard/`, `spec/`, `design/`, `ready/`, or `brd/`
+   prefix. Call the remainder `R`. No prefix matches → not a plugin branch, and
+   no row here applies (§3.3 G2 already kept the run on it).
+2. A key `K` in the run key set (§3.2) is a **candidate** when `R` is exactly `K`,
+   or `R` begins with `K-` or `K_`. **The separator is required.** It is the same
+   boundary folder resolution uses (`<KEY>{-|_}<slug>`,
+   `${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §2), and a branch name is
+   built from the resolved folder's name rather than re-derived
+   (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.2), so the two agree by
+   construction.
+3. **The longest candidate wins**, so a run that holds both a key and a longer key
+   extending it resolves the branch to the one the branch was actually named for.
+4. No candidate → the branch matches no key in the set (B4). An empty set (a
+   keyless run) can produce no candidate, which is the same B4 its own row already
+   states.
+
+**Why this is a resolution and not an extraction.** Every candidate is a key the
+run *already holds*, so nothing in the branch name can become a key — slug text
+included. `spec/PRODUCT-1234-2fa-rollout` on a run keyed `PRODUCT-1234` resolves to
+`PRODUCT-1234`, because `2fa-rollout` was never a key and so was never a candidate.
+A regex over free text has no such anchor, and both plausible ones fail: the narrow
+`[A-Z][A-Z0-9_]*-[0-9]+` reads `EPIC-008` out of `ard/EPIC-008-01-<slug>` and sends
+a resumed slice run to B4 to duplicate its own branch, while the obvious widening to
+`[A-Z][A-Z0-9_]*(-[0-9]+)+` reads `PRODUCT-1234-2` out of that same
+`spec/PRODUCT-1234-2fa-rollout` — a slug beginning with a digit captured as a key
+segment. Step 2's required separator forecloses that second failure even for a run
+that genuinely holds `PRODUCT-1234-2`: there `PRODUCT-1234-2` is followed by `f`,
+not by `-` or `_`, so it is not a candidate, and `PRODUCT-1234` still is.
+
+**A two-segment key resolves exactly as it did before.** For a run keyed
+`PRODUCT-1234`, `prd/PRODUCT-1234-<slug>` was extracted as `PRODUCT-1234` and is the
+single candidate here; a branch named for some other key matched nothing then and
+has no candidate now. The rule never asks how many segments a key carries, which is
+why a three-segment slice key needs no special case — `brd-addressing.md` §1's
+"shape is not depth" holds here too — and why nothing above has to change when a
+key grammar widens again.
 
 **No auto-merge, deliberately.** No row above creates a merge commit or merges a
 branch into the default branch, and none should be added. The routing here

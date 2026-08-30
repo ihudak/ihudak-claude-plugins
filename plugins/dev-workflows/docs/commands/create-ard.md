@@ -9,10 +9,12 @@ Grounds on the mounted implementation repos it discovers and authors an Architec
 ## Synopsis
 
 ```
-/create-ard <PRD-KEY> [<Epic-KEY>] [--no-docs]
+/create-ard <PRD-KEY | BRD-KEY> [<Epic-KEY>] [--from-brd [<dir>]] [--no-docs]
 ```
 
 `/create-ard <PRD-KEY>` authors a **PRD-level** ARD. `/create-ard <PRD-KEY> <Epic-KEY>` authors an **Epic-level** ARD, which inherits the PRD-level ARD read-only and layers its own `[AD#N]` decisions on top (an Epic/area decision wins on conflict — a real contradiction is caught by `ard-reviewer` at authoring time, not left for a downstream consumer to resolve). A bare `<Epic-KEY>` also resolves, auto-finding its parent PRD. `--no-docs` turns off the optional Phase 3 documentation-grounding pass.
+
+- **`[--from-brd [<dir>]]`** (optional) — authors a **BRD-level** ARD, seeded from a reconciled BRD instead of a PRD. A **switch, not a path**: the positional token is then a **BRD key**, validated against `^[A-Z][A-Z0-9_]*(-\d+)+$` (so a three-segment slice key such as `EPIC-008-01` is as valid as `EPIC-008`) and resolved to a folder at either level under `specifications/`, so a path is only for a BRD folder outside the normal layout. It takes **one key**: a second positional key stops the run (`CREATE_ARD_BRD_NO_EPIC`), because a BRD has no Epics yet and the seeds live only at a BRD's own level. The BRD key is a folder name and is never looked up on a tracker.
 
 ## How it runs
 
@@ -42,9 +44,23 @@ Five `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 3, read-on
 
 `/create-ard` never reads a pull request — there are no PRs yet at architecture time. It authors architecture only; it never writes code.
 
+### The `--from-brd` route
+
+With `--from-brd` the run is seeded by a BRD instead of a PRD, and what it needs changes accordingly:
+
+- **No Jira input at all.** The shared front-end is not run, no `jira-reader` is dispatched, and `$VAULT_PATH` is not consulted — a BRD key names a folder under `$SPECS_PATH`, and handing it to a Jira export lookup would fail on a key no tracker was ever asked for.
+- **No PRD gate.** The PRD is not this route's content source and is read by nothing in the run, so gating it would turn an input this route never had into a prerequisite. What puts the seed on the default branch instead is the [`/brd-*` route](../brd-workflow.md)'s own handoff discipline, where each command lands its deliverable before the next will start.
+- **The BRD folder's seed, register and findings** — `ard-seed.md` (the architecture altitude of the router; `prd-seed.md` and `spec-seed.md` belong to [`/create-prd`](create-prd.md) and [`/specify`](specify.md) and are not read), `decisions.md`, and the `[CG#n]`/`[DG#n]` records in `grounding/`. Any of them being absent is reported, never a stop. A finding carrying no verifier outcome is not evidence: it seeds nothing and is never marked consumed.
+- **No coverage-ledger check.** PRD eligibility and the allocation gate govern authoring a *PRD*; an ARD is not that artifact, so this route does not read the ledger. That is a decision, not an omission — [`/create-prd`](create-prd.md) is where the gate lives.
+- **Repo discovery starts from `grounding/baselines.md`** — the repositories `/brd-ground` already pinned — rather than from PRD themes. The architect still confirms, corrects and adds, and an unmounted repo still reaches the mount-or-descope gate.
+- **A slice inherits its parent BRD's ARD** read-only, exactly as an Epic-level run inherits its PRD-level one. The parent comes from `brd-link.md`'s `parent:`, never from counting segments in the key.
+- **Decisions are frozen.** The grill fills what the seed leaves unstated and may not reopen a `[VD#n]` or `[CD#n]`; open decisions and open `[AS#n]` assumptions reach the ARD's `## Open questions` under their own ids. Architecture-altitude decisions seed `[AD#N]` — where they pass `ard-format.md`'s hard-to-reverse / surprising / real-trade-off test; where they do not, the run says where the content went instead.
+
 ## What it produces
 
 `<PRD>_ARD.md` for a PRD-level run, or `<EPIC>_ARD.md` (or `<EPIC>-<area>_ARD.md` per area, when a Phase 4 per-area split is chosen for a large Epic spanning separable components) for an Epic-level run — written against `../../references/ard-format.md` into the feature folder (`specifications/<PRD>-<vslug>/` or its `<EPIC>-<eslug>/` subfolder), applying the no-hard-wrap prose convention. Each `### [AD#N]` decision carries a `**Binds:**`, a `**Prevents:**`, and a testable `**Rule:**`. Behind Phase 6's consent choice, the ARD is committed, pushed, and a pull request opened against the specs repo's default branch.
+
+**Under `--from-brd`** the ARD is `<BRD-KEY>_ARD.md`, written into the resolved BRD folder beside the artifacts it was derived from, on a `ard/<BRD-KEY>-<slug>` branch. Its `prd:`/`epic:` frontmatter carries the same pair the ARD resolver is given — the BRD's own key with `epic: null` for a BRD that owns its source document, the parent's key with the BRD's own as `epic:` for a slice — and `derived_from` names the PRD in that folder when there is one, else the `ard-seed.md` the ARD was actually authored from. That run also writes `consumed_by: ARD` onto the architecture-altitude decisions and the verified findings the ARD drew on — the only writes it makes into any BRD file — and commits `decisions.md` and the two `grounding/` files alongside the ARD, since an uncommitted consumption record is one no later run can read. `ard-seed.md` is read but never written: `consumed_by` is a field of a decision or finding *record*, and the seed holds neither, so its consumption is reported at file granularity instead.
 
 **`[AD#N]` decisions bind six downstream commands** once the ARD is merged, each resolving it via `../../references/ard-resolution.md`: `/create-ard` itself (an Epic-level run inheriting its PRD-level ARD), [`/design`](design.md), [`/implement`](implement.md), [`/specify`](specify.md), [`/epics`](epics.md), and [`/ready`](ready.md). An `[AD#N]` `Rule` violated downstream without a recorded "ARD deviation" is a reviewer BLOCKER in whichever of those commands hit it.
 
@@ -64,6 +80,14 @@ Author a PRD-level ARD, grounding on the two repos the PRD's themes point at:
 
 The run resolves the PRD (from the merged PRD file if present, else the Jira export), lists top-level directories under `$REPOS_PATH`, proposes a theme-to-repo mapping and asks you to confirm it, scans the confirmed repos with `code-scanner`, grills you relentlessly through Context, Grounding findings, Architecture decisions, Cross-repo approach, Stack & invariants, Edge cases & risks, and Open questions, runs the structural pre-lint, then `ard-reviewer`. On a passing verdict it offers to branch, commit, push, and open a pull request, then offers the adaptive next step — `/dev-workflows:epics PRODUCT-1234` if the PRD has no Epics yet, or `/dev-workflows:specify PRODUCT-1234` otherwise.
 
+Author the ARD for a reconciled BRD slice instead:
+
+```
+/dev-workflows:create-ard EPIC-008-01 --from-brd
+```
+
+The run resolves `EPIC-008-01`'s folder one level under `specifications/`, reads `ard-seed.md`, the register and the verified findings, inherits the parent BRD's ARD if one is merged, proposes the repositories `grounding/baselines.md` already pinned, and grills **only the gaps** — every `[VD#n]` and `[CD#n]` the register holds as decided is an input the interview never reopens, because the customer signed it. Its next-step offer names `/dev-workflows:specify EPIC-008-01 --from-brd`, which needs no tracker key; `/dev-workflows:epics` appears only when a Jira export resolves under `EPIC-008-01` itself — which is what makes the key and the ARD resolve to the same work, and which happens exactly when the slice was keyed with the tracker's own key. A minted key that differs does not qualify: under it the ARD resolves to a different folder and would never be seen.
+
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pa` role owns, an optional phase in the pipeline.
@@ -74,3 +98,4 @@ The run resolves the PRD (from the merged PRD file if present, else the Jira exp
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Resume and checkpoints](../reference/resume-and-checkpoints.md) — the terminal Phase 8 bookkeeping every run emits.
 - [`ard-format.md`](../../references/ard-format.md) — the canonical structure the ARD is authored and reviewed against.
 - [`ard-resolution.md`](../../references/ard-resolution.md) — how the six downstream commands resolve and inherit `[AD#N]` invariants.
+- [The BRD-to-PRD route](../brd-workflow.md) — the `/brd-*` commands that produce the `ard-seed.md`, register and findings `--from-brd` reads, and the customer sign-off that makes those decisions unreopenable here.

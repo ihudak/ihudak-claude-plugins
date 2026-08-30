@@ -18,16 +18,29 @@ Epic-level ARD goes deeper on that Epic's repos/areas.
 ---
 title: <PRD or Epic title> — ARD
 scope: prd | epic
-prd: <PRD-KEY>
-epic: <EPIC-KEY | null>
+prd: <PRD-KEY — or, on the BRD route, a BRD key: the BRD's own when it owns its source document, its parent's when it is a slice>
+epic: <EPIC-KEY | null — on the BRD route, the slice's own BRD key, or null for a source-owning BRD>
 area: <name | null>
 status: draft | reviewed
 grounded_repos:
   - <repo-slug @ absolute path>
-inherits: <path to <PRD>_ARD.md | null>
-derived_from: <path to the PRD file, canonical <PRD>_<slug>.md>
+inherits: <path to <PRD>_ARD.md | null — on the BRD route, the parent BRD's <parent-key>_ARD.md>
+derived_from: <path to the PRD file, canonical <PRD>_<slug>.md — or, in a BRD folder that holds no PRD, that folder's ard-seed.md>
 ---
 ```
+
+**`prd`, `epic` and `derived_from` are widened for the BRD route, and the widening is confined to
+them.** Under `/create-ard --from-brd` the run holds a **BRD key**, which addresses a folder under
+`$SPECS_PATH` and may carry a third numeric segment (`references/brd-addressing.md` §1 fixes no
+depth), so `prd` and `epic` are validated against that grammar — `^[A-Z][A-Z0-9_]*(-\d+)+$` — rather
+than the two-segment form; `ard-reviewer` applies exactly this and `commands/create-ard.md` writes
+exactly this, from one resolution rather than two. `scope` follows the same pairing it always did: a
+source-owning BRD is `prd`, a slice is `epic`, because a slice sits where an Epic sits — one level
+down, inheriting its parent's `AD#N` read-only. `derived_from` names the PRD file when the folder
+holds one (the ordinary case, since this route is normally reached from
+`/create-prd --from-brd`'s own next-step offer) and the folder's `ard-seed.md` when it does not: the
+field records provenance, and naming a PRD path in a folder that holds no PRD would name a file that
+does not exist. No widening here reaches a **tracker** key — none of these fields is one.
 
 ## Sections
 

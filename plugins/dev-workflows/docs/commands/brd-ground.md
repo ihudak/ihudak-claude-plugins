@@ -70,17 +70,27 @@ Phase 11, for session lessons-learned.
   and `/brd-interview` refusing the BRD and naming this command as the fix, the run stops with
   `BRD_GROUND_EMPTY_INVENTORY` and names the upstream fix by level: re-running `/brd-intake` over
   the same folder with a corrected source for a BRD that owns its document, or `/brd-split` on the
-  parent for a slice that was allocated nothing.
+  parent for a slice that was allocated nothing. Where the parent's ledger has no `unallocated` row
+  left, removal is the only thing that can change that slice's state — `/brd-split` never
+  re-allocates a row that already carries a fate.
 - **This BRD's own inventory and ledger already on the specs repo's main branch.** `/brd-ground`
   gates `coverage-ledger.md` on `origin/<default>` via `require-on-main` before reading anything
-  else; an unmerged pull request stops the run naming the branch/PR state. When nothing for the BRD
-  is on any ref, the stop names the fix by level: a BRD with a source document of its own stops
-  with `BRD_GROUND_NEEDS_INTAKE`, naming `/brd-intake`; a **slice** — a child BRD, recognised by
-  the `parent:` field in its `brd-link.md` — stops with `BRD_GROUND_NEEDS_SPLIT`, naming
-  `/brd-split` on the parent, because a slice has no source document of its own to intake and its
-  ledger and inventory are written by the parent's split
+  else; an unmerged pull request stops the run naming the branch/PR state. Where the gate reports
+  the ledger is on no ref at all, the run **splits a state the gate cannot**, exactly as
+  [`/brd-reconcile`](brd-reconcile.md) does on its own row F. No `coverage-ledger.md` in the folder
+  means it was never produced, and the stop names the producing run by level: a BRD with a source
+  document of its own stops with `BRD_GROUND_NEEDS_INTAKE`, naming [`/brd-intake`](brd-intake.md); a
+  **slice** — a child BRD, recognised by the `parent:` field in its `brd-link.md` — stops with
+  `BRD_GROUND_NEEDS_SPLIT`, naming [`/brd-split`](brd-split.md) on the parent, because a slice has no
+  source document of its own to intake and its ledger and inventory are written by the parent's split
   ([`brd-format.md`](../../references/brd-format.md) §2.1,
-  [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §3).
+  [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §3). A ledger **in** the
+  folder and on no ref means it was produced and its handoff was declined, and stops with
+  `BRD_GROUND_NOT_HANDED_OFF`, whose action is to commit and merge the files already on disk. It
+  names the producing command only where re-running it would actually stage them: never
+  `/brd-split`, which on a fully-allocated parent is a no-op that stages nothing and opens no pull
+  request; and `/brd-intake`, on a BRD that owns its source document, as a slower second route,
+  since it re-extracts the inventory and rewrites the ledger before handing it off.
 - **`$REPOS_PATH`** — required; resolved as one directory or a colon-separated list. No resolvable
   entry stops the run naming `REPOS_PATH`.
 - **`$DOCS_PATH`** (optional, default `/workspace/docs`) — documentation grounding, resolved once
@@ -91,7 +101,10 @@ Phase 11, for session lessons-learned.
   `rev-parse HEAD`, a `diff --ignore-cr-at-eol --stat`, and a line-count check on anything
   `status --porcelain` reports, **before any finding is written**. Any non-empty content diff stops
   the run with `BRD_GROUND_DIRTY_TREE` — grounding a dirty tree would cite an unidentifiable
-  snapshot.
+  snapshot. The stop names the repository, the commit, and the remedy: settle that working tree
+  (commit, stash, or check out a clean copy) and re-run, or commit the changes and re-run with
+  `--rebaseline` if they are what you meant to ground. The plugin never settles it for you — it
+  mounts code repositories read-only and writes to none of them.
 - **`--rebaseline` when code has moved.** If a repository's `HEAD` has moved since the last
   recorded pin and `--rebaseline` was not given, the run stops with `BRD_GROUND_NEEDS_REBASELINE`
   rather than silently grounding against a snapshot the last package never saw.

@@ -59,8 +59,10 @@ step skips on it.
 
 4. **Map onto the specs repo (PRD dir + optional Epic subdir).** Resolve the PRD dir
    `$SPECS_PATH/specifications/<PRD>-<vslug>/` by **key-number match** (tolerate a stray `-`/`_` after
-   the key and a human-adjusted slug — the same tolerance `ard-resolution.md` and `/design` use). When
-   `focus_key` is set, additionally resolve the per-Epic subdir
+   the key and a human-adjusted slug — the same tolerance `ard-resolution.md` and `/design` use). No
+   match there → apply `${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §4's one-level-deep
+   fallback before concluding none exists; it is reached only on a flat miss, so a flat key resolves
+   exactly as it did before. When `focus_key` is set, additionally resolve the per-Epic subdir
    `<PRD-dir>/<EPIC>-<eslug>/` by the same tolerance. **Unlike `/design`, a missing dir is NOT a hard
    stop** — an early-lifecycle PRD (e.g. `Open` / `Problem stated`) legitimately has no specs-repo
    footprint yet, and "nothing exists" is itself readiness-relevant data, not an error. Record whichever

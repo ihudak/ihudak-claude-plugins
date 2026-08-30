@@ -174,9 +174,13 @@ inventory. **Additive, zero-cost when absent** — the common case, since
 
 1. **Resolve the PRD dir:** `$SPECS_PATH/specifications/<PRD>-<vslug>/`, matched by
    key-number, tolerating a stray `-`/`_` and a human-adjusted slug (the same
-   rule `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` step 1 uses). If
-   `$SPECS_PATH` is unset/unresolvable, or no PRD dir matches → **skip** (set
-   `vi_spec_present: false`).
+   rule `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` step 1 uses). No match
+   there → apply `${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §4's
+   one-level-deep fallback before concluding none exists; it is reached only on a
+   flat miss, so a flat key resolves exactly as it did before. If `$SPECS_PATH` is
+   unset/unresolvable, or no PRD dir matches at either level → **skip** (set
+   `vi_spec_present: false`) — the skip a PRD with no nested folder takes today,
+   unchanged.
 2. **Detect:** execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against `<PRD-dir>/specification.md`, mapping its §3.7 return value by `stopped` first, never by `on_main` alone. On any stopping state, stop per §4.4, naming `$SPECS_PATH` explicitly — a spec that exists but has not yet landed on `<default>` is a weaker grounding basis than the one about to arrive, and Epics drafted against it would need re-doing. Otherwise (`stopped: false`): on `pass`/`pass_amending`, proceed to step 3 (`pass_amending` prints §3.3's row-B message). On `unmanaged`, behave exactly as before this feature — **skip** (set `vi_spec_present: false`). On `absent`, **skip** (set `vi_spec_present: false`); the run proceeds byte-identically to today — this is the common case, and PRD-level `/specify` remains optional.
 3. **Parse** `<PRD-dir>/specification.md` directly (Read it — one file, a simple
    heading scan): extract its user stories `[Uxx]` and their nested acceptance

@@ -105,14 +105,25 @@ order:
 1. **`$SPECS_PATH` set →** locate a `specs`/`specifications`/`vis` root inside
    `$SPECS_PATH`, then resolve by **matching folders on the Jira key-number**
    (tolerate `-`/`_` separators and a trailing slug):
-   - **`focus_key` set →** prefer the nested per-Epic home: under the PRD folder
-     matching `jira_key` (`<PRD>{-|_}<vslug>/`), the Epic folder matching `focus_key`
-     (`<focus_key>{-|_}<eslug>/`), holding `specification.md`, `design.md`, and any
-     other `.md`. If that nested Epic folder does not exist, **fall back** to the
-     PRD-flat resolution below (so nothing pre-foundation breaks).
-   - **`focus_key` null →** the PRD-flat resolution: a `<jira_key>`-prefixed folder
-     (`<jira_key>{-|_}<slug>/…/*.md`) holding the `.md` specs/plans — for a
-     stand-alone item, a broad PRD-level slice, or a legacy pre-foundation layout.
+   - **Resolve the PRD folder once, first** — the folder matching `jira_key`
+     (`<PRD>{-|_}<vslug>/`) directly under that root. No match there → apply
+     `${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §4's one-level-deep fallback
+     before concluding none exists; it is reached only on a flat miss, so a flat key
+     resolves exactly as it did before. **Both cases below name the folder resolved
+     here** and neither re-derives it from the key — a case that re-derived would
+     discard this resolution and lose the fallback on its own branch.
+   - **`focus_key` set →** prefer the nested per-Epic home: inside that PRD folder, the
+     Epic folder matching `focus_key` (`<focus_key>{-|_}<eslug>/`), holding
+     `specification.md`, `design.md`, and any other `.md`. If that nested Epic folder
+     does not exist, **fall back** to the PRD-flat resolution below (so nothing
+     pre-foundation breaks).
+   - **`focus_key` null →** the PRD-flat resolution: the `.md` specs/plans held in that
+     PRD folder (`…/*.md`) — for a stand-alone item, a broad PRD-level slice, or a
+     legacy pre-foundation layout.
+
+   *"PRD-flat" above means **flat within the PRD folder** — specs sitting directly in it
+   rather than in an Epic subfolder. It says nothing about where that folder itself sits,
+   which is what the bullet above resolves.*
 2. **Directory case →** a passed spec-folder, or specs found inside
    `jira_export_root`.
 3. **None found →** `specs: []`. The **consuming command** applies its policy:

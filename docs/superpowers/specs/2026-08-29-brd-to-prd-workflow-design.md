@@ -216,8 +216,10 @@ top level. `EPIC-008-01` therefore resolves to
 `/create-ard`, `/epics`, `/specify`, `/design` and `/ready` all resolve a PRD dir as flat
 `specifications/<KEY>-<slug>/`, so a nested PRD is invisible to them today. Each needs the same
 one-level-deep fallback: when the flat match fails, search `specifications/*/` before reporting
-absent. Six commands touched, one shared rule — extracted into `references/brd-addressing.md` so
-it is defined once (§12).
+absent. One shared rule — extracted into `references/brd-addressing.md` so it is defined once (§12).
+**The adopter set is larger than these six**, because five of them delegate part of their path
+resolution to a shared reference rather than resolving it themselves; §10's *Shared change — nested
+resolution* names every file and every command the rule reaches.
 
 ---
 
@@ -711,8 +713,22 @@ layout, but it is never required.
 **Shared change — nested resolution.** Per §4.3, six commands (`/create-prd`, `/create-ard`,
 `/epics`, `/specify`, `/design`, `/ready`) resolve a PRD dir as flat `specifications/<KEY>-<slug>/`
 and cannot see a nested one. Each gains the same one-level-deep fallback, defined once in
-`references/brd-addressing.md`. This is the only change this design makes to command behaviour
-outside its own family, and it is additive: a flat key resolves exactly as it does today.
+`references/brd-addressing.md` §4.
+
+**The fallback lands in eight files — the six commands plus two shared references — and reaches
+eight commands: those six, plus `/implement` and `/document`.** Those six commands adopt it in
+their own PRD-dir resolution step. Two shared references adopt it too, because five of the six do not
+resolve every path themselves — they delegate: `references/ard-resolution.md`, which is how any
+command reaches an ARD, and `references/jira-input-resolution.md`, which is how a command reaches its
+`specs` file list. Adopting only the six would therefore have left a nested ARD and a nested spec
+list invisible to all of them. Through those two references the fallback also reaches **`/implement`**
+(its only route to an ARD, and to `specs`) and **`/document`** (`specs`), neither of which resolves a
+PRD dir of its own — so this design's reach outside its own family is those eight commands, not six.
+
+It is additive throughout: a flat key resolves exactly as it does today in every one of the eight
+files, because the fallback runs only where the flat match already returned nothing. The two shared
+references create nothing, so for them additivity means a flat key returns the same result it
+returned before.
 
 ---
 

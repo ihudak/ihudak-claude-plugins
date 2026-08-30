@@ -12,9 +12,9 @@ both levels for the BRDs that declare a `depends-on` against the one it is recon
 `references/brd-format.md` and `references/coverage-ledger-format.md` for the key grammar and
 folder resolution neither of them restates.
 §4's fallback is **also** consumed outside the `/brd-*` family — by `/create-prd`, `/create-ard`,
-`/epics`, `/specify`, `/design` and `/ready` from their own PRD-directory resolution steps, and by
-`references/ard-resolution.md`, the shared authority all six of those delegate ARD lookup to; see the
-adoption note there.
+`/epics`, `/specify`, `/design` and `/ready` from their own PRD-directory resolution steps, and by the
+two shared authorities those six delegate to, `references/ard-resolution.md` and
+`references/jira-input-resolution.md`; see the adoption note there.
 
 ## 1. Key grammar
 
@@ -121,28 +121,37 @@ cap.
 directory as the flat form `specifications/<KEY>-<slug>/`, which on its own cannot see a nested PRD
 (one produced under a BRD slice, once `/create-prd --from-brd` exists). All six therefore apply the
 same one-level fallback described in §2: when the flat match fails, search exactly one level deeper
-before reporting the PRD absent. Six commands, one shared rule, defined here once rather than
-reinvented per command.
+before reporting the PRD absent. One shared rule, defined here once rather than reinvented per
+caller — and adopted by more callers than those six, per the note below.
 
-**Adopted in seven files.** Six commands cite this section from the step that resolves their PRD
+**Adopted in eight files.** Six commands cite this section from the step that resolves their PRD
 directory: `/create-prd` and `/create-ard` from their *Feature folder* step in *Phase 0 — Resolve
 inputs* and *Phase 0 — Resolve input*; `/epics` from *Resolve the PRD dir* in *Phase 2.6 — PRD-level
 spec enrichment (optional)*; `/specify` from *Resolve the feature folder* and `/design` from *Map
 onto the specs repo + require the spec on main*, both in *Phase 0 — Resolve input*; and `/ready` from
 *Map onto the specs repo (PRD dir + optional Epic subdir)* in the same phase.
 
-The seventh file is `references/ard-resolution.md`, which cites it from step 1 of its *Resolution
-(most-specific first)*. **Seven files, but still six commands touched** — that file is a shared
-authority, not a command, and it is where the fallback reaches an ARD: `/create-ard`, `/design`,
-`/specify`, `/epics` and `/ready` delegate ARD lookup to it rather than resolving an ARD path
-themselves, so their own adoption above would not have found an ARD in a nested directory. `/implement`
-is the reason the distinction is worth stating: it resolves no PRD directory of its own and so appears
-nowhere in the six, yet it reaches this fallback **by delegation** through that file, which is its only
-route to an ARD.
+Two more files adopt it, and neither is a command — both are **shared authorities the six
+delegate to**, which is why the adopter count and the command count differ:
 
-**Adoption is additive, in all seven.** The fallback is reached only where the flat match already
+- `references/ard-resolution.md`, from step 1 of its *Resolution (most-specific first)*. It is where
+  the fallback reaches an **ARD**: `/create-ard`, `/design`, `/specify`, `/epics` and `/ready`
+  delegate ARD lookup to it rather than resolving an ARD path themselves, so their own adoption above
+  would not have found an ARD in a nested directory.
+- `references/jira-input-resolution.md`, from the PRD-folder bullet of its *Specs resolution
+  (jira-driven)*. It is where the fallback reaches the **`specs` file list** that shared front-end returns to
+  the commands citing it.
+
+**Eight files, and the reach is wider than the six commands.** Two commands adopt it purely **by
+delegation**, appearing nowhere in the list above: `/implement`, which resolves no PRD directory of
+its own and reaches both an ARD and its `specs` list solely by citing those two files, and
+`/document`, which reaches its `specs` list the same way. Counting files rather than commands is what
+keeps that visible — a reader who counted only commands would conclude those two were left flat.
+
+**Adoption is additive, in all eight.** The fallback is reached only where the flat match already
 returned nothing, so a key whose folder sits directly under `specifications/` resolves exactly as it
 did before any of them adopted this — and where a command creates the folder it did not find, it
 still creates it flat: the fallback honors a nested folder that exists, it never proposes one.
-`references/ard-resolution.md` creates nothing at all — it is a reader, so for it the additive claim
-is simply that a flat key returns the same `found` / `none` / `unmerged` it returned before.
+Neither shared authority creates anything at all — both are readers, so for them the additive claim
+is simply that a flat key returns what it returned before: the same `found` / `none` / `unmerged` from
+`ard-resolution.md`, and the same `specs` list from `jira-input-resolution.md`.

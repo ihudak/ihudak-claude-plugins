@@ -183,8 +183,12 @@ Work the first round of a synthetic customer BRD, once its split has merged:
 The run gates on the grounding being merged and verified and the ledger being fully allocated, opens
 round 1, generates its questions, tags every one of them, answers the `[G]`s from the findings,
 walks the `[V]`s past the operator one at a time, holds the `[C]`s, writes the register, and offers
-to branch, commit, push, and open a pull request. Re-opening a closed round later, with its cause
-recorded:
+to branch, commit, push, and open a pull request. Its next-step offer names
+[`/brd-package`](brd-package.md) **only when every question in every round already carries a
+terminal disposition or is held for the customer** — the same test that command's own gate applies;
+a round still holding a deferred, needs-grounding or untagged question is offered another interview
+round or a re-grounding pass instead, never a run that would refuse it. Re-opening a closed round
+later, with its cause recorded:
 
 ```
 /dev-workflows:brd-interview EPIC-008 --round 1

@@ -8,9 +8,9 @@ horizon against declared prerequisite BRDs.
 ## Who runs it
 
 `/brd-ground` runs in the [pa](../roles-and-phases.md#pa--product-architecture) role,
-cost-attribution phase `brd-to-prd` — the phase shared by all three commands of the BRD-to-PRD
-route (`/brd-intake`, `/brd-ground`, `/brd-split`). All three ship together;
-`/brd-intake` and `/brd-split` run as
+cost-attribution phase `brd-to-prd` — the phase shared by every command of the BRD-to-PRD route. It
+is the second command of that route, after [`/brd-intake`](brd-intake.md) and before
+[`/brd-split`](brd-split.md), and it is the only one of the six that does not run as
 [pm](../roles-and-phases.md#pm--product-management).
 
 ## Synopsis
@@ -165,7 +165,8 @@ assigns horizons against any declared prerequisites, writes the findings, and of
 commit, push, and open a pull request. Its next-step offer branches on level, and names the mode
 [`/brd-split`](brd-split.md) will run in: a BRD that owns its source document gets the full split; a
 **slice** gets `allocate-only` — its ledger is walked to a recorded fate, but no child is created,
-because nesting is capped at one level.
+because nesting is capped at one level. `/brd-split` is not where the route ends: it hands on to
+[`/brd-interview`](brd-interview.md).
 
 ## See also
 

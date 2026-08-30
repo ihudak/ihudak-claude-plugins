@@ -571,22 +571,41 @@ the `nothing to commit` line rather than opening a pull request.
 ## Phase 11 — Next steps
 
 The BRD-to-PRD route's next command is `/brd-package`, which builds the review package the `[C]`
-questions travel in, and it is offered — but only where this round left something for a package to
-carry. `/brd-reconcile` is the command after that one and is not offered here: it ingests a review
-that has not been asked for yet, and offering it now would name a step out of order. So the honest
-offer is the state this run actually leaves behind:
+questions travel in, and it is offered **only where this run's own state says `/brd-package` would
+accept the BRD** — the clause and the list must agree, or an operator is handed a run that stops on
+its Phase 0 gate. `/brd-reconcile` is the command after that one and is not offered here: it ingests
+a review that has not been asked for yet, and offering it now would name a step out of order. So the
+honest offer is the state this run actually leaves behind.
+
+**Compute the gate before printing the list, from the round records this run just wrote.** Read
+every question in every `interview/round-<N>.md` for this BRD and apply exactly the test
+`/brd-package` Phase 0 applies, in the vocabulary the *Resolve the round* phase fixes: **every
+question carries either a terminal disposition or the holding state *held for the customer*** →
+`package_offerable: yes`. Any question in the *deferred*, *needs grounding* or *untagged* holding
+state → `package_offerable: no`, and name each such question, its round and its holding state
+beside the list. The test is over the whole BRD's rounds, not this round alone, because that is what
+`/brd-package` reads.
+
+**`package_offerable: yes`:**
 
 ```
-choices: ["Stop here — this round's decisions are recorded", "Package this BRD for customer review — /dev-workflows:brd-package <BRD-KEY>", "Work another round now — /dev-workflows:brd-interview <BRD-KEY> (only if findings or decisions have changed)", "Interview another BRD or slice", "Other… (describe)"]
+choices: ["Stop here — this round's decisions are recorded", "Package this BRD for customer review — /dev-workflows:brd-package <BRD-KEY> (once the pull request above is merged)", "Work another round now — /dev-workflows:brd-interview <BRD-KEY> (only if findings or decisions have changed)", "Interview another BRD or slice", "Other… (describe)"]
+```
+
+**`package_offerable: no` — `/brd-package` is left out rather than offered and refused:**
+
+```
+choices: ["Stop here — this round's decisions are recorded", "Work another round now — /dev-workflows:brd-interview <BRD-KEY> (the questions named above are still deferred, needs-grounding or untagged)", "Re-ground a needs-grounding question — /dev-workflows:brd-ground <BRD-KEY>", "Interview another BRD or slice", "Other… (describe)"]
 ```
 
 **No option carries a `(Recommended)` marker, and that omission is deliberate**, per the
 `When no option is safe to recommend` guidance in
 `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`: which one is right depends entirely on what
-this round left behind. A round whose remaining questions are all *held for the customer* is ready to
-package; a round holding a question that is *deferred*, *needs grounding* or *untagged* is not, and
-`/brd-package` refuses it. The reason is stated here, beside the list, rather than folded into a
-conditional marker the orchestrator would then have to evaluate.
+this round left behind. What the gate above decides is only **whether `/brd-package` appears at
+all**; it never promotes an option to recommended. A round whose remaining questions are all *held
+for the customer* is ready to package; a round holding a question that is *deferred*, *needs
+grounding* or *untagged* is not, and `/brd-package` refuses it — which is why that round is not
+shown the option rather than shown it with a caveat.
 
 Say plainly what remains, per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — names only,
 never behaviour a command of its own owns: a round still holding a `[C]` stays open, because the
@@ -598,8 +617,9 @@ and returning to this round, which is a real next step and is named as one.
 ### Context hygiene
 
 The resume pointer is written in the terminal cost phase, per
-`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Working another round of the same BRD? →
-run **`/compact`**. Moving to a different BRD or slice? → run **`/clear`**. Guidance only — nothing is
+`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Working another round of the same BRD, or
+going on to `/dev-workflows:brd-package <BRD-KEY>`? Both stay in the PM lane
+(§2's *Same role* bullet) → run **`/compact`**. Moving to a different BRD or slice? → run **`/clear`**. Guidance only — nothing is
 auto-run.
 
 ---

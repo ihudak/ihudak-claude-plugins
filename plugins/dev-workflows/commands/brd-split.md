@@ -1,12 +1,12 @@
 ---
 name: brd-split
-description: BRD-splitting workflow (PM phase, third and final command of increment 1's BRD-to-PRD route). Gates on every grounding finding carrying a verifier verdict, proposes candidate slices from the grounded picture (buildable now, blocked, or dependent), keys and nests a child BRD folder per confirmed slice with its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md, then walks every unallocated coverage-ledger row one at a time through five resolutions (build here, assign to a named child, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. Run on a slice it allocates but does not slice: nesting is capped at one level, so the walk offers four resolutions instead of five (no covered-by) and no child is created. Re-running on a fully-allocated BRD is a no-op that prints the ledger. Offers /brd-ground on each new child as the next step.
+description: BRD-splitting workflow (PM phase, third command of the BRD-to-PRD route). Gates on every grounding finding carrying a verifier verdict, proposes candidate slices from the grounded picture (buildable now, blocked, or dependent), keys and nests a child BRD folder per confirmed slice with its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md, then walks every unallocated coverage-ledger row one at a time through five resolutions (build here, assign to a named child, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. Run on a slice it allocates but does not slice: nesting is capped at one level, so the walk offers four resolutions instead of five (no covered-by) and no child is created. Re-running on a fully-allocated BRD is a no-op that prints the ledger. Offers /brd-interview on the BRD just allocated, and /brd-ground on each new child, as the next steps.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
 Split the grounded BRD into child BRDs and allocate every requirement: $ARGUMENTS
 
-`/brd-split` is the **third and final command of increment 1's BRD-to-PRD flow** (PM phase) — it
+`/brd-split` is the **third command of the BRD-to-PRD flow** (PM phase) — it
 takes the findings `/brd-ground` verified and forces every `[BR#n]` in this BRD's coverage ledger
 to a recorded fate: built here, built by a named child, deferred, rejected, or superseded. This is
 the only place that fate is ever decided (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
@@ -377,7 +377,7 @@ choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write 
 ```
 
 On the first choice, execute `handoff-to-main` (`phase-handoff.md` §2) with `prefix: brd` (§2.9's
-table already lists `brd` as shared by the three `/brd-*` commands), `feature_folder` as resolved
+table already lists `brd` as shared by every `/brd-*` command), `feature_folder` as resolved
 in Phase 0, `deliverable_paths` = every file this run wrote, updated, or removed under `<BRD-dir>`
 — **in `allocate-only` mode that is exactly two, this slice's own `coverage-ledger.md` and
 `slices.md`, because Phase 3 never ran** —
@@ -400,16 +400,20 @@ request.
 
 ## Phase 7 — Next steps
 
-**`split_mode: allocate-only` — nothing here is reachable, so nothing here is offered.** Phase 3
-never ran, so there is no child to ground and no `covered-by` key to follow; and this slice cannot
-be split further, so re-running this command on it would only find a fully-allocated ledger and
-report the no-op. The route ends here for this slice today — its ledger now records a fate for
-every requirement it claims, and if any row reached `covered-here` it is PRD-eligible
+**`split_mode: allocate-only` — no child of this slice is reachable, so no grounding of one is
+offered.** Phase 3 never ran, so there is no child to ground and no `covered-by` key to follow; and
+this slice cannot be split further, so re-running this command on it would only find a
+fully-allocated ledger and report the no-op. **The route does not end here.** Its ledger now records
+a fate for every requirement it claims, which is exactly the precondition
+`/dev-workflows:brd-interview <BRD-KEY>` — the route's fourth command — refuses to start without, so
+that is the real next step for this slice and it is offered by name. A slice reaches its own
+decisions exactly as its parent does, and the register it writes is its own. If any row reached
+`covered-here` the slice is also PRD-eligible
 (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5) for the `/create-prd --from-brd`
-work a later increment adds:
+work a later increment adds — that switch does **not** ship yet and is not offered:
 
 ```
-choices: ["Stop here — this slice's allocation is complete", "Other… (describe)"]
+choices: ["Decide this slice's open questions — /dev-workflows:brd-interview <BRD-KEY> (Recommended, once the pull request above is merged)", "Stop here — this slice's allocation is complete", "Other… (describe)"]
 ```
 
 **`split_mode: full`** — everything below. Every child folder Phase 3 created, still claiming at
@@ -422,7 +426,7 @@ this run's pull request. Grounding a child is possible only once that pull reque
 `/brd-intake` is never the answer for a child at any point:
 
 ```
-choices: ["Ground each child created above — /dev-workflows:brd-ground <CHILD-KEY> (Recommended, once per non-empty child)", "Stop here — this BRD's own allocation is complete", "Other… (describe)"]
+choices: ["Ground each child created above — /dev-workflows:brd-ground <CHILD-KEY> (Recommended, once per non-empty child)", "Decide this BRD's open questions — /dev-workflows:brd-interview <BRD-KEY> (once the pull request above is merged)", "Stop here — this BRD's own allocation is complete", "Other… (describe)"]
 ```
 
 **Say what the child's own route looks like when offering it**: after `/brd-ground <CHILD-KEY>`,
@@ -431,18 +435,31 @@ ledger through four resolutions instead of five, and creates nothing below it. `
 Phase 10 offers exactly that. A child removed, or kept empty with a recorded reason,
 for claiming nothing (Phase 4) is never offered here — grounding a BRD with no requirement to
 ground would have nothing to check a claim against. No children remain at all this run (none were created, or every one created was removed
-as empty) → the second choice is the natural one, stated plainly rather than omitted. Guidance
-only — never auto-invokes another command. Recording decisions and preparing a customer package
-are not steps this plugin offers yet; `/brd-split` is the last command of this route today, so a
-BRD that is fully allocated — split or not — simply stops here for now.
+as empty) → the child-grounding choice is the one that does not apply, stated plainly rather than
+omitted. Guidance only — never auto-invokes another command.
+
+**This BRD's own next step is `/dev-workflows:brd-interview <BRD-KEY>`, and it is offered on both
+paths.** `/brd-split` is **not** the last command of this route: the walk above just left this
+BRD's ledger with no row `unallocated`, which is the one precondition `/brd-interview` refuses to
+start without, so a fully-allocated BRD — split or not — goes on to have its open questions decided
+rather than stopping. It will not start until this phase's pull request is merged. Recording
+decisions is `/dev-workflows:brd-interview`, preparing the customer package is
+`/dev-workflows:brd-package`, and freezing the returned review is `/dev-workflows:brd-reconcile`;
+only the first of those three is the step *after this one*, so only it is offered here. Naming a
+child's grounding and this BRD's interview in one list is deliberate — they are different keys, and
+an operator who created children has both to do. `/create-prd --from-brd`, which would carry an
+allocated BRD into a Product Requirements Document, does **not** ship yet, and neither does
+`--from-brd` on `/create-ard` or `/specify`; none of them is offered on either path.
 
 ### Context hygiene
 
 Per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`, the resume pointer is written in the
-terminal cost phase (Phase 8), after the cost entry and before the commit step. Grounding a child
-created above, even yourself? → run **`/clear`** for a clean slate. An `allocate-only` run created
-no child, so it has nothing to hand off and this line does not apply to it. Guidance only — nothing
-is auto-run.
+terminal cost phase (Phase 8), after the cost entry and before the commit step. **The offer above
+spans both roles, so both branches are printed** (§2's *Next options span both* bullet): grounding a
+child created above is a hand to PA, even when the same person does it → run **`/clear`**;
+continuing as PM into `/dev-workflows:brd-interview <BRD-KEY>` on this same BRD keeps the context
+relevant → run **`/compact`**. An `allocate-only` run created no child, so only the second branch
+applies to it. Guidance only — nothing is auto-run.
 
 ---
 

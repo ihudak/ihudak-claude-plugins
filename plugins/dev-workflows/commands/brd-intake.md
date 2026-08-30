@@ -6,8 +6,8 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 
 Intake the customer-supplied business requirements document: $ARGUMENTS
 
-`/brd-intake` is the **entry point of the BRD-to-PRD flow** (PM phase) — the first of three
-`/brd-*` commands (with `/brd-ground` and `/brd-split`) that turn a long, often internally
+`/brd-intake` is the **entry point of the BRD-to-PRD flow** (PM phase) — the first of the
+`/brd-*` commands, which between them turn a long, often internally
 contradictory customer BRD into requirements a PRD can be built from. It copies the customer's
 source into the specs repo **verbatim and immutably**, extracts a `[BR#n]` requirement inventory
 via the `brd-reader` agent, classifies the document's defects **with a human** rather than on the
@@ -256,8 +256,8 @@ this run wrote under `<BRD-dir>` (`brd/source/**`, `brd/brd-inventory.md`, `brd/
 count, the confirmed-defect count by class, and whether Phase 6 wrote seeds; emit its §4.1 outcome
 line in the final report.
 
-`brd` is the branch prefix `phase-handoff.md` §2.9 lists as shared by the three `/brd-*`
-commands (the way `prd` is shared by `/create-prd` and `/update-prd`) — a BRD is neither a PRD nor
+`brd` is the branch prefix `phase-handoff.md` §2.9 lists as shared by every `/brd-*`
+command (the way `prd` is shared by `/create-prd` and `/update-prd`) — a BRD is neither a PRD nor
 any of the other five prefixes, and reusing `prd` would collide with the eventual
 `prd/<BRD-KEY>-<slug>` branch `/create-prd --from-brd` opens against the same key once this BRD is
 PRD-eligible.

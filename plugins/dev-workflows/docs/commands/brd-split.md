@@ -11,9 +11,10 @@ child-creation phases are skipped and the walk offers four resolutions instead o
 ## Who runs it
 
 `/brd-split` runs in the [pm](../roles-and-phases.md#pm--product-management) role,
-cost-attribution phase `brd-to-prd` — the phase shared by all three commands of the BRD-to-PRD
-route (`/brd-intake`, `/brd-ground`, `/brd-split`). All three ship together, and `/brd-split` is the
-last command of this route.
+cost-attribution phase `brd-to-prd` — the phase shared by every command of the BRD-to-PRD route. It
+is the third command of that route, after [`/brd-intake`](brd-intake.md) and
+[`/brd-ground`](brd-ground.md) and before [`/brd-interview`](brd-interview.md); it is not the last
+one.
 
 ## Synopsis
 
@@ -160,7 +161,10 @@ Split a synthetic customer BRD once its grounding pull request has merged:
 The run resolves the BRD, confirms every finding carries a verifier verdict, proposes candidate
 slices from the buildable / blocked / depends-on picture grounding produced, keys and nests a
 folder per confirmed slice, walks every remaining ledger row to one of the five resolutions,
-writes `slices.md`, and offers to branch, commit, push, and open a pull request.
+writes `slices.md`, and offers to branch, commit, push, and open a pull request. Its next-step offer
+names two different keys: [`/brd-interview`](brd-interview.md) on the BRD just allocated — the route
+continues past the split — and [`/brd-ground`](brd-ground.md) on each child the run created, once
+this run's pull request is merged.
 
 ## See also
 

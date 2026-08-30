@@ -554,7 +554,7 @@ choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write 
 ```
 
 On the first choice, execute `handoff-to-main` (`phase-handoff.md` §2) with `prefix: brd` (shared
-by the three `/brd-*` commands, per `brd-intake.md`'s own precedent), `feature_folder` as resolved
+by every `/brd-*` command, per `brd-intake.md`'s own precedent), `feature_folder` as resolved
 in Phase 0, `deliverable_paths` = every file this run wrote or updated under `<BRD-dir>`
 (`grounding/baselines.md`, `grounding/code-grounding.md`, `grounding/design-grounding.md`,
 `brd-link.md`), `title: <BRD-KEY> Ground requirements against code and design`, and `body_facts` =
@@ -575,8 +575,12 @@ offering nothing.
 choices: ["Split the BRD now that every finding carries a verifier outcome — /dev-workflows:brd-split <BRD-KEY> (Recommended)", "Ground another declared prerequisite first", "Stop here", "Other… (describe)"]
 ```
 
-`/dev-workflows:brd-split <BRD-KEY>` is the third and final command of the BRD-to-PRD route. It
-will not start until this phase's pull request is merged — its own Phase 0 gates
+`/dev-workflows:brd-split <BRD-KEY>` is the third command of the BRD-to-PRD route, and the last
+one that has to run before this BRD's requirements all carry a recorded fate — **it is not the end
+of the route**. `/dev-workflows:brd-interview <BRD-KEY>` follows it, and `/brd-split`'s own Phase 7
+is what offers it, so it is not offered here: putting it in this list would name a step out of
+order, since it refuses a ledger that still holds an unallocated row. `/brd-split` will not start
+until this phase's pull request is merged — its own Phase 0 gates
 `grounding/code-grounding.md` on `origin/<default>` — and it carries its own role and
 cost-attribution row (`docs/roles-and-phases.md`). Guidance only, per
 `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — names only that `/brd-split` exists and

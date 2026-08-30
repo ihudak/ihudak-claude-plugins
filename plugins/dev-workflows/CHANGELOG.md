@@ -99,6 +99,12 @@ whose decisions are frozen against the customer's own returned words.
   (recommended), removing it now, or updating the reason, so a deliberate decision is not
   re-litigated but removal stays reachable. The phase states outright that it cannot give a child
   rows — `covered-by` is Phase 4's, and only against a row still `unallocated`.
+- **`/brd-split`'s next-step offers stop telling operators to wait for a pull request that was never
+  opened.** Both Phase 7 lists carried "once the pull request above is merged" unconditionally, which
+  is false on the no-op path, on the new Phase 4.5-only path where a child was kept unchanged, and on
+  any run whose handoff was declined. The clause is now read off the handoff's own outcome line: kept
+  where a pull request opened, dropped where there was nothing to commit (the artifacts are already
+  on main), and replaced by the waiting branch's name where the handoff was declined.
 - **The three slice-level empty-inventory stops name what actually works.** They previously ended
   "re-run `/brd-split <PARENT-KEY>` and allocate rows to this slice, or remove the empty slice — that
   run offers the removal itself". Neither half was true before Phase 4.5 existed. They now name the

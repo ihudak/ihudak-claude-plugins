@@ -496,6 +496,16 @@ this run's pull request. Grounding a child is possible only once that pull reque
 choices: ["Ground each child created above — /dev-workflows:brd-ground <CHILD-KEY> (Recommended, once per non-empty child)", "Decide this BRD's open questions — /dev-workflows:brd-interview <BRD-KEY> (once the pull request above is merged)", "Stop here — this BRD's own allocation is complete", "Other… (describe)"]
 ```
 
+**Drop the "once the pull request above is merged" clause where this run opened no pull request.**
+Both lists above carry it, and on three paths it is false: the no-op, the Phase 4.5-only path where
+the operator kept a child unchanged, and any run whose handoff was declined at Phase 6. On the first
+two, everything the offered command gates on is **already** on the default branch — that is why
+those paths had nothing to stage — so telling the operator to wait for a merge that will never
+happen would park them on a run they could start now. Read the §4.1 outcome line this run's handoff
+actually emitted: a pull request opened → keep the clause; `nothing to commit` → drop it and say the
+BRD's artifacts are already on main; a declined or failed handoff → keep it, and name the branch
+that is waiting instead of a pull request.
+
 **Say what the child's own route looks like when offering it**: after `/brd-ground <CHILD-KEY>`,
 `/brd-split <CHILD-KEY>` runs in `allocate-only` mode (Phase 0 step 5) — it allocates that child's
 ledger through four resolutions instead of five, and creates nothing below it. `/brd-ground`'s own

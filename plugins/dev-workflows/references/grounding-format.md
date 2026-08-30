@@ -135,10 +135,12 @@ citation into an unidentifiable snapshot — a reviewer, or the customer's own r
 whether the line a finding names is the line that exists on disk today. Baseline integrity is what
 makes a citation checkable at all.
 
-The outcome is recorded as **a finding with its own ID**, the same as any other grounding output —
-baseline integrity is not exempted from the record it protects. The same three commands are handed
-to the customer's reviewer in the delivery prompt, so the customer can re-run them against their
-own checkout rather than take the package's word for the pin.
+The outcome is recorded as **a `[CG#n]` finding**, the same prefix as any other code-grounding
+output — a verified fact about a code repository at a commit is exactly what `[CG#n]` denotes, and
+baseline integrity is not exempted from the record it protects by inventing a prefix of its own.
+The same three commands are handed to the customer's reviewer in the delivery prompt, so the
+customer can re-run them against their own checkout rather than take the package's word for the
+pin.
 
 ## 5. Horizon
 

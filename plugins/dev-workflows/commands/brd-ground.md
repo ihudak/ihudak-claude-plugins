@@ -27,8 +27,8 @@ Runs at whatever level `<BRD-KEY>` names (`${CLAUDE_PLUGIN_ROOT}/references/brd-
    `BRD_GROUND_NEEDS_KEY: /brd-ground needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/dev-workflows:brd-ground <KEY>'.`
 2. **Flags.** `--depends-on <BRD-KEY>` — repeatable, each consuming the next token; validate each
    with `brd-key-valid` and drop (warn, do not stop the run) any that fail shape. `--no-design` —
-   boolean, skips Phase 4's `design-grounder` step. `--rebaseline` — boolean, see Phase 2. `--derivation-matrix`
-   / `--no-derivation-matrix` — mutually exclusive; absent means "let Phase 7 decide the default".
+   boolean, skips Phase 5's `design-grounder` step. `--rebaseline` — boolean, see Phase 3. `--derivation-matrix`
+   / `--no-derivation-matrix` — mutually exclusive; absent means "let Phase 8 decide the default".
 3. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`
    (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
 4. **Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute
@@ -53,10 +53,10 @@ Runs at whatever level `<BRD-KEY>` names (`${CLAUDE_PLUGIN_ROOT}/references/brd-
    has nothing to check a claim against without at least one mounted repository.
 8. **Read the claim list.** From the gated `<BRD-dir>/brd/brd-inventory.md`, extract every
    `[BR#n]` row's `id` and `text` (`brd-format.md` §2 field shape) — this is the `claims` array
-   every dispatch in Phase 4 draws from. Zero rows (an `EMPTY` intake) → nothing to ground; report
+   every dispatch in Phase 5 draws from. Zero rows (an `EMPTY` intake) → nothing to ground; report
    that plainly and skip straight to the Terminal phase's ledger line.
 9. **Read `brd-link.md`, if present**, to recover any `depends-on` already recorded from an
-   earlier run — Phase 3 merges this run's `--depends-on` into it additively, never replacing it.
+   earlier run — Phase 4 merges this run's `--depends-on` into it additively, never replacing it.
 
 ---
 
@@ -84,7 +84,7 @@ the manual path:
    ```
 
 Read-only throughout (`${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md`) — this command never
-switches a branch, fetches, or pulls any repository it resolves here; Phase 2 reads whatever
+switches a branch, fetches, or pulls any repository it resolves here; Phase 3 reads whatever
 `HEAD` already is.
 
 ---
@@ -99,7 +99,7 @@ model_routing:
                                    # the multi-source rule in model-routing/classification.md §1.1
   reason: <one-line>
   current_model: <the model this orchestrator is running under>
-  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # code-grounder, design-grounder (Phase 4)
+  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # code-grounder, design-grounder (Phase 5)
   review_model:    <§2 Opus chain>     # grounding-verifier (frontmatter-pinned; recorded, no override)
   opus_available: <true if a §2 Opus model resolved, else false>
   notes: <any §2/§2.1 fallback or degradation>
@@ -137,22 +137,38 @@ git -C "<repo>" status --porcelain
 each re-verify `HEAD` against the commit *they* are handed (their own step 1/2), but that check
 alone would let a repository whose working tree is dirty *around* an otherwise-matching `HEAD*`
 pass silently — the content-diff and line-count checks above are what this phase adds, and they
-run before Phase 4's first dispatch, not inside it.
+run before Phase 5's first dispatch, not inside it.
 
 **`--rebaseline`, and a plain re-run against moved code.** If `<BRD-dir>/grounding/baselines.md`
 already records a pin for a repository:
 - **Its `HEAD` still matches the recorded pin** → nothing moved; this is a harmless re-run. Skip
-  re-grounding claims this repository already answered (Phase 4) unless a new `--depends-on` was
-  added this run (Phase 5 still reassesses horizons against it).
+  re-grounding claims this repository already answered (Phase 5) unless a new `--depends-on` was
+  added this run (Phase 6 still reassesses horizons against it).
 - **Its `HEAD` has moved, and `--rebaseline` was NOT given** → stop:
   `BRD_GROUND_NEEDS_REBASELINE: <repo> moved since the last grounding pin (<old-sha> -> <new-sha>) — re-run with --rebaseline to supersede the affected findings by ID.`
-- **Its `HEAD` has moved, and `--rebaseline` WAS given** → proceed; Phase 4 re-grounds every claim
-  against the new pin, and Phase 7 supersedes the old findings by ID rather than renumbering them
+- **Its `HEAD` has moved, and `--rebaseline` WAS given** → proceed; Phase 5 re-grounds every claim
+  against the new pin, and Phase 8 supersedes the old findings by ID rather than renumbering them
   (grounding-format.md §3, `SUPERSEDED`) — a citation into an already-sent package still resolves.
 
+**Record the outcome as a `[CG#n]` finding** (`grounding-format.md` §4: "the outcome is recorded
+as a `[CG#n]` finding" — a verified fact about a code repository at a commit is exactly what that
+prefix denotes, and inventing a separate prefix for it would only fragment the namespace). One per
+repository that passes this gate, assigned first, in repo-resolution order, **before** Phase 5's
+claim-level findings — `CG#1..CG#R` on a first run for `R` resolved repositories, continuing after
+whatever the highest `CG#n` already on file is on a `--rebaseline` run. Each carries every field
+`grounding-format.md` §2 defines: `claim` — "baseline integrity: `<repo>` is pinned at a verified,
+unmodified commit"; `verdict: CONFIRMED` (a repository that failed this gate never reaches a
+finding — it stopped the run instead); `evidence` — the three command outputs (the pinned SHA, the
+empty `--stat` diff, and the `--porcelain`/line-count result); `commit` — the same pinned SHA;
+`altitude: implementation`; `horizon: current`; `consumed_by: none`. Phase 5 continues the BRD-wide
+`[CG#n]` sequence from these, never restarting at `CG#1` once a baseline finding already claimed
+it. Phase 7 verifies these findings the same as any other — `grounding-verifier`'s own Process
+step 1 already re-runs `baseline-integrity` for whatever finding it is handed, so re-checking a
+baseline finding is exactly that re-run.
+
 Append (never overwrite) one dated entry per repository to `<BRD-dir>/grounding/baselines.md`:
-the repo, the pinned commit, and the verification result — the same three commands are what the
-customer's own reviewer re-runs later against their own checkout.
+the repo, the pinned commit, the verification result, and the `[CG#n]` id assigned above — the same
+three commands are what the customer's own reviewer re-runs later against their own checkout.
 
 ---
 
@@ -171,15 +187,23 @@ For every declared prerequisite (this run's plus any already on file):
    `<PREREQ-KEY> — no decisions.md yet; contributes no will-change horizons` (per
    `grounding-format.md` §5: a prerequisite whose decisions are not yet frozen contributes none).
 3. Present → read only decisions recorded as frozen (never a draft position or an interview
-   answer still open). Report readiness in the exact form spec'd for this command:
-   ```
-   prerequisites: EPIC-008-01 — decisions frozen, customer-reviewed 2026-08-27, not yet built
-                  EPIC-002    — decisions frozen, NOT customer-reviewed
-   ```
-   "customer-reviewed `<date>`" comes from the newest `customer-review-<date>.md` in the
-   prerequisite's folder, if any, else "NOT customer-reviewed"; "not yet built" is this
-   prerequisite's default state — grounding is what tells the operator when a decision is about to
-   move the ground it is standing on, so it is stated even when obvious.
+   answer still open, and never a decision this reader cannot confidently tell is frozen — an
+   unparseable or ambiguously structured `decisions.md` is treated the same as "none frozen" here,
+   never guessed into either state). Two outcomes:
+   - **Nothing in it reads as frozen** → report
+     `<PREREQ-KEY> — decisions.md present, none frozen yet; contributes no will-change horizons`
+     — the same "contributes none" consequence as the absent-file case above, just reached from a
+     different cause.
+   - **At least one decision reads as frozen** → report readiness in the exact form spec'd for
+     this command:
+     ```
+     prerequisites: EPIC-008-01 — decisions frozen, customer-reviewed 2026-08-27, not yet built
+                    EPIC-002    — decisions frozen, NOT customer-reviewed
+     ```
+     "customer-reviewed `<date>`" comes from the newest `customer-review-<date>.md` in the
+     prerequisite's folder, if any, else "NOT customer-reviewed"; "not yet built" is this
+     prerequisite's default state — grounding is what tells the operator when a decision is about
+     to move the ground it is standing on, so it is stated even when obvious.
 
 No declared prerequisites at all → `prerequisites: none declared`. Hold this block for the final
 report; Phase 6 also uses it to decide which findings get `horizon: will-change`.
@@ -210,8 +234,9 @@ moved between Phase 3 and this dispatch — stop and re-run from Phase 3.
 **Renumber into one BRD-wide sequence.** Each `code-grounder` instance numbers its own output from
 `CG#1` (its own contract, per dispatch) — this is per-instance, not global. Merge every batch's
 findings, in repo-resolution order, into one contiguous `[CG#n]` sequence continuing from the
-highest `CG#n` already in `<BRD-dir>/grounding/code-grounding.md` (0 on a first run), never
-trusting an agent's own numbers as the BRD's numbering.
+highest `CG#n` already assigned this run — Phase 3's own baseline findings on a first run, or
+whatever the highest `CG#n` already on file is on a `--rebaseline` run — never trusting an agent's
+own numbers as the BRD's numbering.
 
 **Then `design-grounder`, unless `--no-design`.** Look for `<BRD-dir>/design/`; each immediate
 subdirectory is a candidate exported frame set (`grounding-format.md` §6 convention — images plus
@@ -265,10 +290,10 @@ unless the naming decision itself has since shipped (superseded by a later findi
 
 ## Phase 7 — Verify
 
-Dispatch `grounding-verifier` over **every** finding this run holds — both freshly-merged Phase 5
-findings and any pre-existing ones a `--rebaseline` pass is re-checking — one instance per
-finding, same ≤4-concurrent batching discipline as Phase 5, pinned to the Opus chain
-(`review_model`, frontmatter-pinned, no override):
+Dispatch `grounding-verifier` over **every** finding this run holds — Phase 3's baseline `[CG#n]`
+findings, freshly-merged Phase 5 claim findings, and any pre-existing ones a `--rebaseline` pass is
+re-checking — one instance per finding, same ≤4-concurrent batching discipline as Phase 5, pinned
+to the Opus chain (`review_model`, frontmatter-pinned, no override):
 
 → Agent (subagent_type: "dev-workflows:grounding-verifier", model: `<review_model>`):
   > "finding:
@@ -280,15 +305,22 @@ finding, same ≤4-concurrent batching discipline as Phase 5, pinned to the Opus
   >   commit:   [the finding's pinned commit]
   >   cites:    [class-4 DG#n only — the CG#n it cites]
   > repo_path:  [the repository this finding is pinned against]
-  > provenance: own-run"
+  > provenance: [own-run | inherited — see below]"
 
 Supply the finding **exactly as the agent's own Inputs contract declares it** — including
 `evidence` and, for a class-4 `[DG#n]`, `cites` — even though the agent's own hard rules forbid
 reading either before it finishes its independent re-derivation. That sequencing discipline is the
 agent's to enforce on itself (its Process step 2 is explicit about it); this orchestrator's job is
 only to hand over the full, correctly-shaped record, never to withhold a field the contract lists.
-`provenance` is `own-run` for every finding this run produced or is re-deriving — nothing this
-command hands to `grounding-verifier` is inherited from another team's report.
+
+**`provenance` is set per finding, never blanket.** `own-run` for a finding this same invocation
+produced in Phase 5. `inherited` for a finding this invocation did not itself just produce —
+concretely, a pre-existing finding a `--rebaseline` pass is re-checking, since it was written by an
+earlier run of this workflow. The agent's own Inputs contract and `grounding-format.md` §8 both
+define `inherited` as "another team's report **or an earlier run of this workflow**," and a finding
+surviving from before this invocation is the second of those, regardless of how confident its
+write-up reads — mislabelling it `own-run` would tell the verifier to relax exactly where §5 of its
+own instructions say rigor must not drop.
 
 Act on `outcome`:
 - **`agree`** — keep the finding as written; record the outcome alongside it.
@@ -353,10 +385,11 @@ prerequisite-readiness block; emit its §4.1 outcome line in the final report.
 choices: ["Split the BRD once every finding carries a verifier outcome — /dev-workflows:brd-split <BRD-KEY> is not yet available; a later task in this increment adds it (Recommended)", "Ground another declared prerequisite first", "Stop here", "Other… (describe)"]
 ```
 
-`/dev-workflows:brd-split <BRD-KEY>` will walk the ledger's allocation gate once it lands — a later
-task in this increment adds it — and, once it does, it will not start until this phase's pull
-request is merged. Guidance only, per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`;
-never asserts a role or behaviour for `/brd-split` beyond that it exists and is not yet available.
+`/dev-workflows:brd-split <BRD-KEY>` is the third command of the BRD-to-PRD route — a later task
+in this increment adds it, and, once it does, it will not start until this phase's pull request is
+merged, and will carry its own role and cost-attribution row. Guidance only, per
+`${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — names only that `/brd-split` exists and
+where it sits in the route, never its behaviour, which task 12 owns.
 
 ### Context hygiene
 

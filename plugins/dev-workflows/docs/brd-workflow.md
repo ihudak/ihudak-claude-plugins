@@ -63,7 +63,8 @@ Jira ticket.
 ## What lands where
 
 Every artifact lands under `$SPECS_PATH/specifications/<BRD-KEY>-<slug>/` (a nested child BRD gets
-its own such folder one level inside its parent's, per the addressing rule the whole route shares):
+its own such folder inside its parent's, at whatever depth the slicing has reached, per the
+addressing rule the whole route shares):
 
 ```
 specifications/<BRD-KEY>-<slug>/

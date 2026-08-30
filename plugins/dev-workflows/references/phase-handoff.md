@@ -144,7 +144,9 @@ On the first choice: `git -C "$SPECS_PATH" switch <default>` then `git -C "$SPEC
 
 ### 3.4 Row F delegates — the gate never makes an optional input mandatory
 
-Row F is the difference between "this phase was not handed off" and "this phase never happened". Only the second is row F, and the gate has no opinion about it. Every gated input except `/design`'s `specification.md` is **optional today**, and that must not change. The gate returns `absent`; the caller does what it already does.
+Row F is the difference between "this phase was not handed off" and "this phase never happened". Only the second is row F, and the gate has no opinion about it. **An input that was optional before this gate existed stays optional, and that must not change.** The gate returns `absent`; the caller does what it already does.
+
+Three consumers map `absent` to a hard stop, and all three are legitimate for the same reason: their gated input was **never optional to begin with** — it is a new input, introduced together with the command that reads it, with no pre-existing "what it already did" to fall back to. The rule this section protects is that the gate must not *promote* an optional input into a prerequisite; it does not require a genuinely mandatory input to be made optional.
 
 | Caller | Input | Pre-existing absent behaviour, preserved |
 |---|---|---|
@@ -156,8 +158,10 @@ Row F is the difference between "this phase was not handed off" and "this phase 
 | `/implement` | `specification.md` / `design.md` | only an **in-scope** spec is gated; a direct-prompt run resolves none |
 | `/design` | `specification.md` | **stops** — but that stop already exists; this reference only makes its test correct |
 | `/ready` | ARD / spec / design | records the artifact as missing in its coverage roll-up, as today |
+| `/brd-ground` | the BRD's `coverage-ledger.md` | **stops** — `BRD_GROUND_NEEDS_INTAKE`, or `BRD_GROUND_NEEDS_SPLIT` for a slice. Never optional: grounding has no claim list without the inventory this file arrives with, and the route ships with no pre-gate behaviour to fall back to |
+| `/brd-split` | the BRD's `grounding/code-grounding.md` | **stops** — `BRD_SPLIT_NEEDS_GROUNDING`. Never optional: the command's whole gate is that every finding carries a verifier outcome, and a BRD with no findings at all has nothing to allocate against |
 
-Rows D and E add the only new stop: an artifact that **exists** and was never handed off. That state was **not** unreachable before this feature — pre-J, `/specify` already created `spec/<EPIC>-<eslug>` (or `spec/<PRD>-<vslug>`) branches and offered branch + PR, and `/create-prd` did the same on `prd/<KEY>-<slug>`, with no downstream gate reading them; an artifact sitting on such a branch, unmerged, was a common, ordinary state. This is a real behaviour change: for that state, `/create-ard`, `/specify`, and `/epics` now hard-stop where they previously proceeded with a documented fallback (the deliberate, well-argued stop at `epics.md:180`). It qualifies caller-contract rule 3 (§5 — no consumer turns an optional input into a prerequisite) precisely: row F's `absent` case is still fully delegated to the caller's own pre-existing behaviour, but rows D/E are a new stop for a state that was previously reachable and previously non-blocking.
+For the consumers that predate this gate, rows D and E add the only new stop: an artifact that **exists** and was never handed off. That state was **not** unreachable before this feature — pre-J, `/specify` already created `spec/<EPIC>-<eslug>` (or `spec/<PRD>-<vslug>`) branches and offered branch + PR, and `/create-prd` did the same on `prd/<KEY>-<slug>`, with no downstream gate reading them; an artifact sitting on such a branch, unmerged, was a common, ordinary state. This is a real behaviour change: for that state, `/create-ard`, `/specify`, and `/epics` now hard-stop where they previously proceeded with a documented fallback (the deliberate, well-argued stop at `epics.md:180`). It qualifies caller-contract rule 3 (§5 — no consumer turns an optional input into a prerequisite) precisely: for those consumers, row F's `absent` case is still fully delegated to the caller's own pre-existing behaviour, but rows D/E are a new stop for a state that was previously reachable and previously non-blocking. `/brd-ground` and `/brd-split` sit outside that qualification entirely — they have no pre-gate behaviour, because their inputs and the commands that read them shipped together, so rule 3 has no optional input to protect there.
 
 ### 3.5 Locating the branch and its pull request
 
@@ -233,5 +237,5 @@ Four obligations. Omitting any one is a defect, not a style choice.
 
 1. A command that **produces** a `$SPECS_PATH` deliverable cites and executes `handoff-to-main` (§2) in its Handoff phase, behind §4.3's choice, and emits the §4.1 line exactly once.
 2. A command that **consumes** one cites and executes `require-on-main` (§3) in its Phase 0 — before its first subagent dispatch, code scan, docs-grounding retrieval, or grill question. A gate that fires after a scan has already spent what it was meant to save.
-3. A consumer acts on the returned state, and on `absent` applies its own pre-existing behaviour (§3.4). **No consumer turns an optional input into a prerequisite.**
+3. A consumer acts on the returned state, and on `absent` applies its own pre-existing behaviour (§3.4). **No consumer turns an optional input into a prerequisite.** A consumer whose gated input shipped with the consumer itself — so there is no pre-existing behaviour and nothing was ever optional — may map `absent` to a stop, and §3.4's table names each one and why.
 4. **Never restate this reference's rules** — cite the section number. A rule copied into a command is a rule that goes stale.

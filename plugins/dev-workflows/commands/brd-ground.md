@@ -208,8 +208,9 @@ For every declared prerequisite (this run's plus any already on file):
      `<PREREQ-KEY> — decisions.md present, none frozen yet; contributes no will-change horizons`
      — the same "contributes none" consequence as the absent-file case above, just reached from a
      different cause.
-   - **At least one decision reads as frozen** → report readiness in the exact form spec'd for
-     this command:
+   - **At least one decision reads as frozen** → report readiness in this exact form — the
+     `prerequisites:` block, one aligned line per prerequisite, which the Final report below
+     reproduces verbatim:
      ```
      prerequisites: EPIC-008-01 — decisions frozen, customer-reviewed 2026-08-27, not yet built
                     EPIC-002    — decisions frozen, NOT customer-reviewed
@@ -519,7 +520,8 @@ directory; no user name is ever written.
 
 Report: the BRD folder + resolved repositories (with each one's pinned commit); the classification
 and model routing (+ any Opus degradation); the prerequisite-readiness block from Phase 4, verbatim
-in the §5.6 form; finding counts by verdict for `[CG#n]` and `[DG#n]` separately, and the verifier
+in the two-column form Phase 4 step 3 fixes; finding counts by verdict for `[CG#n]` and `[DG#n]`
+separately, and the verifier
 tally (`agree` / `extend` / `contradict` / `unprovable`) with every `contradict` rewrite named by
 id; whether the derivation matrix ran and why; any `design-grounder` class-4 gap deferred for want
 of a settling `[CG#n]`; the feedback + cost paths; the `Phase handoff:` outcome line

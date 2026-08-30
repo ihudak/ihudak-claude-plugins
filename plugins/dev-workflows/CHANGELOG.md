@@ -49,10 +49,26 @@ from it — useful on its own, without any of the follow-on work increment 2/3 w
 - **`docs/brd-workflow.md`** — a route overview page with a Mermaid diagram of the three-command
   loop and each command's parameter table.
 
+- **`resolve-brd` now searches to the depth the key declares, not one level.** A slice is a BRD, so
+  `/brd-split` runs on one and produces a grandchild — which the old one-level cap reported
+  `absent`. Resolution now descends at most `max(1, S − 1)` levels below `specifications/`, where
+  `S` is the key's hyphen-numeric segment count; the bound is computed from the key string before
+  any directory is read, so the search still always terminates, and the floor of one level keeps
+  every key that resolved before resolving now (`references/brd-addressing.md` §2, §3).
+
+Roster corrections that landed with this route: `CLAUDE.md`'s specs-repo-git caller count (twenty,
+not seventeen — all three `/brd-*` commands run `specs-preflight` and `commit-artifacts`) and its
+`read-only-repos.md` consumer list (`code-grounder` and `grounding-verifier` consume it, and
+`/brd-ground` is the first command to cite it directly); `references/specs-repo-git.md` §4.1's
+branch-opener roster (all three `/brd-*` commands open a `brd/*` branch, not only `/brd-intake`);
+`references/phase-handoff.md` §3.4's row-F delegation table, which now carries `/brd-ground` and
+`/brd-split` with the reason their `absent` stop is legitimate — a gated input that shipped with
+its consumer was never optional, so nothing was promoted into a prerequisite.
+
 Not in this increment: `/brd-interview`, `/brd-package`, `/brd-reconcile`; `--from-brd` on
 `/create-prd`, `/create-ard`, or `/specify`; a decision register; a self-review pass; a customer
-bundle. `references/brd-addressing.md` §4 defines the one-level-deep resolution fallback and marks
-it unadopted.
+bundle. `references/brd-addressing.md` §4 defines the shared resolution fallback for the six
+existing commands and marks it unadopted.
 
 ## [3.0.0] — 2026-08-29
 

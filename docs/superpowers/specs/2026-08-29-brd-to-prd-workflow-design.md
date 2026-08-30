@@ -177,8 +177,9 @@ BRD whose `brd-link.md` claims a row not allocated to it.
 
 **PRD eligibility is read from the ledger, not decided in advance.** A BRD gets a PRD if and only
 if at least one row is `covered-here`. If every row is `covered-by: <CHILD>` or `deferred-to`, the
-BRD was fully sliced and holds no PRD of its own: `/create-prd` on it refuses and names the
-children that do. This means slicing everything and slicing partially are both supported without
+BRD holds no PRD of its own: `/create-prd` on it refuses and says **where the requirements went**.
+What there is to say depends on how the state was reached, and one of the three ways names no
+child at all — see `references/coverage-ledger-format.md` §5, which owns this rule. This means slicing everything and slicing partially are both supported without
 the operator having to declare which they are doing — the ledger records what happened and the
 command reads it.
 
@@ -698,7 +699,7 @@ register, ledger, defect log, and bannered snapshots; propagation dispositions i
 
 | Command | Change |
 |---|---|
-| `/create-prd` | New `--from-brd`. Reads `prd-seed.md` and `decisions.md` from the resolved BRD folder. The grill is restricted to gaps: it may fill anything the seed does not settle, and may **not** reopen a `[VD#n]` or `[CD#n]` (D3). Refuses if any ledger row this BRD claims is unallocated, and refuses when the ledger shows no `covered-here` row (the BRD was fully sliced — it names the children instead). Defaults the profile to `--full`. Writes `brd_key:`, `brd_parent:` and `depends_on:` into the PRD frontmatter, so a PRD's prerequisites are visible to `/epics` and `/ready` without reading the BRD tree. |
+| `/create-prd` | New `--from-brd`. Reads `prd-seed.md` and `decisions.md` from the resolved BRD folder. The grill is restricted to gaps: it may fill anything the seed does not settle, and may **not** reopen a `[VD#n]` or `[CD#n]` (D3). Refuses if any ledger row this BRD claims is unallocated, and refuses when the ledger shows no `covered-here` row, saying where the requirements went per `coverage-ledger-format.md` §5 — which is not always a list of children. Defaults the profile to `--full`. Writes `brd_key:`, `brd_parent:` and `depends_on:` into the PRD frontmatter, so a PRD's prerequisites are visible to `/epics` and `/ready` without reading the BRD tree. |
 | `/create-ard` | New `--from-brd`. Reads `ard-seed.md` plus the architecture-altitude findings; `[CG#n]`/`[DG#n]` findings seed the ARD's grounding-findings section, architecture decisions seed `AD#N`. Marks each consumed item `consumed_by: ARD`. |
 | `/specify` | New `--from-brd`. Reads `spec-seed.md`, including the derivation matrix. Marks each consumed item `consumed_by: specification`. |
 

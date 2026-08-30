@@ -593,10 +593,15 @@ Proposes slices from the grounded picture — what is buildable, what is blocked
 what — then takes a key per confirmed slice and creates its folder *inside* this one (§4).
 
 **Allocation is walked, not assumed.** The command cannot complete while any ledger row is
-`unallocated`, and it presents each remaining row one at a time with four choices: assign to a
-named slice, defer to this BRD (`deferred-to`), reject citing a `[DEF#n]`, or mark superseded by
-another `[BR#n]`. Deferring is a real allocation — the point is that a requirement's fate is
-recorded, not that everything must be built.
+`unallocated`, and it presents each remaining row one at a time with five choices: **build here**
+(`covered-here`), assign to a named child BRD (`covered-by`), defer to this BRD (`deferred-to`),
+reject citing a `[DEF#n]`, or mark superseded by another `[BR#n]`. Deferring is a real allocation —
+the point is that a requirement's fate is recorded, not that everything must be built.
+
+`covered-here` is not an afterthought in that list: it is the only resolution that makes a BRD
+PRD-eligible (§4.1), and a BRD nobody splits reaches it for every row. Without it the command
+could never complete on an unsplit BRD, and `/create-prd --from-brd` could never become
+eligible — allocation would deadlock.
 
 **Every `brd-*` command's final report ends with the ledger line**, so the state is visible
 without running anything:

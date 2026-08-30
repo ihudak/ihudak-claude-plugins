@@ -640,7 +640,7 @@ Phases:
 - **Phase 1** — `model-routing`; record the block.
 - **Phase 2 — propose.** Derive candidate slices from the grounded picture: what is buildable now, what is blocked, what depends on what. Present them; the operator confirms, edits, or replaces.
 - **Phase 3 — key each slice.** Take a key per confirmed slice, validated with `brd-key-valid`, and create its folder **inside** this one per `brd-addressing.md` §3, each with a `brd-link.md` naming the parent and its claimed `[BR#n]` rows.
-- **Phase 4 — walk the ledger.** For every `unallocated` row, present the four resolutions one row at a time via `AskUserQuestion`: assign to a named slice, defer to this BRD, reject citing a `[DEF#n]`, or mark superseded by another `[BR#n]`. The command cannot complete while any row remains `unallocated`.
+- **Phase 4 — walk the ledger.** For every `unallocated` row, present the five resolutions one row at a time via `AskUserQuestion`: **build here** (`covered-here`), assign to a named child BRD (`covered-by`), defer to this BRD (`deferred-to`), reject citing a `[DEF#n]`, or mark superseded by another `[BR#n]`. The command cannot complete while any row remains `unallocated`. `covered-here` is the resolution that makes this BRD PRD-eligible, and an unsplit BRD reaches it for every row — without it allocation deadlocks and no PRD can ever follow.
 - **Phase 5** — write `slices.md` with the rationale for each slice and for each deferral.
 - **Terminal** — `handoff-to-main`; cost; the ledger line, which now shows zero unallocated.
 

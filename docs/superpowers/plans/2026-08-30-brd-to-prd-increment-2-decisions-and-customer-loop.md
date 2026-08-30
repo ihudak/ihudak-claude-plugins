@@ -295,6 +295,11 @@ tools: ["Read", "Glob", "Grep"]
 
 Do this **after** all three new commands exist, in one pass, so no command is left pointing at a half-built route: every terminal next-step offer names its real successor, and no command claims to be the route's end unless it is. Check `/brd-intake` and the three new commands too, not only the two named.
 
+**Three more sites found during tasks 8 and 9, all the same class:**
+- `docs/brd-workflow.md` still says `/brd-interview` **and** `/brd-package` "do not exist yet", and its diagram and prose describe a three-command route.
+- `docs/commands/brd-intake.md` and `docs/commands/brd-ground.md` both say the cost phase is "shared by all three commands of the BRD-to-PRD route (`/brd-intake`, `/brd-ground`, `/brd-split`) … All three ship together". False since `/brd-interview`, doubly so now. Fix count-free — `docs/commands/brd-package.md` already models the right wording ("every command of the BRD-to-PRD route").
+- `commands/brd-interview.md`'s terminal phase says `/brd-package` "is offered — but only where this round left something for a package to carry", yet its `choices:` array is unconditional. An operator on a *deferred*, *needs grounding* or *untagged* round is offered a run `/brd-package` will refuse. Either gate the option or drop the "only where" clause.
+
 **Files:** Modify `docs/brd-workflow.md`, `docs/README.md`, `docs/workflow.md`, `docs/roles-and-phases.md`.
 
 - [ ] **Step 1: Update the route page.** The diagram gains the three new commands and the external wait state between `/brd-package` and `/brd-reconcile` — that wait is the route's defining feature and must be visible. The **parameter table** gains three rows, each derived from the command's own argument parsing. Keep every cell under 200 characters. Only `--from-brd` and `/create-prd` remain unshipped; mark them as such.

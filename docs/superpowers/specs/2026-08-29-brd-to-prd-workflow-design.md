@@ -832,36 +832,53 @@ both appear in one picture; `README.md`; `CHANGELOG.md`; the marketplace descrip
 
 ---
 
-## 13A. Known open defect — unconditional merge clauses outside the route
+## 13A. Closed — unconditional merge clauses outside the route
 
-Recorded 2026-08-30, after increment 2 merged, so it does not depend on anyone's memory.
+Recorded 2026-08-30 after increment 2 merged; closed the same day on branch
+`iv-gu/unconditional-merge-offers`. Kept rather than deleted: the scope question it opened was
+answered with evidence worth not re-gathering.
 
 `references/next-phase-offer.md` states that a next-step offer's merge clause **is never
 unconditional**, and prescribes a `<merge-clause>` placeholder resolved from the run's own
-`phase-handoff.md` §4.1 outcome. Ruling R20 scoped that rule to the six `/brd-*` commands rather
-than converting the pre-existing consumers, to keep a 29-commit branch out of commands no reviewer
-on it had walked.
+`phase-handoff.md` §4.1 outcome. R20 scoped that rule to the six `/brd-*` commands rather than
+converting the pre-existing consumers, to keep a 29-commit branch out of commands no reviewer on it
+had walked.
 
-**Three offers outside the route still hardcode the unconditional form:**
+**The affected set, re-derived from the tree, was four offers — not the three this section first recorded.**
 
-| File | Offers |
-|---|---|
-| `commands/create-ard.md` | the PRD-level and Epic-level next-step arrays (~lines 151–152) |
-| `commands/specify.md` | the `### Next step` recommendation (~line 540) |
+| File | The offer | What it promised |
+|---|---|---|
+| `commands/create-ard.md` | Phase 7's PRD-level and Epic-level arrays | the unconditional clause, plus two claims about the wait that were themselves false |
+| `commands/specify.md` | the `### Next step` prose | the unconditional clause for `/design` and for `/epics` |
+| `commands/create-prd.md` | Phase 6's `/create-ard` option | the unconditional clause; not in the original record, found by enumerating every option |
+| `commands/update-prd.md` | Phase 6's `/create-ard` and `/specify` options | the inverse defect: two commands that gate this run's own PRD, and no wait named at all |
 
-Each promises "once the pull request above is merged" on paths where no pull request exists — a
-declined handoff, a push failure, a nothing-to-commit run. That is the same anatomy as the eleven
-defects increment 2 catalogued: **an offer naming something that does not exist in the state it
-reports.**
+All four now carry the placeholder on exactly the options whose downstream `require-on-main` target
+the offering run writes, each saying beside its array which options carry it and why the others do
+not. Two options deliberately carry none and say so — the Epic fan-out in each of `/create-ard` and
+`/specify` waits on nothing the offering run produced — following `/brd-reconcile`'s precedent for an
+option whose wait is somebody else's merge.
 
-`check-docs.sh` check 11 is family-scoped and **cannot see them**, so nothing will catch further
-drift. Two things are therefore owed: convert the three offers, and decide whether check 11's
-scope widens to the whole plugin. Widening is the honest end state — the rule is about
-truthfulness, not about one route — but it requires walking every affected command, which is why
-it was not bolted onto increment 2.
+`/create-ard`'s two false claims were fixed with the clause, since converting them mechanically would
+have preserved them: `/epics`, `/specify` and `/design` each **stop** on `ard-resolution.md`'s
+`status: unmerged`, so an ARD sitting on an open pull request is not "invisible" to them and
+`/specify` does not "architect without it" meanwhile. Only a handoff that reached no branch at all
+resolves `status: none`, where that reference's no-regression rule applies.
 
-Note that `/create-ard` and `/specify` are also two of the three commands increment 3 amends with
-`--from-brd`. Fixing the offers first means each file is touched once, already correct.
+**Check 11 was not widened, and the evidence is recorded in
+`references/next-phase-offer.md` beside the gate's own limits.** Removing the family filter and
+running the check over every command fires on four sites, every one correct content, and catches
+none of the four offers above — on the pre-fix tree as well as the fixed one, so the widened gate
+scores four false positives and zero true positives on the very tree the defects lived in. A
+`choices:` array in this plugin is a refusal or a mid-run branch point as often as it is an offer,
+and nothing in the file marks which. Same verdict, same reason, as the stop-routing check.
+
+Two limits are worth carrying forward. `/specify`'s offer is prose, not a `choices:` array, so
+check 11 cannot see it either before or after the conversion — the universal minimum surface the
+offer contract defines is exactly the surface the gate does not cover. And `phase-handoff.md` §3.4
+names the PRD and the ARD in prose rather than as backticked filenames, so the gate's `targets`
+relation is empty for `/create-ard`, `/specify` and `/design` as *offered* commands; naming them as
+files would change what several consumers gate on, which is its own piece of work.
 
 ---
 

@@ -1,6 +1,6 @@
 # Workflow overview
 
-This is the dev-workflows pipeline top to bottom — every command shown here, in the order the roles typically hand work to each other. `/idea → /create-prd` opens a Product Requirements Document; `/document` and `/release-notes` close it out.
+This is the dev-workflows pipeline top to bottom — every command shown here, in the order the roles typically hand work to each other. `/idea → /create-prd` opens a Product Requirements Document; `/document` and `/release-notes` close it out. A second route into a PRD exists alongside it: `/brd-intake → /brd-ground → /brd-split` turns a customer-supplied BRD into a grounded, fully-allocated requirement inventory instead of a PM-authored idea — see [BRD workflow](brd-workflow.md) for its own diagram and parameter table.
 
 ```mermaid
 flowchart TD
@@ -9,6 +9,10 @@ flowchart TD
         createvi --> rnpm["/dev-workflows:release-notes (early draft)"]
         createvi -.->|PRD exists| updatevi["/update-prd"]
         updatevi --> rnpm
+    end
+    subgraph BRD["PM/PA/Dev — BRD-to-PRD route (alt. entry)"]
+        brdintake["/brd-intake"] --> brdground["/brd-ground"] --> brdsplit["/brd-split"]
+        brdsplit -.->|new child BRD| brdground
     end
     subgraph PA["PA — architecture (optional)"]
         createard["/create-ard"]
@@ -39,6 +43,8 @@ flowchart TD
 ```
 
 The diagram draws the ARD reaching `/epics`, but that is one of five consumers: `/epics`, `/specify`, `/design`, `/implement`, and `/ready` all resolve the applicable ARD once it exists. The edge is drawn once to keep the diagram readable, not because the others do not consult it.
+
+The BRD-to-PRD subgraph carries no edge into `/create-prd`: that connection is undrawn because `--from-brd` has not shipped yet, not because the two routes are unrelated.
 
 The diagram above shows where each command sits in the pipeline; [Roles and phases](roles-and-phases.md) says what each role is accountable for and what it hands over at each seam.
 

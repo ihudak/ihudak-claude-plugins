@@ -18,16 +18,17 @@ Every phase ends the same way: a producing command lands its deliverable on the 
 - **Consumes:** a prompt, file, community post, RFE, or existing PRD as its source; then a refined `idea.md` plus a user-supplied Jira key.
 - **Produces:** `idea.md` in `$VAULT_PATH` before a Jira key exists, then `<KEY>_<slug>.md` written to `$SPECS_PATH/specifications/<KEY>-<slug>/`; an early release-notes draft.
 - **Hands over at the seam:** `/idea` relocates and lands `idea.md`, and `/create-prd` / `/update-prd` land the PRD, each onto the specs repo's default branch. `/create-ard` and `/specify` each gate on the PRD there — an absent PRD falls back to reading the Jira export directly instead of stopping (reported, not silent), and the hard stop is an unmerged PRD, never a missing one. `/epics` reads the PRD unconditionally through `jira-reader`, with no PRD gate at all — see PE below for the input it does gate.
-- **Cost phase(s):** `prd-creation` (`/idea`, `/create-prd`), `prd-update` (`/update-prd`) — both role `pm`.
+- **Cost phase(s):** `prd-creation` (`/idea`, `/create-prd`), `prd-update` (`/update-prd`), `brd-to-prd` (`/brd-intake`, `/brd-split`) — all role `pm`.
+- **Also owns the BRD-to-PRD route** ([BRD workflow](brd-workflow.md)): turning a customer-supplied BRD into a grounded, fully-allocated requirement inventory. This route is PM-owned end to end — `/brd-intake` and `/brd-split` run as PM — but its middle step, `/brd-ground`, is PM-initiated and PA/Dev-executed: PM starts it, and PA/Dev do the actual grounding against the mounted code and design repos.
 
 ## PA — product architecture
 
-- **Owns:** architecture decisions for a PRD, or for one Epic inside it — an optional role in the pipeline.
-- **Runs:** `/create-ard`.
-- **Consumes:** the PRD (and the Epic, when scoped), grounded on the mounted implementation repos it discovers under `$REPOS_PATH` — architect-driven discovery, never a pull-request read.
-- **Produces:** `<PRD>_ARD.md`, or `<EPIC>-<area>_ARD.md` for a big Epic split by area, written into the same specs feature folder as the PRD.
-- **Hands over at the seam:** `/create-ard` gates on the PRD — an absent PRD falls back to reading the Jira export directly instead of stopping (reported, not silent), and the hard stop is an unmerged PRD, never a missing one; `/create-ard` then lands the ARD the same way, and `/epics`, `/specify`, `/design`, `/implement`, and `/ready` each consult it once it's there.
-- **Cost phase:** `architecture`, role `pa`.
+- **Owns:** architecture decisions for a PRD, or for one Epic inside it — an optional role in the pipeline; also grounding a BRD's requirement claims against code and design, once a PM has initiated `/brd-ground` (see [BRD workflow](brd-workflow.md)).
+- **Runs:** `/create-ard`; also `/brd-ground`, PM-initiated but PA/Dev-executed.
+- **Consumes:** the PRD (and the Epic, when scoped), grounded on the mounted implementation repos it discovers under `$REPOS_PATH` — architect-driven discovery, never a pull-request read; for `/brd-ground`, the BRD's `[BR#n]` inventory from `/brd-intake` and the mounted implementation and design repos, pinned to a verified commit.
+- **Produces:** `<PRD>_ARD.md`, or `<EPIC>-<area>_ARD.md` for a big Epic split by area, written into the same specs feature folder as the PRD; for `/brd-ground`, `[CG#n]`/`[DG#n]` grounding findings written into the BRD's own specs feature folder.
+- **Hands over at the seam:** `/create-ard` gates on the PRD — an absent PRD falls back to reading the Jira export directly instead of stopping (reported, not silent), and the hard stop is an unmerged PRD, never a missing one; `/create-ard` then lands the ARD the same way, and `/epics`, `/specify`, `/design`, `/implement`, and `/ready` each consult it once it's there. `/brd-ground` gates on `/brd-intake`'s ledger landing on main, then lands its own grounding findings the same way, and `/brd-split` refuses to allocate a row until every finding on it carries a verifier verdict.
+- **Cost phase(s):** `architecture` (`/create-ard`), `brd-to-prd` (`/brd-ground`) — both role `pa`.
 
 ## PE — product engineering
 
@@ -51,7 +52,7 @@ Every phase ends the same way: a producing command lands its deliverable on the 
 
 ## Cost-attribution phases
 
-Every cost-emitting command tags its cost line with a `phase` and a `role`. Ten phases exist; each entry below names the command that emits it and what being in that phase means. The first nine are lifecycle phases; the tenth exists for spend that belongs to no phase at all. Each of the nine can also be reached **by inheritance**: `/prompt` and `/feedback` adopt the phase and role of whatever they are correcting, so a correction to a `/specify` output is a second entry in `specification`. Only the commands named below emit a phase *directly*.
+Every cost-emitting command tags its cost line with a `phase` and a `role`. Eleven phases exist; each entry below names the command that emits it and what being in that phase means. The first ten are lifecycle phases; the eleventh exists for spend that belongs to no phase at all. Each of the ten can also be reached **by inheritance**: `/prompt` and `/feedback` adopt the phase and role of whatever they are correcting, so a correction to a `/specify` output is a second entry in `specification`. Only the commands named below emit a phase *directly*.
 
 ### prd-creation
 
@@ -60,6 +61,10 @@ Emitted by `/idea` and `/create-prd`, role `pm`. Being in this phase means the P
 ### prd-update
 
 Emitted by `/update-prd`, role `pm`. Being in this phase means an existing PRD is being refreshed or re-done, never created from scratch — the distinction cost aggregation needs between a first PRD write and a later revision.
+
+### brd-to-prd
+
+Emitted by `/brd-intake` and `/brd-split`, role `pm`, and by `/brd-ground`, role `pa`. Being in this phase means a customer-supplied BRD is somewhere on the BRD-to-PRD route — its requirement inventory is being extracted, grounded against code and design, or split and allocated — rather than a PRD already existing for it. This is the one phase in this section shared across two roles: `/brd-intake` and `/brd-split` run as PM, while `/brd-ground` is PM-initiated but PA/Dev-executed, and all three tag their cost line `brd-to-prd`.
 
 ### architecture
 

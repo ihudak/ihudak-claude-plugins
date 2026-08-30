@@ -11,10 +11,13 @@ result is consumed*. It is **read-only**: these commands never write into
 `$DOCS_PATH`. Every miss is a **silent, non-blocking skip** — never an error,
 never `emit-block`.
 
-Consumers: `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`
-(grill-rank consumption); `/epics`, `/release-notes` (writer-attach consumption).
+Consumers: `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`,
+`/brd-intake` (grill-rank consumption); `/epics`, `/release-notes`
+(writer-attach consumption); `/brd-ground` (lead-only consumption).
 `/document` does **not** consume this file — it only uses `$DOCS_PATH` as a
-write-target discovery hint (see its Phase 0).
+write-target discovery hint (see its Phase 0). `/brd-split` deliberately does
+**not** consume it either: it allocates requirements to a recorded fate, and
+documentation does not inform that decision.
 
 ## Procedure — `resolve-docs-grounding <command-name>`
 
@@ -114,6 +117,16 @@ a question slot; it never adds one (this preserves `/idea`'s ≤10-question boun
 (`docs_references` + `docs_challenges`) into the writer agent's input handoff as
 `docs_grounding`. The writer uses references for consistency and treats
 challenges as authoring cautions.
+
+**`lead-only`** (`/brd-ground`): The digest steers **where to look** and may be
+recorded as a **divergence from what the code shows**. It is never evidence, and
+it is never passed into a grounding agent's input contract. A document is a
+*claim about* behaviour, not the behaviour; a confident, stale page cited as
+evidence would satisfy a claim the code does not — the precise failure
+`references/grounding-format.md`'s `NOT-PROVABLE` verdict exists to prevent. The
+consuming command states the rule and the shape a divergence is recorded in;
+this reference fixes only that the mode exists and that it never yields a
+citation.
 
 ## Invariants
 

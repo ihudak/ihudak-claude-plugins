@@ -4,6 +4,97 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.1.0] — 2026-08-30
+
+### Added — BRD-to-PRD grounding route (increment 1)
+
+A customer-supplied business requirements document (BRD) is long, internally inconsistent, and not
+implementable as written. This route turns one into a requirement inventory every row of which has
+been checked against real code and design, and given a recorded fate, before a PRD is ever written
+from it — useful on its own, without any of the follow-on work increment 2/3 will add.
+
+- **Three commands, PM-owned end to end.** `/brd-intake` copies the customer's document in verbatim
+  and immutably, extracts a `[BR#n]` requirement inventory, confirms candidate defects with a human,
+  and writes a coverage ledger with every row `unallocated`. `/brd-ground` — PM-initiated but
+  PA/Dev-executed — pins every mounted repository to a verified commit and grounds every `[BR#n]`
+  claim against code and an exported design frame set, with every finding independently re-derived
+  before it counts as evidence. `/brd-split` gates on every finding carrying a verifier verdict,
+  proposes candidate slices, and walks every unallocated ledger row to one of five recorded fates —
+  building here, assigning it to a named child BRD, deferring it, rejecting it against a logged
+  defect, or marking it superseded — until none remain `unallocated`. A confirmed slice nests inside
+  its parent's folder and re-enters at `/brd-ground` for its own grounding pass.
+- **A slice is a BRD, and `/brd-split` gives it everything one needs.** Alongside `brd-link.md`, a
+  new child folder gets a `brd/brd-inventory.md` — the parent's claimed rows copied verbatim under a
+  header naming the parent's `brd/source/`, which every `source_anchor` still resolves against — and
+  a `coverage-ledger.md` seeded `unallocated`. Those are the two files `/brd-ground` gates on and
+  reads, and `/brd-intake` never runs on a slice (there is no separate document to intake), so
+  `/brd-split` writes them: without that, the loop back to grounding dead-ends. A slice holds no
+  `brd/source/` and no `brd/brd-defect-log.md` of its own and inherits both from its parent
+  (`references/brd-format.md` §2.1).
+- **Verification is anchored to whatever a finding actually rests on.** A `[CG#n]` and a class-4
+  `[DG#n]` are re-derived against the pinned repository; a `[DG#n]` of class 1, 2, or 3 is
+  design-only and is re-derived against the frame set, which `grounding-verifier` now receives.
+  Requiring a commit of those would have left them permanently unverifiable and blocked `/brd-split`
+  forever. The agent's row selection is fail-closed — anything not explicitly asserting a
+  design-only class is treated as resting on code — so no code finding can be verified without its
+  commit. `/brd-ground` Phase 7 also acts on the verifier's refusal statuses, stopping before any
+  finding is written without an outcome.
+- **Four agents:** `brd-reader` (Sonnet-pinned extraction), `code-grounder`, `design-grounder`, and
+  `grounding-verifier` (Opus-pinned independent re-derivation).
+- **Four references:** `brd-addressing.md`, `brd-format.md`, `coverage-ledger-format.md`, and
+  `grounding-format.md`.
+- **A new branch prefix, `brd`,** shared by all three commands the way `prd` is shared by
+  `/create-prd` and `/update-prd`; registered in `references/phase-handoff.md` and
+  `references/specs-repo-git.md`.
+- **`docs/brd-workflow.md`** — a route overview page with a Mermaid diagram of the three-command
+  loop and each command's parameter table.
+- **`/brd-intake` and `/brd-ground` ground on the shipped product documentation** when `$DOCS_PATH`
+  resolves, bringing the route's consumers of `references/docs-grounding.md` from seven to nine
+  (`--no-docs` turns it off; every miss stays a silent, non-blocking skip). `/brd-intake` consumes
+  it **grill-rank** over Phase 4's defect walk: challenges are ranked into the walk order, and one
+  may be raised as an extra candidate in the two classes documentation can speak to — `unsourced`
+  and `ambiguity` — so a `[DEF#n]` confirmed by a human is the only thing documentation can put on
+  a `[BR#n]` row. `/brd-ground` consumes it **lead-only** (a third mode, defined in
+  `references/docs-grounding.md`): a page may say where to look, and a page the code contradicts is
+  recorded as a divergence in `grounding/code-grounding.md` — but **a document is never evidence
+  for a `[CG#n]`**, because a document is a claim *about* behaviour and citing one would let a
+  stale page satisfy a claim the code does not. A divergence carries no identifier of its own; it
+  names the verified `[CG#n]` it diverges from, so it can never stand on the page alone.
+  `/brd-split` deliberately gets none — it allocates requirements, which documentation does not
+  inform.
+
+- **Nesting is capped at one level — on nesting only, never on allocation.** A slice is a BRD in
+  every other respect: same commands, same artifacts, free to depend on any other BRD. What the cap
+  forbids is creating a child *below* a slice, so `/brd-split` now runs in one of two modes,
+  resolved in Phase 0 step 5 from the folder's own `brd-link.md` `parent:` field. On a BRD that owns
+  its source document, `split_mode: full` — nothing changes. On a slice, `split_mode: allocate-only`
+  — the slice-proposal and child-creation phases are skipped and the ledger walk offers **four**
+  resolutions instead of five, with `covered-by` unavailable because it names a child BRD and no
+  child can exist below a slice. The walk itself always runs: a slice whose rows could never leave
+  `unallocated` could never become PRD-eligible (`references/coverage-ledger-format.md` §5), which
+  would make slicing pointless. `BRD_SPLIT_ON_SLICE` is a **notice, not a stop** — emitted at Phase
+  0 and repeated in the final report, because a run that silently skipped two phases and dropped a
+  resolution would be worse than one that says so. `resolve-brd` matches the cap exactly, searching
+  `specifications/` and one level below it and no further (`references/brd-addressing.md` §2, §3),
+  and the cap is what makes every inheritance in the route literal: a slice's parent is always the
+  BRD that owns the customer's document, so `brd-format.md` §2.1's inherited `source:` path always
+  exists and §4's inherited defect log — which an `allocate-only` `rejected: [DEF#n]` actually
+  reaches for — is always exactly one hop away. A grandchild would have had neither.
+
+Roster corrections that landed with this route: `CLAUDE.md`'s specs-repo-git caller count (twenty,
+not seventeen — all three `/brd-*` commands run `specs-preflight` and `commit-artifacts`) and its
+`read-only-repos.md` consumer list (`code-grounder` and `grounding-verifier` consume it, and
+`/brd-ground` is the first command to cite it directly); `references/specs-repo-git.md` §4.1's
+branch-opener roster (all three `/brd-*` commands open a `brd/*` branch, not only `/brd-intake`);
+`references/phase-handoff.md` §3.4's row-F delegation table, which now carries `/brd-ground` and
+`/brd-split` with the reason their `absent` stop is legitimate — a gated input that shipped with
+its consumer was never optional, so nothing was promoted into a prerequisite.
+
+Not in this increment: `/brd-interview`, `/brd-package`, `/brd-reconcile`; `--from-brd` on
+`/create-prd`, `/create-ard`, or `/specify`; a decision register; a self-review pass; a customer
+bundle. `references/brd-addressing.md` §4 defines the shared resolution fallback for the six
+existing commands and marks it unadopted.
+
 ## [3.0.0] — 2026-08-29
 
 One release, one exercise: make the marketplace publishable as open source. It removes organization-specific content and naming, retires vocabulary that only made sense inside one company, drops a feature that existed only because one vendor ships two product editions, and restores machine-checkable enforcement from public sources. It is a single major because it is a single migration — everything below applies at once.

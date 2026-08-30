@@ -1,7 +1,7 @@
 {
   "name": "dev-workflows",
-  "version": "3.0.0",
-  "description": "Twenty-one slash commands covering the full product-development lifecycle — /idea → /create-prd → /create-ard → /specify → /design → /epics → /implement → /document → /release-notes → /ready — plus /vuln (CVE remediation), /upgrade, /update-prd, /docs-profile, /api-guideline-reviewer, /guideline-reviewer, /statusline, and the /feedback and /prompt utilities. Thirty-three reusable subagents and four hooks. Opus-backed gates review every artifact: plans, code, product docs, Epics, specifications, designs, ARDs, Product Requirements Documents, and readiness. Each phase hands its artifact to the next through the specs repo's default branch — the producer commits, pushes, and opens a PR; the consumer refuses to start until it has landed. Optional read-only grounding on shipped product docs, tracked vault prior art, and mounted code repositories.",
+  "version": "3.1.0",
+  "description": "Twenty-four slash commands spanning the product-development lifecycle — /idea → /create-prd → /create-ard → /specify → /design → /epics → /implement → /document → /release-notes → /ready — plus a BRD-to-PRD grounding route (/brd-intake → /brd-ground → /brd-split), /vuln, /upgrade, /update-prd, /docs-profile, /api-guideline-reviewer, /guideline-reviewer, /statusline, /feedback, and /prompt. Thirty-seven reusable subagents and four hooks. Opus-backed gates review every artifact: plans, code, product docs, Epics, specifications, designs, ARDs, PRDs, and readiness. Each phase hands its artifact to the next through the specs repo's default branch — the producer commits, pushes, and opens a PR; the consumer refuses to start until it has landed. Optional read-only grounding on shipped product docs, tracked vault prior art, and mounted code repositories.",
   "author": {
     "name": "Ivan Gudak",
     "email": "ihudak@gmail.com"
@@ -21,6 +21,7 @@
     "guidelines",
     "api-review",
     "value-increment",
-    "update-prd"
+    "update-prd",
+    "brd"
   ]
 }

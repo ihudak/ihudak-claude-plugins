@@ -5,6 +5,8 @@
 | install this and set it up | [Getting started](getting-started.md) |
 | understand the whole pipeline first | [Workflow overview](workflow.md) |
 | know what my role is responsible for | [Roles and phases](roles-and-phases.md) |
+| see the BRD-to-PRD route as one diagram, with a parameter table | [BRD workflow](brd-workflow.md) |
+| turn a customer BRD into a grounded inventory with every requirement allocated | [`/brd-intake`](commands/brd-intake.md), [`/brd-ground`](commands/brd-ground.md), [`/brd-split`](commands/brd-split.md) |
 | turn a raw idea into something actionable | [`/idea`](commands/idea.md) |
 | write or refresh a Product Requirements Document | [`/create-prd`](commands/create-prd.md), [`/update-prd`](commands/update-prd.md) |
 | record an architecture decision | [`/create-ard`](commands/create-ard.md) |
@@ -19,11 +21,14 @@
 | see live cost and context while you work | [`/statusline`](commands/statusline.md) — **run this first** |
 | understand what a run cost | [Session cost](reference/session-cost.md), [`/statusline`](commands/statusline.md) |
 
-Three pages orient you before you touch a command: [Getting started](getting-started.md) installs the plugin and sets your environment variables; [Workflow overview](workflow.md) shows the whole pipeline as one diagram; [Roles and phases](roles-and-phases.md) says what each role owns and hands off. Every other page below documents one command, one shared subsystem, or — for [Agents](reference/agents.md) and [References](reference/references.md) — one whole inventory.
+Four pages orient you before you touch a command: [Getting started](getting-started.md) installs the plugin and sets your environment variables; [Workflow overview](workflow.md) shows the whole pipeline as one diagram; [BRD workflow](brd-workflow.md) shows the second route into a PRD — from a customer-supplied BRD to a grounded, allocated requirement inventory — as its own diagram; [Roles and phases](roles-and-phases.md) says what each role owns and hands off. Every other page below documents one command, one shared subsystem, or — for [Agents](reference/agents.md) and [References](reference/references.md) — one whole inventory.
 
 ## Commands
 
 - [`/api-guideline-reviewer`](commands/api-guideline-reviewer.md) — review an OpenAPI spec against the bundled REST API and IAM permission naming guidelines.
+- [`/brd-ground`](commands/brd-ground.md) — pin every mounted repository, ground the BRD's requirements against code and design, and independently re-derive every finding on Opus.
+- [`/brd-intake`](commands/brd-intake.md) — intake a customer BRD verbatim, extract its requirement inventory, and write a coverage ledger with every row unallocated.
+- [`/brd-split`](commands/brd-split.md) — propose and key child BRDs from the grounded picture, then walk every ledger row to a recorded fate.
 - [`/create-ard`](commands/create-ard.md) — author an Architecture Requirements/Decision Document for a PRD, or for one Epic inside it, grounded on the mounted code.
 - [`/create-prd`](commands/create-prd.md) — turn a refined idea plus a Jira key into a reviewed Product Requirements Document.
 - [`/design`](commands/design.md) — take over a merged specification and author a reviewed engineering design, grounded strictly in the mounted code.

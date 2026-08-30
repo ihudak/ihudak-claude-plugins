@@ -12,7 +12,7 @@ Inherited from `specs-repo-git.md`, unchanged:
 
 1. **`git -C` always; `cd` never.** Every invocation is `git -C "$SPECS_PATH" …`. Most callers are running inside a *different* repository; a `cd` would corrupt their git state. The `gh` calls in §2.6 and §3.5 name the repository with `-R` for the same reason.
 2. **Bounded paths.** Only the calling command's own declared deliverable paths are staged, by enumeration (§2.3). `git add -A` is never issued at repository scope.
-3. **Bounded branches.** Only branches matching `^(idea|prd|ard|spec|design|ready)/` are the plugin's (`specs-repo-git.md` §2.2).
+3. **Bounded branches.** Only branches matching `^(idea|prd|ard|spec|design|ready|brd)/` are the plugin's (`specs-repo-git.md` §2.2).
 4. **Never destructive.** No `push --force`, no `push -f`, no `branch -D`, no `merge`, no `rebase`, no `reset`, no `stash`, no `checkout --`, and never delete an `index.lock`.
 
 Where this reference **differs** — each difference is deliberate, and a reader who "corrects" one to match `specs-repo-git.md` breaks this contract:
@@ -88,7 +88,7 @@ Every failure is reported and the phase is described as **not handed off**. The 
 
 | Input | Meaning |
 |---|---|
-| `prefix` | one of `idea`, `prd`, `ard`, `spec`, `design`, `ready` |
+| `prefix` | one of `idea`, `prd`, `ard`, `spec`, `design`, `ready`, `brd` (shared by the three `/brd-*` commands, the way `prd` is shared by `/create-prd` and `/update-prd`) |
 | `feature_folder` | the resolved directory the deliverable was written into |
 | `deliverable_paths` | the literal repo-relative paths this phase authored |
 | `title` | the commit subject and pull-request title |
@@ -111,7 +111,7 @@ The four primitives, each verified against a real specs repo:
 - **The default-branch ref exists:** `git -C "$SPECS_PATH" rev-parse --verify --quiet "origin/<default>"` Exit 0 = the ref exists — run the next primitive. Non-zero = row G: nothing to verify against, stop. This runs **before** the next primitive, because that primitive's own required `2>/dev/null` discards the only signal that would otherwise distinguish "path absent on an existing ref" (row F) from "the ref itself does not exist" (row G) — `git cat-file -e` exits 128 for both, verified empirically: a missing path and a missing ref are indistinguishable by exit code alone.
 - **On the default branch:** `git -C "$SPECS_PATH" cat-file -e "origin/<default>:<path>" 2>/dev/null` Exit 0 = present. The `2>/dev/null` is required — on absence git writes `fatal: path '<path>' does not exist in 'origin/<default>'` to stderr, which must not leak into the run's output. Only reached once the ref-existence primitive above has already confirmed `origin/<default>` exists, so a non-zero exit here means the path is absent, never that the ref is.
 - **Worktree matches the ref:** `git -C "$SPECS_PATH" diff --quiet "origin/<default>" -- "<path>"` Exit 0 = identical. This also catches a **staged-only** change, which a `hash-object` comparison against the working file would miss.
-- **Plugin branches carrying the artifact:** `git -C "$SPECS_PATH" for-each-ref --format='%(refname:short)' refs/remotes/origin refs/heads` filtered to `(origin/)?(idea|prd|ard|spec|design|ready)/*`, then `git -C "$SPECS_PATH" cat-file -e "<ref>:<path>" 2>/dev/null` on each. **Local `refs/heads` are scanned as well as remote ones**, and for the same reason §2.2's branch resolution tests both: a deliverable that was committed but whose push failed (§2.5, reported by §4.1 as "NOT handed off") exists only on a local branch. Scanning remote refs alone would return `absent` for it — the one state §2.8 promises "the next phase's gate is what enforces the consequence" of. Prefer the remote ref when both carry the path, so rows D and E report the branch the pull request is open against.
+- **Plugin branches carrying the artifact:** `git -C "$SPECS_PATH" for-each-ref --format='%(refname:short)' refs/remotes/origin refs/heads` filtered to `(origin/)?(idea|prd|ard|spec|design|ready|brd)/*`, then `git -C "$SPECS_PATH" cat-file -e "<ref>:<path>" 2>/dev/null` on each. **Local `refs/heads` are scanned as well as remote ones**, and for the same reason §2.2's branch resolution tests both: a deliverable that was committed but whose push failed (§2.5, reported by §4.1 as "NOT handed off") exists only on a local branch. Scanning remote refs alone would return `absent` for it — the one state §2.8 promises "the next phase's gate is what enforces the consequence" of. Prefer the remote ref when both carry the path, so rows D and E report the branch the pull request is open against.
 
 ### 3.3 The state table
 
@@ -144,7 +144,9 @@ On the first choice: `git -C "$SPECS_PATH" switch <default>` then `git -C "$SPEC
 
 ### 3.4 Row F delegates — the gate never makes an optional input mandatory
 
-Row F is the difference between "this phase was not handed off" and "this phase never happened". Only the second is row F, and the gate has no opinion about it. Every gated input except `/design`'s `specification.md` is **optional today**, and that must not change. The gate returns `absent`; the caller does what it already does.
+Row F is the difference between "this phase was not handed off" and "this phase never happened". Only the second is row F, and the gate has no opinion about it. **An input that was optional before this gate existed stays optional, and that must not change.** The gate returns `absent`; the caller does what it already does.
+
+Three consumers map `absent` to a hard stop, and all three are legitimate for the same reason: their gated input was **never optional to begin with** — it is a new input, introduced together with the command that reads it, with no pre-existing "what it already did" to fall back to. The rule this section protects is that the gate must not *promote* an optional input into a prerequisite; it does not require a genuinely mandatory input to be made optional.
 
 | Caller | Input | Pre-existing absent behaviour, preserved |
 |---|---|---|
@@ -156,8 +158,10 @@ Row F is the difference between "this phase was not handed off" and "this phase 
 | `/implement` | `specification.md` / `design.md` | only an **in-scope** spec is gated; a direct-prompt run resolves none |
 | `/design` | `specification.md` | **stops** — but that stop already exists; this reference only makes its test correct |
 | `/ready` | ARD / spec / design | records the artifact as missing in its coverage roll-up, as today |
+| `/brd-ground` | the BRD's `coverage-ledger.md` | **stops** — `BRD_GROUND_NEEDS_INTAKE`, or `BRD_GROUND_NEEDS_SPLIT` for a slice. Never optional: grounding has no claim list without the inventory this file arrives with, and the route ships with no pre-gate behaviour to fall back to |
+| `/brd-split` | the BRD's `grounding/code-grounding.md` | **stops** — `BRD_SPLIT_NEEDS_GROUNDING`. Never optional: the command's whole gate is that every finding carries a verifier outcome, and a BRD with no findings at all has nothing to allocate against |
 
-Rows D and E add the only new stop: an artifact that **exists** and was never handed off. That state was **not** unreachable before this feature — pre-J, `/specify` already created `spec/<EPIC>-<eslug>` (or `spec/<PRD>-<vslug>`) branches and offered branch + PR, and `/create-prd` did the same on `prd/<KEY>-<slug>`, with no downstream gate reading them; an artifact sitting on such a branch, unmerged, was a common, ordinary state. This is a real behaviour change: for that state, `/create-ard`, `/specify`, and `/epics` now hard-stop where they previously proceeded with a documented fallback (the deliberate, well-argued stop at `epics.md:180`). It qualifies caller-contract rule 3 (§5 — no consumer turns an optional input into a prerequisite) precisely: row F's `absent` case is still fully delegated to the caller's own pre-existing behaviour, but rows D/E are a new stop for a state that was previously reachable and previously non-blocking.
+For the consumers that predate this gate, rows D and E add the only new stop: an artifact that **exists** and was never handed off. That state was **not** unreachable before this feature — pre-J, `/specify` already created `spec/<EPIC>-<eslug>` (or `spec/<PRD>-<vslug>`) branches and offered branch + PR, and `/create-prd` did the same on `prd/<KEY>-<slug>`, with no downstream gate reading them; an artifact sitting on such a branch, unmerged, was a common, ordinary state. This is a real behaviour change: for that state, `/create-ard`, `/specify`, and `/epics` now hard-stop where they previously proceeded with a documented fallback (the deliberate, well-argued stop at `epics.md:180`). It qualifies caller-contract rule 3 (§5 — no consumer turns an optional input into a prerequisite) precisely: for those consumers, row F's `absent` case is still fully delegated to the caller's own pre-existing behaviour, but rows D/E are a new stop for a state that was previously reachable and previously non-blocking. `/brd-ground` and `/brd-split` sit outside that qualification entirely — they have no pre-gate behaviour, because their inputs and the commands that read them shipped together, so rule 3 has no optional input to protect there.
 
 ### 3.5 Locating the branch and its pull request
 
@@ -233,5 +237,5 @@ Four obligations. Omitting any one is a defect, not a style choice.
 
 1. A command that **produces** a `$SPECS_PATH` deliverable cites and executes `handoff-to-main` (§2) in its Handoff phase, behind §4.3's choice, and emits the §4.1 line exactly once.
 2. A command that **consumes** one cites and executes `require-on-main` (§3) in its Phase 0 — before its first subagent dispatch, code scan, docs-grounding retrieval, or grill question. A gate that fires after a scan has already spent what it was meant to save.
-3. A consumer acts on the returned state, and on `absent` applies its own pre-existing behaviour (§3.4). **No consumer turns an optional input into a prerequisite.**
+3. A consumer acts on the returned state, and on `absent` applies its own pre-existing behaviour (§3.4). **No consumer turns an optional input into a prerequisite.** A consumer whose gated input shipped with the consumer itself — so there is no pre-existing behaviour and nothing was ever optional — may map `absent` to a stop, and §3.4's table names each one and why.
 4. **Never restate this reference's rules** — cite the section number. A rule copied into a command is a rule that goes stale.

@@ -281,6 +281,9 @@ Fixed per-command labels, with three inferred exceptions:
 | `/create-prd` | prd-creation | pm |
 | `/update-prd` | prd-update | pm |
 | `/create-ard` | architecture | pa |
+| `/brd-intake` | brd-to-prd | pm |
+| `/brd-ground` | brd-to-prd | pa |
+| `/brd-split` | brd-to-prd | pm |
 | `/prompt` | **inferred** | **inferred** |
 | `/feedback` | **inferred** | **inferred** |
 

@@ -51,7 +51,7 @@ Where your code clones live — one directory, or a colon-separated list of them
 
 ### `DOCS_PATH`
 
-A **read-only** clone of your shipped product documentation. It matters most to `/document`, which prefers it as a docs-repo discovery hint, and it also grounds seven other authoring commands against what is already published, so a new draft does not contradict or duplicate an existing page. The plugin never writes to `DOCS_PATH`; every miss — unset, missing, or no markdown found — is a silent, non-blocking skip.
+A **read-only** clone of your shipped product documentation. It matters most to `/document`, which prefers it as a docs-repo discovery hint, and it also grounds nine other commands against what is already published, so a new draft does not contradict or duplicate an existing page. The plugin never writes to `DOCS_PATH`; every miss — unset, missing, or no markdown found — is a silent, non-blocking skip.
 
 ### `GIT_USER_INITIALS`
 

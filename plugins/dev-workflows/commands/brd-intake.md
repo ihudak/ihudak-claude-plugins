@@ -197,11 +197,11 @@ this run wrote under `<BRD-dir>` (`brd/source/**`, `brd/brd-inventory.md`, `brd/
 count, the confirmed-defect count by class, and whether Phase 6 wrote seeds; emit its §4.1 outcome
 line in the final report.
 
-**`brd` is a new branch prefix**, alongside the six `phase-handoff.md` §2.9 already lists
-(`idea`/`prd`/`ard`/`spec`/`design`/`ready`) — a BRD is neither a PRD nor any of the other five, and
-reusing `prd` would collide with the eventual `prd/<BRD-KEY>-<slug>` branch `/create-prd --from-brd`
-opens against the same key once this BRD is PRD-eligible. See this run's final report for the
-concern this raises for `/brd-ground`'s `require-on-main` gate.
+`brd` is the branch prefix `phase-handoff.md` §2.9 lists as shared by the three `/brd-*`
+commands (the way `prd` is shared by `/create-prd` and `/update-prd`) — a BRD is neither a PRD nor
+any of the other five prefixes, and reusing `prd` would collide with the eventual
+`prd/<BRD-KEY>-<slug>` branch `/create-prd --from-brd` opens against the same key once this BRD is
+PRD-eligible.
 
 ---
 

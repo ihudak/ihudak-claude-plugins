@@ -25,7 +25,7 @@ loop: a **run-start** flush and branch disposition (`specs-preflight`, §3) and 
    fire; a `cd` would corrupt their git state.
 2. **Bounded paths.** Only §2.1 paths are ever staged. `git add -A` is never
    issued at repository scope — always `git add -A -- <literal paths>`.
-3. **Bounded branches.** Only branches matching `^(idea|prd|ard|spec|design|ready)/`
+3. **Bounded branches.** Only branches matching `^(idea|prd|ard|spec|design|ready|brd)/`
    are the plugin's to switch away from or delete (§2.2).
 4. **Never destructive.** No `push --force`, no `push -f`, no `branch -D`, no
    `merge`, no `rebase`, no `reset`, and never delete an `index.lock`.
@@ -78,7 +78,7 @@ do not justify it by claiming plain `git add` cannot stage the deletion.
 ### 2.2 Branches
 
 **The plugin manages only branches it created.** A branch is plugin-owned when
-its name matches `^(idea|prd|ard|spec|design|ready)/`.
+its name matches `^(idea|prd|ard|spec|design|ready|brd)/`.
 
 Any other **named** branch — the user's own work, a hand-made branch — is left
 alone and never switched away from (§3.3 G2). The run's artifacts are still
@@ -171,7 +171,7 @@ First matching row applies.
 | B4 | Plugin branch, unmerged, branch key matches **no** key in the set, or the set is empty (keyless run) | Switch to default, `git -C "$SPECS_PATH" pull --ff-only`. **Leave the branch and its pull request alone.** Report the branch name. |
 
 **Branch key extraction:** strip the `idea/`, `prd/`, `ard/`, `spec/`, `design/`,
-or `ready/` prefix, then take the leading token matching
+`ready/`, or `brd/` prefix, then take the leading token matching
 `[A-Z][A-Z0-9_]*-[0-9]+`. No match → treat as matching no key in the set (B4).
 
 **No auto-merge, deliberately.** No row above creates a merge commit or merges a
@@ -269,7 +269,7 @@ than one invocation.
 
 ### 4.1 Where the commit lands
 
-- **A command that opened a specs-repo branch at handoff** (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`, `/implement`, `/ready`) — on that `idea|prd|ard|spec|design|ready/*` branch, so the push updates the pull request already open. Two commits on one branch: the deliverable, then the artifacts.
+- **A command that opened a specs-repo branch at handoff** (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`, `/implement`, `/ready`, `/brd-intake`) — on that `idea|prd|ard|spec|design|ready|brd/*` branch, so the push updates the pull request already open. Two commits on one branch: the deliverable, then the artifacts.
 - **The same command when the user declined git at handoff** ("just write the
   files — I'll handle git") — the repo is still on the default branch and the
   deliverable is uncommitted there. `commit-artifacts` still runs and commits

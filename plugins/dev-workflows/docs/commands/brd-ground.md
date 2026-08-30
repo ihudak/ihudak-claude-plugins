@@ -88,6 +88,14 @@ Phase 11, for session lessons-learned.
 - **`--rebaseline` when code has moved.** If a repository's `HEAD` has moved since the last
   recorded pin and `--rebaseline` was not given, the run stops with `BRD_GROUND_NEEDS_REBASELINE`
   rather than silently grounding against a snapshot the last package never saw.
+- **A repository that stays put for the whole run.** If a resolved repository's `HEAD` moves
+  *after* Phase 3 pinned it, the verifier refuses rather than verifying and the run stops with
+  `BRD_GROUND_VERIFY_COMMIT_MISMATCH`, naming the finding, the pinned commit, and the `HEAD` it
+  actually found. The remedy is a re-run from a clean tree **with `--rebaseline`**: Phase 3 appended
+  that repository's pin to `grounding/baselines.md` before dispatching anything, so a plain re-run
+  would find a recorded pin its `HEAD` no longer matches and stop again, this time with
+  `BRD_GROUND_NEEDS_REBASELINE`. The same applies to a `code-grounder` dispatch that reports a
+  moved `HEAD` in Phase 5.
 
 ## What it produces
 
@@ -150,10 +158,13 @@ Ground a synthetic customer BRD once its intake pull request has merged:
 /dev-workflows:brd-ground EPIC-008
 ```
 
-The run resolves the BRD, gates its intake artifacts on main, resolves the repositories in scope,
-pins and proves each one clean, grounds every `[BR#n]` claim against code and any exported design
-frames, independently re-derives every finding on Opus, assigns horizons against any declared
-prerequisites, writes the findings, and offers to branch, commit, push, and open a pull request.
+The run resolves the BRD, gates its intake artifacts on main, resolves the repositories in scope
+and the documentation root, pins and proves each repository clean, grounds every `[BR#n]` claim
+against code and any exported design frames, independently re-derives every finding on Opus,
+assigns horizons against any declared prerequisites, writes the findings, and offers to branch,
+commit, push, and open a pull request. Its next-step offer branches on level: a BRD that owns its
+source document is offered [`/brd-split`](brd-split.md); a **slice** is not, because a slice is not
+itself sliceable — grounding is where a slice's route ends today.
 
 ## See also
 

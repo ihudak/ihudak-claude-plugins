@@ -326,7 +326,9 @@ different system is exactly what `NOT-PROVABLE` exists to say, not a reason to p
 
 Handle `status`: `OK` → collect `findings`. `INPUT_MISSING` / `REPO_MISSING` → should not occur
 (Phases 0/1/3 already checked); if it does, stop and name the gap. `COMMIT_MISMATCH` → the tree
-moved between Phase 3 and this dispatch — stop and re-run from Phase 3.
+moved between Phase 3 and this dispatch — stop and re-run from Phase 3 **with `--rebaseline`**, for
+the reason Phase 7's `BRD_GROUND_VERIFY_COMMIT_MISMATCH` row states: this run already recorded a
+pin, so a plain re-run stops with `BRD_GROUND_NEEDS_REBASELINE`.
 
 **Renumber into one BRD-wide sequence.** Each `code-grounder` instance numbers its own output from
 `CG#1` (its own contract, per dispatch) — this is per-instance, not global. Merge every batch's
@@ -422,9 +424,8 @@ agent's to enforce on itself (its Process step 2 is explicit about it); this orc
 only to hand over the full, correctly-shaped record, never to withhold a field the contract lists.
 
 **Which anchor fields go with which finding is that contract's own Inputs table, not this
-command's** — a `[CG#n]` and a class-4 `[DG#n]` rest on code and carry `repo_path` + `commit`; a
-class-1/2/3 `[DG#n]` rests on the frame set alone (`grounding-format.md` §6) and carries
-`frame_set_dir` instead. Two consequences for this dispatch:
+command's** — read it there (`agents/grounding-verifier.md`, Inputs), never from a copy kept here
+that could drift from it. Two consequences for this dispatch:
 
 - **Always pass `class` for a `[DG#n]`.** The agent's row selection is fail-closed — a `[DG#n]`
   arriving without a readable `class` is treated as resting on code and refused for want of a
@@ -458,9 +459,13 @@ finding carrying no outcome is not evidence and blocks `/brd-split` for as long 
 
 - **`OK`** — act on `outcome`, below.
 - **`COMMIT_MISMATCH`** — the repository moved between Phase 3's pin and this dispatch. Stop:
-  `BRD_GROUND_VERIFY_COMMIT_MISMATCH: <finding-id> could not be verified — <repo> is at <resolved-HEAD>, not the pinned <commit>. Re-run /dev-workflows:brd-ground from a clean tree.`
+  `BRD_GROUND_VERIFY_COMMIT_MISMATCH: <finding-id> could not be verified — <repo> is at <resolved-HEAD>, not the pinned <commit>. Re-run '/dev-workflows:brd-ground <BRD-KEY> --rebaseline' from a clean tree.`
   The same repair as Phase 5's own `COMMIT_MISMATCH`: re-run from Phase 3, which re-pins and
-  re-grounds.
+  re-grounds. **`--rebaseline` is part of the remedy, not an optional extra**, and the message says
+  so: Phase 3 already appended this repository's pin to `grounding/baselines.md` before dispatching
+  anything, so the re-run finds a recorded pin its `HEAD` no longer matches and stops with
+  `BRD_GROUND_NEEDS_REBASELINE` unless the flag is given. "Re-run from a clean tree" on its own
+  would send the operator straight into that second stop.
 - **`INPUT_MISSING`** — this orchestrator's dispatch was malformed (most often a `[DG#n]` sent
   without its `class` or its `frame_set_dir`). Stop, quoting the field and row the agent named, and
   fire `emit-block` per Phase 11's capture-at-block invariant — a dispatch this command controls
@@ -590,8 +595,10 @@ reference gap, `emit-block` (`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission
 that halt before escalating. None of Phase 0's stops qualify — a missing key, an unresolved BRD,
 an inventory or ledger not yet on main (`BRD_GROUND_NEEDS_INTAKE` or, for a slice,
 `BRD_GROUND_NEEDS_SPLIT`), and an unset `$REPOS_PATH` are environment / sequencing halts, never a
-plugin capability gap. `BRD_GROUND_DIRTY_TREE` and `BRD_GROUND_NEEDS_REBASELINE` are repository
-state, not a plugin gap, either.
+plugin capability gap. `BRD_GROUND_DIRTY_TREE`, `BRD_GROUND_NEEDS_REBASELINE`, and Phase 7's
+`BRD_GROUND_VERIFY_COMMIT_MISMATCH` are repository state, not a plugin gap, either — unlike Phase
+7's `INPUT_MISSING`, which is this command getting its own dispatch contract wrong and does fire
+`emit-block`.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model:
    `<detection_model>`) with a compact handoff: command `/brd-ground`; what was produced (baselines,

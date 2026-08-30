@@ -832,6 +832,39 @@ both appear in one picture; `README.md`; `CHANGELOG.md`; the marketplace descrip
 
 ---
 
+## 13A. Known open defect — unconditional merge clauses outside the route
+
+Recorded 2026-08-30, after increment 2 merged, so it does not depend on anyone's memory.
+
+`references/next-phase-offer.md` states that a next-step offer's merge clause **is never
+unconditional**, and prescribes a `<merge-clause>` placeholder resolved from the run's own
+`phase-handoff.md` §4.1 outcome. Ruling R20 scoped that rule to the six `/brd-*` commands rather
+than converting the pre-existing consumers, to keep a 29-commit branch out of commands no reviewer
+on it had walked.
+
+**Three offers outside the route still hardcode the unconditional form:**
+
+| File | Offers |
+|---|---|
+| `commands/create-ard.md` | the PRD-level and Epic-level next-step arrays (~lines 151–152) |
+| `commands/specify.md` | the `### Next step` recommendation (~line 540) |
+
+Each promises "once the pull request above is merged" on paths where no pull request exists — a
+declined handoff, a push failure, a nothing-to-commit run. That is the same anatomy as the eleven
+defects increment 2 catalogued: **an offer naming something that does not exist in the state it
+reports.**
+
+`check-docs.sh` check 11 is family-scoped and **cannot see them**, so nothing will catch further
+drift. Two things are therefore owed: convert the three offers, and decide whether check 11's
+scope widens to the whole plugin. Widening is the honest end state — the rule is about
+truthfulness, not about one route — but it requires walking every affected command, which is why
+it was not bolted onto increment 2.
+
+Note that `/create-ard` and `/specify` are also two of the three commands increment 3 amends with
+`--from-brd`. Fixing the offers first means each file is touched once, already correct.
+
+---
+
 ## 14. Non-goals
 
 - **Live customer interviews.** The customer answers via the review package, not a call.

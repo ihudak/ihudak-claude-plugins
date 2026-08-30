@@ -893,7 +893,9 @@ changed, why, which ids, and what still needs a human:
   id shapes the package put to it, so an escalated `[SR#n]` the customer passed over is not lost
   behind the `[C]` questions that were; every candidate not frozen;
   every correction deferred or refused; every code and design challenge, with `/brd-ground` as the
-  fix; every `will-change` finding needing a rebaseline; every dependent recorded-not-written; every
+  fix; every `will-change` finding needing a rebaseline; every dependent recorded-not-written, with a
+  re-run of `/dev-workflows:brd-reconcile <BRD-KEY> @<review-file>` on this same review as the fix,
+  once that dependent's register is on the default branch; every
   `needs-a-human` prose hit; and every requirement the customer asked for that no `[BR#n]` covers.
 
 **A second reconciliation on the same day appends, and never overwrites.** Where
@@ -942,7 +944,7 @@ it does not exist yet**, so it is not offered. Neither is `--from-brd` on `/crea
 honest offer is the state this run actually leaves behind:
 
 ```
-choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Work another round — /dev-workflows:brd-interview <BRD-KEY>, where this run reopened a decision or left a question askable", "Package again — /dev-workflows:brd-package <BRD-KEY> <merge-clause>, where questions remain for the customer", "Re-ground a moved claim — /dev-workflows:brd-ground <BRD-KEY> --rebaseline <merge-clause>", "Reconcile another BRD or slice", "Other… (describe)"]
+choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Work another round — /dev-workflows:brd-interview <BRD-KEY>, where this run reopened a decision or left a question askable", "Package again — /dev-workflows:brd-package <BRD-KEY> <merge-clause>, where questions remain for the customer", "Re-ground a moved claim — /dev-workflows:brd-ground <BRD-KEY> --rebaseline <merge-clause>", "Sweep a dependent this run could only record — /dev-workflows:brd-reconcile <BRD-KEY> @<review-file> on this same review, once that dependent's register is on the default branch", "Reconcile another BRD or slice", "Other… (describe)"]
 ```
 
 **No option carries a `(Recommended)` marker, and that omission is deliberate**, per the
@@ -953,6 +955,12 @@ into a conditional marker the orchestrator would then have to evaluate. **Each o
 condition in its own text**, which is what keeps the list honourable verbatim: an operator whose run
 reopened nothing reads the second option and sees that it does not apply, rather than being offered a
 run that would report there is nothing new to ask.
+
+**The dependent-sweep option names its own wait, and deliberately not `<merge-clause>`.** What it
+waits on is the *dependent's* register reaching the default branch, while the placeholder
+`${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` defines resolves from **this** run's own
+`Phase handoff:` outcome line — a different merge, which is why the condition is written in the
+option's own text like every other one in the list.
 
 Say plainly what remains, per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — names only,
 never behaviour a command of its own owns: a `[C]` the review did not answer keeps its round open and

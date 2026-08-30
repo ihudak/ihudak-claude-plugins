@@ -644,7 +644,10 @@ imply this BRD is unfinished when it is not.
 `<merge-clause>` in that list is the placeholder `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`
 resolves from this run's own `Phase handoff:` outcome line; it is never written as an unconditional
 "once the pull request above is merged", because the no-new-round path reaches the handoff with
-nothing to commit and opens no pull request.
+nothing to commit and opens no pull request. **The other two lists name
+`/dev-workflows:brd-ground <BRD-KEY>` with no clause at all, and that asymmetry is deliberate:** that
+command gates on `coverage-ledger.md` (`commands/brd-ground.md` Phase 0 step 6), which this run never
+writes, so no handoff of this run's can hold it up and there is no wait to state.
 
 Say plainly what remains, per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — names only,
 never behaviour a command of its own owns: a round still holding a `[C]` stays open, because the

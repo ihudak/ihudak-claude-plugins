@@ -725,7 +725,16 @@ by testing that the branch's prefix is the caller's, so an unlisted value drops 
 branches into row C, whose repair offer re-grounds the session on the un-amended copy. Reusing
 `prd` is not an option — it would collide with `/create-prd --from-brd`'s branch on the same key.
 
-**Reused unchanged:** `specs-repo-git.md`, `read-only-repos.md`,
+`specs-repo-git.md` also needs `brd` — it carries its own independent copies of the same
+six-prefix regex (§1.3, §2.2's plugin-owned-branch test, §3.3's G2 guard, and §3.5's branch-key
+extraction that the B1–B4 disposition table depends on), plus a command list in §4.1. Without it,
+`specs-preflight` cannot tell a `brd/<KEY>-<slug>` branch apart from an ordinary user branch: G2's
+"leave it, stay on it" happens to produce the same outcome as B3 for a same-key resume, but a later
+run for a *different* BRD key would stay parked on the stale branch under G2 rather than switching
+to default under B4 — a real, if secondary, misbehavior distinct from `phase-handoff.md`'s row B/C
+resume-time bug.
+
+**Reused unchanged:** `read-only-repos.md`,
 `model-routing`, `grilling-technique.md`, `escalation-rules.md`, `prd-format.md`,
 `ard-format.md`, `specification-format.md`, `prose-formatting.md`, `finding-triage.md`,
 `cost-emission.md`, `feedback-emission.md`.

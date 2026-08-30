@@ -7,9 +7,10 @@ ledger where every requirement starts `unallocated`.
 ## Who runs it
 
 `/brd-intake` runs in the [pm](../roles-and-phases.md#pm--product-management) role, cost-attribution
-phase `brd-to-prd` — the phase shared by all three commands of the BRD-to-PRD route: `/brd-intake`
-(pm), `/brd-ground` (pa), and `/brd-split` (pm), the way `/idea` and `/create-prd` share
-`prd-creation`.
+phase `brd-to-prd` — the phase shared by all three commands of the BRD-to-PRD route (`/brd-intake`,
+`/brd-ground`, `/brd-split`), the way `/idea` and `/create-prd` share `prd-creation`. Only
+`/brd-intake` has landed so far; the other two will carry their own role and cost-attribution row
+once they do.
 
 ## Synopsis
 
@@ -22,8 +23,9 @@ phase `brd-to-prd` — the phase shared by all three commands of the BRD-to-PRD 
   tracker.
 - **`@<brd-file>`** (mandatory) — the customer's source document. Must already be markdown — a PDF,
   a Word document, or a slide deck is rejected rather than converted.
-- **`[--sort-existing <dir>]`** (optional) — migrate an already-hand-written package at `<dir>` into
-  seed files, instead of (or alongside) a fresh extraction.
+- **`[--sort-existing <dir>]`** (optional) — additionally migrate an already-hand-written package
+  at `<dir>` into seed files. The source is still required and still gated (Phase 0) — this never
+  replaces the extraction, it only adds Phase 6 on top of it.
 
 ## How it runs
 
@@ -84,9 +86,9 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   itself. `EMPTY` (no identifiable requirement) short-circuits Phase 4 and writes an empty ledger;
   `NOT_FOUND` stops the run and surfaces the agent's exact message.
 - **Phase 4 — interactive defect confirmation**, not an agent gate: every `defect_candidates` entry
-  is walked one class at a time (`ambiguity`, `conflict`, `untestable`, `unsourced`, `duplicate`,
-  `scope-leak`) via `AskUserQuestion`, and only a confirmed candidate is assigned a `[DEF#n]` id. A
-  rejected candidate is dropped, not recorded.
+  is walked one class at a time, in the fixed order [`brd-format.md`](../../references/brd-format.md)
+  §3 lists its six classes, via `AskUserQuestion`, and only a confirmed candidate is assigned a
+  `[DEF#n]` id. A rejected candidate is dropped, not recorded.
 - **Phase 5 — the ledger gate downstream.** `/brd-intake` itself never blocks on the ledger — it
   only ever writes `unallocated` rows. The gate that gates on them (no `unallocated` row may
   survive) belongs to `/brd-split`, a later command.
@@ -96,7 +98,7 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
 Intake a synthetic customer BRD for a new BRD key:
 
 ```
-/dev-workflows:brd-intake ACME-BRD-001 @customer-brd.md
+/dev-workflows:brd-intake ACME-001 @customer-brd.md
 ```
 
 The run resolves or creates the BRD folder, copies `customer-brd.md` verbatim into `brd/source/`,

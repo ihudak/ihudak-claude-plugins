@@ -24,7 +24,7 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>]`
 1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate it with `brd-key-valid`
    (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1 — shape only, `^[A-Z][A-Z0-9_]*(-\d+)+$`,
    never checked against a tracker). If absent or invalid, **stop gracefully**:
-   `BRD_INTAKE_NEEDS_KEY: /brd-intake needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. ACME-BRD-001) — pick a short stable identifier for this business requirements document, then re-run '/dev-workflows:brd-intake <KEY> @<brd-file>'.`
+   `BRD_INTAKE_NEEDS_KEY: /brd-intake needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. ACME-001) — pick a short stable identifier for this business requirements document, then re-run '/dev-workflows:brd-intake <KEY> @<brd-file>'.`
 2. **`@<brd-file>` (mandatory).** The customer's source file argument. If absent, **stop**:
    `BRD_INTAKE_NEEDS_SOURCE: /brd-intake needs the customer's source as an @-argument — re-run '/dev-workflows:brd-intake <KEY> @<path-to-brd>'.`
 3. **Reject a PDF — do not convert it.** If the resolved source does not end in `.md`/`.markdown`
@@ -137,9 +137,8 @@ entry the agent returned is a hypothesis, never a decision (`agents/brd-reader.m
 rejecting each one, against the customer or the delivery team, is this phase's job alone.
 
 Group the carried-forward candidates by class and walk them **one class at a time**, in the fixed
-order `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §3 lists them (`ambiguity`, `conflict`,
-`untestable`, `unsourced`, `duplicate`, `scope-leak`). Within a class, confirm each candidate
-individually via `AskUserQuestion`:
+order `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §3 lists its six classes. Within a class,
+confirm each candidate individually via `AskUserQuestion`:
 
 ```
 choices: ["Confirm as written (Recommended)", "Confirm with an edited reason", "Reject — not a defect", "Cancel", "Other… (describe)"]
@@ -208,20 +207,22 @@ PRD-eligible.
 ## Phase 8 — Next steps
 
 ```
-choices: ["Ground the inventory against code and design — /dev-workflows:brd-ground <BRD-KEY> (PA) (Recommended)", "Stop here", "Other… (describe)"]
+choices: ["Ground the inventory against code and design once it lands — /dev-workflows:brd-ground <BRD-KEY> is not yet available; a later task in this increment adds it (Recommended)", "Stop here", "Other… (describe)"]
 ```
 
-`/dev-workflows:brd-ground <BRD-KEY>` (PA) grounds every `[BR#n]` against the mounted implementation
-and design repos; it will not start reading this BRD's artifacts until the pull request above is
-merged to the specs repo's main. Guidance only — never auto-invokes another command. Per
-`${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`.
+`/dev-workflows:brd-ground <BRD-KEY>` will ground every `[BR#n]` against the mounted implementation
+and design repos, once it lands — it has not shipped yet, a later task in this increment adds it —
+and, once it does, it will not start reading this BRD's artifacts until the pull request above is
+merged to the specs repo's main. Guidance only — never auto-invokes another command, and never
+asserts a role or cost-attribution row for a command that has not landed; `/brd-ground` carries its
+own once it exists. Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`.
 
 ### Context hygiene
 
 Per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`, the resume pointer is written in the
-terminal cost phase (Phase 9), after the cost entry and before the commit step. Continuing to
-`/dev-workflows:brd-ground <BRD-KEY>` yourself, even as the same person? → run **`/clear`** for a
-clean slate. Guidance only — nothing is auto-run.
+terminal cost phase (Phase 9), after the cost entry and before the commit step. Continuing this
+route yourself once `/dev-workflows:brd-ground <BRD-KEY>` lands, even as the same person? → run
+**`/clear`** for a clean slate. Guidance only — nothing is auto-run.
 
 ---
 

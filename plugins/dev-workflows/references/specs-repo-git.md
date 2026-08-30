@@ -348,7 +348,7 @@ If ignored: nothing is lost — your files stay uncommitted, and this run's
 
 Found:    <SPECS_PATH> is on branch `<branch>`, which is neither the default
           branch (`<default>`) nor a plugin branch (idea/ prd/ ard/ spec/
-          design/ ready/).
+          design/ ready/ brd/).
 Not done: the preflight did not switch away from it — the plugin manages only
           branches it created. This run's artifacts WILL be committed, on
           `<branch>`.

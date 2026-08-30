@@ -72,7 +72,9 @@ Batched: three variations on one contract, and neither carries Task 2's refusal 
 - [ ] **Step 1: `/create-ard`** — reads `ard-seed.md` plus the architecture-altitude findings; `[CG#n]`/`[DG#n]` seed the ARD's grounding-findings section; architecture decisions seed `AD#N`; each consumed item marked `consumed_by: ARD`.
 - [ ] **Step 2: `/specify`** — reads `spec-seed.md` including the derivation matrix; each consumed item marked `consumed_by: specification`.
 - [ ] **Step 3: Verify the `consumed_by` loop closes.** §7.3 says everything still `none` is reported. Say which command reports it and when — if nothing does, that is a finding, not an omission to paper over.
-- [ ] **Step 4: Docs pages from the commands**, gate triple, commit each separately.
+- [ ] **Step 4: Retire the not-yet-shipped claims.** After this task all three commands ship `--from-brd`, so **six sentences in six files become false**: `commands/brd-reconcile.md:942`, `commands/brd-split.md:491` and `:539`, `commands/brd-package.md:699`, `commands/brd-intake.md:270`, and `references/next-phase-offer.md:109`. Locate by phrase, not line number. **`brd-reconcile.md` Phase 14 matters most** — it is the route's terminal command, and it still points at nothing.
+- [ ] **Step 5: `/update-prd` must preserve the three new frontmatter fields** (`brd_key`, `brd_parent`, `depends_on`) that `/create-prd --from-brd` writes. It has no such instruction today, so a refresh would silently drop a PRD's recorded prerequisites — which `/epics` and `/ready` read.
+- [ ] **Step 6: Docs pages from the commands**, gate triple, commit each separately.
 
 ---
 

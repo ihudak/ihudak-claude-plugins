@@ -38,6 +38,7 @@ declaration.
 | Phase 2 — propose slices | runs | skipped |
 | Phase 3 — key and nest children | runs | skipped — this is the child creation the one-level cap forbids |
 | Phase 4 — walk the ledger | runs, **five** resolutions | runs, **four** — no `covered-by` |
+| Phase 4.5 — resolve standing empty children | runs | skipped — a slice has no children |
 | `rejected: [DEF#n]` resolves in | this BRD's own defect log | the **parent's** log, one hop ([`brd-format.md`](../../references/brd-format.md) §4) |
 | Phase 7 — next steps | ground each new child | stop; this slice's allocation is complete |
 | Announced? | no — the ordinary case | yes, `BRD_SPLIT_ON_SLICE`, a **notice, not a stop**, at Phase 0 and again in the final report |
@@ -57,14 +58,19 @@ flowchart TD
     p1 --> p2["Phase 2 — Propose slices"]
     p2 --> p3["Phase 3 — Key and nest each confirmed slice"]
     p3 --> p4["Phase 4 — Walk the ledger"]
-    p4 --> p5["Phase 5 — Write slices.md"]
+    p4 --> p45["Phase 4.5 — Resolve standing empty children"]
+    p45 --> p5["Phase 5 — Write slices.md"]
     p5 --> p6["Phase 6 — Handoff"]
     p6 --> p7["Phase 7 — Next steps"]
     p7 --> p8["Phase 8 — Session maintenance, feedback & cost"]
 ```
 
-A BRD whose ledger has no `unallocated` row when Phase 0 checks it is a no-op: the run skips
-straight from Phase 0 to Phase 6, which reports nothing to commit. `impl-maintenance` runs in
+A BRD whose ledger has no `unallocated` row when Phase 0 checks it is a no-op **only if it also
+holds no child standing empty**: the run then skips straight from Phase 0 to Phase 6, which reports
+nothing to commit. Holding one, it is not a no-op — Phase 0 skips the walk it has no rows for and
+runs Phase 4.5 alone, which is what keeps a child kept empty by an earlier run reachable by the one
+command that can remove it. Deciding the no-op on the ledger alone made that child unreachable in
+every run after the one that created it. `impl-maintenance` runs in
 Phase 8 for session lessons-learned; no other subagent is dispatched — every finding this command
 reads was already independently verified by `/brd-ground`'s own agents.
 
@@ -128,7 +134,7 @@ so no child folder is created.
   row records **what that BRD decided to do with it**
   ([`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §3). A slice whose
   every row ends up resolved elsewhere is either removed or kept empty with a recorded reason
-  (Phase 4).
+  (Phase 4.5).
 
 Behind Phase 6's consent choice, these are committed, pushed, and a pull request opened against
 the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch prefix — skipped
@@ -149,11 +155,16 @@ with a "nothing to commit" report on the no-op path.
   superseded by another `[BR#n]` — and the same four without `covered-by` in `allocate-only`. `covered-here` is the resolution that makes the whole BRD PRD-eligible, and
   it is what an unsplit BRD reaches for every row — without it, a BRD nobody splits could never
   clear this gate.
-- **Phase 4 — no child left claiming nothing** (`split_mode: full` only). A slice whose every proposed row ends the walk
-  resolved elsewhere leaves its child folder claiming no requirement; the run resolves this before
-  moving on, either removing that folder or keeping it with a recorded reason.
-- **No-op on a fully-allocated ledger.** Re-running `/brd-split` once every row already has a
-  disposition changes nothing; the run reports the ledger line and stops.
+- **Phase 4.5 — no child left standing while claiming nothing** (`split_mode: full` only). The set is
+  **every** child standing now, not only the ones this run created: a slice whose every proposed row
+  ended the walk resolved elsewhere, and any child an earlier run left empty. A child with no
+  recorded reason is offered removal (recommended); one already carrying a reason is offered keeping
+  it (recommended), removing it now, or updating the reason — so a deliberate decision is not
+  re-litigated, and removal stays reachable. The phase never gives a child rows: `covered-by` is
+  Phase 4's, and only against a row still `unallocated`.
+- **No-op on a fully-allocated ledger, with one exception.** Re-running `/brd-split` once every row
+  already has a disposition changes nothing **unless** a child is standing empty, in which case
+  Phase 4.5 still runs. Otherwise the run reports the ledger line and stops.
 
 ## Example
 

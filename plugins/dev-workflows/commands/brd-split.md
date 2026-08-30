@@ -95,7 +95,7 @@ resolves from the folder itself:
      would be the loop, so name the upstream fix instead, by the `split_mode` step 5 already
      resolved — `full` means this BRD owns its source document, `allocate-only` means it is a slice:
      `BRD_SPLIT_EMPTY_INVENTORY (split_mode: full): <BRD-KEY>'s inventory holds no [BR#n] row, so there is nothing to ground and nothing to allocate — do not run /dev-workflows:brd-ground, which stops on the same emptiness. Re-run '/dev-workflows:brd-intake <BRD-KEY> @<brd-file>' over this same folder with a source whose requirements brd-reader can identify, and merge that pull request; if the source genuinely states no requirement, this BRD has nothing for the route to carry.`
-     `BRD_SPLIT_EMPTY_INVENTORY (split_mode: allocate-only): <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to allocate. Do not run /dev-workflows:brd-ground, and do not run /dev-workflows:brd-intake on a slice; it has no source document of its own. Either re-run '/dev-workflows:brd-split <PARENT-KEY>' and allocate rows to this slice, or remove the empty slice — that run offers the removal itself.`
+     `BRD_SPLIT_EMPTY_INVENTORY (split_mode: allocate-only): <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to allocate. Do not run /dev-workflows:brd-ground, and do not run /dev-workflows:brd-intake on a slice; it has no source document of its own. Re-run '/dev-workflows:brd-split <PARENT-KEY>': it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason, and it will offer covered-by against it for any row on the parent's ledger that is still unallocated. If the parent's ledger has no unallocated row left, removal is the only thing that can change this slice's state — /brd-split never re-allocates a row that already carries a fate.`
    `unmanaged` → proceed as before this feature.
 7. **Gate on verification.** Every `[CG#n]`/`[DG#n]` finding carries a verifier `outcome` (one of
    the four in `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §8 — `agree`, `extend`,
@@ -110,19 +110,42 @@ resolves from the folder itself:
    *this* ledger; what a child did with a row this BRD already delegated cannot make that row
    `unallocated` again, and the remedy for a child that is not building it lives in the child's own
    walk, not here. Child ledgers are read once, in the Final Report, and only to count the line
-   (`coverage-ledger-format.md` §6.1). **Zero rows are `unallocated`** → this
-   run is a no-op (§4): nothing in Phases 2–5 has anything left to do, so skip straight to Phase 6
-   (Handoff), which will report nothing to commit, and the Final Report's ledger line below. **The
-   no-op path is mode-independent** — it is decided by the ledger, not by the level, so a
-   fully-allocated slice reaches it exactly as a fully-allocated parent does; `allocate-only`
-   simply had two fewer phases to skip. The step 5 notice is still emitted and still reported.
+   (`coverage-ledger-format.md` §6.1). **Zero rows are `unallocated`** → set `unallocated_zero: true`.
+
+   **That is only half the no-op test, and the missing half was a dead end.** A run is a no-op only
+   when there is nothing left for *any* phase to do, and Phase 4.5 has work of its own that the
+   ledger cannot see: a child left standing while claiming nothing. Deciding the no-op on the ledger
+   alone made that child unreachable — the ledger of a parent whose walk completed has zero
+   `unallocated` rows **by construction**, so every later run no-op'd, Phase 4.5 never ran, and the
+   only command that can remove an empty child never offered to. Three stops elsewhere on this route
+   name this command as the fix for exactly that child, so the no-op has to account for it. The
+   second half needs step 9's enumeration, so **the no-op decision is taken at the end of step 9**,
+   never here.
+
+   **The no-op path stays mode-independent** — both halves are decided by the tree and the ledger,
+   not by the level, so a fully-allocated slice reaches it exactly as a fully-allocated parent does;
+   `allocate-only` has no children and therefore no second half to fail (step 9 is skipped there),
+   and it simply had two fewer phases to skip. The step 5 notice is still emitted and still
+   reported.
 9. **Enumerate existing children — `split_mode: full` only.** In `allocate-only` mode there are no
    children and none can be created, so this step is skipped and `covered-by` is not offered in
    Phase 4. In `full` mode: list every immediate subdirectory of `<BRD-dir>` whose name
    matches `<KEY>{-|_}<slug>` (`brd-addressing.md` §2 step 1), excluding `brd/`, `grounding/`, and
    `dev-workflows/` — none of those is ever a BRD folder. Each match is a child a previous
    `/brd-split` run already created, nested per §3, and remains a valid `covered-by` target in
-   Phase 4 even when this run proposes no new slice of its own.
+   Phase 4 even when this run proposes no new slice of its own. **Read each one's `brd-link.md`
+   `claims:` list**, and mark every match whose list is empty as a **standing empty child**, noting
+   whether it carries a `reason:` field — Phase 4.5 resolves exactly this set, and it is the set the
+   no-op test below needs.
+
+   **Take the no-op decision here, from both halves.** `unallocated_zero` (step 8) **and** no
+   standing empty child → this run is a no-op (§4): nothing in Phases 2–5 and nothing in Phase 4.5
+   has anything left to do, so skip straight to Phase 6 (Handoff), which will report nothing to
+   commit, and the Final Report's ledger line. `unallocated_zero` **but at least one standing empty
+   child** → **not a no-op**: skip Phases 2, 3 and 4 (there is no row to walk and no slice to
+   propose) and run **Phase 4.5 alone**, then Phase 5 and Phase 6 as usual. This is the one path on
+   which Phase 4.5 runs without a walk in front of it, and it exists so that a child kept empty by a
+   deliberate decision is still reachable by the command every other stop on this route names.
 
 ---
 
@@ -330,28 +353,56 @@ the parent's throughout — and a ledger row an earlier run already moved off `u
 pre-existing child is left exactly as it stands: this step adds and removes rows, and never
 rewrites a disposition another run recorded.
 
-**Then check for a child left claiming nothing** (`split_mode: full` only, for the same reason).
-A slice keyed and
-folder-created in Phase 3 whose every proposed `[BR#n]` row ended this walk resolved to something
-other than `covered-by: <that child>` — rejected, deferred, superseded, or reassigned to a
-different child — leaves that child's `brd-link.md` `claims:` list empty: a folder for a slice that
-in the end claims no requirement — and, after the re-derivation above, an empty
-`brd/brd-inventory.md` and an empty `coverage-ledger.md` beside it. This is distinct from the
-Phase 3 cancelled-mid-keying case (that slice never got a folder at all); here the folder and its
-three files already exist. For every child
-created this run whose `claims:` list is empty once the walk above finishes, resolve it before
-moving on:
+---
+
+## Phase 4.5 — Resolve every standing empty child
+
+`split_mode: full` only — `allocate-only` has no children and can create none.
+
+**A child claiming nothing is a folder nothing on this route can act on.** It has an empty
+`brd-link.md` `claims:` list and, beside it, an empty `brd/brd-inventory.md` and an empty
+`coverage-ledger.md`. `/brd-ground`, `/brd-split` and `/brd-interview` all stop on it, and all three
+of those stops name **this phase** as the fix, so this phase has to be reachable whenever such a
+child exists.
+
+**The set is every child standing now, not only the ones this run created.** Two things put a child
+in it: a slice keyed and folder-created in Phase 3 whose every proposed `[BR#n]` row ended this walk
+resolved to something other than `covered-by: <that child>` — rejected, deferred, superseded, or
+reassigned — and a child an *earlier* run left standing, which Phase 0 step 9 marked. **Scoping this
+to children created this run was a dead end**: an earlier run's kept-empty child was never in any
+later run's set, so the removal option existed only in the single run that created it and never
+again. (The Phase 3 cancelled-mid-keying case is distinct and is not in this set — that slice never
+got a folder at all.)
+
+**Two pickers, because a child kept by a decision is not the same as one nobody has looked at.**
+Read the child's `brd-link.md` for a `reason:` field:
+
+**No `reason:` recorded** — nobody has yet decided this folder should exist while claiming nothing:
 
 ```
 choices: ["Remove the empty child folder — it claims nothing (Recommended)", "Keep it, and record why (e.g. reserved for related future scope)", "Other… (describe)"]
 ```
 
-Removing deletes the folder Phase 3 created — `brd-link.md`, `brd/brd-inventory.md`, and
+**A `reason:` already recorded** — an earlier run asked this question and the operator answered it.
+Do not re-ask it as though it were open, and do not recommend undoing a decision on the strength of
+a state that decision deliberately created. Print the recorded reason verbatim beside the list:
+
+```
+choices: ["Keep it — the recorded reason still stands (Recommended)", "Remove it now — it claims nothing, and nothing on the route can act on it", "Update the recorded reason", "Other… (describe)"]
+```
+
+Removing deletes the child's folder — `brd-link.md`, `brd/brd-inventory.md`, and
 `coverage-ledger.md` with it — and drops it from any later run's Phase 0 step 9 enumeration;
-keeping it writes a one-line `reason:` field into its `brd-link.md` beside the empty `claims:`
-list, and leaves the empty inventory and empty ledger in place, so the folder is still a
+keeping it writes or leaves a one-line `reason:` field in its `brd-link.md` beside the empty
+`claims:` list, and leaves the empty inventory and empty ledger in place, so the folder is still a
 well-formed BRD rather than a half-built one. Either way, Phase 7's next-step recommendation never
 offers to ground a child still claiming nothing.
+
+**What this phase cannot do, said plainly so no stop promises it.** It does not give a child rows.
+`covered-by: <child>` is assigned in Phase 4's walk and only against a row that is `unallocated` on
+this BRD's ledger, and this command never re-allocates a row that already carries a fate. So on a
+parent whose ledger has no `unallocated` row left, removal — or keeping it, knowingly — is the whole
+of what this phase offers, and the three stops that name it say exactly that.
 
 ---
 
@@ -373,8 +424,12 @@ cause** and needs no separate rule: Phase 2 never ran, so it has no slice block 
 `slices.md` carries the Phase 0 step 5 notice as its "why" — this BRD is a slice, no child may be
 created below it — followed by its deferral blocks.
 
-Skipped entirely on the Phase 0 step 8 no-op path — nothing was walked, so there is nothing new to
-rationalize.
+Skipped entirely on the no-op path step 9 decides — nothing was walked, so there is nothing new to
+rationalize. **Not skipped on the Phase 4.5-only path**, where the ledger had no `unallocated` row
+but a standing empty child was resolved: a removal there takes a slice out of the tree, and a
+`slices.md` still listing it would be the stale-record failure this route fixes everywhere else. On
+that path this phase rewrites only what the removal changed — the removed slice's block goes, with a
+one-line note naming the run that removed it — and touches no other block.
 
 ---
 
@@ -392,19 +447,22 @@ in Phase 0, `deliverable_paths` = every file this run wrote, updated, or removed
 — **in `allocate-only` mode that is exactly two, this slice's own `coverage-ledger.md` and
 `slices.md`, because Phase 3 never ran** —
 (this BRD's own `coverage-ledger.md`, `slices.md`; in `full` mode additionally, for every slice
-still standing after Phase 4's
-empty-child check, its folder and all three of the files this run wrote into it — `brd-link.md`,
+still standing after Phase 4.5, its folder and all three of the files this run wrote into it — `brd-link.md`,
 `brd/brd-inventory.md`, and its own `coverage-ledger.md`, the two that `/brd-ground` will gate and
-read when the child re-enters the route; and, for a slice removed there as empty, that folder's
+read when the child re-enters the route; and, for a child Phase 4.5 removed as empty, that folder's
 deletion —
 §2.3's `-A` staging is what stages a removal, exactly as it does for `/idea`'s or `/update-prd`'s
-own deletions), `title:` — `<BRD-KEY> Split into child BRDs and allocate coverage` in `full` mode,
+own deletions — and it stages a Phase 4.5 removal on the Phase 4.5-only path the same way), `title:` — `<BRD-KEY> Split into child BRDs and allocate coverage` in `full` mode,
 `<BRD-KEY> Allocate slice coverage` in `allocate-only`, because a pull request titled "split" that
 created nothing would misdescribe itself — and `body_facts` = the run mode,
-the slice count and keys (`full` only), the walk's resolution tally by disposition, and whether this
-run was the Phase 0 step 8 no-op; emit its §4.1 outcome line in the final report. The no-op path reaches this
-phase with nothing staged, so it reports the `nothing to commit` line rather than opening a pull
-request.
+the slice count and keys (`full` only), the walk's resolution tally by disposition, every standing
+empty child Phase 4.5 resolved and how, and whether this run was the no-op; emit its §4.1 outcome
+line in the final report. The no-op path reaches this phase with nothing staged, so it reports the
+`nothing to commit` line rather than opening a pull request. **The Phase 4.5-only path is not that
+path**: a removal there stages a folder deletion and the rewritten `slices.md`, and a "keep" that
+wrote or updated a `reason:` stages that child's `brd-link.md`, so it opens a pull request like any
+other run. A "keep" that changed nothing stages nothing and reports the same `nothing to commit`
+line.
 
 ---
 
@@ -427,8 +485,7 @@ choices: ["Decide this slice's open questions — /dev-workflows:brd-interview <
 ```
 
 **`split_mode: full`** — everything below. Every child folder Phase 3 created, still claiming at
-least one `[BR#n]` after Phase 4's
-empty-child check, **re-enters the route at grounding** — a child BRD is graded on its own claimed
+least one `[BR#n]` after Phase 4.5, **re-enters the route at grounding** — a child BRD is graded on its own claimed
 requirements exactly as any BRD is, and nothing about being a slice exempts it from that. It can:
 Phase 3 gave it the two files `/brd-ground` Phase 0 needs — a `coverage-ledger.md` to gate on and a
 `brd/brd-inventory.md` to read — and Phase 6 staged both, so they reach `origin/<default>` with
@@ -443,7 +500,7 @@ choices: ["Ground each child created above — /dev-workflows:brd-ground <CHILD-
 `/brd-split <CHILD-KEY>` runs in `allocate-only` mode (Phase 0 step 5) — it allocates that child's
 ledger through four resolutions instead of five, and creates nothing below it. `/brd-ground`'s own
 Phase 10 offers exactly that. A child removed, or kept empty with a recorded reason,
-for claiming nothing (Phase 4) is never offered here — grounding a BRD with no requirement to
+for claiming nothing (Phase 4.5) is never offered here — grounding a BRD with no requirement to
 ground would have nothing to check a claim against. No children remain at all this run (none were created, or every one created was removed
 as empty) → the child-grounding choice is the one that does not apply, stated plainly rather than
 omitted. Guidance only — never auto-invokes another command.
@@ -476,7 +533,7 @@ applies to it. Guidance only — nothing is auto-run.
 ## Phase 8 — Session maintenance, feedback & cost
 
 Terminal phase — runs after Phase 7, NEVER interrupts an earlier phase, and runs on the Phase 0
-step 8 no-op path exactly as on any other, in either run mode.
+no-op path step 9 decides exactly as on any other, in either run mode, and on the Phase 4.5-only path too.
 
 **Capture-at-block invariant.** If an EARLIER phase halts on a plugin / skill / command / reference
 gap, `emit-block` (`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) fires at that halt
@@ -524,12 +581,12 @@ directory; no user name is ever written.
 
 Report: the BRD folder; **the run mode from Phase 0 step 5, and in `allocate-only` the
 `BRD_SPLIT_ON_SLICE` notice repeated in full** — a notice shown once at Phase 0 of a long
-interactive walk is one the operator has scrolled past by the end; whether Phase 0 step 8 found this
+interactive walk is one the operator has scrolled past by the end; whether Phase 0 found this
 run a no-op (fully allocated already) or
 whether it actually split and/or walked the ledger; the classification and model routing (+ any
 Opus degradation); every slice proposed, keyed, and its folder (or that none were proposed and
 why — in `allocate-only` that reason is the cap, not an operator choice); any child removed or
-kept-with-reason for claiming nothing (Phase 4) and which; the ledger
+kept-with-reason for claiming nothing (Phase 4.5) — including any an earlier run left standing and this run resolved — and which; the ledger
 walk's resolution tally by disposition, with every new `covered-by` key and every
 `rejected`/`superseded-by` citation named; the `slices.md` path (or that it was skipped on the
 no-op path); the feedback + cost paths; the `Phase handoff:` outcome line from `handoff-to-main`
@@ -546,7 +603,7 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 created in Phase 3 and reconciled in Phase 4, and any it found already nested in Phase 0 step 9.
 A child whose ledger cannot be read there contributes `unresolved`, never `covered`
 (`coverage-ledger-format.md` §6.2). **This changes no gate and no precondition of this command**:
-Phase 0's stops, the Phase 0 step 8 no-op test, and §4's allocation gate are all decided on this
+Phase 0's stops, the two-part no-op test step 9 decides, and §4's allocation gate are all decided on this
 BRD's own rows, before any of this. In `allocate-only` mode there is nothing to resolve at all —
 `covered-by` is not offered (Phase 4), so the line reports zero delegated.
 

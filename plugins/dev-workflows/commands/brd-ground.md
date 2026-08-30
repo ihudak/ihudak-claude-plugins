@@ -107,7 +107,7 @@ behaviour, not the behaviour.
      (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3). A slice reaches this state
      only as the empty child `/brd-split`'s empty-child check offered to keep with a recorded
      reason:
-     `BRD_GROUND_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground. Do not run /dev-workflows:brd-intake on a slice; it has no source document of its own. Either re-run '/dev-workflows:brd-split <PARENT-KEY>' and allocate rows to this slice, or remove the empty slice — /dev-workflows:brd-split offers that removal itself.`
+     `BRD_GROUND_EMPTY_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground. Do not run /dev-workflows:brd-intake on a slice; it has no source document of its own. Re-run '/dev-workflows:brd-split <PARENT-KEY>': it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason, and it will offer covered-by against it for any row on the parent's ledger that is still unallocated. If the parent's ledger has no unallocated row left, removal is the only thing that can change this slice's state — /brd-split never re-allocates a row that already carries a fate.`
 
    **Why a stop rather than an empty handoff.** Writing an empty `grounding/code-grounding.md` and
    handing it off would let both downstream gates pass, but it would assert that grounding ran over

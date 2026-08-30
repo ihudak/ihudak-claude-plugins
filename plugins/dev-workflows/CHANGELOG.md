@@ -87,6 +87,23 @@ whose decisions are frozen against the customer's own returned words.
   state and offers a corrected re-run instead of offering grounding. Four new stop tokens, each
   branched for a source-owning BRD and for a slice, because a slice's inventory is its parent's
   `/brd-split` to write and re-intaking one is never the answer.
+- **A child kept empty is reachable again — `/brd-split` gains Phase 4.5.** The empty-child
+  resolution used to sit at the tail of Phase 4 and was scoped to children *created that run*, while
+  Phase 0's no-op test skipped Phases 2–5 whenever no ledger row was `unallocated`. After a
+  completed split no row is unallocated by construction, so every later run no-op'd, the resolution
+  never ran, and a child kept empty with a recorded reason could never afterwards be removed or
+  given rows — by any command, in any run. The check is now its own phase, scoped to **every child
+  standing**, and the no-op test is two-part: no unallocated row **and** no standing empty child. A
+  parent holding one skips the walk it has no rows for and runs Phase 4.5 alone. A child with no
+  recorded reason is offered removal; one already carrying a reason is offered keeping it
+  (recommended), removing it now, or updating the reason, so a deliberate decision is not
+  re-litigated but removal stays reachable. The phase states outright that it cannot give a child
+  rows — `covered-by` is Phase 4's, and only against a row still `unallocated`.
+- **The three slice-level empty-inventory stops name what actually works.** They previously ended
+  "re-run `/brd-split <PARENT-KEY>` and allocate rows to this slice, or remove the empty slice — that
+  run offers the removal itself". Neither half was true before Phase 4.5 existed. They now name the
+  resolution Phase 4.5 actually offers and say plainly that on a parent with no unallocated row left,
+  removal is the only thing that can change the slice's state.
 - **`BRD_PACKAGE_NOTHING_TO_REVIEW` names something that helps.** It sent the operator to
   `/brd-interview`, which opens a new round only when the findings or the decisions have moved and
   would therefore report a no-op. The stop now reports a **finished** state — every question settled

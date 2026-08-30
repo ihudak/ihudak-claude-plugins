@@ -113,7 +113,7 @@ whose decisions are frozen against the customer's own returned words.
   states in which no pull request exists — and left `/update-prd` offering two commands that gate its
   own PRD with no wait named at all. All five now carry the `<merge-clause>` placeholder on exactly
   the options whose downstream `require-on-main` target the offering run writes, and each says beside
-  its array or paragraph which parts carry it and why the others do not. Three of the five are prose
+  its array or paragraph which parts carry it and why the others do not. Two of the five are prose
   `### Next step` sections rather than `choices:` arrays, so no gate can see them — the universal
   minimum surface the offer contract defines is exactly the surface `check-docs.sh` check 11 does
   not cover.

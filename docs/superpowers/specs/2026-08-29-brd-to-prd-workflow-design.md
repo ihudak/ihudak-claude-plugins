@@ -854,17 +854,22 @@ had walked.
 | `commands/update-prd.md` | Phase 6's `/create-ard` and `/specify` options | `choices:` | the inverse defect: two commands that gate this run's own PRD, and no wait named at all |
 | `commands/design.md` | the `### Next step` | prose | the unconditional clause for `/implement`, on a handoff with three no-pull-request outcomes |
 
-**Three enumerations, each short by one, each missing a prose offer — that is the finding.** This
-section said three; converting them found a fourth and a fifth; review found a sixth surface that
-two passes had walked past. Every miss was prose, which is the one form `check-docs.sh` check 11
-structurally cannot see, so each enumeration that leaned on the gate's own relation inherited the
-gate's blind spot. The method that finally closed it does not: enumerate the **surfaces** first —
-every heading matching `^#{2,4} .*next` across every command, plus the twelve commands that have
+**Four enumerations, each short, each missing a prose surface — that is the finding.** This section
+said three; converting them found a fourth and a fifth; review found the fifth offer two passes had
+walked past; the pass after that missed two more surfaces to an anchored grep. Every miss was prose,
+which is the one form `check-docs.sh` check 11 structurally cannot see, so each enumeration that
+leaned on the gate's own relation inherited the gate's blind spot. The method that finally closed it does not: enumerate the **surfaces** first —
+every heading matching `^[ \t]*#{2,4} .*next` across every command, plus the commands that have
 none — then read each surface's body for the commands it names and for whether a wait exists, and
 only then run the gate's relation as a cross-check rather than as the source. That yields
-seventeen surfaces across fifteen commands; the other twelve commands carry none, and every one of
-them is either a non-pipeline node the routing graph already excludes or a leaf (`/ready`,
-`/release-notes`).
+**nineteen surfaces across seventeen commands**; the other ten commands carry none, and every one
+of them is a non-pipeline node the routing graph already excludes. **The grep must be unanchored.**
+An `^`-anchored `^#{2,4}` form was what made a fourth pass short: it misses a surface indented
+inside a fenced report template, which is exactly where `commands/ready.md`'s and
+`commands/release-notes.md`'s `### Next step` sections live. Neither of those two is a defect —
+`/release-notes` runs no `handoff-to-main` at all, and `/ready`'s handoff writes `_readiness.md`,
+which no consumer gates — so the count of defective offers stays **five**. A partition error is not
+a sixth defect.
 
 All five now carry the placeholder on exactly the options whose downstream `require-on-main` target
 the offering run writes, each saying beside its array or paragraph which parts carry it and why the
@@ -874,11 +879,11 @@ others do not. Several options deliberately carry none and say so: the Epic fan-
 nothing this run writes. That is `/brd-reconcile`'s precedent for an option whose wait is somebody else's merge,
 applied to options that have no wait at all.
 
-Three further next-step surfaces name a downstream command and correctly state no wait, verified
-rather than assumed: `/epics` and `/document` run **no** `handoff-to-main`, so neither has a §4.1
-outcome for a clause to resolve from; `/implement` has one, but the commands it offers
-(`/document`, `/release-notes`, and itself for a sibling Epic) gate nothing this run wrote; and
-`/ready` says "(same lane, no handoff)" outright about the `_readiness.md` no consumer gates.
+The further next-step surfaces name a downstream command and correctly state no wait, verified
+rather than assumed: `/epics`, `/document` and `/release-notes` run **no** `handoff-to-main`, so
+none has a §4.1 outcome for a clause to resolve from; `/implement` has one, but the commands it
+offers (`/document`, `/release-notes`, and itself for a sibling Epic) gate nothing this run wrote;
+and `/ready` says "(same lane, no handoff)" outright about the `_readiness.md` no consumer gates.
 
 `/create-ard`'s two false claims were fixed with the clause, since converting them mechanically
 would have preserved them: `/epics`, `/specify` and `/design` each **stop** on
@@ -908,7 +913,7 @@ file(s)", "the PRD file"), so `writers` never sees what it wrote. `targets` is *
 `/design` as an offered command — an earlier draft of this section said it was.
 
 Two limits carry forward. Prose offers are the universal minimum surface the offer contract
-defines, and exactly the surface no gate covers — three of the five defects lived there. And
+defines, and exactly the surface no gate covers — two of the five defects lived there. And
 teaching §3.4 and the `deliverable_paths` sentences to name files rather than describe them would
 give the gate two of the three array offers, but it changes what several consumers gate on, which
 is its own piece of work.

@@ -537,7 +537,9 @@ Report: feature-folder path; stage/user-story/AC/TC counts; open-question count;
 
 ### Next step
 
-End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): **Epic-level spec** (`<PRD> <Epic>`) → hand to Dev → `/dev-workflows:design <PRD> <Epic>`, which will not start until this spec's pull request above is merged, and the **Epic fan-out** `/dev-workflows:specify <PRD> <another-Epic>` for a sibling Epic (breadth); **PRD-level spec** (`<PRD>` only) → `/dev-workflows:epics <PRD>` (PE), which stops rather than skipping — the spec exists but isn't yet on main — until this pull request above is merged. If the run BLOCKED or left open `- [ ]` items, recommend resolving those first.
+End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): **Epic-level spec** (`<PRD> <Epic>`) → hand to Dev → `/dev-workflows:design <PRD> <Epic>` `<merge-clause>`, which will not start until this spec is on the default branch — on every path, since `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3.4's `/design` row is a stop even for a spec that reached no branch — and the **Epic fan-out** `/dev-workflows:specify <PRD> <another-Epic>` for a sibling Epic (breadth), which waits on nothing this run produced and carries no clause; **PRD-level spec** (`<PRD>` only) → `/dev-workflows:epics <PRD>` (PE) `<merge-clause>`, which stops rather than skipping wherever this spec reached a branch (§3.3 rows D/E) and skips exactly as it did before wherever it reached none (§3.4's `/epics` row). If the run BLOCKED or left open `- [ ]` items, recommend resolving those first.
+
+`<merge-clause>` is the placeholder `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` owns, resolved from this run's own `Phase handoff:` outcome line (§4.1) and never written as the unconditional "once the pull request above is merged" — a declined handoff, a failed push and a nothing-to-commit run each leave a different wait, and two of them open no pull request to wait on.
 
 ### Context hygiene
 

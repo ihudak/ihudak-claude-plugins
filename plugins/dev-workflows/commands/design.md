@@ -462,7 +462,9 @@ The report always states exactly one of the Phase 5 interface fan-out outcomes w
 
 ### Next step
 
-End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): → `/dev-workflows:implement <PRD> <Epic>` (depth, still Dev), which will not start against this design until the pull request above is merged; the **Epic fan-out** `/dev-workflows:design <PRD> <another-Epic>` designs a sibling Epic (breadth, no merge wait — a different Epic's design). If the run BLOCKED or `design.md` has open questions, recommend resolving those first.
+End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): → `/dev-workflows:implement <PRD> <Epic>` (depth, still Dev) `<merge-clause>`, which stops rather than proceeding wherever this design reached a branch (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3.3 rows D/E) and is unaffected wherever it reached none (§3.4's `/implement` row); the **Epic fan-out** `/dev-workflows:design <PRD> <another-Epic>` designs a sibling Epic (breadth, no merge wait — a different Epic's design). If the run BLOCKED or `design.md` has open questions, recommend resolving those first.
+
+`<merge-clause>` is the placeholder `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` owns, resolved from this run's own `Phase handoff:` outcome line (§4.1) and never written as the unconditional "once the pull request above is merged" — the handoff offered above reaches a declined, a push-failed and a nothing-to-commit outcome, and two of the three open no pull request to wait on. This offer is prose rather than a `choices:` array, so `scripts/check-docs.sh` check 11 cannot see it: it is held by review alone, even though `design.md` is exactly the intersection that check looks for.
 
 ### Context hygiene
 

@@ -594,9 +594,10 @@ check_identity_quarantine() {
 # ------------------------------------------------------------------ check 11
 # Merge-clause adoption. An offer that names a downstream command whose Phase 0 gate
 # targets an artifact THIS run writes must carry the `<merge-clause>` placeholder, because
-# that command stops while this phase's pull request is open. The placeholder, its
-# resolution table, and the family of commands the rule binds all live in
-# $REF_DIR/next-phase-offer.md; this check only enforces adoption.
+# that command stops while this phase's pull request is open. The placeholder and its
+# resolution table live in $REF_DIR/next-phase-offer.md, which binds the rule to EVERY offer
+# this plugin prints; the family glob below is this GATE's scope, not the rule's, and that
+# same file records why it is not widened. This check only enforces adoption.
 #
 # The failure it exists for is PARTIAL adoption, which is worse than none: a reference
 # claiming family-wide ownership while seven offers still carried a hardcoded clause, or
@@ -604,10 +605,15 @@ check_identity_quarantine() {
 # found once, by enumerating every option by hand. Nothing re-enumerated it afterwards.
 #
 # Three relations, every one DERIVED, none written in here:
-#   family  -- the `<plugin>:<family>*` glob next-phase-offer.md names as the rule's scope.
-#              Only offers made BY a command of that family are checked, which is what
-#              keeps this off the two pre-existing offers that name the merge in prose and
-#              were deliberately left alone.
+#   family  -- the `<plugin>:<family>*` glob next-phase-offer.md names, which is this gate's
+#              scope. Only offers made BY a command of that family are checked. Widening it
+#              was measured, not assumed: with the filter removed the check fires on four
+#              sites -- a command that runs no handoff at all, two mid-run refusals, and a
+#              report sentence trailing an array on the same line -- every one correct
+#              content, and catches none of the five offers outside the family that DID
+#              carry an unconditional clause. A `choices:` array here is a refusal or a
+#              branch point as often as it is an offer, and nothing marks which. Do not
+#              widen without new evidence; next-phase-offer.md holds the full record.
 #   targets -- what each command runs `require-on-main` against, read out of
 #              phase-handoff.md's row-F table (column 2's backticked *.md, by basename).
 #   writers -- what a command declares it hands off, read out of its own

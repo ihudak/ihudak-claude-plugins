@@ -330,6 +330,8 @@ Trust the tree over any number in this plan.
 
 - [ ] **Step 4: Changelog, `CLAUDE.md` counts and command lists, and the model-routing "must load" list**
 
+  **Carried from task 11 — two more.** `references/next-phase-offer.md`'s routing graph contains **no `/brd-*` command at all**, so the reference that owns next-phase routing does not know this six-command route exists. And `/brd-interview`'s gated `/brd-package` offer duplicates a precondition `brd-package.md` owns, which can drift — replace the duplicate with a citation, or say why the duplication is load-bearing.
+
   **Carried from task 10 — a pre-existing falsification.** `references/cost-emission.md`'s preamble describes its emitters as "the eleven PRD-lifecycle ones … plus two", which already omitted every `/brd-*` emitter before this increment began. It was not falsified *by* any one command, which is why no task owned it. Re-derive it count-free against the tree.
 
 - [ ] **Step 5: Run the gate triple one final time and commit** — `chore(brd): catalog, changelog and instruction-file counts for increment 2`

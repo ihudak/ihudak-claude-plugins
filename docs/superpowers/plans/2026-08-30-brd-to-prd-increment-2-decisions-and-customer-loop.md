@@ -289,7 +289,11 @@ tools: ["Read", "Glob", "Grep"]
 
 ---
 
-### Task 11: Documentation — the route page, now six commands
+### Task 11: Route wiring and documentation — six commands
+
+**Wire the route first, then document it.** Increment 1's commands were written when their successors did not exist, so they still say so: `/brd-ground`'s terminal phase and `/brd-split`'s Phase 7 both describe `/brd-split` as the route's last command, and **neither of their choice arrays offers `/brd-interview`**. That is a live dead-end, not stale prose — a user finishing a split is never shown the next step. Increment 1 shipped the mirror-image defect (commands telling users a successor had not shipped when it had), so this is a known failure mode of building a route in increments.
+
+Do this **after** all three new commands exist, in one pass, so no command is left pointing at a half-built route: every terminal next-step offer names its real successor, and no command claims to be the route's end unless it is. Check `/brd-intake` and the three new commands too, not only the two named.
 
 **Files:** Modify `docs/brd-workflow.md`, `docs/README.md`, `docs/workflow.md`, `docs/roles-and-phases.md`.
 

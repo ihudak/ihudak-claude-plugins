@@ -81,8 +81,8 @@ of these resolutions:
 | `open` | none of the above has happened yet |
 
 A resolution changes the defect log entry's status only. It never touches `brd/source/`, and it
-never assigns the requirement a disposition (covered, deferred, rejected, superseded) — that
-belongs to the coverage ledger, a separate artifact.
+never assigns the requirement a disposition — the disposition vocabulary and the artifact that
+carries it belong to `references/coverage-ledger-format.md`, not to this file.
 
 ## 5. Non-goals
 

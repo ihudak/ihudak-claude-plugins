@@ -694,7 +694,7 @@ Expected: `FAIL check 2` — the new page is unreachable from `docs/README.md`.
 
 - `docs/README.md` — link `brd-workflow.md` alongside `workflow.md`.
 - `docs/workflow.md` — add the second route into a PRD to the existing mermaid diagram and a sentence naming it, so both routes appear in one picture.
-- `docs/roles-and-phases.md` — add the route: PM-owned, with `/brd-ground` PM-initiated and PA/Dev-executed.
+- `docs/roles-and-phases.md` — add the route: PM-owned, with `/brd-ground` PM-initiated and PA/Dev-executed. **Add the `brd-to-prd` phase subsection AND update the phase count in the same commit** — task 7 deliberately left the count at ten because a count and the section it counts must not be split across commits (Ruling R10). Verify the count against the `###` subsections actually present when you are done.
 
 - [ ] **Step 4: Run the gate triple to verify it passes**
 

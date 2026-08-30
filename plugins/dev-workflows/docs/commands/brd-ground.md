@@ -70,7 +70,9 @@ Phase 11, for session lessons-learned.
   and `/brd-interview` refusing the BRD and naming this command as the fix, the run stops with
   `BRD_GROUND_EMPTY_INVENTORY` and names the upstream fix by level: re-running `/brd-intake` over
   the same folder with a corrected source for a BRD that owns its document, or `/brd-split` on the
-  parent for a slice that was allocated nothing.
+  parent for a slice that was allocated nothing. Where the parent's ledger has no `unallocated` row
+  left, removal is the only thing that can change that slice's state — `/brd-split` never
+  re-allocates a row that already carries a fate.
 - **This BRD's own inventory and ledger already on the specs repo's main branch.** `/brd-ground`
   gates `coverage-ledger.md` on `origin/<default>` via `require-on-main` before reading anything
   else; an unmerged pull request stops the run naming the branch/PR state. Where the gate reports

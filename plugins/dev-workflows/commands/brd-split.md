@@ -92,7 +92,12 @@ resolves from the folder itself:
    Count every finding on file carrying no recorded `outcome`. Any count `N` greater than zero →
    stop: `BRD_SPLIT_UNVERIFIED: N findings have no verifier verdict — run /dev-workflows:brd-ground first.`
 8. **Read the ledger; check for the no-op case.** Read `<BRD-dir>/coverage-ledger.md` and compute
-   its disposition counts (`coverage-ledger-format.md` §3). **Zero rows are `unallocated`** → this
+   its disposition counts (`coverage-ledger-format.md` §3) — **this BRD's own rows, as written, with
+   no child ledger consulted.** The no-op test and the §4 gate are both about `unallocated` on
+   *this* ledger; what a child did with a row this BRD already delegated cannot make that row
+   `unallocated` again, and the remedy for a child that is not building it lives in the child's own
+   walk, not here. Child ledgers are read once, in the Final Report, and only to count the line
+   (`coverage-ledger-format.md` §6.1). **Zero rows are `unallocated`** → this
    run is a no-op (§4): nothing in Phases 2–5 has anything left to do, so skip straight to Phase 6
    (Handoff), which will report nothing to commit, and the Final Report's ledger line below. **The
    no-op path is mode-independent** — it is decided by the ledger, not by the level, so a
@@ -270,7 +275,11 @@ decided is rolled back.
   created in Phase 3 this run, or any found already nested under this BRD in Phase 0 step 9. Reject a key that resolves to neither
   and re-prompt — `covered-by` never names a folder that does not exist. Write
   `disposition: covered-by: <CHILD-KEY>`, and add this row's `[BR#n]` to that child's `brd-link.md`
-  `claims:` list if it is not already there.
+  `claims:` list if it is not already there. **Say what this resolution does and does not settle**:
+  it records that `<CHILD-KEY>` owns the row, not that anything is built. The child's own
+  `/brd-split` walk decides that, and this run's ledger line reports whichever way it went
+  (`coverage-ledger-format.md` §6.1) — a row this walk delegates today can be counted `deferred`,
+  `rejected` or `unallocated` on this BRD's next report.
 - **Defer to this BRD** → `disposition: deferred-to: <this BRD>` — `<this BRD>` is the slice's own
   key in `allocate-only` mode, exactly as it is the parent's key in `full` mode; the disposition
   always names the BRD the walk is standing on. Prompt for a one-line rationale —
@@ -497,10 +506,25 @@ no-op path); the feedback + cost paths; the `Phase handoff:` outcome line from `
 `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6:
 
 ```
-ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated
+ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated, <unresolved> unresolved (<delegated> delegated, <not-built> not built)
 ```
 
-`/brd-split` is the only `/brd-*` command that can ever change this line's final term — a
-completed run always ends it at `0 unallocated` (`coverage-ledger-format.md` §4: "cannot complete
-while any row in this BRD's ledger is `unallocated`"), whether that took an actual walk this run or
-was already true when Phase 0 step 8 found nothing left to do.
+**Computing it reads one child ledger per `covered-by` row**, one hop, from the working tree via
+`resolve-brd` (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §2) — the children this run
+created in Phase 3 and reconciled in Phase 4, and any it found already nested in Phase 0 step 9.
+A child whose ledger cannot be read there contributes `unresolved`, never `covered`
+(`coverage-ledger-format.md` §6.2). **This changes no gate and no precondition of this command**:
+Phase 0's stops, the Phase 0 step 8 no-op test, and §4's allocation gate are all decided on this
+BRD's own rows, before any of this. In `allocate-only` mode there is nothing to resolve at all —
+`covered-by` is not offered (Phase 4), so the line reports zero delegated.
+
+`/brd-split` is the only `/brd-*` command that can ever change this line's `unallocated` term as
+written on this ledger — a completed run always leaves **its own** rows with none
+(`coverage-ledger-format.md` §4: "cannot complete while any row in this BRD's ledger is
+`unallocated`"), whether that took an actual walk this run or was already true when Phase 0 step 8
+found nothing left to do. **The reported term can still be non-zero**, and that is the point: a row
+this BRD delegated to a child the child has not yet allocated is counted `unallocated` in the line
+(`coverage-ledger-format.md` §6.1) while this BRD's own gate stands satisfied. Report it as what it
+is — a child with work left, named by the `<CHILD-KEY>` the row delegates to — never as this run
+having failed to complete, and never by re-opening the walk over a row that already carries a
+terminal disposition.

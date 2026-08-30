@@ -141,7 +141,8 @@ Act on `status`:
   forward into Phase 4; nothing here treats a candidate as a decision.
 - **`EMPTY`** — report that the source contained no identifiable requirement. Skip Phase 4 (nothing
   to classify) and write an empty `brd/brd-inventory.md` and `coverage-ledger.md` in Phase 5; the
-  final report's ledger line reads `ledger: 0 requirements — 0 covered, 0 deferred, 0 rejected, 0 unallocated`.
+  final report's ledger line reads
+  `ledger: 0 requirements — 0 covered, 0 deferred, 0 rejected, 0 unallocated, 0 unresolved (0 delegated, 0 not built)`.
 - **`NOT_FOUND`** — surface the agent's exact message and stop; this should not occur (Phase 0/2
   already confirmed the source exists and is markdown), so treat its appearance as worth
   investigating rather than retrying blindly.
@@ -339,9 +340,12 @@ prefix note; the `Specs repo:` outcome line from `commit-artifacts`
 the ledger line, exactly per `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6:
 
 ```
-ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated
+ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated, <unresolved> unresolved (<delegated> delegated, <not-built> not built)
 ```
 
 Since `/brd-intake` writes every row `unallocated`, this run's own line always reads
-`ledger: <N> requirements — 0 covered, 0 deferred, 0 rejected, <N> unallocated` (or the Phase 3
-`EMPTY` line above) — the non-zero counts appear only once `/brd-split` has run.
+`ledger: <N> requirements — 0 covered, 0 deferred, 0 rejected, <N> unallocated, 0 unresolved (0 delegated, 0 not built)`
+(or the Phase 3 `EMPTY` line above) — the non-zero counts appear only once `/brd-split` has run.
+The `covered-by` resolution §6 requires reads no child ledger here and never can: no row this
+command writes is `covered-by`, so the delegated figures are zero by construction rather than by
+omission, and this command gains no precondition from it.

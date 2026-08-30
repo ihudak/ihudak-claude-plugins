@@ -653,8 +653,20 @@ recommendation; and end with the ledger line, read fresh from the (unmodified-by
 `coverage-ledger.md`, exactly per `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6:
 
 ```
-ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated
+ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated, <unresolved> unresolved (<delegated> delegated, <not-built> not built)
 ```
 
 `/brd-ground` never changes a ledger disposition — that line simply reports where allocation stands
 going into `/brd-split`.
+
+**Reporting it now reads one child ledger per `covered-by` row.** §6 counts a delegated row through
+the child it names, so on a BRD an earlier `/brd-split` already split, this report resolves each
+`covered-by: <CHILD-KEY>` row one hop into that child's own `coverage-ledger.md`, resolved from the
+working tree by `resolve-brd` (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §2). **This adds
+no precondition and no gate.** A child folder that is absent from the tree this run is standing in —
+its split not yet merged, most commonly — makes that row `unresolved` in the line and nothing more:
+grounding this BRD does not depend on any child, and a run must never stop, degrade, or withhold its
+findings because a child could not be read. Phase 0's `require-on-main` gates stay exactly as they
+are, on this BRD's own inventory and ledger. A slice reaches this with nothing to resolve —
+`covered-by` is unavailable on a slice (`coverage-ledger-format.md` §3), so its line always reports
+zero delegated.

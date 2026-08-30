@@ -628,8 +628,14 @@ eligible — allocation would deadlock.
 without running anything:
 
 ```
-ledger: 47 requirements — 31 covered, 12 deferred, 2 rejected, 2 unallocated
+ledger: 47 requirements — 29 covered, 13 deferred, 2 rejected, 2 unallocated, 1 unresolved (9 delegated, 4 not built)
 ```
+
+**Counted through the children (D23).** A `covered-by` row is resolved one hop into the named
+child's own ledger before it is counted, so a requirement a child deferred, rejected or never
+allocated is reported as that rather than as covered; a child ledger that cannot be read is
+`unresolved`, never covered; and the trailing pair names how many rows were delegated and how many
+of those are not being built. `references/coverage-ledger-format.md` §6 owns the arithmetic.
 
 Re-running `/brd-split` on a fully-allocated BRD is a no-op that prints the ledger.
 

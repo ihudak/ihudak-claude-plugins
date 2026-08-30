@@ -113,10 +113,12 @@ of these resolutions:
 | `open` | none of the above has happened yet |
 
 There is exactly one defect log per source document, held by the BRD that owns that document; a
-slice reads its parent's rather than keeping one of its own (§2.1). A consumer that must resolve a
+slice reads its parent's rather than keeping one of its own (§2.1). A consumer that must reach a
 `[DEF#n]` while standing on a slice — `/brd-split`'s `rejected: [DEF#n]` resolution when it walks a
-slice's ledger (`commands/brd-split.md` Phase 4), or any reader following the `defects` column of
-the slice's copied inventory row — therefore looks it up in the parent's log. That lookup is always
+slice's ledger (`commands/brd-split.md` Phase 4), `/brd-reconcile` writing the `customer-amended` and
+`withdrawn` resolutions a returned customer review settles
+(`commands/brd-reconcile.md`), or any reader following the `defects` column of the slice's copied
+inventory row — therefore looks it up in, and writes it to, the parent's log. That lookup is always
 **exactly one hop**: nesting is capped at one level (`references/brd-addressing.md` §3), so a
 slice's parent always owns the source document and the log, and there is no chain to walk.
 

@@ -191,12 +191,12 @@ attack.
   it.
 - **It sends nothing anywhere.** The bundle is written and, behind consent, committed; the delivery
   note is printed for pasting. Delivery is the operator's.
-- **It writes no `[CD#n]`, and it ingests no returned review.** The command that would turn a
-  returned answer into a confirmed customer decision is not part of this plugin today, so the round
-  holding each `[C]` stays open, and the run says so rather than implying a next step that does not
-  exist.
+- **It writes no `[CD#n]`, and it ingests no returned review.**
+  [`/brd-reconcile`](brd-reconcile.md) is what turns a returned answer into a confirmed customer
+  decision, so the round holding each `[C]` stays open until that run records it.
 - **It changes no ledger disposition.** The final report's ledger line reports where allocation
-  stands; only `/brd-split` moves a row.
+  stands; allocation itself is `/brd-split`'s walk, and a row moves afterwards only when
+  `/brd-reconcile` freezes a customer decision that settles it differently.
 
 ## Example
 

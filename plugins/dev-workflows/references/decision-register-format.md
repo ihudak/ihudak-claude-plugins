@@ -18,9 +18,10 @@ belongs to `references/brd-addressing.md` §1.
 **Consumed by `commands/brd-interview.md`**, which writes `[VD#n]` and `[AS#n]` records against this
 shape and enforces §6; by `agents/brd-package-reviewer.md`, which reads them; and by
 `commands/brd-package.md`, which surfaces every open `[AS#n]` in the customer prompt (§7) and finds
-every position resting on a prerequisite by its `conditional_on` field (§5). `/brd-reconcile` will
-write `[CD#n]` records from a returned review and run the propagation sweep that §5 exists to serve;
-that command does not exist yet, so no shipped command writes a `[CD#n]` today.
+every position resting on a prerequisite by its `conditional_on` field (§5); and by
+`commands/brd-reconcile.md`, which writes the `[CD#n]` records — the only command that does —
+supersedes the `[AS#n]` each one settles, reopens what an incoming customer decision overturns under
+§4, and runs the propagation sweep §5 exists to serve.
 
 ## 1. Record shape
 
@@ -156,9 +157,10 @@ forgot to finish naming.
 only sensible position available while the prerequisite is still in flight. What makes it dangerous
 is that it is *invisible*: when the prerequisite's decision changes, nothing about this decision's
 own text says it should be re-examined, and the drift is discovered by whoever eventually notices
-that two BRDs disagree. `conditional_on` is what makes the propagation sweep `/brd-reconcile` will
-run (spec §8.7) able to find this decision mechanically when that prerequisite's decisions change,
-instead of relying on somebody remembering. A conditional decision that does not say so is exactly
+that two BRDs disagree. `conditional_on` is what makes `/brd-reconcile`'s propagation sweep able to
+find this decision mechanically when that prerequisite's decisions change, instead of relying on
+somebody remembering — which is why that sweep takes the `conditional_on` positions first, before it
+looks for anything citing a changed id in prose. A conditional decision that does not say so is exactly
 the decision a sweep cannot reach.
 
 It follows that `conditional_on` is written by whoever takes the decision, at the moment they take

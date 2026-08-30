@@ -453,12 +453,12 @@ two separate acts, and normalising prose into a decision is inference, not autho
 
 **This command sends the file nowhere; `/brd-package` is what carries it.** That command builds the
 review package the `[C]` questions travel in, and it is a separate, consented run — writing the file
-here is not sending it. `/brd-reconcile`, the command that would turn a returned answer into a
-confirmed `[CD#n]`, does not exist yet. So a `[C]` this run holds stays held until a package goes out
-and an answer comes back, and the round that contains it stays open throughout
-(`interview-tagging.md` §5) — today, past the point where the answer arrives, because nothing
-ingests one. Report that as the plain fact it is rather than implying a next step that does not
-exist.
+here is not sending it. A `[C]` this run holds stays held until a package goes out and an answer
+comes back, and the round that contains it stays open throughout (`interview-tagging.md` §5) until
+`/brd-reconcile` ingests that answer and an operator confirms it — that command writes the terminal
+disposition *answered by the customer*, and it is the only thing that closes such a round. Report
+that as the plain sequence it is: this run holds, `/brd-package` carries, the customer answers, and
+`/brd-reconcile` records.
 
 ---
 
@@ -570,9 +570,9 @@ the `nothing to commit` line rather than opening a pull request.
 
 The BRD-to-PRD route's next command is `/brd-package`, which builds the review package the `[C]`
 questions travel in, and it is offered — but only where this round left something for a package to
-carry. `/brd-reconcile`, which would turn a returned answer into a confirmed `[CD#n]`, does not exist
-yet and is not offered. Offering a command the plugin does not ship would be worse than offering
-nothing, so the honest offer is the state this run actually leaves behind:
+carry. `/brd-reconcile` is the command after that one and is not offered here: it ingests a review
+that has not been asked for yet, and offering it now would name a step out of order. So the honest
+offer is the state this run actually leaves behind:
 
 ```
 choices: ["Stop here — this round's decisions are recorded", "Package this BRD for customer review — /dev-workflows:brd-package <BRD-KEY>", "Work another round now — /dev-workflows:brd-interview <BRD-KEY> (only if findings or decisions have changed)", "Interview another BRD or slice", "Other… (describe)"]
@@ -588,7 +588,8 @@ conditional marker the orchestrator would then have to evaluate.
 
 Say plainly what remains, per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — names only,
 never behaviour a command of its own owns: a round still holding a `[C]` stays open, because the
-answer arrives through a package, and no command in this plugin ingests a returned one yet. A
+answer arrives through a package and is recorded by `/dev-workflows:brd-reconcile` once it comes
+back. A
 question recorded *needs grounding* is answered by re-running `/dev-workflows:brd-ground <BRD-KEY>`
 and returning to this round, which is a real next step and is named as one.
 
@@ -657,8 +658,8 @@ every split, with the parts each original became; the `[G]` answers, each naming
 never a re-tag reported without its cause; every question recorded *needs grounding*, named, with
 `/dev-workflows:brd-ground <BRD-KEY>` as the fix; the `[VD#n]` decided this run and any deferred; the
 `[AS#n]` recorded; the `[C]` count held and the file holding them, stated together with the fact that
-`/dev-workflows:brd-package` is the command that carries them to the customer and that nothing in
-this plugin ingests a returned answer yet; every will-change resolution taken and how it was
+`/dev-workflows:brd-package` is the command that carries them to the customer and
+`/dev-workflows:brd-reconcile` the one that records the answer; every will-change resolution taken and how it was
 recorded; the count of decisions and assumptions still `consumed_by: none`
 (`decision-register-format.md` §1); whether the round closed or stays open, and what it is waiting on;
 the feedback + cost paths; the `Phase handoff:` outcome line (`phase-handoff.md` §4.1); the

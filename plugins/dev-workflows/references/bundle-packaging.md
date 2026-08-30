@@ -20,8 +20,9 @@ specs repo runs through belongs to `references/specs-repo-git.md`.
 **Consumed by `commands/brd-package.md`**, which builds a bundle against this contract — its
 plugin-free rules, its de-Obsidianising pass, its degradation tiers, its delivery-note ceiling and
 its committed dated directory — and cited by `agents/brd-package-reviewer.md` for what the customer
-will actually be able to open. `/brd-reconcile` will read a review returned against a bundle built
-this way; that command does not exist yet.
+will actually be able to open. `commands/brd-reconcile.md` reads a review returned against a bundle
+built this way, and cites §5 for why nothing inside that committed directory is ever bannered or
+rewritten afterwards.
 
 ## 1. Plugin-free by construction (D12)
 

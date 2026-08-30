@@ -1,6 +1,6 @@
 # dev-workflows
 
-A role-based pipeline of twenty-six slash commands. Its spine runs idea refinement → Product Requirements Document → architecture → Epic breakdown → specification → design → readiness → implementation → documentation → release notes, with Opus-backed risk planning, code review, and doc/design review gates along the way; around that spine sit CVE remediation, dependency upgrades, guideline reviews, and the plugin's own feedback commands. The table below is the complete list.
+A role-based pipeline of twenty-seven slash commands. Its spine runs idea refinement → Product Requirements Document → architecture → Epic breakdown → specification → design → readiness → implementation → documentation → release notes, with Opus-backed risk planning, code review, and doc/design review gates along the way; around that spine sit CVE remediation, dependency upgrades, guideline reviews, and the plugin's own feedback commands. The table below is the complete list.
 
 > Part of the `ihudak-plugins` marketplace — see the [repo-root setup guide](../../README.md) for marketplace install + prerequisites.
 
@@ -11,7 +11,8 @@ Every command owns one role's step in the pipeline and hands a concrete artifact
 | Role | Commands | What it does |
 |------|----------|--------------|
 | PM | [`/idea`](docs/commands/idea.md), [`/create-prd`](docs/commands/create-prd.md), [`/update-prd`](docs/commands/update-prd.md), [`/release-notes`](docs/commands/release-notes.md) *(early run)* | Refine a raw idea, author or refresh the Product Requirements Document, and draft an early release-notes note. |
-| PM *(BRD route)* | [`/brd-intake`](docs/commands/brd-intake.md), [`/brd-split`](docs/commands/brd-split.md), [`/brd-interview`](docs/commands/brd-interview.md), [`/brd-package`](docs/commands/brd-package.md) | Intake a customer BRD verbatim, extract its inventory, split it once every row is allocated, decide its open questions, then package the result for the customer. |
+| PM *(BRD route — inventory)* | [`/brd-intake`](docs/commands/brd-intake.md), [`/brd-split`](docs/commands/brd-split.md) | Intake a customer BRD verbatim, extract its requirement inventory, and split it once every row has a recorded fate. |
+| PM *(BRD route — customer loop)* | [`/brd-interview`](docs/commands/brd-interview.md), [`/brd-package`](docs/commands/brd-package.md), [`/brd-reconcile`](docs/commands/brd-reconcile.md) | Decide the BRD's open questions, package what only the customer can settle, then reconcile the review that comes back and sweep what it overturned. |
 | PA *(optional)* | [`/create-ard`](docs/commands/create-ard.md), [`/brd-ground`](docs/commands/brd-ground.md) | Ground an architecture decision, or a BRD's requirement claims, in the mounted implementation code. |
 | PE | [`/epics`](docs/commands/epics.md), [`/specify`](docs/commands/specify.md) | Break a PRD into Epics, then author an org-standard specification through a grill. |
 | Dev | [`/design`](docs/commands/design.md), [`/implement`](docs/commands/implement.md), [`/ready`](docs/commands/ready.md), [`/document`](docs/commands/document.md), `/release-notes` *(final run)* | Design against the spec, implement it under review gates, verify a Jira status against the record, document the result, and draft the final [`/release-notes`](docs/commands/release-notes.md) note. |

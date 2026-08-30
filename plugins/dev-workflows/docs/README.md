@@ -9,6 +9,7 @@
 | turn a customer BRD into a grounded inventory with every requirement allocated | [`/brd-intake`](commands/brd-intake.md), [`/brd-ground`](commands/brd-ground.md), [`/brd-split`](commands/brd-split.md) |
 | decide an allocated BRD's open questions without asking the wrong party | [`/brd-interview`](commands/brd-interview.md) |
 | package a decided BRD for a customer whose reviewer has nothing installed | [`/brd-package`](commands/brd-package.md) |
+| freeze a returned customer review into decisions and sweep what it overturned | [`/brd-reconcile`](commands/brd-reconcile.md) |
 | turn a raw idea into something actionable | [`/idea`](commands/idea.md) |
 | write or refresh a Product Requirements Document | [`/create-prd`](commands/create-prd.md), [`/update-prd`](commands/update-prd.md) |
 | record an architecture decision | [`/create-ard`](commands/create-ard.md) |
@@ -32,6 +33,7 @@ Four pages orient you before you touch a command: [Getting started](getting-star
 - [`/brd-intake`](commands/brd-intake.md) — intake a customer BRD verbatim, extract its requirement inventory, and write a coverage ledger with every row unallocated.
 - [`/brd-interview`](commands/brd-interview.md) — tag every open question `[G]`/`[V]`/`[C]` before it is asked, answer the `[G]`s from the findings, and record the delivery team's decisions.
 - [`/brd-package`](commands/brd-package.md) — attack the decided package, then render a plugin-free customer prompt and a de-Obsidianised bundle for a reviewer with nothing installed.
+- [`/brd-reconcile`](commands/brd-reconcile.md) — freeze the customer's returned answers as `[CD#n]` once an operator confirms each one, then sweep every dependent BRD and every stale cross-reference.
 - [`/brd-split`](commands/brd-split.md) — propose and key child BRDs from the grounded picture, then walk every ledger row to a recorded fate.
 - [`/create-ard`](commands/create-ard.md) — author an Architecture Requirements/Decision Document for a PRD, or for one Epic inside it, grounded on the mounted code.
 - [`/create-prd`](commands/create-prd.md) — turn a refined idea plus a Jira key into a reviewed Product Requirements Document.

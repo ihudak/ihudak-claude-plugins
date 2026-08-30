@@ -242,13 +242,13 @@ For every declared prerequisite (this run's plus any already on file):
    what each package in the bundle is for, rather than referring the customer to a package they were
    not given.
 
-**Today, every resolvable prerequisite lands in *what could still move*, and the run says so
-plainly.** No command in this plugin writes a `[CD#n]`: the command that would turn a returned
-review into one does not exist yet (`decision-register-format.md` §1). So step 2's test is written
-against the register rather than against a command's existence — it will start returning
-*customer-reviewed* the moment that becomes true, with no edit here — but its answer today is the
-same for every prerequisite, and reporting that as though it were a per-prerequisite finding would
-overstate what was checked.
+**Step 2's test is written against the register, never against a run's history.** `/brd-reconcile`
+is the one command that writes a `[CD#n]`, and it writes one only once an operator has confirmed a
+returned answer (D14, `decision-register-format.md` §1) — so a `[CD#n]` on file is evidence that a
+review actually came back *and* was confirmed, which is exactly the question step 2 asks. A
+prerequisite that was packaged and sent, or whose review is sitting unreconciled in somebody's
+inbox, reads *not customer-reviewed* here, correctly: nothing about it is frozen yet, and every
+position resting on it can still move.
 
 Carry, for each prerequisite: its key, whether it resolved, whether its decisions are
 customer-reviewed, whether a package of its own was found, and **every decision in this BRD's
@@ -681,14 +681,15 @@ still move*; and the repo→SHA table. Emit its §4.1 outcome line in the final 
 
 ## Phase 10 — Next steps
 
-The BRD-to-PRD route's next command is `/brd-reconcile`, which would take the returned review and
-turn each confirmed answer into a `[CD#n]` — **and it does not exist yet**, so it is not offered.
-Neither is `--from-brd` on `/create-prd`, which would carry a decided, reconciled BRD into a PRD.
-Offering a command the plugin does not ship would be worse than offering nothing, so the honest
-offer is the state this run actually leaves behind:
+The BRD-to-PRD route's next command is `/brd-reconcile`, which takes the returned review and turns
+each confirmed answer into a `[CD#n]` — and it is offered, named for what it needs, because it
+cannot run until a review actually comes back. `--from-brd` on `/create-prd`, which would carry a
+decided, reconciled BRD into a PRD, **does not exist yet** and is not offered: offering a command the
+plugin does not ship would be worse than offering nothing. So the honest offer is the state this run
+actually leaves behind:
 
 ```
-choices: ["Stop here — the package is written and, if you handed it off, committed", "Send it — the delivery note is printed above and the archive command is in the report", "Package another BRD or slice", "Other… (describe)"]
+choices: ["Stop here — the package is written and, if you handed it off, committed", "Send it — the delivery note is printed above and the archive command is in the report", "Reconcile the review once it comes back — /dev-workflows:brd-reconcile <BRD-KEY> @<review-file>", "Package another BRD or slice", "Other… (describe)"]
 ```
 
 **No option carries a `(Recommended)` marker, and that omission is deliberate**, per the
@@ -701,9 +702,9 @@ orchestrator would then have to evaluate.
 
 Say plainly what remains, per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — names only,
 never behaviour a command of its own owns: the round holding each `[C]` stays open until the
-customer's answer comes back, and there is no command in this plugin today that ingests one, so a
-package that is sent is, for now, the end of the route. Say that as the plain fact it is rather than
-implying a next step that does not exist.
+customer's answer comes back and `/dev-workflows:brd-reconcile` records it, and what happens between
+this run and that one is not the plugin's to do — the package has to reach a customer and the
+customer has to answer.
 
 ### Context hygiene
 

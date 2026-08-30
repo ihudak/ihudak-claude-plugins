@@ -286,6 +286,7 @@ Fixed per-command labels, with three inferred exceptions:
 | `/brd-split` | brd-to-prd | pm |
 | `/brd-interview` | brd-to-prd | pm |
 | `/brd-package` | brd-to-prd | pm |
+| `/brd-reconcile` | brd-to-prd | pm |
 | `/prompt` | **inferred** | **inferred** |
 | `/feedback` | **inferred** | **inferred** |
 

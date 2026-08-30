@@ -12,9 +12,11 @@ once in `references/grounding-format.md` §3 — cited here, not restated; requi
 **Consumed by `commands/brd-interview.md`**, which tags every question against §1 and applies §3–§5
 — its whole discipline is this file's rule — by `agents/brd-package-reviewer.md`, which applies §2's
 test to a question already routed, and by `commands/brd-package.md`, which routes the `[C]` questions
-into the customer review prompt and reads §5's round vocabulary at its gate. What this file fixes is
-the contract every one of them is built against, so that the tag on a question means the same thing
-to whichever one is holding it.
+into the customer review prompt and reads §5's round vocabulary at its gate, and by
+`commands/brd-reconcile.md`, which writes §5's terminal disposition *answered by the customer* when
+an operator confirms a returned answer — the only thing that ever closes a round holding a `[C]`.
+What this file fixes is the contract every one of them is built against, so that the tag on a
+question means the same thing to whichever one is holding it.
 
 ## 1. The three tags
 

@@ -76,6 +76,15 @@ nothing ever would, and the slice could never be ground in its own right: `/brd-
 gates on that ledger. `/brd-split` is also the only command holding both the parent's rows and the
 allocation that says which of them the slice claims.
 
+**Two commands write a disposition once the ledger exists, and they write different subsets.**
+`/brd-split` walks every `unallocated` row to a terminal disposition (§4), and it is the only command
+that may write `covered-here` or `covered-by`: allocation — which BRD builds a requirement — is that
+walk and nothing else. `commands/brd-reconcile.md` moves a row to `deferred-to`, `rejected` or
+`superseded-by` when a frozen `[CD#n]` settles the requirement's fate differently; it never
+allocates, because a customer decision is not a statement about which BRD in the delivery
+organisation owns the work, and **no command ever moves a row back to `unallocated`** — that is the
+initial state, and returning a row to it would reopen a gate that has already been satisfied.
+
 **A slice's ledger is walked by `/brd-split` like any other.** The one-level cap stops that run
 from creating children below the slice; it does not stop it from allocating the slice's own rows
 (`commands/brd-split.md` Phase 0 step 5 — a notice, not a stop). Otherwise every row of every slice

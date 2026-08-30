@@ -36,9 +36,11 @@ against that rendered body — so judge the returned review only against rules i
 against the preamble's constraints on the schema file itself, and never report as a customer defect
 something the customer was never told.
 
-**Not shipped yet.** `/brd-reconcile` will dispatch this agent on the review file it has already
-canonicalised and committed, and will run the confirmation step over every candidate this agent
-returns. That command does not exist, so nothing dispatches this agent today.
+**Who dispatches this agent.** `/brd-reconcile` dispatches it once, on the review file it has
+already copied into the BRD folder under the canonical name and handed off, and then runs the
+confirmation step over every candidate this agent returns. It passes `auto`, or `free-text` where the
+operator says the file is prose, and **never `schema`** — a caller that forced a parse would undo
+step 1's fail-closed rule from the outside.
 
 ## Inputs
 

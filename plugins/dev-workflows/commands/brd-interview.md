@@ -220,8 +220,9 @@ and a holding state keeps the round open:
 **Why the distinction is load-bearing rather than tidy.** Both rules that read a question's state —
 this phase's resume rule and the *Write the register and the round record* phase's closure rule —
 are stated in this one vocabulary, so they cannot drift apart. Were a holding state counted as a
-disposition, a round whose remainder was *deferred* or *needs grounding* would close, and the resume
-rule would then skip past the very question this run promised to return to. §5 sides with the
+disposition, a round whose remainder sat in any holding state — *deferred* or *needs grounding*,
+say — would close, and the resume rule would then skip past the very question this run promised to
+return to. §5 sides with the
 holding states: *"A round with an outstanding `[C]` stays open until that answer comes back through
 the package — the customer's turnaround is not a reason to declare the round finished around them."*
 
@@ -519,8 +520,10 @@ order it was written, its tag, every re-tag with the finding that caused it, eve
 parts it became, and each question's state in the vocabulary the *Resolve the round* phase fixes —
 either a **terminal disposition** (*answered from findings*, *decided* naming the `[VD#n]`,
 *answered by the customer*, *re-tagged* naming its cause, or *split* naming its parts) or a
-**holding state** (*held for the customer*, *deferred*, *needs grounding*). Plus, when this run
-re-opened the round, the re-open and its cause. This file is what makes the round resumable:
+**holding state** (*held for the customer*, *deferred*, *needs grounding*, or *untagged*) — **all
+four**, exactly as the *Resolve the round* table names them, because a file schema that lists three
+is a schema under which the fourth cannot be written down. Plus, when this run re-opened the round,
+the re-open and its cause. This file is what makes the round resumable:
 resumability is a property of the record, not of the session (`interview-tagging.md` §5), and an
 interrupted run resumes at the first question here carrying no terminal disposition — the same test,
 in the same words, that *Resolve the round* resumes on.
@@ -529,11 +532,12 @@ in the same words, that *Resolve the round* resumes on.
 here because it is one of this run's deliverables.
 
 **Round closure is decided here, and only by the record.** The round closes when every question in
-it carries a **terminal** disposition, and not before. A question in any holding state keeps it open
-— so a round is not closed because the interesting questions are answered, because the remainder was
-deferred, because a `[G]` is waiting on a grounding pass, or because a `[C]` is waiting on a customer
-whose turnaround is slow. Report the round as open or closed accordingly, and when open, name what it
-is waiting on.
+it carries a **terminal** disposition, and not before. **Any** of the four holding states keeps it
+open — so a round is not closed because the interesting questions are answered, because the
+remainder was *deferred*, because a `[G]` is *needs grounding* and waiting on a grounding pass,
+because a question is still *untagged* and has not been rewritten yet, or because a `[C]` is *held
+for the customer* whose turnaround is slow. Report the round as open or closed accordingly, and when
+open, name which holding state it is waiting on.
 
 ---
 

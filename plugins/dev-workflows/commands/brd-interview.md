@@ -578,13 +578,16 @@ a review that has not been asked for yet, and offering it now would name a step 
 honest offer is the state this run actually leaves behind.
 
 **Compute the gate before printing the list, from the round records this run just wrote.** Read
-every question in every `interview/round-<N>.md` for this BRD and apply exactly the test
-`/brd-package` Phase 0 applies, in the vocabulary the *Resolve the round* phase fixes: **every
-question carries either a terminal disposition or the holding state *held for the customer*** →
-`package_offerable: yes`. Any question in the *deferred*, *needs grounding* or *untagged* holding
-state → `package_offerable: no`, and name each such question, its round and its holding state
-beside the list. The test is over the whole BRD's rounds, not this round alone, because that is what
-`/brd-package` reads.
+every question in every `interview/round-<N>.md` for this BRD and apply the gate
+`commands/brd-package.md` Phase 0 step 7 (*Gate on the interview's rounds — and read the
+precondition the only way that is not a deadlock*) owns, **exactly as that step states it**. Which
+holding state it admits and which three it refuses is stated there and is deliberately not restated
+here: `/brd-package` is the command that actually refuses the run, so a second copy of its
+precondition sitting in this phase would drift, and the run that reads the drifted copy is this one
+— it would print an offer for a command that then stops on its own gate. Passing that gate →
+`package_offerable: yes`; failing it → `package_offerable: no`, and every question the gate named is
+named beside the list with its round and its holding state. The test is over the whole BRD's rounds,
+not this round alone, because that is what `/brd-package` reads.
 
 **`package_offerable: yes`:**
 
@@ -595,23 +598,23 @@ choices: ["Stop here — this round's decisions are recorded", "Package this BRD
 **`package_offerable: no` — `/brd-package` is left out rather than offered and refused:**
 
 ```
-choices: ["Stop here — this round's decisions are recorded", "Work another round now — /dev-workflows:brd-interview <BRD-KEY> (the questions named above are still deferred, needs-grounding or untagged)", "Re-ground a needs-grounding question — /dev-workflows:brd-ground <BRD-KEY>", "Interview another BRD or slice", "Other… (describe)"]
+choices: ["Stop here — this round's decisions are recorded", "Work another round now — /dev-workflows:brd-interview <BRD-KEY> (the questions named above are still in a holding state the packaging step refuses)", "Re-ground a question no finding bears on yet — /dev-workflows:brd-ground <BRD-KEY>", "Interview another BRD or slice", "Other… (describe)"]
 ```
 
 **No option carries a `(Recommended)` marker, and that omission is deliberate**, per the
 `When no option is safe to recommend` guidance in
 `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`: which one is right depends entirely on what
 this round left behind. What the gate above decides is only **whether `/brd-package` appears at
-all**; it never promotes an option to recommended. A round whose remaining questions are all *held
-for the customer* is ready to package; a round holding a question that is *deferred*, *needs
-grounding* or *untagged* is not, and `/brd-package` refuses it — which is why that round is not
-shown the option rather than shown it with a caveat.
+all**; it never promotes an option to recommended. A round the cited gate passes is ready to
+package; a round it refuses is not — which is why that round is not shown the option rather than
+shown it with a caveat.
 
 Say plainly what remains, per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — names only,
 never behaviour a command of its own owns: a round still holding a `[C]` stays open, because the
 answer arrives through a package and is recorded by `/dev-workflows:brd-reconcile` once it comes
 back. A
-question recorded *needs grounding* is answered by re-running `/dev-workflows:brd-ground <BRD-KEY>`
+question in the *needs grounding* holding state — the one the *Resolve the round* phase defines as
+movable only by a grounding run — is answered by re-running `/dev-workflows:brd-ground <BRD-KEY>`
 and returning to this round, which is a real next step and is named as one.
 
 ### Context hygiene

@@ -56,6 +56,30 @@ not required.
   `/dev-workflows:release-notes <PRD>` (PM), `/dev-workflows:create-ard <PRD>` (PA, if one exists),
   `/dev-workflows:epics <PRD>` (PE), `/dev-workflows:specify <PRD>` (PE, if one exists).
 
+**PM / PA — the BRD-to-PRD route**
+
+- `/dev-workflows:brd-intake <BRD-KEY> @<brd-file>` — the route's entry point → hand to PA →
+  `/dev-workflows:brd-ground <BRD-KEY>` (PA).
+- `/dev-workflows:brd-ground <BRD-KEY>` → `/dev-workflows:brd-split <BRD-KEY>` (PM). On a slice
+  (`brd-link.md` carries a `parent:`), the same command runs allocate-only and creates no child.
+- `/dev-workflows:brd-split <BRD-KEY>` — **depth** → `/dev-workflows:brd-interview <BRD-KEY>` (PM);
+  **breadth** → `/dev-workflows:brd-ground <CHILD-KEY>` (PA) once per child the run created, each
+  child re-entering the route at grounding.
+- `/dev-workflows:brd-interview <BRD-KEY>` → `/dev-workflows:brd-package <BRD-KEY>` (PM), offered
+  only where this run's own state is one `/dev-workflows:brd-package` would accept
+  (`commands/brd-package.md` Phase 0 owns that test); otherwise → another
+  `/dev-workflows:brd-interview <BRD-KEY>` round (PM), or `/dev-workflows:brd-ground <BRD-KEY>` (PA)
+  for a question no finding bears on yet.
+- `/dev-workflows:brd-package <BRD-KEY>` → *(the customer reviews it off-platform, and the round
+  holding each customer question stays open until the answer comes back)* →
+  `/dev-workflows:brd-reconcile <BRD-KEY> @<review-file>` (PM).
+- `/dev-workflows:brd-reconcile <BRD-KEY> @<review-file>` → leaf/closure: the route ends at a
+  reconciled BRD. Re-entry, never advance: another `/dev-workflows:brd-interview <BRD-KEY>` round
+  where this run reopened a decision, `/dev-workflows:brd-package <BRD-KEY>` where questions remain
+  for the customer, or `/dev-workflows:brd-ground <BRD-KEY> --rebaseline` where the review
+  challenged a code claim. `--from-brd` on `/dev-workflows:create-prd`, `/dev-workflows:create-ard`
+  and `/dev-workflows:specify` does **not** ship, so no offer here crosses into the PRD pipeline.
+
 **PA — architecture (optional)**
 
 - `/dev-workflows:create-ard <PRD>` (PRD-level) → PE → `/dev-workflows:epics <PRD>` (recommended) or `/dev-workflows:specify <PRD>`.

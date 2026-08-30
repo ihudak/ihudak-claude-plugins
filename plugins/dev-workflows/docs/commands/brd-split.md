@@ -2,7 +2,8 @@
 
 Gates on every grounding finding carrying a verifier verdict, proposes candidate slices from the
 grounded picture, keys and nests a child BRD folder per confirmed slice with its own
-`brd-link.md`, then walks every unallocated coverage-ledger row one at a time through five
+`brd-link.md`, an inventory of the rows it inherits, and an unallocated coverage ledger of its
+own, then walks every unallocated coverage-ledger row one at a time through five
 resolutions until none remain `unallocated`, and writes `slices.md` with the rationale for each
 slice and each deferral.
 
@@ -10,8 +11,8 @@ slice and each deferral.
 
 `/brd-split` runs in the [pm](../roles-and-phases.md#pm--product-management) role,
 cost-attribution phase `brd-to-prd` — the phase shared by all three commands of the BRD-to-PRD
-route (`/brd-intake`, `/brd-ground`, `/brd-split`). All three have now landed; `/brd-split` is the
-last command of this route for increment 1.
+route (`/brd-intake`, `/brd-ground`, `/brd-split`). All three ship together, and `/brd-split` is the
+last command of this route.
 
 ## Synopsis
 

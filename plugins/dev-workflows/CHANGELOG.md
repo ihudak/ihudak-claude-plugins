@@ -23,6 +23,22 @@ from it — useful on its own, without any of the follow-on work increment 2/3 w
   building here, assigning it to a named child BRD, deferring it, rejecting it against a logged
   defect, or marking it superseded — until none remain `unallocated`. A confirmed slice nests inside
   its parent's folder and re-enters at `/brd-ground` for its own grounding pass.
+- **A slice is a BRD, and `/brd-split` gives it everything one needs.** Alongside `brd-link.md`, a
+  new child folder gets a `brd/brd-inventory.md` — the parent's claimed rows copied verbatim under a
+  header naming the parent's `brd/source/`, which every `source_anchor` still resolves against — and
+  a `coverage-ledger.md` seeded `unallocated`. Those are the two files `/brd-ground` gates on and
+  reads, and `/brd-intake` never runs on a slice (there is no separate document to intake), so
+  `/brd-split` writes them: without that, the loop back to grounding dead-ends. A slice holds no
+  `brd/source/` and no `brd/brd-defect-log.md` of its own and inherits both from its parent
+  (`references/brd-format.md` §2.1).
+- **Verification is anchored to whatever a finding actually rests on.** A `[CG#n]` and a class-4
+  `[DG#n]` are re-derived against the pinned repository; a `[DG#n]` of class 1, 2, or 3 is
+  design-only and is re-derived against the frame set, which `grounding-verifier` now receives.
+  Requiring a commit of those would have left them permanently unverifiable and blocked `/brd-split`
+  forever. The agent's row selection is fail-closed — anything not explicitly asserting a
+  design-only class is treated as resting on code — so no code finding can be verified without its
+  commit. `/brd-ground` Phase 7 also acts on the verifier's refusal statuses, stopping before any
+  finding is written without an outcome.
 - **Four agents:** `brd-reader` (Sonnet-pinned extraction), `code-grounder`, `design-grounder`, and
   `grounding-verifier` (Opus-pinned independent re-derivation).
 - **Four references:** `brd-addressing.md`, `brd-format.md`, `coverage-ledger-format.md`, and

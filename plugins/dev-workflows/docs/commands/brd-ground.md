@@ -9,7 +9,7 @@ horizon against declared prerequisite BRDs.
 
 `/brd-ground` runs in the [pa](../roles-and-phases.md#pa--product-architecture) role,
 cost-attribution phase `brd-to-prd` — the phase shared by all three commands of the BRD-to-PRD
-route (`/brd-intake`, `/brd-ground`, `/brd-split`). All three commands have now landed;
+route (`/brd-intake`, `/brd-ground`, `/brd-split`). All three ship together;
 `/brd-intake` and `/brd-split` run as
 [pm](../roles-and-phases.md#pm--product-management).
 
@@ -95,8 +95,10 @@ the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch p
 
 ## Gates
 
-- **Phase 0 — `require-on-main` on the intake artifacts.** No grounding starts until
-  `/brd-intake`'s output is merged; see "What it needs" above for the exact stop conditions.
+- **Phase 0 — `require-on-main` on this BRD's inventory and ledger.** No grounding starts until
+  whichever command wrote them has merged its output — `/brd-intake` for a BRD with a source
+  document of its own, `/brd-split` on the parent for a slice; see "What it needs" above for the
+  exact stop conditions.
 - **Phase 3 — baseline integrity, run by the orchestrator itself, not delegated to an agent.**
   Every repository is pinned and proven clean in content — not merely in `git status` — before
   Phase 5 dispatches a single agent. `code-grounder` and `grounding-verifier` each separately
@@ -106,7 +108,13 @@ the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch p
   verifier outcome is never treated as evidence. A `contradict` outcome rewrites the finding
   in place — same id, replaced verdict and evidence — so an existing citation keeps resolving; an
   `agree`/`extend`/`unprovable` outcome is recorded alongside the finding unchanged (`extend` also
-  appends the additional evidence the verifier's own search turned up).
+  appends the additional evidence the verifier's own search turned up). Which anchor each finding
+  is verified against depends on what it rests on: a `[CG#n]` and a class-4 `[DG#n]` are re-derived
+  against the pinned repository, a class-1/2/3 `[DG#n]` against the frame set it was reconciled
+  from — see [`grounding-format.md`](../../references/grounding-format.md) §8. A verifier that
+  refuses rather than verifying (a moved `HEAD`, a repository or frame set no longer resolvable)
+  stops the run before Phase 8 writes anything, so no finding is ever written without an outcome —
+  which is what keeps `/brd-split`'s own verification gate reachable.
 
 ## Example
 

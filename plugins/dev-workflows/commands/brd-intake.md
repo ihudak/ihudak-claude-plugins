@@ -12,8 +12,8 @@ contradictory customer BRD into requirements a PRD can be built from. It copies 
 source into the specs repo **verbatim and immutably**, extracts a `[BR#n]` requirement inventory
 via the `brd-reader` agent, classifies the document's defects **with a human** rather than on the
 agent's say-so alone, and writes a coverage ledger in which every requirement starts life
-`unallocated` — the state `/brd-split` (a later command) cannot complete past until each row has
-been given a fate.
+`unallocated` — the state `/brd-split`, the route's third command, cannot complete past until each
+row has been given a fate.
 
 Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>]`
 
@@ -207,21 +207,21 @@ PRD-eligible.
 ## Phase 8 — Next steps
 
 ```
-choices: ["Ground the inventory against code and design once it lands — /dev-workflows:brd-ground <BRD-KEY> is not yet available; a later task in this increment adds it (Recommended)", "Stop here", "Other… (describe)"]
+choices: ["Ground the inventory against code and design — /dev-workflows:brd-ground <BRD-KEY> (Recommended)", "Stop here", "Other… (describe)"]
 ```
 
-`/dev-workflows:brd-ground <BRD-KEY>` will ground every `[BR#n]` against the mounted implementation
-and design repos, once it lands — it has not shipped yet, a later task in this increment adds it —
-and, once it does, it will not start reading this BRD's artifacts until the pull request above is
-merged to the specs repo's main. Guidance only — never auto-invokes another command, and never
-asserts a role or cost-attribution row for a command that has not landed; `/brd-ground` carries its
-own once it exists. Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`.
+`/dev-workflows:brd-ground <BRD-KEY>` grounds every `[BR#n]` against the mounted implementation and
+design repos. It will not start reading this BRD's artifacts until the pull request above is merged
+to the specs repo's main — its own Phase 0 gates `coverage-ledger.md` on `origin/<default>` and
+stops with `BRD_GROUND_NEEDS_INTAKE` otherwise — so offering it here is the next step, not an
+instruction to run it before the merge lands. Guidance only — never auto-invokes another command.
+Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`.
 
 ### Context hygiene
 
 Per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`, the resume pointer is written in the
 terminal cost phase (Phase 9), after the cost entry and before the commit step. Continuing this
-route yourself once `/dev-workflows:brd-ground <BRD-KEY>` lands, even as the same person? → run
+route yourself into `/dev-workflows:brd-ground <BRD-KEY>`, even as the same person? → run
 **`/clear`** for a clean slate. Guidance only — nothing is auto-run.
 
 ---

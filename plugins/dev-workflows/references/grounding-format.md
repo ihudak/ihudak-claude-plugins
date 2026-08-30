@@ -10,9 +10,10 @@ defined once in `references/brd-format.md` — cited here, not restated; the rea
 mounted repository is defined once in `references/read-only-repos.md` and applies unchanged to
 every repository grounding reads.
 
-**Not yet consumed.** No agent or command in this increment cites this file yet — `code-grounder`,
-`design-grounder`, `grounding-verifier`, and `/brd-ground` land in later tasks and write against the
-contract fixed here.
+**Consumed by** the three grounding agents that write against the contract fixed here —
+`agents/code-grounder.md`, `agents/design-grounder.md`, and `agents/grounding-verifier.md` — and by
+the two commands that read what they produce: `commands/brd-ground.md`, which orchestrates all
+three, and `commands/brd-split.md`, whose Phase 0 gate turns on §8's verification outcomes.
 
 ## 1. What grounding is, and is not
 

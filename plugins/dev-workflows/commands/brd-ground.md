@@ -297,7 +297,8 @@ read the frozen decision text and judge whether it directly determines this find
 built — not merely mentions the same area. Where it does, set `horizon: will-change` and record
 `prerequisite: <the specific decision, by id and a one-line summary>` — naming the decision itself,
 never merely the prerequisite BRD (`grounding-format.md` §5). Where no declared prerequisite has
-any frozen decisions at all (the common case before `/brd-interview` has run against any of them),
+any frozen decisions at all (the ordinary case today — nothing in this increment freezes a
+decision, so a prerequisite's `decisions.md` exists only if someone wrote it by hand),
 every finding stays `current`, and this is reported plainly rather than left to look like nothing
 was checked.
 
@@ -451,14 +452,15 @@ prerequisite-readiness block; emit its §4.1 outcome line in the final report.
 ## Phase 10 — Next steps
 
 ```
-choices: ["Split the BRD once every finding carries a verifier outcome — /dev-workflows:brd-split <BRD-KEY> is not yet available; a later task in this increment adds it (Recommended)", "Ground another declared prerequisite first", "Stop here", "Other… (describe)"]
+choices: ["Split the BRD now that every finding carries a verifier outcome — /dev-workflows:brd-split <BRD-KEY> (Recommended)", "Ground another declared prerequisite first", "Stop here", "Other… (describe)"]
 ```
 
-`/dev-workflows:brd-split <BRD-KEY>` is the third command of the BRD-to-PRD route — a later task
-in this increment adds it, and, once it does, it will not start until this phase's pull request is
-merged, and will carry its own role and cost-attribution row. Guidance only, per
+`/dev-workflows:brd-split <BRD-KEY>` is the third and final command of the BRD-to-PRD route. It
+will not start until this phase's pull request is merged — its own Phase 0 gates
+`grounding/code-grounding.md` on `origin/<default>` — and it carries its own role and
+cost-attribution row (`docs/roles-and-phases.md`). Guidance only, per
 `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — names only that `/brd-split` exists and
-where it sits in the route, never its behaviour, which task 12 owns.
+where it sits in the route, never its behaviour, which `commands/brd-split.md` owns.
 
 ### Context hygiene
 

@@ -8,8 +8,8 @@ ledger where every requirement starts `unallocated`.
 
 `/brd-intake` runs in the [pm](../roles-and-phases.md#pm--product-management) role, cost-attribution
 phase `brd-to-prd` — the phase shared by all three commands of the BRD-to-PRD route (`/brd-intake`,
-`/brd-ground`, `/brd-split`), the way `/idea` and `/create-prd` share `prd-creation`. All three
-commands have now landed: `/brd-ground` runs as
+`/brd-ground`, `/brd-split`), the way `/idea` and `/create-prd` share `prd-creation`. All three ship
+together: `/brd-ground` runs as
 [pa](../roles-and-phases.md#pa--product-architecture), and `/brd-split` runs as pm alongside
 `/brd-intake`.
 
@@ -92,7 +92,7 @@ specs repo's default branch under a new `brd/<BRD-KEY>-<slug>` branch prefix.
   `[DEF#n]` id. A rejected candidate is dropped, not recorded.
 - **Phase 5 — the ledger gate downstream.** `/brd-intake` itself never blocks on the ledger — it
   only ever writes `unallocated` rows. The gate that gates on them (no `unallocated` row may
-  survive) belongs to `/brd-split`, a later command.
+  survive) belongs to [`/brd-split`](brd-split.md), the route's third command.
 
 ## Example
 

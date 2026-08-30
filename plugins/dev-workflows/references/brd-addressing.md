@@ -6,10 +6,12 @@ files because every `/brd-*` command addresses a BRD folder by key, and this fil
 addressing is defined once rather than reinvented per caller. Design authority:
 `docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` §4.3.
 
-**Not yet consumed.** No command or reference file in this increment cites this file yet. It is
-written first, ahead of its callers, so the `/brd-*` command family and, per §4 below, the six
-existing commands' `--from-brd` fallback read a rule that was already settled rather than one
-invented per caller.
+**Consumed by** `commands/brd-intake.md`, `commands/brd-ground.md`, and `commands/brd-split.md` —
+each calls `brd-key-valid` (§1) and `resolve-brd` (§2) by name — and cited by
+`references/brd-format.md` and `references/coverage-ledger-format.md` for the key grammar and
+folder resolution neither of them restates.
+§4's `--from-brd` fallback for the six existing commands is the one part of this file nothing
+consumes yet; see the note there.
 
 ## 1. Key grammar
 

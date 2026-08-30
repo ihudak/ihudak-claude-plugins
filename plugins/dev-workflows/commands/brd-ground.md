@@ -568,13 +568,17 @@ cost-attribution row (`docs/roles-and-phases.md`). Guidance only, per
 `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — names only that `/brd-split` exists and
 where it sits in the route, never its behaviour, which `commands/brd-split.md` owns.
 
-**`parent: <PARENT-KEY>` — this BRD is a slice.** `/brd-split` is **not** offered: nesting is
-capped at one level, so a slice is not itself sliceable and `/brd-split <BRD-KEY>` would stop with
-`BRD_SPLIT_ON_SLICE` (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §3). Grounding is where
-this slice's route ends today — state that plainly rather than omitting a step:
+**`parent: <PARENT-KEY>` — this BRD is a slice.** `/brd-split` **is** offered, and the offer says
+which of its two modes will run, so nobody expects a fan-out that cannot happen: on a slice it runs
+`allocate-only` (`commands/brd-split.md` Phase 0 step 5) — it walks this slice's ledger to a
+recorded fate through four resolutions instead of five, and creates no child, because nesting is
+capped at one level (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §3). Allocating is what
+makes this slice PRD-eligible
+(`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5), so it is a real next step, not a
+formality:
 
 ```
-choices: ["Stop here — this slice is ground, and the route ends here for a slice (Recommended)", "Ground another declared prerequisite first", "Other… (describe)"]
+choices: ["Allocate this slice's ledger — /dev-workflows:brd-split <BRD-KEY> (Recommended; allocate-only — no child is created)", "Ground another declared prerequisite first", "Stop here", "Other… (describe)"]
 ```
 
 ### Context hygiene

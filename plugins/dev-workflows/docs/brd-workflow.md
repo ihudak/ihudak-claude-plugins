@@ -24,14 +24,14 @@ flowchart TD
     end
 
     intake --> ground
-    ground -->|"BRD with a source document"| split
+    ground --> split
     split -.->|new child BRD| ground
 ```
 
-The dashed edge runs one way only. A child BRD re-enters at `/brd-ground` and stops there: nesting
-is capped at one level, so a slice is not itself sliceable and `/brd-split` refuses it. That is why
-the solid `ground → split` edge is labelled — it is the path a BRD that owns its source document
-takes, not the path a slice takes.
+The dashed edge closes the loop once, and only once. A child BRD re-enters at `/brd-ground` and then
+runs `/brd-split` on itself in **allocate-only** mode: its ledger is walked to a recorded fate, but
+no grandchild is created, because nesting is capped at one level. So the loop is traversed at most
+twice for any requirement — once by the parent, once by the slice that claimed it.
 
 `/brd-intake` copies the customer's document in verbatim and immutably, extracts a `[BR#n]`
 requirement inventory, confirms candidate defects with a human, and writes a coverage ledger with
@@ -42,10 +42,12 @@ a verifier verdict, proposes candidate slices, and walks every unallocated ledge
 five recorded fates — building here, assigning it to a named child BRD, deferring it, rejecting it
 against a logged defect, or marking it superseded — until none remain `unallocated`. A child BRD a
 split confirms is not a new route: it nests inside its parent's folder and re-enters at
-`/brd-ground` for its own grounding pass, which is what the dashed loop above shows. It does not
-re-enter at `/brd-split`: run on a slice, that command stops with `BRD_SPLIT_ON_SLICE`, and the
-slice's own ledger rows stay `unallocated` — the parent's ledger is where those same requirements
-already carry a fate, as `covered-by`.
+`/brd-ground` for its own grounding pass, which is what the dashed loop above shows, and then at
+`/brd-split` to allocate its own ledger. That second `/brd-split` runs in **allocate-only** mode: it
+offers four resolutions rather than five — `covered-by` is unavailable, because it names a child BRD
+and no child can exist below a slice — and it creates nothing. The cap is on nesting, not on
+allocation: a slice's rows must reach a fate too, or the slice could never become a PRD of its
+own.
 
 **This is the whole route that ships in this increment.** The design behind it sketches further
 phases — `/brd-interview`, `/brd-package`, `/brd-reconcile`, and a `--from-brd` switch on
@@ -62,7 +64,7 @@ command accepts today, not a preview of what a later increment adds.
 |---|---|---|---|
 | `/brd-intake` | `<BRD-KEY> @<brd-file>` | `--sort-existing <dir>` | Source must already be markdown — a PDF or similar is rejected, never converted. `<BRD-KEY>` names a folder, never a tracker ticket |
 | `/brd-ground` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…`, `--rebaseline`, `--derivation-matrix` / `--no-derivation-matrix`, `--no-design` | Runs at either level — a BRD with a source document, or a slice. Needs `$REPOS_PATH` mounted; read-only against every repository it touches |
-| `/brd-split` | `<BRD-KEY>` | — | No flags. Runs only on a source-owning BRD; refuses a slice (`BRD_SPLIT_ON_SLICE`). Walks every unallocated row to a recorded fate; a child BRD nests inside the parent's folder |
+| `/brd-split` | `<BRD-KEY>` | — | No flags. Walks every unallocated row to a recorded fate at either level; on a source-owning BRD it also nests child BRDs, on a slice it is allocate-only (four resolutions, no child) |
 
 `<BRD-KEY>` follows the same shape everywhere in this route: `^[A-Z][A-Z0-9_]*(-\d+)+$`, checked
 for shape only and never against a tracker — a BRD is a markdown file under `$SPECS_PATH`, not a
@@ -100,7 +102,8 @@ never runs on a slice — there is no separate document to intake — and `/brd-
 command holding both the parent's rows and the allocation that says which of them the slice claims.
 The slice keeps no `brd/` source or defect log of its own and reaches for its parent's, and that
 reach is always exactly one hop: with nesting capped at one level, a slice's parent is always the
-BRD that owns the customer's document.
+BRD that owns the customer's document. That one hop is live rather than theoretical — it is how a
+`rejected: [DEF#n]` is resolved when `/brd-split` walks the slice's own ledger.
 
 `--sort-existing <dir>` on `/brd-intake` additionally writes `prd-seed.md`, `ard-seed.md`, and
 `spec-seed.md` at the BRD folder's own level — a one-time migration path for a package written by

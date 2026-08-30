@@ -109,7 +109,8 @@ refusing to start until its predecessor's artifact landed on the specs default b
 | D14 | **Free-text customer input never becomes a decision without operator confirmation.** | Normalising prose into a decision register is inference. Promoting inference to customer authority silently is the one way this workflow could fabricate a mandate. |
 | D15 | **The parent BRD holds a coverage ledger; every requirement has a recorded fate.** | Without it, nothing detects a requirement that every slice quietly deferred — the failure a long BRD most invites. |
 | D16 | **No real customer or vendor is named anywhere in the plugin.** | The roles are `customer` and `delivery team`. Any worked example ships synthetic. |
-| D17 | **A slice is a BRD, and nesting is capped at one level.** There is no lesser "slice" object: a slice runs the same commands, holds the same artifacts, and can depend on any other BRD. But a slice is **not** itself sliceable — `/brd-split` refuses on a slice. | One object type avoids two sets of commands, two sets of gates, and a rule for which applies. The cap is separate and deliberate: a grandchild has no coherent inheritance. A slice inherits `brd/source/` and its defect log from its parent, and a slice's parent is a slice that holds neither — so a grandchild's header would name a path that does not exist and its `rejected: [DEF#n]` resolution would cite a missing file. Chasing to the source-owning root would fix that, but nothing in practice needs three levels, and the cap is one rule instead of two. |
+| D17 | **A slice is a BRD, and nesting is capped at one level.** There is no lesser "slice" object: a slice runs the same commands, holds the same artifacts, and can depend on any other BRD. No BRD folder is ever created inside a slice — `/brd-split` creates no child below one (**amended by R18**; the original row read "a slice is **not** itself sliceable — `/brd-split` refuses on a slice"). | One object type avoids two sets of commands, two sets of gates, and a rule for which applies. The cap is separate and deliberate: a grandchild has no coherent inheritance. A slice inherits `brd/source/` and its defect log from its parent, and a slice's parent is a slice that holds neither — so a grandchild's header would name a path that does not exist and its `rejected: [DEF#n]` resolution would cite a missing file. Chasing to the source-owning root would fix that, but nothing in practice needs three levels, and the cap is one rule instead of two. |
+| R18 | **The cap is on nesting, not on allocation.** `/brd-split` run on a slice skips slice proposal and child creation and still walks the ledger, offering four terminal resolutions instead of five: `covered-by` is unavailable because it names a child BRD and none can exist below a slice. `BRD_SPLIT_ON_SLICE` is a notice, not a run-refusal. | D17 as originally written refused the whole command on a slice, which left every row of every slice `unallocated` forever — so no slice could ever satisfy §4.1's PRD-eligibility rule, and the entire purpose of slicing (each child becomes a PRD) was unreachable. That is the allocation deadlock §4.1 exists to prevent, reintroduced by the cap itself. Seeding a child's ledger `covered-here` at creation was considered and rejected: it removes the operator's ability to defer or reject a row inside a slice, and makes `covered-here` an assumption rather than a decision. |
 | D21 | **Every identifier this workflow mints uses the house `[PREFIX#N]` form** — `[BR#n]`, `[DEF#n]`, `[CG#n]`, `[DG#n]`, `[VD#n]`, `[CD#n]`, `[AS#n]`, `[SR#n]`. | `scripts/check-id-grammar.sh` rejects the dash form, and `BRD-FR-001` trips it outright via its `-FR-001` substring. The rule's reason applies with extra force here: these documents are emailed to customers and pasted into trackers, where a dash-form ID auto-links to an unrelated ticket in any project sharing the prefix. |
 | D22 | **`/brd-intake` and `/brd-ground` ground on shipped product documentation; `/brd-split` does not. In `/brd-ground`, documentation is a lead and a divergence finding — never evidence for a `[CG#n]`.** | Seven existing commands resolve `references/docs-grounding.md`; omitting it here made the BRD route blind to what the product already ships and documents, which is exactly the signal `/idea` gets from prior art. The restriction on `/brd-ground` is load-bearing: a document is a *claim about* behaviour, not the behaviour. Letting one be cited as evidence would let a confident, stale page satisfy a claim the code does not — the precise failure `NOT-PROVABLE` exists to prevent. Docs may say where to look, and a doc-versus-code divergence is itself worth recording; neither is a citation. `/brd-split` allocates requirements, which documentation does not inform. |
 | D19 | **Grounding findings carry a `horizon`, and a decision may not rest solely on one that a prerequisite will overturn.** | A finding is true of a pinned commit. When a prerequisite BRD is approved but unbuilt, some findings are true now and false after it ships. A decision resting on such a finding is built on ground that is about to move. Catching this by hand worked once and should not have to. |
@@ -149,10 +150,11 @@ $SPECS_PATH/specifications/
     <CHILD-KEY>-<slug>/                  # a slice: the same structure, one level only
 ```
 
-A slice is the same object one level down (D17), and one level is the maximum — `/brd-split`
-refuses on a slice. It inherits `brd/source/` and its defect log from its parent rather than
+A slice is the same object one level down (D17), and one level is the maximum — `/brd-split` run on
+a slice creates no child below it, though it still walks that slice's ledger (R18). It inherits
+`brd/source/` and its defect log from its parent rather than
 re-intaking a document that does not separately exist; its inventory and ledger are written for it
-by `/brd-split` (§9.3);
+by `/brd-split` (§9.3) and allocated by `/brd-split` run on the slice itself;
 everything from `/brd-ground` onwards runs at its own level. Only a BRD that has been through
 `/create-prd --from-brd` holds a `<BRD-KEY>_<slug>.md`; a parent that was fully sliced normally
 holds none.
@@ -592,6 +594,9 @@ Read-only against repositories throughout, per `references/read-only-repos.md`.
 **Produces:** `slices.md`, one nested child-BRD folder per confirmed slice with its own
 `brd-link.md`, **that child's `brd/brd-inventory.md` and `coverage-ledger.md`**, and an updated
 parent ledger.
+**Two modes (R18).** On a BRD that owns its source document, all of the above. On a slice,
+`allocate-only`: slice proposal and child creation are skipped, and the walk offers four
+resolutions rather than five (no `covered-by`); it produces an updated ledger and `slices.md` only.
 
 The child's inventory and ledger are written here because this is the only command holding both
 the parent inventory and the allocation. A child has no source document of its own — it inherits
@@ -783,7 +788,9 @@ flowchart TD
 ```
 
 A BRD and a slice are the same object (D17), so the diagram has one loop rather than two lanes:
-`/brd-split` produces child BRDs that re-enter at `/brd-ground`. A BRD that is fully sliced stops
+`/brd-split` produces child BRDs that re-enter at `/brd-ground`, and then at `/brd-split` again to
+allocate their own ledgers in `allocate-only` mode (R18) — the loop is traversed at most twice for
+any requirement. A BRD that is fully sliced stops
 at `split`; a BRD that is built continues to `interview`. `/brd-intake` runs only where a source
 document exists — a child inherits its parent's.
 
@@ -796,7 +803,7 @@ to open six command pages to find that `--from-brd` takes the parent BRD folder:
 |---|---|---|---|
 | `/brd-intake` | `<BRD-KEY> @<brd-file>` | `--sort-existing <dir>` | Markdown only; a PDF is rejected. `<BRD-KEY>` names the folder, not a ticket |
 | `/brd-ground` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…`, `--rebaseline`, `--derivation-matrix`, `--no-design` | Any level. `--depends-on` persists to `brd-link.md`. Needs `$REPOS_PATH` |
-| `/brd-split` | `<BRD-KEY>` | — | Walks every unallocated requirement; children nest inside |
+| `/brd-split` | `<BRD-KEY>` | — | Walks every unallocated requirement at either level; on a source-owning BRD children nest inside, on a slice it is allocate-only (R18) |
 | `/brd-interview` | `<BRD-KEY>` | `--round N` | No flag = continue the first open round; `N` resumes or re-opens one |
 | `/brd-package` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…` | Writes `bundle-<date>/` + prints the delivery note |
 | `/brd-reconcile` | `<BRD-KEY> @<review-file>` | — | The file may be anywhere; it is canonicalised and committed |

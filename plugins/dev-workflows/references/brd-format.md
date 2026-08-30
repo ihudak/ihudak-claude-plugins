@@ -113,13 +113,12 @@ of these resolutions:
 | `open` | none of the above has happened yet |
 
 There is exactly one defect log per source document, held by the BRD that owns that document; a
-slice reads its parent's rather than keeping one of its own (§2.1). A reader who must resolve a
-`[DEF#n]` while standing on a slice — following the `defects` column of the slice's copied
-inventory row, for instance — therefore looks it up in the parent's log, and that lookup is always
-exactly one hop: nesting is capped at one level (`references/brd-addressing.md` §3), so a slice's
-parent always owns the source document and the log. `/brd-split`'s `rejected: [DEF#n]` resolution
-never needs the hop at all — it refuses on a slice, so it only ever resolves a `[DEF#n]` in the log
-of the BRD it is standing on.
+slice reads its parent's rather than keeping one of its own (§2.1). A consumer that must resolve a
+`[DEF#n]` while standing on a slice — `/brd-split`'s `rejected: [DEF#n]` resolution when it walks a
+slice's ledger (`commands/brd-split.md` Phase 4), or any reader following the `defects` column of
+the slice's copied inventory row — therefore looks it up in the parent's log. That lookup is always
+**exactly one hop**: nesting is capped at one level (`references/brd-addressing.md` §3), so a
+slice's parent always owns the source document and the log, and there is no chain to walk.
 
 A resolution changes the defect log entry's status only. It never touches `brd/source/`, and it
 never assigns the requirement a disposition — the disposition vocabulary and the artifact that

@@ -162,9 +162,10 @@ The run resolves the BRD, gates its intake artifacts on main, resolves the repos
 and the documentation root, pins and proves each repository clean, grounds every `[BR#n]` claim
 against code and any exported design frames, independently re-derives every finding on Opus,
 assigns horizons against any declared prerequisites, writes the findings, and offers to branch,
-commit, push, and open a pull request. Its next-step offer branches on level: a BRD that owns its
-source document is offered [`/brd-split`](brd-split.md); a **slice** is not, because a slice is not
-itself sliceable — grounding is where a slice's route ends today.
+commit, push, and open a pull request. Its next-step offer branches on level, and names the mode
+[`/brd-split`](brd-split.md) will run in: a BRD that owns its source document gets the full split; a
+**slice** gets `allocate-only` — its ledger is walked to a recorded fate, but no child is created,
+because nesting is capped at one level.
 
 ## See also
 

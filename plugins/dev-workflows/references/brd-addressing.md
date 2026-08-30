@@ -83,11 +83,14 @@ specifications/<PARENT-KEY>-<slug>/<CHILD-KEY>-<slug>/
 finds it there. The caller never supplies the parent key explicitly — resolution alone is enough
 to locate a slice from its own key.
 
-**Nesting is capped at one level: a slice is not itself sliceable.** A slice **is** a BRD in every
-other respect — it holds the same artifacts (`references/brd-format.md` §2.1,
+**Nesting is capped at one level: no BRD folder is ever created inside a slice.** A slice **is** a
+BRD — it holds the same artifacts (`references/brd-format.md` §2.1,
 `references/coverage-ledger-format.md` §1), it is ground by `/brd-ground` on its own claimed
-requirements, and it may declare a `depends-on` against any other BRD — but `/brd-split` **refuses**
-on it (`commands/brd-split.md` Phase 0, `BRD_SPLIT_ON_SLICE`). So this path never exists:
+requirements, it is allocated by `/brd-split` on its own ledger, and it may declare a `depends-on`
+against any other BRD. What the cap forbids is **child creation**, and only that: run on a slice,
+`/brd-split` skips its slice-proposal and child-creation phases and walks the ledger with
+`covered-by` unavailable (`commands/brd-split.md` Phase 0 step 5, the `BRD_SPLIT_ON_SLICE`
+notice — a notice, not a stop). So this path never exists:
 
 ```
 specifications/<KEY>-<slug>/<CHILD-KEY>-<slug>/<GRANDCHILD-KEY>-<slug>/   # never created
@@ -99,7 +102,15 @@ be a slice, which holds neither: its inventory header would name a `source:` pat
 exist, and a `rejected: [DEF#n]` disposition taken against it would cite a defect log that is not
 there. Chasing every inheritance up to the source-owning root would fix that, but nothing in
 practice needs three levels, and the cap is one rule instead of two. **Every "its parent's" in this
-route is therefore literal**: a slice's parent is always a BRD that owns the source document.
+route is therefore literal**: a slice's parent is always a BRD that owns the source document — which
+is what makes a slice's one live inheritance, the parent's defect log behind a `rejected: [DEF#n]`,
+a single hop.
+
+**The cap is on nesting, never on allocation.** A slice whose ledger could not be walked would keep
+every row `unallocated` forever and could never become PRD-eligible
+(`references/coverage-ledger-format.md` §4, §5) — which would make slicing pointless, since a slice
+exists precisely to become a PRD of its own. Refusing the child, not the walk, is the whole of the
+cap.
 
 ## 4. The shared fallback for existing commands
 

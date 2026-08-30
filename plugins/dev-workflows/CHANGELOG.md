@@ -63,18 +63,23 @@ from it — useful on its own, without any of the follow-on work increment 2/3 w
   `/brd-split` deliberately gets none — it allocates requirements, which documentation does not
   inform.
 
-- **Nesting is capped at one level, and `/brd-split` refuses a slice.** A slice is a BRD in every
-  other respect — same commands, same artifacts, free to depend on any other BRD — but it is not
-  itself sliceable: `/brd-split` stops with `BRD_SPLIT_ON_SLICE`, checked from the resolved
-  folder's `brd-link.md` `parent:` field before the run fetches anything. `resolve-brd` matches
-  that exactly, searching `specifications/` and one level below it and no further
-  (`references/brd-addressing.md` §2, §3). The cap is what makes every inheritance in the route
-  literal: a slice's parent is always the BRD that owns the customer's document, so
-  `brd-format.md` §2.1's inherited `source:` path and §4's inherited defect log always exist. A
-  grandchild would have had neither. The visible consequence is that a slice's own ledger rows stay
-  `unallocated` — the same requirements already carry a fate on the parent's ledger as
-  `covered-by`, and `/brd-ground` is where a slice's route ends today
-  (`references/coverage-ledger-format.md` §3).
+- **Nesting is capped at one level — on nesting only, never on allocation.** A slice is a BRD in
+  every other respect: same commands, same artifacts, free to depend on any other BRD. What the cap
+  forbids is creating a child *below* a slice, so `/brd-split` now runs in one of two modes,
+  resolved in Phase 0 step 5 from the folder's own `brd-link.md` `parent:` field. On a BRD that owns
+  its source document, `split_mode: full` — nothing changes. On a slice, `split_mode: allocate-only`
+  — the slice-proposal and child-creation phases are skipped and the ledger walk offers **four**
+  resolutions instead of five, with `covered-by` unavailable because it names a child BRD and no
+  child can exist below a slice. The walk itself always runs: a slice whose rows could never leave
+  `unallocated` could never become PRD-eligible (`references/coverage-ledger-format.md` §5), which
+  would make slicing pointless. `BRD_SPLIT_ON_SLICE` is a **notice, not a stop** — emitted at Phase
+  0 and repeated in the final report, because a run that silently skipped two phases and dropped a
+  resolution would be worse than one that says so. `resolve-brd` matches the cap exactly, searching
+  `specifications/` and one level below it and no further (`references/brd-addressing.md` §2, §3),
+  and the cap is what makes every inheritance in the route literal: a slice's parent is always the
+  BRD that owns the customer's document, so `brd-format.md` §2.1's inherited `source:` path always
+  exists and §4's inherited defect log — which an `allocate-only` `rejected: [DEF#n]` actually
+  reaches for — is always exactly one hop away. A grandchild would have had neither.
 
 Roster corrections that landed with this route: `CLAUDE.md`'s specs-repo-git caller count (twenty,
 not seventeen — all three `/brd-*` commands run `specs-preflight` and `commit-artifacts`) and its

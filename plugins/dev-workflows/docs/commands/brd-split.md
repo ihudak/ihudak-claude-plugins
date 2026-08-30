@@ -5,7 +5,8 @@ grounded picture, keys and nests a child BRD folder per confirmed slice with its
 `brd-link.md`, an inventory of the rows it inherits, and an unallocated coverage ledger of its
 own, then walks every unallocated coverage-ledger row one at a time through five
 resolutions until none remain `unallocated`, and writes `slices.md` with the rationale for each
-slice and each deferral.
+slice and each deferral. Run on a **slice** it allocates but does not slice: the proposal and
+child-creation phases are skipped and the walk offers four resolutions instead of five.
 
 ## Who runs it
 
@@ -20,10 +21,32 @@ last command of this route.
 /brd-split <BRD-KEY>
 ```
 
-- **`<BRD-KEY>`** (mandatory) — the BRD to split and allocate. It must be a BRD that owns its
-  source document: nesting is capped at one level, so a slice is not itself sliceable and this
-  command refuses one. Resolved via `resolve-brd`; format-validated only, never checked against a
-  tracker.
+- **`<BRD-KEY>`** (mandatory) — the BRD to split and allocate. A key at either of the two levels a
+  BRD folder can occupy works, and the level decides the run mode (below). Resolved via
+  `resolve-brd`; format-validated only, never checked against a tracker.
+
+## Two modes
+
+Phase 0 step 5 reads the resolved folder's `brd-link.md` and sets the mode from its `parent:` field
+— the only reliable signal, since a key's segment count is a naming convention rather than a depth
+declaration.
+
+| | `split_mode: full` | `split_mode: allocate-only` |
+|---|---|---|
+| Applies to | a BRD that owns its source document | a **slice** (`parent:` present) |
+| Phase 2 — propose slices | runs | skipped |
+| Phase 3 — key and nest children | runs | skipped — this is the child creation the one-level cap forbids |
+| Phase 4 — walk the ledger | runs, **five** resolutions | runs, **four** — no `covered-by` |
+| `rejected: [DEF#n]` resolves in | this BRD's own defect log | the **parent's** log, one hop ([`brd-format.md`](../../references/brd-format.md) §4) |
+| Phase 7 — next steps | ground each new child | stop; this slice's allocation is complete |
+| Announced? | no — the ordinary case | yes, `BRD_SPLIT_ON_SLICE`, a **notice, not a stop**, at Phase 0 and again in the final report |
+
+`covered-by` is unavailable on a slice because it names a child BRD that builds the row and no child
+can exist below a slice — so the disposition has nothing it could name
+([`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §3). The walk states that
+reason before its first row rather than presenting a shorter list without explanation. **The cap is
+on nesting, not on allocation**: a slice whose rows could never leave `unallocated` could never
+become PRD-eligible (§5), which is the deadlock the coverage ledger exists to prevent.
 
 ## How it runs
 
@@ -53,14 +76,12 @@ reads was already independently verified by `/brd-ground`'s own agents.
   own, `/brd-split` on the parent for a slice. With no folder there is no `brd-link.md` to say
   which of the two the key was meant to be, and a key's segment count is a naming convention, not a
   depth declaration.
-- **A BRD that owns its source document.** A key that resolves to a **slice** — recognised by the
-  `parent:` field in its `brd-link.md` — stops the run with `BRD_SPLIT_ON_SLICE`, naming
-  `/brd-split` on the parent. Nesting is capped at one level
+- **Nothing more, at either level.** A key that resolves to a **slice** does not stop the run; it
+  sets `allocate-only` (see "Two modes" above) and emits the `BRD_SPLIT_ON_SLICE` notice. What the
+  one-level cap forbids is creating a child *below* a slice
   ([`brd-addressing.md`](../../references/brd-addressing.md) §3): a grandchild would inherit
   `brd/source/` and a defect log from a parent that holds neither, so its inventory header would
-  name a path that does not exist and a `rejected: [DEF#n]` disposition would cite a missing log.
-  Because this stop fires before the gate below, every inheritance the command relies on afterwards
-  is one hop to a source-owning root.
+  name a path that does not exist.
 - **`/brd-ground`'s findings already merged to the specs repo's default branch.** Phase 0 gates
   `grounding/code-grounding.md` on `origin/<default>` via `require-on-main` before reading
   anything else — an open, unmerged grounding pull request stops the run naming the branch/PR
@@ -82,7 +103,11 @@ Under `$SPECS_PATH/specifications/<BRD-KEY>-<slug>/`:
   `superseded-by: [BR#n]`.
 - `slices.md` — one block per confirmed slice (its key, its folder, and its buildable / blocked /
   depends-on rationale) plus one block per row deferred this run.
-- One nested folder per confirmed slice still claiming at least one row after the walk,
+In `allocate-only` mode the run writes exactly the first two of the following; Phase 3 never runs,
+so no child folder is created.
+
+- One nested folder per confirmed slice still claiming at least one row after the walk
+  (`split_mode: full` only),
   `<BRD-KEY>-<slug>/<CHILD-KEY>-<child-slug>/`, each holding three files: `brd-link.md` naming its
   parent and its claimed `[BR#n]` rows; `brd/brd-inventory.md`, the claimed rows copied verbatim
   from this BRD's inventory under a header naming the parent's `brd/source/`, which every
@@ -91,9 +116,10 @@ Under `$SPECS_PATH/specifications/<BRD-KEY>-<slug>/`:
   every row `unallocated`. Those last two are what let the child re-enter the route: `/brd-ground`
   gates on the child's ledger and reads the child's inventory, and `/brd-intake` — the only other
   command that writes either — never runs on a slice, which has no document to intake. Those rows
-  stay `unallocated`: grounding is where a slice's route ends today, because `/brd-split` refuses a
-  slice and is the only command that moves a row off `unallocated`; the same requirements already
-  carry a fate on this BRD's own ledger, as `covered-by: <CHILD-KEY>`
+  are then allocated by `/brd-split` run on the child itself, in `allocate-only` mode, which is what
+  makes the child PRD-eligible. The same requirement carries a fate at both levels, saying two
+  different things: `covered-by: <CHILD-KEY>` here records **which** BRD owns it, and the child's own
+  row records **what that BRD decided to do with it**
   ([`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §3). A slice whose
   every row ends up resolved elsewhere is either removed or kept empty with a recorded reason
   (Phase 4).
@@ -104,9 +130,6 @@ with a "nothing to commit" report on the no-op path.
 
 ## Gates
 
-- **Phase 0 — the slice refusal, before anything is fetched or read.** `BRD_SPLIT_ON_SLICE` is
-  checked from the resolved folder's `brd-link.md` ahead of the `require-on-main` gate below, so a
-  key that can never be split costs no fetch.
 - **Phase 0 — grounding merged to main.** `require-on-main` against `grounding/code-grounding.md`
   runs before anything else is read — an unmerged grounding pull request, or a BRD never grounded
   at all, stops the run rather than acting on a deliverable that might still change underneath it.
@@ -115,12 +138,12 @@ with a "nothing to commit" report on the no-op path.
   outcome before this command does anything else.
 - **Phase 4 — the allocation walk.** The command cannot complete while any coverage-ledger row is
   `unallocated`. Every remaining row is presented one at a time via `AskUserQuestion`, through
-  exactly five resolutions: build here (`covered-here`), assign to a named child
-  (`covered-by`), defer to this BRD (`deferred-to`), reject citing a `[DEF#n]`, or mark superseded
-  by another `[BR#n]`. `covered-here` is the resolution that makes the whole BRD PRD-eligible, and
+  exactly five resolutions in `split_mode: full` — build here (`covered-here`), assign to a named
+  child (`covered-by`), defer to this BRD (`deferred-to`), reject citing a `[DEF#n]`, or mark
+  superseded by another `[BR#n]` — and the same four without `covered-by` in `allocate-only`. `covered-here` is the resolution that makes the whole BRD PRD-eligible, and
   it is what an unsplit BRD reaches for every row — without it, a BRD nobody splits could never
   clear this gate.
-- **Phase 4 — no child left claiming nothing.** A slice whose every proposed row ends the walk
+- **Phase 4 — no child left claiming nothing** (`split_mode: full` only). A slice whose every proposed row ends the walk
   resolved elsewhere leaves its child folder claiming no requirement; the run resolves this before
   moving on, either removing that folder or keeping it with a recorded reason.
 - **No-op on a fully-allocated ledger.** Re-running `/brd-split` once every row already has a
@@ -144,8 +167,8 @@ writes `slices.md`, and offers to branch, commit, push, and open a pull request.
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off.
 - [`brd-addressing.md`](../../references/brd-addressing.md) — the `<BRD-KEY>` grammar and folder
   resolution this command uses by name (`brd-key-valid`, `resolve-brd`), including how a slice
-  nests inside its parent and why that nesting is capped at one level (§3) — this command is both
-  the one that creates a slice and the one that refuses to split one.
+  nests inside its parent and why that nesting — and only the nesting — is capped at one level
+  (§3).
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the authority for
   the ledger row shape, the six dispositions, the allocation gate this command enforces, and the
   PRD-eligibility rule that makes `covered-here` matter.

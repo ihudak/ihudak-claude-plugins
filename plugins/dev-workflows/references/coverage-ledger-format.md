@@ -47,7 +47,7 @@ Exactly six. Only the last one blocks the gate in §4.
 | Disposition | Meaning |
 |---|---|
 | `covered-here` | This BRD builds it; the BRD is therefore PRD-eligible (§5) |
-| `covered-by: <CHILD-KEY>` | A named child BRD builds it |
+| `covered-by: <CHILD-KEY>` | A named child BRD builds it — **available only on a BRD that owns its source document**, never on a slice (see below) |
 | `deferred-to: <this BRD>` | Kept as a live obligation of this BRD, not built now |
 | `rejected: [DEF#n]` | Not built, citing the `[DEF#n]` that justifies rejecting it |
 | `superseded-by: [BR#n]` | Replaced by another requirement, named by its `[BR#n]` |
@@ -69,15 +69,23 @@ nothing ever would, and the slice could never be ground in its own right: `/brd-
 gates on that ledger. `/brd-split` is also the only command holding both the parent's rows and the
 allocation that says which of them the slice claims.
 
-**A slice's rows stay `unallocated` in the route as it ships today.** `/brd-split` refuses on a
-slice — nesting is capped at one level (`references/brd-addressing.md` §3,
-`commands/brd-split.md` Phase 0 step 5) — and it is the only command that moves a row off
-`unallocated` (§4). So a slice's own ledger records which requirements it claims and carries them
-into grounding, but no command in this increment gives those rows a terminal disposition; the
-parent's ledger is where the same requirements already carry one, as `covered-by: <CHILD-KEY>`.
-Nothing downstream reads a slice's dispositions yet — the consumer that would, `/create-prd
---from-brd`, does not exist — so this is a stated limit of the shipped route, not a gap another
-file silently assumes away.
+**A slice's ledger is walked by `/brd-split` like any other.** The one-level cap stops that run
+from creating children below the slice; it does not stop it from allocating the slice's own rows
+(`commands/brd-split.md` Phase 0 step 5 — a notice, not a stop). Otherwise every row of every slice
+would stay `unallocated` forever and no slice could ever satisfy §5, which is the same allocation
+deadlock §1 exists to prevent, reached from the other direction. The same requirement therefore
+carries a fate twice, at two levels, and the two say different things: `covered-by: <CHILD-KEY>` on
+the parent's ledger records **which** BRD owns it, and the slice's own row records **what that BRD
+decided to do with it**.
+
+**`covered-by` is the one disposition whose availability depends on level.** It names a child BRD
+that builds the row, and nesting is capped at one level
+(`references/brd-addressing.md` §3), so **no child can exist below a slice** — on a slice the
+disposition has nothing it could name. A slice's ledger therefore resolves through the other five:
+four terminal ones plus `unallocated`. This belongs here rather than only in the command because it
+is a property of the vocabulary this section owns — where a disposition is meaningful at all — not
+of the picker that offers it; §4's disclaimer about the command owning its own interaction flow is
+unchanged, and how the four are presented stays `commands/brd-split.md`'s.
 
 **Deferring is itself an allocation.**
 `deferred-to: <this BRD>` discharges the gate exactly as the other four terminal dispositions do;
@@ -110,6 +118,11 @@ picker changes.
   entirely, per §6). The BRD was fully sliced and holds no PRD of its own. A consumer that reaches
   this state must refuse to author a PRD here and name the children that do, rather than producing
   an empty or placeholder document.
+
+**A slice reaches eligibility by exactly this rule**, through the same Phase 4 walk on its own
+ledger. The one difference follows from `covered-by` being parent-only (§3): on a slice, the
+"not eligible" case can only be reached by every row landing `deferred-to`, never by rows pointing
+at children.
 
 This is **read from the ledger, not decided in advance.** Slicing a BRD entirely and slicing it
 only partially are both ordinary, supported outcomes; the ledger is what tells a later consumer

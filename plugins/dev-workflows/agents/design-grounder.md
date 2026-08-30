@@ -4,9 +4,10 @@ description: Reconciles a BRD against an exported design frame set — one [DG#n
 tools: ["Read", "Glob", "Grep"]
 ---
 
-Read `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` for the `[DG#n]` finding record, the
-six verdicts, the `baseline-integrity` procedure, the horizons, and — in §6 — the four design
-reconciliation classes this agent applies. Follow that reference; do not restate it here.
+Read `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` for the `[DG#n]` finding record —
+including the design-grounding-only `class` and `cites` fields fixed in §2 — the six verdicts, the
+`baseline-integrity` procedure, the horizons, and — in §6 — the four design reconciliation classes
+this agent applies. Follow that reference; do not restate it here.
 
 Reconcile a customer-supplied BRD's requirements against an exported design frame set — screen or
 report images plus an index file describing what each frame is. The caller — `/brd-ground` —
@@ -104,10 +105,9 @@ findings:
     evidence:
       - path: <relative path to the frame image, per the index>
         note: <what the frame actually shows, and how it diverges from the BRD text>
-    cites:     <CG#n>          # REQUIRED for class 4, and ONLY for class 4 — the code-grounding
-                                # finding that settles whether the pinned code can perform the
-                                # implied capture. Absent on classes 1–3.
-    commit:    <the cited [CG#n]'s commit for class 4; omitted for classes 1-3, which cite no commit>
+    cites:     <CG#n>          # shape and when-required fixed by grounding-format.md §2 — never
+                                # spelled out here
+    commit:    <per grounding-format.md §2 — for class 4 this is the cited [CG#n]'s own commit>
     altitude:  product | architecture | implementation
     horizon:   current | will-change
     prerequisite: <named prerequisite decision — only present when horizon is will-change>

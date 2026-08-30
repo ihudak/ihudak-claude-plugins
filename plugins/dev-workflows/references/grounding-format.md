@@ -46,7 +46,13 @@ Every finding — `[CG#n]` from `code-grounder`, `[DG#n]` from `design-grounder`
 | `commit` | the pinned commit SHA the finding was checked against (`baseline-integrity`, §4) |
 | `altitude` | one of `product \| architecture \| implementation` |
 | `horizon` | one of `current \| will-change` (§5), naming the prerequisite decision when `will-change` |
+| `class` | *(design-grounding only)* one of the four `[DG#n]` reconciliation classes defined in §6; absent on a `[CG#n]` |
+| `cites` | *(design-grounding only)* a `[CG#n]` id; required when `class` is the fourth (§6) and empty otherwise; absent on a `[CG#n]` |
 | `consumed_by` | one of `PRD \| ARD \| specification \| none` — which downstream artifact has actually drawn on this finding; `none` until something has |
+
+`class` and `cites` apply only to `[DG#n]` findings — a `[CG#n]` finding carries neither. See §6 for
+what the four classes mean and why the fourth requires a citation; this table fixes only the field
+names, where they apply, and when `cites` is required.
 
 **`evidence` is never blank.** A finding that asserts a mechanism is absent still owes the reader
 what was searched and where it was expected — "no route under `api/` handles this verb; searched

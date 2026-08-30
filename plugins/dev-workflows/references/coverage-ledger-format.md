@@ -60,15 +60,18 @@ the ledger's job is to record a requirement's fate, not to force every requireme
 ## 4. The allocation gate
 
 `/brd-split` (a later task) cannot complete while any row in this BRD's ledger is `unallocated`.
-Before it finishes, it presents every remaining `unallocated` row one at a time and requires one of
-four resolutions: assign it to a named slice, defer it to this BRD, reject it citing a `[DEF#n]`,
-or mark it superseded by another `[BR#n]`. Re-running `/brd-split` on a BRD whose ledger is already
-fully allocated is a no-op: nothing changes, and the command still reports the ledger line (§6).
+It opens the gate by walking every remaining `unallocated` row one at a time and offering a path
+off `unallocated` into one of the five terminal dispositions in §3. Re-running `/brd-split` on a
+BRD whose ledger is already fully allocated is a no-op: nothing changes, and the command still
+reports the ledger line (§6).
 
-**How a resolution writes its row — including how a row ever reaches `covered-here` — is
-`/brd-split`'s own behavior, not this reference's.** This file fixes the disposition vocabulary
-(§3) and the one rule every caller must honor: no row may stay `unallocated` past this gate. It
-does not fix the command's interaction flow.
+**The set of resolutions the command offers, how each one writes its row, and how a row ever
+reaches `covered-here` are `/brd-split`'s own behavior** — see design spec §9.3, or, once it
+exists, `commands/brd-split.md` — **not this reference's.** This file fixes the disposition
+vocabulary (§3) and the one rule every caller must honor: no row may stay `unallocated` past this
+gate. It does not fix, and does not re-enumerate, the command's interaction flow — the picker's
+shape is the command's to own, and a count of it recorded here would only drift the next time that
+picker changes.
 
 ## 5. PRD eligibility
 

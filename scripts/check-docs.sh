@@ -554,7 +554,7 @@ check_prose_counts() {
 # repo-root README and $PLUGIN_REL/README.md alone: neither is a page under docs/, and
 # the root README is where this identity is supposed to be stated.
 check_identity_quarantine() {
-  local root="$1" d="$1/$PLUGIN_REL/docs" tokens t f hit
+  local root="$1" d="$1/$PLUGIN_REL/docs" tokens t f hit pat
   # `sed 'p; s|.*/||'` emits the slug AND its bare repo name: a page can name either.
   tokens=$( { grep -oE "^$CLI plugin marketplace add [^[:space:]]+" "$root/README.md" 2>/dev/null \
                 | sed -E "s|^$CLI plugin marketplace add ||; s|/+$||" | sed 'p; s|.*/||'
@@ -572,7 +572,20 @@ check_identity_quarantine() {
     [ "$f" = "$d/getting-started.md" ] && continue   # the single sanctioned exception
     while IFS= read -r t; do
       [ -n "$t" ] || continue
-      hit=$(grep -nF -- "$t" "$f" 2>/dev/null | head -1)
+      # Word-boundary match, NOT substring. A fork is free to pick a short marketplace name --
+      # `workflows` is a plausible one -- and an unanchored grep then reports every page that
+      # says `dev-workflows`. That was measured: renaming this marketplace to `workflows`
+      # produced 38 check-10 failures on unmodified, correct pages. A gate that fires 38 times
+      # on correct content in a fork is a gate that fork deletes in its first week, and forks
+      # are this check's entire rationale.
+      #
+      # The boundary class is [A-Za-z0-9_-]: a hyphen HAS to be in it (that is what separates
+      # `workflows` from `dev-workflows`), and `@`, `/` and `.` have to be OUT of it -- the
+      # marketplace is named as `<plugin>@<marketplace>` and the container repo as
+      # `github.com/<owner>/<repo>/tree/...`, so a boundary class containing them would miss
+      # the two forms this check exists to catch.
+      pat=$(printf '%s' "$t" | sed 's/[][\\.^$*+?(){}|]/\\&/g')
+      hit=$(grep -nE "(^|[^A-Za-z0-9_-])$pat([^A-Za-z0-9_-]|$)" "$f" 2>/dev/null | head -1)
       [ -n "$hit" ] && fail 10 "${f#$root/}:${hit%%:*} names '$t' -- no page under $PLUGIN_REL/docs/ may name the marketplace this plugin ships from or the repository that contains it (getting-started.md is the only exception); a fork of this repo inherits the wrong one"
     done <<<"$tokens"
   done < <(find "$d" -name '*.md' 2>/dev/null | sort)
@@ -814,6 +827,15 @@ selftest() {
     "slug=\$(grep -oE '^$CLI plugin marketplace add [^ ]+' README.md | awk '{print \$NF}' | head -1); printf -- '\n[sibling plugin](https://github.com/%s/tree/main/plugins/extra-plugin)\n' \"\$slug\" >> $PLUGIN_REL/docs/reference/hooks.md"
   expect_fail "a marketplace name on a docs page is rejected" 10 \
     "mkt=\$(grep -oE '^$CLI plugin install [^ ]+@[^ ]+' README.md | sed 's/.*@//' | head -1); printf -- '\nInstall the sibling with \`$CLI plugin install extra-plugin@%s\`.\n' \"\$mkt\" >> $PLUGIN_REL/docs/reference/agents.md"
+  # ...and the boundary itself, which is the half an expect_fail case cannot prove: a LONGER
+  # identifier that merely contains the marketplace name is not naming it, and must stay green.
+  # Under the substring match this replaced, this case goes red -- which is what a fork that
+  # names its marketplace `workflows` met on every page saying `dev-workflows` (38 failures on
+  # unmodified, correct pages, measured). Verified red before / green after by stashing the
+  # boundary anchors.
+  expect_pass_after "a longer identifier merely containing the marketplace name is accepted" \
+    "mkt=\$(grep -oE '^$CLI plugin install [^ ]+@[^ ]+' README.md | sed 's/.*@//' | head -1); printf -- '\nThe mirror repository is called sub-%s-mirror and is not this marketplace.\n' \"\$mkt\" >> $PLUGIN_REL/docs/reference/agents.md"
+
   # ...and the vacuity guard: with no install block to derive from, check 10 has no token
   # set and must go RED rather than pass every page. (Check 7 fires on this mutation too;
   # the case asserts check 10 specifically.)

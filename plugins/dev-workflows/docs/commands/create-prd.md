@@ -1,6 +1,6 @@
 # /create-prd
 
-Turns a refined `idea.md` plus a user-supplied Jira key into a high-quality, product-level Product Requirements Document, gated by an Opus review.
+Turns a refined `idea.md` — or a reconciled BRD's product-altitude seed, with `--from-brd` — plus a key into a high-quality, product-level Product Requirements Document, gated by an Opus review.
 
 ## Who runs it
 
@@ -9,13 +9,15 @@ Turns a refined `idea.md` plus a user-supplied Jira key into a high-quality, pro
 ## Synopsis
 
 ```
-/create-prd <JIRA-KEY> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--hybrid|--full] [--no-docs] [--no-prior-art]
+/create-prd <JIRA-KEY|BRD-KEY> [@idea.md] [--from-prd <PRD-KEY|path>] [--from-brd [<dir>]] [--lean|--hybrid|--full] [--no-docs] [--no-prior-art]
 ```
 
 - **`<JIRA-KEY>`** (mandatory) — the key of an empty Jira workitem the user already created to get the ID. Format-validated only (`^[A-Z][A-Z0-9_]*-\d+$`); zero Jira API means its existence on the tracker is never checked.
+- **Under `--from-brd` the same positional token is a BRD key** and is validated against `^[A-Z][A-Z0-9_]*(-\d+)+$` instead — a superset, so every key accepted before is still accepted, and a slice key such as `EPIC-008-01` is too. Shape only, never checked against a tracker.
 - **`[@idea.md]`** (optional) — an explicit path to the idea source; see [What it needs](#what-it-needs) for how this differs from the default resolution.
 - **`[--from-prd <PRD-KEY|path>]`** (optional) — seed a **new** PRD (still under the positional `<JIRA-KEY>`) with another PRD's structure, read read-only as grounding and adapted, never copied wholesale.
-- **`[--lean|--hybrid|--full]`** — the profile controlling which adapt-in clusters are available; default `--hybrid`. `--full` is required for `[FR#N]` Functional Requirements; `--hybrid`/`--full` for `[UC#N]` Use Cases.
+- **`[--from-brd [<dir>]]`** (optional) — a **switch, not a path**: the positional key already identifies the BRD and the folder resolution finds it at either level, so a path is only for a BRD folder outside the normal layout. Seeds the run from that folder's `prd-seed.md` and `decisions.md`. Mutually exclusive with `--from-prd` (two seeds for one PRD stops the run).
+- **`[--lean|--hybrid|--full]`** — the profile controlling which adapt-in clusters are available; default `--hybrid`, or `--full` under `--from-brd`. `--full` is required for `[FR#N]` Functional Requirements; `--hybrid`/`--full` for `[UC#N]` Use Cases. An explicit flag always wins over the `--from-brd` default — and when that flag is `--lean` while the BRD's register still holds open decisions or assumptions, the run offers to switch rather than dropping them, because `--lean` is spine-only and has no `## Assumptions & open questions` for them to land in.
 - **`[--no-docs]`** / **`[--no-prior-art]`** — each turns off one optional grounding source (Phase 2.5).
 
 ## How it runs
@@ -50,9 +52,20 @@ Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2.5, read
 - **Documentation grounding and vault prior art** (optional, on by default) — each turned off with `--no-docs` / `--no-prior-art`; a miss of either is always a silent skip, never a gate.
 - **No repos.** `/create-prd` is cwd-agnostic and product-level — it never mounts or scans code.
 
+### The `--from-brd` route
+
+With `--from-brd` the run is seeded by a BRD instead of an idea, and what it needs changes accordingly:
+
+- **A resolved BRD folder.** The positional key resolves it at either level (directly under `specifications/`, or one level deeper for a slice); the folder is never created here, and an unresolvable key stops with `CREATE_PRD_BRD_NOT_FOUND`, which names **both** ways a BRD folder comes into being — [`/brd-intake`](brd-intake.md) for one with a source document of its own, [`/brd-split`](brd-split.md) on the parent for a slice — rather than guessing, because a key's segment count is a naming convention and not a depth declaration. The PRD is written **into that folder**, beside the BRD artifacts.
+- **`prd-seed.md` and `decisions.md`** — and only those. `ard-seed.md` and `spec-seed.md` are the architecture and implementation altitudes of the same router and belong to [`/create-ard`](create-ard.md) and [`/specify`](specify.md); reading either here is how a PRD would acquire the implementation detail `../../references/prd-format.md` forbids. Either file being absent is reported, never a stop.
+- **No `idea.md`.** The five-rung ladder is skipped entirely — a rung-3 or rung-4 picker would offer an idea from an unrelated initiative. An explicit `@<path>` alongside `--from-brd` is still read, on the out-of-contract terms above, as extra grounding rather than as the seed.
+- **A coverage ledger that permits a PRD here.** Two refusals, both read from `coverage-ledger.md`'s written dispositions and never from a reported `ledger:` line (that line is a resolved count and does not track the allocation gate):
+  - **`CREATE_PRD_BRD_UNALLOCATED`** — a row this BRD's `brd-link.md` claims is still `unallocated`, so the allocation gate was never satisfied. It names the rows and points at [`/brd-split`](brd-split.md), which is the command whose walk moves them — and says beside that offer that `/brd-split` itself gates on verified grounding findings, so a BRD that has only been intaken reaches it through [`/brd-ground`](brd-ground.md) first.
+  - **`CREATE_PRD_BRD_NOT_ELIGIBLE`** — no claimed row is `covered-here`, so this BRD holds no PRD of its own. The stop says **where the requirements went**, which is not always a list of children: when rows were delegated it names those children and which of them is not actually building the row; when the BRD was never split, or is a slice (where delegation is unavailable), there is no child to name and it says the requirements are live obligations of this BRD instead of inventing one. It offers `/create-prd <CHILD-KEY> --from-brd` only for a child the one-hop resolution shows is really building its row, and in the other two cases offers no command at all — re-running [`/brd-split`](brd-split.md) on a fully allocated ledger is a no-op, and nothing in the plugin turns a deferred row into a covered one.
+
 ## What it produces
 
-`<KEY>_<slug>.md`, written to `$SPECS_PATH/specifications/<KEY>-<slug>/` (the feature folder is auto-created on first write), authored against `../../references/prd-format.md` for the chosen profile. Frontmatter carries the propagated `sources`, `derived_from` (the idea's own path), `seeded_from_prd` (only when `--from-prd` was used), and `jira_key`. Behind Phase 5's consent choice, the PRD is committed, pushed, and a pull request opened against the specs repo's default branch. The PRD itself is **not yet visible to Jira** until the manual round-trip: paste the body into the Jira workitem `<KEY>`, then re-import it to `$VAULT_PATH/jira-products/<KEY>` — without both steps the downstream pipeline cannot read it.
+`<KEY>_<slug>.md`, written to `$SPECS_PATH/specifications/<KEY>-<slug>/` (the feature folder is auto-created on first write), authored against `../../references/prd-format.md` for the chosen profile. Frontmatter carries the propagated `sources`, `derived_from` (the idea's own path), `seeded_from_prd` (only when `--from-prd` was used), and `jira_key`. **Under `--from-brd` it is written into the BRD folder as `<BRD-KEY>_<slug>.md`** and carries `brd_key`, `brd_parent` (omitted when the BRD owns its source document) and `depends_on` (omitted when empty) instead of `derived_from`, so a PRD's prerequisites are legible to [`/epics`](epics.md) and [`/ready`](ready.md) without either reading the BRD tree; `sources` then names the BRD's own source document. That run also writes `consumed_by: PRD` onto the seed items and product-altitude decisions the PRD actually took content from — the only write it makes into `decisions.md` — and commits `prd-seed.md` and `decisions.md` alongside the PRD, since an uncommitted consumption record is one no later run can read. Behind Phase 5's consent choice, the PRD is committed, pushed, and a pull request opened against the specs repo's default branch. The PRD itself is **not yet visible to Jira** until the manual round-trip: paste the body into the Jira workitem `<KEY>`, then re-import it to `$VAULT_PATH/jira-products/<KEY>` — without both steps the downstream pipeline cannot read it.
 
 ## Gates
 
@@ -72,6 +85,14 @@ Author a Product Requirements Document for an already-created empty ticket, from
 
 The run resolves the feature folder, reads `idea.md` directly (no `idea-reader` — it is the plugin's own format), grounds it against docs and vault prior art, grills you relentlessly through the spine (Problem, Goal, Target audience, User Stories, Acceptance Criteria, Scope, Success Metrics) plus any adapt-in clusters the idea warrants, runs the style check and pre-lint, then `prd-reviewer`. On a passing verdict it offers to branch, commit, push, and open a pull request, and reminds you to paste the PRD into Jira and re-import it.
 
+Author one from a reconciled BRD slice instead — no path, because the key resolves the folder:
+
+```
+/dev-workflows:create-prd EPIC-008-01 --from-brd
+```
+
+The run resolves `EPIC-008-01`'s folder one level under `specifications/`, checks its coverage ledger permits a PRD here at all, reads `prd-seed.md` and `decisions.md`, defaults to `--full`, and grills **only the gaps** — every `[VD#n]` and `[CD#n]` the register holds as decided is an input the interview never reopens, because the customer signed it. Open decisions and open `[AS#n]` assumptions reach the PRD as open questions under their own ids rather than being quietly settled.
+
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off at the `prd-creation` seam.
@@ -81,3 +102,4 @@ The run resolves the feature folder, reads `idea.md` directly (no `idea-reader` 
 - [Model routing](../reference/model-routing.md) — the classification and Opus fallback chain `prd-reviewer` runs under.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Resume and checkpoints](../reference/resume-and-checkpoints.md) — the terminal Phase 7 bookkeeping every run emits.
 - [`prd-format.md`](../../references/prd-format.md) — the canonical structure the PRD is authored and reviewed against.
+- [The BRD-to-PRD route](../brd-workflow.md) — the six `/brd-*` commands that produce the `prd-seed.md` and `decisions.md` `--from-brd` reads, and the customer sign-off that makes those decisions unreopenable here.

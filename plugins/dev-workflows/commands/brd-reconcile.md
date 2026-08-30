@@ -728,17 +728,20 @@ recorded in *what still needs a human*, naming the two real routes: an amendment
 defect log, or a fresh source document through `/dev-workflows:brd-intake`.
 
 **The roll-up, and what this phase must not do with it** (D23, `coverage-ledger-format.md` §6.1).
-The ledger line resolves every `covered-by: <CHILD-KEY>` row **one hop** through the named child's
-own ledger, and every term in it is a *resolved* count rather than a census of what the file says.
+The ledger line resolves every `covered-by: <BRD-KEY>` row **one hop** through the named BRD's
+own ledger — the named child on a BRD that owns its source document, the named sibling or parent on
+a slice (`coverage-ledger-format.md` §3) — and every term in it is a *resolved* count rather than a
+census of what the file says.
 Two consequences bind this phase:
 
 - **Decisions about this ledger read the dispositions written in this file, never the line.** The
   line's `unallocated` term does not track the allocation gate — a fully-allocated parent routinely
   reports a non-zero term for rows a child has not walked yet — so a phase that keyed anything off
   it would act on another BRD's unfinished walk.
-- **This command never writes into a child's ledger.** A `covered-by` row whose obligation the
-  customer has just withdrawn is a fact about the parent's row; what the child does about it belongs
-  to the child's own reconciliation, and the propagation sweep is what names it there. Reaching one
+- **This command never writes into another BRD's ledger**, one hop down or one across. A
+  `covered-by` row whose obligation the customer has just withdrawn is a fact about the row in
+  *this* file; what the BRD it names does about it belongs to that BRD's own reconciliation, and the
+  propagation sweep is what names it there. Reaching one
   hop down to write would make the parent's line report a fate the child never recorded, which is
   the failure the roll-up exists to surface rather than a shortcut past it.
 
@@ -949,17 +952,23 @@ each under the precondition the offered command actually enforces rather than un
   slice** — §3's creator table gives a source-owning BRD one row per inventory `[BR#n]` and writes no
   `claims:` field for it at all, so testing the offer against a claims list would withhold it from
   every BRD that was never split, which is the ordinary shape this route most often reconciles. This
-  is the same gate set `/dev-workflows:create-prd`'s Phase 0 step 7 defines, read the same way.
+  is the same gate set `/dev-workflows:create-prd`'s Phase 0 step 7 defines, read the same way — and
+  on a slice the narrowing now drops something real, without changing either verdict: a slice's
+  ledger may hold **orphan rows**, provisional claims `/brd-split`'s walk on the parent withdrew and
+  wrote to a terminal disposition (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2,
+  §3). `claims:` names none of them, and an orphan row is never `covered-here` and never
+  `unallocated`, so it can neither add the option nor withhold it however it is read.
   Those two tests are exactly the two refusals that command's own Phase 0 raises
   (`CREATE_PRD_BRD_UNALLOCATED` and `CREATE_PRD_BRD_NOT_ELIGIBLE`), so naming the option where either
   fails would hand the operator a run that stops on its first phase. **Read the dispositions off the
   ledger file, never off a `ledger:` line** — that line's `unallocated` term is a *resolved* count
-  that also holds rows a child has not walked yet (§6.1), so keying the offer to it would withhold
-  the option from a BRD whose own gate is fully satisfied. Where either test fails, **drop the option
+  that also holds rows the BRD they name has not walked yet (§6.1), so keying the offer to it would
+  withhold the option from a BRD whose own gate is fully satisfied. Where either test fails, **drop the option
   from the array** and say which one failed: a row still `unallocated` is walked to a
   terminal disposition by `/dev-workflows:brd-split <BRD-KEY>`, while a BRD with no `covered-here`
   row holds no PRD of its own at all and §5 is where its requirements went — on a `covered-by` row
-  the PRD is the named child's to author, not this BRD's. Dropping rather than annotating is right
+  the PRD is the named BRD's to author, not this BRD's, and on a source-owning BRD that BRD is
+  always a child. Dropping rather than annotating is right
   here and not inconsistent with the in-text conditions the other options carry: those name a state
   the reader can judge for themselves, while this one names a hard refusal in another command's
   Phase 0.
@@ -1101,10 +1110,15 @@ with the ledger line, read fresh from `coverage-ledger.md` **as this run left it
 ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated, <unresolved> unresolved (<delegated> delegated, <not-built> not built)
 ```
 
-**Reporting it reads one child ledger per `covered-by` row**, one hop, from the working tree via
-`resolve-brd` (`brd-addressing.md` §2), per `coverage-ledger-format.md` §6.1; a child that cannot be
+**Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree via
+`resolve-brd` (`brd-addressing.md` §2), per `coverage-ledger-format.md` §6.1 — a child on a BRD that
+owns its source document, a sibling or the parent on a slice (§3); a ledger that cannot be
 read there contributes `unresolved`, never `covered` (§6.2). Every term is a **resolved** count, and
 the `unallocated` term does not track the allocation gate — a non-zero one here is a row this BRD
-delegated to a child that has not walked it yet, which is the resolution working and never this run
-having left something undone. A slice reaches this with nothing to resolve, since `covered-by` is
-unavailable on one (`coverage-ledger-format.md` §3), so its line always reports zero delegated.
+delegated to a BRD that has not walked it yet, which is the resolution working and never this run
+having left something undone. A slice does **not** always reach this with
+nothing to resolve. `covered-by` is legal on a slice (`coverage-ledger-format.md` §3), where it
+names a sibling under the same parent or that parent and marks an **orphan row** — a provisional
+claim the parent's walk withdrew (§2). Those rows are resolved one hop exactly like a parent's
+delegated rows, so a slice reports zero delegated only when its parent withdrew none of its
+claims.

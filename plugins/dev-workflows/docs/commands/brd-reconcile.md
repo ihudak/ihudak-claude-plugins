@@ -225,7 +225,7 @@ contradiction is invisible from the register, which is the only place anybody lo
   on a frozen customer decision, but `covered-here` and `covered-by` stay `/brd-split`'s walk — a
   customer decision is not a statement about which BRD in the delivery organisation owns the work —
   and no row ever returns to `unallocated`.
-- **It never writes into a child's ledger, and it never mints a `[BR#n]`.** A requirement the
+- **It never writes into another BRD's ledger, and it never mints a `[BR#n]`.** A requirement the
   customer asked for that no `[BR#n]` covers is recorded as needing a human, naming the two real
   routes: an amendment logged against the defect log, or a fresh source document through
   `/brd-intake`.
@@ -254,7 +254,7 @@ off the ledger **file**, never off a `ledger:` line, whose `unallocated` term is
 that also holds rows a child has not walked yet. Where either test fails the option is **dropped from
 the array** rather than annotated, and the text says which one failed: a row still `unallocated` is
 walked to a terminal disposition by [`/brd-split`](brd-split.md), while a BRD with no `covered-here`
-row holds no PRD of its own at all — on a `covered-by` row the PRD is the named child's to author.
+row holds no PRD of its own at all — on a `covered-by` row the PRD is the named BRD's to author.
 
 Each takes **one** key: a second positional is refused (`CREATE_ARD_BRD_NO_EPIC` / `SPECIFY_BRD_NO_EPIC`),
 so neither of the optional two is ever offered with an Epic beside it. The three are **alternatives,

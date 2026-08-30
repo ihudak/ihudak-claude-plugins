@@ -658,9 +658,10 @@ where it sits in the route, never its behaviour, which `commands/brd-split.md` o
 
 **`parent: <PARENT-KEY>` — this BRD is a slice.** `/brd-split` **is** offered, and the offer says
 which of its two modes will run, so nobody expects a fan-out that cannot happen: on a slice it runs
-`allocate-only` (`commands/brd-split.md` Phase 0 step 5) — it walks this slice's ledger to a
-recorded fate through four resolutions instead of five, and creates no child, because nesting is
-capped at one level (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §3). Allocating is what
+`allocate-only` (`commands/brd-split.md` Phase 0 step 5) — it creates no child, because nesting is
+capped at one level (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §3), and walks this
+slice's ledger to a recorded fate through four resolutions instead of five, `covered-by` being the
+one that command's walk does not offer on a slice. Allocating is what
 makes this slice PRD-eligible
 (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5), so it is a real next step, not a
 formality:
@@ -750,14 +751,18 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 `/brd-ground` never changes a ledger disposition — that line simply reports where allocation stands
 going into `/brd-split`.
 
-**Reporting it now reads one child ledger per `covered-by` row.** §6 counts a delegated row through
-the child it names, so on a BRD an earlier `/brd-split` already split, this report resolves each
-`covered-by: <CHILD-KEY>` row one hop into that child's own `coverage-ledger.md`, resolved from the
+**Reporting it now reads one ledger per `covered-by` row.** §6 counts a delegated row through the
+BRD it names — a child on a BRD that owns its source document, a sibling or the parent on a slice
+(`coverage-ledger-format.md` §3) — so this report resolves each `covered-by: <BRD-KEY>` row one hop
+into that BRD's own `coverage-ledger.md`, resolved from the
 working tree by `resolve-brd` (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §2). **This adds
 no precondition and no gate.** A child folder that is absent from the tree this run is standing in —
 its split not yet merged, most commonly — makes that row `unresolved` in the line and nothing more:
 grounding this BRD does not depend on any child, and a run must never stop, degrade, or withhold its
 findings because a child could not be read. Phase 0's `require-on-main` gates stay exactly as they
-are, on this BRD's own inventory and ledger. A slice reaches this with nothing to resolve —
-`covered-by` is unavailable on a slice (`coverage-ledger-format.md` §3), so its line always reports
-zero delegated.
+are, on this BRD's own inventory and ledger. A slice does **not** always reach this with
+nothing to resolve. `covered-by` is legal on a slice (`coverage-ledger-format.md` §3), where it
+names a sibling under the same parent or that parent and marks an **orphan row** — a provisional
+claim the parent's walk withdrew (§2). Those rows are resolved one hop exactly like a parent's
+delegated rows, so a slice reports zero delegated only when its parent withdrew none of its
+claims.

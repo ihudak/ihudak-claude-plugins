@@ -134,8 +134,9 @@ against the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` 
 - **Phase 0 — grounding merged, findings verified, ledger allocated.** All three run before anything
   else is read. The allocation gate reads the **dispositions in the ledger file**, never the ledger
   line: the line's `unallocated` term is a resolved count that follows every `covered-by` row into
-  its child, so a fully-allocated parent routinely reports a non-zero term for work that belongs to a
-  child's walk ([`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §6.1).
+  the BRD it names — a child here, a sibling or the parent on a slice — so a fully-allocated parent
+  routinely reports a non-zero term for work that belongs to another BRD's walk
+  ([`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §6.1).
 - **Phase 4 — the tagging gate.** Nothing is asked of anybody until every question in the round
   carries exactly one tag. A question that cannot be resolved into one of the three is left
   in the *untagged* holding state, with what is wrong with it recorded; it is never asked in that

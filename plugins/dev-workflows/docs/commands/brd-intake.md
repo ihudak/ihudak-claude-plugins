@@ -8,9 +8,10 @@ ledger where every requirement starts `unallocated`.
 
 `/brd-intake` runs in the [pm](../roles-and-phases.md#pm--product-management) role, cost-attribution
 phase `brd-to-prd` — the phase shared by all three commands of the BRD-to-PRD route (`/brd-intake`,
-`/brd-ground`, `/brd-split`), the way `/idea` and `/create-prd` share `prd-creation`. Only
-`/brd-intake` has landed so far; the other two will carry their own role and cost-attribution row
-once they do.
+`/brd-ground`, `/brd-split`), the way `/idea` and `/create-prd` share `prd-creation`. All three
+commands have now landed: `/brd-ground` runs as
+[pa](../roles-and-phases.md#pa--product-architecture), and `/brd-split` runs as pm alongside
+`/brd-intake`.
 
 ## Synopsis
 

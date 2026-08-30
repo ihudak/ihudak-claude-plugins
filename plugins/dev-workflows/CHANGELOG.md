@@ -4,6 +4,40 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.1.0] — 2026-08-30
+
+### Added — BRD-to-PRD grounding route (increment 1)
+
+A customer-supplied business requirements document (BRD) is long, internally inconsistent, and not
+implementable as written. This route turns one into a requirement inventory every row of which has
+been checked against real code and design, and given a recorded fate, before a PRD is ever written
+from it — useful on its own, without any of the follow-on work increment 2/3 will add.
+
+- **Three commands, PM-owned end to end.** `/brd-intake` copies the customer's document in verbatim
+  and immutably, extracts a `[BR#n]` requirement inventory, confirms candidate defects with a human,
+  and writes a coverage ledger with every row `unallocated`. `/brd-ground` — PM-initiated but
+  PA/Dev-executed — pins every mounted repository to a verified commit and grounds every `[BR#n]`
+  claim against code and an exported design frame set, with every finding independently re-derived
+  before it counts as evidence. `/brd-split` gates on every finding carrying a verifier verdict,
+  proposes candidate slices, and walks every unallocated ledger row to one of five recorded fates —
+  building here, assigning it to a named child BRD, deferring it, rejecting it against a logged
+  defect, or marking it superseded — until none remain `unallocated`. A confirmed slice nests inside
+  its parent's folder and re-enters at `/brd-ground` for its own grounding pass.
+- **Four agents:** `brd-reader` (Sonnet-pinned extraction), `code-grounder`, `design-grounder`, and
+  `grounding-verifier` (Opus-pinned independent re-derivation).
+- **Four references:** `brd-addressing.md`, `brd-format.md`, `coverage-ledger-format.md`, and
+  `grounding-format.md`.
+- **A new branch prefix, `brd`,** shared by all three commands the way `prd` is shared by
+  `/create-prd` and `/update-prd`; registered in `references/phase-handoff.md` and
+  `references/specs-repo-git.md`.
+- **`docs/brd-workflow.md`** — a route overview page with a Mermaid diagram of the three-command
+  loop and each command's parameter table.
+
+Not in this increment: `/brd-interview`, `/brd-package`, `/brd-reconcile`; `--from-brd` on
+`/create-prd`, `/create-ard`, or `/specify`; a decision register; a self-review pass; a customer
+bundle. `references/brd-addressing.md` §4 defines the one-level-deep resolution fallback and marks
+it unadopted.
+
 ## [3.0.0] — 2026-08-29
 
 One release, one exercise: make the marketplace publishable as open source. It removes organization-specific content and naming, retires vocabulary that only made sense inside one company, drops a feature that existed only because one vendor ships two product editions, and restores machine-checkable enforcement from public sources. It is a single major because it is a single migration — everything below applies at once.

@@ -9,8 +9,9 @@ horizon against declared prerequisite BRDs.
 
 `/brd-ground` runs in the [pa](../roles-and-phases.md#pa--product-architecture) role,
 cost-attribution phase `brd-to-prd` — the phase shared by all three commands of the BRD-to-PRD
-route (`/brd-intake`, `/brd-ground`, `/brd-split`). `/brd-intake` and `/brd-ground` have landed so
-far; `/brd-split` will carry its own role and cost-attribution row once it does.
+route (`/brd-intake`, `/brd-ground`, `/brd-split`). All three commands have now landed;
+`/brd-intake` and `/brd-split` run as
+[pm](../roles-and-phases.md#pm--product-management).
 
 ## Synopsis
 

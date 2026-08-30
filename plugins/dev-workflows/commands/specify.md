@@ -645,19 +645,6 @@ choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write 
 
 On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: spec`; `feature_folder` = the Epic subfolder for a **per-Epic** spec (a PRD + focus Epic) or a **stand-alone-Epic** spec (`<EPIC>` = `focus_key`, which for a stand-alone Epic equals `jira_key`), or the PRD dir for a **broad PRD-level** spec (`focus_key` null), or **the BRD folder under `--from-brd`** — Epic keys are globally unique, so the per-Epic form needs no PRD prefix, and both forms use hyphens; §2.2 derives `spec/<EPIC>-<eslug>` or `spec/<PRD>-<vslug>` from that folder, matching today's branch names, and `spec/<BRD-KEY>-<slug>` from a BRD folder (a slice's from its own folder basename) — which collides with neither `/dev-workflows:create-prd --from-brd`'s `prd/` branch on the same key, nor `/dev-workflows:create-ard --from-brd`'s `ard/` one, nor the `/brd-*` family's shared `brd/` one, because §2.2's prefix is the caller's own; `deliverable_paths` = `specification.md`, `_session.md`, `_glossary.md`, and the rendered `.html` — **plus, under `--from-brd`, `decisions.md`, `grounding/code-grounding.md` and `grounding/design-grounding.md`**, because the `consumed_by` writes above land in those three and an uncommitted consumption record is one no later run can read; `spec-seed.md` is not staged, because this run does not write to it; `title: <EPIC|PRD> Add specification`; and `body_facts` = the stage/user-story/AC/TC counts, the open-question count, and the `spec-reviewer` verdict — and, under `--from-brd`, the `<BRD-KEY>` this specification was seeded from and how many items were marked `consumed_by: specification`. **Merged-to-main = ready for the dev-team handover** — Devs and `/design` read the spec from `main`, never from the branch, and `require-on-main` now enforces that rather than merely stating it. Emit its §4.1 outcome line in the Final report.
 
-**One known limit of a three-segment key under `--from-brd`, stated rather than papered over.** The
-preflight's run key set is `{<BRD-KEY>}` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §3.2 —
-the key resolved at this call site), but §3.5's branch-key extraction takes the leading
-`[A-Z][A-Z0-9_]*-[0-9]+` token, which reads `EPIC-008` out of `spec/EPIC-008-01-<slug>`. So a resumed
-slice run does not recognise its own unmerged branch: §3.5 takes row B4 (switch to default, leave the
-branch and its pull request alone, **report** the branch) and §2.2 rule 4 then suffixes a new `-2`
-branch rather than reusing the old one, **reporting** the substitution in its §4.1 line. Both outcomes
-are loud, neither loses committed work, and neither is a property of this route —
-`/dev-workflows:create-prd --from-brd`'s `prd/<SLICE-KEY>-<slug>` branch has the same shape. **Do not
-widen that extraction locally to work around it**: the obvious widening to `[A-Z][A-Z0-9_]*(-[0-9]+)+`
-reads `PRODUCT-1234-2` out of `spec/PRODUCT-1234-2fa-rollout` and would break two-segment keys whose
-slug begins with a digit. The extraction is defined once in that reference, and so is its fix.
-
 ### Next Epic (after a per-Epic spec from a multi-Epic PRD)
 
 When this run authored a **per-Epic** spec that was selected from Step A's ≥2-Epics picker, offer — once Phase 7's write/commit completes — to continue with a sibling Epic under the same PRD:

@@ -39,7 +39,7 @@ Collision is normal, not exceptional: `_readiness.md` is overwritten on every `/
 
 1. Test both `git -C "$SPECS_PATH" rev-parse --verify --quiet refs/heads/<name>` and `… refs/remotes/origin/<name>`.
 2. Neither exists → use `<name>`.
-3. **At least one exists** (the local ref, the remote ref, or — the common reuse case — both) **and** it is this run's own in-progress branch — its prefix is the caller's, its key is in the run key set (`specs-repo-git.md` §3.2), and `git -C "$SPECS_PATH" merge-base --is-ancestor refs/remotes/origin/<name> refs/remotes/origin/<default>` fails (not yet merged) → **reuse it**, switching to it rather than creating it.
+3. **At least one exists** (the local ref, the remote ref, or — the common reuse case — both) **and** it is this run's own in-progress branch — its prefix is the caller's, `specs-repo-git.md` §3.5's `branch-key` resolves it to a key in the run key set (§3.2 there — the same resolution the preflight's B3 makes, so a branch the preflight stayed on is a branch this rule reuses), and `git -C "$SPECS_PATH" merge-base --is-ancestor refs/remotes/origin/<name> refs/remotes/origin/<default>` fails (not yet merged) → **reuse it**, switching to it rather than creating it.
 4. Otherwise → append the lowest free integer suffix, starting at `-2`, retesting both refs each time. Report the substitution in the §4.1 outcome line, because a branch name the user did not expect is a branch name they will not find.
 
 ### 2.3 Staging the deliverable

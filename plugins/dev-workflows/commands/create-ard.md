@@ -398,19 +398,6 @@ from a re-derived title. That name collides with neither `/dev-workflows:create-
 `prd/` branch on the same key, nor `/dev-workflows:specify --from-brd`'s `spec/` one, nor the
 `/brd-*` family's shared `brd/` one, because §2.2's prefix is the caller's own. The commit message's key is the run's key, resolved as Phase 8 resolves it.
 
-**One known limit of a three-segment key, stated rather than papered over.** The preflight's run key
-set under `--from-brd` is `{<BRD-KEY>}` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §3.2 —
-the key resolved at this call site), but §3.5's branch-key extraction takes the leading
-`[A-Z][A-Z0-9_]*-[0-9]+` token, which reads `EPIC-008` out of `ard/EPIC-008-01-<slug>`. So a resumed
-slice run does not recognise its own unmerged branch: §3.5 takes row B4 (switch to default, leave the
-branch and its pull request alone, **report** the branch) and §2.2 rule 4 then suffixes a new
-`-2` branch rather than reusing the old one, **reporting** the substitution in its §4.1 line. Both
-outcomes are loud, neither loses committed work, and neither is a property of this route —
-`/dev-workflows:create-prd --from-brd`'s `prd/<SLICE-KEY>-<slug>` branch has the same shape. **Do not
-widen that extraction locally to work around it**: the obvious widening to `[A-Z][A-Z0-9_]*(-[0-9]+)+`
-reads `PRODUCT-1234-2` out of `spec/PRODUCT-1234-2fa-rollout` and would break two-segment keys whose
-slug begins with a digit. The extraction is defined once in that reference, and so is its fix.
-
 ---
 
 ## Phase 7 — Next-step offer (adaptive)

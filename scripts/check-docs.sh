@@ -529,6 +529,55 @@ check_prose_counts() {
   fi
 }
 
+# ------------------------------------------------------------------ check 10
+# Identity quarantine. No page under $PLUGIN_REL/docs/ may name the marketplace this
+# plugin ships from, or the repository that contains it. getting-started.md is the single
+# sanctioned exception: it is the one page whose job is to say where the plugin comes
+# from, which is why check 7 pins its install block to the repo-root README verbatim.
+#
+# The binding reason is FORKS. A marketplace name or container-repo URL written into a
+# page is wrong in anyone's fork -- the fork ships from a different marketplace, and its
+# pages would keep sending readers to the upstream it was forked from. Two per-command
+# pages linked a sibling plugin by full container URL and survived several releases;
+# nothing in the build could see them, because check 7 pins getting-started.md alone.
+#
+# The tokens are DERIVED from the repo-root README's own install block -- the same lines
+# check 7 already extracts -- and are never written in here. A fork renames its
+# marketplace and its container repo in that block, and this check follows without an
+# edit. Deriving NOTHING is a failure, not a pass: a token set that came up empty would
+# make this check examine nothing and pass every tree.
+#
+# What it deliberately does NOT cover: any OTHER repository a page might name -- the
+# container-image / dev-environment repo the repo-root README recommends, a sibling
+# project, a third-party plugin. Nothing in the tree marks which third-party slug is
+# "an environment", so a check that guessed would be guessing. It also leaves the
+# repo-root README and $PLUGIN_REL/README.md alone: neither is a page under docs/, and
+# the root README is where this identity is supposed to be stated.
+check_identity_quarantine() {
+  local root="$1" d="$1/$PLUGIN_REL/docs" tokens t f hit
+  # `sed 'p; s|.*/||'` emits the slug AND its bare repo name: a page can name either.
+  tokens=$( { grep -oE "^$CLI plugin marketplace add [^[:space:]]+" "$root/README.md" 2>/dev/null \
+                | sed -E "s|^$CLI plugin marketplace add ||; s|/+$||" | sed 'p; s|.*/||'
+              grep -oE "^$CLI plugin install [^[:space:]]+@[^[:space:]]+" "$root/README.md" 2>/dev/null \
+                | sed -E 's/.*@//'
+              grep -oE "^$CLI plugin marketplace update [^[:space:]]+" "$root/README.md" 2>/dev/null \
+                | sed -E "s|^$CLI plugin marketplace update ||"; } \
+            | grep -vE '^[[:space:]]*$' | sort -u)
+  if [ -z "$tokens" ]; then
+    fail 10 "no marketplace or container-repo token could be derived from the repo-root README's '$CLI plugin ...' lines -- this check would examine nothing"
+    return
+  fi
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    [ "$f" = "$d/getting-started.md" ] && continue   # the single sanctioned exception
+    while IFS= read -r t; do
+      [ -n "$t" ] || continue
+      hit=$(grep -nF -- "$t" "$f" 2>/dev/null | head -1)
+      [ -n "$hit" ] && fail 10 "${f#$root/}:${hit%%:*} names '$t' -- no page under $PLUGIN_REL/docs/ may name the marketplace this plugin ships from or the repository that contains it (getting-started.md is the only exception); a fork of this repo inherits the wrong one"
+    done <<<"$tokens"
+  done < <(find "$d" -name '*.md' 2>/dev/null | sort)
+}
+
 # ------------------------------------------------------------------ selftest
 # One passing fixture tree; each check gets a mutation of a fresh copy. Asserting
 # the exit code alone would let a mutation that trips a DIFFERENT check register
@@ -560,7 +609,10 @@ selftest() {
     tmp=$(mktemp -d); cp -R "$fixture/." "$tmp/"
     ( cd "$tmp" && eval "$3" )
     local out; out=$("$0" --root "$tmp" 2>&1); local got=$?
-    if [ "$got" -eq 1 ] && grep -q "FAIL check $2" <<<"$out"; then
+    # The colon is load-bearing: fail() prints "FAIL check <n>: <message>", and without it
+    # "FAIL check 1" would also match a "FAIL check 10" line, letting a check-10 failure
+    # satisfy a check-1 case. Every check number past 9 makes that collision reachable.
+    if [ "$got" -eq 1 ] && grep -q "FAIL check $2:" <<<"$out"; then
       printf 'ok    %s (check %s fired)\n' "$1" "$2"
     else
       printf 'FAIL  %s: expected exit 1 with "FAIL check %s", got exit %s\n' "$1" "$2" "$got"; rc=1
@@ -636,6 +688,19 @@ selftest() {
   expect_fail "a missing marketplace-add line is rejected"     7 "sed -i.bak '/$CLI plugin marketplace add/d' $PLUGIN_REL/docs/getting-started.md"
   expect_fail "a missing second required-verb line is rejected" 7 "sed -i.bak '/$CLI plugin ${CLI_REQUIRED##*|}/d' $PLUGIN_REL/docs/getting-started.md"
   expect_fail "getting-started not installing the plugin itself is rejected" 7 "sed -i.bak '/$CLI plugin install ${PLUGIN_REL##*/}@/d' $PLUGIN_REL/docs/getting-started.md"
+  # Check 10 -- identity quarantine. Both mutations derive the offending token from the
+  # fixture's own repo-root README, so the cases port to a fixture with a different
+  # marketplace name rather than pinning this one.
+  expect_fail "a container-repo URL on a docs page is rejected" 10 \
+    "slug=\$(grep -oE '^$CLI plugin marketplace add [^ ]+' README.md | awk '{print \$NF}' | head -1); printf -- '\n[sibling plugin](https://github.com/%s/tree/main/plugins/extra-plugin)\n' \"\$slug\" >> $PLUGIN_REL/docs/reference/hooks.md"
+  expect_fail "a marketplace name on a docs page is rejected" 10 \
+    "mkt=\$(grep -oE '^$CLI plugin install [^ ]+@[^ ]+' README.md | sed 's/.*@//' | head -1); printf -- '\nInstall the sibling with \`$CLI plugin install extra-plugin@%s\`.\n' \"\$mkt\" >> $PLUGIN_REL/docs/reference/agents.md"
+  # ...and the vacuity guard: with no install block to derive from, check 10 has no token
+  # set and must go RED rather than pass every page. (Check 7 fires on this mutation too;
+  # the case asserts check 10 specifically.)
+  expect_fail "an underivable identity token set is rejected" 10 \
+    "sed -i.bak '/^$CLI plugin /d' README.md"
+
   # The cost subsystem (check 8, and check 9's cost-emitting-commands sentence) does not
   # exist in every edition -- check_cost_attribution and that half of check_prose_counts
   # both return immediately when HAS_COST=0, so a mutation that only a cost check can see
@@ -678,6 +743,7 @@ check_table_cells       "$ROOT"
 check_install_block     "$ROOT"
 check_cost_attribution  "$ROOT"
 check_prose_counts      "$ROOT"
+check_identity_quarantine "$ROOT"
 
 if [ "$FAILURES" -gt 0 ]; then
   echo "FAIL: $FAILURES problem(s) under $PLUGIN_REL" >&2

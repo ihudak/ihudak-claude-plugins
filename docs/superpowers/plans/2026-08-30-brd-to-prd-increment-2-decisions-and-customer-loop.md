@@ -289,7 +289,16 @@ tools: ["Read", "Glob", "Grep"]
 
 ---
 
-### Task 11: Documentation — the route page, now six commands
+### Task 11: Route wiring and documentation — six commands
+
+**Wire the route first, then document it.** Increment 1's commands were written when their successors did not exist, so they still say so: `/brd-ground`'s terminal phase and `/brd-split`'s Phase 7 both describe `/brd-split` as the route's last command, and **neither of their choice arrays offers `/brd-interview`**. That is a live dead-end, not stale prose — a user finishing a split is never shown the next step. Increment 1 shipped the mirror-image defect (commands telling users a successor had not shipped when it had), so this is a known failure mode of building a route in increments.
+
+Do this **after** all three new commands exist, in one pass, so no command is left pointing at a half-built route: every terminal next-step offer names its real successor, and no command claims to be the route's end unless it is. Check `/brd-intake` and the three new commands too, not only the two named.
+
+**Three more sites found during tasks 8 and 9, all the same class:**
+- `docs/brd-workflow.md` still says `/brd-interview` **and** `/brd-package` "do not exist yet", and its diagram and prose describe a three-command route.
+- `docs/commands/brd-intake.md` and `docs/commands/brd-ground.md` both say the cost phase is "shared by all three commands of the BRD-to-PRD route (`/brd-intake`, `/brd-ground`, `/brd-split`) … All three ship together". False since `/brd-interview`, doubly so now. Fix count-free — `docs/commands/brd-package.md` already models the right wording ("every command of the BRD-to-PRD route").
+- `commands/brd-interview.md`'s terminal phase says `/brd-package` "is offered — but only where this round left something for a package to carry", yet its `choices:` array is unconditional. An operator on a *deferred*, *needs grounding* or *untagged* round is offered a run `/brd-package` will refuse. Either gate the option or drop the "only where" clause.
 
 **Files:** Modify `docs/brd-workflow.md`, `docs/README.md`, `docs/workflow.md`, `docs/roles-and-phases.md`.
 
@@ -320,6 +329,14 @@ Trust the tree over any number in this plan.
 - [ ] **Step 3: Walk the route end to end and record it.** `/brd-intake` → `/brd-ground` → `/brd-split` → `/brd-interview` → `/brd-package` → *(external wait)* → `/brd-reconcile`, at both parent and slice level. **Name any state a user can enter and not leave.** Increment 1 shipped three such states and found all three only in review — the allocation deadlock, the dead-ended child loop, and the unverifiable design findings. Each task was individually correct; only the walk found them. Record the walk in the report whether or not it finds anything.
 
 - [ ] **Step 4: Changelog, `CLAUDE.md` counts and command lists, and the model-routing "must load" list**
+
+  **Identity quarantine — two violations, user-confirmed as in scope.** `docs/commands/guideline-reviewer.md:59` and `docs/commands/api-guideline-reviewer.md:64` both link `prose-style` by full container URL (`https://github.com/ihudak/ihudak-claude-plugins/tree/main/plugins/prose-style`). `CLAUDE.md`'s rule: no page under `docs/` may name a marketplace or container repo, `getting-started.md` excepted. The binding reason is **forks** — a hardcoded container URL is wrong in anyone's fork of this plugin. Keep the reference to the sibling plugin; drop the container from it. Note that **no gate enforces this rule**, which is why both survived; say so in the report.
+
+  **Carried from task 1 — an untested alternation.** Only `seventeen` and the commands alternation are exercised end-to-end by a selftest case; the `cost-emitting commands` alternation and the other five words were verified by inspection alone. Add a second fixture-growing case covering the cost-emitting alternation, verified red-before/green-after by stashing, so both gated alternations have real coverage.
+
+  **Carried from task 11 — two more.** `references/next-phase-offer.md`'s routing graph contains **no `/brd-*` command at all**, so the reference that owns next-phase routing does not know this six-command route exists. And `/brd-interview`'s gated `/brd-package` offer duplicates a precondition `brd-package.md` owns, which can drift — replace the duplicate with a citation, or say why the duplication is load-bearing.
+
+  **Carried from task 10 — a pre-existing falsification.** `references/cost-emission.md`'s preamble describes its emitters as "the eleven PRD-lifecycle ones … plus two", which already omitted every `/brd-*` emitter before this increment began. It was not falsified *by* any one command, which is why no task owned it. Re-derive it count-free against the tree.
 
 - [ ] **Step 5: Run the gate triple one final time and commit** — `chore(brd): catalog, changelog and instruction-file counts for increment 2`
 

@@ -34,6 +34,24 @@ commands so the routing graph and the offer rules live in ONE place (the same sh
 
 **A next-step offer that names a downstream command must also name the merge.** The downstream command executes `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) and stops while this phase's pull request is open, so an offer that reads "next: `/dev-workflows:create-ard <KEY>`" without "once the pull request is merged" sends the user into a stop they were not warned about.
 
+**And it must name it truthfully, which means the clause is never unconditional.** A run that staged nothing, or whose handoff the user declined, opened no pull request — and "once the pull request above is merged" then parks the operator waiting for a merge that will never happen, on a run they could often start immediately. Worse, the two failing outcomes differ: only one of them has a branch to name. So an offer carries the clause as the placeholder **`<merge-clause>`**, resolved from the `Phase handoff:` line `phase-handoff.md` §4.1 actually emitted:
+
+| §4.1 outcome | `<merge-clause>` resolves to |
+|---|---|
+| Committed, pushed, PR opened | `(once the pull request above is merged)` |
+| PR not opened | `(once you open the pull request for <branch> and it is merged)` |
+| Push failed | `(once <branch> is pushed, its pull request opened, and merged)` |
+| Nothing to commit | `(its inputs are already on the default branch — you can run it now)` |
+| Declined by the user | `(once this run's artifacts reach the default branch — they are written but not there)` |
+| Gate failed | `(once this run's artifacts reach the default branch — the handoff did not run)` |
+| Anything else, or unresolvable | `(once this phase's artifacts are on the default branch)` |
+
+`Branch name substituted` is an append to another line rather than an outcome of its own — whatever branch the emitted line ends up naming is the branch the clause names. **Only two rows name a branch, and that is the point**: §4.1's declined and gate-failed lines carry none, because on those paths `handoff-to-main` committed nothing, so there is no branch in existence to send anyone to.
+
+**Where this rule applies: the BRD-to-PRD route.** The `<merge-clause>` placeholder is the convention the six `/dev-workflows:brd-*` commands write their offers to, and an offer added to that route carries it. Offers outside the route are outside the rule: `/dev-workflows:create-ard`'s *Next-step offer (adaptive)* phase and `/dev-workflows:specify`'s `### Next step` name the merge in prose without the placeholder, and they are left as they stand — that is the wording those runs have always emitted, and changing it changes those commands, which is work for a review of them. The paragraph above is written for the route that adopted the placeholder, not as a verdict on the offers that predate it.
+
+**Resolving this placeholder is not a rewording.** The array is still presented verbatim per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`'s *Choice lists are presented verbatim*, exactly as `<BRD-KEY>` or `<KEY>` is substituted in the same strings. A command that instead told the orchestrator to *adjust the wording* of an option would be contradicting that convention, which is why the variation lives in a placeholder and not in an instruction.
+
 ## Surface
 
 The universal minimum is an adaptive **`### Next step`** section at the END of the command's
@@ -55,6 +73,30 @@ not required.
   refresh. After the paste-into-Jira + re-import round-trip it offers:
   `/dev-workflows:release-notes <PRD>` (PM), `/dev-workflows:create-ard <PRD>` (PA, if one exists),
   `/dev-workflows:epics <PRD>` (PE), `/dev-workflows:specify <PRD>` (PE, if one exists).
+
+**PM / PA — the BRD-to-PRD route**
+
+- `/dev-workflows:brd-intake <BRD-KEY> @<brd-file>` — the route's entry point → hand to PA →
+  `/dev-workflows:brd-ground <BRD-KEY>` (PA).
+- `/dev-workflows:brd-ground <BRD-KEY>` → `/dev-workflows:brd-split <BRD-KEY>` (PM). On a slice
+  (`brd-link.md` carries a `parent:`), the same command runs allocate-only and creates no child.
+- `/dev-workflows:brd-split <BRD-KEY>` — **depth** → `/dev-workflows:brd-interview <BRD-KEY>` (PM);
+  **breadth** → `/dev-workflows:brd-ground <CHILD-KEY>` (PA) once per child the run created, each
+  child re-entering the route at grounding.
+- `/dev-workflows:brd-interview <BRD-KEY>` → `/dev-workflows:brd-package <BRD-KEY>` (PM), offered
+  only where this run's own state is one `/dev-workflows:brd-package` would accept
+  (`commands/brd-package.md` Phase 0 owns that test); otherwise → another
+  `/dev-workflows:brd-interview <BRD-KEY>` round (PM), or `/dev-workflows:brd-ground <BRD-KEY>` (PA)
+  for a question no finding bears on yet.
+- `/dev-workflows:brd-package <BRD-KEY>` → *(the customer reviews it off-platform, and the round
+  holding each customer question stays open until the answer comes back)* →
+  `/dev-workflows:brd-reconcile <BRD-KEY> @<review-file>` (PM).
+- `/dev-workflows:brd-reconcile <BRD-KEY> @<review-file>` → leaf/closure: the route ends at a
+  reconciled BRD. Re-entry, never advance: another `/dev-workflows:brd-interview <BRD-KEY>` round
+  where this run reopened a decision, `/dev-workflows:brd-package <BRD-KEY>` where questions remain
+  for the customer, or `/dev-workflows:brd-ground <BRD-KEY> --rebaseline` where the review
+  challenged a code claim. `--from-brd` on `/dev-workflows:create-prd`, `/dev-workflows:create-ard`
+  and `/dev-workflows:specify` does **not** ship, so no offer here crosses into the PRD pipeline.
 
 **PA — architecture (optional)**
 

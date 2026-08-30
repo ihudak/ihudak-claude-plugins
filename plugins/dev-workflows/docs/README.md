@@ -5,8 +5,11 @@
 | install this and set it up | [Getting started](getting-started.md) |
 | understand the whole pipeline first | [Workflow overview](workflow.md) |
 | know what my role is responsible for | [Roles and phases](roles-and-phases.md) |
-| see the BRD-to-PRD route as one diagram, with a parameter table | [BRD workflow](brd-workflow.md) |
+| see all six commands of the BRD-to-PRD route as one diagram, with a parameter table | [BRD workflow](brd-workflow.md) |
 | turn a customer BRD into a grounded inventory with every requirement allocated | [`/brd-intake`](commands/brd-intake.md), [`/brd-ground`](commands/brd-ground.md), [`/brd-split`](commands/brd-split.md) |
+| decide an allocated BRD's open questions without asking the wrong party | [`/brd-interview`](commands/brd-interview.md) |
+| package a decided BRD for a customer whose reviewer has nothing installed | [`/brd-package`](commands/brd-package.md) |
+| freeze a returned customer review into decisions and sweep what it overturned | [`/brd-reconcile`](commands/brd-reconcile.md) |
 | turn a raw idea into something actionable | [`/idea`](commands/idea.md) |
 | write or refresh a Product Requirements Document | [`/create-prd`](commands/create-prd.md), [`/update-prd`](commands/update-prd.md) |
 | record an architecture decision | [`/create-ard`](commands/create-ard.md) |
@@ -21,13 +24,16 @@
 | see live cost and context while you work | [`/statusline`](commands/statusline.md) — **run this first** |
 | understand what a run cost | [Session cost](reference/session-cost.md), [`/statusline`](commands/statusline.md) |
 
-Four pages orient you before you touch a command: [Getting started](getting-started.md) installs the plugin and sets your environment variables; [Workflow overview](workflow.md) shows the whole pipeline as one diagram; [BRD workflow](brd-workflow.md) shows the second route into a PRD — from a customer-supplied BRD to a grounded, allocated requirement inventory — as its own diagram; [Roles and phases](roles-and-phases.md) says what each role owns and hands off. Every other page below documents one command, one shared subsystem, or — for [Agents](reference/agents.md) and [References](reference/references.md) — one whole inventory.
+Four pages orient you before you touch a command: [Getting started](getting-started.md) installs the plugin and sets your environment variables; [Workflow overview](workflow.md) shows the whole pipeline as one diagram; [BRD workflow](brd-workflow.md) shows the second route into a PRD — from a customer-supplied BRD to a grounded, allocated, decided inventory and back out through a customer review the plugin waits on — as its own diagram; [Roles and phases](roles-and-phases.md) says what each role owns and hands off. Every other page below documents one command, one shared subsystem, or — for [Agents](reference/agents.md) and [References](reference/references.md) — one whole inventory.
 
 ## Commands
 
 - [`/api-guideline-reviewer`](commands/api-guideline-reviewer.md) — review an OpenAPI spec against the bundled REST API and IAM permission naming guidelines.
 - [`/brd-ground`](commands/brd-ground.md) — pin every mounted repository, ground the BRD's requirements against code and design, and independently re-derive every finding on Opus.
 - [`/brd-intake`](commands/brd-intake.md) — intake a customer BRD verbatim, extract its requirement inventory, and write a coverage ledger with every row unallocated.
+- [`/brd-interview`](commands/brd-interview.md) — tag every open question `[G]`/`[V]`/`[C]` before it is asked, answer the `[G]`s from the findings, and record the delivery team's decisions.
+- [`/brd-package`](commands/brd-package.md) — attack the decided package, then render a plugin-free customer prompt and a de-Obsidianised bundle for a reviewer with nothing installed.
+- [`/brd-reconcile`](commands/brd-reconcile.md) — freeze the customer's returned answers as `[CD#n]` once an operator confirms each one, then sweep every dependent BRD and every stale cross-reference.
 - [`/brd-split`](commands/brd-split.md) — propose and key child BRDs from the grounded picture, then walk every ledger row to a recorded fate.
 - [`/create-ard`](commands/create-ard.md) — author an Architecture Requirements/Decision Document for a PRD, or for one Epic inside it, grounded on the mounted code.
 - [`/create-prd`](commands/create-prd.md) — turn a refined idea plus a Jira key into a reviewed Product Requirements Document.

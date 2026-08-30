@@ -6,32 +6,57 @@ somewhere the PM has far less control: a business requirements document the cust
 handed over as-is — typically long, internally inconsistent in places, and not something a team
 could build against without first finding out which of its claims are actually still true. This
 route exists to turn that document into a requirement inventory every row of which has been
-checked against real code and design, and given a recorded fate, before a PRD is ever written from
-it. It is PM-owned end to end: `/brd-intake` and `/brd-split` run as PM, and the middle step,
-`/brd-ground`, is PM-initiated but PA/Dev-executed — it is the step that actually opens the mounted
-repositories and design assets to check a claim, work that sits with PA/Dev rather than PM.
+checked against real code and design, given a recorded fate, decided, and put back in front of the
+customer who wrote it — before a PRD is ever written from it. It is PM-owned end to end: five of
+its six commands run as PM, and the second step, `/brd-ground`, is PM-initiated but PA/Dev-executed
+— it is the step that actually opens the mounted repositories and design assets to check a claim,
+work that sits with PA/Dev rather than PM.
 
-## The three commands
+## The six commands
 
 ```mermaid
 flowchart TD
     subgraph PM["PM — owns the route"]
         intake["/brd-intake"]
         split["/brd-split"]
+        interview["/brd-interview"]
+        package["/brd-package"]
+        reconcile["/brd-reconcile"]
     end
     subgraph PAD["PA/Dev — grounding, PM-initiated"]
         ground["/brd-ground"]
+    end
+    subgraph OFF["Off-platform — the customer, with a vanilla agent and nothing installed"]
+        review["the customer reviews the bundle"]
     end
 
     intake --> ground
     ground --> split
     split -.->|new child BRD| ground
+    split --> interview
+    interview --> package
+    package -->|bundle sent| review
+    review -->|answers come back as one file| reconcile
+    reconcile -.->|a decision reopened, or a question askable again| interview
+    reconcile -.->|questions still held for the customer| package
 ```
 
-The dashed edge closes the loop once, and only once. A child BRD re-enters at `/brd-ground` and then
-runs `/brd-split` on itself in **allocate-only** mode: its ledger is walked to a recorded fate, but
-no grandchild is created, because nesting is capped at one level. So the loop is traversed at most
-twice for any requirement — once by the parent, once by the slice that claimed it.
+**The `Off-platform` box is the route's defining feature, not a decoration.** Everything else in
+the diagram is a command this plugin runs; that box is a wait, and nothing in the plugin can
+shorten it. `/brd-package` renders a self-contained prompt and a de-Obsidianised bundle precisely
+because the person on the other side has a vanilla agent and nothing installed — no plugin, no
+skills, no MCP server — and cannot ask what a path means. Between the two solid edges crossing that
+boundary, the package has to physically reach a customer and the customer has to answer, which is
+why `/brd-reconcile` takes the returned file as an argument rather than looking for it: the route
+resumes when somebody says *this file is the answer*, and not before.
+
+The dashed edge from `/brd-split` closes the child loop once, and only once. A child BRD re-enters
+at `/brd-ground` and then runs `/brd-split` on itself in **allocate-only** mode: its ledger is
+walked to a recorded fate, but no grandchild is created, because nesting is capped at one level. So
+that loop is traversed at most twice for any requirement — once by the parent, once by the slice
+that claimed it. The two dashed edges leaving `/brd-reconcile` are different in kind: they are not
+capped, because a review can legitimately reopen a decision or leave a question the customer did
+not answer, and either state is settled by running the command that owns it again.
 
 `/brd-intake` copies the customer's document in verbatim and immutably, extracts a `[BR#n]`
 requirement inventory, confirms candidate defects with a human, and writes a coverage ledger with
@@ -49,11 +74,22 @@ and no child can exist below a slice — and it creates nothing. The cap is on n
 allocation: a slice's rows must reach a fate too, or the slice could never become a PRD of its
 own.
 
-**This is the whole route that ships in this increment.** The design behind it sketches further
-phases — `/brd-interview`, `/brd-package`, `/brd-reconcile`, and a `--from-brd` switch on
-`/create-prd` that would carry a grounded, split BRD into a PRD — but none of those exist yet, so
-none of them appear above. Where this route currently ends, for any given BRD or slice, is
-`/brd-split`: a ledger with no row left `unallocated`.
+`/brd-interview` then works the BRD's open questions to recorded decisions, one round at a time,
+under a single rule: every question is tagged `[G]` / `[V]` / `[C]` before it is asked, and the tag
+decides who may answer it — a `[G]` from the grounding findings and never a human, a `[V]` from the
+delivery team with recorded argumentation, a `[C]` held for the customer. `/brd-package` takes the
+register and the held `[C]` questions, attacks the package before the customer does, refuses to
+build a bundle while any `[SR#n]` self-review finding is undisposed, and renders the prompt, the
+delivery note, and the dated bundle. `/brd-reconcile` takes the file that comes back, freezes each
+confirmed answer as a `[CD#n]` only once an operator has confirmed it against the customer's own
+words, and then sweeps every dependent BRD and every artifact still asserting a position the answer
+overturned.
+
+**Where the route ends today is `/brd-reconcile`**: a BRD whose customer decisions are frozen and
+whose tree holds nothing the review made false. The step that would follow it — `--from-brd` on
+`/create-prd`, carrying a decided, reconciled BRD into a Product Requirements Document — **does not
+exist yet**, and neither does `--from-brd` on `/create-ard` or `/specify`. None of them is drawn
+above, and no command offers one.
 
 ## Parameters
 
@@ -65,17 +101,22 @@ command accepts today, not a preview of what a later increment adds.
 | `/brd-intake` | `<BRD-KEY> @<brd-file>` | `--sort-existing <dir>`, `--no-docs` | Source must already be markdown — a PDF or similar is rejected, never converted. `<BRD-KEY>` names a folder, never a tracker ticket |
 | `/brd-ground` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…`, `--rebaseline`, `--derivation-matrix` / `--no-derivation-matrix`, `--no-design`, `--no-docs` | Runs at either level — a BRD with a source document, or a slice. Needs `$REPOS_PATH` mounted; read-only against every repository it touches |
 | `/brd-split` | `<BRD-KEY>` | — | No flags. Walks every unallocated row to a recorded fate at either level; on a source-owning BRD it also nests child BRDs, on a slice it is allocate-only (four resolutions, no child) |
+| `/brd-interview` | `<BRD-KEY>` | `--round N` | Rounds are numbered, permanent and resumable. No flag continues at the first question with no terminal disposition; `--round N` resumes an open round, or re-opens a closed one with its cause recorded |
+| `/brd-package` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…` | Repeatable, and any key at either level is admissible; a mistyped one is warned and dropped, never fatal. Each prerequisite's own package is copied into the bundle, marked *not for re-review* |
+| `/brd-reconcile` | `<BRD-KEY> @<review-file>` | — | The review is taken at whatever path it arrived on, inside `$SPECS_PATH` or not, and is never searched for: the operator names the file, because one this command picked is one nobody submitted |
 
-`--no-docs` appears on two of the three rows and means the same thing on both: turn off the optional
+`--no-docs` appears on two of the six rows and means the same thing on both: turn off the optional
 grounding on shipped product documentation that `/brd-intake` and `/brd-ground` do when `$DOCS_PATH`
-resolves. `/brd-split` has no such flag because it does no docs grounding to turn off — it allocates
-requirements, which documentation does not inform. See
+resolves. The other four have no such flag because none of them does docs grounding to turn off —
+`/brd-split` allocates requirements, and the last three work on decisions already taken, on which a
+documentation page (a claim *about* behaviour, not the behaviour) settles nothing. See
 [`docs-grounding.md`](../references/docs-grounding.md) for the resolution gate and the two
 consumption modes this route uses.
 
 `<BRD-KEY>` follows the same shape everywhere in this route: `^[A-Z][A-Z0-9_]*(-\d+)+$`, checked
 for shape only and never against a tracker — a BRD is a markdown file under `$SPECS_PATH`, not a
-Jira ticket.
+Jira ticket. Every command after `/brd-intake` accepts a key at either of the two levels a BRD
+folder can occupy, and only `/brd-split` behaves differently between them.
 
 ## What lands where
 
@@ -88,17 +129,33 @@ specifications/<BRD-KEY>-<slug>/
 ├── brd/
 │   ├── source/<basename>        # the customer's file, copied verbatim — never edited again
 │   ├── brd-inventory.md         # [BR#n] rows, /brd-intake
-│   └── brd-defect-log.md        # confirmed [DEF#n] entries, /brd-intake
+│   └── brd-defect-log.md        # confirmed [DEF#n] entries, /brd-intake and /brd-reconcile
 ├── coverage-ledger.md           # one row per [BR#n]; /brd-intake writes it, /brd-split resolves it
 ├── grounding/
 │   ├── baselines.md             # one dated entry per pinned repository, /brd-ground
 │   ├── code-grounding.md        # [CG#n] findings, /brd-ground
 │   └── design-grounding.md      # [DG#n] findings, /brd-ground (skipped or noted with --no-design)
-├── brd-link.md                  # depends-on / parent-child links, /brd-ground and /brd-split
+├── brd-link.md                  # depends-on / parent-child links, /brd-ground, /brd-split, /brd-package
 ├── slices.md                    # slice rationale and deferral notes, /brd-split
+├── decisions.md                 # the register: [VD#n] and [AS#n] from /brd-interview, [CD#n] from /brd-reconcile
+├── interview/
+│   ├── round-<N>.md             # one append-only record per round, /brd-interview
+│   └── customer-questions.md    # the [C] questions held for the customer, /brd-interview
+├── self-review-<date>.md        # every [SR#n] with its disposition, /brd-package
+├── customer-review-prompt-<date>.md   # the self-contained prompt the customer pastes, /brd-package
+├── customer-delivery-note-<date>.md   # the covering letter — the email, not a bundle document, /brd-package
+├── bundle-<date>/               # the de-Obsidianised bundle actually sent, /brd-package
+├── customer-review-<date>.md    # the returned review, copied in byte for byte, /brd-reconcile
+├── reconciliation-<date>.md     # what the review changed and what still needs a human, /brd-reconcile
 ├── dev-workflows/                # session bookkeeping: resume pointer, feedback, cost entries
 └── <CHILD-KEY>-<child-slug>/    # a slice /brd-split confirmed — the same shape, one level only
 ```
+
+The dated artifacts are the ones to read carefully. **A dated bundle is never rewritten**, and a
+superseded snapshot is bannered rather than edited: rewriting either destroys the only evidence of
+what the reviewer of that date was actually looking at, after which every claim in their returned
+review silently re-points at a document they never saw. `customer-review-<date>.md` carries the
+**customer's** date, not the run's, and is committed before anything reads it.
 
 A slice starts life with three of those files, all written by the parent's `/brd-split` run:
 `brd-link.md`, a `brd/brd-inventory.md` holding the parent's rows it claims (copied verbatim — the
@@ -110,7 +167,12 @@ command holding both the parent's rows and the allocation that says which of the
 The slice keeps no `brd/` source or defect log of its own and reaches for its parent's, and that
 reach is always exactly one hop: with nesting capped at one level, a slice's parent is always the
 BRD that owns the customer's document. That one hop is live rather than theoretical — it is how a
-`rejected: [DEF#n]` is resolved when `/brd-split` walks the slice's own ledger.
+`rejected: [DEF#n]` is resolved when `/brd-split` walks the slice's own ledger, and it is where a
+slice's `/brd-reconcile` writes the defect resolutions its customer review settled.
+
+Everything else a slice produces is its own. It holds its own register, its own `[C]` question set,
+its own bundle and its own reconciliation record, and it reaches its decisions exactly as its
+parent does — the last three commands of the route behave identically at both levels.
 
 `--sort-existing <dir>` on `/brd-intake` additionally writes `prd-seed.md`, `ard-seed.md`, and
 `spec-seed.md` at the BRD folder's own level — a one-time migration path for a package written by

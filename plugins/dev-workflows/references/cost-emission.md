@@ -1,12 +1,19 @@
 # Session Cost Emission — Shared Reference
 
 Single source of truth for the dev-workflows session-cost subsystem. The terminal
-"Session cost" phase of every cost-emitting command — the eleven PRD-lifecycle ones
-(`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`,
-`/design`, `/implement`, `/ready`, `/document`, `/release-notes`) plus `/prompt`
-and `/feedback`, which are not PRD-lifecycle and infer their labels per §7 — cites this file and
-executes its steps inline through the single `emit-cost` entry point (§11). The
-orchestrator owns every prompt; this reference owns session-artifact resolution,
+"Session cost" phase of every cost-emitting command cites this file and executes
+its steps inline through the single `emit-cost` entry point (§11).
+
+**Which commands those are is §7's attribution table, and nothing else.** A command
+emits a cost entry if and only if §7 gives it a row, so no roster and no total is
+restated here: the PRD-lifecycle commands have rows there, so do the `/brd-*`
+commands of the BRD-to-PRD route, and so do `/prompt` and `/feedback`, which are
+not PRD-lifecycle and infer their labels rather than carrying fixed ones. Read the
+table for the set; a second copy of it in this preamble is what went stale before —
+the list this sentence replaces named the PRD-lifecycle commands only, and had
+already omitted every `/brd-*` emitter.
+
+The orchestrator owns every prompt; this reference owns session-artifact resolution,
 the chained-checkpoint model, the transcript-window computation, the price table,
 the report format, the persistence ladder, pending/reconciliation, and the
 optional statusline augmentation.
@@ -284,6 +291,9 @@ Fixed per-command labels, with three inferred exceptions:
 | `/brd-intake` | brd-to-prd | pm |
 | `/brd-ground` | brd-to-prd | pa |
 | `/brd-split` | brd-to-prd | pm |
+| `/brd-interview` | brd-to-prd | pm |
+| `/brd-package` | brd-to-prd | pm |
+| `/brd-reconcile` | brd-to-prd | pm |
 | `/prompt` | **inferred** | **inferred** |
 | `/feedback` | **inferred** | **inferred** |
 

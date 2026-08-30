@@ -6,8 +6,8 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 
 Intake the customer-supplied business requirements document: $ARGUMENTS
 
-`/brd-intake` is the **entry point of the BRD-to-PRD flow** (PM phase) — the first of three
-`/brd-*` commands (with `/brd-ground` and `/brd-split`) that turn a long, often internally
+`/brd-intake` is the **entry point of the BRD-to-PRD flow** (PM phase) — the first of the
+`/brd-*` commands, which between them turn a long, often internally
 contradictory customer BRD into requirements a PRD can be built from. It copies the customer's
 source into the specs repo **verbatim and immutably**, extracts a `[BR#n]` requirement inventory
 via the `brd-reader` agent, classifies the document's defects **with a human** rather than on the
@@ -146,6 +146,13 @@ Act on `status`:
   to classify) and write an empty `brd/brd-inventory.md` and `coverage-ledger.md` in Phase 5; the
   final report's ledger line reads
   `ledger: 0 requirements — 0 covered, 0 deferred, 0 rejected, 0 unallocated, 0 unresolved (0 delegated, 0 not built)`.
+  **Say plainly, here and in the final report, that the route stops on this BRD until the inventory
+  has a row.** `/brd-ground` has nothing to ground, and it stops with `BRD_GROUND_EMPTY_INVENTORY`
+  rather than reporting a quiet success; `/brd-split` and `/brd-interview` stop the same way. Phase 8
+  offers the one thing that changes it — re-running this command over this same folder with a source
+  whose requirements `brd-reader` can identify — and does **not** offer grounding, because offering a
+  command that would refuse this BRD is worse than offering nothing. Carry the `EMPTY` result forward
+  to Phase 8 as the flag that picks its choice list.
 - **`NOT_FOUND`** — surface the agent's exact message and stop; this should not occur (Phase 0/2
   already confirmed the source exists and is markdown), so treat its appearance as worth
   investigating rather than retrying blindly.
@@ -256,25 +263,49 @@ this run wrote under `<BRD-dir>` (`brd/source/**`, `brd/brd-inventory.md`, `brd/
 count, the confirmed-defect count by class, and whether Phase 6 wrote seeds; emit its §4.1 outcome
 line in the final report.
 
-`brd` is the branch prefix `phase-handoff.md` §2.9 lists as shared by the three `/brd-*`
-commands (the way `prd` is shared by `/create-prd` and `/update-prd`) — a BRD is neither a PRD nor
-any of the other five prefixes, and reusing `prd` would collide with the eventual
-`prd/<BRD-KEY>-<slug>` branch `/create-prd --from-brd` opens against the same key once this BRD is
-PRD-eligible.
+`brd` is the branch prefix `phase-handoff.md` §2.9 lists as shared by every `/brd-*`
+command (the way `prd` is shared by `/create-prd` and `/update-prd`) — a BRD is neither a PRD nor
+any of the other five prefixes, and reusing `prd` would collide with the `prd/<BRD-KEY>-<slug>`
+branch a future `/create-prd --from-brd` would open against the same key once this BRD is
+PRD-eligible. **That switch does not ship**, here or anywhere in the plugin today; the prefix is
+kept separate now so that adding it later needs no rename.
 
 ---
 
 ## Phase 8 — Next steps
 
+**Branch on Phase 3's result.** A BRD whose inventory holds no `[BR#n]` row is refused by every
+downstream command on the route, so offering one here would name a run that stops on its own Phase 0
+— the offer `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` exists to prevent.
+
+**One or more `[BR#n]` rows — the ordinary case:**
+
 ```
-choices: ["Ground the inventory against code and design — /dev-workflows:brd-ground <BRD-KEY> (Recommended)", "Stop here", "Other… (describe)"]
+choices: ["Ground the inventory against code and design — /dev-workflows:brd-ground <BRD-KEY> (Recommended) <merge-clause>", "Stop here", "Other… (describe)"]
 ```
 
+**Zero `[BR#n]` rows (a Phase 3 `EMPTY` read) — `/dev-workflows:brd-ground` is left out rather than
+offered and refused:**
+
+```
+choices: ["Re-run this intake with a corrected source — /dev-workflows:brd-intake <BRD-KEY> @<brd-file> (this folder is a re-run, not a refusal)", "Stop here — this document states no requirement the route can carry", "Other… (describe)"]
+```
+
+Neither option on that second list carries a `(Recommended)` marker, and the omission is deliberate
+per the `When no option is safe to recommend` guidance in
+`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`: whether the source was mis-converted, was
+the wrong file, or genuinely states no requirement is a judgement about the customer's document, and
+only the operator who has read it can take it. Say beside the list which conversion or file this run
+actually read, so that judgement has something to stand on.
+
 `/dev-workflows:brd-ground <BRD-KEY>` grounds every `[BR#n]` against the mounted implementation and
-design repos. It will not start reading this BRD's artifacts until the pull request above is merged
-to the specs repo's main — its own Phase 0 gates `coverage-ledger.md` on `origin/<default>` and
-stops with `BRD_GROUND_NEEDS_INTAKE` otherwise — so offering it here is the next step, not an
-instruction to run it before the merge lands. Guidance only — never auto-invokes another command.
+design repos. It will not start reading this BRD's artifacts until they are on the specs repo's
+default branch — its own Phase 0 gates `coverage-ledger.md` on `origin/<default>` and stops with
+`BRD_GROUND_NEEDS_INTAKE` otherwise — so offering it here is the next step, not an instruction to
+run it before that lands. **State the wait as `<merge-clause>` resolves it** from this run's own
+`Phase handoff:` outcome line (`${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`): a declined
+handoff opened no pull request, so telling the operator to wait for one would name a thing that does
+not exist. Guidance only — never auto-invokes another command.
 Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`.
 
 ### Context hygiene

@@ -1,6 +1,6 @@
 # Workflow overview
 
-This is the dev-workflows pipeline top to bottom — every command shown here, in the order the roles typically hand work to each other. `/idea → /create-prd` opens a Product Requirements Document; `/document` and `/release-notes` close it out. A second route into a PRD exists alongside it: `/brd-intake → /brd-ground → /brd-split` turns a customer-supplied BRD into a grounded, fully-allocated requirement inventory instead of a PM-authored idea — see [BRD workflow](brd-workflow.md) for its own diagram and parameter table.
+This is the dev-workflows pipeline top to bottom — every command shown here, in the order the roles typically hand work to each other. `/idea → /create-prd` opens a Product Requirements Document; `/document` and `/release-notes` close it out. A second route into a PRD exists alongside it: `/brd-intake → /brd-ground → /brd-split → /brd-interview → /brd-package → /brd-reconcile` turns a customer-supplied BRD into a grounded, allocated, decided and customer-reviewed requirement inventory instead of a PM-authored idea — see [BRD workflow](brd-workflow.md) for its own diagram and parameter table.
 
 ```mermaid
 flowchart TD
@@ -13,6 +13,11 @@ flowchart TD
     subgraph BRD["PM/PA/Dev — BRD-to-PRD route (alt. entry)"]
         brdintake["/brd-intake"] --> brdground["/brd-ground"] --> brdsplit["/brd-split"]
         brdsplit -.->|new child BRD| brdground
+        brdsplit --> brdinterview["/brd-interview"] --> brdpackage["/brd-package"]
+        brdreconcile["/brd-reconcile"]
+    end
+    subgraph CUST["Off-platform — the customer, nothing installed"]
+        brdreview["the customer reviews the bundle"]
     end
     subgraph PA["PA — architecture (optional)"]
         createard["/create-ard"]
@@ -40,11 +45,19 @@ flowchart TD
     createvi -->|PRD-level spec| specify
     specify -->|specification.md| design
     ready -. verifies ARD/spec/design .-> implement
+    brdpackage -->|bundle sent| brdreview
+    brdreview -->|answers come back as one file| brdreconcile
+    brdreconcile -.->|a decision reopened, or a question askable again| brdinterview
+    brdreconcile -.->|questions still held for the customer| brdpackage
 ```
 
 The diagram draws the ARD reaching `/epics`, but that is one of five consumers: `/epics`, `/specify`, `/design`, `/implement`, and `/ready` all resolve the applicable ARD once it exists. The edge is drawn once to keep the diagram readable, not because the others do not consult it.
 
-The BRD-to-PRD subgraph carries no edge into `/create-prd`: that connection is undrawn because `--from-brd` has not shipped yet, not because the two routes are unrelated.
+The BRD-to-PRD subgraph carries no edge into `/create-prd`: that connection is undrawn because `--from-brd` has not shipped yet, not because the two routes are unrelated. The same goes for `--from-brd` on `/create-ard` and `/specify`. `/brd-reconcile` is where that route ends today.
+
+The `Off-platform` box is the one node in this diagram no command runs. It is the customer reviewing the bundle with a vanilla agent and nothing installed, and the route waits there — which is why `/brd-reconcile` takes the returned review as an argument rather than looking for it.
+
+The two dashed edges leaving `/brd-reconcile` go to different commands on purpose, and are drawn separately rather than merged under one label: a decision the review reopened is settled by another interview round, while a question the customer left unanswered goes back out in the next package. They are the same two edges [BRD workflow](brd-workflow.md) draws, with the same labels — this diagram summarises that one and never disagrees with it.
 
 The diagram above shows where each command sits in the pipeline; [Roles and phases](roles-and-phases.md) says what each role is accountable for and what it hands over at each seam.
 

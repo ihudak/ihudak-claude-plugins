@@ -36,8 +36,11 @@ resolves from the folder itself:
 1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `brd-key-valid`
    (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1). If absent or invalid, stop:
    `BRD_SPLIT_NEEDS_KEY: /brd-split needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/dev-workflows:brd-split <KEY>'.`
-2. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`
-   (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
+2. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`, per the
+   `Required path environment variable unset` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
+   ```
+   choices: ["Set SPECS_PATH (enter the path)", "Cancel"]
+   ```
 3. **Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute
    its `specs-preflight` entry point (§3) inline. Prompt-free and silent when the specs repo is
    clean and on its default branch. If a guard fires, emit its §5 notice; if it returns

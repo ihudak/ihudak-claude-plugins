@@ -41,8 +41,11 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
    forward to Phase 6. `--no-docs` — boolean; turns documentation grounding off for this run,
    carried to Phase 1's `resolve-docs-grounding` call. Neither changes anything else about Phase 0:
    the BRD source is still required and still gated by step 3.
-5. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`
-   (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
+5. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`, per the
+   `Required path environment variable unset` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
+   ```
+   choices: ["Set SPECS_PATH (enter the path)", "Cancel"]
+   ```
 6. **Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute
    its `specs-preflight` entry point (§3) inline. Prompt-free and silent when the specs repo is
    clean and on its default branch. If a guard fires, emit its §5 notice; if it returns

@@ -1,6 +1,6 @@
 ---
 name: brd-reader
-description: Extracts a requirement inventory from a customer-supplied BRD — one [BR#n] row per requirement, with a source anchor and unconfirmed defect candidates. Splits a requirement carrying more than one obligation. Read-only; never writes the source. Uses Claude Sonnet — extraction is mechanical; defect classification is the caller's judgement.
+description: Extracts a requirement inventory from a customer-supplied BRD — one [BR#n] row per requirement, with a source anchor and unconfirmed defect candidates. Splits a requirement carrying more than one obligation. Read-only; never writes the source. Uses Claude Sonnet. Extraction is mechanical; defect classification is the caller's judgement.
 model: sonnet
 tools: ["Read", "Glob", "Grep"]
 ---

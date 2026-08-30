@@ -20,6 +20,7 @@
 - **No table cell in `plugins/dev-workflows/docs/` may exceed 200 characters** (check 7).
 - **No page under `plugins/dev-workflows/docs/` may name a marketplace or container repo** (identity quarantine); `getting-started.md` is the only sanctioned exception.
 - **Read-only against code repositories** throughout, per `references/read-only-repos.md`.
+- **A pinned agent declares its tier with the house alias** — `model: opus` or `model: sonnet` in frontmatter, never a version-pinned ID like `claude-opus-5`. All nine existing pinned agents use the alias; a version-pinned ID goes stale and bypasses the fallback chain `references/model-routing/classification.md` exists to provide. An agent with no fixed pin omits the key entirely and says so in its `description`, as `code-scanner` does.
 - **The verification record is written last** — after the final fix wave, per `CLAUDE.md`. Re-derive every expected count against the tree being verified; never copy a number from this plan without re-measuring.
 
 **The gate triple** — run after every task, from the repository root:
@@ -380,7 +381,7 @@ Frontmatter, matching the house pattern for a pinned-Sonnet worker:
 ---
 name: brd-reader
 description: Extracts a requirement inventory from a customer-supplied BRD — one [BR#n] row per requirement, with a source anchor and unconfirmed defect candidates. Splits a requirement carrying more than one obligation. Read-only; never writes the source. Pinned to the §2.1 Sonnet chain — extraction is mechanical; defect classification is the caller's judgement.
-model: claude-sonnet-5
+model: sonnet
 tools: ["Read", "Glob", "Grep"]
 ---
 ```
@@ -550,7 +551,7 @@ git commit -m "feat(brd): add the design-grounder agent"
 ---
 name: grounding-verifier
 description: Independently re-derives a grounding finding from the repository and returns agree / extend / contradict / unprovable with its own evidence. It does NOT check citations — checking a citation only proves the cited line exists. A finding is not evidence until this agent has re-derived it. Read-only. Uses Claude Opus.
-model: claude-opus-5
+model: opus
 tools: ["Read", "Glob", "Grep", "Bash"]
 ---
 ```

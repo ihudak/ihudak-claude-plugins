@@ -91,8 +91,11 @@ not required.
 - `/dev-workflows:brd-ground <BRD-KEY>` → `/dev-workflows:brd-split <BRD-KEY>` (PM). On a slice
   (`brd-link.md` carries a `parent:`), the same command runs allocate-only and creates no child.
 - `/dev-workflows:brd-split <BRD-KEY>` — **depth** → `/dev-workflows:brd-interview <BRD-KEY>` (PM);
-  **breadth** → `/dev-workflows:brd-ground <CHILD-KEY>` (PA) once per child the run created, each
-  child re-entering the route at grounding.
+  **breadth** → `/dev-workflows:brd-ground <CHILD-KEY>` (PA) once per **non-empty** child the run
+  created, each such child re-entering the route at grounding. A child whose `claims:` list is
+  empty — including one the parent's walk emptied by withdrawing every provisional claim, leaving
+  it holding only orphan rows — is a standing empty child (`commands/brd-split.md` Phase 7), and
+  grounding it stops at `BRD_GROUND_EMPTY_INVENTORY`, so it is not offered.
 - `/dev-workflows:brd-interview <BRD-KEY>` → `/dev-workflows:brd-package <BRD-KEY>` (PM), offered
   only where this run's own state is one `/dev-workflows:brd-package` would accept
   (`commands/brd-package.md` Phase 0 owns that test); otherwise → another

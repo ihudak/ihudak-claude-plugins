@@ -4,6 +4,93 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.2.0] — 2026-08-30
+
+### Added — BRD-to-PRD decisions and the customer loop (increment 2)
+
+Increment 1 left a BRD grounded, split, and with every requirement carrying a recorded fate. What it
+could not do was **decide** anything: the open questions a customer BRD is full of stayed open, and
+nothing put them back in front of the customer who could settle them. This increment closes that
+loop. The route is now `/brd-intake` → `/brd-ground` → `/brd-split` → `/brd-interview` →
+`/brd-package` → *(the customer reviews it off-platform)* → `/brd-reconcile`, and it ends at a BRD
+whose decisions are frozen against the customer's own returned words.
+
+- **`/brd-interview` — decide the open questions, one round at a time.** It gates on a fully
+  allocated ledger and on every grounding finding carrying a verifier outcome, then generates a
+  round's questions **before** tagging any of them and tags each into exactly one of three: a
+  question the findings already answer, one the delivery team decides with argumentation, and one
+  only the customer can settle. No question of the third kind is ever put to a human in the room.
+  Rounds are numbered, permanent, contiguous and resumable, and the command fixes the vocabulary the
+  whole route reads state in: five **terminal dispositions** against four **holding states**, with a
+  holding state keeping its round open — which is what stops a round with an outstanding customer
+  question from being declared finished around the customer.
+- **`/brd-package` — build what the customer actually reviews.** An Opus `brd-package-reviewer` runs
+  an adversarial self-review of the package before anybody sees it; every finding it raises takes a
+  recorded disposition, and the run assigns itself a degradation tier saying plainly what the bundle
+  could not include. The rendered customer prompt is scanned for anything plugin-internal — a
+  plugin-root path, a reference-file citation, a section sign, a slash command, an agent name, a
+  design-decision row id — and the run **stops** on a hit rather than sanitising it, because a
+  citation that reached the prompt reached it from a sentence written for a reader who has the
+  plugin. A dated bundle is never rewritten.
+- **`/brd-reconcile` — freeze what came back, and sweep what it moved.** It gates on the package
+  that was actually sent, canonicalises the returned review and commits it **before anything reads
+  it**, and never overwrites a returned review. Every candidate decision is confirmed with an
+  operator before it becomes a customer decision — nothing is inferred into one. It then applies the
+  corrections the review asked for, banners the superseded dated snapshots, resolves the defects the
+  review settled, moves the ledger rows the review moved, and runs two sweeps: one across every
+  dependent BRD whose position rested on a decision that just changed, and one for stale
+  cross-references under the parent — including a search for prose asserting a now-superseded
+  position with no identifier in it at all, which is the half that cannot be reduced to a pattern.
+- **A cross-BRD write guard, stated once for all three paths that need it.** Three phases write
+  outside the BRD folder the run was given — a slice's parent defect log, a dependent BRD's
+  register, a sibling slice's artifacts. Each runs the merge gate against that artifact first and,
+  on any stopping row, **records the intended change rather than writing it**, so an in-flight run
+  belonging to somebody else is never silently overwritten. It never stops the run.
+- **Two agents:** `brd-package-reviewer` (Opus-pinned adversarial review of the package) and
+  `customer-review-reader` (reads the returned review, fail-closed: anything short of a positive,
+  in-order schema match is treated as free text, and there is no second dispatch to talk it into a
+  parse).
+- **Four references:** `interview-tagging.md` (the three question tags, the re-tag and split rules,
+  and the round/disposition vocabulary), `decision-register-format.md` (the decision and assumption
+  record shapes, the reopen and supersede causes, and the will-change resolutions),
+  `customer-review-schema.md` (the twelve-section shape the returned review is written in, with its
+  own render boundary declared in the file so the renderer and the schema cannot drift apart), and
+  `bundle-packaging.md` (what a bundle contains, and why a dated one is immutable).
+- **`docs/brd-workflow.md` extended to the full six-command loop,** including the off-platform wait
+  and both of `/brd-reconcile`'s return edges, plus per-command documentation pages for the three
+  new commands.
+
+### Fixed
+
+- **Two identity-quarantine violations.** The `/guideline-reviewer` and `/api-guideline-reviewer`
+  documentation pages linked the sibling `prose-style` plugin by full container URL. A hardcoded
+  container URL is wrong in anyone's fork, so both keep the reference and drop the container. No
+  gate enforces the quarantine rule, which is why both survived.
+- **`references/cost-emission.md`'s preamble no longer carries a roster of its own.** It named a
+  fixed list of PRD-lifecycle emitters that had already omitted every `/brd-*` emitter; the set is
+  now section 7's attribution table and nothing else.
+- **`references/next-phase-offer.md` knows the route exists.** The reference that owns next-phase
+  routing carried no `/brd-*` command at all. It now carries the whole route as a role-labelled
+  block, with the slice fan-out drawn as the same depth/breadth pair the Epic rule uses, and with
+  reconciliation marked leaf/closure.
+- **`/brd-interview` cites its downstream gate instead of restating it.** Its gated `/brd-package`
+  offer held a second copy of a precondition `commands/brd-package.md` owns; the copy is replaced by
+  a citation, so the offer and the gate cannot drift apart.
+- **A second fixture-growing selftest case for the docs gate.** Only one of the two prose-count
+  alternations taught new number words was exercised end to end; the cost-emitting one was covered
+  by inspection alone. The new case grows the fixture to eighteen commands, seventeen of them
+  cost-emitting, and re-words both count sentences to deliberately different numbers.
+
+Roster corrections that landed with this increment: the command and agent counts and the command
+list in `CLAUDE.md` and in both plugin descriptions; the model-routing must-load list; the
+`specs-repo-git.md` caller count and the `phase-handoff.md` producer and consumer rosters; the
+documentation-page inventory and the docs gate's selftest case count; and `phase-handoff.md` §3.4's
+closing paragraph, which named two `/brd-*` consumers where there are now five.
+
+Not in this increment: `--from-brd` on `/create-prd`, `/create-ard`, or `/specify`, and no
+one-level-deep resolution fallback in the six commands that resolve a PRD directory. No PRD is
+written by this route. It ends at a reconciled, decided BRD whose seeds are ready.
+
 ## [3.1.0] — 2026-08-30
 
 ### Added — BRD-to-PRD grounding route (increment 1)

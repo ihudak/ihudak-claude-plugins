@@ -258,9 +258,10 @@ line in the final report.
 
 `brd` is the branch prefix `phase-handoff.md` §2.9 lists as shared by every `/brd-*`
 command (the way `prd` is shared by `/create-prd` and `/update-prd`) — a BRD is neither a PRD nor
-any of the other five prefixes, and reusing `prd` would collide with the eventual
-`prd/<BRD-KEY>-<slug>` branch `/create-prd --from-brd` opens against the same key once this BRD is
-PRD-eligible.
+any of the other five prefixes, and reusing `prd` would collide with the `prd/<BRD-KEY>-<slug>`
+branch a future `/create-prd --from-brd` would open against the same key once this BRD is
+PRD-eligible. **That switch does not ship**, here or anywhere in the plugin today; the prefix is
+kept separate now so that adding it later needs no rename.
 
 ---
 

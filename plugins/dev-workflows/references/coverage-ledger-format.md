@@ -134,9 +134,14 @@ picker changes.
 
 - **Eligible.** At least one `covered-here` row exists. The BRD may go on to author its own
   `<BRD-KEY>_<slug>.md` once `/create-prd --from-brd` (increment 3) runs against it.
-- **Not eligible.** No row is `covered-here` — every row resolves to `covered-by: <CHILD-KEY>` or
-  `deferred-to: <this BRD>` (`rejected` rows are not obligations of anyone, and `superseded-by`
-  rows are excluded from the ledger line entirely per §6.3; neither bears on eligibility). This BRD
+- **Not eligible.** No row is `covered-here`. Every row therefore resolves to one of the other four
+  terminal dispositions — `covered-by: <CHILD-KEY>`, `deferred-to: <this BRD>`, `rejected: [DEF#n]`
+  or `superseded-by: [BR#n]` — in any mix, and **all four reach this case equally**: eligibility is
+  the presence of a `covered-here` row and nothing else, so a disposition bears on it exactly by not
+  being `covered-here`. A BRD whose every claimed row is `rejected` is ineligible owing nobody
+  anything, and one whose every row was `superseded-by` another `[BR#n]` is ineligible too, even
+  though §6.3 excludes those rows from the ledger line's counts — a line the eligibility check never
+  reads anyway (see the paragraph below on reading dispositions off the file). This BRD
   holds no PRD of its own. A consumer that reaches this state must refuse to author a PRD here and
   say **where the requirements went**, rather than producing an empty or placeholder document.
 
@@ -146,17 +151,21 @@ picker changes.
   | How every row left `covered-here` | What the consumer says |
   |---|---|
   | Some rows are `covered-by: <CHILD-KEY>` | Name those children — and, per §6.1, which of them did not build the row delegated to it. A child that deferred, rejected or has not allocated it is not somewhere to send the reader |
-  | No row is `covered-by`: the BRD was never split | Name no child, because none exists. Say that every requirement is a live obligation of this BRD and that a PRD needs one of them resolved `covered-here` first |
-  | No row is `covered-by` because this is a **slice** | The same, for the reason the paragraph below gives |
+  | No row is `covered-by`: the BRD was never split | Name no child, because none exists — and say what the claimed rows *did* resolve to rather than calling them all obligations. The three remaining dispositions say different things: a `deferred-to` row is a live obligation of this BRD, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it, and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. Then say a PRD needs one row resolved `covered-here` first |
+  | No row is `covered-by` because this is a **slice** | The same breakdown, for the reason the paragraph below gives |
 
   "Name the children that do" is right only in the first row. In the other two there is nothing to
   name, and a consumer that goes looking for a child to point at finds none and must not invent
-  one — the honest report is that the requirements are deferred, and by whom.
+  one — the honest report is what each row actually resolved to, and, for the deferred ones, by whom.
+  "The requirements are deferred" is the common shape of those two cases, not the whole of them:
+  a BRD whose every claimed row is `rejected` reaches this same case owing nobody anything, and
+  saying it deferred them would be false.
 
 **A slice reaches eligibility by exactly this rule**, through the same Phase 4 walk on its own
 ledger. The one difference follows from `covered-by` being parent-only (§3): on a slice, the
-"not eligible" case can only be reached by every row landing `deferred-to`, never by rows pointing
-at children.
+"not eligible" case is reached entirely through the three remaining terminal dispositions —
+`deferred-to`, `rejected` and `superseded-by`, in any mix — never by rows pointing at children,
+because no child can exist below a slice for a row to point at.
 
 This is **read from the ledger, not decided in advance.** Slicing a BRD entirely and slicing it
 only partially are both ordinary, supported outcomes; the ledger is what tells a later consumer

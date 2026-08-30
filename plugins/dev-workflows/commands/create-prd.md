@@ -292,7 +292,7 @@ Carry both digests into Phase 3 with **grill-rank** consumption. When both are O
 
 Author `<KEY>_<slug>.md` live against `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md` for the selected profile, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md`. Walk the **spine** in dependency order:
 
-1. Frontmatter — `relevant_for_release_notes` (defaults to `yes`; ask only to confirm a `no`); `sources` (propagated), `derived_from`, `seeded_from_prd` (only when `--from-prd` was used), `jira_key`. **Under `--from-brd`, additionally `brd_key`, `brd_parent` and `depends_on`**, per `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`'s frontmatter block, each read from what Phase 0 step 7 already holds and none of them asked of the user: `brd_key` is the resolved BRD key, `brd_parent` is `brd-link.md`'s `parent:` (**omitted** on a BRD that owns its source document, where there is none), and `depends_on` is its `depends-on:` list (**omitted** when empty). Writing them here is what makes a PRD's prerequisites visible to `/dev-workflows:epics` and `/dev-workflows:ready` without either one reading the BRD tree. `derived_from` is **omitted** on this route — there is no `idea.md` this PRD was built from, and pointing it at a BRD artifact would misname the field; `brd_key` carries that provenance instead. `sources` still carries real provenance: the BRD's own source document, as `provenance: markdown` with `ref:` the path `brd-link.md`'s `source:` names (a slice's resolves against its parent's folder, which is why that header exists). Do NOT ask for `release_versions`, `change_type`, or `release_notes_category` — they are Jira dropdowns the PM sets on the ticket and the importer returns on the round-trip (`${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`); `/release-notes` reads them from the import. Dates and deprecation details also stay out of frontmatter — they belong in the release-notes Summary.
+1. Frontmatter — `relevant_for_release_notes` (defaults to `yes`; ask only to confirm a `no`); `sources` (propagated), `derived_from`, `seeded_from_prd` (only when `--from-prd` was used), and `jira_key` — **written here only on the `/idea` route**, where the positional token is a key the user minted on the tracker before the run, so it is a tracker identity the moment it is written. **Under `--from-brd` `jira_key` is omitted here**, and the round-trip's step 1 is what writes it, because that step is where a tracker identity is minted for the first time; writing `<BRD-KEY>` into it now would put a `$SPECS_PATH` folder name in the one field every downstream consumer reads as a tracker key, and nothing later could tell a minted key from an un-minted address. Its absence is therefore load-bearing and is read as "no tracker identity yet" by Phase 6's offers and by `${CLAUDE_PLUGIN_ROOT}/references/prd-source-resolution.md` step 2. **Under `--from-brd`, additionally `brd_key`, `brd_parent` and `depends_on`**, per `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`'s frontmatter block, each read from what Phase 0 step 7 already holds and none of them asked of the user: `brd_key` is the resolved BRD key, `brd_parent` is `brd-link.md`'s `parent:` (**omitted** on a BRD that owns its source document, where there is none), and `depends_on` is its `depends-on:` list (**omitted** when empty). Writing them here is what makes a PRD's prerequisites visible to `/dev-workflows:epics` and `/dev-workflows:ready` without either one reading the BRD tree. `derived_from` is **omitted** on this route — there is no `idea.md` this PRD was built from, and pointing it at a BRD artifact would misname the field; `brd_key` carries that provenance instead. `sources` still carries real provenance: the BRD's own source document, as `provenance: markdown` with `ref:` the path `brd-link.md`'s `source:` names (a slice's resolves against its parent's folder, which is why that header exists). Do NOT ask for `release_versions`, `change_type`, or `release_notes_category` — they are Jira dropdowns the PM sets on the ticket and the importer returns on the round-trip (`${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`); `/release-notes` reads them from the import. Dates and deprecation details also stay out of frontmatter — they belong in the release-notes Summary.
 2. **Problem**
 3. **Goal** (crisp 2–3 sentences)
 4. **Target audience** (personas)
@@ -436,7 +436,7 @@ On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/reference
 ### Jira round-trip (document to the user — they will otherwise miss it)
 
 1. **Paste** the PRD body (below the frontmatter) into the Jira workitem `<KEY>`. **Under `--from-brd` that workitem may not exist yet** — a BRD key is a folder name in `$SPECS_PATH`, validated for shape and never looked up on a tracker — so creating it is part of this step, and it is the step that gives the BRD key a tracker identity for the first time. **Where the tracker mints a key different from `<BRD-KEY>`** — which it will whenever the BRD key carries a third segment, since a real tracker key does not — set the PRD's `jira_key` to the minted one and leave `brd_key` holding the BRD identity. That is why they are two fields and not one: `/dev-workflows:epics` and `/dev-workflows:release-notes` read the export through `jira-reader`, which accepts a two-segment tracker key and nothing else, so a `jira_key` still carrying a slice key would be refused there. An operator who wants the two to coincide keys the slice with the tracker's key when `/dev-workflows:brd-split` proposes one — a segment count is a naming convention, never a depth declaration (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1), so that is always available.
-2. **Re-import** the PRD to `$VAULT_PATH/jira-products/<KEY>` (via `https://github.com/ivan-gudak/jira-workitem-import`) so the downstream pipeline sees it.
+2. **Re-import** the PRD to `$VAULT_PATH/jira-products/<jira_key>` (via `https://github.com/ivan-gudak/jira-workitem-import`) so the downstream pipeline sees it. **The path is built from `jira_key`, never from the key this run was invoked with.** On the `/idea` route the two coincide, because the positional token was a key the user minted on the tracker before the run. Under `--from-brd` they need not: the positional token was a `<BRD-KEY>`, and `jira-products/<BRD-KEY>` is a path no importer can create when the tracker minted something else in step 1. Same rule, same reason, everywhere a key reaches a tracker: `brd_key` addresses the `$SPECS_PATH` folder, `jira_key` addresses the tracker, and neither substitutes for the other.
 
 Without these steps the pipeline cannot read the PRD.
 
@@ -447,28 +447,68 @@ Without these steps the pipeline cannot read the PRD.
 Offer these — clearly labeling the role handoff:
 
 ```
-choices: ["Draft the release note now — /dev-workflows:release-notes <KEY> (PM) (Recommended)", "Hand to a Product Architect — /dev-workflows:create-ard <KEY> (PA, optional) <merge-clause>", "Hand to a Product Engineer — /dev-workflows:epics <KEY> (PE)", "Stop here", "Other… (describe)"]
+choices: ["Draft the release note now — /dev-workflows:release-notes <jira_key> (PM) (Recommended)", "Hand to a Product Architect — /dev-workflows:create-ard <KEY> (PA, optional) <merge-clause>", "Hand to a Product Engineer — /dev-workflows:epics <jira_key> (PE)", "Stop here", "Other… (describe)"]
 ```
 
-- **`/dev-workflows:release-notes <KEY>`** (PM) — draft the customer-facing release note now (the cost model's `pm`/`prd-creation` inferred case: no spec/design yet).
-- **`/dev-workflows:create-ard <KEY>`** (PA, **optional**) — hand to a Product Architect to author the grounded architecture document; it gates this PRD on the specs repo's default branch (its own Phase 0), so it stops where this PRD reached a branch and falls back to the Jira export — reported, never silently — where it reached none. `<merge-clause>` is the placeholder `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` owns, resolved from this run's own `Phase handoff:` outcome line (§4.1) and never written as the unconditional "once the pull request above is merged": a declined handoff, a failed push and a nothing-to-commit run each leave a different wait, and two of them open no pull request to wait on. It is a placeholder, not an instruction to reword an option, so the array is still presented verbatim per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
-- **`/dev-workflows:epics <KEY>`** (PE) — hand to a Product Engineer to split the PRD into Epics (or author a PRD-level spec → `/dev-workflows:specify <KEY>`).
+**Two keys appear in that array and they are not interchangeable.** `<KEY>` is the address this run
+was invoked with — on the `/idea` route it is the tracker key the PM minted before the run, which is
+why `/dev-workflows:create-ard` can be handed it bare; under `--from-brd` it is a `<BRD-KEY>` naming a
+`$SPECS_PATH` folder, and the PA option takes `--from-brd` with it (see the PA paragraph below).
+`<jira_key>` is the PRD frontmatter field the Jira round-trip above records; it resolves
+`$VAULT_PATH/jira-products/<jira_key>`, which is what `/dev-workflows:epics` and
+`/dev-workflows:release-notes` read — through `jira-reader`, which validates
+`^[A-Z][A-Z0-9_]*-\d+$` and refuses everything else. On the `/idea` route the two fields hold the same
+string and the distinction is invisible; under `--from-brd` they need not, and substituting either for
+the other names a path no importer can create.
+
+- **`/dev-workflows:release-notes <jira_key>`** (PM) — draft the customer-facing release note now (the cost model's `pm`/`prd-creation` inferred case: no spec/design yet).
+- **`/dev-workflows:create-ard <KEY>`** (PA, **optional**) — hand to a Product Architect to author the grounded architecture document. **On the `/idea` route** (under `--from-brd`, see the PA paragraph below) it gates this PRD on the specs repo's default branch (its own Phase 0), so it stops where this PRD reached a branch and falls back to the Jira export — reported, never silently — where it reached none. `<merge-clause>` is the placeholder `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` owns, resolved from this run's own `Phase handoff:` outcome line (§4.1) and never written as the unconditional "once the pull request above is merged": a declined handoff, a failed push and a nothing-to-commit run each leave a different wait, and two of them open no pull request to wait on. It is a placeholder, not an instruction to reword an option, so the array is still presented verbatim per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
+- **`/dev-workflows:epics <jira_key>`** (PE) — hand to a Product Engineer to split the PRD into Epics (or author a PRD-level spec → `/dev-workflows:specify <jira_key>`, which resolves its input through the same `jira-products/` front-end).
 
 The other two options carry no clause, and that is checked, not assumed: `/dev-workflows:release-notes` runs no `require-on-main` at all, and `/dev-workflows:epics` gates only `<PRD-dir>/specification.md` — a file this run does not write.
 
-**The array is the same one under `--from-brd`, and that is checked against the state this run
-reports rather than assumed.** All three commands exist and all three take a PRD key; each now
+**The array is NOT unconditionally the same under `--from-brd`, and that is read off the state this
+run reports rather than assumed.** All three commands exist and all three take a PRD; each now
 resolves a nested PRD directory through `${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §4, so a
 PRD authored inside a slice folder is reachable by every one of them. The difference worth stating
-beside the list is **which of the three needs the Jira round-trip below and which does not**:
-`/dev-workflows:create-ard` can reach this PRD in the specs repo once it is on the default branch —
-which is the wait Phase 6's merge clause already states, and it is only where the PRD reached no branch
-that it falls back to the export — while `/dev-workflows:epics` and `/dev-workflows:release-notes`
-read the export and nothing else. On this route that matters more than on the `/idea` one: a
-`<BRD-KEY>` was validated for shape only and never checked against a tracker
-(`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1), so the workitem those two need may not
-exist yet. Say which state this run is in rather than letting the operator discover it in the next
-command.
+beside the list is **which of the three needs the Jira round-trip above and which does not**:
+`/dev-workflows:create-ard` needs no export at all here — with `--from-brd` it reads the BRD folder in
+the specs repo, dispatches no `jira-reader`, and skips the PRD gate (see the PA paragraph below) —
+while `/dev-workflows:epics` and `/dev-workflows:release-notes` read the export and nothing else, so
+both need a `jira_key`. On the `/idea` route the split is the one Phase 6 already states: `/create-ard`
+reaches this PRD in the specs repo once it is on the default branch, which is the wait the merge clause
+names, and only where the PRD reached no branch does it fall back to the export.
+
+**At Phase 6 the round-trip above has been documented, not performed** — this command never performs
+it — so under `--from-brd` there is usually no `jira_key` yet: a `<BRD-KEY>` was validated for shape
+only and never checked against a tracker (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1),
+and the round-trip's step 1 is where a tracker identity is minted and recorded for the first time.
+**Where the PRD carries no `jira_key`, present the array without the `/dev-workflows:epics` and
+`/dev-workflows:release-notes` options, and say why.** There is no string to put in `<jira_key>`, and
+offering either against `<BRD-KEY>` would name a `jira-products/` path no importer can create and a
+key `jira-reader` refuses on sight. Withholding an option whose target does not exist is not
+rewording one: the options that are presented are presented verbatim, exactly as
+`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` requires, and this is the same
+offer-only-what-resolves rule Phase 0's refusal 2 applies to its per-child offers. Do not go quiet
+either — name the round-trip as the step that unblocks the two, the way
+`${CLAUDE_PLUGIN_ROOT}/references/prd-source-resolution.md`'s own paste-first stop (step 4) does.
+Once a `jira_key` is recorded, all three are offerable and the array is presented whole. Say which
+state this run is in rather than letting the operator discover it in the next command.
+
+**The PA option changes on this route too, and for the same reason the other two do.** Presented
+verbatim it reads `/dev-workflows:create-ard <KEY>` with no flag, which sends `<BRD-KEY>` into the
+shared Jira front-end (`${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`) and dies in its
+Fallback B — `commands/create-ard.md` Phase 0 step 1 says so outright, in the paragraph explaining why
+its own `--from-brd` route skips that front-end entirely. **Under `--from-brd` the option therefore
+reads `/dev-workflows:create-ard <BRD-KEY> --from-brd`**, which resolves the BRD folder with
+`resolve-brd` and reads its `ard-seed.md`, and it carries **no** merge clause on that route: the
+`--from-brd` run skips the PRD gate outright (`commands/create-ard.md`, *Under `--from-brd` the PRD
+gate does not run*), so it waits on nothing this run wrote, and every row of
+`${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`'s resolution table names a wait. That puts it
+in the same class as the `/dev-workflows:epics` and `/dev-workflows:release-notes` options on the
+`/idea` route — an option whose downstream command gates nothing the offering run produced — not in a
+new class. On the `/idea` route the option and its clause are unchanged, because there
+`/dev-workflows:create-ard` runs the front-end against a real tracker key and gates this run's PRD.
 
 Guidance only — never auto-invokes another command. Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`.
 
@@ -501,10 +541,10 @@ then a span suggestion (PM continue → `/compact`; PA/PE handoff → `/clear`).
 label yet (no PRD-Key). Guidance only, never auto-run.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`) with a compact handoff: command `/create-prd`; what was authored (PRD + profile); key events (source-ladder friction, unresolved clarifications, BLOCK reviews — or 'none'); workarounds; the `prd-reviewer` verdict; test result N/A; project root = the feature folder.
-2. **Persist plugin feedback (automatic).** Cite `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6) with the Lessons Learned report, `command: /create-prd`, the run's `jira_key`, `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no plugin-facing signal — nothing persisted").
-3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and call its `emit-cost` entry point with `command: /create-prd`, `phase: prd-creation`, `role: pm`, the run's `jira_key`, `source`, and `plugin_version`. Surface the persisted path (or the report-only notice).
+2. **Persist plugin feedback (automatic).** Cite `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6) with the Lessons Learned report, `command: /create-prd`, the run's `jira_key` — or, where `--from-brd` left it unwritten until the round-trip, the run's `brd_key`, which is the key that matches this PRD's own `$SPECS_PATH` folder and so keeps the write on that reference's primary tier instead of dropping it to the unfiled one — `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no plugin-facing signal — nothing persisted").
+3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and call its `emit-cost` entry point with `command: /create-prd`, `phase: prd-creation`, `role: pm`, the run's `jira_key` (or `brd_key`, on the `--from-brd` route, for the reason step 2 gives), `source`, and `plugin_version`. Surface the persisted path (or the report-only notice).
 4. **Write the resume pointer.** Cite `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and write/overwrite `<PRD-dir>/dev-workflows/resume.md` now — after the cost entry above, so the pointer reflects the completed run, and before the commit step below, so it is included in it. Redact per §1. Silent; the printed `### Context hygiene` guidance already appeared in the report.
-5. **Commit session artifacts (terminal).** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts (/create-prd)` — or `NOISSUE …` when the Jira round-trip has not yet minted a key — with no `Co-Authored-By` trailer, and pushes to the branch this run's handoff phase created (§4.1). It NEVER touches a code repo, a docs repo, the vault, or the current working directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its §6 outcome line for the Final report.
+5. **Commit session artifacts (terminal).** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts (/create-prd)` — or `NOISSUE …` when the run resolved no key at all — with no `Co-Authored-By` trailer. **Under `--from-brd` that `<KEY>` is the BRD key, not `NOISSUE`**: this is a specs-repo commit-message prefix, not a tracker lookup, and the BRD key is the key this run resolved and the name of the folder the staged artifacts sit in. A key the Jira round-trip has not yet minted is missing from `jira_key`, which is a different field for a different purpose, and pushes to the branch this run's handoff phase created (§4.1). It NEVER touches a code repo, a docs repo, the vault, or the current working directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its §6 outcome line for the Final report.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git for the deliverable is offered only in Phase 5; the terminal step above commits only the bounded session-artifact paths in `$SPECS_PATH`), and NEVER writes into a code/docs repo or the current working directory; no user name is ever written.
 

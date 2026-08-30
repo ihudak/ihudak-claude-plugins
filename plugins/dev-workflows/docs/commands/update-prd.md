@@ -38,7 +38,7 @@ Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2, read-o
 
 - **`<KEY>`** — mandatory; absent or malformed stops the run with `UPDATE_VI_NEEDS_KEY`.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH` and offers to enter a path or cancel.
-- **The re-imported Jira PRD**, at `$VAULT_PATH/jira-products/<KEY>` (body + `-comments.md`) — the run's **authoritative base**, resolved Jira-import-first. Not yet imported stops the run and asks you to import it first; imported but stale (older than 3 days) offers a re-import rather than stopping outright. Where the frozen draft carries a `brd_key`, that stop offers a different first move: a BRD key is never looked up on a tracker, so the workitem may not exist to import at all, and the run asks you to create it and paste the PRD body in before importing.
+- **The re-imported Jira PRD**, at `$VAULT_PATH/jira-products/<jira_key>` (body + `-comments.md`) — the run's **authoritative base**, resolved Jira-import-first. Not yet imported stops the run and asks you to import it first; imported but stale (older than 3 days) offers a re-import rather than stopping outright. The export path is built from the frozen draft's `jira_key`, not from the `<KEY>` you invoked the run with — the two hold the same string on a `PRODUCT-1234` refresh and need not on a PRD authored inside a BRD slice. Where the frozen draft carries a `brd_key` and no `jira_key`, that stop offers a different first move: a BRD key is never looked up on a tracker, so the workitem may not exist to import at all, and the run asks you to create it, paste the PRD body in, and record the key the tracker mints before importing.
 - **Secondary grounding** (all optional and read-only): a frozen specs-repo draft (`<KEY>_*.md`), any `*_ARD.md`, `specification.md`, and the `@transcript`/notes path(s) passed on the command line. None of these gate the run. Where a discovered `*_ARD.md` or `specification.md` is not on the specs repo's default branch, the Phase 1 confirmation flags it as unapproved — advisory only, never a reason to stop.
 - **Documentation grounding** (optional, on by default) — turned off with `--no-docs`; a miss is a silent skip, never a gate.
 - **No repos.** `/update-prd` is cwd-agnostic and product-level — it never mounts or scans code.
@@ -50,7 +50,7 @@ Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2, read-o
 - The **canonical** PRD, overwritten in place at `<feature-folder>/<KEY>_<slug>.md`, with `revision_of` (the archived snapshot's path) and `built_from_import` (the Jira-import date the update was built from) added to its frontmatter.
 - An **archived snapshot** of the prior canonical PRD, written first, before the overwrite, to `<feature-folder>/revisions/<KEY>_<slug>_<YYYYMMDD>.md` (a same-day second revision is suffixed `-2`, `-3`, …).
 - Behind Phase 5's consent choice, both files are committed, pushed, and a pull request opened against the specs repo's default branch.
-- A **Jira round-trip reminder** (manual, not automated): paste the updated body back into the Jira workitem `<KEY>`, then re-import it to `$VAULT_PATH/jira-products/<KEY>` — skipping either step leaves the update diverged from Jira again.
+- A **Jira round-trip reminder** (manual, not automated): paste the updated body back into the Jira workitem `<jira_key>`, then re-import it to `$VAULT_PATH/jira-products/<jira_key>` — skipping either step leaves the update diverged from Jira again.
 
 ## Gates
 

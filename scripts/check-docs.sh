@@ -529,6 +529,199 @@ check_prose_counts() {
   fi
 }
 
+# ------------------------------------------------------------------ check 10
+# Identity quarantine. No page under $PLUGIN_REL/docs/ may name the marketplace this
+# plugin ships from, or the repository that contains it. getting-started.md is the single
+# sanctioned exception: it is the one page whose job is to say where the plugin comes
+# from, which is why check 7 pins its install block to the repo-root README verbatim.
+#
+# The binding reason is FORKS. A marketplace name or container-repo URL written into a
+# page is wrong in anyone's fork -- the fork ships from a different marketplace, and its
+# pages would keep sending readers to the upstream it was forked from. Two per-command
+# pages linked a sibling plugin by full container URL and survived several releases;
+# nothing in the build could see them, because check 7 pins getting-started.md alone.
+#
+# The tokens are DERIVED from the repo-root README's own install block -- the same lines
+# check 7 already extracts -- and are never written in here. A fork renames its
+# marketplace and its container repo in that block, and this check follows without an
+# edit. Deriving NOTHING is a failure, not a pass: a token set that came up empty would
+# make this check examine nothing and pass every tree.
+#
+# What it deliberately does NOT cover: any OTHER repository a page might name -- the
+# container-image / dev-environment repo the repo-root README recommends, a sibling
+# project, a third-party plugin. Nothing in the tree marks which third-party slug is
+# "an environment", so a check that guessed would be guessing. It also leaves the
+# repo-root README and $PLUGIN_REL/README.md alone: neither is a page under docs/, and
+# the root README is where this identity is supposed to be stated.
+check_identity_quarantine() {
+  local root="$1" d="$1/$PLUGIN_REL/docs" tokens t f hit pat
+  # `sed 'p; s|.*/||'` emits the slug AND its bare repo name: a page can name either.
+  tokens=$( { grep -oE "^$CLI plugin marketplace add [^[:space:]]+" "$root/README.md" 2>/dev/null \
+                | sed -E "s|^$CLI plugin marketplace add ||; s|/+$||" | sed 'p; s|.*/||'
+              grep -oE "^$CLI plugin install [^[:space:]]+@[^[:space:]]+" "$root/README.md" 2>/dev/null \
+                | sed -E 's/.*@//'
+              grep -oE "^$CLI plugin marketplace update [^[:space:]]+" "$root/README.md" 2>/dev/null \
+                | sed -E "s|^$CLI plugin marketplace update ||"; } \
+            | grep -vE '^[[:space:]]*$' | sort -u)
+  if [ -z "$tokens" ]; then
+    fail 10 "no marketplace or container-repo token could be derived from the repo-root README's '$CLI plugin ...' lines -- this check would examine nothing"
+    return
+  fi
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    [ "$f" = "$d/getting-started.md" ] && continue   # the single sanctioned exception
+    while IFS= read -r t; do
+      [ -n "$t" ] || continue
+      # Word-boundary match, NOT substring. A fork is free to pick a short marketplace name --
+      # `workflows` is a plausible one -- and an unanchored grep then reports every page that
+      # says `dev-workflows`. That was measured: renaming this marketplace to `workflows`
+      # produced 38 check-10 failures on unmodified, correct pages. A gate that fires 38 times
+      # on correct content in a fork is a gate that fork deletes in its first week, and forks
+      # are this check's entire rationale.
+      #
+      # The boundary class is [A-Za-z0-9_-]: a hyphen HAS to be in it (that is what separates
+      # `workflows` from `dev-workflows`), and `@`, `/` and `.` have to be OUT of it -- the
+      # marketplace is named as `<plugin>@<marketplace>` and the container repo as
+      # `github.com/<owner>/<repo>/tree/...`, so a boundary class containing them would miss
+      # the two forms this check exists to catch.
+      pat=$(printf '%s' "$t" | sed 's/[][\\.^$*+?(){}|]/\\&/g')
+      hit=$(grep -nE "(^|[^A-Za-z0-9_-])$pat([^A-Za-z0-9_-]|$)" "$f" 2>/dev/null | head -1)
+      [ -n "$hit" ] && fail 10 "${f#$root/}:${hit%%:*} names '$t' -- no page under $PLUGIN_REL/docs/ may name the marketplace this plugin ships from or the repository that contains it (getting-started.md is the only exception); a fork of this repo inherits the wrong one"
+    done <<<"$tokens"
+  done < <(find "$d" -name '*.md' 2>/dev/null | sort)
+}
+
+# ------------------------------------------------------------------ check 11
+# Merge-clause adoption. An offer that names a downstream command whose Phase 0 gate
+# targets an artifact THIS run writes must carry the `<merge-clause>` placeholder, because
+# that command stops while this phase's pull request is open. The placeholder, its
+# resolution table, and the family of commands the rule binds all live in
+# $REF_DIR/next-phase-offer.md; this check only enforces adoption.
+#
+# The failure it exists for is PARTIAL adoption, which is worse than none: a reference
+# claiming family-wide ownership while seven offers still carried a hardcoded clause, or
+# no clause, each naming a command whose gate the offering run itself feeds. That set was
+# found once, by enumerating every option by hand. Nothing re-enumerated it afterwards.
+#
+# Three relations, every one DERIVED, none written in here:
+#   family  -- the `<plugin>:<family>*` glob next-phase-offer.md names as the rule's scope.
+#              Only offers made BY a command of that family are checked, which is what
+#              keeps this off the two pre-existing offers that name the merge in prose and
+#              were deliberately left alone.
+#   targets -- what each command runs `require-on-main` against, read out of
+#              phase-handoff.md's row-F table (column 2's backticked *.md, by basename).
+#   writers -- what a command declares it hands off, read out of its own
+#              `deliverable_paths` = ... `title:` span (same basename form).
+# An offer is REQUIRED to carry the clause when writers(offerer) and targets(offered)
+# intersect. It is never required to DROP one: an offer may carry the clause for a reason
+# this check cannot see, and a check that forbade that would be asserting more than it knows.
+#
+# What it deliberately does NOT catch. It reads the option's TEXT for the placeholder, not
+# the clause the run resolves it to -- whether the resolution table is applied correctly at
+# runtime is not in the file. It cannot see an offer outside a `choices:` array (a prose
+# `### Next step` line is not checked). And its writer relation is the paths the command
+# DECLARES; a file a run writes but never declares is invisible to it, which under-fires
+# rather than over-fires. That last one limits WHICH paths are seen; it is not a licence for a
+# whole command to drop out. Any relation coming up empty is a FAILURE -- per family command
+# for `writers`, run-wide for the family glob and the target table -- so a reworded handoff
+# turns the build red instead of quietly narrowing this check's surface.
+check_merge_clause() {
+  local root="$1" p="$1/$PLUGIN_REL"
+  local ref="$p/$REF_DIR/next-phase-offer.md" ph="$p/$REF_DIR/phase-handoff.md"
+  local qual="/${PLUGIN_REL##*/}:" glob targets writers offers route_n=0 req_n=0
+  local y f x ln has t need needt
+
+  [ -f "$ref" ] || { fail 11 "$REF_DIR/next-phase-offer.md is missing -- it owns the <merge-clause> placeholder, its resolution table, and the command family the rule binds"; return; }
+  [ -f "$ph" ]  || { fail 11 "$REF_DIR/phase-handoff.md is missing -- its row-F table is where each command's require-on-main target is declared"; return; }
+
+  glob=$(grep -oE "$qual[a-z][a-z0-9-]*\*" "$ref" 2>/dev/null | head -1 | sed "s|^$qual||")
+  [ -n "$glob" ] || { fail 11 "next-phase-offer.md no longer names the command family the <merge-clause> rule binds (expected a \`$qual<family>*\` phrase) -- with no family, this check would examine no offer at all"; return; }
+
+  # targets: one `<command>|<artifact-basename>` line per row-F table cell. Column 2 only --
+  # column 3 routinely cites reference FILES that are not gate targets.
+  targets=$(awk -F'|' '
+    /^\| `?\/[a-z]/ {
+      c1 = $2; c2 = $3; n = 0
+      while (match(c2, /`[^`]*\.md`/)) {
+        t = substr(c2, RSTART + 1, RLENGTH - 2); sub(/.*\//, "", t); tg[++n] = t
+        c2 = substr(c2, RSTART + RLENGTH)
+      }
+      if (n == 0) next
+      while (match(c1, /\/[a-z][a-z0-9-]*/)) {
+        cmd = substr(c1, RSTART + 1, RLENGTH - 1); c1 = substr(c1, RSTART + RLENGTH)
+        for (i = 1; i <= n; i++) print cmd "|" tg[i]
+      }
+    }' "$ph" | sort -u)
+  [ -n "$targets" ] || { fail 11 "$REF_DIR/phase-handoff.md's row-F table yielded no require-on-main target -- the EXTRACTOR has drifted, not the table; fix the parser, never the rows"; return; }
+
+  while IFS= read -r y; do
+    [ -n "$y" ] || continue
+    case "$y" in $glob) ;; *) continue ;; esac
+    f=$(cmd_file "$p" "$y"); [ -f "$f" ] || continue
+    route_n=$((route_n + 1))
+
+    # offers: one `<line>|<offered-command>|<0|1 carries the placeholder>` per option.
+    offers=$(awk -v Y="$y" -v Q="$qual" '
+      index($0, "choices: [") {
+        body = substr($0, index($0, "choices: [") + 9)
+        while (match(body, /"[^"]*"/)) {
+          opt = substr(body, RSTART + 1, RLENGTH - 2); body = substr(body, RSTART + RLENGTH)
+          tmp = opt
+          while ((i = index(tmp, Q)) > 0) {
+            rest = substr(tmp, i + length(Q))
+            match(rest, /^[a-z][a-z0-9-]*/)
+            x = substr(rest, 1, RLENGTH); tmp = substr(rest, RLENGTH + 1)
+            if (x != Y) print FNR "|" x "|" (index(opt, "<merge-clause>") ? "1" : "0")
+          }
+        }
+      }' "$f" | sort -u)
+    # A family command that makes no offer has no surface for this check to cover, so it needs
+    # no writer set and is not asserted about.
+    [ -n "$offers" ] || continue
+
+    # writers: the backticked *.md paths inside this command's `deliverable_paths` = ...
+    # `title:` span. The `=` is required: the same word appears in prose that lists nothing.
+    writers=$(awk '
+      /`deliverable_paths`[[:space:]]*=/ { span = 1; k = 0 }
+      span {
+        line = $0
+        while (match(line, /`[^`]*\.md`/)) {
+          t = substr(line, RSTART + 1, RLENGTH - 2); sub(/.*\//, "", t); print t
+          line = substr(line, RSTART + RLENGTH)
+        }
+        if ($0 ~ /`title:/ || ++k > 20) span = 0
+      }' "$f" | sort -u)
+    # PER-COMMAND coverage assertion, and it has to be per command. Rewording one command's
+    # `deliverable_paths` = to `deliverable_paths` lists empties ITS writer set alone: every
+    # offer that command makes silently stops being checked while the whole-run assertions
+    # below still pass, because the other family commands keep req_n above zero. That is a
+    # gate quietly ceasing to cover part of its surface -- the failure this file's check-8
+    # extractor-coverage assertion exists to prevent, and the reason no stop-routing check was
+    # shipped. A family command that offers something must declare what it writes.
+    if [ -z "$writers" ]; then
+      fail 11 "$CMD_DIR/$y$CMD_SUFFIX makes a choices: offer but its \`deliverable_paths\` = ... \`title:\` span yields no path -- the EXTRACTOR has drifted or the handoff sentence was reworded, and every offer this command makes has stopped being checked; fix the parser or restore the declaration, never the offers"
+      continue
+    fi
+
+    while IFS='|' read -r ln x has; do
+      [ -n "$ln" ] || continue
+      need=0; needt=""
+      while IFS= read -r t; do
+        [ -n "$t" ] || continue
+        grep -qxF -- "$t" <<<"$writers" && { need=1; needt="$t"; break; }
+      done < <(grep -F "$x|" <<<"$targets" | sed 's/^[^|]*|//')
+      [ "$need" = 1 ] || continue
+      req_n=$((req_n + 1))
+      [ "$has" = 1 ] || fail 11 "$CMD_DIR/$y$CMD_SUFFIX:$ln offers $qual$x with no <merge-clause>, and this run writes '$needt' -- the artifact $qual$x's require-on-main gate targets, so that command stops while this phase's pull request is open ($REF_DIR/next-phase-offer.md owns the placeholder and its resolution table)"
+    done <<<"$offers"
+  done < <(cmd_names "$p")
+
+  # Coverage assertions. Both states mean the check has gone quiet rather than clean, and a
+  # gate that has stopped being able to fail must turn the build red, not green.
+  [ "$route_n" -gt 0 ] || fail 11 "next-phase-offer.md binds the <merge-clause> rule to '$qual$glob', which matches no command in $CMD_DIR/ -- the family was renamed or retired and this check now examines nothing"
+  [ "$req_n" -gt 0 ] || fail 11 "no offer in the '$glob' family names a command whose require-on-main target that offer's own run writes -- either the route stopped handing off to itself or the EXTRACTOR drifted; fix the parser, never the offers"
+}
+
 # ------------------------------------------------------------------ selftest
 # One passing fixture tree; each check gets a mutation of a fresh copy. Asserting
 # the exit code alone would let a mutation that trips a DIFFERENT check register
@@ -560,7 +753,10 @@ selftest() {
     tmp=$(mktemp -d); cp -R "$fixture/." "$tmp/"
     ( cd "$tmp" && eval "$3" )
     local out; out=$("$0" --root "$tmp" 2>&1); local got=$?
-    if [ "$got" -eq 1 ] && grep -q "FAIL check $2" <<<"$out"; then
+    # The colon is load-bearing: fail() prints "FAIL check <n>: <message>", and without it
+    # "FAIL check 1" would also match a "FAIL check 10" line, letting a check-10 failure
+    # satisfy a check-1 case. Every check number past 9 makes that collision reachable.
+    if [ "$got" -eq 1 ] && grep -q "FAIL check $2:" <<<"$out"; then
       printf 'ok    %s (check %s fired)\n' "$1" "$2"
     else
       printf 'FAIL  %s: expected exit 1 with "FAIL check %s", got exit %s\n' "$1" "$2" "$got"; rc=1
@@ -595,16 +791,28 @@ selftest() {
   # a line absent from the root README, so it is extracted AND counts as extra.
   expect_fail "an install line absent from the root README is rejected" 7 "printf '\n$CLI plugin ${CLI_VERBS##*|} ${PLUGIN_REL##*/}@extra-fixture-target\n' >> $PLUGIN_REL/docs/getting-started.md"
   expect_fail "a drifted prose count is rejected"              9 "mkdir -p $(dirname $(cmd_file $PLUGIN_REL gamma)) 2>/dev/null; printf -- '---\nname: gamma\n---\n' > $(cmd_file $PLUGIN_REL gamma) && printf -- '# /gamma\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/gamma.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/gamma\`]($DOC_CMD_DIR/gamma.md)|' $PLUGIN_REL/docs/README.md"
-  expect_fail "a count sentence reworded away is rejected"     9 "sed -i.bak 's|one slash commands|a handful of slash commands|' $PLUGIN_REL/README.md"
+  # The five cases below read the fixture's COMMAND count, and that count moved 1 -> 2 when
+  # check 11's per-command coverage assertion needed a second command in the offer family to be
+  # provable against (with one family member, emptying its writer set also empties the run-wide
+  # one, so the fixture could not tell the two assertions apart). Every assertion is unchanged;
+  # only the numerals and the how-many-to-add loops track the new base: the compound-count case
+  # still claims a compound whose tail is a mapped word equal to the real total (twenty-six over
+  # 2+4, where it was twenty-five over 1+4), and the two fixture-growing cases still land on
+  # exactly seventeen and eighteen commands by adding one fewer each.
+  expect_fail "a count sentence reworded away is rejected"     9 "sed -i.bak 's|two slash commands|a handful of slash commands|' $PLUGIN_REL/README.md"
   expect_fail "a compound count whose tail matches a shorter number word is rejected" 9 \
-    "mkdir -p $(dirname $(cmd_file $PLUGIN_REL delta)) 2>/dev/null && printf -- '---\nname: delta\n---\n' > $(cmd_file $PLUGIN_REL delta) && printf -- '# /delta\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/delta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/delta\`]($DOC_CMD_DIR/delta.md)|' $PLUGIN_REL/docs/README.md && mkdir -p $(dirname $(cmd_file $PLUGIN_REL epsilon)) 2>/dev/null && printf -- '---\nname: epsilon\n---\n' > $(cmd_file $PLUGIN_REL epsilon) && printf -- '# /epsilon\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/epsilon.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/epsilon\`]($DOC_CMD_DIR/epsilon.md)|' $PLUGIN_REL/docs/README.md && mkdir -p $(dirname $(cmd_file $PLUGIN_REL zeta)) 2>/dev/null && printf -- '---\nname: zeta\n---\n' > $(cmd_file $PLUGIN_REL zeta) && printf -- '# /zeta\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/zeta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/zeta\`]($DOC_CMD_DIR/zeta.md)|' $PLUGIN_REL/docs/README.md && mkdir -p $(dirname $(cmd_file $PLUGIN_REL eta)) 2>/dev/null && printf -- '---\nname: eta\n---\n' > $(cmd_file $PLUGIN_REL eta) && printf -- '# /eta\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/eta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/eta\`]($DOC_CMD_DIR/eta.md)|' $PLUGIN_REL/docs/README.md && sed -i.bak2 's|one slash commands|twenty-five slash commands|' $PLUGIN_REL/README.md"
+    "mkdir -p $(dirname $(cmd_file $PLUGIN_REL delta)) 2>/dev/null && printf -- '---\nname: delta\n---\n' > $(cmd_file $PLUGIN_REL delta) && printf -- '# /delta\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/delta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/delta\`]($DOC_CMD_DIR/delta.md)|' $PLUGIN_REL/docs/README.md && mkdir -p $(dirname $(cmd_file $PLUGIN_REL epsilon)) 2>/dev/null && printf -- '---\nname: epsilon\n---\n' > $(cmd_file $PLUGIN_REL epsilon) && printf -- '# /epsilon\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/epsilon.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/epsilon\`]($DOC_CMD_DIR/epsilon.md)|' $PLUGIN_REL/docs/README.md && mkdir -p $(dirname $(cmd_file $PLUGIN_REL zeta)) 2>/dev/null && printf -- '---\nname: zeta\n---\n' > $(cmd_file $PLUGIN_REL zeta) && printf -- '# /zeta\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/zeta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/zeta\`]($DOC_CMD_DIR/zeta.md)|' $PLUGIN_REL/docs/README.md && mkdir -p $(dirname $(cmd_file $PLUGIN_REL eta)) 2>/dev/null && printf -- '---\nname: eta\n---\n' > $(cmd_file $PLUGIN_REL eta) && printf -- '# /eta\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/eta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/eta\`]($DOC_CMD_DIR/eta.md)|' $PLUGIN_REL/docs/README.md && sed -i.bak2 's|two slash commands|twenty-six slash commands|' $PLUGIN_REL/README.md"
   # Discriminates the word-boundary anchor on the reference-files alternation specifically: the
-  # fixture ships 6 reference files, so an unanchored "six" matches the tail of "twenty-six" and
-  # compares 6 against 6 -- a wrong claim passing on a coincidentally-correct numeral. Anchored,
-  # nothing matches at a boundary and the count sentence reads as drifted away. Verified red
-  # (this case FAILs) with the anchor stashed, green with it applied.
+  # fixture ships 8 reference files, so an unanchored "eight" matches the tail of "twenty-eight"
+  # and compares 8 against 8 -- a wrong claim passing on a coincidentally-correct numeral.
+  # Anchored, nothing matches at a boundary and the count sentence reads as drifted away. Verified
+  # red (this case FAILs) with the anchor stashed, green with it applied. The numerals track the
+  # fixture: it shipped 6 reference files (and this case read "twenty-six") until check 11's
+  # route fixture added next-phase-offer.md and phase-handoff.md. The assertion is unchanged --
+  # a compound whose tail is a mapped word equal to the real count -- and "twenty-eight" is
+  # unmapped by _word2num for the same reason "twenty-six" was.
   expect_fail "a compound reference-file count whose tail matches a shorter number word is rejected" 9 \
-    "sed -i.bak 's|ships 6 files|ships twenty-six files|' $PLUGIN_REL/docs/reference/references.md"
+    "sed -i.bak 's|ships 8 files|ships twenty-eight files|' $PLUGIN_REL/docs/reference/references.md"
   # Proves _word2num and the commands alternation actually learned "seventeen" -- not merely
   # that an unrecognized word is rejected (every unmapped word already fails check 9 via "no
   # count sentence found", which would make a same-shaped expect_fail case pass whether or not
@@ -613,7 +821,7 @@ selftest() {
   # Verified red (this case FAILs: "no count sentence found") with the word2num/alternation
   # additions stashed, green with them applied.
   expect_pass_after "a correctly-worded seventeen-command count is accepted" \
-    "for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15 cmd16; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && sed -i.bak 's|one slash commands|seventeen slash commands|' $PLUGIN_REL/README.md"
+    "for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && sed -i.bak 's|two slash commands|seventeen slash commands|' $PLUGIN_REL/README.md"
   # The same proof for the OTHER gated alternation. The case above exercises the commands
   # alternation only; the cost-emitting-commands alternation in check 9 has its own word list,
   # and until this case existed nothing exercised it -- a word missing from it would have failed
@@ -627,7 +835,7 @@ selftest() {
   # applied -- and the seventeen-command case above stays green throughout, which is what shows
   # the two cases cover different alternations.
   expect_pass_after "a correctly-worded seventeen cost-emitting-command count is accepted" \
-    "for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec romeo; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '\nCall \`emit-cost\` with \`command: /%s\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' \$n >> \$(cmd_file $PLUGIN_REL \$n); done && { printf -- '# Cost emission (fixture)\n\n## 7. Attribution (phase / role)\n\n| Command | phase | role |\n|---------|-------|------|\n| \`/alpha\` | fixture-phase | pm |\n'; for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '| \`/%s\` | fixture-phase | pm |\n' \$n; done; printf -- '\n## 8. Persistence\n\nNot modelled in the fixture.\n'; } > $PLUGIN_REL/$REF_DIR/cost-emission.md && sed -i.bak 's|one slash commands|eighteen slash commands|' $PLUGIN_REL/README.md && sed -i.bak 's|One commands emit a cost entry|Seventeen commands emit a cost entry|' $PLUGIN_REL/docs/reference/session-cost.md"
+    "for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '\nCall \`emit-cost\` with \`command: /%s\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' \$n >> \$(cmd_file $PLUGIN_REL \$n); done && { printf -- '# Cost emission (fixture)\n\n## 7. Attribution (phase / role)\n\n| Command | phase | role |\n|---------|-------|------|\n| \`/alpha\` | fixture-phase | pm |\n'; for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '| \`/%s\` | fixture-phase | pm |\n' \$n; done; printf -- '\n## 8. Persistence\n\nNot modelled in the fixture.\n'; } > $PLUGIN_REL/$REF_DIR/cost-emission.md && sed -i.bak 's|two slash commands|eighteen slash commands|' $PLUGIN_REL/README.md && sed -i.bak 's|One commands emit a cost entry|Seventeen commands emit a cost entry|' $PLUGIN_REL/docs/reference/session-cost.md"
   expect_fail "a wrong non-ASCII anchor is rejected"           2 "printf '\n[bad](#uber-config)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
   expect_fail "a wrong duplicate-heading index is rejected"    2 "printf '\n[bad](#notes-2)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
   expect_fail "a titled link to a missing file is rejected"    1 "printf '\n[bad](nope.md \"T\")\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
@@ -636,6 +844,59 @@ selftest() {
   expect_fail "a missing marketplace-add line is rejected"     7 "sed -i.bak '/$CLI plugin marketplace add/d' $PLUGIN_REL/docs/getting-started.md"
   expect_fail "a missing second required-verb line is rejected" 7 "sed -i.bak '/$CLI plugin ${CLI_REQUIRED##*|}/d' $PLUGIN_REL/docs/getting-started.md"
   expect_fail "getting-started not installing the plugin itself is rejected" 7 "sed -i.bak '/$CLI plugin install ${PLUGIN_REL##*/}@/d' $PLUGIN_REL/docs/getting-started.md"
+  # Check 10 -- identity quarantine. Both mutations derive the offending token from the
+  # fixture's own repo-root README, so the cases port to a fixture with a different
+  # marketplace name rather than pinning this one.
+  expect_fail "a container-repo URL on a docs page is rejected" 10 \
+    "slug=\$(grep -oE '^$CLI plugin marketplace add [^ ]+' README.md | awk '{print \$NF}' | head -1); printf -- '\n[sibling plugin](https://github.com/%s/tree/main/plugins/extra-plugin)\n' \"\$slug\" >> $PLUGIN_REL/docs/reference/hooks.md"
+  expect_fail "a marketplace name on a docs page is rejected" 10 \
+    "mkt=\$(grep -oE '^$CLI plugin install [^ ]+@[^ ]+' README.md | sed 's/.*@//' | head -1); printf -- '\nInstall the sibling with \`$CLI plugin install extra-plugin@%s\`.\n' \"\$mkt\" >> $PLUGIN_REL/docs/reference/agents.md"
+  # ...and the boundary itself, which is the half an expect_fail case cannot prove: a LONGER
+  # identifier that merely contains the marketplace name is not naming it, and must stay green.
+  # Under the substring match this replaced, this case goes red -- which is what a fork that
+  # names its marketplace `workflows` met on every page saying `dev-workflows` (38 failures on
+  # unmodified, correct pages, measured). Verified red before / green after by stashing the
+  # boundary anchors.
+  expect_pass_after "a longer identifier merely containing the marketplace name is accepted" \
+    "mkt=\$(grep -oE '^$CLI plugin install [^ ]+@[^ ]+' README.md | sed 's/.*@//' | head -1); printf -- '\nThe mirror repository is called sub-%s-mirror and is not this marketplace.\n' \"\$mkt\" >> $PLUGIN_REL/docs/reference/agents.md"
+
+  # ...and the vacuity guard: with no install block to derive from, check 10 has no token
+  # set and must go RED rather than pass every page. (Check 7 fires on this mutation too;
+  # the case asserts check 10 specifically.)
+  expect_fail "an underivable identity token set is rejected" 10 \
+    "sed -i.bak '/^$CLI plugin /d' README.md"
+
+  # Check 11 -- merge-clause adoption. The fixture's route is one command (`alpha`, matched by
+  # the `alpha*` family glob next-phase-offer.md declares) offering `/dev-workflows:omega`,
+  # whose row-F entry gates `alpha-deliverable.md` -- which alpha's own `deliverable_paths`
+  # declares. That is one clause-requiring offer; the live tree has eight.
+  expect_fail "an offer that drops <merge-clause> is rejected" 11 \
+    "sed -i.bak 's| <merge-clause>||' $(cmd_file $PLUGIN_REL alpha)"
+  # The PER-COMMAND coverage guard. Rewording one family command's handoff sentence empties its
+  # writer set alone, and every offer that command makes stops being checked while the run-wide
+  # assertions stay satisfied by the other family commands -- green, and quietly covering less.
+  # This mutation is the one a review demonstrated against the live tree on brd-ground.md.
+  expect_fail "a family command whose handoff declares no path is rejected" 11 \
+    "sed -i.bak 's|\`deliverable_paths\` = |\`deliverable_paths\` lists |' $(cmd_file $PLUGIN_REL alpha)"
+  # The three vacuity guards rewrite through a temp file OUTSIDE the reference dir rather than
+  # with `sed -i.bak`: a stray `.bak` there is a file `find $REF_DIR -type f` counts, so the
+  # mutation would trip check 9's reference-file count too and blur what the case proves.
+  # The three vacuity guards. Each leaves the tree otherwise valid and makes the check examine
+  # nothing, which must be RED: a gate that has stopped being able to fail proves nothing green.
+  expect_fail "a reworded family-scope sentence is rejected" 11 \
+    "sed 's|/${PLUGIN_REL##*/}:alpha\*|the family|' $PLUGIN_REL/$REF_DIR/next-phase-offer.md > np.tmp && mv np.tmp $PLUGIN_REL/$REF_DIR/next-phase-offer.md"
+  expect_fail "a family glob matching no command is rejected" 11 \
+    "sed 's|alpha\*|zulu*|' $PLUGIN_REL/$REF_DIR/next-phase-offer.md > np.tmp && mv np.tmp $PLUGIN_REL/$REF_DIR/next-phase-offer.md"
+  expect_fail "a row-F table with no gated artifact is rejected" 11 \
+    "sed '/alpha-deliverable.md/d; /alpha-two-out.md/d; /elsewhere.md/d' $PLUGIN_REL/$REF_DIR/phase-handoff.md > ph.tmp && mv ph.tmp $PLUGIN_REL/$REF_DIR/phase-handoff.md"
+  # ...and the other half of the assertion: the clause is required only where the offering run
+  # writes what the offered command gates. `/dev-workflows:sigma` gates `elsewhere.md`, which no
+  # fixture command declares, so a clause-free offer of it is CORRECT and must stay green. Without
+  # the writer test -- a check that simply demanded the placeholder on every offer -- this case
+  # goes red. Verified red before / green after by stashing the writer test.
+  expect_pass_after "a clause-free offer of a command this run does not feed is accepted" \
+    "printf -- '\nchoices: [\"Hand to the ungated consumer — /${PLUGIN_REL##*/}:sigma <KEY>\", \"Stop here\"]\n' >> $(cmd_file $PLUGIN_REL alpha)"
+
   # The cost subsystem (check 8, and check 9's cost-emitting-commands sentence) does not
   # exist in every edition -- check_cost_attribution and that half of check_prose_counts
   # both return immediately when HAS_COST=0, so a mutation that only a cost check can see
@@ -678,6 +939,8 @@ check_table_cells       "$ROOT"
 check_install_block     "$ROOT"
 check_cost_attribution  "$ROOT"
 check_prose_counts      "$ROOT"
+check_identity_quarantine "$ROOT"
+check_merge_clause      "$ROOT"
 
 if [ "$FAILURES" -gt 0 ]; then
   echo "FAIL: $FAILURES problem(s) under $PLUGIN_REL" >&2

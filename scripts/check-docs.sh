@@ -621,7 +621,10 @@ check_identity_quarantine() {
 # runtime is not in the file. It cannot see an offer outside a `choices:` array (a prose
 # `### Next step` line is not checked). And its writer relation is the paths the command
 # DECLARES; a file a run writes but never declares is invisible to it, which under-fires
-# rather than over-fires. Every relation coming up empty is a FAILURE, not a pass.
+# rather than over-fires. That last one limits WHICH paths are seen; it is not a licence for a
+# whole command to drop out. Any relation coming up empty is a FAILURE -- per family command
+# for `writers`, run-wide for the family glob and the target table -- so a reworded handoff
+# turns the build red instead of quietly narrowing this check's surface.
 check_merge_clause() {
   local root="$1" p="$1/$PLUGIN_REL"
   local ref="$p/$REF_DIR/next-phase-offer.md" ph="$p/$REF_DIR/phase-handoff.md"
@@ -657,19 +660,6 @@ check_merge_clause() {
     f=$(cmd_file "$p" "$y"); [ -f "$f" ] || continue
     route_n=$((route_n + 1))
 
-    # writers: the backticked *.md paths inside this command's `deliverable_paths` = ...
-    # `title:` span. The `=` is required: the same word appears in prose that lists nothing.
-    writers=$(awk '
-      /`deliverable_paths`[[:space:]]*=/ { span = 1; k = 0 }
-      span {
-        line = $0
-        while (match(line, /`[^`]*\.md`/)) {
-          t = substr(line, RSTART + 1, RLENGTH - 2); sub(/.*\//, "", t); print t
-          line = substr(line, RSTART + RLENGTH)
-        }
-        if ($0 ~ /`title:/ || ++k > 20) span = 0
-      }' "$f" | sort -u)
-
     # offers: one `<line>|<offered-command>|<0|1 carries the placeholder>` per option.
     offers=$(awk -v Y="$y" -v Q="$qual" '
       index($0, "choices: [") {
@@ -685,7 +675,34 @@ check_merge_clause() {
           }
         }
       }' "$f" | sort -u)
+    # A family command that makes no offer has no surface for this check to cover, so it needs
+    # no writer set and is not asserted about.
     [ -n "$offers" ] || continue
+
+    # writers: the backticked *.md paths inside this command's `deliverable_paths` = ...
+    # `title:` span. The `=` is required: the same word appears in prose that lists nothing.
+    writers=$(awk '
+      /`deliverable_paths`[[:space:]]*=/ { span = 1; k = 0 }
+      span {
+        line = $0
+        while (match(line, /`[^`]*\.md`/)) {
+          t = substr(line, RSTART + 1, RLENGTH - 2); sub(/.*\//, "", t); print t
+          line = substr(line, RSTART + RLENGTH)
+        }
+        if ($0 ~ /`title:/ || ++k > 20) span = 0
+      }' "$f" | sort -u)
+    # PER-COMMAND coverage assertion, and it has to be per command. Rewording one command's
+    # `deliverable_paths` = to `deliverable_paths` lists empties ITS writer set alone: every
+    # offer that command makes silently stops being checked while the whole-run assertions
+    # below still pass, because the other family commands keep req_n above zero. That is a
+    # gate quietly ceasing to cover part of its surface -- the failure this file's check-8
+    # extractor-coverage assertion exists to prevent, and the reason no stop-routing check was
+    # shipped. A family command that offers something must declare what it writes.
+    if [ -z "$writers" ]; then
+      fail 11 "$CMD_DIR/$y$CMD_SUFFIX makes a choices: offer but its \`deliverable_paths\` = ... \`title:\` span yields no path -- the EXTRACTOR has drifted or the handoff sentence was reworded, and every offer this command makes has stopped being checked; fix the parser or restore the declaration, never the offers"
+      continue
+    fi
+
 
     while IFS='|' read -r ln x has; do
       [ -n "$ln" ] || continue
@@ -775,9 +792,17 @@ selftest() {
   # a line absent from the root README, so it is extracted AND counts as extra.
   expect_fail "an install line absent from the root README is rejected" 7 "printf '\n$CLI plugin ${CLI_VERBS##*|} ${PLUGIN_REL##*/}@extra-fixture-target\n' >> $PLUGIN_REL/docs/getting-started.md"
   expect_fail "a drifted prose count is rejected"              9 "mkdir -p $(dirname $(cmd_file $PLUGIN_REL gamma)) 2>/dev/null; printf -- '---\nname: gamma\n---\n' > $(cmd_file $PLUGIN_REL gamma) && printf -- '# /gamma\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/gamma.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/gamma\`]($DOC_CMD_DIR/gamma.md)|' $PLUGIN_REL/docs/README.md"
-  expect_fail "a count sentence reworded away is rejected"     9 "sed -i.bak 's|one slash commands|a handful of slash commands|' $PLUGIN_REL/README.md"
+  # The five cases below read the fixture's COMMAND count, and that count moved 1 -> 2 when
+  # check 11's per-command coverage assertion needed a second command in the offer family to be
+  # provable against (with one family member, emptying its writer set also empties the run-wide
+  # one, so the fixture could not tell the two assertions apart). Every assertion is unchanged;
+  # only the numerals and the how-many-to-add loops track the new base: the compound-count case
+  # still claims a compound whose tail is a mapped word equal to the real total (twenty-six over
+  # 2+4, where it was twenty-five over 1+4), and the two fixture-growing cases still land on
+  # exactly seventeen and eighteen commands by adding one fewer each.
+  expect_fail "a count sentence reworded away is rejected"     9 "sed -i.bak 's|two slash commands|a handful of slash commands|' $PLUGIN_REL/README.md"
   expect_fail "a compound count whose tail matches a shorter number word is rejected" 9 \
-    "mkdir -p $(dirname $(cmd_file $PLUGIN_REL delta)) 2>/dev/null && printf -- '---\nname: delta\n---\n' > $(cmd_file $PLUGIN_REL delta) && printf -- '# /delta\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/delta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/delta\`]($DOC_CMD_DIR/delta.md)|' $PLUGIN_REL/docs/README.md && mkdir -p $(dirname $(cmd_file $PLUGIN_REL epsilon)) 2>/dev/null && printf -- '---\nname: epsilon\n---\n' > $(cmd_file $PLUGIN_REL epsilon) && printf -- '# /epsilon\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/epsilon.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/epsilon\`]($DOC_CMD_DIR/epsilon.md)|' $PLUGIN_REL/docs/README.md && mkdir -p $(dirname $(cmd_file $PLUGIN_REL zeta)) 2>/dev/null && printf -- '---\nname: zeta\n---\n' > $(cmd_file $PLUGIN_REL zeta) && printf -- '# /zeta\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/zeta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/zeta\`]($DOC_CMD_DIR/zeta.md)|' $PLUGIN_REL/docs/README.md && mkdir -p $(dirname $(cmd_file $PLUGIN_REL eta)) 2>/dev/null && printf -- '---\nname: eta\n---\n' > $(cmd_file $PLUGIN_REL eta) && printf -- '# /eta\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/eta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/eta\`]($DOC_CMD_DIR/eta.md)|' $PLUGIN_REL/docs/README.md && sed -i.bak2 's|one slash commands|twenty-five slash commands|' $PLUGIN_REL/README.md"
+    "mkdir -p $(dirname $(cmd_file $PLUGIN_REL delta)) 2>/dev/null && printf -- '---\nname: delta\n---\n' > $(cmd_file $PLUGIN_REL delta) && printf -- '# /delta\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/delta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/delta\`]($DOC_CMD_DIR/delta.md)|' $PLUGIN_REL/docs/README.md && mkdir -p $(dirname $(cmd_file $PLUGIN_REL epsilon)) 2>/dev/null && printf -- '---\nname: epsilon\n---\n' > $(cmd_file $PLUGIN_REL epsilon) && printf -- '# /epsilon\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/epsilon.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/epsilon\`]($DOC_CMD_DIR/epsilon.md)|' $PLUGIN_REL/docs/README.md && mkdir -p $(dirname $(cmd_file $PLUGIN_REL zeta)) 2>/dev/null && printf -- '---\nname: zeta\n---\n' > $(cmd_file $PLUGIN_REL zeta) && printf -- '# /zeta\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/zeta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/zeta\`]($DOC_CMD_DIR/zeta.md)|' $PLUGIN_REL/docs/README.md && mkdir -p $(dirname $(cmd_file $PLUGIN_REL eta)) 2>/dev/null && printf -- '---\nname: eta\n---\n' > $(cmd_file $PLUGIN_REL eta) && printf -- '# /eta\n\nPage.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/eta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/eta\`]($DOC_CMD_DIR/eta.md)|' $PLUGIN_REL/docs/README.md && sed -i.bak2 's|two slash commands|twenty-six slash commands|' $PLUGIN_REL/README.md"
   # Discriminates the word-boundary anchor on the reference-files alternation specifically: the
   # fixture ships 8 reference files, so an unanchored "eight" matches the tail of "twenty-eight"
   # and compares 8 against 8 -- a wrong claim passing on a coincidentally-correct numeral.
@@ -797,7 +822,7 @@ selftest() {
   # Verified red (this case FAILs: "no count sentence found") with the word2num/alternation
   # additions stashed, green with them applied.
   expect_pass_after "a correctly-worded seventeen-command count is accepted" \
-    "for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15 cmd16; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && sed -i.bak 's|one slash commands|seventeen slash commands|' $PLUGIN_REL/README.md"
+    "for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && sed -i.bak 's|two slash commands|seventeen slash commands|' $PLUGIN_REL/README.md"
   # The same proof for the OTHER gated alternation. The case above exercises the commands
   # alternation only; the cost-emitting-commands alternation in check 9 has its own word list,
   # and until this case existed nothing exercised it -- a word missing from it would have failed
@@ -811,7 +836,7 @@ selftest() {
   # applied -- and the seventeen-command case above stays green throughout, which is what shows
   # the two cases cover different alternations.
   expect_pass_after "a correctly-worded seventeen cost-emitting-command count is accepted" \
-    "for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec romeo; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '\nCall \`emit-cost\` with \`command: /%s\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' \$n >> \$(cmd_file $PLUGIN_REL \$n); done && { printf -- '# Cost emission (fixture)\n\n## 7. Attribution (phase / role)\n\n| Command | phase | role |\n|---------|-------|------|\n| \`/alpha\` | fixture-phase | pm |\n'; for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '| \`/%s\` | fixture-phase | pm |\n' \$n; done; printf -- '\n## 8. Persistence\n\nNot modelled in the fixture.\n'; } > $PLUGIN_REL/$REF_DIR/cost-emission.md && sed -i.bak 's|one slash commands|eighteen slash commands|' $PLUGIN_REL/README.md && sed -i.bak 's|One commands emit a cost entry|Seventeen commands emit a cost entry|' $PLUGIN_REL/docs/reference/session-cost.md"
+    "for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '\nCall \`emit-cost\` with \`command: /%s\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' \$n >> \$(cmd_file $PLUGIN_REL \$n); done && { printf -- '# Cost emission (fixture)\n\n## 7. Attribution (phase / role)\n\n| Command | phase | role |\n|---------|-------|------|\n| \`/alpha\` | fixture-phase | pm |\n'; for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '| \`/%s\` | fixture-phase | pm |\n' \$n; done; printf -- '\n## 8. Persistence\n\nNot modelled in the fixture.\n'; } > $PLUGIN_REL/$REF_DIR/cost-emission.md && sed -i.bak 's|two slash commands|eighteen slash commands|' $PLUGIN_REL/README.md && sed -i.bak 's|One commands emit a cost entry|Seventeen commands emit a cost entry|' $PLUGIN_REL/docs/reference/session-cost.md"
   expect_fail "a wrong non-ASCII anchor is rejected"           2 "printf '\n[bad](#uber-config)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
   expect_fail "a wrong duplicate-heading index is rejected"    2 "printf '\n[bad](#notes-2)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
   expect_fail "a titled link to a missing file is rejected"    1 "printf '\n[bad](nope.md \"T\")\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
@@ -848,6 +873,12 @@ selftest() {
   # declares. That is one clause-requiring offer; the live tree has eight.
   expect_fail "an offer that drops <merge-clause> is rejected" 11 \
     "sed -i.bak 's| <merge-clause>||' $(cmd_file $PLUGIN_REL alpha)"
+  # The PER-COMMAND coverage guard. Rewording one family command's handoff sentence empties its
+  # writer set alone, and every offer that command makes stops being checked while the run-wide
+  # assertions stay satisfied by the other family commands -- green, and quietly covering less.
+  # This mutation is the one a review demonstrated against the live tree on brd-ground.md.
+  expect_fail "a family command whose handoff declares no path is rejected" 11 \
+    "sed -i.bak 's|\`deliverable_paths\` = |\`deliverable_paths\` lists |' $(cmd_file $PLUGIN_REL alpha)"
   # The three vacuity guards rewrite through a temp file OUTSIDE the reference dir rather than
   # with `sed -i.bak`: a stray `.bak` there is a file `find $REF_DIR -type f` counts, so the
   # mutation would trip check 9's reference-file count too and blur what the case proves.
@@ -858,7 +889,7 @@ selftest() {
   expect_fail "a family glob matching no command is rejected" 11 \
     "sed 's|alpha\*|zulu*|' $PLUGIN_REL/$REF_DIR/next-phase-offer.md > np.tmp && mv np.tmp $PLUGIN_REL/$REF_DIR/next-phase-offer.md"
   expect_fail "a row-F table with no gated artifact is rejected" 11 \
-    "sed '/alpha-deliverable.md/d; /elsewhere.md/d' $PLUGIN_REL/$REF_DIR/phase-handoff.md > ph.tmp && mv ph.tmp $PLUGIN_REL/$REF_DIR/phase-handoff.md"
+    "sed '/alpha-deliverable.md/d; /alpha-two-out.md/d; /elsewhere.md/d' $PLUGIN_REL/$REF_DIR/phase-handoff.md > ph.tmp && mv ph.tmp $PLUGIN_REL/$REF_DIR/phase-handoff.md"
   # ...and the other half of the assertion: the clause is required only where the offering run
   # writes what the offered command gates. `/dev-workflows:sigma` gates `elsewhere.md`, which no
   # fixture command declares, so a clause-free offer of it is CORRECT and must stay green. Without

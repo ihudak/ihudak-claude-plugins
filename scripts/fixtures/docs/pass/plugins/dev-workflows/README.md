@@ -2,4 +2,4 @@
 
 See [the docs](docs/README.md).
 
-A fixture plugin of one slash commands.
+A fixture plugin of two slash commands.

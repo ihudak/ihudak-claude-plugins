@@ -744,6 +744,8 @@ Expected: PASS, with no length warning. If it warns above 900, cut wording now r
 
 `CHANGELOG.md` — a new version entry naming the three commands, four agents, four references, and the docs page. `CLAUDE.md` — update the command count and the agent count in the "Active plugin" paragraph, and add `/brd-intake`, `/brd-ground`, `/brd-split` to the command list and to the model-routing "must load" list.
 
+**Carried from task 13 — two stale "Who runs it" notes** in `docs/commands/brd-intake.md` and `docs/commands/brd-ground.md`, written when later commands in the route did not exist yet. Both now name commands that have shipped; reconcile them. Locate by search.
+
 **Carried from task 7 — `CLAUDE.md` has three stale branch-prefix enumerations** at roughly lines 129, 131 and 286, each still naming the six-prefix set without `brd`. They assert something false about the live prefix set and were deliberately deferred here rather than fixed piecemeal. Re-locate them by search, not by line number, and reconcile all three. `CHANGELOG.md`'s copy is dated released history and must be left alone.
 
 - [ ] **Step 5: Run the gate triple one final time and commit**

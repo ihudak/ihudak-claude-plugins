@@ -330,6 +330,8 @@ Trust the tree over any number in this plan.
 
 - [ ] **Step 4: Changelog, `CLAUDE.md` counts and command lists, and the model-routing "must load" list**
 
+  **Carried from task 10 — a pre-existing falsification.** `references/cost-emission.md`'s preamble describes its emitters as "the eleven PRD-lifecycle ones … plus two", which already omitted every `/brd-*` emitter before this increment began. It was not falsified *by* any one command, which is why no task owned it. Re-derive it count-free against the tree.
+
 - [ ] **Step 5: Run the gate triple one final time and commit** — `chore(brd): catalog, changelog and instruction-file counts for increment 2`
 
 ---

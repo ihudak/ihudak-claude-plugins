@@ -587,7 +587,16 @@ Read-only against repositories throughout, per `references/read-only-repos.md`.
 
 **Preconditions:** every finding carries a verifier verdict.
 **Produces:** `slices.md`, one nested child-BRD folder per confirmed slice with its own
-`brd-link.md`, and an updated ledger.
+`brd-link.md`, **that child's `brd/brd-inventory.md` and `coverage-ledger.md`**, and an updated
+parent ledger.
+
+The child's inventory and ledger are written here because this is the only command holding both
+the parent inventory and the allocation. A child has no source document of its own — it inherits
+its parent's, so `/brd-intake` cannot run on it — and `/brd-ground` gates on exactly those two
+files. Without them the loop dead-ends: `/brd-split` would recommend a command whose precondition
+nothing could ever satisfy. The child's inventory is the subset of parent rows allocated
+`covered-by: <CHILD-KEY>`, anchored to the parent's `brd/source/`; its ledger is one row per
+claimed `[BR#n]`, seeded `unallocated` so the child's own split can run.
 
 Proposes slices from the grounded picture — what is buildable, what is blocked, what depends on
 what — then takes a key per confirmed slice and creates its folder *inside* this one (§4).

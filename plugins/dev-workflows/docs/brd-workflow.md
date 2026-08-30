@@ -85,11 +85,14 @@ confirmed answer as a `[CD#n]` only once an operator has confirmed it against th
 words, and then sweeps every dependent BRD and every artifact still asserting a position the answer
 overturned.
 
-**Where the route ends today is `/brd-reconcile`**: a BRD whose customer decisions are frozen and
-whose tree holds nothing the review made false. The step that would follow it — `--from-brd` on
-`/create-prd`, carrying a decided, reconciled BRD into a Product Requirements Document — **does not
-exist yet**, and neither does `--from-brd` on `/create-ard` or `/specify`. None of them is drawn
-above, and no command offers one.
+**Where the route hands over is `/brd-reconcile`**: a BRD whose customer decisions are frozen and
+whose tree holds nothing the review made false is the state the PRD pipeline is entered from.
+`--from-brd` **ships** on `/create-prd`, `/create-ard` and `/specify`, and `/brd-reconcile`'s
+next-step phase names all three against that same BRD key — `/create-prd --from-brd` only where the
+reconciled ledger leaves no claimed row `unallocated` and at least one `covered-here` (the two
+refusals its own Phase 0 raises), and `/create-ard --from-brd` and `/specify --from-brd`
+unconditionally, since neither dispatches `jira-reader`, neither gates a PRD and neither reads the
+ledger. The diagram above does not yet draw those three edges.
 
 ## Parameters
 

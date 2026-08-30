@@ -118,8 +118,8 @@ cap.
 ## 4. The shared fallback for existing commands
 
 Every command outside the `/brd-*` family that addresses a PRD directory resolved it as the flat
-form `specifications/<KEY>-<slug>/`, which on its own cannot see a nested PRD (one produced under a
-BRD slice, once `/create-prd --from-brd` exists). All of them therefore apply the same one-level
+form `specifications/<KEY>-<slug>/`, which on its own cannot see a nested PRD (one `/create-prd
+--from-brd` authors inside a BRD slice). All of them therefore apply the same one-level
 fallback described in §2: when the flat match fails, search exactly one level deeper before
 reporting the PRD absent. One shared rule, defined here once rather than reinvented per caller. The
 adopter list below is the authority on who applies it — **it is longer than the six the design

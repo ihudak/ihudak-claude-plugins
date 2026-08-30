@@ -39,7 +39,11 @@ jira_key: <the tracker key; omit until the Jira round-trip mints one — see bel
 ```
 
 `brd_key`, `brd_parent` and `depends_on` are written only by `/create-prd --from-brd`, from the BRD's
-own `brd-link.md`, and are never asked of the PM. They exist so a PRD's prerequisites are legible to
+own `brd-link.md`, and are never asked of the PM. **`/update-prd` preserves all three and authors
+none of them** — on a PRD that carries them it copies each through the refresh unchanged, and on a
+PRD that does not it writes none — so the *written only by* rule above still reads exactly as it
+says: carrying an existing value forward mints no new one, and `/update-prd` reads no BRD tree it
+could mint one from. They exist so a PRD's prerequisites are legible to
 `/epics` and `/ready` without either one reading the BRD tree. A `brd_key` may carry a third numeric
 segment (`references/brd-addressing.md` §1 fixes no depth), so a PRD authored inside a BRD slice
 carries a key the two-segment PRD form would reject — validate a PRD key against that grammar, not a

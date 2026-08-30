@@ -492,8 +492,23 @@ rewording one: the options that are presented are presented verbatim, exactly as
 offer-only-what-resolves rule Phase 0's refusal 2 applies to its per-child offers. Do not go quiet
 either — name the round-trip as the step that unblocks the two, the way
 `${CLAUDE_PLUGIN_ROOT}/references/prd-source-resolution.md`'s own paste-first stop (step 4) does.
-Once a `jira_key` is recorded, all three are offerable and the array is presented whole. Say which
-state this run is in rather than letting the operator discover it in the next command.
+**A recorded `jira_key` settles only the first half of the round-trip, and both halves gate those two
+options — on this route and on the `/idea` route alike.** `jira-reader` does not resolve a key; it
+resolves the export directory `$VAULT_PATH/jira-products/<jira_key>` that the round-trip's **step 2**
+creates. So a key that is real on the tracker — because step 1's paste minted it here, or because the
+PM minted it before an `/idea`-route run and Phase 5 authored it into the frontmatter — still points
+at nothing until the re-import lands, and `/dev-workflows:epics` and `/dev-workflows:release-notes`
+both drop into `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`'s Fallback B. **Present
+the two only where both halves are done**: a `jira_key` recorded on the PRD *and* the re-import
+performed against it. This command documents the round-trip rather than performing it, so at Phase 6
+neither half has happened in this session on either route — **do not stat the vault for it and do not
+assume it**; name the round-trip as the step that unblocks both, exactly as the no-`jira_key` case
+above does, and present the two once the operator says the re-import landed. Where they are withheld
+the `(Recommended)` marker goes with the `/dev-workflows:release-notes` option that carries it and is
+never moved onto another: per the *When no option is safe to recommend* guidance in
+`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`, nothing is marked in that state. The PA
+option is unaffected either way — it reads the specs repo and no export at all. Say which state this
+run is in rather than letting the operator discover it in the next command.
 
 **The PA option changes on this route too, and for the same reason the other two do.** Presented
 verbatim it reads `/dev-workflows:create-ard <KEY>` with no flag, which sends `<BRD-KEY>` into the

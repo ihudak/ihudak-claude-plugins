@@ -937,15 +937,55 @@ order they happened.
 ## Phase 14 — Next steps
 
 This run leaves a **reconciled** BRD: customer decisions frozen, dependents swept, and every artifact
-under the parent checked for a position the answer overturned. The BRD-to-PRD route's next step would
-be `/create-prd --from-brd`, which would carry that BRD into a Product Requirements Document — **and
-it does not exist yet**, so it is not offered. Neither is `--from-brd` on `/create-ard` or
-`/specify`. Offering a command the plugin does not ship would be worse than offering nothing, so the
-honest offer is the state this run actually leaves behind:
+under the parent checked for a position the answer overturned. That is the state the BRD-to-PRD
+route's exit was waiting for, and **all three `--from-brd` routes ship** — so this phase offers them,
+each under the precondition the offered command actually enforces rather than under an assumed one:
+
+- **`/dev-workflows:create-prd <BRD-KEY> --from-brd` is offered only where this BRD is
+  PRD-eligible**, which is two tests and not one, both read off `coverage-ledger.md` as this run left
+  it and both owned by `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5: **no** row
+  this BRD's `brd-link.md` claims is still `unallocated`, and **at least one** claimed row is
+  `covered-here`. Those are exactly the two refusals that command's own Phase 0 raises
+  (`CREATE_PRD_BRD_UNALLOCATED` and `CREATE_PRD_BRD_NOT_ELIGIBLE`), so naming the option where either
+  fails would hand the operator a run that stops on its first phase. **Read the dispositions off the
+  ledger file, never off a `ledger:` line** — that line's `unallocated` term is a *resolved* count
+  that also holds rows a child has not walked yet (§6.1), so keying the offer to it would withhold
+  the option from a BRD whose own gate is fully satisfied. Where either test fails, **drop the option
+  from the array** and say which one failed: a claimed row still `unallocated` is walked to a
+  terminal disposition by `/dev-workflows:brd-split <BRD-KEY>`, while a BRD with no `covered-here`
+  row holds no PRD of its own at all and §5 is where its requirements went — on a `covered-by` row
+  the PRD is the named child's to author, not this BRD's. Dropping rather than annotating is right
+  here and not inconsistent with the in-text conditions the other options carry: those name a state
+  the reader can judge for themselves, while this one names a hard refusal in another command's
+  Phase 0.
+- **`/dev-workflows:create-ard <BRD-KEY> --from-brd` and `/dev-workflows:specify <BRD-KEY>
+  --from-brd` are offered unconditionally from this state**, and that is read out of their own Phase
+  0s rather than assumed symmetric with `/create-prd`'s. Neither dispatches `jira-reader`, so neither
+  needs a tracker key or a Jira export; neither runs the PRD gate, so neither waits on a PRD —
+  `/create-prd --from-brd` is not a prerequisite for either (`commands/create-ard.md` and
+  `commands/specify.md`, *Under `--from-brd` the PRD gate does not run*); and neither reads the
+  `claims:` list or the coverage ledger at all, because PRD eligibility is §5's rule about authoring
+  a **PRD** and an ARD is not that artifact and neither is a specification. What each needs is this
+  BRD's folder, which `resolve-brd` finds at either level, plus its own altitude's seed — and an
+  absent `ard-seed.md` or `spec-seed.md` is reported by those runs, never a stop. Each takes **one**
+  key: a second positional is refused (`CREATE_ARD_BRD_NO_EPIC` / `SPECIFY_BRD_NO_EPIC`), so neither
+  is ever offered with an Epic beside it.
 
 ```
-choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Work another round — /dev-workflows:brd-interview <BRD-KEY>, where this run reopened a decision or left a question askable", "Package again — /dev-workflows:brd-package <BRD-KEY> <merge-clause>, where questions remain for the customer", "Re-ground a moved claim — /dev-workflows:brd-ground <BRD-KEY> --rebaseline <merge-clause>", "Sweep a dependent this run could only record — /dev-workflows:brd-reconcile <BRD-KEY> @<review-file> on this same review, once that dependent's register is on the default branch", "Reconcile another BRD or slice", "Other… (describe)"]
+choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Author this BRD's PRD — /dev-workflows:create-prd <BRD-KEY> --from-brd (PM)", "Author this BRD's architecture — /dev-workflows:create-ard <BRD-KEY> --from-brd (PA, optional)", "Author this BRD's specification — /dev-workflows:specify <BRD-KEY> --from-brd (PE)", "Work another round — /dev-workflows:brd-interview <BRD-KEY>, where this run reopened a decision or left a question askable", "Package again — /dev-workflows:brd-package <BRD-KEY> <merge-clause>, where questions remain for the customer", "Re-ground a moved claim — /dev-workflows:brd-ground <BRD-KEY> --rebaseline <merge-clause>", "Sweep a dependent this run could only record — /dev-workflows:brd-reconcile <BRD-KEY> @<review-file> on this same review, once that dependent's register is on the default branch", "Reconcile another BRD or slice", "Other… (describe)"]
 ```
+
+**None of the three `--from-brd` options carries `<merge-clause>`, and that is derived, not an
+oversight.** Every row of `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`'s resolution table
+names a *wait*, and none of the three waits on anything this run wrote: `/create-prd`'s only
+`require-on-main` target is `idea.md` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` row F), a
+file no `/brd-*` command writes and one the `--from-brd` route resolves no ladder for; and the
+`--from-brd` runs of `/create-ard` and `/specify` skip the PRD gate outright and resolve no ARD this
+run produced, so §3.4's rows for them describe a route neither is on here. That is the same class as
+the clause-free options `/dev-workflows:create-prd`'s own next-step phase presents on this route — an
+option whose downstream command gates nothing the offering run produced — and not a new one. The
+three still read the BRD folder this run just wrote into, which is why the handoff above is offered
+first and why declining it is reported rather than silent.
 
 **No option carries a `(Recommended)` marker, and that omission is deliberate**, per the
 `When no option is safe to recommend` guidance in
@@ -953,8 +993,9 @@ choices: ["Stop here — the decisions are frozen and both sweeps are recorded",
 this reconciliation left behind, and the reason is stated here, beside the list, rather than folded
 into a conditional marker the orchestrator would then have to evaluate. **Each option carries its own
 condition in its own text**, which is what keeps the list honourable verbatim: an operator whose run
-reopened nothing reads the second option and sees that it does not apply, rather than being offered a
-run that would report there is nothing new to ask.
+reopened nothing reads the *Work another round* option and sees that it does not apply, rather than
+being offered a run that would report there is nothing new to ask. The `/create-prd --from-brd`
+option is the one exception and is dropped rather than annotated, for the reason given with it above.
 
 **The dependent-sweep option names its own wait, and deliberately not `<merge-clause>`.** What it
 waits on is the *dependent's* register reaching the default branch, while the placeholder
@@ -971,9 +1012,14 @@ recorded-not-written stays unswept until its own register is on the default bran
 ### Context hygiene
 
 The resume pointer is written in the terminal cost phase, per
-`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Reconciling a second review for the same
-BRD, or working another round of it? → run **`/compact`**. Moving to a different BRD or slice? → run
-**`/clear`**. Guidance only — nothing is auto-run.
+`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. **The offer above spans roles, so both
+branches are printed** (§2's *Next options span both* bullet). Reconciling a second review for the
+same BRD, or working another round of it, or authoring this BRD's PRD yourself as PM
+(`/dev-workflows:create-prd <BRD-KEY> --from-brd`)? → run **`/compact`**. Moving to a different BRD or
+slice, or handing on to PA (`/dev-workflows:create-ard <BRD-KEY> --from-brd`) or PE
+(`/dev-workflows:specify <BRD-KEY> --from-brd`), even when the same person does it? → run
+**`/clear`**; those runs read the reconciled folder from the specs repo, not from this session.
+Guidance only — nothing is auto-run.
 
 ---
 

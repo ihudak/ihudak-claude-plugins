@@ -53,7 +53,7 @@ flowchart TD
 
 The diagram draws the ARD reaching `/epics`, but that is one of five consumers: `/epics`, `/specify`, `/design`, `/implement`, and `/ready` all resolve the applicable ARD once it exists. The edge is drawn once to keep the diagram readable, not because the others do not consult it.
 
-The BRD-to-PRD subgraph carries no edge into `/create-prd`: that connection is undrawn because `--from-brd` has not shipped yet, not because the two routes are unrelated. The same goes for `--from-brd` on `/create-ard` and `/specify`. `/brd-reconcile` is where that route ends today.
+The BRD-to-PRD subgraph carries no edge into `/create-prd`, and that is a gap in this diagram rather than in the plugin: `--from-brd` ships on `/create-prd`, `/create-ard` and `/specify`, and `/brd-reconcile`'s next-step phase offers all three against the same BRD key — `/create-prd --from-brd` only where the reconciled ledger leaves no claimed row `unallocated` and at least one `covered-here`, the other two unconditionally, since neither reads a Jira export, gates a PRD, or reads the ledger. `/brd-reconcile` is where the route hands over, not where it ends.
 
 The `Off-platform` box is the one node in this diagram no command runs. It is the customer reviewing the bundle with a vanilla agent and nothing installed, and the route waits there — which is why `/brd-reconcile` takes the returned review as an argument rather than looking for it.
 

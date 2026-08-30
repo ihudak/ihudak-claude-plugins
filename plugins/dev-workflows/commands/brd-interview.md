@@ -76,6 +76,14 @@ them is.
    and the next-step offer. Only the third carries a question from the set — and the argumentation
    prompt inside it asks why the answer just given was given, never a question of its own.
 
+   **Two further prompts can appear, raised inside shared entry points this command executes rather
+   than by the command itself, and neither can carry a question from the set** — because neither
+   entry point is ever handed one: `require-on-main`'s row-C repair offer (`phase-handoff.md` §3.3),
+   which asks whether to switch the specs repo to its default branch, and `emit-cost`'s pending-file
+   relocation confirmation (`cost-emission.md` §9), which asks where a cost entry should land. They
+   are named so that "every prompt is enumerated" stays a checkable claim rather than one that
+   quietly excludes whatever a cited entry point does.
+
 The failure all five exist to prevent is stated once, in `interview-tagging.md` §2, and is not
 restated here: a `[G]` put to a person returns their belief about the system rather than the system,
 and nothing downstream can tell the difference afterwards.
@@ -90,7 +98,7 @@ and nothing downstream can tell the difference afterwards.
 2. **`--round N`.** Optional, consuming the next token, which must be a positive integer. Malformed
    or absent value → stop, rather than silently falling back to the no-flag behaviour, which would
    run a different round from the one that was asked for:
-   `BRD_INTERVIEW_BAD_ROUND: --round takes a positive integer round number — re-run '/dev-workflows:brd-interview <KEY> --round <N>', or omit the flag to continue at the first round holding undisposed questions.`
+   `BRD_INTERVIEW_BAD_ROUND: --round takes a positive integer round number — re-run '/dev-workflows:brd-interview <KEY> --round <N>', or omit the flag to continue at the first round still holding a question without a terminal disposition.`
    What the flag then does is the *Resolve the round* phase's business.
 3. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`, per the
    `Required path environment variable unset` rule in
@@ -181,15 +189,51 @@ Rounds are numbered, permanent, contiguous, and resumable, and every decision re
 produced it (`interview-tagging.md` §5). This phase decides which round this run is working, and it
 is the only phase that may create or re-open one.
 
-Read every `interview/round-<N>.md` already on file. A round is **open** while any question in it
-lacks a disposition and **closed** once every one has one — where a disposition is what happened to
-the question, per §5, not merely that somebody looked at it.
+Read every `interview/round-<N>.md` already on file.
+
+### Terminal dispositions and holding states — the vocabulary every closure and resume rule uses
+
+`interview-tagging.md` §5 is explicit that a disposition is **what happened to the question**, not
+merely that somebody looked at it, and it names them: answered from findings (`[G]`), decided by the
+delivery team with argumentation (`[V]`), answered by the customer through the review package
+(`[C]`), re-tagged under §3, or split under §4. **Those five are terminal**, and this command calls
+them **terminal dispositions**:
+
+| Terminal disposition | Reached when |
+|---|---|
+| *answered from findings* | a verified finding settled a `[G]` |
+| *decided* | a `[V]` produced a `[VD#n]` with its argumentation |
+| *answered by the customer* | a `[C]`'s answer came back and an operator confirmed it (D14) |
+| *re-tagged* | a `[G]` grounding could not settle changed tag, naming its cause; the re-tagged question then carries its own disposition |
+| *split* | the question became parts, named; the parts carry their own dispositions |
+
+**Everything else this command records against a question is a holding state, never a disposition**,
+and a holding state keeps the round open:
+
+| Holding state | Meaning |
+|---|---|
+| *held for the customer* | a `[C]` is written and waiting; **holding it is not the customer answering it** |
+| *deferred* | recorded as not answerable yet, with why; it stays in this round and is returned to |
+| *needs grounding* | no finding bears on a `[G]` yet; only a `/brd-ground` run can move it |
+| *untagged* | the §2 test could not resolve it into exactly one tag; what is wrong with it is recorded and it is rewritten before it is asked |
+
+**Why the distinction is load-bearing rather than tidy.** Both rules that read a question's state —
+this phase's resume rule and the *Write the register and the round record* phase's closure rule —
+are stated in this one vocabulary, so they cannot drift apart. Were a holding state counted as a
+disposition, a round whose remainder was *deferred* or *needs grounding* would close, and the resume
+rule would then skip past the very question this run promised to return to. §5 sides with the
+holding states: *"A round with an outstanding `[C]` stays open until that answer comes back through
+the package — the customer's turnaround is not a reason to declare the round finished around them."*
+
+A round is **open** while any question in it lacks a **terminal** disposition, and **closed** once
+every one has one.
 
 **No `--round` flag:**
 
-- **Some round is open** → work the lowest-numbered open round. Resume at its first question without
-  a disposition; do not restart it, and do not re-ask a question that already has one. Re-asking a
-  `[C]` is the case §5 singles out, and the register is the reason: two customer answers to one
+- **Some round is open** → work the lowest-numbered open round. Resume at its first question
+  carrying **no terminal disposition** — which is exactly the question a holding state is holding —
+  do not restart the round, and do not re-ask a question that already carries a terminal
+  disposition. Re-asking a `[C]` is the case §5 singles out, and the register is the reason: two customer answers to one
   question is a contradiction one `[CD#n]` record has no way to hold.
 - **Every round is closed, or none exists yet** → a new round is proposed **only if findings or
   decisions have changed since the last round closed**. Concretely: a `[CG#n]`/`[DG#n]` added or
@@ -215,7 +259,7 @@ the question, per §5, not merely that somebody looked at it.
   merely because this round is open again.
 - **Round `N` does not exist** → stop rather than creating it out of order, which would break the
   contiguity §5 depends on:
-  `BRD_INTERVIEW_NO_SUCH_ROUND: <BRD-KEY> has no round N — rounds on file: <list, or "none">. Omit --round to continue at the first round holding undisposed questions.`
+  `BRD_INTERVIEW_NO_SUCH_ROUND: <BRD-KEY> has no round N — rounds on file: <list, or "none">. Omit --round to continue at the first round still holding a question without a terminal disposition.`
   The one exception: `N` is exactly `<highest + 1>` (or `1` when none exists), which is a request to
   open the next round, and is granted on the same changed-findings-or-decisions test as the no-flag
   path.
@@ -248,7 +292,7 @@ and raise a question wherever the pair leaves something unsettled that a PRD wou
 
 **A later round holds only what became askable once the previous round was answered.** A question
 that could have been asked in round 1 and was not is not "moved" to round 2; it stays in round 1,
-where it is still undisposed, and the resumption in *Resolve the round* is what returns to it. This
+carrying a holding state, and the resumption in *Resolve the round* is what returns to it. This
 matters for the record: a decision from round 1 was taken without anything round 2 discovered, and
 saying so later requires the round number to still mean what it says (§5).
 
@@ -284,8 +328,8 @@ three:
 **The invariant this phase exists to establish**, and which every later phase depends on: when this
 phase ends, every question in the round carries exactly one tag, and the three sets — `[G]`, `[V]`,
 `[C]` — are fixed for this round. A question that could not be resolved into one of the three is
-left in the round undisposed, with what is wrong with it recorded, and the round stays open. It is
-never asked in that state, of anybody.
+left in the round in the *untagged* holding state, with what is wrong with it recorded, and the
+round stays open. It is never asked in that state, of anybody.
 
 A question re-tagged later (the *Answer every `[G]` from the findings* phase) re-enters **here**, is
 re-tested against §2, and joins whichever set it now belongs to. It never enters an asking phase by
@@ -303,8 +347,8 @@ finding carrying a verifier `outcome` counts (the *Resolve inputs and gate the g
 already refused the run if any lacked one). Three outcomes:
 
 1. **A finding settles it.** Record the answer in the round record, quoting the finding's verdict
-   and naming every `[CG#n]`/`[DG#n]` it rests on, and mark the question's disposition *answered
-   from findings*. The finding ids recorded here are what a decision drawing on this answer later
+   and naming every `[CG#n]`/`[DG#n]` it rests on, and mark the question **terminally disposed** as
+   *answered from findings*. The finding ids recorded here are what a decision drawing on this answer later
    puts in its own `evidence` list.
 2. **A finding exists and cannot settle it** — its verdict is `NOT-PROVABLE`, or the verifier
    returned `unprovable`. This is a complete and legitimate terminal answer, not a shortfall
@@ -312,10 +356,12 @@ already refused the run if any lacked one). Three outcomes:
    **names that finding as its cause** (`interview-tagging.md` §3). Re-tagging to `[C]` is the
    exception and is correct only when what the repository could not settle turns out to have been a
    business question mistaken for a technical one — "the code does not tell us" is never on its own a
-   reason to ask the customer. The re-tagged question goes back to the *Tag every question* phase.
+   reason to ask the customer. The original question is terminally disposed as *re-tagged*, naming
+   the finding, and the re-tagged question goes back to the *Tag every question* phase to earn a
+   terminal disposition of its own.
 3. **No finding bears on it at all.** Then grounding has not been asked this question yet, and **the
-   answer is a grounding pass, not a person.** Record the question as *needs grounding*, leave it
-   undisposed so the round stays open, and name it in the final report with the concrete fix — a
+   answer is a grounding pass, not a person.** Record the **holding state** *needs grounding*, which
+   is not a disposition and so keeps the round open, and name it in the final report with the concrete fix — a
    `/dev-workflows:brd-ground <BRD-KEY>` run (with `--rebaseline` when the repository has moved since
    the pin) to produce the finding, after which this round resumes at exactly this question. **It is
    not re-tagged**: a re-tag needs a finding to name, and there is none, so promoting it to `[V]`
@@ -342,7 +388,7 @@ The options presented are that question's own `options_considered`
 one trailing entry for an option the operator supplies themselves and the two standing exits:
 
 ```
-choices: [<one entry per option considered, in the order they were weighed>, "Defer this question to a later round — it is not answerable yet", "Cancel", "Other… (describe)"]
+choices: [<one entry per option considered, in the order they were weighed>, "Defer this question — record why it is not answerable yet", "Cancel", "Other… (describe)"]
 ```
 
 This is **not** an escalation choice list, and it is not one of the arrays
@@ -360,7 +406,8 @@ section's: **adequate when a reader who was not in the room can say what would h
 answer to change.** A reason that survives being read back a month later names the constraint, not
 the preference.
 
-Record each answered question as a `[VD#n]` held for the register phase, carrying every field
+Record each answered question as **terminally disposed** *decided*, with a `[VD#n]` held for the
+register phase, carrying every field
 `decision-register-format.md` §1 defines — including `evidence` (the findings this position rests
 on), `altitude`, `round` (this run's), `consumed_by: none`, and `conditional_on` **written now by
 whoever takes the decision, never reconstructed later** (§5), when the position is correct only while
@@ -370,9 +417,12 @@ decision gets is fixed by the tag of the question it answers, never by who typed
 tagged `[V]` produces a `[VD#n]`, and it does not become a `[CD#n]` because the customer later nods
 at it.
 
-**Deferring is a disposition, not a skip.** *Defer this question to a later round* records the
-question as deferred with the reason it is not answerable yet, leaves the round open, and never
-converts it to another tag on the way out. **`Cancel` stops the run** naming how many `[V]` questions
+**Deferring is a recorded holding state, not a disposition and not a skip.** It records the reason
+the question is not answerable yet, keeps the round **open**, and never converts the question to
+another tag on the way out. It does **not** move the question into a later round: the question stays
+where it was raised (the *Generate the round's question set* phase fixes that), and the resume rule
+in *Resolve the round* returns to it. A round whose remaining questions are all deferred is an open
+round with work left, and is reported as one. **`Cancel` stops the run** naming how many `[V]` questions
 remain, and every decision already taken this pass stays written — nothing already decided is rolled
 back.
 
@@ -389,6 +439,11 @@ the question as it will be put; its round and position; the findings that bear o
 is asked against what is known rather than in the abstract; and, where a `[G]` part of the same
 original question was answered first, that answer — because the business question it leaves is
 materially different from the one that would have been asked without it (§4).
+
+Each `[C]` is recorded in the round with the **holding state** *held for the customer*. **Holding a
+question is not an answer to it**: the terminal disposition *answered by the customer* is reached
+only when the answer comes back and an operator confirms it, so a round holding a `[C]` stays open —
+which, today, means indefinitely, for the reason two paragraphs below.
 
 **No `[CD#n]` is written here, and none may be.** A customer decision enters the register only when
 the customer has actually answered and an operator has confirmed the answer (D14,
@@ -416,12 +471,21 @@ Where it fires, the decision may not be closed. Offer the three resolutions §6 
 three, drawn from that section's own table the way the `[V]` picker draws its options from §1:
 
 ```
-choices: ["Re-base it on a current finding — the decision's evidence list changes", "Make it explicitly conditional on the prerequisite — conditional_on: <BRD-KEY>/<decision-id>", "Defer it until the prerequisite ships — status: open, with the blocking prerequisite named", "Cancel", "Other… (describe)"]
+choices: ["Re-base it on a current finding — the decision's evidence list changes", "Make it explicitly conditional on the prerequisite — conditional_on: <BRD-KEY>/<decision-id>", "Defer it until the prerequisite ships — status: open, with the blocking prerequisite named", "Cancel"]
 ```
 
 Record the outcome as that table prescribes: a changed `evidence` list, a `conditional_on` naming one
 specific decision of the prerequisite (`EPIC-008/[VD#3]`, never `EPIC-008` alone — §5), or
 `status: open` with the blocking prerequisite named.
+
+**This picker carries no `"Other… (describe)"` entry, and that omission is required here rather than
+merely permitted.** `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` calls adding the trailing
+entry "the one permitted adjustment", not a mandatory one; and the rule being applied admits
+**exactly three** resolutions and says so — "Three resolutions, and exactly three"
+(`decision-register-format.md` §6). An open-ended fourth entry would invite a resolution the rule
+does not have, and the two most likely things an operator would write into it are precisely the two
+evasions §6 and §7 already refuse (below). `Cancel` remains, so nobody is trapped: it stops the run
+with the decision still `open`, which is itself one of the three.
 
 **Two things this picker deliberately does not offer.** It does not offer to **remove** the
 `will-change` finding from the `evidence` list: a decision whose evidence was thinned until the rule
@@ -452,19 +516,24 @@ assumption record.
 
 **`<BRD-dir>/interview/round-<N>.md`** — the round's own record, append-only: every question in the
 order it was written, its tag, every re-tag with the finding that caused it, every split with the
-parts it became, and every disposition — *answered from findings*, *decided* (naming the `[VD#n]`),
-*held for the customer*, *deferred*, *needs grounding*, or *split*. Plus, when this run re-opened the
-round, the re-open and its cause. This file is what makes the round resumable: resumability is a
-property of the record, not of the session (`interview-tagging.md` §5), and an interrupted run
-resumes at the first question here without a disposition.
+parts it became, and each question's state in the vocabulary the *Resolve the round* phase fixes —
+either a **terminal disposition** (*answered from findings*, *decided* naming the `[VD#n]`,
+*answered by the customer*, *re-tagged* naming its cause, or *split* naming its parts) or a
+**holding state** (*held for the customer*, *deferred*, *needs grounding*). Plus, when this run
+re-opened the round, the re-open and its cause. This file is what makes the round resumable:
+resumability is a property of the record, not of the session (`interview-tagging.md` §5), and an
+interrupted run resumes at the first question here carrying no terminal disposition — the same test,
+in the same words, that *Resolve the round* resumes on.
 
 **`<BRD-dir>/interview/customer-questions.md`** — written by the *Hold every `[C]`* phase; listed
 here because it is one of this run's deliverables.
 
-**Round closure is decided here, and only by the record.** The round closes when every question in it
-has a disposition, and not before — not because the interesting questions are answered, and not
-because a `[C]` is waiting on a customer whose turnaround is slow. Report the round as open or closed
-accordingly.
+**Round closure is decided here, and only by the record.** The round closes when every question in
+it carries a **terminal** disposition, and not before. A question in any holding state keeps it open
+— so a round is not closed because the interesting questions are answered, because the remainder was
+deferred, because a `[G]` is waiting on a grounding pass, or because a `[C]` is waiting on a customer
+whose turnaround is slow. Report the round as open or closed accordingly, and when open, name what it
+is waiting on.
 
 ---
 

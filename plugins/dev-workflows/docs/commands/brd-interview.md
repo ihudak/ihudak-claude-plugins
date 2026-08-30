@@ -23,8 +23,8 @@ is the fourth command of that route, after `/brd-intake`, `/brd-ground` and `/br
   format-validated only, never checked against a tracker.
 - **`--round N`** (optional) — target one round: resume it if it is open, or re-open it if it is
   closed, recorded as a re-open with its cause. With no flag the run continues at the first round
-  holding undisposed questions, and proposes a new one only if findings or decisions have changed
-  since the last round closed.
+  still holding a question without a terminal disposition, and proposes a new one only if findings
+  or decisions have changed since the last round closed.
 
 There is **no `--no-docs` flag**, because this command does no documentation grounding at all — see
 [What it does not do](#what-it-does-not-do).
@@ -110,8 +110,11 @@ Under `$SPECS_PATH/specifications/<BRD-KEY>-<slug>/`:
   own prefix, assigned once, never renumbered, and never reused after a terminal status.
 - `interview/round-<N>.md` — the round's append-only record: every question in the order it was
   written, its tag, every re-tag with the finding that caused it, every split with the parts it
-  became, and every disposition. This file is what makes a round resumable — an interrupted run
-  returns to the first question here without a disposition rather than restarting the round.
+  became, and each question's state — either a **terminal disposition** (*answered from findings*,
+  *decided*, *answered by the customer*, *re-tagged*, *split*) or a **holding state** (*held for the
+  customer*, *deferred*, *needs grounding*, *untagged*). This file is what makes a round resumable — an
+  interrupted run returns to the first question carrying no terminal disposition rather than
+  restarting the round.
 - `interview/customer-questions.md` — the `[C]` questions held for the customer, each with the
   findings that bear on it and any `[G]` answer that already narrowed it.
 
@@ -131,7 +134,8 @@ against the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` 
   child's walk ([`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §6.1).
 - **Phase 4 — the tagging gate.** Nothing is asked of anybody until every question in the round
   carries exactly one tag. A question that cannot be resolved into one of the three is left
-  undisposed with what is wrong with it recorded; it is never asked in that state.
+  in the *untagged* holding state, with what is wrong with it recorded; it is never asked in that
+  state.
 - **Phase 5 — a re-tag needs a cause.** A `[G]` grounding cannot settle is re-tagged only against a
   named `NOT-PROVABLE` finding or an `unprovable` verifier outcome. A `[G]` no finding bears on at
   all is recorded as *needs grounding* and answered by a `/brd-ground` re-run — it is neither
@@ -146,8 +150,12 @@ against the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` 
   re-base it on a `current` finding, make it explicitly `conditional_on` the prerequisite decision, or
   defer it with the blocking prerequisite named. Deleting the `will-change` finding is not one of
   them, and neither is re-filing the position as an assumption.
-- **Round closure.** A round closes only when every question in it has a disposition — not when the
-  interesting ones are answered, and not around a `[C]` still waiting on a customer.
+- **Round closure.** A round closes only when every question in it carries a **terminal**
+  disposition. A holding state — *held for the customer*, *deferred*, *needs grounding*, *untagged* — is not one
+  and keeps the round open, so a round never closes around a question the run promised to return to:
+  not when the interesting ones are answered, not when the remainder was deferred, and not around a
+  `[C]` still waiting on a customer. The resume rule and the closure rule are stated in the same
+  vocabulary so they cannot drift apart.
 
 ## What it does not do
 

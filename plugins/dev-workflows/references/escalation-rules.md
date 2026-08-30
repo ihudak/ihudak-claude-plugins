@@ -83,8 +83,8 @@ resolves to nothing that exists. `<VAR>` is that variable's own name, written ou
 the variable the run is missing, never a generic placeholder.
 
 `/brd-intake` (Phase 0 step 5), `/brd-ground` (Phase 0 step 3 for `SPECS_PATH` and Phase 0 step 7
-for `REPOS_PATH`), `/brd-split` (Phase 0 step 2) and `/brd-interview` (Phase 0, for `SPECS_PATH` —
-the only path variable it needs, since it opens no repository) cite this rule by name. It is a stop, not a
+for `REPOS_PATH`), `/brd-split` (Phase 0 step 2) and `/brd-interview` (Phase 0 step 3 — `SPECS_PATH` is the only path
+variable it needs, since it opens no repository) cite this rule by name. It is a stop, not a
 degradation: there is no "continue without it" option, because the path is where the run's inputs
 and outputs live. Other commands reproduce the same two-option list inline without naming the
 rule; a citer that names the rule uses the list written here.

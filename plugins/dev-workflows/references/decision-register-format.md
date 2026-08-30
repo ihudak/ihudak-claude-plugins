@@ -15,11 +15,11 @@ a question's answer lands in, and the rounds a decision is stamped with, belong 
 `references/interview-tagging.md` (§1 and §5); the `<BRD-KEY>` grammar a `conditional_on` uses
 belongs to `references/brd-addressing.md` §1.
 
-**Consumed by nothing yet.** `/brd-interview` will write `[VD#n]` and `[AS#n]` records against this
-shape and enforce §6; `/brd-package` will surface every open `[AS#n]` in the customer prompt (§7);
-`/brd-reconcile` will write `[CD#n]` records from a returned review and run the propagation sweep
-that §5 exists to serve. None of those commands exists, and no shipped command or agent reads this
-file today.
+**Consumed by `commands/brd-interview.md`**, which writes `[VD#n]` and `[AS#n]` records against this
+shape and enforces §6, and by `agents/brd-package-reviewer.md`, which reads them. `/brd-package`
+will surface every open `[AS#n]` in the customer prompt (§7); `/brd-reconcile` will write `[CD#n]`
+records from a returned review and run the propagation sweep that §5 exists to serve. Neither of
+those two commands exists yet, so no shipped command writes a `[CD#n]` today.
 
 ## 1. Record shape
 
@@ -168,8 +168,7 @@ person taking it; a sweep cannot infer the dependency from a `statement` that ne
 
 **A decision may not rest solely on a `will-change` finding.** Where *every* finding in a decision's
 `evidence` list carries `horizon: will-change` (`references/grounding-format.md` §5), the decision
-may not be closed as `decided`, and `/brd-interview` will refuse to close it once that command
-exists.
+may not be closed as `decided`, and `/brd-interview` refuses to close it.
 
 The reason is the one D19 states: a finding is true of a pinned commit, and a `will-change` finding
 is one an approved-but-unbuilt prerequisite is going to make false. A decision resting on nothing

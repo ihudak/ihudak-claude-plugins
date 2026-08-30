@@ -9,11 +9,12 @@ D14 in §3. The `NOT-PROVABLE` verdict and the finding record a re-tagged `[G]` 
 once in `references/grounding-format.md` §3 — cited here, not restated; requirement identifiers
 (`[BR#n]`) are defined once in `references/brd-format.md`.
 
-**Consumed by nothing yet.** `/brd-interview` will tag every question against §1 and apply §3–§5,
-and `/brd-package` will route the `[C]` questions into the customer review prompt — neither command
-exists, and no shipped command or agent reads this file today. What it fixes is the contract those
-commands will be built against, so that the tag on a question means the same thing to whichever one
-is holding it.
+**Consumed by `commands/brd-interview.md`**, which tags every question against §1 and applies §3–§5
+— its whole discipline is this file's rule — and by `agents/brd-package-reviewer.md`, which applies
+§2's test to a question already routed. `/brd-package` will route the `[C]` questions into the
+customer review prompt; that command does not exist yet. What this file fixes is the contract every
+one of them is built against, so that the tag on a question means the same thing to whichever one is
+holding it.
 
 ## 1. The three tags
 

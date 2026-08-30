@@ -83,7 +83,7 @@ model_routing:
 ```
 
 `/brd-split` dispatches no grounding or review agent of its own — every finding it reads was
-already independently verified by `/brd-ground`'s `grounding-verifier` pass (Phase 0 step 6) — so
+already independently verified by `/brd-ground`'s `grounding-verifier` pass (`brd-ground.md` Phase 7) — so
 `detection_model` here exists only for the terminal `impl-maintenance` dispatch. If no Opus
 resolves for `current_model`, degrade to best-available + record in `notes` and the final report —
 never hard-block.
@@ -111,7 +111,8 @@ choices: ["Accept these slices as proposed (Recommended)", "Edit one or more sli
 ```
 
 **Zero confirmed slices is a legitimate outcome.** A BRD nobody splits still needs every row walked
-in Phase 4 — most naturally landing on `covered-here`, per §5's PRD-eligibility rule — so choosing
+in Phase 4 — most naturally landing on `covered-here`, per `coverage-ledger-format.md` §5's
+PRD-eligibility rule — so choosing
 "walk the ledger directly" or editing the list down to nothing skips Phase 3 entirely and proceeds
 straight to Phase 4 with whatever children Phase 0 step 8 already found (if any).
 

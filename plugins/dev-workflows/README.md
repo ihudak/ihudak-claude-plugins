@@ -1,6 +1,6 @@
 # dev-workflows
 
-A role-based pipeline of twenty-two slash commands. Its spine runs idea refinement → Product Requirements Document → architecture → Epic breakdown → specification → design → readiness → implementation → documentation → release notes, with Opus-backed risk planning, code review, and doc/design review gates along the way; around that spine sit CVE remediation, dependency upgrades, guideline reviews, and the plugin's own feedback commands. The table below is the complete list.
+A role-based pipeline of twenty-three slash commands. Its spine runs idea refinement → Product Requirements Document → architecture → Epic breakdown → specification → design → readiness → implementation → documentation → release notes, with Opus-backed risk planning, code review, and doc/design review gates along the way; around that spine sit CVE remediation, dependency upgrades, guideline reviews, and the plugin's own feedback commands. The table below is the complete list.
 
 > Part of the `ihudak-plugins` marketplace — see the [repo-root setup guide](../../README.md) for marketplace install + prerequisites.
 

@@ -5,7 +5,7 @@
 | install this and set it up | [Getting started](getting-started.md) |
 | understand the whole pipeline first | [Workflow overview](workflow.md) |
 | know what my role is responsible for | [Roles and phases](roles-and-phases.md) |
-| turn a customer BRD into a grounded requirement inventory | [`/brd-intake`](commands/brd-intake.md) |
+| turn a customer BRD into a grounded requirement inventory | [`/brd-intake`](commands/brd-intake.md), [`/brd-ground`](commands/brd-ground.md) |
 | turn a raw idea into something actionable | [`/idea`](commands/idea.md) |
 | write or refresh a Product Requirements Document | [`/create-prd`](commands/create-prd.md), [`/update-prd`](commands/update-prd.md) |
 | record an architecture decision | [`/create-ard`](commands/create-ard.md) |
@@ -25,6 +25,7 @@ Three pages orient you before you touch a command: [Getting started](getting-sta
 ## Commands
 
 - [`/api-guideline-reviewer`](commands/api-guideline-reviewer.md) — review an OpenAPI spec against the bundled REST API and IAM permission naming guidelines.
+- [`/brd-ground`](commands/brd-ground.md) — pin every mounted repository, ground the BRD's requirements against code and design, and independently re-derive every finding on Opus.
 - [`/brd-intake`](commands/brd-intake.md) — intake a customer BRD verbatim, extract its requirement inventory, and write a coverage ledger with every row unallocated.
 - [`/create-ard`](commands/create-ard.md) — author an Architecture Requirements/Decision Document for a PRD, or for one Epic inside it, grounded on the mounted code.
 - [`/create-prd`](commands/create-prd.md) — turn a refined idea plus a Jira key into a reviewed Product Requirements Document.

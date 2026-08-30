@@ -313,14 +313,21 @@ reading either before it finishes its independent re-derivation. That sequencing
 agent's to enforce on itself (its Process step 2 is explicit about it); this orchestrator's job is
 only to hand over the full, correctly-shaped record, never to withhold a field the contract lists.
 
-**`provenance` is set per finding, never blanket.** `own-run` for a finding this same invocation
-produced in Phase 5. `inherited` for a finding this invocation did not itself just produce —
-concretely, a pre-existing finding a `--rebaseline` pass is re-checking, since it was written by an
-earlier run of this workflow. The agent's own Inputs contract and `grounding-format.md` §8 both
-define `inherited` as "another team's report **or an earlier run of this workflow**," and a finding
-surviving from before this invocation is the second of those, regardless of how confident its
-write-up reads — mislabelling it `own-run` would tell the verifier to relax exactly where §5 of its
-own instructions say rigor must not drop.
+**`provenance` is set per finding, by origin — never by which phase produced it, and never
+blanket.** `own-run` for any finding **this invocation itself produced**, regardless of which
+phase did the producing: Phase 3's baseline `[CG#n]` findings qualify exactly as Phase 5's claim
+findings do, because Phase 3 re-runs `baseline-integrity` and assigns a fresh id every invocation —
+first run or `--rebaseline` alike — never carrying a prior run's baseline finding forward
+unreproduced. `inherited` for a finding **this invocation did not reproduce** — concretely, a
+`--rebaseline` pass where a given repository's `HEAD` had not moved (Phase 3), so Phase 5 skipped
+re-grounding its claims and the pre-existing findings from an earlier invocation stand as they
+were, now being re-checked rather than regenerated. Phrasing the rule by origin rather than by
+phase number is deliberate: it is immune to a future renumbering the way a phase-keyed rule is not.
+The agent's own Inputs contract and `grounding-format.md` §8 both define `inherited` as "another
+team's report **or an earlier run of this workflow**," and a finding surviving from before this
+invocation, unreproduced, is the second of those, regardless of how confident its write-up reads —
+mislabelling it `own-run` would tell the verifier to relax exactly where §5 of its own instructions
+say rigor must not drop.
 
 Act on `outcome`:
 - **`agree`** — keep the finding as written; record the outcome alongside it.

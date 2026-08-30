@@ -12,7 +12,7 @@ its six commands run as PM, and the second step, `/brd-ground`, is PM-initiated 
 — it is the step that actually opens the mounted repositories and design assets to check a claim,
 work that sits with PA/Dev rather than PM.
 
-## The six commands
+## The six commands, and where they hand over
 
 ```mermaid
 flowchart TD
@@ -29,6 +29,11 @@ flowchart TD
     subgraph OFF["Off-platform — the customer, with a vanilla agent and nothing installed"]
         review["the customer reviews the bundle"]
     end
+    subgraph OUT["PM/PA/PE — the PRD pipeline this route hands over to"]
+        createprd["/create-prd"]
+        createard["/create-ard"]
+        specify["/specify"]
+    end
 
     intake --> ground
     ground --> split
@@ -39,7 +44,16 @@ flowchart TD
     review -->|answers come back as one file| reconcile
     reconcile -.->|a decision reopened, or a question askable again| interview
     reconcile -.->|questions still held for the customer| package
+    reconcile -->|BRD key + --from-brd — only if fully allocated and one row covered-here| createprd
+    reconcile -->|BRD key + --from-brd — unconditional| createard
+    reconcile -->|BRD key + --from-brd — unconditional| specify
 ```
+
+**The right-hand box is not part of the route.** Its three nodes are the PRD pipeline's own
+commands, drawn here because `/brd-reconcile` is where this route hands over to them and a reader
+following the diagram needs somewhere to go next. The route itself is still the six `/brd-*`
+commands: nothing in that box extracts a requirement, allocates a ledger row or opens a question —
+each of the three only reads its own altitude's seed and stamps `consumed_by` on what it took.
 
 **The `Off-platform` box is the route's defining feature, not a decoration.** Everything else in
 the diagram is a command this plugin runs; that box is a wait, and nothing in the plugin can
@@ -92,12 +106,18 @@ next-step phase names all three against that same BRD key — `/create-prd --fro
 reconciled ledger leaves no claimed row `unallocated` and at least one `covered-here` (the two
 refusals its own Phase 0 raises), and `/create-ard --from-brd` and `/specify --from-brd`
 unconditionally, since neither dispatches `jira-reader`, neither gates a PRD and neither reads the
-ledger. The diagram above does not yet draw those three edges.
+ledger. **The diagram above draws all three**, as the three solid edges leaving `/brd-reconcile`
+into the right-hand box. They are alternatives rather than a sequence: the two unconditional ones
+wait on nothing `/create-prd --from-brd` produces, so an ARD or a specification can be authored from
+a BRD whose ledger will never qualify for a PRD of its own. [Workflow overview](workflow.md) draws
+the same three edges with the same labels, into the same three commands.
 
 ## Parameters
 
 One row per command, derived from its own argument parsing — the flags below are exactly what each
-command accepts today, not a preview of what a later increment adds.
+command accepts today, not a preview of what a later increment adds. The first six rows are the
+route; the last three are the handover the diagram draws, shown in their `--from-brd` form only —
+each of those three also has a Jira-driven form that this route never uses.
 
 | Command | Required | Optional | Notes |
 |---|---|---|---|
@@ -107,19 +127,33 @@ command accepts today, not a preview of what a later increment adds.
 | `/brd-interview` | `<BRD-KEY>` | `--round N` | Rounds are numbered, permanent and resumable. No flag continues at the first question with no terminal disposition; `--round N` resumes an open round, or re-opens a closed one with its cause recorded |
 | `/brd-package` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…` | Repeatable, and any key at either level is admissible; a mistyped one is warned and dropped, never fatal. Each prerequisite's own package is copied into the bundle, marked *not for re-review* |
 | `/brd-reconcile` | `<BRD-KEY> @<review-file>` | — | The review is taken at whatever path it arrived on, inside `$SPECS_PATH` or not, and is never searched for: the operator names the file, because one this command picked is one nobody submitted |
+| `/create-prd` | `<BRD-KEY> --from-brd` | `--from-brd <dir>`, `--lean`/`--hybrid`/`--full`, `--no-docs`, `--no-prior-art`, `@<idea.md>` | Offered only where no claimed ledger row is `unallocated` and at least one is `covered-here`. Profile defaults to `--full` here; `--from-prd` is refused alongside it |
+| `/create-ard` | `<BRD-KEY> --from-brd` | `--from-brd <dir>`, `--no-docs` | Offered unconditionally: the run gates no PRD, dispatches no `jira-reader` and reads no ledger. One key only — a second stops the run (`CREATE_ARD_BRD_NO_EPIC`) |
+| `/specify` | `<BRD-KEY> --from-brd` | `--from-brd <dir>`, `--no-docs` | Offered unconditionally, on exactly the same terms. One key only — a second stops the run (`SPECIFY_BRD_NO_EPIC`) |
 
-`--no-docs` appears on two of the six rows and means the same thing on both: turn off the optional
-grounding on shipped product documentation that `/brd-intake` and `/brd-ground` do when `$DOCS_PATH`
-resolves. The other four have no such flag because none of them does docs grounding to turn off —
-`/brd-split` allocates requirements, and the last three work on decisions already taken, on which a
-documentation page (a claim *about* behaviour, not the behaviour) settles nothing. See
+`--no-docs` appears on two of the six **route** rows and means the same thing on both: turn off the
+optional grounding on shipped product documentation that `/brd-intake` and `/brd-ground` do when
+`$DOCS_PATH` resolves. The other four route commands have no such flag because none of them does
+docs grounding to turn off — `/brd-split` allocates requirements, and the last three work on
+decisions already taken, on which a documentation page (a claim *about* behaviour, not the
+behaviour) settles nothing. It reappears on all three **handover** rows, where it turns off that
+same grounding in the authoring run itself rather than in the route. See
 [`docs-grounding.md`](../references/docs-grounding.md) for the resolution gate and the two
 consumption modes this route uses.
 
 `<BRD-KEY>` follows the same shape everywhere in this route: `^[A-Z][A-Z0-9_]*(-\d+)+$`, checked
 for shape only and never against a tracker — a BRD is a markdown file under `$SPECS_PATH`, not a
-Jira ticket. Every command after `/brd-intake` accepts a key at either of the two levels a BRD
-folder can occupy, and only `/brd-split` behaves differently between them.
+Jira ticket. **That shape is two segments or three**: a BRD owning its source document is keyed
+`EPIC-008` and a slice of it `EPIC-008-01`, and the grammar prefers neither — a key's segment count
+is a naming convention, never a depth declaration. Every command after `/brd-intake` accepts a key
+at either of the two levels a BRD folder can occupy, and only `/brd-split` behaves differently
+between them. The three `--from-brd` rows take the same shape and resolve at either level too,
+which is what lets a PRD, an ARD or a specification be authored from a slice rather than only from
+the BRD above it.
+
+`--from-brd` is a **switch, not a path** on all three of those rows: the positional key already
+identifies the BRD folder, so the optional `<dir>` is only ever for a BRD folder outside the normal
+layout, and a token following the flag is consumed as that path only when it is not itself a flag.
 
 ## What lands where
 

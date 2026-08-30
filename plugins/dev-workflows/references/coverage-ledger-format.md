@@ -102,7 +102,12 @@ the ledger's job is to record a requirement's fate, not to force every requireme
 
 `/brd-split` cannot complete while any row in this BRD's ledger is `unallocated`.
 It opens the gate by walking every remaining `unallocated` row one at a time and offering a path
-off `unallocated` into one of the five terminal dispositions in §3. Re-running `/brd-split` on a
+off `unallocated` into a terminal disposition — whichever ones §3 makes available at the level this
+BRD sits at, which is not the same set at both: `covered-by` is parent-only, so a slice's walk
+resolves through fewer than a source-owning BRD's. **No number is written here**, for the same
+reason the paragraph below refuses to re-enumerate the picker: a level-general count is wrong at
+one of the two levels the moment it is written, and a level-specific pair drifts the next time §3
+changes. §3 is where availability is decided; read the count off it. Re-running `/brd-split` on a
 BRD whose ledger is already fully allocated is a no-op: nothing changes, and the command still
 reports the ledger line (§6).
 
@@ -121,10 +126,23 @@ picker changes.
 - **Eligible.** At least one `covered-here` row exists. The BRD may go on to author its own
   `<BRD-KEY>_<slug>.md` once `/create-prd --from-brd` (increment 3) runs against it.
 - **Not eligible.** No row is `covered-here` — every row resolves to `covered-by: <CHILD-KEY>` or
-  `deferred-to: <this BRD>` (with `rejected` and `superseded-by` rows outside the question
-  entirely, per §6). The BRD was fully sliced and holds no PRD of its own. A consumer that reaches
-  this state must refuse to author a PRD here and name the children that do, rather than producing
-  an empty or placeholder document.
+  `deferred-to: <this BRD>` (`rejected` rows are not obligations of anyone, and `superseded-by`
+  rows are excluded from the ledger line entirely per §6.3; neither bears on eligibility). This BRD
+  holds no PRD of its own. A consumer that reaches this state must refuse to author a PRD here and
+  say **where the requirements went**, rather than producing an empty or placeholder document.
+
+  **What there is to say depends on how the state was reached, and one of the three ways names no
+  child at all:**
+
+  | How every row left `covered-here` | What the consumer says |
+  |---|---|
+  | Some rows are `covered-by: <CHILD-KEY>` | Name those children — and, per §6.1, which of them did not build the row delegated to it. A child that deferred, rejected or has not allocated it is not somewhere to send the reader |
+  | No row is `covered-by`: the BRD was never split | Name no child, because none exists. Say that every requirement is a live obligation of this BRD and that a PRD needs one of them resolved `covered-here` first |
+  | No row is `covered-by` because this is a **slice** | The same, for the reason the paragraph below gives |
+
+  "Name the children that do" is right only in the first row. In the other two there is nothing to
+  name, and a consumer that goes looking for a child to point at finds none and must not invent
+  one — the honest report is that the requirements are deferred, and by whom.
 
 **A slice reaches eligibility by exactly this rule**, through the same Phase 4 walk on its own
 ledger. The one difference follows from `covered-by` being parent-only (§3): on a slice, the

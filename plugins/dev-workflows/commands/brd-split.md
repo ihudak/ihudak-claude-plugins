@@ -256,10 +256,10 @@ the disposition has nothing it could name (`coverage-ledger-format.md` §3). The
 unchanged, and `covered-here` is what makes this slice PRD-eligible (§5)."* The remaining four are
 a strict subset: nothing about them is redefined for a slice.
 
-These are the five **terminal** resolutions among the six dispositions
-`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3 defines — `unallocated` itself is
-the sixth, and the only one none of these five choices ever writes back. §4 is where "one of the
-five terminal dispositions" names this same set and states the gate this command
+Both pickers offer nothing but **terminal** dispositions from
+`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3 — five in `full` mode, four in
+`allocate-only`, and `unallocated` in neither: it is the one disposition no choice above ever
+writes back. §4 states the gate those resolutions open, which this command
 **cannot complete while any row stays `unallocated`** — a `Cancel` mid-walk stops the run naming
 how many rows remain, but every row already resolved this pass stays written; nothing already
 decided is rolled back.

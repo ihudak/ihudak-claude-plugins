@@ -821,7 +821,8 @@ to open six command pages to find that `--from-brd` takes the parent BRD folder:
 | `/create-ard` | `<BRD-KEY>` | `--from-brd` | Consumes `ard-seed.md` |
 | `/specify` | `<BRD-KEY>` | `--from-brd` | Consumes `spec-seed.md` |
 
-Keys are resolved at any nesting depth (§4.3) — `EPIC-008-01` never needs a path.
+Keys are resolved at either level a BRD folder can occupy (§4.3) — `EPIC-008-01` never needs a
+path. Nesting is capped at one level (D17), so those two levels are all there are.
 
 Also updated: six pages under `docs/commands/`; `docs/roles-and-phases.md` (the route is
 PM-owned, with `/brd-ground` PM-initiated and PA/Dev-executed, and `[V]` answers in

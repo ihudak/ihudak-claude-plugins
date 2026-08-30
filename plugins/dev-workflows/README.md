@@ -11,7 +11,8 @@ Every command owns one role's step in the pipeline and hands a concrete artifact
 | Role | Commands | What it does |
 |------|----------|--------------|
 | PM | [`/idea`](docs/commands/idea.md), [`/create-prd`](docs/commands/create-prd.md), [`/update-prd`](docs/commands/update-prd.md), [`/release-notes`](docs/commands/release-notes.md) *(early run)* | Refine a raw idea, author or refresh the Product Requirements Document, and draft an early release-notes note. |
-| PA *(optional)* | [`/create-ard`](docs/commands/create-ard.md) | Ground an architecture decision in the mounted implementation code. |
+| PM *(BRD route)* | [`/brd-intake`](docs/commands/brd-intake.md), [`/brd-split`](docs/commands/brd-split.md) | Intake a customer BRD verbatim, extract its requirement inventory, and split it once every row is allocated. |
+| PA *(optional)* | [`/create-ard`](docs/commands/create-ard.md), [`/brd-ground`](docs/commands/brd-ground.md) | Ground an architecture decision, or a BRD's requirement claims, in the mounted implementation code. |
 | PE | [`/epics`](docs/commands/epics.md), [`/specify`](docs/commands/specify.md) | Break a PRD into Epics, then author an org-standard specification through a grill. |
 | Dev | [`/design`](docs/commands/design.md), [`/implement`](docs/commands/implement.md), [`/ready`](docs/commands/ready.md), [`/document`](docs/commands/document.md), `/release-notes` *(final run)* | Design against the spec, implement it under review gates, verify a Jira status against the record, document the result, and draft the final [`/release-notes`](docs/commands/release-notes.md) note. |
 | Anytime — maintenance | [`/vuln`](docs/commands/vuln.md), [`/upgrade`](docs/commands/upgrade.md), [`/docs-profile`](docs/commands/docs-profile.md), [`/statusline`](docs/commands/statusline.md) | Remediate a CVE, upgrade a dependency, profile a docs repo, or install the status line. |

@@ -1,6 +1,6 @@
 ---
 name: brd-split
-description: BRD-splitting workflow (PM phase, third and final command of increment 1's BRD-to-PRD route). Gates on every grounding finding carrying a verifier verdict, proposes candidate slices from the grounded picture (buildable now, blocked, or dependent), keys and nests a child BRD folder per confirmed slice with its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md, then walks every unallocated coverage-ledger row one at a time through five resolutions (build here, assign to a named child, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. Re-running on a fully-allocated BRD is a no-op that prints the ledger. Offers /brd-ground on each new child as the next step.
+description: BRD-splitting workflow (PM phase, third and final command of increment 1's BRD-to-PRD route). Gates on every grounding finding carrying a verifier verdict, proposes candidate slices from the grounded picture (buildable now, blocked, or dependent), keys and nests a child BRD folder per confirmed slice with its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md, then walks every unallocated coverage-ledger row one at a time through five resolutions (build here, assign to a named child, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. Refuses on a slice — nesting is capped at one level, so a slice is not itself sliceable. Re-running on a fully-allocated BRD is a no-op that prints the ledger. Offers /brd-ground on each new child as the next step.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -15,9 +15,9 @@ quietly wave a requirement past, and nothing would notice.
 
 Usage: `/brd-split <BRD-KEY>`
 
-Runs at whatever level `<BRD-KEY>` names (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md`
-§3) — a parent BRD or one of its own slices — splitting and allocating only that BRD's own claimed
-requirements.
+Runs **only on a BRD that owns its source document** — never on a slice. Nesting is capped at one
+level (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §3): a slice is a BRD in every other
+respect, but it is not itself sliceable, and Phase 0 refuses it with `BRD_SPLIT_ON_SLICE`.
 
 ---
 
@@ -33,9 +33,25 @@ requirements.
    clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
    `commit-artifacts` step skips on it.
-4. **Resolve the BRD folder.** `resolve-brd <BRD-KEY>` (`brd-addressing.md` §2). Absent → stop:
-   `BRD_SPLIT_NOT_FOUND: no BRD folder found for <BRD-KEY> — run /dev-workflows:brd-intake <BRD-KEY> @<brd-file> first.`
-5. **Gate the grounding deliverable on main.** `/brd-split` **consumes** a `$SPECS_PATH`
+4. **Resolve the BRD folder.** `resolve-brd <BRD-KEY>` (`brd-addressing.md` §2), which searches
+   `specifications/` and exactly one level below it (§2 step 2) — the two levels a BRD folder can
+   occupy. Absent → stop, without asserting which command would create it, because nothing on disk
+   says whether this key names a BRD with a source document or a slice of one:
+   `BRD_SPLIT_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent, and is not itself sliceable.`
+5. **Refuse on a slice.** Read the resolved folder's `brd-link.md` and branch on its `parent:`
+   field — the same signal `/brd-ground` Phase 0 uses to tell a slice from a root, and the only
+   reliable one: a key's segment count is a naming convention, never a depth declaration
+   (`brd-addressing.md` §1). No `brd-link.md`, or one with no `parent:` → this BRD owns its source
+   document; proceed. **`parent: <PARENT-KEY>` present → this is a slice, and nesting is capped at
+   one level (`brd-addressing.md` §3). Stop, before the gate below does any fetching:**
+   `BRD_SPLIT_ON_SLICE: <BRD-KEY> is a slice of <PARENT-KEY> — nesting is capped at one level, so a slice is not itself sliceable. Split the parent instead: /dev-workflows:brd-split <PARENT-KEY>.`
+   The refusal is the cap: a grandchild would inherit `brd/source/` and a defect log from a parent
+   that holds neither, so its inventory header would name a path that does not exist and a
+   `rejected: [DEF#n]` taken here would cite a missing log (`brd-addressing.md` §3,
+   `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1, §4). Because this stop fires first, every
+   "its parent's" in the phases below is literal — a folder this command splits always owns its
+   own source and its own defect log.
+6. **Gate the grounding deliverable on main.** `/brd-split` **consumes** a `$SPECS_PATH`
    deliverable it did not write (`/brd-ground`'s findings, and — transitively — `/brd-intake`'s
    ledger), so per `phase-handoff.md` §5 rule 2 it executes `require-on-main` (§3) here in Phase 0,
    before anything else reads a file. Execute it against the resolved BRD folder's
@@ -49,18 +65,18 @@ requirements.
    grounding has never run for this BRD at all) → stop:
    `BRD_SPLIT_NEEDS_GROUNDING: no grounding findings on file for <BRD-KEY> — run /dev-workflows:brd-ground <BRD-KEY> first.`;
    `unmanaged` → proceed as before this feature.
-6. **Gate on verification.** Every `[CG#n]`/`[DG#n]` finding carries a verifier `outcome` (one of
+7. **Gate on verification.** Every `[CG#n]`/`[DG#n]` finding carries a verifier `outcome` (one of
    the four in `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §8 — `agree`, `extend`,
    `contradict`, `unprovable`) once `/brd-ground` Phase 7 has run over it; a finding without one
    "is not evidence and cannot be recorded as `consumed_by` anything" (§8), and this command must
    never propose a slice or offer `covered-here` against a claim nobody has actually verified.
    Count every finding on file carrying no recorded `outcome`. Any count `N` greater than zero →
    stop: `BRD_SPLIT_UNVERIFIED: N findings have no verifier verdict — run /dev-workflows:brd-ground first.`
-7. **Read the ledger; check for the no-op case.** Read `<BRD-dir>/coverage-ledger.md` and compute
+8. **Read the ledger; check for the no-op case.** Read `<BRD-dir>/coverage-ledger.md` and compute
    its disposition counts (`coverage-ledger-format.md` §3). **Zero rows are `unallocated`** → this
    run is a no-op (§4): nothing in Phases 2–5 has anything left to do, so skip straight to Phase 6
    (Handoff), which will report nothing to commit, and the Final Report's ledger line below.
-8. **Enumerate existing children.** List every immediate subdirectory of `<BRD-dir>` whose name
+9. **Enumerate existing children.** List every immediate subdirectory of `<BRD-dir>` whose name
    matches `<KEY>{-|_}<slug>` (`brd-addressing.md` §2 step 1), excluding `brd/`, `grounding/`, and
    `dev-workflows/` — none of those is ever a BRD folder. Each match is a child a previous
    `/brd-split` run already created, nested per §3, and remains a valid `covered-by` target in
@@ -114,7 +130,7 @@ choices: ["Accept these slices as proposed (Recommended)", "Edit one or more sli
 in Phase 4 — most naturally landing on `covered-here`, per `coverage-ledger-format.md` §5's
 PRD-eligibility rule — so choosing
 "walk the ledger directly" or editing the list down to nothing skips Phase 3 entirely and proceeds
-straight to Phase 4 with whatever children Phase 0 step 8 already found (if any).
+straight to Phase 4 with whatever children Phase 0 step 9 already found (if any).
 
 ---
 
@@ -124,7 +140,7 @@ For every slice Phase 2 confirmed:
 
 1. **Take a key.** Propose a default of the parent's key plus the next unused two-digit segment
    (e.g. `<PARENT-KEY>-01`, `<PARENT-KEY>-02`, …, skipping any segment an existing child from
-   Phase 0 step 8 already uses) and let the operator accept it or supply their own. Validate
+   Phase 0 step 9 already uses) and let the operator accept it or supply their own. Validate
    whatever is used with `brd-key-valid` (`brd-addressing.md` §1); an invalid key is re-prompted,
    never silently coerced.
 2. **Create the folder inside this one.** `specifications/<PARENT-KEY>-<parent-slug>/<CHILD-KEY>-<child-slug>/`,
@@ -142,8 +158,10 @@ For every slice Phase 2 confirmed:
    the parent's and stay the parent's, and every `source_anchor` copied here keeps resolving
    against the parent's `brd/source/` — the child holds no source of its own and never will, which
    is why §2.1 makes the header carry that path. The child likewise gets no
-   `brd/brd-defect-log.md`: a `[DEF#n]` on a copied row is the parent's, and a later `/brd-split`
-   run standing on this child resolves it in the parent's log (`brd-format.md` §4).
+   `brd/brd-defect-log.md`: a `[DEF#n]` on a copied row is the parent's, and any reader who has to
+   resolve one while standing on the child looks it up in the parent's log (`brd-format.md` §4).
+   That resolution is always one hop, never a chase: the cap in `brd-addressing.md` §3 makes this
+   child's parent — this BRD — the source-owning root.
 5. **Write the child's `coverage-ledger.md`** — one row per `[BR#n]` in the inventory just written,
    `disposition: unallocated` on every one, per
    `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3, whose creator table names this
@@ -163,11 +181,12 @@ is dropped — it never becomes a `covered-by` target, and its rows return to th
 unclustered.
 
 **About the child's key.** The default proposed in step 1 — the parent's key plus the next unused
-two-digit segment — is also what keeps the child findable at its own depth: `resolve-brd` bounds
-its descent by the key's own segment count (`brd-addressing.md` §2). An operator-supplied key with
-no additional segment still resolves, because that bound has a floor of one level, but it buys no
-depth for a grandchild of its own; say so when accepting one rather than discovering it two splits
-later.
+two-digit segment — is a naming convention that keeps sibling slices distinguishable and reads as
+what it is. It buys the child no resolution depth and needs none: `resolve-brd` searches
+`specifications/` and exactly one level below it, which is where this folder sits regardless of how
+many segments its key carries (`brd-addressing.md` §1, §2). So an operator-supplied key with no
+additional segment resolves exactly as the default does, and nothing about either choice makes the
+child sliceable — no key shape lifts the one-level cap (§3).
 
 ---
 
@@ -197,7 +216,7 @@ decided is rolled back.
   a PRD of its own — allocation would deadlock at the very case this command must handle most
   routinely.
 - **Assign to a named child BRD** → prompt for the child's key: any created in Phase 3 this run, or
-  any found already nested under this BRD in Phase 0 step 8. Reject a key that resolves to neither
+  any found already nested under this BRD in Phase 0 step 9. Reject a key that resolves to neither
   and re-prompt — `covered-by` never names a folder that does not exist. Write
   `disposition: covered-by: <CHILD-KEY>`, and add this row's `[BR#n]` to that child's `brd-link.md`
   `claims:` list if it is not already there.
@@ -205,21 +224,27 @@ decided is rolled back.
   held for Phase 5's `slices.md`. Deferring is itself an allocation
   (`coverage-ledger-format.md` §3): the point is that the requirement's fate is recorded, not that
   everything must be built now.
-- **Reject** → prompt for the `[DEF#n]` that justifies it; it must already exist in the defect log
-  that governs this BRD — its own `brd/brd-defect-log.md` when this BRD owns the source document,
-  or its parent's when this run is standing on a slice, which holds none of its own
-  (`brd-format.md` §2.1, §4). A row with no qualifying defect is not rejected this way; resolve or
-  raise the defect first. Write `disposition: rejected: [DEF#n]`.
+- **Reject** → prompt for the `[DEF#n]` that justifies it; it must already exist in this BRD's own
+  `brd/brd-defect-log.md`. Phase 0 step 5 already refused a slice, so the BRD this walk stands on
+  always owns the source document and therefore the log (`brd-format.md` §2.1, §4) — there is no
+  case in which this resolution has to reach into another folder for it. A row with no qualifying
+  defect is not rejected this way; resolve or raise the defect first. Write
+  `disposition: rejected: [DEF#n]`.
 - **Mark superseded** → prompt for the replacing `[BR#n]`; it must already exist in
   `brd/brd-inventory.md`. Write `disposition: superseded-by: [BR#n]`.
 
 **Once every row is resolved, bring each surviving child's three files back into agreement.** The
 walk is what actually allocates, so a child's `claims:` list, its `brd/brd-inventory.md`, and its
 `coverage-ledger.md` are all provisional until this point. For every child still standing — created
-this run in Phase 3, or found already nested in Phase 0 step 8 and given a row by this walk —
+this run in Phase 3, or found already nested in Phase 0 step 9 and given a row by this walk —
 re-derive all three from the rows this walk ended up resolving `covered-by: <that child>`: the
 `claims:` list, the copied inventory rows (`brd-format.md` §2.1), and one `unallocated` ledger row
-per claim. A row added to a child here gains its inventory and ledger rows here; a row proposed for
+per claim. **"Re-derive" means reconcile, not rebuild from scratch.** This walk visits only rows
+that were `unallocated` when Phase 0 step 8 read the ledger, so the rows a pre-existing child was
+already given by an earlier run are not revisited here and must not be dropped: the set each child
+ends with is the union of the rows it already claimed and the rows this walk newly resolved to it,
+minus only the rows this walk moved off `covered-by: <that child>` to something else. A rebuild
+from this walk's resolutions alone would silently strip every earlier claim. A row added to a child here gains its inventory and ledger rows here; a row proposed for
 a child in Phase 3 but resolved elsewhere loses all three together. Nothing is renumbered — ids are
 the parent's throughout — and a ledger row an earlier run already moved off `unallocated` in a
 pre-existing child is left exactly as it stands: this step adds and removes rows, and never
@@ -241,7 +266,7 @@ choices: ["Remove the empty child folder — it claims nothing (Recommended)", "
 ```
 
 Removing deletes the folder Phase 3 created — `brd-link.md`, `brd/brd-inventory.md`, and
-`coverage-ledger.md` with it — and drops it from any later run's Phase 0 step 8 enumeration;
+`coverage-ledger.md` with it — and drops it from any later run's Phase 0 step 9 enumeration;
 keeping it writes a one-line `reason:` field into its `brd-link.md` beside the empty `claims:`
 list, and leaves the empty inventory and empty ledger in place, so the folder is still a
 well-formed BRD rather than a half-built one. Either way, Phase 7's next-step recommendation never
@@ -264,7 +289,7 @@ A run that proposed zero slices (Phase 2) still writes `slices.md`, with an expl
 slice was proposed and why, plus every deferral this run recorded — the file is never skipped just
 because nothing was carved off this BRD.
 
-Skipped entirely on the Phase 0 step 7 no-op path — nothing was walked, so there is nothing new to
+Skipped entirely on the Phase 0 step 8 no-op path — nothing was walked, so there is nothing new to
 rationalize.
 
 ---
@@ -288,7 +313,7 @@ deletion —
 §2.3's `-A` staging is what stages a removal, exactly as it does for `/idea`'s or `/update-prd`'s
 own deletions), `title: <BRD-KEY> Split into child BRDs and allocate coverage`, and `body_facts` =
 the slice count and keys, the walk's resolution tally by disposition, and whether this run was the
-Phase 0 step 7 no-op; emit its §4.1 outcome line in the final report. The no-op path reaches this
+Phase 0 step 8 no-op; emit its §4.1 outcome line in the final report. The no-op path reaches this
 phase with nothing staged, so it reports the `nothing to commit` line rather than opening a pull
 request.
 
@@ -308,9 +333,11 @@ this run's pull request. Grounding a child is possible only once that pull reque
 choices: ["Ground each child created above — /dev-workflows:brd-ground <CHILD-KEY> (Recommended, once per non-empty child)", "Stop here — this BRD's own allocation is complete", "Other… (describe)"]
 ```
 
-A child removed, or kept empty with a recorded reason, for claiming nothing (Phase 4) is never
-offered here — grounding a BRD with no requirement to ground would have nothing to check a claim
-against. No children remain at all this run (none were created, or every one created was removed
+**Grounding is where a child's route ends today**, and say so when offering it: a slice is not
+itself sliceable (Phase 0 step 5), so `/brd-ground <CHILD-KEY>` has no `/brd-split` to hand off to
+— its own Phase 10 offers none for a slice. A child removed, or kept empty with a recorded reason,
+for claiming nothing (Phase 4) is never offered here — grounding a BRD with no requirement to
+ground would have nothing to check a claim against. No children remain at all this run (none were created, or every one created was removed
 as empty) → the second choice is the natural one, stated plainly rather than omitted. Guidance
 only — never auto-invokes another command. Recording decisions and preparing a customer package
 are not steps this plugin offers yet; `/brd-split` is the last command of this route today, so a
@@ -332,9 +359,10 @@ step 7 no-op path exactly as on any other.
 
 **Capture-at-block invariant.** If an EARLIER phase halts on a plugin / skill / command / reference
 gap, `emit-block` (`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) fires at that halt
-before escalating. None of Phase 0's stops qualify — a missing key, an unresolved BRD, an ungated
-or missing grounding deliverable, unverified findings, and an unset `$SPECS_PATH` are environment /
-sequencing halts, never a plugin capability gap.
+before escalating. None of Phase 0's stops qualify — a missing key, an unresolved BRD, a key that
+resolved to a slice (`BRD_SPLIT_ON_SLICE`), an ungated or missing grounding deliverable, unverified
+findings, and an unset `$SPECS_PATH` are environment / sequencing halts, never a plugin capability
+gap.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model:
    `<detection_model>`) with a compact handoff: command `/brd-split`; what was produced (slices
@@ -370,7 +398,7 @@ directory; no user name is ever written.
 
 ## Final report
 
-Report: the BRD folder; whether Phase 0 step 7 found this run a no-op (fully allocated already) or
+Report: the BRD folder; whether Phase 0 step 8 found this run a no-op (fully allocated already) or
 whether it actually split and/or walked the ledger; the classification and model routing (+ any
 Opus degradation); every slice proposed, keyed, and its folder (or that none were proposed and
 why); any child removed or kept-with-reason for claiming nothing (Phase 4) and which; the ledger
@@ -388,4 +416,4 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 `/brd-split` is the only `/brd-*` command that can ever change this line's final term — a
 completed run always ends it at `0 unallocated` (`coverage-ledger-format.md` §4: "cannot complete
 while any row in this BRD's ledger is `unallocated`"), whether that took an actual walk this run or
-was already true when Phase 0 step 7 found nothing left to do.
+was already true when Phase 0 step 8 found nothing left to do.

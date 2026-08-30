@@ -49,12 +49,18 @@ from it — useful on its own, without any of the follow-on work increment 2/3 w
 - **`docs/brd-workflow.md`** — a route overview page with a Mermaid diagram of the three-command
   loop and each command's parameter table.
 
-- **`resolve-brd` now searches to the depth the key declares, not one level.** A slice is a BRD, so
-  `/brd-split` runs on one and produces a grandchild — which the old one-level cap reported
-  `absent`. Resolution now descends at most `max(1, S − 1)` levels below `specifications/`, where
-  `S` is the key's hyphen-numeric segment count; the bound is computed from the key string before
-  any directory is read, so the search still always terminates, and the floor of one level keeps
-  every key that resolved before resolving now (`references/brd-addressing.md` §2, §3).
+- **Nesting is capped at one level, and `/brd-split` refuses a slice.** A slice is a BRD in every
+  other respect — same commands, same artifacts, free to depend on any other BRD — but it is not
+  itself sliceable: `/brd-split` stops with `BRD_SPLIT_ON_SLICE`, checked from the resolved
+  folder's `brd-link.md` `parent:` field before the run fetches anything. `resolve-brd` matches
+  that exactly, searching `specifications/` and one level below it and no further
+  (`references/brd-addressing.md` §2, §3). The cap is what makes every inheritance in the route
+  literal: a slice's parent is always the BRD that owns the customer's document, so
+  `brd-format.md` §2.1's inherited `source:` path and §4's inherited defect log always exist. A
+  grandchild would have had neither. The visible consequence is that a slice's own ledger rows stay
+  `unallocated` — the same requirements already carry a fate on the parent's ledger as
+  `covered-by`, and `/brd-ground` is where a slice's route ends today
+  (`references/coverage-ledger-format.md` §3).
 
 Roster corrections that landed with this route: `CLAUDE.md`'s specs-repo-git caller count (twenty,
 not seventeen — all three `/brd-*` commands run `specs-preflight` and `commit-artifacts`) and its

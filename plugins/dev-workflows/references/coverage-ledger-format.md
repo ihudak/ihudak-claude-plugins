@@ -22,7 +22,8 @@ past. The ledger exists to make that failure visible: a row left `unallocated` (
 rows that resolve to nothing but `covered-by` pointing at each other's children, is a fact the
 ledger states plainly rather than a gap that only a careful re-read of every child would surface.
 
-One ledger exists per BRD, at whatever level that BRD sits (a parent or a slice, §4 of the design),
+One ledger exists per BRD, at either of the two levels a BRD can sit — a BRD that owns its source
+document, or a slice one level inside it (`references/brd-addressing.md` §3 caps nesting there) —
 with one row per `[BR#n]` that BRD's `brd-link.md` claims.
 
 ## 2. Row shape
@@ -64,9 +65,19 @@ starts in any other disposition.
 
 `/brd-intake` never runs on a slice — a slice has no document to intake (`brd-format.md` §2.1) — so
 if `/brd-split` did not write the slice's ledger at the moment it created the slice's folder,
-nothing ever would, and the slice could never be ground or split in its own right. `/brd-split` is
-also the only command holding both the parent's rows and the allocation that says which of them the
-slice claims.
+nothing ever would, and the slice could never be ground in its own right: `/brd-ground` Phase 0
+gates on that ledger. `/brd-split` is also the only command holding both the parent's rows and the
+allocation that says which of them the slice claims.
+
+**A slice's rows stay `unallocated` in the route as it ships today.** `/brd-split` refuses on a
+slice — nesting is capped at one level (`references/brd-addressing.md` §3,
+`commands/brd-split.md` Phase 0 step 5) — and it is the only command that moves a row off
+`unallocated` (§4). So a slice's own ledger records which requirements it claims and carries them
+into grounding, but no command in this increment gives those rows a terminal disposition; the
+parent's ledger is where the same requirements already carry one, as `covered-by: <CHILD-KEY>`.
+Nothing downstream reads a slice's dispositions yet — the consumer that would, `/create-prd
+--from-brd`, does not exist — so this is a stated limit of the shipped route, not a gap another
+file silently assumes away.
 
 **Deferring is itself an allocation.**
 `deferred-to: <this BRD>` discharges the gate exactly as the other four terminal dispositions do;

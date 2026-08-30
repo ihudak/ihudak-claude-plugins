@@ -20,9 +20,10 @@ last command of this route.
 /brd-split <BRD-KEY>
 ```
 
-- **`<BRD-KEY>`** (mandatory) — the BRD (or slice) to split and allocate. Resolved via
-  `resolve-brd`, so a parent or a slice key both work; format-validated only, never checked
-  against a tracker.
+- **`<BRD-KEY>`** (mandatory) — the BRD to split and allocate. It must be a BRD that owns its
+  source document: nesting is capped at one level, so a slice is not itself sliceable and this
+  command refuses one. Resolved via `resolve-brd`; format-validated only, never checked against a
+  tracker.
 
 ## How it runs
 
@@ -46,8 +47,20 @@ reads was already independently verified by `/brd-ground`'s own agents.
 ## What it needs
 
 - **`<BRD-KEY>`** — mandatory; absent or malformed stops the run with `BRD_SPLIT_NEEDS_KEY`.
-- **An existing BRD folder.** No folder for `<BRD-KEY>` stops the run with `BRD_SPLIT_NOT_FOUND`,
-  naming `/brd-intake` as the fix.
+- **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at `specifications/` and the
+  one level below it — stops the run with `BRD_SPLIT_NOT_FOUND`. That stop names both ways a folder
+  comes to exist rather than asserting one: `/brd-intake` for a BRD with a source document of its
+  own, `/brd-split` on the parent for a slice. With no folder there is no `brd-link.md` to say
+  which of the two the key was meant to be, and a key's segment count is a naming convention, not a
+  depth declaration.
+- **A BRD that owns its source document.** A key that resolves to a **slice** — recognised by the
+  `parent:` field in its `brd-link.md` — stops the run with `BRD_SPLIT_ON_SLICE`, naming
+  `/brd-split` on the parent. Nesting is capped at one level
+  ([`brd-addressing.md`](../../references/brd-addressing.md) §3): a grandchild would inherit
+  `brd/source/` and a defect log from a parent that holds neither, so its inventory header would
+  name a path that does not exist and a `rejected: [DEF#n]` disposition would cite a missing log.
+  Because this stop fires before the gate below, every inheritance the command relies on afterwards
+  is one hop to a source-owning root.
 - **`/brd-ground`'s findings already merged to the specs repo's default branch.** Phase 0 gates
   `grounding/code-grounding.md` on `origin/<default>` via `require-on-main` before reading
   anything else — an open, unmerged grounding pull request stops the run naming the branch/PR
@@ -77,8 +90,12 @@ Under `$SPECS_PATH/specifications/<BRD-KEY>-<slug>/`:
   ([`brd-format.md`](../../references/brd-format.md) §2.1); and its own `coverage-ledger.md` with
   every row `unallocated`. Those last two are what let the child re-enter the route: `/brd-ground`
   gates on the child's ledger and reads the child's inventory, and `/brd-intake` — the only other
-  command that writes either — never runs on a slice, which has no document to intake. A slice
-  whose every row ends up resolved elsewhere is either removed or kept empty with a recorded reason
+  command that writes either — never runs on a slice, which has no document to intake. Those rows
+  stay `unallocated`: grounding is where a slice's route ends today, because `/brd-split` refuses a
+  slice and is the only command that moves a row off `unallocated`; the same requirements already
+  carry a fate on this BRD's own ledger, as `covered-by: <CHILD-KEY>`
+  ([`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §3). A slice whose
+  every row ends up resolved elsewhere is either removed or kept empty with a recorded reason
   (Phase 4).
 
 Behind Phase 6's consent choice, these are committed, pushed, and a pull request opened against
@@ -87,6 +104,9 @@ with a "nothing to commit" report on the no-op path.
 
 ## Gates
 
+- **Phase 0 — the slice refusal, before anything is fetched or read.** `BRD_SPLIT_ON_SLICE` is
+  checked from the resolved folder's `brd-link.md` ahead of the `require-on-main` gate below, so a
+  key that can never be split costs no fetch.
 - **Phase 0 — grounding merged to main.** `require-on-main` against `grounding/code-grounding.md`
   runs before anything else is read — an unmerged grounding pull request, or a BRD never grounded
   at all, stops the run rather than acting on a deliverable that might still change underneath it.
@@ -124,7 +144,8 @@ writes `slices.md`, and offers to branch, commit, push, and open a pull request.
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off.
 - [`brd-addressing.md`](../../references/brd-addressing.md) — the `<BRD-KEY>` grammar and folder
   resolution this command uses by name (`brd-key-valid`, `resolve-brd`), including how a slice
-  nests inside its parent (§3), which this command is the one that actually creates.
+  nests inside its parent and why that nesting is capped at one level (§3) — this command is both
+  the one that creates a slice and the one that refuses to split one.
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the authority for
   the ledger row shape, the six dispositions, the allocation gate this command enforces, and the
   PRD-eligibility rule that makes `covered-here` matter.

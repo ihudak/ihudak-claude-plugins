@@ -20,7 +20,9 @@ route (`/brd-intake`, `/brd-ground`, `/brd-split`). All three ship together;
 ```
 
 - **`<BRD-KEY>`** (mandatory) — the BRD (or slice) to ground. Resolved via `resolve-brd`, so a
-  parent or a slice key both work; format-validated only, never checked against a tracker.
+  key at either of the two levels a BRD folder can occupy works; format-validated only, never
+  checked against a tracker. Unlike [`/brd-split`](brd-split.md), this command refuses neither
+  level.
 - **`--depends-on <BRD-KEY>`** (optional, repeatable) — declares a prerequisite BRD. Persisted to
   `brd-link.md` additively across runs; the file may also be edited by hand.
 - **`--derivation-matrix` / `--no-derivation-matrix`** (optional, mutually exclusive) — force the

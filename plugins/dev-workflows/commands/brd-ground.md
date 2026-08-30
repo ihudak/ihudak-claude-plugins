@@ -15,8 +15,10 @@ that discipline happen, not to ground anything itself.
 
 Usage: `/brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-design] [--rebaseline]`
 
-Runs at whatever level `<BRD-KEY>` names (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md`
-§3) — a parent BRD or one of its slices — grounding only the requirements that BRD claims.
+Runs at either of the two levels `<BRD-KEY>` can name (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md`
+§3) — a BRD that owns its source document, or one of its slices — grounding only the requirements
+that BRD claims. Unlike `/brd-split`, this command refuses neither: a slice is ground exactly as
+its parent is.
 
 ---
 
@@ -37,8 +39,13 @@ Runs at whatever level `<BRD-KEY>` names (`${CLAUDE_PLUGIN_ROOT}/references/brd-
    one, the same ordering `/design` Phase 0 uses and for the same reason. Prompt-free and silent
    when the specs repo is clean and on its default branch. If it returns `specs_git: blocked`
    (§3.3 G0), carry that flag for the whole run.
-5. **Resolve the BRD folder.** `resolve-brd <BRD-KEY>` (`brd-addressing.md` §2). Absent → stop:
-   `BRD_GROUND_NOT_FOUND: no BRD folder found for <BRD-KEY> — run /dev-workflows:brd-intake <BRD-KEY> @<brd-file> first.`
+5. **Resolve the BRD folder.** `resolve-brd <BRD-KEY>` (`brd-addressing.md` §2), which searches
+   `specifications/` and exactly one level below it — the two levels a BRD folder can occupy.
+   Absent → stop, without asserting which command would create it: no folder exists, so no
+   `brd-link.md` exists either, and nothing on disk says whether this key names a BRD with a source
+   document or a slice of one. Naming `/brd-intake` unconditionally would be the wrong advice for
+   half the cases, exactly as it is in step 6's `absent` branch below:
+   `BRD_GROUND_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent. Do not run /brd-intake on a slice; it has no source document of its own.`
 6. **Gate this BRD's own inventory and ledger on main.** Execute `require-on-main`
    (`phase-handoff.md` §3) against the resolved BRD folder's `coverage-ledger.md`. Whichever
    command wrote that ledger wrote the inventory beside it in the same handoff commit
@@ -452,6 +459,12 @@ prerequisite-readiness block; emit its §4.1 outcome line in the final report.
 
 ## Phase 10 — Next steps
 
+**Branch on whether this BRD is a slice**, using the `parent:` field Phase 0 step 9 already read
+from `brd-link.md` — offering a command that would refuse the very key just ground is worse than
+offering nothing.
+
+**No `parent:` — this BRD owns its source document:**
+
 ```
 choices: ["Split the BRD now that every finding carries a verifier outcome — /dev-workflows:brd-split <BRD-KEY> (Recommended)", "Ground another declared prerequisite first", "Stop here", "Other… (describe)"]
 ```
@@ -462,6 +475,15 @@ will not start until this phase's pull request is merged — its own Phase 0 gat
 cost-attribution row (`docs/roles-and-phases.md`). Guidance only, per
 `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — names only that `/brd-split` exists and
 where it sits in the route, never its behaviour, which `commands/brd-split.md` owns.
+
+**`parent: <PARENT-KEY>` — this BRD is a slice.** `/brd-split` is **not** offered: nesting is
+capped at one level, so a slice is not itself sliceable and `/brd-split <BRD-KEY>` would stop with
+`BRD_SPLIT_ON_SLICE` (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §3). Grounding is where
+this slice's route ends today — state that plainly rather than omitting a step:
+
+```
+choices: ["Stop here — this slice is ground, and the route ends here for a slice (Recommended)", "Ground another declared prerequisite first", "Other… (describe)"]
+```
 
 ### Context hygiene
 

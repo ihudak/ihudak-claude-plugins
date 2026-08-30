@@ -58,8 +58,10 @@ cites it rather than minting its own.
 
 A slice **does** hold its own `brd/brd-inventory.md`: the subset of its parent's rows its
 `brd-link.md` claims, copied row-for-row with `id`, `text`, `source_anchor`, and `defects` verbatim
-from the parent's inventory. The file opens with the two facts a reader needs to follow an anchor
-out of it:
+from the parent's inventory. **"Its parent" is literal and unambiguous**: nesting is capped at one
+level (`references/brd-addressing.md` §3), so a slice's parent is always the BRD that owns the
+source document — there is no chain to walk and no case in which the named parent holds neither.
+The file opens with the two facts a reader needs to follow an anchor out of it:
 
 ```
 parent: <PARENT-KEY>
@@ -111,9 +113,13 @@ of these resolutions:
 | `open` | none of the above has happened yet |
 
 There is exactly one defect log per source document, held by the BRD that owns that document; a
-slice reads its parent's rather than keeping one of its own (§2.1). A consumer that must resolve a
-`[DEF#n]` while standing on a slice — `/brd-split`'s `rejected: [DEF#n]` resolution, for one —
-therefore looks it up in the parent's log.
+slice reads its parent's rather than keeping one of its own (§2.1). A reader who must resolve a
+`[DEF#n]` while standing on a slice — following the `defects` column of the slice's copied
+inventory row, for instance — therefore looks it up in the parent's log, and that lookup is always
+exactly one hop: nesting is capped at one level (`references/brd-addressing.md` §3), so a slice's
+parent always owns the source document and the log. `/brd-split`'s `rejected: [DEF#n]` resolution
+never needs the hop at all — it refuses on a slice, so it only ever resolves a `[DEF#n]` in the log
+of the BRD it is standing on.
 
 A resolution changes the defect log entry's status only. It never touches `brd/source/`, and it
 never assigns the requirement a disposition — the disposition vocabulary and the artifact that

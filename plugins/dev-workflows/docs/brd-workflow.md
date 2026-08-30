@@ -24,9 +24,14 @@ flowchart TD
     end
 
     intake --> ground
-    ground --> split
+    ground -->|"BRD with a source document"| split
     split -.->|new child BRD| ground
 ```
+
+The dashed edge runs one way only. A child BRD re-enters at `/brd-ground` and stops there: nesting
+is capped at one level, so a slice is not itself sliceable and `/brd-split` refuses it. That is why
+the solid `ground → split` edge is labelled — it is the path a BRD that owns its source document
+takes, not the path a slice takes.
 
 `/brd-intake` copies the customer's document in verbatim and immutably, extracts a `[BR#n]`
 requirement inventory, confirms candidate defects with a human, and writes a coverage ledger with
@@ -37,7 +42,10 @@ a verifier verdict, proposes candidate slices, and walks every unallocated ledge
 five recorded fates — building here, assigning it to a named child BRD, deferring it, rejecting it
 against a logged defect, or marking it superseded — until none remain `unallocated`. A child BRD a
 split confirms is not a new route: it nests inside its parent's folder and re-enters at
-`/brd-ground` for its own grounding pass, which is what the dashed loop above shows.
+`/brd-ground` for its own grounding pass, which is what the dashed loop above shows. It does not
+re-enter at `/brd-split`: run on a slice, that command stops with `BRD_SPLIT_ON_SLICE`, and the
+slice's own ledger rows stay `unallocated` — the parent's ledger is where those same requirements
+already carry a fate, as `covered-by`.
 
 **This is the whole route that ships in this increment.** The design behind it sketches further
 phases — `/brd-interview`, `/brd-package`, `/brd-reconcile`, and a `--from-brd` switch on
@@ -53,8 +61,8 @@ command accepts today, not a preview of what a later increment adds.
 | Command | Required | Optional | Notes |
 |---|---|---|---|
 | `/brd-intake` | `<BRD-KEY> @<brd-file>` | `--sort-existing <dir>` | Source must already be markdown — a PDF or similar is rejected, never converted. `<BRD-KEY>` names a folder, never a tracker ticket |
-| `/brd-ground` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…`, `--rebaseline`, `--derivation-matrix` / `--no-derivation-matrix`, `--no-design` | Runs at any nesting depth. Needs `$REPOS_PATH` mounted; read-only against every repository it touches |
-| `/brd-split` | `<BRD-KEY>` | — | No flags. Walks every unallocated row to a recorded fate; a confirmed child BRD nests inside the parent's folder |
+| `/brd-ground` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…`, `--rebaseline`, `--derivation-matrix` / `--no-derivation-matrix`, `--no-design` | Runs at either level — a BRD with a source document, or a slice. Needs `$REPOS_PATH` mounted; read-only against every repository it touches |
+| `/brd-split` | `<BRD-KEY>` | — | No flags. Runs only on a source-owning BRD; refuses a slice (`BRD_SPLIT_ON_SLICE`). Walks every unallocated row to a recorded fate; a child BRD nests inside the parent's folder |
 
 `<BRD-KEY>` follows the same shape everywhere in this route: `^[A-Z][A-Z0-9_]*(-\d+)+$`, checked
 for shape only and never against a tracker — a BRD is a markdown file under `$SPECS_PATH`, not a
@@ -62,9 +70,9 @@ Jira ticket.
 
 ## What lands where
 
-Every artifact lands under `$SPECS_PATH/specifications/<BRD-KEY>-<slug>/` (a nested child BRD gets
-its own such folder inside its parent's, at whatever depth the slicing has reached, per the
-addressing rule the whole route shares):
+Every artifact lands under `$SPECS_PATH/specifications/<BRD-KEY>-<slug>/` (a child BRD gets its own
+such folder inside its parent's — one level, and only one, per the addressing rule the whole route
+shares):
 
 ```
 specifications/<BRD-KEY>-<slug>/
@@ -80,7 +88,7 @@ specifications/<BRD-KEY>-<slug>/
 ├── brd-link.md                  # depends-on / parent-child links, /brd-ground and /brd-split
 ├── slices.md                    # slice rationale and deferral notes, /brd-split
 ├── dev-workflows/                # session bookkeeping: resume pointer, feedback, cost entries
-└── <CHILD-KEY>-<child-slug>/    # a slice /brd-split confirmed, same shape recursively
+└── <CHILD-KEY>-<child-slug>/    # a slice /brd-split confirmed — the same shape, one level only
 ```
 
 A slice starts life with three of those files, all written by the parent's `/brd-split` run:
@@ -90,6 +98,9 @@ parent), and a `coverage-ledger.md` with every row `unallocated`. That is what m
 loop above real: `/brd-ground` needs a ledger to gate on and an inventory to read, `/brd-intake`
 never runs on a slice — there is no separate document to intake — and `/brd-split` is the only
 command holding both the parent's rows and the allocation that says which of them the slice claims.
+The slice keeps no `brd/` source or defect log of its own and reaches for its parent's, and that
+reach is always exactly one hop: with nesting capped at one level, a slice's parent is always the
+BRD that owns the customer's document.
 
 `--sort-existing <dir>` on `/brd-intake` additionally writes `prd-seed.md`, `ard-seed.md`, and
 `spec-seed.md` at the BRD folder's own level — a one-time migration path for a package written by

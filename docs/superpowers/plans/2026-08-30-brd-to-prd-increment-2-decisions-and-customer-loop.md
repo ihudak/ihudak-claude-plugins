@@ -330,6 +330,10 @@ Trust the tree over any number in this plan.
 
 - [ ] **Step 4: Changelog, `CLAUDE.md` counts and command lists, and the model-routing "must load" list**
 
+  **Identity quarantine — two violations, user-confirmed as in scope.** `docs/commands/guideline-reviewer.md:59` and `docs/commands/api-guideline-reviewer.md:64` both link `prose-style` by full container URL (`https://github.com/ihudak/ihudak-claude-plugins/tree/main/plugins/prose-style`). `CLAUDE.md`'s rule: no page under `docs/` may name a marketplace or container repo, `getting-started.md` excepted. The binding reason is **forks** — a hardcoded container URL is wrong in anyone's fork of this plugin. Keep the reference to the sibling plugin; drop the container from it. Note that **no gate enforces this rule**, which is why both survived; say so in the report.
+
+  **Carried from task 1 — an untested alternation.** Only `seventeen` and the commands alternation are exercised end-to-end by a selftest case; the `cost-emitting commands` alternation and the other five words were verified by inspection alone. Add a second fixture-growing case covering the cost-emitting alternation, verified red-before/green-after by stashing, so both gated alternations have real coverage.
+
   **Carried from task 11 — two more.** `references/next-phase-offer.md`'s routing graph contains **no `/brd-*` command at all**, so the reference that owns next-phase routing does not know this six-command route exists. And `/brd-interview`'s gated `/brd-package` offer duplicates a precondition `brd-package.md` owns, which can drift — replace the duplicate with a citation, or say why the duplication is load-bearing.
 
   **Carried from task 10 — a pre-existing falsification.** `references/cost-emission.md`'s preamble describes its emitters as "the eleven PRD-lifecycle ones … plus two", which already omitted every `/brd-*` emitter before this increment began. It was not falsified *by* any one command, which is why no task owned it. Re-derive it count-free against the tree.

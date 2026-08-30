@@ -50,7 +50,12 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
    `commit-artifacts` step skips on it.
 7. **Resolve or derive the BRD folder** via `resolve-brd <BRD-KEY>`
    (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §2). Found → this is an existing BRD folder
-   (a re-run, or a slice already created by a parent's `/brd-split`); use it. Absent → this is a
+   and this invocation is a re-run over it; use it. **A slice is never a legitimate target here** —
+   it has no source document of its own to intake, and its inventory and ledger are the parent's
+   `/brd-split` to write (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1,
+   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3) — so a resolved folder whose
+   `brd-link.md` carries a `parent:` field is a mis-keyed invocation: say so and confirm before
+   Phase 2 copies anything into it. Absent → this is a
    brand-new BRD: derive `<slug>` from the source file's first heading (kebab-cased), falling back
    to a kebab of the source filename when no heading is found, and prepare to create
    `specifications/<BRD-KEY>-<slug>/` — the directory is not actually created until Phase 2's first

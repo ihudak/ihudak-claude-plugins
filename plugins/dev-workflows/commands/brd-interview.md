@@ -451,12 +451,14 @@ the customer has actually answered and an operator has confirmed the answer (D14
 `decision-register-format.md` §1) — the customer answering and the register recording an answer are
 two separate acts, and normalising prose into a decision is inference, not authority.
 
-**Nothing in this plugin sends this file anywhere.** `/brd-package`, the command that will build the
-review package the `[C]` questions travel in, does not exist yet; neither does `/brd-reconcile`, the
-command that will turn a returned answer into a confirmed `[CD#n]`. So a `[C]` this run holds stays
-held: the round that contains it stays open until an answer comes back through a package
-(`interview-tagging.md` §5), and today there is no command that builds one. Report that as the plain
-fact it is rather than implying a next step that does not exist.
+**This command sends the file nowhere; `/brd-package` is what carries it.** That command builds the
+review package the `[C]` questions travel in, and it is a separate, consented run — writing the file
+here is not sending it. `/brd-reconcile`, the command that would turn a returned answer into a
+confirmed `[CD#n]`, does not exist yet. So a `[C]` this run holds stays held until a package goes out
+and an answer comes back, and the round that contains it stays open throughout
+(`interview-tagging.md` §5) — today, past the point where the answer arrives, because nothing
+ingests one. Report that as the plain fact it is rather than implying a next step that does not
+exist.
 
 ---
 
@@ -566,27 +568,27 @@ the `nothing to commit` line rather than opening a pull request.
 
 ## Phase 11 — Next steps
 
-The BRD-to-PRD route's next command is `/brd-package`, which would build the review package the `[C]`
-questions travel in — **and it does not exist yet**, so it is not offered. Neither is
-`/brd-reconcile`, which would turn a returned answer into a confirmed `[CD#n]`. Offering a command
-the plugin does not ship would be worse than offering nothing, so the honest offer is the state this
-run actually leaves behind:
+The BRD-to-PRD route's next command is `/brd-package`, which builds the review package the `[C]`
+questions travel in, and it is offered — but only where this round left something for a package to
+carry. `/brd-reconcile`, which would turn a returned answer into a confirmed `[CD#n]`, does not exist
+yet and is not offered. Offering a command the plugin does not ship would be worse than offering
+nothing, so the honest offer is the state this run actually leaves behind:
 
 ```
-choices: ["Stop here — this round's decisions are recorded", "Work another round now — /dev-workflows:brd-interview <BRD-KEY> (only if findings or decisions have changed)", "Interview another BRD or slice", "Other… (describe)"]
+choices: ["Stop here — this round's decisions are recorded", "Package this BRD for customer review — /dev-workflows:brd-package <BRD-KEY>", "Work another round now — /dev-workflows:brd-interview <BRD-KEY> (only if findings or decisions have changed)", "Interview another BRD or slice", "Other… (describe)"]
 ```
 
 **No option carries a `(Recommended)` marker, and that omission is deliberate**, per the
 `When no option is safe to recommend` guidance in
 `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`: which one is right depends entirely on what
-this round left behind. A round still open on a `[C]` has no next step this plugin can offer at all;
-a round that closed with findings changed since has an obvious one; a round holding a question that
-*needs grounding* has a different one again. The reason is stated here, beside the list, rather than
-folded into a conditional marker the orchestrator would then have to evaluate.
+this round left behind. A round whose remaining questions are all *held for the customer* is ready to
+package; a round holding a question that is *deferred*, *needs grounding* or *untagged* is not, and
+`/brd-package` refuses it. The reason is stated here, beside the list, rather than folded into a
+conditional marker the orchestrator would then have to evaluate.
 
 Say plainly what remains, per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — names only,
 never behaviour a command of its own owns: a round still holding a `[C]` stays open, because the
-answer arrives through a package, and there is no command in this plugin today that sends one. A
+answer arrives through a package, and no command in this plugin ingests a returned one yet. A
 question recorded *needs grounding* is answered by re-running `/dev-workflows:brd-ground <BRD-KEY>`
 and returning to this round, which is a real next step and is named as one.
 
@@ -655,7 +657,8 @@ every split, with the parts each original became; the `[G]` answers, each naming
 never a re-tag reported without its cause; every question recorded *needs grounding*, named, with
 `/dev-workflows:brd-ground <BRD-KEY>` as the fix; the `[VD#n]` decided this run and any deferred; the
 `[AS#n]` recorded; the `[C]` count held and the file holding them, stated together with the fact that
-no command in this plugin sends it anywhere yet; every will-change resolution taken and how it was
+`/dev-workflows:brd-package` is the command that carries them to the customer and that nothing in
+this plugin ingests a returned answer yet; every will-change resolution taken and how it was
 recorded; the count of decisions and assumptions still `consumed_by: none`
 (`decision-register-format.md` §1); whether the round closed or stays open, and what it is waiting on;
 the feedback + cost paths; the `Phase handoff:` outcome line (`phase-handoff.md` §4.1); the

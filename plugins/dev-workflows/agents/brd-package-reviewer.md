@@ -28,9 +28,10 @@ six verdicts and the horizons, and `${CLAUDE_PLUGIN_ROOT}/references/bundle-pack
 the customer will actually be able to open. Follow those references; do not restate them here, and
 do not re-derive a rule you can cite.
 
-**Not shipped yet.** `/brd-package` will dispatch this agent as the first phase of packaging and
-will hold the disposition gate over the findings it returns. That command does not exist, so nothing
-dispatches this agent today.
+**Dispatched by `commands/brd-package.md`**, as the first phase of packaging, and again when a
+`fixed` disposition changed the package this review was written against. That command holds the
+disposition gate over every finding returned here, and builds no bundle until each one carries a
+disposition.
 
 ## Inputs
 

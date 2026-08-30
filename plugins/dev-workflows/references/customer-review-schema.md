@@ -29,9 +29,10 @@ this repository's design spec, and the decision rows above:
 - the `[BR#n]` requirement identifier — `references/brd-format.md` §2; the `<BRD-KEY>` grammar —
   `references/brd-addressing.md` §1
 
-**Consumed by nothing yet.** No shipped command or agent reads this file today. The commands that
-will render it and parse a returned review against it are named in `docs/reference/references.md`;
-they are deliberately not named in this file, and section 1 says why.
+**Consumed by one shipped command**, which renders the body below into the prompt a customer
+pastes — from the boundary this preamble declares, never in full. The command that will parse a
+returned review against the same body does not exist yet. Neither command is named in this file, and
+section 1 says why; both are named in `docs/reference/references.md`.
 
 ## 1. This file is rendered into the customer's prompt
 

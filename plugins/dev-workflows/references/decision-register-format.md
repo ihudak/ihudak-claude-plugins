@@ -16,10 +16,11 @@ a question's answer lands in, and the rounds a decision is stamped with, belong 
 belongs to `references/brd-addressing.md` §1.
 
 **Consumed by `commands/brd-interview.md`**, which writes `[VD#n]` and `[AS#n]` records against this
-shape and enforces §6, and by `agents/brd-package-reviewer.md`, which reads them. `/brd-package`
-will surface every open `[AS#n]` in the customer prompt (§7); `/brd-reconcile` will write `[CD#n]`
-records from a returned review and run the propagation sweep that §5 exists to serve. Neither of
-those two commands exists yet, so no shipped command writes a `[CD#n]` today.
+shape and enforces §6; by `agents/brd-package-reviewer.md`, which reads them; and by
+`commands/brd-package.md`, which surfaces every open `[AS#n]` in the customer prompt (§7) and finds
+every position resting on a prerequisite by its `conditional_on` field (§5). `/brd-reconcile` will
+write `[CD#n]` records from a returned review and run the propagation sweep that §5 exists to serve;
+that command does not exist yet, so no shipped command writes a `[CD#n]` today.
 
 ## 1. Record shape
 
@@ -193,7 +194,7 @@ firing rests on exactly what it rested on before, minus the record of it.
 
 An `[AS#n]` records **something the package asserts without evidence.** It is not a decision: nothing
 was chosen, so nothing was weighed. It uses the same eleven fields as §1, and because `/brd-package`
-will put every open one of them in front of the customer (below), which fields apply is not a
+puts every open one of them in front of the customer (below), which fields apply is not a
 detail an author may settle for themselves. All eleven are accounted for here.
 
 | §1 field | On an `[AS#n]` |
@@ -248,8 +249,8 @@ assumption to escape §6 is the evidence-thinning §6 already refuses.
 
 **Every open `[AS#n]` is surfaced in the customer prompt.** Not the ones that seem material, not the
 ones somebody remembered — every open one, automatically, because the selection step is where this
-rule would fail. `/brd-package` will do the surfacing once it exists; this file fixes that no
-assumption is exempt.
+rule would fail. `/brd-package` does the surfacing, twice over — once where the customer is asked to
+decide, and once where they are invited to attack; this file fixes that no assumption is exempt.
 
 **An assumption that never reaches the customer is a liability disguised as a fact.** It was written
 down as an assumption by someone who knew it was one, and every reader after that meets it as a flat

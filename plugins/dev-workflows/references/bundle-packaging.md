@@ -17,9 +17,11 @@ and the rule that every open `[AS#n]` reaches the customer belong to
 to `references/brd-addressing.md` §1 and §2; the commit entry point every bookkeeping write into the
 specs repo runs through belongs to `references/specs-repo-git.md`.
 
-**Consumed by nothing yet.** `/brd-package` will build a bundle against this contract and
-`/brd-reconcile` will read a review returned against one. Neither exists, and no shipped command or
-agent reads this file today.
+**Consumed by `commands/brd-package.md`**, which builds a bundle against this contract — its
+plugin-free rules, its de-Obsidianising pass, its degradation tiers, its delivery-note ceiling and
+its committed dated directory — and cited by `agents/brd-package-reviewer.md` for what the customer
+will actually be able to open. `/brd-reconcile` will read a review returned against a bundle built
+this way; that command does not exist yet.
 
 ## 1. Plugin-free by construction (D12)
 

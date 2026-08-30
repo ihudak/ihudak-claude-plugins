@@ -163,8 +163,9 @@ against the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` 
   ground this BRD against the shipped product documentation when `$DOCS_PATH` resolves; this command
   operates on decisions, and a documentation page settles none of them — it is a claim *about*
   behaviour, not the behaviour. There is nothing to switch off, so no flag exists to switch it.
-- **It sends nothing to a customer.** The `[C]` questions are written to a file and held there. The
-  commands that would build a review package and reconcile a returned one are not part of this
+- **It sends nothing to a customer.** The `[C]` questions are written to a file and held there;
+  [`/brd-package`](brd-package.md) is the separate, consented run that carries them out. The command
+  that would reconcile a returned answer into a confirmed customer decision is not part of this
   plugin today, so a round holding a `[C]` stays open, and the run says so rather than implying a
   next step that does not exist.
 - **It changes no ledger disposition.** The final report's ledger line reports where allocation

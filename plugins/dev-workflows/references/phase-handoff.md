@@ -88,7 +88,7 @@ Every failure is reported and the phase is described as **not handed off**. The 
 
 | Input | Meaning |
 |---|---|
-| `prefix` | one of `idea`, `prd`, `ard`, `spec`, `design`, `ready`, `brd` (shared by the three `/brd-*` commands, the way `prd` is shared by `/create-prd` and `/update-prd`) |
+| `prefix` | one of `idea`, `prd`, `ard`, `spec`, `design`, `ready`, `brd` (shared by every `/brd-*` command, the way `prd` is shared by `/create-prd` and `/update-prd`) |
 | `feature_folder` | the resolved directory the deliverable was written into |
 | `deliverable_paths` | the literal repo-relative paths this phase authored |
 | `title` | the commit subject and pull-request title |

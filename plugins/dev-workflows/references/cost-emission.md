@@ -284,6 +284,7 @@ Fixed per-command labels, with three inferred exceptions:
 | `/brd-intake` | brd-to-prd | pm |
 | `/brd-ground` | brd-to-prd | pa |
 | `/brd-split` | brd-to-prd | pm |
+| `/brd-interview` | brd-to-prd | pm |
 | `/prompt` | **inferred** | **inferred** |
 | `/feedback` | **inferred** | **inferred** |
 

@@ -22,7 +22,10 @@ Every one was learned in increments 1 and 2.
 - **Bracketed `[PREFIX#N]` identifiers only.** `check-id-grammar.sh` gates `plugins/`.
 - **Cite, do not restate.** Increments 1 and 2 corrected ten violations of this between them.
 - **Cross-references by phase *name*.** Verify any number with a whitespace-tolerant search, and **search by phrase, not line number** — three rounds running, a repeat of a just-corrected phrase survived within a few lines of its fix.
-- **Offers must not name what does not exist in the state they report.** Eleven defects of that anatomy shipped across two increments; check 11 gates placeholder presence on the route family. If the offers PR widened its scope, these commands are now inside it — check.
+- **Offers must not name what does not exist in the state they report.** Eleven defects of that anatomy shipped across two increments, and five more were found in the commands this increment edits. **Check 11 stayed family-scoped to `/brd-*`, refused on measurement** — so `/create-prd`, `/create-ard`, `/specify`, `/design` and `/update-prd` are **NOT** gated. Their offers were converted by hand in the branch immediately before this one.
+- **Do not undo that conversion.** All five of those files now carry `<merge-clause>` placeholders resolved from the run's own `phase-handoff.md` §4.1 outcome. `/create-prd`, `/create-ard` and `/specify` are the three you are about to amend. **Before editing any of them, grep for `<merge-clause>` and note where it sits; after editing, grep again and confirm the same sites survive.** Nothing in this increment should touch them, and the gate will not tell you if you do.
+- **Applying a rule mechanically can produce a false statement.** Two claims in these same files were false on reachable `§4.1` rows and had to be corrected rather than preserved. If you add or reword an offer, check it against every row, not the common one.
+- **The enumeration method for next-step surfaces is `grep -rinE '^[ \t]*#{2,4} .*next'` — unanchored.** The `^`-anchored form misses headings indented inside fenced report templates and made four passes short. Spec §13A records this.
 - No table cell under `plugins/dev-workflows/docs/` over 200 characters. Identity quarantine applies under `docs/` and is now gated by check 10.
 - Gate triple after every task.
 

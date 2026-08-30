@@ -62,9 +62,16 @@ command accepts today, not a preview of what a later increment adds.
 
 | Command | Required | Optional | Notes |
 |---|---|---|---|
-| `/brd-intake` | `<BRD-KEY> @<brd-file>` | `--sort-existing <dir>` | Source must already be markdown — a PDF or similar is rejected, never converted. `<BRD-KEY>` names a folder, never a tracker ticket |
-| `/brd-ground` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…`, `--rebaseline`, `--derivation-matrix` / `--no-derivation-matrix`, `--no-design` | Runs at either level — a BRD with a source document, or a slice. Needs `$REPOS_PATH` mounted; read-only against every repository it touches |
+| `/brd-intake` | `<BRD-KEY> @<brd-file>` | `--sort-existing <dir>`, `--no-docs` | Source must already be markdown — a PDF or similar is rejected, never converted. `<BRD-KEY>` names a folder, never a tracker ticket |
+| `/brd-ground` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…`, `--rebaseline`, `--derivation-matrix` / `--no-derivation-matrix`, `--no-design`, `--no-docs` | Runs at either level — a BRD with a source document, or a slice. Needs `$REPOS_PATH` mounted; read-only against every repository it touches |
 | `/brd-split` | `<BRD-KEY>` | — | No flags. Walks every unallocated row to a recorded fate at either level; on a source-owning BRD it also nests child BRDs, on a slice it is allocate-only (four resolutions, no child) |
+
+`--no-docs` appears on two of the three rows and means the same thing on both: turn off the optional
+grounding on shipped product documentation that `/brd-intake` and `/brd-ground` do when `$DOCS_PATH`
+resolves. `/brd-split` has no such flag because it does no docs grounding to turn off — it allocates
+requirements, which documentation does not inform. See
+[`docs-grounding.md`](../references/docs-grounding.md) for the resolution gate and the two
+consumption modes this route uses.
 
 `<BRD-KEY>` follows the same shape everywhere in this route: `^[A-Z][A-Z0-9_]*(-\d+)+$`, checked
 for shape only and never against a tracker — a BRD is a markdown file under `$SPECS_PATH`, not a

@@ -544,13 +544,14 @@ Each command runs `specs-preflight` (`references/specs-repo-git.md` §3), classi
 `model-routing` skill, and ends with `handoff-to-main` (`references/phase-handoff.md` §2) offered
 rather than automatic.
 
-### 9.1 `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>]`
+### 9.1 `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
 
 **Preconditions:** `$SPECS_PATH` set.
 **Produces:** `brd/source/`, `brd/brd-inventory.md`, `brd/brd-defect-log.md`,
 `coverage-ledger.md` skeleton.
 
 `<BRD-KEY>` names the BRD folder. Shape-validated per §4.3 only; never checked against Jira.
+`--no-docs` turns off the documentation grounding D22 adds.
 
 **The source must be markdown.** A PDF is rejected with a message saying so. Conversion is the
 operator's step, deliberately: the source becomes immutable (D11) and every `[BR#n]` anchors
@@ -566,10 +567,12 @@ untestable | unsourced | duplicate | scope-leak`) → write the ledger with ever
 sorting its sections by altitude into the three seed files. This is the migration path for work
 already done by hand.
 
-### 9.2 `/brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-design] [--rebaseline]`
+### 9.2 `/brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-design] [--no-docs] [--rebaseline]`
 
 **Preconditions:** intake artifacts on the specs default branch; `$REPOS_PATH` resolvable.
 **Produces:** `baselines.md`, `code-grounding.md`, `design-grounding.md`.
+**`--no-docs`** turns off the documentation grounding D22 adds — a lead and a divergence finding,
+never evidence for a `[CG#n]`.
 
 `--depends-on` declares a prerequisite and persists it to `brd-link.md`; it is additive, so
 prerequisites accumulate across runs and can also be edited in the file directly. Grounding reads
@@ -801,8 +804,8 @@ to open six command pages to find that `--from-brd` takes the parent BRD folder:
 
 | Command | Required | Optional | Notes |
 |---|---|---|---|
-| `/brd-intake` | `<BRD-KEY> @<brd-file>` | `--sort-existing <dir>` | Markdown only; a PDF is rejected. `<BRD-KEY>` names the folder, not a ticket |
-| `/brd-ground` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…`, `--rebaseline`, `--derivation-matrix`, `--no-design` | Any level. `--depends-on` persists to `brd-link.md`. Needs `$REPOS_PATH` |
+| `/brd-intake` | `<BRD-KEY> @<brd-file>` | `--sort-existing <dir>`, `--no-docs` | Markdown only; a PDF is rejected. `<BRD-KEY>` names the folder, not a ticket. `--no-docs` turns off docs grounding (D22) |
+| `/brd-ground` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…`, `--rebaseline`, `--derivation-matrix` / `--no-derivation-matrix`, `--no-design`, `--no-docs` | Any level. `--depends-on` persists to `brd-link.md`. Needs `$REPOS_PATH`. `--no-docs` turns off docs grounding (D22) |
 | `/brd-split` | `<BRD-KEY>` | — | Walks every unallocated requirement at either level; on a source-owning BRD children nest inside, on a slice it is allocate-only (R18) |
 | `/brd-interview` | `<BRD-KEY>` | `--round N` | No flag = continue the first open round; `N` resumes or re-opens one |
 | `/brd-package` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…` | Writes `bundle-<date>/` + prints the delivery note |

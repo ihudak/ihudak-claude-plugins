@@ -437,7 +437,7 @@ is auto-run.
 ## Phase 8 — Session maintenance, feedback & cost
 
 Terminal phase — runs after Phase 7, NEVER interrupts an earlier phase, and runs on the Phase 0
-step 7 no-op path exactly as on any other.
+step 8 no-op path exactly as on any other, in either run mode.
 
 **Capture-at-block invariant.** If an EARLIER phase halts on a plugin / skill / command / reference
 gap, `emit-block` (`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) fires at that halt

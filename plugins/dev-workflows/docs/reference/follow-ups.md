@@ -1,29 +1,41 @@
 # Follow-ups
 
-A follow-up is a task line written into your vault for something a command's run surfaced but could not finish itself — a manual publish step, a file owned by someone else, a PRD that needs updating to match a spec. `/document`, `/release-notes`, `/epics`, `/implement`, and `/ready` each carry a terminal "Emit follow-up tasks" phase that applies the same rules described here. Nothing is ever written without you seeing it first — every qualifying follow-up is shown as a batch preview at the very end of the run, and only a single confirmation actually commits any of it to disk.
+A follow-up is a line written into the specs tree for something a command's run surfaced but could
+not finish itself — a manual publish step, an edit somebody else owns, a gap between the PRD and the
+code. It outlives the session, which is the whole reason it is written down rather than just
+reported.
 
-## The task line
+## The line
 
-A follow-up renders as one Obsidian-Tasks-style line:
+Plain markdown, in a plain checklist:
 
-    - [effort] Description #tag1 #tag2 priority ⏳ scheduled 📅 due ➕ <today>
+    - [ ] <one imperative line naming the out-of-scope action> — <why it is out of scope>
 
-`effort` is a Fibonacci checkbox — `[0]` tiny, `[1]` under an hour, up through `[13]` multi-week — or a bare `[ ]` when effort genuinely isn't known; when unsure between two sizes, the larger one is used. `Description` is one imperative line naming the out-of-scope action. Tags are **reuse-only**, pulled from your vault's own `tag-index.md` — a follow-up never invents a new tag, and if no tag index exists, tags are simply omitted with a one-time warning rather than guessed. Priority (`🔺⏫🔼🔽⏬`) is optional and placed after tags. The creation date (`➕ <today>`) is always added; scheduled (`⏳`) and due (`📅`) dates are added only when the signal itself implies a timeframe. When the follow-up is tied to a key, the line renders it as a clickable link to `<base>/browse/<KEY>`, using whatever base URL your existing vault tasks already use, falling back to the bare key as plain text if no base URL can be found.
+No effort symbols, no priority glyphs, no tags, no dates. **That is a simplification, not an
+omission**: this used to render an Obsidian-Tasks line, with a Fibonacci effort checkbox and tags
+reused from a vault's own tag index, because it was written into a vault. It goes into the specs repo
+now, where none of that renders and all of it is noise.
+
+Where a follow-up refers to something the run already wrote, the line links it rather than
+summarising it — a summary in two places is one that drifts in one of them.
 
 ## Where it lands
 
-Resolution is key-first and deterministic — there is no interactive "pick a location" prompt for a single task. With a writable vault and a resolved `key`, the task is inserted into that key's own project file (`P<NNNN> <slug>.md`, matched under `Projects/`), under its `## Work Items → ### Tasks` section, provided that file's frontmatter still marks it an active, non-archived task file. Without a project match — no `key`, or the project file fails that verification — the task falls back to `$VAULT_PATH/Tasks.md`, under an `# Irregular` heading, creating that file from a bootstrap template if it doesn't already exist. A follow-up is never inserted into an archived section, a Daily note, or anywhere excluded from your dashboard queries. When a follow-up needs more than one line of context — a table, a paste-ready draft, multi-step detail — the same primary-then-fallback split applies to the note it links: a project-homed task gets its note appended to that file's own `### Notes` section, while a `Tasks.md`-homed task gets its note appended to `Journal.md` as a dated block instead; either way the task line links to the note rather than duplicating it inline.
+**`follow-ups.md` in the folder the run resolved**, appended, alongside the artifacts the follow-ups
+are about. Verbose context — a table, a multi-step note, a paste-ready draft — goes in the same file
+as a section below the checklist, and the line links it.
 
-## When there's no vault
+**No folder resolved → report-only.** The follow-ups stay in the Final Report and the run says so.
+Nothing is ever written into your working directory, which may be a code repository.
 
-Vault availability is checked first, and the write target degrades through a fallback ladder, most-durable option first:
+That is the whole ladder. It used to have four rungs, the first of which was a vault; with no vault
+and no import, two of them described places that no longer exist.
 
-1. **Vault writable** → the project-file/`Tasks.md` split above, as the primary case.
-2. **No vault, but `$SPECS_PATH` resolves to the PRD's own spec directory** → `<PRD-dir>/dev-workflows/<KEY>-followups.md`, with any verbose note inlined as a section of that same file rather than a separate `Journal.md`, since there is no vault to hold one.
-3. **No vault, no matching `$SPECS_PATH` PRD directory, but the run's source was a folder in the specs tree** → written beside that imported directory, the same place `/epics` and `/release-notes` already drop their own no-vault output.
-4. **Nothing resolvable** → report-only: the follow-ups stay in the run's Final Report and nothing is written anywhere. The plugin never writes into your current working directory on this path, since it may be a code repository.
+## What no longer becomes a follow-up
 
-Every non-vault tier also keeps the follow-ups visible in the Final Report, so a degraded write location never means lost information — only a less durable one, flagged with a notice naming the fallback path used.
+The three chores this emitter mostly used to carry are gone, so do not go looking for them: *paste
+the PRD into the tracker*, *paste the release note*, and *re-import the increment*. No command
+performs a round-trip, so none of the three is ever emitted.
 
 ## What qualifies as a follow-up
 

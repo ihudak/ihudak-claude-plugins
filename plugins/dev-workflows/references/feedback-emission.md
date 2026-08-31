@@ -103,15 +103,9 @@ capture, §5). Walk the ladder top-down and stop at the first tier that applies:
    matching spec dir) → `$SPECS_PATH/dev-workflows-feedback/<KEY-or-date>.md` at
    the specs-repo root. Still committed & aggregated; notice:
    `unfiled — move under the PRD dir if it belongs to one.`
-3. **No `$SPECS_PATH` (unset / missing / read-only) AND the vault is writable**
-   (`$VAULT_PATH` set **and** an existing directory **and**
-   writable) → `$VAULT_PATH/dev-workflows/feedback/<KEY>-feedback.md`, with a
-   **loud notice**:
-   `⚠ $SPECS_PATH unavailable — saved to your vault; it will NOT auto-aggregate to the maintainer. Set $SPECS_PATH and commit, or forward manually.`
-4. **`source = directory`** (a passed directory, no specs/vault) → beside the
-   imported directory, where `/epics` + `/release-notes` already drop their
-   no-vault output.
-5. **Nothing resolvable** → **report-only**: keep the feedback in the run's
+3. **`source = directory`** (a passed directory, no `$SPECS_PATH`) → beside that
+   directory.
+4. **Nothing resolvable** → **report-only**: keep the feedback in the run's
    final output and emit the notice. **NEVER write into the current working
    directory** — it may be a code repo.
 

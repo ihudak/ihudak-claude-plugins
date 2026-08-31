@@ -42,7 +42,7 @@ Spec 2 is largely a re-wiring of agents that already exist. Spec 3 is meaningles
 
 | # | Decision | Rationale |
 |---|---|---|
-| D1 | **Extend `dev-workflows`; do not create a `doc-workflows` plugin.** | The scaffold's output *is* `docs-profile.yml` — the schema `/docs-profile` writes and `/document` consumes. Splitting plugins separates a schema from one of its writers, and nothing catches the drift because each plugin's gates see only its own tree. `doc-fixer` is already shared by `/epics` and `/document`; `code-scanner` by six commands. And `finding-triage`, `gate-ledger`, `context-management`, `phase-handoff`, `specs-repo-git` cannot be safely duplicated. |
+| D1 | **Extend `dev-workflows`; do not create a `doc-workflows` plugin.** | The scaffold's output *is* `docs-profile.yml` — the schema `/docs-profile` writes and `/document` consumes. Splitting plugins separates a schema from one of its writers, and nothing catches the drift because each plugin's gates see only its own tree. `doc-fixer` is already shared by `/epics` and `/document`; `code-scanner` by six commands. And `finding-triage`, `gate-ledger`, `context-management`, `phase-handoff`, `specs-repo-git` cannot be safely duplicated. **Two of these three arguments were weakened by a later finding — see §13.5. The decision stands for this increment on packaging grounds, not on the impossibility grounds originally given.** |
 | D2 | **One command family, `audience: user \| engineering` typed onto each backlog unit — not two pipelines.** | The audit is a single pass over the same code and yields both audiences' gaps at once; prioritisation is one backlog or it cannot answer "what is the next most valuable page". What differs by audience is not the pipeline but the **evidence contract** — template, evidence source, verification method, drift signal — so those become two implementations of one interface. |
 | D3 | **User-doc evidence is code-first draft plus a human-executed verification walkthrough.** Browser automation is deferred, but the walkthrough is structured from day one so a driver is a runner, not a rewrite. | Screenshot capture is an asset-lifecycle problem, not a capture problem (see the existing images policy: CDN-hosted, immutable URLs, never refreshed in place). And most projects with no docs also have no seeded environment with per-role credentials — making browser grounding core would make the family unportable. |
 | D4 | **The later screenshot/verification pass is `/docs-verify`, never `/document`.** | `/document` Mode A requires a PRD key, a Jira export and PR URLs; "add screenshots to the Roles page" is not a delta with a ticket behind it. Mode B has no role model, no grounding and no asset lifecycle. |
@@ -828,6 +828,42 @@ Three consequences worth stating because each is a place to get it wrong:
 - **`references/specs-repo-git.md` §2.1 gains a fourth bounded path shape.** Staging stays enumeration-based; nothing else about the bookkeeping commit changes.
 - **`references/cost-emission.md` §7 gains a row per new command** that hands `emit-cost` a fixed `phase`/`role` pair. `check-docs.sh` check 8 fails in both directions, so a row without a command is as red as a command without a row.
 - **No new branch prefix is needed.** `specs-repo-git.md`'s seven-prefix authority (`^(idea|prd|ard|spec|design|ready|brd)/`) governs branches the plugin creates **in `$SPECS_PATH`**, and this family creates none there — its deliverables live in the docs repo, where it follows `/docs-profile`'s existing discipline of branch, commit, draft a PR, never push. `handoff-to-main` and `require-on-main` likewise do not apply, because no deliverable of this family is a `$SPECS_PATH` artefact.
+
+### 13.5 If the family is later extracted: what the plugin system actually supports
+
+D1 chose to extend rather than split, and part of its justification was that the shared invariants "cannot be safely duplicated". That premise was never verified against the plugin system, and checking it changes the picture. **Claude Code supports plugin dependencies natively**, so a shared core is a supported architecture rather than something to invent:
+
+```json
+{
+  "name": "doc-workflows",
+  "version": "1.0.0",
+  "dependencies": [
+    "dev-workflows-core",
+    { "name": "prose-style", "version": "~0.3.0" }
+  ]
+}
+```
+
+Dependencies are declared in `.claude-plugin/plugin.json` or in the marketplace entry, resolved and **installed automatically**, reinstalled on reload or background update if missing, and constrained with semver ranges that Claude Code intersects across every plugin declaring them. `allowCrossMarketplaceDependenciesOn` in `marketplace.json` extends this across marketplaces.
+
+**What crosses a plugin boundary, and what does not.** This is the distinction that decides the real cost of a split:
+
+| Shared thing | Crosses today | Cost to move to a core plugin |
+|---|---|---|
+| **Agents** — `code-scanner`, `docs-grounder`, `code-grounder`, `design-grounder`, `doc-fixer`, `code-review`, `review-fixer`, `doc-reviewer` | **Yes.** `subagent_type: "<plugin>:<agent>"` already works — `/epics` and `/create-prd` invoke `prose-style:prose-style-checker` today | Change the prefix. Effectively zero |
+| **Skills** — `model-routing` | **Yes.** `<plugin>:<skill>` via the Skill tool | Zero |
+| **Reference files** — `cost-emission.md`, `feedback-emission.md`, `finding-triage.md`, `specs-repo-git.md`, `phase-handoff.md`, `release-note-types.md` | **No.** `${CLAUDE_PLUGIN_ROOT}` resolves to the *reading* plugin's own directory; a dependency guarantees installation, not file access | Each becomes a **skill wrapper** — the exact pattern `skills/model-routing/` already implements, invented here for a different reason (slash-command bodies cannot expand the variable) |
+| **Hooks** | No | Each plugin ships its own; `${CLAUDE_PLUGIN_ROOT}` is correct as-is |
+
+So the honest cost of a split is **not** duplicated invariants. It is one skill wrapper per shared reference, and the pattern for that already exists in this repository.
+
+**Three caveats that would need handling, one of which is live in this repository right now:**
+
+1. **Auto-update resolves dependencies by git tag** — "the highest compatible git tag", not the marketplace's latest version. This repository's only tag is `v1.3.0` while `dev-workflows` is at 3.5.0. A version-ranged dependency on a core plugin would fail `no-matching-tag` immediately. **Splitting therefore requires adopting real release tags first** — a process change, not a file move.
+2. **A declared dependency is hard, not optional.** An unsatisfied, conflicting, or out-of-range dependency produces a named error (`dependency-unsatisfied`, `range-conflict`, `dependency-version-unsatisfied`, `no-matching-tag`) and **Claude Code disables the affected plugin**. That is better than silent degradation, but it is a different character from today's only cross-plugin relationship, where `prose-style` is optional and skipped gracefully. A core version conflict would take the whole family down at once.
+3. **Two plugins to install**, and a core whose version must be compatible with every dependent simultaneously — the usual cost of a shared library, now with the version ranges to manage that implies.
+
+**Recommendation: keep D1 for this increment, and revisit after the family ships**, when the dependency surface is observed rather than predicted. Nothing in Spec 1 forecloses the split — the new references stay in `references/docs-workflow/`, so extraction is a `git mv` plus a manifest plus one skill wrapper per shared reference. What *would* foreclose it cheaply is scattering the family's references among the existing ones, which is why the own-directory rule in D1 is the part that matters most.
 
 ---
 

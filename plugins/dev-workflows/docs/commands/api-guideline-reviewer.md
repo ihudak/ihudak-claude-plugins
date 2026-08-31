@@ -18,7 +18,7 @@ Reviews OpenAPI specification files against the bundled REST API and IAM permiss
 
 - One or more OpenAPI spec file paths.
 - Optionally, a Spectral CLI — see [Deterministic lint](#deterministic-lint) below. Without one the review still runs.
-- Nothing else — no `$SPECS_PATH`, no `$VAULT_PATH`, no branch, no specs-repo preflight. The command reads the named files and the vendored guideline references, and writes nothing.
+- Nothing else — no `$SPECS_PATH`, no branch, no specs-repo preflight. The command reads the named files and the vendored guideline references, and writes nothing.
 
 ## Deterministic lint
 

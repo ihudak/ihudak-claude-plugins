@@ -12,7 +12,7 @@
 #                                         free-text / @file → silent (direct-edit
 #                                         mode owns its own git hygiene and never
 #                                         invokes Opus)
-#   • /epics, /release-notes            → $VAULT_PATH + $REPOS_PATH default
+#   • /epics, /release-notes            → $SPECS_PATH + $REPOS_PATH default
 #                                         + git branch only if cwd is inside
 #                                         a git repo (no model-routing, no full
 #                                         status/log, no directory listing). Both
@@ -20,7 +20,7 @@
 #                                         directory via the shared front-end.
 #   • /docs-profile                     → not matched (no context injected)
 #
-# emit_specs_context also surfaces $SPECS_PATH alongside $VAULT_PATH/$REPOS_PATH.
+# emit_specs_context surfaces $SPECS_PATH alongside $REPOS_PATH.
 #
 # Exits immediately (near-zero overhead) if the message doesn't match.
 # Always exits 0 — must never block Claude.
@@ -87,16 +87,11 @@ emit_dir_listing_if_small() {
 
 emit_specs_context() {
     echo "=== Auto-injected project context (specs workflow) ==="
-    if [[ -n "${VAULT_PATH:-}" ]]; then
-        echo "VAULT_PATH: $VAULT_PATH"
-    else
-        echo "VAULT_PATH: (not set — the command will ask in Phase 1)"
-    fi
     echo "repos_path: ${REPOS_PATH:-/workspace} (default — the command will confirm or ask)"
     if [[ -n "${SPECS_PATH:-}" ]]; then
         echo "SPECS_PATH: $SPECS_PATH"
     else
-        echo "SPECS_PATH: (not set — the command will use \$VAULT_PATH-based specs or ask)"
+        echo "SPECS_PATH: (not set — the command will ask)"
     fi
     emit_git_branch_if_repo
 }

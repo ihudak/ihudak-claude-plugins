@@ -1,6 +1,6 @@
 ---
 name: idea
-description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (with wikilinks/images), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Writes to the vault (keyless); no code change; once a key resolves it relocates `idea.md` into `$SPECS_PATH/specifications/<KEY>-<slug>/`, and on a completed handoff also opens a pull request for it (`references/phase-handoff.md` §2) — declining leaves it relocated but not on the default branch; its session artifacts are committed by `commit-artifacts`.
+description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (with wikilinks/images), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Writes into the PRD folder the key names; no code change; it relocates `idea.md` into `$SPECS_PATH/specifications/<KEY>-<slug>/`, and on a completed handoff also opens a pull request for it (`references/phase-handoff.md` §2) — declining leaves it relocated but not on the default branch; its session artifacts are committed by `commit-artifacts`.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -9,27 +9,30 @@ Refine an idea into `idea.md`: $ARGUMENTS
 `/idea` is the **front door of the PRD-creation flow** (PM phase) — upstream of `/create-prd` (future) and
 the existing pipeline. It ingests one source, refines it through a grill, and writes a lean one-page
 `idea.md` (per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`) that seeds the Product Requirements Document. It is
-**not** a PRD: no code change. Output lands keyless in the vault;
-`/idea` relocates it under `$SPECS_PATH` itself (Phase 5); `/create-prd <KEY>` then finds it there and does not move it.
+**not** a PRD: no code change. Output lands in the PRD folder the key names, on the first write and never relocated.
 
 Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless (until convergence).
-`--no-docs` and `--no-prior-art` each turn off one grounding source (see Phase 1).
+`--no-docs` turns off documentation grounding (see Phase 1).
 `--ground-code [<repo>[,<repo>…]]` grounds the idea against mounted code (see Phase 2.6) — bare it derives the repo set, with a value it scans exactly those repos. The token after `--ground-code` is its value **only** when it contains no whitespace and every comma-separated part matches a top-level directory basename under `${REPOS_PATH:-/workspace}`; otherwise the flag is bare and the token is idea text.
 
 ---
 
-## Phase 0 — Validate environment + resolve model routing
+## Phase 0 — Resolve the address + model routing
 
-1. **Validate `$VAULT_PATH`.** It must be **set**, an **existing directory**, and **writable** — the
-   env var is the user's explicit declaration of their personal store; the plugin trusts it and does
-   NOT require an Obsidian `.obsidian/` marker. If any check fails, STOP and offer:
-   ```
-   choices: ["Enter a directory to write idea.md into", "Cancel", "Other… (describe)"]
-   ```
-   On a user-supplied directory, validate it exists and is writable, then use it as the **write root**
-   for this run. **NEVER** write into the current working directory (it may be a code repo). This is an
-   environment halt, **not** a plugin-gap halt — do NOT `emit-block`.
+1. **The address (mandatory).** Parse the first non-flag token and validate it with `key-valid`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). Absent or malformed → stop:
+   `IDEA_NEEDS_KEY: /idea needs a PRD key (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. ACME-77) — it names the folder this idea will live in. Re-run '/dev-workflows:idea <PRD-KEY> [<prompt>|@<file>]'.`
 
+   **The key is an argument because there is nowhere keyless to write.** `idea.md` lands in its final
+   folder on the first write — `PRD-<KEY>-<slug>/` under `$SPECS_PATH/specifications/`, resolved with
+   `resolve-address` and created there when absent (`addressing.md` §2, §3). It is never relocated
+   afterwards, and `/create-prd <KEY>` finds it there.
+
+   **Validated for shape and checked against nothing**, exactly as `/brd-intake <BRD-KEY>` already
+   asks. Nothing looks a key up, because there is nothing to look it up in.
+
+   **Accepted cost:** an abandoned idea leaves a folder in `specifications/`. Reintroducing a staging
+   area to avoid that would restore the relocation step this removes.
 2. **Resolve model routing.** Invoke the `model-routing` skill (Skill tool,
    `skill: "dev-workflows:model-routing"`), then record:
    ```yaml
@@ -62,7 +65,7 @@ step skips on it.
 
 ## Phase 1 — Classify the source
 
-Classify `$ARGUMENTS` **minus every recognised flag** (`--deep`, `--no-docs`, `--no-prior-art`, `--docs <path>` with its value, and `--ground-code` with its optional comma-separated repo value) by precedence. Strip them all before classifying: an unstripped flag lands inside the `prompt` branch's raw idea text and is handed to `idea-reader` as if the user had written it. The token after `--ground-code` is its value **only** when it contains no whitespace and every comma-separated part matches a top-level directory basename under `${REPOS_PATH:-/workspace}`; otherwise the flag is bare and the token is idea text — strip only the flag itself.
+Classify `$ARGUMENTS` **minus every recognised flag** (`--deep`, `--no-docs`, `--docs <path>` with its value, and `--ground-code` with its optional comma-separated repo value) by precedence. Strip them all before classifying: an unstripped flag lands inside the `prompt` branch's raw idea text and is handed to `idea-reader` as if the user had written it. The token after `--ground-code` is its value **only** when it contains no whitespace and every comma-separated part matches a top-level directory basename under `${REPOS_PATH:-/workspace}`; otherwise the flag is bare and the token is idea text — strip only the flag itself.
 
 1. An existing `.md` path → **markdown** (a community post is just a markdown file,
    typically under `Projects/Products/…` — the reader tags it `community-post`; an existing `idea.md`
@@ -87,7 +90,6 @@ choices: ["Re-enter the path (Recommended)", "Read the argument as a prompt — 
 
 Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
 
-Show the `prior art:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md` resolved — `ON <vault-root>` or `OFF (<reason>)` — verbatim (off switch: --no-prior-art). Run `resolve-prior-art idea` per that reference to obtain it; it runs exactly once per run.
 
 ---
 
@@ -100,7 +102,7 @@ Dispatch `idea-reader` to read the source and return a structured digest:
   >
   > argument:        [the resolved argument]
   > provenance_hint: [prompt | markdown | community-post | rfe | prd from Phase 1]
-  > vault_path:      [resolved $VAULT_PATH]"
+"
 
 Wait for the digest. If `status: NOT_FOUND` (invalid key / missing file), surface:
 ```
@@ -113,13 +115,11 @@ frontmatter entry in Phase 4, and `tracked` seeds `## Prior art`.
 
 ---
 
-## Phase 2.5 — Grounding: documentation + vault prior art (optional)
+## Phase 2.5 — Grounding: documentation (optional)
 
 Dispatch both grounding agents **in a single response** so they run in parallel. Each is independent; either being OFF never suppresses the other.
 
 **Docs.** Run `resolve-docs-grounding idea` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the `idea-reader` digest's problem/outcome, `themes` = its signals; **omit `key`** (idea is keyless, so the git-grep backstop is skipped). When OFF, skip silently.
-
-**Prior art.** Using the `resolve-prior-art idea` result already obtained in Phase 1: when `prior_art: ON`, `dispatch-prior-art-finder` per `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md` with `feature_summary` = the same problem/outcome, `themes` = the digest's signals, and `known_refs` built from the reader's digest: every `wikilinks_followed` path and every filesystem-path `source_refs` ref as `{path, has_summary: true}` (`idea-reader` already summarised them), plus — for a `prd` source — `{key: <KEY>, has_summary: true}`. Passing the key rather than a path is deliberate: the orchestrator does not know which vault directory holds that PRD, and resolving it is the finder's job. The supplied PRD is then classified and status-resolved by the same code path as a discovered one. When OFF, skip silently.
 
 Carry both digests into Phase 3 with **grill-rank** consumption — challenges from the two compete together for the ≤10 question slots, they do not add slots. Carry `area_proposal` and the `prd` source's match into Phase 4.
 
@@ -155,7 +155,7 @@ Handle every returned status through the list `${CLAUDE_PLUGIN_ROOT}/references/
 
 **3. Round 2 — narrow.** Apply §8.5 of the model-routing reference: for each theme round 1 left **inconclusive** (`classification` `partial` / `absent` / `error`, or **two or more** scanners' per-theme `capability_map[].gap_summary` texts point at each other's repo in a cycle, or at a component/subsystem that no scanned repo covers), and for which round 1 produced at least one evidence anchor, dispatch `code-scanner` again with `capability_themes` holding exactly **one** question and `search_hints.paths` / `.symbols` / `.keywords` seeded from that round's verified `evidence[].path` and `.symbols`; where an evidence entry carries `lines`, name the anchor as `<path>:<line>` in the round-2 `context` prose, since `search_hints` has no line-number field. Round 2 reuses round 1's `refresh:` block verbatim — `switch_to_default_branch: false`, `pull: false` — so the read-only posture and the "dirty-tree status never produced here" claim at `:162` hold for both rounds. Cap **4 dispatches, one round only** — there is no round 3, and a theme still inconclusive is carried to Phase 4 as a `[NEEDS CLARIFICATION]`, never guessed at. A theme confirmed `absent` — by round 2, or by round 1 when no anchor existed to seed a round 2 — is a **resolved** finding: it belongs in Section 7's *What's missing*, not in Open questions. `[NEEDS CLARIFICATION]` is for a theme the scan could not settle — mutual deferral, or `error`.
 
-**OFF branch** (no `--ground-code`). Run one detection and print at most one line. Tokenise the raw argument and the digest's `raw_context`; match tokens case-insensitively against the basenames of the **git repositories** (a `.git` entry present) directly under each `${REPOS_PATH:-/workspace}` entry, excluding `$DOCS_PATH`, `$SPECS_PATH`, and `$VAULT_PATH`. Exact token match only — no substring, no stemming. On ≥1 match print:
+**OFF branch** (no `--ground-code`). Run one detection and print at most one line. Tokenise the raw argument and the digest's `raw_context`; match tokens case-insensitively against the basenames of the **git repositories** (a `.git` entry present) directly under each `${REPOS_PATH:-/workspace}` entry, excluding `$DOCS_PATH` and `$SPECS_PATH`. Exact token match only — no substring, no stemming. On ≥1 match print:
 
 ```
 This idea names <repo>; re-run with --ground-code to verify it against the code.
@@ -167,7 +167,7 @@ and **proceed without waiting** — an inline confirmation per `${CLAUDE_PLUGIN_
 
 ## Phase 3 — Refine via grill
 
-**Interview technique (grilling — embedded; no runtime dependency).** Follow the shared technique in `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, fact-vs-decision split (look up facts from the `idea-reader` digest / vault, put only decisions to the user), walk the design tree in dependency order. **Depth: bounded by default (below); `--deep` = relentless.**
+**Interview technique (grilling — embedded; no runtime dependency).** Follow the shared technique in `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, fact-vs-decision split (look up facts from the `idea-reader` digest, put only decisions to the user), walk the design tree in dependency order. **Depth: bounded by default (below); `--deep` = relentless.**
 
 Scan for gaps against an idea-stage **ambiguity taxonomy**: *problem clarity, target users, desired
 outcome/value, scope boundaries, evidence/demand sufficiency, success signal, terminology.* Rank gaps by **Impact × Uncertainty**, ranking every `docs_challenges` and `prior_art_challenges` entry from Phase 2.5 into that same list. Challenges **compete** for the slots below; they never add slots. **Code findings are facts, not questions.** A Phase 2.6 finding answers a gap rather than raising one — look it up, cite it, and do not spend a question on it. The one exception is the finding that **contradicts the idea's premise** (the capability already exists, or the gap is far smaller than the idea assumes): that becomes a challenge ranked into the same Impact × Uncertainty list, competing for a slot exactly like a `docs_challenges` or `prior_art_challenges` entry and never adding one. At most **2** such challenges.
@@ -185,52 +185,13 @@ outcome/value, scope boundaries, evidence/demand sufficiency, success signal, te
 Author `idea.md` per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` into the write root resolved in
 Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md`:
 
-- **Path (container default):** `<container(source path)>/<candidate_slug>/idea.md`, where the container
-  is derived per `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md`. A source already sitting under a
-  `Projects/Products/` grouper lands beside its neighbours in that grouper; an inline prompt, a key
-  with no vault item, and any source outside `Projects/Products/` all resolve to `Projects/ideas/`
-  exactly as before.
-- **Write-path gate.** Assemble **one** `choices:` array, in this row order, and present it verbatim:
-
-  | Row | Included when | Text |
-  |---|---|---|
-  | 1 | `provenance: prd` | `Rewrite <KEY> — reuse its key; write into <item-dir>/` when the finder resolved one, else `Rewrite <KEY> — reuse its key; write to <container default>/<candidate_slug>/` |
-  | 2 | `area_proposal.path` non-null, `confidence: high`, **and** it differs from the container default | `New idea under <area_proposal.path>/<candidate_slug>/` |
-  | 3 | always | `New idea — a new key will be chosen; write to <container default>/<candidate_slug>/ as detected` |
-  | 4 | always | `Enter a different path` |
-  | 5 | always | `Cancel` |
-  | 6 | always | `Other… (describe)` |
-
-  The gate **fires only when at least one of rows 1–2 is present**; otherwise the container default
-  applies silently. Append `(Recommended)` to **exactly one** row, chosen by the **top match** — the
-  `prior_art` entry with the highest `match_confidence`, ties broken by array order — and its
-  `relation`: `supersedes_self` → row 1 **when present, else row 3**; every other relation → row 2
-  when present, else row 3. `supersedes_self` needs its own fallback because it is reachable for **any**
-  `known_refs` entry — a `markdown` source that wikilinks a PRD work document can carry it — while row 1
-  ships only for `provenance: prd`.
-  **When there is no top match at all — prior-art grounding OFF, an invalid `$VAULT_PATH`, a non-vault
-  write root, or the finder returning `EMPTY` — recommend row 3.** That state is reachable precisely
-  because row 1 fires on `provenance: prd` alone, and nothing is then known about whether this is a
-  rewrite; the neutral default is the one that mints no key. Every branch must name a row that is
-  actually in the array, or the gate renders with nothing marked. Never recommend row 1 without
-  `supersedes_self` — extending and paralleling a PRD are as common as rewriting one, and a wrong
-  default here silently mints or fails to mint a key. Validate every chosen path sits inside the
-  resolved write root and is writable.
-
-  Record the choice as **`prd_disposition`** — `rewrite` for row 1, `new` for every other row — and carry
-  it into Phase 5. **When the gate does not fire at all, `prd_disposition` is `new`.** Row 1 keys only on
-  `provenance: prd`, never on the finder resolving anything, so a `prd` source always reaches this question
-  even when prior-art grounding is OFF or the key has no vault work document — the disposition decides
-  whether the user is told to choose a key, which is not an advisory matter and must not depend on an
-  advisory, user-disableable subsystem. This is the only point in the flow where the three shapes of a supplied PRD (extend,
-  parallel, rewrite-in-place) can be told apart.
-- **`## Prior art`:** write the section per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` when
-  Phase 2.5 returned any `prior_art` entry **or** the source is `prd`; omit it entirely otherwise. A `prd`
-  source contributes its Phase 2 `tracked` block (key, status, summary) even when prior-art grounding is
-  OFF — it is prior art the user handed over, not something the finder discovered — and appears there
-  **and** in `sources:`. Merge by key so a supplied PRD the finder also matched yields one bullet: the finder's entry wins,
-  because it is a strict superset of `tracked` (it adds `relation`, `match_reason`, and a vault path). A
-  finder match with `key: null` cannot collide — a supplied PRD always has a key.
+- **Path.** `idea.md` in the folder Phase 0 resolved. There is no container derivation, no
+  write-path gate and no `prd_disposition`: the operator named the folder when they named the key,
+  which is what removes the question.
+- **`## Prior art`:** write the section per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` when the
+  source is a `prd` the user supplied — its Phase 2 `tracked` block (key, status, summary), which
+  appears there **and** in `sources:`. Omit the section entirely otherwise. **Nothing discovers prior
+  art any more**; what the user hands over is the only prior art there is.
 - **`## Feasibility grounding`:** write the section per
   `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` when Phase 2.6 ran **and** returned at least one
   finding; omit it entirely otherwise. Head it with each grounded repo as `<repo>@<scanned_ref>`; give
@@ -253,13 +214,17 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
 
 Report where `idea.md` was written and its `status`, then offer the next phase — **adapted to status**:
 
-- **`prd_disposition: rewrite`, `status: refined`** — the key is already known from the `prd` source, so there is **no round trip for the key** — but the git consent choice below still applies; a known key says nothing about whether the user consented to a branch and a pull request. Relocate `idea.md` into the PRD folder's `idea.md` — resolve the folder with `resolve-address <KEY>` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), which searches every level §3 bounds and carries §5's legacy fallback. `status: absent` → create it as `PRD-<KEY>-<slug>/` per §2's convention; `ambiguous` → stop, naming every match. Relocating into an existing folder wherever it sits is what keeps `/create-prd`'s own rung-1 lookup — which resolves through the same entry point — pointed at this file rather than at a sibling folder this step would otherwise have created beside it, then present `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim: `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`. On the first choice, execute `handoff-to-main` (§2) with `prefix: idea`, `feature_folder` = the relocation target above (the resolved PRD folder), `deliverable_paths` = the relocated file, `title: <KEY> Refine idea for <summary>`, `body_facts` = the idea's Problem/Goal one-liner, its `prd_disposition`, and any open prior-art matches, then report the §4.1 outcome line. On the second choice, report the §4.1 declined-outcome line — `idea.md` is relocated but not on the default branch; the next phase will stop until it is.
-- **`prd_disposition: new`, `status: refined`** — ask: `choices: ["Choose the key now and give me the key — I'll complete the handoff (Recommended)", "Leave it in the vault — I'll hand it off later", "Cancel", "Other… (describe)"]`. On a key matching `^[A-Z][A-Z0-9_]*-\d+$`, relocate `idea.md` to `$SPECS_PATH/specifications/<KEY>-<slug>/idea.md` exactly as above, then present the same §4.3 consent choice and proceed exactly as above — `handoff-to-main` on its first option, the §4.1 declined-outcome line on its second. On the second choice of **this** bullet's own key offer ("Leave it in the vault…"), report plainly: *"Not handed off — `idea.md` stays at `<path>`. `/create-prd <KEY>` will not find it; use the out-of-contract form `/dev-workflows:create-prd <KEY> @<path>`."*
-- **`status: draft`** (N open `[NEEDS CLARIFICATION]`) — **never hand off**, regardless of `prd_disposition`, and do not ask. By the governing principle the phase is not finished, so there is nothing to hand over. Report the N open items and offer `--deep` (`/dev-workflows:idea @<idea.md path> --deep`), or the out-of-contract route (`/dev-workflows:create-prd <KEY> @<idea.md path>`, which will grill you on the rest). State explicitly that no branch or pull request was created.
+- **`status: refined`** — offer the handoff. Present
+  `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim, then on the
+  first option execute `handoff-to-main` (§2) with `prefix: idea`, `feature_folder` = the folder
+  Phase 0 resolved, and `deliverable_paths` = `idea.md`. Then recommend
+  `/dev-workflows:create-prd <KEY>`, which finds `idea.md` in that folder.
 
-Also report any prior art found — matched keys with their statuses, and the alternative container path
-when one exists — **whether or not the gate fired**, so the user can relocate before `/create-prd` makes
-the path sticky.
+  **There is no key round-trip to wait for and no disposition to branch on.** The key was given in
+  Phase 0, the folder was resolved from it, and `idea.md` was written there — so the three states this
+  offer used to distinguish (rewrite in place, mint a new key, or neither) collapse into one.
+- **`status: draft`** (N open `[NEEDS CLARIFICATION]`) — **never hand off**, and do not ask. By the
+  governing principle the phase is not finished, so there is nothing to hand over.
 
 Also report the code grounding when Phase 2.6 ran: the grounded repos with their `scanned_ref`s, any
 repo descoped or unmounted with the themes left unverified, any theme still inconclusive after round 2,
@@ -288,7 +253,7 @@ Terminal phase — runs after Phase 5, NEVER interrupts an earlier phase.
 gap** (a capability the run needed but the plugin lacked), `emit-block` (per
 `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating — so a run
 abandoned at the block still records the gap. NEVER `emit-block` for an environment / user halt (bad
-`$VAULT_PATH`, source-not-found, cancellation).
+source-not-found, cancellation).
 
 **Session-hygiene invariant.** End Phase 5 with a `### Context hygiene` note per
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — a same-role `/compact` suggestion
@@ -320,7 +285,7 @@ abandoned at the block still records the gap. NEVER `emit-block` for an environm
    and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages
    ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `NOISSUE Add dev-workflows
    session artifacts (/idea)` (this run is keyless — no PRD-Key exists yet), and pushes. It NEVER
-   touches a code/docs repo, the vault, or the current working directory; NEVER force-pushes; NEVER
+   touches a code/docs repo, or the current working directory; NEVER force-pushes; NEVER
    fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting
    that notice. Hold its §6 outcome line for the Final report.
 
@@ -334,10 +299,8 @@ Report: the `idea.md` path + `status` (refined / draft with N open clarification
 `sources`; the count of `[NEEDS CLARIFICATION]` items and Assumptions; any source-detection correction
 or broken wikilinks; the resolved model routing (+ any Opus degradation); the feedback path; the cost
 path (or notice); the `Specs repo:` outcome line from `commit-artifacts`
-(`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; any
-prior art found (keys + statuses), any `status_conflict` a match reported (both values and the export's
-date — it is the signal that catches a broken sync) and any `notes` the finder returned; the resolved
-`prd_disposition`; the code grounding outcome — the grounded repos with their `scanned_ref`s, any
+(`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; the
+`Phase handoff:` outcome line when the handoff ran; the code grounding outcome — the grounded repos with their `scanned_ref`s, any
 descoped or inconclusive ones, and — first, because it is the most consequential thing a run can
 produce — the **Reframing** line if one was written; or, when no scan ran, `code grounding: off` (no
 `--ground-code`) or `code grounding: declined at the repo gate` (`--ground-code` given, "Ground

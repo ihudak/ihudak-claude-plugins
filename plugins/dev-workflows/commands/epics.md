@@ -6,7 +6,7 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 
 Draft child Epics for the resolved Product Requirements Document: $ARGUMENTS
 
-`/epics` is the **keyed Epic-writing** workflow. Given a Product Requirements Document key, it reads the PRD plus its existing Epics from pre-exported markdown in the user's Obsidian vault, optionally scans code repos to identify reusable capabilities and gaps, drafts child Epic definitions as markdown files under the resolved output directory, and gates the result on an Opus review.
+`/epics` is the **keyed Epic-writing** workflow. Given a Product Requirements Document key, it reads the PRD plus its existing Epics from the resolved PRD folder, optionally scans code repos to identify reusable capabilities and gaps, drafts child Epic definitions as markdown files under the resolved output directory, and gates the result on an Opus review.
 
 Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not yet implemented** — there are no PRs to diff. Code scanning (when enabled) is a plain filesystem search to understand what exists and what needs to be built.
 
@@ -30,8 +30,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    and never parsed out of its directory name.
 
 `/epics` is **cwd-agnostic**: it writes Epic drafts to an absolute output
-directory (resolved in Phase 1), so it does **not** require cwd to be inside the
-vault.
+directory (resolved in Phase 1), so it does **not** require cwd to be anywhere in particular.
 
 **Specs-repo preflight.** Cite
 `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
@@ -89,7 +88,7 @@ Also display (for user context):
 - Resolved cwd absolute path
 - Resolved output directory
 - Resolved `$REPOS_PATH` (or "N/A — code scan off")
-- Resolved `prd_dir` and `key` (plus `$VAULT_PATH` when set)
+- Resolved `prd_dir` and `key`
 
 No branching context is shown — this command never branches (still true — `specs-preflight` only switches `$SPECS_PATH` between branches that already exist, and only ones the plugin created, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2; it creates none).
 
@@ -97,7 +96,7 @@ No branching context is shown — this command never branches (still true — `s
 
 ## Phase 1.5 — Classify
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the classification rules, then classify the task as exactly one of: `SIMPLE`, `MODERATE`, `SIGNIFICANT`, or `HIGH-RISK`. Epic writing is typically **MODERATE** (bounded scope, single PRD, vault-internal output). State the classification and a one-sentence reason.
+Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the classification rules, then classify the task as exactly one of: `SIMPLE`, `MODERATE`, `SIGNIFICANT`, or `HIGH-RISK`. Epic writing is typically **MODERATE** (bounded scope, single PRD, specs-tree output). State the classification and a one-sentence reason.
 
 MODERATE → no separate Opus planner; the `epic-reviewer` gate (Opus, frontmatter-pinned) is mandatory. Resolve the per-step routing per `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §9:
 
@@ -339,7 +338,7 @@ Handle per-repo status after the batch returns:
 
 The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1 Sonnet detection chain for MODERATE; §2 Opus only if the run is SIGNIFICANT/HIGH-RISK — see `classification.md` §9.2). The orchestrator prepares a handoff and dispatches; it does not write Epics itself, and **nothing commits in this phase** (still true — `/epics` never branches, and the Epic drafts it writes are never committed; git hygiene of the write target is the user's responsibility. The run commits only inside `$SPECS_PATH`, and only its bounded session-artifact paths, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
 
-1. **Write the handoff file.** Create a temp file (`mktemp` — never the vault, never a repo) containing the `epic-writer` input contract: `folder_read`, `code_scanner_outputs` (empty if no scan), `scope` (Phase 2 in/out of scope), `existing_epics` (non-duplication), `prd_dir` (the resolved PRD folder), `vi_goal`, `key`, `requirements` + `requirements_source` (from Phase 3), `applicable_ard` (the Phase 2.5 invariants + guidance_summary, or omit when status was none), `existing_epic_themes` (themes of the already-linked Epics), `mode` (`generate` | `refine` | `both` — from Phase 3.5; `generate` when 3.5 skipped), `refinement_targets` (list of `{key, team, scope_hint, current_body_path}`, where `current_body_path = <prd_dir>/<EPIC-KEY>/<EPIC-KEY>.md`; empty in `generate` mode), and `docs_grounding` (the Phase 3.6 digest, or omit when OFF/EMPTY). Record its absolute path. When `focus_key` is set (the Phase 3 refinement target), set `scope` in-scope to just the focus Epic and `existing_epics` to the *other* linked Epics, so `epic-writer` re-drafts the single focus Epic's `epic.md`; the PRD folder is unchanged.
+1. **Write the handoff file.** Create a temp file (`mktemp` — never a repo, never the specs tree) containing the `epic-writer` input contract: `folder_read`, `code_scanner_outputs` (empty if no scan), `scope` (Phase 2 in/out of scope), `existing_epics` (non-duplication), `prd_dir` (the resolved PRD folder), `vi_goal`, `key`, `requirements` + `requirements_source` (from Phase 3), `applicable_ard` (the Phase 2.5 invariants + guidance_summary, or omit when status was none), `existing_epic_themes` (themes of the already-linked Epics), `mode` (`generate` | `refine` | `both` — from Phase 3.5; `generate` when 3.5 skipped), `refinement_targets` (list of `{key, team, scope_hint, current_body_path}`, where `current_body_path = <prd_dir>/<EPIC-KEY>/<EPIC-KEY>.md`; empty in `generate` mode), and `docs_grounding` (the Phase 3.6 digest, or omit when OFF/EMPTY). Record its absolute path. When `focus_key` is set (the Phase 3 refinement target), set `scope` in-scope to just the focus Epic and `existing_epics` to the *other* linked Epics, so `epic-writer` re-drafts the single focus Epic's `epic.md`; the PRD folder is unchanged.
 
 2. **Dispatch the writer:**
 
@@ -352,7 +351,7 @@ The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1
    ```
    choices: ["Provide the missing input (you'll be prompted)", "Cancel"]
    ```
-   On a provided value, rewrite the handoff and re-dispatch once. Nothing is committed here (still true — this step writes only Epic drafts into the vault / output directory, which `commit-artifacts` never stages; git management there is the user's responsibility).
+   On a provided value, rewrite the handoff and re-dispatch once. Nothing is committed here (still true — this step writes only `epic.md` files into the PRD folder, which `commit-artifacts` never stages; git management there is the user's responsibility).
 
    Also record `coverage_file` (the `_coverage.md` path) and `clarifications_needed[]` for Phases 6.1 and 7.
 
@@ -382,7 +381,7 @@ Fold the results back: *assign* → re-dispatch `epic-writer` once (or Edit inli
 
 ## Phase 6.2 — Prose style check
 
-Invoke `prose-style-checker` on the files written in Phase 6. Unlike `/document` (keyed mode), this does NOT use `docs-style-checker` (no repo linter for vault content). Instead, the prose style checker validates terminology, trademarks, voice/tone, and inclusive language.
+Invoke `prose-style-checker` on the files written in Phase 6. Unlike `/document` (keyed mode), this does NOT use `docs-style-checker` (no repo linter for specs-tree content). Instead, the prose style checker validates terminology, trademarks, voice/tone, and inclusive language.
 
 → Agent (subagent_type: "prose-style:prose-style-checker", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Run the style check for this brief:
@@ -425,7 +424,7 @@ gate.
 
 ## Phase 7 — Epic review gate
 
-Invoke `epic-reviewer` (Opus). This reviewer is Epic-specific — scope clarity, acceptance-criteria testability, non-duplication of existing Epics. `docs-style-checker` is NOT used here (no repo linter for vault content); Prose style is handled by the Phase 6.2 `prose-style-checker` step above.
+Invoke `epic-reviewer` (Opus). This reviewer is Epic-specific — scope clarity, acceptance-criteria testability, non-duplication of existing Epics. `docs-style-checker` is NOT used here (no repo linter for specs-tree content); Prose style is handled by the Phase 6.2 `prose-style-checker` step above.
 
 → Agent (subagent_type: "dev-workflows:epic-reviewer"):
   > "Review the Epic drafts for this brief:
@@ -444,7 +443,7 @@ Act on the verdict (same shape as `/document` keyed mode Phase 7):
 
 **Triage sub-step** (before any fixer dispatch): follow `${CLAUDE_PLUGIN_ROOT}/references/finding-triage.md`. For each finding, verify its claimed consequence at the location it names; keep or dismiss; record every dismissal with a reason that disposes of that finding's own claim. Hand the fixer **survivors only**, and carry the dismissal list into this run's report.
 
-- **BLOCK** — invoke `doc-fixer` with `Severities to fix: BLOCKER and MAJOR`. Write the `doc-fixer` Fix Report to a temp file (`mktemp -t dw-epics-claims-XXXX.md`, never inside a repo tree or the vault), record its path as `claims_file`, then **check `doc-fixer`'s `Stop condition flag` before re-invoking anything**. If it is `NEEDS HUMAN`, the fixer deferred at least one BLOCKER as needing a human decision: do NOT re-invoke `epic-reviewer` — a re-review can only re-find the BLOCKER the fixer has just reported it could not resolve — and instead surface each deferred BLOCKER with the reason the fixer gave, then escalate it individually per the `Review verdict BLOCK (unresolved after one fix cycle) — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`, which names this entry point alongside the second-BLOCK one. Only when the flag is `CLEAR` do you re-invoke `epic-reviewer` once **passing `claims_file`** — so the re-review falsifies the fixer's account rather than assuming it. If still BLOCK, escalate per the `Review verdict BLOCK (unresolved after one fix cycle) — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` for each unresolved BLOCKER individually:
+- **BLOCK** — invoke `doc-fixer` with `Severities to fix: BLOCKER and MAJOR`. Write the `doc-fixer` Fix Report to a temp file (`mktemp -t dw-epics-claims-XXXX.md`, never inside a repo tree or the specs tree), record its path as `claims_file`, then **check `doc-fixer`'s `Stop condition flag` before re-invoking anything**. If it is `NEEDS HUMAN`, the fixer deferred at least one BLOCKER as needing a human decision: do NOT re-invoke `epic-reviewer` — a re-review can only re-find the BLOCKER the fixer has just reported it could not resolve — and instead surface each deferred BLOCKER with the reason the fixer gave, then escalate it individually per the `Review verdict BLOCK (unresolved after one fix cycle) — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`, which names this entry point alongside the second-BLOCK one. Only when the flag is `CLEAR` do you re-invoke `epic-reviewer` once **passing `claims_file`** — so the re-review falsifies the fixer's account rather than assuming it. If still BLOCK, escalate per the `Review verdict BLOCK (unresolved after one fix cycle) — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` for each unresolved BLOCKER individually:
   ```
   choices: ["Provide manual fix notes (you'll be prompted)", "Defer to a follow-up issue (record in Phase 9 report)", "Override and accept the finding", "Cancel the whole run", "Other… (describe)"]
   ```
@@ -472,7 +471,7 @@ Cap: one fix cycle + one re-review maximum.
 
 First gather the change context:
 
-a. `project_root` (the vault when `$VAULT_PATH` is set, else the resolved PRD folder) is the "project root" for this run. Run `git diff --stat` from `project_root` if it is a git repo; otherwise list the written files manually. This command never commits anything under `project_root` — just report what changed (the terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
+a. `project_root` is the resolved PRD folder. Run `git diff --stat` from `project_root` if it is a git repo; otherwise list the written files manually. This command never commits anything under `project_root` — just report what changed (the terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
 b. Compose a **change summary block**:
 
 ```
@@ -492,7 +491,7 @@ Then spawn all four maintenance agents in a **single Agent message**. They are i
 > "Post-write documentation review. Change summary:
 > [paste change summary block]
 >
-> The project root is an Obsidian vault when `$VAULT_PATH` is set, else the resolved PRD folder; look only for internal documentation files that reference the Epics (e.g., an index page enumerating them).
+> The project root is the resolved PRD folder; look only for internal documentation files that reference the Epics (e.g., an index page enumerating them).
 > Determine if any such file needs updating — e.g., a new entry in a drafts index.
 > Skip if: no such file exists or drafts aren't indexed centrally.
 > If an update is warranted: apply minimal edits.
@@ -502,7 +501,7 @@ Then spawn all four maintenance agents in a **single Agent message**. They are i
 > "Post-write knowledge review. Change summary:
 > [paste change summary block]
 >
-> Check ~/.claude/memory/ (global) and .claude/memory/ (project-level, preferred for vault-specific knowledge) for existing knowledge files.
+> Check ~/.claude/memory/ (global) and .claude/memory/ (project-level, preferred for project-specific knowledge) for existing knowledge files.
 > Determine if a new knowledge entry is warranted — look for: reusable insights about this PRD-family's Epic patterns, non-obvious scoping constraints uncovered, code-reuse discoveries from code-scanner, duplicate-Epic near-misses that required scope adjustment.
 > If YES: append to the most appropriate existing file (never create a new file if an existing one fits) using this format:
 > ### [Short title]
@@ -568,7 +567,7 @@ Output a structured report — do NOT ask any closing confirmation:
 ## keyed Epic Drafting Report
 
 ### Classification
-MODERATE — vault-internal Epic drafting for a single PRD
+MODERATE — Epic drafting for a single PRD
 
 ### Model Routing
 - Session model (current_model): [model]
@@ -727,9 +726,9 @@ user name is ever written (§10 privacy).
 ## Invariants (always enforced)
 
 - ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation)
-- ALWAYS resolve one positional address (Phase 0) — a key or an `@<path>`; see `$VAULT_PATH`; a folder in the specs tree works without it; `/epics` is cwd-agnostic and rejects `mode: direct`
+- ALWAYS resolve one positional address (Phase 0) — a key or an `@<path>` naming a folder in the specs tree works without it; `/epics` is cwd-agnostic and rejects `mode: direct`
 - NEVER create a git branch — this command never branches. `specs-preflight` may switch `$SPECS_PATH` between branches that already exist, and only ones the plugin created (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none.
-- NEVER commit the Epic drafts or anything in the vault, or the current working directory — git management there is the user's responsibility. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
+- NEVER commit the Epic files, or anything in the current working directory — git management there is the user's responsibility. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - NEVER write inside `_archive/` — read-only by convention
 - ALWAYS write inside the resolved PRD folder — each Epic in its own `EPIC-` subfolder, `_coverage.md` beside `prd.md` (there is one home and it is derived, so no path is asked for)
@@ -737,7 +736,7 @@ user name is ever written (§10 privacy).
 - ALWAYS escalate missing repos before proceeding — never silent skip
 - ALWAYS invoke `epic-reviewer` before Phase 8 maintenance
 - ALWAYS resolve the `model_routing` block at Phase 1.5 and pin each subagent dispatch to its §9 chain via `model:` — the mechanical steps (the folder read, `code-scanner`, `prose-style-checker`, `doc-fixer`) and `epic-writer` (MODERATE) to the §2.1 Sonnet chain; `epic-reviewer` keeps its frontmatter Opus pin (no override); coordination + interactive gates run on `current_model`
-- ALWAYS delegate Phase 6 writing to the `epic-writer` subagent (write-only); the orchestrator never writes Epics itself and never commits the drafts (still true — the drafts land in the vault / output directory, which the terminal `commit-artifacts` step never stages; git management there is the user's responsibility)
+- ALWAYS delegate Phase 6 writing to the `epic-writer` subagent (write-only); the orchestrator never writes Epics itself and never commits the drafts (still true — the Epic files land in the PRD folder, which the terminal `commit-artifacts` step never stages; git management there is the user's responsibility)
 - ALWAYS cap review/fix cycles: 1 fix + 1 re-review max
 - ALWAYS pass `Change type: docs` in the Phase 8 change summary block
 - ALWAYS pass `Command run: /epics` in the Phase 8 Agent 4 session handoff
@@ -745,8 +744,8 @@ user name is ever written (§10 privacy).
 - ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
 - ALWAYS produce the Phase 9 report as the final output
 - ALWAYS end the Phase 9 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked
-- ALL written claims must be traceable to a resolved key (from the folder read) or code paths (from `code-scanner`); do not invent content the sources don't contain. `[[KEY]]` wikilinks in the draft are correct here and stay: `/epics` writes into an Obsidian vault, where a wikilink is the native idiom and resolves. `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1 — which bans in-page provenance — governs **rendered product-docs pages** (`/document`'s write targets), not vault documents; do not apply it to Epic drafts
-- NEVER run `docs-style-checker` — Epic drafts are vault-internal and not subject to product-docs prose linting. Prose style is checked via `prose-style-checker` in Phase 6.2 instead.
+- ALL written claims must be traceable to a resolved key (from the folder read) or code paths (from `code-scanner`); do not invent content the sources don't contain. `[[KEY]]` wikilinks in the draft are correct here and stay: `/epics` writes markdown that Obsidian and IntelliJ both render, where a wikilink resolves. `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1 — which bans in-page provenance — governs **rendered product-docs pages** (`/document`'s write targets), not Epic definitions; do not apply it to them
+- NEVER run `docs-style-checker` — Epic definitions are specs-tree content and not subject to product-docs prose linting. Prose style is checked via `prose-style-checker` in Phase 6.2 instead.
 - ALWAYS have `epic-writer` write `_coverage.md` to the PRD folder itself (PRD-holistic, even in focus mode); it is NOT an Epic definition and is never published
 - ALWAYS run the Phase 6.1 clarification gate when the writer returns clarifications; unresolved-by-choice markers become `epic-reviewer` BLOCKERs
 - ARD steps (Phase 2.5, writer/reviewer `applicable_ard`, the Phase 9 ARD section) are ADDITIVE and guarded on `status: found` — a run with no ARD is byte-identical to before

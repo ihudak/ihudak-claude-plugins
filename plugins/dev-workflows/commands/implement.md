@@ -748,7 +748,7 @@ and executing its steps inline.
 2. **Filter** them with the reference's §6 qualifying predicate.
 3. **Resolve** the write target via the §4 ladder using `key` and `source`
    (keyed runs carry a key; direct-prompt runs usually do not, so tasks
-   land in `Tasks.md # Irregular` when the vault is writable, else report-only);
+   are report-only);
    render + place tasks and verbose notes per §1–§3; dedupe per §5.
 4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.
 
@@ -795,7 +795,7 @@ stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
 `<KEY> Add dev-workflows session artifacts (/implement)`, and pushes per §4
 step 5. It NEVER writes into the code repo this run just changed — the
 implementation changes and the branch created in Pre-Phase 3 are untouched —
-NEVER touches a docs repo, the vault, or the current working directory;
+NEVER touches a docs repo or the current working directory;
 NEVER force-pushes;
 NEVER fails the run; and skips entirely when the run carries `specs_git:
 blocked` (§3.3 G0), re-emitting that notice. Because the Phase 5 report was

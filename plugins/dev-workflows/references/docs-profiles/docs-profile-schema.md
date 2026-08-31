@@ -43,8 +43,8 @@ commands:
       build: "pnpm self-hosted:build"
       format: "pnpm self-hosted:format"
 tokens:
-  latest_tag: "{{tag kind='latest'}}"          # gen3/Latest marker
-  gen3_settings_breadcrumb: "::app-settings::"
+  latest_tag: "{{tag kind='latest'}}"          # a "latest version" marker
+  settings_breadcrumb: "::app-settings::"
 internal_links:
   convention: "[text](<postid>); postid comes from target frontmatter; verify it exists before linking"
 announcement_pages:

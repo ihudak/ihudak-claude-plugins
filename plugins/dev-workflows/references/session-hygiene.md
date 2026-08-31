@@ -44,9 +44,8 @@ durable state is the artifact / branch / PR already on disk; no resume pointer i
 
 1. `$SPECS_PATH` resolvable + writable + the PRD dir exists → `<PRD-dir>/dev-workflows/resume.md`. *[primary]*
 2. `$SPECS_PATH` writable but no PRD dir matched → skip the file; rely on the printed `### Next step`.
-3. No `$SPECS_PATH`; `$VAULT_PATH` writable → `$VAULT_PATH/dev-workflows/resume/<KEY>-resume.md`.
-4. Neither writable → skip the file; the suggestion still fires with a one-line
-   `⚠ could not persist a resume pointer — set $SPECS_PATH or $VAULT_PATH`.
+3. `$SPECS_PATH` not writable → skip the file; the suggestion still fires with a one-line
+   `⚠ could not persist a resume pointer — set $SPECS_PATH`.
 
 `resume.md` is a **"last known position" pointer, OVERWRITTEN each run** (NOT an append
 log). It is intentionally tiny:

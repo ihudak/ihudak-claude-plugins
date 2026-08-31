@@ -440,7 +440,7 @@ guidance already appeared in the report.
 stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
 `<KEY> Add dev-workflows session artifacts (/design)` with no `Co-Authored-By`
 trailer, and pushes to the branch this run's handoff phase created (§4.1). It
-NEVER touches a code repo, a docs repo, the vault, or the current working
+NEVER touches a code repo, a docs repo, or the current working
 directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the
 run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its
 §6 outcome line for the Final report.

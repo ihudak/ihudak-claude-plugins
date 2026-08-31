@@ -80,7 +80,7 @@ Dispatch a **read-only** detection subagent **pinned to the §2.1 mid-tier chain
   > Gather and report, each with the file path + a short verbatim excerpt as evidence:
   >
   > 1. **package.json scripts** — every script whose name matches `*:start`, `*:lint`, `*:build`, `docs:*`, `format`/`prettier`. For each `*:start` script, extract the dev-server port and base path (grep the script and any referenced config — e.g. `--port`, `PORT=`, a `base`/`basePath` in a docusaurus/mkdocs/eleventy/vitepress config). Note whether two `*:start` servers can run concurrently (distinct ports → concurrent; shared port / single server → sequential).
-  > 2. **Templating tokens** — grep the content roots for the repo's own inline markers, e.g. `{{tag kind='latest'}}` (gen3/Latest marker) and `::app-settings::` (gen3 settings breadcrumb). Report each marker's exact spelling and where it occurs.
+  > 2. **Templating tokens** — grep the content roots for the repo's own inline markers, e.g. `{{tag kind='latest'}}` (a "latest version" marker) and `::app-settings::` (a settings breadcrumb). Report each marker's exact spelling and where it occurs.
   > 3. **Content + snippet roots** — every `*/_content` and every `*/_snippets` directory (e.g. `cloud/_content`, `cloud/_snippets`, `self-hosted/_content`, `self-hosted/_snippets`). This determines the `spaces[]` list: one rendered space per content root.
   > 4. **Branch-naming + internal-link conventions** — read CONTRIBUTING.md, CONTRIBUTION.md, README.md, DOCUMENTATION-GUIDELINES.md, and CLAUDE.md at the repo root (and `.claude/`). Quote any documented branch-naming pattern (e.g. `<initials>/<KEY>-<slug>`) and any internal-link convention (e.g. `[text](<postid>)` where postid comes from target frontmatter).
   > 5. **Image policy** — any documented rule for screenshots/images (CDN-hosted vs committed binaries); quote the source.
@@ -108,7 +108,7 @@ On the §2 powerful chain (`planning_model`), turn the detection report into a d
   > - Emit `schema_version: 1` and one `spaces[]` entry per detected content root (`id`, `content_root`, `snippet_root`, `base_path`). `spaces[]` is required and non-empty.
   > - `dev_servers`: one `servers[]` entry per `*:start` script with its `command`, `port`, `base_path`; set `concurrent: false` unless detection proved two servers can run at once.
   > - `commands`: `lint`, `format`, and any commit-hook chain detected.
-  > - `tokens`: only the markers detection actually found (e.g. `latest_tag`, `gen3_settings_breadcrumb`).
+  > - `tokens`: only the markers detection actually found (e.g. `latest_tag`, `settings_breadcrumb`).
   > - `internal_links.convention`, `branch_naming.pattern`, `images.policy`, `prerequisites[]`: fill from detection; leave a field out rather than inventing it.
   > - `announcement_pages[]`: one entry per page found by detection item 7 (Announcement pages), each `{postid, path, kinds}`. Emit `announcement_pages: []` explicitly when detection found none — do not omit the key.
   > - `commands.per_space:` — when `package.json` (or the repo's task runner) exposes **per-space** lint / build / format scripts whose names correspond to entries in `spaces[]` (e.g. `docs:lint` + `self-hosted:lint` for spaces `cloud` + `self-hosted`), record them under `commands.per_space.<space id>`. Map the script name to the space id by the space's `content_root` (`cloud/_content` ⇒ script prefix `docs`), never by guessing. Omit `per_space` entirely when the repo has one content root, or when only whole-repo scripts exist.

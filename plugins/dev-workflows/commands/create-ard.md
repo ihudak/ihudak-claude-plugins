@@ -49,14 +49,14 @@ this stage). Zero external calls.
 
    **On the BRD route this is the resolved BRD folder**, and it is never created here: resolve it
    with `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), which already
-   searches both levels, or read the `the BRD route <dir>` path when one was given. The ARD this run
+   searches both levels, or read an explicit BRD-directory path when one was given. The ARD this run
    authors is written **into that folder**, beside the BRD artifacts it was derived from. `absent` is
    a graceful stop, not a folder to create — and it names **both** ways a BRD folder comes into being
    rather than picking one, because nothing on disk says whether this key names a BRD with a source
    document or a slice of one, and a key's segment count is a naming convention, never a depth
    declaration (§1):
    `CREATE_ARD_BRD_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
-   Where a `the BRD route <dir>` path was supplied and is not an existing directory, the same stop
+   Where an explicit BRD-directory path was supplied and is not an existing directory, the same stop
    substitutes that path for the search clause — `no BRD folder at <path> (supplied with the BRD route)` —
    because "both levels searched" would describe a search this run did not perform.
 4. **Prior ARD.** If the target `ard.md` exists → Phase 1 offers refine-vs-fresh. **On the BRD route the target is `<BRD-dir>/ard.md`** — the same glob in the same folder, keyed by the BRD key this run resolved.
@@ -464,7 +464,7 @@ exist to keep apart.
 2. **Persist plugin feedback (automatic).** Cite `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6) with the report, `command: /create-ard`, the run's `key`, `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no plugin-facing signal — nothing persisted").
 3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and call its `emit-cost` entry point with `command: /create-ard`, `phase: architecture`, `role: pa`, the run's `key`, `source`, and `plugin_version`. Surface the persisted path (or the report-only notice).
 4. **Write the resume pointer.** Cite `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and write/overwrite `<PRD-dir>/dev-workflows/resume.md` now — after the cost entry above, so the pointer reflects the completed run, and before the commit step below, so it is included in it. Redact per §1. Silent; the printed `### Context hygiene` guidance already appeared in the report.
-5. **Commit session artifacts (terminal).** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts (/create-ard)` with no `Co-Authored-By` trailer, and pushes to the branch this run's handoff phase created (§4.1). It NEVER touches a code repo, a docs repo, the vault, or the current working directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its §6 outcome line for the Final report.
+5. **Commit session artifacts (terminal).** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts (/create-ard)` with no `Co-Authored-By` trailer, and pushes to the branch this run's handoff phase created (§4.1). It NEVER touches anything outside `$SPECS_PATH`; NEVER force-pushes; NEVER fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its §6 outcome line for the Final report.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git for the deliverable is offered only in Phase 6; the terminal step above commits only the bounded session-artifact paths in `$SPECS_PATH`), and NEVER writes into a code/docs repo or the current working directory; no user name is ever written.
 

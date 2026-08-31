@@ -83,7 +83,7 @@ other **four** ids never appear in a direct-mode ledger — not even as `NOT_APP
 
 - `source_truth_verification` — direct mode has no Phase 5.8, no folder read, and no `code_repos`.
 - `build_check` and `render_smoke_check` — direct mode has no Phase 6.5 and no resolved profile to take build or dev-server commands from.
-- `image_review` — direct mode has no Phase 5.6, and none of the sources that phase builds its two lists from (the specs scan, the folder attachments, the vault project folder, and the `extend-existing` write targets Phase 5.5 confirms). The candidate lists are the orchestrator's own in both modes — `doc-planner` neither supplies nor reads them — so their absence here is about the missing phase and its missing inputs, not about the planner.
+- `image_review` — direct mode has no Phase 5.6, and none of the sources that phase builds its two lists from (the specs scan, the folder attachments, and the `extend-existing` write targets Phase 5.5 confirms). The candidate lists are the orchestrator's own in both modes — `doc-planner` neither supplies nor reads them — so their absence here is about the missing phase and its missing inputs, not about the planner.
 
 Direct mode has no `doc-planner`, so its orchestrator extracts `repo_verification_gates` itself per
 `${CLAUDE_PLUGIN_ROOT}/references/repo-verification-gates.md` §5.

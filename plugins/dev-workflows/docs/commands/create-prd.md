@@ -9,16 +9,16 @@ Turns a refined `idea.md` — or a reconciled BRD's product-altitude seed, on th
 ## Synopsis
 
 ```
-/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [the BRD route [<dir>]] [--lean|--hybrid|--full] [--no-docs] [--no-prior-art]
+/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--hybrid|--full] [--no-docs]
 ```
 
 - **`<KEY>`** (mandatory) — the key of an address the user already created to get the ID. Format-validated only (`^[A-Z][A-Z0-9_]*-\d+$`); zero external API means its existence on the tracker is never checked.
 - **On the BRD route the same positional token is a BRD key** and is validated against `^[A-Z][A-Z0-9_]*(-\d+)+$` instead — a superset, so every key accepted before is still accepted, and a slice key such as `EPIC-008-01` is too. Shape only, never checked against a tracker.
 - **`[@idea.md]`** (optional) — an explicit path to the idea source; see [What it needs](#what-it-needs) for how this differs from the default resolution.
 - **`[--from-prd <PRD-KEY|path>]`** (optional) — seed a **new** PRD (still under the positional `<KEY>`) with another PRD's structure, read read-only as grounding and adapted, never copied wholesale.
-- **`[the BRD route [<dir>]]`** (optional) — a **switch, not a path**: the positional key already identifies the BRD and the folder resolution finds it at either level, so a path is only for a BRD folder outside the normal layout. Seeds the run from that folder's `prd-seed.md` and `decisions.md`. Mutually exclusive with `--from-prd` (two seeds for one PRD stops the run).
+- **The BRD route** — detected, never declared: where the resolved folder carries a `brd-link.md`, the run seeds the PRD from that BRD's `prd-seed.md` and `decisions.md`. There is no flag; a flag that could disagree with the folder it names is one more disagreement to have.
 - **`[--lean|--hybrid|--full]`** — the profile controlling which adapt-in clusters are available; default `--hybrid`, or `--full` on the BRD route. `--full` is required for `[FR#N]` Functional Requirements; `--hybrid`/`--full` for `[UC#N]` Use Cases. An explicit flag always wins over the the BRD route default — and when that flag is `--lean` while the BRD's register still holds open decisions or assumptions, the run offers to switch rather than dropping them, because `--lean` is spine-only and has no `## Assumptions & open questions` for them to land in.
-- **`[--no-docs]`** / **`[--no-prior-art]`** — each turns off one optional grounding source (Phase 2.5).
+- **`[--no-docs]`** — turns off documentation grounding (Phase 2.5).
 
 ## How it runs
 
@@ -27,7 +27,7 @@ flowchart TD
     p0["Phase 0 — Resolve inputs"] --> p1["Phase 1 — Configure"]
     p1 --> p15["Phase 1.5 — Classify + model routing"]
     p15 --> p2["Phase 2 — Read the seed"]
-    p2 --> p25["Phase 2.5 — Grounding: documentation + vault prior art (optional)"]
+    p2 --> p25["Phase 2.5 — Grounding: documentation (optional)"]
     p25 --> p3["Phase 3 — Author via grill"]
     p3 --> p35["Phase 3.5 — Prose style check"]
     p35 --> p36["Phase 3.6 — Structural pre-lint"]
@@ -45,11 +45,11 @@ Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2.5, read
 - **`idea.md`**, resolved by a five-rung ladder that stops at the first hit (Phase 0). **The first two rungs gate differently, and the difference is easy to miss:**
   - **In-contract — `<KEY>`'s own feature folder.** This is the default when no `@path` is given. It is gated via `require-on-main`: absent falls through to the next rung without stopping ([`/idea`](idea.md) is not a prerequisite for `/create-prd`); present and merged onto the specs repo's default branch is used as-is, never relocated again ([`/idea`](idea.md) already did that); present on an unmerged plugin branch is a hard stop, naming the branch and any open pull request.
   - **Out-of-contract — an explicit `@<path>` argument.** Read exactly where it sits — never relocated, never gated via `require-on-main` at all — and reported once as out-of-contract.
-  - The remaining rungs (a same-session [`/idea`](idea.md) output, a picker over recently-discovered `idea.md` files under `$VAULT_PATH/Projects`, or a manual path) are all out-of-contract, handled the same way as `@<path>`. If every rung is exhausted, the run proceeds with no idea and grills the PRD from scratch.
+  - The remaining rungs (a same-session [`/idea`](idea.md) output, or a manual path) are all out-of-contract, handled the same way as `@<path>`. If every rung is exhausted, the run proceeds with no idea and grills the PRD from scratch.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH` and offers to enter a path or cancel.
 - **An existing PRD for `<KEY>`**, checked by a frontmatter glob in the feature folder. `/create-prd` is greenfield-only: if one is found, the run redirects to [`/dev-workflows:update-prd <KEY>`](update-prd.md) (or, with `--from-prd`, offers to update the existing PRD instead of seeding a fresh one).
 - **The `--from-prd` seed** (optional) — resolved from the specs tree; used read-only, never as content to copy.
-- **Documentation grounding and vault prior art** (optional, on by default) — each turned off with `--no-docs` / `--no-prior-art`; a miss of either is always a silent skip, never a gate.
+- **Documentation grounding** (optional, on by default) — turned off with `--no-docs`.
 - **No repos.** `/create-prd` is cwd-agnostic and product-level — it never mounts or scans code.
 
 ### The BRD route
@@ -83,7 +83,7 @@ Author a Product Requirements Document for an already-created empty ticket, from
 /dev-workflows:create-prd PRODUCT-1234 @idea.md --hybrid
 ```
 
-The run resolves the feature folder, reads `idea.md` directly (no `idea-reader` — it is the plugin's own format), grounds it against docs and vault prior art, grills you relentlessly through the spine (Problem, Goal, Target audience, User Stories, Acceptance Criteria, Scope, Success Metrics) plus any adapt-in clusters the idea warrants, runs the style check and pre-lint, then `prd-reviewer`. On a passing verdict it offers to branch, commit, push, and open a pull request.
+The run resolves the feature folder, reads `idea.md` directly (no `idea-reader` — it is the plugin's own format), grounds it against the documentation, grills you relentlessly through the spine (Problem, Goal, Target audience, User Stories, Acceptance Criteria, Scope, Success Metrics) plus any adapt-in clusters the idea warrants, runs the style check and pre-lint, then `prd-reviewer`. On a passing verdict it offers to branch, commit, push, and open a pull request.
 
 Author one from a reconciled BRD slice instead — no path, because the key resolves the folder:
 

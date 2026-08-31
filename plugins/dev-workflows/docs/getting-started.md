@@ -23,7 +23,7 @@ claude plugin install prose-style@ihudak-plugins
 
 **One more that is not in this marketplace.** [`superpowers`](https://github.com/obra/superpowers) is a separate Claude Code plugin, recommended rather than required: `/prompt-brainstorm` cedes its Phase 3 to `superpowers:brainstorming`, and the brainstorm → plan → subagent-driven-development flow this plugin's own development uses comes from it. Without it that one hand-off has nowhere to go; everything else degrades gracefully. Note that *grilling* is **not** an external dependency — the relentless-interrogation technique the authoring commands run is bundled here, in `references/grilling-technique.md`.
 
-**What you do not need for this plugin.** The marketplace also ships `obsidian-llm-wiki` (compiling a vault into a cross-referenced wiki) and `acli` (an Atlassian CLI reference skill). Neither is used by `dev-workflows` — `acli` is referenced nowhere in it, and `references/followup-emission.md` states outright that it has no runtime dependency on `obsidian-llm-wiki`; it only *mirrors* that plugin's vault task conventions so follow-ups land in a shape your vault already understands. Install them if you want them for their own sake; see the [marketplace README](../../../README.md).
+**What you do not need for this plugin.** The marketplace also ships `obsidian-llm-wiki` (compiling a vault into a cross-referenced wiki) and `acli` (an Atlassian CLI reference skill). Neither is used by `dev-workflows` — `acli` is referenced nowhere in it, and `references/followup-emission.md` states outright that it has no dependency on it — runtime or editorial. It used to mirror that plugin's task conventions, because follow-ups landed in a vault; they land in the specs tree now, as plain markdown. Install them if you want them for their own sake; see the [marketplace README](../../../README.md).
 
 ## Update
 
@@ -35,11 +35,7 @@ Run this whenever you want the latest command, agent, hook, and reference conten
 
 ## What you set on your machine
 
-`dev-workflows` reads eight environment variables. Two are required for the pipeline to have anywhere to write (`VAULT_PATH`, `SPECS_PATH`); the rest are read where relevant and degrade gracefully — a missing optional one degrades rather than fails — and `$REPOS_PATH`, `$DOCS_PATH`, `$DEV_WORKFLOWS_COST_PRICES`, `$UI_GUIDELINES_PATH`, and `$API_GUIDELINES_PATH` all degrade *silently*; only `$GIT_USER_INITIALS` does not — it walks its fallback ladder and, if that comes up empty, the command asks you before creating a branch. Export the ones you use in your shell profile. For defaults, resolution order, and the exact directory layout each one expects, see [Environment](reference/environment.md); this section explains what each variable *is*.
-
-### `VAULT_PATH`
-
-Your **personal** knowledge store — where your own working files live, not the team's. Obsidian is the common case, and the name mirrors that, but nothing about the plugin requires Obsidian: every file it reads or writes here is plain markdown, so any markdown-backed store — a plain directory, a different notes app, a git repo of `.md` files — works exactly the same way. It holds your `Projects/<area>/<slug>/` idea and working files. Nothing here imports anything from a tracker: the pipeline reads and writes one markdown tree in `$SPECS_PATH`. Nothing under `VAULT_PATH` is expected to be team-visible.
+`dev-workflows` reads seven environment variables. One is required for the pipeline to have anywhere to write (`SPECS_PATH`); the rest are optional and each degrades to a documented default or a silent skip.
 
 ### `SPECS_PATH`
 
@@ -96,7 +92,7 @@ Claude Code ships its own built-in `/statusline` command, so typing the bare for
 Here is what to expect:
 
 1. **A bounded grill.** `/idea` asks you up to ten questions, one at a time, to sharpen the idea before writing anything — scope, who it is for, what "done" looks like. Answer as best you can; a question you cannot answer yet becomes a logged `[NEEDS CLARIFICATION]` marker rather than a blocker.
-2. **A written brief.** It writes `idea.md` — a lean one-page brief — into `VAULT_PATH`. If `DOCS_PATH` is set and readable, the idea is also checked against what is already documented, and if your vault has prior related work, that surfaces too.
+2. **A written brief.** It writes `idea.md` — a lean one-page brief — into the PRD folder you named. If `DOCS_PATH` is set and readable, the idea is also checked against what is already documented, and if your vault has prior related work, that surfaces too.
 3. **A handoff, once a key exists.** The moment you choose a key, re-running `/idea` relocates `idea.md` into `$SPECS_PATH/specifications/<KEY>-<slug>/` and lands it on the specs repo's default branch, where the next command, `/create-prd <KEY>`, finds it and takes over — `/create-prd` never does the relocating itself.
 
 From here, [Workflow overview](workflow.md) shows where every other command sits relative to `/idea`, and [Roles and phases](roles-and-phases.md) says what happens at each handoff along the way.

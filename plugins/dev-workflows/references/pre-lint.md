@@ -38,7 +38,7 @@ a markdown link (link text or URL), or inside a fenced code block. Inline code (
 Classify every surviving hit into exactly one of three branches, and name the branch in the finding — the taxonomy is not exhaustive by assumption, so a hit that fits none of the first two belongs in the third:
 
 1. **A requirement ID** (`US`/`AC`/`SM`/`SMC`/`UC`/`FR`/`AD` prefix) → **BLOCKER**; convert it to `[PREFIX#N]`. This branch alone is mechanical, so inline-fix it under the standard pre-lint contract.
-2. **A real tracker ticket** (a key in a project that actually exists) → **BLOCKER**; wrap it as `[[KEY-123]]` so the tracker and the vault importer both read it as the deliberate reference it is. Not mechanical — confirm the key with the author before wrapping.
+2. **A real tracker ticket** (a key in a project that actually exists) → **BLOCKER**; wrap it as `[[KEY-123]]` so a tracker and a wiki-style importer both read it as the deliberate reference it is. Not mechanical — confirm the key with the author before wrapping.
 3. **Neither — a standards, protocol, or algorithm reference** such as `ISO-8601`, `RFC-8446`, `TLS-13`, `SHA-256`, or `HTTP-2` → **MINOR**; leave the token **exactly as written** and report it. It is correct prose that happens to match the grep, so there is nothing in the artifact to fix. NEVER rewrite it as `[PREFIX#N]` and NEVER wrap it in a wikilink — `[[ISO-8601]]` is a dangling link to a ticket that does not exist, and the inline-fix clause in branch 1 does not reach this branch. If a tracker project genuinely shares the prefix, that is the author's call to make, never the linter's.
 
 The ARD is not itself pasted anywhere, but `epic-writer` copies its `AD` references into Epic

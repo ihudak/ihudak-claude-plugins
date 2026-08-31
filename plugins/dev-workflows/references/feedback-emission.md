@@ -23,7 +23,7 @@ the embedded grilling technique (`${CLAUDE_PLUGIN_ROOT}/references/grilling-tech
 a declared install-time dependency.
 
 **Relationship to B4 (`followup-emission.md`).** B4 captures the *engineer's own*
-follow-up actions → vault-first, audience = the engineer. This feature captures
+follow-up actions → audience = the engineer. This feature captures
 *plugin* friction → specs-first, audience = the maintainer. Both share the
 `<PRD-dir>/dev-workflows/` per-PRD area. **No dedup between them** — different
 purpose, different audience.
@@ -93,7 +93,7 @@ back in review because the two products differ here.
 ## 2. Persistence ladder (specs-first; never cwd)
 
 `$SPECS_PATH` is primary — central aggregation is the whole point. Resolution is
-**deterministic** (no interactive vault-path prompt, consistent with silent
+**deterministic** (no interactive path prompt, consistent with silent
 capture, §5). Walk the ladder top-down and stop at the first tier that applies:
 
 1. **`$SPECS_PATH` resolvable + writable + the PRD dir exists** — the dir matched
@@ -103,15 +103,9 @@ capture, §5). Walk the ladder top-down and stop at the first tier that applies:
    matching spec dir) → `$SPECS_PATH/dev-workflows-feedback/<KEY-or-date>.md` at
    the specs-repo root. Still committed & aggregated; notice:
    `unfiled — move under the PRD dir if it belongs to one.`
-3. **No `$SPECS_PATH` (unset / missing / read-only) AND the vault is writable**
-   (`$VAULT_PATH` set **and** an existing directory **and**
-   writable) → `$VAULT_PATH/dev-workflows/feedback/<KEY>-feedback.md`, with a
-   **loud notice**:
-   `⚠ $SPECS_PATH unavailable — saved to your vault; it will NOT auto-aggregate to the maintainer. Set $SPECS_PATH and commit, or forward manually.`
-4. **`source = directory`** (a passed directory, no specs/vault) → beside the
-   imported directory, where `/epics` + `/release-notes` already drop their
-   no-vault output.
-5. **Nothing resolvable** → **report-only**: keep the feedback in the run's
+3. **`source = directory`** (a passed directory, no `$SPECS_PATH`) → beside that
+   directory.
+4. **Nothing resolvable** → **report-only**: keep the feedback in the run's
    final output and emit the notice. **NEVER write into the current working
    directory** — it may be a code repo.
 
@@ -191,8 +185,7 @@ run's terminal `commit-artifacts` step
 ### `emit-auto` — automatic callers (the thirteen commands' maintenance phases)
 
 Inputs: the `impl-maintenance` **Lessons Learned report**, `command` (the exact
-slash-command name), `key` (or `null`), `source` (`vault | directory |
-none`).
+slash-command name), `key` (or `null`), `source` (`specs | directory | none`).
 
 Behavior: project the plugin-facing slice per §4 (Command workflow improvements
 + New agents / skills + plugin Reference docs + the triggering Key observations);
@@ -222,8 +215,7 @@ the target (§2); write silently (§5); surface the path.
 
 ### `emit-block` — capture-at-block (a run halting on a plugin gap)
 
-Inputs: `command` (exact slash-command name), `key` (or `null`), `source`
-(`vault | directory | none`), and the **halting gap** — a short description of
+Inputs: `command` (exact slash-command name), `key` (or `null`), `source` (`specs | directory | none`), and the **halting gap** — a short description of
 the plugin capability / reference / skill / command-path the run needed but the
 plugin lacked. Unlike `emit-auto`, no `impl-maintenance` report exists (the run
 is being abandoned mid-flight), so the gap is passed directly.

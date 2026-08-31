@@ -12,7 +12,7 @@ authors a high-quality **Product Requirements Document** that feeds the downstre
 (a PRD): what / why / for-whom, not how. Zero external calls — the PRD is authored as markdown in the specs
 repo, which is where every downstream command reads it from.
 
-Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--hybrid|--full] [--no-docs] [--no-prior-art]` (default `--hybrid`, or `--full` on the BRD route — Phase 0 step 2; the two `--no-*` switches each turn off one grounding source — see Phase 1).
+Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--hybrid|--full] [--no-docs]` (default `--hybrid`, or `--full` on the BRD route — Phase 0 step 2; the two `--no-*` switches each turn off one grounding source — see Phase 1).
 
 ---
 
@@ -36,7 +36,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
 3. **Resolve `idea.md` (ladder — stop at first hit). Skipped entirely on the BRD route**, where
    `prd-seed.md` is the seed and there is no `idea.md` to find: rung 1 would return `absent` on a
    BRD folder that never held one, and rungs 3 and 4 would then offer an idea from some other
-   initiative — a picker over every `idea.md` in the vault is exactly the offer that names something
+   initiative — a picker over stray `idea.md` files is exactly the offer that names something
    this run has no business reading. An explicit `@<path>` supplied alongside the BRD route is still
    honoured, on rung 2's terms only (read where it sits, never relocated, never gated, reported once
    as out-of-contract) and as **additional grounding**, never as the seed. Without the BRD route the
@@ -44,12 +44,12 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    1. **in-contract** — `specifications/<KEY>-<slug>/idea.md`, resolved from `<KEY>`. Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against it, mapping its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4. Otherwise (`stopped: false`): on `pass`/`pass_amending`, use it — **do not relocate**, `/idea` already did; on `absent`, fall through to rung 2 — likewise on `unmanaged`: this ladder runs before step 4 validates `$SPECS_PATH`, so `unmanaged` (the §3.1 gate could not run) is reachable here, and it behaves as `absent` because there is nothing to verify; step 4 still stops immediately afterward on an unset `$SPECS_PATH`, so nothing is lost by not stopping here;
    2. **out-of-contract `@path`** — explicit `@path` argument; read the idea where it sits, **never move it**, and do not gate it. Report once: *"out-of-contract: reading `<path>` in place; it will not be relocated or gated."*;
    3. **same-session** — if `/idea` ran earlier in this session, use its recorded output path (confirm with the user) — out-of-contract, as rung 2;
-   4. **discover** — `find "$VAULT_PATH/Projects" -type f -name idea.md` (recent first); if any, present a picker — out-of-contract, as rung 2;
+   4. *(retired — the discover rung searched a personal store for a stray `idea.md`. `/idea` writes into the resolved folder now, so rung 1 finds it.)* — out-of-contract, as rung 2;
    5. prompt for a path, or — last resort — proceed with **no idea** and grill the PRD from scratch. **`/idea` is not a prerequisite for `/create-prd`** — an `absent` in-contract idea must reach this rung, never a stop.
 4. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
 5. **Feature folder. On the BRD route this is the resolved BRD folder**, and it is never created
    here: resolve it with `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3),
-   which already searches both levels, or read the `the BRD route <dir>` path when one was given. The
+   which already searches both levels, or read an explicit BRD-directory path when one was given. The
    PRD this run authors is written **into that folder** as `prd.md`, beside the BRD
    artifacts it was derived from. `absent` is a graceful stop, not a folder to
    create — and it names **both** ways a BRD folder comes into being rather than picking one,
@@ -189,7 +189,6 @@ Use `choices` arrays; the last choice is always `"Other… (describe)"`.
 
 1. **Confirm** the feature folder, the profile, and the resolved `idea.md` (or "none — grill from scratch"); on the BRD route, the BRD folder, the profile (`--full` unless a flag overrode it), and — instead of an idea — a `from BRD:` line naming `<BRD-KEY>`, its `parent:` if it has one, its `depends-on:` if any, how many of its gate-set rows (Phase 0 step 7) are `covered-here` out of how many, and whether `prd-seed.md` and `decisions.md` were found.
    - Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
-   - Show the `prior art:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md` resolved — `ON <vault-root>` or `OFF (<reason>)` — verbatim (off switch: --no-prior-art). Run `resolve-prior-art create-prd` per that reference to obtain it; it runs exactly once per run.
 2. **Existing-PRD handling** (only if Phase 0 step 6 found a PRD for `<KEY>`):
    - **the BRD route present** → "author this BRD's PRD" conflicts with "a PRD for this BRD already
      exists here". `/update-prd` takes no the BRD route, so the redirect is honest about what it
@@ -312,13 +311,11 @@ exists to prevent.
 
 ---
 
-## Phase 2.5 — Grounding: documentation + vault prior art (optional)
+## Phase 2.5 — Grounding: documentation (optional)
 
 Dispatch both grounding agents **in a single response** so they run in parallel. Each is independent; either being OFF never suppresses the other.
 
 **Docs.** Run `resolve-docs-grounding create-prd` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the idea's problem/goal + PRD themes, `key` = `<KEY>`, and `themes` from the idea. When OFF, skip silently.
-
-**Prior art.** Using the `resolve-prior-art create-prd` result from Phase 1: when `prior_art: ON`, `dispatch-prior-art-finder` per `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md` with `feature_summary` = the idea's problem/goal, `themes` from the idea, and `known_refs` = every filesystem path in the idea's `sources[]` as `{path, …}`, every key in `sources[]` as `{key, …}`, and the key of each `## Prior art` bullet as `{key, …}` — all with `has_summary: false`, since this command reads `idea.md` directly and holds no summaries of its own. Take the **key**, not the wikilink, from a `## Prior art` bullet: a wikilink resolves by file name and dangles the moment a vault item is renamed, which is exactly why the bullet carries both. Recorded `sources[]` paths may dangle for the same reason; the finder drops what it cannot resolve. When OFF, skip silently.
 
 **On the BRD route both agents run unchanged; only their inputs are substituted**, because there is
 no `idea.md` to take them from. `feature_summary` and `themes` come from `prd-seed.md` (falling back
@@ -333,7 +330,7 @@ Carry both digests into Phase 3 with **grill-rank** consumption. When both are O
 
 ## Phase 3 — Author via grill
 
-**Interview technique (grilling — embedded; no runtime dependency).** Conduct a **relentless** interview per `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, fact-vs-decision split (look up facts from the idea/sources; put only decisions to the user), walk the design tree in dependency order, continue to shared understanding then write each section. Rank every `docs_challenges` and `prior_art_challenges` entry from Phase 2.5 into the grill's question order; a challenge competes for attention, it never suspends the spine below.
+**Interview technique (grilling — embedded; no runtime dependency).** Conduct a **relentless** interview per `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, fact-vs-decision split (look up facts from the idea/sources; put only decisions to the user), walk the design tree in dependency order, continue to shared understanding then write each section. Rank every `docs_challenges` entry from Phase 2.5 into the grill's question order; a challenge competes for attention, it never suspends the spine below.
 
 Author `prd.md` live against `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md` for the selected profile, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md`. Walk the **spine** in dependency order:
 
@@ -544,7 +541,7 @@ label yet (no PRD-Key). Guidance only, never auto-run.
 2. **Persist plugin feedback (automatic).** Cite `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6) with the Lessons Learned report, `command: /create-prd`, the run's `key` — or, where the BRD route left it unwritten until the round-trip, the run's `brd_key`, which is the key that matches this PRD's own `$SPECS_PATH` folder and so keeps the write on that reference's primary tier instead of dropping it to the unfiled one — `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no plugin-facing signal — nothing persisted").
 3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and call its `emit-cost` entry point with `command: /create-prd`, `phase: prd-creation`, `role: pm`, the run's `key` (or `brd_key`, on the BRD route, for the reason step 2 gives), `source`, and `plugin_version`. Surface the persisted path (or the report-only notice).
 4. **Write the resume pointer.** Cite `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and write/overwrite `<PRD-dir>/dev-workflows/resume.md` now — after the cost entry above, so the pointer reflects the completed run, and before the commit step below, so it is included in it. Redact per §1. Silent; the printed `### Context hygiene` guidance already appeared in the report.
-5. **Commit session artifacts (terminal).** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts (/create-prd)` — or `NOISSUE …` when the run resolved no key at all — with no `Co-Authored-By` trailer. **On the BRD route that `<KEY>` is the BRD key, not `NOISSUE`**: this is a specs-repo commit-message prefix, not a tracker lookup, and the BRD key is the key this run resolved and the name of the folder the staged artifacts sit in. A key the handoff has not yet minted is missing from `key`, which is a different field for a different purpose, and pushes to the branch this run's handoff phase created (§4.1). It NEVER touches a code repo, a docs repo, the vault, or the current working directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its §6 outcome line for the Final report.
+5. **Commit session artifacts (terminal).** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts (/create-prd)` — or `NOISSUE …` when the run resolved no key at all — with no `Co-Authored-By` trailer. **On the BRD route that `<KEY>` is the BRD key, not `NOISSUE`**: this is a specs-repo commit-message prefix, not a tracker lookup, and the BRD key is the key this run resolved and the name of the folder the staged artifacts sit in. A key the handoff has not yet minted is missing from `key`, which is a different field for a different purpose, and pushes to the branch this run's handoff phase created (§4.1). It NEVER touches anything outside `$SPECS_PATH`; NEVER force-pushes; NEVER fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its §6 outcome line for the Final report.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git for the deliverable is offered only in Phase 5; the terminal step above commits only the bounded session-artifact paths in `$SPECS_PATH`), and NEVER writes into a code/docs repo or the current working directory; no user name is ever written.
 

@@ -57,7 +57,7 @@ the entry with the two extra prose blocks (`origin: prompt`), appends per §3
 interactive and may run long. It stages ONLY the §2.1 bounded artifact paths
 inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts
 (/prompt-grill-me)` — or `NOISSUE …` when no `key` resolved — and pushes.
-It NEVER touches a code/docs repo, the vault, or the current working
+It NEVER touches a code/docs repo, or the current working
 directory; NEVER force-pushes; NEVER fails the run; and skips entirely when
 the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice.
 Print its §6 outcome line here, prefixed `Specs repo:`, with any guard notice
@@ -74,6 +74,6 @@ Interrogate the correction directly, following
 
 Follow the technique's mechanics (one question at a time, a recommended answer
 each time, fact-vs-decision split, dependency order). This command NEVER
-commits into a docs/code repo, the vault, or the current working directory.
+commits into a docs/code repo or the current working directory.
 The Phase 2 `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded
 artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).

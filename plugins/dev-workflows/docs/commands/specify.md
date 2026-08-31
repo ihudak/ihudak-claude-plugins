@@ -9,7 +9,7 @@ Reads the resolved Epic or PRD folder, lightly grounds in code, and authors an o
 ## Synopsis
 
 ```
-/specify <PRD-Key | Epic-Key | dir | BRD-Key> [<Epic-Key>] [the BRD route [<dir>]] [--no-docs]
+/specify <ADDRESS> [--no-docs]
 ```
 
 **The BRD route** — where the resolved folder carries a `brd-link.md`, the run authors the specification for a reconciled BRD. Detected, not a path**: the positional token is then a **BRD key**, validated against `^[A-Z][A-Z0-9_]*(-\d+)+$` (so a three-segment slice key such as `EPIC-008-01` is as valid as `EPIC-008`) and resolved to a folder at either level under `specifications/`, so a path is only for a BRD folder outside the normal layout. It takes **one key**: a second positional key stops the run (`SPECIFY_BRD_NO_EPIC`), because a BRD has no Epics yet and the seeds live only at a BRD's own level. Everything in the paragraphs below about pickers, Epic counts and the resolved folder describes the keyed route only — BRD-route runs none of it.
@@ -50,7 +50,7 @@ Five `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 4, read-on
 
 - **An Epic or PRD address** — a prompt with no address is rejected outright (`SPECIFY_NEEDS_KEY`); `/specify` has no non-tracker behaviour.
 - **The PRD on the specs repo's default branch** — gated via `require-on-main` against `specifications/<PRD>-<vslug>/`. An unmerged PRD is a hard stop, naming the branch and any open pull request. An **absent** PRD is not a stop: `/specify`'s existing specs-tree behaviour is unaffected, and the run reports that it is specifying from the export directly — the same fallback `/create-ard` uses.
-- **`$SPECS_PATH`** (required) — `/specify` writes under `$SPECS_PATH/specifications/`, the specs repo, never the vault; unset stops the run naming `SPECS_PATH`, with no vault-relative fallback.
+- **`$SPECS_PATH`** (required) — `/specify` writes under `$SPECS_PATH/specifications/`, the specs repo; unset stops the run naming `SPECS_PATH`, with no fallback.
 - **An optional ARD** for this item (Phase 2.5), resolved via `../../references/ard-resolution.md` with the PRD and the resolved focus Epic. `status: none` skips silently; `status: unmerged` stops, naming the branch and any pull request; `status: found` keeps the spec's user stories and scope consistent with its `[AD#N]` invariants during the grill, passed to `spec-reviewer` as `applicable_ard`.
 - **Mounted repos under `$REPOS_PATH`** — candidates are auto-derived from the PRD's capability themes and linked PR URLs. An *unresolved* repo slug (zero or ambiguous matches) hard-escalates before Phase 4 runs at all. A resolved-but-unmounted repo, by contrast, only **soft-gates**: it becomes an open question in `_session.md` and the run proceeds with the remaining mounted repos — the specification just can't cite the ungrounded one until it's mounted and the run is re-invoked.
 - **`$DOCS_PATH`** (optional, default `/workspace/docs`) — consumed with grill-rank ranking in Phase 4. Missing, unreadable, or empty is a silent, non-blocking skip. Turned off with `--no-docs`.

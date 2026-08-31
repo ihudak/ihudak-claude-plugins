@@ -4,6 +4,40 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.9.0] — 2026-08-31
+
+### Removed — `$VAULT_PATH` (increment D)
+
+Last of four increments implementing
+`docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md`. **The plugin reads and writes
+one tree.** `$VAULT_PATH` appears nowhere in it — not in a command, an agent, a reference, a hook or
+a documentation page.
+
+**A capability is lost, and it is the only one in this whole design.** `vault-prior-art-finder`
+searched a personal store for tracked initiatives an idea should reconcile against, and fed `/idea`
+and `/create-prd` a bounded digest. It was genuinely useful and it is gone. It was already advisory,
+already optional and already a silent skip when absent, so nothing gates on it and no run breaks —
+that is what made the deletion safe, not what made it free. **Prior art now means a PRD you hand the
+command yourself, as a path.** Prior-art discovery over `specifications/**` is a plausible
+replacement and a separate design; no half of it ships here.
+
+- **The four emitter ladders lose their vault tier.** Feedback, cost and session-hygiene each lose one branch they already preferred `$SPECS_PATH` over, so a specs-resolved run is unchanged. **Follow-ups lose their *primary* tier** and everything shaped by it — the Obsidian-Tasks line with Fibonacci effort checkboxes, `#tags` from a vault's tag index, `P<NNNN>` project files, `Tasks.md`, `Journal.md`. A plain `follow-ups.md` checklist in the resolved folder is now the only tier.
+- **`/idea` takes its key up front**, resolves the folder, and writes `idea.md` there on the first write — never relocated. The write-path gate, the container rule, `area_proposal` and `prd_disposition` go with it, and Phase 5's three-way handoff collapses to one.
+- **The plugin description is rewritten**, not appended to: **883 → 810 characters**, which is the direction a rewrite after four deletion increments should go.
+- **`gen3` leaves the docs-profile examples.** Detection was always generic; only the example was vendor-shaped.
+
+### Fixed
+
+- **A gap in 3.6.0.** Spec §6.1 said `/idea` takes its key up front and that the relocation phase, write-path derivation, container rule, `area_proposal` and `prd_disposition` all go with it. None of it had been done; `/idea` still validated `$VAULT_PATH` as its write root.
+- **Eight mangled substitutions** left by 3.6.0's `--from-brd` sweep — `` `the BRD route <dir>` `` in five command sites and four docs synopses, where a flag name was replaced without regard for the surrounding grammar.
+- A sentence in `prose-formatting.md` broken by the same release's vocabulary sweep (*"actively harmful in / on paste"*).
+
+### Note for anyone who set `$VAULT_PATH`
+
+**Nothing deletes your files.** The plugin simply stops reading them. What you lose is prior-art
+discovery and the Obsidian task format for follow-ups; what you gain is that every artifact the
+pipeline produces now lives in one git-tracked tree.
+
 ## [3.8.0] — 2026-08-31
 
 ### Fixed — `/implement` and `/upgrade` no longer abandon work in a dirty tree

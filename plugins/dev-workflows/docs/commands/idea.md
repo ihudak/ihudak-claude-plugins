@@ -9,7 +9,7 @@ Refines one raw source — a prompt, a file, a community post, or a saved file �
 ## Synopsis
 
 ```
-/idea <PRD-KEY> [<prompt> | @<file>] [--deep] [--ground-code [<repo>,…]] [--no-docs] [--no-prior-art]
+/idea <PRD-KEY> [<prompt> | @<file>] [--deep] [--ground-code [<repo>,…]] [--no-docs]
 ```
 
 The single positional argument is classified into one of four source forms (Phase 1), by precedence:
@@ -18,7 +18,7 @@ The single positional argument is classified into one of four source forms (Phas
 - **A markdown file or `@wikilink`** — an existing `.md` path, including a community post (typically under `Projects/Products/…`, tagged `community-post`) or a previously-written `idea.md` handed back for re-refinement.
 - **A saved community post** — a markdown file the operator downloaded. It is read for its demand signals (upvotes, duplicate reports, the shape of the complaint); nothing fetches a URL.
 
-Four flags: `--deep` switches the grill from bounded (≤10 questions) to relentless (runs to convergence, no cap); `--ground-code [<repo>[,<repo>…]]` turns on the optional Phase 2.6 code-grounding scan — bare, the repo set is derived from mounted directories and the idea's themes, with a value it scans exactly the named repos; `--no-docs` turns off documentation grounding; `--no-prior-art` turns off vault prior-art discovery.
+Three flags: `--deep` switches the grill from bounded (≤10 questions) to relentless (runs to convergence, no cap); `--ground-code` adds an optional code-grounding pass; `--no-docs` turns documentation grounding off.
 
 ## How it runs
 
@@ -26,7 +26,7 @@ Four flags: `--deep` switches the grill from bounded (≤10 questions) to relent
 flowchart TD
     p0["Phase 0 — Validate environment + resolve model routing"] --> p1["Phase 1 — Classify the source"]
     p1 --> p2["Phase 2 — Ingest the source (idea-reader)"]
-    p2 --> p25["Phase 2.5 — Grounding: documentation + vault prior art (optional)"]
+    p2 --> p25["Phase 2.5 — Grounding: documentation (optional)"]
     p25 --> p26["Phase 2.6 — Code grounding (optional)"]
     p26 --> p3["Phase 3 — Refine via grill"]
     p3 --> p4["Phase 4 — Write idea.md"]
@@ -38,16 +38,16 @@ Four subagents are dispatched along this path: `idea-reader` (Phase 2, ingests t
 
 ## What it needs
 
-- **`$VAULT_PATH`** — must be set, an existing directory, and writable before anything else runs (Phase 0). If any of that fails, the run stops and offers to enter a directory to write `idea.md` into, or cancel — it never falls back to the current working directory, which may be a code repository.
+- **A PRD key** — the first positional argument, validated for shape and checked against nothing. It names the folder `idea.md` will live in, which is why it is required up front: there is nowhere keyless to write.
 - **The idea source itself** — read by `idea-reader`. A key that does not resolve, or a path that does not exist, stops the run and offers to re-enter the source or cancel; this is an environment/user halt, not a plugin gap.
 - **`$DOCS_PATH`** (optional, default `/workspace/docs`) — documentation grounding. Missing, unreadable, or carrying no markdown file is a silent, non-blocking skip: `docs grounding: OFF`, never an error. Turned off explicitly with `--no-docs`.
-- **Vault prior art** (optional, on by default) — searches the vault for tracked initiatives this idea should be reconciled against. Turned off with `--no-prior-art`, or silently OFF when it cannot resolve (for example an invalid `$VAULT_PATH`); advisory only, never a gate.
+- *(Prior-art discovery over a personal store it searched. Prior art now means a PRD you hand the command yourself, as a path.)*
 - **`--ground-code` repo(s)** (optional) — only runs when the flag is given. A named repo that is not mounted is neither invented nor silently dropped — it is escalated and, if declined, carried forward by name with its themes left unverified. With no flag at all, the run instead does one cheap detection pass and prints at most one advisory line naming a repo the idea mentions; it never scans.
 - **`$SPECS_PATH`** — not needed to start the run at all, and an unresolvable path is a silent no-op rather than a stop. It is touched twice: `specs-preflight` runs against it at the end of Phase 0 (which can emit a guard notice and set `specs_git: blocked` for the whole run), and it becomes load-bearing from Phase 5 onward, once a key has resolved and `idea.md` is relocated there for the git handoff.
 
 ## What it produces
 
-`idea.md`, authored against `../../references/idea-format.md`. While the run is keyless it is written under `$VAULT_PATH` — by default at `<container(source path)>/<candidate_slug>/idea.md`, where the container follows the vault prior-art derivation (a source already grouped under `Projects/Products/` lands beside its neighbours; everything else resolves to `Projects/ideas/`). Once a key resolves, Phase 5 relocates the file to `$SPECS_PATH/specifications/<KEY>-<slug>/idea.md` and, behind a consent choice, hands it off onto the specs repo's default branch (opening a pull request) or reports it as relocated-but-not-yet-handed-off if the user declines.
+`idea.md`, authored against `../../references/idea-format.md`, written into `PRD-<KEY>-<slug>/` under `$SPECS_PATH/specifications/` on the first write and never relocated afterwards. [`/create-prd`](create-prd.md) finds it there.
 
 **Relocation is `/idea`'s alone.** [`/create-prd <KEY>`](create-prd.md) finds `idea.md` at that path afterward and never moves it itself — an explicit `@<path>` argument to [`/create-prd`](create-prd.md) is a separate, out-of-contract read that is likewise never relocated.
 
@@ -63,7 +63,7 @@ Refine an inline prompt, grounding it against the mounted frontend repo:
 /dev-workflows:idea "Add a dark-mode toggle to the settings page" --ground-code frontend
 ```
 
-The run validates `$VAULT_PATH`, classifies the argument as a prompt, ingests it via `idea-reader`, grounds it against docs/vault prior art and the `frontend` repo, grills you (bounded, ≤10 questions) to fill the ambiguity gaps, writes `idea.md` under the vault, and — since no key exists yet — ends Phase 5 by asking whether to mint one now or leave the idea in the vault for later.
+The run validates the key, classifies the argument as a prompt, ingests it via `idea-reader`, grounds it against the documentation when `$DOCS_PATH` resolves, grills it, and writes `idea.md` into the resolved folder.
 
 ## See also
 
@@ -72,4 +72,4 @@ The run validates `$VAULT_PATH`, classifies the argument as a prompt, ingests it
 - [Model routing](../reference/model-routing.md) — the classification and model-fallback rules `/idea` applies in Phase 0.
 - [Session cost](../reference/session-cost.md) and [Session feedback](../reference/session-feedback.md) — the terminal Phase 6 bookkeeping every run emits.
 - [`idea-format.md`](../../references/idea-format.md) — the canonical structure `idea.md` is authored against.
-- [`vault-prior-art.md`](../../references/vault-prior-art.md) and [`docs-grounding.md`](../../references/docs-grounding.md) — the two optional grounding sources Phase 2.5 dispatches in parallel.
+- [`docs-grounding.md`](../../references/docs-grounding.md) — the documentation-grounding resolution gate and how a grill command consumes its digest.

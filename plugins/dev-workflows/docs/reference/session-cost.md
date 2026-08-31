@@ -10,9 +10,8 @@ The write target is resolved by a specs-first ladder, walked top-down, stopping 
 
 1. `$SPECS_PATH` is writable and the PRD directory can be matched → `<PRD-dir>/dev-workflows/cost/<sid8>.md`. This is the primary case and the one the whole feature exists for.
 2. `$SPECS_PATH` is writable but no PRD directory matches (a keyless run, such as early idea refinement) → the entry goes to a **pending** file instead, at `$SPECS_PATH/dev-workflows-cost/pending-<date>-<sid8>.md`. The next time any command in the same or a later session resolves a real PRD key, it lists the pending files it finds and offers to relocate their entries into the now-known PRD's cost directory — same-session files are pre-selected as the likely match. A confirmed relocation moves the entries and deletes the pending file so it never resurfaces; a declined one is simply left in place and may be offered again later.
-3. No `$SPECS_PATH`, but `$VAULT_PATH` is set and writable → `$VAULT_PATH/dev-workflows/cost/<sid8>.md`, with a loud warning that this location will not auto-aggregate to the maintainer.
-4. The run's source is a folder in the specs tree with neither specs nor vault available → the file lands beside that imported directory.
-5. Nothing resolvable → **report-only**: the entry stays only in the run's printed output. The plugin never writes into your current working directory, since it may be a code repository.
+3. The run's source is a folder in the specs tree and `$SPECS_PATH` is unavailable → the file lands beside that imported directory.
+4. Nothing resolvable → **report-only**: the entry stays only in the run's printed output. The plugin never writes into your current working directory, since it may be a code repository.
 
 None of this touches git — the cost entry is committed and pushed later, once, by the run's terminal `commit-artifacts` step, the same as every other session artifact this plugin writes into `$SPECS_PATH`.
 

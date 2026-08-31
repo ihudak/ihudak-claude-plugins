@@ -51,9 +51,9 @@ a **BRD key**, and there is no second positional key (Phase 0 step 0).
    direct-prompt behavior.
 
 2. **Resolve `$SPECS_PATH`.** `/specify` writes specifications under `$SPECS_PATH/specifications/`
-   (exact layout resolved in step 3) — the specs repo, not the vault. If `$SPECS_PATH` is unset, stop
+   (exact layout resolved in step 3) — the specs repo. If `$SPECS_PATH` is unset, stop
    with a clear error naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`) —
-   there is no vault-relative fallback for this write target the way there is for reads.
+   there is no fallback for this write target the way there is for reads.
 
 3. **Resolve the feature folder.** Derive provisional kebab-case slugs from the relevant
    item title(s) (finalized once the folder read runs in Phase 2, but a
@@ -88,7 +88,7 @@ a **BRD key**, and there is no second positional key (Phase 0 step 0).
 
    **On the BRD route the feature folder is the resolved BRD folder**, and it is never created here:
    resolve it with `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), which
-   already searches both levels, or read the `the BRD route <dir>` path when one was given.
+   already searches both levels, or read an explicit BRD-directory path when one was given.
    `specification.md` is written **flat inside that folder**, beside the BRD artifacts it was derived
    from — there is no per-Epic subfolder on this route, because the BRD route resolves no Epic (step 0).
    `absent` is a graceful stop, not a folder to create — and it names **both** ways a BRD folder comes
@@ -96,7 +96,7 @@ a **BRD key**, and there is no second positional key (Phase 0 step 0).
    a source document or a slice of one, and a key's segment count is a naming convention, never a
    depth declaration (§1):
    `SPECIFY_BRD_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
-   Where a `the BRD route <dir>` path was supplied and is not an existing directory, the same stop
+   Where an explicit BRD-directory path was supplied and is not an existing directory, the same stop
    substitutes that path for the search clause — `no BRD folder at <path> (supplied with the BRD route)` —
    because "both levels searched" would describe a search this run did not perform.
 
@@ -734,7 +734,7 @@ guidance already appeared in the report.
 stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
 `<KEY> Add dev-workflows session artifacts (/specify)` with no `Co-Authored-By`
 trailer, and pushes to the branch this run's handoff phase created (§4.1). It
-NEVER touches a code repo, a docs repo, the vault, or the current working
+NEVER touches a code repo, a docs repo, or the current working
 directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the
 run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its
 §6 outcome line for the Final report.

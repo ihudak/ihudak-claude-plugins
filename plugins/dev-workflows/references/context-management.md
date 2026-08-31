@@ -14,7 +14,7 @@ without degrading. Apply when the plan/step list is large or the run is nearing 
   diff, review package, prior-phase summary) to a file and hand the subagent the *path*, not the pasted
   content. Pasted dispatch content stays resident in the orchestrator's context and is re-read on every
   later turn; a file path costs one line. Always `mktemp` the handoff file — **never inside a repo working
-  tree** (and never in the vault) — so a later `git add -N . && git diff` never picks it up.
+  tree** (and never in the specs tree) — so a later `git add -N . && git diff` never picks it up.
 
 Prefer the cheapest strategy that fits: checkpoint first; offload parallel steps only when they are
 genuinely independent; decompose only when a single unit still overflows. "Hand off by file" is

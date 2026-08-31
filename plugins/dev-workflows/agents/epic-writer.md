@@ -1,10 +1,10 @@
 ---
 name: epic-writer
-description: Writes child Epic-definition files for /epics from a structured handoff file — one file per Epic, following the Epic template, traceable to the folder read handoff and code-scanner evidence. Write-only — writes vault content, never commits (still true — it runs no git at all). Returns the list of Epic files written. The orchestrator pins it to the §2.1 Sonnet detection chain for MODERATE runs (§2 Opus only if SIGNIFICANT/HIGH-RISK).
+description: Writes child Epic-definition files for /epics from a structured handoff file — one file per Epic, following the Epic template, traceable to the folder read handoff and code-scanner evidence. Write-only — writes into the PRD folder, never commits (still true — it runs no git at all). Returns the list of Epic files written. The orchestrator pins it to the §2.1 Sonnet detection chain for MODERATE runs (§2 Opus only if SIGNIFICANT/HIGH-RISK).
 tools: ["Read", "Glob", "Grep", "Write", "Edit"]
 ---
 
-Epic-definition writer for `/epics` Phase 6. The orchestrator resolved scope and inputs in Phases 2–5; this agent **executes** — write-only, and it **never** creates a branch or commits (still true — it runs no git at all; vault git is the user's responsibility, and the orchestrator's terminal `commit-artifacts` step touches only `$SPECS_PATH`).
+Epic-definition writer for `/epics` Phase 6. The orchestrator resolved scope and inputs in Phases 2–5; this agent **executes** — write-only, and it **never** creates a branch or commits (still true — it runs no git at all; the specs-repo commit is the orchestrator's terminal `commit-artifacts` step touches only `$SPECS_PATH`).
 
 ## Inputs
 
@@ -94,7 +94,7 @@ Traceability: every claim in each Epic must be traceable to the handoff `folder_
 
 **Write restrictions** (enforced by invariants):
 - NEVER write inside `_archive/` — read-only by convention.
-- NEVER write outside `$VAULT_PATH`.
+- NEVER write outside the handoff `prd_dir`.
 - ALWAYS write inside the handoff `prd_dir`, and never above it.
 
 ## Uncertainty markers

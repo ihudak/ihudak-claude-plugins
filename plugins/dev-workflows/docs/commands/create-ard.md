@@ -9,12 +9,12 @@ Grounds on the mounted implementation repos it discovers and authors an Architec
 ## Synopsis
 
 ```
-/create-ard <PRD-KEY | BRD-KEY> [<Epic-KEY>] [the BRD route [<dir>]] [--no-docs]
+/create-ard <ADDRESS> [--no-docs]
 ```
 
 `/create-ard <PRD-KEY>` authors a **PRD-level** ARD. `/create-ard <PRD-KEY> <Epic-KEY>` authors an **Epic-level** ARD, which inherits the PRD-level ARD read-only and layers its own `[AD#N]` decisions on top (an Epic/area decision wins on conflict — a real contradiction is caught by `ard-reviewer` at authoring time, not left for a downstream consumer to resolve). A bare `<Epic-KEY>` also resolves, auto-finding its parent PRD. `--no-docs` turns off the optional Phase 3 documentation-grounding pass.
 
-- **`[the BRD route [<dir>]]`** (optional) — authors a **BRD-level** ARD, seeded from a reconciled BRD instead of a PRD. A **switch, not a path**: the positional token is then a **BRD key**, validated against `^[A-Z][A-Z0-9_]*(-\d+)+$` (so a three-segment slice key such as `EPIC-008-01` is as valid as `EPIC-008`) and resolved to a folder at either level under `specifications/`, so a path is only for a BRD folder outside the normal layout. It takes **one key**: a second positional key stops the run (`CREATE_ARD_BRD_NO_EPIC`), because a BRD has no Epics yet and the seeds live only at a BRD's own level. The BRD key is a folder name and is never looked up on a tracker.
+- **The BRD route** — detected from the resolved folder's `brd-link.md`, never declared. It authors a BRD-level ARD from that folder's `ard-seed.md`.
 
 ## How it runs
 
@@ -48,7 +48,7 @@ Five `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 3, read-on
 
 With the BRD route the run is seeded by a BRD instead of a PRD, and what it needs changes accordingly:
 
-- **No input outside the specs tree.** No command here reads outside `$SPECS_PATH`, and `$VAULT_PATH` is not consulted — a BRD key names a folder under `$SPECS_PATH`, and handing it to a resolved folder lookup would fail on a key no tracker was ever asked for.
+- **No input outside the specs tree.** No command here reads outside `$SPECS_PATH`, and nothing is consulted — a BRD key names a folder under `$SPECS_PATH`, and handing it to a resolved folder lookup would fail on a key no tracker was ever asked for.
 - **No PRD gate.** The PRD is not this route's content source and is read by nothing in the run, so gating it would turn an input this route never had into a prerequisite. What puts the seed on the default branch instead is the [`/brd-*` route](../brd-workflow.md)'s own handoff discipline, where each command lands its deliverable before the next will start.
 - **The BRD folder's seed, register and findings** — `ard-seed.md` (the architecture altitude of the router; `prd-seed.md` and `spec-seed.md` belong to [`/create-prd`](create-prd.md) and [`/specify`](specify.md) and are not read), `decisions.md`, and the `[CG#n]`/`[DG#n]` records in `grounding/`. Any of them being absent is reported, never a stop. **A seed file is normally absent**, because nothing on the route writes one: the sole writer is `/brd-intake --sort-existing`, a migration path for a package authored by hand before the route existed. The register and the findings are what this route is really seeded from. A finding carrying no verifier outcome is not evidence: it seeds nothing and is never marked consumed.
 - **No coverage-ledger check.** PRD eligibility and the allocation gate govern authoring a *PRD*; an ARD is not that artifact, so this route does not read the ledger. That is a decision, not an omission — [`/create-prd`](create-prd.md) is where the gate lives.

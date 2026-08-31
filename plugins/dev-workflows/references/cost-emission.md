@@ -394,13 +394,9 @@ subdir. Walk top-down; stop at the first tier that applies:
    `$SPECS_PATH/{specs|specifications|vis}/…/<KEY>{-|_}<slug>/…`) ->
    `<PRD-dir>/dev-workflows/cost/<sid8>.md`. *[primary]*
 2. `$SPECS_PATH` writable but no PRD dir (or no key resolved) -> **pending** (§9).
-3. No `$SPECS_PATH`, vault writable (`$VAULT_PATH` set **and**
-   an existing, writable dir) ->
-   `$VAULT_PATH/dev-workflows/cost/<sid8>.md` with the loud notice:
-   `⚠ $SPECS_PATH unavailable — saved to your vault; it will NOT auto-aggregate to the maintainer.`
-4. `source = directory` (a passed directory, no specs/vault) -> beside the
-   imported directory.
-5. Nothing resolvable -> **report-only** in the run output. **NEVER write into the
+3. `source = directory` (a passed directory, no `$SPECS_PATH`) -> beside that
+   directory.
+4. Nothing resolvable -> **report-only** in the run output. **NEVER write into the
    current working directory** — it may be a code repo.
 
 The run never fails, and **the checkpoint (§3) still advances in every tier** so
@@ -474,7 +470,7 @@ Inputs:
   field, so the two never disagree. Omitting it is a caller error: §7 has no other
   source for it, and the entry would silently fall back to
   `plugin-feedback`/`n/a`, quietly mis-attributing every correction.
-- `key` (or `null`), `source` (`vault | directory | none`).
+- `key` (or `null`), `source` (`specs | directory | none`).
 - `plugin_version` — read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`
   (`python3 -c "import json;print(json.load(open('<path>'))['version'])"`).
 

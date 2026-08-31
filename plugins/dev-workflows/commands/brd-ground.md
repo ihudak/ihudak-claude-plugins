@@ -162,8 +162,17 @@ behaviour, not the behaviour.
    round's questions for a BRD with no requirement — leaving an empty round record permanently on
    file, which no later run may delete or renumber. A stop that names the upstream fix leaves the
    tree honest and the operator able to act.
-9. **Read `brd-link.md`, if present**, to recover any `depends-on` already recorded from an
-   earlier run — Phase 4 merges this run's `--depends-on` into it additively, never replacing it.
+9. **Read `brd-link.md`, if present**, and carry **both** of its fields for the rest of the run:
+   - `depends-on:` — any prerequisite already recorded by an earlier run. Phase 4 merges this run's
+     `--depends-on` into it additively, never replacing it.
+   - `parent:` — absent on a BRD that owns its source document, present on a slice. **Phase 10 branches
+     on it**, and this is the only step that reads it on a run that reaches Phase 10 at all: steps 6
+     and 8 read it too, but each does so inside a branch that *stops*, so on the ordinary path
+     neither has run. A file absent here means no `parent:`, which is the source-owning case.
+
+   Recording it here rather than re-opening the file at Phase 10 is what keeps that phase's own
+   citation true; a phase that names a step for a value the step never took is a citation nobody can
+   follow.
 
 ---
 
@@ -290,7 +299,11 @@ whatever the highest `CG#n` already on file is on a `--rebaseline` run. Each car
 unmodified commit"; `verdict: CONFIRMED` (a repository that failed this gate never reaches a
 finding — it stopped the run instead); `evidence` — the three command outputs (the pinned SHA, the
 empty `--stat` diff, and the `--porcelain`/line-count result); `commit` — the same pinned SHA;
-`altitude: implementation`; `horizon: current`; `consumed_by: none`. Phase 5 continues the BRD-wide
+`altitude: implementation`; `horizon: current`; `consumed_by: none` — which on a baseline finding is
+permanent and reports no gap, per `grounding-format.md` §4.1: there is nothing for a PRD, an ARD or a
+specification to draw from an assertion that a commit is identifiable, so every downstream
+unconsumed-item report excludes these findings rather than carrying one open item per repository
+forever. Phase 5 continues the BRD-wide
 `[CG#n]` sequence from these, never restarting at `CG#1` once a baseline finding already claimed
 it. Phase 7 verifies these findings the same as any other — `grounding-verifier`'s own Process
 step 1 already re-runs `baseline-integrity` for whatever finding it is handed, so re-checking a
@@ -663,7 +676,7 @@ prerequisite-readiness block; emit its §4.1 outcome line in the final report.
 
 ## Phase 10 — Next steps
 
-**Branch on whether this BRD is a slice**, using the `parent:` field Phase 0 step 9 already read
+**Branch on whether this BRD is a slice**, using the `parent:` field Phase 0 step 9 carried forward
 from `brd-link.md` — offering a command that would refuse the very key just ground is worse than
 offering nothing.
 
@@ -698,7 +711,7 @@ makes this slice PRD-eligible
 formality:
 
 ```
-choices: ["Allocate this slice's ledger — /dev-workflows:brd-split <BRD-KEY> (Recommended; allocate-only — no child is created) <merge-clause>", "Ground another declared prerequisite first", "Stop here", "Other… (describe)"]
+choices: ["Allocate this slice's ledger — /dev-workflows:brd-split <BRD-KEY> (Recommended — allocate-only, so no child is created) <merge-clause>", "Ground another declared prerequisite first", "Stop here", "Other… (describe)"]
 ```
 
 ### Context hygiene

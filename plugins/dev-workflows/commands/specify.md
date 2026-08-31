@@ -798,7 +798,10 @@ whether `code-grounding.md` carried a derivation matrix; that no `idea.md` was w
 `[CG#n]`/`[DG#n]` dropped for want of a verifier outcome, by id; every `[VD#n]`/`[CD#n]`/`[AS#n]`
 carried in as a gap rather than an input, by id and status; every contradiction Phase 5 recorded
 rather than decided, with the reopening route named for each; every implementation-altitude item still
-`consumed_by: none`, by id, per the design's *Consumption tracking* section (§7.3); `spec-seed.md`'s
+`consumed_by: none`, by id, per the design's *Consumption tracking* section (§7.3) — **excluding
+the baseline `[CG#n]` findings**, which are never `consumed_by` anything and whose `none` therefore
+reports no gap (`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §4.1); say that they are
+excluded, so a reader can tell an empty list from an unrun check; `spec-seed.md`'s
 consumption at file granularity, and the derivation matrix's the same way; and any product- or
 architecture-altitude content the grill surfaced and left for the command that authors at that
 altitude instead of the spec (D5) — naming the command, never a seed file, since the register it will

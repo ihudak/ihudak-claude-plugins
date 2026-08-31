@@ -276,6 +276,17 @@ the customer, [`/brd-ground --rebaseline`](brd-ground.md) where the review chall
 and a second `/brd-reconcile` pass on this same review once a dependent recorded-not-written has its
 own register on the default branch.
 
+**Advancing and re-entering are two lists, and a run gets exactly one of them.** Phase 14 resolves
+`advance_ready` from what the run left behind — any reopened decision, any `[C]` still held for the
+customer, any finding the review left to re-derive, any dependent it could only record — and where
+any of those is true the three `--from-brd` options are **dropped**, not annotated. That is a
+refusal only this phase can make: `/create-ard --from-brd` and `/specify --from-brd` run no gate
+that catches a reopened decision, since routing an `open` or `reopened` record into their own
+open-questions section is correct behaviour rather than a stop, so an operator sent there would get
+an artifact built around a hole with nothing having refused it. Each re-entry option is likewise
+conditioned on its own trigger and dropped otherwise, so the list an operator actually sees is
+short and every option on it names something this run genuinely left.
+
 ## Example
 
 Reconcile the review that came back for a synthetic customer BRD, from wherever the attachment was

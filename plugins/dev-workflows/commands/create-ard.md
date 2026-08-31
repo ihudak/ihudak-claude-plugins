@@ -527,7 +527,10 @@ status; every architecture-altitude `decided` record that did **not** become an 
 content went instead; every `will-change` finding and `conditional_on` decision recorded as a
 prerequisite rather than as settled architecture, with the prerequisite decision named; every
 architecture-altitude item still `consumed_by: none`, by id, per the design's *Consumption tracking*
-section (§7.3); `ard-seed.md`'s consumption at file granularity; and any product- or
+section (§7.3) — **excluding the baseline `[CG#n]` findings**, which are never `consumed_by` anything
+and whose `none` therefore reports no gap
+(`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §4.1); say that they are excluded, so a
+reader can tell an empty list from an unrun check; `ard-seed.md`'s consumption at file granularity; and any product- or
 implementation-altitude content the grill surfaced and left for the command that authors at that
 altitude instead of the ARD (D5) — naming the command, never a seed file, since the register it will
 read that content out of is the one this run already read. Say plainly whether `/dev-workflows:epics` was offered and, when it was not, that no

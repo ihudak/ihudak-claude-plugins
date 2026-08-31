@@ -152,6 +152,11 @@ the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch p
   Phase 5 dispatches a single agent. `code-grounder` and `grounding-verifier` each separately
   re-verify their own pinned commit against `HEAD`, but that check alone cannot see a dirty
   working tree sitting around an otherwise-matching `HEAD`; this phase is what closes that gap.
+  Each repository's outcome is recorded as a `[CG#n]` finding like any other and is verified like
+  any other — but it answers a question about a *repository* rather than about a `[BR#n]`, so it is
+  never `consumed_by` anything, and the downstream reports that list what is still unconsumed
+  exclude it ([`grounding-format.md`](../../references/grounding-format.md) §4.1). Counting it would
+  put one item per repository into every such report forever, with no action that could close one.
 - **Phase 4.5 — documentation is a lead and a divergence, never evidence.** No `[CG#n]` or
   `[DG#n]` may cite a documentation page in its `evidence`, under any verdict, in any phase.
   Grounding answers whether a claim is true of a *specific commit*

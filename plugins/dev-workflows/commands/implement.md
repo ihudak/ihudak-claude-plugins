@@ -201,8 +201,9 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
 1. **Read each referenced specs folder** (read-only):
 
    1. **Read the resolved folder.** Read its `prd.md` and the `specs` files resolved in Phase 0, plus —
-   for a PRD-level address — the `EPIC-` subfolders under it. No PR URLs are available in this
-   increment; `implementation.md` supplies them from the next one.
+   for a PRD-level address — the `EPIC-` subfolders under it. This phase reads no PR URLs:
+   `implementation.md` (Phase 4.7) is where this run records its own refs, and
+   `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §4 is how a later run reads them.
      >
      > prd_dir: [the resolved prd_dir (from the Phase 0 front-end), or the ticket-folder absolute path]
      > key:         [the resolved <KEY>]

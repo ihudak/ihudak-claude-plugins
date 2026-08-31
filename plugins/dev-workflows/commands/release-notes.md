@@ -145,11 +145,35 @@ Invoke the folder read. Use `depth: prd-only` when diff grounding is OFF; `depth
 
 **Read the resolved folder directly.** Read its `prd.md` for the product content.
 
-**There is no PR-URL source in this increment.** The reader this replaces harvested them from the
-export; `implement.md`'s `implementation.md` record replaces them and does not exist yet. So diff
-grounding cannot run here — say so once, name what it costs (the prose is grounded in the PRD and
-the specs rather than in the shipped diff), and continue. Diff grounding was always opt-in and
-advisory here, so this is the state a user who declined it already got.
+**Resolve the diff sources — two of them, merged.** **Only when diff grounding is ON** (Phase 1): it is opt-in and advisory here, so a run that declined it skips this step entirely and grounds its prose in the PRD alone. When it is on, follow
+`${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §4:
+
+1. **The record.** Read `implementation.md` in the resolved folder. **Read only the blocks appended since the last section was written to `release-notes.md`** — a second release must not re-describe the first one's work, and with no imported release field that file's own last-written date is the only honest boundary. **Name the blocks this run used**, so a wrong boundary is visible rather than silent.
+2. **The scan.** For each repository — those `implementation.md` names, or, when it names none, the
+   repositories resolved from `$REPOS_PATH` — search commit messages for the identifiers this run
+   already holds:
+
+   ```
+   git -C <repo> log --grep='<key>' --grep='<workitem_key>' --extended-regexp --regexp-ignore-case
+   ```
+
+   The keys come from the resolved folder's own `key:` and its `workitem_key`; **nothing is parsed
+   out of a commit message.** This is what finds work the plugin did not do — a commit written by
+   hand after a session ended, a colleague's push, a follow-up nobody ran a command for.
+
+**Merge and dedupe by SHA.** Anything the scan finds beyond the recorded blocks is reported as
+**unrecorded work**, named as such with its commits listed: folding hand-made commits silently into
+the recorded set would make the record look more complete than it is.
+
+**Report the scan's own reach.** Say **how many commits it scanned and how many matched**. Only a
+commit whose message names the key is findable, and no convention compels a human to follow one — so
+a zero-match scan in a repository that has commits is a signal about the commit convention
+(`docs/reference/commit-convention.md`), not proof that no work happened.
+
+Hand each resolved ref to `diff-summarizer` as a `{repo_path, branch_from, branch_to}` triple — a
+shape its Inputs already declare, on the pure-local-git path it prefers when `gh` is absent. No URL,
+no host classification, no `gh` requirement.
+
   >
   > prd_dir: [resolved prd_dir]
   > key:         [resolved key]

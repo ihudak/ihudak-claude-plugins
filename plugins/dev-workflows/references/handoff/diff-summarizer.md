@@ -11,15 +11,15 @@ pr_refs:
     repo:        <repo name>
     owner:       <github_cloud: <OWNER>; bitbucket_cloud: <WORKSPACE>; null otherwise>
     pr_id:       <id>
-    branch_from: <feature branch from jira-reader>
-    branch_to:   <target branch from jira-reader>
+    branch_from: <feature branch from the folder read>
+    branch_to:   <target branch from the folder read>
     title:       <link text>
     status:      MERGED | OPEN | DECLINED | UNKNOWN
 context: |
   <what this repo's PRs relate to — for documentation focus>
 keys_hierarchy:   # optional; passed by caller to enable Strategy 4 cross-key grep
   - <PRD-KEY>
-  - <every Epic/Story/Sub-task/Research/RFA/Bug key discovered by jira-reader>
+  - <every Epic/Story/Sub-task/Research/RFA/Bug key discovered by the folder read>
 refresh:
   fetch: true   # default true
   pull:  false  # default false — historical PR diffs do not need the current branch tip;

@@ -73,8 +73,8 @@ The three edges leaving `/brd-reconcile` into the PRD pipeline, as each command'
 | Command | Required | Optional | Offered from `/brd-reconcile` |
 |---|---|---|---|
 | `/create-prd` | `<BRD-KEY>` | `the BRD route <dir>`, `--lean`/`--hybrid`/`--full` (defaults to `--full` here), `--no-docs`, `--no-prior-art` | Only where no ledger row is `unallocated` and at least one is `covered-here` |
-| `/create-ard` | `<BRD-KEY>` | `the BRD route <dir>`, `--no-docs` | Unconditionally — the run gates no PRD, dispatches no `jira-reader`, and reads no ledger |
-| `/specify` | `<BRD-KEY>` | `the BRD route <dir>`, `--no-docs` | Unconditionally, on exactly the same terms as `/create-ard` |
+| `/create-ard` | `<BRD-KEY>` | `--no-docs` | Unconditionally — the run gates no PRD, dispatches no the folder read, and reads no ledger |
+| `/specify` | `<BRD-KEY>` | `--no-docs` | Unconditionally, on exactly the same terms as `/create-ard` |
 
 the BRD route is a **switch, not a path** on all three rows: the positional key already identifies the BRD folder, so the optional `<dir>` is only ever for a BRD folder outside the normal layout. On `/create-prd` it is additionally mutually exclusive with `--from-prd`, which is a second seed for the same PRD.
 

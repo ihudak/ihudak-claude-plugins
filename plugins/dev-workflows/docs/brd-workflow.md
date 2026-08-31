@@ -114,7 +114,7 @@ three advance options, because a `reopened` record may not be consumed downstrea
 consume the register. On an advancing run, `/create-prd` on the BRD route carries one further condition —
 the reconciled ledger leaves no row `unallocated` and at least one `covered-here` (the two refusals
 its own Phase 0 raises) — while `/create-ard` on the BRD route and `/specify` on the BRD route carry none of
-their own, since neither dispatches `jira-reader`, neither gates a PRD and neither reads the ledger.
+their own, since neither dispatches the folder read, neither gates a PRD and neither reads the ledger.
 The difference is where the enforcement sits: `/create-prd` refuses in its own Phase 0, whereas
 nothing downstream refuses an unsettled register, so the advance/re-entry split is a judgement only
 `/brd-reconcile` can make. **The diagram above draws all three**, as the three solid edges leaving
@@ -128,7 +128,7 @@ the same three edges with the same labels, into the same three commands.
 One row per command, derived from its own argument parsing — the flags below are exactly what each
 command accepts today, not a preview of what a later increment adds. The first six rows are the
 route; the last three are the handover the diagram draws, shown in their the BRD route form only —
-each of those three also has a Jira-driven form that this route never uses.
+each of those three also has a keyed form that this route never uses.
 
 | Command | Required | Optional | Notes |
 |---|---|---|---|
@@ -139,8 +139,8 @@ each of those three also has a Jira-driven form that this route never uses.
 | `/brd-package` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…` | Repeatable, and any key at either level is admissible; a mistyped one is warned and dropped, never fatal. Each prerequisite's own package is copied into the bundle, marked *not for re-review* |
 | `/brd-reconcile` | `<BRD-KEY> @<review-file>` | — | The review is taken at whatever path it arrived on, inside `$SPECS_PATH` or not, and is never searched for: the operator names the file, because one this command picked is one nobody submitted |
 | `/create-prd` | `<BRD-KEY>` | `the BRD route <dir>`, `--lean`/`--hybrid`/`--full`, `--no-docs`, `--no-prior-art`, `@<idea.md>` | Offered only where no ledger row is `unallocated` and one is `covered-here` (the BRD's own rows; `claims:` narrows them only on a slice). Profile defaults to `--full`; `--from-prd` is refused |
-| `/create-ard` | `<BRD-KEY>` | `the BRD route <dir>`, `--no-docs` | Offered on any advancing run, with no further condition: it gates no PRD, dispatches no `jira-reader`, reads no ledger. One key only — a second stops the run (`CREATE_ARD_BRD_NO_EPIC`) |
-| `/specify` | `<BRD-KEY>` | `the BRD route <dir>`, `--no-docs` | Offered on the same terms, with no further condition of its own. One key only — a second stops the run (`SPECIFY_BRD_NO_EPIC`) |
+| `/create-ard` | `<BRD-KEY>` | `--no-docs` | Offered on any advancing run, with no further condition: it gates no PRD, dispatches no the folder read, reads no ledger. One key only — a second stops the run (`CREATE_ARD_BRD_NO_EPIC`) |
+| `/specify` | `<BRD-KEY>` | `--no-docs` | Offered on the same terms, with no further condition of its own. One key only — a second stops the run (`SPECIFY_BRD_NO_EPIC`) |
 
 `--no-docs` appears on two of the six **route** rows and means the same thing on both: turn off the
 optional grounding on shipped product documentation that `/brd-intake` and `/brd-ground` do when

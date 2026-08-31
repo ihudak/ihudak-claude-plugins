@@ -94,7 +94,7 @@ Tie-breaking:
 |---|---|
 | `/implement` | `feat/` |
 | `/document` (doc-edit mode) | `docs/` |
-| `/document` (Jira mode) | `docs/` |
+| `/document` (keyed mode) | `docs/` |
 | `/docs-profile` | `docs/` |
 | `/vuln` | `fix/` |
 | `/upgrade` | `chore/` |
@@ -134,12 +134,12 @@ Used for the description segment (§1.2) or the §1.4 `<slug>`:
 
 - `/implement` — derived from the description: lowercase kebab-case, max 40 chars, punctuation and special characters stripped
 - `/document` (doc-edit mode) — derived from the description: lowercase kebab-case, max 40 chars, punctuation and special characters stripped
-- `/document` (Jira mode) — first 4–6 content words of the PRD summary, kebab-case
+- `/document` (keyed mode) — first 4–6 content words of the PRD summary, kebab-case
 - `/docs-profile` — `docs-profile`
 - `/vuln` — `<CVE-ID>`
 - `/upgrade` — `upgrade-<component>-to-<version>`, or `upgrade-<first>-and-<N>-more` for a batch
 
-When the documented pattern has **no** issue-key segment but the run has a Jira key, the commands that are Jira-driven (`/document` Jira mode, `/epics`-adjacent flows, `/implement` with a resolved key) prepend it to the slug — `<KEY>-<slug>` — matching their pre-existing behaviour. In the §1.4 no-convention case the same applies.
+When the documented pattern has **no** issue-key segment but the run has a Jira key, the commands that are keyed (`/document` keyed mode, `/epics`-adjacent flows, `/implement` with a resolved key) prepend it to the slug — `<KEY>-<slug>` — matching their pre-existing behaviour. In the §1.4 no-convention case the same applies.
 
 If the assembled name already exists, append the first 7 chars of HEAD's SHA: `<name>-<short-sha>`.
 

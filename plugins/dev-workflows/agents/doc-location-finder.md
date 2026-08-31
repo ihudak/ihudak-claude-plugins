@@ -12,7 +12,7 @@ Not a writer — this agent never creates or edits files. Its output is consumed
 
 ```yaml
 repo_root:         <absolute path to docs repo root>
-feature_summary:   <2–4 sentences from jira-reader themes + PRD goal>
+feature_summary:   <2–4 sentences from the folder read themes + PRD goal>
 diff_highlights:   <optional: key filenames / code areas from diff-summarizer outputs to seed topical search>
 profile:           <optional: the resolved docs profile; its spaces[] declare the repo's content roots, and its announcement_pages block declares hand-authored destinations>
 ```

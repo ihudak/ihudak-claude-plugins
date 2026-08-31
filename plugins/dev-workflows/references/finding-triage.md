@@ -12,9 +12,9 @@ Wherever an **Opus reviewer's reasoned findings feed a fixer**:
 | Path | Triage |
 |---|---|
 | `code-review` → `review-fixer` (`/implement`, `/vuln`, `/upgrade`) | yes |
-| `doc-reviewer` → `doc-fixer` (`/document`, Jira mode) | yes |
+| `doc-reviewer` → `doc-fixer` (`/document`, keyed mode) | yes |
 | `epic-reviewer` → `doc-fixer` (`/epics`) | yes |
-| a style checker → `doc-fixer` (`/document` direct mode, and the style-fix cycles inside `/document` Jira mode and `/epics`) | **no** |
+| a style checker → `doc-fixer` (`/document` direct mode, and the style-fix cycles inside `/document` keyed mode and `/epics`) | **no** |
 
 The seam is **reasoned-claim producer vs deterministic producer**, not code vs docs. A reviewer finding
 is a claim about consequence and can be checked against the thing it names. A linter violation is not —

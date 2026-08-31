@@ -1,6 +1,6 @@
 ---
 name: design
-description: Jira-driven engineering-design workflow (Dev phase). Takes over a merged specification.md from the specs repo's main branch, grounds strictly in the fully-mounted implementation code, and authors a reviewed engineering design.md through a relentless one-question-at-a-time grill that challenges the spec and designs the implementation; gates on the Opus design-reviewer and lands design.md + the spec's engineering-review edits on main via branch + PR for /implement. Optional --design-twice forces the Phase 5 interface fan-out even when no contested-interface signal fired.
+description: keyed engineering-design workflow (Dev phase). Takes over a merged specification.md from the specs repo's main branch, grounds strictly in the fully-mounted implementation code, and authors a reviewed engineering design.md through a relentless one-question-at-a-time grill that challenges the spec and designs the implementation; gates on the Opus design-reviewer and lands design.md + the spec's engineering-review edits on main via branch + PR for /implement. Optional --design-twice forces the Phase 5 interface fan-out even when no contested-interface signal fired.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -24,7 +24,7 @@ Flags: `--design-twice` forces the Phase 5 interface fan-out on the run's load-b
 
 ## Phase 0 — Resolve input
 
-1. **Resolve the Jira input via the shared front-end.** Classify `$ARGUMENTS` minus every recognised flag (`--design-twice`) before resolving — strip it first, exactly as `commands/idea.md`'s Phase 1 strips its own flags: an unstripped `--design-twice` is parsed as part of the Jira key and the run resolves the wrong feature, or fails. Execute
+1. **Resolve the address.** Classify `$ARGUMENTS` minus every recognised flag (`--design-twice`) before resolving — strip it first, exactly as `commands/idea.md`'s Phase 1 strips its own flags: an unstripped `--design-twice` is parsed as part of the Jira key and the run resolves the wrong feature, or fails. Execute
    Parse the **single positional address** from the stripped `$ARGUMENTS` — a `<KEY>`, or an
    `@<path>` naming a folder or a file inside one — and resolve it with `resolve-address`
    (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). Carry forward:

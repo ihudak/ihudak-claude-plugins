@@ -32,7 +32,7 @@ flowchart TD
     d1 -->|"Write only — no commit"| p678
 ```
 
-Three `dev-workflows` subagents are dispatched: `jira-reader` (Phase 2, `depth: prd-plus-epics` — the authoritative status and requirement source), `readiness-reviewer` (Phase 4, the sole judgment-heavy delegate — Opus, frontmatter-pinned, dispatched regardless of classification), and `impl-maintenance` (Phase 6, session lessons-learned). `/ready` has **no delegated writer or implementation subagent** — Phase 3's coverage map, status-expectation checklist, and repo-availability check are built mechanically, orchestrator-inline, from Phase 2's Jira read and Phase 1's artifact inventory. `jira-reader` and `impl-maintenance` run at `detection_model` — the Sonnet chain; `readiness-reviewer` keeps its frontmatter Opus pin regardless of classification, falling to the Sonnet floor (recorded as a degradation) only when no Opus is available at all. Classification is typically `MODERATE` — bounded scope, a single PRD or Epic, read-only, no code changes — escalating to `SIGNIFICANT` only for an unusually large multi-Epic PRD whose coverage chain spans many Epics and repos.
+Three `dev-workflows` subagents are dispatched: the folder read (Phase 2, `depth: prd-plus-epics` — the authoritative status and requirement source), `readiness-reviewer` (Phase 4, the sole judgment-heavy delegate — Opus, frontmatter-pinned, dispatched regardless of classification), and `impl-maintenance` (Phase 6, session lessons-learned). `/ready` has **no delegated writer or implementation subagent** — Phase 3's coverage map, status-expectation checklist, and repo-availability check are built mechanically, orchestrator-inline, from Phase 2's Jira read and Phase 1's artifact inventory. the folder read and `impl-maintenance` run at `detection_model` — the Sonnet chain; `readiness-reviewer` keeps its frontmatter Opus pin regardless of classification, falling to the Sonnet floor (recorded as a degradation) only when no Opus is available at all. Classification is typically `MODERATE` — bounded scope, a single PRD or Epic, read-only, no code changes — escalating to `SIGNIFICANT` only for an unusually large multi-Epic PRD whose coverage chain spans many Epics and repos.
 
 ## What it needs
 
@@ -63,7 +63,7 @@ Check whether an Epic is really ready to move into `Refined`:
 /dev-workflows:ready PRODUCT-1234 EPIC-98760
 ```
 
-The run resolves `EPIC-98760` as the focus Epic, reads its declared Jira status and the PRD's via `jira-reader`, resolves any applicable ARD, locates the Epic's `specification.md`/`design.md` and checks each against the specs repo's default branch (never stopping on what it finds), builds the coverage map and status-expectation checklist, and dispatches `readiness-reviewer`. It prints the verdict with its coverage roll-up and Findings, writes `_readiness.md` into the Epic subdir, and offers to commit and hand it off — declining leaves the snapshot written but uncommitted.
+The run resolves `EPIC-98760` as the focus Epic, reads it and the PRD's artifacts via the folder read, resolves any applicable ARD, locates the Epic's `specification.md`/`design.md` and checks each against the specs repo's default branch (never stopping on what it finds), builds the coverage map and status-expectation checklist, and dispatches `readiness-reviewer`. It prints the verdict with its coverage roll-up and Findings, writes `_readiness.md` into the Epic subdir, and offers to commit and hand it off — declining leaves the snapshot written but uncommitted.
 
 ## See also
 

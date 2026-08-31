@@ -1089,8 +1089,8 @@ each under the precondition the offered command actually enforces rather than un
   Phase 0.
 - **`/dev-workflows:create-ard <BRD-KEY>` and `/dev-workflows:specify <BRD-KEY>
   the BRD route` are offered unconditionally from this state**, and that is read out of their own Phase
-  0s rather than assumed symmetric with `/create-prd`'s. Neither dispatches `jira-reader`, so neither
-  needs a tracker key or a Jira export; neither runs the PRD gate, so neither waits on a PRD —
+  0s rather than assumed symmetric with `/create-prd`'s. Neither reads outside the specs tree, so neither
+  needs anything outside the specs tree; neither runs the PRD gate, so neither waits on a PRD —
   `/create-prd` on the BRD route is not a prerequisite for either (`commands/create-ard.md` and
   `commands/specify.md`, *On the BRD route the PRD gate does not run*); and neither reads the
   `claims:` list or the coverage ledger at all, because PRD eligibility is §5's rule about authoring

@@ -1,6 +1,6 @@
 ---
 name: release-notes-writer
-description: Renders an example-docs release-notes draft (the authored body only) for a Jira PRD/ticket from the jira-reader handoff and optional PR-diff summaries. Emits exactly ONE Summary. Resolves the note's destination (breaking-changes / feature-updates / fixes) to pick the draft's shape — a {{#context}} label + H3 title + prose, or a single bare sentence for fixes — and never writes the Change Type as text. Sources the {{#context}} label from the imported release_notes_category and omits it when absent. Emits NO Jira IDs, NO PR links, and NO {{#internal-note}} block (the docs automation adds those). Does NOT write files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Renders an example-docs release-notes draft (the authored body only) for a Jira PRD/ticket from the folder read handoff and optional PR-diff summaries. Emits exactly ONE Summary. Resolves the note's destination (breaking-changes / feature-updates / fixes) to pick the draft's shape — a {{#context}} label + H3 title + prose, or a single bare sentence for fixes — and never writes the Change Type as text. Sources the {{#context}} label from the imported release_notes_category and omits it when absent. Emits NO Jira IDs, NO PR links, and NO {{#internal-note}} block (the docs automation adds those). Does NOT write files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep"]
 ---
 
@@ -15,9 +15,9 @@ You do NOT write files — you return the rendered draft to the caller.
 ## Inputs
 
 ```yaml
-jira_reader_handoff: <full YAML from jira-reader>
+jira_reader_handoff: <full YAML from the folder read>
 diff_summaries:      <optional array of diff-summarizer outputs; omit when diff-grounding is off>
-imported_change_type:            <change_type from the imported PRD frontmatter (jira-reader handoff); null otherwise>
+imported_change_type:            <change_type from the imported PRD frontmatter (the folder read handoff); null otherwise>
 imported_release_notes_category: <release_notes_category from the imported PRD frontmatter; null otherwise>
 run_phase:           <pm | dev — which of the two /release-notes runs this is; gates the §4 documentation-link rule>
 model_routing:       <standard block>
@@ -102,7 +102,7 @@ When `docs_grounding` is present, use its `docs_references` for terminology and 
      - **Editorial hierarchy.** Lead with the new default / recommended path. Demote a
        deprecated, legacy, or "manual-only" option out of the primary list into a
        trailing sentence or an optional `> Note:` line — do not present it as an equal
-       peer to the recommended choice. The `jira-reader` handoff's "Current vs Target
+       peer to the recommended choice. The the folder read handoff's "Current vs Target
        State" / deprecation signals tell you which option to demote.
      - **Markdown affordances** (use where they aid clarity, matching shipped
        feature-updates): **bold** for UI element / screen / field names, inline

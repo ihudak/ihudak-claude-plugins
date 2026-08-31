@@ -40,7 +40,7 @@ Mirrors the wiki `_shared/task-rules.md` Obsidian-Tasks line:
 
 ## 2. Target-file resolution (Jira-first, deterministic)
 
-The run carries `source` (`vault | directory | none`) and, when Jira-driven, a
+The run carries `source` (`vault | directory | none`) and, when keyed, a
 `key`. Resolve the task's home:
 
 1. **Vault writable (§4) AND the run has a `key`** → locate the project
@@ -108,7 +108,7 @@ behaviour — zero regression) and the pipeline never fails.
 - **Notice** (tiers 2–4):
   `⚠ No writable vault — N follow-ups written to <path>`;
   tier 4: `⚠ No writable vault or specs dir — N follow-ups kept in this report only; set $VAULT_PATH or $SPECS_PATH to persist them`.
-- **Interactive escape** (folds into the §7 batch preview, mirroring Fallback A
+- **Interactive escape** (folds into the §7 batch preview, mirroring the retired front-end's own escape
   the retired tracker front-end used): below the vault tier, show the resolved
   fallback path and offer
   `choices: ["Save to <resolved path>", "Enter a vault path", "Keep in report only"]`,

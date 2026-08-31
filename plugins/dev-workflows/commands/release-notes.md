@@ -1,6 +1,6 @@
 ---
 name: release-notes
-description: Jira-driven release-notes drafting. Reads a Product Requirements Document (or any ticket) from exported markdown, optionally grounds in PR diffs, renders an example-docs release-notes body, runs a light prose-style-checker gate, and writes a persistent draft to paste into Jira's release-notes field.
+description: keyed release-notes drafting. Reads a Product Requirements Document (or any ticket) from exported markdown, optionally grounds in PR diffs, renders an example-docs release-notes body, runs a light prose-style-checker gate, and writes a persistent draft to paste into Jira's release-notes field.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -29,7 +29,7 @@ This command makes **zero external API calls** and **never writes into the docs 
 
 ## Phase 0 — Load
 
-1. **Resolve the Jira input via the shared front-end.** Execute
+1. **Resolve the address.** Execute
    Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a
    folder or a file inside one — and resolve it with `resolve-address`
    (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). Carry the resolved `path`, `kind` and
@@ -112,8 +112,8 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 ## Phase 2 — Worthiness check + plan/approval
 
 1. **Worthiness gate.** Read `relevant_for_release_notes` directly from the **imported PRD frontmatter**
-   under `jira_export_root` (this phase runs before Phase 3, so there is no `jira-reader` handoff yet,
-   and `jira-reader` does not surface this field in any case). NEVER read it from the authored specs
+   under `jira_export_root` (this phase runs before Phase 3, so the folder has not been read yet,
+   and the folder read does not surface this field in any case). NEVER read it from the authored specs
    draft.
    - **`false` / `no`** → stop:
      `RELEASE_NOTES_NOT_RELEVANT: <KEY> is flagged not relevant for release notes; Jira's status rule does not require one.`
@@ -126,7 +126,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 
    `release_versions` plays no part in this gate.
 
-2. **Plan.** Before presenting the plan, run `resolve-docs-grounding release-notes` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` — this is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve here, before Phase 3's `jira-reader` and Phase 4/5's diff resolution do any of the run's real work. Present: resolved `key`, destination, diff-grounding on/off (+ `$REPOS_PATH` and repos to scan when on), style-check choice, and the `docs grounding:` line that `resolve-docs-grounding` returned, verbatim — including its `retrieval:` value and any index-build, staleness, or shadowing clause (off switch: --no-docs). Ask:
+2. **Plan.** Before presenting the plan, run `resolve-docs-grounding release-notes` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` — this is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve here, before Phase 3's the folder read and Phase 4/5's diff resolution do any of the run's real work. Present: resolved `key`, destination, diff-grounding on/off (+ `$REPOS_PATH` and repos to scan when on), style-check choice, and the `docs grounding:` line that `resolve-docs-grounding` returned, verbatim — including its `retrieval:` value and any index-build, staleness, or shadowing clause (off switch: --no-docs). Ask:
    ```
    choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
    ```
@@ -135,7 +135,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 
 ## Phase 3 — Read Jira
 
-Invoke `jira-reader`. Use `depth: prd-only` when diff grounding is OFF; `depth: full` when ON (to collect PR URLs from the hierarchy's `## Pull Requests` sections).
+Invoke the folder read. Use `depth: prd-only` when diff grounding is OFF; `depth: full` when ON (to collect PR URLs from the hierarchy's `## Pull Requests` sections).
 
 **Read the resolved folder directly.** Read its `prd.md` for the product content.
 
@@ -263,7 +263,7 @@ On a supplied date, replace the `<!-- TODO: end-of-life date -->` placeholder wi
 end-of-life date (and end-of-support date when given), formatted per the prose-style
 (e.g. `November 30, 2026`).
 
-When `release-notes-writer` returns `gaps[]` entries that have `jira_phrasing` and `source_phrasing` (source-truth discrepancies), present the discrepancy table and per-claim prompt as in `/document` (Jira mode) Phase 5.8:
+When `release-notes-writer` returns `gaps[]` entries that have `jira_phrasing` and `source_phrasing` (source-truth discrepancies), present the discrepancy table and per-claim prompt as in `/document` (keyed mode) Phase 5.8:
 
 1. Show the analysis table (claim, Jira phrasing, source phrasing, location).
 2. Ask:
@@ -447,7 +447,7 @@ current working directory; no user name is ever written (§10).
 
 - ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, jira-not-found, cancellation).
 - ZERO external API calls — PR URLs are identifiers only; all resolution is local `git`.
-- `jira-reader` is read-only.
+- Every read of the specs tree is read-only.
 - The draft contains NO Jira IDs/keys, NO PR links, and NO `{{#internal-note}}` block.
 - The draft is EXACTLY one Summary, shaped by its destination per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1/§3 — a `{{#context}}` label + `### title` + prose for `breaking-changes` / `feature-updates`, or ONE bare past-tense sentence for `fixes`. It carries NO `Change type:` line and NO `Release-notes category:` line, and its **prose** names no release version. **The title rule is about to invert and is stated here rather than discovered later**: the prohibition held because the destination file structure carried the release. Once the three destinations become sections of one `release-notes.md` in the PRD folder, nothing else can say which release a section belongs to, so the version becomes the **section heading** — and the prohibition survives for the body prose alone. The heading arrives with that file; `--version` captures the field it needs now. When the change deprecates something the Summary carries a deprecation note (end-of-life date required, end-of-support optional).
 - The `{{#context}}` label IS the imported `release_notes_category`, used verbatim; when the import carries none the line is OMITTED. Change Type is sourced `imported_change_type` → infer, and is confirmed with the user ONLY when it was inferred with low confidence — by shape and destination, never by enum label. Neither field is ever asked for as a Jira dropdown value.

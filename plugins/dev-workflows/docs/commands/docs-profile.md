@@ -12,7 +12,7 @@ Scans a documentation repository and writes or refreshes its machine-readable `.
 /docs-profile [<repo-path>] [--inline]
 ```
 
-The first token of `$ARGUMENTS` is the target repo path (default: the current working directory). `--inline` is the flag `/document` (Jira mode) passes when it invokes this flow itself, from its own Phase 0 — it skips the branch-name prompt in favour of a deterministic branch name, and hands the PR draft back to `/document` instead of reporting one itself.
+The first token of `$ARGUMENTS` is the target repo path (default: the current working directory). `--inline` is the flag `/document` (keyed mode) passes when it invokes this flow itself, from its own Phase 0 — it skips the branch-name prompt in favour of a deterministic branch name, and hands the PR draft back to `/document` instead of reporting one itself.
 
 ## What it needs
 
@@ -38,6 +38,6 @@ Detects its content roots, drafts `spaces[]` and `dev_servers` from the Sonnet-t
 
 ## See also
 
-- [`/document`](document.md) — Jira mode's Phase 0 consumes this profile, and can invoke this command inline (`--inline`) when none exists yet.
+- [`/document`](document.md) — keyed mode's Phase 0 consumes this profile, and can invoke this command inline (`--inline`) when none exists yet.
 - [Model routing](../reference/model-routing.md) — the `SIGNIFICANT` classification and the Sonnet-detection / Opus-synthesis model split this command applies.
 - [Workflow overview](../workflow.md#cross-cutting-commands) — where this command sits among the setup utilities.

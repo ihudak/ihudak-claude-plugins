@@ -437,7 +437,7 @@ run. The cost entry is committed later, once, by the run's terminal
 
 Inputs:
 - `command` — the exact slash-command name (e.g. `/implement`,
-  `/document (Jira mode)`, `/document (direct mode)`).
+  `/document (keyed mode)`, `/document (direct mode)`).
 - `phase`, `role` — the §7 labels, or the `inferred` marker for the three
   commands §7 resolves. The three resolve from **different** data, and each must
   therefore be given it:
@@ -448,7 +448,7 @@ Inputs:
 - `target_command` — **required when `command` is `/prompt` or `/feedback`.** The
   §7 **row name** of the command whose output is being corrected or remarked on, or
   `n/a`. Note this is the bare row name (`/document`), not the mode-qualified form
-  the `command` field above uses (`/document (Jira mode)`) — a qualified value
+  the `command` field above uses (`/document (keyed mode)`) — a qualified value
   matches no row and would silently degrade to `plugin-feedback`/`n/a`. This is the same value the run writes as the feedback entry's `command:`
   field, so the two never disagree. Omitting it is a caller error: §7 has no other
   source for it, and the entry would silently fall back to

@@ -37,7 +37,7 @@ derived_from: <path to the PRD file, canonical prd.md — or, in a BRD folder th
 them.** Under `/create-ard` on the BRD route the run holds a **BRD key**, which addresses a folder under
 `$SPECS_PATH` and may carry a third numeric segment (`references/addressing.md` §1 fixes no
 depth), so `prd` and `epic` are validated against that grammar — `^[A-Z][A-Z0-9_]*(-\d+)+$` — rather
-than the two-segment form; `ard-reviewer` applies exactly this and `commands/create-ard.md` writes
+than any narrower form; `ard-reviewer` applies exactly this and `commands/create-ard.md` writes
 exactly this, from one resolution rather than two. `scope` follows the same pairing it always did: a
 source-owning BRD is `prd`, a slice is `epic`, because a slice sits where an Epic sits — one level
 down, inheriting its parent's `AD#N` read-only. `derived_from` names the PRD file when the folder

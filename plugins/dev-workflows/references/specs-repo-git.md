@@ -146,7 +146,7 @@ where the two routes diverge:
 
 **The contributed key is a folder identity, and contributing it widens no tracker
 identity.** This set exists to match branch names in §3.5 and nothing else; a
-three-segment slice key is matched here exactly as a two-segment one is (§3.5,
+a longer key is matched here exactly as a shorter one is (§3.5,
 *A two-segment key resolves exactly as it did before*). `key` is minted by
 the Jira round-trip, stays two-segment, and is not written by this route's
 authoring phase at all.

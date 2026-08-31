@@ -31,7 +31,7 @@ The two git entry points that bound every write into the specs repo, plus the na
 - `specs-repo-git.md` — the two git entry points every bookkeeping write against the specs repo runs through: a start-of-run preflight and a terminal artifact commit, both bounded to plugin-created branches and enumerated paths, never fatal.
 - `phase-handoff.md` — the two phase-boundary git entry points: a producer step that lands a phase's deliverable on the specs repo's default branch, and a consumer gate that requires the deliverable be there before expensive work starts.
 - `branch-naming.md` — how the five commands that branch in a code repo (`/implement`, `/document`, `/docs-profile`, `/upgrade`, `/vuln`) decide a branch name; the specs-repo handoff branches are named by `phase-handoff.md` §2.2 instead: the target repo's own documented convention always wins, and this doc supplies one only when the repo documents none.
-- `finish-and-handoff.md` — the mechanics `/document` (Jira mode) uses for its inline-profiling-branch handling and its finish-and-handoff step: squash, opt-in push, copy-paste PR draft.
+- `finish-and-handoff.md` — the mechanics `/document` (keyed mode) uses for its inline-profiling-branch handling and its finish-and-handoff step: squash, opt-in push, copy-paste PR draft.
 - `read-only-repos.md` — how to detect a read-only repository mount, what to skip when one is found, and how to resolve a ref and read from it without ever attempting a write.
 
 ## Review and triage

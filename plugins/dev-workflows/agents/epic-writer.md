@@ -1,6 +1,6 @@
 ---
 name: epic-writer
-description: Writes child Epic-definition files for /epics from a structured handoff file — one file per Epic, following the Epic template, traceable to the jira-reader handoff and code-scanner evidence. Write-only — writes vault content, never commits (still true — it runs no git at all). Returns the list of Epic files written. The orchestrator pins it to the §2.1 Sonnet detection chain for MODERATE runs (§2 Opus only if SIGNIFICANT/HIGH-RISK).
+description: Writes child Epic-definition files for /epics from a structured handoff file — one file per Epic, following the Epic template, traceable to the folder read handoff and code-scanner evidence. Write-only — writes vault content, never commits (still true — it runs no git at all). Returns the list of Epic files written. The orchestrator pins it to the §2.1 Sonnet detection chain for MODERATE runs (§2 Opus only if SIGNIFICANT/HIGH-RISK).
 tools: ["Read", "Glob", "Grep", "Write", "Edit"]
 ---
 
@@ -16,7 +16,7 @@ The orchestrator writes a **handoff file** (a temp file) and passes its absolute
 - `existing_epics` — for non-duplication
 - `output_dir` — the resolved output directory (default `$VAULT_PATH/jira-drafts/<JIRA_KEY>/`)
 - `vi_goal`, `key`
-- `requirements` + `requirements_source` — the PRD requirement inventory (from jira-reader); the coverage ground truth.
+- `requirements` + `requirements_source` — the PRD requirement inventory (from the folder read); the coverage ground truth.
 - `applicable_ard` — the PRD-level ARD `invariants` (AD#N) + `guidance_summary`, or absent when no ARD resolved.
 - `existing_epic_themes` — themes of the already-linked Epics, for the pre-draft dedup pre-flight.
 - `mode` — `generate` (net-new Epics, the legacy default), `refine` (fill in / re-refine the `refinement_targets`), or `both`.

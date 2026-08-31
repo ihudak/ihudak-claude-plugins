@@ -35,7 +35,7 @@ brd_parent: <that BRD's own parent key, from its brd-link.md; omit when it owns 
 depends_on: [ ... ]           # prerequisite BRD keys, from that brd-link.md's depends-on; omit when empty or outside the BRD route
 revision_of: <path to the archived prior PRD snapshot; written by `/update-prd` on refresh; omit otherwise>
 built_from_import: <YYYY-MM-DD of the Jira import the `/update-prd` refresh was built from; omit otherwise>
-key: <the tracker key; omit until the Jira round-trip mints one — see below>
+workitem_key: <optional — your own tracker's identity for this work; the plugin never writes it>
 ---
 ```
 
@@ -100,7 +100,7 @@ omitted, not filled.
 ## Spine (always, every profile)
 
 - `## Problem` — who is affected and why the current situation is insufficient; why now. Solution-free; no implementation detail.
-- `## Goal` — a crisp 2–3 sentence statement of the outcome (feeds `jira-reader`'s goal extraction and every downstream consumer).
+- `## Goal` — a crisp 2–3 sentence statement of the outcome (feeds the folder read's goal extraction and every downstream consumer).
 - `## Target audience` — the personas/roles served (specific roles, not "everyone").
 - `## User Stories` — `### [US#N]: <title>`, `As a [role], I want [capability], so that [benefit].` Contiguous IDs.
 - `## Acceptance Criteria` — `[AC#N]` under each story; externally-observable pass/fail (no "be reliable"/"improve performance").

@@ -151,8 +151,8 @@ Several consumers map `absent` to a hard stop, and every one of them is legitima
 | Caller | Input | Pre-existing absent behaviour, preserved |
 |---|---|---|
 | `/create-prd <KEY>` | `idea.md` | continue down the Phase 0 idea ladder — prompt for a path, or grill the PRD from scratch. **`/idea` is not a prerequisite.** |
-| `/create-ard` | the PRD | fall back to `jira-reader` against the Jira export — now **reported** rather than silent |
-| `/specify` | the PRD | `jira-reader` is already the primary read path (the merged PRD is a grounding confirmation, not a new content source); on `absent` the confirmation is simply skipped — now **reported** rather than silent, the same shape as `/create-ard`'s row |
+| `/create-ard` | the PRD | read the resolved folder's own contents — **reported** rather than silent |
+| `/specify` | the PRD | the folder read is already the primary read path (the merged PRD is a grounding confirmation, not a new content source); on `absent` the confirmation is simply skipped — now **reported** rather than silent, the same shape as `/create-ard`'s row |
 | `/specify` `/design` `/implement` `/epics` `/ready` | the ARD | `status: none` and the no-regression rule of `ard-resolution.md` |
 | `/epics` | PRD-level `specification.md` | `vi_spec_present: false`, the existing silent skip |
 | `/implement` | `specification.md` / `design.md` | only an **in-scope** spec is gated; a direct-prompt run resolves none |

@@ -3,7 +3,7 @@
 Single source of truth for extracting a documentation repository's **own** pre-PR checklist and
 applying it to the files a run just wrote.
 
-Consumed by `doc-planner` (`/document` Jira mode) and by `/document` Mode B directly — direct mode has
+Consumed by `doc-planner` (`/document` keyed mode) and by `/document` Mode B directly — direct mode has
 no planner, so its orchestrator performs the extraction itself. Both produce the same block, and both
 feed the `repo_checklist` gate in `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md`.
 
@@ -55,7 +55,7 @@ repo_verification_gates:        # [] when the repo publishes no checklist
 
 ## 5. Applying it
 
-- **`/document` Jira mode** — `doc-planner` emits the block during its guidance scan; `doc-reviewer`
+- **`/document` keyed mode** — `doc-planner` emits the block during its guidance scan; `doc-reviewer`
   holds the written files against each entry; `/document` Phase 6.4 records the `repo_checklist`
   ledger row.
 - **`/document` direct mode** — there is no planner. The orchestrator extracts the block itself at

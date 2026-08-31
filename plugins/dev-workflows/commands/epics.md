@@ -1,14 +1,14 @@
 ---
 name: epics
-description: Jira-driven Epic-writing workflow. Reads a Product Requirements Document and existing Epics from exported markdown, optionally scans code repos, drafts child Epic definitions, and gates on prose-style-checker and Opus epic-reviewer.
+description: keyed Epic-writing workflow. Reads a Product Requirements Document and existing Epics from exported markdown, optionally scans code repos, drafts child Epic definitions, and gates on prose-style-checker and Opus epic-reviewer.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
 Draft child Epics for the Jira Product Requirements Document: $ARGUMENTS
 
-`/epics` is the **Jira-driven Epic-writing** workflow. Given a Product Requirements Document key, it reads the PRD plus its existing Epics from pre-exported markdown in the user's Obsidian vault, optionally scans code repos to identify reusable capabilities and gaps, drafts child Epic definitions as markdown files under the resolved output directory, and gates the result on an Opus review.
+`/epics` is the **keyed Epic-writing** workflow. Given a Product Requirements Document key, it reads the PRD plus its existing Epics from pre-exported markdown in the user's Obsidian vault, optionally scans code repos to identify reusable capabilities and gaps, drafts child Epic definitions as markdown files under the resolved output directory, and gates the result on an Opus review.
 
-Key distinction from `/document` (Jira mode): the PRD being Epic-ized is **not yet implemented** — there are no PRs to diff. Code scanning (when enabled) is a plain filesystem search to understand what exists and what needs to be built.
+Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not yet implemented** — there are no PRs to diff. Code scanning (when enabled) is a plain filesystem search to understand what exists and what needs to be built.
 
 `/epics` **never branches** and **never commits the Epic drafts** (still true — the run's git **writes** are confined to `$SPECS_PATH`, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`; the run does make read-only git calls elsewhere — Phase 4's `git remote get-url origin` per candidate clone and Phase 8's `git diff --stat` from `project_root` — but none of them writes), and writes only to the resolved output directory — `jira-drafts/<KEY>/` under `$VAULT_PATH`, or a derived `epic-drafts/<KEY>/` dir beside the imported hierarchy when `$VAULT_PATH` is unset. Git hygiene of the write target is the user's responsibility — they may or may not have it under version control. The run commits only inside `$SPECS_PATH`, and only its bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1) — via the `specs-preflight` flush at run start (§3.4) and the terminal `commit-artifacts` step (§4); never the drafts, never the write target. It still creates no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none).
 
@@ -16,7 +16,7 @@ Key distinction from `/document` (Jira mode): the PRD being Epic-ized is **not y
 
 ## Phase 0 — Load
 
-1. **Resolve the Jira input via the shared front-end.** Execute
+1. **Resolve the address.** Execute
    Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an
    `@<path>` naming a folder or a file inside one — and resolve it with
    `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3).
@@ -81,7 +81,7 @@ Ask about:
   ```
   choices: ["fetch + pull default branch (Recommended)", "fetch only", "no refresh", "Other… (describe)"]
   ```
-  The `fetch + pull default branch` default matches `code-scanner`'s default (`refresh.switch_to_default_branch: true, refresh.pull: true`) — capability scans target present-day code and want the default-branch tip. This is deliberately different from `/document` (Jira mode), which keeps `pull: false` because historical merged commits must not move.
+  The `fetch + pull default branch` default matches `code-scanner`'s default (`refresh.switch_to_default_branch: true, refresh.pull: true`) — capability scans target present-day code and want the default-branch tip. This is deliberately different from `/document` (keyed mode), which keeps `pull: false` because historical merged commits must not move.
 
 - **Repos search base (`$REPOS_PATH`)** (only if code scan is ON). Read `${REPOS_PATH:-/workspace}` (the container mounts every repo under `/workspace`). `$REPOS_PATH` may be a single directory or a colon-separated list. Ask:
   ```
@@ -110,7 +110,7 @@ model_routing:
   classification: MODERATE        # typical; SIGNIFICANT possible
   reason: <one-line>
   current_model: <the model this orchestrator is running under>
-  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # jira-reader, code-scanner, prose-style-checker, doc-fixer, epic-writer (MODERATE)
+  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # the folder read, code-scanner, prose-style-checker, doc-fixer, epic-writer (MODERATE)
   review_model:    <§2 Opus chain>     # epic-reviewer (frontmatter-pinned; recorded, no override)
   implementation_model: <= detection_model>   # the epic-writer subagent (Phase 6); planning_model if SIGNIFICANT/HIGH-RISK
   opus_available: <true if a §2 Opus model resolved, else false>
@@ -123,7 +123,7 @@ Each subagent dispatch below cites its chain (§9 role→chain map). **No relaun
 
 ## Phase 2 — Plan + approval
 
-**Documentation grounding (optional, independent of code scan).** Before presenting the plan below, run `resolve-docs-grounding epics` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` — this is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve here, before Phase 3's `jira-reader`, Phase 4's repo resolution, and Phase 5's parallel code scan do any of the run's real work. This runs ahead of Phase 2.5/2.6's `require-on-main`/`ard-resolution.md` gates — a deliberate exception to `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §5 rule 2's ordering, kept here rather than moved because `resolve-docs-grounding`'s only expensive step is itself behind its own consent prompt (`docs-grounding.md` step 3.5), and an index build it produces is a durable, run-independent artifact, not per-run work a later stop would waste.
+**Documentation grounding (optional, independent of code scan).** Before presenting the plan below, run `resolve-docs-grounding epics` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` — this is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve here, before Phase 3's the folder read, Phase 4's repo resolution, and Phase 5's parallel code scan do any of the run's real work. This runs ahead of Phase 2.5/2.6's `require-on-main`/`ard-resolution.md` gates — a deliberate exception to `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §5 rule 2's ordering, kept here rather than moved because `resolve-docs-grounding`'s only expensive step is itself behind its own consent prompt (`docs-grounding.md` step 3.5), and an index build it produces is a durable, run-independent artifact, not per-run work a later stop would waste.
 
 Present a concise plan:
 
@@ -204,7 +204,7 @@ inventory. **Additive, zero-cost when absent** — the common case, since
 
 ## Phase 3 — Read Jira hierarchy
 
-Invoke `jira-reader` with `depth: prd-plus-epics`. This depth is specifically designed for Epic writing: richer than `prd-only` so themes extracted for `code-scanner` aren't starved of context, but lighter than `full` so the agent doesn't read dozens of already-closed child Stories.
+Invoke the folder read with `depth: prd-plus-epics`. This depth is specifically designed for Epic writing: richer than `prd-only` so themes extracted for `code-scanner` aren't starved of context, but lighter than `full` so the agent doesn't read dozens of already-closed child Stories.
 
 **Read the PRD folder directly.** Read its `prd.md` for the product content, and list the `EPIC-`
 subfolders under it for the Epics that already exist — that listing *is* the linked-item hierarchy
@@ -223,7 +223,7 @@ When Phase 2.6 set `vi_spec_present: true`, **append** its
 unchanged; the appended rows carry `type: spec-story` / `spec-criterion`, which
 separates them from the PRD's `story`/`criterion` rows. The merged list flows
 unchanged into the Phase 6 handoff and the Phase 7 reviewer brief. When
-`vi_spec_present: false`, `requirements[]` is exactly what `jira-reader` returned.
+`vi_spec_present: false`, `requirements[]` is exactly what the folder read returned.
 
 On `OK`, identify the Epics already linked to the PRD (filter `linked_items` to `type == Epic`) — the new Epic drafts MUST NOT duplicate their scope (enforced later by `epic-reviewer`).
 
@@ -239,7 +239,7 @@ re-emits it rather than skipping it as a duplicate. When `focus_key` is null, be
 is unchanged (draft the full partition of new Epics).
 When `focus_key` is set, `mode = refine` and `refinement_targets = [the focus Epic]` — Phase 6 iterates on its current imported content (see `epic-writer` refinement mode) rather than regenerating from the PRD alone.
 
-**Refinement candidates.** From the same `linked_items` (`type == Epic`), read the additive per-Epic fields `refinement_candidate`, `team`, and `scope_hint` (emitted by `jira-reader` at `prd-plus-epics`). Collect `refinement_candidates` = every linked Epic with `refinement_candidate: true`. These are empty/almost-empty team-Epic shells the PE pre-created to encode team boundaries — refinement *targets to fill in*, not non-duplication constraints. This set drives the Phase 3.5 gate.
+**Refinement candidates.** From the same `linked_items` (`type == Epic`), read the additive per-Epic fields `refinement_candidate`, `team`, and `scope_hint` (emitted by the folder read at `prd-plus-epics`). Collect `refinement_candidates` = every linked Epic with `refinement_candidate: true`. These are empty/almost-empty team-Epic shells the PE pre-created to encode team boundaries — refinement *targets to fill in*, not non-duplication constraints. This set drives the Phase 3.5 gate.
 
 ---
 
@@ -268,9 +268,9 @@ with a one-line rationale ("2+ team-Epics → code context helps draw the bounda
 
 ## Phase 3.6 — Documentation grounding dispatch
 
-**Documentation grounding dispatch (optional, independent of code scan).** `docs_grounding` was already resolved in Phase 2 — consume that cached result here; never re-run `resolve-docs-grounding`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the PRD goal + Epic-set intent, `key` = the PRD key, `themes` = the `jira-reader` themes. Carry the digest into Phase 6 with **writer-attach** consumption. When OFF, skip silently.
+**Documentation grounding dispatch (optional, independent of code scan).** `docs_grounding` was already resolved in Phase 2 — consume that cached result here; never re-run `resolve-docs-grounding`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the PRD goal + Epic-set intent, `key` = the PRD key, `themes` = the folder read themes. Carry the digest into Phase 6 with **writer-attach** consumption. When OFF, skip silently.
 
-This phase sits **before** the conditional repo-resolution and code-scanning phases deliberately. It needs only Phase 3's output — the PRD goal and the `jira-reader` themes — and nothing from the code scan, and Phase 4 and Phase 5 both skip to Phase 6 when code scan is OFF. Dispatching from inside either of them would discard the digest on exactly the runs that turned code scanning off, after Phase 2 had already asked the user to consent to building an index for it.
+This phase sits **before** the conditional repo-resolution and code-scanning phases deliberately. It needs only Phase 3's output — the PRD goal and the folder read themes — and nothing from the code scan, and Phase 4 and Phase 5 both skip to Phase 6 when code scan is OFF. Dispatching from inside either of them would discard the digest on exactly the runs that turned code scanning off, after Phase 2 had already asked the user to consent to building an index for it.
 
 ---
 
@@ -281,7 +281,7 @@ If code scan is OFF, skip to Phase 6.
 If code scan is ON:
 
 1. Derive the repo list:
-   - **Auto-derived** (Phase 1 default) — walk the `jira-reader` `linked_items` filtered to `type == Epic`; for each Epic `.md` file (already read during Phase 3), collect repo names from its `## Pull Requests` section URLs. Dedupe. If the auto-derived list is empty, fall back to asking the user.
+   - **Auto-derived** (Phase 1 default) — walk the folder read `linked_items` filtered to `type == Epic`; for each Epic `.md` file (already read during Phase 3), collect repo names from its `## Pull Requests` section URLs. Dedupe. If the auto-derived list is empty, fall back to asking the user.
    - **Manual list** — prompt for a free-text list of repo short names (one per line or space-separated). Resolve each against the `$REPOS_PATH` slug→clone map built in step 2 below.
 
 2. Build a slug→clone map. For each top-level directory under each entry of `$REPOS_PATH`, run `timeout 5 git -C <dir> remote get-url origin 2>/dev/null`, strip a trailing `.git`, and take the URL's last path segment as that clone's slug. Skip directories with no `.git` or whose `git remote` call fails/times out. Resolve each in-scope repo slug against the map: one match → use it; multiple matches → auto-prefer basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last (show candidates at plan approval); zero matches → escalate per the `Repo unresolved (zero matches) — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
@@ -310,7 +310,7 @@ For each repo in the batch:
   > repo_path:     <resolved absolute path for this repo from Phase 4>
   > repo_url_slug: <repo slug, e.g. "cluster">
   > capability_themes:
-  >   [paste the themes array from jira-reader, plus any PRD-goal-derived themes]
+  >   [paste the themes array from the folder read, plus any PRD-goal-derived themes]
   > context: |
   >   [3–5 sentences: PRD goal, what the Epic-set is meant to achieve]
   > search_hints:
@@ -384,7 +384,7 @@ Fold the results back: *assign* → re-dispatch `epic-writer` once (or Edit inli
 
 ## Phase 6.2 — Prose style check
 
-Invoke `prose-style-checker` on the files written in Phase 6. Unlike `/document` (Jira mode), this does NOT use `docs-style-checker` (no repo linter for vault content). Instead, the prose style checker validates terminology, trademarks, voice/tone, and inclusive language.
+Invoke `prose-style-checker` on the files written in Phase 6. Unlike `/document` (keyed mode), this does NOT use `docs-style-checker` (no repo linter for vault content). Instead, the prose style checker validates terminology, trademarks, voice/tone, and inclusive language.
 
 → Agent (subagent_type: "prose-style:prose-style-checker", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Run the style check for this brief:
@@ -434,7 +434,7 @@ Invoke `epic-reviewer` (Opus). This reviewer is Epic-specific — scope clarity,
   >
   > Task description: [one-paragraph: PRD key, PRD goal, number of Epics drafted]
   > Written Epic file paths: [absolute paths of every Epic file written in Phase 6]
-  > jira-reader handoff: [paste full YAML from Phase 3]
+  > the folder read handoff: [paste full YAML from Phase 3]
   > code-scanner output:  [paste array of per-repo scanner outputs from Phase 5, or 'N/A — code scan off']
   > requirements:        [paste the requirements[] array from Phase 3]
   > _coverage.md path:    [absolute path of the coverage file from Phase 6]
@@ -442,7 +442,7 @@ Invoke `epic-reviewer` (Opus). This reviewer is Epic-specific — scope clarity,
 
 When `mode` is `refine`/`both`, include `refinement_targets` in the `epic-reviewer` brief so its conditional refinement dimensions (completeness, partition integrity, cross-team dependency sanity, team preserved) activate; omit it in `generate` mode so those dimensions report N/A.
 
-Act on the verdict (same shape as `/document` Jira mode Phase 7):
+Act on the verdict (same shape as `/document` keyed mode Phase 7):
 
 **Triage sub-step** (before any fixer dispatch): follow `${CLAUDE_PLUGIN_ROOT}/references/finding-triage.md`. For each finding, verify its claimed consequence at the location it names; keep or dismiss; record every dismissal with a reason that disposes of that finding's own claim. Hand the fixer **survivors only**, and carry the dismissal list into this run's report.
 
@@ -567,7 +567,7 @@ Output a structured report — do NOT ask any closing confirmation:
 **When `mode` is `refine`/`both`,** begin the report with a `Mode: <refine | both>` line and split the written-Epics listing into three labelled groups: **Refined** (keyed `<EPIC-KEY>.md`), **Net-new** (slug-named), and **Deferred** (PRD requirements left uncovered via the Phase 6.1 leftover gate). In `generate` mode the report is unchanged.
 
 ```
-## Jira-driven Epic Drafting Report
+## keyed Epic Drafting Report
 
 ### Classification
 MODERATE — vault-internal Epic drafting for a single PRD
@@ -575,14 +575,14 @@ MODERATE — vault-internal Epic drafting for a single PRD
 ### Model Routing
 - Session model (current_model): [model]
 - epic-writer (implementation_model): [model] — detection (MODERATE) | reasoning (SIGNIFICANT)
-- Detection steps — jira-reader, code-scanner, prose-style-checker, doc-fixer (detection_model): [model]
+- Detection steps — the folder read, code-scanner, prose-style-checker, doc-fixer (detection_model): [model]
 - epic-reviewer (review_model): [model]
 - Opus available: [yes | no]
 
 ### PRD summary
 - Key: <JIRA_KEY>
 - Summary: [PRD summary, 1 line]
-- Goal: [2–3 sentence extraction from jira-reader]
+- Goal: [2–3 sentence extraction from the folder read]
 
 ### Existing Epics (not duplicated)
 - [<KEY>] [summary] — [status]
@@ -738,7 +738,7 @@ user name is ever written (§10 privacy).
 - ALWAYS write to the resolved `output_dir` — `$VAULT_PATH/jira-drafts/<KEY>/` when `$VAULT_PATH` is set, else `<parent-of-jira_export_root>/epic-drafts/<KEY>/` (or the user-confirmed alternative) — auto-create the directory if missing
 - ALWAYS escalate missing repos before proceeding — never silent skip
 - ALWAYS invoke `epic-reviewer` before Phase 8 maintenance
-- ALWAYS resolve the `model_routing` block at Phase 1.5 and pin each subagent dispatch to its §9 chain via `model:` — the mechanical steps (`jira-reader`, `code-scanner`, `prose-style-checker`, `doc-fixer`) and `epic-writer` (MODERATE) to the §2.1 Sonnet chain; `epic-reviewer` keeps its frontmatter Opus pin (no override); coordination + interactive gates run on `current_model`
+- ALWAYS resolve the `model_routing` block at Phase 1.5 and pin each subagent dispatch to its §9 chain via `model:` — the mechanical steps (the folder read, `code-scanner`, `prose-style-checker`, `doc-fixer`) and `epic-writer` (MODERATE) to the §2.1 Sonnet chain; `epic-reviewer` keeps its frontmatter Opus pin (no override); coordination + interactive gates run on `current_model`
 - ALWAYS delegate Phase 6 writing to the `epic-writer` subagent (write-only); the orchestrator never writes Epics itself and never commits the drafts (still true — the drafts land in the vault / output directory, which the terminal `commit-artifacts` step never stages; git management there is the user's responsibility)
 - ALWAYS cap review/fix cycles: 1 fix + 1 re-review max
 - ALWAYS pass `Change type: docs` in the Phase 8 change summary block
@@ -747,7 +747,7 @@ user name is ever written (§10 privacy).
 - ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
 - ALWAYS produce the Phase 9 report as the final output
 - ALWAYS end the Phase 9 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked
-- ALL written claims must be traceable to Jira keys (from `jira-reader`) or code paths (from `code-scanner`); do not invent content the sources don't contain. `[[KEY]]` wikilinks in the draft are correct here and stay: `/epics` writes into an Obsidian vault, where a wikilink is the native idiom and resolves. `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1 — which bans in-page provenance — governs **rendered product-docs pages** (`/document`'s write targets), not vault documents; do not apply it to Epic drafts
+- ALL written claims must be traceable to Jira keys (from the folder read) or code paths (from `code-scanner`); do not invent content the sources don't contain. `[[KEY]]` wikilinks in the draft are correct here and stay: `/epics` writes into an Obsidian vault, where a wikilink is the native idiom and resolves. `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1 — which bans in-page provenance — governs **rendered product-docs pages** (`/document`'s write targets), not vault documents; do not apply it to Epic drafts
 - NEVER run `docs-style-checker` — Epic drafts are vault-internal and not subject to product-docs prose linting. Prose style is checked via `prose-style-checker` in Phase 6.2 instead.
 - ALWAYS have `epic-writer` write `_coverage.md` to `output_dir` (PRD-holistic, even in focus mode); it is NOT a Jira Epic and is never pasted to Jira
 - ALWAYS run the Phase 6.1 clarification gate when the writer returns clarifications; unresolved-by-choice markers become `epic-reviewer` BLOCKERs

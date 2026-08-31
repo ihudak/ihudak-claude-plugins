@@ -288,7 +288,7 @@ offered command actually enforces:
 | Handover | Offered when | Why |
 |---|---|---|
 | [`/create-prd <BRD-KEY>`](create-prd.md) (PM) | **Conditionally** — no ledger row still `unallocated`, and one `covered-here` | Exactly the two refusals its own Phase 0 raises; offering it otherwise hands over a run that stops immediately |
-| [`/create-ard <BRD-KEY>`](create-ard.md) (PA, optional) | **Unconditionally** | No `jira-reader`, so no tracker key; no PRD gate, so no wait on a PRD; and it reads neither `claims:` nor the ledger |
+| [`/create-ard <BRD-KEY>`](create-ard.md) (PA, optional) | **Unconditionally** | Reads only the specs tree, so it needs no key minted anywhere else; no PRD gate, so no wait on a PRD; and it reads neither `claims:` nor the ledger |
 | [`/specify <BRD-KEY>`](specify.md) (PE) | **Unconditionally** | The same three reasons, read out of its own Phase 0 rather than assumed symmetric with `/create-prd`'s |
 
 Both `/create-prd` tests are read over the BRD's **own ledger rows** — `brd-link.md`'s `claims:`

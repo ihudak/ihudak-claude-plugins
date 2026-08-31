@@ -118,7 +118,7 @@ not required.
   register. On an advancing run, `/dev-workflows:create-prd <BRD-KEY>` carries the further
   condition that the reconciled ledger leaves no row `unallocated` and at least one `covered-here`
   (`references/coverage-ledger-format.md` §5, the two refusals its Phase 0 raises); the other two
-  carry none of their own, since neither dispatches `jira-reader`, neither runs the PRD gate and
+  carry none of their own, since neither dispatches the folder read, neither runs the PRD gate and
   neither reads the ledger. **That difference is where the two conditions come from, and it matters:**
   `/create-prd`'s is enforced by its own Phase 0, so offering it wrongly hands over a run that stops;
   the advance/re-entry split is enforced **nowhere downstream** — `/create-ard` on the BRD route and

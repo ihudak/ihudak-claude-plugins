@@ -26,7 +26,7 @@ must be resolved down to a single Epic. Pass an explicit `<PRD> <Epic>` to scope
 
 ## Phase 0 — Resolve input
 
-1. **Resolve the Jira input via the shared front-end.** Execute
+1. **Resolve the address.** Execute
    Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a
    folder or a file inside one — and resolve it with `resolve-address`
    (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). `status: found` → carry its `path`, `kind`
@@ -92,7 +92,7 @@ MUST be `"Other… (describe)"`.
 3. **Quick Jira status peek (display only — not the ground truth).** Read
    `<jira_export_root>/<KEY>-index.md`'s `| Key | Type | Status | Summary | Role |` table directly
    (mechanical — no subagent) and note the `Status` column for `<PRD>` and, when set, `<EPIC>`. This is
-   for **Phase 1 display context only**; Phase 2's `jira-reader` read is the authoritative source the
+   for **Phase 1 display context only**; Phase 2's folder read is the authoritative source the
    reviewer verifies against.
 
 4. **Display** (context, no further prompt): resolved cwd; resolved PRD dir (+ Epic subdir); resolved
@@ -120,7 +120,7 @@ model_routing:
   classification: MODERATE        # typical; SIGNIFICANT possible for a large multi-Epic PRD
   reason: <one-line>
   current_model: <the model this orchestrator is running under>
-  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # jira-reader (Phase 2); the Phase 3 deterministic skeleton is mechanical and runs orchestrator-inline, not delegated
+  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # the folder read (Phase 2); the Phase 3 deterministic skeleton is mechanical and runs orchestrator-inline, not delegated
   review_model:    <§2 Opus chain>     # readiness-reviewer (frontmatter-pinned; recorded, no override)
   opus_available: <true if a §2 Opus model resolved, else false>
   notes: <any §2/§2.1 fallback or degradation>
@@ -134,7 +134,7 @@ falls to the Sonnet floor — record the degradation in `notes` and the final re
 
 ## Phase 2 — Read ground truth
 
-Invoke `jira-reader` with `depth: prd-plus-epics` — this is the authoritative status/requirement source
+Read the resolved folder — this is the authoritative requirement source
 the reviewer verifies the declared status against (never Phase 1's status peek).
 
 **Read the resolved folder directly.** Read its `prd.md`, and list the `EPIC-` subfolders under it —
@@ -208,7 +208,7 @@ this run. This is the mechanical half of that dimension.
 **(c) Repo-availability presence-check (best-effort, presence only — never scanning).**
 
 1. Derive candidate repo names from: each in-scope Epic's `## Pull Requests` section URLs (the repo-name
-   segment of each URL, per `jira-reader`'s PR URL formats); the confirmed-repos line of any `design.md`
+   segment of each URL, per the PR URL formats `diff-summarizer` accepts); the confirmed-repos line of any `design.md`
    found (`design-format.md`'s header `- **Repos**: <the confirmed implementation repos this design
    spans>`); and any ARD's `grounded_repos:` frontmatter list (`ard-format.md`). Dedupe.
 2. Build the slug→clone map **exactly as `epics.md` Phase 4 does**: for each top-level directory under
@@ -241,7 +241,7 @@ and a pointer to the rubric.
   > status_expectation:      [paste Phase 3(b), plus the workflow-states.md rubric reference]
   > repo_availability:       [paste Phase 3(c)]
   > artifact paths:
-  >   PRD:      [<PRD-dir>/<PRD>.md if read, or the jira-reader handoff's PRD summary]
+  >   PRD:      [<PRD-dir>/<PRD>.md if read, or the resolved folder's prd.md summary]
   >   ARD:     [absolute path(s), or 'none']
   >   Epics:   [absolute path(s) in scope]
   >   specs:   [absolute path(s) in scope]
@@ -315,7 +315,7 @@ plugin-gap halt (see Invariants).
 
    ### Model Routing
    - Session model (current_model): [model]
-   - Detection steps — jira-reader (detection_model): [model]
+   - Detection steps — the folder read (detection_model): [model]
    - readiness-reviewer (review_model): [model]
    - Opus available: [yes | no]
 
@@ -598,7 +598,7 @@ whatever branch Phase 5 left checked out), and NEVER writes into
 - ALWAYS read artifacts from the specs repo's clean **main** — never a branch
 - ALWAYS pass the Phase 2 declared status to `readiness-reviewer` exactly as read — never inferred,
   never re-derived
-- ALWAYS resolve the `model_routing` block at Phase 1.5 and pin `jira-reader` to the §2.1 Sonnet chain;
+- ALWAYS resolve the `model_routing` block at Phase 1.5 and pin the detection steps to the §2.1 Sonnet chain;
   `readiness-reviewer` keeps its frontmatter Opus pin (no override); coordination + the Phase 3
   deterministic skeleton run on `current_model`
 - ALWAYS invoke `readiness-reviewer` before Phase 5 — no verdict is written or reported without it
@@ -609,6 +609,6 @@ whatever branch Phase 5 left checked out), and NEVER writes into
 - ARD steps (Phase 2.5, the reviewer's `applicable_ard`, the report's ARD-conformance section) are
   ADDITIVE and guarded on `status: found` or `status: unmerged` — a run with no ARD (`status: none`) is
   byte-identical to before
-- ALL written claims trace to Jira keys (from `jira-reader`) or artifact paths actually read; never
+- ALL written claims trace to a resolved key or to artifact paths actually read; never
   invent content the sources don't contain
 - ALWAYS end with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write — carrying the verdict as carry-forward — runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a same-role `/compact` suggestion + `/rename <PRD-ID>-<slug>-dev`; guidance only, never auto-run.

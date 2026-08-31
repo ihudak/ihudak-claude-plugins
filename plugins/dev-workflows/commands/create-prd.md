@@ -489,7 +489,7 @@ choices: ["Draft the release note now — /dev-workflows:release-notes <ADDRESS>
 ```
 
 **Two keys appear in that array and they are not interchangeable.** `<KEY>` is the address this run
-was invoked with — on the `/idea` route it is the tracker key the PM minted before the run, which is
+was invoked with — it is the key the folder asserts, which is
 why `/dev-workflows:create-ard` can be handed it bare; on the BRD route it is a `<BRD-KEY>` naming a
 `$SPECS_PATH` folder, and the PA option takes the BRD route with it (see the PA paragraph below).
 There is one key now, and every option below takes it — the address this run was invoked with, which names the folder this run wrote into.
@@ -501,9 +501,7 @@ There is one key now, and every option below takes it — the address this run w
 The other two options carry no clause, and that is checked, not assumed: `/dev-workflows:release-notes` runs no `require-on-main` at all, and `/dev-workflows:epics` gates only `<PRD-dir>/specification.md` — a file this run does not write.
 
 **Every option is presented unconditionally now, and the reason the two used to be withheld is
-gone.** `/dev-workflows:epics` and `/dev-workflows:release-notes` were held back until a tracker key
-had been minted *and* an export produced against it, because both resolved that export and found
-nothing without it. Neither reads an export any more: both resolve a folder in the specs tree, which
+gone.** `/dev-workflows:epics` and `/dev-workflows:release-notes` were held back until a key had been minted outside the plugin *and* an export produced against it, because both resolved that export and found nothing without it. Neither reads an export any more: both resolve a folder in the specs tree, which
 this run has just written. So there is no half-done state to report and no `(Recommended)` marker to
 withhold — the offer says what it always meant to say, one phase earlier.
 

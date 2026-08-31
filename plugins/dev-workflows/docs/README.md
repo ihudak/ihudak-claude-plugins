@@ -39,7 +39,7 @@ Four pages orient you before you touch a command: [Getting started](getting-star
 - [`/create-prd`](commands/create-prd.md) — turn a refined idea plus a Jira key into a reviewed Product Requirements Document.
 - [`/design`](commands/design.md) — take over a merged specification and author a reviewed engineering design, grounded strictly in the mounted code.
 - [`/docs-profile`](commands/docs-profile.md) — scan a docs repository and write or refresh the machine-readable profile `/document` consumes.
-- [`/document`](commands/document.md) — write or update product documentation: a one-shot direct edit, or the full Jira-driven feature-documentation workflow.
+- [`/document`](commands/document.md) — write or update product documentation: a one-shot direct edit, or the full keyed feature-documentation workflow.
 - [`/epics`](commands/epics.md) — break a Product Requirements Document into reviewed child Epic drafts.
 - [`/feedback`](commands/feedback.md) — log a note about the plugin itself, for the maintainer to aggregate.
 - [`/guideline-reviewer`](commands/guideline-reviewer.md) — review app code and UI against the bundled UI design-system and accessibility guidelines.

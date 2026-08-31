@@ -14,7 +14,7 @@ runs a fix cycle and re-reviews once.
 
 ## Input contract
 
-- **ARD path** — absolute path to the `*_ARD.md`. Required; if absent, stop and report.
+- **ARD path** — absolute path to the ARD (`ard.md`, or an area-scoped `ard-<area>.md`). Required; if absent, stop and report.
 - **Scope** — `prd | epic`. Review at the stated altitude; for an Epic-level ARD also read the inherited PRD-level ARD named in `inherits:` (if any) to check for contradictions.
 
 ## Review method

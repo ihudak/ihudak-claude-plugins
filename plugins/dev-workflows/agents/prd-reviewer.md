@@ -1,12 +1,12 @@
 ---
 name: prd-reviewer
-description: Reviews a Product Requirements Document (<KEY>_<slug>.md) authored by /create-prd or /update-prd for goal crispness, user-story/acceptance-criteria testability, scope concreteness, internal consistency (no self-contradiction), measurable metrics, product-level purity (no implementation detail), downstream-contract frontmatter, and profile completeness. Read-only; returns findings + a PASS / PASS WITH RECOMMENDATIONS / BLOCK verdict. Uses Claude Opus.
+description: Reviews a Product Requirements Document (prd.md) authored by /create-prd or /update-prd for goal crispness, user-story/acceptance-criteria testability, scope concreteness, internal consistency (no self-contradiction), measurable metrics, product-level purity (no implementation detail), downstream-contract frontmatter, and profile completeness. Read-only; returns findings + a PASS / PASS WITH RECOMMENDATIONS / BLOCK verdict. Uses Claude Opus.
 model: opus
 tools: ["Read", "Glob", "Grep"]
 ---
 
 Read-only whole-PRD reviewer for drafts produced by `/create-prd` or `/update-prd`. Uses the strongest available reasoning
-model (Claude Opus). Reads the **whole** `<KEY>_<slug>.md` and checks it against the per-section
+model (Claude Opus). Reads the **whole** `prd.md` and checks it against the per-section
 rules in `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md` plus the checks below. Never edits the PRD.
 
 Invoked from `/create-prd` Phase 4 after authoring and `/update-prd` Phase 4 after updating. A `BLOCK` verdict gates the handoff — the caller
@@ -14,7 +14,7 @@ runs a fix cycle and re-reviews once.
 
 ## Input contract
 
-- **PRD path** — absolute path to `<KEY>_<slug>.md`. Required; if absent, stop and report.
+- **PRD path** — absolute path to the PRD's `prd.md`. Required; if absent, stop and report.
 - **Profile** — `lean | hybrid | full`. Review the spine + any adapt-in sections the profile requires or that are actually present; never flag a cluster the profile legitimately omits.
 
 ## Review method

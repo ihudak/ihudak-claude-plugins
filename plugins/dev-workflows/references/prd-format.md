@@ -57,7 +57,7 @@ precondition for any future consumer: re-deriving it later would mean re-reading
 have moved on. A `brd_key` may carry a third numeric segment
 (`references/addressing.md` §1 fixes no depth), so a PRD authored inside a BRD slice is filed
 under a key the two-segment form would reject — validate **that folder-side key**, and the
-`<KEY>_<slug>.md` filename built from it, against §1's grammar rather than a narrower one. This never
+folder name built from it, against §1's grammar rather than a narrower one. This never
 extends to `jira_key`, which is two-segment everywhere (below).
 
 **`brd_key` and `jira_key` are two keys with two uses and are never interchangeable.** `brd_key` is a

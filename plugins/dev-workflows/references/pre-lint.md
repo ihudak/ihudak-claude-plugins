@@ -44,7 +44,7 @@ Classify every surviving hit into exactly one of three branches, and name the br
 The ARD is not itself pasted into Jira, but `epic-writer` copies its `AD` references into Epic
 drafts, which are. Catching it at the source is cheaper than catching it downstream.
 
-## PRD — `<KEY>_<slug>.md` (`/create-prd`; format `prd-format.md`)
+## PRD — `prd.md` (`/create-prd`; format `prd-format.md`)
 
 - Required headings: `## Problem`, `## Goal`, `## Target audience`, `## User Stories`,
   `## Acceptance Criteria`, `## Scope`, `## Success Metrics`.
@@ -52,7 +52,7 @@ drafts, which are. Catching it at the source is cheaper than catching it downstr
   Plus `[SMC#N]` (counter-metrics), `[UC#N]`, `[FR#N]` when those adapt-in clusters are present.
 - Report the count of `[NEEDS CLARIFICATION]` (a relentless-grilled PRD should converge to 0; >0 → MINOR).
 
-## ARD — `*_ARD.md` (`/create-ard`; format `ard-format.md`)
+## ARD — `ard.md` (`/create-ard`; format `ard-format.md`)
 
 - Required headings: `## Context`, `## Grounding findings (architecture as-is)`,
   `## Architecture decisions`, `## Cross-repo / component approach`, `## Stack & invariants`,

@@ -63,7 +63,7 @@ Usage: `/create-prd <JIRA-KEY|BRD-KEY> [@idea.md] [--from-prd <PRD-KEY|path>] [-
 5. **Feature folder. Under `--from-brd` this is the resolved BRD folder**, and it is never created
    here: resolve it with `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3),
    which already searches both levels, or read the `--from-brd <dir>` path when one was given. The
-   PRD this run authors is written **into that folder** as `<BRD-KEY>_<slug>.md`, beside the BRD
+   PRD this run authors is written **into that folder** as `prd.md`, beside the BRD
    artifacts it was derived from. `absent` is a graceful stop, not a folder to
    create — and it names **both** ways a BRD folder comes into being rather than picking one,
    because nothing on disk says whether this key names a BRD with a source document or a slice of
@@ -71,7 +71,7 @@ Usage: `/create-prd <JIRA-KEY|BRD-KEY> [@idea.md] [--from-prd <PRD-KEY|path>] [-
    same stop `/brd-split` takes on the same resolution, worded the same way for the same reason:
    `CREATE_PRD_BRD_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
    Without `--from-brd`, unchanged: `<SPECS_PATH>/specifications/<KEY>-<slug>/` — `<slug>` from the idea title (else a kebab of the PRD summary). Honor an existing dir matched by key-number (tolerate a stray `-`/`_` and a human-adjusted slug). No match there → apply `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §7's one-level-deep fallback before concluding none exists; it is reached only on a flat miss, so a flat key resolves exactly as it did before. This is the resolution every mention of the feature folder in this command means, step 3's rung-1 `idea.md` included. Auto-created by the first write (Phase 5) at the flat path — the fallback honors a nested folder that already exists, it never proposes one.
-6. **Prior PRD (frontmatter-based).** Glob `<feature-folder>/<KEY>_*.md` and confirm frontmatter `issue_type: ValueIncrement` (tolerant of any slug). If a PRD is found, this is an **existing PRD** — `/create-prd` is greenfield-only, so **redirect** (see Phase 1) to `/update-prd <KEY>` unless `--from-prd` **or `--from-brd`** is present.
+6. **Prior PRD (frontmatter-based).** Read `<feature-folder>/prd.md` and confirm frontmatter `issue_type: ValueIncrement`. A specs repo written before the rename holds `<KEY>_<slug>.md` instead; `addressing.md` §5 resolves the folder either way, and the frontmatter check is what identifies the draft inside it. If a PRD is found, this is an **existing PRD** — `/create-prd` is greenfield-only, so **redirect** (see Phase 1) to `/update-prd <KEY>` unless `--from-prd` **or `--from-brd`** is present.
 7. **The BRD gate (`--from-brd` only).** Read `<BRD-dir>/brd-link.md` for its `parent:` (absent on a
    BRD that owns its source document) and any `depends-on:`; then read
    `<BRD-dir>/coverage-ledger.md` and take the **`disposition` written on each row of the gate set
@@ -349,7 +349,7 @@ Carry both digests into Phase 3 with **grill-rank** consumption. When both are O
 
 **Interview technique (grilling — embedded; no runtime dependency).** Conduct a **relentless** interview per `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, fact-vs-decision split (look up facts from the idea/sources; put only decisions to the user), walk the design tree in dependency order, continue to shared understanding then write each section. Rank every `docs_challenges` and `prior_art_challenges` entry from Phase 2.5 into the grill's question order; a challenge competes for attention, it never suspends the spine below.
 
-Author `<KEY>_<slug>.md` live against `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md` for the selected profile, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md`. Walk the **spine** in dependency order:
+Author `prd.md` live against `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md` for the selected profile, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md`. Walk the **spine** in dependency order:
 
 1. Frontmatter — `relevant_for_release_notes` (defaults to `yes`; ask only to confirm a `no`); `sources` (propagated), `derived_from`, `seeded_from_prd` (only when `--from-prd` was used), and `jira_key` — **written here only on the `/idea` route**, where the positional token is a key the user minted on the tracker before the run, so it is a tracker identity the moment it is written. **Under `--from-brd` `jira_key` is omitted here**, and the round-trip's step 1 is what writes it, because that step is where a tracker identity is minted for the first time; writing `<BRD-KEY>` into it now would put a `$SPECS_PATH` folder name in the one field every downstream consumer reads as a tracker key, and nothing later could tell a minted key from an un-minted address. Its absence is therefore load-bearing and is read as "no tracker identity yet" by Phase 6's offers and by `${CLAUDE_PLUGIN_ROOT}/references/prd-source-resolution.md` step 2. **Under `--from-brd`, additionally `brd_key`, `brd_parent` and `depends_on`**, per `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`'s frontmatter block, each read from what Phase 0 step 7 already holds and none of them asked of the user: `brd_key` is the resolved BRD key, `brd_parent` is `brd-link.md`'s `parent:` (**omitted** on a BRD that owns its source document, where there is none), and `depends_on` is its `depends-on:` list (**omitted** when empty). Writing them here records the BRD identity and the customer-committed prerequisites on the PRD itself. **No command consumes the three fields yet** — neither `/dev-workflows:epics` nor `/dev-workflows:ready` reads any of them, and wiring a consumer is separate work with its own review. They are written anyway because provenance captured at authoring time is the precondition for any future consumer: re-deriving it later would mean re-reading a BRD tree that may have moved on. `derived_from` is **omitted** on this route — there is no `idea.md` this PRD was built from, and pointing it at a BRD artifact would misname the field; `brd_key` carries that provenance instead. `sources` still carries real provenance: the BRD's own source document, as `provenance: markdown` with `ref:` resolved **by level, and never from `brd-link.md`** — no writer of that file emits a `source:` field at either level, so a ref read from there would resolve to nothing. On a BRD that owns its source document, `ref:` is the single file under `<BRD-dir>/brd/source/`, which `/brd-intake` copied in verbatim and which nothing afterwards edits or moves. On a **slice**, `ref:` is the path the `source:` line at the top of `<BRD-dir>/brd/brd-inventory.md` names — the `parent:`/`source:` header `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1 fixes and `/brd-split` writes — which resolves against the **parent's** folder, because a slice holds no `brd/source/` of its own and that header exists precisely so an anchor can be followed out of it. Name the file the ref was read from in the final report, so a reader can tell the two resolutions apart. Do NOT ask for `release_versions`, `change_type`, or `release_notes_category` — they are Jira dropdowns the PM sets on the ticket and the importer returns on the round-trip (`${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`); `/release-notes` reads them from the import. Dates and deprecation details also stay out of frontmatter — they belong in the release-notes Summary.
 2. **Problem**
@@ -417,7 +417,7 @@ is a **quality enhancement, not a gate** — it never blocks the handoff.
 → Agent (subagent_type: "prose-style:prose-style-checker", model: `<detection_model — §2.1 Sonnet chain>`):
   > "Run the style check for this brief:
   >
-  > files:    [absolute path to <KEY>_<slug>.md]
+  > files:    [absolute path to prd.md]
   > doc_type: prd
   > emphasis: terminology and customer-facing captions, labels, messages, and text"
 
@@ -438,7 +438,7 @@ plugin is not installed), **skip this phase gracefully** and note
 ## Phase 3.6 — Structural pre-lint
 
 Before the review gate, run the deterministic checks in
-`${CLAUDE_PLUGIN_ROOT}/references/pre-lint.md` against the drafted `<KEY>_<slug>.md`: the
+`${CLAUDE_PLUGIN_ROOT}/references/pre-lint.md` against the drafted `prd.md`: the
 **Universal checks**, the **Jira-key collision** check (run on the PRD body below the frontmatter),
 and the **PRD** block. Surface every finding; inline-fix the mechanical ones
 (renumber a duplicate `[US#N]`/`[AC#N]`/`[SM#N]`, delete a stray placeholder token); leave content gaps
@@ -452,7 +452,7 @@ Dispatch `prd-reviewer` (Opus, frontmatter-pinned; recorded as `review_model`, n
 → Agent (subagent_type: "dev-workflows:prd-reviewer", model: `<review_model — §2 Opus chain>`):
   > "Review the Product Requirements Document:
   >
-  > PRD path: [absolute path to <KEY>_<slug>.md]
+  > PRD path: [absolute path to prd.md]
   > Profile: [lean | hybrid | full]"
 
 Act on the verdict (mirrors `/specify`):
@@ -463,7 +463,7 @@ Act on the verdict (mirrors `/specify`):
 
 ## Phase 5 — Handoff
 
-Write the feature folder: `<KEY>_<slug>.md`. The in-contract `idea.md` is already there, committed by `/idea`; an out-of-contract idea stays where it is.
+Write the feature folder: `prd.md`. The in-contract `idea.md` is already there, committed by `/idea`; an out-of-contract idea stays where it is.
 
 **Under `--from-brd`, also close the consumption loop before the offer.** The design's *Consumption
 tracking* section (§7.3) has every finding and decision record a `consumed_by`, so that "nothing was

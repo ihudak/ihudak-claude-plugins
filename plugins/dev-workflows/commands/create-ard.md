@@ -78,7 +78,7 @@ this stage). Zero Jira API.
    Where a `--from-brd <dir>` path was supplied and is not an existing directory, the same stop
    substitutes that path for the search clause — `no BRD folder at <path> (supplied with --from-brd)` —
    because "both levels searched" would describe a search this run did not perform.
-4. **Prior ARD.** If the target `*_ARD.md` exists → Phase 1 offers refine-vs-fresh. **Under `--from-brd` the target is `<BRD-dir>/<BRD-KEY>_ARD.md`** — the same glob in the same folder, keyed by the BRD key this run resolved.
+4. **Prior ARD.** If the target `ard.md` exists → Phase 1 offers refine-vs-fresh. **Under `--from-brd` the target is `<BRD-dir>/ard.md`** — the same glob in the same folder, keyed by the BRD key this run resolved.
 5. **Optionality advisory.** Gauge size — the PRD's user-story count / scope breadth / number of candidate repos. For a small, single-repo PRD, note "an ARD may be optional here" and offer `choices: ["Author the ARD anyway", "Stop — no ARD needed", "Other… (describe)"]`. **Under `--from-brd` gauge the same question off the seed instead**, since there is no PRD to count user stories in: the number of architecture-altitude `decided` records in `decisions.md`, the number of `[CG#n]`/`[DG#n]` findings at architecture altitude, and the number of repositories `grounding/baselines.md` pinned. A BRD whose whole architecture altitude is one decision against one repository is exactly the case the advisory exists for.
 
 `/create-ard` is **cwd-agnostic**; it reads the PRD/Epic — or, under `--from-brd`, the BRD folder's seed, register and findings — and scans repos under `$REPOS_PATH`.
@@ -108,7 +108,7 @@ likewise skips the gate on the input its own seed replaces.
 Use `choices` arrays; the last choice is always `"Other… (describe)"`.
 1. **Confirm** the scope (PRD-level vs Epic-level) and the feature folder. **Under `--from-brd`**, confirm instead the BRD folder and a `from BRD:` line naming `<BRD-KEY>`, its `parent:` if `brd-link.md` records one (and therefore whether this run is BRD-level or slice-level), its `depends-on:` if any, and which of `ard-seed.md`, `decisions.md`, `grounding/code-grounding.md` and `grounding/design-grounding.md` are present — a stat, not a read; the read is Phase 2.
    - Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
-2. **Refine vs fresh** (only if a prior `*_ARD.md` exists): `choices: ["Refine the existing ARD (Recommended)", "Start fresh — overwrite", "Cancel", "Other… (describe)"]`.
+2. **Refine vs fresh** (only if a prior `ard.md` exists): `choices: ["Refine the existing ARD (Recommended)", "Start fresh — overwrite", "Cancel", "Other… (describe)"]`.
 3. **Repos search base (`$REPOS_PATH`).** Read `${REPOS_PATH:-/workspace}` (may be colon-separated): `choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]`.
 4. **Repo refresh policy** (governs Phase 3's `code-scanner`): `choices: ["fetch + pull default branch (Recommended)", "fetch only", "no refresh", "Other… (describe)"]`.
 
@@ -142,7 +142,7 @@ means a run invoked with a second positional key, which `--from-brd` refuses (Ph
 slice's `scope: epic` frontmatter (Phase 4) is a statement about altitude and inheritance, not about
 this phase's run mode.
 
-Read the PRD from `$SPECS_PATH/specifications/<PRD>-<vslug>/` — glob `<PRD>_*.md` and use the file whose frontmatter is `issue_type: ValueIncrement` (canonical `<PRD>_<slug>.md`) when present (authored source); else dispatch `jira-reader` to read it from the export:
+Read the PRD from the folder `resolve-address <PRD>` returned (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3) — its `prd.md`, whose frontmatter is `issue_type: ValueIncrement`, when present (authored source); else dispatch `jira-reader` to read it from the export:
 
 → Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §2.1 Sonnet chain>`):
   > "Return the structured handoff for this brief:
@@ -223,7 +223,7 @@ inherited ARD via `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with:
 
 The second mapping needs no change to that reference: a slice folder sits inside its parent's exactly
 as an Epic subfolder sits inside a PRD dir, which is the layout its Epic-level branch already
-collects — the slice's own `<BRD-KEY>_ARD.md` plus the parent's `<parent-key>_ARD.md` for inherited
+collects — the slice's own `ard.md` plus the parent BRD folder's `ard.md` for inherited
 invariants. Act on the returned `status` exactly as above: `found` → inherit those `AD#N` read-only;
 `unmerged` → **stop**, naming the returned `branch` and any `pr`; `none` → proceed unchanged.
 
@@ -332,7 +332,7 @@ already holds and none of them asked of the user:
 - `prd:` and `epic:` are the same pair Phase 2 passed to `resolve-ard`: `<BRD-KEY>` and `null` for a
   source-owning BRD, the `parent:` key and `<BRD-KEY>` for a slice. Frontmatter and resolver agree
   because they are written from one resolution, not two.
-- `inherits:` the parent BRD's `<parent-key>_ARD.md` when `resolve-ard` returned one, else `null`.
+- `inherits:` the parent BRD folder's `ard.md` when `resolve-ard` returned one, else `null`.
 - `derived_from:` the PRD file in this BRD folder when one is there — the ordinary case, since this
   route is normally reached from `/dev-workflows:create-prd --from-brd`'s own next-step offer — else
   `<BRD-dir>/ard-seed.md`, the artifact this ARD was actually authored from. The field records
@@ -341,14 +341,14 @@ already holds and none of them asked of the user:
 - `grounded_repos:` unchanged — the repos Phase 3 confirmed, which is what every `file:line` in the
   ARD must cite into.
 
-**Per-area split.** If (Epic level) the confirmed grounding spans separable areas in one repo (e.g. `server/` backend + `ui/` frontend), grill: `choices: ["One combined ARD (Recommended)", "One ARD per area (backend / frontend / …)", "Other… (describe)"]`. On per-area, author one `<EPIC>-<area>_ARD.md` per area (each with its own `area:` frontmatter).
+**Per-area split.** If (Epic level) the confirmed grounding spans separable areas in one repo (e.g. `server/` backend + `ui/` frontend), grill: `choices: ["One combined ARD (Recommended)", "One ARD per area (backend / frontend / …)", "Other… (describe)"]`. On per-area, author one `ard-<area>.md` per area (each with its own `area:` frontmatter).
 
 ---
 
 ## Phase 4.5 — Structural pre-lint
 
 Before the review gate, run the deterministic checks in
-`${CLAUDE_PLUGIN_ROOT}/references/pre-lint.md` against the drafted `*_ARD.md`: the **Universal checks**,
+`${CLAUDE_PLUGIN_ROOT}/references/pre-lint.md` against the drafted `ard.md`: the **Universal checks**,
 the **Jira-key collision** check (run on the ARD body below the frontmatter), and the **ARD** block
 (incl. that every `### [AD#N]` carries `**Binds:**` / `**Prevents:**` / `**Rule:**`). Surface every
 finding; inline-fix the mechanical ones (renumber a duplicate `[AD#N]`, delete a stray placeholder
@@ -371,7 +371,7 @@ Dispatch `ard-reviewer` (Opus, frontmatter-pinned; recorded as `review_model`, n
 → Agent (subagent_type: "dev-workflows:ard-reviewer", model: `<review_model — §2 Opus chain>`):
   > "Review the ARD:
   >
-  > ARD path: [absolute path to the *_ARD.md]
+  > ARD path: [absolute path to the ard.md]
   > Scope: [prd | epic]"
 
 On `BLOCK`, fix the BLOCKER findings inline (the orchestrator/grill edits the ARD — no delegated writer) and re-review **once**; if still `BLOCK`, escalate per the `Review verdict BLOCK` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`. `PASS` / `PASS WITH RECOMMENDATIONS` → proceed. Cap: one fix cycle + one re-review. (For a per-area split, review each area ARD.)

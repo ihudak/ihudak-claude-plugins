@@ -240,7 +240,7 @@ picker changes.
 **A BRD is PRD-eligible if and only if at least one of its ledger rows is `covered-here`.**
 
 - **Eligible.** At least one `covered-here` row exists. The BRD may go on to author its own
-  `<BRD-KEY>_<slug>.md`, which is what `/create-prd --from-brd` runs against this BRD to write.
+  `prd.md`, which is what `/create-prd --from-brd` runs against this BRD to write.
 - **Not eligible.** No row is `covered-here`. Every row therefore resolves to one of the other four
   terminal dispositions — `covered-by: <BRD-KEY>`, `deferred-to: <this BRD>`, `rejected: [DEF#n]`
   or `superseded-by: [BR#n]` — in any mix, and **all four reach this case equally**: eligibility is

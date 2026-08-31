@@ -22,7 +22,8 @@ The caller passes a structured brief:
   result assembled before this reviewer runs.
 - **Artifact texts** — the PRD, ARD (if any), each in-scope Epic, each `specification.md`, each
   `design.md` — with their absolute paths.
-- **Derived phases** — the PRD's phase and each Epic's, as derived from the artifacts present.
+- **Derived phases** — the PRD's phase and each Epic's, as derived from the artifacts present, each naming the artifacts that placed it there. A phase asserted without them is a claim this review cannot check.
+- **`claimed_status`** (optional) — a phase the operator declared with `--claimed`. Present, compare it against the derived phase: a claim **above** the derived phase caps the verdict, a claim below is reported and does not cap. Absent, there is nothing to diverge from and the review judges the artifacts alone.
 - **`applicable_ard`** (optional) — the resolved ARD `AD#N` invariants. When omitted, dimension 4
   (ARD conformance) is skipped entirely (no-regression).
 - **The rubric** (`${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`) — the status↔command↔role↔artifact ladder this reviewer applies.

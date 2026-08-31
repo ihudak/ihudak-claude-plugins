@@ -12,6 +12,10 @@ Verifies whether the ARD, specification, and design artifacts on record actually
 /ready <ADDRESS> [--claimed "<status>"]
 ```
 
+**`--claimed "<status>"`** (optional) — a workflow phase you declare, typically pasted from whatever tracker you keep. The run compares it against the phase it derives from the artifacts and reports any divergence; a claim **above** the derived phase caps the verdict, a claim below is reported and does not.
+
+**Without it, the run cannot catch a wrong claim** — a derived phase cannot contradict itself, so `/ready` reports what the artifacts show and nothing more. That is the cost of having no mirror to check against, and the flag is how anyone who does keep a tracker gets the check back, whichever tracker it is.
+
 `$ARGUMENTS` is a **single positional address** — a `<KEY>`, or an `@<path>` naming a folder in the specs tree. The resolved folder's kind decides the altitude: a `PRD-` folder is a PRD-level run, an `EPIC-` folder an Epic-level one. The two-key form is retired, because the second key was always derivable from the first.
 
 ## How it runs

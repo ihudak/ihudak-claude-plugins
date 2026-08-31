@@ -40,6 +40,18 @@ must be resolved down to a single Epic. Pass an explicit `<PRD> <Epic>` to scope
    `READY_NEEDS_KEY: /ready needs a PRD or Epic address — a key, or an @<path> to its folder.` —
    `/ready` has no direct-prompt behavior.
 
+1a. **`--claimed "<status>"` (optional).** Its value is a workflow phase the operator declares — a
+    status pasted from whatever tracker they keep, or typed from memory. When present, the run
+    compares it against the phase Phase 3 derives and reports any divergence as a readiness finding.
+    Validate it against `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`'s ladder for the
+    resolved kind; an unrecognised value is **re-prompted with the ladder shown**, never coerced to
+    the nearest match.
+
+    **Without the flag, a derived phase cannot contradict itself**, so the run reports what the
+    artifacts show and catches nothing. That is the honest cost of having no mirror to check against,
+    and it is the whole reason the flag exists: anyone who does keep a tracker pastes what it says
+    and gets exactly the divergence check they had before, with no dependency on which tracker it is.
+
 2. **Resolve `$SPECS_PATH`.** `/ready` reads the ARD/spec/design artifacts and writes `_readiness.md`
    under `$SPECS_PATH/specifications/`. If `$SPECS_PATH` is unset, stop with a clear error naming
    `SPECS_PATH`: `choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`.
@@ -178,6 +190,23 @@ Resolve any applicable ARD by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resol
 ---
 
 ## Phase 3 — Deterministic skeleton
+
+**(0) Derive the phase.** Before anything else, read
+`${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`'s ladder for the resolved kind **in the
+direction its *expected artifacts* column supports**: the phase is the furthest rung whose expected
+artifacts all exist. Record it as `derived_phase`, with the artifacts that placed it there — a phase
+asserted without naming what placed it is a claim the report cannot defend.
+
+**Where the artifacts straddle two rungs, the phase is the lower one**, and the report says which
+artifact is missing to leave it. That is the verdict this command exists to produce: *"this PRD is at
+Ready for Implementation, and here is what is missing to leave it."*
+
+**When `--claimed` was given** (Phase 0 step 1a), compare it against `derived_phase` and record any
+divergence as a readiness finding. A claim **above** the derived phase is the interesting one — work
+declared done that the artifacts do not support — and it caps the verdict exactly as an unmerged
+artifact does. A claim below is reported and does not cap: artifacts can legitimately run ahead of
+somebody's bookkeeping.
+
 
 Mechanically build three inputs for the reviewer — orchestrator-inline, no subagent, no user prompt.
 

@@ -49,10 +49,11 @@ files:
 ```
 
 **phase values:**
-- `full` (or omitted) — baseline → apply → build → verify → commit → PR. Default.
-- `verify-resume` — second-call protocol after Opus review. Skip steps 1–3
-  (baseline, fix, build are already done); resume at step 4 (Verify) and
-  proceed through commit and PR.
+- `full` (or omitted) — baseline → create the fix branch → apply → build → verify. Default.
+  The branch is created **before** the edit, so it exists on every path this agent can
+  return from, including `AWAITING_REVIEW`.
+- `verify-resume` — second-call protocol after Opus review. Skip steps 1–4
+  (baseline, branch, fix, build are already done); resume at step 5 (Verify).
 - `regression-resume` — second-call protocol after the orchestrator asked the
   user about a `TEST_REGRESSION` return. Skip straight to "Test regression"
   step 4; requires `regression_decision`.
@@ -63,7 +64,10 @@ files:
 ## Vuln Fix Result: CVE-2023-46604
 status: SUCCESS         # SUCCESS | BUILD_FAILED | TEST_REGRESSION | REVERTED | SKIPPED_BY_USER | AWAITING_REVIEW | BASELINE_FAILED | BLOCKED
 branch: fix/PROJ-2423-CVE-2023-46604
-pr_url: https://github.com/org/repo/pull/42
+                        # no `pr_url` and no commit sha: this agent creates the branch and stops.
+                        # The commit, the push, and the pull request are the orchestrator's, in
+                        # /vuln Step 3.9 (references/code-handoff.md §2), and it records them
+                        # in its own `Code repo:` outcome line.
 tests_before: 47
 tests_after: 47
 regressions: 0
@@ -74,10 +78,10 @@ model_routing:           # echoed back when present in input
 ```
 
 **status values:**
-- `SUCCESS` — fix applied, tests green, PR opened
+- `SUCCESS` — fix applied, tests green, branch created with the change on it, uncommitted
 - `BUILD_FAILED` — build failed after fix, changes reverted
 - `TEST_REGRESSION` — previously-green tests failed and were not auto-fixable;
-  the fix is applied and built, but **not committed and no PR opened**. This
+  the fix is applied and built on the fix branch, uncommitted. This
   agent cannot ask the user (subagents have no interactive tools), so it
   stops here — see `notes` for the failing-test list and diagnosis. The
   orchestrator asks the user (per `/vuln` "Handling Test Failures"), then
@@ -88,11 +92,13 @@ model_routing:           # echoed back when present in input
 - `REVERTED` — the `regression-resume` call's `regression_decision` was `revert`
 - `SKIPPED_BY_USER` — user chose to skip (set by the orchestrator; this agent
   is not re-invoked in that case)
-- `AWAITING_REVIEW` — `gate_tests_on_review: true` was set; the fix is
-  applied and the build succeeded, but tests have **not** been run, no
-  commit was made, and no PR was opened. The orchestrator must perform
+- `AWAITING_REVIEW` — `gate_tests_on_review: true` was set; the branch exists and
+  carries the applied fix, the build succeeded, but tests have **not** been run.
+  The orchestrator must perform
   the Opus code review, then re-invoke this agent with
-  `phase: verify-resume` to run Verify, Commit, and PR.
+  `phase: verify-resume` to run Verify. Because the branch already exists, an
+  orchestrator-side stop here still has somewhere to commit the work
+  (`/vuln` Step 3.9 with `clean_finish: false`).
 - `BLOCKED` — the research report could not be read at the path the orchestrator supplied;
   nothing was changed. Per the read-failure contract
   (`${CLAUDE_PLUGIN_ROOT}/references/context-management.md`), the orchestrator must not
@@ -101,12 +107,14 @@ model_routing:           # echoed back when present in input
 
 ### AWAITING_REVIEW output shape
 
-Use this exact shape (omit `branch` / `pr_url` / `tests_before` /
-`tests_after` / `regressions` — none of them exist yet):
+Use this exact shape (omit `tests_before` /
+`tests_after` / `regressions` — none of them exist yet; `branch` IS reported, because
+step 2 created it before the fix was applied):
 
 ```markdown
 ## Vuln Fix Result: CVE-2023-46604
 status: AWAITING_REVIEW
+branch: fix/PROJ-2423-CVE-2023-46604
 build: OK
 files_changed:                # full list — needed by the orchestrator's Opus review
   - pom.xml
@@ -118,11 +126,12 @@ model_routing:
 
 ### TEST_REGRESSION output shape
 
-Use this exact shape (omit `branch` / `pr_url` — no commit/PR has happened yet):
+Use this exact shape:
 
 ```markdown
 ## Vuln Fix Result: CVE-2023-46604
 status: TEST_REGRESSION
+branch: fix/PROJ-2423-CVE-2023-46604
 tests_before: 47
 tests_after: 45
 regressions: 2

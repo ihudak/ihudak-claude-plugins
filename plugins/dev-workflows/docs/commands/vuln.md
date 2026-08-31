@@ -40,9 +40,9 @@ Two `dev-workflows` subagents are dispatched explicitly by name in Step 2 and St
 
 ## What it produces
 
-One feature branch, commit, and pull request **per fixed CVE, in the code repo itself** — `vuln-fixer` never pushes directly to `main`/`master`. Branch and commit conventions are resolved per `../../references/branch-naming.md`, preferring the repo's own documented convention. A Step 4 result table (CVE, library, version change, classification, result, PR) and a `### Review triage` section naming every finding reviewed and dismissed, with reasons, for CVEs that went through Opus review. An `impl-maintenance` Lessons Learned report, always tagged `Command run: /vuln`.
+One feature branch, commit, and pull request **per fixed CVE, in the code repo itself** — each CVE branched from the resolved base rather than from the previous CVE's branch, so its diff, its review, and its PR carry only its own fix. `vuln-fixer` creates the branch before its first edit and stops there; the commit, push, and pull request are Step 3.9's, and never push directly to `main`/`master`. The push-and-PR consent choice is asked once for the whole run, not once per CVE. Branch and commit conventions are resolved per `../../references/branch-naming.md`, preferring the repo's own documented convention. A Step 4 result table (CVE, library, version change, classification, result, PR) and a `### Review triage` section naming every finding reviewed and dismissed, with reasons, for CVEs that went through Opus review. An `impl-maintenance` Lessons Learned report, always tagged `Command run: /vuln`.
 
-No cost entry is ever written (see [Who runs it](#who-runs-it) above), and no `resume.md` is written for `/vuln` — its durable state is already the branch and PR on disk, not a PRD-scoped artifact. The terminal `commit-artifacts` step still runs, committing only `$SPECS_PATH`'s bounded session-artifact paths — never the code repo `vuln-fixer` just fixed.
+No cost entry is ever written (see [Who runs it](#who-runs-it) above), and no `resume.md` is written for `/vuln` — its durable state is already the branch and PR on disk, not a PRD-scoped artifact. The terminal `commit-artifacts` step still runs, committing only `$SPECS_PATH`'s bounded session-artifact paths — never the code repo this run just fixed.
 
 ## Gates
 
@@ -58,7 +58,7 @@ Fix one CVE tied to a Jira ticket and one bare CVE in the same run:
 /dev-workflows:vuln PROJ-2423:CVE-2023-46604 CVE-2024-99999
 ```
 
-Both CVEs are researched in parallel via `vuln-research`; each `READY` result is finalized to a classification and fixed sequentially — `PROJ-2423:CVE-2023-46604` typically as a dependency-only `MODERATE` bump with tests run fresh, `CVE-2024-99999` escalated if its fix requires code changes, gated by Opus review and triage before tests. Step 4 prints the result table, review triage, and the `impl-maintenance` report; the run closes with the `Specs repo:` outcome line for the bounded session-artifact commit.
+Both CVEs are researched in parallel via `vuln-research`; each `READY` result is finalized to a classification and fixed sequentially — `PROJ-2423:CVE-2023-46604` typically as a dependency-only `MODERATE` bump with tests run fresh, `CVE-2024-99999` escalated if its fix requires code changes, gated by Opus review and triage before tests. Each CVE is committed and pushed in Step 3.9 with its own `Code repo:` outcome line; Step 4 prints the result table, review triage, and the `impl-maintenance` report; the run closes with the `Specs repo:` outcome line for the bounded session-artifact commit.
 
 ## See also
 

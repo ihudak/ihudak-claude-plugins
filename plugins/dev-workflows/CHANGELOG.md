@@ -4,6 +4,54 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.10.0] — 2026-08-31
+
+### Fixed — the code repo's own commit, push, and pull request
+
+Ported from `mgd-claude-plugins` 2.59.0, adapted to this edition. 3.8.0 introduced
+`references/code-handoff.md` and got the shape of the problem right; it got two things about the
+answer wrong, and left `/vuln` out of the file that was written to generalise `/vuln`.
+
+**The commit is no longer something you can decline.** §1 rule 5 inverts 3.8.0's five-option choice:
+committing is local and reversible, so it is not the user's to approve, and a prompt that can be
+answered "no" at the end of a long run is exactly the failure this file exists to remove. Only the
+push and the pull request leave the machine, and only they are asked about — one three-option choice,
+asked once per run and reused for every later branch in it. `--no-commit` survives on `/implement`
+and `/upgrade` as the single opt-out, typed rather than clicked.
+
+**A run whose gates failed is still committed and still pushed.** 3.8.0 skipped the handoff entirely
+on an unresolved BLOCKER, which left the work in a working tree in precisely the case where losing it
+hurts most. §2.8 commits and pushes it like any other run and degrades only the pull request — opened
+`--draft`, with `> ⚠ DO NOT MERGE — <the blocking fact>.` as the first line of its body.
+
+**`/vuln` is now a caller, and two real defects in it are fixed.** `vuln-fixer` created its branch
+*after* applying the fix, so every early return — `BUILD_FAILED`, `TEST_REGRESSION`,
+`AWAITING_REVIEW`, and an orchestrator-side stop at an unresolved `BLOCK` — left the change
+uncommitted on the base branch, breaking the plugin's own "branch created before any file is touched"
+invariant on exactly the paths where work most needs saving. And each CVE branched off the previous
+CVE's branch, so CVE N's diff, its Opus review, and its pull request all carried every earlier CVE's
+fix. The fixer now branches at step 2, before its first edit, and stops there; Step 3 switches to the
+resolved base before each CVE; and the commit, push, and pull request move to the orchestrator's new
+Step 3.9, because the consent choice they sit behind is one no subagent can ask.
+
+**`/upgrade` commits per component instead of once at the end.** Step 6.5 commits each component as
+its own gates settle (`§2.11`'s split-call form) and step 7.5 pushes once for the batch, so a run that
+dies on component three still has one and two committed, each with its own message, on a branch that
+bisects. The old step 9a is gone.
+
+**Mechanics the reference had left unstated**, all now specified: the §2.1 gate (read-only mount,
+detached HEAD, never the default branch), §2.2's staging carve-outs for a dirty tree and a pushed
+stash with `--untracked-files=all` enumeration, §2.7's base-branch ladder (`origin/HEAD` →
+`origin/main` → `origin/master` → `origin/develop` — `/vuln` had hardcoded `main`), §2.6's `gh`
+capability probe with §3.2's no-CLI fallback text, and §3.1's thirteen-case `Code repo:` outcome line.
+
+**Stale claims retired.** `/upgrade`'s terminal step still asserted the upgrade changes were "left
+uncommitted on the current branch by `upgrade-executor`, exactly as before" — false since 3.8.0's own
+step 9a; its step 9a also read as skipping the whole batch's handoff when any one component reverted.
+`implementation-format.md` §3 and its `CLAUDE.md` summary still said only `/vuln` could write a
+compliant commit subject; all three write one now. Four documentation pages described the retired
+five-option choice by name, and four more asserted something it made false; all eight are rewritten.
+
 ## [3.9.0] — 2026-08-31
 
 ### Removed — `$VAULT_PATH` (increment D)

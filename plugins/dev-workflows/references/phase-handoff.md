@@ -6,6 +6,8 @@ Single source of truth for the two entry points that move a **phase deliverable*
 
 **Relationship to `specs-repo-git.md`.** That reference owns the *bookkeeping* paths (its §2.1) and the run-start/terminal steps for them. This one owns *deliverables*. It inherits four of that file's hard rules and deliberately differs on three; §1 states which.
 
+**Relationship to `code-handoff.md`.** That reference is this one's counterpart in the **code** repo: same shape (gate, stage, commit, push, `gh` probe, outcome line), different repository, and one deliberate inversion — its commit is prompt-free, because a deliverable is already safe on disk when this file's §4.3 choice is asked and a code change is not. Neither file's entry points ever run against the other's repository.
+
 ## 1. Hard rules
 
 Inherited from `specs-repo-git.md`, unchanged:

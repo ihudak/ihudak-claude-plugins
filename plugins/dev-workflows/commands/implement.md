@@ -10,7 +10,7 @@ Implement the following: $ARGUMENTS
 
 ## Phase 0 — Load and classify inputs
 
-**Strip `--no-commit` first**, before any other parsing: it is the only flag this command takes, and an unstripped flag is read as free-text prose and lands in the task description. When present, Phase 4.6's code handoff is skipped and the changes are left in the working tree — today's pre-3.8.0 behaviour, for anyone whose workflow depends on it.
+**Strip `--no-commit` first**, before any other parsing: it is the only flag this command takes, and an unstripped flag is read as free-text prose and lands in the task description. When present, Phase 4.6 is skipped entirely and the changes are left in the working tree. It is the one opt-out from a commit that is otherwise prompt-free (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §1 rule 5) — typed rather than clicked, which is the difference — and a run under it says once what it costs: the work is recoverable only on this machine, and `/document` and `/release-notes` will not find it later.
 
 `$ARGUMENTS` may contain free-text prose plus **zero or more `@path` tokens** (today's single-`@file` form is a subset). Resolve each `@path` relative to the current working directory. Classify each `@path` — and the current working directory — **by inspection, not by matching the path string**:
 
@@ -348,9 +348,11 @@ Before writing any file:
      ```
      choices: ["Stash changes and continue (Recommended)", "Proceed anyway — pre-existing changes will appear in the diff and review outputs", "Cancel"]
      ```
-   - **Stash**: run `git stash push -m "pre-impl stash"`, then continue.
-   - **Proceed**: note in the Phase 5 report that the working tree was dirty at implementation start.
+   - **Stash**: run `git stash push -m "pre-impl stash"`, then continue. Record the resulting stash as `stash_ref` — Phase 4.6 names it in its outcome line and never drops it (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.2 carve-out 2).
+   - **Proceed**: note in the Phase 5 report that the working tree was dirty at implementation start, **and record the `git status --porcelain --untracked-files=all` paths as `pre_existing_dirty`**. Phase 4.6 needs them to avoid sweeping somebody else's uncommitted work into this run's commit (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.2 carve-out 1); a run that does not record them here cannot honour that carve-out later.
    - **Cancel**: stop and summarize what was planned.
+
+   A clean tree records `pre_existing_dirty: null` and `stash_ref: null` — the state Phase 4.6's precondition assumes.
 
 2. **Resolve the branch name** per `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` — **the repo's own documented convention wins**. Read the target repo's `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`, `CLAUDE.md` (+ `.claude/`) for a branch-naming section (§1.1); if one is found, classify its segments (§1.2) and fill them: an **identity** placeholder (`<your-name-or-initials>`, `<user>`, …) from the §2 ladder (`$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → the §2.5 prompt), an **issue-key** segment from the `key` resolved in Phase 0 (or the pattern's documented no-issue literal in direct mode), and the **description** segment from step 3's slug. A pattern with no identity segment gets none — never inject initials into a convention that does not ask for one. Only when the repo documents no convention (§1.4) build `<prefix>/<slug>` with `<prefix>` from the §2 ladder, whose fallback here is `feat/`.
 
@@ -625,22 +627,29 @@ Placement is deliberate, not stylistic: step 7.5 sits inside Phase 3B, before th
 
 ---
 
-## Phase 4.6 — Code handoff (consent-gated)
+## Phase 4.6 — Code-repo handoff (commit, push, PR)
 
-**Runs after the review gate and the test run have both passed, and never on a run that ended in an
-unresolved BLOCKER** — the point is to hand over work that is ready, not to persist work that is not.
-Skipped entirely under `--no-commit`.
+Runs on **every** run that created a branch in Pre-Phase 3 — both classification branches, keyed mode and direct mode alike. Skipped only under `--no-commit`. Cite `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` and execute its `finish-code-branch` entry point (§2) inline, against **the code repository** this run changed — never `$SPECS_PATH`.
 
-Execute `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2 against **the code repository** this
-run changed — not `$SPECS_PATH`. Present its consent choice verbatim; on any committing option, the
-commit subject ends with `[<key>]` and carries a `Work-Item:` trailer where the folder has one
-(`${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §3).
+**The commit is prompt-free and the push and pull request are not** (§1 rule 5). There is no "leave it uncommitted" option in §2.4's choice, and a run that ends with the implementation sitting in a working tree is a defect rather than a style.
 
-**This is where the plugin writes that convention rather than teaching it.** A command that does not
-commit can only ask the operator to name the key; one that does, names it.
+Placement is load-bearing. Phase 4's maintenance agents edit files **inside the code repo** — `README.md`, `CHANGELOG.md`, `docs/`, `CLAUDE.md`, and any project-level memory entry — so a call placed before Phase 4 would commit a partial run and leave those edits behind (`code-handoff.md` §4 obligation 1). Phase 4.5 runs first because it commits a *different* repository (`$SPECS_PATH`), and interleaving the two would make the run's two outcome lines impossible to attribute.
 
-Record what the operator chose — it is what Phase 4.7 writes as `pushed:`, and a declined push is
-recorded as `pushed: false` rather than omitted.
+Pass the §2.10 inputs:
+
+- `repo` — the repo Pre-Phase 3 branched; `branch` — the name it created.
+- `pre_existing_dirty` and `stash_ref` — as recorded in Pre-Phase 3 step 1; both `null` on the clean-tree path.
+- `key` and `workitem_key` — from the resolved folder (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4); both `null` in direct mode. §2.3 turns them into the `[<key>]` subject suffix and the `Work-Item:` trailer that `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §3 requires — **this is where the plugin writes that convention rather than teaching it**.
+- `title` — the commit subject and pull-request title: with a key, `<one-line summary of what was built> [<key>]`; in direct mode, the imperative summary alone.
+- `body_facts` — what was implemented; the files changed; the Opus review verdict and triage summary where Phase 3B produced one; the `test-baseliner` verify result against the Pre-Phase 3.5 baseline; and any deferred `MINOR`/`NIT` findings.
+- `clean_finish` — `false` when the Opus review is still `BLOCK` after its one fix cycle plus re-review, or when the Phase 3.5 fix loop ended with regressions the user chose to keep; `true` otherwise. Per §2.8 this changes only the pull request (draft, with a DO-NOT-MERGE banner) — **never** whether the commit and push happen.
+- `commit_template: null` — `/implement` documents no full template of its own, so §2.3 derives the rest of the subject from the repo's own `git log`.
+
+Emit the §3.1 `Code repo:` outcome line in the Phase 5 report's `### Branch` section — once, and verbatim. **Under `--no-commit`** the entry point is not called at all, and §3.1's `--no-commit` row is emitted in its place, so the report still says where the work ended up.
+
+**A run that wrote into a repo it never branched.** A multi-source run (Phase 1.7) may edit a repo other than the one Pre-Phase 3 branched. This step has no branch there to commit onto, so it does not invent one: list those repos and their dirty paths in the Phase 5 report under `### Branch`, explicitly flagged as uncommitted. Never leave them unmentioned — an unreported dirty repo is exactly the loss this phase exists to prevent.
+
+Record what this phase actually did — the commit sha, and whether the push happened — as what Phase 4.7 writes into `implementation.md`; a declined or failed push is recorded as `pushed: false` rather than omitted.
 
 ## Phase 4.7 — Write the implementation record (keyed runs only)
 
@@ -678,6 +687,8 @@ Output a structured report — do NOT ask any closing confirmation:
 
 ### Branch
 [branch name created in Pre-Phase 3, e.g. feat/add-user-authentication]
+[the Phase 4.6 `Code repo:` outcome line, verbatim (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §3.1)]
+[any repo this run wrote into but never branched — path + dirty paths, flagged uncommitted; omit the line when there is none]
 
 ### What was implemented
 [High-level summary]
@@ -793,8 +804,9 @@ guidance already appeared in the Phase 5 report.
 `commit-artifacts` entry point (§4) inline — the LAST action of the run. It
 stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
 `<KEY> Add dev-workflows session artifacts (/implement)`, and pushes per §4
-step 5. It NEVER writes into the code repo this run just changed — the
-implementation changes and the branch created in Pre-Phase 3 are untouched —
+step 5. It NEVER writes into the code repo this run just changed — that repo's
+own commit, push, and pull request were Phase 4.6's, through a different
+reference and against a different remote —
 NEVER touches a docs repo or the current working directory;
 NEVER force-pushes;
 NEVER fails the run; and skips entirely when the run carries `specs_git:
@@ -803,9 +815,8 @@ composed before this phase, **print its §6 outcome line here**, as the run's
 last output — prefixed `Specs repo:`, with any guard notice repeated in full.
 
 ADDITIVE — this phase NEVER fails the run and NEVER commits the deliverable itself
-(Phase 4.6's code handoff owns that, behind its own consent choice;
-the terminal step above commits only the bounded session-artifact paths in
-`$SPECS_PATH`; the spec/design conformance notes from step 7.5 are handed off separately, before this phase, via `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2), and NEVER writes into the code repo or the current working
+(the terminal step above commits only the bounded session-artifact paths in
+`$SPECS_PATH`; the implementation itself was committed and pushed in Phase 4.6, in the code repo, via `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2; the spec/design conformance notes from step 7.5 are handed off separately, also before this phase, via `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2), and NEVER writes into the code repo or the current working
 directory; no user name is ever written (§10 privacy).
 
 ---
@@ -823,7 +834,10 @@ directory; no user name is ever written (§10 privacy).
 - NEVER skip Phase 4 — documentation, knowledge, instructions, and session-maintenance are mandatory after every successful impl; always collect all four agent summaries for Phase 5
 - ALWAYS capture a test baseline (Pre-Phase 3.5) before writing any file
 - ALWAYS create a feature branch (Pre-Phase 3) before writing any file — never implement directly on the default branch
-- ALWAYS check for a clean working tree before branching; stash or get explicit user consent if dirty
+- ALWAYS check for a clean working tree before branching; stash or get explicit user consent if dirty — and record `stash_ref` / `pre_existing_dirty` for Phase 4.6, which cannot honour `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.2's carve-outs without them
+- ALWAYS run Phase 4.6 (`finish-code-branch`, per `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md`) after Phase 4 and before the Phase 5 report — the commit is prompt-free (§1 rule 5) and the push + pull request sit behind §2.4's choice; a run that ends with the implementation uncommitted is a defect, not a style, and `--no-commit` is its only opt-out
+- NEVER commit the implementation before Phase 4 — Phase 4's maintenance agents write into the same repo, and a commit ahead of them ships a partial run
+- NEVER skip Phase 4.6 because a gate failed — a run whose review is still `BLOCK` or whose regressions the user kept is committed and pushed like any other, and sets `clean_finish: false` so its pull request is a draft carrying the DO-NOT-MERGE banner (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.8)
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - ALWAYS spawn Phase 4 agents in a single message — never sequentially
 - ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`

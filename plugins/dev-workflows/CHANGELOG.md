@@ -4,6 +4,79 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.12.0] — 2026-08-31
+
+### Fixed — the upstream review wave, audited against this edition
+
+`mgd-claude-plugins` ran a four-agent Opus review over the same code-repo handoff this edition ported
+in 3.10.0, and found **48 findings**. This edition inherited the pre-review version verbatim, so every
+git-mechanics defect it found is one this tree also had. Each was re-verified here before porting;
+three did not apply and are named below rather than ported blind.
+
+**Four that would have broken a run:**
+
+- **`/vuln` never told `vuln-fixer` which branch to create.** The agent would invent a name, the
+  orchestrator would push the one *it* resolved, and the gate would fail on the mismatch — or worse,
+  succeed and report a push that never happened. Branch naming now happens once, in Step 1 step 5,
+  and is passed in both dispatches; the fixer never derives one, and returns `BLOCKED` when it is
+  missing or collides.
+- **`BLOCKED` means two opposite things**, and Step 3.9's skip list keyed on it. It is returned by a
+  *first* fixer call that changed nothing, and by a *resume* call where the branch exists and the fix
+  is already applied — and it is also the label the command writes for orchestrator-side stops that
+  are explicitly required to hand off. What to hand off is now decided by **the tree**, not the label.
+- **`/implement`'s post-branch stop exits all bypassed Phase 4.6** — including the persisting-`BLOCK`
+  state Phase 4.6 itself names as a `clean_finish: false` case. Each now runs it before stopping.
+  This edition's exit list differs from the upstream's and is written against its own: the repro
+  prompt sits in Phase 2B, *before* the branch exists, and there is no abandon-and-restore arm here.
+- **`/upgrade`'s per-component commit ran with no gate**, because the split sanctioned "§2.2–§2.3
+  only". A caller whose branch creation had failed would commit its whole batch onto the default
+  branch and only discover it at the terminal call. The gate is now inside the split.
+
+**Git mechanics that were wrong, every one of them ported here verbatim in 3.10.0:**
+
+- `symbolic-ref --quiet HEAD` prints `refs/heads/<name>`, which can never compare equal to the short
+  name the ladder resolves — so the default-branch check **could never fire**. `--short` added, plus a
+  check that HEAD is on the branch the caller named (`git commit` writes to HEAD, `git push -u origin
+  <branch>` pushes the ref *named*; a mismatch reports a push that never happened).
+- The base-branch ladder's lower rungs used `rev-parse`, which prints a **SHA**: `--base <sha>` is
+  rejected outright and `git switch <sha>` detaches HEAD, the state the gate treats as blocking. They
+  are existence probes; the literal name probed is what is used.
+- The `OWNER_REPO` parse dropped `ssh://` remotes and **stripped the host**, so a GitHub Enterprise
+  remote resolved against `github.com` — silently targeting an unrelated public repository if one sat
+  at that path. Fixed here and at its root in `phase-handoff.md` §2.6, which carried the same
+  two-expression form.
+- The commit went through `commit -m`, which command-substitutes `$(…)` and backticks out of free
+  text — and `/vuln`'s template interpolates an NVD CVE description straight into it. Now written to a
+  file and committed with `-F`.
+- The pull-request body file was referenced three times and produced nowhere; §2.7 now defines it.
+- The writability pre-probe could strand finished work on a false positive; the real error is the
+  trigger instead.
+
+**Contradictions removed:** an undeclared `git add -A` divergence from two siblings that both forbid
+it (now declared in §1, with the reason the bound moved rather than vanished); a staging prompt that
+fired once per unit and offered a skip contradicting the unconditional commit; cached consent with no
+re-ask trigger; a missing existing-pull-request probe; and obligation 3 against the split's
+emits-none rule.
+
+**One BLOCKER of this edition's own, surfaced by the same audit.** `grilling-technique.md` keyed the
+open-question notation on *depth* — `[NEEDS CLARIFICATION]` for bounded callers, `- [ ]` for
+relentless ones. `/idea --deep` switches `/idea` from bounded to relentless at runtime, so an
+autonomous `--deep` run wrote `- [ ]` into an `idea.md`, left zero `[NEEDS CLARIFICATION]` markers,
+computed `status: refined` — which `idea-format.md` defines as **iff** zero markers remain — and handed
+an idea carrying unresolved decisions to `/create-prd`. The notation is now the **artifact's** choice,
+never the depth's.
+
+**Also fixed:** `docs-grounding.md`'s grill-rank claimed a challenge "competes for a question slot",
+true only for `/idea` — the other five consumers grill to convergence, where rank orders what is asked
+first and never how much. `/implement`'s documentation page still claimed 17 `## Phase` headings
+against a tree with 19. And the `/vuln` path still parsed "Jira IDs" and carried `jira:` handoff
+fields in a plugin whose design cut the tracker; increment B had recorded that as out of scope, and it
+is now swept.
+
+**Three upstream findings deliberately not ported**, because this edition does not have the code they
+fix: the two-rhythm grilling model (here `--deep` changes depth, not rhythm), its round-ranking rule,
+and its autonomous round-enumeration rule are all fixes to a feature harvest this edition never took.
+
 ## [3.11.0] — 2026-08-31
 
 ### Fixed — every `choices:` array now fits the prompt that renders it

@@ -5,7 +5,7 @@ description: >
   of CVE remediation: NVD API lookup, library detection in the repository, current
   version discovery, and minimum safe version resolution. Invoked explicitly by the
   /vuln command orchestrator — NOT triggered by direct user prompts. Accepts a structured
-  handoff document (list of CVE + optional Jira IDs, repo path) and produces a
+  handoff document (list of CVE + optional folder keys, repo path) and produces a
   research report consumed by the vuln-fixer agent. Has no side effects.
 tools: ["Read", "Glob", "Grep", "WebFetch"]
 ---

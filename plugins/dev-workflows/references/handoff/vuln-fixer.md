@@ -11,6 +11,10 @@ first and treat its content as that section.
 ```markdown
 ## Vuln Fix Request
 repo: /absolute/path/to/repo
+branch: fix/PROJ-2423-CVE-2023-46604   # REQUIRED on phase: full. The orchestrator resolves it
+                                    # (/vuln Step 1 step 5, per its "Git Workflow → Branch naming");
+                                    # vuln-fixer creates exactly this branch and never derives one,
+                                    # because /vuln Step 3.9 pushes the same value. Absent => BLOCKED.
 phase: full                        # full (default) | verify-resume | regression-resume — see "Phase" below
 baseline_tests: provided           # "provided" | "run-fresh"
   # If "provided", the orchestrator supplies results below.
@@ -24,7 +28,7 @@ baseline:                          # required when "provided"; may also be sent 
   passing_tests:                   # the full list — needed for precise regression detection
     - com.example.FooTest#testCreate
     - com.example.BarTest#testLogin
-jira_placeholder: NOJIRA           # or omit if project uses no placeholder
+no_address_placeholder: NOISSUE   # the literal the repo already writes; omit if it uses none
 regression_decision: keep-anyway   # keep-anyway | revert — REQUIRED on phase: regression-resume only;
                                     # the orchestrator obtains this from the user (subagents cannot
                                     # prompt the user directly — see /vuln "Handling Test Failures")
@@ -36,7 +40,7 @@ model_routing:                     # optional; set by orchestrator for SIGNIFICA
 ## Research Report (single CVE)
 ### CVE-2023-46604
 status: READY
-jira: PROJ-2423
+address: PROJ-2423
 description: "Apache ActiveMQ RCE via ClassInfo deserialization"
 library: activemq-broker
 ecosystem: Maven

@@ -109,7 +109,13 @@ Feed `docs_references` to the grill as positive grounding (facts to build on,
 analogous precedents to model after, building-block altitude/permissions).
 **Rank** each `docs_challenges` entry into the command's existing
 Impact × Uncertainty gap list — do **not** append. A docs challenge competes for
-a question slot; it never adds one (this preserves `/idea`'s ≤10-question bound).
+attention and never adds a question — a *question slot* only where the caller's
+grill is capped, which among the six grill-rank consumers is `/idea` alone
+(and there this is what preserves its ≤10-question bound). The other five grill
+to convergence, where ranking decides what is asked **first**, never how much is
+asked. Ranking also never pulls a question ahead of its prerequisites: what is
+askable now is settled by dependency (`${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md`),
+and rank only orders what is already askable.
 
 **`writer-attach`** (`/epics`, `/release-notes`): Pass the whole digest
 (`docs_references` + `docs_challenges`) into the writer agent's input handoff as

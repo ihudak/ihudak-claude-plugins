@@ -57,7 +57,17 @@ reconstruct it.
      and go straight to step 6, noting in the output that no test suite was found.
 
 2. **Create the fix branch — before any file is touched** — `git checkout -b <the branch name the
-   orchestrator supplied>`. This is deliberately ahead of the edit, not after it: it is the plugin's
+   orchestrator supplied>`. The name is **always** supplied in the input (`branch:`); never derive
+   one yourself, because `/vuln` Step 3.9 pushes the name *it* resolved and a name you invented
+   would fail that step's gate on the mismatch. A missing `branch:` is an orchestrator bug: return
+   `status: BLOCKED` naming it, and change nothing.
+
+   **On a collision, stop — do not improvise.** If `git checkout -b` fails because the branch
+   already exists (the ordinary case on a re-run after an earlier `BUILD_FAILED`, which leaves the
+   branch in place and empty), do **not** fall back to a suffixed name and do **not** proceed on the
+   current HEAD: return `status: BLOCKED` naming the collision. Proceeding would edit files while
+   HEAD is on the base branch, which this agent's invariants forbid and which `/vuln` Step 3.9 would
+   then refuse to commit. This is deliberately ahead of the edit, not after it: it is the plugin's
    standing invariant for every code-writing command, and it is what makes the branch exist on the
    paths where this agent never reaches its own end — an `AWAITING_REVIEW` return, or an
    orchestrator-side stop at an unresolved `BLOCK`. `/vuln` Step 3.9 has a branch to commit onto in

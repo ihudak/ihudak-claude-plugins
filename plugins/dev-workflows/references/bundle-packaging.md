@@ -53,13 +53,60 @@ had; a filename survives extraction, renaming, re-zipping, being mailed on to a 
 dropped into a different tool. The cost is that filenames must then be distinctive enough to search
 for, which is a constraint on how bundle documents are named, not a reason to fall back to paths.
 
-**What the bundle contains:** the package's own documents, the prompt, any dependency package copied
-in and marked *not for re-review*, the images those documents reference, and a manifest. Plain
-markdown and images — nothing else (§2). The manifest lists documents by filename, for the same
-reason rule 4 does.
+### 1.1 What the bundle contains — an allow-list, and why it is not a deny-list
 
-**What the bundle does not contain: the delivery note** (§4). It is the covering letter, not a
-package document.
+**A document reaches the bundle only where a part of the rendered prompt sends the reviewer to it.**
+That is the whole rule, and it is stated as an **allow-list** rather than as "the package's
+documents, minus the following" for one reason: a deny-list is silent about every artifact nobody
+thought of, and the BRD folder accumulates artifacts. Under a deny-list a new working record ships
+by default and is caught only if somebody remembers to exclude it; under the allow-list it stays by
+default and ships only once a prompt part actually cites it. The failure mode is not symmetric — a
+document wrongly withheld produces a reviewer question, and a document wrongly shipped cannot be
+recalled — so the default belongs on the side of withholding.
+
+Exactly this, and nothing else:
+
+| In the bundle | Which prompt part sends the reviewer to it |
+|---|---|
+| the rendered customer prompt | it is the entry point |
+| the customer's own source document — `brd/source/<basename>`, **the parent's on a slice** (`references/brd-format.md` §2.1) | requirement traceability: the review's own section 4 asks whether the package read the customer's document correctly, which is unanswerable without that document |
+| `brd/brd-inventory.md` | *Review scope* |
+| `brd/brd-defect-log.md` — **the parent's on a slice**, one hop, exactly as an inherited `[DEF#n]` already resolves (`references/brd-format.md` §4) | *Review scope*: a ledger row reading `rejected: [DEF#n]` cites an id the reviewer must be able to resolve |
+| `coverage-ledger.md` | *Review scope*, and *what this session cannot settle* |
+| `grounding/code-grounding.md` and `grounding/design-grounding.md` | *the single most important claim to verify first* |
+| `grounding/baselines.md` | *code baselines and the verification procedure* |
+| `decisions.md` | *the single most important claim to verify first*, *the decisions the customer must make*, *what could still move* |
+| `interview/customer-questions.md` | *the decisions the customer must make* |
+| every prerequisite package copied in, marked *not for re-review* | *what each package in the bundle is for* |
+| every image the documents above reference | they are embedded in them (§2) |
+| the manifest | *documents to review* |
+
+Plain markdown and images — nothing else (§2). The manifest lists documents by filename, for the
+same reason rule 4 does.
+
+**What the bundle does not contain**, each named because each is a document sitting in the same
+folder under the same `<BRD-KEY>`-and-date naming, indistinguishable from a package document by
+filename alone:
+
+- **The delivery note** (§4). It is the covering letter, not a package document.
+- **`self-review-<YYYYMMDD>.md`.** This is the one exclusion that is a *rule* rather than a
+  consequence of the allow-list, and it is load-bearing: that file holds every `[SR#n]` the
+  adversarial pass raised, including the ones disposed `rejected-with-reason`, whose reason
+  "stays inside the delivery organisation. Nothing rejected reaches the customer"
+  (`commands/brd-package.md`, *The disposition gate*). The `[SR#n]` content the customer may see is
+  carried into the prompt **filtered** — `accepted-risk` findings under *where to attack us hardest*
+  and `escalated-to-customer` findings under *the decisions the customer must make* — so shipping
+  the file itself would defeat that filter and hand the customer an internal disagreement to
+  referee. It also carries the model the pass actually ran on, which is delivery-side bookkeeping.
+- **Every other working record in the BRD folder** — `slices.md`, `brd-link.md`, the three seed
+  files, `interview/round-<N>.md`, earlier `reconciliation-<YYYYMMDD>.md`, earlier
+  `customer-review-<YYYYMMDD>.md`, and `dev-workflows/`. No prompt part sends the reviewer to any of
+  them.
+
+**The plugin-free scan does not cover this.** It hunts plugin-internal tokens (§1 rules 1–2), and
+every document above is free of them whether or not it belongs in a customer's hands. Nothing
+mechanical stands behind this allow-list, which is why it is written out rather than left to
+"the package's own documents".
 
 ## 2. De-Obsidianising
 

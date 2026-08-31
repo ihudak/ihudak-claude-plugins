@@ -265,13 +265,29 @@ handed off **before a single phase below reads it**, because a run that dies hal
 ingest must not be the reason the customer's own document cannot be found again. It arrived on a
 path nobody else can reproduce; the copy is the record.
 
-1. **Derive the review's date**, in this order, and stop at the first that answers: a `<YYYYMMDD>`
-   in the supplied filename (the schema's output name is `<BRD-KEY> Customer Review <YYYYMMDD>.md`,
-   so a file that came back unrenamed carries it); a review date stated in the review's own section
-   1; otherwise prompt the operator for it, in plain text, naming what it is for. **The date is the
-   customer's, not this run's.** Naming the copy by today's date would record when the delivery team
-   got round to ingesting the review rather than when it was written, and every claim in it is dated
-   against the package it answers.
+1. **Derive the review's date**, in this order, and stop at the first that answers:
+
+   1. **The review date stated in the review's own section 1** (*Review identity and evidence
+      limitations* — who reviewed, in what role, **on what date**). This is the customer asserting
+      their own date in their own document, which is exactly what is wanted.
+   2. **A `<YYYYMMDD>` in the supplied filename** — the schema asks the reviewer to name the file
+      for the date they finished, so a file that came back unrenamed carries it. **Reject this rung
+      where that date equals the date on the `customer-review-prompt-<YYYYMMDD>.md` this run gated
+      on**, and fall through to rung 3: the two matching is the signature of a reviewer echoing the
+      package's own stamp rather than dating their work, and a filename that merely repeats the
+      packaging date settles nothing. It is not proof — a review genuinely finished the day the
+      package was built produces the same collision — which is why the fallback is a prompt that
+      shows the operator both dates rather than a silent choice either way.
+   3. **Otherwise prompt the operator for it**, in plain text, naming what it is for and showing the
+      packaging date beside it so they can see what was rejected and why.
+
+   **The date is the customer's, not this run's, and not the package's either.** Naming the copy by
+   today's date would record when the delivery team got round to ingesting the review; naming it by
+   the packaging date would record when the delivery team *sent* it. Neither is when the review was
+   written, and every claim in it is dated against the package it answers. Ordering section 1 ahead
+   of the filename is what makes that true rather than aspirational: a filename is chosen by whoever
+   saved the file and can be an artifact of the send, while section 1 is a statement the reviewer
+   made inside the review.
 2. **Resolve the canonical name**, which is the date plus, where the date alone is taken, a
    disambiguating suffix:
 
@@ -791,7 +807,7 @@ choices: ["Inherited unchanged — the change does not move this position; say w
 **Not an escalation array either**: the four options are the four dispositions the design fixes for
 this sweep, in that order, and a fifth would be a disposition nothing downstream can read — which is
 why `escalation-rules.md`'s *The permitted adjustment does not reach these arrays* section names this
-picker among the five that never take a trailing `"Other… (describe)"` entry. No `(Recommended)`
+picker among the six that never take a trailing `"Other… (describe)"` entry. No `(Recommended)`
 marker, and the reason is stated beside the list per the
 `When no option is safe to recommend` guidance in `escalation-rules.md`: which one is right is a
 judgement about a position in another BRD, taken by whoever owns it, and a marker would invite the

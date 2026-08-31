@@ -142,6 +142,12 @@ drop would look like customer silence. A row citing none of the three is carried
   would freeze customer authority against a document nobody can produce later. Allocation and the
   interview rounds are **not** re-gated: both were gated upstream, and a second differently-worded
   copy of either rule would eventually disagree with the first.
+- **Phase 2 — the date is derived from the review, not from the package.** The ladder reads the
+  review's own section 1 date first, then a `<YYYYMMDD>` in the supplied filename, then prompts. The
+  filename rung is **rejected when its date equals the packaging date** of the prompt this run gated
+  on: the two matching is the signature of a reviewer echoing the stamp already printed in the
+  package rather than dating their own work, and a date that records when the package was *sent*
+  is no more the review's date than today's is.
 - **Phase 2 — a returned review is never overwritten, and a second one that day is not refused.** A
   destination that already exists and is byte-identical is a resumed run and proceeds. One that
   **differs** is a second review carrying the same date — a corrected resend, or two reviewers on the

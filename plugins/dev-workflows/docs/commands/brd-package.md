@@ -110,12 +110,25 @@ Under `$SPECS_PATH/specifications/<BRD-KEY>-<slug>/`, all stamped with one date 
 
 | Artifact | What it is | In the bundle? |
 |---|---|---|
-| `self-review-<date>.md` | The adversarial pass: every `[SR#n]` with its class, target, attack and disposition, plus the per-pass account | yes |
+| `self-review-<date>.md` | The adversarial pass: every `[SR#n]` with its class, target, attack and disposition, plus the per-pass account | **no** — see below |
 | `customer-review-prompt-<date>.md` | The self-contained prompt the customer pastes, in the fixed eleven-part order, with the review schema inlined | yes |
 | `bundle-<date>/` | De-Obsidianised plain markdown and images, plus a manifest and any dependency package | it *is* the bundle |
 | `customer-delivery-note-<date>.md` | The covering letter, under a 200-word ceiling | **no** — it is the email, not a package document |
 
 `brd-link.md` also gains any prerequisite this run declared, merged additively.
+
+**The self-review never travels, and the reason is the disposition gate.** A `[SR#n]` disposed
+`rejected-with-reason` has its reason recorded there and it "stays inside the delivery organisation";
+the `[SR#n]` content the customer may see reaches them **filtered** — `accepted-risk` findings under
+*where to attack us hardest*, `escalated-to-customer` findings under *the decisions the customer must
+make*. Shipping the file would defeat that filter and hand the customer an internal disagreement to
+referee. What the bundle *does* hold is an allow-list, not a deny-list, and
+[`bundle-packaging.md`](../../references/bundle-packaging.md) §1.1 is its authority: the prompt; the
+customer's own source document and defect log (the parent's on a slice); the inventory; the coverage
+ledger; the three grounding files; the decision register; the `[C]` question set; each prerequisite
+package; the images those reference; and the manifest. A document reaches the bundle only where a
+part of the prompt sends the reviewer to it — everything else in the folder is a working record and
+stays.
 
 Behind the handoff phase's consent choice, these are committed, pushed, and a pull request opened
 against the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch prefix. The
@@ -176,7 +189,8 @@ attack.
   promoted, never chosen by the reviewer, and never quietly Full because the repositories were
   *probably* at the right commit. A tier is not a quality grade: a documents-only review that states
   its tier can be weighed correctly, and a full-tier review that states nothing cannot be weighed at
-  all.
+  all. The picker carries no free-text entry either, for the same reason the `[SR#n]` one does not:
+  a fourth tier is one neither the prompt nor a returned review's section 1 could state.
 - **Phase 6 — the render boundary.** The schema is rendered from section 2 onward, and the run stops
   with `BRD_PACKAGE_SCHEMA_BOUNDARY` if that file no longer declares where its boundary falls. The
   rendered headings are renumbered so the customer's copy runs from 1 rather than visibly beginning

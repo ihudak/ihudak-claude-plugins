@@ -118,8 +118,10 @@ Two reasons, and both survive the file being read in isolation:
 section 12 as instructions to edit. That section of the review exists because this rule closes every
 other channel.
 
-The output file is named `<BRD-KEY> Customer Review <YYYYMMDD>.md` — for example, `EPIC-008 Customer
-Review 20260415.md`. It is the only file to send back.
+The output file is named `<BRD-KEY> Customer Review <YYYYMMDD>.md`, where `<YYYYMMDD>` is **the date
+you finish this review** — not any date already printed in the package. If you finish on 22 April
+2026 and the key is `EPIC-008`, the file is `EPIC-008 Customer Review 20260422.md`. State that same
+date in your section 1. It is the only file to send back.
 
 ## 4. The twelve sections
 

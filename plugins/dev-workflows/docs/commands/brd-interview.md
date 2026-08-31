@@ -19,7 +19,7 @@ is the fourth command of that route, after `/brd-intake`, `/brd-ground` and `/br
 ```
 
 - **`<BRD-KEY>`** (mandatory) — the BRD whose questions this run decides. A key at either of the two
-  levels a BRD folder can occupy works, and both behave identically. Resolved via `resolve-brd`;
+  levels a BRD folder can occupy works, and both behave identically. Resolved via `resolve-address`;
   format-validated only, never checked against a tracker.
 - **`--round N`** (optional) — target one round: resume it if it is open, or re-open it if it is
   closed, recorded as a re-open with its cause. With no flag the run continues at the first round
@@ -232,8 +232,8 @@ later, with its cause recorded:
   the will-change rule this command enforces.
 - [`grounding-format.md`](../../references/grounding-format.md) — the finding record, the six
   verdicts, the two horizons, and §8's verification outcomes the Phase 0 gate depends on.
-- [`brd-addressing.md`](../../references/brd-addressing.md) — the `<BRD-KEY>` grammar and folder
-  resolution this command uses by name (`brd-key-valid`, `resolve-brd`).
+- [`addressing.md`](../../references/addressing.md) — the `<BRD-KEY>` grammar and folder
+  resolution this command uses by name (`key-valid`, `resolve-address`).
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the dispositions the
   allocation gate reads, and §6's ledger line the final report ends with.
 - [Agents](../reference/agents.md) — `impl-maintenance`'s full contract.

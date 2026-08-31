@@ -15,7 +15,7 @@ that discipline happen, not to ground anything itself.
 
 Usage: `/brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-design] [--no-docs] [--rebaseline]`
 
-Runs at either of the two levels `<BRD-KEY>` can name (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md`
+Runs at either of the two levels `<BRD-KEY>` can name (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md`
 §3) — a BRD that owns its source document, or one of its slices — grounding only the requirements
 that BRD claims. Unlike `/brd-split`, this command refuses neither: a slice is ground exactly as
 its parent is.
@@ -29,11 +29,11 @@ behaviour, not the behaviour.
 
 ## Phase 0 — Resolve inputs and gate on main
 
-1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `brd-key-valid`
-   (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1). If absent or invalid, stop:
+1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `key-valid`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). If absent or invalid, stop:
    `BRD_GROUND_NEEDS_KEY: /brd-ground needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/dev-workflows:brd-ground <KEY>'.`
 2. **Flags.** `--depends-on <BRD-KEY>` — repeatable, each consuming the next token; validate each
-   with `brd-key-valid` and drop (warn, do not stop the run) any that fail shape. `--no-design` —
+   with `key-valid` and drop (warn, do not stop the run) any that fail shape. `--no-design` —
    boolean, skips Phase 5's `design-grounder` step. `--no-docs` — boolean, turns documentation
    grounding off for this run (Phase 1 step 0, Phase 4.5). `--rebaseline` — boolean, see Phase 3. `--derivation-matrix`
    / `--no-derivation-matrix` — mutually exclusive; absent means "let Phase 8 decide the default".
@@ -48,7 +48,7 @@ behaviour, not the behaviour.
    one, the same ordering `/design` Phase 0 uses and for the same reason. Prompt-free and silent
    when the specs repo is clean and on its default branch. If it returns `specs_git: blocked`
    (§3.3 G0), carry that flag for the whole run.
-5. **Resolve the BRD folder.** `resolve-brd <BRD-KEY>` (`brd-addressing.md` §2), which searches
+5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`addressing.md` §3), which searches
    `specifications/` and exactly one level below it — the two levels a BRD folder can occupy.
    Absent → stop, without asserting which command would create it: no folder exists, so no
    `brd-link.md` exists either, and nothing on disk says whether this key names a BRD with a source
@@ -325,7 +325,7 @@ fresh, adds, and writes back.
 
 For every declared prerequisite (this run's plus any already on file):
 
-1. `resolve-brd <PREREQ-KEY>`. Absent → report `<PREREQ-KEY> — BRD not found`.
+1. `resolve-address <PREREQ-KEY>`. Absent → report `<PREREQ-KEY> — BRD not found`.
 2. Found → look for `decisions.md` in its folder. Absent → report
    `<PREREQ-KEY> — no decisions.md yet; contributes no will-change horizons` (per
    `grounding-format.md` §5: a prerequisite whose decisions are not yet frozen contributes none).
@@ -705,7 +705,7 @@ where it sits in the route, never its behaviour, which `commands/brd-split.md` o
 **`parent: <PARENT-KEY>` — this BRD is a slice.** `/brd-split` **is** offered, and the offer says
 which of its two modes will run, so nobody expects a fan-out that cannot happen: on a slice it runs
 `allocate-only` (`commands/brd-split.md` Phase 0 step 5) — it creates no child, because nesting is
-capped at one level (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §3), and walks this
+capped at one level (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §6), and walks this
 slice's ledger to a recorded fate through four resolutions instead of five, `covered-by` being the
 one that command's walk does not offer on a slice. Allocating is what
 makes this slice PRD-eligible
@@ -801,7 +801,7 @@ going into `/brd-split`.
 BRD it names — a child on a BRD that owns its source document, a sibling or the parent on a slice
 (`coverage-ledger-format.md` §3) — so this report resolves each `covered-by: <BRD-KEY>` row one hop
 into that BRD's own `coverage-ledger.md`, resolved from the
-working tree by `resolve-brd` (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §2). **This adds
+working tree by `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). **This adds
 no precondition and no gate.** A child folder that is absent from the tree this run is standing in —
 its split not yet merged, most commonly — makes that row `unresolved` in the line and nothing more:
 grounding this BRD does not depend on any child, and a run must never stop, degrade, or withhold its

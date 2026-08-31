@@ -131,8 +131,8 @@ commit, push, and open a pull request.
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off.
-- [`brd-addressing.md`](../../references/brd-addressing.md) — the `<BRD-KEY>` grammar and folder
-  resolution this command uses by name (`brd-key-valid`, `resolve-brd`).
+- [`addressing.md`](../../references/addressing.md) — the `<BRD-KEY>` grammar and folder
+  resolution this command uses by name (`key-valid`, `resolve-address`).
 - [`brd-format.md`](../../references/brd-format.md) — the `[BR#n]` row shape, the immutability rule,
   and the six defect classes this command confirms against.
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the ledger row shape,

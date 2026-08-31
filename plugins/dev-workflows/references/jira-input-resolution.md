@@ -107,7 +107,7 @@ order:
    (tolerate `-`/`_` separators and a trailing slug):
    - **Resolve the PRD folder once, first** — the folder matching `jira_key`
      (`<PRD>{-|_}<vslug>/`) directly under that root. No match there → apply
-     `${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §4's one-level-deep fallback
+     `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §7's one-level-deep fallback
      before concluding none exists; it is reached only on a flat miss, so a flat key
      resolves exactly as it did before. **Both cases below name the folder resolved
      here** and neither re-derives it from the key — a case that re-derived would

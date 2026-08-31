@@ -27,7 +27,7 @@ this repository's design spec, and the decision rows above:
 - the coverage ledger's dispositions, which a returned review never sets —
   `references/coverage-ledger-format.md` §3
 - the `[BR#n]` requirement identifier — `references/brd-format.md` §2; the `<BRD-KEY>` grammar —
-  `references/brd-addressing.md` §1
+  `references/addressing.md` §1
 
 **Consumed by two shipped commands.** One renders the body below into the prompt a customer
 pastes — from the boundary this preamble declares, never in full. The other parses a returned review

@@ -16,7 +16,7 @@ happen, not to restate it.
 Usage: `/brd-interview <BRD-KEY> [--round N]`
 
 Runs at either of the two levels `<BRD-KEY>` can name
-(`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §3) — a BRD that owns its source document, or
+(`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §6) — a BRD that owns its source document, or
 one of its slices. It refuses neither and behaves identically at both: a slice holds its own
 findings, its own ledger, and its own register, and it reaches its decisions exactly as its parent
 does. The register this run writes is the register of the BRD it was given, and no other.
@@ -98,8 +98,8 @@ and nothing downstream can tell the difference afterwards.
 
 ## Phase 0 — Resolve inputs and gate the grounded BRD
 
-1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `brd-key-valid`
-   (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1). If absent or invalid, stop:
+1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `key-valid`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). If absent or invalid, stop:
    `BRD_INTERVIEW_NEEDS_KEY: /brd-interview needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/dev-workflows:brd-interview <KEY>'.`
 2. **`--round N`.** Optional, consuming the next token, which must be a positive integer. Malformed
    or absent value → stop, rather than silently falling back to the no-flag behaviour, which would
@@ -118,7 +118,7 @@ and nothing downstream can tell the difference afterwards.
    the same ordering `/brd-ground` uses and for the same reason. Prompt-free and silent when the
    specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run.
-5. **Resolve the BRD folder.** `resolve-brd <BRD-KEY>` (`brd-addressing.md` §2), which searches
+5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`addressing.md` §3), which searches
    `specifications/` and exactly one level below it — the two levels a BRD folder can occupy. Absent
    → stop, without asserting which command would have created it, because nothing on disk says
    whether this key names a BRD with a source document or a slice of one:
@@ -781,7 +781,7 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 
 `/brd-interview` never changes a ledger disposition — the line simply reports where allocation
 stands. **Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree
-via `resolve-brd` (`brd-addressing.md` §2), per `coverage-ledger-format.md` §6.1 — a child on a BRD
+via `resolve-address` (`addressing.md` §3), per `coverage-ledger-format.md` §6.1 — a child on a BRD
 that owns its source document, a sibling or the parent on a slice (§3); a ledger that cannot
 be read there contributes `unresolved`, never `covered` (§6.2). This adds no precondition and no
 gate: the allocation gate in *Resolve inputs and gate the grounded BRD* is decided on this BRD's own

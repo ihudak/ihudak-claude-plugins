@@ -24,7 +24,7 @@ one.
 
 - **`<BRD-KEY>`** (mandatory) — the BRD to split and allocate. A key at either of the two levels a
   BRD folder can occupy works, and the level decides the run mode (below). Resolved via
-  `resolve-brd`; format-validated only, never checked against a tracker.
+  `resolve-address`; format-validated only, never checked against a tracker.
 - **`<instruction>`** (optional) — every non-flag token after the key, joined verbatim: a slicing
   instruction in your own words, such as `cover orders and measurements in the first iteration` or
   `slice everything this BRD still holds that no child covers`. It is prose and is never validated
@@ -130,7 +130,7 @@ reads was already independently verified by `/brd-ground`'s own agents.
 - **Nothing more, at either level.** A key that resolves to a **slice** does not stop the run; it
   sets `allocate-only` (see "Two modes" above) and emits the `BRD_SPLIT_ON_SLICE` notice. What the
   one-level cap forbids is creating a child *below* a slice
-  ([`brd-addressing.md`](../../references/brd-addressing.md) §3): a grandchild would inherit
+  ([`addressing.md`](../../references/addressing.md) §3): a grandchild would inherit
   `brd/source/` and a defect log from a parent that holds neither, so its inventory header would
   name a path that does not exist.
 - **`/brd-ground`'s findings already merged to the specs repo's default branch.** Phase 0 gates
@@ -258,8 +258,8 @@ this run's deliverables reach the specs repo's default branch — stated in the 
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off.
-- [`brd-addressing.md`](../../references/brd-addressing.md) — the `<BRD-KEY>` grammar and folder
-  resolution this command uses by name (`brd-key-valid`, `resolve-brd`), including how a slice
+- [`addressing.md`](../../references/addressing.md) — the `<BRD-KEY>` grammar and folder
+  resolution this command uses by name (`key-valid`, `resolve-address`), including how a slice
   nests inside its parent and why that nesting — and only the nesting — is capped at one level
   (§3).
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the authority for

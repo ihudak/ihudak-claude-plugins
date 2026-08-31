@@ -204,7 +204,7 @@ extracted from the branch name as free text.
 2. A key `K` in the run key set (§3.2) is a **candidate** when `R` is exactly `K`,
    or `R` begins with `K-` or `K_`. **The separator is required.** It is the same
    boundary folder resolution uses (`<KEY>{-|_}<slug>`,
-   `${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §2), and a branch name is
+   `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), and a branch name is
    built from the resolved folder's name rather than re-derived
    (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.2), so the two agree by
    construction.
@@ -231,7 +231,7 @@ not by `-` or `_`, so it is not a candidate, and `PRODUCT-1234` still is.
 `PRODUCT-1234`, `prd/PRODUCT-1234-<slug>` was extracted as `PRODUCT-1234` and is the
 single candidate here; a branch named for some other key matched nothing then and
 has no candidate now. The rule never asks how many segments a key carries, which is
-why a three-segment slice key needs no special case — `brd-addressing.md` §1's
+why a three-segment slice key needs no special case — `addressing.md` §1's
 "shape is not depth" holds here too — and why nothing above has to change when a
 key grammar widens again.
 

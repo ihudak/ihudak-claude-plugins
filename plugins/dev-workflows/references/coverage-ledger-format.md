@@ -5,7 +5,7 @@ requirements document) keeps per requirement, the states that row can carry, and
 blocks a split until every row has one. Design authority:
 `docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` §4, §4.1. Requirement and defect
 identifiers (`[BR#n]`, `[DEF#n]`) are defined once in `references/brd-format.md` — cited here, not
-restated; key grammar and folder resolution are defined once in `references/brd-addressing.md`.
+restated; key grammar and folder resolution are defined once in `references/addressing.md`.
 
 ## 1. Purpose
 
@@ -31,7 +31,7 @@ reported as exactly that, and the line names how many were delegated and then no
 arithmetic unremarked.
 
 One ledger exists per BRD, at either of the two levels a BRD can sit — a BRD that owns its source
-document, or a slice one level inside it (`references/brd-addressing.md` §3 caps nesting there). **What
+document, or a slice one level inside it (`references/addressing.md` §6 caps nesting there). **What
 its rows are is not the same at both levels**, and §3's creator table is the authority: a
 source-owning BRD gets one row per `[BR#n]` in the inventory `/brd-intake` extracted, while a slice
 gets one row per `[BR#n]` its `brd-link.md` claims **at the moment `/brd-split` creates it**. That
@@ -123,7 +123,7 @@ different writer at each.** On a BRD that owns its source document it names a **
 written by that BRD's own Phase 4 walk. On a slice it names a **sibling under the same parent, or
 that parent**, and is written by the **parent's** Phase 4 walk — never by the slice's own. It is
 never a child at either level below the root: nesting is capped at one level
-(`references/brd-addressing.md` §3), so **no child can exist below a slice** and no key a slice
+(`references/addressing.md` §6), so **no child can exist below a slice** and no key a slice
 writes could name one.
 
 **The slice form exists for exactly one state — an orphan row (§2) — and for no other.** A slice's
@@ -147,9 +147,9 @@ says where a reader follows the obligation.
 
 The first three all say *another BRD owns this*, which is what `covered-by` means and what none of
 the other five can say: `deferred-to: <this BRD>` would falsely book it as the slice's own live obligation,
-and `superseded-by` names a requirement, not a BRD. Both keys resolve: `resolve-brd` finds a
+and `superseded-by` names a requirement, not a BRD. Both keys resolve: `resolve-address` finds a
 sibling one level under `specifications/` and the parent at the top level
-(`references/brd-addressing.md` §2), so neither form names a folder that does not exist.
+(`references/addressing.md` §3), so neither form names a folder that does not exist.
 
 **This is not a general-purpose delegation, and a slice's own walk never writes it.** Every row a
 slice's walk visits is a row that slice `claims:` — a row the parent's ledger allocated *here*.
@@ -344,7 +344,7 @@ row that does:
   `covered-here` or `deferred-to` (§3's orphan table), never on another `covered-by`: a parent row
   reading `covered-by: <SIBLING-KEY>` is what produces the sibling form instead of the parent one.
 
-Nesting is capped at one level throughout (`references/brd-addressing.md` §3), so there is no third
+Nesting is capped at one level throughout (`references/addressing.md` §6), so there is no third
 level for a chain to reach even if one were somehow written.
 
 This is the arithmetic §1 promises. The failure §1 names — every child independently deciding the
@@ -378,7 +378,7 @@ whose fate this BRD has fully recorded — that is the resolution working, not a
 ### 6.2 A ledger that cannot be read is `unresolved`, never `covered`
 
 Resolution reads the named BRD's `coverage-ledger.md` **from the working tree**, through
-`resolve-brd` (`references/brd-addressing.md` §2) — not from git, because this line reports what
+`resolve-address` (`references/addressing.md` §3) — not from git, because this line reports what
 the run can actually see. A delegated row is `unresolved` when no folder resolves for the
 `<BRD-KEY>` it names; when that folder holds no `coverage-ledger.md`; when the tree the run is
 standing in does not carry that BRD at all, because the split that created it has not merged; or

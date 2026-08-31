@@ -31,7 +31,7 @@ derived_from: <path to the PRD file, canonical <PRD>_<slug>.md — or, in a BRD 
 
 **`prd`, `epic` and `derived_from` are widened for the BRD route, and the widening is confined to
 them.** Under `/create-ard --from-brd` the run holds a **BRD key**, which addresses a folder under
-`$SPECS_PATH` and may carry a third numeric segment (`references/brd-addressing.md` §1 fixes no
+`$SPECS_PATH` and may carry a third numeric segment (`references/addressing.md` §1 fixes no
 depth), so `prd` and `epic` are validated against that grammar — `^[A-Z][A-Z0-9_]*(-\d+)+$` — rather
 than the two-segment form; `ard-reviewer` applies exactly this and `commands/create-ard.md` writes
 exactly this, from one resolution rather than two. `scope` follows the same pairing it always did: a

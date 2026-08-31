@@ -18,7 +18,7 @@ happen, not to restate it.
 Usage: `/brd-reconcile <BRD-KEY> @<review-file>`
 
 Runs at either of the two levels `<BRD-KEY>` can name
-(`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §3) — a BRD that owns its source document, or
+(`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §6) — a BRD that owns its source document, or
 one of its slices. It refuses neither and behaves identically at both: a slice holds its own
 register, its own `[C]` question set and its own ledger, and it is reconciled from those and no
 others. Two things a slice does differently are named where they arise, and both follow from
@@ -133,8 +133,8 @@ write would re-ask a question already answered.
 
 ## Phase 0 — Resolve inputs and gate the sent package
 
-1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `brd-key-valid`
-   (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1). If absent or invalid, stop:
+1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `key-valid`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). If absent or invalid, stop:
    `BRD_RECONCILE_NEEDS_KEY: /brd-reconcile needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) and a returned review — re-run '/dev-workflows:brd-reconcile <KEY> @<review-file>'.`
 2. **`@<review-file>` (mandatory).** The file the customer sent back, **at whatever path it arrived
    on** — a downloads directory, a mail attachment saved anywhere, a shared drive. It is not
@@ -154,7 +154,7 @@ write would re-ask a question already answered.
    the same ordering `/brd-package` uses and for the same reason. Prompt-free and silent when the
    specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run.
-5. **Resolve the BRD folder.** `resolve-brd <BRD-KEY>` (`brd-addressing.md` §2), which searches
+5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`addressing.md` §3), which searches
    `specifications/` and exactly one level below it — the two levels a BRD folder can occupy. Absent
    → stop, without asserting which command would have created it:
    `BRD_RECONCILE_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
@@ -833,13 +833,13 @@ against three ids and some against six, and afterwards nobody can say which.
 
 1. **Declared dependents — a scan.** Any BRD whose `brd-link.md` declares `depends-on:` carrying
    this run's `<BRD-KEY>`, at **either** of the two levels a BRD folder can occupy — so the search
-   scans `specifications/` and exactly one level below it, the same bound `resolve-brd` uses and for
-   the same reason (`brd-addressing.md` §2, §3). This is the reverse of key resolution: a dependency
+   scans `specifications/` and exactly one level below it, the same bound `resolve-address` uses and for
+   the same reason (`addressing.md` §3, §6). This is the reverse of key resolution: a dependency
    is declared by the dependent, and nothing in this BRD's own folder lists who depends on it. Any
    key at any level may declare it (D17), so a slice depending on a source-owning BRD and a BRD
    depending on a sibling are both found by the same scan.
 2. **BRDs this ledger delegates to — a lookup, not a scan.** Every distinct `<OTHER-KEY>` named by a
-   `covered-by` row of `<BRD-dir>/coverage-ledger.md`, resolved with `resolve-brd`. No scan is needed
+   `covered-by` row of `<BRD-dir>/coverage-ledger.md`, resolved with `resolve-address`. No scan is needed
    because this relation *is* listed in this BRD's own folder — which is exactly why it was missed:
    the paragraph above defines a dependent as something that declares itself, and a child declares
    `parent:` and `claims:`, never `depends-on:`.
@@ -1094,7 +1094,7 @@ each under the precondition the offered command actually enforces rather than un
   `commands/specify.md`, *Under `--from-brd` the PRD gate does not run*); and neither reads the
   `claims:` list or the coverage ledger at all, because PRD eligibility is §5's rule about authoring
   a **PRD** and an ARD is not that artifact and neither is a specification. What each needs is this
-  BRD's folder, which `resolve-brd` finds at either level, plus its own altitude's seed — and an
+  BRD's folder, which `resolve-address` finds at either level, plus its own altitude's seed — and an
   absent `ard-seed.md` or `spec-seed.md` is reported by those runs, never a stop. Each takes **one**
   key: a second positional is refused (`CREATE_ARD_BRD_NO_EPIC` / `SPECIFY_BRD_NO_EPIC`), so neither
   is ever offered with an Epic beside it.
@@ -1270,7 +1270,7 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 ```
 
 **Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree via
-`resolve-brd` (`brd-addressing.md` §2), per `coverage-ledger-format.md` §6.1 — a child on a BRD that
+`resolve-address` (`addressing.md` §3), per `coverage-ledger-format.md` §6.1 — a child on a BRD that
 owns its source document, a sibling or the parent on a slice (§3); a ledger that cannot be
 read there contributes `unresolved`, never `covered` (§6.2). Every term is a **resolved** count, and
 the `unallocated` term does not track the allocation gate — a non-zero one here is a row this BRD

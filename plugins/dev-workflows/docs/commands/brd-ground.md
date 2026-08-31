@@ -19,7 +19,7 @@ is the second command of that route, after [`/brd-intake`](brd-intake.md) and be
 /brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-design] [--no-docs] [--rebaseline]
 ```
 
-- **`<BRD-KEY>`** (mandatory) — the BRD (or slice) to ground. Resolved via `resolve-brd`, so a
+- **`<BRD-KEY>`** (mandatory) — the BRD (or slice) to ground. Resolved via `resolve-address`, so a
   key at either of the two levels a BRD folder can occupy works; format-validated only, never
   checked against a tracker. Unlike [`/brd-split`](brd-split.md), this command refuses neither
   level.
@@ -204,8 +204,8 @@ because nesting is capped at one level. `/brd-split` is not where the route ends
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pa` role owns and hands off.
-- [`brd-addressing.md`](../../references/brd-addressing.md) — the `<BRD-KEY>` grammar and folder
-  resolution this command uses by name (`brd-key-valid`, `resolve-brd`), including how a slice
+- [`addressing.md`](../../references/addressing.md) — the `<BRD-KEY>` grammar and folder
+  resolution this command uses by name (`key-valid`, `resolve-address`), including how a slice
   nests inside its parent.
 - [`grounding-format.md`](../../references/grounding-format.md) — the authority for the finding
   record, the six verdicts, the two horizons, the `baseline-integrity` procedure this command's

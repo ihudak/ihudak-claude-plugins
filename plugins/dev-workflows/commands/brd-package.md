@@ -17,7 +17,7 @@ happen, not to restate it.
 Usage: `/brd-package <BRD-KEY> [--depends-on <BRD-KEY>…]`
 
 Runs at either of the two levels `<BRD-KEY>` can name
-(`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §3) — a BRD that owns its source document, or
+(`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §6) — a BRD that owns its source document, or
 one of its slices. It refuses neither and behaves identically at both: a slice holds its own
 register, its own `[C]` question set and its own findings, and it is packaged from those and no
 others. The bundle this run builds is the bundle of the BRD it was given.
@@ -97,11 +97,11 @@ cannot review, and they will not tell you that — they will review it anyway, b
 
 ## Phase 0 — Resolve inputs and gate the decided BRD
 
-1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `brd-key-valid`
-   (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1). If absent or invalid, stop:
+1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `key-valid`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). If absent or invalid, stop:
    `BRD_PACKAGE_NEEDS_KEY: /brd-package needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/dev-workflows:brd-package <KEY>'.`
 2. **`--depends-on <BRD-KEY>`.** Repeatable, each consuming the next token; validate each with
-   `brd-key-valid` and drop (warn, do not stop the run) any that fail shape — the same handling
+   `key-valid` and drop (warn, do not stop the run) any that fail shape — the same handling
    `/brd-ground` Phase 0 gives the same flag, because the flag means the same thing here and a
    mistyped prerequisite must not cost the operator the whole run. Any key at any level is
    admissible (D17), so a slice depending on another BRD and a BRD depending on a sibling express
@@ -119,7 +119,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
    the same ordering `/brd-interview` uses and for the same reason. Prompt-free and silent when the
    specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run.
-5. **Resolve the BRD folder.** `resolve-brd <BRD-KEY>` (`brd-addressing.md` §2), which searches
+5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`addressing.md` §3), which searches
    `specifications/` and exactly one level below it — the two levels a BRD folder can occupy. Absent
    → stop, without asserting which command would have created it:
    `BRD_PACKAGE_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
@@ -260,7 +260,7 @@ replaced the list would silently drop a prerequisite nobody re-declared.
 
 For every declared prerequisite (this run's plus any already on file):
 
-1. `resolve-brd <PREREQ-KEY>`. Absent → record `<PREREQ-KEY> — BRD not found`, carry it into *what
+1. `resolve-address <PREREQ-KEY>`. Absent → record `<PREREQ-KEY> — BRD not found`, carry it into *what
    could still move* as a prerequisite whose state is unknown, and do not stop: a prerequisite the
    delivery team cannot resolve is exactly the kind of thing the customer should be told about.
 2. Found → determine **whether its decisions have been customer-reviewed**. They have been if and
@@ -911,7 +911,7 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 
 `/brd-package` never changes a ledger disposition — the line simply reports where allocation stands.
 **Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree via
-`resolve-brd` (`brd-addressing.md` §2), per `coverage-ledger-format.md` §6.1 — a child on a BRD that
+`resolve-address` (`addressing.md` §3), per `coverage-ledger-format.md` §6.1 — a child on a BRD that
 owns its source document, a sibling or the parent on a slice (§3); a ledger that cannot be
 read there contributes `unresolved`, never `covered` (§6.2). A slice does **not** always reach this with
 nothing to resolve. `covered-by` is legal on a slice (`coverage-ledger-format.md` §3), where it

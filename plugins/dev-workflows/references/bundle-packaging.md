@@ -14,7 +14,7 @@ to `references/grounding-format.md` §2 and §4; the `[CD#n]`/`[AS#n]` record sh
 and the rule that every open `[AS#n]` reaches the customer belong to
 `references/decision-register-format.md` §1, §5 and §7; the coverage ledger's dispositions belong to
 `references/coverage-ledger-format.md` §3; the `<BRD-KEY>` grammar and BRD-folder resolution belong
-to `references/brd-addressing.md` §1 and §2; the commit entry point every bookkeeping write into the
+to `references/addressing.md` §1 and §3; the commit entry point every bookkeeping write into the
 specs repo runs through belongs to `references/specs-repo-git.md`.
 
 **Consumed by `commands/brd-package.md`**, which builds a bundle against this contract — its
@@ -232,7 +232,7 @@ cannot be missed.
 ## 5. Where the bundle lands
 
 The rendered bundle is written to **`bundle-<YYYYMMDD>/` inside the BRD folder** — resolved per
-`references/brd-addressing.md` §2 — and **committed to the specs repo** (D18), as a **deliverable**:
+`references/addressing.md` §3 — and **committed to the specs repo** (D18), as a **deliverable**:
 through `handoff-to-main` (`references/phase-handoff.md` §2), behind that reference's §4.3 consent
 choice, with every file under the dated directory in the calling command's `deliverable_paths`.
 

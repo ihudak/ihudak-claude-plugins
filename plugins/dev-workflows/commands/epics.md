@@ -175,7 +175,7 @@ inventory. **Additive, zero-cost when absent** — the common case, since
 1. **Resolve the PRD dir:** `$SPECS_PATH/specifications/<PRD>-<vslug>/`, matched by
    key-number, tolerating a stray `-`/`_` and a human-adjusted slug (the same
    rule `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` step 1 uses). No match
-   there → apply `${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §4's
+   there → apply `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §7's
    one-level-deep fallback before concluding none exists; it is reached only on a
    flat miss, so a flat key resolves exactly as it did before. If `$SPECS_PATH` is
    unset/unresolvable, or no PRD dir matches at either level → **skip** (set

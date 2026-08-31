@@ -53,14 +53,14 @@ commands used heavily by non-BRD routes and belongs in its own increment with it
 written, and preserved through a refresh, because provenance recorded at authoring time is the
 precondition for any future consumer: re-deriving it later would mean re-reading a BRD tree that may
 have moved on. A `brd_key` may carry a third numeric segment
-(`references/brd-addressing.md` §1 fixes no depth), so a PRD authored inside a BRD slice is filed
+(`references/addressing.md` §1 fixes no depth), so a PRD authored inside a BRD slice is filed
 under a key the two-segment form would reject — validate **that folder-side key**, and the
 `<KEY>_<slug>.md` filename built from it, against §1's grammar rather than a narrower one. This never
 extends to `jira_key`, which is two-segment everywhere (below).
 
 **`brd_key` and `jira_key` are two keys with two uses and are never interchangeable.** `brd_key` is a
 folder name in `$SPECS_PATH`, validated for shape and never looked up on a tracker
-(`references/brd-addressing.md` §1); `jira_key` is what the tracker minted, and it is the only key
+(`references/addressing.md` §1); `jira_key` is what the tracker minted, and it is the only key
 `jira-products/` resolves and the only one `jira-reader` accepts (`^[A-Z][A-Z0-9_]*-\d+$`). On the
 `/idea` route `jira_key` is authored with the PRD, because the PM supplied a key they had already
 minted. On the `--from-brd` route it is **omitted at authoring time and written by the Jira

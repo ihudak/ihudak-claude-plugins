@@ -29,7 +29,7 @@ defer the rest` is a sentence this command can act on, and the picker it acts on
 four-resolution one.
 
 - **`split_mode: allocate-only`** — a slice. Nesting is capped at one level
-  (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §3), so **no child may be created below a
+  (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §6), so **no child may be created below a
   slice**: Phases 2 and 3 are skipped entirely and the walk offers **four** resolutions, without
   `covered-by`. That last part is about **who writes** the disposition, not about whether a slice
   may carry it: a slice's `covered-by` names a sibling or the parent and records a provisional
@@ -43,8 +43,8 @@ four-resolution one.
 
 ## Phase 0 — Resolve inputs and gate on verification
 
-1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `brd-key-valid`
-   (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1). If absent or invalid, stop:
+1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `key-valid`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). If absent or invalid, stop:
    `BRD_SPLIT_NEEDS_KEY: /brd-split needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/dev-workflows:brd-split <KEY>'.`
 1a. **`<instruction>` (optional).** Every **non-flag** token after the key, joined verbatim, is a
    slicing instruction in the operator's own words — `cover orders and measurements in the first
@@ -66,7 +66,7 @@ four-resolution one.
    clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
    `commit-artifacts` step skips on it.
-4. **Resolve the BRD folder.** `resolve-brd <BRD-KEY>` (`brd-addressing.md` §2), which searches
+4. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`addressing.md` §3), which searches
    `specifications/` and exactly one level below it (§2 step 2) — the two levels a BRD folder can
    occupy. Absent → stop, without asserting which command would create it, because nothing on disk
    says whether this key names a BRD with a source document or a slice of one:
@@ -74,7 +74,7 @@ four-resolution one.
 5. **Resolve the run mode.** Read the resolved folder's `brd-link.md` and branch on its `parent:`
    field — the same signal `/brd-ground` Phase 0 uses to tell a slice from a root, and the only
    reliable one: a key's segment count is a naming convention, never a depth declaration
-   (`brd-addressing.md` §1).
+   (`addressing.md` §1).
    - **No `brd-link.md`, or one with no `parent:`** → this BRD owns its source document. Set
      `split_mode: full`; carry it for the whole run. Nothing is announced — this is the ordinary
      case.
@@ -85,7 +85,7 @@ four-resolution one.
      `BRD_SPLIT_ON_SLICE (notice, not a stop): <BRD-KEY> is a slice of <PARENT-KEY>. This run allocates <BRD-KEY>'s ledger but creates no children: nesting is capped at one level, so Phases 2-3 are skipped and no child BRD can exist below a slice. The Phase 4 walk offers four resolutions instead of five: covered-by is not one this walk can choose — on a slice it names a sibling or the parent, records a provisional claim the parent's own walk withdrew, and is written by that walk, so every row carrying it is already terminal here.`
    **This is a cap on nesting, not on allocation.** A grandchild would inherit `brd/source/` and a
    defect log from a parent that holds neither, so its inventory header would name a path that does
-   not exist (`brd-addressing.md` §3, `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1) — that
+   not exist (`addressing.md` §6, `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1) — that
    is what child creation is refused for. A slice's own ledger has no such problem: its rows are
    this BRD's to allocate, and refusing to walk them would leave every one of them `unallocated`
    forever, which is the allocation deadlock this command exists to prevent
@@ -157,7 +157,7 @@ four-resolution one.
    are written by the parent's walk, never chosen here
    (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3); this step never looks for
    them and never needs to, because they are terminal already. In `full` mode: list every immediate subdirectory of `<BRD-dir>` whose name
-   matches `<KEY>{-|_}<slug>` (`brd-addressing.md` §2 step 1), excluding `brd/`, `grounding/`, and
+   matches `<KEY>{-|_}<slug>` (`addressing.md` §3 step 1), excluding `brd/`, `grounding/`, and
    `dev-workflows/` — none of those is ever a BRD folder. Each match is a child a previous
    `/brd-split` run already created, nested per §3, and remains a valid `covered-by` target in
    Phase 4 even when this run proposes no new slice of its own. **Read each one's `brd-link.md`
@@ -360,10 +360,10 @@ For every slice Phase 2 confirmed:
 1. **Take a key.** Propose a default of the parent's key plus the next unused two-digit segment
    (e.g. `<PARENT-KEY>-01`, `<PARENT-KEY>-02`, …, skipping any segment an existing child from
    Phase 0 step 9 already uses) and let the operator accept it or supply their own. Validate
-   whatever is used with `brd-key-valid` (`brd-addressing.md` §1); an invalid key is re-prompted,
+   whatever is used with `key-valid` (`addressing.md` §1); an invalid key is re-prompted,
    never silently coerced.
 2. **Create the folder inside this one.** `specifications/<PARENT-KEY>-<parent-slug>/<CHILD-KEY>-<child-slug>/`,
-   per `brd-addressing.md` §3 — a child BRD is never a sibling of its parent. `<child-slug>` is a
+   per `addressing.md` §6 — a child BRD is never a sibling of its parent. `<child-slug>` is a
    kebab of the slice's working name from Phase 2.
 3. **Write the child's `brd-link.md`**: `parent: <BRD-KEY>` and `claims:` — the slice's `[BR#n]`
    rows as currently proposed. This is provisional: Phase 4's walk is the step that actually moves
@@ -386,7 +386,7 @@ For every slice Phase 2 confirmed:
    is why §2.1 makes the header carry that path. The child likewise gets no
    `brd/brd-defect-log.md`: a `[DEF#n]` on a copied row is the parent's, and any reader who has to
    resolve one while standing on the child looks it up in the parent's log (`brd-format.md` §4).
-   That resolution is always one hop, never a chase: the cap in `brd-addressing.md` §3 makes this
+   That resolution is always one hop, never a chase: the cap in `addressing.md` §6 makes this
    child's parent — this BRD — the source-owning root.
 5. **Write the child's `coverage-ledger.md`** — one row per `[BR#n]` in the inventory just written,
    `disposition: unallocated` on every one, per
@@ -408,9 +408,9 @@ unclustered.
 
 **About the child's key.** The default proposed in step 1 — the parent's key plus the next unused
 two-digit segment — is a naming convention that keeps sibling slices distinguishable and reads as
-what it is. It buys the child no resolution depth and needs none: `resolve-brd` searches
+what it is. It buys the child no resolution depth and needs none: `resolve-address` searches
 `specifications/` and exactly one level below it, which is where this folder sits regardless of how
-many segments its key carries (`brd-addressing.md` §1, §2). So an operator-supplied key with no
+many segments its key carries (`addressing.md` §1, §3). So an operator-supplied key with no
 additional segment resolves exactly as the default does, and nothing about either choice makes the
 child sliceable — no key shape lifts the one-level cap (§3).
 
@@ -460,7 +460,7 @@ choices: ["Build here — covered-here<recommended>", "Defer to this slice — d
 State once, before the first row of an `allocate-only` walk: *"`covered-by` is not offered here.
 On this slice it would name a sibling under the same parent, or that parent — never a child, since
 nesting is capped at one level and none can exist below a slice
-(`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §3). It is written by the **parent's** walk,
+(`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §6). It is written by the **parent's** walk,
 on a provisional claim that walk withdrew, and every row carrying it is terminal before this run
 opens the file (`coverage-ledger-format.md` §2, §3). Every row this walk stands on is a row this
 slice claims — a row the parent allocated **here** — so there is nothing for this picker to
@@ -915,10 +915,10 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 ```
 
 **Computing it reads one ledger per `covered-by` row**, one hop, from the working tree via
-`resolve-brd` (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §2). In `full` mode those are
+`resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). In `full` mode those are
 the children this run created in Phase 3 and reconciled in Phase 4, and any it found already nested
 in Phase 0 step 9; in `allocate-only` they are the siblings and the parent this slice's orphan rows
-name (`coverage-ledger-format.md` §3), each of which `resolve-brd` finds at its own level.
+name (`coverage-ledger-format.md` §3), each of which `resolve-address` finds at its own level.
 A ledger that cannot be read there contributes `unresolved`, never `covered`
 (`coverage-ledger-format.md` §6.2). **This changes no gate and no precondition of this command**:
 Phase 0's stops, the two-part no-op test step 10 decides, and §4's allocation gate are all decided on this

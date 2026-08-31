@@ -13,7 +13,7 @@ convention live in ONE place.
 
 1. Resolve the PRD dir `$SPECS_PATH/specifications/<PRD>-<vslug>/` — match by key-number, tolerating a
    stray `-`/`_` and a human-adjusted slug (the same rule the other commands use). No match there →
-   apply `${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §4's one-level-deep fallback before
+   apply `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §7's one-level-deep fallback before
    concluding none exists; it is reached only on a flat miss, so a flat key resolves exactly as it did
    before.
 

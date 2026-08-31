@@ -30,8 +30,8 @@ a **BRD key**, and there is no second positional key (Phase 0 step 0).
    export and no tracker, so it is safe this early.
 
    **With `--from-brd`, step 1's shared front-end is not run at all**, and the positional token is a
-   **BRD key** validated by `brd-key-valid`
-   (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1) instead. A slice's key carries a third
+   **BRD key** validated by `key-valid`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1) instead. A slice's key carries a third
    numeric segment (`EPIC-008-01`) and a slice is the level this route most often reaches a
    specification at, so validating it against a two-segment form would refuse the ordinary case. A key
    that fails the grammar stops with
@@ -51,7 +51,7 @@ a **BRD key**, and there is no second positional key (Phase 0 step 0).
    `SPECIFY_BRD_NO_EPIC: /specify --from-brd is BRD-level and takes one key; <second-token> was given as a second. A BRD has no Epics yet — they are minted from the PRD's Jira workitem after /dev-workflows:create-prd <BRD-KEY> --from-brd completes its round-trip — and spec-seed.md, decisions.md and grounding/ exist only at a BRD's own level. Re-run '/dev-workflows:specify <BRD-KEY> --from-brd'.`
 
    **`--from-brd [<dir>]` is a switch, not a path.** The positional key already identifies the BRD and
-   `resolve-brd` (step 3) finds it at either level. A directory may be given for a BRD folder outside
+   `resolve-address` (step 3) finds it at either level. A directory may be given for a BRD folder outside
    the normal layout; it is never required, and a token following `--from-brd` is consumed as that
    path only when it is not itself a flag. A given path that is not an existing directory stops with
    `SPECIFY_BRD_NOT_FOUND` (step 3) naming the path as supplied, rather than being silently re-read as
@@ -90,7 +90,7 @@ a **BRD key**, and there is no second positional key (Phase 0 step 0).
      dir at `specifications/<PRD>{-|_}<vslug-or-other-slug>/` — honor an existing dir matched by
      key-number (tolerate a stray `-`/`_` after the key, and a pre-existing slug that doesn't exactly
      match a freshly-derived one — a human may have adjusted it). No match there → apply
-     `${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §4's one-level-deep fallback before
+     `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §7's one-level-deep fallback before
      concluding none exists; it is reached only on a flat miss, so a flat key resolves exactly as it
      did before. Create `<PRD>-<vslug>` (hyphen) only if neither level has one. Every later
      `specifications/<PRD>-<vslug>/` in this command — the PRD gate's `ls-tree` path and Phase 2's
@@ -115,7 +115,7 @@ a **BRD key**, and there is no second positional key (Phase 0 step 0).
      (Phase 2's `idea.md` write, in a fresh run) creates it.
 
    **Under `--from-brd` the feature folder is the resolved BRD folder**, and it is never created here:
-   resolve it with `resolve-brd` (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §2), which
+   resolve it with `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), which
    already searches both levels, or read the `--from-brd <dir>` path when one was given.
    `specification.md` is written **flat inside that folder**, beside the BRD artifacts it was derived
    from — there is no per-Epic subfolder on this route, because `--from-brd` resolves no Epic (step 0).
@@ -678,7 +678,7 @@ folder and never touched one. Say instead which round-trip is still outstanding,
 the *downstream* commands need: the PRD's own paste-and-re-import, in
 `/dev-workflows:create-prd <BRD-KEY> --from-brd`'s handoff phase, is what first gives this work a
 tracker identity — a `jira_key` minted by the tracker, distinct from the `<BRD-KEY>` folder name
-(`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1). Until it has run there is no key any
+(`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). Until it has run there is no key any
 Jira-driven command in this plugin could be given for this BRD, which is exactly what the `### Next
 step` section below tests before naming one.
 
@@ -700,7 +700,7 @@ span suggestion (PRD-level→`/dev-workflows:epics` `/compact`; Epic-level→`/d
 `/rename <PRD-ID>-<slug>-pe`. Guidance only, never auto-run.
 
 **The run's key under `--from-brd`.** Phase 0 resolved a BRD key, which is a folder name and never a
-tracker key (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1). The tracker key for this work,
+tracker key (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). The tracker key for this work,
 if one exists at all, is the `jira_key` in the PRD this BRD folder holds — glob
 `<BRD-dir>/<BRD-KEY>_*.md`, frontmatter `issue_type: ValueIncrement`. So the `jira_key` passed to
 `emit-auto` (below) and `emit-cost` (Phase 9) is that minted key when the folder holds a PRD carrying
@@ -817,14 +817,14 @@ End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/
 through `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`, which resolves
 `$VAULT_PATH/jira-products/<KEY>` and fires Fallback B when that directory is missing. A `<BRD-KEY>`
 is a folder name under `$SPECS_PATH` that was never checked against a tracker
-(`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1), so naming either command with one is an
+(`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1), so naming either command with one is an
 offer that cannot start. Test before naming:
 
 - **Name `/dev-workflows:design <BRD-KEY>` `<merge-clause>` only when
   `$VAULT_PATH/jira-products/<BRD-KEY>/<BRD-KEY>-index.md` exists.** That one test settles both halves
   of reachability. It settles the key half directly — it is exactly what `jira-input-resolution.md`'s
   JiraID resolution requires — and it settles the folder half because `/dev-workflows:design` resolves
-  its own directory from the same key through `specifications/` plus `brd-addressing.md` §4's
+  its own directory from the same key through `specifications/` plus `addressing.md` §7's
   one-level-deep fallback, which reaches this BRD folder at either level. So the two resolutions land
   on the same place precisely when the BRD was keyed with the tracker's own key — which
   `/dev-workflows:brd-split` lets an operator do when it proposes the slice key, since a segment count

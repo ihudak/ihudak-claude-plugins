@@ -33,8 +33,8 @@ this stage). Zero Jira API.
    PRD), `focus_key` (the Epic, or `null`), `jira_export_root`, `source`. Define `<PRD>` = `jira_key`,
    `<EPIC>` = `focus_key`.
 
-   **With `--from-brd` — the positional token is a BRD key**, and it is validated by `brd-key-valid`
-   (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1) instead. A slice's key carries a third
+   **With `--from-brd` — the positional token is a BRD key**, and it is validated by `key-valid`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1) instead. A slice's key carries a third
    numeric segment (`EPIC-008-01`) and a slice is the level this route most often reaches an ARD at,
    so validating it against a two-segment form would refuse the ordinary case. A key that fails the
    grammar stops with
@@ -51,7 +51,7 @@ this stage). Zero Jira API.
    substitutes the BRD's own seed for the export read, and there is no other call site.
 
 1a. **`--from-brd [<dir>]` — a switch, not a path.** The positional key already identifies the BRD and
-    `resolve-brd` (step 3) finds it at either level, so `/create-ard EPIC-008-01 --from-brd` needs no
+    `resolve-address` (step 3) finds it at either level, so `/create-ard EPIC-008-01 --from-brd` needs no
     path. A directory may be given for a BRD folder outside the normal layout; it is never required,
     and a token following `--from-brd` is consumed as that path only when it is not itself a flag. A
     given path that is not an existing directory stops with `CREATE_ARD_BRD_NOT_FOUND` (step 3) naming
@@ -61,13 +61,13 @@ this stage). Zero Jira API.
     `CREATE_ARD_BRD_NO_EPIC: /create-ard --from-brd is BRD-level and takes one key; <second-token> was given as a second. A BRD has no Epics yet — they are minted from the PRD's Jira workitem after /dev-workflows:create-prd <BRD-KEY> --from-brd completes its round-trip — and ard-seed.md, decisions.md and grounding/ exist only at a BRD's own level. Re-run '/dev-workflows:create-ard <BRD-KEY> --from-brd'.`
     The nesting a second key would express is served instead by `brd-link.md`'s `parent:`: a slice
     inherits its parent BRD's ARD read-only exactly as an Epic-level run inherits its PRD-level one
-    (Phase 2), and the caller supplies no parent key for it — `resolve-brd` and `brd-link.md` between
+    (Phase 2), and the caller supplies no parent key for it — `resolve-address` and `brd-link.md` between
     them already know it.
 2. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
-3. **Feature folder.** PRD-level → `specifications/<PRD>-<vslug>/`; Epic-level → `specifications/<PRD>-<vslug>/<EPIC>-<eslug>/`. Honor an existing dir matched by key-number (tolerate `-`/`_` drift). No match there → apply `${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §4's one-level-deep fallback before concluding none exists; it is reached only on a flat miss, so a flat key resolves exactly as it did before. Every later `specifications/<PRD>-<vslug>/` in this command — the PRD gate's `ls-tree` path and Phase 2's PRD read included — names the dir resolved here. Auto-created on first write at the flat path — the fallback honors a nested folder that already exists, it never proposes one.
+3. **Feature folder.** PRD-level → `specifications/<PRD>-<vslug>/`; Epic-level → `specifications/<PRD>-<vslug>/<EPIC>-<eslug>/`. Honor an existing dir matched by key-number (tolerate `-`/`_` drift). No match there → apply `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §7's one-level-deep fallback before concluding none exists; it is reached only on a flat miss, so a flat key resolves exactly as it did before. Every later `specifications/<PRD>-<vslug>/` in this command — the PRD gate's `ls-tree` path and Phase 2's PRD read included — names the dir resolved here. Auto-created on first write at the flat path — the fallback honors a nested folder that already exists, it never proposes one.
 
    **Under `--from-brd` this is the resolved BRD folder**, and it is never created here: resolve it
-   with `resolve-brd` (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §2), which already
+   with `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), which already
    searches both levels, or read the `--from-brd <dir>` path when one was given. The ARD this run
    authors is written **into that folder**, beside the BRD artifacts it was derived from. `absent` is
    a graceful stop, not a folder to create — and it names **both** ways a BRD folder comes into being
@@ -360,7 +360,7 @@ second.** The body legitimately names prerequisite BRDs — a `will-change` find
 `conditional_on` decision's — and the collision grep matches the leading two segments of any of them.
 A BRD key is not a requirement ID and it is **not a real Jira ticket**: it is a folder name under
 `$SPECS_PATH`, validated for shape and never checked against a tracker
-(`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1). So it falls to the "neither" branch —
+(`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). So it falls to the "neither" branch —
 **MINOR, left exactly as written, reported**. Never wrap it as `[[KEY-123]]`: that branch is for a key
 in a project that actually exists, and wrapping a BRD key would mint a dangling link to a ticket
 nobody created.
@@ -420,8 +420,8 @@ from a re-derived title. That name collides with neither `/dev-workflows:create-
   — with the second option **present only when the test below passes, and dropped from the array
   entirely when it does not**.
   - **`/dev-workflows:specify <BRD-KEY> --from-brd` is always reachable from this state.** It takes
-    the same BRD key this run resolved, finds the same folder through `resolve-brd`
-    (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §2), and needs no tracker key and no Jira
+    the same BRD key this run resolved, finds the same folder through `resolve-address`
+    (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), and needs no tracker key and no Jira
     export. It resolves this ARD through `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` and
     stops on `status: unmerged`, so the wait is real and the clause is required.
   - **`/dev-workflows:epics` is offered only when `$VAULT_PATH/jira-products/<BRD-KEY>/<BRD-KEY>-index.md`
@@ -431,7 +431,7 @@ from a re-derived title. That name collides with neither `/dev-workflows:create-
     its Fallback B fires on when it is missing — and it settles the **ARD** half, because
     `/dev-workflows:epics` resolves this ARD through
     `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` under the *same* key, reaching this folder at
-    either level via `brd-addressing.md` §4's fallback. Passing that test means the BRD was keyed with
+    either level via `addressing.md` §7's fallback. Passing that test means the BRD was keyed with
     the tracker's own key, so `jira_key` and `<BRD-KEY>` are the same string and the option hands
     `jira-reader` a real tracker key rather than a folder name (§1). **The option is written in
     `<BRD-KEY>`, matching `/dev-workflows:specify`'s sibling site**, because that is the only key this
@@ -494,7 +494,7 @@ guidance only), then a
 PA→PE/Dev handoff suggestion (`/clear`) + `/rename <PRD-ID>-<slug>-pa`. Guidance only, never auto-run.
 
 **The run's key under `--from-brd`.** Phase 0 resolved a BRD key, which is a folder name and never a
-tracker key (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1). The tracker key for this work,
+tracker key (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). The tracker key for this work,
 if one exists at all, is the `jira_key` in the PRD this BRD folder holds — the same one Phase 7's
 `/dev-workflows:epics` condition reads. So the `jira_key` passed to `emit-auto` and `emit-cost` below
 is that minted key when the folder holds a PRD carrying one, and `null` otherwise (`source: none`

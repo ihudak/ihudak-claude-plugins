@@ -152,7 +152,7 @@ Usage: `/create-prd <JIRA-KEY|BRD-KEY> [@idea.md] [--from-prd <PRD-KEY|path>] [-
    saying "the requirements were deferred" of a set holding no requirement would be false twice
    over. Stop as:
    ```
-   CREATE_PRD_BRD_NOT_ELIGIBLE: no row of <BRD-KEY>'s coverage-ledger.md <on a slice: that its brd-link.md claims> is `covered-here`, so this BRD holds no PRD of its own (coverage-ledger-format.md §5). <where the requirements went, per the row above that matches>
+   CREATE_PRD_BRD_NOT_ELIGIBLE: no row of <BRD-KEY>'s coverage-ledger.md <on a slice: that its brd-link.md claims> is `covered-here`, so this folder holds no PRD of its own (coverage-ledger-format.md §5). <where the requirements went, per the row above that matches> <when <BRD-KEY> resolved to a BRD- folder: a BRD is a container and is never PRD-eligible itself — name the slices under it and re-run against the one that claims these requirements>
    ```
 
    **What this stop may offer, and what it may not.** Two of the four cases have a next command that

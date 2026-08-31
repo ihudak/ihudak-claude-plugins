@@ -30,7 +30,7 @@ reported as exactly that, and the line names how many were delegated and then no
 `covered-by` as covered on its own word is what would let the failure above pass this file's own
 arithmetic unremarked.
 
-One ledger exists per BRD, at either of the two levels a BRD can sit — a BRD that owns its source
+One ledger exists per BRD, at either level a `<BRD-KEY>` can name — a BRD that owns its source
 document, or a slice one level inside it (`references/addressing.md` §6 caps nesting there). **What
 its rows are is not the same at both levels**, and §3's creator table is the authority: a
 source-owning BRD gets one row per `[BR#n]` in the inventory `/brd-intake` extracted, while a slice
@@ -90,7 +90,7 @@ starts in any other disposition.
 | Level | Creator | Rows |
 |---|---|---|
 | A BRD with a source document of its own | `/brd-intake` (`commands/brd-intake.md` Phase 5) | one per `[BR#n]` in the inventory it just extracted |
-| A slice — a child BRD nested in its parent's folder | `/brd-split` (`commands/brd-split.md` Phase 3) | one per `[BR#n]` the slice's `brd-link.md` claims |
+| A slice — nested in its parent's folder as a `PRD-` folder | `/brd-split` (`commands/brd-split.md` Phase 3) | one per `[BR#n]` the slice's `brd-link.md` claims |
 
 `/brd-intake` never runs on a slice — a slice has no document to intake (`brd-format.md` §2.1) — so
 if `/brd-split` did not write the slice's ledger at the moment it created the slice's folder,

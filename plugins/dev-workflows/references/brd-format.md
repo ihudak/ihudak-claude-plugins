@@ -48,7 +48,7 @@ id is permanent even if the row it names is later split, superseded, or found de
 
 ### 2.1 A slice's inventory
 
-A **slice** — a child BRD nested inside its parent's folder (`references/addressing.md` §6) —
+A **slice** — a BRD in every respect but its folder name, nested inside its parent's folder as the `PRD-` folder its PRD is authored in (`references/addressing.md` §6) —
 has no source document of its own: the customer supplied one document, and the slice is a partition
 of that document's requirements, not a second document. So a slice holds **no `brd/source/` and no
 `brd/brd-defect-log.md` of its own; it inherits both from its parent**, resolved through the

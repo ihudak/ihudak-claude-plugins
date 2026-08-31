@@ -119,7 +119,7 @@ and nothing downstream can tell the difference afterwards.
    specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run.
 5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`addressing.md` §3), which searches
-   `specifications/` and exactly one level below it — the two levels a BRD folder can occupy. Absent
+   `specifications/` and exactly one level below it — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent
    → stop, without asserting which command would have created it, because nothing on disk says
    whether this key names a BRD with a source document or a slice of one:
    `BRD_INTERVIEW_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
@@ -758,7 +758,7 @@ working directory; no user name is ever written.
 
 ## Final report
 
-Report: the BRD folder and which of the two levels it sits at; the classification and model routing
+Report: the BRD folder and which level it sits at; the classification and model routing
 (+ any Opus degradation); **the round** — its number, and whether this run opened it, resumed it, or
 re-opened it with the cause recorded; **the question counts by tag**, `[G]` / `[V]` / `[C]`, and
 every split, with the parts each original became; the `[G]` answers, each naming the

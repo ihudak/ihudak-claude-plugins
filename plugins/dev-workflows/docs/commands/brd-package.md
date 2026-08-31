@@ -19,7 +19,7 @@ is the fifth command of that route, after `/brd-intake`, `/brd-ground`, `/brd-sp
 /brd-package <BRD-KEY> [--depends-on <BRD-KEY>…]
 ```
 
-- **`<BRD-KEY>`** (mandatory) — the BRD this run packages. A key at either of the two levels a BRD
+- **`<BRD-KEY>`** (mandatory) — the BRD this run packages. A key naming either level a `<BRD-KEY>` can reach
   folder can occupy works, and both behave identically. Resolved via `resolve-address`;
   format-validated only, never checked against a tracker.
 - **`--depends-on <BRD-KEY>`** (optional, repeatable) — declares a prerequisite BRD. Persisted

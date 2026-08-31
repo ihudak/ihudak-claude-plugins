@@ -20,7 +20,7 @@ is the second command of that route, after [`/brd-intake`](brd-intake.md) and be
 ```
 
 - **`<BRD-KEY>`** (mandatory) — the BRD (or slice) to ground. Resolved via `resolve-address`, so a
-  key at either of the two levels a BRD folder can occupy works; format-validated only, never
+  key at either of either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it works; format-validated only, never
   checked against a tracker. Unlike [`/brd-split`](brd-split.md), this command refuses neither
   level.
 - **`--depends-on <BRD-KEY>`** (optional, repeatable) — declares a prerequisite BRD. Persisted to
@@ -90,7 +90,7 @@ Phase 11, for session lessons-learned.
   [`/brd-reconcile`](brd-reconcile.md) does on its own row F. No `coverage-ledger.md` in the folder
   means it was never produced, and the stop names the producing run by level: a BRD with a source
   document of its own stops with `BRD_GROUND_NEEDS_INTAKE`, naming [`/brd-intake`](brd-intake.md); a
-  **slice** — a child BRD, recognised by the `parent:` field in its `brd-link.md` — stops with
+  **slice** — recognised by the `parent:` field in its `brd-link.md` — stops with
   `BRD_GROUND_NEEDS_SPLIT`, naming [`/brd-split`](brd-split.md) on the parent, because a slice has no
   source document of its own to intake and its ledger and inventory are written by the parent's split
   ([`brd-format.md`](../../references/brd-format.md) §2.1,

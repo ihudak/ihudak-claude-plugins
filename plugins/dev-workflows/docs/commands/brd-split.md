@@ -22,7 +22,7 @@ one.
 /brd-split <BRD-KEY> [<instruction>]
 ```
 
-- **`<BRD-KEY>`** (mandatory) — the BRD to split and allocate. A key at either of the two levels a
+- **`<BRD-KEY>`** (mandatory) — the BRD to split and allocate. A key naming either level a
   BRD folder can occupy works, and the level decides the run mode (below). Resolved via
   `resolve-address`; format-validated only, never checked against a tracker.
 - **`<instruction>`** (optional) — every non-flag token after the key, joined verbatim: a slicing
@@ -82,7 +82,7 @@ declaration.
 
 A slice's walk offers no `covered-by`, and the reason is about **who writes** it, not about whether
 a slice may carry one. On a slice the disposition names a **sibling under the same parent, or that
-parent** — never a child, since none can exist below a slice — and it records a **provisional claim
+parent** — never a child, since no child can exist below a slice — only its Epics — and it records a **provisional claim
 the parent's own walk withdrew**: Phase 3 writes a child's `claims:` provisionally, and where
 Phase 4 settles a claimed requirement elsewhere the claim and the copied inventory row are withdrawn
 while the ledger row stays and takes that walk's terminal disposition

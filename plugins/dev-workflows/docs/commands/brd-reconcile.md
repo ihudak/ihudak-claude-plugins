@@ -18,7 +18,7 @@ is the sixth and last command of that route, after `/brd-intake`, `/brd-ground`,
 /brd-reconcile <BRD-KEY> @<review-file>
 ```
 
-- **`<BRD-KEY>`** (mandatory) — the BRD this review answers. A key at either of the two levels a BRD
+- **`<BRD-KEY>`** (mandatory) — the BRD this review answers. A key naming either level a `<BRD-KEY>` can reach
   folder can occupy works, and both behave identically. Resolved via `resolve-address`;
   format-validated only, never checked against a tracker.
 - **`@<review-file>`** (mandatory) — the file the customer sent back, **at whatever path it arrived

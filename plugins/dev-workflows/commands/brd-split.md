@@ -4,7 +4,7 @@ description: BRD-splitting workflow (PM phase, third command of the BRD-to-PRD r
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
-Split the grounded BRD into child BRDs and allocate every requirement: $ARGUMENTS
+Split the grounded BRD into slices and allocate every requirement: $ARGUMENTS
 
 `/brd-split` is the **third command of the BRD-to-PRD flow** (PM phase) — it
 takes the findings `/brd-ground` verified and forces every `[BR#n]` in this BRD's coverage ledger
@@ -67,8 +67,7 @@ four-resolution one.
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
    `commit-artifacts` step skips on it.
 4. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`addressing.md` §3), which searches
-   `specifications/` and exactly one level below it (§2 step 2) — the two levels a BRD folder can
-   occupy. Absent → stop, without asserting which command would create it, because nothing on disk
+   `specifications/` and exactly one level below it (§2 step 2) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent → stop, without asserting which command would create it, because nothing on disk
    says whether this key names a BRD with a source document or a slice of one:
    `BRD_SPLIT_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
 5. **Resolve the run mode.** Read the resolved folder's `brd-link.md` and branch on its `parent:`
@@ -487,7 +486,7 @@ choices: ["Build here — covered-here<recommended>", "Defer to this slice — d
 
 State once, before the first row of an `allocate-only` walk: *"`covered-by` is not offered here.
 On this slice it would name a sibling under the same parent, or that parent — never a child, since
-nesting is capped at one level and none can exist below a slice
+nesting is capped at one level and no child can exist below a slice — only its Epics
 (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §6). It is written by the **parent's** walk,
 on a provisional claim that walk withdrew, and every row carrying it is terminal before this run
 opens the file (`coverage-ledger-format.md` §2, §3). Every row this walk stands on is a row this
@@ -759,7 +758,7 @@ still standing after Phase 4.5, its folder and all three of the files this run w
 read when the child re-enters the route; and, for a child Phase 4.5 removed as empty, that folder's
 deletion —
 §2.3's `-A` staging is what stages a removal, exactly as it does for `/idea`'s or `/update-prd`'s
-own deletions — and it stages a Phase 4.5 removal on the Phase 4.5-only path the same way), `title:` — `<BRD-KEY> Split into child BRDs and allocate coverage` in `full` mode,
+own deletions — and it stages a Phase 4.5 removal on the Phase 4.5-only path the same way), `title:` — `<BRD-KEY> Split into slices and allocate coverage` in `full` mode,
 `<BRD-KEY> Allocate slice coverage` in `allocate-only`, because a pull request titled "split" that
 created nothing would misdescribe itself — and `body_facts` = the run mode,
 the slice count and keys (`full` only), the walk's resolution tally by disposition, every standing
@@ -804,7 +803,7 @@ choices: ["Decide this slice's open questions — /dev-workflows:brd-interview <
 ```
 
 **`split_mode: full`** — everything below. Every child folder Phase 3 created, still claiming at
-least one `[BR#n]` after Phase 4.5, **re-enters the route at grounding** — a child BRD is graded on its own claimed
+least one `[BR#n]` after Phase 4.5, **re-enters the route at grounding** — a slice is graded on its own claimed
 requirements exactly as any BRD is, and nothing about being a slice exempts it from that. It can:
 Phase 3 gave it the two files `/brd-ground` Phase 0 needs — a `coverage-ledger.md` to gate on and a
 `brd/brd-inventory.md` to read — and Phase 6 staged both, so they reach `origin/<default>` with

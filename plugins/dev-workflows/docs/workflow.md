@@ -12,7 +12,7 @@ flowchart TD
     end
     subgraph BRD["PM/PA/Dev — BRD-to-PRD route (alt. entry)"]
         brdintake["/brd-intake"] --> brdground["/brd-ground"] --> brdsplit["/brd-split"]
-        brdsplit -.->|new child BRD| brdground
+        brdsplit -.->|new slice, a PRD- folder| brdground
         brdsplit --> brdinterview["/brd-interview"] --> brdpackage["/brd-package"]
         brdreconcile["/brd-reconcile"]
     end

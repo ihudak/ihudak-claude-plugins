@@ -157,7 +157,7 @@ for shape only and never against a tracker — a BRD is a markdown file under `$
 Jira ticket. **That shape is two segments or three**: a BRD owning its source document is keyed
 `EPIC-008` and a slice of it `EPIC-008-01`, and the grammar prefers neither — a key's segment count
 is a naming convention, never a depth declaration. Every command after `/brd-intake` accepts a key
-at either of the two levels a BRD folder can occupy, and only `/brd-split` behaves differently
+at either of either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it, and only `/brd-split` behaves differently
 between them. The three `--from-brd` rows take the same shape and resolve at either level too,
 which is what lets a PRD, an ARD or a specification be authored from a slice rather than only from
 the BRD above it.
@@ -168,7 +168,7 @@ layout, and a token following the flag is consumed as that path only when it is 
 
 ## What lands where
 
-Every artifact lands under `$SPECS_PATH/specifications/<BRD-KEY>-<slug>/` (a child BRD gets its own
+Every artifact lands under `$SPECS_PATH/specifications/BRD-<BRD-KEY>-<slug>/` (a slice gets its own
 such folder inside its parent's — one level, and only one, per the addressing rule the whole route
 shares):
 

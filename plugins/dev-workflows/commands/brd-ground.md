@@ -49,7 +49,7 @@ behaviour, not the behaviour.
    when the specs repo is clean and on its default branch. If it returns `specs_git: blocked`
    (§3.3 G0), carry that flag for the whole run.
 5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`addressing.md` §3), which searches
-   `specifications/` and exactly one level below it — the two levels a BRD folder can occupy.
+   `specifications/` and exactly one level below it — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it.
    Absent → stop, without asserting which command would create it: no folder exists, so no
    `brd-link.md` exists either, and nothing on disk says whether this key names a BRD with a source
    document or a slice of one. Naming `/brd-intake` unconditionally would be the wrong advice for

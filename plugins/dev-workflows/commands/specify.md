@@ -822,8 +822,8 @@ offer that cannot start. Test before naming:
   `$VAULT_PATH/jira-products/<BRD-KEY>/<BRD-KEY>-index.md` exists.** That one test settles both halves
   of reachability. It settles the key half directly — it is exactly what `jira-input-resolution.md`'s
   JiraID resolution requires — and it settles the folder half because `/dev-workflows:design` resolves
-  its own directory from the same key through `specifications/` plus `addressing.md` §7's
-  one-level-deep fallback, which reaches this BRD folder at either level. So the two resolutions land
+  its own directory from the same key through `resolve-address` (`addressing.md` §3), which reaches
+  this BRD folder wherever it sits. So the two resolutions land
   on the same place precisely when the BRD was keyed with the tracker's own key — which
   `/dev-workflows:brd-split` lets an operator do when it proposes the slice key, since a segment count
   is a naming convention and never a depth declaration (§1). Its Phase 0 step 4 then takes the

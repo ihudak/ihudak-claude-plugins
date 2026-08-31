@@ -81,7 +81,7 @@ Usage: `/create-prd <JIRA-KEY|BRD-KEY> [@idea.md] [--from-prd <PRD-KEY|path>] [-
 
    **The gate set is this BRD's own ledger rows, and `claims:` narrows it only on a slice.** §5
    states eligibility over *its ledger rows*, and §3's creator table says what those rows are at each
-   of the two levels a BRD can sit at — so the **level** picks the set, read off `brd-link.md`'s
+   of the two levels a `<BRD-KEY>` can name — so the **level** picks the set, read off `brd-link.md`'s
    `parent:` exactly as `/brd-split` Phase 0 and `/brd-ground` Phase 0 step 6 read it:
    - **No `brd-link.md`, or one with no `parent:` — a BRD that owns its source document.** The gate
      set is **every row of its `coverage-ledger.md`**, which `/brd-intake` wrote one per `[BR#n]` in
@@ -89,7 +89,7 @@ Usage: `/create-prd <JIRA-KEY|BRD-KEY> [@idea.md] [--from-prd <PRD-KEY|path>] [-
      finding.** Only `/brd-split` writes that field, and only into a **child's** `brd-link.md`
      (`commands/brd-split.md` Phase 3 step 3, and the `covered-by` resolution in its Phase 4);
      `/brd-ground` and `/brd-package` only preserve a `claims:` another command wrote. On a BRD that
-     was never split the field therefore does not exist — so a gate defined over it would read an
+     owns its source document the field therefore does not exist — so a gate defined over it would read an
      **empty** set, find no `covered-here` row in it, and refuse the ordinary never-split BRD that is
      this route's primary case.
    - **`parent: <PARENT-KEY>` present — a slice.** The gate set is the rows its `coverage-ledger.md`
@@ -139,9 +139,8 @@ Usage: `/create-prd <JIRA-KEY|BRD-KEY> [@idea.md] [--from-prd <PRD-KEY|path>] [-
 
    | How every row of the gate set left `covered-here` | What this stop says |
    |---|---|
-   | Some rows are `covered-by: <CHILD-KEY>` | Name those children — and, per §6.1, resolve each delegated row one hop through the named child's own ledger and say which of them is **not** building the row delegated to it. A child that deferred, rejected or has not allocated it is not somewhere to send the reader |
-   | No row is `covered-by`: this BRD was never split | Name **no** child, because none exists — and say what the gate-set rows *did* resolve to rather than calling them all obligations. §5 separates the three remaining dispositions: a `deferred-to` row is a live obligation of this BRD, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it, and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. Then say a PRD needs one row resolved `covered-here` first |
-   | No row of the gate set is `covered-by` because this BRD is a **slice** | The same breakdown, and say why there is nothing to name: every gate-set row is a row this slice claims, and a claimed row is settled by this slice's own walk, which writes no `covered-by` (§3) — so the ineligible case is reached entirely through the three dispositions above. Any `covered-by` row on the ledger is an orphan row this slice no longer claims, outside this set, and naming its BRD as somewhere to send the reader would be naming a BRD this slice was refused |
+   | Some rows are `covered-by: <SLICE-KEY>` — the ordinary shape on a parent | Name those slices — and, per §6.1, resolve each delegated row one hop through the named child's own ledger and say which of them is **not** building the row delegated to it. A child that deferred, rejected or has not allocated it is not somewhere to send the reader |
+   | No row is `covered-by` — and the only shape a **slice** reaches, for the reason §5 gives | Name **no** slice, because none holds one of these rows — and say what the gate-set rows *did* resolve to rather than calling them all obligations. §5 separates the three remaining dispositions: a `deferred-to` row is a live obligation of this BRD, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it, and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. Then say a PRD needs one row resolved `covered-here` first |
    | The gate set is **empty** — a ledger holding no row at all, or a slice whose `brd-link.md` claims nothing | Report the emptiness and enumerate nothing, because there is nothing to enumerate: no requirement **this BRD is answerable for** reached any disposition, and naming one would invent it. A standing empty child may still hold orphan rows its parent's walk settled (§2); those are not this BRD's requirements and are not reported here as though they were. Say which emptiness it is, and name the one run that can change it — an inventory that yielded no `[BR#n]`, fixed by re-running `/dev-workflows:brd-intake <BRD-KEY> @<brd-file>` over this same folder (an existing folder is a re-run, not a refusal — `/dev-workflows:brd-ground` stops on this same state and says so); or a standing empty child, whose keep-or-remove `/dev-workflows:brd-split <PARENT-KEY>` alone resolves. Unlike the second and third rows, this one has a next command that exists in the state being reported |
 
    In the second and third cases **there is nothing to name and a child must not be invented**; the

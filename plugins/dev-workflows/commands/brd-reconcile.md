@@ -155,7 +155,7 @@ write would re-ask a question already answered.
    specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run.
 5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`addressing.md` §3), which searches
-   `specifications/` and exactly one level below it — the two levels a BRD folder can occupy. Absent
+   `specifications/` and exactly one level below it — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent
    → stop, without asserting which command would have created it:
    `BRD_RECONCILE_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
 6. **Gate the sent package on main.** This command **consumes** `$SPECS_PATH` deliverables it did not
@@ -832,7 +832,7 @@ against three ids and some against six, and afterwards nobody can say which.
 **The swept set has two sources, and only one of them is a scan.**
 
 1. **Declared dependents — a scan.** Any BRD whose `brd-link.md` declares `depends-on:` carrying
-   this run's `<BRD-KEY>`, at **either** of the two levels a BRD folder can occupy — so the search
+   this run's `<BRD-KEY>`, at **either** of either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it — so the search
    scans `specifications/` and exactly one level below it, the same bound `resolve-address` uses and for
    the same reason (`addressing.md` §3, §6). This is the reverse of key resolution: a dependency
    is declared by the dependent, and nothing in this BRD's own folder lists who depends on it. Any
@@ -1065,7 +1065,8 @@ each under the precondition the offered command actually enforces rather than un
   **The rows are this BRD's ledger rows, and `brd-link.md`'s `claims:` narrows them only on a
   slice** — §3's creator table gives a source-owning BRD one row per inventory `[BR#n]` and writes no
   `claims:` field for it at all, so testing the offer against a claims list would withhold it from
-  every BRD that was never split, which is the ordinary shape this route most often reconciles. This
+  every source-owning BRD, which is every parent and the ordinary shape this route most often
+  reconciles. This
   is the same gate set `/dev-workflows:create-prd`'s Phase 0 step 7 defines, read the same way — and
   on a slice the narrowing now drops something real, without changing either verdict: a slice's
   ledger may hold **orphan rows**, provisional claims `/brd-split`'s walk on the parent withdrew and
@@ -1246,7 +1247,7 @@ current working directory; no user name is ever written.
 
 ## Final report
 
-Report: the BRD folder and which of the two levels it sits at; the classification and model routing
+Report: the BRD folder and which level it sits at; the classification and model routing
 (+ any Opus degradation); **the review** — the canonicalised path, the original path, the mode and
 what decided it, the verdict, the readiness statement quoted verbatim, and the evidence limitations
 as stated or the fact that they were not; **every anomaly**, unrepaired, because each one changes how

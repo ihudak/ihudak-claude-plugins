@@ -15,7 +15,7 @@ folder_read:    <full YAML from the folder read; see ${CLAUDE_PLUGIN_ROOT}/agent
 diff_summaries:         <array of diff-summarizer outputs; one entry per repo>
 write_targets:          <confirmed list from doc-location-finder + user; each has kind, section, path, rationale>
 screenshots:            [<array of user-provided absolute image paths; possibly empty>]
-screenshot_staging_dir: <absolute dir the command resolved for cdn_upload_required staging — a persistent Obsidian project folder under $VAULT_PATH; null when no screenshots were provided>
+screenshot_staging_dir: <absolute dir the command resolved for cdn_upload_required staging — a persistent directory the operator named, never inside a repo; null when no screenshots were provided>
 code_repos:             <array of {slug, path} for source-truth verification; the clones resolved for diff-summarizer; [] when unavailable>
 specs_dir:              <absolute path to the PRD's spec folder (PRODUCT-NNNN*), or null; the authoritative intended-behavior source>
 repo_root:              <absolute path to the docs repo root>
@@ -83,7 +83,7 @@ For each write target:
 
 6. **Plan screenshot placement per target.** For each user-provided screenshot that belongs on this target:
    - `image_policy: local` → set `dest` to an absolute path under `<page-dir>/img/` (or the detected idiomatic directory).
-   - `image_policy: cdn_upload_required` → set `staging` to an absolute path under the caller-provided `screenshot_staging_dir` (the persistent Obsidian project folder; e.g. `<screenshot_staging_dir>/<original-filename>`). NEVER place it inside `repo_root` and NEVER use `/tmp` — both are lost on container restart for repo-volume mounts / in-image `/tmp`, whereas `$VAULT_PATH` is always host-mounted. Populate `upload_note` with a 1-line instruction referencing the repo's image-management process (as inferred from `CONTRIBUTION.md`, `CONTRIBUTING.md`, or sibling page conventions).
+   - `image_policy: cdn_upload_required` → set `staging` to an absolute path under the caller-provided `screenshot_staging_dir` (the persistent Obsidian project folder; e.g. `<screenshot_staging_dir>/<original-filename>`). NEVER place it inside `repo_root` and NEVER use `/tmp` — both are lost on container restart for repo-volume mounts / in-image `/tmp`, whereas a host-mounted directory the operator names is not. Populate `upload_note` with a 1-line instruction referencing the repo's image-management process (as inferred from `CONTRIBUTION.md`, `CONTRIBUTING.md`, or sibling page conventions).
    - `image_policy: ambiguous` → leave both `dest` and `staging` null; the writer prompts the user at Phase 6.3.
    - In all cases, populate `alt` with a proposed alt-text derived from the feature summary and the image filename.
 
@@ -185,7 +185,7 @@ The `component_patterns` bullet below (no fabricated `evidence`, no second scan)
 - NEVER let a cross-product "minimal touch" parity reference introduce content specific to the OTHER product's implementation. When extending product X's page about a feature shipped by product Y, plan `topics[].notes` as a one-line cross-link to Y's dedicated page — do NOT inline Y's implementation detail (throttling rules, enum values, precedence). Example: noting on `host-agent-update` that update windows are shared with the gateway component is fine; copying the per-pool gateway throttling rule onto the host-agent page is not.
 - NEVER write or modify files. This agent plans; the writer writes.
 - NEVER copy screenshots anywhere — only compute `dest` / `staging` paths and record them. The writer performs the actual file moves.
-- For `image_policy == cdn_upload_required`, the `staging` path MUST be under the caller-provided `screenshot_staging_dir` (a persistent Obsidian project folder under `$VAULT_PATH`, which is always host-mounted). NEVER stage inside `repo_root` (a repo mounted as a docker repo-volume is not on the host and is lost on restart) and NEVER use `/tmp` (in-image, ephemeral). If `screenshot_staging_dir` is null while a screenshot needs cdn staging, emit a gap with `recommended_action: "ask user"`.
+- For `image_policy == cdn_upload_required`, the `staging` path MUST be under the caller-provided `screenshot_staging_dir` (a persistent, host-mounted directory the operator named). NEVER stage inside `repo_root` (a repo mounted as a docker repo-volume is not on the host and is lost on restart) and NEVER use `/tmp` (in-image, ephemeral). If `screenshot_staging_dir` is null while a screenshot needs cdn staging, emit a gap with `recommended_action: "ask user"`.
 - NEVER propose `dest` inside the repo when `image_policy == cdn_upload_required`, even as a fallback — the whole point of that policy is that local image files would break the repo's image-management invariant.
 - NEVER strip unknown YAML frontmatter fields from the `other` updates. If the target page has fields you don't recognise, leave them alone.
 - NEVER fabricate sources. Every `topics[].sources` entry must correspond to a key in the `folder_read` or a PR URL in `diff_summaries`.

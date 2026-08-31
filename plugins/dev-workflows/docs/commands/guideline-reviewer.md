@@ -19,7 +19,7 @@ Accessibility findings are reported in a machine-checkable vocabulary: each rule
 ## What it needs
 
 - One or more file or component paths (or a description of what to review).
-- Nothing else — no `$SPECS_PATH`, no `$VAULT_PATH`, no branch, no specs-repo preflight.
+- Nothing else — no `$SPECS_PATH`, no branch, no specs-repo preflight.
 
 The accessibility tooling below is **optional**. Nothing is installed, and a repo that configures none of it is reviewed exactly as it was before the step existed.
 

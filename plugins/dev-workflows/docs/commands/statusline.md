@@ -18,7 +18,7 @@ Takes no arguments. Phase 4 shows the exact settings change and asks you to conf
 
 ## What it needs
 
-- **Local access to `~/.claude/settings.json`** and write access under `~/.claude/dev-workflows/` — nothing else. This command reads no `$SPECS_PATH`, no `$VAULT_PATH`, runs no specs-repo preflight, and creates no branch.
+- **Local access to `~/.claude/settings.json`** and write access under `~/.claude/dev-workflows/` — nothing else. This command reads no `$SPECS_PATH`, runs no specs-repo preflight, and creates no branch.
 - **`bash` and `jq`** — if `jq` is missing, the Phase 4 settings merge falls back to `python3` rather than hand-editing the JSON.
 
 ## What it produces

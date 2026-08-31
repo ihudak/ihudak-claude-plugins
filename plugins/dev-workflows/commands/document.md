@@ -181,14 +181,14 @@ Ask about:
   ```
   Record the answer as `new_images_wanted` (true/false). When `false`, Phase 5.6 skips its **add** list only and still reviews existing images on the edited pages. The downstream `doc-planner` (Phase 5.7) detects the repo's `image_policy` and decides per screenshot whether the writer will copy it locally or stage it for manual upload.
 
-  **Resolve `<screenshot_staging_dir>`.** No longer gated on `new_images_wanted`: Phase 5.6 always runs and its existing-image review can need a durable location for a replacement source regardless of this answer, so `<project_dir>` (set below) must be resolved on every run, not only an add-list one. **This unconditional resolution is deliberate and stays**, including the "Not found" prompt it can raise on a run that turns out to have no image work at all: Phase 1 runs long before `write_targets` exist, so any narrower precondition ("only when this run will touch images") is undecidable here. The occasional needless prompt is the accepted cost of closing a container-restart data-loss gap — do not re-gate this on `new_images_wanted` or on a guess about image work. For the `cdn_upload_required` case the staged copies must live somewhere that survives a container restart — `$VAULT_PATH` is always host-mounted, the docs repo (often a docker repo-volume) and `/tmp` are not. Find the ticket's persistent Obsidian project folder:
+  **Resolve `<screenshot_staging_dir>`.** No longer gated on `new_images_wanted`: Phase 5.6 always runs and its existing-image review can need a durable location for a replacement source regardless of this answer, so `<project_dir>` (set below) must be resolved on every run, not only an add-list one. **This unconditional resolution is deliberate and stays**, including the "Not found" prompt it can raise on a run that turns out to have no image work at all: Phase 1 runs long before `write_targets` exist, so any narrower precondition ("only when this run will touch images") is undecidable here. The occasional needless prompt is the accepted cost of closing a container-restart data-loss gap — do not re-gate this on `new_images_wanted` or on a guess about image work. For the `cdn_upload_required` case the staged copies must live somewhere that survives a container restart — a host-mounted directory the operator names survives it, the docs repo (often a docker repo-volume) and `/tmp` are not. Find the ticket's persistent Obsidian project folder:
   ```bash
   the resolved PRD folder
   ```
   - **Found** → record the matched folder as `<project_dir>` (the project-folder root — reused as an image source in Phase 5.6), and set `<screenshot_staging_dir>` to that project folder's screenshot subfolder: prefer an existing `Doc screenshots/` or `Attachments/` subdirectory; otherwise `Doc screenshots/` (created on first write).
   - **Not found** (e.g. a ticket whose project has no project folder) → `<project_dir>` is null (Phase 5.6's project-folder scan then contributes nothing); ask:
     ```
-    choices: ["Enter an absolute directory under $VAULT_PATH (you'll be prompted)", "Skip — only needed if the docs repo turns out to be cdn_upload_required", "Cancel", "Other… (describe)"]
+    choices: ["Enter an absolute staging directory (you'll be prompted)", "Skip — only needed if the docs repo turns out to be cdn_upload_required", "Cancel", "Other… (describe)"]
     ```
     Reject `/tmp` and any path inside the docs repo. Record the result as `<screenshot_staging_dir>` (or null if skipped).
 
@@ -442,7 +442,7 @@ Build this list only when `new_images_wanted` is `true` (Phase 1); when `false`,
    ```
    When `specs_dir` is `none`, this source contributes nothing.
 2. **PRD-folder attachments** — the image paths enumerated under the resolved PRD folder's `attachments/` directory, where one exists. May be empty.
-3. **Recursive scan of `<project_dir>`** — when Phase 1 resolved a `<project_dir>` (the persistent Obsidian project folder under `$VAULT_PATH/Projects`), recursively scan it for image files:
+3. **Recursive scan of `<project_dir>`** — when Phase 1 resolved a `<project_dir>` (the folder this run resolved), recursively scan it for image files:
    ```bash
    find "<project_dir>" -type f \
      \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.gif" -o -iname "*.svg" -o -iname "*.webp" \) 2>/dev/null
@@ -582,7 +582,7 @@ the row `DEGRADED`, with `not_run:` naming what did not run (e.g.
    ```
    "Document as intended (spec)" describes the agreed contract — the `spec_phrasing` (or the PRD phrasing when it is `(no spec)`) — and, when the code lags the intended phrasing, adds an intentional-discrepancy marker + bug-report draft. "Document as actual (code)" matches what shipped, and when it is a qualifying `document-as-code` case per §7.5, also records the gap in the bug-report draft. "Skip this claim and report it" omits the claim but still records the gap in the bug-report draft.
 
-4. **Record `discrepancy_decisions[]`** keyed by `number` (claim, prd_phrasing, spec_phrasing, source_phrasing, source_location, decision ∈ {document-as-spec, document-as-code, skip-and-report}, rationale). `spec_phrasing` is recorded verbatim (`(no spec)` when none was provided). Set `bug_report_destination` to the ticket's vault project folder (resolved exactly like the release-notes destination in `/release-notes` — `find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<KEY>*"`; ask if none) when any decision is `document-as-spec` (where the code lags the intended phrasing), `skip-and-report`, or a qualifying `document-as-code` per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.5.
+4. **Record `discrepancy_decisions[]`** keyed by `number` (claim, prd_phrasing, spec_phrasing, source_phrasing, source_location, decision ∈ {document-as-spec, document-as-code, skip-and-report}, rationale). `spec_phrasing` is recorded verbatim (`(no spec)` when none was provided). Set `bug_report_destination` to the ticket's vault project folder (the resolved PRD folder; ask if none) when any decision is `document-as-spec` (where the code lags the intended phrasing), `skip-and-report`, or a qualifying `document-as-code` per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.5.
 
 Pass `discrepancy_decisions` to Phase 6.3.
 
@@ -967,7 +967,7 @@ choices: ["Push <branch> to origin now", "Skip — I'll push later", "Cancel"]
 Per `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md` §4–§5:
 1. **Detect the host** from the docs repo's `git remote get-url origin` (Bitbucket Cloud / Bitbucket Server / GitHub / other).
 2. **Compose the draft**: title (per `commit_convention`); body — what was documented, the output files, the Phase 6.5 render-verification summary, deferred style/review/render items, a link to the PRD. When Phase 5.8 recorded any `document-as-spec` / `skip-and-report` decision, prepend a banner: `> ⚠ DO NOT MERGE until <KEY>-implementation-gaps.md is resolved.` A qualifying `document-as-code` decision (§7.5) does NOT get this banner even though it also produces a gaps file — the docs correctly describe what shipped, so the PR is mergeable; only the source ticket needs correcting.
-3. **Write + show**: write `<KEY>-pr-draft.md` to the vault project folder (`find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<KEY>*"`; ask if none) AND print it.
+3. **Write + show**: write `pr-draft.md` to the resolved PRD folder (never the vault; nothing here reads one) (`ignore: legacy find $x -maxdepth 5 -type d -name "<KEY>*"`; ask if none) AND print it.
 4. **Host footer**: Bitbucket → "open a PR in the web UI and paste the title + body"; GitHub → additionally offer `gh pr create --title "<title>" --body-file <pr-draft path>` that the user may run; other → "open a PR and paste the title + body". Bitbucket offers no CLI to open one — a host capability limit, not a policy: the plugin does open a pull request on a host with a CLI, but only in the separate GitHub-hosted specs repo (`$SPECS_PATH`), via a different flow — never in this docs repo (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.6).
 
 Carry the squash result, push outcome, and PR-draft path into the Phase 9 report.
@@ -1198,7 +1198,7 @@ name is ever written (§10 privacy).
 - NEVER call Bitbucket REST APIs for Cloud or self-hosted Server — Bitbucket URLs are identifiers only; all resolution is pure local git
 - GitHub URLs may use the `gh` CLI for head/base SHA resolution; no direct REST calls outside `gh`
 - NEVER write inside `_archive/` — that path is read-only by convention
-- NEVER write product documentation outside the resolved `docs_repo_path` (Phase 0); the only other writes are to the ticket's vault project folder under `$VAULT_PATH` (the `<KEY>-implementation-gaps.md` bug-report draft, the `<KEY>-pr-draft.md`, and screenshot staging) — never anywhere else.
+- NEVER write product documentation outside the resolved `docs_repo_path` (Phase 0); the only other writes are to the resolved PRD folder (the `implementation-gaps.md` bug-report draft, the `<KEY>-pr-draft.md`, and screenshot staging) — never anywhere else.
 - ALWAYS escalate missing repos before proceeding — never silent skip
 - ALWAYS invoke `docs-style-checker` (Phase 6.4) before `doc-reviewer` (Phase 7)
 - ALWAYS run the Phase 0 toolchain preflight (`${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md`) after profile resolution and before Phase 1; it prompts only when a required tool is missing
@@ -1215,7 +1215,7 @@ name is ever written (§10 privacy).
 - ALWAYS produce the Phase 9 report as the final output
 - ALWAYS end the Phase 9 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked; omitted in direct doc-edit mode (Mode B)
 - ALL written claims must be traceable to a resolved key or to PR diffs — attribution goes in the run's return payload and the commit message, NEVER inline in the rendered page (`${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1)
-- For `image_policy: cdn_upload_required`, NEVER copy user-provided screenshots into the repo — stage under `<screenshot_staging_dir>`, the ticket's persistent Obsidian project folder under `$VAULT_PATH` (never the docs repo, never `/tmp`) — and surface in the Phase 9 `### Screenshots to upload manually` section
+- For `image_policy: cdn_upload_required`, NEVER copy user-provided screenshots into the repo — stage under `<screenshot_staging_dir>`, a persistent directory the operator named (never the docs repo, never `/tmp`) — and surface in the Phase 9 `### Screenshots to upload manually` section
 - ALWAYS end the Phase 9 report with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a docs→PM handoff suggestion (`/clear`) + `/rename <PRD-ID>-<slug>-dev`; guidance only, never auto-run. **Mode B (direct doc-edit) omits this** — no PRD context.
 
 ---

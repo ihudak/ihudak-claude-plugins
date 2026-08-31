@@ -35,11 +35,7 @@ Run this whenever you want the latest command, agent, hook, and reference conten
 
 ## What you set on your machine
 
-`dev-workflows` reads eight environment variables. Two are required for the pipeline to have anywhere to write (`VAULT_PATH`, `SPECS_PATH`); the rest are read where relevant and degrade gracefully — a missing optional one degrades rather than fails — and `$REPOS_PATH`, `$DOCS_PATH`, `$DEV_WORKFLOWS_COST_PRICES`, `$UI_GUIDELINES_PATH`, and `$API_GUIDELINES_PATH` all degrade *silently*; only `$GIT_USER_INITIALS` does not — it walks its fallback ladder and, if that comes up empty, the command asks you before creating a branch. Export the ones you use in your shell profile. For defaults, resolution order, and the exact directory layout each one expects, see [Environment](reference/environment.md); this section explains what each variable *is*.
-
-### `VAULT_PATH`
-
-Your **personal** knowledge store — where your own working files live, not the team's. Obsidian is the common case, and the name mirrors that, but nothing about the plugin requires Obsidian: every file it reads or writes here is plain markdown, so any markdown-backed store — a plain directory, a different notes app, a git repo of `.md` files — works exactly the same way. It holds your `Projects/<area>/<slug>/` idea and working files. Nothing here imports anything from a tracker: the pipeline reads and writes one markdown tree in `$SPECS_PATH`. Nothing under `VAULT_PATH` is expected to be team-visible.
+`dev-workflows` reads seven environment variables. One is required for the pipeline to have anywhere to write (`SPECS_PATH`); the rest are optional and each degrades to a documented default or a silent skip.
 
 ### `SPECS_PATH`
 
@@ -96,7 +92,7 @@ Claude Code ships its own built-in `/statusline` command, so typing the bare for
 Here is what to expect:
 
 1. **A bounded grill.** `/idea` asks you up to ten questions, one at a time, to sharpen the idea before writing anything — scope, who it is for, what "done" looks like. Answer as best you can; a question you cannot answer yet becomes a logged `[NEEDS CLARIFICATION]` marker rather than a blocker.
-2. **A written brief.** It writes `idea.md` — a lean one-page brief — into `VAULT_PATH`. If `DOCS_PATH` is set and readable, the idea is also checked against what is already documented, and if your vault has prior related work, that surfaces too.
+2. **A written brief.** It writes `idea.md` — a lean one-page brief — into the PRD folder you named. If `DOCS_PATH` is set and readable, the idea is also checked against what is already documented, and if your vault has prior related work, that surfaces too.
 3. **A handoff, once a key exists.** The moment you choose a key, re-running `/idea` relocates `idea.md` into `$SPECS_PATH/specifications/<KEY>-<slug>/` and lands it on the specs repo's default branch, where the next command, `/create-prd <KEY>`, finds it and takes over — `/create-prd` never does the relocating itself.
 
 From here, [Workflow overview](workflow.md) shows where every other command sits relative to `/idea`, and [Roles and phases](roles-and-phases.md) says what happens at each handoff along the way.

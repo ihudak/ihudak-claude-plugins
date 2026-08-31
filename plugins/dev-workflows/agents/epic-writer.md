@@ -94,7 +94,7 @@ Traceability: every claim in each Epic must be traceable to the handoff `folder_
 
 **Write restrictions** (enforced by invariants):
 - NEVER write inside `_archive/` — read-only by convention.
-- NEVER write outside `$VAULT_PATH`.
+- NEVER write outside the handoff `prd_dir`.
 - ALWAYS write inside the handoff `prd_dir`, and never above it.
 
 ## Uncertainty markers

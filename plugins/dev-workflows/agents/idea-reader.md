@@ -15,7 +15,6 @@ grilling loop refines into `idea.md`. This agent does NOT grill, decide gaps, or
 ```yaml
 argument:        <the raw /idea argument: prompt text | file path>
 provenance_hint: prompt | markdown | community-post | rfe | prd   # from the caller's Phase 1 classification
-vault_path:      <absolute $VAULT_PATH>
 ```
 
 Refuse to run without `argument` and `provenance_hint`.

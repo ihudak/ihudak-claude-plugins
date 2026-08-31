@@ -1,6 +1,6 @@
 # Environment reference
 
-[Getting started](../getting-started.md) says what each variable is *for* and what to export before your first run. This page says what each variable **is** — its default, where that default comes from, what happens when it is unset, what happens when it points somewhere the plugin cannot read or write, and the directory layout it expects underneath it. The plugin reads eight user-settable variables. The rest of the names the plugin's own inventory check encounters while scanning for `$VAR` reads are never user-settable and stay out of scope here: `CLAUDE_PLUGIN_ROOT` and `ARGUMENTS` are runtime plumbing Claude Code itself sets for every plugin invocation, and `OSTYPE`, `BASH_SOURCE`, `BASH_REMATCH`, `ROOT`, and `OWNER_REPO` are shell built-ins or internal template/hook-local names, not plugin configuration.
+[Getting started](../getting-started.md) says what each variable is *for* and what to export before your first run. This page says what each variable **is** — its default, where that default comes from, what happens when it is unset, what happens when it points somewhere the plugin cannot read or write, and the directory layout it expects underneath it. The plugin reads seven user-settable variables. The rest of the names the plugin's own inventory check encounters while scanning for `$VAR` reads are never user-settable and stay out of scope here: `CLAUDE_PLUGIN_ROOT` and `ARGUMENTS` are runtime plumbing Claude Code itself sets for every plugin invocation, and `OSTYPE`, `BASH_SOURCE`, `BASH_REMATCH`, `ROOT`, and `OWNER_REPO` are shell built-ins or internal template/hook-local names, not plugin configuration.
 
 ## `$SPECS_PATH`
 
@@ -11,18 +11,6 @@
 **When unset.** Every command that gates on it — `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`, `/ready`, and every `/brd-*` command — stops immediately, names `SPECS_PATH` explicitly, and offers `choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`. `/epics` and `/release-notes` instead degrade: `/epics` skips the artifact steps that need it, and `/release-notes` falls back to `run_phase: pm`. No command silently substitutes the vault, the current working directory, or any other path.
 
 **When it points somewhere unreadable.** Two separate gates apply, and they differ in strictness. The bookkeeping entry point, `specs-preflight`, requires `$SPECS_PATH` to be an existing directory, `git -C "$SPECS_PATH" rev-parse --git-dir` to succeed, **and** the resolved `.git` directory to be **writable** (tested specifically rather than the worktree, since a read-only specs mount is a normal state in this container setup); a failed gate is a silent no-op, and because the terminal `commit-artifacts` step applies the same writability gate, the feedback/cost/follow-up bookkeeping never gets committed either — `specs-preflight` only declines to prepare for a commit that step would then decline to make. The deliverable-verification entry point, `require-on-main`, needs only the first two conditions — a **readable** git dir is enough, writability is not required, since this gate only reads; a failed gate here returns the state `unmanaged`, and the caller proceeds exactly as it did before this handoff machinery existed — no artifact is verified, and nothing is reported as a stop. [Roles and phases](../roles-and-phases.md) covers the two states you meet more often mid-pipeline — an artifact stuck on an unmerged branch, and one that is simply absent from the default branch — but not `unmanaged`, since that is this environment condition (an unset or unmanageable `$SPECS_PATH`), not a workflow state.
-
-**Directory layout.** See the layout block at the end of this page.
-
-## `$VAULT_PATH`
-
-- **`$VAULT_PATH`** — your personal, markdown-backed store; still read by `/idea` and by prior-art discovery, with no built-in default. No command resolves a tracker export from it any more.
-
-**Resolution.** Read straight from the shell environment, exactly like `$SPECS_PATH` — no derived fallback exists.
-
-**When unset.** Behavior depends on the command. `/idea` validates it must be set, an existing directory, and writable before doing anything else; if any of that fails it stops and offers `choices: ["Enter a directory to write idea.md into", "Cancel", "Other… (describe)"]`, and a user-supplied directory is validated the same way and used as the write root for that run — it never falls back to the current working directory, since that may be a code repository. keyed commands that accept an already-imported export directory as their input (`/epics`, `/release-notes`) degrade gracefully instead: with `$VAULT_PATH` unset, `/release-notes` resolves its draft destination the same way.
-
-**When it points somewhere unreadable.** The same validation that catches "unset" catches "exists but not writable" — both trip the same stop-and-offer path in `/idea`; a command with the graceful-degradation behavior above treats an invalid `$VAULT_PATH` the same way it treats an unset one.
 
 **Directory layout.** See the layout block at the end of this page.
 
@@ -48,7 +36,7 @@
 
 **When it points somewhere unreadable, or the gate otherwise fails.** Every miss — unset, missing, unreadable, or no markdown file found — is a **silent, non-blocking skip**: `docs_grounding: OFF` with a one-line internal reason, never an error and never `emit-block`. Within these nine grounding consumers the plugin never writes into `$DOCS_PATH` under any circumstance.
 
-**Directory layout.** Unlike `$VAULT_PATH` and `$SPECS_PATH`, the plugin imposes no expected substructure here — it searches whatever markdown it finds under the root (for example, a full documentation-site checkout).
+**Directory layout.** Unlike `$SPECS_PATH`, the plugin imposes no expected substructure here — it searches whatever markdown it finds under the root (for example, a full documentation-site checkout).
 
 ## `$GIT_USER_INITIALS`
 
@@ -99,8 +87,6 @@
 The four directory-valued variables above expect this layout. `$GIT_USER_INITIALS` holds a string, not a path, and `$DEV_WORKFLOWS_COST_PRICES` names one file rather than a directory, so neither appears here.
 
 ```
-$VAULT_PATH/                        # personal store (e.g. an Obsidian vault; any markdown-backed store works)
-  Projects/<area>/<slug>/           # idea.md and other project working files
 
 $SPECS_PATH/                        # shared, team-visible store
   specifications/<KEY>-<slug>/      # the Product Requirements Document, the ARD, specification.md, design.md

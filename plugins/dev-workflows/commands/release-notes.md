@@ -74,7 +74,7 @@ run — the terminal `commit-artifacts` step skips on it.
 
 - **Output destination — derived, not asked.** The draft lands in **`release-notes.md` in the
   resolved PRD folder**, appended as a section. There is one home now, so the destination question
-  and its `$VAULT_PATH` ladder are gone.
+  and its old fallback ladder are gone.
 
   **The three former destinations are three sections of that one file**, selected by Change Type
   exactly as they selected a file before: `## Breaking changes`, `## Feature updates`, `## Fixes`.
@@ -301,7 +301,7 @@ When `release-notes-writer` returns `gaps[]` entries that have `prd_phrasing` an
    choices: ["Decide per discrepancy (Recommended)", "Document ALL as actual (code)", "Document ALL as intended (PRD)", "Skip ALL and report (drafts a bug report)", "Cancel", "Other… (describe)"]
    ```
 3. Apply the decision to the draft prose: `document-as-code` → use source phrasing; `document-as-spec` → use PRD phrasing (no marker in release notes prose — the gap is recorded only in the gaps file); `skip-and-report` → omit the claim.
-4. For `document-as-spec` or `skip-and-report`: resolve `bug_report_destination` the same way as the release-notes destination — `$VAULT_PATH` set → the `find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<KEY>*"` project folder; `$VAULT_PATH` unset → `<PRD-folder>/`. Write/append `<bug_report_destination>/<KEY>-implementation-gaps.md` using the §7.5 format from `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`, setting `Spec phrasing:` to `(no spec)` (this flow has no spec).
+4. For `document-as-spec` or `skip-and-report`: resolve `bug_report_destination` to the resolved PRD folder. Write/append `<bug_report_destination>/<KEY>-implementation-gaps.md` using the §7.5 format from `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`, setting `Spec phrasing:` to `(no spec)` (this flow has no spec).
 
 Pass `code_repos` (the Phase-4 resolved map) to the writer when diff-grounding is on.
 

@@ -62,7 +62,7 @@ documentation does not inform that decision.
 **Default-safety note.** A `/workspace/*` default is safe here because this is a
 read-only search base — a wrong/missing default just misses and silently skips.
 This mirrors `${REPOS_PATH:-/workspace}`. Write roots (`SPECS_PATH`,
-`VAULT_PATH`) deliberately do **not** default; do not change them.
+and `SPECS_PATH`) deliberately do **not** default; do not change them.
 
 ## Plan-approval line
 

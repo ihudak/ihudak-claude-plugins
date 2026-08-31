@@ -89,7 +89,7 @@ Also display (for user context):
 - Resolved cwd absolute path
 - Resolved output directory
 - Resolved `$REPOS_PATH` (or "N/A — code scan off")
-- Resolved `prd_dir` and `key` (plus `$VAULT_PATH` when set)
+- Resolved `prd_dir` and `key`
 
 No branching context is shown — this command never branches (still true — `specs-preflight` only switches `$SPECS_PATH` between branches that already exist, and only ones the plugin created, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2; it creates none).
 
@@ -472,7 +472,7 @@ Cap: one fix cycle + one re-review maximum.
 
 First gather the change context:
 
-a. `project_root` (the vault when `$VAULT_PATH` is set, else the resolved PRD folder) is the "project root" for this run. Run `git diff --stat` from `project_root` if it is a git repo; otherwise list the written files manually. This command never commits anything under `project_root` — just report what changed (the terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
+a. `project_root` is the resolved PRD folder. Run `git diff --stat` from `project_root` if it is a git repo; otherwise list the written files manually. This command never commits anything under `project_root` — just report what changed (the terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
 b. Compose a **change summary block**:
 
 ```
@@ -492,7 +492,7 @@ Then spawn all four maintenance agents in a **single Agent message**. They are i
 > "Post-write documentation review. Change summary:
 > [paste change summary block]
 >
-> The project root is an Obsidian vault when `$VAULT_PATH` is set, else the resolved PRD folder; look only for internal documentation files that reference the Epics (e.g., an index page enumerating them).
+> The project root is the resolved PRD folder; look only for internal documentation files that reference the Epics (e.g., an index page enumerating them).
 > Determine if any such file needs updating — e.g., a new entry in a drafts index.
 > Skip if: no such file exists or drafts aren't indexed centrally.
 > If an update is warranted: apply minimal edits.
@@ -727,7 +727,7 @@ user name is ever written (§10 privacy).
 ## Invariants (always enforced)
 
 - ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation)
-- ALWAYS resolve one positional address (Phase 0) — a key or an `@<path>`; see `$VAULT_PATH`; a folder in the specs tree works without it; `/epics` is cwd-agnostic and rejects `mode: direct`
+- ALWAYS resolve one positional address (Phase 0) — a key or an `@<path>` naming a folder in the specs tree works without it; `/epics` is cwd-agnostic and rejects `mode: direct`
 - NEVER create a git branch — this command never branches. `specs-preflight` may switch `$SPECS_PATH` between branches that already exist, and only ones the plugin created (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none.
 - NEVER commit the Epic drafts or anything in the vault, or the current working directory — git management there is the user's responsibility. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run

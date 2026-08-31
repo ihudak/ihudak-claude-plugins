@@ -84,7 +84,7 @@ the BRD route is a **switch, not a path** on all three rows: the positional key 
 
 | Role | Runs | Produces → lands at |
 |---|---|---|
-| **PM** | `/idea`, `/create-prd`, `/update-prd`, and an early `/release-notes` | `idea.md` in `$VAULT_PATH`, then the PRD in `$SPECS_PATH/specifications/<KEY>-<slug>/` |
+| **PM** | `/idea`, `/create-prd`, `/update-prd`, and an early `/release-notes` | `idea.md` in the PRD folder, then the PRD in `$SPECS_PATH/specifications/<KEY>-<slug>/` |
 | **PA** | `/create-ard` (optional) | the ARD, in the same specs feature folder as the PRD |
 | **PE** | `/epics`, `/specify` | `epic.md` per `EPIC-` folder under the PRD folder; `specification.md` on the specs repo's default branch |
 | **Dev** | `/design`, `/implement`, `/document`, `/ready`, and a final `/release-notes` | `design.md` on the specs repo's default branch; code on a branch in `$REPOS_PATH`, handed over behind a consent choice; product docs in the docs repo; a read-only readiness verdict that sets no status |
@@ -94,7 +94,6 @@ See [Roles and phases](roles-and-phases.md) for what each role owns, consumes, a
 ## Artifact homes
 
 - **`$SPECS_PATH/specifications/<KEY>-<slug>/`** — the shared, team-visible home for the PRD, the ARD, `specification.md`, and `design.md`. Each authoring command lands its file here, then hands it onto the specs repo's default branch for the next command to find.
-- **`$VAULT_PATH`** — the personal store. Nothing in the pipeline reads a tracker export from it any more; what remains of its role is retired in a later increment.
 - **`$REPOS_PATH`** — the mounted code clones. `/implement` and, outside the PRD pipeline, `/upgrade` work here on a feature branch and hand the result over behind a consent choice (commit + push + PR, or less); `/vuln` commits and opens a PR as part of its own fix contract.
 - **Plugin bookkeeping** — feedback and session-cost files — lives under `<PRD-dir>/dev-workflows/` inside `$SPECS_PATH`, committed and pushed alongside the specs artifacts it describes. Follow-up tasks are the one exception: they land in your vault first and reach this directory only when no vault is available — see [Follow-ups](reference/follow-ups.md) for the full ladder.
 

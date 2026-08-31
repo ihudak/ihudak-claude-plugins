@@ -49,14 +49,14 @@ this stage). Zero external calls.
 
    **On the BRD route this is the resolved BRD folder**, and it is never created here: resolve it
    with `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), which already
-   searches both levels, or read the `the BRD route <dir>` path when one was given. The ARD this run
+   searches both levels, or read an explicit BRD-directory path when one was given. The ARD this run
    authors is written **into that folder**, beside the BRD artifacts it was derived from. `absent` is
    a graceful stop, not a folder to create — and it names **both** ways a BRD folder comes into being
    rather than picking one, because nothing on disk says whether this key names a BRD with a source
    document or a slice of one, and a key's segment count is a naming convention, never a depth
    declaration (§1):
    `CREATE_ARD_BRD_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
-   Where a `the BRD route <dir>` path was supplied and is not an existing directory, the same stop
+   Where an explicit BRD-directory path was supplied and is not an existing directory, the same stop
    substitutes that path for the search clause — `no BRD folder at <path> (supplied with the BRD route)` —
    because "both levels searched" would describe a search this run did not perform.
 4. **Prior ARD.** If the target `ard.md` exists → Phase 1 offers refine-vs-fresh. **On the BRD route the target is `<BRD-dir>/ard.md`** — the same glob in the same folder, keyed by the BRD key this run resolved.

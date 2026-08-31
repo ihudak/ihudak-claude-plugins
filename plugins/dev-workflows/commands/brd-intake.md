@@ -186,7 +186,7 @@ them landing on the row only through Phase 4's existing human confirmation:
   returned, and a rejected one is dropped the same way.
 
 **`docs_references` — what the product already ships and documents — is reported, never written.**
-It is the signal `/idea` gets from prior art, and it is genuinely useful here: a requirement the
+It is genuinely useful here: a requirement the
 docs describe as already shipped is one `/brd-ground` should check against code first. But it is
 not a defect and it has no field on an inventory or ledger row, so it goes into the final report and
 nowhere else. Nothing docs-derived is ever written into `evidence` — that column stays empty until

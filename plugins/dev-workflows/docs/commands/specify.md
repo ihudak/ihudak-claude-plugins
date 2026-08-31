@@ -9,7 +9,7 @@ Reads the resolved Epic or PRD folder, lightly grounds in code, and authors an o
 ## Synopsis
 
 ```
-/specify <PRD-Key | Epic-Key | dir | BRD-Key> [<Epic-Key>] [the BRD route [<dir>]] [--no-docs]
+/specify <ADDRESS> [--no-docs]
 ```
 
 **The BRD route** — where the resolved folder carries a `brd-link.md`, the run authors the specification for a reconciled BRD. Detected, not a path**: the positional token is then a **BRD key**, validated against `^[A-Z][A-Z0-9_]*(-\d+)+$` (so a three-segment slice key such as `EPIC-008-01` is as valid as `EPIC-008`) and resolved to a folder at either level under `specifications/`, so a path is only for a BRD folder outside the normal layout. It takes **one key**: a second positional key stops the run (`SPECIFY_BRD_NO_EPIC`), because a BRD has no Epics yet and the seeds live only at a BRD's own level. Everything in the paragraphs below about pickers, Epic counts and the resolved folder describes the keyed route only — BRD-route runs none of it.

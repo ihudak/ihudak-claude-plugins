@@ -50,7 +50,7 @@ belong in **Feasibility grounding** (Section 7).
 ## Section 6 — Prior art (optional)
 
 `## Prior art` — tracked initiatives in the vault that this idea covers, continues, parallels, or
-rewrites. **Write it when prior art was discovered *or* the source is a `prd`; omit it entirely
+rewrites. **Write it when the source is a `prd` the user supplied; omit it entirely
 otherwise.** One bullet per entry, in one of two shapes.
 
 **Discovered** — the finder matched the item, so every slot has a source:
@@ -71,10 +71,10 @@ rather than inventing either:
 Never promote a supplied-only entry into the discovered shape by guessing a `relation`; the closed
 vocabulary is the finder's output, not the author's choice.
 
-In the discovered shape every slot is **transcribed from the prior-art digest, never invented**:
+Every slot is **transcribed from what the user supplied, never invented**:
 `<KEY>` and `<status>` from its `key` / `tracked_status`, `<relation>` verbatim from its
 `relation` field (the closed vocabulary lives in
-`${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md`), and `<one line>` a plain-language rendering of
+and `<one line>` a plain-language rendering of
 that entry's `match_reason` — why this initiative bears on the idea.
 
 The **key is the durable identifier**; the wikilink is a convenience that dangles once a vault item

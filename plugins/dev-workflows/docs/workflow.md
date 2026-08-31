@@ -72,7 +72,7 @@ The three edges leaving `/brd-reconcile` into the PRD pipeline, as each command'
 
 | Command | Required | Optional | Offered from `/brd-reconcile` |
 |---|---|---|---|
-| `/create-prd` | `<BRD-KEY>` | `the BRD route <dir>`, `--lean`/`--hybrid`/`--full` (defaults to `--full` here), `--no-docs`, `--no-prior-art` | Only where no ledger row is `unallocated` and at least one is `covered-here` |
+| `/create-prd` | `<BRD-KEY>` | `--lean`/`--hybrid`/`--full` (defaults to `--full` here), `--no-docs` | Only where no ledger row is `unallocated` and at least one is `covered-here` |
 | `/create-ard` | `<BRD-KEY>` | `--no-docs` | Unconditionally — the run gates no PRD, reads no PRD, and reads no ledger |
 | `/specify` | `<BRD-KEY>` | `--no-docs` | Unconditionally, on exactly the same terms as `/create-ard` |
 

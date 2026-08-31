@@ -12,7 +12,7 @@ authors a high-quality **Product Requirements Document** that feeds the downstre
 (a PRD): what / why / for-whom, not how. Zero external calls — the PRD is authored as markdown in the specs
 repo, which is where every downstream command reads it from.
 
-Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--hybrid|--full] [--no-docs] [--no-prior-art]` (default `--hybrid`, or `--full` on the BRD route — Phase 0 step 2; the two `--no-*` switches each turn off one grounding source — see Phase 1).
+Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--hybrid|--full] [--no-docs]` (default `--hybrid`, or `--full` on the BRD route — Phase 0 step 2; the two `--no-*` switches each turn off one grounding source — see Phase 1).
 
 ---
 
@@ -49,7 +49,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
 4. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
 5. **Feature folder. On the BRD route this is the resolved BRD folder**, and it is never created
    here: resolve it with `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3),
-   which already searches both levels, or read the `the BRD route <dir>` path when one was given. The
+   which already searches both levels, or read an explicit BRD-directory path when one was given. The
    PRD this run authors is written **into that folder** as `prd.md`, beside the BRD
    artifacts it was derived from. `absent` is a graceful stop, not a folder to
    create — and it names **both** ways a BRD folder comes into being rather than picking one,
@@ -189,7 +189,6 @@ Use `choices` arrays; the last choice is always `"Other… (describe)"`.
 
 1. **Confirm** the feature folder, the profile, and the resolved `idea.md` (or "none — grill from scratch"); on the BRD route, the BRD folder, the profile (`--full` unless a flag overrode it), and — instead of an idea — a `from BRD:` line naming `<BRD-KEY>`, its `parent:` if it has one, its `depends-on:` if any, how many of its gate-set rows (Phase 0 step 7) are `covered-here` out of how many, and whether `prd-seed.md` and `decisions.md` were found.
    - Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
-   - Show the `prior art:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md` resolved — `ON <vault-root>` or `OFF (<reason>)` — verbatim (off switch: --no-prior-art). Run `resolve-prior-art create-prd` per that reference to obtain it; it runs exactly once per run.
 2. **Existing-PRD handling** (only if Phase 0 step 6 found a PRD for `<KEY>`):
    - **the BRD route present** → "author this BRD's PRD" conflicts with "a PRD for this BRD already
      exists here". `/update-prd` takes no the BRD route, so the redirect is honest about what it
@@ -312,13 +311,11 @@ exists to prevent.
 
 ---
 
-## Phase 2.5 — Grounding: documentation + vault prior art (optional)
+## Phase 2.5 — Grounding: documentation (optional)
 
 Dispatch both grounding agents **in a single response** so they run in parallel. Each is independent; either being OFF never suppresses the other.
 
 **Docs.** Run `resolve-docs-grounding create-prd` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the idea's problem/goal + PRD themes, `key` = `<KEY>`, and `themes` from the idea. When OFF, skip silently.
-
-**Prior art.** Using the `resolve-prior-art create-prd` result from Phase 1: when `prior_art: ON`, `dispatch-prior-art-finder` per `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md` with `feature_summary` = the idea's problem/goal, `themes` from the idea, and `known_refs` = every filesystem path in the idea's `sources[]` as `{path, …}`, every key in `sources[]` as `{key, …}`, and the key of each `## Prior art` bullet as `{key, …}` — all with `has_summary: false`, since this command reads `idea.md` directly and holds no summaries of its own. Take the **key**, not the wikilink, from a `## Prior art` bullet: a wikilink resolves by file name and dangles the moment a vault item is renamed, which is exactly why the bullet carries both. Recorded `sources[]` paths may dangle for the same reason; the finder drops what it cannot resolve. When OFF, skip silently.
 
 **On the BRD route both agents run unchanged; only their inputs are substituted**, because there is
 no `idea.md` to take them from. `feature_summary` and `themes` come from `prd-seed.md` (falling back

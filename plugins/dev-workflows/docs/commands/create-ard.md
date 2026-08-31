@@ -9,12 +9,12 @@ Grounds on the mounted implementation repos it discovers and authors an Architec
 ## Synopsis
 
 ```
-/create-ard <PRD-KEY | BRD-KEY> [<Epic-KEY>] [the BRD route [<dir>]] [--no-docs]
+/create-ard <ADDRESS> [--no-docs]
 ```
 
 `/create-ard <PRD-KEY>` authors a **PRD-level** ARD. `/create-ard <PRD-KEY> <Epic-KEY>` authors an **Epic-level** ARD, which inherits the PRD-level ARD read-only and layers its own `[AD#N]` decisions on top (an Epic/area decision wins on conflict — a real contradiction is caught by `ard-reviewer` at authoring time, not left for a downstream consumer to resolve). A bare `<Epic-KEY>` also resolves, auto-finding its parent PRD. `--no-docs` turns off the optional Phase 3 documentation-grounding pass.
 
-- **`[the BRD route [<dir>]]`** (optional) — authors a **BRD-level** ARD, seeded from a reconciled BRD instead of a PRD. A **switch, not a path**: the positional token is then a **BRD key**, validated against `^[A-Z][A-Z0-9_]*(-\d+)+$` (so a three-segment slice key such as `EPIC-008-01` is as valid as `EPIC-008`) and resolved to a folder at either level under `specifications/`, so a path is only for a BRD folder outside the normal layout. It takes **one key**: a second positional key stops the run (`CREATE_ARD_BRD_NO_EPIC`), because a BRD has no Epics yet and the seeds live only at a BRD's own level. The BRD key is a folder name and is never looked up on a tracker.
+- **The BRD route** — detected from the resolved folder's `brd-link.md`, never declared. It authors a BRD-level ARD from that folder's `ard-seed.md`.
 
 ## How it runs
 

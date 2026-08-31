@@ -10,12 +10,14 @@ Epic-level ARD goes deeper on that Epic's repos/areas.
 
 - **PRD-level** (`/create-ard <PRD-KEY>`) — cross-cutting invariants + broad-but-shallow grounding across the affected repos.
 - **Epic-level** (`/create-ard <PRD-KEY> <Epic-KEY>`) — deeper grounding on the Epic's repos/areas; **inherits the PRD-level ARD's `AD#N` read-only** and must not contradict them.
-- **Per-area** — a big Epic spanning separable areas in one repo (e.g. backend `server/` + frontend `ui/`) may split into `<EPIC>-<area>_ARD.md` (grill-decided).
+- **Per-area** — a big Epic spanning separable areas in one repo (e.g. backend `server/` + frontend `ui/`) may split into `ard-<area>.md` beside the folder's `ard.md` (grill-decided).
 
 ## Frontmatter
 
 ```yaml
 ---
+kind: ard                    # what this document is
+key: <KEY>                   # this folder's key — must match the folder name
 title: <PRD or Epic title> — ARD
 scope: prd | epic
 prd: <PRD-KEY — or, on the BRD route, a BRD key: the BRD's own when it owns its source document, its parent's when it is a slice>
@@ -24,8 +26,8 @@ area: <name | null>
 status: draft | reviewed
 grounded_repos:
   - <repo-slug @ absolute path>
-inherits: <path to <PRD>_ARD.md | null — on the BRD route, the parent BRD's <parent-key>_ARD.md>
-derived_from: <path to the PRD file, canonical <PRD>_<slug>.md — or, in a BRD folder that holds no PRD, that folder's ard-seed.md>
+inherits: <path to the PRD folder's ard.md | null — on the BRD route, the parent BRD folder's ard.md>
+derived_from: <path to the PRD file, canonical prd.md — or, in a BRD folder that holds no PRD, that folder's ard-seed.md>
 ---
 ```
 

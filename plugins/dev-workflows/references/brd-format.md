@@ -64,9 +64,17 @@ source document — there is no chain to walk and no case in which the named par
 The file opens with the two facts a reader needs to follow an anchor out of it:
 
 ```
+kind: brd
+key: <this folder's key — must match the folder name>
 parent: <PARENT-KEY>
 source: <the parent's brd/source/<basename>, relative to the parent's folder>
 ```
+
+**`kind:` and `key:` open every inventory, a slice's and a source-owning BRD's alike** — a
+source-owning BRD's inventory carries the two and no `parent:`/`source:` pair, because it *is* the
+source owner. They are how the folder asserts its own identity (`references/addressing.md` §4); the
+`brd/source/` document itself carries neither and never will, because it is the customer's and is
+immutable (§1).
 
 **Every `source_anchor` in a slice's inventory resolves against that path, never against anything
 inside the slice's own folder** — the slice has no `brd/source/` to resolve into, which is exactly

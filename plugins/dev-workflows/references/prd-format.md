@@ -1,6 +1,6 @@
 # Product Requirements Document format (embedded authority)
 
-The canonical structure and per-section rules for a `<KEY>_<slug>.md` PRD file (frontmatter `issue_type: ValueIncrement`). `/create-prd` and `/update-prd` author
+The canonical structure and per-section rules for a `prd.md` PRD file — one per PRD folder, its identity carried by the folder rather than by its own name (`references/addressing.md` §2, §4). `/create-prd` and `/update-prd` author
 against this file; `prd-reviewer` reviews against it, and `/release-notes` reads its Jira-mirror fields. The PRD is **product-level** (a PRD): what / why /
 for-whom, **not** how — no implementation detail. A mandatory **spine** (always present) plus an
 **adapt-in menu** whose clusters are pulled only when the idea warrants them (never an empty section).
@@ -15,6 +15,8 @@ for-whom, **not** how — no implementation detail. A mandatory **spine** (alway
 
 ```yaml
 ---
+kind: prd                    # what this document is
+key: <KEY>                   # this folder's key — must match the folder name
 title: <human-readable PRD title>
 summary: <one-line>
 issue_type: ValueIncrement

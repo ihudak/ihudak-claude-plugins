@@ -4,6 +4,32 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.5.0] — 2026-08-31
+
+### Changed — one addressing authority for the whole specs tree (increment A)
+
+First of four increments implementing
+`docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md`. **The tracker round-trip is
+untouched**: every Jira path still works exactly as before, which is what makes this increment
+shippable on its own.
+
+- **`references/brd-addressing.md` becomes `references/addressing.md`** and addresses the whole tree — BRD, PRD and Epic folders alike — rather than BRDs only. Three entry points: `key-valid`, `resolve-key`, and the caller-facing `resolve-address`. Every citation across the tree follows, including the section renumbering.
+- **Directories carry a kind prefix** — `BRD-`, `PRD-`, `EPIC-` — under two invariants: kinds run in a fixed order down any path, and no path holds two folders of the same kind. The tree is therefore at most three levels deep, and resolution is bounded by that constant rather than by anything about a key.
+- **One address, two forms.** A command takes `<KEY>`, resolved against the tree, or `@<path>`, used verbatim with no glob and no ambiguity. Two folders sharing a key is a hard stop naming both, with `@<path>` named as the way through.
+- **A folder asserts its own key.** Every artifact carries `kind:` and `key:` frontmatter, and the command that creates a folder writes a keyed artifact into it in the same act — so nothing parses a key out of a directory name.
+- **Filenames lose their keys**: `prd.md`, `ard.md` (`ard-<area>.md` when area-scoped), joining `specification.md` and `design.md`, which already worked this way. Three glob-based resolvers collapse to filename tests.
+- **A slice's folder is its PRD folder.** `/brd-split` creates `PRD-<CHILD-KEY>-<slug>/` directly inside the BRD instead of a nested BRD folder holding a PRD folder holding one file.
+- **A BRD is a container, never implementable.** `/brd-split` always produces at least one slice; where nothing clusters, the whole BRD becomes one. `covered-here` leaves the parent's picker, which becomes a different four rather than a smaller five. PRD eligibility is now a property of a slice.
+- **`/brd-split` enumerates children by a positive test** — a subdirectory carrying a `brd-link.md` whose `parent:` names this BRD — never by a name match. A name match plus an absent-file-reads-as-empty inference could count an Epic folder as a standing empty child and offer to remove it, deleting `epic.md`, `specification.md` and `design.md` with it.
+- **`design/` is a reserved subdirectory, defined once.** `references/grounding-format.md` §6.1 fixes where exported design frame sets live for any folder under `specifications/`; the location had been stated inside `/brd-ground` and was undefined for the `/idea` route. Location only — `design-grounder` is still dispatched by `/brd-ground` alone.
+- **Nine hand-rolled folder-match rules deleted**, not re-pointed. Each was a local copy of the rule the addressing authority owns, which is the drift that family of defects is made of.
+
+### Fixed
+
+- `docs/commands/brd-split.md` cited the addressing reference through a markdown link, where the `)` between filename and section number defeated the citation sweep.
+- Three resolution steps carried a `resolve-address` call followed by the fallback prose it replaced, contradicting themselves mid-sentence.
+- `/create-prd`'s copy of the PRD-eligibility table had drifted from the authority it mirrors.
+
 ## [3.4.4] — 2026-08-31
 
 ### Changed — three ideas ported back from the upstream grilling technique

@@ -73,8 +73,8 @@ not required.
 
 **PM — ideation & framing**
 
-- `/dev-workflows:idea` — refined → `/dev-workflows:create-prd <JIRA-KEY>` (PM); draft → `/dev-workflows:idea @<path> --deep` (PM, refine)
-  or `/dev-workflows:create-prd <JIRA-KEY>` (PM, proceed on a draft — not recommended).
+- `/dev-workflows:idea` — refined → `/dev-workflows:create-prd <KEY>` (PM); draft → `/dev-workflows:idea @<path> --deep` (PM, refine)
+  or `/dev-workflows:create-prd <KEY>` (PM, proceed on a draft — not recommended).
 - `/dev-workflows:create-prd <ADDRESS>`:
   `/dev-workflows:release-notes <PRD>` (PM — draft the release note; recommended clear next step); hand to PA
   *(optional)* → `/dev-workflows:create-ard <PRD>`; or hand to PE → `/dev-workflows:epics <PRD>` (or `/dev-workflows:specify <PRD>`).
@@ -145,7 +145,7 @@ not required.
 - `/dev-workflows:design <PRD> <Epic>` → optionally `/dev-workflows:ready <PRD> <Epic>` (verify readiness) →
   `/dev-workflows:implement <PRD> <Epic>`.
 - `/dev-workflows:ready <PRD> [<Epic>]` → **SUPPORTED** → `/dev-workflows:implement <PRD> [<Epic>]`; **PARTIAL / NOT-SUPPORTED**
-  → resolve the named gaps + update the Jira status, then re-run `/dev-workflows:ready`. *(Read-only verifier;
+  → resolve the named gaps + update the declared status, then re-run `/dev-workflows:ready`. *(Read-only verifier;
   not itself a linear pipeline node — an optional gate before build.)*
 - `/dev-workflows:implement <PRD> <Epic>` → finish remaining Epics (breadth); once ALL Epics implemented →
   `/dev-workflows:document <PRD>` → `/dev-workflows:release-notes <PRD>`. *(Direct mode → no forward offer.)*

@@ -110,7 +110,7 @@ This rule governs only *whether* a list is presented. Option wording, option ord
 
 This rule binds every command in the plugin, not only the ones documented below.
 
-## Jira key dir not found
+## key dir not found
 
 `choices: ["Re-enter key", "Cancel"]`
 

@@ -71,8 +71,8 @@ Used for Bitbucket Server, Bitbucket Cloud, and GitHub when `gh` is unavailable.
 
 3. **Strategy 3 — Merge-commit search.** Run `git log --all -E --grep="[Pp]ull[ _-]?[Rr]equest[ _-]?#?<pr_id>\b" -n 5` and `git log --all -E --grep="<title_keyword>" -n 5`. The primary pattern matches the merge-commit title format `Pull request #<PR_ID>: …` produced by both Bitbucket and GitHub (note the `#` separator — not `-` or space). For a merge commit: head = `<commit>^2`, base = `<commit>^1`.
 
-4. **Strategy 4 — Cross-hierarchy Jira-key commit search (last resort).** If the caller supplied `keys_hierarchy`, for each key run `git log --all --grep="<key>" --oneline`. Treat matches as "commits associated with this feature" rather than a specific reconstructed PR. Return every match's full diff (`git show --format= <sha>`) as a **separate per-PR entry** with `pr_id: <the PR's own id, best-effort>` and `resolved_via: key_commits`. Annotate the `summary` explicitly:
-   *"Diff reconstructed from commit <sha> matched on Jira key <key>; this may not correspond to the original PR content exactly."*
+4. **Strategy 4 — Cross-hierarchy key commit search (last resort).** If the caller supplied `keys_hierarchy`, for each key run `git log --all --grep="<key>" --oneline`. Treat matches as "commits associated with this feature" rather than a specific reconstructed PR. Return every match's full diff (`git show --format= <sha>`) as a **separate per-PR entry** with `pr_id: <the PR's own id, best-effort>` and `resolved_via: key_commits`. Annotate the `summary` explicitly:
+   *"Diff reconstructed from commit <sha> matched on key <key>; this may not correspond to the original PR content exactly."*
 
    If the original PR's merge-commit and branch are both missing (Strategies 1–3 failed) but Strategy 4 finds commits by key: the PR is **partially resolved** — content is drawn from key-matched commits, and the output notes this clearly.
 
@@ -147,7 +147,7 @@ per_pr:
     summary: |
       <prose; 3–8 sentences: new behavior, changed behavior, API surface, migration notes.
       If resolved_via == key_commits, the summary MUST note that the diff was
-      reconstructed from commits matching a Jira key and may not exactly correspond to
+      reconstructed from commits matching a key and may not exactly correspond to
       the original PR content.>
 unresolved_prs:
   - pr_id: <id>

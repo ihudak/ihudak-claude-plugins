@@ -87,7 +87,7 @@ Claude Code ships its own built-in `/statusline` command, so typing the bare for
 
 ## Your first run
 
-`/idea` is the pipeline's entry point, and it needs no Jira key — which makes it the honest place to try the plugin for the first time. Point it at whatever you already have in mind: an inline prompt, a markdown file, a community post, or an existing PRD you want to extend.
+`/idea` is the pipeline's entry point, and it needs no key — which makes it the honest place to try the plugin for the first time. Point it at whatever you already have in mind: an inline prompt, a markdown file, a community post, or an existing PRD you want to extend.
 
 ```
 /idea a lightweight way for on-call engineers to silence a noisy alert for one hour without editing the alerting rule
@@ -97,6 +97,6 @@ Here is what to expect:
 
 1. **A bounded grill.** `/idea` asks you up to ten questions, one at a time, to sharpen the idea before writing anything — scope, who it is for, what "done" looks like. Answer as best you can; a question you cannot answer yet becomes a logged `[NEEDS CLARIFICATION]` marker rather than a blocker.
 2. **A written brief.** It writes `idea.md` — a lean one-page brief — into `VAULT_PATH`. If `DOCS_PATH` is set and readable, the idea is also checked against what is already documented, and if your vault has prior related work, that surfaces too.
-3. **A handoff, once a Jira key exists.** The moment you create the corresponding Jira ticket, re-running `/idea` relocates `idea.md` into `$SPECS_PATH/specifications/<KEY>-<slug>/` and lands it on the specs repo's default branch, where the next command, `/create-prd <KEY>`, finds it and takes over — `/create-prd` never does the relocating itself.
+3. **A handoff, once a key exists.** The moment you choose a key, re-running `/idea` relocates `idea.md` into `$SPECS_PATH/specifications/<KEY>-<slug>/` and lands it on the specs repo's default branch, where the next command, `/create-prd <KEY>`, finds it and takes over — `/create-prd` never does the relocating itself.
 
 From here, [Workflow overview](workflow.md) shows where every other command sits relative to `/idea`, and [Roles and phases](roles-and-phases.md) says what happens at each handoff along the way.

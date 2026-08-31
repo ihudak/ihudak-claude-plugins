@@ -49,7 +49,7 @@ slug: env-ag-update-window
 ---
 ```
 
-- `prd` — the run's Jira key, or `n/a` when no key resolved.
+- `prd` — the run's key, or `n/a` when no key resolved.
 - `slug` — the feature slug from the PRD dir, or the ISO date on a keyless file.
 
 Each entry is appended as a dated H2 header + a fenced YAML block + prose:
@@ -108,7 +108,7 @@ capture, §5). Walk the ladder top-down and stop at the first tier that applies:
    writable) → `$VAULT_PATH/dev-workflows/feedback/<KEY>-feedback.md`, with a
    **loud notice**:
    `⚠ $SPECS_PATH unavailable — saved to your vault; it will NOT auto-aggregate to the maintainer. Set $SPECS_PATH and commit, or forward manually.`
-4. **`source = directory`** (imported Jira dir, no specs/vault) → beside the
+4. **`source = directory`** (a passed directory, no specs/vault) → beside the
    imported directory, where `/epics` + `/release-notes` already drop their
    no-vault output.
 5. **Nothing resolvable** → **report-only**: keep the feedback in the run's
@@ -239,6 +239,6 @@ surfaces its normal `BLOCKED` escalation — `emit-block` never prompts.
 **Predicate — fires ONLY for a plugin-facing gap** (the plugin lacked something
 the run needed). It does **NOT** fire for: a code / doc / Epic review **BLOCK**
 (a defect in the *work*, not the plugin); an environment / user halt
-(repo-missing, dirty-tree, jira-not-found, refresh-blocked, and the other
+(repo-missing, dirty-tree, key-not-found, refresh-blocked, and the other
 `escalation-rules.md` cases); or user cancellation. The §4 plugin-facing scoping
 applies (never target-project `CLAUDE.md` / hook advice).

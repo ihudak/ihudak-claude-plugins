@@ -53,7 +53,7 @@ tracked:                 # present only for provenance: prd
   status:     <from the export frontmatter>
   summary:    <from the export frontmatter>
 source_refs:
-  - ref:             <path | JIRA-KEY | url>
+  - ref:             <path | KEY | url>
     salient_summary: <≤150 words: what this source says that matters to the idea — omit for an inline prompt>
 raw_context: |
   <distilled problem / users / value / scope hints from the source(s)>
@@ -75,9 +75,9 @@ candidate_slug:  <kebab-case slug inferred from the source>
 
 - NEVER modify any file. This agent is read-only.
 - NEVER read the **content** of image files — enumerating filenames/paths is permitted and required.
-- NEVER reach out over HTTPS to Jira or any host — operate purely on the inline prompt and pre-exported / vault markdown.
+- NEVER reach out over HTTPS to any host — operate purely on the inline prompt and pre-exported / vault markdown.
 - NEVER fabricate demand signals, requesters, or sources not present in the input.
 - Follow wikilinks at most ONE level deep to bound the read.
-- On an invalid Jira key or a missing file, return `status: NOT_FOUND` with a clear message; do not guess.
+- On an invalid key or a missing file, return `status: NOT_FOUND` with a clear message; do not guess.
 - NEVER mine a `prd` source for requesters, upvotes, or demand signals — a Product Requirements Document is prior art, not a demand ticket. Fabricating them is a correctness failure, not a stylistic one.
 - A `salient_summary` summarises **only** what was actually read; never infer content for a broken wikilink.

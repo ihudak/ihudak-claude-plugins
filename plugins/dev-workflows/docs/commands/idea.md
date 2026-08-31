@@ -1,6 +1,6 @@
 # /idea
 
-Refines one raw source — a prompt, a file, a community post, or an exported Jira ticket — into a lean `idea.md` brief that seeds [`/create-prd`](create-prd.md).
+Refines one raw source — a prompt, a file, a community post, or a saved file — into a lean `idea.md` brief that seeds [`/create-prd`](create-prd.md).
 
 ## Who runs it
 
@@ -9,7 +9,7 @@ Refines one raw source — a prompt, a file, a community post, or an exported Ji
 ## Synopsis
 
 ```
-/idea <prompt | @file | JIRA-KEY> [--deep] [--ground-code [<repo>,…]] [--no-docs] [--no-prior-art]
+/idea <PRD-KEY> [<prompt> | @<file>] [--deep] [--ground-code [<repo>,…]] [--no-docs] [--no-prior-art]
 ```
 
 The single positional argument is classified into one of four source forms (Phase 1), by precedence:
@@ -39,15 +39,15 @@ Four subagents are dispatched along this path: `idea-reader` (Phase 2, ingests t
 ## What it needs
 
 - **`$VAULT_PATH`** — must be set, an existing directory, and writable before anything else runs (Phase 0). If any of that fails, the run stops and offers to enter a directory to write `idea.md` into, or cancel — it never falls back to the current working directory, which may be a code repository.
-- **The idea source itself** — read by `idea-reader`. A Jira key that does not resolve, or a path that does not exist, stops the run and offers to re-enter the source or cancel; this is an environment/user halt, not a plugin gap.
+- **The idea source itself** — read by `idea-reader`. A key that does not resolve, or a path that does not exist, stops the run and offers to re-enter the source or cancel; this is an environment/user halt, not a plugin gap.
 - **`$DOCS_PATH`** (optional, default `/workspace/docs`) — documentation grounding. Missing, unreadable, or carrying no markdown file is a silent, non-blocking skip: `docs grounding: OFF`, never an error. Turned off explicitly with `--no-docs`.
 - **Vault prior art** (optional, on by default) — searches the vault for tracked initiatives this idea should be reconciled against. Turned off with `--no-prior-art`, or silently OFF when it cannot resolve (for example an invalid `$VAULT_PATH`); advisory only, never a gate.
 - **`--ground-code` repo(s)** (optional) — only runs when the flag is given. A named repo that is not mounted is neither invented nor silently dropped — it is escalated and, if declined, carried forward by name with its themes left unverified. With no flag at all, the run instead does one cheap detection pass and prints at most one advisory line naming a repo the idea mentions; it never scans.
-- **`$SPECS_PATH`** — not needed to start the run at all, and an unresolvable path is a silent no-op rather than a stop. It is touched twice: `specs-preflight` runs against it at the end of Phase 0 (which can emit a guard notice and set `specs_git: blocked` for the whole run), and it becomes load-bearing from Phase 5 onward, once a Jira key has resolved and `idea.md` is relocated there for the git handoff.
+- **`$SPECS_PATH`** — not needed to start the run at all, and an unresolvable path is a silent no-op rather than a stop. It is touched twice: `specs-preflight` runs against it at the end of Phase 0 (which can emit a guard notice and set `specs_git: blocked` for the whole run), and it becomes load-bearing from Phase 5 onward, once a key has resolved and `idea.md` is relocated there for the git handoff.
 
 ## What it produces
 
-`idea.md`, authored against `../../references/idea-format.md`. While the run is keyless it is written under `$VAULT_PATH` — by default at `<container(source path)>/<candidate_slug>/idea.md`, where the container follows the vault prior-art derivation (a source already grouped under `Projects/Products/` lands beside its neighbours; everything else resolves to `Projects/ideas/`). Once a Jira key resolves, Phase 5 relocates the file to `$SPECS_PATH/specifications/<KEY>-<slug>/idea.md` and, behind a consent choice, hands it off onto the specs repo's default branch (opening a pull request) or reports it as relocated-but-not-yet-handed-off if the user declines.
+`idea.md`, authored against `../../references/idea-format.md`. While the run is keyless it is written under `$VAULT_PATH` — by default at `<container(source path)>/<candidate_slug>/idea.md`, where the container follows the vault prior-art derivation (a source already grouped under `Projects/Products/` lands beside its neighbours; everything else resolves to `Projects/ideas/`). Once a key resolves, Phase 5 relocates the file to `$SPECS_PATH/specifications/<KEY>-<slug>/idea.md` and, behind a consent choice, hands it off onto the specs repo's default branch (opening a pull request) or reports it as relocated-but-not-yet-handed-off if the user declines.
 
 **Relocation is `/idea`'s alone.** [`/create-prd <KEY>`](create-prd.md) finds `idea.md` at that path afterward and never moves it itself — an explicit `@<path>` argument to [`/create-prd`](create-prd.md) is a separate, out-of-contract read that is likewise never relocated.
 
@@ -63,7 +63,7 @@ Refine an inline prompt, grounding it against the mounted frontend repo:
 /dev-workflows:idea "Add a dark-mode toggle to the settings page" --ground-code frontend
 ```
 
-The run validates `$VAULT_PATH`, classifies the argument as a prompt, ingests it via `idea-reader`, grounds it against docs/vault prior art and the `frontend` repo, grills you (bounded, ≤10 questions) to fill the ambiguity gaps, writes `idea.md` under the vault, and — since no Jira key exists yet — ends Phase 5 by asking whether to mint one now or leave the idea in the vault for later.
+The run validates `$VAULT_PATH`, classifies the argument as a prompt, ingests it via `idea-reader`, grounds it against docs/vault prior art and the `frontend` repo, grills you (bounded, ≤10 questions) to fill the ambiguity gaps, writes `idea.md` under the vault, and — since no key exists yet — ends Phase 5 by asking whether to mint one now or leave the idea in the vault for later.
 
 ## See also
 

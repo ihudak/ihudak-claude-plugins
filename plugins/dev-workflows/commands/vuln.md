@@ -6,7 +6,7 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 
 Fix security vulnerabilities: $ARGUMENTS
 
-Each argument token is either `JIRA-ID:CVE-ID` (e.g. `PROJ-2423:CVE-2023-46604`) or a bare `CVE-ID` (e.g. `CVE-2023-46604`). Parse and filter each token, research all CVEs first, then fix them one at a time.
+Each argument token is either `ADDRESS:CVE-ID` (e.g. `PROJ-2423:CVE-2023-46604`) or a bare `CVE-ID` (e.g. `CVE-2023-46604`). Parse and filter each token, research all CVEs first, then fix them one at a time.
 
 ---
 
@@ -230,7 +230,7 @@ Resolve the branch name per `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` 
 
 When the repo documents no convention (§1.4), `<prefix>` comes from the §2 ladder with fallback `fix/`:
 
-- With Jira ID: `<prefix>/JIRA-ID-CVE-XXXX-XXXXX`
+- With Jira ID: `<prefix>/ADDRESS-CVE-XXXX-XXXXX`
 - Without Jira ID: `<prefix>/NOJIRA-CVE-XXXX-XXXXX` (or `<prefix>/CVE-XXXX-XXXXX` if the project omits placeholders)
 
 ### Commit message
@@ -241,7 +241,7 @@ Use the project's existing style. Default template:
 ```
 fix(deps): upgrade <library> to <version> to remediate <CVE-ID>
 
-Resolves <JIRA-ID>
+Resolves <ADDRESS>
 Fixes <CVE-ID> - <one-line CVE description>
 
 Vulnerable range: <range>
@@ -265,14 +265,14 @@ Co-authored-by: Claude <noreply@anthropic.com>
 ### PR
 
 - Base branch: `main` (fallback: `master`)
-- Title: `fix(deps): <library> upgrade to remediate <CVE-ID>` (append ` [<JIRA-ID>]` when present)
+- Title: `fix(deps): <library> upgrade to remediate <CVE-ID>` (append ` [<ADDRESS>]` when present)
 - Body: CVE summary, vulnerable range, version change made, classification, and test results (pass count before vs. after)
 
 ---
 
 ## Invariants (always enforced)
 
-- ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, jira-not-found, cancellation)
+- ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation)
 - ALWAYS classify **per CVE** after research
 - NEVER use Opus for a `MODERATE` fix unless the user explicitly asks for it
 - NEVER run tests for a `SIGNIFICANT` / `HIGH-RISK` CVE before the Opus review returns a non-BLOCK verdict

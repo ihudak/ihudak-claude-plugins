@@ -29,10 +29,15 @@ If a convention is found it defines the name's **shape**. Do not reshape it, do 
 
 For each placeholder in the documented pattern, decide where its value comes from:
 
+**Vendor names in this section are quoted, not used.** The tokens below are what a repository's own
+`CONTRIBUTING.md` may literally write — including a tracker's name — and this file's job is to
+recognise them. They are not this plugin's vocabulary and are deliberately left as they are; a sweep
+that genericises them would stop the reference matching the files it reads.
+
 | Segment kind | Recognised as | Filled from |
 |---|---|---|
 | **Identity** | `<your-name-or-initials>`, `<user>`, `<username>`, `<name>`, `<initials>`, `<prefix>` — or guide prose telling you to start with your name/initials | the **identity ladder** in §2 |
-| **Issue key** | `<JIRA-ISSUE-KEY>`, `<JIRA-TICKET-KEY>`, `<JIRA-KEY>`, `<TICKET>`, or a literal `noissue` / `NOISSUE` alternative | the run's already-resolved Jira key; its no-issue literal (matching the documented capitalisation) when the run has no key |
+| **Issue key** | `<JIRA-ISSUE-KEY>`, `<JIRA-TICKET-KEY>`, `<KEY>`, `<TICKET>`, or a literal `noissue` / `NOISSUE` alternative |  <!-- vendor-token-ok: these are tokens a repo's OWN convention file may literally contain, not this plugin's vocabulary --> the run's already-resolved key; its no-issue literal (matching the documented capitalisation) when the run has no key |
 | **Description** | `<short-branch-name>`, `<slug>`, `<name>`, `<rest>` | this command's own slug rule (§3) |
 | **Literal** | anything not a placeholder (`feat/`, `docs/`, separators) | used verbatim |
 
@@ -139,7 +144,7 @@ Used for the description segment (§1.2) or the §1.4 `<slug>`:
 - `/vuln` — `<CVE-ID>`
 - `/upgrade` — `upgrade-<component>-to-<version>`, or `upgrade-<first>-and-<N>-more` for a batch
 
-When the documented pattern has **no** issue-key segment but the run has a Jira key, the commands that are keyed (`/document` keyed mode, `/epics`-adjacent flows, `/implement` with a resolved key) prepend it to the slug — `<KEY>-<slug>` — matching their pre-existing behaviour. In the §1.4 no-convention case the same applies.
+When the documented pattern has **no** issue-key segment but the run has a key, the commands that are keyed (`/document` keyed mode, `/epics`-adjacent flows, `/implement` with a resolved key) prepend it to the slug — `<KEY>-<slug>` — matching their pre-existing behaviour. In the §1.4 no-convention case the same applies.
 
 If the assembled name already exists, append the first 7 chars of HEAD's SHA: `<name>-<short-sha>`.
 

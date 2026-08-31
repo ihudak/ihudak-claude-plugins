@@ -1,7 +1,7 @@
 # Product Requirements Document format (embedded authority)
 
 The canonical structure and per-section rules for a `prd.md` PRD file — one per PRD folder, its identity carried by the folder rather than by its own name (`references/addressing.md` §2, §4). `/create-prd` and `/update-prd` author
-against this file; `prd-reviewer` reviews against it, and `/release-notes` reads its Jira-mirror fields. The PRD is **product-level** (a PRD): what / why /
+against this file; `prd-reviewer` reviews against it, and `/release-notes` reads its former mirror fields. The PRD is **product-level** (a PRD): what / why /
 for-whom, **not** how — no implementation detail. A mandatory **spine** (always present) plus an
 **adapt-in menu** whose clusters are pulled only when the idea warrants them (never an empty section).
 
@@ -34,7 +34,7 @@ brd_key: <the BRD key this PRD was authored from via `/create-prd` on the BRD ro
 brd_parent: <that BRD's own parent key, from its brd-link.md; omit when it owns its source document, and omit outside the BRD route>
 depends_on: [ ... ]           # prerequisite BRD keys, from that brd-link.md's depends-on; omit when empty or outside the BRD route
 revision_of: <path to the archived prior PRD snapshot; written by `/update-prd` on refresh; omit otherwise>
-built_from_import: <YYYY-MM-DD of the Jira import the `/update-prd` refresh was built from; omit otherwise>
+built_from_import: <YYYY-MM-DD of the resolved folder the `/update-prd` refresh was built from; omit otherwise>
 workitem_key: <optional — your own tracker's identity for this work; the plugin never writes it>
 ---
 ```

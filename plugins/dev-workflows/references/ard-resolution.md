@@ -1,6 +1,6 @@
 # ARD resolution (embedded — shared reference)
 
-Given a Jira item, resolve any applicable **Architecture Requirements/Decision Document(s)** produced by
+Given a resolved item, resolve any applicable **Architecture Requirements/Decision Document(s)** produced by
 `/create-ard` and return a normalized **ARD context** — or **`none`**. Cited by `/create-ard`, `/design`,
 `/implement`, `/specify`, `/epics`, and `/ready` so the resolution logic, the **optional/no-regression** rule, and the deviation-record
 convention live in ONE place.

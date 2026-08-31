@@ -28,9 +28,9 @@ Then squash:
 - mechanics: `git add` the docs-repo changes → `git reset --soft <squash-base>`
   → one `git commit -m "<message>"`.
 - message follows `profile.commit_convention` when present (example-docs:
-  `<JIRA-KEY> <summary>`); for a repo with no such field, infer from recent
+  `<KEY> <summary>`); for a repo with no such field, infer from recent
   `git log` / `CONTRIBUTING` (a ticket-key prefix, or a conventional-commits
-  `docs:` prefix), else fall back to `<JIRA_KEY> <summary>`. The Jira key carries
+  `docs:` prefix), else fall back to `<KEY> <summary>`. The key carries
   traceability; the reader-visible changelog still must NOT name it.
 
 ## 3. Push (opt-in)
@@ -54,16 +54,15 @@ Classify the docs repo's `git remote get-url origin`:
 ## 5. PR draft (always; no API)
 
 Compose the draft and BOTH write and show it:
-- **write** to the vault project folder as `<JIRA_KEY>-pr-draft.md`
-  (`find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"`; ask if
+- **write** to the vault project folder as `<KEY>-pr-draft.md`
+  (`find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<KEY>*"`; ask if
   none) — the same destination convention as the release-notes / bug drafts.
-- **title**: per `commit_convention` (e.g. `<JIRA-KEY> <summary>`).
+- **title**: per `commit_convention` (e.g. `<KEY> <summary>`).
 - **body**: what was documented; the output files; the Phase 6.5
-  render-verification summary; deferred style/review/render items; a link back
-  to the Jira PRD.
+  render-verification summary; deferred style/review/render items; a link back to the PRD.
 - **DO-NOT-MERGE banner** at the very top WHEN Phase 5.8 recorded any
   `document-as-spec` / `skip-and-report` decision:
-  `> ⚠ DO NOT MERGE until <JIRA_KEY>-implementation-gaps.md is resolved.`
+  `> ⚠ DO NOT MERGE until <KEY>-implementation-gaps.md is resolved.`
 - **host footer**:
   - Bitbucket (Cloud / Server) → "Open a pull request in the web UI and paste
     the title + body above." (No API.)

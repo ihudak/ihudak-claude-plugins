@@ -36,7 +36,7 @@ Four pages orient you before you touch a command: [Getting started](getting-star
 - [`/brd-reconcile`](commands/brd-reconcile.md) — freeze the customer's returned answers as `[CD#n]` once an operator confirms each one, then sweep every dependent BRD and every stale cross-reference.
 - [`/brd-split`](commands/brd-split.md) — propose and key slices from the grounded picture, then walk every ledger row to a recorded fate.
 - [`/create-ard`](commands/create-ard.md) — author an Architecture Requirements/Decision Document for a PRD, or for one Epic inside it, grounded on the mounted code.
-- [`/create-prd`](commands/create-prd.md) — turn a refined idea plus a Jira key into a reviewed Product Requirements Document.
+- [`/create-prd`](commands/create-prd.md) — turn a refined idea plus a key into a reviewed Product Requirements Document.
 - [`/design`](commands/design.md) — take over a merged specification and author a reviewed engineering design, grounded strictly in the mounted code.
 - [`/docs-profile`](commands/docs-profile.md) — scan a docs repository and write or refresh the machine-readable profile `/document` consumes.
 - [`/document`](commands/document.md) — write or update product documentation: a one-shot direct edit, or the full keyed feature-documentation workflow.
@@ -48,11 +48,11 @@ Four pages orient you before you touch a command: [Getting started](getting-star
 - [`/prompt`](commands/prompt.md) — log a correction you just made to a command's output, then apply the fix directly.
 - [`/prompt-brainstorm`](commands/prompt-brainstorm.md) — log a correction, then hand off to `superpowers:brainstorming` to redesign it together.
 - [`/prompt-grill-me`](commands/prompt-grill-me.md) — log a correction, then grill the fix inline with a bounded interrogation.
-- [`/ready`](commands/ready.md) — verify a Jira status against the ARD/spec/design record, without changing it.
+- [`/ready`](commands/ready.md) — verify a declared status against the ARD/spec/design record, without changing it.
 - [`/release-notes`](commands/release-notes.md) — draft a release-notes Summary for a ticket, shaped by the destination it resolves to.
-- [`/specify`](commands/specify.md) — author an org-standard specification for one Jira item through a relentless grill.
+- [`/specify`](commands/specify.md) — author an org-standard specification for one item through a relentless grill.
 - [`/statusline`](commands/statusline.md) — install the plugin's multi-line status line into your Claude Code settings.
-- [`/update-prd`](commands/update-prd.md) — refresh an existing Product Requirements Document against its Jira source.
+- [`/update-prd`](commands/update-prd.md) — refresh an existing Product Requirements Document.
 - [`/upgrade`](commands/upgrade.md) — plan and execute a library, framework, runtime, or build-tool upgrade.
 - [`/vuln`](commands/vuln.md) — research and fix a CVE, one dependency or code change at a time.
 

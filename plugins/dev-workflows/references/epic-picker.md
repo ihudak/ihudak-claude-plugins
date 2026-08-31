@@ -1,7 +1,7 @@
 # Progress-aware Epic picker — Shared Reference
 
 How an **Epic-unit** command chooses which Epic to work on when it was given a PRD folder rather than
-an Epic folder. Extracted from the retired Jira-input front-end, which owned it only because that
+an Epic folder. Extracted from the retired tracker-input front-end, which owned it only because that
 front-end happened to be where key classification lived; nothing about the pattern was ever
 tracker-specific.
 

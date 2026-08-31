@@ -31,7 +31,7 @@ runs a fix cycle and re-reviews once.
 - **Inherited invariants (Epic-level, BLOCKER):** the Epic ARD must not contradict an inherited PRD-level `AD#N`.
 - **Altitude purity (MAJOR):** a PRD-level ARD carries no per-repo detailed solutions (that is `/design`); an Epic-level ARD stays architecture, not an implementation plan.
 - **Open questions:** ungrounded/descoped repos and unresolved decisions are recorded, not silently dropped.
-- **Identifier integrity:** `[AD#N]` unique + contiguous; cross-references point at existing IDs. A dash-form ID (`[AD-1]`, …) is a **BLOCKER** — Jira auto-links it to an unrelated ticket on paste, and the vault importer rewrites it into `[[[AD-1]]]` on export. <!-- id-grammar-ok: BLOCKER rule must name the forbidden form -->
+- **Identifier integrity:** `[AD#N]` unique + contiguous; cross-references point at existing IDs. A dash-form ID (`[AD-1]`, …) is a **BLOCKER** — a tracker auto-links it to an unrelated ticket on paste, and the vault importer rewrites it into `[[[AD-1]]]` on export. <!-- id-grammar-ok: BLOCKER rule must name the forbidden form -->
 
 ## Output contract
 

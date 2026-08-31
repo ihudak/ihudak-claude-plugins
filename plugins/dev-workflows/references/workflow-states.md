@@ -1,6 +1,6 @@
 # Workflow states (embedded — shared reference)
 
-Maps each Jira **workflow status** on the PRD and Epic ladders to (a) its owning role,
+Maps each **workflow phase** on the PRD and Epic ladders to (a) its owning role,
 (b) the pipeline command that drives the transition into it, and (c) the **expected artifacts**
 that should exist at that status. This is the rubric `readiness-reviewer` applies and the
 source for the readiness verdict; it also feeds the PM/PA/PE/Dev workflow graph.
@@ -42,7 +42,7 @@ stated cost of removing the mirror, not an oversight.
 | In Review | Dev | /implement | PRs in review (past the gate) |
 | Closed | Dev | — | merged/done |
 
-> When the PE has pre-created empty Epic shells in Jira (one per team), `/epics <PRD>` detects and **refines** them in place — partitioning the PRD scope across teams — instead of generating net-new Epics. Same `Open → Epic draft` transition; the refined drafts are keyed `<EPIC-KEY>.md` and carry a `**Team:**` line.
+> When the PE has pre-created empty Epic folders (one per team), `/epics <PRD>` detects and **refines** them in place — partitioning the PRD scope across teams — instead of generating net-new Epics. Same `Open → Epic draft` transition; the refined drafts are keyed `<EPIC-KEY>.md` and carry a `**Team:**` line.
 
 ## Readiness targets (for `/ready`)
 

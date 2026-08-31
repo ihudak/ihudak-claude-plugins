@@ -9,10 +9,10 @@ Researches CVEs via NVD, applies dependency and code fixes one at a time, and ve
 ## Synopsis
 
 ```
-/vuln <JIRA-ID:CVE-ID | CVE-ID> [<JIRA-ID:CVE-ID | CVE-ID>…]
+/vuln <ADDRESS:CVE-ID | CVE-ID> [<ADDRESS:CVE-ID | CVE-ID>…]
 ```
 
-Each argument token is either `JIRA-ID:CVE-ID` (e.g. `PROJ-2423:CVE-2023-46604`) or a bare `CVE-ID` (e.g. `CVE-2023-46604`) — multiple tokens fix multiple CVEs in one run. A non-CVE token (`CWE-*`, an OWASP pattern) is filtered out with a warning rather than passed through. Every token is parsed and every CVE researched **before** any fix is applied.
+Each argument token is either `ADDRESS:CVE-ID` (e.g. `PROJ-2423:CVE-2023-46604`) or a bare `CVE-ID` (e.g. `CVE-2023-46604`) — multiple tokens fix multiple CVEs in one run. A non-CVE token (`CWE-*`, an OWASP pattern) is filtered out with a warning rather than passed through. Every token is parsed and every CVE researched **before** any fix is applied.
 
 ## How it runs
 

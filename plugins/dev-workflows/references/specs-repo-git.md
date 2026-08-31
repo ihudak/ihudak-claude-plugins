@@ -129,7 +129,7 @@ its preflight in order to obtain a key.
 where the two routes diverge:
 
 - **On the `/idea` route** it is structurally keyless here: its key is minted by
-  the Jira round-trip in a later phase, and keyless is the right classification
+  the handoff in a later phase, and keyless is the right classification
   for it — a new PRD must not stack on another PRD's branch.
 - **On the BRD route it is not keyless**, and classifying it so is a defect
   rather than a conservative default. The positional token is a **BRD key**,
@@ -148,7 +148,7 @@ where the two routes diverge:
 identity.** This set exists to match branch names in §3.5 and nothing else; a
 a longer key is matched here exactly as a shorter one is (§3.5,
 *A two-segment key resolves exactly as it did before*). `key` is minted by
-the Jira round-trip, stays two-segment, and is not written by this route's
+the handoff, stays two-segment, and is not written by this route's
 authoring phase at all.
 
 **This run key set is the preflight's, and only the preflight's.** It exists to

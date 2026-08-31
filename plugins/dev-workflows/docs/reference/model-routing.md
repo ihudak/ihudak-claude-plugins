@@ -26,7 +26,7 @@ All fourteen pipeline commands that load the `model-routing` skill run this clas
 
 ## What floors a classification
 
-`/implement` has one classification floor beyond the ordinary triggers: **multi-source input**. Handing it more than one code repository, or any directory input (an exported Jira ticket folder, or a spec/design folder), floors the run at `SIGNIFICANT` even if nothing else about the change looks that size — a large multi-source brief is cross-cutting by nature, and it also triggers a parallel per-repo scan fan-out documented in the full policy below. The floor is overridable at plan approval if you judge the work genuinely smaller than its input footprint suggests.
+`/implement` has one classification floor beyond the ordinary triggers: **multi-source input**. Handing it more than one code repository, or any directory input (a saved file folder, or a spec/design folder), floors the run at `SIGNIFICANT` even if nothing else about the change looks that size — a large multi-source brief is cross-cutting by nature, and it also triggers a parallel per-repo scan fan-out documented in the full policy below. The floor is overridable at plan approval if you judge the work genuinely smaller than its input footprint suggests.
 
 ## The fallback chain
 

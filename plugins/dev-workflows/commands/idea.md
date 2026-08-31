@@ -1,6 +1,6 @@
 ---
 name: idea
-description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (with wikilinks/images), a community post, or an exported Jira ticket (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Writes to the vault (keyless); no Jira, no code; once a Jira key resolves it relocates `idea.md` into `$SPECS_PATH/specifications/<KEY>-<slug>/`, and on a completed handoff also opens a pull request for it (`references/phase-handoff.md` §2) — declining leaves it relocated but not on the default branch; its session artifacts are committed by `commit-artifacts`.
+description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (with wikilinks/images), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Writes to the vault (keyless); no code change; once a key resolves it relocates `idea.md` into `$SPECS_PATH/specifications/<KEY>-<slug>/`, and on a completed handoff also opens a pull request for it (`references/phase-handoff.md` §2) — declining leaves it relocated but not on the default branch; its session artifacts are committed by `commit-artifacts`.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -9,8 +9,8 @@ Refine an idea into `idea.md`: $ARGUMENTS
 `/idea` is the **front door of the PRD-creation flow** (PM phase) — upstream of `/create-prd` (future) and
 the existing pipeline. It ingests one source, refines it through a grill, and writes a lean one-page
 `idea.md` (per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`) that seeds the Product Requirements Document. It is
-**not** a PRD: no Jira write, no code change. Output lands keyless in the vault;
-`/idea` relocates it under `$SPECS_PATH` itself once a Jira key exists (Phase 5); `/create-prd <KEY>` then finds it there and does not move it.
+**not** a PRD: no code change. Output lands keyless in the vault;
+`/idea` relocates it under `$SPECS_PATH` itself (Phase 5); `/create-prd <KEY>` then finds it there and does not move it.
 
 Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless (until convergence).
 `--no-docs` and `--no-prior-art` each turn off one grounding source (see Phase 1).
@@ -187,16 +187,16 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
 
 - **Path (container default):** `<container(source path)>/<candidate_slug>/idea.md`, where the container
   is derived per `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md`. A source already sitting under a
-  `Projects/Products/` grouper lands beside its neighbours in that grouper; an inline prompt, a Jira key
+  `Projects/Products/` grouper lands beside its neighbours in that grouper; an inline prompt, a key
   with no vault item, and any source outside `Projects/Products/` all resolve to `Projects/ideas/`
   exactly as before.
 - **Write-path gate.** Assemble **one** `choices:` array, in this row order, and present it verbatim:
 
   | Row | Included when | Text |
   |---|---|---|
-  | 1 | `provenance: prd` | `Rewrite <KEY> — reuse its Jira key; write into <item-dir>/` when the finder resolved one, else `Rewrite <KEY> — reuse its Jira key; write to <container default>/<candidate_slug>/` |
+  | 1 | `provenance: prd` | `Rewrite <KEY> — reuse its key; write into <item-dir>/` when the finder resolved one, else `Rewrite <KEY> — reuse its key; write to <container default>/<candidate_slug>/` |
   | 2 | `area_proposal.path` non-null, `confidence: high`, **and** it differs from the container default | `New idea under <area_proposal.path>/<candidate_slug>/` |
-  | 3 | always | `New idea — a new Jira key will be minted; write to <container default>/<candidate_slug>/ as detected` |
+  | 3 | always | `New idea — a new key will be chosen; write to <container default>/<candidate_slug>/ as detected` |
   | 4 | always | `Enter a different path` |
   | 5 | always | `Cancel` |
   | 6 | always | `Other… (describe)` |
@@ -211,24 +211,24 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
   **When there is no top match at all — prior-art grounding OFF, an invalid `$VAULT_PATH`, a non-vault
   write root, or the finder returning `EMPTY` — recommend row 3.** That state is reachable precisely
   because row 1 fires on `provenance: prd` alone, and nothing is then known about whether this is a
-  rewrite; the neutral default is the one that mints no Jira key. Every branch must name a row that is
+  rewrite; the neutral default is the one that mints no key. Every branch must name a row that is
   actually in the array, or the gate renders with nothing marked. Never recommend row 1 without
   `supersedes_self` — extending and paralleling a PRD are as common as rewriting one, and a wrong
-  default here silently mints or fails to mint a Jira key. Validate every chosen path sits inside the
+  default here silently mints or fails to mint a key. Validate every chosen path sits inside the
   resolved write root and is writable.
 
   Record the choice as **`prd_disposition`** — `rewrite` for row 1, `new` for every other row — and carry
   it into Phase 5. **When the gate does not fire at all, `prd_disposition` is `new`.** Row 1 keys only on
   `provenance: prd`, never on the finder resolving anything, so a `prd` source always reaches this question
   even when prior-art grounding is OFF or the key has no vault work document — the disposition decides
-  whether the user is told to mint a Jira key, which is not an advisory matter and must not depend on an
+  whether the user is told to choose a key, which is not an advisory matter and must not depend on an
   advisory, user-disableable subsystem. This is the only point in the flow where the three shapes of a supplied PRD (extend,
   parallel, rewrite-in-place) can be told apart.
 - **`## Prior art`:** write the section per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` when
   Phase 2.5 returned any `prior_art` entry **or** the source is `prd`; omit it entirely otherwise. A `prd`
   source contributes its Phase 2 `tracked` block (key, status, summary) even when prior-art grounding is
   OFF — it is prior art the user handed over, not something the finder discovered — and appears there
-  **and** in `sources:`. Merge by Jira key so a supplied PRD the finder also matched yields one bullet: the finder's entry wins,
+  **and** in `sources:`. Merge by key so a supplied PRD the finder also matched yields one bullet: the finder's entry wins,
   because it is a strict superset of `tracked` (it adds `relation`, `match_reason`, and a vault path). A
   finder match with `key: null` cannot collide — a supplied PRD always has a key.
 - **`## Feasibility grounding`:** write the section per
@@ -254,8 +254,8 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
 Report where `idea.md` was written and its `status`, then offer the next phase — **adapted to status**:
 
 - **`prd_disposition: rewrite`, `status: refined`** — the key is already known from the `prd` source, so there is **no round trip for the key** — but the git consent choice below still applies; a known key says nothing about whether the user consented to a branch and a pull request. Relocate `idea.md` into the PRD folder's `idea.md` — resolve the folder with `resolve-address <KEY>` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), which searches every level §3 bounds and carries §5's legacy fallback. `status: absent` → create it as `PRD-<KEY>-<slug>/` per §2's convention; `ambiguous` → stop, naming every match. Relocating into an existing folder wherever it sits is what keeps `/create-prd`'s own rung-1 lookup — which resolves through the same entry point — pointed at this file rather than at a sibling folder this step would otherwise have created beside it, then present `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim: `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`. On the first choice, execute `handoff-to-main` (§2) with `prefix: idea`, `feature_folder` = the relocation target above (the resolved PRD folder), `deliverable_paths` = the relocated file, `title: <KEY> Refine idea for <summary>`, `body_facts` = the idea's Problem/Goal one-liner, its `prd_disposition`, and any open prior-art matches, then report the §4.1 outcome line. On the second choice, report the §4.1 declined-outcome line — `idea.md` is relocated but not on the default branch; the next phase will stop until it is.
-- **`prd_disposition: new`, `status: refined`** — ask: `choices: ["Create the Jira workitem now and give me the key — I'll complete the handoff (Recommended)", "Leave it in the vault — I'll hand it off later", "Cancel", "Other… (describe)"]`. On a key matching `^[A-Z][A-Z0-9_]*-\d+$`, relocate `idea.md` to `$SPECS_PATH/specifications/<KEY>-<slug>/idea.md` exactly as above, then present the same §4.3 consent choice and proceed exactly as above — `handoff-to-main` on its first option, the §4.1 declined-outcome line on its second. On the second choice of **this** bullet's own Jira-key offer ("Leave it in the vault…"), report plainly: *"Not handed off — `idea.md` stays at `<path>`. `/create-prd <KEY>` will not find it; use the out-of-contract form `/dev-workflows:create-prd <KEY> @<path>`."*
-- **`status: draft`** (N open `[NEEDS CLARIFICATION]`) — **never hand off**, regardless of `prd_disposition`, and do not ask. By the governing principle the phase is not finished, so there is nothing to hand over. Report the N open items and offer `--deep` (`/dev-workflows:idea @<idea.md path> --deep`), or the out-of-contract route (`/dev-workflows:create-prd <KEY-or-JIRA-KEY> @<idea.md path>`, which will grill you on the rest). State explicitly that no branch or pull request was created.
+- **`prd_disposition: new`, `status: refined`** — ask: `choices: ["Choose the key now and give me the key — I'll complete the handoff (Recommended)", "Leave it in the vault — I'll hand it off later", "Cancel", "Other… (describe)"]`. On a key matching `^[A-Z][A-Z0-9_]*-\d+$`, relocate `idea.md` to `$SPECS_PATH/specifications/<KEY>-<slug>/idea.md` exactly as above, then present the same §4.3 consent choice and proceed exactly as above — `handoff-to-main` on its first option, the §4.1 declined-outcome line on its second. On the second choice of **this** bullet's own key offer ("Leave it in the vault…"), report plainly: *"Not handed off — `idea.md` stays at `<path>`. `/create-prd <KEY>` will not find it; use the out-of-contract form `/dev-workflows:create-prd <KEY> @<path>`."*
+- **`status: draft`** (N open `[NEEDS CLARIFICATION]`) — **never hand off**, regardless of `prd_disposition`, and do not ask. By the governing principle the phase is not finished, so there is nothing to hand over. Report the N open items and offer `--deep` (`/dev-workflows:idea @<idea.md path> --deep`), or the out-of-contract route (`/dev-workflows:create-prd <KEY> @<idea.md path>`, which will grill you on the rest). State explicitly that no branch or pull request was created.
 
 Also report any prior art found — matched keys with their statuses, and the alternative container path
 when one exists — **whether or not the gate fired**, so the user can relocate before `/create-prd` makes

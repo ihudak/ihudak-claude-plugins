@@ -1,10 +1,10 @@
 ---
 name: create-ard
-description: Architecture-authoring workflow (Product Architect phase, sub-project 3 of the PRD-creation flow). Grounds on the mounted implementation repos (architect-driven discovery — no PRs) and authors an ARD for a PRD (/create-ard <PRD-KEY>) or an Epic (/create-ard <PRD-KEY> <Epic-KEY>, inheriting the PRD-level ARD), against references/ard-format.md, gated by the Opus ard-reviewer, written to $SPECS_PATH/specifications/<KEY>-<slug>/. Optional; scoped; product-architecture level (no code writing). Introduces the pa role. the BRD route seeds the run from a reconciled BRD instead of a PRD: it resolves the BRD folder at either level, reads that folder's architecture-altitude ard-seed.md, the architecture decisions in decisions.md and the verified [CG#n]/[DG#n] findings, seeds the ARD's grounding-findings section and its AD#N from them, freezes every [VD#n]/[CD#n] against the grill, runs no the folder read and gates no PRD, and marks each consumed item consumed_by: ARD.
+description: Architecture-authoring workflow (Product Architect phase, sub-project 3 of the PRD-creation flow). Grounds on the mounted implementation repos (architect-driven discovery — no PRs) and authors an ARD for a PRD (/create-ard <PRD-KEY>) or an Epic (/create-ard <PRD-KEY> <Epic-KEY>, inheriting the PRD-level ARD), against references/ard-format.md, gated by the Opus ard-reviewer, written to $SPECS_PATH/specifications/<KEY>-<slug>/. Optional; scoped; product-architecture level (no code writing). Introduces the pa role. the BRD route seeds the run from a reconciled BRD instead of a PRD: it resolves the BRD folder at either level, reads that folder's architecture-altitude ard-seed.md, the architecture decisions in decisions.md and the verified [CG#n]/[DG#n] findings, seeds the ARD's grounding-findings section and its AD#N from them, freezes every [VD#n]/[CD#n] against the grill, runs no PRD read and gates no PRD, and marks each consumed item consumed_by: ARD.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
-Author an Architecture Requirements/Decision Document for the Jira item: $ARGUMENTS
+Author an Architecture Requirements/Decision Document for the resolved item: $ARGUMENTS
 
 `/create-ard` is **sub-project 3 of the PRD-creation flow** — the **Product Architect (PA)** phase. It
 grounds on the mounted implementation repos and authors an **ARD** that establishes the architecture
@@ -19,7 +19,7 @@ invariants the downstream (`/specify`, `/design`, `/implement`) will later inher
 Usage: `/create-ard <ADDRESS> [--no-docs]`, where `<ADDRESS>` is a key or an `@<path>`.
 
 It authors architecture only — no code writing; grounding is **architect-driven** (there are no PRs at
-this stage). Zero Jira API.
+this stage). Zero external calls.
 
 ---
 
@@ -66,7 +66,7 @@ this stage). Zero Jira API.
 
 **Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier run, retry an artifact commit that failed to push, and settle the branch. Prompt-free and silent when the specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal `commit-artifacts` step skips on it.
 
-**Gate the PRD.** Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against the PRD file in `specifications/<PRD>-<vslug>/` — **resolve its actual name on the ref first**: `git -C "$SPECS_PATH" ls-tree --name-only "origin/<default>" "specifications/<PRD>-<vslug>/"` filtered to `<PRD>_*.md`, falling back to the derived `<PRD>_<vslug>.md` only when that listing is empty. A human-adjusted slug is a supported state — `/create-prd` and this command's own Phase 2 reader both locate the PRD by glob plus frontmatter, and the feature folder is matched by key-number for the same reason — so gating an exact derived filename would report `absent` for a PRD that is present, and would let a slug-drifted file on a plugin branch escape the rows D/E stop entirely. Map its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4. Otherwise (`stopped: false`): on `pass`/`pass_amending`, read the authored PRD in Phase 2 as today; on `absent`, the existing the folder read fallback applies — but report it: *"No authored PRD on `<default>` for `<PRD>` — architecting from the Jira export at `<path>`. If a PRD exists on a branch, this run would have stopped; it does not, so none does."*; on `unmanaged`, behave exactly as before this feature — reachable here even after step 2's own `$SPECS_PATH` check, since that check only rejects an unset value, never an invalid path or a non-git directory.
+**Gate the PRD.** Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against the PRD file in `specifications/<PRD>-<vslug>/` — **resolve its actual name on the ref first**: `git -C "$SPECS_PATH" ls-tree --name-only "origin/<default>" "specifications/<PRD>-<vslug>/"` filtered to `<PRD>_*.md`, falling back to the derived `<PRD>_<vslug>.md` only when that listing is empty. A human-adjusted slug is a supported state — `/create-prd` and this command's own Phase 2 reader both locate the PRD by glob plus frontmatter, and the feature folder is matched by key-number for the same reason — so gating an exact derived filename would report `absent` for a PRD that is present, and would let a slug-drifted file on a plugin branch escape the rows D/E stop entirely. Map its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4. Otherwise (`stopped: false`): on `pass`/`pass_amending`, read the authored PRD in Phase 2 as today; on `absent`, the existing the folder read fallback applies — but report it: *"No authored PRD on `<default>` for `<PRD>` — architecting from the resolved folder at `<path>`. If a PRD exists on a branch, this run would have stopped; it does not, so none does."*; on `unmanaged`, behave exactly as before this feature — reachable here even after step 2's own `$SPECS_PATH` check, since that check only rejects an unset value, never an invalid path or a non-git directory.
 
 **On the BRD route the PRD gate does not run, because the PRD is not this route's content source.**
 The gate exists so this command never architects from a PRD that is unmerged or stale; here the
@@ -129,7 +129,7 @@ Read the PRD from the folder `resolve-address <PRD>` returned (`${CLAUDE_PLUGIN_
 `specification.md` and `design.md` where present, plus the parent PRD folder's `prd.md` for the
 product frame this Epic sits in.
   >
-  > jira_export_root: [resolved jira_export_root]
+  > prd_dir: [resolved prd_dir]
   > key:         [<PRD> for a PRD-level run, <EPIC> for an Epic-level run]
   > depth:      prd-only (PRD-level) | full (Epic-level, scoped to focus_key)"
 
@@ -331,16 +331,16 @@ already holds and none of them asked of the user:
 
 Before the review gate, run the deterministic checks in
 `${CLAUDE_PLUGIN_ROOT}/references/pre-lint.md` against the drafted `ard.md`: the **Universal checks**,
-the **Jira-key collision** check (run on the ARD body below the frontmatter), and the **ARD** block
+the **key-collision** check (run on the ARD body below the frontmatter), and the **ARD** block
 (incl. that every `### [AD#N]` carries `**Binds:**` / `**Prevents:**` / `**Rule:**`). Surface every
 finding; inline-fix the mechanical ones (renumber a duplicate `[AD#N]`, delete a stray placeholder
 token); leave content gaps for the grill/author. **Advisory** — never blocks;
 proceed to Phase 5 once findings are surfaced. `ard-reviewer` remains the gate.
 
-**On the BRD route, a `<BRD-KEY>` in the ARD body is the Jira-key check's third branch, not its
+**On the BRD route, a `<BRD-KEY>` in the ARD body is the auto-link check's third branch, not its
 second.** The body legitimately names prerequisite BRDs — a `will-change` finding's prerequisite, a
 `conditional_on` decision's — and the collision grep matches the leading two segments of any of them.
-A BRD key is not a requirement ID and it is **not a real Jira ticket**: it is a folder name under
+A BRD key is not a requirement ID and it is **not a real tracker ticket**: it is a folder name under
 `$SPECS_PATH`, validated for shape and never checked against a tracker
 (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). So it falls to the "neither" branch —
 **MINOR, left exactly as written, reported**. Never wrap it as `[[KEY-123]]`: that branch is for a key
@@ -411,8 +411,7 @@ from a re-derived title. That name collides with neither `/dev-workflows:create-
     this run produced, so it carries no merge clause. The test that used to guard it — an export
     directory existing under the key — guarded a lookup that no longer happens.
   - **`/dev-workflows:design` is offered on this route by neither branch.** It takes over a merged
-    `specification.md` — a file this run did not write — and resolves its own key through the Jira
-    export. The path to it runs through the first option: `/dev-workflows:specify <BRD-KEY>
+    `specification.md` — a file this run did not write — and resolves its own key through the specs tree. The path to it runs through the first option: `/dev-workflows:specify <BRD-KEY>
     the BRD route` writes that specification, and its own next-step offer is where `/dev-workflows:design`
     is named under the conditions that make it resolvable.
   - **There is no Epic fan-out on this route.** the BRD route is BRD-level and takes no second

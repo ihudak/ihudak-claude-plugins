@@ -4,11 +4,11 @@
 #   • /implement, /vuln, /upgrade       → full (model-routing + git status +
 #                                         recent commits + small-repo directory
 #                                         listing); /implement also preloads
-#                                         Jira context when its argument is a
-#                                         JiraID (keyed via the shared
-#                                         Jira-input front-end)
-#   • /document                         → Jira context iff the argument is a
-#                                         JiraID (e.g. /document PRODUCT-1234);
+#                                         specs context when its argument is a
+#                                         address (keyed via the shared
+#                                         address resolver)
+#   • /document                         → specs context iff the argument is a
+#                                         address (e.g. /document PRODUCT-1234);
 #                                         free-text / @file → silent (direct-edit
 #                                         mode owns its own git hygiene and never
 #                                         invokes Opus)
@@ -16,11 +16,11 @@
 #                                         + git branch only if cwd is inside
 #                                         a git repo (no model-routing, no full
 #                                         status/log, no directory listing). Both
-#                                         accept a JiraID or an imported-Jira
+#                                         accept an address or a specs
 #                                         directory via the shared front-end.
 #   • /docs-profile                     → not matched (no context injected)
 #
-# emit_jira_context also surfaces $SPECS_PATH alongside $VAULT_PATH/$REPOS_PATH.
+# emit_specs_context also surfaces $SPECS_PATH alongside $VAULT_PATH/$REPOS_PATH.
 #
 # Exits immediately (near-zero overhead) if the message doesn't match.
 # Always exits 0 — must never block Claude.
@@ -85,8 +85,8 @@ emit_dir_listing_if_small() {
     fi
 }
 
-emit_jira_context() {
-    echo "=== Auto-injected project context (Jira workflow) ==="
+emit_specs_context() {
+    echo "=== Auto-injected project context (specs workflow) ==="
     if [[ -n "${VAULT_PATH:-}" ]]; then
         echo "VAULT_PATH: $VAULT_PATH"
     else
@@ -109,21 +109,21 @@ case "$cmd" in
         emit_model_routing
         emit_git_full
         emit_dir_listing_if_small
-        # /implement <JiraID> is keyed — also preload Jira context.
+        # /implement <address> is keyed — also preload specs context.
         if [[ "$cmd" == "implement" && "$prompt" =~ ^/implement[[:space:]]+[A-Z][A-Z0-9]+-[0-9]+ ]]; then
-            emit_jira_context
+            emit_specs_context
         fi
         ;;
     document)
-        # Mode-aware: a JiraID argument → Jira context; free-text / @file → silent
+        # Mode-aware: an address argument → specs context; free-text / @file → silent
         # (direct-edit mode owns its own git hygiene and never invokes Opus).
         if [[ "$prompt" =~ ^/document[[:space:]]+[A-Z][A-Z0-9]+-[0-9]+ ]]; then
-            emit_jira_context
+            emit_specs_context
         fi
         ;;
     epics|release-notes)
-        # Jira-driven, vault + repos context.
-        emit_jira_context
+        # Keyed, specs + repos context.
+        emit_specs_context
         ;;
     *)
         # Unreachable given the regex; exit silently if the regex is ever widened.

@@ -28,7 +28,7 @@ Every task MUST be classified into exactly one of:
 - Concurrency, caching, transactions, locking, retries, idempotency, async/queue processing.
 - Payment, billing, audit, compliance, PII, or other security-sensitive logic.
 - Changes touching **more than 3–5 non-test files**.
-- **Multi-source input** — `/implement` was given more than one code repository, or any directory input (an exported Jira ticket folder, or a spec/design folder). Large multi-source briefs are cross-cutting by nature; this floors the task at `SIGNIFICANT`. See §8 for the fan-out scan this triggers. The floor is overridable at plan approval if the user judges the work genuinely smaller than its input footprint.
+- **Multi-source input** — `/implement` was given more than one code repository, or any directory input (a saved file folder, or a spec/design folder). Large multi-source briefs are cross-cutting by nature; this floors the task at `SIGNIFICANT`. See §8 for the fan-out scan this triggers. The floor is overridable at plan approval if the user judges the work genuinely smaller than its input footprint.
 - Unclear requirements, large unknowns, or otherwise high blast radius.
 
 `HIGH-RISK` is the same list with an additional severity multiplier — pick it
@@ -304,7 +304,7 @@ generalizes the pattern `/epics` already uses.
 Fan out when **any** of these structural facts hold for the invocation:
 
 - more than one code repository is referenced;
-- an exported Jira ticket folder is supplied;
+- a saved file folder is supplied;
 - a spec/design folder is supplied.
 
 Counting files or bytes is explicitly **not** used — the trigger is the shape

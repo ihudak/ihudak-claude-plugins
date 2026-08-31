@@ -377,7 +377,7 @@ subdir. Walk top-down; stop at the first tier that applies:
    an existing, writable dir) ->
    `$VAULT_PATH/dev-workflows/cost/<sid8>.md` with the loud notice:
    `⚠ $SPECS_PATH unavailable — saved to your vault; it will NOT auto-aggregate to the maintainer.`
-4. `source = directory` (imported Jira dir, no specs/vault) -> beside the
+4. `source = directory` (a passed directory, no specs/vault) -> beside the
    imported directory.
 5. Nothing resolvable -> **report-only** in the run output. **NEVER write into the
    current working directory** — it may be a code repo.
@@ -403,7 +403,7 @@ summarized by date / session / commands / total) and offers to relocate their
 entries into `<PRD-dir>/dev-workflows/cost/<sid8>.md`:
 
 - **Same-session `<sid8>` match is pre-selected** as the likely one -> the
-  create-in-markdown -> create-in-Jira -> import -> keyed-command flow becomes
+  create-in-markdown -> keyed-command flow becomes
   effectively one tap.
 - New-session pending files are listed for the user to pick.
 - No match -> leave for manual relocation, or accept the partial loss.

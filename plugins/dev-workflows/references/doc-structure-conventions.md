@@ -12,7 +12,7 @@ Consumed by `doc-writer`, `doc-planner`, and `doc-reviewer`.
 
 ## 1. The traceability boundary
 
-**The rendered page carries no source provenance.** Jira keys, PR URLs, and `<!-- KEY: … -->` HTML
+**The rendered page carries no source provenance.** keys, PR URLs, and `<!-- KEY: … -->` HTML
 comments belong in the commit message and in the run's handoff — never in body prose, never in a
 changelog entry, never as a comment in the markdown.
 
@@ -23,17 +23,17 @@ where a `[[KEY]]` wikilink is the native idiom, resolves, and is the required tr
 | Where | Carries |
 |---|---|
 | Rendered page | The customer-facing claim only. |
-| Commit message | The Jira key and the summary (`profile.commit_convention`). |
-| Run handoff / final report | Per-claim attribution to Jira keys and PR URLs. |
+| Commit message | The key and the summary (`profile.commit_convention`). |
+| Run handoff / final report | Per-claim attribution to resolved keys and PR URLs. |
 
 A changelog entry is reader-visible "what changed on this page" prose, so it is covered by the rule
-above: a Jira key never belongs in it. `doc-writer.md`, `doc-planner.md`, and `commands/document.md`
+above: a key never belongs in it. `doc-writer.md`, `doc-planner.md`, and `commands/document.md`
 each state that instance; this section is their authority — they are instances of this rule, not
 competing ones.
 
 **One exception.** `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.6 defines an
 `<!-- intentional-discrepancy: … -->` HTML comment that IS written into the rendered page, and its
-text does cite a Jira key. It is a user-decided gap flag, not provenance, and `doc-reviewer`'s
+text does cite a key. It is a user-decided gap flag, not provenance, and `doc-reviewer`'s
 Source-code accuracy dimension checks for it. Do not remove this marker as a stray provenance
 comment; see `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.6 for its exact format.
 

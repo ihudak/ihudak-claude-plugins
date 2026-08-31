@@ -1,6 +1,6 @@
 # /release-notes
 
-Drafts a customer-facing release-notes summary for a Jira Product Requirements Document or ticket, for the PM to paste into Jira's release-notes field.
+Drafts a customer-facing release-notes summary for a resolved Product Requirements Document or ticket, for the PM to publish wherever their release-notes field.
 
 ## Who runs it
 
@@ -8,12 +8,12 @@ Drafts a customer-facing release-notes summary for a Jira Product Requirements D
 
 **Epic presence is deliberately not part of the signal.** A PRD can have drafted Epics — via [`/epics`](epics.md) — while still entirely in PM/PE hands: nothing about an Epic draft implies engineering has started on it. Keying the discriminator on Epics would misattribute that ordinary PM-phase PRD as a dev run. Specs and designs are the right signal because they can only exist once [`/specify`](specify.md) or [`/design`](design.md) has actually run against the PRD — an Epic drafted by `/epics` never gets close to producing either.
 
-**What differs between the two runs is narrower than the phase label suggests.** The command asks the same questions, reads the same Jira hierarchy, offers the same optional diff grounding, and runs the same style gate regardless of which phase it infers — there is no branch in `/release-notes`'s own phases keyed on `run_phase`. The one place it matters is the **Feature update** documentation link: on the PM run the feature isn't built yet, so no link is offered or asked for at all; on the dev run, the author may supply a redirect short link that will later point at the page `/document` publishes. Everything else — the draft's shape, its destination, its style check — is identical either way.
+**What differs between the two runs is narrower than the phase label suggests.** The command asks the same questions, reads the same PRD hierarchy, offers the same optional diff grounding, and runs the same style gate regardless of which phase it infers — there is no branch in `/release-notes`'s own phases keyed on `run_phase`. The one place it matters is the **Feature update** documentation link: on the PM run the feature isn't built yet, so no link is offered or asked for at all; on the dev run, the author may supply a redirect short link that will later point at the page `/document` publishes. Everything else — the draft's shape, its destination, its style check — is identical either way.
 
 ## Synopsis
 
 ```
-/release-notes <JiraID | jira-export-dir> [<Epic-KEY>]
+/release-notes <ADDRESS> [--version <v>] [--no-docs]
 ```
 
 `/release-notes` is **address-required** — there is no free-text or `@file` input; a prompt with no positional address stops with `RELEASE_NOTES_NEEDS_KEY`. The address is a `<KEY>`, or an `@<path>` naming a folder in the specs tree; [`addressing.md`](../../references/addressing.md) §3 resolves either.
@@ -27,7 +27,7 @@ flowchart TD
     p0["Phase 0 — Load"] --> p1["Phase 1 — Clarification"]
     p1 --> p15["Phase 1.5 — Classify"]
     p15 --> p2["Phase 2 — Worthiness check + plan/approval"]
-    p2 --> p3["Phase 3 — Read Jira"]
+    p2 --> p3["Phase 3 — Read the PRD folder"]
     p3 --> d1{"Diff grounding on? (Phase 1)"}
     d1 -- "on" --> p45["Phase 4 — Resolve repos / 5 — Diff summarisation"]
     d1 -- "off" --> p55["Phase 5.5 — Documentation grounding (optional)"]
@@ -38,13 +38,13 @@ flowchart TD
     p8 --> p91011["Phase 9 — Session maintenance / 10 — Follow-ups / 11 — Session cost"]
 ```
 
-The `d1` fork is the Phase 1 diff-grounding choice, default OFF — Jira content alone is usually enough for a release note; it decides the folder read's `depth` before Phase 3 even runs (`prd-only` when off, `full` when on, so PR links are collected), and only Phase 4's repo resolution and Phase 5's `diff-summarizer` batches are actually skipped on the "off" path.
+The `d1` fork is the Phase 1 diff-grounding choice, default OFF — the PRD alone is usually enough for a release note; it decides the folder read's `depth` before Phase 3 even runs (`prd-only` when off, `full` when on, so PR links are collected), and only Phase 4's repo resolution and Phase 5's `diff-summarizer` batches are actually skipped on the "off" path.
 
 Four `dev-workflows` subagents are dispatched: the folder read (Phase 3), `docs-grounder` (Phase 5.5, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `release-notes-writer` (Phase 6, the sole author of the rendered draft), and `impl-maintenance` (Phase 9, alongside no other maintenance agents — `/release-notes` has none of `/document`'s or `/implement`'s three general-purpose maintenance dispatches). `diff-summarizer` (Phase 5) is a fifth agent, dispatched only when diff grounding is on. `prose-style-checker` and `prose-fixer` (Phase 7) belong to the separate `prose-style` plugin and run only when it's installed.
 
 ## What it needs
 
-- **A resolved Jira input** via the shared front-end — a JiraID or a jira-export directory; `mode: direct` is rejected outright.
+- **A resolved address** — a key or an `@<path>` naming a folder in the specs tree, resolved directory; `mode: direct` is rejected outright.
 - **The `relevant_for_release_notes` flag**, read from the resolved folder's PRD frontmatter before the folder read even runs. An explicit `false`/`no` stops the run with `RELEASE_NOTES_NOT_RELEVANT` — overridable, since a PM may still want to draft ahead of the flag. An **absent** value proceeds silently: the field defaults to true, and absent is never treated as false.
 - **Optional diff grounding** (default OFF) — when turned on, `$REPOS_PATH` and a PR-status filter are resolved the same way `/document` resolves them, and a repo that resolves to zero matches is put to you as a choice rather than resolved silently; a repo you then skip degrades the grounding for that repo and never the run.
 - **Optional `$DOCS_PATH` grounding** (Phase 5.5), resolved once in Phase 2 alongside plan approval — read-only, never a gate.
@@ -52,9 +52,9 @@ Four `dev-workflows` subagents are dispatched: the folder read (Phase 3), `docs-
 
 ## What it produces
 
-**The authored body only** — never a Jira ID, a PR link, a `Change type:` line, or a `{{#internal-note}}` block, since the docs automation adds that metadata wrapper when it publishes. For a titled destination (`feature-updates.md` / `breaking-changes.md`) that's a `{{#context}}` label (the imported `release_notes_category`, used verbatim, or omitted entirely when none was imported), an `### title`, and customer-facing prose; for `fixes.md` it's **one bare past-tense sentence**, with no label and no title. Exactly **one** Summary is ever produced per run — never one block per declared release version — and no title or prose in it ever names the release version itself; the version is a separate Jira field the PM sets.
+**The authored body only** — never an identifier, a PR link, a `Change type:` line, or a `{{#internal-note}}` block, since the docs automation adds that metadata wrapper when it publishes. For a titled destination (`feature-updates.md` / `breaking-changes.md`) that's a `{{#context}}` label (the imported `release_notes_category`, used verbatim, or omitted entirely when none was imported), an `### title`, and customer-facing prose; for `fixes.md` it's **one bare past-tense sentence**, with no label and no title. Exactly **one** Summary is ever produced per run — never one block per declared release version — and no title or prose in it ever names the release version itself; the version is a separate field the PM sets.
 
-The destination is resolved from the PRD's `change_type` when it carries one, else inferred from the ticket's nature, with a low-confidence inference confirmed by its consequence (the shape and destination file) rather than by presenting the bare enum label. A deprecating change carries its required end-of-life date (and optional end-of-support date) as a trailing note in the Summary.The Phase 8 report states where it landed and reminds the user to paste it into the ticket's Jira release-notes field. `/release-notes` also drafts an implementation-gaps bug report when `release-notes-writer` returns a Jira-vs-source discrepancy, resolved through the same per-claim decision table `/document` (keyed mode) Phase 5.8 uses.
+The destination is resolved from the PRD's `change_type` when it carries one, else inferred from the change's nature, with a low-confidence inference confirmed by its consequence (the shape and destination file) rather than by presenting the bare enum label. A deprecating change carries its required end-of-life date (and optional end-of-support date) as a trailing note in the Summary.The Phase 8 report states where it landed and reminds the user to publish it wherever their release notes are published. `/release-notes` also drafts an implementation-gaps bug report when `release-notes-writer` returns a PRD-vs-source discrepancy, resolved through the same per-claim decision table `/document` (keyed mode) Phase 5.8 uses.
 
 ## Gates
 
@@ -74,7 +74,7 @@ One invocation, two runs — the command is the same either time, and only the i
 /dev-workflows:release-notes PRODUCT-1234
 ```
 
-The run checks `relevant_for_release_notes`, asks about diff grounding (default: Jira content only) and the output destination, classifies as `MODERATE`, reads the Jira ticket, resolves `$DOCS_PATH` grounding if configured, and finds neither `specification.md` nor `design.md` under the PRD's specs dir — so it infers `run_phase: pm` and renders the draft via `release-notes-writer` with no documentation redirect link, because the feature isn't built and there is no page to point at yet. It then runs the optional style gate and writes the persistent draft with a reminder to paste it into Jira.
+The run checks `relevant_for_release_notes`, asks about diff grounding (default: PRD content only) and the output destination, classifies as `MODERATE`, reads the PRD, resolves `$DOCS_PATH` grounding if configured, and finds neither `specification.md` nor `design.md` under the PRD's specs dir — so it infers `run_phase: pm` and renders the draft via `release-notes-writer` with no documentation redirect link, because the feature isn't built and there is no page to point at yet. It then runs the optional style gate and writes the persistent draft with a reminder to publish it.
 
 **The dev's later re-run**, once a specification or design is on record:
 
@@ -82,7 +82,7 @@ The run checks `relevant_for_release_notes`, asks about diff grounding (default:
 /dev-workflows:release-notes PRODUCT-1234
 ```
 
-Byte for byte the same command, and every step above happens the same way. The single difference is what the specs dir now contains: `run_phase` infers as `dev`, so the draft may carry a documentation redirect short link. Same destination question, same classification, same style gate, same paste-into-Jira reminder.
+Byte for byte the same command, and every step above happens the same way. The single difference is what the specs dir now contains: `run_phase` infers as `dev`, so the draft may carry a documentation redirect short link. Same destination question, same classification, same style gate, same publish reminder.
 
 ## See also
 

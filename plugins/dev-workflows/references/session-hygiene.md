@@ -62,7 +62,7 @@ log). It is intentionally tiny:
 ```
 
 **Redact before writing.** The `Carry-forward decisions` line may summarize
-content pulled from a Jira ticket or the session — redact any secret,
+content pulled from a PRD or the session — redact any secret,
 credential, token, or PII. A resume pointer records *what to do next*, never a
 sensitive value.
 

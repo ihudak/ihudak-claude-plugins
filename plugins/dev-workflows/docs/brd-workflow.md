@@ -139,7 +139,7 @@ each of those three also has a keyed form that this route never uses.
 | `/brd-package` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…` | Repeatable, and any key at either level is admissible; a mistyped one is warned and dropped, never fatal. Each prerequisite's own package is copied into the bundle, marked *not for re-review* |
 | `/brd-reconcile` | `<BRD-KEY> @<review-file>` | — | The review is taken at whatever path it arrived on, inside `$SPECS_PATH` or not, and is never searched for: the operator names the file, because one this command picked is one nobody submitted |
 | `/create-prd` | `<BRD-KEY>` | `the BRD route <dir>`, `--lean`/`--hybrid`/`--full`, `--no-docs`, `--no-prior-art`, `@<idea.md>` | Offered only where no ledger row is `unallocated` and one is `covered-here` (the BRD's own rows; `claims:` narrows them only on a slice). Profile defaults to `--full`; `--from-prd` is refused |
-| `/create-ard` | `<BRD-KEY>` | `--no-docs` | Offered on any advancing run, with no further condition: it gates no PRD, dispatches no the folder read, reads no ledger. One key only — a second stops the run (`CREATE_ARD_BRD_NO_EPIC`) |
+| `/create-ard` | `<BRD-KEY>` | `--no-docs` | Offered on any advancing run, with no further condition: it gates no PRD, reads no PRD, reads no ledger. One key only — a second stops the run (`CREATE_ARD_BRD_NO_EPIC`) |
 | `/specify` | `<BRD-KEY>` | `--no-docs` | Offered on the same terms, with no further condition of its own. One key only — a second stops the run (`SPECIFY_BRD_NO_EPIC`) |
 
 `--no-docs` appears on two of the six **route** rows and means the same thing on both: turn off the
@@ -154,7 +154,7 @@ consumption modes this route uses.
 
 `<BRD-KEY>` follows the same shape everywhere in this route: `^[A-Z][A-Z0-9_]*(-\d+)+$`, checked
 for shape only and never against a tracker — a BRD is a markdown file under `$SPECS_PATH`, not a
-Jira ticket. **That shape is two segments or three**: a BRD owning its source document is keyed
+tracker ticket. **That shape is two segments or three**: a BRD owning its source document is keyed
 `EPIC-008` and a slice of it `EPIC-008-01`, and the grammar prefers neither — a key's segment count
 is a naming convention, never a depth declaration. Every command after `/brd-intake` accepts a key
 at either of either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it, and only `/brd-split` behaves differently

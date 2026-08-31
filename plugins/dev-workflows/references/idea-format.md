@@ -11,7 +11,7 @@ title: <candidate human-readable title>
 slug: <candidate-kebab-slug>
 sources:
   - provenance: rfe | prd | markdown | community-post | prompt | doc-grounding
-    ref: <path | JIRA-KEY | url>
+    ref: <path | KEY | url>
 created: <YYYY-MM-DD>
 status: draft | refined        # refined IFF zero open [NEEDS CLARIFICATION] remain
 ---
@@ -56,7 +56,7 @@ otherwise.** One bullet per entry, in one of two shapes.
 **Discovered** — the finder matched the item, so every slot has a source:
 
 ```
-- [[<work doc>]] (<JIRA-KEY>, <status>) — <relation>: <one line>
+- [[<work doc>]] (<KEY>, <status>) — <relation>: <one line>
 ```
 
 **Supplied only** — a `prd` source the finder did not match (grounding off, or no vault work document
@@ -65,20 +65,20 @@ for the key). The `tracked` block carries `key`, `status`, and `summary` and not
 rather than inventing either:
 
 ```
-- <JIRA-KEY> (<status>) — supplied source: <summary>
+- <KEY> (<status>) — supplied source: <summary>
 ```
 
 Never promote a supplied-only entry into the discovered shape by guessing a `relation`; the closed
 vocabulary is the finder's output, not the author's choice.
 
 In the discovered shape every slot is **transcribed from the prior-art digest, never invented**:
-`<JIRA-KEY>` and `<status>` from its `key` / `tracked_status`, `<relation>` verbatim from its
+`<KEY>` and `<status>` from its `key` / `tracked_status`, `<relation>` verbatim from its
 `relation` field (the closed vocabulary lives in
 `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md`), and `<one line>` a plain-language rendering of
 that entry's `match_reason` — why this initiative bears on the idea.
 
-The **Jira key is the durable identifier**; the wikilink is a convenience that dangles once a vault item
-is renamed, so both are carried and a later reader re-resolves by key. An entry with no Jira key carries
+The **key is the durable identifier**; the wikilink is a convenience that dangles once a vault item
+is renamed, so both are carried and a later reader re-resolves by key. An entry with no key carries
 only the wikilink, and that is accepted. Never fabricate a key or a status — an unresolved status is
 written as `status unknown`. A `prd` source appears here **and** in `sources:`: `sources` answers how the
 idea arrived, `## Prior art` answers what it must stay consistent with.

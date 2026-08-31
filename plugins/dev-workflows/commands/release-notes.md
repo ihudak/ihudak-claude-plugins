@@ -1,19 +1,19 @@
 ---
 name: release-notes
-description: keyed release-notes drafting. Reads a Product Requirements Document (or any ticket) from exported markdown, optionally grounds in PR diffs, renders an example-docs release-notes body, runs a light prose-style-checker gate, and writes a persistent draft to paste into Jira's release-notes field.
+description: Release-notes drafting. Reads the resolved Product Requirements Document from exported markdown, optionally grounds in PR diffs, renders an example-docs release-notes body, runs a light prose-style-checker gate, and writes a persistent draft to publish wherever release notes are published.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
-Draft release notes for the Jira ticket: $ARGUMENTS
+Draft release notes for the resolved PRD: $ARGUMENTS
 
-`/release-notes` produces a **customer-facing release-notes draft** for a Jira
+`/release-notes` produces a **customer-facing release-notes draft** for a resolved
 Product Requirements Document (or any ticket) from pre-exported markdown in the user's Obsidian vault.
 It optionally grounds the prose in merged PR diffs, renders the example-docs authored
 release-notes body — a `{{#context}}` label + `### title` + prose for the `feature-updates` /
 `breaking-changes` destinations, or one bare past-tense sentence for `fixes` — with **no
-`{{#internal-note}}`, no Jira IDs, no PR links** (the docs automation adds the metadata
+`{{#internal-note}}`, no identifiers, no PR links** (the docs automation adds the metadata
 wrapper), runs a light style gate, and writes the draft to a persistent destination for the
-user to paste into Jira's release-notes field.
+user to paste wherever their release notes are published.
 
 Usage: `/release-notes <ADDRESS> [--version <v>] [--no-docs]`, where `<ADDRESS>` is a key or an
 `@<path>` naming a folder in the specs tree.
@@ -29,8 +29,7 @@ This command makes **zero external API calls** and **never writes into the docs 
 
 ## Phase 0 — Load
 
-1. **Resolve the address.** Execute
-   Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a
+1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a
    folder or a file inside one — and resolve it with `resolve-address`
    (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). Carry the resolved `path`, `kind` and
    `key` forward; `absent` → the folder does not exist; `ambiguous` → stop, naming every match.
@@ -56,9 +55,9 @@ run — the terminal `commit-artifacts` step skips on it.
 
 **Rule: Ask, don't guess.** Group questions; use `choices` arrays; the last choice MUST be `"Other… (describe)"`.
 
-- **Diff grounding** (default OFF — Jira content is usually enough for release notes):
+- **Diff grounding** (default OFF — the PRD is usually enough for release notes):
   ```
-  choices: ["Jira content only (Recommended)", "Also ground in merged PR diffs (you'll pick repos)", "Cancel", "Other… (describe)"]
+  choices: ["PRD content only (Recommended)", "Also ground in merged PR diffs (you'll pick repos)", "Cancel", "Other… (describe)"]
   ```
   If "ground in PR diffs", additionally ask the two sub-questions below.
 
@@ -74,17 +73,17 @@ run — the terminal `commit-artifacts` step skips on it.
   ```
 
 - **Output destination.** Always write to a **file** (console-pasted markdown
-  loses formatting in Jira). Resolve the default by `$VAULT_PATH`:
+  loses formatting when pasted). Resolve the default:
   - **`$VAULT_PATH` set** → resolve the ticket's persistent Obsidian project
     folder (the durable home — regenerated on every
     import):
     ```bash
-    find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<KEY>*" 2>/dev/null | head -1
+    the resolved PRD folder
     ```
     Default = `<project-dir>/<KEY>-release-notes.md`. If no project folder
     is found (e.g. a ticket from a project with no configured destination), use the derived default below.
   - **`$VAULT_PATH` unset** (directory input) → default
-    `<parent-of-jira_export_root>/<KEY>-release-notes.md`.
+    `<PRD-folder>/<KEY>-release-notes.md`.
   Then ask (the Recommended choice is always the resolved file):
   ```
   choices: ["Write to <default file> (Recommended)", "Write to a different absolute path (you'll be prompted)", "Print to screen only", "Skip writing", "Other… (describe)"]
@@ -99,7 +98,7 @@ run — the terminal `commit-artifacts` step skips on it.
   choices: ["Run prose-style-checker then apply safe fixes (Recommended)", "Run prose-style-checker, report only (no auto-fix)", "Skip style check", "Other… (describe)"]
   ```
 
-Also display: resolved `jira_export_root`, `key` (plus `$VAULT_PATH` when set), `$REPOS_PATH` (or "N/A — Jira-only"), and the resolved destination.
+Also display: resolved `prd_dir`, `key` (plus `$VAULT_PATH` when set), `$REPOS_PATH` (or "N/A — PRD-only"), and the resolved destination.
 
 ---
 
@@ -112,11 +111,11 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 ## Phase 2 — Worthiness check + plan/approval
 
 1. **Worthiness gate.** Read `relevant_for_release_notes` directly from the **imported PRD frontmatter**
-   under `jira_export_root` (this phase runs before Phase 3, so the folder has not been read yet,
+   under `prd_dir` (this phase runs before Phase 3, so the folder has not been read yet,
    and the folder read does not surface this field in any case). NEVER read it from the authored specs
    draft.
    - **`false` / `no`** → stop:
-     `RELEASE_NOTES_NOT_RELEVANT: <KEY> is flagged not relevant for release notes; Jira's status rule does not require one.`
+     `RELEASE_NOTES_NOT_RELEVANT: <KEY> is flagged not relevant for release notes; the PRD's status rule does not require one.`
      Offer an override for drafting ahead of the flag:
      ```
      choices: ["Cancel — nothing to draft (Recommended)", "Draft anyway — I'll set the flag later", "Other… (describe)"]
@@ -133,7 +132,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 
 ---
 
-## Phase 3 — Read Jira
+## Phase 3 — Read the PRD folder
 
 Invoke the folder read. Use `depth: prd-only` when diff grounding is OFF; `depth: full` when ON (to collect PR URLs from the hierarchy's `## Pull Requests` sections).
 
@@ -145,7 +144,7 @@ grounding cannot run here — say so once, name what it costs (the prose is grou
 the specs rather than in the shipped diff), and continue. Diff grounding was always opt-in and
 advisory here, so this is the state a user who declined it already got.
   >
-  > jira_export_root: [resolved jira_export_root]
+  > prd_dir: [resolved prd_dir]
   > key:         [resolved key]
   > depth:      [prd-only | full]"
 
@@ -223,7 +222,7 @@ This is the same inference `emit-cost` already applies in Phase 11; do not add a
 → Agent (subagent_type: "dev-workflows:release-notes-writer"):
   > "Render the release-notes draft for this brief:
   >
-  > jira_reader_handoff: [the Phase 3 handoff — scoped to the focus Epic's subtree when focus_key is set]
+  > folder_read: [the Phase 3 handoff — scoped to the focus Epic's subtree when focus_key is set]
   > diff_summaries:      [the Phase 5 array, or omit when diff grounding was off]
   > docs_grounding:      [the Phase 5.5 digest, or omit when OFF/EMPTY]
   > imported_change_type:            [from Phase 3, else null]
@@ -236,7 +235,7 @@ If `status: PARTIAL`, surface each `gaps` entry with `recommended_action: "ask u
 
 For a `field: change_type` gap, the destination was inferred with low confidence — and the
 destination decides the draft's whole shape. Confirm it by **consequence**, never by enum label.
-This fires ONLY when `imported_change_type` was null; when the Jira dropdown is already set, no
+This fires ONLY when `change_type` was null; when the PRD already carries one, no
 prompt appears.
 
 State the inference, then ask:
@@ -252,7 +251,7 @@ Drop the option that duplicates the recommended one. Apply the choice to
 `release_notes_block.change_type` (Feature update → `New technology support`, Breaking change →
 `Breaking change`, Fix → `Bug fix`) + `destination` and **re-render** the draft in the chosen shape —
 switching between `fixes` and a titled destination changes the body structure, not just a label. The
-chosen value never becomes text in the draft; the PM still sets the Jira dropdown.
+chosen value never becomes text in the draft.
 
 For a `field: deprecation_eol` gap (a deprecation was detected but the required
 end-of-life date is unclear), ask the user:
@@ -263,15 +262,15 @@ On a supplied date, replace the `<!-- TODO: end-of-life date -->` placeholder wi
 end-of-life date (and end-of-support date when given), formatted per the prose-style
 (e.g. `November 30, 2026`).
 
-When `release-notes-writer` returns `gaps[]` entries that have `jira_phrasing` and `source_phrasing` (source-truth discrepancies), present the discrepancy table and per-claim prompt as in `/document` (keyed mode) Phase 5.8:
+When `release-notes-writer` returns `gaps[]` entries that have `prd_phrasing` and `source_phrasing` (source-truth discrepancies), present the discrepancy table and per-claim prompt as in `/document` (keyed mode) Phase 5.8:
 
-1. Show the analysis table (claim, Jira phrasing, source phrasing, location).
+1. Show the analysis table (claim, PRD phrasing, source phrasing, location).
 2. Ask:
    ```
-   choices: ["Decide per discrepancy (Recommended)", "Document ALL as actual (code)", "Document ALL as intended (Jira)", "Skip ALL and report (drafts a bug report)", "Cancel", "Other… (describe)"]
+   choices: ["Decide per discrepancy (Recommended)", "Document ALL as actual (code)", "Document ALL as intended (PRD)", "Skip ALL and report (drafts a bug report)", "Cancel", "Other… (describe)"]
    ```
-3. Apply the decision to the draft prose: `document-as-code` → use source phrasing; `document-as-spec` → use Jira phrasing (no marker in release notes prose — the gap is recorded only in the gaps file); `skip-and-report` → omit the claim.
-4. For `document-as-spec` or `skip-and-report`: resolve `bug_report_destination` the same way as the release-notes destination — `$VAULT_PATH` set → the `find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<KEY>*"` project folder; `$VAULT_PATH` unset → `<parent-of-jira_export_root>/`. Write/append `<bug_report_destination>/<KEY>-implementation-gaps.md` using the §7.5 format from `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`, setting `Spec phrasing:` to `(no spec)` (this flow has no spec).
+3. Apply the decision to the draft prose: `document-as-code` → use source phrasing; `document-as-spec` → use PRD phrasing (no marker in release notes prose — the gap is recorded only in the gaps file); `skip-and-report` → omit the claim.
+4. For `document-as-spec` or `skip-and-report`: resolve `bug_report_destination` the same way as the release-notes destination — `$VAULT_PATH` set → the `find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<KEY>*"` project folder; `$VAULT_PATH` unset → `<PRD-folder>/`. Write/append `<bug_report_destination>/<KEY>-implementation-gaps.md` using the §7.5 format from `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`, setting `Spec phrasing:` to `(no spec)` (this flow has no spec).
 
 Pass `code_repos` (the Phase-4 resolved map) to the writer when diff-grounding is on.
 
@@ -306,7 +305,7 @@ If `prose-style` is not installed, skip this phase and note "style check skipped
    - Deprecation: <EOL <date> (end-of-support <date | —>) | none>
    - Diff grounding: <on (repos: …) | off>
    - Style check: <applied N safe fixes | report only (M findings) | skipped (prose-style absent)>
-   - Reminder: paste this into the ticket's Jira release-notes field — the docs automation adds the {{#internal-note}} metadata and emits it into example-docs.
+   - Reminder: paste this wherever your release notes are published — the docs automation adds the {{#internal-note}} metadata and emits it into example-docs.
 
    ### Next step
    [leaf/closure per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked: the release note is drafted. If earlier pipeline phases remain, continue — hand to PA → `/dev-workflows:create-ard <PRD>` or PE → `/dev-workflows:epics <PRD>`; if the change is already built and documented, the PRD is fully processed.]
@@ -341,7 +340,7 @@ persists the plugin-facing slice of its report as session feedback.
    > - Workarounds used: [manual steps not automated by the workflow — or 'none']
    > - Review verdict: N/A (light gate only, no Opus review)
    > - Test result: N/A (no tests in /release-notes)
-   > - Project root: [the resolved jira_export_root or the destination directory]"
+   > - Project root: [the resolved prd_dir or the destination directory]"
 2. **Persist plugin feedback (automatic).** Project the report's plugin-facing
    slice into the specs repo by citing
    `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
@@ -374,7 +373,7 @@ citing `${CLAUDE_PLUGIN_ROOT}/references/followup-emission.md` and executing
 its steps inline.
 
 1. **Collect** the qualifying follow-ups: the mandatory manual publish step
-   ("paste this release-notes draft into the ticket's Jira release-notes field")
+   ("paste this release-notes draft wherever your release notes are published")
    and any implementation-gap signals surfaced during the run.
 2. **Filter** them with the reference's §6 qualifying predicate.
 3. **Resolve** the write target via the §4 ladder using `key` and `source`;
@@ -436,7 +435,7 @@ phase, **print its §6 outcome line here**, as the run's last output — prefixe
 `Specs repo:`, with any guard notice repeated in full.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (the
-release-notes draft is a plain file for manual paste into Jira; the terminal
+release-notes draft is a plain file for manual publication; the terminal
 step above commits only the bounded session-artifact paths in `$SPECS_PATH`),
 NEVER makes an external API call, and NEVER writes into a docs repo or the
 current working directory; no user name is ever written (§10).
@@ -445,12 +444,12 @@ current working directory; no user name is ever written (§10).
 
 ## Invariants (always enforced)
 
-- ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, jira-not-found, cancellation).
+- ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation).
 - ZERO external API calls — PR URLs are identifiers only; all resolution is local `git`.
 - Every read of the specs tree is read-only.
-- The draft contains NO Jira IDs/keys, NO PR links, and NO `{{#internal-note}}` block.
+- The draft contains NO identifiers, NO PR links, and NO `{{#internal-note}}` block.
 - The draft is EXACTLY one Summary, shaped by its destination per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1/§3 — a `{{#context}}` label + `### title` + prose for `breaking-changes` / `feature-updates`, or ONE bare past-tense sentence for `fixes`. It carries NO `Change type:` line and NO `Release-notes category:` line, and its **prose** names no release version. **The title rule is about to invert and is stated here rather than discovered later**: the prohibition held because the destination file structure carried the release. Once the three destinations become sections of one `release-notes.md` in the PRD folder, nothing else can say which release a section belongs to, so the version becomes the **section heading** — and the prohibition survives for the body prose alone. The heading arrives with that file; `--version` captures the field it needs now. When the change deprecates something the Summary carries a deprecation note (end-of-life date required, end-of-support optional).
-- The `{{#context}}` label IS the imported `release_notes_category`, used verbatim; when the import carries none the line is OMITTED. Change Type is sourced `imported_change_type` → infer, and is confirmed with the user ONLY when it was inferred with low confidence — by shape and destination, never by enum label. Neither field is ever asked for as a Jira dropdown value.
+- The `{{#context}}` label IS the PRD's `release_notes_category`, used verbatim; when the import carries none the line is OMITTED. Change Type is sourced `change_type` → infer, and is confirmed with the user ONLY when it was inferred with low confidence — by shape and destination, never by enum label. Neither field is ever asked for by enum label.
 - The run is GATED on the imported `relevant_for_release_notes`: an explicit `false` stops with `RELEASE_NOTES_NOT_RELEVANT` (overridable); absent proceeds silently.
 - NEVER write into a docs repo; the default destination is persistent (never `/tmp`).
 - ALWAYS use `choices` arrays; the last choice is always `"Other… (describe)"`.

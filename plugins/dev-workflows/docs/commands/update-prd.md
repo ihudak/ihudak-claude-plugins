@@ -1,6 +1,6 @@
 # /update-prd
 
-Refreshes an existing Product Requirements Document against its Jira source — routine updates and the rarer obstacle-driven re-do alike — gated by the same Opus review as [`/create-prd`](create-prd.md).
+Refreshes an existing Product Requirements Document — routine updates and the rarer obstacle-driven re-do alike — gated by the same Opus review as [`/create-prd`](create-prd.md).
 
 ## Who runs it
 
@@ -12,7 +12,7 @@ Refreshes an existing Product Requirements Document against its Jira source — 
 /update-prd <KEY> [@transcript-or-notes ...] [--no-docs]
 ```
 
-- **`<KEY>`** (mandatory) — the existing PRD's Jira key. Format-validated only (`^[A-Z][A-Z0-9_]*(-\d+)+$`). The grammar fixes no depth, and that is what lets [`/create-prd`](create-prd.md) redirect here with a three-segment key — a PRD it authored inside a BRD slice on the BRD route. A two-segment key validates exactly as it always did.
+- **`<KEY>`** (mandatory) — the existing PRD's key. Format-validated only (`^[A-Z][A-Z0-9_]*(-\d+)+$`). The grammar fixes no depth, and that is what lets [`/create-prd`](create-prd.md) redirect here with a three-segment key — a PRD it authored inside a BRD slice on the BRD route. A two-segment key validates exactly as it always did.
 - **`[@transcript-or-notes ...]`** (optional) — one or more paths to a transcript or notes file, read as secondary, read-only grounding for the grill.
 - **`[--no-docs]`** — turns off documentation grounding for the run (see [What it needs](#what-it-needs)).
 
@@ -27,7 +27,7 @@ flowchart TD
     p3 --> p35["Phase 3.5 — Prose style check"]
     p35 --> p36["Phase 3.6 — Structural pre-lint"]
     p36 --> p4["Phase 4 — Review gate"]
-    p4 --> p5["Phase 5 — Handoff (canonical + archive) + Jira round-trip"]
+    p4 --> p5["Phase 5 — Handoff (canonical + archive) + handoff"]
     p5 --> p6["Phase 6 — Next steps"]
     p6 --> p7["Phase 7 — Session maintenance, feedback & cost"]
 ```
@@ -43,11 +43,11 @@ Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2, read-o
 - **Documentation grounding** (optional, on by default) — turned off with `--no-docs`; a miss is a silent skip, never a gate.
 - **No repos.** `/update-prd` is cwd-agnostic and product-level — it never mounts or scans code.
 
-**`/update-prd` is the one authoring command deliberately excluded from `require-on-main`.** It never executes that consumer entry point at all, on any input. Its authoritative base is the Jira import (above), not a gated specs artifact, so subjecting the secondary grounding to `require-on-main` would block a legitimate refresh purely because an unrelated ARD happened to sit on an unmerged branch — the command reports that state instead of stopping on it.
+**`/update-prd` is the one authoring command deliberately excluded from `require-on-main`.** It never executes that consumer entry point at all, on any input. Its authoritative base is the resolved folder (above), not a gated specs artifact, so subjecting the secondary grounding to `require-on-main` would block a legitimate refresh purely because an unrelated ARD happened to sit on an unmerged branch — the command reports that state instead of stopping on it.
 
 ## What it produces
 
-- The **canonical** PRD, overwritten in place at the feature folder's **prd.md**, with `revision_of` (the archived snapshot's path) and `built_from_import` (the Jira-import date the update was built from) added to its frontmatter. Everything already there that records where the PRD came from is carried through unchanged — `sources`, `derived_from`, `seeded_from_prd`, and, on a PRD [`/create-prd`](create-prd.md) authored on the BRD route, `brd_key`, `brd_parent` and `depends_on`. Those three are preserved, never authored: this command reads no BRD tree, so it mints none of them and adds none to a PRD that arrived without them — and **no command consumes them yet** — neither [`/epics`](epics.md) nor [`/ready`](ready.md) reads any of the three. They are preserved because provenance that survives an update is the precondition for any future consumer: this command reads no BRD tree, so dropping them at the first refresh would leave a slice's PRD indistinguishable from an ordinary one with nothing left to restore it from.
+- The **canonical** PRD, overwritten in place at the feature folder's **prd.md**, with `revision_of` (the archived snapshot's path) and `built_from_import` (the date the update was built from) added to its frontmatter. Everything already there that records where the PRD came from is carried through unchanged — `sources`, `derived_from`, `seeded_from_prd`, and, on a PRD [`/create-prd`](create-prd.md) authored on the BRD route, `brd_key`, `brd_parent` and `depends_on`. Those three are preserved, never authored: this command reads no BRD tree, so it mints none of them and adds none to a PRD that arrived without them — and **no command consumes them yet** — neither [`/epics`](epics.md) nor [`/ready`](ready.md) reads any of the three. They are preserved because provenance that survives an update is the precondition for any future consumer: this command reads no BRD tree, so dropping them at the first refresh would leave a slice's PRD indistinguishable from an ordinary one with nothing left to restore it from.
 - An **archived snapshot** of the prior canonical PRD, written first, before the overwrite, to `<feature-folder>/revisions/<KEY>_<slug>_<YYYYMMDD>.md` (a same-day second revision is suffixed `-2`, `-3`, …).
 - Behind Phase 5's consent choice, both files are committed, pushed, and a pull request opened against the specs repo's default branch.
 - *(The run used to end with a manual reminder to copy the updated body back into a tracker and refresh the export it read from. Neither step exists: the PRD is where every downstream command reads it.)*

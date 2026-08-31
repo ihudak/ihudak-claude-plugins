@@ -1,14 +1,14 @@
 ---
 name: update-prd
-description: PRD-update workflow (PM phase) — refresh/re-do an existing Product Requirements Document. Resolves the PRD Jira-import-first (source of truth) with a 3-day freshness gate, grounds on the PRD + comments + any ARD/spec/transcript, updates it via a relentless grill against references/prd-format.md, gated by the Opus prd-reviewer, and writes canonical + archived revisions to $SPECS_PATH/specifications/<KEY>-<slug>/. Product-level (no code scan).
+description: PRD-update workflow (PM phase) — refresh/re-do an existing Product Requirements Document. Resolves the PRD from the specs tree (the only copy) with a 3-day freshness gate, grounds on the PRD + comments + any ARD/spec/transcript, updates it via a relentless grill against references/prd-format.md, gated by the Opus prd-reviewer, and writes canonical + archived revisions to $SPECS_PATH/specifications/<KEY>-<slug>/. Product-level (no code scan).
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
-Update the Product Requirements Document for the Jira item: $ARGUMENTS
+Update the Product Requirements Document: $ARGUMENTS
 
 `/update-prd` refreshes an **existing** Product Requirements Document (PM phase). It covers routine refreshes (new
 information, scope tweaks, wording) and the rare obstacle-driven re-do (a human read an ARD/spec finding,
-discussed it in Jira, and decided the PRD must change). The PRD is **product-level** — what / why /
+discussed it, and decided the PRD must change). The PRD is **product-level** — what / why /
 for-whom, not how. Zero code scan; no repos.
 
 Usage: `/update-prd <KEY> [@transcript-or-notes ...] [--no-docs]` (`--no-docs` turns off documentation grounding for the run — see Phase 1).
@@ -17,7 +17,7 @@ Usage: `/update-prd <KEY> [@transcript-or-notes ...] [--no-docs]` (`--no-docs` t
 
 ## Phase 0 — Resolve inputs
 
-1. **`KEY` (mandatory).** Parse the first non-flag token and validate it with `key-valid` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1) — the grammar is that file's, cited rather than copied here. If absent or malformed, stop: `UPDATE_VI_NEEDS_KEY: /update-prd needs the PRD's Jira key — '/dev-workflows:update-prd <KEY>'.` **The grammar is a superset of the two-segment form** — every key that validated before still validates, so a `PRODUCT-1234` refresh behaves exactly as it did — and it is the one this command needs for the same reason step 3's folder resolution is: a PRD authored inside a BRD slice by `/create-prd` on the BRD route carries a three-segment key (`EPIC-008-01`), and `/create-prd` **redirects here** on finding it. A validation narrower than `/create-prd`'s would refuse that redirect at the door, which is the identical dead-end step 3 exists to close, one step earlier.
+1. **`KEY` (mandatory).** Parse the first non-flag token and validate it with `key-valid` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1) — the grammar is that file's, cited rather than copied here. If absent or malformed, stop: `UPDATE_VI_NEEDS_KEY: /update-prd needs the PRD's key — '/dev-workflows:update-prd <KEY>'.` **The grammar is a superset of the two-segment form** — every key that validated before still validates, so a `PRODUCT-1234` refresh behaves exactly as it did — and it is the one this command needs for the same reason step 3's folder resolution is: a PRD authored inside a BRD slice by `/create-prd` on the BRD route carries a three-segment key (`EPIC-008-01`), and `/create-prd` **redirects here** on finding it. A validation narrower than `/create-prd`'s would refuse that redirect at the door, which is the identical dead-end step 3 exists to close, one step earlier.
 2. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
 3. **Feature folder.** Resolve it with `resolve-address <KEY>` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), which searches every level §3 bounds and carries §5's legacy fallback; `status: absent` → the folder does not exist and this command has no PRD to update; `ambiguous` → stop, naming every match and `@<path>` as the way through. No matching rule is written here — §5 owns it.
 4. **Resolve the base PRD.** It is the `prd.md` in the folder step 3 resolved — the only copy there is, and therefore authoritative without a test. Absent → stop with `UPDATE_PRD_NO_PRD: <ADDRESS> resolves a folder holding no prd.md — run '/dev-workflows:create-prd <ADDRESS>' to author one first.`
@@ -25,7 +25,7 @@ Usage: `/update-prd <KEY> [@transcript-or-notes ...] [--no-docs]` (`--no-docs` t
    **This used to be a ladder, and the ladder's premise is what went.** The authoritative PRD text lived in a tracker, so this step read an imported copy, stopped when none existed, and offered a refresh when one was more than three days old. There is one copy now and it is in the folder this run resolved: nothing to import, nothing to go stale, and no second copy to disagree with.
 5. **Secondary grounding (read-only).** Discover in the feature folder: the folder's `prd.md`, any `ard.md`, `specification.md`; plus any `@transcript` / notes path(s) passed in `$ARGUMENTS`.
 
-These reads are deliberately **not** gated: `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) is never executed by this command. `/update-prd`'s authoritative base is the Jira import, and Phase 2 already rules that the import wins where a frozen draft disagrees. Gating advisory grounding would block a legitimate PRD refresh because an unrelated ARD sits on a branch. Where a discovered `ard.md` or `specification.md` is **not** on the specs repo's default branch, say so in the Phase 1 confirmation — the user should know the grounding is unapproved, not be stopped by it.
+These reads are deliberately **not** gated: `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) is never executed by this command. `/update-prd`'s authoritative base is the resolved folder, and Phase 2 already rules that the import wins where a frozen draft disagrees. Gating advisory grounding would block a legitimate PRD refresh because an unrelated ARD sits on a branch. Where a discovered `ard.md` or `specification.md` is **not** on the specs repo's default branch, say so in the Phase 1 confirmation — the user should know the grounding is unapproved, not be stopped by it.
 
 `/update-prd` is **cwd-agnostic** and needs **no repos mounted** (product-level; no code scan).
 
@@ -37,7 +37,7 @@ These reads are deliberately **not** gated: `require-on-main` (`${CLAUDE_PLUGIN_
 
 Use `choices` arrays; the last choice is always `"Other… (describe)"`.
 
-1. **Confirm** the feature folder; the resolved Jira-import base **with its import date**; and the secondary artifacts discovered (specs draft / ARD / spec / transcript).
+1. **Confirm** the feature folder; the resolved PRD base; and the secondary artifacts discovered (specs draft / ARD / spec / transcript).
    - Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
    - Report any discovered `ard.md` or `specification.md` that is not on the specs repo's default branch — per Phase 0 step 5, this grounding is unapproved but advisory-only; it is never a reason to stop the run.
 2. **Scope of the update.** `choices: ["Refresh (incorporate new info / comments / transcript) (Recommended)", "Re-do (substantive re-scope driven by an ARD/spec obstacle)", "Cancel", "Other… (describe)"]`.
@@ -52,7 +52,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 
 ## Phase 2 — Read the base + grounding
 
-Read the Jira-import PRD **body + `-comments.md`** (the authoritative base and the signal for *what to change*), then the secondary artifacts (specs draft, ARD, spec, transcript). Do NOT treat the frozen specs draft as authoritative where it disagrees with the Jira import — the import wins; surface a notable divergence to the user.
+Read the PRD **body** (the authoritative base and the signal for *what to change*), then the secondary artifacts (specs draft, ARD, spec, transcript). Do NOT treat the frozen specs draft as authoritative where it disagrees with the resolved folder — the import wins; surface a notable divergence to the user.
 
 Then run `resolve-docs-grounding update-prd` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the PRD goal + the change signal from comments, `key` = `<KEY>`. Carry the digest into the Phase 3 grill with **grill-rank** consumption. When OFF, skip silently.
 
@@ -74,7 +74,7 @@ Run the prose style check on the updated PRD **before** the review gate (quality
 
 ## Phase 3.6 — Structural pre-lint
 
-Run the deterministic checks in `${CLAUDE_PLUGIN_ROOT}/references/pre-lint.md` (the Universal checks + the **Jira-key collision** check on the body below the frontmatter + the **PRD** block) against the updated file; inline-fix mechanical findings; leave content gaps for the grill. Advisory — never blocks; `prd-reviewer` remains the gate.
+Run the deterministic checks in `${CLAUDE_PLUGIN_ROOT}/references/pre-lint.md` (the Universal checks + the **key-collision** check on the body below the frontmatter + the **PRD** block) against the updated file; inline-fix mechanical findings; leave content gaps for the grill. Advisory — never blocks; `prd-reviewer` remains the gate.
 
 ---
 
@@ -92,11 +92,11 @@ Act on the verdict as `/create-prd` Phase 4 does: on `BLOCK`, fix the BLOCKER fi
 
 ---
 
-## Phase 5 — Handoff (canonical + archive) + Jira round-trip
+## Phase 5 — Handoff (canonical + archive)
 
 1. **Archive the current canonical PRD** (if one exists) to `<feature-folder>/revisions/<KEY>_<slug>_<YYYYMMDD>.md` before overwrite (same-day second revision → suffix `-2`, `-3`, …).
-2. **Write the refreshed PRD** to the **canonical** path `<feature-folder>/prd.md`. Record `revision_of: <archived snapshot path>` and `built_from_import: <YYYY-MM-DD>` (the Jira-import date the update was built from) in the frontmatter.
-3. **Hand off** (commit-when-asked — never automatic). Present `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim: `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`. On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: prd`; `feature_folder` as resolved in Phase 0; `deliverable_paths` = the canonical PRD file (step 2) and the archived snapshot file (step 1); `title: <KEY> Update Product Requirements Document`; and `body_facts` = which sections changed, the Jira-import date the update was built from, the open-question count, and the `prd-reviewer` verdict. Emit its §4.1 outcome line in the Final report.
+2. **Write the refreshed PRD** to the **canonical** path `<feature-folder>/prd.md`. Record `revision_of: <archived snapshot path>` and `built_from_import: <YYYY-MM-DD>` (the date the update was built from) in the frontmatter.
+3. **Hand off** (commit-when-asked — never automatic). Present `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim: `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`. On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: prd`; `feature_folder` as resolved in Phase 0; `deliverable_paths` = the canonical PRD file (step 2) and the archived snapshot file (step 1); `title: <KEY> Update Product Requirements Document`; and `body_facts` = which sections changed, the date the update was built from, the open-question count, and the `prd-reviewer` verdict. Emit its §4.1 outcome line in the Final report.
 
 ---
 
@@ -109,7 +109,7 @@ choices: ["Re-draft the release note — /dev-workflows:release-notes <KEY> (PM)
 
 **One key appears in that array.** `<ADDRESS>` is what this run was invoked with; it resolves the `$SPECS_PATH` folder Phase 0 step 3 found, and every command offered below resolves that same folder through the same entry point. There is no second identity to keep straight and no import to wait for.
 
-**Two options carry `<merge-clause>` and two do not, and which is which is derived, not stylistic.** `/dev-workflows:create-ard` and `/dev-workflows:specify` both gate this run's PRD on the specs repo's default branch, so both stop where the updated PRD reached a branch; where it reached none, `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3.4's rows for them apply unchanged — `/create-ard` falls back to the Jira export, reported, and `/specify` skips the grounding confirmation rather than stopping; `/dev-workflows:epics` gates `<PRD-dir>/specification.md` and `/dev-workflows:release-notes` gates nothing, so neither waits on anything this run wrote. The placeholder is resolved from this run's own `Phase handoff:` outcome line (§4.1) per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` and is never written as an unconditional "once the pull request above is merged" — a declined handoff, a failed push and a nothing-to-commit run each leave a different wait, and two of them open no pull request to wait on. It is a placeholder, not an instruction to reword an option, so the array is still presented verbatim per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
+**Two options carry `<merge-clause>` and two do not, and which is which is derived, not stylistic.** `/dev-workflows:create-ard` and `/dev-workflows:specify` both gate this run's PRD on the specs repo's default branch, so both stop where the updated PRD reached a branch; where it reached none, `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3.4's rows for them apply unchanged — `/create-ard` falls back to the resolved folder, reported, and `/specify` skips the grounding confirmation rather than stopping; `/dev-workflows:epics` gates `<PRD-dir>/specification.md` and `/dev-workflows:release-notes` gates nothing, so neither waits on anything this run wrote. The placeholder is resolved from this run's own `Phase handoff:` outcome line (§4.1) per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` and is never written as an unconditional "once the pull request above is merged" — a declined handoff, a failed push and a nothing-to-commit run each leave a different wait, and two of them open no pull request to wait on. It is a placeholder, not an instruction to reword an option, so the array is still presented verbatim per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
 
 ### Context hygiene
 
@@ -137,4 +137,4 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git 
 
 ## Final report
 
-Report: the canonical PRD path + the archived snapshot path; which sections changed; the Jira-import date the update was built from; open-question count; the `prd-reviewer` verdict; the prose style-check outcome; the `Phase handoff:` outcome line from `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1); the Jira round-trip reminder; resolved model routing (+ any Opus degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; and the next-step recommendations.
+Report: the canonical PRD path + the archived snapshot path; which sections changed; the import date the update was built from; open-question count; the `prd-reviewer` verdict; the prose style-check outcome; the `Phase handoff:` outcome line from `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1); the handoff reminder; resolved model routing (+ any Opus degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; and the next-step recommendations.

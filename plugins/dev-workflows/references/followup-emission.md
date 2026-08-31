@@ -32,13 +32,13 @@ Mirrors the wiki `_shared/task-rules.md` Obsidian-Tasks line:
 - **➕ `<today>`** — ALWAYS add the creation date (`YYYY-MM-DD`). Scheduled
   (`⏳`) and due (`📅`) dates are optional — add only when the signal implies
   them.
-- **Jira link** — when the item carries a Jira key, render it
+- **Work-item link** — when the item carries a `workitem_key`, render it
   `[<KEY>](<base>/browse/<KEY>)` using the base URL discovered from existing
   vault tasks
   (`grep -rh 'atlassian.net/browse/' "$VAULT_PATH"/Projects "$VAULT_PATH"/Tasks.md 2>/dev/null | head -3`);
   if no base is known, include the bare `<KEY>` as plain text.
 
-## 2. Target-file resolution (Jira-first, deterministic)
+## 2. Target-file resolution (key-first, deterministic)
 
 The run carries `source` (`vault | directory | none`) and, when keyed, a
 `key`. Resolve the task's home:
@@ -46,7 +46,7 @@ The run carries `source` (`vault | directory | none`) and, when keyed, a
 1. **Vault writable (§4) AND the run has a `key`** → locate the project
    folder with the existing pattern (`${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md`):
 
-       find "$VAULT_PATH"/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"
+       find "$VAULT_PATH"/Projects -maxdepth 5 -type d -name "<KEY>*"
 
    Inside it, the project file is `P<NNNN> <slug>.md`. Verify its frontmatter
    `tags:` includes `task` and `archived:` is `false` or absent, then insert
@@ -94,8 +94,8 @@ is an existing directory **and** the path is writable.
    is inlined as sections of that same file (no `Journal.md` outside a vault);
    the task line links the section.
 3. **No vault; no `$SPECS_PATH` PRD dir; `source = directory`** → write beside
-   the imported Jira directory:
-   `<parent-of-jira_export_root>/<KEY>-followups.md` (the imported hierarchy's
+   the folder in the specs tree:
+   `<PRD-folder>/<KEY>-followups.md` (the imported hierarchy's
    parent — the same area under which /epics and /release-notes place their
    no-vault drafts, e.g. /epics' epic-drafts/<KEY>/).
 4. **None resolvable** → **report-only.** Keep the follow-ups in the Final
@@ -138,11 +138,11 @@ Emit a task ONLY for signals whose action lands OUTSIDE the current change or
 requires a MANUAL human step:
 
 - Files/pages owned by others (the owner was surfaced and the edit is theirs to make).
-- Implementation gaps (Jira vs source; the `<KEY>-implementation-gaps.md`
+- Implementation gaps (PRD vs source; the `<KEY>-implementation-gaps.md`
   draft) → the task links the draft; verbose context → a note (§3).
-- Manual publish steps: screenshots to upload (CDN), "paste release notes into
-  Jira", "create these Epics in Jira manually", open-the-PR-by-hand.
-- SPEC-VS-JIRA ("update the Jira ticket to match the spec").
+- Manual publish steps: screenshots to upload (CDN), "publish the release notes",
+  "create these Epics in your tracker manually", open-the-PR-by-hand.
+- SPEC-VS-PRD ("update the PRD to match the spec").
 - Unresolved PRs on unsupported hosts (must be documented manually).
 
 DO NOT emit tasks for in-scope items the report/draft already tracks: deferred

@@ -16,7 +16,7 @@ Implement the following: $ARGUMENTS
 |---|---|---|
 | **Spec file** | a single `.md` file | read fully; use as the description/spec |
 | **Spec folder** | a directory containing `prompt.md` and/or a `*-design.md` | read all `.md` specs within; fold into the description |
-| **Jira ticket folder** | a directory containing a `*-index.md`, or ticket-key subdirectories each containing a `KEY.md` | hand to the folder read in Phase 1.7 |
+| **Specs folder** | a directory containing a `*-index.md`, or ticket-key subdirectories each containing a `KEY.md` | hand to the folder read in Phase 1.7 |
 | **Code repo** | a directory where `git -C <path> rev-parse --is-inside-work-tree` succeeds (includes the cwd) | scan target in Phase 1.7 |
 
 **Address resolution.** Before the per-`@path` classification above, look for a **single positional
@@ -46,7 +46,7 @@ resolved `path`, `kind` and `key`, and `specs` forward.
     this increment** — the signal that an Epic was implemented is `implementation.md`, which
     `/implement` itself begins writing in increment C — so say so beside the list rather than
     showing a marker the tree cannot support. Reading the artifacts rather than a status field is
-    strictly better than what it replaces: a Jira status is a human's claim about the work and
+    strictly better than what it replaces: a declared status is a human's claim about the work and
     could lag it, which is why the old picker had to print the raw status text as a hedge. Include the explicit choice
     **"Implement one broad PRD-level slice instead"** (`focus_key` stays null → specs
     resolve PRD-level). Selecting an Epic sets `focus_key` and proceeds for **that Epic
@@ -184,7 +184,7 @@ Then choose the branch:
 
 From the Phase 0 classification, compute:
 - `repo_count` = number of code repos (cwd + referenced git-repo dirs)
-- `has_ticket_folder` = any Jira ticket folder present
+- `has_ticket_folder` = any specs folder present
 - `has_spec_folder` = any spec/design folder present
 
 Set `fan_out = (repo_count > 1) OR has_ticket_folder OR has_spec_folder`.
@@ -204,7 +204,7 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
    for a PRD-level address — the `EPIC-` subfolders under it. No PR URLs are available in this
    increment; `implementation.md` supplies them from the next one.
      >
-     > jira_export_root: [the resolved jira_export_root (from the Phase 0 front-end), or the ticket-folder absolute path]
+     > prd_dir: [the resolved prd_dir (from the Phase 0 front-end), or the ticket-folder absolute path]
      > key:         [the resolved <KEY>]
      > depth:            full"
 
@@ -229,7 +229,7 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
 
    **Round 2 — narrow and seeded (§8.5).** Apply `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §8.5. A theme is **inconclusive** when its round-1 `classification` is `partial`, `absent`, or `error`, or when **two or more** scanners' per-theme `capability_map[].gap_summary` texts point at each other's repo in a cycle, or at a component/subsystem that no scanned repo covers — the shape that yields confident answers which together say nothing. For every inconclusive theme that round 1 left at least one evidence anchor for, dispatch `code-scanner` again on `detection_model` with `capability_themes` holding exactly **one** question — the single thing round 1 failed to settle, not the broad theme — and `search_hints.paths`/`.symbols`/`.keywords` seeded from that round's verified `evidence[].path` and `.symbols`; where an evidence entry carries `lines`, name the anchor as `<path>:<line>` in the `context` prose. Cap **4 dispatches, one round only** — there is no round 3. This matters more here than where §8.5 was first adopted: `/idea`'s summary feeds a grill with a human in it, while this one feeds a planner whose output becomes code. **A theme round 1 left with no evidence anchor never enters round 2** — it stays inconclusive with no round-2 attempt possible, and that absence of an attempt is not itself a resolution.
 
-4. **Synthesize.** Combine the folder read output, all `code-scanner` reports, and the spec into a single **multi-source codebase summary** (per-repo: relevant files, existing capabilities, gaps; plus the cross-repo picture and the Jira themes/PR references). This summary is the codebase context for Phase 2B — do **not** also run the single Explore subagent. Write this summary to a temp file (`mktemp -t dw-impl-summary-XXXX.md` — **never inside a repo working tree**, so a captured `git diff` never picks it up) and record its absolute path as `summary_file`; Phase 2B receives this path, not the pasted summary.
+4. **Synthesize.** Combine the folder read output, all `code-scanner` reports, and the spec into a single **multi-source codebase summary** (per-repo: relevant files, existing capabilities, gaps; plus the cross-repo picture and the PRD themes). This summary is the codebase context for Phase 2B — do **not** also run the single Explore subagent. Write this summary to a temp file (`mktemp -t dw-impl-summary-XXXX.md` — **never inside a repo working tree**, so a captured `git diff` never picks it up) and record its absolute path as `summary_file`; Phase 2B receives this path, not the pasted summary.
 
    **Name what the scan did not settle.** The summary carries a `## Unresolved` section listing **every theme still inconclusive at the end of Phase 1.7** — this explicitly includes a theme that never entered round 2 because round 1 left no anchor to seed from, a theme classified `error`, and a mutual-deferral theme, whether or not either scanner logged an anchor. None of these becomes resolved merely by having had no round-2 attempt. Per `classification.md` §8.5 Bounds, name **why** each theme is unresolved — mutual deferral / scan error / partial-or-absent with no anchor — and give the repos-and-conclusions detail only where scanners actually disagreed. An inconclusive theme is **never** folded in as an ordinary gap: a gap asserts the capability is absent with no deferral outside the scanned set, an unresolved theme asserts only that the scan could not tell, and once flattened the two are indistinguishable to the planner. Omit the section entirely when nothing is unresolved.
 
@@ -237,7 +237,7 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
 
 ## Phase 1.8 — Resolve applicable ARD (keyed mode; optional)
 
-Only when the run resolved a Jira key (PRD/Epic) — i.e. NOT direct-prompt mode — resolve any ARD by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with the resolved `<PRD>`, `<EPIC>`, and `$SPECS_PATH`. Direct mode (no Jira key) → treat as `status: none`. On `status: none`, **skip and proceed exactly as before**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr` and naming `$SPECS_PATH` explicitly (`/implement` stands in a code repo, not the specs repo, so an unqualified message would point at the wrong one) — per `ard-resolution.md`'s Output section, this state is unreachable when no ARD resolves. On `status: found`, carry the `invariants` as **implementation guardrails** (the implementer honors each `AD#N` `rule`; a necessary deviation is logged as an `- ARD deviation:` line in the Phase 5 report), and — in the SIGNIFICANT / HIGH-RISK path — pass them to `code-review` (Phase 3B) as `applicable_ard`. In the SIMPLE / MODERATE path there is no `code-review` gate, so the guardrails act as guidance only.
+Only when the run resolved a key (PRD/Epic) — i.e. NOT direct-prompt mode — resolve any ARD by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with the resolved `<PRD>`, `<EPIC>`, and `$SPECS_PATH`. Direct mode (no key) → treat as `status: none`. On `status: none`, **skip and proceed exactly as before**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr` and naming `$SPECS_PATH` explicitly (`/implement` stands in a code repo, not the specs repo, so an unqualified message would point at the wrong one) — per `ard-resolution.md`'s Output section, this state is unreachable when no ARD resolves. On `status: found`, carry the `invariants` as **implementation guardrails** (the implementer honors each `AD#N` `rule`; a necessary deviation is logged as an `- ARD deviation:` line in the Phase 5 report), and — in the SIGNIFICANT / HIGH-RISK path — pass them to `code-review` (Phase 3B) as `applicable_ard`. In the SIMPLE / MODERATE path there is no `code-review` gate, so the guardrails act as guidance only.
 
 ---
 
@@ -511,7 +511,7 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
 
    - If the fix report contains any `DEFERRED — plan-conflict` finding, surface it to the user **immediately** (do not wait for the BLOCK-still-BLOCK path): show the finding beside the plan text it contradicts and ask `choices: ["Revise the plan (the finding governs)", "Apply the fix against the plan (the plan governs — logged in Phase 5)", "Other… (describe)"]`. Act on the answer before re-running the review.
 
-7.5. **Spec/design conformance escalation.** For each unresolved `missing`/`contradicts` in-scope requirement from the code-review Spec/design-conformance dimension, write a `- [ ]` note back onto the source `specification.md`/`design.md` under an `## Engineering review` heading (the same escalation `/design` uses; annotate only — never mutate existing `[Uxx]`/`[ACxx]`/`[TCxx]` IDs). Never silently drop them, never invent new Jira work. Record which of `specification.md`/`design.md` actually received a note — the handoff step needs to know whether only one, or both, were annotated. The notes are written here and handed off later — see the escalation handoff after Phase 4.
+7.5. **Spec/design conformance escalation.** For each unresolved `missing`/`contradicts` in-scope requirement from the code-review Spec/design-conformance dimension, write a `- [ ]` note back onto the source `specification.md`/`design.md` under an `## Engineering review` heading (the same escalation `/design` uses; annotate only — never mutate existing `[Uxx]`/`[ACxx]`/`[TCxx]` IDs). Never silently drop them, never invent new work. Record which of `specification.md`/`design.md` actually received a note — the handoff step needs to know whether only one, or both, were annotated. The notes are written here and handed off later — see the escalation handoff after Phase 4.
 8. **Run Phase 3.5 (post-review).** After the review gate clears (non-BLOCK verdict), run the Phase 3.5 sequence (lint/build, `test-baseliner` verify, fix loop) — **not before**. This preserves the invariant "NEVER run tests for SIGNIFICANT / HIGH-RISK before Opus review returns non-BLOCK". The fix loop inside Phase 3.5 applies fixes via the session model; if the fixes are non-trivial **and** the reviewer was NOT down-classified in step 7, re-invoke the Opus code review on the delta after Phase 3.5 completes (first overwrite `review_diff_file` with a fresh `git add -N . && git diff` so the re-review reads the post-Phase-3.5 diff). If the reviewer WAS down-classified, skip the re-review.
 9. Verify the outcome matches the approved plan and the review verdict.
 10. Proceed to Phase 4.
@@ -768,7 +768,7 @@ directory; no user name is ever written (§10 privacy).
 
 ## Invariants (always enforced)
 
-- ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, jira-not-found, cancellation)
+- ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation)
 - NEVER skip Phase 1.5 classification — every run must state the level
 - NEVER use Opus for routine implementation; reserve it for planning + review on SIGNIFICANT / HIGH-RISK
 - NEVER run tests on SIGNIFICANT / HIGH-RISK work before the Opus code review returns a non-BLOCK verdict
@@ -786,7 +786,7 @@ directory; no user name is ever written (§10 privacy).
 - ALWAYS produce the Phase 5 report as the final output
 - ALWAYS end the Phase 5 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked; omitted in direct mode (no PRD/Epic pipeline context)
 - ALWAYS pass `Command run: /implement` in the Phase 4 Agent 4 session handoff
-- ALWAYS pass `Change type: code` in the Phase 4 change summary block (scopes the four maintenance agents' suggestions to code-change territory — docs / Jira variants use `docs`)
+- ALWAYS pass `Change type: code` in the Phase 4 change summary block (scopes the four maintenance agents' suggestions to code-change territory — docs variants use `docs`)
 - AFTER one review-fixer pass + one re-review, if verdict is still BLOCK: stop and surface to user — do NOT loop
 - AFTER two Phase 3.5 fix-loop attempts, if regressions remain: stop and surface to user — do NOT loop
 - ALWAYS classify each `@path` input by inspection (Phase 0) — never by matching the path string

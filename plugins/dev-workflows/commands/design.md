@@ -4,7 +4,7 @@ description: keyed engineering-design workflow (Dev phase). Takes over a merged 
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
-Author an engineering design for the Jira item: $ARGUMENTS
+Author an engineering design for the resolved item: $ARGUMENTS
 
 `/design` is the **Dev-phase engineering-design** workflow — the design step of the PM→PA→PE→Dev pipeline
 (`/specify` → `specification.md`; then `/design` → `design.md`). The developer *takes over* a merged
@@ -24,7 +24,11 @@ Flags: `--design-twice` forces the Phase 5 interface fan-out on the run's load-b
 
 ## Phase 0 — Resolve input
 
-1. **Resolve the address.** Classify `$ARGUMENTS` minus every recognised flag (`--design-twice`) before resolving — strip it first, exactly as `commands/idea.md`'s Phase 1 strips its own flags: an unstripped `--design-twice` is parsed as part of the Jira key and the run resolves the wrong feature, or fails. Execute
+1. **Resolve the address — strip every recognised flag first.** `--design-twice` is removed from
+   `$ARGUMENTS` before anything else, exactly as `commands/idea.md`'s Phase 1 strips its own: an
+   unstripped flag is read as the positional token and resolution then fails on a token that was
+   never an address.
+
    Parse the **single positional address** from the stripped `$ARGUMENTS` — a `<KEY>`, or an
    `@<path>` naming a folder or a file inside one — and resolve it with `resolve-address`
    (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). Carry forward:
@@ -53,7 +57,7 @@ it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run �
 
 *(The preflight runs here, before the gate below, because `require-on-main` performs **no** `fetch` of its own — §3.2 — and relies on this step's best-effort one. Gating first would test never-fetched refs: a just-merged artifact would be missed on `origin/<default>` while the stale remote-tracking ref for its deleted branch still carries it, producing a false row D/E stop. `specs-preflight` self-gates on `$SPECS_PATH`, so it is safe this early.)*
 
-3. **Map onto the specs repo + require the spec on main.** Derive provisional kebab-case slugs from the relevant Jira title(s): `<vslug>` for `<PRD>`, and `<eslug>` for `<EPIC>` when `focus_key` is set.
+3. **Map onto the specs repo + require the spec on main.** Derive provisional kebab-case slugs from the relevant title(s): `<vslug>` for `<PRD>`, and `<eslug>` for `<EPIC>` when `focus_key` is set.
    - **Resolve the PRD dir:** call `resolve-address <PRD>` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3) and use its `path`; on `ambiguous`, stop naming every match and `@<path>` as the way through. No matching rule is written here — §5 owns it, and it carries the legacy fallback. Use a freshly derived `PRD-<PRD>-<vslug>` only on `status: absent`. Every later `specifications/<PRD>-<vslug>/` in this command — the Epic-enumeration ref test included — names the dir resolved here.
    - **Resolve the feature folder** by case:
      - **`focus_key` set** → the per-Epic home `specifications/<PRD>-<vslug>/<EPIC>-<eslug>/` (same honor-existing tolerance on the `<EPIC>-<eslug>` segment); the target is `specification.md` there.
@@ -146,7 +150,7 @@ user stories (`[Uxx]`), acceptance criteria (`[ACxx]`), and test cases (`[TCxx]`
 — this is the traceability baseline for **Requirements coverage** and the raw material the grill
 challenges. Note the spec's `Published` flag (governs whether Phase 5 may propose ID changes or must
 annotate-only) and any existing `- [ ]` open questions (spec-level; tolerated — the design may resolve
-or inherit them). **No Jira re-read** — the spec is the requirements source of truth.
+or inherit them). **No PRD re-read** — the spec is the requirements source of truth.
 
 ---
 
@@ -361,7 +365,7 @@ NEVER interrupts an earlier phase. `/design` has no built-in maintenance agent,
 so this phase invokes `impl-maintenance` on the Sonnet detection chain and then
 persists the plugin-facing slice of its report as session feedback.
 
-**Capture-at-block invariant.** This terminal phase captures gaps for a *completed* run. Separately, if an EARLIER phase **halts on a plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked), `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating — so a run abandoned at the block still records the gap. NEVER `emit-block` for a work-quality review BLOCK or an environment / user halt (repo/spec gate, jira-not-found, cancellation).
+**Capture-at-block invariant.** This terminal phase captures gaps for a *completed* run. Separately, if an EARLIER phase **halts on a plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked), `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating — so a run abandoned at the block still records the gap. NEVER `emit-block` for a work-quality review BLOCK or an environment / user halt (repo/spec gate, key-not-found, cancellation).
 
 **Session-hygiene invariant.** End the report with a `### Context hygiene` block per
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the

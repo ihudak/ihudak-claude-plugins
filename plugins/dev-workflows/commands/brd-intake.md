@@ -22,7 +22,7 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
 ## Phase 0 — Resolve inputs
 
 1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate it with `key-valid`
-   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1 — shape only, `^[A-Z][A-Z0-9_]*(-\d+)+$`,
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1's `key-valid` — shape only,
    never checked against a tracker). If absent or invalid, **stop gracefully**:
    `BRD_INTAKE_NEEDS_KEY: /brd-intake needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. ACME-001) — pick a short stable identifier for this business requirements document, then re-run '/dev-workflows:brd-intake <KEY> @<brd-file>'.`
 2. **`@<brd-file>` (mandatory).** The customer's source file argument. If absent, **stop**:

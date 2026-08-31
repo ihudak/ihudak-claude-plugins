@@ -57,12 +57,11 @@ step skips on it.
      `choices: ["I've switched to a clean main — re-check", "Proceed anyway on the current checkout (read-only; noted in the report)", "Cancel", "Other… (describe)"]`
    - Clean `main`/`master` → proceed silently.
 
-4. **Map onto the specs repo (PRD dir + optional Epic subdir).** Resolve the PRD dir
-   `$SPECS_PATH/specifications/<PRD>-<vslug>/` by **key-number match** (tolerate a stray `-`/`_` after
-   the key and a human-adjusted slug — the same tolerance `ard-resolution.md` and `/design` use). No
-   match there → apply `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §7's one-level-deep
-   fallback before concluding none exists; it is reached only on a flat miss, so a flat key resolves
-   exactly as it did before. When `focus_key` is set, additionally resolve the per-Epic subdir
+4. **Map onto the specs repo (PRD dir + optional Epic subdir).** Resolve the PRD dir with
+   `resolve-address <PRD>` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), which searches
+   every level §3 bounds and carries §5's legacy fallback; `status: absent` means none exists, and
+   `ambiguous` is a stop naming every match. The same entry point resolves what `ard-resolution.md`
+   and `/design` resolve, which is what keeps the three from drifting apart. When `focus_key` is set, additionally resolve the per-Epic subdir
    `<PRD-dir>/<EPIC>-<eslug>/` by the same tolerance. **Unlike `/design`, a missing dir is NOT a hard
    stop** — an early-lifecycle PRD (e.g. `Open` / `Problem stated`) legitimately has no specs-repo
    footprint yet, and "nothing exists" is itself readiness-relevant data, not an error. Record whichever

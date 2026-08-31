@@ -86,13 +86,11 @@ a **BRD key**, and there is no second positional key (Phase 0 step 0).
    provisional slug is enough to check for existing folders now): `<vslug>` for the `<PRD>` title, and
    `<eslug>` for the `<EPIC>` title when `focus_key` is set.
 
-   - **Resolve/derive the PRD (top-level) dir:** `specifications/<PRD>-<vslug>/`. Look for an existing
-     dir at `specifications/<PRD>{-|_}<vslug-or-other-slug>/` — honor an existing dir matched by
-     key-number (tolerate a stray `-`/`_` after the key, and a pre-existing slug that doesn't exactly
-     match a freshly-derived one — a human may have adjusted it). No match there → apply
-     `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §7's one-level-deep fallback before
-     concluding none exists; it is reached only on a flat miss, so a flat key resolves exactly as it
-     did before. Create `<PRD>-<vslug>` (hyphen) only if neither level has one. Every later
+   - **Resolve/derive the PRD (top-level) dir:** call `resolve-address <PRD>`
+     (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), which searches every level §3 bounds and
+     carries §5's legacy fallback — including a slug a human has adjusted. No matching rule is
+     written here; §5 owns it. Create `PRD-<PRD>-<vslug>/` per §2's convention only on
+     `status: absent`. Every later
      `specifications/<PRD>-<vslug>/` in this command — the PRD gate's `ls-tree` path and Phase 2's
      per-Epic paths included — names the dir resolved here.
    - **Resolve the feature folder itself**, by case:

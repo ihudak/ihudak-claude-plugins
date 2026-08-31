@@ -129,8 +129,8 @@ reads was already independently verified by `/brd-ground`'s own agents.
   depth declaration.
 - **Nothing more, at either level.** A key that resolves to a **slice** does not stop the run; it
   sets `allocate-only` (see "Two modes" above) and emits the `BRD_SPLIT_ON_SLICE` notice. What the
-  one-level cap forbids is creating a child *below* a slice
-  ([`addressing.md`](../../references/addressing.md) §3): a grandchild would inherit
+  one-level cap forbids is creating anything below a slice but its Epics
+  ([`addressing.md`](../../references/addressing.md) §6): a slice of a slice would inherit
   `brd/source/` and a defect log from a parent that holds neither, so its inventory header would
   name a path that does not exist.
 - **`/brd-ground`'s findings already merged to the specs repo's default branch.** Phase 0 gates

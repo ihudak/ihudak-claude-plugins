@@ -707,9 +707,11 @@ half-done. Both were **audited against the tree** for this design rather than re
 - **The six `/brd-*` commands are complete.** All six emit cost and feedback, all six carry a
   `cost-emission.md` §7 row, all six write a resume pointer and run `commit-artifacts`. Nothing was
   forgotten when they were built.
-- **`/upgrade` and `/vuln` emit no session cost, and that is deliberate — it is written down here
-  because it was not written down anywhere.** The audit first read it as a defect: zero occurrences
-  of the word in either command and no §7 row. It is not one. **Session cost measures AI investment
+- **`/upgrade` and `/vuln` emit no session cost, and that was already documented — the audit that
+  called it a defect had not read far enough.** Both command pages carry the reason: *"runs outside
+  the PRD pipeline: no cost-attribution phase and no role."* What was genuinely missing is a
+  statement in `cost-emission.md`, the runtime authority, which is why an audit reading that file
+  found an absence and reported it. It is not a defect. **Session cost measures AI investment
   in a project**, and a CVE bump or a library upgrade is noise against a PRD or a BRD — a metric
   that averages the two answers a question nobody asked. The rule this makes explicit: **a cost
   entry attaches to a run that advances a PRD- or BRD-scoped artifact**, and a run that only touches

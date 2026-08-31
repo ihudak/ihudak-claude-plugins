@@ -42,7 +42,7 @@ Every phase ends the same way: a producing command lands its deliverable on the 
 
 ## Dev — build, verify, and deliver
 
-- **Owns:** the engineering design, the implementation, and the documentation of the shipped feature — plus verifying that a declared status is actually justified by the artifacts on record, which this role checks but never sets.
+- **Owns:** the engineering design, the implementation, and the documentation of the shipped feature — plus deriving the workflow phase from the artifacts on record — and, with `--claimed`, checking a status you declare against it — which this role checks but never sets.
 - **Runs:** `/design`, `/implement`, `/document`, `/ready`; also the final run of `/release-notes`, once a specification or design already exists.
 - **Consumes:** the merged `specification.md` (plus the ARD, when one exists), then the merged `design.md`, then the code under `$REPOS_PATH`; `/ready` additionally consumes the artifacts present for the PRD or Epic in question.
 - **Produces:** `design.md`, landed on the specs repo's default branch; code on a feature branch in `$REPOS_PATH`, left uncommitted for you to review; product documentation in the external docs repo; the final release-notes draft; and, from `/ready`, a `SUPPORTED` / `PARTIAL` / `NOT-SUPPORTED` verdict plus an optional `_readiness.md` snapshot, committed and handed off only behind your consent.

@@ -50,7 +50,7 @@ These are the review ground truth — without them there is nothing to verify th
 | Dimension | Check |
 |---|---|
 | Status consistency | Do the artifacts justify the *declared* status and support the *next* transition, per that rubric? The headline dimension — a mismatch between what's declared and what the "Expected artifacts" column requires at that status is the primary signal for the verdict. |
-| Coverage chain | Every PRD requirement traces to ≥1 Epic → a spec → a design (to the depth that exists). A PRD requirement with no Epic = MAJOR. An in-scope Epic missing a spec/design that its declared status implies = MAJOR. An absent artifact that is merely optional at this status = MINOR. |
+| Coverage chain | Every PRD requirement traces to ≥1 Epic → a spec → a design (to the depth that exists). A PRD requirement with no Epic = MAJOR. An in-scope Epic missing a spec/design that the PRD's derived phase implies it should have = MAJOR. An absent artifact that is merely optional at this status = MINOR. |
 | Cross-artifact alignment | Terminology drift and outright contradictions across PRD ↔ ARD ↔ spec ↔ design. |
 | ARD conformance (conditional) | Only when `applicable_ard` is present: an artifact that violates an `AD#N` without a matching `- ARD deviation: … flag: architect` line = BLOCKER; with one = allowed-but-flagged. Absent `applicable_ard` → dimension skipped. |
 | Scope integrity | Spec or design items with no upstream PRD/Epic parent are scope creep — flag them. |

@@ -87,7 +87,7 @@ the BRD route is a **switch, not a path** on all three rows: the positional key 
 | **PM** | `/idea`, `/create-prd`, `/update-prd`, and an early `/release-notes` | `idea.md` in `$VAULT_PATH`, then the PRD in `$SPECS_PATH/specifications/<KEY>-<slug>/` |
 | **PA** | `/create-ard` (optional) | the ARD, in the same specs feature folder as the PRD |
 | **PE** | `/epics`, `/specify` | `epic.md` per `EPIC-` folder under the PRD folder; `specification.md` on the specs repo's default branch |
-| **Dev** | `/design`, `/implement`, `/document`, `/ready`, and a final `/release-notes` | `design.md` on the specs repo's default branch; code on a branch in `$REPOS_PATH`, left uncommitted; product docs in the docs repo; a read-only readiness verdict that sets no status |
+| **Dev** | `/design`, `/implement`, `/document`, `/ready`, and a final `/release-notes` | `design.md` on the specs repo's default branch; code on a branch in `$REPOS_PATH`, handed over behind a consent choice; product docs in the docs repo; a read-only readiness verdict that sets no status |
 
 See [Roles and phases](roles-and-phases.md) for what each role owns, consumes, and hands off — this table only shows where the commands sit.
 

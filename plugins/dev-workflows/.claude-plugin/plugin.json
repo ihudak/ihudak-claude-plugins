@@ -1,6 +1,6 @@
 {
   "name": "dev-workflows",
-  "version": "3.5.0",
+  "version": "3.6.0",
   "description": "Twenty-seven slash commands for the product lifecycle — /idea → /create-prd → /create-ard → /specify → /design → /epics → /implement → /document → /release-notes → /ready — plus a BRD-to-PRD route (/brd-intake → /brd-ground → /brd-split → /brd-interview → /brd-package → /brd-reconcile) that grounds a customer BRD, decides it with the customer, and seeds /create-prd, /create-ard and /specify. Also /vuln, /upgrade, /update-prd, /docs-profile, /api-guideline-reviewer, /guideline-reviewer, /statusline, /feedback and /prompt. Thirty-nine subagents, four hooks. Opus-backed gates review every artifact — plans, code, docs, Epics, specs, designs, ARDs, PRDs, readiness. Each phase hands its artifact to the next on the specs repo's default branch: the producer opens a PR; the consumer refuses to start until it lands. Optional read-only grounding on product docs, prior art and code.",
   "author": {
     "name": "Ivan Gudak",

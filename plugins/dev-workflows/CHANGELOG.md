@@ -4,6 +4,37 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.6.0] — 2026-08-31
+
+### Removed — the tracker round-trip (increment B)
+
+Second of four increments implementing
+`docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md`. **No command reads a tracker any
+more, by any mechanism.** `$SPECS_PATH` is the system of record; the plugin reads and writes one
+markdown tree and calls no external service.
+
+- **`agents/jira-reader.md`, `references/jira-input-resolution.md` and `references/prd-source-resolution.md` are deleted.** The shared input front-end is replaced by three lines in each command's own Phase 0 — parse one address, resolve it, branch on the kind — and `resolve-existing-prd` collapsed to *resolve the folder, read its `prd.md`*, which is two obvious lines and no longer earns a file.
+- **`mode: jira-driven | direct` becomes `keyed | direct`**, the test being whether a positional address is present. `/document` and `/implement` keep both modes; the other four stop on a missing address exactly as they stopped on `mode: direct`.
+- **The two-key argument grammar collapses** in `/ready`, `/design` and `/specify`: the resolved folder's kind decides the altitude, and the second key was always derivable from the first.
+- **New `references/epic-picker.md`.** The progress-aware Epic picker was already artifact-based and policy-neutral; it lived in the front-end only because that is where key classification happened. `/implement`'s picker joins it — its done-predicate was an Epic's tracker status and is now the artifacts present, which is what `/design`'s picker already did.
+- **The paste-and-re-import round-trip is gone**, with every instruction, reminder, conditional offer and now-vacuous `jira-products/` guardrail built around it. Next-step offers that were withheld pending an import are unconditional, because the commands they offer read the specs tree this run just wrote.
+- **`issue_type` and `ValueIncrement` are retired** in favour of `kind:`, added alongside them in 3.5.0 so this could be a deletion rather than a swap.
+- **`--from-brd` is retired as a flag.** The BRD route is a property of the resolved folder — it carries `brd-link.md` — so a flag restating it could only disagree with the folder it named. `--from-prd` survives: it names a *different* PRD to seed from, which no folder can decide on the operator's behalf.
+- **`jira_key` becomes `key`**, and **`workitem_key` is added** — reserved, documented, preserved across every frontmatter rewrite, displayed in reports, and never minted, validated, or resolved by. **Unknown frontmatter keys are preserved**, stated in all three format authorities.
+- **The three former mirror fields are authored here now.** `change_type` and `release_notes_category` are inferred and confirmed in `/release-notes`'s grill; `release_versions` comes from a new `--version` flag or the same grill. `prd-format.md` reverses its own rule, which forbade authoring them while the answer existed elsewhere.
+- **`workflow-states.md` no longer names a tracker as the source of truth for status.** It is read in the direction its own *expected artifacts* column already supported, with `/ready --claimed "<status>"` named as what a tracker-keeping operator uses for the divergence check they otherwise lose.
+- **`CLAUDE.md`'s two-grammar rule is retired.** It forbade widening a tracker-side check to accept three segments; with no tracker read anywhere, every check is folder-side and the defect family it guarded cannot occur. What survives is the reason: `pre-lint.md`'s collision grep reads like a key validator and is not one — it is an auto-link detector, and its narrowness is what makes it correct.
+- **620 vendor-named tokens swept to zero in scope.** Three exceptions are deliberate and each records why: `/vuln` and `/upgrade` (out of scope, and a user-supplied ticket ID is a real thing); vault prior art (deleted in the next increment); and `branch-naming.md`, which quotes tokens a repository's *own* convention file may contain and whose job is to recognise them.
+
+### Known gap until the next increment
+
+`/document` and `/release-notes` have **no diff source**: PR URLs came from the tracker export, and `implementation.md` replaces them in increment C. Diff grounding was already opt-in and advisory in both, so this reduces an optional input to absent — and both now say so where they would have dispatched `diff-summarizer`, rather than producing an ungrounded draft silently.
+
+### Fixed
+
+- Five documentation pages named `*_NEEDS_JIRA` stop codes the commands never emitted.
+- `/ready`'s body described a status-anchored gate while its own description said artifact-anchored.
+
 ## [3.5.0] — 2026-08-31
 
 ### Changed — one addressing authority for the whole specs tree (increment A)

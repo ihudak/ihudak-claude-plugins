@@ -736,7 +736,9 @@ Not a diff read — a **read-through**. A diff shows what changed; it does not s
 
 Every one, before the increment closes. A defect unrelated to increment A is still fixed — in its own PR where that keeps this branch's diff readable. Nothing is carried forward as a known-but-unfixed finding.
 
-Two known-standing items are **not** increment A's to fix, and are not defects it introduced: the 40 `choices:` arrays exceeding `AskUserQuestion`'s four-option maximum, and the missing cost emission in `/upgrade` and `/vuln`. Both have their own PRs.
+One known-standing item is **not** increment A's to fix and is not a defect it introduced: the 40 `choices:` arrays exceeding `AskUserQuestion`'s four-option maximum. It has its own PR.
+
+The absent cost emission in `/upgrade` and `/vuln` is **not** a finding — it is a deliberate exemption (spec §9.1). Do not "fix" it. If the audit surfaces it, the correct action is to confirm `cost-emission.md` §7 and `docs/reference/session-cost.md` state the exemption and its reason; adding emission would be the defect.
 
 - [ ] **Step 6: Run the repository gates one final time, then open the PR**
 

@@ -684,16 +684,33 @@ half-done. Both were **audited against the tree** for this design rather than re
 - **The six `/brd-*` commands are complete.** All six emit cost and feedback, all six carry a
   `cost-emission.md` §7 row, all six write a resume pointer and run `commit-artifacts`. Nothing was
   forgotten when they were built.
-- **`/upgrade` and `/vuln` emit no session cost at all** — zero occurrences of the word in either
-  command, and neither has a §7 row, while both emit feedback. This is a pre-existing defect,
-  unrelated to this design, and it is **fixed in its own PR** rather than folded into an increment.
-- **`/docs-profile`, `/api-guideline-reviewer` and `/guideline-reviewer` emit nothing** and run no
-  `commit-artifacts`. All three do real, token-expensive work, so all three gain the emitter tail —
-  which moves `specs-repo-git.md`'s "twenty-three commands" to twenty-six and its exclusion list to
-  `/statusline` alone.
+- **`/upgrade` and `/vuln` emit no session cost, and that is deliberate — it is written down here
+  because it was not written down anywhere.** The audit first read it as a defect: zero occurrences
+  of the word in either command and no §7 row. It is not one. **Session cost measures AI investment
+  in a project**, and a CVE bump or a library upgrade is noise against a PRD or a BRD — a metric
+  that averages the two answers a question nobody asked. The rule this makes explicit: **a cost
+  entry attaches to a run that advances a PRD- or BRD-scoped artifact**, and a run that only touches
+  a code repository emits none. `cost-emission.md` §7 and `docs/reference/session-cost.md` state the
+  exemption and its reason, so the next audit reads it as a decision rather than re-finding it as a
+  gap.
+
+  *(One premise the audit got wrong, corrected here so it is not repeated: both commands do run
+  `specs-preflight` and `commit-artifacts` and do write into `$SPECS_PATH`, with a `NOISSUE …`
+  commit message for the keyless case. "Nowhere to write it" was never the reason — the reason is
+  what the number is for.)*
+- **The feedback those two emit is kept, and it is not the same thing.** It is `emit-auto` from
+  `feedback-emission.md` §6 — the **plugin-facing** slice of `impl-maintenance`'s Lessons Learned
+  report, recording that *dev-workflows itself* lacked a capability the run needed. That is how the
+  plugin learns about its own gaps, it is silent and additive, and a vulnerability run surfaces one
+  as readily as a PRD run does. Dropping it would trade a real signal for a tidier table.
+- **`/docs-profile`, `/api-guideline-reviewer` and `/guideline-reviewer` emit nothing, and stay
+  that way** — by the same rule. None advances a PRD- or BRD-scoped artifact, so none carries a
+  cost entry. `specs-repo-git.md`'s "twenty-three commands" is unchanged.
 - **`/statusline` stays out** — it configures a setting rather than running a task — and
   `/prompt-brainstorm` / `/prompt-grill-me` keep their documented exemption: they cede the session
-  before a cost phase could run.
+  before a cost phase could run. With the rule above, the cost-emitting set is exactly the
+  pipeline that produces a PRD or a BRD, plus `/feedback` and `/prompt`, which inherit the phase and
+  role of whatever they are correcting.
 - **Follow-up emission is deliberately narrower** — five commands cite `followup-emission.md`.
   Increment D re-examines that boundary when it rewrites the file around `follow-ups.md` (§8.1),
   since `/brd-split` and `/brd-interview` do surface deferred work.

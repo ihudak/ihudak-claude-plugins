@@ -37,7 +37,7 @@ flowchart TD
 
     intake --> ground
     ground --> split
-    split -.->|new child BRD| ground
+    split -.->|new slice, a PRD- folder| ground
     split --> interview
     interview --> package
     package -->|bundle sent| review
@@ -65,7 +65,7 @@ boundary, the package has to physically reach a customer and the customer has to
 why `/brd-reconcile` takes the returned file as an argument rather than looking for it: the route
 resumes when somebody says *this file is the answer*, and not before.
 
-The dashed edge from `/brd-split` closes the child loop once, and only once. A child BRD re-enters
+The dashed edge from `/brd-split` closes the slice loop once, and only once. A slice re-enters
 at `/brd-ground` and then runs `/brd-split` on itself in **allocate-only** mode: its ledger is
 walked to a recorded fate, but no grandchild is created, because nesting is capped at one level. So
 that loop is traversed at most twice for any requirement — once by the parent, once by the slice
@@ -79,13 +79,14 @@ every row `unallocated`. `/brd-ground` pins every mounted repository to a verifi
 grounds every `[BR#n]` claim against code and an exported design frame set, with every finding
 independently re-derived before it counts as evidence. `/brd-split` gates on every finding carrying
 a verifier verdict, proposes candidate slices, and walks every unallocated ledger row to one of
-five recorded fates — building here, assigning it to a named child BRD, deferring it, rejecting it
-against a logged defect, or marking it superseded — until none remain `unallocated`. A child BRD a
-split confirms is not a new route: it nests inside its parent's folder and re-enters at
-`/brd-ground` for its own grounding pass, which is what the dashed loop above shows, and then at
-`/brd-split` to allocate its own ledger. That second `/brd-split` runs in **allocate-only** mode: it
-offers four resolutions rather than five and creates nothing, because no child can exist below a
-slice. `covered-by` is the resolution it does not offer — not because a slice may not carry one,
+four recorded fates — assigning it to a named slice, deferring it, rejecting it
+against a logged defect, or marking it superseded — until none remain `unallocated`. **A BRD is a
+container and is never implementable itself**, so a split always confirms at least one slice; where
+nothing clusters, the whole BRD becomes one. A slice is not a new route: it nests inside its BRD's
+folder as the `PRD-` folder its PRD will be authored in, and re-enters at `/brd-ground` for its own
+grounding pass, which is what the dashed loop above shows, and then at `/brd-split` to allocate its
+own ledger. That second `/brd-split` runs in **allocate-only** mode: it offers a different four and
+creates nothing, because nothing can exist below a slice but its Epics. `covered-by` is the resolution it does not offer — not because a slice may not carry one,
 but because the one a slice carries is written by the parent's own walk: when that walk settles a
 provisionally-claimed requirement on a different slice, the claim is withdrawn, the ledger row stays
 (a ledger row is never deleted), and it records the sibling — or the parent — that took it. The cap

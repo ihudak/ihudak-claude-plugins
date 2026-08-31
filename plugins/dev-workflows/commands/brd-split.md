@@ -1,6 +1,6 @@
 ---
 name: brd-split
-description: BRD-splitting workflow (PM phase, third command of the BRD-to-PRD route). Gates on every grounding finding carrying a verifier verdict, proposes candidate slices from the grounded picture (buildable now, blocked, or dependent) - optionally seeded by a verbal <instruction> the operator types after the key, which is resolved against this BRD's own rows and grilled (bounded, <=5, and only where one answer places more than one row) before any slice is proposed, keys and nests a child BRD folder per confirmed slice with its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md, then walks every unallocated coverage-ledger row one at a time through five resolutions (build here, assign to a named child, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. Run on a slice it allocates but does not slice: nesting is capped at one level, so no child is created and the walk offers four resolutions instead of five - covered-by is not among them because on a slice it records a provisional claim this command's own walk on the parent withdrew, and the parent writes it. Re-running is a no-op that prints the ledger only where the ledger is fully allocated AND no child is left standing while claiming nothing; a standing empty child keeps the run alive, because this is the only command that can remove it or keep it against a recorded reason. Offers /brd-interview on the BRD just allocated, and /brd-ground on each non-empty child, as the next steps.
+description: BRD-splitting workflow (PM phase, third command of the BRD-to-PRD route). Gates on every grounding finding carrying a verifier verdict, proposes candidate slices from the grounded picture (buildable now, blocked, or dependent) - optionally seeded by a verbal <instruction> the operator types after the key, which is resolved against this BRD's own rows and grilled (bounded, <=5, and only where one answer places more than one row) before any slice is proposed. A BRD is a container and is never implementable itself, so this command always produces at least one slice; where nothing clusters, the whole BRD becomes one. Each confirmed slice is keyed and nested as a PRD- folder inside this BRD - the folder its PRD will be authored in - carrying its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md. It then walks every unallocated coverage-ledger row one at a time through four resolutions (assign to a named slice, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. covered-here is not among them on a parent: a parent builds nothing itself. Run on a slice it allocates but does not slice: nesting is capped at one level, so no child is created and the walk offers a different four - covered-here replaces covered-by, which on a slice records a provisional claim this command's own walk on the parent withdrew, and the parent writes it. Existing children are enumerated by a positive test - a subdirectory carrying a brd-link.md whose parent: names this BRD - never by a name match. Re-running is a no-op that prints the ledger only where the ledger is fully allocated AND no child is left standing while claiming nothing; a standing empty child keeps the run alive, because this is the only command that can remove it or keep it against a recorded reason. Offers /brd-interview on the BRD just allocated, and /brd-ground on each non-empty slice, as the next steps.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -156,11 +156,19 @@ four-resolution one.
    four choices rather than five. A slice's own `covered-by` rows name a sibling or the parent and
    are written by the parent's walk, never chosen here
    (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3); this step never looks for
-   them and never needs to, because they are terminal already. In `full` mode: list every immediate subdirectory of `<BRD-dir>` whose name
-   matches `<KEY>{-|_}<slug>` (`addressing.md` §3 step 1), excluding `brd/`, `grounding/`, and
-   `dev-workflows/` — none of those is ever a BRD folder. Each match is a child a previous
-   `/brd-split` run already created, nested per §3, and remains a valid `covered-by` target in
-   Phase 4 even when this run proposes no new slice of its own. **Read each one's `brd-link.md`
+   them and never needs to, because they are terminal already. In `full` mode: list every immediate subdirectory of `<BRD-dir>` that
+   **contains a `brd-link.md` carrying a `parent:` field naming this BRD**. Each match is a child a
+   previous `/brd-split` run already created, nested per `addressing.md` §6, and remains a valid
+   `covered-by` target in Phase 4 even when this run proposes no new slice of its own.
+
+   **A positive test, not a name match.** Matching a subdirectory by name and then reading an
+   absent `brd-link.md` as an empty `claims:` list is what let a folder that is not a child be
+   counted as one: it reads as a standing empty child, Phase 4.5 offers to **remove** it, and
+   `epic.md`, `specification.md` and `design.md` go with the folder. Requiring the file to exist and
+   to name this BRD makes the inference impossible rather than merely unlikely. It also needs no
+   exclusion list — `brd/`, `grounding/` and `dev-workflows/` carry no `brd-link.md`, so the test
+   excludes them by construction rather than by an enumeration that a new sibling directory would
+   silently fall out of. **Read each one's `brd-link.md`
    `claims:` list**, and mark every match whose list is empty as a **standing empty child**, noting
    whether it carries a `reason:` field — Phase 4.5 resolves exactly this set, and it is the set the
    no-op test in step 10 needs. **Carry the marked set forward even when it is empty** — step 10
@@ -339,14 +347,20 @@ rationale that put them together — the buildable/blocked/depends-on reading, o
 instruction placed, what in the instruction placed it) and confirm before anything is created:
 
 ```
-choices: ["Accept these slices as proposed (Recommended)", "Edit one or more slices (rename, merge, move a row)", "Replace with a different slice list entirely", "Propose no slices — walk the ledger directly", "Cancel", "Other… (describe)"]
+choices: ["Accept these slices as proposed (Recommended)", "Edit one or more slices (rename, merge, move a row)", "Replace with a different slice list entirely", "Make this whole BRD one slice", "Cancel", "Other… (describe)"]
 ```
 
-**Zero confirmed slices is a legitimate outcome.** A BRD nobody splits still needs every row walked
-in Phase 4 — most naturally landing on `covered-here`, per `coverage-ledger-format.md` §5's
-PRD-eligibility rule — so choosing
-"walk the ledger directly" or editing the list down to nothing skips Phase 3 entirely and proceeds
-straight to Phase 4 with whatever children Phase 0 step 9 already found (if any).
+**Zero confirmed slices is not an outcome this phase can reach.** A BRD is a container, never
+something implementable in its own right, so **this command always produces at least one slice** —
+and the degenerate case has an honest answer rather than an escape valve: where nothing clusters,
+the whole BRD becomes one slice, which is what *"Make this whole BRD one slice"* selects. Editing
+the list down to nothing re-asks this question rather than proceeding.
+
+**Why a container, rather than letting a BRD hold its own PRD.** A BRD that could be split *and* be
+PRD-eligible itself would hold PRD folders and its own Epic folders as siblings — two kinds in one
+namespace, which `addressing.md` §2's second invariant forbids, and which Phase 0 step 9 would then
+have to tell apart. One slice always existing means the requirements always land somewhere a PRD can
+be written, and that somewhere is always one level down.
 
 ---
 
@@ -362,10 +376,21 @@ For every slice Phase 2 confirmed:
    Phase 0 step 9 already uses) and let the operator accept it or supply their own. Validate
    whatever is used with `key-valid` (`addressing.md` §1); an invalid key is re-prompted,
    never silently coerced.
-2. **Create the folder inside this one.** `specifications/<PARENT-KEY>-<parent-slug>/<CHILD-KEY>-<child-slug>/`,
-   per `addressing.md` §6 — a child BRD is never a sibling of its parent. `<child-slug>` is a
-   kebab of the slice's working name from Phase 2.
-3. **Write the child's `brd-link.md`**: `parent: <BRD-KEY>` and `claims:` — the slice's `[BR#n]`
+2. **Create the folder inside this one.** `specifications/BRD-<PARENT-KEY>-<parent-slug>/PRD-<CHILD-KEY>-<child-slug>/`,
+   per `addressing.md` §6 — the folder a slice gets **is** the folder its PRD will be authored in,
+   and it is never a sibling of its BRD. `<child-slug>` is a kebab of the slice's working name from
+   Phase 2.
+
+   **It is a `PRD-` folder from the moment it is created, before any PRD exists in it.** A slice
+   exists precisely to become a PRD; giving it a `BRD-` directory of its own with a `PRD-` directory
+   nested inside holding one file bought a level of tree for nothing. The prefix declares what the
+   folder is for, which is the same act `/idea` performs when it takes its key up front. What
+   distinguishes this folder from an idea-route PRD folder is its `brd-link.md` — the positive test
+   Phase 0 step 9 applies, not the prefix.
+3. **Write the child's `brd-link.md`**: `kind: brd`, `key: <CHILD-KEY>`, `parent: <BRD-KEY>` and
+   `claims:` — the first two are how the new folder asserts its own identity from the moment it
+   exists (`addressing.md` §4), and `brd-link.md` is the folder's only artifact until Phase 3 step 4
+   writes its inventory. Then the slice's `[BR#n]`
    rows as currently proposed. This is provisional: Phase 4's walk is the step that actually moves
    a row's disposition, and a row proposed here for this child but resolved differently there (for
    example rejected instead) is removed **from this list** at that point, never left to disagree
@@ -425,15 +450,15 @@ For every row in `coverage-ledger.md` still `disposition: unallocated`, present 
 at a time, never batched**, via `AskUserQuestion` — quoting its `id`, `text`, `defects`, and
 `evidence` so the operator has everything needed without opening the file.
 
-**`split_mode: full` — five resolutions:**
+**`split_mode: full` — four resolutions:**
 
 ```
-choices: ["Build here — covered-here, where this row clusters with nothing and fits no slice<recommended>", "Assign to a named child BRD — covered-by<recommended>", "Defer to this BRD — deferred-to (a real allocation, not a shortcut)<recommended>", "Reject — citing a [DEF#n]<recommended>", "Mark superseded by another [BR#n]<recommended>", "Cancel", "Other… (describe)"]
+choices: ["Assign to a named slice — covered-by<recommended>", "Defer to this BRD — deferred-to (a real allocation, not a shortcut)<recommended>", "Reject — citing a [DEF#n]<recommended>", "Mark superseded by another [BR#n]<recommended>", "Cancel", "Other… (describe)"]
 ```
 
 **No option on that picker carries a `(Recommended)` marker, and the omission is required rather
 than stylistic.** Which resolution is right is a fact about the row in front of the operator — a row
-that clusters into a slice takes `covered-by`, one that does not takes `covered-here`, one the
+that clusters into a slice takes `covered-by`, one this BRD still owes takes `deferred-to`, one the
 customer has withdrawn takes `rejected` — and the list is shown once per row, so no marker could be
 true across the runs that reach it. `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` covers
 exactly this under *When no option is safe to recommend*: omit the marker and say so in prose beside
@@ -441,12 +466,15 @@ the list. **A conditional marker is not the alternative.** `(Recommended when no
 reads as guidance and is malformed by that file's *The `(Recommended)` marker is unconditional*
 rule — it hands the operator the gate this phase was supposed to evaluate, and an orchestrator that
 must present the list verbatim cannot honour it either way. The condition belongs in the option's own
-text, which is where it now sits. Say beside the list that `covered-here` is the ordinary landing for
-a row nothing clusters with, and that `deferred-to` is a real allocation rather than a way of
-deferring the choice itself.
+text, which is where it now sits. Say beside the list that **`covered-here` is not among these four**
+and why — a parent BRD is a container and builds nothing itself (Phase 2), so a row that must be
+built goes to a slice — and that `deferred-to` is a real allocation rather than a way of deferring
+the choice itself.
 
-**`split_mode: allocate-only` — four**, with `covered-by` absent and **the reason stated beside the
-list**, so an operator who expected five is told why rather than left to notice a missing option.
+**`split_mode: allocate-only` — four as well**, but **a different four**: `covered-by` is absent and
+`covered-here` is present, which is the exact mirror of the `full` picker. State the reason beside
+the list, so an operator who sees a different set than the last run is told why rather than left to
+notice it.
 This picker *does* recommend an option, and the asymmetry is the rule working rather than an
 inconsistency: on a slice every row the walk stands on is a row the parent allocated **here**, so
 `covered-here` is unconditionally the expected answer and the marker is a plain reason annotation
@@ -533,14 +561,16 @@ writes back. §4 states the gate those resolutions open, which this command
 how many rows remain, but every row already resolved this pass stays written; nothing already
 decided is rolled back.
 
-- **Build here** → `disposition: covered-here`. **This is the resolution that makes the whole BRD
-  PRD-eligible** (`coverage-ledger-format.md` §5) — it is not an afterthought among the five, it is
-  the escape valve that keeps this command able to complete on a BRD nobody actually splits.
-  Without it, an unsplit BRD would have no row that could ever leave `unallocated` except by
-  deferring, rejecting, or superseding every one of them, and no BRD could ever become eligible for
-  a PRD of its own — allocation would deadlock at the very case this command must handle most
-  routinely.
-- **Assign to a named child BRD** (`split_mode: full` only) → prompt for the child's key: any
+- **Build here** → `disposition: covered-here`. **`split_mode: allocate-only` only** — it is what
+  makes a slice PRD-eligible (`coverage-ledger-format.md` §5), and it is the ordinary landing for
+  every row a slice's walk stands on, because the parent allocated those rows *here*.
+
+  **It is not offered in `full` mode, and the escape valve it used to be is gone with it.** A parent
+  BRD is a container and holds no PRD of its own, so there is no "build it here" for a parent to
+  choose; a row that must be built goes to a slice, and this command always produces at least one
+  (Phase 2). What that removes is the old completion path for a BRD nobody split — which is no
+  longer a state this command can leave behind. Every other resolution is unchanged, in both modes.
+- **Assign to a named slice** (`split_mode: full` only) → prompt for the slice's key: any
   created in Phase 3 this run, or any found already nested under this BRD in Phase 0 step 9. Reject a key that resolves to neither
   and re-prompt — `covered-by` never names a folder that does not exist. Write
   `disposition: covered-by: <CHILD-KEY>`, and add this row's `[BR#n]` to that child's `brd-link.md`

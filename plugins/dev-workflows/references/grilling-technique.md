@@ -22,6 +22,46 @@ still holds — facts you resolve yourself — but a genuine decision that would
 is **recorded as an open question** (`[NEEDS CLARIFICATION]` for bounded callers, `- [ ]` for relentless
 callers) rather than self-answered. Never grill yourself into a fabricated decision.
 
+## Relationship to the upstream technique it was adapted from
+
+**This file is a fork, not a copy, and the fork is deliberate.** The technique is adapted from
+mattpocock's `grill-me` / `grilling`, which now ships as a skill in the official marketplace
+(`mattpocock-skills:grilling`). **It is not a drop-in replacement for this file**, and a future
+reader who notices it there should read this section before proposing the swap.
+
+**Where the two diverge, and which way to jump:**
+
+| | Upstream | Here |
+|---|---|---|
+| Question cadence | **Batched**: computes a *frontier* of decisions whose prerequisites are settled and asks the whole frontier in one numbered round | **One at a time**, never batched (Mechanics, above) |
+| Depth | Relentless by construction — done when the frontier is empty | **Two depths, caller-declared** (below), three of eight callers bounded |
+| No human turn available | Not addressed — the model assumes somebody answering rounds | Recorded as an open question, never self-answered (above) |
+| Altitude | One conversation, one altitude | Gap categories scale to the caller's altitude (below) |
+
+**The three rows below the first are why this file exists**, and they are not improvements on the
+technique — they are **caller management** upstream has no reason to carry. This plugin invokes the
+same technique from eight commands at three depths, one of which may run with no human turn
+available at all. A single-context skill has nothing to say about a `≤5` cap, about what to write
+when nobody is there to answer, or about the difference between a product-altitude quality
+expectation and an engineering NFR.
+
+**The first row is a genuine disagreement, and upstream may well have the better of it** for the
+relentless callers: numbering the round and attaching a recommended answer to each question answers
+this file's own "a firehose is bewildering" objection, and it costs fewer round-trips on a long
+grill. It is not adopted because `commands/brd-split.md`'s ledger walk — the one caller that is both
+a grilling caller and a never-batch caller — presents rows one at a time by its own rule, and
+because a cadence that differs by caller is worse than one that is merely debatable.
+
+**Adopting it wholesale would also cost the plugin its self-containment.**
+`references/dependencies.md` states that no command hard-requires another plugin, because
+`plugin.json` cannot express a dependency; a missing companion must degrade a feature, never break a
+run. Grilling is **mid-run in eight commands**, which is a different risk from
+`/prompt-brainstorm`'s single terminal hand-off to `superpowers:brainstorming`.
+
+**Read upstream for ideas, not for parity.** Where it is sharper — its *frontier* framing for
+dependency order, its rendered question format, its rule that a fact is fetched rather than asked —
+port the idea into this file deliberately and record it here. Do not cite it at runtime.
+
 ## Depth (the caller chooses)
 
 - **Bounded** — a capped set of the highest Impact×Uncertainty questions, then stop; unresolved high-impact gaps are recorded (e.g. `[NEEDS CLARIFICATION]`). Used by `/idea` (≤10; `--deep` switches to relentless), `/prompt-grill-me` (≤5) and `/brd-split` (≤5, and only when given a slicing instruction).

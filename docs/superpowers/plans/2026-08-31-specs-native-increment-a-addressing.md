@@ -404,6 +404,56 @@ Spec: 4.3"
 
 ---
 
+### Task A3.5: The artifact writers follow the filenames
+
+**Added during execution.** A2 defines the keyless filenames and A3 makes the three resolvers read them, but no task was assigned the commands and agents that **write** them. Left undone, `/create-ard` keeps writing `<KEY>_ARD.md` while `ard-resolution.md` looks for `ard.md` — a resolver that finds nothing, invisible to every gate because both files are internally consistent on their own. That is the dead-gate shape: a rule shipped whose consumer never gets the data.
+
+**Files** (derived, not recalled — re-derive before starting):
+
+```bash
+cd plugins/dev-workflows
+grep -rln '_ARD[.]md\|_<slug>[.]md\|<KEY>_[*][.]md' commands agents references docs
+```
+
+At the time this task was written: `commands/create-ard.md` (8), `commands/create-prd.md` (7), `commands/update-prd.md` (5), `commands/ready.md` (3), `agents/prd-reviewer.md` (3), `references/pre-lint.md` (2), `docs/roles-and-phases.md` (2), `docs/commands/{create-ard,update-prd}.md` (2 each), and one each in `agents/ard-reviewer.md`, `references/{prd-format,prd-source-resolution,coverage-ledger-format}.md`, `docs/commands/create-prd.md`.
+
+**Interfaces:**
+- Consumes: A2's filename table, A3's readers.
+- Produces: writers and readers that name the same files.
+
+- [ ] **Step 1: Write the failing assertion**
+
+```bash
+#!/usr/bin/env bash
+set -u
+P=plugins/dev-workflows
+fail=0
+a() { if eval "$2" >/dev/null 2>&1; then printf 'ok    %s\n' "$1"; else printf 'FAIL  %s\n' "$1"; fail=1; fi; }
+a "no keyed ARD filename"  "! grep -rl '_ARD[.]md' $P/commands $P/agents $P/references $P/docs"
+a "no keyed PRD filename"  "! grep -rl '_<slug>[.]md' $P/commands $P/agents $P/references $P/docs"
+a "no <KEY>_*.md glob"     "! grep -rl '<KEY>_[*][.]md' $P/commands $P/agents $P/references $P/docs"
+a "create-ard writes ard.md"    "grep -qE '[^-]ard[.]md' $P/commands/create-ard.md"
+a "create-prd writes prd.md"    "grep -qE '[^-]prd[.]md' $P/commands/create-prd.md"
+exit $fail
+```
+
+- [ ] **Step 2: Run it and watch it fail**
+
+- [ ] **Step 3: Rewrite each writer**
+
+Per the A2 filename table. Two that need judgement rather than substitution:
+
+- **`references/pre-lint.md`'s Jira-key collision grep** (`\b[A-Z]{2,10}-[0-9]+\b`) is **not** a filename and must not be touched. `CLAUDE.md` is explicit: it reads like a key validator and is not one — it is an *autolink detector*, and its narrowness is what makes it correct. Check whether its two hits are the detector or a filename before editing either.
+- **`agents/prd-reviewer.md` and `agents/ard-reviewer.md`** name the file they review. A reviewer that opens the wrong filename returns "absent" on a document that exists, which reads as a passing review of nothing.
+
+- [ ] **Step 4: Run the assertion — expect all green**
+
+- [ ] **Step 5: Run the repository gates**
+
+- [ ] **Step 6: Commit**
+
+---
+
 ### Task A4: `/brd-split` — D5, the folder merge, and the step-9 positive test
 
 **Files:**
@@ -782,7 +832,7 @@ EOF
 | "Update its twelve adopters — nine commands plus `ard-resolution.md`, `jira-input-resolution.md` and `prd-source-resolution.md`" | A3 (the three authorities), A6 (the nine commands + the six `/brd-*`) |
 | "Apply D5, the §4.1 folder merge and the step-9 positive test to `/brd-split`" | A4 |
 | "follow through `coverage-ledger-format.md` §5 and `/create-prd`'s gate" | A5 |
-| "Rename artifact files (§4.3) and simplify the three resolvers" | A2 (the convention), A3 (the resolvers) |
+| "Rename artifact files (§4.3) and simplify the three resolvers" | A2 (the convention), A3 (the resolvers), **A3.5 (the writers — added during execution; the original mapping covered the readers and left the writers unassigned)** |
 | §11 "Verification, every increment" + "Review protocol" | A7 |
 
 **Two gaps I found and closed while checking:** the spec's increment-A sentence names nine commands, but the six `/brd-*` commands also call the renamed entry points — A6 covers all fifteen. And the spec does not say where `kind:`/`key:` are *defined* as opposed to used, which is why A2 exists as its own task rather than as a step inside A1.

@@ -265,13 +265,29 @@ handed off **before a single phase below reads it**, because a run that dies hal
 ingest must not be the reason the customer's own document cannot be found again. It arrived on a
 path nobody else can reproduce; the copy is the record.
 
-1. **Derive the review's date**, in this order, and stop at the first that answers: a `<YYYYMMDD>`
-   in the supplied filename (the schema's output name is `<BRD-KEY> Customer Review <YYYYMMDD>.md`,
-   so a file that came back unrenamed carries it); a review date stated in the review's own section
-   1; otherwise prompt the operator for it, in plain text, naming what it is for. **The date is the
-   customer's, not this run's.** Naming the copy by today's date would record when the delivery team
-   got round to ingesting the review rather than when it was written, and every claim in it is dated
-   against the package it answers.
+1. **Derive the review's date**, in this order, and stop at the first that answers:
+
+   1. **The review date stated in the review's own section 1** (*Review identity and evidence
+      limitations* — who reviewed, in what role, **on what date**). This is the customer asserting
+      their own date in their own document, which is exactly what is wanted.
+   2. **A `<YYYYMMDD>` in the supplied filename** — the schema asks the reviewer to name the file
+      for the date they finished, so a file that came back unrenamed carries it. **Reject this rung
+      where that date equals the date on the `customer-review-prompt-<YYYYMMDD>.md` this run gated
+      on**, and fall through to rung 3: the two matching is the signature of a reviewer echoing the
+      package's own stamp rather than dating their work, and a filename that merely repeats the
+      packaging date settles nothing. It is not proof — a review genuinely finished the day the
+      package was built produces the same collision — which is why the fallback is a prompt that
+      shows the operator both dates rather than a silent choice either way.
+   3. **Otherwise prompt the operator for it**, in plain text, naming what it is for and showing the
+      packaging date beside it so they can see what was rejected and why.
+
+   **The date is the customer's, not this run's, and not the package's either.** Naming the copy by
+   today's date would record when the delivery team got round to ingesting the review; naming it by
+   the packaging date would record when the delivery team *sent* it. Neither is when the review was
+   written, and every claim in it is dated against the package it answers. Ordering section 1 ahead
+   of the filename is what makes that true rather than aspirational: a filename is chosen by whoever
+   saved the file and can be an artifact of the send, while section 1 is a statement the reviewer
+   made inside the review.
 2. **Resolve the canonical name**, which is the date plus, where the date alone is taken, a
    disambiguating suffix:
 
@@ -791,7 +807,7 @@ choices: ["Inherited unchanged — the change does not move this position; say w
 **Not an escalation array either**: the four options are the four dispositions the design fixes for
 this sweep, in that order, and a fifth would be a disposition nothing downstream can read — which is
 why `escalation-rules.md`'s *The permitted adjustment does not reach these arrays* section names this
-picker among the five that never take a trailing `"Other… (describe)"` entry. No `(Recommended)`
+picker among the six that never take a trailing `"Other… (describe)"` entry. No `(Recommended)`
 marker, and the reason is stated beside the list per the
 `When no option is safe to recommend` guidance in `escalation-rules.md`: which one is right is a
 judgement about a position in another BRD, taken by whoever owns it, and a marker would invite the
@@ -985,9 +1001,54 @@ each under the precondition the offered command actually enforces rather than un
   key: a second positional is refused (`CREATE_ARD_BRD_NO_EPIC` / `SPECIFY_BRD_NO_EPIC`), so neither
   is ever offered with an Epic beside it.
 
+**Advance and re-entry are two lists, not one, and they are mutually exclusive.** Written as a
+single array this phase offered ten options — advancing into the PRD pipeline in the same breath as
+naming four different reasons the route is not finished — which is longer than any other list in
+this plugin by a wide margin and asks the operator to referee a question this run can answer itself.
+Resolve `advance_ready` first, from what **this run actually left behind**, and present exactly one
+of the two arrays below.
+
+**`advance_ready: no` where any of these four is true**, each of which is a fact this run holds
+rather than a judgement:
+
+| Trigger | Why it blocks advancing |
+|---|---|
+| this run **reopened** a `[VD#n]` or `[CD#n]` | a `reopened` record "may not be consumed downstream" while it stands (`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §3), and all three `--from-brd` runs consume the register |
+| a `[C]` is still **held for the customer** | the customer has not answered it, so a PRD authored now states a scope they were never asked about |
+| the review **challenged a code claim**, leaving a finding to re-derive | the findings a downstream artifact would cite are known-stale, and only a `--rebaseline` pass replaces them |
+| a dependent BRD's sweep could only be **recorded, not written** | another BRD still carries a position this run's `[CD#n]` overturns, and nothing in it says so yet |
+
+None true → `advance_ready: yes`. Each re-entry option below is **also** conditioned on its own
+trigger and dropped where that trigger did not fire, exactly as the `/create-prd` option is dropped
+on a failed eligibility test — so the second array is typically two or three options long, not six.
+
+**`advance_ready: yes` — the route is finished with this BRD and crosses into the PRD pipeline:**
+
 ```
-choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Author this BRD's PRD — /dev-workflows:create-prd <BRD-KEY> --from-brd (PM)", "Author this BRD's architecture — /dev-workflows:create-ard <BRD-KEY> --from-brd (PA, optional)", "Author this BRD's specification — /dev-workflows:specify <BRD-KEY> --from-brd (PE)", "Work another round — /dev-workflows:brd-interview <BRD-KEY>, where this run reopened a decision or left a question askable", "Package again — /dev-workflows:brd-package <BRD-KEY> <merge-clause>, where questions remain for the customer", "Re-ground a moved claim — /dev-workflows:brd-ground <BRD-KEY> --rebaseline <merge-clause>", "Sweep a dependent this run could only record — /dev-workflows:brd-reconcile <BRD-KEY> @<review-file> on this same review, once that dependent's register is on the default branch", "Reconcile another BRD or slice", "Other… (describe)"]
+choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Author this BRD's PRD — /dev-workflows:create-prd <BRD-KEY> --from-brd (PM)", "Author this BRD's architecture — /dev-workflows:create-ard <BRD-KEY> --from-brd (PA, optional)", "Author this BRD's specification — /dev-workflows:specify <BRD-KEY> --from-brd (PE)", "Reconcile another BRD or slice", "Other… (describe)"]
 ```
+
+**`advance_ready: no` — the three `--from-brd` options are left out rather than offered and
+consumed against an unsettled register**, and each remaining option appears only where its own
+trigger above fired. Name, beside the list, which trigger fired and against which id, so the
+operator can see what advancing is waiting on rather than only that it is missing:
+
+```
+choices: ["Stop here — this run's changes are recorded; the route resumes when the items named above are settled", "Work another round — /dev-workflows:brd-interview <BRD-KEY>, for the decision this run reopened or the question it left askable", "Package again — /dev-workflows:brd-package <BRD-KEY> <merge-clause>, for the questions still held for the customer", "Re-ground a moved claim — /dev-workflows:brd-ground <BRD-KEY> --rebaseline <merge-clause>", "Sweep a dependent this run could only record — /dev-workflows:brd-reconcile <BRD-KEY> @<review-file> on this same review, once that dependent's register is on the default branch", "Other… (describe)"]
+```
+
+**"Reconcile another BRD or slice" is on the first list and not the second**, and the omission is
+the point rather than an oversight: it names work on a *different* key, and offering it to an
+operator whose current BRD has an unsettled register is how a reopened decision gets left standing
+while attention moves elsewhere. `"Other… (describe)"` still reaches it for anyone who means it.
+
+**Dropping the three `--from-brd` options here is a refusal this phase can make and their own
+Phase 0s cannot.** `/create-ard --from-brd` and `/specify --from-brd` run no gate that would catch a
+reopened decision — they read the register and route its `open` and `reopened` records to their own
+open-questions section, which is correct behaviour and not a stop. So an operator sent there on an
+`advance_ready: no` run gets an artifact built around a hole, with nothing having refused it. This
+phase is the only station that knows the reopening happened, which is why the judgement is taken
+here.
 
 **None of the three `--from-brd` options carries `<merge-clause>`, and that is derived, not an
 oversight.** Every row of `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`'s resolution table

@@ -1,6 +1,6 @@
 ---
 name: brd-split
-description: BRD-splitting workflow (PM phase, third command of the BRD-to-PRD route). Gates on every grounding finding carrying a verifier verdict, proposes candidate slices from the grounded picture (buildable now, blocked, or dependent), keys and nests a child BRD folder per confirmed slice with its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md, then walks every unallocated coverage-ledger row one at a time through five resolutions (build here, assign to a named child, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. Run on a slice it allocates but does not slice: nesting is capped at one level, so no child is created and the walk offers four resolutions instead of five - covered-by is not among them because on a slice it records a provisional claim this command's own walk on the parent withdrew, and the parent writes it. Re-running on a fully-allocated BRD is a no-op that prints the ledger. Offers /brd-interview on the BRD just allocated, and /brd-ground on each new child, as the next steps.
+description: BRD-splitting workflow (PM phase, third command of the BRD-to-PRD route). Gates on every grounding finding carrying a verifier verdict, proposes candidate slices from the grounded picture (buildable now, blocked, or dependent), keys and nests a child BRD folder per confirmed slice with its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md, then walks every unallocated coverage-ledger row one at a time through five resolutions (build here, assign to a named child, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. Run on a slice it allocates but does not slice: nesting is capped at one level, so no child is created and the walk offers four resolutions instead of five - covered-by is not among them because on a slice it records a provisional claim this command's own walk on the parent withdrew, and the parent writes it. Re-running is a no-op that prints the ledger only where the ledger is fully allocated AND no child is left standing while claiming nothing; a standing empty child keeps the run alive, because this is the only command that can remove it or keep it against a recorded reason. Offers /brd-interview on the BRD just allocated, and /brd-ground on each non-empty child, as the next steps.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -298,15 +298,32 @@ at a time, never batched**, via `AskUserQuestion` — quoting its `id`, `text`, 
 **`split_mode: full` — five resolutions:**
 
 ```
-choices: ["Build here — covered-here (Recommended when nothing clusters, or this fits no slice)", "Assign to a named child BRD — covered-by", "Defer to this BRD — deferred-to (a real allocation, not a shortcut)", "Reject — citing a [DEF#n]", "Mark superseded by another [BR#n]", "Cancel", "Other… (describe)"]
+choices: ["Build here — covered-here, where this row clusters with nothing and fits no slice", "Assign to a named child BRD — covered-by", "Defer to this BRD — deferred-to (a real allocation, not a shortcut)", "Reject — citing a [DEF#n]", "Mark superseded by another [BR#n]", "Cancel", "Other… (describe)"]
 ```
+
+**No option on that picker carries a `(Recommended)` marker, and the omission is required rather
+than stylistic.** Which resolution is right is a fact about the row in front of the operator — a row
+that clusters into a slice takes `covered-by`, one that does not takes `covered-here`, one the
+customer has withdrawn takes `rejected` — and the list is shown once per row, so no marker could be
+true across the runs that reach it. `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` covers
+exactly this under *When no option is safe to recommend*: omit the marker and say so in prose beside
+the list. **A conditional marker is not the alternative.** `(Recommended when nothing clusters)`
+reads as guidance and is malformed by that file's *The `(Recommended)` marker is unconditional*
+rule — it hands the operator the gate this phase was supposed to evaluate, and an orchestrator that
+must present the list verbatim cannot honour it either way. The condition belongs in the option's own
+text, which is where it now sits. Say beside the list that `covered-here` is the ordinary landing for
+a row nothing clusters with, and that `deferred-to` is a real allocation rather than a way of
+deferring the choice itself.
 
 **`split_mode: allocate-only` — four**, with `covered-by` absent and **the reason stated in the
 picker itself**, so an operator who expected five is told why rather than left to notice a missing
-option:
+option. This picker *does* carry a marker, and the asymmetry is the rule working rather than an
+inconsistency: on a slice every row the walk stands on is a row the parent allocated **here**, so
+`covered-here` is unconditionally the expected answer and the marker is a plain reason annotation
+(`(Recommended — <why>)`), not a condition:
 
 ```
-choices: ["Build here — covered-here (Recommended: this slice was carved out to build these rows)", "Defer to this slice — deferred-to (a real allocation, not a shortcut)", "Reject — citing a [DEF#n] in the parent's defect log", "Mark superseded by another [BR#n]", "Cancel", "Other… (describe)"]
+choices: ["Build here — covered-here (Recommended — this slice was carved out to build these rows)", "Defer to this slice — deferred-to (a real allocation, not a shortcut)", "Reject — citing a [DEF#n] in the parent's defect log", "Mark superseded by another [BR#n]", "Cancel", "Other… (describe)"]
 ```
 
 State once, before the first row of an `allocate-only` walk: *"`covered-by` is not offered here.
@@ -581,7 +598,7 @@ this run's pull request. Grounding a child is possible only once that pull reque
 `/brd-intake` is never the answer for a child at any point:
 
 ```
-choices: ["Ground each child created above — /dev-workflows:brd-ground <CHILD-KEY> (Recommended, once per non-empty child) <merge-clause>", "Decide this BRD's open questions — /dev-workflows:brd-interview <BRD-KEY> <merge-clause>", "Stop here — this BRD's own allocation is complete", "Other… (describe)"]
+choices: ["Ground each non-empty child created above, one run per child — /dev-workflows:brd-ground <CHILD-KEY> (Recommended) <merge-clause>", "Decide this BRD's open questions — /dev-workflows:brd-interview <BRD-KEY> <merge-clause>", "Stop here — this BRD's own allocation is complete", "Other… (describe)"]
 ```
 
 **Every merge clause in this phase is the `<merge-clause>` placeholder**, resolved per

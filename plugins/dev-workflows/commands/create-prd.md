@@ -270,17 +270,21 @@ If there is no idea (Phase 0 ladder exhausted), grill the PRD from scratch.
 
 Read exactly two files from the BRD folder Phase 0 step 5 resolved, and no other seed:
 
-- **`prd-seed.md`** — the product-altitude content the design's *Altitude routing* router sent here
-  (§7.2). **`ard-seed.md` and `spec-seed.md` are not read**, at all: they are the architecture and
+- **`prd-seed.md`** — product-altitude content, when the folder holds any. **No `/brd-*` command writes this file on the normal route** — the one writer is
+  `/dev-workflows:brd-intake --sort-existing`, a one-time migration path for a package authored
+  by hand before this route existed. Its absence is therefore the **ordinary** case, not a
+  degraded one, and is reported rather than treated as a gap; what the route actually carries at
+  every altitude is `decisions.md`, filtered by `altitude`, plus the grounding files.
+  **`ard-seed.md` and `spec-seed.md` are not read**, at all: they are the architecture and
   implementation altitudes of the same router, belonging to `/create-ard` and `/specify`, and
   pulling either in is how a PRD acquires the implementation detail
   `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`'s quality rules forbid.
 - **`decisions.md`** — the register, per
   `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1.
 
-A `--from-brd` run with **no `prd-seed.md`** is not a stop: a reconciled BRD can legitimately have
-routed all of its content to the other two altitudes. Say so plainly, carry `decisions.md` alone, and
-let the grill fill the spine from it — a silent fall-through to "grill from scratch" would lose the
+A `--from-brd` run with **no `prd-seed.md`** is not a stop, and is the **ordinary** shape: nothing on
+the normal route writes a seed file at all (above), so a reconciled BRD routinely holds none. Say so
+plainly, carry `decisions.md` alone, and let the grill fill the spine from it — a silent fall-through to "grill from scratch" would lose the
 register too. A run with **no `decisions.md`** is likewise not a stop; report which of the two was
 absent, since a reader cannot tell an unwritten register from an unread one.
 
@@ -295,9 +299,15 @@ absent, since a reader cannot tell an unwritten register from an unread one.
 | `[AS#n]` (open) | An assumption, not a choice (§7). Same treatment as `open`, and it keeps its `[AS#n]` id in the PRD so the reader can find the record that admits its own groundlessness |
 
 Carry each `decided` record's `altitude` with it: only `product` ones have a product-altitude home
-here. An `architecture` or `implementation` decision is read for context and **left for its own
-seed's consumer** — that is what the router exists for (D5), and it is not discarded by being
-skipped.
+here. An `architecture` or `implementation` decision is read for context and **left for the command
+that authors at its altitude** — `/dev-workflows:create-ard` and `/dev-workflows:specify` — and it is
+not discarded by being skipped. **The channel that carries it is `decisions.md` itself, not a seed
+file.** Both of those commands read this same register and filter it by `altitude` exactly as this
+phase does, so a decision skipped here is picked up there from the file it was already in. Say so
+rather than naming a seed: `ard-seed.md` and `spec-seed.md` are written by nothing on this route
+(only `/dev-workflows:brd-intake --sort-existing` writes one, migrating a package authored before
+the route existed), so an operator told a decision was "routed to its seed" would go looking for a
+file that is not there and conclude the content was lost.
 
 **One profile leaves the gaps homeless, and the run must not discover that silently.**
 `## Assumptions & open questions` is an adapt-in cluster, so an explicit `--lean` overriding the
@@ -626,5 +636,7 @@ neither parses nor prints (Phase 0 step 7); every `[VD#n]`/`[CD#n]`/`[AS#n]` car
 rather than an input, by id and status; every contradiction Phase 3 recorded rather than decided,
 with the reopening route named for each; every product-altitude item still `consumed_by: none`, by
 id, per the design's *Consumption tracking* section (§7.3); and any sub-product-altitude content the
-grill surfaced and routed to `ard-seed.md` or `spec-seed.md`'s consumers instead of the PRD (D4).
+grill surfaced and left for `/dev-workflows:create-ard` or `/dev-workflows:specify` instead of the
+PRD (D4) — naming the command, never a seed file, since the register those runs will read that
+content out of is the one this run already read.
 Both `--from-brd` refusals are Phase 0 stops and never reach this report.

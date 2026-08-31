@@ -410,7 +410,14 @@ to. Then:
   ```
 
   **Not an escalation array either**: the three options are the three rows of `bundle-packaging.md`
-  §3's own table, in that table's order. No `(Recommended)` marker, and the reason is stated beside
+  §3's own table, in that table's order, and a fourth would be a tier nothing downstream can read —
+  neither the prompt, which must state the tier and the evidence sentence §3's table pairs with it,
+  nor a returned review's own section 1, which is written against that sentence. It carries **no**
+  `"Other… (describe)"` entry, and that omission is **required rather than merely permitted**, which
+  is why `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` names this picker in its *The
+  permitted adjustment does not reach these arrays* section rather than leaving its own "one
+  permitted adjustment" sentence to overrule the command. `Cancel` is present, so nobody is trapped
+  by the absence. No `(Recommended)` marker, and the reason is stated beside
   the list per the `When no option is safe to recommend` guidance in `escalation-rules.md`: which
   tier is right is not a judgement at all, it is a fact about what this customer can be given, and a
   marker would invite the run to ship at Full because Full is better.
@@ -526,9 +533,18 @@ internal disagreement). **A package that names its own weak points gets a review
 that does not gets a rubber stamp** — which is the entire reason this part is assembled rather than
 written.
 
-**Part 10 — the output file and the inlined schema.** The output filename, exact:
-`<BRD-KEY> Customer Review <YYYYMMDD>.md` — for the synthetic BRD `EPIC-008` packaged on 15 April
-2026, `EPIC-008 Customer Review 20260415.md`. One line saying it is the only file to send back. The
+**Part 10 — the output file and the inlined schema.** The output filename:
+`<BRD-KEY> Customer Review <YYYYMMDD>.md`, with `<BRD-KEY>` substituted and **`<YYYYMMDD>` left as
+an instruction rather than a value** — it is the date the *reviewer* finishes, and this run does not
+know it. Say so in as many words, and work the example from a review date rather than a packaging
+one: a review of `EPIC-008` finished on 22 April 2026 is `EPIC-008 Customer Review 20260422.md`.
+**Never substitute this run's own `<YYYYMMDD>` stamp here**, however tempting the symmetry with the
+prompt, the note and the bundle: those three are dated by when they were *built*, and a returned
+review is dated by when it was *written*. Stamping the package's date onto the filename makes the
+customer echo it back, and `/dev-workflows:brd-reconcile` then derives the review's date from a
+filename that records when the delivery team sent the package — which is the one thing that phase
+says the date must not be. Ask for the same date in the review's section 1, so the file and its own
+first section agree and either can settle it. One line saying it is the only file to send back. The
 D13 rule stated **again** here, having already been stated in part 1, because an agent asked to
 review documents will otherwise helpfully edit them. Then the schema, inlined by `render-schema`
 below.
@@ -626,10 +642,30 @@ Write `<BRD-dir>/bundle-<YYYYMMDD>/`. The bundle is a **rendered copy**, produce
 the working documents keep their wikilinks and are never rewritten in place
 (`bundle-packaging.md` §2).
 
-**What goes in:** this package's own documents; the prompt; every prerequisite package resolved
-above, copied in and marked **not for re-review**; every image those documents reference; and a
-manifest. Plain markdown and images, and nothing else. **What does not go in:** the delivery note,
-and anything a reader outside a vault cannot see.
+**What goes in is `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1.1's allow-list, applied
+verbatim** — the rendered prompt; the customer's own source document and the defect log (**the
+parent's on a slice**, one hop, since a slice holds neither —
+`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1, §4); `brd/brd-inventory.md`;
+`coverage-ledger.md`; `grounding/code-grounding.md`, `grounding/design-grounding.md` and
+`grounding/baselines.md`; `decisions.md`; `interview/customer-questions.md`; every prerequisite
+package resolved above, copied in and marked **not for re-review**; every image those documents
+reference; and a manifest. Plain markdown and images, and nothing else.
+
+**What does not go in:** the delivery note; **`self-review-<YYYYMMDD>.md`**; every other working
+record in this BRD folder (`slices.md`, `brd-link.md`, the seeds, the round records, an earlier
+reconciliation or returned review, `dev-workflows/`); and anything a reader outside a vault cannot
+see.
+
+**The self-review exclusion is the one that would not survive being left to judgement, so it is
+stated here as well as in §1.1.** That file holds every `[SR#n]` this run raised, including the ones
+the *disposition gate* disposed `rejected-with-reason` — whose reason "stays inside the delivery
+organisation. Nothing rejected reaches the customer." The `[SR#n]` content the customer may see
+reaches them **filtered**, through part 9 and part 7 of the prompt; the file carries the unfiltered
+set, plus the model the adversarial pass actually ran on. It sits in this same folder under the same
+`<BRD-KEY>`-and-date naming as the prompt and the delivery note, so nothing about its filename marks
+it as internal — which is exactly why the rule is written down rather than inferred. **The
+plugin-free scan below would not catch it**: that scan hunts plugin-internal tokens, and a
+self-review is free of them while being the most internal document this command writes.
 
 1. **Name every bundle document distinctively.** Documents are located by **filename search, never
    by path**, because a path is correct exactly once — in the directory layout this machine had —

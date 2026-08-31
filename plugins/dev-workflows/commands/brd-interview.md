@@ -61,9 +61,15 @@ them is.
 2. **The phase that answers `[G]` questions raises no prompt of any kind.** It reads findings and
    writes answers. It has no `AskUserQuestion` call, no free-text prompt, and no "just to confirm"
    path, and it runs to completion before any operator prompt is opened.
-3. **The operator queue is built once, from the `[V]` list alone.** The *Put each `[V]` to the
-   operator* phase takes the `[V]` set the tagging phase produced and nothing else. It is never
-   appended to mid-round from another tag, and no phase after it may add a question to it.
+3. **The operator queue is whatever the tagging phase has fixed, and nothing else ever reaches it.**
+   The *Put each `[V]` to the operator* phase takes the `[V]` set that phase produced — including
+   anything the `[G]` phase re-tagged into `[V]`, which re-enters at tagging and is re-tested there
+   before it joins the set (property 4). What the queue is never appended to is a question that
+   **has not been through the tagging phase**: no phase adds to it directly, and once this phase
+   opens, nothing is added to it at all. Stating it as "the `[V]` list alone, never appended to from
+   another tag" would be false — a re-tagged `[G]` is a question from another tag, and it is
+   supposed to arrive — and a guarantee that is false in its own ordinary case is one nobody can
+   check the interesting case against.
 4. **A `[G]` leaves the `[G]` set only by re-tagging, and re-tagging re-enters at the tagging
    phase.** It never enters the operator queue directly. And a re-tag is admissible only against a
    named `NOT-PROVABLE` finding or an `unprovable` verifier outcome (`interview-tagging.md` §3):

@@ -45,9 +45,11 @@ to give and cannot defend later.
 
 **How the command guarantees the first of those** is a property of its phase order, not of its
 prose. Tagging runs over the whole round before any asking phase opens; the phase that answers `[G]`
-questions raises no prompt of any kind; the operator queue is built once from the `[V]` set and is
-never appended to afterwards; and a `[G]` can leave the `[G]` set only by re-tagging, which re-enters
-at the tagging phase and is admissible only against a named `NOT-PROVABLE` finding.
+questions raises no prompt of any kind; the operator queue holds exactly what the tagging phase has
+fixed — including a `[G]` re-tagged to `[V]`, which is re-tested there before it joins — and nothing
+reaches it that has not been through that phase, nor anything at all once the queue opens; and a
+`[G]` can leave the `[G]` set only by re-tagging, which re-enters at the tagging phase and is
+admissible only against a named `NOT-PROVABLE` finding.
 
 **A question carrying two tags is a defect in the question**, not a gap in the taxonomy: it is split
 until each part carries exactly one, and the `[G]` part is answered first, because its answer

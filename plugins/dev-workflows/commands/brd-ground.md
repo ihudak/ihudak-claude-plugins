@@ -98,7 +98,20 @@ behaviour, not the behaviour.
      pull request. `handoff-to-main` stages only the paths *that* run declared, so the slice's
      already-written files are OTHER to it
      (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.3) and can never reach main by that
-     route. The clause reads: `Re-running /dev-workflows:brd-split <PARENT-KEY> will not land them — on a fully-allocated parent it is a no-op that stages nothing and opens no pull request.`
+     route.
+
+     **Both halves of that condition matter, so the clause carries both.** A parent re-run is a
+     no-op only where its ledger is fully allocated **and** no child is left standing while claiming
+     nothing; a standing empty child keeps that run alive through its empty-child phase, which does
+     stage a `brd-link.md` it writes a `reason:` into. Read the `claims:` list of the `brd-link.md`
+     step 6 already opened for its `parent:` and branch on it, because the two states take different
+     clauses and asserting the first over the second would tell an operator a live run does nothing:
+     - **This slice claims at least one `[BR#n]`** — the ordinary case, and the parent re-run is a
+       genuine no-op: `Re-running /dev-workflows:brd-split <PARENT-KEY> will not land them — with this slice claiming rows and the parent's ledger fully allocated, that run is a no-op: it stages nothing and opens no pull request.`
+     - **This slice claims nothing** — it is a standing empty child, so the parent re-run is not a
+       no-op, but it still will not land *these* files: it declares that child's `brd-link.md`, not
+       its inventory and ledger. Say both, so the operator is neither sent to a no-op nor told a
+       live run is one: `Re-running /dev-workflows:brd-split <PARENT-KEY> is not a no-op — this slice claims nothing, so that run resolves it, offering to remove it or keep it against a recorded reason. It still will not land these files: it stages that decision, not this slice's inventory and ledger. Committing what is already on disk remains the direct route.`
    - **A BRD that owns its source document — `/brd-intake` is a second, slower way out, and may be
      named as one.** Its Phase 7 declares exactly these paths, so a re-run over this same folder
      does stage them and open a pull request. It is second rather than first because it re-extracts
@@ -149,8 +162,17 @@ behaviour, not the behaviour.
    round's questions for a BRD with no requirement — leaving an empty round record permanently on
    file, which no later run may delete or renumber. A stop that names the upstream fix leaves the
    tree honest and the operator able to act.
-9. **Read `brd-link.md`, if present**, to recover any `depends-on` already recorded from an
-   earlier run — Phase 4 merges this run's `--depends-on` into it additively, never replacing it.
+9. **Read `brd-link.md`, if present**, and carry **both** of its fields for the rest of the run:
+   - `depends-on:` — any prerequisite already recorded by an earlier run. Phase 4 merges this run's
+     `--depends-on` into it additively, never replacing it.
+   - `parent:` — absent on a BRD that owns its source document, present on a slice. **Phase 10 branches
+     on it**, and this is the only step that reads it on a run that reaches Phase 10 at all: steps 6
+     and 8 read it too, but each does so inside a branch that *stops*, so on the ordinary path
+     neither has run. A file absent here means no `parent:`, which is the source-owning case.
+
+   Recording it here rather than re-opening the file at Phase 10 is what keeps that phase's own
+   citation true; a phase that names a step for a value the step never took is a citation nobody can
+   follow.
 
 ---
 
@@ -277,7 +299,11 @@ whatever the highest `CG#n` already on file is on a `--rebaseline` run. Each car
 unmodified commit"; `verdict: CONFIRMED` (a repository that failed this gate never reaches a
 finding — it stopped the run instead); `evidence` — the three command outputs (the pinned SHA, the
 empty `--stat` diff, and the `--porcelain`/line-count result); `commit` — the same pinned SHA;
-`altitude: implementation`; `horizon: current`; `consumed_by: none`. Phase 5 continues the BRD-wide
+`altitude: implementation`; `horizon: current`; `consumed_by: none` — which on a baseline finding is
+permanent and reports no gap, per `grounding-format.md` §4.1: there is nothing for a PRD, an ARD or a
+specification to draw from an assertion that a commit is identifiable, so every downstream
+unconsumed-item report excludes these findings rather than carrying one open item per repository
+forever. Phase 5 continues the BRD-wide
 `[CG#n]` sequence from these, never restarting at `CG#1` once a baseline finding already claimed
 it. Phase 7 verifies these findings the same as any other — `grounding-verifier`'s own Process
 step 1 already re-runs `baseline-integrity` for whatever finding it is handed, so re-checking a
@@ -303,15 +329,25 @@ For every declared prerequisite (this run's plus any already on file):
 2. Found → look for `decisions.md` in its folder. Absent → report
    `<PREREQ-KEY> — no decisions.md yet; contributes no will-change horizons` (per
    `grounding-format.md` §5: a prerequisite whose decisions are not yet frozen contributes none).
-3. Present → read only decisions recorded as frozen (never a draft position or an interview
-   answer still open, and never a decision this reader cannot confidently tell is frozen — an
-   unparseable or ambiguously structured `decisions.md` is treated the same as "none frozen" here,
-   never guessed into either state). Two outcomes:
-   - **Nothing in it reads as frozen** → report
+3. Present → read only the decisions that are **frozen, which is a field test and not a judgement:
+   `status: decided`**, the second of the five statuses
+   `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §3 fixes. Nothing else counts, and
+   each exclusion is that section's own rule rather than this command's caution: `open` and
+   `reopened` "may not be consumed downstream" while they stand; `superseded` and `withdrawn` are
+   terminal and describe a position that is no longer held; and an `[AS#n]` never reaches `decided`
+   at all (§7), so an assumption is never a frozen decision however confidently it is written.
+   **Read the status, do not infer it from how settled a record sounds** — the register carries the
+   answer in a field precisely so that this reader does not have to weigh prose, and
+   `/dev-workflows:brd-reconcile` uses the same equivalence when it says what freezing a `[CD#n]`
+   means. A `decisions.md` this reader genuinely cannot parse into records with statuses — not one
+   whose records simply carry no `decided` — is treated as "none frozen" and **reported as
+   unparseable rather than as empty**, because the two are different facts and only the first is
+   worth someone's attention. Two outcomes:
+   - **No record carries `status: decided`** → report
      `<PREREQ-KEY> — decisions.md present, none frozen yet; contributes no will-change horizons`
      — the same "contributes none" consequence as the absent-file case above, just reached from a
      different cause.
-   - **At least one decision reads as frozen** → report readiness in this exact form — the
+   - **At least one record carries `status: decided`** → report readiness in this exact form — the
      `prerequisites:` block, one aligned line per prerequisite, which the Final report below
      reproduces verbatim:
      ```
@@ -458,11 +494,19 @@ For each finding, and for each declared prerequisite whose decisions Phase 4 fou
 read the frozen decision text and judge whether it directly determines this finding's claim once
 built — not merely mentions the same area. Where it does, set `horizon: will-change` and record
 `prerequisite: <the specific decision, by id and a one-line summary>` — naming the decision itself,
-never merely the prerequisite BRD (`grounding-format.md` §5). Where no declared prerequisite has
-any frozen decisions at all (the ordinary case today — nothing in this increment freezes a
-decision, so a prerequisite's `decisions.md` exists only if someone wrote it by hand),
-every finding stays `current`, and this is reported plainly rather than left to look like nothing
-was checked.
+never merely the prerequisite BRD (`grounding-format.md` §5). Where no declared prerequisite has any
+`status: decided` record at all, every finding stays `current`, and this is reported plainly rather
+than left to look like nothing was checked.
+
+**That case is ordinary, and it is no longer the *only* case.** A prerequisite's `decisions.md` is
+written by `/dev-workflows:brd-interview` (its register phase) and gains its `[CD#n]` records from
+`/dev-workflows:brd-reconcile`, both of which ship — so a prerequisite that has been through the
+route carries frozen decisions as a matter of course, and this phase does real work on it. What
+makes the no-frozen-decision case still ordinary is **sequencing, not absence of the capability**:
+a prerequisite is typically declared while it is in flight, which is exactly when its register holds
+`open` records and no `decided` ones. Report which of the two it is — a prerequisite with nothing
+frozen yet, or one this run had nothing to declare against — because "every finding stayed
+`current`" reads identically in both and means different things.
 
 A finding already carrying `horizon: will-change` from a previous `--rebaseline` pass keeps it
 unless the naming decision itself has since shipped (superseded by a later finding, per §3) —
@@ -632,7 +676,7 @@ prerequisite-readiness block; emit its §4.1 outcome line in the final report.
 
 ## Phase 10 — Next steps
 
-**Branch on whether this BRD is a slice**, using the `parent:` field Phase 0 step 9 already read
+**Branch on whether this BRD is a slice**, using the `parent:` field Phase 0 step 9 carried forward
 from `brd-link.md` — offering a command that would refuse the very key just ground is worse than
 offering nothing.
 
@@ -667,7 +711,7 @@ makes this slice PRD-eligible
 formality:
 
 ```
-choices: ["Allocate this slice's ledger — /dev-workflows:brd-split <BRD-KEY> (Recommended; allocate-only — no child is created) <merge-clause>", "Ground another declared prerequisite first", "Stop here", "Other… (describe)"]
+choices: ["Allocate this slice's ledger — /dev-workflows:brd-split <BRD-KEY> (Recommended — allocate-only, so no child is created) <merge-clause>", "Ground another declared prerequisite first", "Stop here", "Other… (describe)"]
 ```
 
 ### Context hygiene

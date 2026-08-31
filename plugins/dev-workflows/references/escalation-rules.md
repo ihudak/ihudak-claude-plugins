@@ -25,7 +25,7 @@ list's meaning and adding the entry is a defect.
 A picker whose options are drawn from a **closed vocabulary another authority fixes** has no room for
 a free-text option: a fifth value is one nothing downstream can read, and the orchestrator that wrote
 it has invented a state no consumer handles. Where a command says so in place, this file agrees with
-it rather than authorising the opposite. **On the five arrays below, `"Other… (describe)"` is never
+it rather than authorising the opposite. **On the six arrays below, `"Other… (describe)"` is never
 added:**
 
 | Array | Its closed vocabulary | Owner |
@@ -35,6 +35,7 @@ added:**
 | the propagation-sweep picker | `inherited-unchanged` / `reverted` / `reopened` / `withdrawn` | `commands/brd-reconcile.md`, *The propagation sweep* |
 | the will-change resolution picker | the exactly three resolutions of `references/decision-register-format.md` §6 | `commands/brd-interview.md` |
 | the `[SR#n]` disposition picker | `fixed` / `accepted-risk` / `escalated-to-customer` / `rejected-with-reason` | `commands/brd-package.md` |
+| the degradation-tier picker | `Full` / `Partial` / `Documents only` — the three rows of `references/bundle-packaging.md` §3 | `commands/brd-package.md` |
 
 **The first three are load-bearing beyond tidiness, and the reason is worth carrying.** They are the
 pickers through which a customer's authority enters the decision register, and D14 exists because
@@ -46,7 +47,7 @@ re-opened by an adjustment made in good faith against this file. A rule contradi
 authority is not a rule, so the carve-out is written here, by name, rather than left to each command
 to assert against a reference that overrules it.
 
-`Cancel` is present on every one of the five, so no operator is ever trapped by the absence.
+`Cancel` is present on every one of the six, so no operator is ever trapped by the absence.
 
 **This list is closed, and it is not a licence to prune elsewhere.** Every other array in the plugin
 takes the trailing entry where its phase omits it, exactly as the paragraph above says.

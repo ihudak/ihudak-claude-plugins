@@ -349,8 +349,12 @@ rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key"
 
 Read the BRD folder Phase 0 step 3 resolved. Read exactly these, and no other seed:
 
-- **`spec-seed.md`** — the implementation-altitude content the design's *Altitude routing* router sent
-  here (§7.2). **`prd-seed.md` and `ard-seed.md` are not read**, at all: they are the product and
+- **`spec-seed.md`** — implementation-altitude content, when the folder holds any. **No `/brd-*` command writes this file on the normal route** — the one writer is
+  `/dev-workflows:brd-intake --sort-existing`, a one-time migration path for a package authored
+  by hand before this route existed. Its absence is therefore the **ordinary** case, not a
+  degraded one, and is reported rather than treated as a gap; what the route actually carries at
+  every altitude is `decisions.md`, filtered by `altitude`, plus the grounding files.
+  **`prd-seed.md` and `ard-seed.md` are not read**, at all: they are the product and
   architecture altitudes of the same router, belonging to `/dev-workflows:create-prd` and
   `/dev-workflows:create-ard`. Reading the first would let product requirements be restated as spec
   content rather than derived from it; reading the second would let this spec re-decide architecture
@@ -374,16 +378,17 @@ Read the BRD folder Phase 0 step 3 resolved. Read exactly these, and no other se
   here is a decision, not an omission — `/dev-workflows:create-prd --from-brd` is where that gate
   lives, and this command is reachable without it.
 
-**Absence is reported, never a stop.** A reconciled BRD can legitimately have routed all of its
-content to the other two altitudes, or have been ground with `--no-design` and hold no
-`design-grounding.md`. Say which of the four were absent — a reader cannot tell an unwritten file from
+**Absence is reported, never a stop, and the seed's absence is the ordinary case.** Nothing on the
+normal route writes a seed file at all (above), so a reconciled BRD routinely holds none; and a BRD
+ground with `--no-design` holds no `design-grounding.md`. Say which of the four were absent — a reader cannot tell an unwritten file from
 an unread one — and carry what is there.
 
 **No `idea.md` is written on this route.** Step B writes one as pre-spec provenance derived from the
 Jira text; there is no Jira text here, and the BRD folder already holds the provenance this spec was
-built from — `spec-seed.md`, the register, and the findings, each committed by the `/brd-*` run that
-wrote it. Minting an `idea.md` from the seed would add a second, weaker record of the same thing in a
-folder whose whole point is that the first one is auditable.
+built from — the register and the findings, each committed by the `/brd-*` run that wrote it, plus a
+`spec-seed.md` where a `--sort-existing` migration left one. Minting an `idea.md` from any of them
+would add a second, weaker record of the same thing in a folder whose whole point is that the first
+one is auditable.
 
 **Partition the register before the grill starts, because the partition is what freezes it.** The
 five states and their treatment are `decision-register-format.md` §3's: a `decided` record is an
@@ -393,7 +398,11 @@ be consumed downstream while open (§3) and reach the spec as `- [ ]` items unde
 `### Open questions` by id — which is also what keeps the header's `- **Open questions**: N` count
 honest (`${CLAUDE_PLUGIN_ROOT}/references/specification-format.md`). Carry each `decided` record's
 `altitude` with it: only `implementation` ones have a home here, and a `product` or `architecture`
-decision is read for context and **left for its own seed's consumer** — that is what the router exists
+decision is read for context and **left for the command that authors at its altitude** —
+`/dev-workflows:create-prd` and `/dev-workflows:create-ard`, both of which read this same register and
+filter it by `altitude` exactly as this phase does, so the channel that carries it is `decisions.md`
+itself and never a seed file (`prd-seed.md` and `ard-seed.md` are written by nothing on this route).
+That is what the altitude partition exists
 for (D5), and it is not discarded by being skipped.
 
 **A finding with no verifier outcome is not evidence** (`grounding-format.md` §8) and may neither
@@ -789,10 +798,14 @@ whether `code-grounding.md` carried a derivation matrix; that no `idea.md` was w
 `[CG#n]`/`[DG#n]` dropped for want of a verifier outcome, by id; every `[VD#n]`/`[CD#n]`/`[AS#n]`
 carried in as a gap rather than an input, by id and status; every contradiction Phase 5 recorded
 rather than decided, with the reopening route named for each; every implementation-altitude item still
-`consumed_by: none`, by id, per the design's *Consumption tracking* section (§7.3); `spec-seed.md`'s
+`consumed_by: none`, by id, per the design's *Consumption tracking* section (§7.3) — **excluding
+the baseline `[CG#n]` findings**, which are never `consumed_by` anything and whose `none` therefore
+reports no gap (`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §4.1); say that they are
+excluded, so a reader can tell an empty list from an unrun check; `spec-seed.md`'s
 consumption at file granularity, and the derivation matrix's the same way; and any product- or
-architecture-altitude content the grill surfaced and left for its own seed's consumer instead of the
-spec (D5). Say plainly whether `/dev-workflows:design` was named in the `### Next step` and, when it
+architecture-altitude content the grill surfaced and left for the command that authors at that
+altitude instead of the spec (D5) — naming the command, never a seed file, since the register it will
+read that content out of is the one this run already read. Say plainly whether `/dev-workflows:design` was named in the `### Next step` and, when it
 was not, that no Jira export resolved for `<BRD-KEY>`.
 
 ### Next step

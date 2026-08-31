@@ -143,6 +143,34 @@ The same three commands are handed to the customer's reviewer in the delivery pr
 customer can re-run them against their own checkout rather than take the package's word for the
 pin.
 
+### 4.1 A baseline finding differs from a claim finding in three ways, and each has a consequence
+
+Sharing the `[CG#n]` prefix is deliberate (above), but a baseline finding is an answer about a
+**repository**, not about a `[BR#n]`. Three rules follow, so that a consumer written against §2's
+record does not treat it as one:
+
+1. **Its `claim` is not a `[BR#n]` premise.** It reads "baseline integrity: `<repo>` is pinned at a
+   verified, unmodified commit". Anything that resolves a finding back to the requirement it answers
+   finds none, and that is correct rather than a missing link.
+2. **Its `evidence` carries command output, not `file:line`.** The three commands' results *are* the
+   evidence, and §2's never-blank rule is satisfied by them. A consumer expecting a path list gets
+   none.
+3. **It is never `consumed_by` anything, and `none` on it does not mean "unconsumed".** There is
+   nothing for a PRD, an ARD or a specification to draw *from* it — it asserts that a commit is
+   identifiable, which is a precondition of every other finding rather than content of its own. So
+   **a report that lists what is still `consumed_by: none` excludes baseline findings**, and says it
+   excludes them. Counting them would put one permanently-open item per repository into every such
+   report, on every run, with no action that could ever close one — a gap that cannot be closed
+   trains its reader to skim the list that also carries the real ones.
+
+**Verification is unchanged and is not an exception.** `grounding-verifier` re-derives a baseline
+finding by re-running `baseline-integrity` against the commit it was handed, which its own Process
+step 1 already does for every finding that rests on code — so the re-derivation *is* that re-run,
+and the outcome it returns is a real outcome, not a courtesy. Its `own_evidence` for such a finding
+carries the same command output the finding does, in place of the `path`/`lines` shape a claim
+finding uses. A baseline finding with no outcome blocks `/brd-split` exactly like any other (§8);
+none of this section excuses it from the gate.
+
 ## 5. Horizon
 
 Every finding carries one of two horizons:
@@ -157,7 +185,13 @@ prerequisite BRD alone is not enough — a prerequisite can carry many decisions
 them is the one that overturns this particular finding; the finding names that specific decision.
 
 Grounding reads only a prerequisite's **frozen** decisions, never speculation, a draft position, or
-an interview answer still open for revision. **A prerequisite whose decisions are not yet frozen
+an interview answer still open for revision. **"Frozen" is a field, not a judgement: it means
+`status: decided`**, the second of the five statuses `references/decision-register-format.md` §3
+fixes, and nothing else qualifies — `open` and `reopened` may not be consumed downstream at all,
+`superseded` and `withdrawn` describe a position no longer held, and an `[AS#n]` never reaches
+`decided` (§7 there). A reader that weighed how settled a record *sounds* instead of reading its
+status would be inferring the one thing the register records outright. **A prerequisite whose
+decisions are not yet frozen
 contributes no `will-change` horizons at all** — there is nothing stable enough to name, so every
 finding that touches it stays `current`, and that absence is itself reported rather than silently
 assumed. A `will-change` finding is not deleted once its prerequisite ships and the code catches up

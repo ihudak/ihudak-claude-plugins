@@ -19,12 +19,48 @@ one.
 ## Synopsis
 
 ```
-/brd-split <BRD-KEY>
+/brd-split <BRD-KEY> [<instruction>]
 ```
 
 - **`<BRD-KEY>`** (mandatory) — the BRD to split and allocate. A key at either of the two levels a
   BRD folder can occupy works, and the level decides the run mode (below). Resolved via
   `resolve-brd`; format-validated only, never checked against a tracker.
+- **`<instruction>`** (optional) — every non-flag token after the key, joined verbatim: a slicing
+  instruction in your own words, such as `cover orders and measurements in the first iteration` or
+  `slice everything this BRD still holds that no child covers`. It is prose and is never validated
+  against anything — what it means is settled against this BRD's own rows in Phase 1.5. Omit it and
+  the command behaves exactly as it did before the argument existed, on every path.
+
+## What an instruction does
+
+**It seeds two things, and it decides nothing.** In `full` mode it seeds the Phase 2 grouping and the
+Phase 4 walk's per-row recommendation; in `allocate-only`, where Phase 2 never runs, it seeds the
+walk alone — which is what makes it a real argument on a slice rather than an ignored one.
+
+**Phase 1.5 reads it in two steps.** *Step A* places every row the instruction plainly determines,
+asking nothing: a set operation over the ledger (*everything no child covers*) resolves entirely
+here. *Step B* grills only the residue — one question at a time, each with a recommended answer,
+**capped at five and gated on a value test: ask only where one answer places more than one row.**
+
+**The value test is the real gate, and the reason is the fallback.** Phase 4 visits every unallocated
+row one at a time regardless, and Phase 2's picker lets you move rows by hand — so an unplaced row
+costs nothing you were not already paying, and a question that disambiguates a single row spends a
+turn to save a prompt that is coming anyway. What earns a question is a terminology decision that
+moves several rows at once. That also sizes the cap: in [`/idea`](idea.md) an unresolved bounded
+question ships as a marker inside the artifact, so ≤10 earns its length; here the residue has a free
+fallback, so ≤5 does.
+
+**The instruction proposes; the grounded picture constrains.** Where a placement puts a
+`NOT-PROVABLE`, `REWRITTEN`, `FALSE-FRIEND` or `will-change` row into a group whose other rows are
+buildable now, Phase 2 names those rows and asks whether to include them anyway, hold them back, or
+decide row by row. Your grouping wins where you confirm it, and never silently — a slice that quietly
+mixed a blocked row in with buildable ones would discard the one signal that makes a slice worth
+carving.
+
+**Nothing is invented for a row it could not place.** That row is left unclustered and walked with no
+recommendation in Phase 4 — the same fate a row nothing clusters with already had, and the same
+picker a run with no instruction has always shown. `slices.md` records the instruction verbatim
+alongside how it was read.
 
 ## Two modes
 
@@ -35,6 +71,7 @@ declaration.
 | | `split_mode: full` | `split_mode: allocate-only` |
 |---|---|---|
 | Applies to | a BRD that owns its source document | a **slice** (`parent:` present) |
+| Phase 1.5 — read the slicing instruction | runs (when one was given) | runs (when one was given) — it seeds the walk, not a grouping |
 | Phase 2 — propose slices | runs | skipped |
 | Phase 3 — key and nest children | runs | skipped — this is the child creation the one-level cap forbids |
 | Phase 4 — walk the ledger | runs, **five** resolutions | runs, **four** — this walk offers no `covered-by` |
@@ -61,7 +98,8 @@ to prevent.
 ```mermaid
 flowchart TD
     p0["Phase 0 — Resolve inputs and gate on verification"] --> p1["Phase 1 — Classify + model routing"]
-    p1 --> p2["Phase 2 — Propose slices"]
+    p1 --> p15["Phase 1.5 — Read the slicing instruction (only when one was given; both modes)"]
+    p15 --> p2["Phase 2 — Propose slices"]
     p2 --> p3["Phase 3 — Key and nest each confirmed slice"]
     p3 --> p4["Phase 4 — Walk the ledger"]
     p4 --> p45["Phase 4.5 — Resolve standing empty children"]
@@ -187,6 +225,21 @@ Split a synthetic customer BRD once its grounding pull request has merged:
 ```
 /dev-workflows:brd-split EPIC-008
 ```
+
+Or with a slicing instruction, which is the same run with Phase 1.5 in front of it:
+
+```
+/dev-workflows:brd-split EPIC-008 cover orders and measurements in the first iteration
+```
+
+Step A places the rows whose text names an order or a measurement; Step B asks at most five
+questions, and only where one answer moves several rows — *the BRD writes "form" for an order record
+and for a compliance artifact; which is meant in these six?* Phase 2 then proposes
+`orders-and-measurements` as a slice, naming any row in it that grounding left `NOT-PROVABLE` or
+`will-change` and asking whether to carry it anyway. Phase 4 walks each row with
+`(Recommended — your instruction grouped this as an order)` on `covered-by`. A second run,
+`/dev-workflows:brd-split EPIC-008 slice everything no child covers`, resolves entirely in Step A and
+asks nothing.
 
 The run resolves the BRD, confirms every finding carries a verifier verdict, proposes candidate
 slices from the buildable / blocked / depends-on picture grounding produced, keys and nests a

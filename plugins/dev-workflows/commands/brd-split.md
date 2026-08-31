@@ -1,6 +1,6 @@
 ---
 name: brd-split
-description: BRD-splitting workflow (PM phase, third command of the BRD-to-PRD route). Gates on every grounding finding carrying a verifier verdict, proposes candidate slices from the grounded picture (buildable now, blocked, or dependent), keys and nests a child BRD folder per confirmed slice with its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md, then walks every unallocated coverage-ledger row one at a time through five resolutions (build here, assign to a named child, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. Run on a slice it allocates but does not slice: nesting is capped at one level, so no child is created and the walk offers four resolutions instead of five - covered-by is not among them because on a slice it records a provisional claim this command's own walk on the parent withdrew, and the parent writes it. Re-running is a no-op that prints the ledger only where the ledger is fully allocated AND no child is left standing while claiming nothing; a standing empty child keeps the run alive, because this is the only command that can remove it or keep it against a recorded reason. Offers /brd-interview on the BRD just allocated, and /brd-ground on each non-empty child, as the next steps.
+description: BRD-splitting workflow (PM phase, third command of the BRD-to-PRD route). Gates on every grounding finding carrying a verifier verdict, proposes candidate slices from the grounded picture (buildable now, blocked, or dependent) - optionally seeded by a verbal <instruction> the operator types after the key, which is resolved against this BRD's own rows and grilled (bounded, <=5, and only where one answer places more than one row) before any slice is proposed, keys and nests a child BRD folder per confirmed slice with its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md, then walks every unallocated coverage-ledger row one at a time through five resolutions (build here, assign to a named child, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. Run on a slice it allocates but does not slice: nesting is capped at one level, so no child is created and the walk offers four resolutions instead of five - covered-by is not among them because on a slice it records a provisional claim this command's own walk on the parent withdrew, and the parent writes it. Re-running is a no-op that prints the ledger only where the ledger is fully allocated AND no child is left standing while claiming nothing; a standing empty child keeps the run alive, because this is the only command that can remove it or keep it against a recorded reason. Offers /brd-interview on the BRD just allocated, and /brd-ground on each non-empty child, as the next steps.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -13,7 +13,7 @@ the only place that fate is ever decided (`${CLAUDE_PLUGIN_ROOT}/references/cove
 §1) — without this command's gate, a long BRD split across several children could have every child
 quietly wave a requirement past, and nothing would notice.
 
-Usage: `/brd-split <BRD-KEY>`
+Usage: `/brd-split <BRD-KEY> [<instruction>]`
 
 Runs at either of the two levels `<BRD-KEY>` can name, in one of **two modes** Phase 0 step 5
 resolves from the folder itself:
@@ -21,6 +21,13 @@ resolves from the folder itself:
 - **`split_mode: full`** — a BRD that owns its source document. Everything below runs: slices are
   proposed, children are keyed and nested, and the ledger walk offers all five terminal
   resolutions.
+An `<instruction>` is honoured in **both** modes, and what it seeds differs: in `full` mode it seeds
+the Phase 2 grouping *and* the Phase 4 walk's per-row recommendation; in `allocate-only`, where
+Phase 2 never runs, it seeds the walk alone. That is why a slicing instruction on a slice is a real
+invocation rather than an ignored one — `/dev-workflows:brd-split <SLICE-KEY> build the order rows,
+defer the rest` is a sentence this command can act on, and the picker it acts on is still the
+four-resolution one.
+
 - **`split_mode: allocate-only`** — a slice. Nesting is capped at one level
   (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §3), so **no child may be created below a
   slice**: Phases 2 and 3 are skipped entirely and the walk offers **four** resolutions, without
@@ -39,6 +46,16 @@ resolves from the folder itself:
 1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `brd-key-valid`
    (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1). If absent or invalid, stop:
    `BRD_SPLIT_NEEDS_KEY: /brd-split needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/dev-workflows:brd-split <KEY>'.`
+1a. **`<instruction>` (optional).** Every **non-flag** token after the key, joined verbatim, is a
+   slicing instruction in the operator's own words — `cover orders and measurements in the first
+   iteration`, `slice everything EPIC-008 still holds that no child covers`. Absent → this command
+   behaves exactly as it did before the switch existed, on every path below; nothing in it is
+   conditional on an instruction being given except where a phase says so. This command parses no
+   flags today, so "non-flag tokens after the key" and "everything after the key" currently pick out
+   the same string — it is written the first way because the second stops being true the moment a
+   flag is added, and `commands/design.md` Phase 0 already strips its own flag before classifying
+   for exactly that reason. The instruction is **never validated against anything**: it is prose, and
+   what it means is settled in Phase 1.5 against this BRD's own rows, never by pattern.
 2. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`, per the
    `Required path environment variable unset` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
    ```
@@ -155,7 +172,9 @@ resolves from the folder itself:
     - `unallocated_zero` (step 8) **and** no standing empty child (step 9, empty by construction in
       `allocate-only`) → this run is a **no-op** (§4): nothing in Phases 2–5 and nothing in Phase 4.5
       has anything left to do, so skip straight to Phase 6 (Handoff), which will report nothing to
-      commit, and the Final Report's ledger line. This is the path a fully-allocated slice takes, and
+      commit, and the Final Report's ledger line. **A slicing instruction does not make this run
+      not-a-no-op**, and it is not a reason to walk a row that already carries a fate: Phase 1.5
+      skips on an empty unallocated set and reports the instruction unused, naming this path. This is the path a fully-allocated slice takes, and
       the one Phase 7 tells a slice to expect.
     - `unallocated_zero` **but at least one standing empty child** (`full` only — a slice can have
       none) → **not a no-op**: skip Phases 2, 3 and 4, which have no row to walk and no slice to
@@ -176,15 +195,96 @@ model_routing:
   reason: <one-line>
   current_model: <the model this orchestrator is running under>
   detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # impl-maintenance only — no other agent runs in this command
+  authoring_model: <= current_model>   # Phase 1.5's reading and bounded grill, and Phase 4's walk — session model, not a delegated subagent
   opus_available: <true if a §2 Opus model resolved, else false>
   notes: <any §2/§2.1 fallback or degradation>
 ```
 
 `/brd-split` dispatches no grounding or review agent of its own — every finding it reads was
 already independently verified by `/brd-ground`'s `grounding-verifier` pass (`brd-ground.md` Phase 7) — so
-`detection_model` here exists only for the terminal `impl-maintenance` dispatch. If no Opus
+`detection_model` here exists only for the terminal `impl-maintenance` dispatch. **`authoring_model`
+is recorded and is not a dispatch**: Phase 1.5 reads a slicing instruction against this BRD's rows and
+may grill the residue, and Phase 4 walks the ledger — all in the session, the same way
+`/brd-intake` records its own interactive defect walk. Recording it matters because the reading is a
+judgement about the operator's words, so a run that made it on a degraded model should say which
+model made it. If no Opus
 resolves for `current_model`, degrade to best-available + record in `notes` and the final report —
 never hard-block.
+
+---
+
+## Phase 1.5 — Read the slicing instruction
+
+**Skipped entirely when Phase 0 step 1a found no instruction**: a run without one reaches Phase 2
+exactly as it always has, and nothing below fires. **Runs in both modes**, unlike Phase 2 — a
+slice has no children to propose, but its walk takes recommendations from an instruction just as a
+parent's does (Phase 4), which is what makes `/dev-workflows:brd-split <SLICE-KEY> <instruction>` a
+real invocation rather than an ignored one.
+
+**Also skipped where no row is `unallocated`**, whatever Phase 0 step 10 decided — the no-op path and
+the Phase 4.5-only path both reach here with nothing to place, since this phase places unallocated
+rows and only those. Report the instruction as **unused, naming which path swallowed it**, rather
+than running a grill over an empty residue: an instruction typed and then silently discarded is
+indistinguishable from one the command failed to parse, and on the Phase 4.5-only path the operator
+has every reason to expect it did something. Neither path is an error, and neither becomes one for
+having been given an instruction.
+
+This phase produces one thing: a **placement** — for each `[BR#n]` still `unallocated`, either what
+the instruction puts it in (a **group** in `full` mode, where groups become slices; a **disposition**
+in `allocate-only`, where there is nothing to group into) or nothing. Everything downstream reads
+that placement and never re-reads the instruction, so an instruction is interpreted exactly once.
+
+### Step A — resolve what the instruction determines, asking nothing
+
+Read each unallocated row's `text` and `source_anchor` from `brd/brd-inventory.md` and place every
+row the instruction plainly determines. **This step raises no prompt of any kind.** It is
+`${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md`'s fact-vs-decision split applied before the
+grill rather than inside it: a question answerable from the artifact is not a question, and a row
+whose text names what the instruction names is placed, not asked about.
+
+An instruction that is a **set operation over the ledger** — *everything no child covers*, *the rest*,
+*what is left* — resolves entirely here, against `coverage-ledger.md`'s `disposition` column, and
+Step B then asks nothing at all. Say so in the report rather than leaving a silent grill looking like
+a skipped one.
+
+### Step B — grill only the residue, and only where an answer places more than one row
+
+The residue is every unallocated row Step A could not place. Put questions to the operator from it
+one at a time, each with a recommended answer, per that reference's mechanics — which are cited, not
+restated here. This command's **depth is bounded**, and the bound has two parts:
+
+1. **The value test, which is the real gate: ask only where one answer places more than one row.**
+   A question that disambiguates a single row is worse than useless here. Phase 4 visits every
+   unallocated row one at a time regardless, so that row's prompt is already coming — spending a
+   turn now to save nothing later is a pure cost, and it is paid before the operator has seen any
+   output at all. What earns a question is a **terminology decision that moves several rows at
+   once**: *the BRD uses "form" for an order record and for a compliance artifact — which is meant
+   in these six rows?* That is the reference's *force terminology precision* rule, and it is the
+   whole reason this grill exists.
+2. **A hard cap of five questions**, after which the phase stops whatever remains. The cap is
+   stated because `grilling-technique.md` defines bounded depth as "a capped set … then stop", so a
+   caller declaring bounded owes a number; and it is **five** rather than ten because the residue
+   here has a free fallback that `/idea`'s does not.
+
+**That difference is worth stating, because it is what sizes the cap.** In `/idea` an unanswered
+bounded question becomes a `[NEEDS CLARIFICATION]` marker that ships inside the artifact, so the cap
+buys a hole in the deliverable and ≤10 earns its length. Here an unplaced row simply reaches Phase 4
+without a recommendation, in a walk that was going to visit it anyway — and it can still be moved by
+hand in Phase 2's own edit/merge/move picker. Two downstream channels catch the same row for free,
+so past the first few questions the grill is the most expensive of the three ways to place a row and
+the only one that runs before anything is visible.
+
+**A row still unplaced when this phase ends is left unclustered**, and that is a resolution rather
+than a failure: it is exactly the fate Phase 2 already gives a row nothing clusters with, and Phase 4
+walks it with no recommendation, which is this command's behaviour on every run that was given no
+instruction at all. **No new marker, no new record, and nothing carried forward** — inventing a
+`[NEEDS CLARIFICATION]`-style marker for it would put a token into a ledger and an inventory whose
+field sets are fixed elsewhere (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2,
+`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2).
+
+**Nothing in this phase writes.** It settles a reading; Phase 2 proposes from it, Phase 4 recommends
+from it, and Phase 5 records it. A `Cancel` here stops the run with nothing written, exactly as a
+`Cancel` in Phase 2 does.
 
 ---
 
@@ -204,9 +304,34 @@ requirements along these buildable / blocked / depends-on lines into candidate s
 coherent, independently buildable group of `[BR#n]` rows, never a single row on its own unless
 nothing else clusters with it.
 
+**With a Phase 1.5 placement, the instruction proposes and the grounded picture constrains.** The
+placement decides which rows group together — it is a *business* grouping and it legitimately cuts
+across the buildable / blocked / depends-on axis above, which is the point of typing one. What the
+grounded picture keeps is a veto the operator has to overrule **explicitly**: where a placement puts
+a row carrying `NOT-PROVABLE`, `REWRITTEN`, `FALSE-FRIEND`, or `horizon: will-change` into a group
+whose other rows are buildable now, name **those rows** — each with the verdict or the prerequisite
+decision that makes it not buildable — and settle it before the slice is confirmed:
+
+```
+choices: ["Include them anyway — this slice carries rows that are not buildable yet", "Hold them back — they return to the ledger walk unclustered", "Decide row by row", "Cancel", "Other… (describe)"]
+```
+
+No option carries a `(Recommended)` marker, per the *When no option is safe to recommend* guidance
+in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`: whether a slice should carry a blocked row
+is a delivery judgement about this iteration, and the run has just been told in the operator's own
+words that they want these rows together. **The operator's grouping wins where they confirm it, and
+never wins silently** — a slice that quietly mixed a `NOT-PROVABLE` row in with buildable ones would
+discard the one signal that makes a slice worth carving, and would do it at the moment the operator
+was least able to notice. Rows held back are unclustered, not rejected: Phase 4 walks them like any
+other. Where a placement raises no such conflict, this list is not shown.
+
+**A row Phase 1.5 left unplaced clusters exactly as it always did** — by the grounded lines above.
+An instruction narrows what the run has to guess at; it never turns the rest of the BRD into a
+residue nothing groups.
+
 Present the candidate slices (each: a short working name, its `[BR#n]` rows, and the one-line
-buildable/blocked/depends-on rationale that put them together) and confirm before anything is
-created:
+rationale that put them together — the buildable/blocked/depends-on reading, or, for a group the
+instruction placed, what in the instruction placed it) and confirm before anything is created:
 
 ```
 choices: ["Accept these slices as proposed (Recommended)", "Edit one or more slices (rename, merge, move a row)", "Replace with a different slice list entirely", "Propose no slices — walk the ledger directly", "Cancel", "Other… (describe)"]
@@ -298,7 +423,7 @@ at a time, never batched**, via `AskUserQuestion` — quoting its `id`, `text`, 
 **`split_mode: full` — five resolutions:**
 
 ```
-choices: ["Build here — covered-here, where this row clusters with nothing and fits no slice", "Assign to a named child BRD — covered-by", "Defer to this BRD — deferred-to (a real allocation, not a shortcut)", "Reject — citing a [DEF#n]", "Mark superseded by another [BR#n]", "Cancel", "Other… (describe)"]
+choices: ["Build here — covered-here, where this row clusters with nothing and fits no slice<recommended>", "Assign to a named child BRD — covered-by<recommended>", "Defer to this BRD — deferred-to (a real allocation, not a shortcut)<recommended>", "Reject — citing a [DEF#n]<recommended>", "Mark superseded by another [BR#n]<recommended>", "Cancel", "Other… (describe)"]
 ```
 
 **No option on that picker carries a `(Recommended)` marker, and the omission is required rather
@@ -315,15 +440,16 @@ text, which is where it now sits. Say beside the list that `covered-here` is the
 a row nothing clusters with, and that `deferred-to` is a real allocation rather than a way of
 deferring the choice itself.
 
-**`split_mode: allocate-only` — four**, with `covered-by` absent and **the reason stated in the
-picker itself**, so an operator who expected five is told why rather than left to notice a missing
-option. This picker *does* carry a marker, and the asymmetry is the rule working rather than an
+**`split_mode: allocate-only` — four**, with `covered-by` absent and **the reason stated beside the
+list**, so an operator who expected five is told why rather than left to notice a missing option.
+This picker *does* recommend an option, and the asymmetry is the rule working rather than an
 inconsistency: on a slice every row the walk stands on is a row the parent allocated **here**, so
 `covered-here` is unconditionally the expected answer and the marker is a plain reason annotation
-(`(Recommended — <why>)`), not a condition:
+(`(Recommended — <why>)`), not a condition. It reaches the option through the same `<recommended>`
+placeholder the `full` picker uses, for the reason given below the table:
 
 ```
-choices: ["Build here — covered-here (Recommended — this slice was carved out to build these rows)", "Defer to this slice — deferred-to (a real allocation, not a shortcut)", "Reject — citing a [DEF#n] in the parent's defect log", "Mark superseded by another [BR#n]", "Cancel", "Other… (describe)"]
+choices: ["Build here — covered-here<recommended>", "Defer to this slice — deferred-to (a real allocation, not a shortcut)<recommended>", "Reject — citing a [DEF#n] in the parent's defect log<recommended>", "Mark superseded by another [BR#n]<recommended>", "Cancel", "Other… (describe)"]
 ```
 
 State once, before the first row of an `allocate-only` walk: *"`covered-by` is not offered here.
@@ -349,6 +475,50 @@ moves a row off a terminal disposition — so re-running `/brd-split` on the par
 row already allocated and report the no-op. The honest answer for an operator who wants the sibling
 to own a claimed row is that the allocation stands as the parent's walk recorded it, and the slice
 records what it decides to do with it.
+
+**`<recommended>` is a placeholder this run resolves per row, and resolving it is not a rewording.**
+It is substituted in the option strings exactly as `<BRD-KEY>` and `<merge-clause>` are, so the array
+is still presented verbatim per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`'s *Choice
+lists are presented verbatim* — a command that instead told the orchestrator to *adjust the wording*
+of an option would be contradicting that convention, which is why the variation lives in a
+placeholder (`${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` states the same for its own).
+It resolves, for each row:
+
+| This row's state | `<recommended>` resolves to |
+|---|---|
+| Phase 1.5 placed it, and Phase 2 keyed that group into a child | ` (Recommended — <what in the instruction placed it>)` on **`covered-by`**, and the empty string on every other option |
+| Phase 1.5 placed it into a group that produced no child — the operator declined the slice, or the instruction named a disposition rather than a grouping | ` (Recommended — <what in the instruction placed it>)` on the option that disposition names, and the empty string on the others |
+| Phase 1.5 left it unplaced, or this run was given no instruction | the **empty string on every option** in the `full` picker — exactly the picker this command has always shown. In the `allocate-only` picker it resolves to ` (Recommended — this slice was carved out to build these rows)` on **`covered-here`** and the empty string on the rest, which is that picker's standing default (below) |
+
+**The `allocate-only` picker's standing marker is carried by the same placeholder, and that is why
+there is one placeholder and not two.** That picker has always recommended `covered-here`, for a
+reason that does not depend on any instruction: on a slice every row the walk stands on is a row the
+parent allocated **here**. Writing that marker literally into the option *and* adding a placeholder
+beside it would put two `(Recommended — …)` annotations in one list the moment an instruction placed
+the row — or, worse, one on `covered-here` and another on `deferred-to`, each contradicting the
+other. Folding the default into the placeholder's own resolution avoids that without the
+orchestrator suppressing anything: a marker is never removed from a written option, because the
+option never carries a written marker. **The no-instruction run is unchanged** — the placeholder
+resolves to the same sentence that used to be typed there.
+
+**The reason is carried, not just the marker.** `(Recommended — <why>)` is a reason annotation, which
+`escalation-rules.md` admits explicitly; a bare `(Recommended)` here would assert a recommendation
+whose only basis is a sentence the operator typed several phases ago and can no longer see. Naming
+what in the instruction placed the row is what lets them disagree with it on this row without
+abandoning the instruction.
+
+**This is not a reversal of the markerless picker.** A `(Recommended when …)` marker was removed from
+the `full` picker precisely because it printed its own condition for the operator to evaluate, which
+that file calls malformed. A marker **this command computes per row and prints bare** is the fix that
+same rule prescribes — and it becomes available only because there is now an instruction to compute
+it from. On a run with no instruction there is still no basis for one, and the third row above is
+what keeps that run's picker byte-for-byte what it was.
+
+**A recommendation is not batching.** Rows are still presented **exactly one at a time**, unchanged;
+`${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` asks for a recommended answer on every
+question for the same reason this phase now carries one — an operator reacting to a proposal is doing
+something different from an operator facing a blank picker, and neither is the same as being handed
+five rows at once.
 
 Both pickers offer nothing but **terminal** dispositions from
 `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3 — five in `full` mode, four in
@@ -512,6 +682,13 @@ Write `<BRD-dir>/slices.md`:
   rationale collected for it in Phase 4 — why it is a live obligation of this BRD rather than built
   now.
 
+- **One block for the instruction, when this run was given one** — the instruction **verbatim**, and
+  how it was read: which `[BR#n]` rows Step A placed directly, which the Step B grill settled and by
+  what terminology decision, and which it could not place and left unclustered. Record it whether or
+  not it produced a slice: a reading that produced nothing is the one a later reader most needs, and
+  the verbatim text is what lets them see whether the instruction or the reading was wrong. Where the
+  Phase 2 conflict list fired, record which rows it named and which way it went.
+
 A run that proposed zero slices still writes `slices.md`, with an explicit note that no slice was
 proposed and why, plus every deferral this run recorded — the file is never skipped just because
 nothing was carved off this BRD. **An `allocate-only` run reaches that same path from a different
@@ -551,7 +728,9 @@ own deletions — and it stages a Phase 4.5 removal on the Phase 4.5-only path t
 `<BRD-KEY> Allocate slice coverage` in `allocate-only`, because a pull request titled "split" that
 created nothing would misdescribe itself — and `body_facts` = the run mode,
 the slice count and keys (`full` only), the walk's resolution tally by disposition, every standing
-empty child Phase 4.5 resolved and how, and whether this run was the no-op; emit its §4.1 outcome
+empty child Phase 4.5 resolved and how, whether this run was given a slicing instruction and — when
+it was — how many rows its reading placed, settled by grill, and left unplaced, and whether this run
+was the no-op; emit its §4.1 outcome
 line in the final report. The no-op path reaches this phase with nothing staged, so it reports the
 `nothing to commit` line rather than opening a pull request. **The Phase 4.5-only path is not that
 path**: a removal there stages a folder deletion and the rewritten `slices.md`, and a "keep" that
@@ -665,7 +844,9 @@ or missing grounding deliverable, an inventory carrying no claim at all
 the parent allocated, never about this plugin), unverified findings, and an unset `$SPECS_PATH` are
 environment / sequencing halts, never a plugin capability gap. `BRD_SPLIT_ON_SLICE` is not in that list because it
 is **not a stop**: it is the Phase 0 step 5 notice that this run is `allocate-only`, and the run
-continues through it.
+continues through it. Neither is anything in Phase 1.5 — an instruction that placed no row, a grill
+that reached its cap, and a `Cancel` mid-grill are all readings of a sentence the operator typed,
+never a capability this plugin lacks.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model:
    `<detection_model>`) with a compact handoff: command `/brd-split`; what was produced (slices
@@ -701,7 +882,12 @@ directory; no user name is ever written.
 
 ## Final report
 
-Report: the BRD folder; **the run mode from Phase 0 step 5, and in `allocate-only` the
+Report: the BRD folder; **the slicing instruction verbatim when one was given, and how it was read**
+— the counts of rows Step A placed, the Step B grill settled, and neither could place — or that none
+was given; where an instruction was given but nothing consumed it, say which path swallowed it (the
+no-op, or an `allocate-only` run whose walk found every row already terminal), because an instruction
+that changed nothing and is not reported reads as one the command ignored; **the run mode from Phase
+0 step 5, and in `allocate-only` the
 `BRD_SPLIT_ON_SLICE` notice repeated in full** — a notice shown once at Phase 0 of a long
 interactive walk is one the operator has scrolled past by the end; whether Phase 0 found this
 run a no-op (fully allocated already) or

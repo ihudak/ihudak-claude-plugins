@@ -1,6 +1,6 @@
 # Grilling technique (embedded — shared reference)
 
-The interview technique the authoring commands (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`) and `/prompt-grill-me` use to
+The interview technique the authoring commands (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`), `/brd-split` and `/prompt-grill-me` use to
 refine an artifact one decision at a time. Embedded here so callers have **no runtime dependency**;
 technique adapted from mattpocock grill-me/grilling. Each caller cites this file and states its own
 **depth** and **stage list**; this reference owns only the mechanics.
@@ -24,7 +24,8 @@ callers) rather than self-answered. Never grill yourself into a fabricated decis
 
 ## Depth (the caller chooses)
 
-- **Bounded** — a capped set of the highest Impact×Uncertainty questions, then stop; unresolved high-impact gaps are recorded (e.g. `[NEEDS CLARIFICATION]`). Used by `/idea` (≤10; `--deep` switches to relentless) and `/prompt-grill-me` (≤5).
+- **Bounded** — a capped set of the highest Impact×Uncertainty questions, then stop; unresolved high-impact gaps are recorded (e.g. `[NEEDS CLARIFICATION]`). Used by `/idea` (≤10; `--deep` switches to relentless), `/prompt-grill-me` (≤5) and `/brd-split` (≤5, and only when given a slicing instruction).
+  **A bounded caller states what its cap costs, because that is what sizes it.** For `/idea` an unresolved gap becomes a marker inside the shipped artifact, so a low cap leaves a hole and ≤10 earns its length. For `/brd-split` an unplaced row simply reaches its own ledger walk without a recommendation, in a walk that visits every row anyway — the residue has a free fallback, so its cap is lower and its questions carry a further gate of the caller's own (`commands/brd-split.md` Phase 1.5: ask only where one answer places more than one row). Neither the extra gate nor the differing numbers are this file's to fix; what this file fixes is that a caller declaring **bounded** owes a stated cap rather than an open-ended interview called capped.
 - **Relentless** — keep walking the tree until convergence, no cap. Used by `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`.
 
 ## Ambiguity taxonomy (gap-categories, altitude-aware)

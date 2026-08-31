@@ -67,6 +67,16 @@ A **reason** annotation is not a condition and is fine: `(Recommended — <why>)
 is recommended, unconditionally, and is honoured verbatim like any other marker (`/document`
 Phase 5 and `/epics` Phase 1 both use it).
 
+**A marker the command resolves through a placeholder is not a violation of this rule, and it is not
+an edit to the list.** Where which option is recommended varies per showing, the array may carry a
+placeholder the command substitutes — `/brd-split`'s Phase 4 walk writes `<recommended>` on each of
+its dispositions and resolves it, per row, to `(Recommended — <why>)` on one and to the empty string
+on the rest. That is substitution, exactly as `<BRD-KEY>` and `<merge-clause>` are substituted in
+the same strings (`references/next-phase-offer.md`), and it is the mechanism this section's first
+bullet asks for: the **command** evaluates the condition and prints a bare, reasoned marker, rather
+than printing the condition for the user to evaluate. What stays forbidden is the orchestrator
+deciding a marker belongs somewhere the command did not put a placeholder.
+
 When no option is safe to recommend across the runs that reach a prompt, omit the marker and say so
 in prose beside the list (as `/document` Phase 5.6 does for its per-occurrence image review).
 

@@ -193,7 +193,25 @@ Four signals, combined into a rank with a written `priority_reason` per unit:
 
 **Guard on signal 4 (D7):** volatility only ever *ranks*; it can never *exclude*. When a high-volatility surface also scores high on signal 1, the unit is written, but its `type` is biased away from step-by-step (`how-to` with screenshots) toward `explanation` and `reference`, which survive churn. The audit records this as `churn_adapted: true` with the reason, so the choice is visible rather than silent.
 
-### 5.4 Definition of done
+### 5.4 How a unit enters the backlog
+
+**One unit is one page.** A surface is a thing in the product; a unit is a page about it. The two are separate tables (§8.1) because one surface usually earns several pages, and drift is detected per surface then fans out to its units.
+
+A unit is created by crossing a surface with the types that surface actually earns — `ia-planner`'s job (§11 Phase 4), not a mechanical cross-product. `order-placement`, a `task` surface, earns a `how-to` and probably a `reference` for the endpoint behind it; it does not earn an `architecture` page. A `concept` surface earns an `explanation`. A `role` surface earns the roles page *and* becomes a dimension on every user unit.
+
+**Five entry paths, and only the first three are automatic:**
+
+| # | Path | Produces |
+|---|---|---|
+| 1 | **`/docs-audit`** — the initial run | Every unit the enumerated surfaces earn. This is where a backlog comes from on day one |
+| 2 | **`/docs-audit --refresh`** — a later run | Units for surfaces that did not exist before: a new route, a new role, a new integration, a new release. Existing pages are matched back to their units and marked `published` |
+| 3 | **`/docs-drift`** | No new units. It moves existing ones to `stale` and re-queues them (§12.4) |
+| 4 | **Tutorial selection** | The audit *proposes* candidates; a human picks, and the picks become units. The one quadrant that does not automate (§5.2) |
+| 5 | **A human editing `docs-backlog.yml`** | Anything the code does not imply — a page answering a question a customer actually asked, a migration guide, a policy, a comparison. The backlog is a tracked file reviewed in a PR precisely so this is a normal act, not a workaround |
+
+**Path 5 has one consequence that must be stated rather than discovered.** A unit's `surface` is what drift watches. A hand-written unit either attaches to an existing surface — and then drift covers it like any other — or it declares `surface: null` with its `evidence` given by hand, in which case **`/docs-drift` cannot tell when it goes stale** and it relies on `review_by` (§8.6) alone. That is an acceptable trade, and the audit reports the count of `surface: null` units so it never grows unnoticed.
+
+### 5.5 Definition of done
 
 Documentation work has no natural end, so the family defines one:
 

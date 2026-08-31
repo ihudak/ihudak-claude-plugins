@@ -16,7 +16,7 @@
 
 ## `$VAULT_PATH`
 
-- **`$VAULT_PATH`** — your personal, markdown-backed store; required for `/idea` and for any command resolving `jira-products/<KEY>/`, with no built-in default.
+- **`$VAULT_PATH`** — your personal, markdown-backed store; still read by `/idea` and by prior-art discovery, with no built-in default. No command resolves a tracker export from it any more.
 
 **Resolution.** Read straight from the shell environment, exactly like `$SPECS_PATH` — no derived fallback exists.
 
@@ -100,7 +100,6 @@ The four directory-valued variables above expect this layout. `$GIT_USER_INITIAL
 
 ```
 $VAULT_PATH/                        # personal store (e.g. an Obsidian vault; any markdown-backed store works)
-  jira-products/<KEY>/              # Jira hierarchy from jira-workitem-import (input; regenerated on each import)
   Projects/<area>/<slug>/           # idea.md and other project working files
   jira-drafts/<PRD-KEY>/             # Epic drafts written by /epics
 

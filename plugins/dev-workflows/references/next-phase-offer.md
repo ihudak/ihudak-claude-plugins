@@ -75,12 +75,12 @@ not required.
 
 - `/dev-workflows:idea` — refined → `/dev-workflows:create-prd <JIRA-KEY>` (PM); draft → `/dev-workflows:idea @<path> --deep` (PM, refine)
   or `/dev-workflows:create-prd <JIRA-KEY>` (PM, proceed on a draft — not recommended).
-- `/dev-workflows:create-prd <JIRA-KEY>` — after the paste-into-Jira + re-import round-trip:
+- `/dev-workflows:create-prd <ADDRESS>`:
   `/dev-workflows:release-notes <PRD>` (PM — draft the release note; recommended clear next step); hand to PA
   *(optional)* → `/dev-workflows:create-ard <PRD>`; or hand to PE → `/dev-workflows:epics <PRD>` (or `/dev-workflows:specify <PRD>`).
 - `/dev-workflows:update-prd <KEY>` — re-entry, not a linear node: reached when
   `/dev-workflows:create-prd` redirects an existing-PRD call, or when a later phase forces a PRD
-  refresh. After the paste-into-Jira + re-import round-trip it offers:
+  refresh. It offers:
   `/dev-workflows:release-notes <PRD>` (PM), `/dev-workflows:create-ard <PRD>` (PA, if one exists),
   `/dev-workflows:epics <PRD>` (PE), `/dev-workflows:specify <PRD>` (PE, if one exists).
 

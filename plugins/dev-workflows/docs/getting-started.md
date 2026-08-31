@@ -19,7 +19,7 @@ claude plugin install prose-style@ihudak-plugins
 
 `dev-workflows` is the pipeline this documentation covers. `prose-style` is the one other plugin **in this marketplace** it genuinely reaches for: it is the primary style checker for `/epics` and for the Product Requirements Document commands, and a fallback prose linter for `/document` when the target docs repo has none configured. Most commands that use it degrade gracefully when it is absent — `/document` is the exception: there, an absent `prose-style` with no other prose linter configured is a real coverage hole, not a no-op, and `gate-ledger.md` §5 forces an explicit choice — fix by hand, proceed without the check, or cancel the run — before the run continues. It is still *recommended*, not required.
 
-**What you also need, and it is not a plugin.** No plugin in this marketplace imports Jira tickets into your vault. That is a separate external tool — [`jira-workitem-import`](https://github.com/ivan-gudak/jira-workitem-import) — which populates `$VAULT_PATH/jira-products/<KEY>/` in the exact structure every Jira-driven command expects. Install it before `/specify`, `/document`, `/epics`, or any other Jira-driven command. The inline-prompt `/idea` walked through below needs none of it.
+**What you also need, and it is not a plugin.** Nothing — the pipeline reads and writes one markdown tree and calls no external service. If you keep your work in a tracker as well, syncing the two is yours to arrange; no command here learns whether one exists.
 
 **One more that is not in this marketplace.** [`superpowers`](https://github.com/obra/superpowers) is a separate Claude Code plugin, recommended rather than required: `/prompt-brainstorm` cedes its Phase 3 to `superpowers:brainstorming`, and the brainstorm → plan → subagent-driven-development flow this plugin's own development uses comes from it. Without it that one hand-off has nowhere to go; everything else degrades gracefully. Note that *grilling* is **not** an external dependency — the relentless-interrogation technique the authoring commands run is bundled here, in `references/grilling-technique.md`.
 
@@ -39,7 +39,7 @@ Run this whenever you want the latest command, agent, hook, and reference conten
 
 ### `VAULT_PATH`
 
-Your **personal** knowledge store — where your own working files live, not the team's. Obsidian is the common case, and the name mirrors that, but nothing about the plugin requires Obsidian: every file it reads or writes here is plain markdown, so any markdown-backed store — a plain directory, a different notes app, a git repo of `.md` files — works exactly the same way. It holds the `jira-products/<KEY>/` tree an external import tool produces from Jira, your `Projects/<area>/<slug>/` idea and working files, Epic drafts, and release-notes drafts. Nothing under `VAULT_PATH` is expected to be team-visible.
+Your **personal** knowledge store — where your own working files live, not the team's. Obsidian is the common case, and the name mirrors that, but nothing about the plugin requires Obsidian: every file it reads or writes here is plain markdown, so any markdown-backed store — a plain directory, a different notes app, a git repo of `.md` files — works exactly the same way. It holds your `Projects/<area>/<slug>/` idea and working files. Nothing here imports anything from a tracker: the pipeline reads and writes one markdown tree in `$SPECS_PATH`. Nothing under `VAULT_PATH` is expected to be team-visible.
 
 ### `SPECS_PATH`
 

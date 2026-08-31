@@ -157,23 +157,28 @@ does not already state.
 
 **Change Type — two rungs:**
 
-1. **Imported PRD frontmatter** — `change_type` from the re-imported Jira PRD (surfaced by
-   `jira-reader`). Authoritative: when present, no confirmation prompt fires.
+1. **Authored PRD frontmatter** — `change_type`, where the PRD carries one. Authoritative: when
+   present, no confirmation prompt fires.
 
-   Two imported values are **not routable** and fall through to rung 2 (§2 inference): `not applicable`
+   Two values are **not routable** and fall through to rung 2 (§2 inference): `not applicable`
    (§1 maps it to no destination — the command's relevance gate, not this ladder, is what stops such a
    run), and `Bug fix` on a change that trips §5's deprecation trigger (§2's third tie-breaker bars a
    deprecation from `fixes`, and §5's required end-of-life note has nowhere to live there).
-2. **Infer** — classify per §2. When confidence is low, record the `field: change_type` gap so the
-   command can confirm the shape.
+2. **Infer** — classify per §2, then **confirm with the operator by shape and destination, never by
+   enum label**. This was the fallback rung and is now the ordinary one: nothing supplies the field
+   from outside, so most runs reach it.
 
 **`{{#context}}` label — one rung.** It is your organization's product/solution taxonomy (e.g. `Platform`,
 `Application Observability | Distributed Tracing`, `Infrastructure Observability | Kubernetes`) and it
 is exactly the PRD's `release_notes_category`:
 
-1. **Imported PRD frontmatter** — `release_notes_category` from the re-imported Jira PRD. Use it
+1. **Authored PRD frontmatter** — `release_notes_category`, where the PRD carries one. Use it
    verbatim as the label.
-2. **Absent → omit the `{{#context}}` line.** Never infer it, never guess it, never ask for it.
+2. **Absent → infer it from the work's subject area and confirm it in the same grill** that confirms
+   the Change Type. Never guess it silently, and never invent a taxonomy term the operator has not
+   seen.
 
-Both are Jira dropdowns the PM sets on the ticket; neither is authored in the PRD (see
-`${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`).
+**Both used to be dropdowns set outside the plugin and returned by an import**, which is why this
+ladder's first rung was authoritative and its second was a fallback. Nothing returns them now, so the
+PRD is the only place either can come from, and an absent field is a question rather than a silence
+(see `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`).

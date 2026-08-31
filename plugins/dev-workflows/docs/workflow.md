@@ -94,13 +94,13 @@ See [Roles and phases](roles-and-phases.md) for what each role owns, consumes, a
 ## Artifact homes
 
 - **`$SPECS_PATH/specifications/<KEY>-<slug>/`** — the shared, team-visible home for the PRD, the ARD, `specification.md`, and `design.md`. Each authoring command lands its file here, then hands it onto the specs repo's default branch for the next command to find.
-- **`$VAULT_PATH`** — the personal store: `idea.md` before a Jira key exists, the imported `jira-products/<KEY>/` tree, `jira-drafts/<PRD-KEY>/` Epic drafts, and release-notes drafts.
+- **`$VAULT_PATH`** — the personal store. Nothing in the pipeline reads a tracker export from it any more; what remains of its role is retired in a later increment.
 - **`$REPOS_PATH`** — the mounted code clones. `/implement` and, outside the PRD pipeline, `/upgrade` work here on a feature branch but leave changes uncommitted; `/vuln`, also outside the PRD pipeline, is the one that commits and opens a pull request, per fixed CVE. Product documentation itself is written into the external docs repo, not here.
 - **Plugin bookkeeping** — feedback and session-cost files — lives under `<PRD-dir>/dev-workflows/` inside `$SPECS_PATH`, committed and pushed alongside the specs artifacts it describes. Follow-up tasks are the one exception: they land in your vault first and reach this directory only when no vault is available — see [Follow-ups](reference/follow-ups.md) for the full ladder.
 
 ## Sources of truth
 
-- **Jira** is the source of truth for workflow *status* — [`workflow-states.md`](../references/workflow-states.md), which owns the PRD and Epic status ladders, says so outright and stores no status of its own, only interprets one. An external import tool pulls the ticket tree into `$VAULT_PATH/jira-products/<KEY>/`, every command reads the status from there, and none writes it back. `/ready` is the command that looks most like an exception and is not one: it verifies a declared status against the ARD/spec/design record and reports, rather than changing it.
+- **The artifacts** are the source of truth for workflow *status* — [`workflow-states.md`](../references/workflow-states.md) is read in the direction its *expected artifacts* column supports, and `/ready` derives the phase from what is on disk. An operator who keeps a tracker can still check a declared status against it with `/ready --claimed "<status>"`.
 - **The specs repo's default branch** is the source of truth for whether a phase's deliverable is actually *done*. A producing command lands its artifact there; the next command in the chain refuses to start expensive work until it finds the artifact on that branch, not merely written to disk. See [Roles and phases](roles-and-phases.md) for what happens when the artifact is on an unmerged branch instead, or missing entirely.
 
 ## Cross-cutting commands

@@ -5,9 +5,15 @@ Maps each Jira **workflow status** on the PRD and Epic ladders to (a) its owning
 that should exist at that status. This is the rubric `readiness-reviewer` applies and the
 source for the readiness verdict; it also feeds the PM/PA/PE/Dev workflow graph.
 
-Jira is the **source of truth** for status (imported into `jira-products/`, emitted by `jira-reader`
-as `value_increment.status` + `linked_items[].status`). This reference NEVER stores status —
-it only interprets it.
+**Nothing outside this tree declares a status, so the artifacts are the source of truth.** The ladder
+below is read in the direction its *expected artifacts* column already supports: a phase is what the
+artifacts present imply, and `/ready` reports that. This reference still NEVER stores status — it
+interprets what is on disk.
+
+**An operator who keeps a tracker can still have the divergence check** the old reading gave them, by
+passing what it says to `/ready --claimed "<status>"`. What is genuinely lost without that flag is
+the ability to catch a *wrong* declaration: a derived phase cannot contradict itself. That is the
+stated cost of removing the mirror, not an oversight.
 
 ## PRD status ladder
 

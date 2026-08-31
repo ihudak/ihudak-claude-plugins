@@ -57,9 +57,9 @@ Ask about:
   (drafted Epics have no Jira ID yet, so they are slug-named files inside the
   PRD-keyed folder). The default depends on `$VAULT_PATH`:
   - **`$VAULT_PATH` set** → `$VAULT_PATH/jira-drafts/<jira_key>/`. This lives
-    **outside** `jira-products/` by design — `jira-products/` is re-created on
+    outside any code or docs repository by design — it is
     every Jira import, so drafts written there would be lost; `jira-drafts/` is a
-    sibling reserved for PM/PO work-in-progress that survives re-imports.
+    sibling reserved for PM/PO work-in-progress.
   - **`$VAULT_PATH` unset** (directory input) →
     `<parent-of-jira_export_root>/epic-drafts/<jira_key>/`. **Path-safety
     guard:** warn and offer another path if this dir would fall *inside*
@@ -556,7 +556,7 @@ report still appears in the report; this step NEVER fails the run, NEVER
 commits (still true — this step only writes the feedback file; those writes
 are committed by the terminal `commit-artifacts` step in Phase 11, per
 `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes
-into `jira-products/`, `jira_export_root`, or the current working directory.
+into the current working directory.
 
 ---
 
@@ -672,8 +672,7 @@ ADDITIVE — the follow-ups also remain in the Phase 9 report. This phase NEVER
 fails the run, NEVER commits (still true — this phase only writes follow-up
 files; those writes are committed by the terminal `commit-artifacts` step in
 Phase 11, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and
-NEVER writes into `jira-products/`, `jira_export_root`, or the current working
-directory.
+NEVER writes into the current working directory.
 
 ---
 
@@ -710,7 +709,7 @@ guidance already appeared in the Phase 9 report.
 `commit-artifacts` entry point (§4) inline — the LAST action of the run. It
 stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
 `<KEY> Add dev-workflows session artifacts (/epics)`, and pushes per §4 step 5.
-It NEVER touches the vault, `jira-products/`, `jira_export_root`, a code/docs
+It NEVER touches a code/docs
 repo, or the current working directory; NEVER
 force-pushes; NEVER fails the run; and skips entirely when the run carries
 `specs_git: blocked` (§3.3 G0), re-emitting that notice. Because the Phase 9
@@ -722,7 +721,7 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git
 for the deliverable remains the user's responsibility — `/epics` never
 branches or opens a PR; the terminal step above commits only the bounded
 session-artifact paths in `$SPECS_PATH`), and NEVER writes into
-`jira-products/`, `jira_export_root`, or the current working directory; no
+the current working directory; no
 user name is ever written (§10 privacy).
 
 ---
@@ -732,9 +731,8 @@ user name is ever written (§10 privacy).
 - ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, jira-not-found, cancellation)
 - ALWAYS resolve input via the shared Jira-input front-end (Phase 0) — a JiraID requires `$VAULT_PATH`; an imported-Jira directory works without it; `/epics` is cwd-agnostic and rejects `mode: direct`
 - NEVER create a git branch — this command never branches. `specs-preflight` may switch `$SPECS_PATH` between branches that already exist, and only ones the plugin created (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none.
-- NEVER commit the Epic drafts or anything in the vault, `jira-products/`, `jira_export_root`, or the current working directory — git management there is the user's responsibility. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
+- NEVER commit the Epic drafts or anything in the vault, or the current working directory — git management there is the user's responsibility. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
-- NEVER write inside `jira-products/` — re-created on every import; writes would be lost
 - NEVER write inside `_archive/` — read-only by convention
 - NEVER write inside `jira_export_root` — it is re-created on every Jira import, so drafts there would be lost (the Phase 1 path-safety guard enforces this for the derived `epic-drafts/` default)
 - ALWAYS write to the resolved `output_dir` — `$VAULT_PATH/jira-drafts/<jira_key>/` when `$VAULT_PATH` is set, else `<parent-of-jira_export_root>/epic-drafts/<jira_key>/` (or the user-confirmed alternative) — auto-create the directory if missing

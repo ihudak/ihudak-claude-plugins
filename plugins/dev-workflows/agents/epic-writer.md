@@ -93,7 +93,6 @@ Create the output directory if missing — your `Write` tool auto-creates parent
 Traceability: every claim in each Epic must be traceable to the handoff `jira_reader_handoff` (Jira key + which item type — PRD goal, existing Epic summary, Story theme) or `code_scanner_outputs` (`evidence.path` + symbols). Do not invent content the sources don't contain. `docs_grounding` (when present) is a **consistency reference** — align terminology and avoid contradicting shipped behavior with it — but it is never itself a source of new Epic claims; every Epic claim still traces to `jira_reader_handoff` or `code_scanner_outputs`.
 
 **Write restrictions** (enforced by invariants):
-- NEVER write inside `jira-products/` — re-created on every import.
 - NEVER write inside `_archive/` — read-only by convention.
 - NEVER write outside `$VAULT_PATH`.
 - ALWAYS write inside the handoff `output_dir`.

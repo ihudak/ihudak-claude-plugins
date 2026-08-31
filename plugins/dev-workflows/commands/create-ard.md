@@ -408,7 +408,7 @@ from a re-derived title. That name collides with neither `/dev-workflows:create-
 ---
 
 ## Phase 7 — Next-step offer (adaptive)
-- **PRD-level ARD:** if the PRD has 0 Epics → `choices: ["Hand to a Product Engineer — /dev-workflows:epics <PRD> (then create them in Jira + re-import) (PE) (Recommended) <merge-clause>", "Author a PRD-level spec — /dev-workflows:specify <PRD> (PE) <merge-clause>", "Stop here", "Other… (describe)"]`; else offer `/dev-workflows:specify <PRD>` (PE) carrying the same `<merge-clause>`. *(No `/design` — no Epics yet.)*
+- **PRD-level ARD:** if the PRD has 0 Epics → `choices: ["Hand to a Product Engineer — /dev-workflows:epics <ADDRESS> (PE) (Recommended) <merge-clause>", "Author a PRD-level spec — /dev-workflows:specify <PRD> (PE) <merge-clause>", "Stop here", "Other… (describe)"]`; else offer `/dev-workflows:specify <PRD>` (PE) carrying the same `<merge-clause>`. *(No `/design` — no Epics yet.)*
 - **Epic-level ARD:** `choices: ["Author the spec — /dev-workflows:specify <PRD> <Epic> (PE) (Recommended) <merge-clause>", "Hand to Dev — /dev-workflows:design <PRD> <Epic> (Dev) <merge-clause>", "Stop here", "Other… (describe)"]`. **Epic fan-out** — repeat this ARD for a sibling Epic: `/dev-workflows:create-ard <PRD> <another-Epic>`; that run inherits the PRD-level ARD, not this Epic-level one, so it waits on nothing this run produced and carries no clause.
 - **`--from-brd` (BRD-level ARD):** a different array, because **the key this run holds is a BRD key
   and only one of the three usual options can be reached with one**:

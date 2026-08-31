@@ -374,7 +374,7 @@ plugin-gap halt (see Invariants).
    Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
    ```
 
-`/ready` **NEVER** writes to Jira, `jira-products/`, or the vault. It commits and hands off
+`/ready` **NEVER** writes outside `$SPECS_PATH`. It commits and hands off
 `_readiness.md` only through step 3's `phase-handoff.md` §4.3 consent choice — declining leaves it
 uncommitted; that handoff is independent of the terminal `commit-artifacts` step, which stages ONLY the
 run's bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1) and
@@ -486,7 +486,7 @@ Emit this phase's own short output:
 ADDITIVE — this phase NEVER fails the run and NEVER commits its own output (still true — it writes only
 the maintenance/feedback artifacts, which the terminal `commit-artifacts` step in Phase 8 commits, per
 `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4; the only commit this run makes before Phase 8 is
-Phase 5 step 3's `_readiness.md` handoff, which is unrelated), and NEVER writes into `jira-products/`,
+Phase 5 step 3's `_readiness.md` handoff, which is unrelated), and NEVER writes into
 `jira_export_root`, or the current working directory.
 
 ---
@@ -518,7 +518,7 @@ ADDITIVE — the follow-ups also remain in the Phase 5 report's Findings/coverag
 phase NEVER fails the run and NEVER commits its own output (still true — it only writes follow-up
 files, which the terminal `commit-artifacts` step in Phase 8 commits, per
 `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4; unrelated to Phase 5 step 3's `_readiness.md`
-handoff, the only commit this run makes before Phase 8), and NEVER writes into `jira-products/`,
+handoff, the only commit this run makes before Phase 8), and NEVER writes into
 `jira_export_root`, or the current working directory.
 
 ---
@@ -563,7 +563,7 @@ ADDITIVE — this phase itself NEVER fails the run and touches neither `_readine
 branch (whichever of those happened, happened earlier, in Phase 5 step 3, behind the §4.3 consent
 choice — `ready/<KEY>-<slug>` is the only branch `/ready` ever creates, and this terminal step neither
 creates it nor undoes it; it only commits the bounded session-artifact paths in `$SPECS_PATH` onto
-whatever branch Phase 5 left checked out), and NEVER writes to Jira or into `jira-products/`,
+whatever branch Phase 5 left checked out), and NEVER writes into
 `jira_export_root`, or the current working directory; no user name is ever written (§10 privacy).
 
 ---
@@ -571,7 +571,7 @@ whatever branch Phase 5 left checked out), and NEVER writes to Jira or into `jir
 ## Invariants (always enforced)
 
 - NEVER set or write Jira status — status is read-only input (Phase 2), never output
-- NEVER write inside `jira-products/` or the vault
+- NEVER write into a code or docs repository
 - Branches only via the Phase 5 step 3 `phase-handoff.md` §4.3 consent choice, creating
   `ready/<KEY>-<slug>` — `specs-preflight` itself still creates no branch, a hard invariant: it only
   switches `$SPECS_PATH` between branches that already exist, and only plugin-created ones, per

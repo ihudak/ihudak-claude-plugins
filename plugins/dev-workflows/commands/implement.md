@@ -53,7 +53,7 @@ resolved `path`, `kind` and `key`, and `specs` forward.
     only** — there is **no "Next Epic?" loop** (code-writing is heavy and branchy;
     each `/implement` run targets one Epic).
   - **PRD with 0 Epics** → offer: split with `/dev-workflows:epics` first, or implement one broad
-    PRD-level slice (`focus_key` stays null). No re-import step follows `/epics` any more — it
+    PRD-level slice (`focus_key` stays null). Nothing follows `/epics` before this command sees its Epics — it
     writes into the tree this command reads.
 
 When the picker (or the 1-Epic auto-path) sets `focus_key` that was initially null,

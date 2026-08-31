@@ -17,7 +17,7 @@ The caller passes a structured brief:
 
 - **Task description** — one-paragraph summary of the feature being documented and the PRD key.
 - **Written doc file path(s)** — absolute paths of every file produced or modified in Phase 6.3.
-- **Jira directory path** — `<vault_path>/jira-products/<JIRA_KEY>/` so the reviewer can cross-check claims.
+- **PRD folder path** — the folder the run resolved, so the reviewer can cross-check claims against `prd.md` and the specs beside it.
 - **Diff summaries** — the array of `diff-summarizer` outputs from Phase 5.
 - **`doc-planner` checklist** — the full YAML checklist from Phase 5.7 (review against plan), including the planner's `repo_authoring_guidance` block (the repo-specific authoring rules to check adherence against), its `repo_verification_gates` block (the repo's own pre-PR checks), and its `component_patterns` block (recurring content-shape → dominant-component evidence, per `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §3) — needed for the Page structure conventions dimension's component-fidelity half.
 - **`existing_image_decisions`** — the orchestrator's Phase 5.6 stale-image-swap array, one entry per **reviewed occurrence** and each `{target, occurrence, old_url, new_url, section, decision}`. `[]` when the per-item existing-image review did not run — the existing-image list was empty, or the user chose "Add-list only" / "Nothing to do" at the Phase 5.6 merged prompt. An all-declined review is NOT `[]`: every reviewed occurrence appends an entry, `decision: declined` included. Needed for the Screenshots dimension's swap-completeness check — a reviewer cannot check a dimension it was never handed.
@@ -32,7 +32,7 @@ Refuse to review without the written file paths, the `doc-planner` checklist, an
 ## Review method
 
 1. Read every written file end-to-end before forming any judgement.
-2. For each written file, cross-check its claims against the Jira hierarchy (read the relevant files under `<vault_path>/jira-products/<JIRA_KEY>/`) and the `diff_summaries` array. If a claim has no backing in either source, flag it.
+2. For each written file, cross-check its claims against the PRD folder (read the relevant files under `<prd-products/<JIRA_KEY>/`) and the `diff_summaries` array. If a claim has no backing in either source, flag it.
 3. For each dimension below, record findings in the shared severity schema (`BLOCKER` / `MAJOR` / `MINOR` / `NIT`). Skip dimensions that are clearly not applicable for the change, but say so explicitly (`"N/A — reason"`).
 4. Derive a single verdict: `PASS` (no findings above MINOR), `PASS WITH RECOMMENDATIONS` (MAJOR / MINOR / NIT only, no blockers), `BLOCK` (at least one BLOCKER finding).
 

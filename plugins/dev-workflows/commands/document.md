@@ -418,7 +418,7 @@ Build this list only when `new_images_wanted` is `true` (Phase 1); when `false`,
      -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.gif" -o -iname "*.svg" -o -iname "*.webp" \) 2>/dev/null
    ```
    When `specs_dir` is `none`, this source contributes nothing.
-2. **`jira-reader` `attachments[]`** — the image paths enumerated under the PRD's `attachments/` dirs (Phase 3 handoff `attachments[].path`; these live under `jira-products/<PRD-dir>/…`, so this covers screenshots developers attached in Jira). May be empty.
+2. **PRD-folder attachments** — the image paths enumerated under the resolved PRD folder's `attachments/` directory, where one exists. May be empty.
 3. **Recursive scan of `<project_dir>`** — when Phase 1 resolved a `<project_dir>` (the persistent Obsidian project folder under `$VAULT_PATH/Projects`), recursively scan it for image files:
    ```bash
    find "<project_dir>" -type f \
@@ -475,7 +475,7 @@ When both lists are empty, skip presenting this prompt — there is nothing to s
 
 For any **manual** free-text paths, accept any absolute filesystem path (vault, `/tmp`, home, the docs repo); accept multiple (one per line or space-separated). Validate each path exists and has an image extension (`.png|.jpg|.jpeg|.gif|.svg|.webp`); drop and report any that don't.
 
-When you need to **add a new image** for this feature (a screenshot the docs should have but no source yet holds — including a replacement source for an accepted existing-image entry), place it in the **Projects PRD-dir** — `<project_dir>` (i.e. `$VAULT_PATH/Projects/<PRD-dir>/…`, e.g. its `Doc screenshots/` subfolder). **Never** put it under `jira-products/`: that directory is regenerated on every Jira import, so a manually-added image there is lost on the next import. `jira-products` is a read-only source (developer-attached Jira screenshots, via source 2); authored/curated images belong in the Projects folder.
+When you need to **add a new image** for this feature (a screenshot the docs should have but no source yet holds — including a replacement source for an accepted existing-image entry), place it in the resolved PRD folder's `attachments/` directory, beside the images source 2 enumerates. There is one home for a feature's images now, and it is the folder the run already resolved.
 
 The selected add-list paths populate the existing **`screenshots[]`** passed to `doc-planner` in Phase 5.7 — the downstream placement machinery (per-screenshot `dest`/`staging`/`upload_note`, `image_policy`) is unchanged. An accepted item — from either list — carries into Phase 6.1 for its CDN URL. The outcome is recorded as `existing_image_decisions[]` (schema above; matches `doc-writer`'s input contract) and carried in the Phase 6.3 handoff file alongside `cdn_urls`.
 
@@ -1175,7 +1175,6 @@ name is ever written (§10 privacy).
 - NEVER call Bitbucket REST APIs for Cloud or self-hosted Server — Bitbucket URLs are identifiers only; all resolution is pure local git
 - GitHub URLs may use the `gh` CLI for head/base SHA resolution; no direct REST calls outside `gh`
 - NEVER write inside `_archive/` — that path is read-only by convention
-- NEVER write inside `jira-products/` — that path is re-created from scratch on every Jira import; writes there will be lost
 - NEVER write product documentation outside the resolved `docs_repo_path` (Phase 0); the only other writes are to the ticket's vault project folder under `$VAULT_PATH` (the `<JIRA_KEY>-implementation-gaps.md` bug-report draft, the `<JIRA_KEY>-pr-draft.md`, and screenshot staging) — never anywhere else.
 - ALWAYS escalate missing repos before proceeding — never silent skip
 - ALWAYS invoke `docs-style-checker` (Phase 6.4) before `doc-reviewer` (Phase 7)

@@ -290,10 +290,10 @@ Epic-picker pattern** documented in `${CLAUDE_PLUGIN_ROOT}/references/epic-picke
     stays the flat PRD-dir path `specifications/<PRD>-<vslug>/` (Phase 0 step 3's `focus_key`-null PRD
     case). Step B then reads the whole PRD subtree.
 - **PRD with 0 Epics** → this PRD hasn't been split yet. Offer the existing without-Epics choices:
-  `choices: ["Split into Epics first with /dev-workflows:epics, then create them in Jira and re-import (Recommended)", "Author one broad PRD-level spec now", "Cancel", "Other… (describe)"]`
-  `/specify` does NOT create Jira Epics itself (zero external API) — on "Split…", stop and guide the
-  user through the manual round-trip (see the Phase 7 round-trip note). On "Author one broad PRD-level
-  spec now", leave `focus_key` = null and proceed to Step B.
+  `choices: ["Split into Epics first with /dev-workflows:epics (Recommended)", "Author one broad PRD-level spec now", "Cancel", "Other… (describe)"]`
+  `/specify` does not write Epic folders itself — on "Split…", stop and point at
+  `/dev-workflows:epics`, which writes them into this PRD folder where this command will see them. On
+  "Author one broad PRD-level spec now", leave `focus_key` = null and proceed to Step B.
 
 **Re-pointing the feature folder after the picker.** When Step A sets `focus_key` to an Epic (the
 single-Epic and ≥2-Epic-selection cases), the feature folder becomes that Epic's per-Epic subfolder
@@ -649,25 +649,16 @@ choices: ["Next Epic — re-open the picker (Recommended)", "Stop here", "Other�
 ```
 On **"Next Epic"**, **re-render the Phase 2 Step A progress-aware picker minus the just-completed Epic** — recompute each remaining Epic's ○/◐/● state from its feature folder, so the freshly-authored spec now shows **● done** and drops out of the actionable set — then, on selection, set `focus_key` to the new Epic and loop back through Phase 2 Step B → Phases 3–7 for it. This offer does **not** apply to a stand-alone Epic, a single-Epic PRD, or a broad PRD-level spec — there is no sibling to advance to. It does not apply **under `--from-brd`** either, and for a stronger reason: Step A never ran, so there is no picker to re-render and no Epic set to subtract from. The sibling that exists on that route is another *slice*, which is a separate BRD with its own folder and its own seed — reached by re-running `/dev-workflows:specify <SIBLING-SLICE-KEY> --from-brd`, which waits on nothing this run produced.
 
-### Jira round-trip (document to the user — they will otherwise miss it)
+### The Epic flow (document to the user)
 
-The end-to-end flow:
-1. `/dev-workflows:epics <PRD>` drafts child Epic definitions.
-2. **You create those Epics in Jira** (manual — `/specify`/`/epics` never call Jira).
-3. **You re-import** the PRD to `$VAULT_PATH/jira-products/<KEY>` so the new Epics appear in the export.
-4. `/dev-workflows:specify <each Epic>` reads the Epic from the refreshed export and authors its `specification.md`.
+1. `/dev-workflows:epics <ADDRESS>` writes one `EPIC-` folder per child Epic under the PRD folder.
+2. `/dev-workflows:specify <EPIC-ADDRESS>` authors that Epic's `specification.md`.
 
-Steps 2–3 are the round-trip; without them `/specify` cannot see the Epics.
+**There is no step between them.** `/epics` writes into the tree this command reads, so an Epic is
+visible to `/specify` the moment it is written — no creating it anywhere else, and nothing to import.
+That gap used to be a manual round-trip through a tracker, and removing it is most of what this
+increment is for.
 
-**Under `--from-brd` that round-trip is not this route's, and the run needs none of it** — the flow
-above starts at `/dev-workflows:epics`, which reads the Jira export, while this route read a BRD
-folder and never touched one. Say instead which round-trip is still outstanding, because it is what
-the *downstream* commands need: the PRD's own paste-and-re-import, in
-`/dev-workflows:create-prd <BRD-KEY> --from-brd`'s handoff phase, is what first gives this work a
-tracker identity — a `jira_key` minted by the tracker, distinct from the `<BRD-KEY>` folder name
-(`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). Until it has run there is no key any
-Jira-driven command in this plugin could be given for this BRD, which is exactly what the `### Next
-step` section below tests before naming one.
 
 ## Phase 8 — Session maintenance & feedback
 

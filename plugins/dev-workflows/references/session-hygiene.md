@@ -104,7 +104,7 @@ command (`/create-ard`, `/epics`, `/specify`, `/design`, `/ready`, `/implement`,
 lane tag (pm / pa / pe / dev). Guidance-only — a command cannot run `/rename` itself.
 
 **`/idea` and `/create-prd` are excluded** from the rename aid: the PM ideation phase is
-short, and on the common path it runs *before* the paste-into-Jira + re-import round-trip
+short, and on the common path it runs *before* the handoff
 that mints the PRD, so there is usually no PRD-ID to name a session after. Two runs do carry
 one — a `prd`-provenance `/idea` source, and a `prd_disposition: rewrite` run whose key is
 the PRD being rewritten — but the phase stays short enough that no label is auto-suggested

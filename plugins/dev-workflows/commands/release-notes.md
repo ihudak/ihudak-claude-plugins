@@ -71,7 +71,7 @@ run — the terminal `commit-artifacts` step skips on it.
 - **Output destination.** Always write to a **file** (console-pasted markdown
   loses formatting in Jira). Resolve the default by `$VAULT_PATH`:
   - **`$VAULT_PATH` set** → resolve the ticket's persistent Obsidian project
-    folder (the durable home — NOT `jira-products/`, regenerated on every
+    folder (the durable home — regenerated on every
     import):
     ```bash
     find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<jira_key>*" 2>/dev/null | head -1
@@ -87,7 +87,7 @@ run — the terminal `commit-artifacts` step skips on it.
   Print-to-screen and Skip remain available but are **never** the default. The
   default is persistent (host-mounted; survives container restart, unlike
   `/tmp`). NEVER offer or accept a path inside a docs repo or under
-  `jira-products/`.
+
 
 - **Style check** (default ON when the `prose-style` plugin is installed):
   ```

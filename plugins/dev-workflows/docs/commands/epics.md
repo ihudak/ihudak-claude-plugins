@@ -48,7 +48,7 @@ Seven `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 3.6, read
 
 ## What it produces
 
-One `.md` file per new or refined Epic, under the resolved output directory: `$VAULT_PATH/jira-drafts/<PRD-KEY>/` when `$VAULT_PATH` is set, or a derived `epic-drafts/<PRD-KEY>/` beside the imported hierarchy otherwise — deliberately outside `jira-products/`, which is wiped on every Jira re-import. `epic-writer` also writes `_coverage.md` (PRD-holistic requirement coverage; never pasted to Jira). Refined team-Epic files are keyed by their real Jira id (`<EPIC-KEY>.md`); net-new drafts are slug-named.
+One `.md` file per new or refined Epic, under the resolved PRD folder.
 
 **`/epics` never creates a branch.** Its git writes are confined to `$SPECS_PATH`, and only to its bounded session-artifact paths — the Epic drafts themselves are never committed by this command at all; git hygiene of the write target (the vault or the derived output directory) is the user's own responsibility. This is unlike the eight commands that do offer a branch + commit + push + pull-request handoff for their own deliverable — [`/idea`](idea.md), [`/create-prd`](create-prd.md), [`/update-prd`](update-prd.md), [`/create-ard`](create-ard.md), [`/specify`](specify.md), [`/design`](design.md), [`/implement`](implement.md), and [`/ready`](ready.md).
 

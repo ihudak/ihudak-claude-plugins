@@ -38,7 +38,7 @@ Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2, read-o
 
 - **`<KEY>`** — mandatory; absent or malformed stops the run with `UPDATE_VI_NEEDS_KEY`.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH` and offers to enter a path or cancel.
-- **The re-imported Jira PRD**, at `$VAULT_PATH/jira-products/<jira_key>` (body + `-comments.md`) — the run's **authoritative base**, resolved Jira-import-first. Not yet imported stops the run and asks you to import it first; imported but stale (older than 3 days) offers a re-import rather than stopping outright. The export path is built from the frozen draft's `jira_key`, not from the `<KEY>` you invoked the run with — the two hold the same string on a `PRODUCT-1234` refresh and need not on a PRD authored inside a BRD slice. Where the frozen draft carries a `brd_key` and no `jira_key`, that stop offers a different first move: a BRD key is never looked up on a tracker, so the workitem may not exist to import at all, and the run asks you to create it, paste the PRD body in, and record the key the tracker mints before importing.
+- **The PRD**, at the resolved folder's `prd.md` — the only copy there is, and therefore the base without a freshness test.
 - **Secondary grounding** (all optional and read-only): a frozen specs-repo draft (**prd.md**), any **ard.md**, **specification.md**, and the `@transcript`/notes path(s) passed on the command line. None of these gate the run. Where a discovered **ard.md** or **specification.md** is not on the specs repo's default branch, the Phase 1 confirmation flags it as unapproved — advisory only, never a reason to stop.
 - **Documentation grounding** (optional, on by default) — turned off with `--no-docs`; a miss is a silent skip, never a gate.
 - **No repos.** `/update-prd` is cwd-agnostic and product-level — it never mounts or scans code.
@@ -50,7 +50,7 @@ Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2, read-o
 - The **canonical** PRD, overwritten in place at the feature folder's **prd.md**, with `revision_of` (the archived snapshot's path) and `built_from_import` (the Jira-import date the update was built from) added to its frontmatter. Everything already there that records where the PRD came from is carried through unchanged — `sources`, `derived_from`, `seeded_from_prd`, and, on a PRD [`/create-prd`](create-prd.md) authored with `--from-brd`, `brd_key`, `brd_parent` and `depends_on`. Those three are preserved, never authored: this command reads no BRD tree, so it mints none of them and adds none to a PRD that arrived without them — and **no command consumes them yet** — neither [`/epics`](epics.md) nor [`/ready`](ready.md) reads any of the three. They are preserved because provenance that survives an update is the precondition for any future consumer: this command reads no BRD tree, so dropping them at the first refresh would leave a slice's PRD indistinguishable from an ordinary one with nothing left to restore it from.
 - An **archived snapshot** of the prior canonical PRD, written first, before the overwrite, to `<feature-folder>/revisions/<KEY>_<slug>_<YYYYMMDD>.md` (a same-day second revision is suffixed `-2`, `-3`, …).
 - Behind Phase 5's consent choice, both files are committed, pushed, and a pull request opened against the specs repo's default branch.
-- A **Jira round-trip reminder** (manual, not automated): paste the updated body back into the Jira workitem `<jira_key>`, then re-import it to `$VAULT_PATH/jira-products/<jira_key>` — skipping either step leaves the update diverged from Jira again.
+- *(The run used to end with a manual reminder to copy the updated body back into a tracker and refresh the export it read from. Neither step exists: the PRD is where every downstream command reads it.)*
 
 ## Gates
 
@@ -66,7 +66,7 @@ Refresh a PRD with new call notes, after the specs draft has already been review
 /dev-workflows:update-prd PRODUCT-1234 @call-notes.md
 ```
 
-The run resolves the feature folder, pulls the current Jira-imported PRD plus its comments as the authoritative base, reads the call notes as secondary grounding, confirms the scope of the update (refresh vs. re-do), grills you relentlessly while diffing against the base rather than starting from blank, runs the style check and pre-lint, then `prd-reviewer`. On a passing verdict it archives the prior PRD, writes the refreshed canonical PRD, offers to open a pull request, and reminds you to paste the update into Jira and re-import it.
+The run resolves the feature folder, reads its `prd.md` as the base, grills the changes against it, and rewrites the canonical file while archiving the prior revision.
 
 ## See also
 
@@ -76,4 +76,3 @@ The run resolves the feature folder, pulls the current Jira-imported PRD plus it
 - [Model routing](../reference/model-routing.md) — the classification and Opus fallback chain `prd-reviewer` runs under.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Resume and checkpoints](../reference/resume-and-checkpoints.md) — the terminal Phase 7 bookkeeping every run emits.
 - [`prd-format.md`](../../references/prd-format.md) — the canonical structure the PRD is updated and reviewed against.
-- [`prd-source-resolution.md`](../../references/prd-source-resolution.md) — the Jira-import-first resolution ladder Phase 0 executes.

@@ -81,5 +81,4 @@ candidate_slug:  <kebab-case slug inferred from the source>
 - Follow wikilinks at most ONE level deep to bound the read.
 - On an invalid Jira key or a missing file, return `status: NOT_FOUND` with a clear message; do not guess.
 - NEVER mine a `prd` source for requesters, upvotes, or demand signals — a Product Requirements Document is prior art, not a demand ticket. Fabricating them is a correctness failure, not a stylistic one.
-- NEVER assume `jira-products/<KEY>/` is a top-level directory; always resolve through `resolve-export-for-key`.
 - A `salient_summary` summarises **only** what was actually read; never infer content for a broken wikilink.

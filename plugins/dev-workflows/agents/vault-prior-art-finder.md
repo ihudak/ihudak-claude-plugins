@@ -77,7 +77,7 @@ prior_art:
     area_dir:         <absolute path to the container under Projects/Products, or null>
     jira_key:         <KEY | null>
     tracked_status:   <ladder status | unknown>
-    status_source:    vault-frontmatter | jira-products | none
+    status_source:    vault-frontmatter | none
     status_conflict:  { vault_frontmatter: <X>, jira_products: <Y>, export_date: <YYYY-MM-DD> }   # omit when they agree
     relation:         same_capability | predecessor_phase | analogous_precedent | supersedes_self | adjacent_initiative
     salient_summary:  <≤150 words — omitted when the caller declared has_summary: true>

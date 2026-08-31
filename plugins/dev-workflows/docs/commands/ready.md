@@ -47,7 +47,7 @@ Three `dev-workflows` subagents are dispatched: `jira-reader` (Phase 2, `depth: 
 
 A `SUPPORTED` / `PARTIAL` / `NOT-SUPPORTED` verdict with a requirement coverage roll-up (N/M requirements covered, each `❌` gap named) and the full `readiness-reviewer` Findings section, by dimension. `/ready` **authors nothing** in the PRD/Epic/ARD/spec/design sense — its only authored write is `_readiness.md`, overwritten on every run at the PRD dir (PRD-level check) or the Epic subdir (Epic-level check).
 
-`_readiness.md` is committed and handed off only behind the `phase-handoff.md` §4.3 consent choice, creating `ready/<KEY>-<slug>` — never automatically. Declining leaves it uncommitted; the terminal `commit-artifacts` step stages only `$SPECS_PATH`'s bounded session-artifact paths and never `_readiness.md` itself. `/ready` never writes to Jira, `jira-products/`, or the vault. Phase 7 additionally emits one follow-up per named readiness gap on a `PARTIAL`/`NOT-SUPPORTED` verdict, plus a standing reminder to reconcile the Jira status with the artifacts; a clean `SUPPORTED` run qualifies no follow-ups at all.
+`_readiness.md` is committed and handed off only behind the `phase-handoff.md` §4.3 consent choice, creating `ready/<KEY>-<slug>` — never automatically. Declining leaves it uncommitted; the terminal `commit-artifacts` step stages only `$SPECS_PATH`'s bounded session-artifact paths and never `_readiness.md` itself.Phase 7 additionally emits one follow-up per named readiness gap on a `PARTIAL`/`NOT-SUPPORTED` verdict, plus a standing reminder to reconcile the Jira status with the artifacts; a clean `SUPPORTED` run qualifies no follow-ups at all.
 
 ## Gates
 

@@ -358,7 +358,7 @@ Before writing any file:
    choices: ["Branch from current position — continue on this work (Recommended)", "Branch from default branch — fresh start", "Cancel"]
    ```
 
-5. **Create and checkout** — `git checkout -b <prefix>/<slug>`. If that name already exists, append the first 7 chars of HEAD's SHA: `<prefix>/<slug>-<short-sha>`.
+5. **Create and checkout** — `git checkout -b <prefix>/<key>-<slug>` on a keyed run, `<prefix>/<slug>` in direct mode. If that name already exists, append the first 7 chars of HEAD's SHA: `<prefix>/<slug>-<short-sha>`.
 
 ---
 
@@ -622,6 +622,30 @@ Placement is deliberate, not stylistic: step 7.5 sits inside Phase 3B, before th
 
 ---
 
+## Phase 4.7 — Write the implementation record (keyed runs only)
+
+**Skipped entirely when `mode: direct`** — there is no resolved folder to append to, and a
+directly-implemented change has no block, exactly as before.
+
+**Write `implementation.md`** in the resolved folder, appending one block per run against
+`${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §1: one entry per repository this run
+touched, each naming `repo`, `branch`, `base`, `commit` and `pushed`. Append-only — never edit or
+remove an earlier block, and a re-run adds a block rather than replacing one.
+
+**It records refs and nothing else.** No summary of what was implemented: a summary is a
+*description*, `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` exists because descriptions drift
+from the code they describe, and one here would be an unverified description in a folder of grounded
+artifacts. A ref cannot drift.
+
+**Record `pushed:` as it actually is.** A later run reading `pushed: false` says *"this was never
+pushed"* rather than reporting an empty diff against a ref the remote does not hold.
+
+This file is what `/document` and `/release-notes` read to ground their prose in the shipped diff
+(§4 of that reference), and what `epic-picker.md`'s ● marker is computed from. It is committed by
+the terminal `commit-artifacts` step with the rest of the run's `$SPECS_PATH` artifacts.
+
+---
+
 ## Phase 5 — Final Report
 
 Output a structured report — do NOT ask any closing confirmation:
@@ -757,6 +781,14 @@ NEVER fails the run; and skips entirely when the run carries `specs_git:
 blocked` (§3.3 G0), re-emitting that notice. Because the Phase 5 report was
 composed before this phase, **print its §6 outcome line here**, as the run's
 last output — prefixed `Specs repo:`, with any guard notice repeated in full.
+
+**State the commit convention at handover.** The implementation is left uncommitted on the branch
+this run created, so the operator writes that commit — which makes this the one moment the convention
+can be taught to the person who will follow it. Say it plainly, once, in the Final Report: end the
+commit subject with `[<key>]`, and add a `Work-Item: <workitem_key>` trailer where the folder carries
+one. `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §3 owns the rule and §4 explains
+what it buys — a commit whose subject names the key is one `/document` and `/release-notes` can find
+later; one that names nothing is invisible to them.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable
 (the implementation remains uncommitted on the branch created in Pre-Phase 3;

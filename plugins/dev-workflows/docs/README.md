@@ -63,6 +63,7 @@ Four pages orient you before you touch a command: [Getting started](getting-star
 - [Skills](reference/references.md#skills) — the two bundled skills: what each is for, and which is user-invocable.
 - [Environment](reference/environment.md) — every environment variable the plugin reads, and what it configures.
 - [Hooks](reference/hooks.md) — the bundled hooks and what each one does.
+- [Commit convention](reference/commit-convention.md) — end your commit subject with `[<key>]`, and what that buys you when `/document` and `/release-notes` look for the diff.
 - [Model routing](reference/model-routing.md) — the task-complexity classification and model fallback chain commands apply before acting.
 - [Session cost](reference/session-cost.md) — how a run's dollar cost is computed, attributed, and persisted.
 - [Session feedback](reference/session-feedback.md) — two different signals about the plugin itself: `/feedback` logs what you tell it, while `/prompt*` captures a bad result, your correction, and the good result that came out of it.

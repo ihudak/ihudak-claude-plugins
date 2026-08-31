@@ -6,15 +6,15 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 
 Profile the documentation repository: $ARGUMENTS
 
-`$ARGUMENTS` is an optional repo path (default: the current working directory), optionally followed by `--inline`. The `--inline` token is passed when `/document` (Jira mode) invokes this flow inline (its Phase 0 case (c)); it switches this command to **inline mode** — see Phase 5 step 1, step 2, step 6, and Phase 6.
+`$ARGUMENTS` is an optional repo path (default: the current working directory), optionally followed by `--inline`. The `--inline` token is passed when `/document` (keyed mode) invokes this flow inline (its Phase 0 case (c)); it switches this command to **inline mode** — see Phase 5 step 1, step 2, step 6, and Phase 6.
 
-`/docs-profile` **bootstraps or refreshes** the machine-readable docs-profile that `/document` (Jira mode) consumes. It scans a documentation repository, synthesises a `.dev-workflows/docs-profile.yml` (and complementary CLAUDE.md guidance) that conforms to `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`, then writes the result as a **reviewable PR** — branch + commit + a drafted PR message. It never pushes or auto-merges.
+`/docs-profile` **bootstraps or refreshes** the machine-readable docs-profile that `/document` (keyed mode) consumes. It scans a documentation repository, synthesises a `.dev-workflows/docs-profile.yml` (and complementary CLAUDE.md guidance) that conforms to `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/docs-profile-schema.md`, then writes the result as a **reviewable PR** — branch + commit + a drafted PR message. It never pushes or auto-merges.
 
 The command is **generic** — it works on any docs repo. A repo publishing one documentation set gets a single `spaces[]` entry; a repo publishing several gets one entry per content root, plus the per-space dev-server and lint/build/format commands that go with them.
 
 It does **not** re-specify changelog or owners rules. Those are owned by the `docs-frontmatter` skill (+ `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/changelog-guidelines.md`, `${CLAUDE_PLUGIN_ROOT}/references/docs-profiles/default-owners.txt`); the profile's `frontmatter:` fields are **pointers only**.
 
-For one-off doc edits use direct mode; for Jira-driven feature documentation use `/document` (Jira mode).
+For one-off doc edits use direct mode; for keyed feature documentation use `/document` (keyed mode).
 
 ---
 
@@ -82,7 +82,7 @@ Dispatch a **read-only** detection subagent **pinned to the §2.1 mid-tier chain
   > 1. **package.json scripts** — every script whose name matches `*:start`, `*:lint`, `*:build`, `docs:*`, `format`/`prettier`. For each `*:start` script, extract the dev-server port and base path (grep the script and any referenced config — e.g. `--port`, `PORT=`, a `base`/`basePath` in a docusaurus/mkdocs/eleventy/vitepress config). Note whether two `*:start` servers can run concurrently (distinct ports → concurrent; shared port / single server → sequential).
   > 2. **Templating tokens** — grep the content roots for the repo's own inline markers, e.g. `{{tag kind='latest'}}` (gen3/Latest marker) and `::app-settings::` (gen3 settings breadcrumb). Report each marker's exact spelling and where it occurs.
   > 3. **Content + snippet roots** — every `*/_content` and every `*/_snippets` directory (e.g. `cloud/_content`, `cloud/_snippets`, `self-hosted/_content`, `self-hosted/_snippets`). This determines the `spaces[]` list: one rendered space per content root.
-  > 4. **Branch-naming + internal-link conventions** — read CONTRIBUTING.md, CONTRIBUTION.md, README.md, DOCUMENTATION-GUIDELINES.md, and CLAUDE.md at the repo root (and `.claude/`). Quote any documented branch-naming pattern (e.g. `<initials>/<JIRA-KEY>-<slug>`) and any internal-link convention (e.g. `[text](<postid>)` where postid comes from target frontmatter).
+  > 4. **Branch-naming + internal-link conventions** — read CONTRIBUTING.md, CONTRIBUTION.md, README.md, DOCUMENTATION-GUIDELINES.md, and CLAUDE.md at the repo root (and `.claude/`). Quote any documented branch-naming pattern (e.g. `<initials>/<KEY>-<slug>`) and any internal-link convention (e.g. `[text](<postid>)` where postid comes from target frontmatter).
   > 5. **Image policy** — any documented rule for screenshots/images (CDN-hosted vs committed binaries); quote the source.
   > 6. **Prerequisites** — anything a dev server needs before `*:start` boots (e.g. a `.docstack` toolchain / shim, an axios version pin, an env var); quote the source.
   > 7. **Announcement pages** — hand-authored destination pages inside an otherwise automation-owned tree (e.g. a release-notes / what's-new tree). Detection signal: a page under such a tree whose frontmatter does NOT carry `meta.content-type: release-notes` (absent, or any other value) AND whose `git log` shows human PR commits rather than automation. For each match, record its `postid` (frontmatter `postid:`), its repo-relative `path`, and a proposed `kinds` list inferred from the page title and headings (e.g. an "End-of-life announcements" page → `[deprecation, end-of-life, shutdown, sunset]`). Report `announcement_pages: []` explicitly when none are found.
@@ -160,7 +160,7 @@ Record the final, confirmed `docs-profile.yml` and CLAUDE.md additions, and tag 
 
 Produce a reviewable PR in the **target repo** (never the plugin). **Never push or auto-merge** unless the user explicitly asks.
 
-1. **Resolve the branch name.** **Inline mode** (`--inline`): skip the prompt and the confirmation entirely — use the deterministic name `dev-workflows/docs-profile-bootstrap`; `/document` (Jira mode) Phase 6.2 renames it to the docs-branch convention. **Standalone** (default):
+1. **Resolve the branch name.** **Inline mode** (`--inline`): skip the prompt and the confirmation entirely — use the deterministic name `dev-workflows/docs-profile-bootstrap`; `/document` (keyed mode) Phase 6.2 renames it to the docs-branch convention. **Standalone** (default):
    - If the repo documents a branch-naming convention (detected in Phase 2 / confirmed in Phase 4), fill its placeholders and use it.
    - If the convention has an **identity** placeholder, fill it from the §2 ladder in `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` (`$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → the §2.5 prompt); its issue-key segment takes the documented no-issue literal, since profiling has no ticket.
    - Else (no convention documented, §1.4) use `<prefix>/NOISSUE-docs-profile`, where `<prefix>` comes from the same §2 ladder with fallback `docs/`. If the ladder yields nothing, run its §2.5 escalation:
@@ -188,13 +188,13 @@ Produce a reviewable PR in the **target repo** (never the plugin). **Never push 
    git -C <repo-root> commit -m "docs: add/refresh .dev-workflows/docs-profile.yml"
    ```
 
-6. **Draft the PR message.** **Inline mode** (`--inline`): skip this step — control returns to `/document` (Jira mode), which owns the single PR draft (its Phase 8.5). **Standalone:** Detect the host (`git -C <repo-root> remote get-url origin`) and draft a copy-paste-ready PR title + body for Bitbucket or GitHub (whichever the remote indicates). Title e.g. `docs: bootstrap docs-profile for /document`; body summarising the profile (spaces, dev-servers, commands, tokens, branch-naming, images, prerequisites) and the CLAUDE.md additions. **Do not push, do not open the PR via any CLI** — present the branch name + the drafted message for the user to push and open themselves.
+6. **Draft the PR message.** **Inline mode** (`--inline`): skip this step — control returns to `/document` (keyed mode), which owns the single PR draft (its Phase 8.5). **Standalone:** Detect the host (`git -C <repo-root> remote get-url origin`) and draft a copy-paste-ready PR title + body for Bitbucket or GitHub (whichever the remote indicates). Title e.g. `docs: bootstrap docs-profile for /document`; body summarising the profile (spaces, dev-servers, commands, tokens, branch-naming, images, prerequisites) and the CLAUDE.md additions. **Do not push, do not open the PR via any CLI** — present the branch name + the drafted message for the user to push and open themselves.
 
 ---
 
 ## Phase 6 — Final report
 
-**Inline mode** (`--inline`): skip this report — control returns to `/document` (Jira mode), which produces the consolidated report (its Phase 9). The rest of this section is the standalone report.
+**Inline mode** (`--inline`): skip this report — control returns to `/document` (keyed mode), which produces the consolidated report (its Phase 9). The rest of this section is the standalone report.
 
 Output a structured report — do NOT ask any closing confirmation:
 

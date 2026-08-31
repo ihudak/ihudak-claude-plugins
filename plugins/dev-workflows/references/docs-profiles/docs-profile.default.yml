@@ -55,8 +55,8 @@ announcement_pages:
     path: cloud/_content/whats-new/technology/index.md
     kinds: [new-technology]
 branch_naming:
-  pattern: "<initials>/<JIRA-KEY>-<short-slug>"
-commit_convention: "<JIRA-KEY> <summary>"
+  pattern: "<initials>/<KEY>-<short-slug>"
+commit_convention: "<KEY> <summary>"
 frontmatter:
   owned_by_skill: docs-frontmatter
   changelog_guidelines: references/docs-profiles/changelog-guidelines.md

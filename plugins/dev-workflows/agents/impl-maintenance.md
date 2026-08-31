@@ -19,7 +19,7 @@ can choose which suggestions to act on.
 The caller passes a **compact session handoff**:
 
 - **Command run** — which command variant executed this session. One of
-  `/implement`, `/document` (direct mode), `/document` (Jira mode), `/epics`,
+  `/implement`, `/document` (direct mode), `/document` (keyed mode), `/epics`,
   `/vuln`, `/upgrade`, `/design`, `/specify`, `/release-notes`, `/idea`,
   `/create-prd`, `/create-ard`, `/ready`. This field
   scopes any "Command workflow improvements" suggestions to the right command.
@@ -111,7 +111,7 @@ Return this exact shape (no preamble, no chatter):
 - _or_ "No new agents suggested"
 
 #### Command workflow improvements
-- **Command**: [/implement | /document (direct mode) | /document (Jira mode) | /epics | /vuln | /upgrade | /design | /specify | /release-notes]
+- **Command**: [/implement | /document (direct mode) | /document (keyed mode) | /epics | /vuln | /upgrade | /design | /specify | /release-notes]
   **Section**: [Phase / step reference]
   **Change**: [what to change and why]
 - ...

@@ -789,15 +789,15 @@ still move*; and the repo→SHA table. Emit its §4.1 outcome line in the final 
 
 The BRD-to-PRD route's next command is `/brd-reconcile`, which takes the returned review and turns
 each confirmed answer into a `[CD#n]` — and it is offered, named for what it needs, because it
-cannot run until a review actually comes back. `--from-brd` on `/create-prd`, which carries a decided,
+cannot run until a review actually comes back. the BRD route on `/create-prd`, which carries a decided,
 reconciled BRD into a PRD, **ships** — and it is still not offered here, for a reason about this
 state rather than about the plugin. This run packaged a BRD whose customer round is *open*: every
 `[C]` it just rendered into the prompt, and every open `[AS#n]` it carried in, is a register item
 `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §3 forbids consuming downstream while
-it is open, and `/create-prd --from-brd` reads exactly that register as its seed. The answers are
+it is open, and `/create-prd` on the BRD route reads exactly that register as its seed. The answers are
 frozen by `/dev-workflows:brd-reconcile` and by nothing here, so the reconciled BRD that route needs
 is the state the *next* command leaves rather than this one, and `/dev-workflows:brd-reconcile`'s own
-next-step phase is where the three `--from-brd` options are offered. The same holds for `--from-brd`
+next-step phase is where the three the BRD route options are offered. The same holds for the BRD route
 on `/create-ard` and `/specify`, which read the architecture- and implementation-altitude seeds
 alongside the same register. So the honest offer is the state this run actually leaves behind:
 
@@ -850,13 +850,13 @@ either — it is the gate working.
    the BRD folder.
 2. **Persist plugin feedback (automatic).** Cite
    `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6)
-   with the Lessons Learned report, `command: /brd-package`, the run's `jira_key` (the `<BRD-KEY>`),
+   with the Lessons Learned report, `command: /brd-package`, the run's `key` (the `<BRD-KEY>`),
    `source`, and `plugin_version` (read from
    `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no
    plugin-facing signal — nothing persisted").
 3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and call
    its `emit-cost` entry point with `command: /brd-package`, `phase: brd-to-prd`, `role: pm`, the
-   run's `jira_key`, `source`, and `plugin_version`. Surface the persisted path (or the report-only
+   run's `key`, `source`, and `plugin_version`. Surface the persisted path (or the report-only
    notice).
 4. **Write the resume pointer.** Cite `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and
    write/overwrite `<BRD-dir>/dev-workflows/resume.md` now — after the cost entry, before the commit

@@ -30,7 +30,7 @@ Performs the correction directly against your target files — those edits are n
 A **session-cost entry** too, since this command now reports its own spend: `phase`/`role` inherited from the target command, or [`plugin-feedback`](../roles-and-phases.md#plugin-feedback)/`n/a` when there is nothing to inherit. It lands beside the feedback entry under `$SPECS_PATH`, or in the keyless pending file — see [Session cost](../reference/session-cost.md).
 ## Gates
 
-No reviewer and no fix cycle — `/prompt` **is** the fix, applied once, directly, with nothing downstream to re-check it. Two things can still interrupt it: the specs-repo git guards (`specs-preflight`, `commit-artifacts`, `../../references/specs-repo-git.md`), and — since this command now runs a cost phase and resolves a `jira_key` — the suggest-and-confirm reconciliation offer that fires when keyless cost entries are pending (`../../references/cost-emission.md` §9). A `prompt` entry itself is never silently skipped.
+No reviewer and no fix cycle — `/prompt` **is** the fix, applied once, directly, with nothing downstream to re-check it. Two things can still interrupt it: the specs-repo git guards (`specs-preflight`, `commit-artifacts`, `../../references/specs-repo-git.md`), and — since this command now runs a cost phase and resolves a `key` — the suggest-and-confirm reconciliation offer that fires when keyless cost entries are pending (`../../references/cost-emission.md` §9). A `prompt` entry itself is never silently skipped.
 
 ## Example
 

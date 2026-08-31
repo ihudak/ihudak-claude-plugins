@@ -1,6 +1,6 @@
 ---
 name: code-scanner
-description: Scans a single code repository for existing capabilities and gaps relative to a set of themes. Themes may come from a Product Requirements Document / Epic (Epic writing), from an implementation spec (/implement multi-source scanning, broad-then-narrow per §8.5), from a Jira item being specified (/specify light feasibility grounding), from an idea's themes (/idea --ground-code, broad-then-narrow per §8.5), or from architect-driven discovery (/create-ard) or an engineering design (/design). Pure filesystem search; no HTTPS. Designed for parallel invocation (one instance per repo, capped at 4 concurrent by the caller). Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Scans a single code repository for existing capabilities and gaps relative to a set of themes. Themes may come from a Product Requirements Document / Epic (Epic writing), from an implementation spec (/implement multi-source scanning, broad-then-narrow per §8.5), from a resolved item being specified (/specify light feasibility grounding), from an idea's themes (/idea --ground-code, broad-then-narrow per §8.5), or from architect-driven discovery (/create-ard) or an engineering design (/design). Pure filesystem search; no HTTPS. Designed for parallel invocation (one instance per repo, capped at 4 concurrent by the caller). Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "Bash"]
 ---
 

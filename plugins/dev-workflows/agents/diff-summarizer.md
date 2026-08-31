@@ -19,15 +19,15 @@ pr_refs:
     repo:        <repo name>
     owner:       <github_cloud: <OWNER>; bitbucket_cloud: <WORKSPACE>; null otherwise>
     pr_id:       <id>
-    branch_from: <feature branch from jira-reader>
-    branch_to:   <target branch from jira-reader>
+    branch_from: <feature branch from the folder read>
+    branch_to:   <target branch from the folder read>
     title:       <link text>
     status:      MERGED | OPEN | DECLINED | UNKNOWN
 context: |
   <what this repo's PRs relate to — for documentation focus>
-jira_keys_hierarchy:   # optional; passed by caller to enable Strategy 4 cross-key grep
+keys_hierarchy:   # optional; passed by caller to enable Strategy 4 cross-key grep
   - <PRD-KEY>
-  - <every Epic/Story/Sub-task/Research/RFA/Bug key discovered by jira-reader>
+  - <every Epic/Story/Sub-task/Research/RFA/Bug key discovered by the folder read>
 refresh:
   fetch: true   # default true
   pull:  false  # default false — historical PR diffs do not need the current branch tip;
@@ -71,12 +71,12 @@ Used for Bitbucket Server, Bitbucket Cloud, and GitHub when `gh` is unavailable.
 
 3. **Strategy 3 — Merge-commit search.** Run `git log --all -E --grep="[Pp]ull[ _-]?[Rr]equest[ _-]?#?<pr_id>\b" -n 5` and `git log --all -E --grep="<title_keyword>" -n 5`. The primary pattern matches the merge-commit title format `Pull request #<PR_ID>: …` produced by both Bitbucket and GitHub (note the `#` separator — not `-` or space). For a merge commit: head = `<commit>^2`, base = `<commit>^1`.
 
-4. **Strategy 4 — Cross-hierarchy Jira-key commit search (last resort).** If the caller supplied `jira_keys_hierarchy`, for each key run `git log --all --grep="<key>" --oneline`. Treat matches as "commits associated with this feature" rather than a specific reconstructed PR. Return every match's full diff (`git show --format= <sha>`) as a **separate per-PR entry** with `pr_id: <the PR's own id, best-effort>` and `resolved_via: jira_key_commits`. Annotate the `summary` explicitly:
-   *"Diff reconstructed from commit <sha> matched on Jira key <key>; this may not correspond to the original PR content exactly."*
+4. **Strategy 4 — Cross-hierarchy key commit search (last resort).** If the caller supplied `keys_hierarchy`, for each key run `git log --all --grep="<key>" --oneline`. Treat matches as "commits associated with this feature" rather than a specific reconstructed PR. Return every match's full diff (`git show --format= <sha>`) as a **separate per-PR entry** with `pr_id: <the PR's own id, best-effort>` and `resolved_via: key_commits`. Annotate the `summary` explicitly:
+   *"Diff reconstructed from commit <sha> matched on key <key>; this may not correspond to the original PR content exactly."*
 
    If the original PR's merge-commit and branch are both missing (Strategies 1–3 failed) but Strategy 4 finds commits by key: the PR is **partially resolved** — content is drawn from key-matched commits, and the output notes this clearly.
 
-   If `jira_keys_hierarchy` is not provided, fall back to the original single-key behaviour (grep only the PR's own `source_item` key) and emit candidate SHAs in `unresolved_prs` for user review.
+   If `keys_hierarchy` is not provided, fall back to the original single-key behaviour (grep only the PR's own `source_item` key) and emit candidate SHAs in `unresolved_prs` for user review.
 
 If all four strategies fail: record the PR under `unresolved_prs` and continue. The caller handles user-facing escalation.
 
@@ -118,7 +118,7 @@ For each resolved PR, the `summary` prose (3–8 sentences) focuses on what a do
 
 Skip implementation detail a doc writer doesn't need (internal refactors, pure test-only changes, dependency bumps with no observable effect).
 
-If `resolved_via == jira_key_commits`, the summary MUST include the verbatim caveat quoted under Strategy 4.
+If `resolved_via == key_commits`, the summary MUST include the verbatim caveat quoted under Strategy 4.
 
 ## Output
 
@@ -137,7 +137,7 @@ prep:
 per_pr:
   - pr_id: <id>
     url: <url>
-    resolved_via: pr_ref | branch_search | merge_commit | jira_key_commits | gh_cli | unresolved
+    resolved_via: pr_ref | branch_search | merge_commit | key_commits | gh_cli | unresolved
     base: <sha | null>
     head: <sha | null>
     files_changed: <count>
@@ -146,8 +146,8 @@ per_pr:
     diff_truncated: false
     summary: |
       <prose; 3–8 sentences: new behavior, changed behavior, API surface, migration notes.
-      If resolved_via == jira_key_commits, the summary MUST note that the diff was
-      reconstructed from commits matching a Jira key and may not exactly correspond to
+      If resolved_via == key_commits, the summary MUST note that the diff was
+      reconstructed from commits matching a key and may not exactly correspond to
       the original PR content.>
 unresolved_prs:
   - pr_id: <id>
@@ -170,6 +170,6 @@ aggregate_summary: |
 - NEVER switch the repo's HEAD when `refresh.pull` is false — leave the working tree as found.
 - NEVER hardcode a Bitbucket Server hostname. Host classification uses the substring rule documented above.
 - NEVER fabricate diff content. If a PR cannot be resolved by any strategy, record it in `unresolved_prs`.
-- If `resolved_via == jira_key_commits`, the `summary` MUST carry the explicit caveat — omitting it would silently degrade content trust.
+- If `resolved_via == key_commits`, the `summary` MUST carry the explicit caveat — omitting it would silently degrade content trust.
 - On `REPO_MISSING`, `DIRTY_TREE`, `REFRESH_BLOCKED`: return immediately with the status; do NOT partially resolve any PRs.
 - On a read-only mount, NEVER `git fetch`, `git pull`, `git switch`, or `git remote set-head` — all write. Follow `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md` instead of returning `REFRESH_BLOCKED`.

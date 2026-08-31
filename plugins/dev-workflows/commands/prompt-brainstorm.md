@@ -41,7 +41,7 @@ Cite `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its
 - **User prompt** — `$ARGUMENTS`, **verbatim** (never paraphrased).
 - **Resolution** — `Handed off to superpowers:brainstorming to redesign the correction.`
 - `command` (Phase 1), an inferred `category` (§1 vocab, reuse-first), `impact`,
-  `jira_key` (or `null`), `source`.
+  `key` (or `null`), `source`.
 
 `emit-prompt` resolves the write target via the §2 specs-first ladder, formats
 the entry with the two extra prose blocks (`origin: prompt`), appends per §3
@@ -54,7 +54,7 @@ any degradation notice.
 because the brainstorming skill takes over the session there. It stages ONLY the
 §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add
 dev-workflows session artifacts (/prompt-brainstorm)` — or `NOISSUE …` when no
-`jira_key` resolved — and pushes. It NEVER touches a code/docs repo, the vault,
+`key` resolved — and pushes. It NEVER touches a code/docs repo, the vault,
 or the current working directory; NEVER force-pushes; NEVER fails the run; and
 skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting
 that notice. Print its §6 outcome line here, prefixed `Specs repo:`, with any

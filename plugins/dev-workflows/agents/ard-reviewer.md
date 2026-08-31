@@ -20,7 +20,7 @@ runs a fix cycle and re-reviews once.
 ## Review method
 
 1. Read the ARD end-to-end before judging.
-2. Verify frontmatter: `scope`; `prd` matches `^[A-Z][A-Z0-9_]*(-\d+)+$` — the grammar `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1 fixes, a superset of the two-segment form, so that an ARD authored by `/create-ard --from-brd` carries a well-formed key rather than a finding: on that route `prd` holds a BRD key (the BRD's own, or its parent's for a slice) and `epic` holds the slice's, either of which may carry a third numeric segment; `grounded_repos` present; Epic-level has `epic` + (if a PRD-level ARD exists) `inherits`. `derived_from` names the PRD the ARD was built from, or — on the BRD route, in a folder that holds no PRD — the `ard-seed.md` it was actually authored from; neither is a finding.
+2. Verify frontmatter: `scope`; `prd` matches `^[A-Z][A-Z0-9_]*(-\d+)+$` — the grammar `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1 fixes, a superset of the two-segment form, so that an ARD authored by `/create-ard` on the BRD route carries a well-formed key rather than a finding: on that route `prd` holds a BRD key (the BRD's own, or its parent's for a slice) and `epic` holds the slice's, either of which may carry a third numeric segment; `grounded_repos` present; Epic-level has `epic` + (if a PRD-level ARD exists) `inherits`. `derived_from` names the PRD the ARD was built from, or — on the BRD route, in a folder that holds no PRD — the `ard-seed.md` it was actually authored from; neither is a finding.
 3. For each "as-is" claim in Grounding findings, confirm it cites a `file:line` in a `grounded_repos` entry — spot-check that the cited path plausibly exists (Glob/Grep). An uncited or clearly-fabricated claim → BLOCKER.
 4. Apply the dimensions below; record findings in the severity schema; route gaps needing human input to **needs architect input**; never fabricate a fix.
 
@@ -31,7 +31,7 @@ runs a fix cycle and re-reviews once.
 - **Inherited invariants (Epic-level, BLOCKER):** the Epic ARD must not contradict an inherited PRD-level `AD#N`.
 - **Altitude purity (MAJOR):** a PRD-level ARD carries no per-repo detailed solutions (that is `/design`); an Epic-level ARD stays architecture, not an implementation plan.
 - **Open questions:** ungrounded/descoped repos and unresolved decisions are recorded, not silently dropped.
-- **Identifier integrity:** `[AD#N]` unique + contiguous; cross-references point at existing IDs. A dash-form ID (`[AD-1]`, …) is a **BLOCKER** — Jira auto-links it to an unrelated ticket on paste, and the vault importer rewrites it into `[[[AD-1]]]` on export. <!-- id-grammar-ok: BLOCKER rule must name the forbidden form -->
+- **Identifier integrity:** `[AD#N]` unique + contiguous; cross-references point at existing IDs. A dash-form ID (`[AD-1]`, …) is a **BLOCKER** — a tracker auto-links it to an unrelated ticket on paste, and the vault importer rewrites it into `[[[AD-1]]]` on export. <!-- id-grammar-ok: BLOCKER rule must name the forbidden form -->
 
 ## Output contract
 

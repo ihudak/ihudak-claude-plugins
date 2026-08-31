@@ -4,7 +4,7 @@ This document is the **single source of truth** for one of the most important
 rules in the `dev-workflows` plugin:
 
 > **Verify against the implementation; escalate every discrepancy to the user.**
-> The source code is what customers will use. Jira tickets, PRDs, design specs,
+> The source code is what customers will use. PRDs, design specs,
 > and prose descriptions are the *starting point*, not the *spec* — they may
 > be outdated, aspirational, simplified, or wrong. Every user-visible claim in
 > generated documentation MUST be verified against the implementation, and
@@ -19,11 +19,11 @@ Every sub-agent that synthesises documentation (`doc-planner`, `doc-writer`,
 
 ## 1. The principle
 
-Customers do not read your Jira tickets. They read the docs, click the UI,
+Customers do not read your PRDs. They read the docs, click the UI,
 hit the API. So the docs must reflect what shipped — but the *what shipped*
 question is sometimes a product-management question, not a code-truth question.
 
-When a Jira ticket says "user picks Latest / Previous / specific version" and
+When a PRD says "user picks Latest / Previous / specific version" and
 the source code shows four presets (Latest / Previous / **Older** / specific),
 that's a discrepancy. The plugin **doesn't** automatically pick one side;
 it presents the discrepancy and asks the user. The user has context the plugin
@@ -34,12 +34,12 @@ source.** Some runs (notably `/document`) pass an implementation spec —
 the Product Requirements Document spec, its child Epic specs, and the synthesised
 `requirements.md` / `design.md`. When that spec is present, *it* defines the
 intended behaviour: it is the agreed, current contract for what should ship.
-Jira then **corroborates** the spec (it is the older customer-narrative
+The PRD then **corroborates** the spec (it is the older customer-narrative
 phrasing) and the source code remains the **"actual"** — what shipped. So the
-comparison becomes three-way: the spec says what was *intended*, Jira echoes
+comparison becomes three-way: the spec says what was *intended*, the PRD echoes
 it (and may have drifted), and the code shows what is *actual*. When no spec
-is provided, behaviour is unchanged: Jira is the "intended" starting point and
-the comparison is the original two-way (Jira vs. code).
+is provided, behaviour is unchanged: the PRD is the "intended" starting point and
+the comparison is the original two-way (PRD vs. code).
 
 The authoritative file set, when a spec is provided:
 
@@ -53,11 +53,11 @@ The authoritative file set, when a spec is provided:
 The user might decide:
 
 - **"Document as intended (spec)"** — describe the agreed contract. When a
-  spec is present this is the spec phrasing; when it is absent it is the Jira
+  spec is present this is the spec phrasing; when it is absent it is the PRD
   phrasing. Often the right call: the spec is the current agreement and the
   code can be brought into line.
 - **"Document as actual (code)"** — the implementation is the spec in practice;
-  update the spec/Jira separately. Often the right call: the implementer found
+  update the spec or the PRD separately. Often the right call: the implementer found
   extra value or the intended phrasing was simplified for stakeholder
   consumption.
 - **"Skip this claim and report"** — neither side is wrong, but the discrepancy
@@ -67,7 +67,7 @@ The user might decide:
 The plugin's job is to **detect the discrepancy and present the analysis** in
 the form of a table:
 
-| # | Claim | Jira | Spec | Code | Source location | Verdict |
+| # | Claim | PRD | Spec | Code | Source location | Verdict |
 
 with one row per discrepancy and three per-row choices (when no spec was
 provided, the **Spec** column reads `(no spec)` and the comparison is the
@@ -80,7 +80,7 @@ from what shipped.
 ## 2. What MUST be verified
 
 The **"intended"** phrasing for every claim is taken from the **spec markdown
-when a spec is provided**, falling back to the Jira description when no spec is
+when a spec is provided**, falling back to the PRD's description when no spec is
 present. When a spec is present, the authoritative file set is: the PRD spec
 markdown, the child Epic spec markdown, and the synthesised `requirements.md`
 and `design.md`; `tasks.md` is secondary (supporting, not contractual); and
@@ -228,7 +228,7 @@ The orchestrator passes `code_repos:` as an input — a list of
 `{slug, path}` records pointing to the local clones used by the
 diff-summarizer. When a spec is provided, the orchestrator also passes the
 spec directory. The claim's **intended** phrasing comes from the **spec when
-present, falling back to Jira when absent.** doc-planner MUST:
+present, falling back to the PRD when absent.** doc-planner MUST:
 
 1. Extract every user-visible claim from the proposed checklist (option
    names, button labels, default values, counts, menu paths, mode names,
@@ -242,20 +242,20 @@ present, falling back to Jira when absent.** doc-planner MUST:
    - **`VERIFIED`** — source agrees with the claim. (Recommend omitting from
      the list to reduce noise; OR include with a single line for audit.)
    - **`CONTRADICTED`** — source has a different value/label/count. Record
-     the `jira_phrasing`, the `spec_phrasing`, AND the `source_phrasing`
+     the `prd_phrasing`, the `spec_phrasing`, AND the `source_phrasing`
      verbatim. Do NOT pick a winner.
-   - **`NOT_FOUND`** — Jira or spec mentioned a behavior/UI element that has
+   - **`NOT_FOUND`** — the PRD or spec mentioned a behavior/UI element that has
      zero trace in the source. Implementation-gap candidate. Record the
      intended phrasing and the locations checked.
    - **`AMBIGUOUS`** — multiple plausible source matches with different
      phrasing; verification can't pick one.
-   In every case record `spec_phrasing` verbatim alongside `jira_phrasing`
+   In every case record `spec_phrasing` verbatim alongside `prd_phrasing`
    and `source_phrasing`. **When no spec was provided, record
    `spec_phrasing: "(no spec)"`** — behaviour is then unchanged (intended =
-   Jira, two-way comparison).
+   the PRD, two-way comparison).
 5. **Do NOT rewrite the topic notes to match the source** (v1.8.0 change).
    Leave the claim as the intended phrasing had it; the orchestrator will
-   prompt the user per discrepancy at Phase 5.8 (impl-jira) and the user
+   prompt the user per discrepancy at Phase 5.8 (impl-prd) and the user
    decides whether to document as intended (spec), document as actual (code),
    or skip.
 
@@ -272,11 +272,11 @@ marker explaining the gap. See §7 for the marker format.
 
 ## 5. Hard rules
 
-- NEVER copy a Jira description's option list, count, label, or default
+- NEVER copy a PRD's option list, count, label, or default
   value into the docs without running source verification on it.
-- NEVER trust a Jira ticket's "User Story" section as the spec — it is
+- NEVER trust a PRD's "User Story" section as the spec — it is
   the customer-narrative phrasing, often simplified.
-- NEVER trust a Jira ticket's date — descriptions are often months old
+- NEVER trust a PRD's date — descriptions are often months old
   and may pre-date the actual implementation.
 - **NEVER silently pick a winner** when source and description disagree
   (changed in v1.8.0). The plugin is the analyst; the user is the
@@ -291,13 +291,13 @@ marker explaining the gap. See §7 for the marker format.
   unless an intentional-discrepancy marker is present (§7).
 - Bug-report draft destination is the same vault project folder used for
   the release-notes draft (auto-discovered by the orchestrator at
-  `<vault>/Projects/Products/**/<JIRA_KEY>*`). File name:
-  `<JIRA_KEY>-implementation-gaps.md`. Same hard rule as for release-notes:
+  the resolved PRD folder). File name:
+  `implementation-gaps.md`. Same hard rule as for release-notes:
   **NEVER `/tmp/`** — container restarts wipe it.
 
 ## 6. Example (drawn from a real run)
 
-Jira "User Story" said:
+The PRD's "User Story" said:
 
 > A specific stable version available on the cluster (e.g., `1.327`).
 > [implied 3 presets: Latest / Previous / specific]
@@ -313,9 +313,9 @@ private static final int ENTRY_LIMIT = 3; // only latest, previous and older can
 ```
 
 The source shipped **4 options** (Latest / Previous / **Older** / specific
-main version). The Jira "User Story" missed "Older".
+main version). The PRD's "User Story" missed "Older".
 
-- v1.6.0 shipped the 3-option Jira phrasing — caught only in a manual
+- v1.6.0 shipped the 3-option PRD phrasing — caught only in a manual
   review round.
 - v1.7.0 added source verification but defaulted to silently picking the
   source side.
@@ -323,12 +323,12 @@ main version). The Jira "User Story" missed "Older".
 
 The §7 table for this discrepancy (with the added **Spec** column) reads:
 `| 1 | Target version preset list | "Latest, Previous, specific" | "Latest, Previous, Older, specific" | "Latest, Previous, Older, specific" | …/PrivateAgentAutoUpdateDataSource.java:35 | CONTRADICTED |`
-— here a spec was provided and its phrasing matched the code, so the Jira
+— here a spec was provided and its phrasing matched the code, so the PRD
 narrative is the side that drifted; with no spec the **Spec** cell would read
 `(no spec)`.
 
 A complementary example from the same PRD, also caught by manual review:
-the Jira "UI changes" section described renaming `Settings > Updates` to
+the PRD's "UI changes" section described renaming `Settings > Updates` to
 `Settings > Deployment`. The source (`ClusterSettingsMenu.java:1404`)
 still has `.withTitle("Updates")` — zero hits for any "Deployment" rename
 anywhere in the cluster repo. v1.7.0 would have rewritten the doc to say
@@ -346,9 +346,9 @@ or `AMBIGUOUS`, the orchestrator MUST follow this protocol before
 proceeding to Phase 6.3 (writing).
 
 The protocol is **three-way** when a spec was provided — it compares the
-**Jira** narrative, the **Spec** (authoritative "intended"), and the **Code**
+**PRD** narrative, the **Spec** (authoritative "intended"), and the **Code**
 ("actual"). When no spec was provided it stays two-way in effect: the **Spec**
-cell reads `(no spec)` and the run behaves exactly as the original Jira-vs-code
+cell reads `(no spec)` and the run behaves exactly as the original PRD-vs-code
 protocol.
 
 ### 7.1 Present the analysis table
@@ -356,20 +356,20 @@ protocol.
 Build a single ask_user prompt showing every discrepancy in a table:
 
 ```
-| # | Claim                      | Jira                                       | Spec                                | Code                                | Source location                                 | Verdict      |
+| # | Claim                      | PRD                                        | Spec                                | Code                                | Source location                                 | Verdict      |
 |---|----------------------------|--------------------------------------------|-------------------------------------|-------------------------------------|-------------------------------------------------|--------------|
 | 1 | Target version preset list | "Latest stable, Previous stable, specific" | "Latest, Previous, Older, specific" | "Latest, Previous, Older, specific" | …/PrivateAgentAutoUpdateDataSource.java:35 | CONTRADICTED |
 | 2 | Menu rename                | "Settings > Updates → Settings > Deployment" | "Settings > Updates"              | "Settings > Updates" (unchanged)    | …/ClusterSettingsMenu.java:1404                 | NOT_FOUND    |
-| 3 | Deferral window default    | "deferred until window closes"             | "deferred to next window"           | "deferred to next window"           | …/UpdateWindowSettings.java:88                  | SPEC-VS-JIRA |
+| 3 | Deferral window default    | "deferred until window closes"             | "deferred to next window"           | "deferred to next window"           | …/UpdateWindowSettings.java:88                  | SPEC-VS-PRD |
 ```
 
 The **Verdict** column carries the §4.2 finding (`CONTRADICTED`, `NOT_FOUND`,
-`AMBIGUOUS`) and one additional verdict: **`SPEC-VS-JIRA`** — the spec differs
-from the Jira narrative (regardless of whether code matches the spec). The
-spec is authoritative, so a `SPEC-VS-JIRA` row is surfaced to flag that the
-Jira ticket should be updated to match the spec; the recommended action for it
+`AMBIGUOUS`) and one additional verdict: **`SPEC-VS-PRD`** — the spec differs
+from the PRD narrative (regardless of whether code matches the spec). The
+spec is authoritative, so a `SPEC-VS-PRD` row is surfaced to flag that the
+PRD should be updated to match the spec; the recommended action for it
 is "Document as intended (spec)". When no spec was provided the **Spec** cell
-reads `(no spec)` and `SPEC-VS-JIRA` cannot occur.
+reads `(no spec)` and `SPEC-VS-PRD` cannot occur.
 
 This table is informational — display it before asking decisions.
 
@@ -377,7 +377,7 @@ This table is informational — display it before asking decisions.
 
 ```
 ask_user(
-  question: "<N> discrepancies between the intended phrasing (spec when present, else Jira) and the source code were found (see table above). How would you like to handle them?",
+  question: "<N> discrepancies between the intended phrasing (spec when present, else the PRD) and the source code were found (see table above). How would you like to handle them?",
   choices: [
     "Decide per discrepancy (Recommended)",
     "Document as intended (spec) for ALL",
@@ -388,7 +388,7 @@ ask_user(
 )
 ```
 
-(When no spec was provided, "Document as intended (spec)" uses the Jira
+(When no spec was provided, "Document as intended (spec)" uses the PRD
 phrasing — the original two-way behaviour.)
 
 ### 7.3 Per-discrepancy decision (if user chose "Decide per discrepancy")
@@ -397,9 +397,9 @@ For each discrepancy in turn:
 
 ```
 ask_user(
-  question: "Discrepancy #<n>: <claim>\n  - Jira: <jira_phrasing>\n  - Spec: <spec_phrasing>\n  - Code: <source_phrasing>\n  - Source location: <file:line>\n\nHow would you like to handle this one?",
+  question: "Discrepancy #<n>: <claim>\n  - PRD: <prd_phrasing>\n  - Spec: <spec_phrasing>\n  - Code: <source_phrasing>\n  - Source location: <file:line>\n\nHow would you like to handle this one?",
   choices: [
-    "Document as intended (spec) (Recommended) — describe the agreed contract (spec phrasing; Jira phrasing when no spec); the orchestrator drafts a bug-report so you can file a defect when the code lags",
+    "Document as intended (spec) (Recommended) — describe the agreed contract (spec phrasing; PRD phrasing when no spec); the orchestrator drafts a bug-report so you can file a defect when the code lags",
     "Document as actual (code) — match what shipped; users see what's there",
     "Skip & report — the docs leave this paragraph out; the bug-report draft still records the gap (drafts a bug)",
     "Cancel the whole run",
@@ -408,21 +408,21 @@ ask_user(
 )
 ```
 
-(When no spec was provided, "Document as intended (spec)" uses the Jira
+(When no spec was provided, "Document as intended (spec)" uses the PRD
 phrasing.)
 
 ### 7.4 Record decisions
 
 Maintain a `discrepancy_decisions` record keyed by discrepancy number. Each
 entry records the intended phrasing from the spec (`spec_phrasing`, `(no spec)`
-when none was provided) alongside the Jira and source phrasing. The `decision`
+when none was provided) alongside the PRD and source phrasing. The `decision`
 field is one of `document-as-spec`, `document-as-code`, or `skip-and-report`:
 
 ```yaml
 discrepancy_decisions:
   - number:           1
     claim:            "Target version preset list"
-    jira_phrasing:    "Latest stable, Previous stable, specific"
+    prd_phrasing:    "Latest stable, Previous stable, specific"
     spec_phrasing:    "Latest, Previous, Older, specific"
     source_phrasing:  "Latest, Previous, Older, specific"
     source_location:  ".../PrivateAgentAutoUpdateDataSource.java:35"
@@ -430,7 +430,7 @@ discrepancy_decisions:
     rationale:        <user-provided text if "Other...">
   - number:           2
     claim:            "Menu rename"
-    jira_phrasing:    "Settings > Updates → Settings > Deployment"
+    prd_phrasing:    "Settings > Updates → Settings > Deployment"
     spec_phrasing:    "(no spec)"
     source_phrasing:  "Settings > Updates (unchanged)"
     source_location:  ".../ClusterSettingsMenu.java:1404"
@@ -441,7 +441,7 @@ discrepancy_decisions:
 Pass this record to Phase 6.3 (writer). The writer:
 
 - For `document-as-spec` decisions: use the intended phrasing verbatim in the
-  docs — the `spec_phrasing` when a spec was provided, the `jira_phrasing`
+  docs — the `spec_phrasing` when a spec was provided, the `prd_phrasing`
   when it was `(no spec)`. When the code lags the intended phrasing, also
   insert an intentional-discrepancy marker (see §7.6) at the start of the
   enclosing section.
@@ -453,30 +453,30 @@ Pass this record to Phase 6.3 (writer). The writer:
 
 When `discrepancy_decisions` contains ANY entry with decision
 `document-as-spec` (where the code lags the intended phrasing),
-`skip-and-report`, or `document-as-code` **where the Jira phrasing asserts a
+`skip-and-report`, or `document-as-code` **where the PRD phrasing asserts a
 specific value that contradicts the source**, the writer MUST emit a
 Markdown file alongside the release-notes draft at the auto-discovered vault
-project folder. Skip a `document-as-code` entry whose Jira phrasing is vague
+project folder. Skip a `document-as-code` entry whose PRD phrasing is vague
 or non-committal — "several registries" against a source with four is loose,
 not wrong. When the two readings are arguable, emit: the output is a draft
 the user reviews, so a spurious entry costs a paragraph while a miss leaves
 a wrong customer-facing claim in the ticket indefinitely.
 
 ```
-<vault>/Projects/Products/**/<JIRA_KEY>*/<JIRA_KEY>-implementation-gaps.md
+<PRD-folder>/implementation-gaps.md
 ```
 
 Format:
 
 ```markdown
-# <JIRA_KEY> — Implementation gaps found during documentation
+# <KEY> — Implementation gaps found during documentation
 
 Generated <YYYY-MM-DD>. File these as defects against the implementation
-team (or amend the Jira ticket if the gap is intentional).
+team (or amend the PRD if the gap is intentional).
 
 ## Gap <n>: <claim>
 
-- **Jira phrasing**: <jira_phrasing>
+- **PRD phrasing**: <prd_phrasing>
 - **Spec phrasing**: <spec_phrasing>   (`(no spec)` when none was provided)
 - **Source state**: <source_phrasing>
 - **Source location**: <file:line>
@@ -486,9 +486,9 @@ team (or amend the Jira ticket if the gap is intentional).
                     | "documented as shipped; the source ticket carries an
                     incorrect claim">
 - **Suggested action**: <for a `document-as-spec` / `skip-and-report` gap:
-                    file a Jira defect against the team that owns
+                    raise a defect with the team that owns
                     <source_location>'s component, with a link to
-                    <JIRA_KEY> and a link to this gap analysis
+                    <KEY> and a link to this gap analysis
                     | for a `document-as-code` gap: correct the source
                     ticket — the implementation is right — rather than
                     filing a defect against the implementation team>
@@ -503,11 +503,11 @@ For `document-as-spec` decisions where the code lags the intended phrasing,
 the writer inserts this marker immediately before the affected prose:
 
 ```markdown
-<!-- intentional-discrepancy: <JIRA_KEY> intends
-"<spec_phrasing>" (spec; "<jira_phrasing>" per Jira when no spec) but the
+<!-- intentional-discrepancy: <KEY> intends
+"<spec_phrasing>" (spec; "<prd_phrasing>" per the PRD when no spec) but the
 source at <file:line> currently has "<source_phrasing>". User decision:
 document intended phrasing pending implementation.
-See <vault-path>/<JIRA_KEY>-implementation-gaps.md gap #<n>. -->
+See <PRD-folder>/implementation-gaps.md gap #<n>. -->
 ```
 
 `doc-reviewer`'s Source-code accuracy dimension (§4.3) recognises this

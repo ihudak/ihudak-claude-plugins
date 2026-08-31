@@ -281,15 +281,15 @@ markdown file under the parent, which is exactly why the carve-out has to be wri
 
 This is where the BRD-to-PRD route **hands over**, not where it ends. A reconciled BRD — decisions
 frozen, dependents swept, every artifact under the parent checked — is the state the PRD pipeline
-was waiting for, and Phase 14 offers all three `--from-brd` entry points against the same
+was waiting for, and Phase 14 offers all three the BRD route entry points against the same
 `<BRD-KEY>` — **on a run that left nothing to re-enter for**, and each under the precondition the
 offered command actually enforces:
 
 | Handover | Offered when | Why |
 |---|---|---|
-| [`/create-prd <BRD-KEY> --from-brd`](create-prd.md) (PM) | **Conditionally** — no ledger row still `unallocated`, and one `covered-here` | Exactly the two refusals its own Phase 0 raises; offering it otherwise hands over a run that stops immediately |
-| [`/create-ard <BRD-KEY> --from-brd`](create-ard.md) (PA, optional) | **Unconditionally** | No `jira-reader`, so no tracker key; no PRD gate, so no wait on a PRD; and it reads neither `claims:` nor the ledger |
-| [`/specify <BRD-KEY> --from-brd`](specify.md) (PE) | **Unconditionally** | The same three reasons, read out of its own Phase 0 rather than assumed symmetric with `/create-prd`'s |
+| [`/create-prd <BRD-KEY>`](create-prd.md) (PM) | **Conditionally** — no ledger row still `unallocated`, and one `covered-here` | Exactly the two refusals its own Phase 0 raises; offering it otherwise hands over a run that stops immediately |
+| [`/create-ard <BRD-KEY>`](create-ard.md) (PA, optional) | **Unconditionally** | Reads only the specs tree, so it needs no key minted anywhere else; no PRD gate, so no wait on a PRD; and it reads neither `claims:` nor the ledger |
+| [`/specify <BRD-KEY>`](specify.md) (PE) | **Unconditionally** | The same three reasons, read out of its own Phase 0 rather than assumed symmetric with `/create-prd`'s |
 
 Both `/create-prd` tests are read over the BRD's **own ledger rows** — `brd-link.md`'s `claims:`
 narrows that set only on a slice, since a BRD owning its source document carries no such field — and
@@ -316,8 +316,8 @@ own register on the default branch.
 **Advancing and re-entering are two lists, and a run gets exactly one of them.** Phase 14 resolves
 `advance_ready` from what the run left behind — any reopened decision, any `[C]` still held for the
 customer, any finding the review left to re-derive, any dependent it could only record — and where
-any of those is true the three `--from-brd` options are **dropped**, not annotated. That is a
-refusal only this phase can make: `/create-ard --from-brd` and `/specify --from-brd` run no gate
+any of those is true the three the BRD route options are **dropped**, not annotated. That is a
+refusal only this phase can make: `/create-ard` on the BRD route and `/specify` on the BRD route run no gate
 that catches a reopened decision, since routing an `open` or `reopened` record into their own
 open-questions section is correct behaviour rather than a stop, so an operator sent there would get
 an artifact built around a hole with nothing having refused it. Each re-entry option is likewise
@@ -357,9 +357,9 @@ Phase 14 then hands the route over. `EPIC-008`'s reconciled ledger leaves no row
 several `covered-here`, so all three exits are offered against that one key:
 
 ```
-/dev-workflows:create-prd EPIC-008 --from-brd
-/dev-workflows:create-ard EPIC-008 --from-brd
-/dev-workflows:specify EPIC-008 --from-brd
+/dev-workflows:create-prd EPIC-008 the BRD route
+/dev-workflows:create-ard EPIC-008 the BRD route
+/dev-workflows:specify EPIC-008 the BRD route
 ```
 
 Had the run left a row `unallocated`, or left none `covered-here`, the first line would be dropped

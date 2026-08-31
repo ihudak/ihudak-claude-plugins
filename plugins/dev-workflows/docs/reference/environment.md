@@ -16,11 +16,11 @@
 
 ## `$VAULT_PATH`
 
-- **`$VAULT_PATH`** — your personal, markdown-backed store; required for `/idea` and for any command resolving `jira-products/<KEY>/`, with no built-in default.
+- **`$VAULT_PATH`** — your personal, markdown-backed store; still read by `/idea` and by prior-art discovery, with no built-in default. No command resolves a tracker export from it any more.
 
 **Resolution.** Read straight from the shell environment, exactly like `$SPECS_PATH` — no derived fallback exists.
 
-**When unset.** Behavior depends on the command. `/idea` validates it must be set, an existing directory, and writable before doing anything else; if any of that fails it stops and offers `choices: ["Enter a directory to write idea.md into", "Cancel", "Other… (describe)"]`, and a user-supplied directory is validated the same way and used as the write root for that run — it never falls back to the current working directory, since that may be a code repository. Jira-driven commands that accept an already-imported export directory as their input (`/epics`, `/release-notes`) degrade gracefully instead: with `$VAULT_PATH` unset, `/epics` writes Epic drafts to a derived `epic-drafts/<jira_key>/` directory beside the import rather than under `jira-drafts/<PRD-KEY>/`, and `/release-notes` resolves its draft destination the same way.
+**When unset.** Behavior depends on the command. `/idea` validates it must be set, an existing directory, and writable before doing anything else; if any of that fails it stops and offers `choices: ["Enter a directory to write idea.md into", "Cancel", "Other… (describe)"]`, and a user-supplied directory is validated the same way and used as the write root for that run — it never falls back to the current working directory, since that may be a code repository. keyed commands that accept an already-imported export directory as their input (`/epics`, `/release-notes`) degrade gracefully instead: with `$VAULT_PATH` unset, `/epics` writes Epic drafts to a derived `epic-drafts/<KEY>/` directory beside the import rather than under `epic-drafts/<PRD-KEY>/`, and `/release-notes` resolves its draft destination the same way.
 
 **When it points somewhere unreadable.** The same validation that catches "unset" catches "exists but not writable" — both trip the same stop-and-offer path in `/idea`; a command with the graceful-degradation behavior above treats an invalid `$VAULT_PATH` the same way it treats an unset one.
 
@@ -100,9 +100,8 @@ The four directory-valued variables above expect this layout. `$GIT_USER_INITIAL
 
 ```
 $VAULT_PATH/                        # personal store (e.g. an Obsidian vault; any markdown-backed store works)
-  jira-products/<KEY>/              # Jira hierarchy from jira-workitem-import (input; regenerated on each import)
   Projects/<area>/<slug>/           # idea.md and other project working files
-  jira-drafts/<PRD-KEY>/             # Epic drafts written by /epics
+  epic-drafts/<PRD-KEY>/            # Epic drafts written by /epics
 
 $SPECS_PATH/                        # shared, team-visible store
   specifications/<KEY>-<slug>/      # the Product Requirements Document, the ARD, specification.md, design.md

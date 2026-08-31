@@ -60,21 +60,21 @@ Resolve, then confirm with the user in one grouped prompt (last choice always
 - **`plugin_version`** — read from
   `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`.
 
-Also resolve `jira_key` (from recent context, or `null`) and `source`
+Also resolve `key` (from recent context, or `null`) and `source`
 (`vault | directory | none`).
 
 ## Phase 3 — Persist
 
 Cite `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its
 `emit-manual` entry point (§6): resolve the write target via the §2 specs-first
-ladder using `jira_key` and `source`, format the entry per §1 (`origin:
+ladder using `key` and `source`, format the entry per §1 (`origin:
 manual`), and append per §3 (manual entries are never silently skipped — on an
 `id` collision append a numeric suffix and warn). Write silently.
 
 **Then emit session cost.** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md`
 and call its `emit-cost` entry point with `command: /feedback`, `phase: inferred`,
 `role: inferred`, `target_command: <the Phase 2 `command` metadata field, or `n/a`>`, the run's
-`jira_key` (or `null`) and `source`, and `plugin_version`. **`target_command` is
+`key` (or `null`) and `source`, and `plugin_version`. **`target_command` is
 required** — §7 has no other source for it, so omitting it silently mis-attributes
 every note to `plugin-feedback`/`n/a`. The cost phase resolves the real labels from the **target
 command** recorded above, per §7: a target with a fixed `phase`/`role` is
@@ -92,7 +92,7 @@ cost -> `resume.md` -> `commit-artifacts`; this command has no follow-ups or
 `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
 `commit-artifacts` entry point (§4) inline. It stages ONLY the §2.1 bounded
 artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session
-artifacts (/feedback)` — or `NOISSUE …` when no `jira_key` resolved — and
+artifacts (/feedback)` — or `NOISSUE …` when no `key` resolved — and
 pushes. It NEVER touches a code/docs repo, the vault, or the current working
 directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the
 run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its

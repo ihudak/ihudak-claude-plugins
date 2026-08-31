@@ -1,18 +1,18 @@
 # /ready
 
-Verifies whether the ARD, specification, and design artifacts on record actually justify a PRD or Epic's declared Jira status — read-only for that status, and it never stops on an artifact it can't confirm.
+Verifies whether the ARD, specification, and design artifacts on record actually justify a PRD or Epic's derived phase — read-only, and it never stops on an artifact it can't confirm.
 
 ## Who runs it
 
-`/ready` runs in the [dev](../roles-and-phases.md#dev--build-verify-and-deliver) role, cost-attribution phase [readiness](../roles-and-phases.md#readiness) — being in this phase means a Jira status is being checked against the ARD / spec / design record, never changed.
+`/ready` runs in the [dev](../roles-and-phases.md#dev--build-verify-and-deliver) role, cost-attribution phase [readiness](../roles-and-phases.md#readiness) — being in this phase means a declared status is being checked against the ARD / spec / design record, never changed.
 
 ## Synopsis
 
 ```
-/ready <PRD-KEY | Epic-KEY | jira-export-dir> [<Epic-KEY>]
+/ready <ADDRESS> [--claimed "<status>"]
 ```
 
-`$ARGUMENTS` resolves through the shared Jira-input front-end's two-key grammar: the first positional is a PRD selector (a PRD JiraID under `$VAULT_PATH/jira-products/`, a nested Epic JiraID whose parent PRD is auto-resolved, or a jira-export directory); an optional trailing Epic key narrows the check to that one Epic. `/ready` is **jira-driven only** — a plain prompt with no Jira input stops with `READY_NEEDS_JIRA`. A **null** focus Epic is a first-class **PRD-level** check against the PRD ladder in `workflow-states.md`, not something that must be resolved down to a single Epic. Contrast `/design`'s own null-`focus_key` handling: a PRD dir holding a **flat `specification.md`** (a stand-alone Epic, or a broad PRD-level spec) skips any picker and designs at the PRD level itself — exactly as `/ready`'s null-focus check does; only once the PRD dir holds **multiple spec'd Epic subfolders** does `/design` render a picker that narrows the run down to one Epic (a single spec'd Epic subfolder auto-selects with no picker either, but still narrows to that one Epic). The two commands agree on the flat-spec case; they part company as soon as the PRD dir holds spec'd Epic subfolders at all — one auto-selects `/design` down to that Epic and several put a picker in front of it, while `/ready`'s null focus stays at the PRD level either way.
+`$ARGUMENTS` is a **single positional address** — a `<KEY>`, or an `@<path>` naming a folder in the specs tree. The resolved folder's kind decides the altitude: a `PRD-` folder is a PRD-level run, an `EPIC-` folder an Epic-level one. The two-key form is retired, because the second key was always derivable from the first.
 
 ## How it runs
 
@@ -32,11 +32,11 @@ flowchart TD
     d1 -->|"Write only — no commit"| p678
 ```
 
-Three `dev-workflows` subagents are dispatched: `jira-reader` (Phase 2, `depth: prd-plus-epics` — the authoritative status and requirement source), `readiness-reviewer` (Phase 4, the sole judgment-heavy delegate — Opus, frontmatter-pinned, dispatched regardless of classification), and `impl-maintenance` (Phase 6, session lessons-learned). `/ready` has **no delegated writer or implementation subagent** — Phase 3's coverage map, status-expectation checklist, and repo-availability check are built mechanically, orchestrator-inline, from Phase 2's Jira read and Phase 1's artifact inventory. `jira-reader` and `impl-maintenance` run at `detection_model` — the Sonnet chain; `readiness-reviewer` keeps its frontmatter Opus pin regardless of classification, falling to the Sonnet floor (recorded as a degradation) only when no Opus is available at all. Classification is typically `MODERATE` — bounded scope, a single PRD or Epic, read-only, no code changes — escalating to `SIGNIFICANT` only for an unusually large multi-Epic PRD whose coverage chain spans many Epics and repos.
+Three `dev-workflows` subagents are dispatched: the folder read (Phase 2, `depth: prd-plus-epics` — the authoritative status and requirement source), `readiness-reviewer` (Phase 4, the sole judgment-heavy delegate — Opus, frontmatter-pinned, dispatched regardless of classification), and `impl-maintenance` (Phase 6, session lessons-learned). `/ready` has **no delegated writer or implementation subagent** — Phase 3's coverage map, status-expectation checklist, and repo-availability check are built mechanically, orchestrator-inline, from Phase 2's folder read and Phase 1's artifact inventory. the folder read and `impl-maintenance` run at `detection_model` — the Sonnet chain; `readiness-reviewer` keeps its frontmatter Opus pin regardless of classification, falling to the Sonnet floor (recorded as a degradation) only when no Opus is available at all. Classification is typically `MODERATE` — bounded scope, a single PRD or Epic, read-only, no code changes — escalating to `SIGNIFICANT` only for an unusually large multi-Epic PRD whose coverage chain spans many Epics and repos.
 
 ## What it needs
 
-- **A Jira PRD or Epic** via the shared front-end — a `mode: direct` prompt is rejected outright (`READY_NEEDS_JIRA`); `/ready` has no non-Jira behavior.
+- **A PRD or Epic** via the shared front-end — a `mode: direct` prompt is rejected outright (`READY_NEEDS_KEY`); `/ready` has no non-tracker behaviour.
 - **`$SPECS_PATH`** — must resolve; `/ready` reads the ARD/spec/design artifacts from there and writes `_readiness.md` back into the same feature folder. If unset, the run stops and asks for a path.
 - **A clean specs-repo checkout on `main`/`master`** — `/ready` reads artifacts from a clean default branch, never a branch of its own; a dirty or non-main checkout triggers a warn-and-ask rather than a silent read, because it may show unmerged, in-flight artifacts as if they were the handed-off truth.
 - **The gated ARD/spec/design themselves — the one place in the pipeline these gates never stop.** Every other consumer of `require-on-main` (`../../references/phase-handoff.md` §3) and `../../references/ard-resolution.md` stops when a gated artifact resolves off the specs repo's default branch. `/design`'s `specification.md` is the extreme case of that rule — the one gated input that genuinely stops on absence, not merely on being unmerged. `/ready` is the mirror opposite for every artifact it checks: an artifact authored only on a branch, or on `main` but unconfirmed, or unverifiable against any ref, becomes a readiness finding that caps the verdict at `PARTIAL`; an artifact that is absent outright is recorded as a coverage gap. Reporting readiness is `/ready`'s whole function, so a run that stops instead of reporting has failed at the one thing it exists to do.
@@ -47,7 +47,7 @@ Three `dev-workflows` subagents are dispatched: `jira-reader` (Phase 2, `depth: 
 
 A `SUPPORTED` / `PARTIAL` / `NOT-SUPPORTED` verdict with a requirement coverage roll-up (N/M requirements covered, each `❌` gap named) and the full `readiness-reviewer` Findings section, by dimension. `/ready` **authors nothing** in the PRD/Epic/ARD/spec/design sense — its only authored write is `_readiness.md`, overwritten on every run at the PRD dir (PRD-level check) or the Epic subdir (Epic-level check).
 
-`_readiness.md` is committed and handed off only behind the `phase-handoff.md` §4.3 consent choice, creating `ready/<KEY>-<slug>` — never automatically. Declining leaves it uncommitted; the terminal `commit-artifacts` step stages only `$SPECS_PATH`'s bounded session-artifact paths and never `_readiness.md` itself. `/ready` never writes to Jira, `jira-products/`, or the vault. Phase 7 additionally emits one follow-up per named readiness gap on a `PARTIAL`/`NOT-SUPPORTED` verdict, plus a standing reminder to reconcile the Jira status with the artifacts; a clean `SUPPORTED` run qualifies no follow-ups at all.
+`_readiness.md` is committed and handed off only behind the `phase-handoff.md` §4.3 consent choice, creating `ready/<KEY>-<slug>` — never automatically. Declining leaves it uncommitted; the terminal `commit-artifacts` step stages only `$SPECS_PATH`'s bounded session-artifact paths and never `_readiness.md` itself.Phase 7 additionally emits one follow-up per named readiness gap on a `PARTIAL`/`NOT-SUPPORTED` verdict, plus a standing reminder to reconcile the declared status with the artifacts; a clean `SUPPORTED` run qualifies no follow-ups at all.
 
 ## Gates
 
@@ -63,7 +63,7 @@ Check whether an Epic is really ready to move into `Refined`:
 /dev-workflows:ready PRODUCT-1234 EPIC-98760
 ```
 
-The run resolves `EPIC-98760` as the focus Epic, reads its declared Jira status and the PRD's via `jira-reader`, resolves any applicable ARD, locates the Epic's `specification.md`/`design.md` and checks each against the specs repo's default branch (never stopping on what it finds), builds the coverage map and status-expectation checklist, and dispatches `readiness-reviewer`. It prints the verdict with its coverage roll-up and Findings, writes `_readiness.md` into the Epic subdir, and offers to commit and hand it off — declining leaves the snapshot written but uncommitted.
+The run resolves `EPIC-98760` as the focus Epic, reads it and the PRD's artifacts via the folder read, resolves any applicable ARD, locates the Epic's `specification.md`/`design.md` and checks each against the specs repo's default branch (never stopping on what it finds), builds the coverage map and status-expectation checklist, and dispatches `readiness-reviewer`. It prints the verdict with its coverage roll-up and Findings, writes `_readiness.md` into the Epic subdir, and offers to commit and hand it off — declining leaves the snapshot written but uncommitted.
 
 ## See also
 

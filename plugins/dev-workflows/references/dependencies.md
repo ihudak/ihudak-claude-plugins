@@ -1,6 +1,6 @@
 # dev-workflows — companion plugins & dependencies
 
-dev-workflows is **self-contained**: no command hard-requires another plugin. There is **no
+dev-workflows is **self-contained**: no command hard-requires another plugin, and **no command requires an external tool** — it reads and writes one markdown tree and calls no service. A user who wants their work in a tracker syncs it themselves; the plugin never learns whether one exists. There is **no
 dependency-manifest field** in `.claude-plugin/plugin.json` (Claude Code plugins don't express one), so
 every cross-plugin relationship is **convention + runtime-resolve + graceful fallback** — a missing
 companion degrades the feature, never breaks the run.
@@ -27,12 +27,6 @@ compares the two on cadence, depth, the no-human-turn case and altitude, and say
 on each. The short version: this plugin invokes the technique from eight commands at three depths,
 one of which may run unattended, and a mid-run cross-marketplace dependency is precisely what the
 self-contained rule above forbids.
-
-## Related external tooling (not a plugin)
-
-| Tool | Role |
-|------|------|
-| [`jira-workitem-import`](https://github.com/ivan-gudak/jira-workitem-import) | Jira WorkItem Reporter — imports Jira tickets to `$VAULT_PATH/jira-products/` in the exact structure `jira-reader` (and every Jira-driven command) expects. The upstream producer of the pre-exported markdown tree the plugin consumes. |
 
 ## Marketplace siblings (independent plugins, same marketplace)
 

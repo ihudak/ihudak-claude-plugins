@@ -1,7 +1,7 @@
 # Product Requirements Document format (embedded authority)
 
 The canonical structure and per-section rules for a `prd.md` PRD file — one per PRD folder, its identity carried by the folder rather than by its own name (`references/addressing.md` §2, §4). `/create-prd` and `/update-prd` author
-against this file; `prd-reviewer` reviews against it, and `/release-notes` reads its Jira-mirror fields. The PRD is **product-level** (a PRD): what / why /
+against this file; `prd-reviewer` reviews against it, and `/release-notes` reads its former mirror fields. The PRD is **product-level** (a PRD): what / why /
 for-whom, **not** how — no implementation detail. A mandatory **spine** (always present) plus an
 **adapt-in menu** whose clusters are pulled only when the idea warrants them (never an empty section).
 
@@ -19,7 +19,6 @@ kind: prd                    # what this document is
 key: <KEY>                   # this folder's key — must match the folder name
 title: <human-readable PRD title>
 summary: <one-line>
-issue_type: ValueIncrement
 status: <e.g. draft>
 owning_program: <program>
 tracking_programs: [ ... ]
@@ -31,16 +30,16 @@ sources:                     # PROPAGATED from idea.md's recorded provenance —
     ref: <RFE key | post URL | ...>
 derived_from: <path to the idea.md this PRD was built from>
 seeded_from_prd: <PRD key or path when this PRD was seeded from another PRD via `/create-prd --from-prd`; omit otherwise>
-brd_key: <the BRD key this PRD was authored from via `/create-prd --from-brd`; omit otherwise>
+brd_key: <the BRD key this PRD was authored from via `/create-prd` on the BRD route; omit otherwise>
 brd_parent: <that BRD's own parent key, from its brd-link.md; omit when it owns its source document, and omit outside the BRD route>
 depends_on: [ ... ]           # prerequisite BRD keys, from that brd-link.md's depends-on; omit when empty or outside the BRD route
 revision_of: <path to the archived prior PRD snapshot; written by `/update-prd` on refresh; omit otherwise>
-built_from_import: <YYYY-MM-DD of the Jira import the `/update-prd` refresh was built from; omit otherwise>
-jira_key: <the tracker key; omit until the Jira round-trip mints one — see below>
+built_from_import: <YYYY-MM-DD of the resolved folder the `/update-prd` refresh was built from; omit otherwise>
+workitem_key: <optional — your own tracker's identity for this work; the plugin never writes it>
 ---
 ```
 
-`brd_key`, `brd_parent` and `depends_on` are written only by `/create-prd --from-brd`, from the BRD's
+`brd_key`, `brd_parent` and `depends_on` are written only by `/create-prd` on the BRD route, from the BRD's
 own `brd-link.md`, and are never asked of the PM. **`/update-prd` preserves all three and authors
 none of them** — on a PRD that carries them it copies each through the refresh unchanged, and on a
 PRD that does not it writes none — so the *written only by* rule above still reads exactly as it
@@ -48,8 +47,8 @@ says: carrying an existing value forward mints no new one, and `/update-prd` rea
 could mint one from. They record, on the PRD itself, the BRD identity and the prerequisites the
 customer committed to — and **no command consumes them yet.** Neither `/epics` nor `/ready` reads any
 of the three; `brd_parent` and `depends_on` have no reader anywhere in the plugin; and the one field
-that is read at all is `brd_key`, read only for its **presence** — `references/prd-source-resolution.md`
-step 2 treats a `brd_key` beside an absent `jira_key` as the statement that no tracker identity exists
+that is read at all is `brd_key`, read only for its **presence** — `commands/update-prd.md`
+step 2 treats a `brd_key` beside an absent `key` as the statement that no tracker identity exists
 yet. **Nothing consumes the prerequisites these fields record.** Wiring a consumer is new behaviour on
 commands used heavily by non-BRD routes and belongs in its own increment with its own review. They are
 written, and preserved through a refresh, because provenance recorded at authoring time is the
@@ -58,30 +57,50 @@ have moved on. A `brd_key` may carry a third numeric segment
 (`references/addressing.md` §1 fixes no depth), so a PRD authored inside a BRD slice is filed
 under a key the two-segment form would reject — validate **that folder-side key**, and the
 folder name built from it, against §1's grammar rather than a narrower one. This never
-extends to `jira_key`, which is two-segment everywhere (below).
+extends to `key`, which is two-segment everywhere (below).
 
-**`brd_key` and `jira_key` are two keys with two uses and are never interchangeable.** `brd_key` is a
-folder name in `$SPECS_PATH`, validated for shape and never looked up on a tracker
-(`references/addressing.md` §1); `jira_key` is what the tracker minted, and it is the only key
-`jira-products/` resolves and the only one `jira-reader` accepts (`^[A-Z][A-Z0-9_]*-\d+$`). On the
-`/idea` route `jira_key` is authored with the PRD, because the PM supplied a key they had already
-minted. On the `--from-brd` route it is **omitted at authoring time and written by the Jira
-round-trip** (`commands/create-prd.md`), the step that creates the workitem and learns its key: an
-absent `jira_key` beside a present `brd_key` is the readable statement that no tracker identity
-exists yet, and consumers depend on being able to make it — writing the BRD key in would make an
-un-minted address indistinguishable from a minted key.
+**`workitem_key` is reserved, documented, and never written by the plugin.**
 
-The pure Jira-mirror fields (`statusCategory`, `reporter`, `url`, `updated`, `synced`, …) are
-regenerated by the importer on the round-trip and are NOT authored here. `release_versions`,
-`change_type`, and `release_notes_category` belong to the same class: each is a Jira dropdown the PM
-sets on the ticket, each returns on the re-import, and `/release-notes` reads them from there. Never
-author them and never ask for them — deciding a dropdown value in a chat window costs exactly what
-deciding it in Jira costs, so the question buys nothing.
+```yaml
+workitem_key: CU-8x9f2a1     # optional, the user's own; the plugin never mints it
+```
+
+A user who also keeps their work in a tracker records its identity here. The plugin **preserves it
+across every frontmatter rewrite, and displays it in reports.** It never mints it, never validates
+its shape, and never resolves a folder by it — a folder is addressed by `key` and by nothing else.
+
+**The name is vendor-neutral on purpose.** Genericising in speech but not in a field name a tool
+parses is how a field ends up meaning something narrower than it says: someone writing a ClickUp sync
+who reads a field named for one vendor reasonably wonders whether it must be that vendor's shape.
+
+**It is not decorative, and here is its one consumer.** `/document` and `/release-notes` search commit
+messages for the run's identifiers, and `workitem_key` is one of the tokens they grep for — so a team
+whose commit convention carries their tracker key gets hand-made commits found. That is a *search for
+a token the run already holds*, not a lookup: the plugin still learns nothing about whether a tracker
+exists.
+
+**Unknown frontmatter keys are preserved.** Every command that rewrites this file — `/update-prd`
+most of all — keeps fields it does not recognise, in place and unmodified. Without this rule a user's
+own `clickup_id` disappears on the next run and nothing reports it. The rule is small and its blast
+radius is not: it is what makes the frontmatter extensible rather than a closed vocabulary.
+
+**There is one key namespace.** `brd_key` and `key` both name a folder in `$SPECS_PATH`, validated
+for shape and never looked up anywhere (`references/addressing.md` §1). The second, narrower grammar
+this paragraph used to police belonged to a tracker-minted key, and no tracker mints anything now.
+
+**`release_versions`, `change_type` and `release_notes_category` are authored here, and that is a
+reversal.** They were dropdowns set outside the plugin and returned by an import, so this file
+forbade authoring them or asking for them — the question bought nothing when the answer already
+existed elsewhere. Nothing supplies them now, so each is authored where it is known and asked for
+where it is not: `change_type` and `release_notes_category` are inferred and confirmed in
+`/release-notes`'s own grill (`references/release-note-types.md` §7), and `release_versions` comes
+from that command's `--version` flag or the same grill. **Never invent one** — an unanswered field is
+omitted, not filled.
 
 ## Spine (always, every profile)
 
 - `## Problem` — who is affected and why the current situation is insufficient; why now. Solution-free; no implementation detail.
-- `## Goal` — a crisp 2–3 sentence statement of the outcome (feeds `jira-reader`'s goal extraction and every downstream consumer).
+- `## Goal` — a crisp 2–3 sentence statement of the outcome (feeds the folder read's goal extraction and every downstream consumer).
 - `## Target audience` — the personas/roles served (specific roles, not "everyone").
 - `## User Stories` — `### [US#N]: <title>`, `As a [role], I want [capability], so that [benefit].` Contiguous IDs.
 - `## Acceptance Criteria` — `[AC#N]` under each story; externally-observable pass/fail (no "be reliable"/"improve performance").

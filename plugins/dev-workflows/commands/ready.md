@@ -1,19 +1,19 @@
 ---
 name: ready
-description: Status-anchored readiness gate. Reads the Jira workflow status of a PRD/Epic and verifies the ARD/spec/design artifacts justify it and the next transition; returns SUPPORTED / PARTIAL / NOT-SUPPORTED with a coverage roll-up. Never sets Jira status; never stops on an unmerged artifact (a readiness finding capping the verdict at PARTIAL) or a missing one (recorded as a coverage gap) — neither is a run-stopping gate. Commits its `_readiness.md` deliverable only via consent, never automatically. Gates on the Opus readiness-reviewer.
+description: Artifact-anchored readiness gate. Derives the workflow phase of a PRD/Epic from its artifacts and verifies the ARD/spec/design artifacts justify it and the next transition; returns SUPPORTED / PARTIAL / NOT-SUPPORTED with a coverage roll-up. Never sets a status anywhere; never stops on an unmerged artifact (a readiness finding capping the verdict at PARTIAL) or a missing one (recorded as a coverage gap) — neither is a run-stopping gate. Commits its `_readiness.md` deliverable only via consent, never automatically. Gates on the Opus readiness-reviewer.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
-Verify readiness for AI-driven development for the Jira item: $ARGUMENTS
+Verify readiness for AI-driven development: $ARGUMENTS
 
-`/ready` is the **status-anchored readiness gate**. Given a Jira PRD (or PRD + Epic) key, it reads the
-**declared** Jira workflow status — never inferred, never re-derived — and checks whether the
+`/ready` is the **artifact-anchored readiness gate**. Given a PRD or Epic address, it reads the
+artifacts present — and, with `--claimed "<status>"`, compares them against a status the operator declares — and checks whether the
 ARD/spec/design artifacts that actually exist, taken together, justify that status and the *next*
 transition, against the rubric in `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`. It returns
 `SUPPORTED` / `PARTIAL` / `NOT-SUPPORTED` with a requirement coverage roll-up and named gaps, gated on
 the Opus `readiness-reviewer`.
 
-Key distinction from every other pipeline command: `/ready` **authors nothing** in the PRD/Epic/ARD/spec/design sense — it never writes any of those, and it never touches Jira. Its only authored write is an overwritten `_readiness.md` snapshot under `$SPECS_PATH`, and it branches only via the `phase-handoff.md` §4.3 consent choice to hand that snapshot off, creating `ready/<KEY>-<slug>` — `specs-preflight` itself still creates none, switching `$SPECS_PATH` only between branches that already exist and are plugin-created (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2). `_readiness.md` is likewise committed only through that same §4.3 choice, never automatically — declining leaves it uncommitted; the terminal `commit-artifacts` step commits ONLY the run's bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1), which `_readiness.md` is not. Where `/design`'s repo gate is a **strict, hard-stop** mount check because it is about to ground code decisions, `/ready`'s repo check is **best-effort presence only** — it never scans code, it only notes whether a needed repo is mounted.
+Key distinction from every other pipeline command: `/ready` **authors nothing** in the PRD/Epic/ARD/spec/design sense — it never writes any of those, and it never writes a status. Its only authored write is an overwritten `_readiness.md` snapshot under `$SPECS_PATH`, and it branches only via the `phase-handoff.md` §4.3 consent choice to hand that snapshot off, creating `ready/<KEY>-<slug>` — `specs-preflight` itself still creates none, switching `$SPECS_PATH` only between branches that already exist and are plugin-created (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2). `_readiness.md` is likewise committed only through that same §4.3 choice, never automatically — declining leaves it uncommitted; the terminal `commit-artifacts` step commits ONLY the run's bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1), which `_readiness.md` is not. Where `/design`'s repo gate is a **strict, hard-stop** mount check because it is about to ground code decisions, `/ready`'s repo check is **best-effort presence only** — it never scans code, it only notes whether a needed repo is mounted.
 
 Key distinction from every other consumer of `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3 (`require-on-main`) and `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md`: every other caller stops when a gated ARD/spec/design resolves off the specs repo's default branch; `/ready` **never** does. That state becomes a readiness finding — "authored but not handed off" — that caps the eventual verdict at `PARTIAL`; an artifact that is absent outright is recorded as missing in the coverage roll-up, exactly as before this feature. Reporting readiness is `/ready`'s whole function, so a run that stops instead of reporting has failed at the one thing it exists to do.
 
@@ -26,17 +26,19 @@ must be resolved down to a single Epic. Pass an explicit `<PRD> <Epic>` to scope
 
 ## Phase 0 — Resolve input
 
-1. **Resolve the Jira input via the shared front-end.** Execute
-   `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against `$ARGUMENTS`. `/ready` is
-   **jira-driven only**: expect `mode: jira-driven`. The front-end owns the `$VAULT_PATH` /
-   `jira-products` validation, Fallbacks A/B **and D/E**, and the PRD-selector (key-or-directory) +
-   focus-Epic grammar. Carry forward `jira_key`, `focus_key`, `jira_export_root`, `source`.
+1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a
+   folder or a file inside one — and resolve it with `resolve-address`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). `status: found` → carry its `path`, `kind`
+   and `key` forward; `absent` → the folder does not exist; `ambiguous` → stop, naming every match.
 
-   Define **`<PRD>` = `jira_key`** and **`<EPIC>` = `focus_key`** (may be `null`) — the two-key grammar.
+   **The kind decides the altitude, replacing the two-key grammar.** A `PRD-` folder is a PRD-level
+   run (`<EPIC>` is `null`); an `EPIC-` folder is an Epic-level run, and its PRD folder is its
+   parent. Two positional keys are no longer accepted, because the second was always derivable from
+   the first — `addressing.md` §4's `key` is what supplies both.
 
-   If the front-end returns `mode: direct` (no Jira input), stop with
-   `READY_NEEDS_JIRA: /ready needs a Jira key or an imported-Jira directory.` — `/ready` has no
-   direct-prompt behavior.
+   `/ready` is **address-required**: with no positional address, stop with
+   `READY_NEEDS_KEY: /ready needs a PRD or Epic address — a key, or an @<path> to its folder.` —
+   `/ready` has no direct-prompt behavior.
 
 2. **Resolve `$SPECS_PATH`.** `/ready` reads the ARD/spec/design artifacts and writes `_readiness.md`
    under `$SPECS_PATH/specifications/`. If `$SPECS_PATH` is unset, stop with a clear error naming
@@ -86,10 +88,10 @@ MUST be `"Other… (describe)"`.
 
    For each `specification.md` and `design.md` path located above (the `ard.md` files are handled by Phase 2.5's `ard-resolution.md`, not here), execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against its repo-relative path and map its §3.7 return value by `stopped` first, never by `on_main` alone — never a stop, per this command's defining trait: `stopped: false` with `on_main: pass`/`pass_amending` → **present** (with its absolute path); `stopped: false` with `on_main: absent` → **missing**, exactly as before this feature (§3.4's `/ready` row — this is row F only, never rows D/E, which also read `absent` on `origin/<default>` but return `stopped: true`); `stopped: false` with `on_main: unmanaged` → fall back to a raw filesystem presence check, exactly as before this feature (row H's own silent-skip contract); `stopped: true` → still never a stop for `/ready` — map the row to exactly one of three ⚠ reasons, never conflating them, because they are three different repository states, not one: rows D/E → ⚠ **authored only on `<branch>`, not merged** (naming the branch and any open PR); rows C′/C after a failed retry → ⚠ **on `<default>` but your local checkout is stale or dirty, so it could not be confirmed**; rows G/I (including the run's own `specs_git: blocked`) → ⚠ **could not be verified against any ref** (naming the returned `degraded` clause where present). Each is recorded verbatim as a readiness finding — `/ready` itself never asks a further question, retries, or stops on top of what came back: row C's own prompt-once-and-re-test-once (`phase-handoff.md` §3.3 row C, `:139-143`) and row C′'s own immediate stop naming the blocking files are `require-on-main`'s contract, already executed synchronously inside this very step; `/ready` only records whichever `stopped`/`degraded` state the call returned. Record each ARD as present (with its absolute path) or absent — its on-main state is Phase 2.5's job. Do not open/read file contents yet beyond what's needed for these checks — full reads happen in Phase 4 via the reviewer.
 
-3. **Quick Jira status peek (display only — not the ground truth).** Read
-   `<jira_export_root>/<jira_key>-index.md`'s `| Key | Type | Status | Summary | Role |` table directly
+3. **Quick artifact peek (display only — not the ground truth).** Read
+   `<prd_dir>/<KEY>-index.md`'s `| Key | Type | Status | Summary | Role |` table directly
    (mechanical — no subagent) and note the `Status` column for `<PRD>` and, when set, `<EPIC>`. This is
-   for **Phase 1 display context only**; Phase 2's `jira-reader` read is the authoritative source the
+   for **Phase 1 display context only**; Phase 2's folder read is the authoritative source the
    reviewer verifies against.
 
 4. **Display** (context, no further prompt): resolved cwd; resolved PRD dir (+ Epic subdir); resolved
@@ -117,7 +119,7 @@ model_routing:
   classification: MODERATE        # typical; SIGNIFICANT possible for a large multi-Epic PRD
   reason: <one-line>
   current_model: <the model this orchestrator is running under>
-  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # jira-reader (Phase 2); the Phase 3 deterministic skeleton is mechanical and runs orchestrator-inline, not delegated
+  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # the folder read (Phase 2); the Phase 3 deterministic skeleton is mechanical and runs orchestrator-inline, not delegated
   review_model:    <§2 Opus chain>     # readiness-reviewer (frontmatter-pinned; recorded, no override)
   opus_available: <true if a §2 Opus model resolved, else false>
   notes: <any §2/§2.1 fallback or degradation>
@@ -131,24 +133,25 @@ falls to the Sonnet floor — record the degradation in `notes` and the final re
 
 ## Phase 2 — Read ground truth
 
-Invoke `jira-reader` with `depth: prd-plus-epics` — this is the authoritative status/requirement source
+Read the resolved folder — this is the authoritative requirement source
 the reviewer verifies the declared status against (never Phase 1's status peek).
 
-→ Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
-  > "Return the structured handoff for this brief:
+**Read the resolved folder directly.** Read its `prd.md`, and list the `EPIC-` subfolders under it —
+the set whose artifacts this command judges. Nothing here reads a declared status: `/ready` derives
+the phase from what the artifacts show, and `--claimed` is the only way a declaration enters the run.
   >
-  > jira_export_root: [resolved jira_export_root]
-  > jira_key:         [resolved jira_key]
+  > prd_dir: [resolved prd_dir]
+  > key:         [resolved key]
   > depth:      prd-plus-epics"
 
-Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Jira key dir not found`
+Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `key dir not found`
 rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On `OK`,
 carry forward:
 
 - `value_increment.status` — the PRD's declared status (PRD ladder).
 - `linked_items[]` filtered to `type == Epic` and their `.status` — each Epic's declared status (Epic
   ladder). When `focus_key` is set, validate it is among these; if not, surface
-  `READY_FOCUS_NOT_FOUND: <focus_key> is not a linked Epic of <jira_key>.` with
+  `READY_FOCUS_NOT_FOUND: <focus_key> is not a linked Epic of <KEY>.` with
   `choices: ["Check PRD-level readiness instead (the whole PRD)", "Re-enter the Epic key", "Cancel"]`.
 - `requirements[]` (+ `requirements_source`) — the coverage ground truth for Phase 3(a).
 
@@ -160,7 +163,7 @@ re-derived (per `readiness-reviewer.md`'s hard rules).
 ## Phase 2.5 — Resolve ARD
 
 Resolve any applicable ARD by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with
-`prd = jira_key`, `epic = focus_key` (may be `null`), and `$SPECS_PATH`.
+`prd = key`, `epic = focus_key` (may be `null`), and `$SPECS_PATH`.
 
 - **`status: none`** (including `$SPECS_PATH` unset/unresolvable) → the ARD dimension is **inactive** for
   this run — no prompt, no extra output, `readiness-reviewer`'s ARD-conformance dimension is skipped
@@ -204,7 +207,7 @@ this run. This is the mechanical half of that dimension.
 **(c) Repo-availability presence-check (best-effort, presence only — never scanning).**
 
 1. Derive candidate repo names from: each in-scope Epic's `## Pull Requests` section URLs (the repo-name
-   segment of each URL, per `jira-reader`'s PR URL formats); the confirmed-repos line of any `design.md`
+   segment of each URL, per the PR URL formats `diff-summarizer` accepts); the confirmed-repos line of any `design.md`
    found (`design-format.md`'s header `- **Repos**: <the confirmed implementation repos this design
    spans>`); and any ARD's `grounded_repos:` frontmatter list (`ard-format.md`). Dedupe.
 2. Build the slug→clone map **exactly as `epics.md` Phase 4 does**: for each top-level directory under
@@ -237,7 +240,7 @@ and a pointer to the rubric.
   > status_expectation:      [paste Phase 3(b), plus the workflow-states.md rubric reference]
   > repo_availability:       [paste Phase 3(c)]
   > artifact paths:
-  >   PRD:      [<PRD-dir>/<PRD>.md if read, or the jira-reader handoff's PRD summary]
+  >   PRD:      [<PRD-dir>/<PRD>.md if read, or the resolved folder's prd.md summary]
   >   ARD:     [absolute path(s), or 'none']
   >   Epics:   [absolute path(s) in scope]
   >   specs:   [absolute path(s) in scope]
@@ -257,7 +260,7 @@ plugin-gap halt (see Invariants).
 
 1. **Compose the readiness artifact.** Build the report content: a header stamping the run timestamp
    (ISO 8601 UTC), the specs-repo git rev (`git -C $SPECS_PATH rev-parse --short HEAD`), the checked
-   Jira status(es) exactly as read in Phase 2, the verdict, the coverage roll-up (N/M requirements
+   the derived phase(s) exactly as read in Phase 2, the verdict, the coverage roll-up (N/M requirements
    covered, P%, each ❌ gap requirement ID named), and the full Findings section from Phase 4.
 
 2. **Write `_readiness.md`**, **overwriting** any prior run, to the PRD dir (PRD-level) or the Epic subdir
@@ -266,7 +269,7 @@ plugin-gap halt (see Invariants).
    ```markdown
    ---
    type: dev-workflows-readiness
-   prd: <JIRA_KEY>
+   prd: <KEY>
    epic: <FOCUS_KEY>            # omitted when PRD-level (focus_key null)
    ---
 
@@ -296,7 +299,7 @@ plugin-gap halt (see Invariants).
    On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2)
    with `prefix: ready`; `feature_folder` = the PRD dir or Epic subdir step 2 wrote into;
    `deliverable_paths` = `_readiness.md`; `title: <PRD|EPIC> Update readiness snapshot`; and `body_facts` =
-   the verdict, the coverage roll-up (N/M, P%), and the checked Jira status(es). Because `_readiness.md`
+   the verdict, the coverage roll-up (N/M, P%), and the derived phase(s). Because `_readiness.md`
    is overwritten every run, §2.2's collision rule fires on most re-runs against an already-merged prior
    branch — expect the `-2`/`-3` substitution, and report it via the §4.1 outcome line as that section
    requires. Emit that line in the terminal report's Phase handoff section (step 4).
@@ -311,12 +314,12 @@ plugin-gap halt (see Invariants).
 
    ### Model Routing
    - Session model (current_model): [model]
-   - Detection steps — jira-reader (detection_model): [model]
+   - Detection steps — the folder read (detection_model): [model]
    - readiness-reviewer (review_model): [model]
    - Opus available: [yes | no]
 
    ### Scope
-   - PRD: <JIRA_KEY> — [summary]
+   - PRD: <KEY> — [summary]
    - Epic: <FOCUS_KEY> — [summary] — _or_ "none — PRD-level check"
    - Specs repo rev: <short HEAD>
 
@@ -356,7 +359,7 @@ plugin-gap halt (see Invariants).
 
    ### Next step
    [Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. SUPPORTED → `/dev-workflows:implement <PRD> [<Epic>]` (same lane, no handoff). PARTIAL / NOT-SUPPORTED → resolve the named gaps above and update the
-   Jira status to match reality, then re-run `/dev-workflows:ready <PRD> [<Epic>]`.]
+   declared status to match reality, then re-run `/dev-workflows:ready <PRD> [<Epic>]`.]
 
    ### Context hygiene
    The resume pointer is written in the terminal cost phase (Phase 8), per
@@ -370,7 +373,7 @@ plugin-gap halt (see Invariants).
    Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
    ```
 
-`/ready` **NEVER** writes to Jira, `jira-products/`, or the vault. It commits and hands off
+`/ready` **NEVER** writes outside `$SPECS_PATH`. It commits and hands off
 `_readiness.md` only through step 3's `phase-handoff.md` §4.3 consent choice — declining leaves it
 uncommitted; that handoff is independent of the terminal `commit-artifacts` step, which stages ONLY the
 run's bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1) and
@@ -431,7 +434,7 @@ concurrently.
 > - **Insight**: the learned rule, pattern, or gotcha
 > - **When it applies**: conditions under which this matters
 > - **Date**: YYYY-MM-DD
-> - **Ref**: [first 60 chars of the Jira key + PRD summary]
+> - **Ref**: [first 60 chars of the key + PRD summary]
 > Return: file updated/created and summary of entry, OR 'no update required'."
 
 **Agent 3 — Instructions** (general-purpose):
@@ -461,7 +464,7 @@ concurrently.
 **Persist plugin feedback (automatic).** After Agent 4 (`impl-maintenance`) returns, project its
 plugin-facing slice into the specs repo by citing
 `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its `emit-auto` entry point (§6).
-Pass Agent 4's Lessons Learned report, `command: /ready`, the run's `jira_key` and `source`, and
+Pass Agent 4's Lessons Learned report, `command: /ready`, the run's `key` and `source`, and
 `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto` renders
 only the report's **Command workflow improvements**, **New agents / skills**, and plugin **Reference
 docs** sections plus the **Key observations** that triggered them (§4 plugin-facing predicate) — never
@@ -482,8 +485,8 @@ Emit this phase's own short output:
 ADDITIVE — this phase NEVER fails the run and NEVER commits its own output (still true — it writes only
 the maintenance/feedback artifacts, which the terminal `commit-artifacts` step in Phase 8 commits, per
 `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4; the only commit this run makes before Phase 8 is
-Phase 5 step 3's `_readiness.md` handoff, which is unrelated), and NEVER writes into `jira-products/`,
-`jira_export_root`, or the current working directory.
+Phase 5 step 3's `_readiness.md` handoff, which is unrelated), and NEVER writes into
+`prd_dir`, or the current working directory.
 
 ---
 
@@ -495,11 +498,11 @@ the run's manual-step / out-of-scope follow-ups by citing
 
 1. **Collect** the qualifying follow-ups: the **named readiness gaps** from Phase 4's Findings that a
    `PARTIAL` / `NOT-SUPPORTED` verdict surfaced (each gap → one follow-up: "resolve <gap>, see
-   `_readiness.md`"), plus a standing **"update the Jira status to match the artifacts (or vice versa)"**
+   `_readiness.md`"), plus a standing **"update any declared status to match the artifacts (or vice versa)"**
    reminder whenever the verdict is not a clean `SUPPORTED` at the declared status.
 2. **Filter** them with the reference's §6 qualifying predicate — a `SUPPORTED` run with no gaps
    qualifies **nothing**; this phase is then a silent no-op (byte-identical to a run without it).
-3. **Resolve** the write target via the §4 ladder using `jira_key` and `source`; render + place tasks
+3. **Resolve** the write target via the §4 ladder using `key` and `source`; render + place tasks
    and verbose notes per §1–§3; dedupe per §5.
 4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.
 
@@ -514,8 +517,8 @@ ADDITIVE — the follow-ups also remain in the Phase 5 report's Findings/coverag
 phase NEVER fails the run and NEVER commits its own output (still true — it only writes follow-up
 files, which the terminal `commit-artifacts` step in Phase 8 commits, per
 `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4; unrelated to Phase 5 step 3's `_readiness.md`
-handoff, the only commit this run makes before Phase 8), and NEVER writes into `jira-products/`,
-`jira_export_root`, or the current working directory.
+handoff, the only commit this run makes before Phase 8), and NEVER writes into
+`prd_dir`, or the current working directory.
 
 ---
 
@@ -525,7 +528,7 @@ Terminal phase — runs after Phase 7 and NEVER interrupts an earlier phase. Rec
 token-cost contribution to the PRD by citing `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and
 calling its single `emit-cost` entry point. **Cost ALWAYS runs** — it never "writes nothing".
 
-Call `emit-cost` with `command: /ready`, `phase: readiness`, `role: dev`, the run's `jira_key` (or
+Call `emit-cost` with `command: /ready`, `phase: readiness`, `role: dev`, the run's `key` (or
 `null`) and `source`, and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the session transcript + subagents
 (§1), loads and **advances the chained checkpoint** (§3), runs `scripts/session-cost.py` to compute the
@@ -559,15 +562,15 @@ ADDITIVE — this phase itself NEVER fails the run and touches neither `_readine
 branch (whichever of those happened, happened earlier, in Phase 5 step 3, behind the §4.3 consent
 choice — `ready/<KEY>-<slug>` is the only branch `/ready` ever creates, and this terminal step neither
 creates it nor undoes it; it only commits the bounded session-artifact paths in `$SPECS_PATH` onto
-whatever branch Phase 5 left checked out), and NEVER writes to Jira or into `jira-products/`,
-`jira_export_root`, or the current working directory; no user name is ever written (§10 privacy).
+whatever branch Phase 5 left checked out), and NEVER writes into
+`prd_dir`, or the current working directory; no user name is ever written (§10 privacy).
 
 ---
 
 ## Invariants (always enforced)
 
-- NEVER set or write Jira status — status is read-only input (Phase 2), never output
-- NEVER write inside `jira-products/` or the vault
+- NEVER write a status anywhere — this command reports and never sets
+- NEVER write into a code or docs repository
 - Branches only via the Phase 5 step 3 `phase-handoff.md` §4.3 consent choice, creating
   `ready/<KEY>-<slug>` — `specs-preflight` itself still creates no branch, a hard invariant: it only
   switches `$SPECS_PATH` between branches that already exist, and only plugin-created ones, per
@@ -587,14 +590,14 @@ whatever branch Phase 5 left checked out), and NEVER writes to Jira or into `jir
   **plugin / skill / command / reference gap** — a `readiness-reviewer` run that cannot get a verdict
   because the plugin lacked something it needed still records it. NEVER for the reviewer's own
   `PARTIAL`/`NOT-SUPPORTED` verdict (a finding about the *work*, not the plugin) or an environment/user
-  halt (specs-repo dirty/non-main, jira-not-found, cancellation)
+  halt (specs-repo dirty/non-main, key-not-found, cancellation)
 - the `emit-cost` phase (Phase 8) **ALWAYS runs** — unlike feedback, it never "writes nothing"
-- ALWAYS resolve input via the shared Jira-input front-end (Phase 0) and reject `mode: direct`
+- ALWAYS resolve one positional address (Phase 0) and stop when none is given
 - ALWAYS require `$SPECS_PATH` — stop naming it explicitly if unset (like `/design`)
 - ALWAYS read artifacts from the specs repo's clean **main** — never a branch
 - ALWAYS pass the Phase 2 declared status to `readiness-reviewer` exactly as read — never inferred,
   never re-derived
-- ALWAYS resolve the `model_routing` block at Phase 1.5 and pin `jira-reader` to the §2.1 Sonnet chain;
+- ALWAYS resolve the `model_routing` block at Phase 1.5 and pin the detection steps to the §2.1 Sonnet chain;
   `readiness-reviewer` keeps its frontmatter Opus pin (no override); coordination + the Phase 3
   deterministic skeleton run on `current_model`
 - ALWAYS invoke `readiness-reviewer` before Phase 5 — no verdict is written or reported without it
@@ -605,6 +608,6 @@ whatever branch Phase 5 left checked out), and NEVER writes to Jira or into `jir
 - ARD steps (Phase 2.5, the reviewer's `applicable_ard`, the report's ARD-conformance section) are
   ADDITIVE and guarded on `status: found` or `status: unmerged` — a run with no ARD (`status: none`) is
   byte-identical to before
-- ALL written claims trace to Jira keys (from `jira-reader`) or artifact paths actually read; never
+- ALL written claims trace to a resolved key or to artifact paths actually read; never
   invent content the sources don't contain
 - ALWAYS end with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write — carrying the verdict as carry-forward — runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a same-role `/compact` suggestion + `/rename <PRD-ID>-<slug>-dev`; guidance only, never auto-run.

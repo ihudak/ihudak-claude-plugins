@@ -7,15 +7,15 @@ the per-destination prose rules, the deprecation-note rule, and Change Type sour
 the documentation-link rule) but never re-derives the writer's decision; the agent applies it and returns a proposed
 destination plus any gaps.
 
-The Change Type is a **Jira dropdown the PM sets on the ticket**. It is never written into the draft
+The Change Type is a **field on the PRD, inferred and confirmed where the PRD does not carry one** (§7). It is never written into the draft
 and never collected as a field — the agent resolves it only to pick the destination and the shape.
 
 ## 1. The destination map
 
-The Jira release-notes automation routes each note into one of three generated snippet files under
+The docs automation routes each note into one of three generated snippet files under
 `<space>/_snippets/release-notes/<product>/<sprint>/`. The Change Type selects the file:
 
-| Jira Change Type | Destination | Draft shape |
+| Change Type | Destination | Draft shape |
 |---|---|---|
 | `Breaking change` | `breaking-changes.md` | `{{#context}}` label + `### title` + prose |
 | `New technology support` | `feature-updates.md` | `{{#context}}` label + `### title` + prose |
@@ -52,7 +52,7 @@ destinations roughly equally), record a `gaps[]` entry (`field: change_type`,
 
 ## 3. Draft shape per destination
 
-The **Summary** is the customer-facing body the PM pastes into the Jira release-notes field — the
+The **Summary** is the customer-facing body the PM publishes wherever release notes are published — the
 thing this file's rules shape. There is exactly one per run (§6). Its structure depends on the
 destination:
 
@@ -72,7 +72,7 @@ Omit the `{{#context}}` line entirely when no Solution label is available (§7).
 
 ### `fixes.md`
 
-Render **one self-contained sentence** — no `{{#context}}` line, no `###` title, and no Jira key (the
+Render **one self-contained sentence** — no `{{#context}}` line, no `###` title, and no key (the
 automation appends the key when it publishes). A shipped entry looks like:
 
 ```markdown
@@ -143,11 +143,11 @@ does not already state.
 
 ## 6. General rules (all destinations)
 
-- **No release version anywhere, and exactly one Summary.** The release version is a separate Jira
+- **No release version anywhere, and exactly one Summary.** The release version is a separate
   field the PM sets, and it is obvious to customers. Never write "Starting with version 1.305…", "in
   344", etc. Emit **one** Summary for the note — never one block per declared release version.
 - **The Change Type never appears as text in the draft.** It selects the destination and the shape;
-  the PM sets the dropdown in Jira.
+  the PM sets the field on the PRD.
 - Translate the technical change into customer-value language (product and UI terms).
 - Assert only what the source supports; preserve the facts the source supports.
 - These rules complement, and do not duplicate, the prose-style checks run in the command's
@@ -157,23 +157,28 @@ does not already state.
 
 **Change Type — two rungs:**
 
-1. **Imported PRD frontmatter** — `change_type` from the re-imported Jira PRD (surfaced by
-   `jira-reader`). Authoritative: when present, no confirmation prompt fires.
+1. **Authored PRD frontmatter** — `change_type`, where the PRD carries one. Authoritative: when
+   present, no confirmation prompt fires.
 
-   Two imported values are **not routable** and fall through to rung 2 (§2 inference): `not applicable`
+   Two values are **not routable** and fall through to rung 2 (§2 inference): `not applicable`
    (§1 maps it to no destination — the command's relevance gate, not this ladder, is what stops such a
    run), and `Bug fix` on a change that trips §5's deprecation trigger (§2's third tie-breaker bars a
    deprecation from `fixes`, and §5's required end-of-life note has nowhere to live there).
-2. **Infer** — classify per §2. When confidence is low, record the `field: change_type` gap so the
-   command can confirm the shape.
+2. **Infer** — classify per §2, then **confirm with the operator by shape and destination, never by
+   enum label**. This was the fallback rung and is now the ordinary one: nothing supplies the field
+   from outside, so most runs reach it.
 
 **`{{#context}}` label — one rung.** It is your organization's product/solution taxonomy (e.g. `Platform`,
 `Application Observability | Distributed Tracing`, `Infrastructure Observability | Kubernetes`) and it
 is exactly the PRD's `release_notes_category`:
 
-1. **Imported PRD frontmatter** — `release_notes_category` from the re-imported Jira PRD. Use it
+1. **Authored PRD frontmatter** — `release_notes_category`, where the PRD carries one. Use it
    verbatim as the label.
-2. **Absent → omit the `{{#context}}` line.** Never infer it, never guess it, never ask for it.
+2. **Absent → infer it from the work's subject area and confirm it in the same grill** that confirms
+   the Change Type. Never guess it silently, and never invent a taxonomy term the operator has not
+   seen.
 
-Both are Jira dropdowns the PM sets on the ticket; neither is authored in the PRD (see
-`${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`).
+**Both used to be dropdowns set outside the plugin and returned by an import**, which is why this
+ladder's first rung was authoritative and its second was a fallback. Nothing returns them now, so the
+PRD is the only place either can come from, and an absent field is a question rather than a silence
+(see `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`).

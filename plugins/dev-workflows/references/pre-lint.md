@@ -7,7 +7,7 @@ ones, leave content gaps for the author, then proceed to the reviewer. Pre-lint 
 on its own; the reviewer remains the gate.
 
 Each caller cites this file, states its **artifact type** and the **file(s)** to check, runs three
-things — the **Universal checks**, then the **Jira-key collision** check when the artifact is a PRD, an
+things — the **Universal checks**, then the **key-collision** check when the artifact is a PRD, an
 ARD, or an Epic file, then its **artifact-specific block** — and surfaces the findings. Severities: **BLOCKER**
 (missing required section, duplicate ID, stray generic placeholder), **MAJOR** (a structural rule
 broken), **MINOR** (ID gap, informational count). Inline-fix only the mechanical (renumber a duplicate
@@ -23,25 +23,25 @@ ID, delete a stray placeholder token); anything needing content goes back to the
 3. **Required-section presence** — every mandatory heading listed for the artifact is present
    (`grep -nF '## <heading>' <file>`). A missing required heading → BLOCKER.
 
-## Jira-key collision (PRD, ARD, Epic files only)
+## Auto-link collision (PRD, ARD, Epic files only)
 
-An artifact whose body is pasted into Jira must contain no token Jira will auto-link. Run:
+An artifact whose body is pasted into a tracker must contain no token that tracker will auto-link. The pattern below matches the two-segment issue-key shape every common tracker links on; **it is an auto-link detector, not a key validator**, and its narrowness is exactly what makes it correct. Run:
 
     grep -nE '\b[A-Z]{2,10}-[0-9]+\b' <file>
 
 For the PRD, run against the body **below the frontmatter** — `/create-prd` pastes only that, and the
-frontmatter's `jira_key:` / `ref:` / `seeded_from_prd:` / `revision_of:` legitimately carry keys.
+frontmatter's `key:` / `ref:` / `seeded_from_prd:` / `revision_of:` legitimately carry keys.
 For the ARD, scan **below the frontmatter**. For Epic files, scan the entire file (the template has no frontmatter).
 
-Discard a hit ONLY when it is a deliberate Jira reference: inside a wikilink (`[[KEY-123]]`), inside
+Discard a hit ONLY when it is a deliberate tracker reference: inside a wikilink (`[[KEY-123]]`), inside
 a markdown link (link text or URL), or inside a fenced code block. Inline code (`` `KEY-123` ``) is NOT excluded and IS flagged.
 Classify every surviving hit into exactly one of three branches, and name the branch in the finding — the taxonomy is not exhaustive by assumption, so a hit that fits none of the first two belongs in the third:
 
 1. **A requirement ID** (`US`/`AC`/`SM`/`SMC`/`UC`/`FR`/`AD` prefix) → **BLOCKER**; convert it to `[PREFIX#N]`. This branch alone is mechanical, so inline-fix it under the standard pre-lint contract.
-2. **A real Jira ticket** (a key in a project that actually exists) → **BLOCKER**; wrap it as `[[KEY-123]]` so Jira and the vault importer both read it as the deliberate reference it is. Not mechanical — confirm the key with the author before wrapping.
-3. **Neither — a standards, protocol, or algorithm reference** such as `ISO-8601`, `RFC-8446`, `TLS-13`, `SHA-256`, or `HTTP-2` → **MINOR**; leave the token **exactly as written** and report it. It is correct prose that happens to match the grep, so there is nothing in the artifact to fix. NEVER rewrite it as `[PREFIX#N]` and NEVER wrap it in a wikilink — `[[ISO-8601]]` is a dangling link to a ticket that does not exist, and the inline-fix clause in branch 1 does not reach this branch. If a Jira project genuinely shares the prefix, that is the author's call to make, never the linter's.
+2. **A real tracker ticket** (a key in a project that actually exists) → **BLOCKER**; wrap it as `[[KEY-123]]` so the tracker and the vault importer both read it as the deliberate reference it is. Not mechanical — confirm the key with the author before wrapping.
+3. **Neither — a standards, protocol, or algorithm reference** such as `ISO-8601`, `RFC-8446`, `TLS-13`, `SHA-256`, or `HTTP-2` → **MINOR**; leave the token **exactly as written** and report it. It is correct prose that happens to match the grep, so there is nothing in the artifact to fix. NEVER rewrite it as `[PREFIX#N]` and NEVER wrap it in a wikilink — `[[ISO-8601]]` is a dangling link to a ticket that does not exist, and the inline-fix clause in branch 1 does not reach this branch. If a tracker project genuinely shares the prefix, that is the author's call to make, never the linter's.
 
-The ARD is not itself pasted into Jira, but `epic-writer` copies its `AD` references into Epic
+The ARD is not itself pasted anywhere, but `epic-writer` copies its `AD` references into Epic
 drafts, which are. Catching it at the source is cheaper than catching it downstream.
 
 ## PRD — `prd.md` (`/create-prd`; format `prd-format.md`)

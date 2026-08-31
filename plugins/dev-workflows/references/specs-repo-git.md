@@ -129,26 +129,26 @@ its preflight in order to obtain a key.
 where the two routes diverge:
 
 - **On the `/idea` route** it is structurally keyless here: its key is minted by
-  the Jira round-trip in a later phase, and keyless is the right classification
+  the handoff in a later phase, and keyless is the right classification
   for it — a new PRD must not stack on another PRD's branch.
-- **Under `--from-brd` it is not keyless**, and classifying it so is a defect
+- **On the BRD route it is not keyless**, and classifying it so is a defect
   rather than a conservative default. The positional token is a **BRD key**,
   resolved and validated at the call site by that command's own Phase 0 step 1 —
   before this preflight runs — the deliverable is written into that BRD's folder,
   and the branch `handoff-to-main` names is `prd/<BRD-KEY>-<slug>`. So the run
-  contributes that BRD key. Without it, a `--from-brd` run interrupted after its
+  contributes that BRD key. Without it, a BRD-route run interrupted after its
   branch exists takes **B4** on its own in-progress branch and switches away;
   `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.2 rule 3 then cannot
   resolve `branch-key` into an empty set, so rule 4 appends `-2` and the run
   duplicates its own branch. The reason keyless is right on the other route is
   untouched: it is about not stacking a *new* PRD on another PRD's branch, and a
-  `--from-brd` run reusing the branch it opened for **this** BRD key is not that.
+  BRD-route run reusing the branch it opened for **this** BRD key is not that.
 
 **The contributed key is a folder identity, and contributing it widens no tracker
 identity.** This set exists to match branch names in §3.5 and nothing else; a
-three-segment slice key is matched here exactly as a two-segment one is (§3.5,
-*A two-segment key resolves exactly as it did before*). `jira_key` is minted by
-the Jira round-trip, stays two-segment, and is not written by this route's
+a longer key is matched here exactly as a shorter one is (§3.5,
+*A two-segment key resolves exactly as it did before*). `key` is minted by
+the handoff, stays two-segment, and is not written by this route's
 authoring phase at all.
 
 **This run key set is the preflight's, and only the preflight's.** It exists to

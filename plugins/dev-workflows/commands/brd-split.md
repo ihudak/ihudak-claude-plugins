@@ -790,7 +790,7 @@ that is the real next step for this slice and it is offered by name. A slice rea
 decisions exactly as its parent does, and the register it writes is its own. If any row reached
 `covered-here` the slice is also PRD-eligible
 (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5), which is one of the two tests
-`/dev-workflows:create-prd <BRD-KEY> --from-brd` — a switch that **ships** — applies in its own Phase
+`/dev-workflows:create-prd <BRD-KEY>` — a switch that **ships** — applies in its own Phase
 0. It is still not offered here, and the reason is the register rather than the ledger: that run
 seeds its PRD from this slice's `decisions.md`, which `/dev-workflows:brd-interview` has not written
 yet, so starting it from here would author a PRD off an allocation and no decisions at all. The route
@@ -843,7 +843,7 @@ decisions is `/dev-workflows:brd-interview`, preparing the customer package is
 `/dev-workflows:brd-package`, and freezing the returned review is `/dev-workflows:brd-reconcile`;
 only the first of those three is the step *after this one*, so only it is offered here. Naming a
 child's grounding and this BRD's interview in one list is deliberate — they are different keys, and
-an operator who created children has both to do. `--from-brd` on `/create-prd`, `/create-ard` and
+an operator who created children has both to do. the BRD route on `/create-prd`, `/create-ard` and
 `/specify` all **ship**, and none of the three is offered on either path — for the same reason
 `/dev-workflows:brd-package` and `/dev-workflows:brd-reconcile` are not, that they sit further down
 the route than the step after this one. All three read an altitude seed and this BRD's decision
@@ -889,12 +889,12 @@ never a capability this plugin lacks.
    result N/A; project root = the BRD folder.
 2. **Persist plugin feedback (automatic).** Cite
    `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6)
-   with the Lessons Learned report, `command: /brd-split`, the run's `jira_key` (the `<BRD-KEY>`),
+   with the Lessons Learned report, `command: /brd-split`, the run's `key` (the `<BRD-KEY>`),
    `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`).
    Surface the persisted path (or "no plugin-facing signal — nothing persisted").
 3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and call
    its `emit-cost` entry point with `command: /brd-split`, `phase: brd-to-prd`, `role: pm`, the
-   run's `jira_key`, `source`, and `plugin_version`. Surface the persisted path (or the report-only
+   run's `key`, `source`, and `plugin_version`. Surface the persisted path (or the report-only
    notice).
 4. **Write the resume pointer.** Cite `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and
    write/overwrite `<BRD-dir>/dev-workflows/resume.md` now — after the cost entry above, and before

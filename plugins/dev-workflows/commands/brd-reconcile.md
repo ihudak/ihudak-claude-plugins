@@ -1055,10 +1055,10 @@ order they happened.
 
 This run leaves a **reconciled** BRD: customer decisions frozen, dependents swept, and every artifact
 under the parent checked for a position the answer overturned. That is the state the BRD-to-PRD
-route's exit was waiting for, and **all three `--from-brd` routes ship** — so this phase offers them,
+route's exit was waiting for, and **all three BRD routes ship** — so this phase offers them,
 each under the precondition the offered command actually enforces rather than under an assumed one:
 
-- **`/dev-workflows:create-prd <BRD-KEY> --from-brd` is offered only where this BRD is
+- **`/dev-workflows:create-prd <BRD-KEY>` is offered only where this BRD is
   PRD-eligible**, which is two tests and not one, both read off `coverage-ledger.md` as this run left
   it and both owned by `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5: **no** row of
   this BRD's own ledger is still `unallocated`, and **at least one** of them is `covered-here`.
@@ -1087,12 +1087,12 @@ each under the precondition the offered command actually enforces rather than un
   here and not inconsistent with the in-text conditions the other options carry: those name a state
   the reader can judge for themselves, while this one names a hard refusal in another command's
   Phase 0.
-- **`/dev-workflows:create-ard <BRD-KEY> --from-brd` and `/dev-workflows:specify <BRD-KEY>
-  --from-brd` are offered unconditionally from this state**, and that is read out of their own Phase
-  0s rather than assumed symmetric with `/create-prd`'s. Neither dispatches `jira-reader`, so neither
-  needs a tracker key or a Jira export; neither runs the PRD gate, so neither waits on a PRD —
-  `/create-prd --from-brd` is not a prerequisite for either (`commands/create-ard.md` and
-  `commands/specify.md`, *Under `--from-brd` the PRD gate does not run*); and neither reads the
+- **`/dev-workflows:create-ard <BRD-KEY>` and `/dev-workflows:specify <BRD-KEY>
+  the BRD route` are offered unconditionally from this state**, and that is read out of their own Phase
+  0s rather than assumed symmetric with `/create-prd`'s. Neither reads outside the specs tree, so neither
+  needs anything outside the specs tree; neither runs the PRD gate, so neither waits on a PRD —
+  `/create-prd` on the BRD route is not a prerequisite for either (`commands/create-ard.md` and
+  `commands/specify.md`, *On the BRD route the PRD gate does not run*); and neither reads the
   `claims:` list or the coverage ledger at all, because PRD eligibility is §5's rule about authoring
   a **PRD** and an ARD is not that artifact and neither is a specification. What each needs is this
   BRD's folder, which `resolve-address` finds at either level, plus its own altitude's seed — and an
@@ -1112,7 +1112,7 @@ rather than a judgement:
 
 | Trigger | Why it blocks advancing |
 |---|---|
-| this run **reopened** a `[VD#n]` or `[CD#n]` | a `reopened` record "may not be consumed downstream" while it stands (`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §3), and all three `--from-brd` runs consume the register |
+| this run **reopened** a `[VD#n]` or `[CD#n]` | a `reopened` record "may not be consumed downstream" while it stands (`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §3), and all three BRD-route runs consume the register |
 | a `[C]` is still **held for the customer** | the customer has not answered it, so a PRD authored now states a scope they were never asked about |
 | the review **challenged a code claim**, leaving a finding to re-derive | the findings a downstream artifact would cite are known-stale, and only a `--rebaseline` pass replaces them |
 | a dependent BRD's sweep could only be **recorded, not written** | another BRD still carries a position this run's `[CD#n]` overturns, and nothing in it says so yet |
@@ -1124,10 +1124,10 @@ on a failed eligibility test — so the second array is typically two or three o
 **`advance_ready: yes` — the route is finished with this BRD and crosses into the PRD pipeline:**
 
 ```
-choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Author this BRD's PRD — /dev-workflows:create-prd <BRD-KEY> --from-brd (PM)", "Author this BRD's architecture — /dev-workflows:create-ard <BRD-KEY> --from-brd (PA, optional)", "Author this BRD's specification — /dev-workflows:specify <BRD-KEY> --from-brd (PE)", "Reconcile another BRD or slice", "Other… (describe)"]
+choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Author this BRD's PRD — /dev-workflows:create-prd <BRD-KEY> the BRD route (PM)", "Author this BRD's architecture — /dev-workflows:create-ard <BRD-KEY> the BRD route (PA, optional)", "Author this BRD's specification — /dev-workflows:specify <BRD-KEY> the BRD route (PE)", "Reconcile another BRD or slice", "Other… (describe)"]
 ```
 
-**`advance_ready: no` — the three `--from-brd` options are left out rather than offered and
+**`advance_ready: no` — the three the BRD route options are left out rather than offered and
 consumed against an unsettled register**, and each remaining option appears only where its own
 trigger above fired. Name, beside the list, which trigger fired and against which id, so the
 operator can see what advancing is waiting on rather than only that it is missing:
@@ -1141,20 +1141,20 @@ the point rather than an oversight: it names work on a *different* key, and offe
 operator whose current BRD has an unsettled register is how a reopened decision gets left standing
 while attention moves elsewhere. `"Other… (describe)"` still reaches it for anyone who means it.
 
-**Dropping the three `--from-brd` options here is a refusal this phase can make and their own
-Phase 0s cannot.** `/create-ard --from-brd` and `/specify --from-brd` run no gate that would catch a
+**Dropping the three the BRD route options here is a refusal this phase can make and their own
+Phase 0s cannot.** `/create-ard` on the BRD route and `/specify` on the BRD route run no gate that would catch a
 reopened decision — they read the register and route its `open` and `reopened` records to their own
 open-questions section, which is correct behaviour and not a stop. So an operator sent there on an
 `advance_ready: no` run gets an artifact built around a hole, with nothing having refused it. This
 phase is the only station that knows the reopening happened, which is why the judgement is taken
 here.
 
-**None of the three `--from-brd` options carries `<merge-clause>`, and that is derived, not an
+**None of the three the BRD route options carries `<merge-clause>`, and that is derived, not an
 oversight.** Every row of `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`'s resolution table
 names a *wait*, and none of the three waits on anything this run wrote: `/create-prd`'s only
 `require-on-main` target is `idea.md` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` row F), a
-file no `/brd-*` command writes and one the `--from-brd` route resolves no ladder for; and the
-`--from-brd` runs of `/create-ard` and `/specify` skip the PRD gate outright and resolve no ARD this
+file no `/brd-*` command writes and one the BRD route resolves no ladder for; and the
+BRD-route runs of `/create-ard` and `/specify` skip the PRD gate outright and resolve no ARD this
 run produced, so §3.4's rows for them describe a route neither is on here. That is the same class as
 the clause-free options `/dev-workflows:create-prd`'s own next-step phase presents on this route — an
 option whose downstream command gates nothing the offering run produced — and not a new one. The
@@ -1168,7 +1168,7 @@ this reconciliation left behind, and the reason is stated here, beside the list,
 into a conditional marker the orchestrator would then have to evaluate. **Each option carries its own
 condition in its own text**, which is what keeps the list honourable verbatim: an operator whose run
 reopened nothing reads the *Work another round* option and sees that it does not apply, rather than
-being offered a run that would report there is nothing new to ask. The `/create-prd --from-brd`
+being offered a run that would report there is nothing new to ask. The `/create-prd` on the BRD route
 option is the one exception and is dropped rather than annotated, for the reason given with it above.
 
 **The dependent-sweep option names its own wait, and deliberately not `<merge-clause>`.** What it
@@ -1189,9 +1189,9 @@ The resume pointer is written in the terminal cost phase, per
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. **The offer above spans roles, so both
 branches are printed** (§2's *Next options span both* bullet). Reconciling a second review for the
 same BRD, or working another round of it, or authoring this BRD's PRD yourself as PM
-(`/dev-workflows:create-prd <BRD-KEY> --from-brd`)? → run **`/compact`**. Moving to a different BRD or
-slice, or handing on to PA (`/dev-workflows:create-ard <BRD-KEY> --from-brd`) or PE
-(`/dev-workflows:specify <BRD-KEY> --from-brd`), even when the same person does it? → run
+(`/dev-workflows:create-prd <BRD-KEY>`)? → run **`/compact`**. Moving to a different BRD or
+slice, or handing on to PA (`/dev-workflows:create-ard <BRD-KEY>`) or PE
+(`/dev-workflows:specify <BRD-KEY>`), even when the same person does it? → run
 **`/clear`**; those runs read the reconciled folder from the specs repo, not from this session.
 Guidance only — nothing is auto-run.
 
@@ -1219,13 +1219,13 @@ working.
    human — or "none"); workarounds; test result N/A; project root = the BRD folder.
 2. **Persist plugin feedback (automatic).** Cite
    `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6)
-   with the Lessons Learned report, `command: /brd-reconcile`, the run's `jira_key` (the
+   with the Lessons Learned report, `command: /brd-reconcile`, the run's `key` (the
    `<BRD-KEY>`), `source`, and `plugin_version` (read from
    `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no
    plugin-facing signal — nothing persisted").
 3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and call
    its `emit-cost` entry point with `command: /brd-reconcile`, `phase: brd-to-prd`, `role: pm`, the
-   run's `jira_key`, `source`, and `plugin_version`. Surface the persisted path (or the report-only
+   run's `key`, `source`, and `plugin_version`. Surface the persisted path (or the report-only
    notice).
 4. **Write the resume pointer.** Cite `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and
    write/overwrite `<BRD-dir>/dev-workflows/resume.md` now — after the cost entry, before the commit

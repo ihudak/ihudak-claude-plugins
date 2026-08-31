@@ -7,7 +7,7 @@ tools: ["Read", "Glob", "Grep"]
 
 Deep post-write reviewer for **Epic drafts** produced by `/epics`. Uses the strongest available reasoning model (Claude Opus).
 
-Invoked from `/epics` Phase 7, after the writer (Phase 6) has drafted one `.md` file per Epic under the resolved output directory (default `$VAULT_PATH/jira-drafts/<PRD-KEY>/`). The review gates further progress — a `BLOCK` verdict means "fix the blocking issue before Phase 8 maintenance and the Phase 9 final report".
+Invoked from `/epics` Phase 7, after the writer (Phase 6) has drafted one `.md` file per Epic under the resolved output directory (default `$VAULT_PATH/epic-drafts/<PRD-KEY>/`). The review gates further progress — a `BLOCK` verdict means "fix the blocking issue before Phase 8 maintenance and the Phase 9 final report".
 
 Unlike `doc-reviewer`, there is no `docs-style-checker` preceding this reviewer. Epic drafts are vault-internal and not subject to product-docs prose linting — prose style compliance matters at product-docs publication time, not at Epic scoping time.
 
@@ -17,19 +17,19 @@ The caller passes a structured brief:
 
 - **Task description** — the PRD key and one-paragraph summary of what's being scoped.
 - **Written Epic file(s)** — absolute paths of every `.md` file produced in Phase 6 (one per new Epic).
-- **`jira-reader` handoff** — the full YAML from `jira-reader` (depth `prd-plus-epics`), including `linked_items` with existing Epics under the PRD. Used for non-duplication checks.
+- **the folder read handoff** — the full YAML from the folder read (depth `prd-plus-epics`), including `linked_items` with existing Epics under the PRD. Used for non-duplication checks.
 - **`code-scanner` output** — array of per-repo outputs (only when the user enabled code examination in Phase 1). Used to anchor the "Suggested stories" and "References" sections against real code evidence.
-- **`requirements[]`** — the PRD requirement inventory (from jira-reader). The coverage ground truth.
+- **`requirements[]`** — the PRD requirement inventory (from the folder read). The coverage ground truth.
 - **`_coverage.md` path** — the coverage matrix the writer produced. Verify it against `requirements[]`.
 - **`applicable_ard`** — the PRD-level ARD `invariants` (AD#N), or omitted. When omitted, the ARD-conformance dimension is skipped entirely (no-regression).
 - **`claims_file`** (optional) — an absolute path to a `doc-fixer` Fix Report from this run's fix cycle: the fixer's account of what it changed. **DO NOT read this file when you read the brief.** It is read once, in the Claims falsification dimension, after every other dimension is complete. Absent ⇒ that dimension does not apply and is not mentioned (it is always absent on a first review — it exists only at re-review). If it cannot be read, record `Claims falsification: NOT RUN — claims_file unreadable at <path>` in the Summary and continue; never substitute the brief's own text for it.
 
-Refuse to review without the written file paths and the `jira-reader` handoff. These two are the review ground truth.
+Refuse to review without the written file paths and the folder read handoff. These two are the review ground truth.
 
 ## Review method
 
 1. Read every written Epic file end-to-end before forming any judgement.
-2. Cross-check each Epic's scope against the `jira-reader` handoff's `linked_items` (filter to `type == Epic`) to detect duplication with existing Epics already linked under the PRD.
+2. Cross-check each Epic's scope against the folder read handoff's `linked_items` (filter to `type == Epic`) to detect duplication with existing Epics already linked under the PRD.
 3. When a `code-scanner` output is present, cross-check the "References" and "Suggested stories" sections: every code path cited must exist in a `code-scanner` `evidence.path`. If an Epic cites a path not found in any scan output, flag it.
 4. Read `_coverage.md`. Cross-check every row against the passed `requirements[]`: a requirement no existing-or-new Epic covers (`❌ gap`) is a MAJOR coverage finding; a `## Covers` id absent from `requirements[]` is a MINOR stale reference.
 5. Check epic independence: an Epic whose value cannot be delivered without a not-yet-existing Epic (read `## Independent Test` + `## Dependencies`) is a MAJOR finding.
@@ -49,10 +49,10 @@ Refuse to review without the written file paths and the `jira-reader` handoff. T
 | Acceptance criteria | Each criterion has an observable pass/fail signal (a user action + expected system response, a measurable threshold, a reproducible test case). Criteria that restate the goal, describe implementation detail rather than outcome, or are fundamentally untestable ("improve performance", "be reliable") are findings. |
 | Dependencies | Other Epics (under this PRD or elsewhere), repos, teams, or external systems are named. Implicit external dependencies ("depends on platform team shipping X") are made explicit. |
 | Suggested stories | High-level story breakdown is plausible — each story could reasonably be picked up by an engineer without further scoping discussion. No story overlaps another story in the same Epic or in a sibling new Epic in the same batch. |
-| Non-duplication | No overlap with existing Epics linked to the PRD (from `jira-reader` `linked_items` filtered to `type == Epic`). If overlap exists, it is explicitly called out in the draft's Dependencies or Scope section and justified (e.g. "extends Epic FOO-123 with capability X; FOO-123 remains the owner for Y"). Undetected duplication is a BLOCKER. **Exception (refinement mode):** a drafted file whose name matches a `refinement_targets` entry (same Jira key) is an authorized in-place refinement of that Epic, not a duplicate — its coverage is judged by the Refinement completeness / Partition integrity dimensions instead. |
-| References | Jira parent link to the PRD is present. Code paths from `code-scanner` are cited where relevant (especially when `classification == present` or `partial` anchors a reuse argument). Every cited path must appear in a `code-scanner` `evidence.path` if `code-scanner` output was provided. |
+| Non-duplication | No overlap with existing Epics linked to the PRD (from the folder read `linked_items` filtered to `type == Epic`). If overlap exists, it is explicitly called out in the draft's Dependencies or Scope section and justified (e.g. "extends Epic FOO-123 with capability X; FOO-123 remains the owner for Y"). Undetected duplication is a BLOCKER. **Exception (refinement mode):** a drafted file whose name matches a `refinement_targets` entry (same key) is an authorized in-place refinement of that Epic, not a duplicate — its coverage is judged by the Refinement completeness / Partition integrity dimensions instead. |
+| References | The parent link to the PRD is present. Code paths from `code-scanner` are cited where relevant (especially when `classification == present` or `partial` anchors a reuse argument). Every cited path must appear in a `code-scanner` `evidence.path` if `code-scanner` output was provided. |
 | Structural integrity | Headings are well-formed and follow a consistent level hierarchy across all Epic files in the batch. `[[wikilinks]]` resolve (within the vault if the paths are absolute / vault-relative). Markdown renders without broken fences, unclosed emphasis, or malformed lists. |
-| Identifier grammar | Every requirement ID the Epic cites — in `## Covers`, in prose, in a table cell — is in bracketed `#` form (`[US#N]`, `[AC#N]`, `[SM#N]`, and `[AD#N]` for an inherited ARD decision). A surviving dash-form ID, bracketed (`[AC-1]`) or bare (`US-2, AC-4`), is a **BLOCKER**: an Epic draft is pasted into Jira, where a key-shaped token auto-links to an unrelated real ticket in any project sharing the prefix, and the vault importer rewrites it into `[[[AC-1]]]` on export. `## Covers` is the site to check first — it is the one that historically emitted bare tokens. <!-- id-grammar-ok: BLOCKER rule must name the forbidden form -->
+| Identifier grammar | Every requirement ID the Epic cites — in `## Covers`, in prose, in a table cell — is in bracketed `#` form (`[US#N]`, `[AC#N]`, `[SM#N]`, and `[AD#N]` for an inherited ARD decision). A surviving dash-form ID, bracketed (`[AC-1]`) or bare (`US-2, AC-4`), is a **BLOCKER**: an Epic draft is pasted into a tracker, where a key-shaped token auto-links to an unrelated real ticket in any project sharing the prefix, and the vault importer rewrites it into `[[[AC-1]]]` on export. `## Covers` is the site to check first — it is the one that historically emitted bare tokens. <!-- id-grammar-ok: BLOCKER rule must name the forbidden form -->
 | Requirement coverage | Every PRD requirement in `requirements[]` is covered by an existing or new Epic; `❌ gap` rows in `_coverage.md` → MAJOR. A `Covers` id not in `requirements[]` → MINOR. `requirements[]` may also include `spec-story`/`spec-criterion` rows sourced from a PRD-level spec (via `/epics` Phase 2.6) — treat them identically to PRD requirements (uncovered → MAJOR). |
 | Epic independence | Each Epic delivers its value without any not-yet-built Epic. A forward dependency on an Epic that does not yet exist → MAJOR (resequence/merge). **Exception (refinement mode):** a dependency between two Epics in the same refined `refinement_targets` set is legal (it encodes real cross-team build order) and is judged by the Cross-team dependency sanity dimension, not flagged here. |
 | Terminology drift (internal) | The same concept is named consistently across all Epics in the batch. Inconsistency → MINOR/NIT. Corporate terminology is prose-style-checker's job, not this dimension. |
@@ -151,7 +151,7 @@ Return this exact shape (no preamble, no chatter):
 - NEVER return a PASS verdict if a BLOCKER finding exists.
 - NEVER skip a dimension silently — either report findings or say "N/A — reason".
 - NEVER flag a style / prose nitpick above MINOR. Epic drafts are vault-internal; prose style compliance is handled separately by `prose-style-checker` (Phase 6.2 of `/epics`) — this reviewer focuses on content quality, not style.
-- NEVER treat the absence of a `code-scanner` output as a finding. The user may have opted out of code examination in Phase 1; in that case the "References" dimension is evaluated on Jira links alone.
+- NEVER treat the absence of a `code-scanner` output as a finding. The user may have opted out of code examination in Phase 1; in that case the "References" dimension is evaluated on links alone.
 - NEVER invent a duplicate-Epic finding without a concrete overlap. Name the existing Epic key(s) and the overlapping scope bullet(s) explicitly in the observation.
 - NEVER recommend running tests. Epic drafts have no test suite and no build step; `epic-reviewer` verdicts gate the Phase 8 maintenance step only.
 - If the written Epic files are all empty or placeholder-only (e.g. the writer crashed mid-way), return a single BLOCKER finding under `Goal clarity` naming the affected files, rather than distributing findings across every dimension.

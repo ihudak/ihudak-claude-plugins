@@ -28,7 +28,7 @@ Every task MUST be classified into exactly one of:
 - Concurrency, caching, transactions, locking, retries, idempotency, async/queue processing.
 - Payment, billing, audit, compliance, PII, or other security-sensitive logic.
 - Changes touching **more than 3–5 non-test files**.
-- **Multi-source input** — `/implement` was given more than one code repository, or any directory input (an exported Jira ticket folder, or a spec/design folder). Large multi-source briefs are cross-cutting by nature; this floors the task at `SIGNIFICANT`. See §8 for the fan-out scan this triggers. The floor is overridable at plan approval if the user judges the work genuinely smaller than its input footprint.
+- **Multi-source input** — `/implement` was given more than one code repository, or any directory input (a saved file folder, or a spec/design folder). Large multi-source briefs are cross-cutting by nature; this floors the task at `SIGNIFICANT`. See §8 for the fan-out scan this triggers. The floor is overridable at plan approval if the user judges the work genuinely smaller than its input footprint.
 - Unclear requirements, large unknowns, or otherwise high blast radius.
 
 `HIGH-RISK` is the same list with an additional severity multiplier — pick it
@@ -304,7 +304,7 @@ generalizes the pattern `/epics` already uses.
 Fan out when **any** of these structural facts hold for the invocation:
 
 - more than one code repository is referenced;
-- an exported Jira ticket folder is supplied;
+- a saved file folder is supplied;
 - a spec/design folder is supplied.
 
 Counting files or bytes is explicitly **not** used — the trigger is the shape
@@ -314,18 +314,18 @@ normal single-explorer path.
 
 ### 8.2 The fan-out pattern
 
-1. `jira-reader` reads each ticket folder (read-only) → themes, PR references
+1. the folder read reads each ticket folder (read-only) → themes, PR references
    (identifiers only), linked items.
 2. Spec/design folders are read inline and folded into the themes.
 3. `code-scanner` is fanned out **one instance per repository, in a single
    response, capped at 4 concurrent**. Each instance receives the themes and
    its own repo path; it returns capabilities, gaps, and relevant files.
-4. The orchestrator synthesizes the `jira-reader` output, all scanner reports,
+4. The orchestrator synthesizes the folder read output, all scanner reports,
    and the spec into one codebase summary that feeds the Opus planner.
 
 ### 8.3 Model routing inside the fan-out
 
-- `jira-reader` and `code-scanner` are **pinned to the §2.1 detection (Sonnet)
+- the folder read and `code-scanner` are **pinned to the §2.1 detection (Sonnet)
   chain** via the `task` tool `model:` override — the same rule as every other
   mechanical step (§2.1, §9.1). Scanning is mechanical filesystem work; it must
   not inherit the session model (an Opus session would otherwise burn Opus on a
@@ -344,7 +344,7 @@ normal single-explorer path.
 
 A referenced directory that is missing, or is neither a recognized folder type
 nor a git repository, MUST be surfaced to the user — never silently skipped
-(mirrors the `REFRESH_BLOCKED` honesty rule used by the Jira-driven flows).
+(mirrors the `REFRESH_BLOCKED` honesty rule used by the keyed flows).
 
 ### 8.5 Broad, then narrow (the seeded second round)
 
@@ -424,7 +424,7 @@ risks.
 
 ## 9. Per-step routing for multi-phase authoring pipelines
 
-The Jira-driven authoring pipelines (`/document` and `/epics`) run a long sequence of phases — some
+The keyed authoring pipelines (`/document` and `/epics`) run a long sequence of phases — some
 judgment-heavy, some mechanical. They MUST NOT let every step inherit the
 session model. Apply this policy, resolving each model against the §2 (Opus)
 and §2.1 (Sonnet) fallback chains.
@@ -446,7 +446,7 @@ and §2.1 (Sonnet) fallback chains.
 | Role | Chain |
 |------|-------|
 | Synthesis / planner (e.g. `doc-planner`) | §2 reasoning (Opus) |
-| Reader / summarizer / locator / style-checker / fixer / maintenance (`jira-reader`, `diff-summarizer`, `doc-location-finder`, `docs-style-checker`, `doc-fixer`, maintenance agents) | §2.1 detection (Sonnet) |
+| Reader / summarizer / locator / style-checker / fixer / maintenance (the folder read, `diff-summarizer`, `doc-location-finder`, `docs-style-checker`, `doc-fixer`, maintenance agents) | §2.1 detection (Sonnet) |
 | Domain reviewer (`doc-reviewer`, `epic-reviewer`) | §2 review (Opus) — usually already frontmatter-pinned; the orchestrator records it and adds **no** override |
 | Delegated writer (`doc-writer` / `epic-writer`) | §2 reasoning (Opus) for SIGNIFICANT/judgment writing; §2.1 detection (Sonnet) for MODERATE writing |
 | Coordination + interactive gates (the orchestrator itself) | session model; narrowed window advisory for large non-Opus runs (§9.1) |
@@ -460,7 +460,7 @@ the same rule as §2.
 
 ### 9.4 One rule across commands (`/implement` included)
 
-Routing is by **step nature**, not by pipeline or session: `jira-reader` and
+Routing is by **step nature**, not by pipeline or session: the folder read and
 `code-scanner` are mechanical, so they run on the §2.1 detection (Sonnet) chain
 in **every** command — `/implement`'s fan-out (§8.3), `/epics`, and `/document`
 alike. There is no "inherit the session model" for scanning and no per-command

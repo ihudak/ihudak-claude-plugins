@@ -1,16 +1,16 @@
 ---
 name: document
-description: Jira-driven feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in example-docs default → on-demand /docs-profile) and the PRD's specs dir under /workspace. Reads a Product Requirements Document hierarchy from exported markdown, resolves PR diffs in parallel, synthesises product documentation, and gates on style-check and Opus doc review.
+description: keyed feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in example-docs default → on-demand /docs-profile) and the PRD's specs dir under /workspace. Reads a Product Requirements Document hierarchy from exported markdown, resolves PR diffs in parallel, synthesises product documentation, and gates on style-check and Opus doc review.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
-Generate product documentation for the Jira Product Requirements Document: $ARGUMENTS
+Generate product documentation for the resolved Product Requirements Document: $ARGUMENTS
 
-Signature: `PRODUCT-NNNN` — the Jira Product Requirements Document key, and nothing else. Phase 5.5 resolves each write target against the content roots the resolved profile declares, and Phase 6.3 writes each page into the root that owns it.
+Signature: one positional address — a key, or an `@<path>` naming a folder in the specs tree. Phase 5.5 resolves each write target against the content roots the resolved profile declares, and Phase 6.3 writes each page into the root that owns it.
 
-`/document` (Jira mode) is the **Jira-driven feature-documentation** workflow. Given a Jira Product Requirements Document key, it reads the full Jira hierarchy from pre-exported markdown in the user's Obsidian vault, resolves PR URLs to local git repos, runs parallel PR-diff summaries, synthesises product documentation, runs style-check + Opus review gates, and writes the output to the current working directory (a product docs repository).
+`/document` (keyed mode) is the **keyed feature-documentation** workflow. Given a PRD address, it reads the PRD folder from pre-exported markdown in the user's Obsidian vault, resolves PR URLs to local git repos, runs parallel PR-diff summaries, synthesises product documentation, runs style-check + Opus review gates, and writes the output to the current working directory (a product docs repository).
 
-For small one-off doc edits, use direct mode (below). For writing child Epic drafts from a PRD, use `/epics`. For release notes, use `/release-notes` — this command never writes release-notes / what's-new pages, because those are generated from Jira by the docs team's automation.
+For small one-off doc edits, use direct mode (below). For writing child Epic drafts from a PRD, use `/epics`. For release notes, use `/release-notes` — this command never writes release-notes / what's-new pages, because those are generated from the tracker by the docs team's automation.
 
 ---
 
@@ -18,8 +18,10 @@ For small one-off doc edits, use direct mode (below). For writing child Epic dra
 
 `/document` has **two modes**, selected by the first argument token:
 
-- **Jira mode (Mode A)** — the input resolves `jira-driven` via the shared front-end (`${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`): a first token matching a JiraID (`^[A-Z][A-Z0-9]+-[0-9]+`), **or** a directory that inspects as a Jira-export (contains `<KEY>-index.md`). The front-end's Fallback B handles a JiraID-shaped token with no `jira-products/<KEY>` folder.
-- **Direct mode (Mode B)** — the input resolves `direct` (a leading `@file` token, free-text prose, or a non-Jira-export directory, which Mode B handles via its existing "anything else" path).
+- **Keyed mode (Mode A)** — the first token is a **single positional address**: a `<KEY>` matching `references/addressing.md` §1's grammar, or an `@<path>` naming a folder in the specs tree. `resolve-address` (§3) turns it into a folder; `status: absent` means no such folder exists, and `ambiguous` is a stop naming every match.
+- **Direct mode (Mode B)** — no positional address: a leading `@file` token, free-text prose, or a directory that is not in the specs tree, which Mode B handles via its existing "anything else" path.
+
+**The mode test is the presence of an address**, which is what replaces the retired shared front-end's own mode return. Mode B is unchanged in every other respect — a direct-mode run is byte-identical to before.
 
 **Specs-repo preflight.** Cite
 `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
@@ -32,21 +34,20 @@ is clean and on its default branch. If a guard fires, emit its §5 notice;
 if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole
 run — the terminal `commit-artifacts` step skips on it.
 
-Echo the detected mode, then proceed to that mode's phases. The two modes share the same `docs-style-checker` / `doc-fixer` agents; only Jira mode also runs `doc-reviewer` (each mode emits its own final report).
+Echo the detected mode, then proceed to that mode's phases. The two modes share the same `docs-style-checker` / `doc-fixer` agents; only Keyed mode also runs `doc-reviewer` (each mode emits its own final report).
 
 ---
 
-# Mode A — Jira-driven documentation (JiraID argument)
+# Mode A — keyed documentation (address argument)
 
 ## Phase 0 — Load and dispatch
 
-1. **Resolve the Jira input via the shared front-end.** Execute
-   `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against
-   `$ARGUMENTS`. For Mode A the result is `mode: jira-driven` with `jira_key`,
-   `jira_export_root` (the ticket export dir — `$VAULT_PATH/jira-products/<KEY>`
-   for a JiraID, or the passed directory), `source`, and `specs`. The front-end
-   owns the `$VAULT_PATH`/`jira-products` validation and Fallbacks A/B. Carry
-   `jira_key`, `jira_export_root`, `focus_key`, and `specs` forward.
+1. **Resolve the address.** Parse the single positional address from `$ARGUMENTS` — a `<KEY>`, or
+   an `@<path>` naming a folder or a file inside one — and resolve it with `resolve-address`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). Present and resolving → `mode: keyed`;
+   absent from the argument list → `mode: direct`, and the rest of this phase's keyed steps are
+   skipped. Carry the resolved `path`, `kind`, `key`, and the `specs` files found in that folder
+   forward.
 
 2. **Resolve the docs repo (cwd-preferred).** This command writes feature documentation into a product docs repository; running it outside such a repository is almost always a mistake. The **docs signals** checked throughout this step are:
    - `package.json` with any script matching `*:start`, `*:build`, `*:lint`, `docs:*`, or
@@ -140,7 +141,7 @@ Before clarification, show a readiness table summarizing what Phase 0 resolved:
 
 | Item | Resolved |
 |---|---|
-| Jira input | source: `<vault \| directory>`; export root: `<jira_export_root>` |
+| Address | the resolved folder |
 | Docs repo | `<docs_repo_path>` (`is_known_docs_repo`: yes/no) — write context `<obsidian \| docs_repo \| non_docs_repo \| plain_dir>` |
 | Profile | `profile_source`: `<in-repo \| built-in \| generated>` |
 | Toolchain | `<all required tools present>` OR `<N missing: vale, pnpm — user chose to continue>`; writing into `<docs_repo_path>`[ (cwd is `<cwd>`)] |
@@ -174,7 +175,7 @@ Ask about:
   choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]
   ```
   If "different path", take free-text input (single dir or colon-separated list) and validate that at least one directory exists under it. Record the resolved value as `$REPOS_PATH`. Individual clones are located in Phase 4 by matching their `git remote` against each PR's repo slug — not by assuming a `<base>/<slug>` directory name.
-- **Screenshots** — this question seeds the **add-list** only; it never skips Phase 5.6. The candidate list itself is built later in **Phase 5.6** (by which point `specs_dir`, the `jira-reader` `attachments[]`, and the resolved repos are all available), and Phase 5.6 **always** runs — it also reviews the images already on the pages this run is about to edit, regardless of this answer:
+- **Screenshots** — this question seeds the **add-list** only; it never skips Phase 5.6. The candidate list itself is built later in **Phase 5.6** (by which point `specs_dir`, the folder read `attachments[]`, and the resolved repos are all available), and Phase 5.6 **always** runs — it also reviews the images already on the pages this run is about to edit, regardless of this answer:
   ```
   choices: ["Yes — I have new screenshots to add (you'll pick the sources in Phase 5.6) (Recommended)", "No new screenshots", "Cancel", "Other… (describe)"]
   ```
@@ -182,7 +183,7 @@ Ask about:
 
   **Resolve `<screenshot_staging_dir>`.** No longer gated on `new_images_wanted`: Phase 5.6 always runs and its existing-image review can need a durable location for a replacement source regardless of this answer, so `<project_dir>` (set below) must be resolved on every run, not only an add-list one. **This unconditional resolution is deliberate and stays**, including the "Not found" prompt it can raise on a run that turns out to have no image work at all: Phase 1 runs long before `write_targets` exist, so any narrower precondition ("only when this run will touch images") is undecidable here. The occasional needless prompt is the accepted cost of closing a container-restart data-loss gap — do not re-gate this on `new_images_wanted` or on a guess about image work. For the `cdn_upload_required` case the staged copies must live somewhere that survives a container restart — `$VAULT_PATH` is always host-mounted, the docs repo (often a docker repo-volume) and `/tmp` are not. Find the ticket's persistent Obsidian project folder:
   ```bash
-  find "$VAULT_PATH/Projects" -maxdepth 5 -type d -name "<JIRA_KEY>*" 2>/dev/null | head -1
+  the resolved PRD folder
   ```
   - **Found** → record the matched folder as `<project_dir>` (the project-folder root — reused as an image source in Phase 5.6), and set `<screenshot_staging_dir>` to that project folder's screenshot subfolder: prefer an existing `Doc screenshots/` or `Attachments/` subdirectory; otherwise `Doc screenshots/` (created on first write).
   - **Not found** (e.g. a ticket whose project has no project folder) → `<project_dir>` is null (Phase 5.6's project-folder scan then contributes nothing); ask:
@@ -196,15 +197,15 @@ Also display (for user context):
 - Write context (`obsidian` / `docs_repo` / `non_docs_repo` / `plain_dir`)
 - Whether branching will happen (only when context is `docs_repo` — confirmed at plan approval)
 - Resolved `$REPOS_PATH`
-- Resolved `$VAULT_PATH` and `<JIRA_KEY>`
+- The resolved address and folder
 
 ---
 
 ## Phase 1.5 — Classify
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the classification rules, then classify the task as exactly one of: `SIMPLE`, `MODERATE`, `SIGNIFICANT`, or `HIGH-RISK`. Jira-driven feature docs are typically **SIGNIFICANT** (large blast radius if wrong — published documentation). State the classification and a one-sentence reason.
+Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the classification rules, then classify the task as exactly one of: `SIMPLE`, `MODERATE`, `SIGNIFICANT`, or `HIGH-RISK`. keyed feature docs are typically **SIGNIFICANT** (large blast radius if wrong — published documentation). State the classification and a one-sentence reason.
 
-SIGNIFICANT → no separate Opus **risk-planner** for the high-level plan (the Jira hierarchy + diff summaries *are* the plan), **but `doc-planner` (Phase 5.7) is pinned to the §2 Opus reasoning chain**; the `doc-reviewer` gate (Opus) is mandatory.
+SIGNIFICANT → no separate Opus **risk-planner** for the high-level plan (the PRD folder + diff summaries *are* the plan), **but `doc-planner` (Phase 5.7) is pinned to the §2 Opus reasoning chain**; the `doc-reviewer` gate (Opus) is mandatory.
 
 **Resolve the per-step routing.** Following `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §9, record a `model_routing` block (reusing the §4 field names) resolving each model against the fallback chains:
 
@@ -222,7 +223,7 @@ model_routing:
   notes: <any §2 / §2.1 fallback or degradation>
 ```
 
-Each subagent dispatch below cites which chain it uses (the §9 role→chain map): `doc-planner` → `planning_model`; `jira-reader`, `diff-summarizer`, `doc-location-finder`, `docs-style-checker`, `doc-fixer`, and the Phase 8 maintenance agents → `detection_model`; `doc-reviewer` keeps its own frontmatter Opus pin (recorded as `review_model`, no override added).
+Each subagent dispatch below cites which chain it uses (the §9 role→chain map): `doc-planner` → `planning_model`; the folder read, `diff-summarizer`, `doc-location-finder`, `docs-style-checker`, `doc-fixer`, and the Phase 8 maintenance agents → `detection_model`; `doc-reviewer` keeps its own frontmatter Opus pin (recorded as `review_model`, no override added).
 
 **Orchestration advisory (window-focused).** `doc-planner` (5.7) and `doc-writer` (6.3) run on the §2 Opus chain regardless of session; only coordination + the interactive gates (5.8 decision, 6.1) run on `current_model`. So:
 
@@ -240,13 +241,13 @@ Each subagent dispatch below cites which chain it uses (the §9 role→chain map
 
 Present a concise plan:
 
-- Resolved `<JIRA_KEY>` and the Jira export root `<jira_export_root>`
+- The resolved address and the folder it resolved to
 - Output filename / path under the resolved `docs_repo_path` (from Phase 1)
-- `$REPOS_PATH` and the slug→clone resolution for the repos that will be examined (inferred from the `jira-reader` output in Phase 3; if Phase 3 hasn't run yet, list "TBD — resolved after Jira read")
+- `$REPOS_PATH` and the slug→clone resolution for the repos that will be examined (inferred from the folder read output in Phase 3; if Phase 3 hasn't run yet, list "TBD — resolved after the folder read")
 - PR filter (MERGED only / all / specific)
 - Parallelism plan (up to 4 `diff-summarizer` instances per batch; up to 4 repos per Agent message)
 - Write context + whether branching will happen
-- Screenshots: `new_images_wanted` (yes/no, from Phase 1). Phase 5.6 always runs: when yes, its add-list candidates are gathered and confirmed there (specs scan + Jira `attachments[]` + manual paths) — list "candidates resolved in Phase 5.6"; either way, Phase 5.6 also reviews the images already on the edited pages for staleness.
+- Screenshots: `new_images_wanted` (yes/no, from Phase 1). Phase 5.6 always runs: when yes, its add-list candidates are gathered and confirmed there (specs scan + folder `attachments[]` + manual paths) — list "candidates resolved in Phase 5.6"; either way, Phase 5.6 also reviews the images already on the edited pages for staleness.
 
 Ask:
 ```
@@ -260,18 +261,23 @@ choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
 
 ---
 
-## Phase 3 — Read Jira hierarchy
+## Phase 3 — Read the PRD folder
 
-Invoke `jira-reader` with `depth: full`:
+Invoke the folder read with `depth: full`:
 
-→ Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
-  > "Return the structured handoff for this brief:
+**Read the resolved folder directly.** Read its `prd.md` for the product content, and the `specs`
+files Phase 0 resolved alongside it.
+
+**There is no PR-URL source in this increment.** The reader this replaces harvested them from the
+export; `implementation.md` replaces them and does not exist yet. The `diff-summarizer` dispatch
+below is therefore skipped — state that once, and name what it costs: the documentation is grounded
+in the PRD and the specs, not in the shipped diff. `diff-summarizer` itself is unchanged and is
+re-pointed at `implementation.md` in the next increment.
   >
-  > jira_export_root: [resolved jira_export_root from Phase 0]
-  > jira_key:         [resolved <JIRA_KEY>]
+  > key:         [resolved <KEY>]
   > depth:            full"
 
-Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Jira key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`) and act accordingly. On `OK`, store the handoff for downstream phases.
+Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`) and act accordingly. On `OK`, store the handoff for downstream phases.
 
 When `focus_key` is set (explicit `<PRD> <Epic>`), also derive `focus_items` = the
 focus Epic plus every linked item beneath it (its Stories / Sub-tasks). The
@@ -284,9 +290,9 @@ is null, every phase uses the full hierarchy exactly as today.
 
 ## Phase 4 — Resolve repos
 
-From the `jira-reader` handoff `pull_requests` list:
+From the folder read handoff `pull_requests` list:
 
-1. Filter by `status` per the Phase 1 PR-status setting (default: MERGED only). This is the `pull_requests[].status` field, NOT the top-level `jira-reader` `status`.
+1. Filter by `status` per the Phase 1 PR-status setting (default: MERGED only). This is the `pull_requests[].status` field, NOT the top-level the folder read `status`.
 2. Group the remaining PRs by `repo` (short repo name).
 3. Build a slug→clone map. For each top-level directory under each entry of `$REPOS_PATH`, run `timeout 5 git -C <dir> remote get-url origin 2>/dev/null`, strip a trailing `.git`, and take the URL's last path segment as that clone's slug. Skip directories with no `.git` or whose `git remote` call fails/times out. Result: `<slug> → [<absolute path>, ...]`.
 4. Resolve each unique in-scope `repo` slug against the map:
@@ -294,14 +300,14 @@ From the `jira-reader` handoff `pull_requests` list:
    - **Multiple matches** (e.g. `cluster` and `cluster-repo`, both pointing at the same upstream) — auto-prefer basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last; show all candidates at plan approval so the user can override.
    - **Zero matches** — record the slug as **missing** and defer it to the consolidated repo gate in step 5 (do NOT escalate per slug).
    Record each resolution as `repo_slug → repo_path` for Phase 5.
-5. **Consolidated repo gate.** From step 4, compute `expected` = the unique in-scope repo slugs, `mounted` = those that resolved to a path, and `missing` = the zero-match slugs. This is the earliest point the repo set is known (it depends on the Phase 3 `jira-reader` PR links) and it runs before any diff work.
+5. **Consolidated repo gate.** From step 4, compute `expected` = the unique in-scope repo slugs, `mounted` = those that resolved to a path, and `missing` = the zero-match slugs. This is the earliest point the repo set is known (it depends on the Phase 3 the folder read PR links) and it runs before any diff work.
    - **`missing` is empty** — print one line and continue with no gate:
      ```
-     Resolved <M>/<N> repositories from the Jira PRs.
+     Resolved <M>/<N> repositories from the recorded PRs.
      ```
    - **`missing` is non-empty** — present ONE consolidated gate (not one prompt per slug):
      ```
-     This PRD's Jira PRs span <N> repositories. <M> mounted, <K> missing:
+     This PRD's recorded PRs span <N> repositories. <M> mounted, <K> missing:
 
        ✓ <mounted slug>            ✓ <mounted slug>
        ✗ <missing slug>            (<n> <status> PRs — not found under $REPOS_PATH)
@@ -309,7 +315,7 @@ From the `jira-reader` handoff `pull_requests` list:
      Missing repos are skipped: their code won't be diff-summarised or checked
      against the PRD's requirements, so the discrepancy analysis will be partial.
 
-     choices: ["Mount the missing repo(s) now — I'll wait, then re-scan (Recommended)", "Proceed without them — Jira-only for the missing repos", "Cancel", "Specify a different absolute path for a missing repo", "Other… (describe)"]
+     choices: ["Mount the missing repo(s) now — I'll wait, then re-scan (Recommended)", "Proceed without them — PRD-only for the missing repos", "Cancel", "Specify a different absolute path for a missing repo", "Other… (describe)"]
      ```
      Choice semantics follow the `Repo unresolved (zero matches) — /document` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`, applied to the whole missing set at once:
      - **Mount now & re-scan** (≈ the rule's "I'll clone it — wait") — pause until the user confirms the clones are present under `$REPOS_PATH`, then re-run step 3's scan and re-render this gate. Loop until `missing` is empty or the user picks another option. This is how the operator gets per-repo control: mount whichever repos are available, re-scan, then choose "Proceed" for whatever remains.
@@ -333,11 +339,11 @@ For each repo, in the same Agent message:
   >
   > repo_path:     <resolved absolute path for this repo from Phase 4>
   > repo_url_slug: <repo slug, e.g. "cluster">
-  > pr_refs:     [ ... full PR entries from jira-reader handoff, filtered to this repo (and, when focus_key is set, to focus_items) ... ]
+  > pr_refs:     [ ... full PR entries from the folder read handoff, filtered to this repo (and, when focus_key is set, to focus_items) ... ]
   > context:    |
   >   [1–2 sentences: PRD goal + themes relevant to this repo]
-  > jira_keys_hierarchy:
-  >   [PRD key + every linked_items key from jira-reader; when focus_key is set, restrict to focus_items — the focus Epic + its linked descendants]
+  > keys_hierarchy:
+  >   [PRD key + every linked_items key from the folder read; when focus_key is set, restrict to focus_items — the focus Epic + its linked descendants]
   > refresh:
   >   fetch: [false if Phase 1 chose 'no refresh'; true otherwise]
   >   pull:  [true if Phase 1 chose 'fetch + pull default branch'; false otherwise]"
@@ -359,7 +365,7 @@ After the batch returns, handle each per-repo status:
 
 After every batch completes, if **every PR across every repo** is unresolved, present a single aggregate gate (not per-PR):
 ```
-choices: ["Proceed with Jira-only content (Recommended — writer/planner draw from jira-reader output; final report notes missing PR content)", "Review candidates one by one", "Cancel"]
+choices: ["Proceed with PRD-only content (Recommended — writer/planner draw from the folder read output; final report notes missing PR content)", "Review candidates one by one", "Cancel"]
 ```
 
 ---
@@ -372,7 +378,7 @@ Invoke `doc-location-finder`:
   > "Find write target(s) for the brief:
   >
   > repo_root:       [the resolved docs_repo_path (Phase 0)]
-  > feature_summary: [2–4 sentences combining jira-reader themes + value_increment.goal]
+  > feature_summary: [2–4 sentences combining the folder read themes + value_increment.goal]
   > diff_highlights: [key filenames / symbols from the diff-summarizer per_pr summaries]
   > profile:         [the resolved profile — its spaces[] content roots and its announcement_pages block]"
 
@@ -403,7 +409,7 @@ The confirmed target list (from any of the three paths above) is the **authorita
 
 ### Add list (new screenshots)
 
-Build this list only when `new_images_wanted` is `true` (Phase 1); when `false`, the add list is empty and contributes nothing to the merged prompt below — skip straight to the existing-image list. When `true`, build a **merged, deduped candidate list** from four sources (by this point Phase 0's `specs_dir`, the Phase 1 `<project_dir>`, the Phase 3 `jira-reader` `attachments[]`, and the Phase 4 resolved repos are all in hand):
+Build this list only when `new_images_wanted` is `true` (Phase 1); when `false`, the add list is empty and contributes nothing to the merged prompt below — skip straight to the existing-image list. When `true`, build a **merged, deduped candidate list** from four sources (by this point Phase 0's `specs_dir`, the Phase 1 `<project_dir>`, the Phase 3 the folder read `attachments[]`, and the Phase 4 resolved repos are all in hand):
 
 1. **Recursive scan of `<specs_dir>`** — when Phase 0 resolved a `specs_dir` (not `none`), recursively scan it for image files across the spec root, `epics/`, and `spec/`:
    ```bash
@@ -411,7 +417,7 @@ Build this list only when `new_images_wanted` is `true` (Phase 1); when `false`,
      -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.gif" -o -iname "*.svg" -o -iname "*.webp" \) 2>/dev/null
    ```
    When `specs_dir` is `none`, this source contributes nothing.
-2. **`jira-reader` `attachments[]`** — the image paths enumerated under the PRD's `attachments/` dirs (Phase 3 handoff `attachments[].path`; these live under `jira-products/<PRD-dir>/…`, so this covers screenshots developers attached in Jira). May be empty.
+2. **PRD-folder attachments** — the image paths enumerated under the resolved PRD folder's `attachments/` directory, where one exists. May be empty.
 3. **Recursive scan of `<project_dir>`** — when Phase 1 resolved a `<project_dir>` (the persistent Obsidian project folder under `$VAULT_PATH/Projects`), recursively scan it for image files:
    ```bash
    find "<project_dir>" -type f \
@@ -434,7 +440,7 @@ A target with no image references contributes nothing.
 
 ### Merged prompt
 
-Present both lists — "Found `<N>` add-list candidate(s) (`<count>` from specs scan, `<count>` from Jira attachments, `<count>` from the project folder)" and "Found `<M>` existing image(s) across `<K>` edited page(s) to review for staleness" — then ask:
+Present both lists — "Found `<N>` add-list candidate(s) (`<count>` from specs scan, `<count>` from folder attachments, `<count>` from the project folder)" and "Found `<M>` existing image(s) across `<K>` edited page(s) to review for staleness" — then ask:
 ```
 choices: ["Review both lists item by item (Recommended)", "Add-list only — existing images are current", "Nothing to do — no image work this run", "Cancel", "Other… (describe)"]
 ```
@@ -443,7 +449,7 @@ When both lists are empty, skip presenting this prompt — there is nothing to s
 - **Review both lists item by item**:
   - **Add list**, if non-empty, asks:
     ```
-    "Found <N> candidate image(s): <count> from specs scan, <count> from Jira attachments, <count> from the project folder. How would you like to source screenshots?"
+    "Found <N> candidate image(s): <count> from specs scan, <count> from folder attachments, <count> from the project folder. How would you like to source screenshots?"
     choices: ["Use all auto-discovered + add manual paths (Recommended)", "Use all auto-discovered only", "Select a subset (you'll pick per candidate)", "Provide screenshot paths manually only (you'll be prompted)", "No images after all", "Other… (describe)"]
     ```
     - **Use all auto-discovered + add manual** → take every deduped candidate, then prompt for additional free-text absolute paths to append.
@@ -468,7 +474,7 @@ When both lists are empty, skip presenting this prompt — there is nothing to s
 
 For any **manual** free-text paths, accept any absolute filesystem path (vault, `/tmp`, home, the docs repo); accept multiple (one per line or space-separated). Validate each path exists and has an image extension (`.png|.jpg|.jpeg|.gif|.svg|.webp`); drop and report any that don't.
 
-When you need to **add a new image** for this feature (a screenshot the docs should have but no source yet holds — including a replacement source for an accepted existing-image entry), place it in the **Projects PRD-dir** — `<project_dir>` (i.e. `$VAULT_PATH/Projects/<PRD-dir>/…`, e.g. its `Doc screenshots/` subfolder). **Never** put it under `jira-products/`: that directory is regenerated on every Jira import, so a manually-added image there is lost on the next import. `jira-products` is a read-only source (developer-attached Jira screenshots, via source 2); authored/curated images belong in the Projects folder.
+When you need to **add a new image** for this feature (a screenshot the docs should have but no source yet holds — including a replacement source for an accepted existing-image entry), place it in the resolved PRD folder's `attachments/` directory, beside the images source 2 enumerates. There is one home for a feature's images now, and it is the folder the run already resolved.
 
 The selected add-list paths populate the existing **`screenshots[]`** passed to `doc-planner` in Phase 5.7 — the downstream placement machinery (per-screenshot `dest`/`staging`/`upload_note`, `image_policy`) is unchanged. An accepted item — from either list — carries into Phase 6.1 for its CDN URL. The outcome is recorded as `existing_image_decisions[]` (schema above; matches `doc-writer`'s input contract) and carried in the Phase 6.3 handoff file alongside `cdn_urls`.
 
@@ -481,7 +487,7 @@ Invoke `doc-planner`:
 → Agent (subagent_type: "dev-workflows:doc-planner", model: `<planning_model — §9 / §2 Opus chain>`):
   > "Produce the documentation checklist for the brief:
   >
-  > jira_reader_handoff: [paste full YAML from Phase 3; when focus_key is set, restrict linked items to focus_items]
+  > folder_read: [paste full YAML from Phase 3; when focus_key is set, restrict linked items to focus_items]
   > diff_summaries:       [paste array of diff-summarizer outputs from Phase 5]
   > write_targets:        [paste confirmed list from Phase 5.5]
   > screenshots:          [selected candidate paths from Phase 5.6, possibly empty]
@@ -512,12 +518,12 @@ choices: ["Approve & write (Recommended)", "Adjust (describe)", "Cancel"]
 **Ledger first — before the skip check below.** This gate must carry a row on every run, including runs with nothing to escalate. Append the `source_truth_verification` row now, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3:
 
 - `code_repos` is empty → `NOT_APPLICABLE`, `precondition_unmet: "code_repos is empty"`.
-- `code_repos` is non-empty and `doc-planner` returned no `verification_warnings` of an escalating type (`CONTRADICTED`, `NOT_FOUND`, `AMBIGUOUS`, `SPEC-VS-JIRA`) → `RAN`, `mechanism: "claim-class verification per source-truth.md §2–§3"`, `findings: 0`. A list of only `VERIFIED` entries counts as none for this purpose — the row is final and this phase's body does not run.
+- `code_repos` is non-empty and `doc-planner` returned no `verification_warnings` of an escalating type (`CONTRADICTED`, `NOT_FOUND`, `AMBIGUOUS`, `SPEC-VS-PRD`) → `RAN`, `mechanism: "claim-class verification per source-truth.md §2–§3"`, `findings: 0`. A list of only `VERIFIED` entries counts as none for this purpose — the row is final and this phase's body does not run.
 - `code_repos` is non-empty and at least one warning IS of an escalating type → append `RAN` provisionally now, then rewrite the row at the end of this phase per **Ledger (final)** below.
 
-Run the rest of this phase when the `doc-planner` handoff contains any `verification_warnings` with `finding: CONTRADICTED`, `NOT_FOUND`, `AMBIGUOUS`, or verdict `SPEC-VS-JIRA`. If there are none, skip to Phase 6.3 — the row above is already recorded.
+Run the rest of this phase when the `doc-planner` handoff contains any `verification_warnings` with `finding: CONTRADICTED`, `NOT_FOUND`, `AMBIGUOUS`, or verdict `SPEC-VS-PRD`. If there are none, skip to Phase 6.3 — the row above is already recorded.
 
-This phase is **three-way** when a spec was provided (Phase 0 resolved `specs_dir` and Phase 5.7 passed it to `doc-planner`): it compares the **Jira** narrative, the **Spec** (authoritative "intended"), and the **Code** ("actual"), per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7. When no spec was provided, the planner emits `spec_phrasing: "(no spec)"`; the **Spec phrasing** column simply renders `(no spec)` and the run behaves exactly as the original Jira-vs-code two-way protocol.
+This phase is **three-way** when a spec was provided (Phase 0 resolved `specs_dir` and Phase 5.7 passed it to `doc-planner`): it compares the **PRD** narrative, the **Spec** (authoritative "intended"), and the **Code** ("actual"), per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7. When no spec was provided, the planner emits `spec_phrasing: "(no spec)"`; the **Spec phrasing** column simply renders `(no spec)` and the run behaves exactly as the original PRD-vs-code two-way protocol.
 
 **Supplementary resolution (one attempt, before presenting anything).** For every
 `verification_warning` whose `finding` is `AMBIGUOUS` or `NOT_FOUND`, check whether the relevant repo
@@ -536,23 +542,23 @@ the row `DEGRADED`, with `not_run:` naming what did not run (e.g.
 
 1. **Present the analysis table** (informational, before asking):
    ```
-   | # | Claim | Jira phrasing | Spec phrasing | Source (code) phrasing | Source location | Verdict |
+   | # | Claim | PRD phrasing | Spec phrasing | Source (code) phrasing | Source location | Verdict |
    ```
-   One row per warning. The **Spec phrasing** cell reads `(no spec)` when no spec was provided. Use `Source (code) phrasing: "(not verifiable)"` for `no-source-evidence` entries. The **Verdict** carries the §4.2 finding (`CONTRADICTED`, `NOT_FOUND`, `AMBIGUOUS`) or `SPEC-VS-JIRA` (the spec differs from the Jira narrative; recommended action "Document as intended (spec)").
+   One row per warning. The **Spec phrasing** cell reads `(no spec)` when no spec was provided. Use `Source (code) phrasing: "(not verifiable)"` for `no-source-evidence` entries. The **Verdict** carries the §4.2 finding (`CONTRADICTED`, `NOT_FOUND`, `AMBIGUOUS`) or `SPEC-VS-PRD` (the spec differs from the PRD narrative; recommended action "Document as intended (spec)").
 
 2. **Batch decision:**
    ```
    choices: ["Decide per discrepancy (Recommended)", "Document ALL as intended (spec)", "Document ALL as actual (code)", "Skip ALL and report (drafts a bug report)", "Cancel", "Other… (describe)"]
    ```
-   "Document ALL as intended (spec)" uses the `spec_phrasing` (or the Jira phrasing when it is `(no spec)`).
+   "Document ALL as intended (spec)" uses the `spec_phrasing` (or the PRD phrasing when it is `(no spec)`).
 
-3. **Per-discrepancy** (if "Decide per discrepancy"): for each warning, show claim + Jira phrasing + Spec phrasing + Source (code) phrasing + location, then:
+3. **Per-discrepancy** (if "Decide per discrepancy"): for each warning, show claim + PRD phrasing + Spec phrasing + Source (code) phrasing + location, then:
    ```
    choices: ["Document as intended (spec)", "Document as actual (code)", "Skip this claim and report it", "Cancel", "Other… (describe)"]
    ```
-   "Document as intended (spec)" describes the agreed contract — the `spec_phrasing` (or the Jira phrasing when it is `(no spec)`) — and, when the code lags the intended phrasing, adds an intentional-discrepancy marker + bug-report draft. "Document as actual (code)" matches what shipped, and when it is a qualifying `document-as-code` case per §7.5, also records the gap in the bug-report draft. "Skip this claim and report it" omits the claim but still records the gap in the bug-report draft.
+   "Document as intended (spec)" describes the agreed contract — the `spec_phrasing` (or the PRD phrasing when it is `(no spec)`) — and, when the code lags the intended phrasing, adds an intentional-discrepancy marker + bug-report draft. "Document as actual (code)" matches what shipped, and when it is a qualifying `document-as-code` case per §7.5, also records the gap in the bug-report draft. "Skip this claim and report it" omits the claim but still records the gap in the bug-report draft.
 
-4. **Record `discrepancy_decisions[]`** keyed by `number` (claim, jira_phrasing, spec_phrasing, source_phrasing, source_location, decision ∈ {document-as-spec, document-as-code, skip-and-report}, rationale). `spec_phrasing` is recorded verbatim (`(no spec)` when none was provided). Set `bug_report_destination` to the ticket's vault project folder (resolved exactly like the release-notes destination in `/release-notes` — `find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"`; ask if none) when any decision is `document-as-spec` (where the code lags the intended phrasing), `skip-and-report`, or a qualifying `document-as-code` per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.5.
+4. **Record `discrepancy_decisions[]`** keyed by `number` (claim, prd_phrasing, spec_phrasing, source_phrasing, source_location, decision ∈ {document-as-spec, document-as-code, skip-and-report}, rationale). `spec_phrasing` is recorded verbatim (`(no spec)` when none was provided). Set `bug_report_destination` to the ticket's vault project folder (resolved exactly like the release-notes destination in `/release-notes` — `find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<KEY>*"`; ask if none) when any decision is `document-as-spec` (where the code lags the intended phrasing), `skip-and-report`, or a qualifying `document-as-code` per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.5.
 
 Pass `discrepancy_decisions` to Phase 6.3.
 
@@ -598,13 +604,13 @@ Run this phase only when write context = `docs_repo` (or `non_docs_repo` after u
    choices: ["Stash changes and continue (Recommended)", "Proceed anyway — pre-existing changes will appear in the diff", "Cancel"]
    ```
 
-3. **Derive branch name from repo conventions.** In priority order, look at repo root for `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`. Grep each for a branch-naming section (case-insensitive, patterns like "Branch name", "Branch naming", "naming your branch"). If a pattern like `<user>/<JIRA-KEY>-<slug>` or `<prefix>/<name>` is documented, derive the branch name by filling placeholders with known values (Jira key from Phase 0, slug from the feature summary, and any **identity** placeholder (`<user>`, `<your-name-or-initials>`, `<initials>`, …) from the §2 ladder in `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` — `$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → its §2.5 prompt). Classify the pattern's segments per §1.2 and never add an identity segment it does not ask for. If multiple patterns are documented, offer them all to the user. When no pattern is documented (§1.4), take the whole prefix from the same ladder, whose fallback for this command is `docs/`.
+3. **Derive branch name from repo conventions.** In priority order, look at repo root for `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`. Grep each for a branch-naming section (case-insensitive, patterns like "Branch name", "Branch naming", "naming your branch"). If a pattern like `<user>/<KEY>-<slug>` or `<prefix>/<name>` is documented, derive the branch name by filling placeholders with known values (key from Phase 0, slug from the feature summary, and any **identity** placeholder (`<user>`, `<your-name-or-initials>`, `<initials>`, …) from the §2 ladder in `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` — `$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → its §2.5 prompt). Classify the pattern's segments per §1.2 and never add an identity segment it does not ask for. If multiple patterns are documented, offer them all to the user. When no pattern is documented (§1.4), take the whole prefix from the same ladder, whose fallback for this command is `docs/`.
 
 4. **Confirm the branch name** — always, even when derived from conventions (initials and slugs are subjective):
    ```
    choices: ["Use proposed name: <name>", "Edit name (you'll be prompted)", "Cancel"]
    ```
-   Fallback default when no convention is found: `<prefix>/<jira-key>-<slug>`, where `<prefix>` comes from `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` §2 (fallback `docs/`).
+   Fallback default when no convention is found: `<prefix>/<key>-<slug>`, where `<prefix>` comes from `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` §2 (fallback `docs/`).
 
 5. **Create or adopt the branch, and record handoff anchors.** Record `base_branch` = the base resolved in step 1 (the Phase 8.5 squash uses it).
    - **Normal case** (`profile_source` is `in-repo` or `built-in`, or a custom repo whose profiling did not create a branch): `git switch -c <name>` from `base_branch`.
@@ -618,7 +624,7 @@ No external CLI calls; all git operations are local.
 
 The writing is delegated to the **`doc-writer`** subagent (pinned to the §2 Opus reasoning chain — see `classification.md` §9.2). The orchestrator prepares a structured handoff and dispatches; it does not write pages itself.
 
-1. **Write the handoff file.** Create a temp file (`mktemp`, e.g. `$(mktemp -t dw-<JIRA_KEY>-XXXX.yml)` — never the vault, never the docs repo) containing the `doc-writer` input contract: `jira_reader_handoff`, `diff_summaries`, `write_targets`, `doc_planner_checklist` (+ gap dispositions), `repo_authoring_guidance` (the planner's extracted repo-specific rules), `component_patterns` (the planner's recurring content-shape → dominant-component evidence, per `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §3 — like `repo_authoring_guidance`, a top-level sibling of the planner's `checklist:`, so it must be carried explicitly; `[]` when the sibling sample showed no established pattern), `discrepancy_decisions` (Phase 5.8), `cdn_handoff_decision` + `cdn_urls` + `screenshot_staging_dir` + `screenshots` + `existing_image_decisions` (Phase 5.6 / 6.1), `profile`, `docs_repo_path`, and `bug_report_destination`. Record its absolute path.
+1. **Write the handoff file.** Create a temp file (`mktemp`, e.g. `$(mktemp -t dw-<KEY>-XXXX.yml)` — never the vault, never the docs repo) containing the `doc-writer` input contract: `folder_read`, `diff_summaries`, `write_targets`, `doc_planner_checklist` (+ gap dispositions), `repo_authoring_guidance` (the planner's extracted repo-specific rules), `component_patterns` (the planner's recurring content-shape → dominant-component evidence, per `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §3 — like `repo_authoring_guidance`, a top-level sibling of the planner's `checklist:`, so it must be carried explicitly; `[]` when the sibling sample showed no established pattern), `discrepancy_decisions` (Phase 5.8), `cdn_handoff_decision` + `cdn_urls` + `screenshot_staging_dir` + `screenshots` + `existing_image_decisions` (Phase 5.6 / 6.1), `profile`, `docs_repo_path`, and `bug_report_destination`. Record its absolute path.
 
 2. **Dispatch the writer:**
 
@@ -691,7 +697,7 @@ Then act on the return:
   → Agent (subagent_type: "dev-workflows:doc-fixer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
     > "Fix the style violations for this brief:
     >
-    > Task description: [doc writing for <JIRA_KEY>]
+    > Task description: [doc writing for <KEY>]
     > Reviewer or style-checker output: [paste full docs-style-checker output]
     > Project root: [the resolved docs_repo_path (Phase 0)]
     > Severities to fix: BLOCKER and MAJOR"
@@ -781,9 +787,9 @@ Invoke `doc-reviewer` (Opus — pinned by its own frontmatter; recorded as `revi
 → Agent (subagent_type: "dev-workflows:doc-reviewer"):
   > "Review the written product documentation for this brief:
   >
-  > Task description: [one-paragraph summary of the feature and <JIRA_KEY>]
+  > Task description: [one-paragraph summary of the feature and <KEY>]
   > Written doc file paths: [absolute paths of every file written in Phase 6.3]
-  > Jira directory path:    [<jira_export_root>]
+  > PRD folder path:        [the resolved folder]
   > Diff summaries:         [array of diff-summarizer outputs from Phase 5]
   > doc-planner checklist:  [the full YAML from Phase 5.7]
   > style-check report: [the violations output from Phase 6.4 — from docs-style-checker or prose-style-checker; same violation schema regardless of source]
@@ -808,7 +814,7 @@ Act on the verdict:
   → Agent (subagent_type: "dev-workflows:doc-fixer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
     > "Fix the review findings for this brief:
     >
-    > Task description: [doc writing for <JIRA_KEY>]
+    > Task description: [doc writing for <KEY>]
     > Reviewer or style-checker output: [paste the triaged survivor list from the triage sub-step above — the surviving `doc-reviewer` findings only, never the dismissed ones]
     > Project root: [the resolved docs_repo_path (Phase 0)]
     > Severities to fix: BLOCKER and MAJOR"
@@ -829,7 +835,7 @@ a. Run `git -C <docs_repo_path> diff --stat` against the base branch (if branchi
 b. Compose a **change summary block**:
 
 ```
-Implementation: [one-sentence description of what was documented, naming <JIRA_KEY>]
+Implementation: [one-sentence description of what was documented, naming <KEY>]
 Change type: docs
 Classification: SIGNIFICANT
 Files changed (from git diff --stat):
@@ -845,7 +851,7 @@ Then spawn all four Phase 4-style maintenance agents in a **single Agent message
 > [paste change summary block]
 >
 > Scan for README.md, CHANGELOG.md, docs/, or any .md files in the project root or an adjacent docs tree.
-> Determine if *other* documentation needs updating as a consequence of this write (e.g., an index page, a cross-referenced overview, a changelog entry in the repo root). Do NOT touch release-notes / what's-new pages — those are generated from Jira by automation.
+> Determine if *other* documentation needs updating as a consequence of this write (e.g., an index page, a cross-referenced overview, a changelog entry in the repo root). Do NOT touch release-notes / what's-new pages — those are generated by automation.
 > - Skip if: the edit is confined to the intended target pages with no inbound cross-references.
 > - Update if: new page requires an index/sidebar entry, new sections require inbound cross-links.
 > If an update is warranted: apply minimal edits to the relevant section(s).
@@ -863,7 +869,7 @@ Then spawn all four Phase 4-style maintenance agents in a **single Agent message
 > - **Insight**: the learned rule, pattern, or gotcha
 > - **When it applies**: conditions under which this matters
 > - **Date**: YYYY-MM-DD
-> - **Ref**: [first 60 chars of the Jira key + feature summary]
+> - **Ref**: [first 60 chars of the key + feature summary]
 > Return: `{file, anchor, replacement, reason}` — `anchor` is the exact existing text to change, or the section to append to; `replacement` is the entry above in full; `reason` is why it's warranted — OR 'no update required'."
 
 **Agent 3 — Instructions** (general-purpose, model: `<detection_model — §9 / §2.1 Sonnet chain>`):
@@ -894,7 +900,7 @@ Collect all four summaries for the Phase 9 report.
 returns, project its plugin-facing slice into the specs repo by citing
 `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
 `emit-auto` entry point (§6). Pass Agent 4's Lessons Learned report,
-`command: /document (Jira mode)`, the run's `jira_key` and `source`, and
+`command: /document (keyed mode)`, the run's `key` and `source`, and
 `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto` renders only
 the report's **Command workflow improvements**, **New agents / skills**, and
@@ -921,7 +927,7 @@ Run this phase only when Phase 6.3 wrote + committed in a git repo (write contex
 Fold the run into clean history before handoff:
 1. Stage the run's uncommitted docs-repo edits — Phase 8 Agent 1 (doc index / cross-links) may have edited without committing; the Phase 6.2 clean-tree check means everything uncommitted is this run's work.
 2. Compute the squash base: if Phase 6.2 recorded `profile_commit` (inline-profiling run), base = `profile_commit` (keeps the profile-config commit as a distinct first commit → two commits); otherwise base = `git merge-base <base_branch> HEAD` (one commit).
-3. `git add` the docs-repo changes → `git reset --soft <squash-base>` → one `git commit`. The message follows `profile.commit_convention` when present (example-docs: `<JIRA-KEY> <summary>`); for a repo with no such field, infer from recent `git log` / `CONTRIBUTING`, else fall back to `<JIRA_KEY> <summary>`. NEVER put the Jira key in a reader-visible changelog — see `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1.
+3. `git add` the docs-repo changes → `git reset --soft <squash-base>` → one `git commit`. The message follows `profile.commit_convention` when present (example-docs: `<KEY> <summary>`); for a repo with no such field, infer from recent `git log` / `CONTRIBUTING`, else fall back to `<KEY> <summary>`. NEVER put the key in a reader-visible changelog — see `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1.
 
 ### Step 2 — Offer push
 
@@ -936,8 +942,8 @@ choices: ["Push <branch> to origin now", "Skip — I'll push later", "Cancel"]
 
 Per `${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md` §4–§5:
 1. **Detect the host** from the docs repo's `git remote get-url origin` (Bitbucket Cloud / Bitbucket Server / GitHub / other).
-2. **Compose the draft**: title (per `commit_convention`); body — what was documented, the output files, the Phase 6.5 render-verification summary, deferred style/review/render items, a link to the Jira PRD. When Phase 5.8 recorded any `document-as-spec` / `skip-and-report` decision, prepend a banner: `> ⚠ DO NOT MERGE until <JIRA_KEY>-implementation-gaps.md is resolved.` A qualifying `document-as-code` decision (§7.5) does NOT get this banner even though it also produces a gaps file — the docs correctly describe what shipped, so the PR is mergeable; only the source ticket needs correcting.
-3. **Write + show**: write `<JIRA_KEY>-pr-draft.md` to the vault project folder (`find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"`; ask if none) AND print it.
+2. **Compose the draft**: title (per `commit_convention`); body — what was documented, the output files, the Phase 6.5 render-verification summary, deferred style/review/render items, a link to the PRD. When Phase 5.8 recorded any `document-as-spec` / `skip-and-report` decision, prepend a banner: `> ⚠ DO NOT MERGE until <KEY>-implementation-gaps.md is resolved.` A qualifying `document-as-code` decision (§7.5) does NOT get this banner even though it also produces a gaps file — the docs correctly describe what shipped, so the PR is mergeable; only the source ticket needs correcting.
+3. **Write + show**: write `<KEY>-pr-draft.md` to the vault project folder (`find $VAULT_PATH/Projects -maxdepth 5 -type d -name "<KEY>*"`; ask if none) AND print it.
 4. **Host footer**: Bitbucket → "open a PR in the web UI and paste the title + body"; GitHub → additionally offer `gh pr create --title "<title>" --body-file <pr-draft path>` that the user may run; other → "open a PR and paste the title + body". Bitbucket offers no CLI to open one — a host capability limit, not a policy: the plugin does open a pull request on a host with a CLI, but only in the separate GitHub-hosted specs repo (`$SPECS_PATH`), via a different flow — never in this docs repo (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.6).
 
 Carry the squash result, push outcome, and PR-draft path into the Phase 9 report.
@@ -983,29 +989,29 @@ Carry each proposal's `{file, reason, disposition}` into the Phase 9 report.
 Output a structured report — do NOT ask any closing confirmation:
 
 ```
-## Jira-driven Documentation Report
+## keyed Documentation Report
 
 ### Classification
-SIGNIFICANT — Jira-driven feature documentation has large blast radius if wrong
+SIGNIFICANT — keyed feature documentation has large blast radius if wrong
 
 ### Model Routing
 - Session / writer model (current_model): [model] — [if it ran degraded: "Sonnet; user proceeded past the Phase 1.5 advisory" | "Sonnet; no Opus available" | "on §2 chain — no degradation"]
 - doc-planner synthesis (planning_model): [model]
-- Detection steps — jira-reader, diff-summarizer, doc-location-finder, docs-style-checker, doc-fixer, maintenance (detection_model): [model]
+- Detection steps — the folder read, diff-summarizer, doc-location-finder, docs-style-checker, doc-fixer, maintenance (detection_model): [model]
 - doc-reviewer (review_model): [model]
 - Opus available: [yes | no]
 
-### Jira hierarchy summary
+### PRD folder summary
 - PRD: [<KEY>] [summary, 1 line]
 - Linked items: [count by type — e.g. "3 Epics, 7 Stories, 2 Sub-tasks, 1 Research"]
-- Themes: [2–4 bullet points from jira-reader]
+- Themes: [2–4 bullet points from the folder read]
 
 ### Repos analysed
 - <repo-1> (<resolved repo_path>) — [N PRs in scope, M resolved, K unresolved]
 - ...
 
 ### PRs in scope
-- [PR URL] — status: [MERGED | OPEN | DECLINED | UNKNOWN], resolved_via: [pr_ref | branch_search | merge_commit | jira_key_commits | gh_cli | unresolved]
+- [PR URL] — status: [MERGED | OPEN | DECLINED | UNKNOWN], resolved_via: [pr_ref | branch_search | merge_commit | key_commits | gh_cli | unresolved]
 - ...
 
 ### Output file(s)
@@ -1013,7 +1019,7 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 - ...
 
 ### Branch
-[branch name created in Phase 6.2, e.g. docs/<jira-key>-<slug>] OR "N/A — no branch created (context: obsidian / plain_dir / user declined branching)"
+[branch name created in Phase 6.2, e.g. docs/<key>-<slug>] OR "N/A — no branch created (context: obsidian / plain_dir / user declined branching)"
 
 ### Verification gates
 | Gate | Outcome | Mechanism | Detail |
@@ -1049,8 +1055,8 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 ### Screenshots to upload manually
 [Only populated for the **Defer** path of Phase 6.1 — i.e. a target used image_policy: cdn_upload_required (or the user selected "Stage for manual upload" under the ambiguous branch) AND the user chose "Defer — stage with TODO placeholders" at the Phase 6.1 CDN handoff. For each staged screenshot: src (original user-provided path), staging path under <screenshot_staging_dir> (the persistent Obsidian project folder), the target page it belongs on, the proposed alt-text, and the upload_note from the planner. Omit this section entirely when no screenshots were staged — including when the user chose "Upload now" in Phase 6.1 (those images carry real CDN URLs in the markdown and need no manual step).]
 
-### Implementation gaps (Jira vs source)
-[Populated when Phase 5.8 produced any `document-as-spec` / `skip-and-report` decision, **or** any qualifying `document-as-code` decision (per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.5 — the Jira phrasing asserts a specific value that contradicts the source). All three write the same bug-report draft, so all three are listed here; the status line differs by decision:
+### Implementation gaps (PRD vs source)
+[Populated when Phase 5.8 produced any `document-as-spec` / `skip-and-report` decision, **or** any qualifying `document-as-code` decision (per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.5 — the PRD phrasing asserts a specific value that contradicts the source). All three write the same bug-report draft, so all three are listed here; the status line differs by decision:
 - `document-as-spec` / `skip-and-report` → "Bug-report draft written to <path>. If docs were branched, DO NOT merge the PR until these gaps are resolved."
 - qualifying `document-as-code` → "Bug-report draft written to <path>. Documented as shipped; the source ticket carries an incorrect claim — correct the ticket, no PR block."
 
@@ -1066,7 +1072,7 @@ List each gap (claim, decision) with its own status line — never print the DO-
 - [list any]
 
 ### Git state
-[When Phase 8.5 ran: "Branch <name> — squashed to N commit(s); pushed to origin: <yes/no>; PR draft: <pr-draft path>." When Phase 8.5 was skipped (no branch/commits): "Working tree has uncommitted changes. /document (Jira mode) writes but does not commit the docs write target in non-git contexts; this run's $SPECS_PATH session artifacts are committed separately by the terminal step."]
+[When Phase 8.5 ran: "Branch <name> — squashed to N commit(s); pushed to origin: <yes/no>; PR draft: <pr-draft path>." When Phase 8.5 was skipped (no branch/commits): "Working tree has uncommitted changes. /document (keyed mode) writes but does not commit the docs write target in non-git contexts; this run's $SPECS_PATH session artifacts are committed separately by the terminal step."]
 
 ### Next step
 [Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. Once **all** the PRD's Epics are documented, draft/finalize the release note → `/dev-workflows:release-notes <PRD>` (PRD-level; run once, not per Epic). If the review BLOCKED, resolve that first.]
@@ -1092,13 +1098,13 @@ follow-ups as durable Obsidian tasks (and notes) by citing
 inline.
 
 1. **Collect** the follow-up items already aggregated in the Phase 9 report:
-   `### Screenshots to upload manually`, `### Implementation gaps (Jira vs source)`,
+   `### Screenshots to upload manually`, `### Implementation gaps (PRD vs source)`,
    `### Skipped items`, and `### Deferred items`.
 2. **Filter** them with the reference's §6 qualifying predicate — emit only
    out-of-scope / manual-step signals; drop in-scope items the report already
    tracks.
 3. **Resolve** the write target via the §4 vault-availability ladder using the
-   run's `jira_key` and `source`; render + place tasks and verbose notes per
+   run's `key` and `source`; render + place tasks and verbose notes per
    §1–§3; dedupe per §5.
 4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.
 
@@ -1120,8 +1126,8 @@ token-cost contribution to the PRD by citing
 `emit-cost` entry point. Unlike feedback, **cost ALWAYS runs** — it never "writes
 nothing".
 
-Call `emit-cost` with `command: /document (Jira mode)`, `phase: documenting`,
-`role: dev`, the run's `jira_key` and `source`, and `plugin_version` (read from
+Call `emit-cost` with `command: /document (keyed mode)`, `phase: documenting`,
+`role: dev`, the run's `key` and `source`, and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the session
 transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),
 runs `scripts/session-cost.py` to compute the per-model token-cost delta against
@@ -1163,13 +1169,12 @@ name is ever written (§10 privacy).
 
 ## Invariants (always enforced)
 
-- ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, jira-not-found, cancellation)
+- ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation)
 - ALWAYS run Phase 0 docs-repo detection; if 0 signals, require user confirmation before proceeding
 - NEVER call Bitbucket REST APIs for Cloud or self-hosted Server — Bitbucket URLs are identifiers only; all resolution is pure local git
 - GitHub URLs may use the `gh` CLI for head/base SHA resolution; no direct REST calls outside `gh`
 - NEVER write inside `_archive/` — that path is read-only by convention
-- NEVER write inside `jira-products/` — that path is re-created from scratch on every Jira import; writes there will be lost
-- NEVER write product documentation outside the resolved `docs_repo_path` (Phase 0); the only other writes are to the ticket's vault project folder under `$VAULT_PATH` (the `<JIRA_KEY>-implementation-gaps.md` bug-report draft, the `<JIRA_KEY>-pr-draft.md`, and screenshot staging) — never anywhere else.
+- NEVER write product documentation outside the resolved `docs_repo_path` (Phase 0); the only other writes are to the ticket's vault project folder under `$VAULT_PATH` (the `<KEY>-implementation-gaps.md` bug-report draft, the `<KEY>-pr-draft.md`, and screenshot staging) — never anywhere else.
 - ALWAYS escalate missing repos before proceeding — never silent skip
 - ALWAYS invoke `docs-style-checker` (Phase 6.4) before `doc-reviewer` (Phase 7)
 - ALWAYS run the Phase 0 toolchain preflight (`${CLAUDE_PLUGIN_ROOT}/references/toolchain-preflight.md`) after profile resolution and before Phase 1; it prompts only when a required tool is missing
@@ -1177,7 +1182,7 @@ name is ever written (§10 privacy).
 - ALWAYS append each gate's ledger row at the moment that gate completes, per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` — NEVER reconstruct the ledger at Phase 9, and NEVER leave a registry gate without a row
 - NEVER present a phase's `choices:` array in an order, wording, or recommendation other than the one written; the "Choice lists are presented verbatim" rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` binds every prompt in this command
 - ALWAYS invoke `doc-reviewer` before Phase 8 maintenance
-- ALWAYS resolve the `model_routing` block at Phase 1.5 and pin each subagent dispatch to its §9 chain via `model:` — `doc-planner` to the §2 Opus chain, the mechanical steps (`jira-reader`, `diff-summarizer`, `doc-location-finder`, `docs-style-checker`, `doc-fixer`, maintenance) to the §2.1 Sonnet chain; `doc-reviewer` keeps its frontmatter Opus pin (no override); the inline writer + gates run on `current_model` (advisory only)
+- ALWAYS resolve the `model_routing` block at Phase 1.5 and pin each subagent dispatch to its §9 chain via `model:` — `doc-planner` to the §2 Opus chain, the mechanical steps (the folder read, `diff-summarizer`, `doc-location-finder`, `docs-style-checker`, `doc-fixer`, maintenance) to the §2.1 Sonnet chain; `doc-reviewer` keeps its frontmatter Opus pin (no override); the inline writer + gates run on `current_model` (advisory only)
 - ALWAYS cap review/fix cycles: 1 fix + 1 re-review max
 - ALWAYS pass `Change type: docs` in the Phase 8 change summary block
 - ALWAYS pass `Command run: /document` in the Phase 8 Agent 4 session handoff
@@ -1185,7 +1190,7 @@ name is ever written (§10 privacy).
 - ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
 - ALWAYS produce the Phase 9 report as the final output
 - ALWAYS end the Phase 9 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked; omitted in direct doc-edit mode (Mode B)
-- ALL written claims must be traceable to Jira keys or PR diffs — attribution goes in the run's return payload and the commit message, NEVER inline in the rendered page (`${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1)
+- ALL written claims must be traceable to a resolved key or to PR diffs — attribution goes in the run's return payload and the commit message, NEVER inline in the rendered page (`${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1)
 - For `image_policy: cdn_upload_required`, NEVER copy user-provided screenshots into the repo — stage under `<screenshot_staging_dir>`, the ticket's persistent Obsidian project folder under `$VAULT_PATH` (never the docs repo, never `/tmp`) — and surface in the Phase 9 `### Screenshots to upload manually` section
 - ALWAYS end the Phase 9 report with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a docs→PM handoff suggestion (`/clear`) + `/rename <PRD-ID>-<slug>-dev`; guidance only, never auto-run. **Mode B (direct doc-edit) omits this** — no PRD context.
 
@@ -1198,10 +1203,10 @@ Implement the following doc edit: $ARGUMENTS
 If the argument starts with `@`, treat it as a path to a markdown file. Resolve relative to the current working directory. Read its full content and use it as the description. Echo `📄 Reading prompt from \`<file>\`…` before proceeding. If the file cannot be read, stop and report the error immediately.
 
 `/document` (direct mode) is the **one-shot doc-editing** workflow — minor edits, formatting, small updates to existing pages, and single-file additions where the content comes from the user's description alone. It is the right tool when:
-- the change is small and the content is already in the user's head or the file, **not** scattered across Jira items and PR diffs
+- the change is small and the content is already in the user's head or the file, **not** scattered across PRD sections and PR diffs
 - no tests, no branch (still true — the specs-repo preflight creates none, `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2), no code review, and no commit of the doc edit are warranted
 
-For net-new documentation assembled from a Jira hierarchy plus PR diffs, use Jira mode (above). For writing child Epic drafts from a Product Requirements Document, use `/epics`.
+For net-new documentation assembled from a PRD folder plus PR diffs, use keyed mode (above). For writing child Epic drafts from a Product Requirements Document, use `/epics`.
 
 No model-routing reminder is injected for this command — classification still happens but is always SIMPLE or MODERATE, and Opus is never invoked.
 
@@ -1267,9 +1272,9 @@ Doc edits in this command are always either **SIMPLE** or **MODERATE**:
 - **SIMPLE** — single file, small additions / fixes / rewording, no cross-file linking
 - **MODERATE** — multi-file edit, non-trivial restructure, or content that needs internal cross-references
 
-If your reading of the task lands closer to SIGNIFICANT or HIGH-RISK (multi-repo, net-new feature pages from a Jira hierarchy, published-documentation blast radius that needs a reviewer gate), **stop and redirect the user** to Jira mode or `/epics`:
+If your reading of the task lands closer to SIGNIFICANT or HIGH-RISK (multi-repo, net-new feature pages from a PRD folder, published-documentation blast radius that needs a reviewer gate), **stop and redirect the user** to keyed mode or `/epics`:
 ```
-choices: ["Re-run under /dev-workflows:document (Jira mode) (for Jira-sourced feature documentation) (Recommended)", "Re-run under /dev-workflows:epics (for Epic drafting)", "Proceed under direct mode anyway — I accept the simplified flow", "Cancel"]
+choices: ["Re-run under /dev-workflows:document (keyed mode) (for PRD-sourced feature documentation) (Recommended)", "Re-run under /dev-workflows:epics (for Epic drafting)", "Proceed under direct mode anyway — I accept the simplified flow", "Cancel"]
 ```
 
 State the classification and a one-line reason, then proceed to Phase 2A.
@@ -1431,7 +1436,7 @@ Collect all four summaries for the Phase 5 report.
 returns, project its plugin-facing slice into the specs repo by citing
 `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
 `emit-auto` entry point (§6). Pass Agent 4's Lessons Learned report,
-`command: /document (direct mode)`, the run's `jira_key` (usually `null` in
+`command: /document (direct mode)`, the run's `key` (usually `null` in
 direct mode) and `source`, and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto` renders only
 the report's **Command workflow improvements**, **New agents / skills**, and
@@ -1451,7 +1456,7 @@ into the docs repo or the current working directory.
 
 ## Phase 4.5 — Maintenance proposals
 
-Direct mode never commits the doc edits — Phase 3 explicitly creates no branch and no commit — so the ordering constraint that gates Jira mode's Phase 8.6 is already satisfied here: there is no docs commit for an accepted proposal to ride. What the run does commit, via the terminal `commit-artifacts` step, is bounded to `$SPECS_PATH`'s artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1) and can never carry a proposal from this phase. This phase exists only so an accepted proposal still gets applied instead of just reported, the same as Jira mode's Phase 8.6.
+Direct mode never commits the doc edits — Phase 3 explicitly creates no branch and no commit — so the ordering constraint that gates keyed mode's Phase 8.6 is already satisfied here: there is no docs commit for an accepted proposal to ride. What the run does commit, via the terminal `commit-artifacts` step, is bounded to `$SPECS_PATH`'s artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1) and can never carry a proposal from this phase. This phase exists only so an accepted proposal still gets applied instead of just reported, the same as keyed mode's Phase 8.6.
 
 Skip this phase with no prompt when both Phase 4 Agent 2 and Agent 3 returned `'no update required'`.
 
@@ -1547,7 +1552,7 @@ its steps inline.
    no-op).
 2. **Filter** them with the reference's §6 qualifying predicate.
 3. **Resolve** the write target via the §4 ladder. Direct mode usually has no
-   `jira_key` (`source = none`), so tasks land in `Tasks.md # Irregular` when the
+   `key` (`source = none`), so tasks land in `Tasks.md # Irregular` when the
    vault is writable, else the phase degrades to report-only.
 4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.
 
@@ -1570,7 +1575,7 @@ token-cost contribution to the PRD by citing
 nothing".
 
 Call `emit-cost` with `command: /document (direct mode)`, `phase: documenting`,
-`role: dev`, the run's `jira_key` (usually `null` in direct mode) and `source`,
+`role: dev`, the run's `key` (usually `null` in direct mode) and `source`,
 and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the session
 transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),
@@ -1607,7 +1612,7 @@ directory; no user name is ever written (§10 privacy).
 
 ## Invariants (always enforced)
 
-- ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, jira-not-found, cancellation)
+- ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation)
 - ALWAYS run Phase 3.5 (style check) after editing — `docs-style-checker` falls back to `prose-style-checker`; never skip style on tool-absence judgement
 - NEVER create a git branch — this mode never branches. `specs-preflight` may switch `$SPECS_PATH` between branches that already exist, and only ones the plugin created (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none.
 - NEVER run tests (this command has no test phase)
@@ -1625,4 +1630,4 @@ directory; no user name is ever written (§10 privacy).
 - ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
 - ALWAYS produce the Phase 5 report as the final output
 - ALWAYS run the Validation checks from the plan — validation failures are surfaced in the Phase 5 report, not silently accepted
-- IF the task reads as SIGNIFICANT / HIGH-RISK on inspection: redirect to `/document` (Jira mode) or `/epics` rather than proceeding under the simplified flow
+- IF the task reads as SIGNIFICANT / HIGH-RISK on inspection: redirect to `/document` (keyed mode) or `/epics` rather than proceeding under the simplified flow

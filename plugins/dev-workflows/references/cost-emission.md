@@ -377,7 +377,7 @@ subdir. Walk top-down; stop at the first tier that applies:
    an existing, writable dir) ->
    `$VAULT_PATH/dev-workflows/cost/<sid8>.md` with the loud notice:
    `⚠ $SPECS_PATH unavailable — saved to your vault; it will NOT auto-aggregate to the maintainer.`
-4. `source = directory` (imported Jira dir, no specs/vault) -> beside the
+4. `source = directory` (a passed directory, no specs/vault) -> beside the
    imported directory.
 5. Nothing resolvable -> **report-only** in the run output. **NEVER write into the
    current working directory** — it may be a code repo.
@@ -403,7 +403,7 @@ summarized by date / session / commands / total) and offers to relocate their
 entries into `<PRD-dir>/dev-workflows/cost/<sid8>.md`:
 
 - **Same-session `<sid8>` match is pre-selected** as the likely one -> the
-  create-in-markdown -> create-in-Jira -> import -> keyed-command flow becomes
+  create-in-markdown -> keyed-command flow becomes
   effectively one tap.
 - New-session pending files are listed for the user to pick.
 - No match -> leave for manual relocation, or accept the partial loss.
@@ -427,7 +427,7 @@ and acceptable.
 ## 11. Caller contract — `emit-cost`
 
 One entry point. Every caller supplies `command`, `phase`, `role` (or the
-`inferred` marker — `/release-notes`, `/prompt`, `/feedback`), `jira_key` (or
+`inferred` marker — `/release-notes`, `/prompt`, `/feedback`), `key` (or
 `null`), `source`, and `plugin_version`; `/prompt` and `/feedback` additionally
 supply `target_command`. `emit-cost` does the rest; it NEVER commits, NEVER writes
 into a docs/code repo or the current working directory, and NEVER fails the
@@ -437,7 +437,7 @@ run. The cost entry is committed later, once, by the run's terminal
 
 Inputs:
 - `command` — the exact slash-command name (e.g. `/implement`,
-  `/document (Jira mode)`, `/document (direct mode)`).
+  `/document (keyed mode)`, `/document (direct mode)`).
 - `phase`, `role` — the §7 labels, or the `inferred` marker for the three
   commands §7 resolves. The three resolve from **different** data, and each must
   therefore be given it:
@@ -448,12 +448,12 @@ Inputs:
 - `target_command` — **required when `command` is `/prompt` or `/feedback`.** The
   §7 **row name** of the command whose output is being corrected or remarked on, or
   `n/a`. Note this is the bare row name (`/document`), not the mode-qualified form
-  the `command` field above uses (`/document (Jira mode)`) — a qualified value
+  the `command` field above uses (`/document (keyed mode)`) — a qualified value
   matches no row and would silently degrade to `plugin-feedback`/`n/a`. This is the same value the run writes as the feedback entry's `command:`
   field, so the two never disagree. Omitting it is a caller error: §7 has no other
   source for it, and the entry would silently fall back to
   `plugin-feedback`/`n/a`, quietly mis-attributing every correction.
-- `jira_key` (or `null`), `source` (`vault | directory | none`).
+- `key` (or `null`), `source` (`vault | directory | none`).
 - `plugin_version` — read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`
   (`python3 -c "import json;print(json.load(open('<path>'))['version'])"`).
 

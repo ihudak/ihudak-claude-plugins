@@ -12,6 +12,8 @@ key: <KEY>                   # this folder's key — must match the folder name
 ---
 ```
 
+**Unknown frontmatter keys are preserved.** Every command that rewrites this file keeps fields it does not recognise, in place and unmodified — the same rule `references/prd-format.md` states for a PRD, and for the same reason: a user's own field must survive a run that did not author it. `workitem_key` is the documented example, and it is reserved rather than special-cased.
+
 Both fields are how the folder asserts its own identity, so that nothing downstream parses a key out
 of a directory name (`references/addressing.md` §4). The filename is `specification.md` and carries
 no key: the folder supplies identity, the filename supplies kind.

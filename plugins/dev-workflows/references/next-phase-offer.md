@@ -73,14 +73,14 @@ not required.
 
 **PM — ideation & framing**
 
-- `/dev-workflows:idea` — refined → `/dev-workflows:create-prd <JIRA-KEY>` (PM); draft → `/dev-workflows:idea @<path> --deep` (PM, refine)
-  or `/dev-workflows:create-prd <JIRA-KEY>` (PM, proceed on a draft — not recommended).
-- `/dev-workflows:create-prd <JIRA-KEY>` — after the paste-into-Jira + re-import round-trip:
+- `/dev-workflows:idea` — refined → `/dev-workflows:create-prd <KEY>` (PM); draft → `/dev-workflows:idea @<path> --deep` (PM, refine)
+  or `/dev-workflows:create-prd <KEY>` (PM, proceed on a draft — not recommended).
+- `/dev-workflows:create-prd <ADDRESS>`:
   `/dev-workflows:release-notes <PRD>` (PM — draft the release note; recommended clear next step); hand to PA
   *(optional)* → `/dev-workflows:create-ard <PRD>`; or hand to PE → `/dev-workflows:epics <PRD>` (or `/dev-workflows:specify <PRD>`).
 - `/dev-workflows:update-prd <KEY>` — re-entry, not a linear node: reached when
   `/dev-workflows:create-prd` redirects an existing-PRD call, or when a later phase forces a PRD
-  refresh. After the paste-into-Jira + re-import round-trip it offers:
+  refresh. It offers:
   `/dev-workflows:release-notes <PRD>` (PM), `/dev-workflows:create-ard <PRD>` (PA, if one exists),
   `/dev-workflows:epics <PRD>` (PE), `/dev-workflows:specify <PRD>` (PE, if one exists).
 
@@ -108,21 +108,21 @@ not required.
   pipeline, and its own re-entry. **Re-entry:** another `/dev-workflows:brd-interview <BRD-KEY>`
   round where this run reopened a decision, `/dev-workflows:brd-package <BRD-KEY>` where questions
   remain for the customer, or `/dev-workflows:brd-ground <BRD-KEY> --rebaseline` where the review
-  challenged a code claim. **Advance:** `--from-brd` on `/dev-workflows:create-prd`,
+  challenged a code claim. **Advance:** the BRD route on `/dev-workflows:create-prd`,
   `/dev-workflows:create-ard` and `/dev-workflows:specify` all ship, and that command's next-step
   phase offers all three off the one BRD key — **but only on a run that left nothing to re-enter
   for.** Advance and re-entry are two arrays there, not one: where that run reopened a decision,
   left a `[C]` held for the customer, left a finding for a `--rebaseline` pass, or could only record
   a dependent's sweep, all three advance options are dropped, because a `reopened` record may not be
   consumed downstream (`references/decision-register-format.md` §3) and all three consume the
-  register. On an advancing run, `/dev-workflows:create-prd <BRD-KEY> --from-brd` carries the further
+  register. On an advancing run, `/dev-workflows:create-prd <BRD-KEY>` carries the further
   condition that the reconciled ledger leaves no row `unallocated` and at least one `covered-here`
   (`references/coverage-ledger-format.md` §5, the two refusals its Phase 0 raises); the other two
-  carry none of their own, since neither dispatches `jira-reader`, neither runs the PRD gate and
+  carry none of their own, since neither dispatches the folder read, neither runs the PRD gate and
   neither reads the ledger. **That difference is where the two conditions come from, and it matters:**
   `/create-prd`'s is enforced by its own Phase 0, so offering it wrongly hands over a run that stops;
-  the advance/re-entry split is enforced **nowhere downstream** — `/create-ard --from-brd` and
-  `/specify --from-brd` treat an `open` or `reopened` record as an open question to record rather
+  the advance/re-entry split is enforced **nowhere downstream** — `/create-ard` on the BRD route and
+  `/specify` on the BRD route treat an `open` or `reopened` record as an open question to record rather
   than as a stop — so `/dev-workflows:brd-reconcile` is the only station that can make it. None of
   the three carries `<merge-clause>`: none of them runs `require-on-main` against anything
   `/dev-workflows:brd-reconcile` writes.
@@ -145,7 +145,7 @@ not required.
 - `/dev-workflows:design <PRD> <Epic>` → optionally `/dev-workflows:ready <PRD> <Epic>` (verify readiness) →
   `/dev-workflows:implement <PRD> <Epic>`.
 - `/dev-workflows:ready <PRD> [<Epic>]` → **SUPPORTED** → `/dev-workflows:implement <PRD> [<Epic>]`; **PARTIAL / NOT-SUPPORTED**
-  → resolve the named gaps + update the Jira status, then re-run `/dev-workflows:ready`. *(Read-only verifier;
+  → resolve the named gaps + update the declared status, then re-run `/dev-workflows:ready`. *(Read-only verifier;
   not itself a linear pipeline node — an optional gate before build.)*
 - `/dev-workflows:implement <PRD> <Epic>` → finish remaining Epics (breadth); once ALL Epics implemented →
   `/dev-workflows:document <PRD>` → `/dev-workflows:release-notes <PRD>`. *(Direct mode → no forward offer.)*

@@ -32,26 +32,26 @@ Mirrors the wiki `_shared/task-rules.md` Obsidian-Tasks line:
 - **➕ `<today>`** — ALWAYS add the creation date (`YYYY-MM-DD`). Scheduled
   (`⏳`) and due (`📅`) dates are optional — add only when the signal implies
   them.
-- **Jira link** — when the item carries a Jira key, render it
+- **Work-item link** — when the item carries a `workitem_key`, render it
   `[<KEY>](<base>/browse/<KEY>)` using the base URL discovered from existing
   vault tasks
   (`grep -rh 'atlassian.net/browse/' "$VAULT_PATH"/Projects "$VAULT_PATH"/Tasks.md 2>/dev/null | head -3`);
   if no base is known, include the bare `<KEY>` as plain text.
 
-## 2. Target-file resolution (Jira-first, deterministic)
+## 2. Target-file resolution (key-first, deterministic)
 
-The run carries `source` (`vault | directory | none`) and, when Jira-driven, a
-`jira_key`. Resolve the task's home:
+The run carries `source` (`vault | directory | none`) and, when keyed, a
+`key`. Resolve the task's home:
 
-1. **Vault writable (§4) AND the run has a `jira_key`** → locate the project
+1. **Vault writable (§4) AND the run has a `key`** → locate the project
    folder with the existing pattern (`${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md`):
 
-       find "$VAULT_PATH"/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"
+       find "$VAULT_PATH"/Projects -maxdepth 5 -type d -name "<KEY>*"
 
    Inside it, the project file is `P<NNNN> <slug>.md`. Verify its frontmatter
    `tags:` includes `task` and `archived:` is `false` or absent, then insert
    the task under `## Work Items → ### Tasks`.
-2. **Vault writable but no project match / verification fails / no `jira_key`**
+2. **Vault writable but no project match / verification fails / no `key`**
    → fall back to `$VAULT_PATH/Tasks.md`, inserting under `# Irregular`. Create
    `Tasks.md` from the bootstrap template (frontmatter `tags: [task]` +
    `# Tasks` + `# Irregular`) if it does not exist.
@@ -94,10 +94,10 @@ is an existing directory **and** the path is writable.
    is inlined as sections of that same file (no `Journal.md` outside a vault);
    the task line links the section.
 3. **No vault; no `$SPECS_PATH` PRD dir; `source = directory`** → write beside
-   the imported Jira directory:
-   `<parent-of-jira_export_root>/<KEY>-followups.md` (the imported hierarchy's
+   the folder in the specs tree:
+   `<PRD-folder>/<KEY>-followups.md` (the imported hierarchy's
    parent — the same area under which /epics and /release-notes place their
-   no-vault drafts, e.g. /epics' epic-drafts/<jira_key>/).
+   no-vault drafts, e.g. /epics' epic-drafts/<KEY>/).
 4. **None resolvable** → **report-only.** Keep the follow-ups in the Final
    Report and emit the notice. **NEVER** write into the current working
    directory — it may be a code repository.
@@ -108,8 +108,8 @@ behaviour — zero regression) and the pipeline never fails.
 - **Notice** (tiers 2–4):
   `⚠ No writable vault — N follow-ups written to <path>`;
   tier 4: `⚠ No writable vault or specs dir — N follow-ups kept in this report only; set $VAULT_PATH or $SPECS_PATH to persist them`.
-- **Interactive escape** (folds into the §7 batch preview, mirroring Fallback A
-  in `jira-input-resolution.md`): below the vault tier, show the resolved
+- **Interactive escape** (folds into the §7 batch preview, mirroring the retired front-end's own escape
+  the retired tracker front-end used): below the vault tier, show the resolved
   fallback path and offer
   `choices: ["Save to <resolved path>", "Enter a vault path", "Keep in report only"]`,
   default = save.
@@ -128,7 +128,7 @@ uncluttered and groups all dev-workflows output for a PRD in one place.
 
 Pipelines re-run. Before inserting, READ the existing tasks in the target
 section and SKIP any whose stable key already appears. **Stable key** = the
-finding's identity: `jira_key` + (file path | gap-id | signal-type). Report a
+finding's identity: `key` + (file path | gap-id | signal-type). Report a
 match as `SKIP — already exists` (mirrors `/wiki-tasks-extract` Step 5); never
 re-insert.
 
@@ -138,11 +138,11 @@ Emit a task ONLY for signals whose action lands OUTSIDE the current change or
 requires a MANUAL human step:
 
 - Files/pages owned by others (the owner was surfaced and the edit is theirs to make).
-- Implementation gaps (Jira vs source; the `<KEY>-implementation-gaps.md`
+- Implementation gaps (PRD vs source; the `<KEY>-implementation-gaps.md`
   draft) → the task links the draft; verbose context → a note (§3).
-- Manual publish steps: screenshots to upload (CDN), "paste release notes into
-  Jira", "create these Epics in Jira manually", open-the-PR-by-hand.
-- SPEC-VS-JIRA ("update the Jira ticket to match the spec").
+- Manual publish steps: screenshots to upload (CDN), "publish the release notes",
+  "create these Epics in your tracker manually", open-the-PR-by-hand.
+- SPEC-VS-PRD ("update the PRD to match the spec").
 - Unresolved PRs on unsupported hosts (must be documented manually).
 
 DO NOT emit tasks for in-scope items the report/draft already tracks: deferred
@@ -175,8 +175,8 @@ The calling phase provides:
 
 - `follow_up_items` — the qualifying signals it already aggregated in its Final
   Report follow-up sections.
-- `jira_key` — the run's resolved key, or `null`.
-- `source` — `vault | directory | none` from `jira-input-resolution.md`.
+- `key` — the run's resolved key, or `null`.
+- `source` — `vault | directory | none`, from the run's own input resolution.
 
 The phase applies §6 (filter) → §4 (resolve target) → §1–§3 (render + place) →
 §5 (dedupe) → §7 (confirm), then writes. It is ADDITIVE: the follow-ups always

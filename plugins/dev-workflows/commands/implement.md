@@ -16,45 +16,45 @@ Implement the following: $ARGUMENTS
 |---|---|---|
 | **Spec file** | a single `.md` file | read fully; use as the description/spec |
 | **Spec folder** | a directory containing `prompt.md` and/or a `*-design.md` | read all `.md` specs within; fold into the description |
-| **Jira ticket folder** | a directory containing a `*-index.md`, or ticket-key subdirectories each containing a `KEY.md` | hand to `jira-reader` in Phase 1.7 |
+| **Specs folder** | a directory containing a `*-index.md`, or ticket-key subdirectories each containing a `KEY.md` | hand to the folder read in Phase 1.7 |
 | **Code repo** | a directory where `git -C <path> rev-parse --is-inside-work-tree` succeeds (includes the cwd) | scan target in Phase 1.7 |
 
-**Jira-input resolution (shared front-end).** Before the per-`@path`
-classification above, run `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`
-against `$ARGUMENTS`. It unifies the input grammar with `/document`: a **JiraID**
-token (`^[A-Z][A-Z0-9]+-[0-9]+`) is discovered under `$VAULT_PATH/jira-products/`
-(Fallbacks A/B on miss); a directory that inspects as a **jira-export** is used as
-`jira_export_root`; a **spec-folder** contributes to `specs`; everything else is
-`direct` (free-text/`@file`, this command's existing flow). The classification
-table above is the directory branch of that front-end — a Jira ticket folder ↔
-jira-export, a spec folder ↔ spec-folder, a code repo ↔ an `/implement`-only
-target. Carry `mode`, `jira_key`, `jira_export_root`, `focus_key`, and `specs` forward.
+**Address resolution.** Before the per-`@path` classification above, look for a **single positional
+address** in `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a folder in the specs tree. Present →
+resolve it with `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3) and the run
+is **keyed**; absent → the run is **direct** (free-text / `@file`, this command's existing flow).
+That is the whole mode test, and it unifies the input grammar with `/document`.
 
-**Epic-unit resolution (jira-driven).** `/implement` implements one Epic at a time.
-After the front-end resolves, when `mode: jira-driven`:
+The classification table above still applies to every other `@path` token: a spec folder contributes
+to `specs`, a code repo is an `/implement`-only scan target. Carry `mode` (`keyed | direct`), the
+resolved `path`, `kind` and `key`, and `specs` forward.
 
-- **`focus_key` set** (explicit `<PRD> <Epic>`, a bare nested `<Epic>`, or chosen in
-  the picker below) → proceed for that Epic. The Jira read (Phase 1.7) and specs
-  resolution both scope to it.
-- **`focus_key` null** → classify the target with a cheap `jira-reader`
-  `depth: prd-plus-epics` read on `jira_export_root`, then follow
-  `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` §"Progress-aware Epic
-  picker":
+**Epic-unit resolution (keyed runs).** `/implement` implements one Epic at a time. When
+`mode: keyed`:
+
+- **The address named an `EPIC-` folder** → `focus_key` is its `key`; proceed for that Epic. The
+  Phase 1.7 scan and specs resolution both scope to it.
+- **The address named a `PRD-` folder** → `focus_key` is null; enumerate the `EPIC-` folders
+  directly under it — a directory listing, which is what the linked-item hierarchy has become — and
+  run the progress-aware picker below.
   - the item is **itself an Epic** (stand-alone / top-level) → no picker; proceed
     directly (`focus_key` stays null; specs resolve at the item's top-level dir).
   - **PRD with exactly 1 Epic** → no picker; set `focus_key` to that Epic and proceed.
-  - **PRD with ≥2 Epics** → render the picker. `/implement`'s **done-predicate is the
-    Epic's Jira status** (`linked_items[].status`): map *done / closed / resolved* →
-    ● (greyed, not default-selectable; selecting offers "implement anyway"), *in
-    progress / in review* → ◐, anything else → ○; always show the raw status text
-    beside each row so a lagging status can't mislead. If the export carries no
-    status, degrade to a plain unstatused selection list. Include the explicit choice
+  - **PRD with ≥2 Epics** → render the picker. **`/implement`'s done-predicate is now the artifacts
+    present in each Epic folder**, which is the mechanism `/design`'s own Epic picker already uses:
+    `specification.md` but no `design.md` → ○; `design.md` present → ◐. **● is not determinable in
+    this increment** — the signal that an Epic was implemented is `implementation.md`, which
+    `/implement` itself begins writing in increment C — so say so beside the list rather than
+    showing a marker the tree cannot support. Reading the artifacts rather than a status field is
+    strictly better than what it replaces: a declared status is a human's claim about the work and
+    could lag it, which is why the old picker had to print the raw status text as a hedge. Include the explicit choice
     **"Implement one broad PRD-level slice instead"** (`focus_key` stays null → specs
     resolve PRD-level). Selecting an Epic sets `focus_key` and proceeds for **that Epic
     only** — there is **no "Next Epic?" loop** (code-writing is heavy and branchy;
     each `/implement` run targets one Epic).
-  - **PRD with 0 Epics** → offer: split with `/dev-workflows:epics` first (then re-import), or
-    implement one broad PRD-level slice (`focus_key` stays null).
+  - **PRD with 0 Epics** → offer: split with `/dev-workflows:epics` first, or implement one broad
+    PRD-level slice (`focus_key` stays null). Nothing follows `/epics` before this command sees its Epics — it
+    writes into the tree this command reads.
 
 When the picker (or the 1-Epic auto-path) sets `focus_key` that was initially null,
 **re-resolve `specs`** per the shared reference §Specs-resolution now that `focus_key`
@@ -77,12 +77,12 @@ Rules:
 - A referenced `@dir` that is missing, or is neither a recognized folder type nor a git repo, MUST be surfaced to the user immediately (do not silently skip) — then ask whether to continue without it or stop. This mirrors `classification.md` §8.4.
 - Note any embedded images as "referenced image: <path>".
 - If a single `@file` cannot be read, stop and report the error immediately.
-- **Specs are required for jira-driven runs.** When `mode: jira-driven` and the
-  front-end resolved `specs: []`, do not plan blind — prompt:
+- **Specs are required for keyed runs.** When `mode: keyed` and the resolution found
+  `specs: []`, do not plan blind — prompt:
   `choices: ["Point me at a specs directory (you'll provide the path)", "Proceed without specs — not recommended", "Cancel"]`
   "Point me…" takes a path, classifies it as a spec-folder, and re-resolves
   `specs`. "Proceed without specs" is logged in the Phase 5 report's
-  `### Assumptions & limitations`. Direct-mode runs (no Jira input) are exempt —
+  `### Assumptions & limitations`. Direct-mode runs (no address) are exempt —
   the prompt/spec file is the instruction.
 
 **Specs-repo preflight.** Cite
@@ -96,24 +96,27 @@ is clean and on its default branch. If a guard fires, emit its §5 notice;
 if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole
 run — the terminal `commit-artifacts` step skips on it.
 
-**Gate the in-scope specs on `$SPECS_PATH`'s main.** This runs after the cheap `focus_key`-null `jira-reader` classification above — a deliberate, bounded exception to `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §5 rule 2's "before its first subagent dispatch", and structurally forced: this gate's `specs` set is derived from `focus_key`, which that dispatch resolves. The exception is bounded to that one read-only Epic-unit classification; every expensive step — the Phase 1.7 fan-out, `risk-planner`, and all writes — still follows the gate. (`/epics` records its own §5 rule 2 deviation the same way.) For each resolved `specs` path whose basename is `specification.md` or `design.md` — `/implement`'s **in-scope** spec/design files, the same set Phase 2B and the invariants section reference for the conformance dimension — execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against it, mapping its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4, naming `$SPECS_PATH` explicitly — `/implement` stands in a **code** repo, so an unqualified stop message would point at the wrong repository. Otherwise (`stopped: false`): `pass`/`pass_amending` → proceed (on `pass_amending`, print §3.3's row-B message — reachable only when an **earlier** `/implement` run's Phase 4.5 handoff created the branch and `specs-repo-git.md` §3.5 B3 kept this run's preflight checkout on it — never this run's own Phase 4.5, which has not executed when this Phase 0 gate runs; `/implement` does not itself author `specification.md`/`design.md`, so a leftover `spec/`/`design/` branch left by an earlier `/specify`/`/design` run is never row B for this gate — it is row C/C′, and the stop/repair path above already covers it). `absent` → **only an in-scope spec is gated at all** — a direct-prompt run resolves none of these `specs` entries and is entirely unaffected, so do not stop; behave exactly as before this feature. `unmanaged` → behave exactly as before this feature. A spec/design supplied directly as a lone `@path` primary description — the Design-doc open-question guard's own input above, a separate mechanism from the `specs` list this gate reads — is **out-of-contract**: read where it sits, deliberately not gated here, the same rule this plan set for `/create-prd <KEY> @<path>`.
+**Gate the in-scope specs on `$SPECS_PATH`'s main.** This runs after the cheap `focus_key`-null folder classification above — a deliberate, bounded exception to `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §5 rule 2's "before its first subagent dispatch", and structurally forced: this gate's `specs` set is derived from `focus_key`, which that dispatch resolves. The exception is bounded to that one read-only Epic-unit classification; every expensive step — the Phase 1.7 fan-out, `risk-planner`, and all writes — still follows the gate. (`/epics` records its own §5 rule 2 deviation the same way.) For each resolved `specs` path whose basename is `specification.md` or `design.md` — `/implement`'s **in-scope** spec/design files, the same set Phase 2B and the invariants section reference for the conformance dimension — execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against it, mapping its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4, naming `$SPECS_PATH` explicitly — `/implement` stands in a **code** repo, so an unqualified stop message would point at the wrong repository. Otherwise (`stopped: false`): `pass`/`pass_amending` → proceed (on `pass_amending`, print §3.3's row-B message — reachable only when an **earlier** `/implement` run's Phase 4.5 handoff created the branch and `specs-repo-git.md` §3.5 B3 kept this run's preflight checkout on it — never this run's own Phase 4.5, which has not executed when this Phase 0 gate runs; `/implement` does not itself author `specification.md`/`design.md`, so a leftover `spec/`/`design/` branch left by an earlier `/specify`/`/design` run is never row B for this gate — it is row C/C′, and the stop/repair path above already covers it). `absent` → **only an in-scope spec is gated at all** — a direct-prompt run resolves none of these `specs` entries and is entirely unaffected, so do not stop; behave exactly as before this feature. `unmanaged` → behave exactly as before this feature. A spec/design supplied directly as a lone `@path` primary description — the Design-doc open-question guard's own input above, a separate mechanism from the `specs` list this gate reads — is **out-of-contract**: read where it sits, deliberately not gated here, the same rule this plan set for `/create-prd <KEY> @<path>`.
 
 ---
 
-## Phase 0.5 — Readiness pre-flight (jira-driven only; advisory)
+## Phase 0.5 — Readiness pre-flight (keyed runs only; advisory)
 
-**Jira mode only.** When `mode: direct` this phase is a **no-op** — skip it entirely
+**Keyed runs only.** When `mode: direct` this phase is a **no-op** — skip it entirely
 (direct-mode runs are byte-identical to before).
 
-When `mode: jira-driven`, read the resolved item's declared Jira status (reuse the
-Phase 0 `prd-plus-epics` read if it ran, else a cheap Status-column read of
-`<jira_export_root>/<jira_key>-index.md`). Also, if `$SPECS_PATH` is set, check for a
-co-located `_readiness.md` in the item's specs dir.
+When `mode: keyed`, check the resolved folder for a co-located `_readiness.md`.
 
-Surface a **one-line, non-blocking** recommendation to run `/dev-workflows:ready <PRD> [<Epic>]` first when
-EITHER: the status is below the readiness bar (PRD below **Ready for Implementation**; Epic below
-**Refined**), OR a `_readiness.md` records **NOT-SUPPORTED** / **PARTIAL**. This NEVER blocks —
-proceed regardless; it is guidance only. If neither condition holds, say nothing and continue.
+Surface a **one-line, non-blocking** recommendation to run `/dev-workflows:ready <ADDRESS>` first
+when that `_readiness.md` records **NOT-SUPPORTED** / **PARTIAL**. This NEVER blocks — proceed
+regardless; it is guidance only. If it records SUPPORTED, or there is none, say nothing and continue.
+
+**The declared-status half of this check is gone, and that is the honest outcome rather than a
+loss.** It read a status a human had set on a tracker and compared it to a readiness bar. With no
+tracker there is no declaration to read — and `/ready` itself now derives the phase from the
+artifacts (`references/workflow-states.md`), so `_readiness.md` is the same signal with its
+reasoning attached. What disappears is the ability to catch a *wrong* declaration, which is the cost
+spec §6.4 records against `/ready --claimed`, not a second one.
 
 ---
 
@@ -157,7 +160,7 @@ model_routing:
   classification: <SIMPLE | MODERATE | SIGNIFICANT | HIGH-RISK>
   reason: <one-line>
   current_model: <the model this orchestrator is running under>   # = the inline implementation coding
-  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # jira-reader, code-scanner, Phase 2A exploration, test-writer, test-baseliner, review-fixer
+  detection_model: <§2.1 Sonnet chain: claude-sonnet-5, fallback claude-sonnet-4-6/4-5>   # the folder read, code-scanner, Phase 2A exploration, test-writer, test-baseliner, review-fixer
   planning_model: <§2 Opus chain>   # risk-planner (Phase 2B; SIGNIFICANT/HIGH-RISK only; frontmatter-pinned, recorded, no override)
   review_model:  <§2 Opus chain>    # code-review (Phase 3B; frontmatter-pinned, recorded, no override)
   implementation_model: <= current_model>   # coding done inline by the orchestrator
@@ -181,7 +184,7 @@ Then choose the branch:
 
 From the Phase 0 classification, compute:
 - `repo_count` = number of code repos (cwd + referenced git-repo dirs)
-- `has_ticket_folder` = any Jira ticket folder present
+- `has_ticket_folder` = any specs folder present
 - `has_spec_folder` = any spec/design folder present
 
 Set `fan_out = (repo_count > 1) OR has_ticket_folder OR has_spec_folder`.
@@ -195,20 +198,21 @@ Set `fan_out = (repo_count > 1) OR has_ticket_folder OR has_spec_folder`.
 
 Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for multi-source input. Follows `classification.md` §8.
 
-1. **Read Jira ticket folders.** For each Jira ticket folder, invoke `jira-reader` (read-only):
+1. **Read each referenced specs folder** (read-only):
 
-   → Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §2.1 Sonnet chain>`):
-     > "Return the structured handoff for this brief — linked items, PR URLs (identifiers only — no fetching), and capability themes:
+   1. **Read the resolved folder.** Read its `prd.md` and the `specs` files resolved in Phase 0, plus —
+   for a PRD-level address — the `EPIC-` subfolders under it. No PR URLs are available in this
+   increment; `implementation.md` supplies them from the next one.
      >
-     > jira_export_root: [the resolved jira_export_root (from the Phase 0 front-end), or the ticket-folder absolute path]
-     > jira_key:         [the resolved <KEY>]
+     > prd_dir: [the resolved prd_dir (from the Phase 0 front-end), or the ticket-folder absolute path]
+     > key:         [the resolved <KEY>]
      > depth:            full"
 
-   Run multiple `jira-reader` calls sequentially (it is fast and read-only). Collect the themes and PR references.
+   Read each folder in turn. Collect the themes; there are no PR references until `implementation.md` exists.
 
    When `focus_key` is set, scope the collected result to the focus Epic's subtree:
    keep the focus Epic plus the items linked beneath it (its Stories / Sub-tasks) and
-   drop sibling Epics' subtrees before folding themes/PRs into the plan. `jira-reader`
+   drop sibling Epics' subtrees before folding themes/PRs into the plan. the folder read
    itself is not modified — the scoping is done here, mirroring `/specify`.
 
 2. **Read spec/design folders inline.** Read each spec-folder `.md` and fold its content into the themes and primary description.
@@ -225,15 +229,15 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
 
    **Round 2 — narrow and seeded (§8.5).** Apply `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §8.5. A theme is **inconclusive** when its round-1 `classification` is `partial`, `absent`, or `error`, or when **two or more** scanners' per-theme `capability_map[].gap_summary` texts point at each other's repo in a cycle, or at a component/subsystem that no scanned repo covers — the shape that yields confident answers which together say nothing. For every inconclusive theme that round 1 left at least one evidence anchor for, dispatch `code-scanner` again on `detection_model` with `capability_themes` holding exactly **one** question — the single thing round 1 failed to settle, not the broad theme — and `search_hints.paths`/`.symbols`/`.keywords` seeded from that round's verified `evidence[].path` and `.symbols`; where an evidence entry carries `lines`, name the anchor as `<path>:<line>` in the `context` prose. Cap **4 dispatches, one round only** — there is no round 3. This matters more here than where §8.5 was first adopted: `/idea`'s summary feeds a grill with a human in it, while this one feeds a planner whose output becomes code. **A theme round 1 left with no evidence anchor never enters round 2** — it stays inconclusive with no round-2 attempt possible, and that absence of an attempt is not itself a resolution.
 
-4. **Synthesize.** Combine the `jira-reader` output, all `code-scanner` reports, and the spec into a single **multi-source codebase summary** (per-repo: relevant files, existing capabilities, gaps; plus the cross-repo picture and the Jira themes/PR references). This summary is the codebase context for Phase 2B — do **not** also run the single Explore subagent. Write this summary to a temp file (`mktemp -t dw-impl-summary-XXXX.md` — **never inside a repo working tree**, so a captured `git diff` never picks it up) and record its absolute path as `summary_file`; Phase 2B receives this path, not the pasted summary.
+4. **Synthesize.** Combine the folder read output, all `code-scanner` reports, and the spec into a single **multi-source codebase summary** (per-repo: relevant files, existing capabilities, gaps; plus the cross-repo picture and the PRD themes). This summary is the codebase context for Phase 2B — do **not** also run the single Explore subagent. Write this summary to a temp file (`mktemp -t dw-impl-summary-XXXX.md` — **never inside a repo working tree**, so a captured `git diff` never picks it up) and record its absolute path as `summary_file`; Phase 2B receives this path, not the pasted summary.
 
    **Name what the scan did not settle.** The summary carries a `## Unresolved` section listing **every theme still inconclusive at the end of Phase 1.7** — this explicitly includes a theme that never entered round 2 because round 1 left no anchor to seed from, a theme classified `error`, and a mutual-deferral theme, whether or not either scanner logged an anchor. None of these becomes resolved merely by having had no round-2 attempt. Per `classification.md` §8.5 Bounds, name **why** each theme is unresolved — mutual deferral / scan error / partial-or-absent with no anchor — and give the repos-and-conclusions detail only where scanners actually disagreed. An inconclusive theme is **never** folded in as an ordinary gap: a gap asserts the capability is absent with no deferral outside the scanned set, an unresolved theme asserts only that the scan could not tell, and once flattened the two are indistinguishable to the planner. Omit the section entirely when nothing is unresolved.
 
 ---
 
-## Phase 1.8 — Resolve applicable ARD (Jira mode; optional)
+## Phase 1.8 — Resolve applicable ARD (keyed mode; optional)
 
-Only when the run resolved a Jira key (PRD/Epic) — i.e. NOT direct-prompt mode — resolve any ARD by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with the resolved `<PRD>`, `<EPIC>`, and `$SPECS_PATH`. Direct mode (no Jira key) → treat as `status: none`. On `status: none`, **skip and proceed exactly as before**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr` and naming `$SPECS_PATH` explicitly (`/implement` stands in a code repo, not the specs repo, so an unqualified message would point at the wrong one) — per `ard-resolution.md`'s Output section, this state is unreachable when no ARD resolves. On `status: found`, carry the `invariants` as **implementation guardrails** (the implementer honors each `AD#N` `rule`; a necessary deviation is logged as an `- ARD deviation:` line in the Phase 5 report), and — in the SIGNIFICANT / HIGH-RISK path — pass them to `code-review` (Phase 3B) as `applicable_ard`. In the SIMPLE / MODERATE path there is no `code-review` gate, so the guardrails act as guidance only.
+Only when the run resolved a key (PRD/Epic) — i.e. NOT direct-prompt mode — resolve any ARD by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with the resolved `<PRD>`, `<EPIC>`, and `$SPECS_PATH`. Direct mode (no key) → treat as `status: none`. On `status: none`, **skip and proceed exactly as before**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr` and naming `$SPECS_PATH` explicitly (`/implement` stands in a code repo, not the specs repo, so an unqualified message would point at the wrong one) — per `ard-resolution.md`'s Output section, this state is unreachable when no ARD resolves. On `status: found`, carry the `invariants` as **implementation guardrails** (the implementer honors each `AD#N` `rule`; a necessary deviation is logged as an `- ARD deviation:` line in the Phase 5 report), and — in the SIGNIFICANT / HIGH-RISK path — pass them to `code-review` (Phase 3B) as `applicable_ard`. In the SIMPLE / MODERATE path there is no `code-review` gate, so the guardrails act as guidance only.
 
 ---
 
@@ -345,9 +349,9 @@ Before writing any file:
    - **Proceed**: note in the Phase 5 report that the working tree was dirty at implementation start.
    - **Cancel**: stop and summarize what was planned.
 
-2. **Resolve the branch name** per `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` — **the repo's own documented convention wins**. Read the target repo's `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`, `CLAUDE.md` (+ `.claude/`) for a branch-naming section (§1.1); if one is found, classify its segments (§1.2) and fill them: an **identity** placeholder (`<your-name-or-initials>`, `<user>`, …) from the §2 ladder (`$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → the §2.5 prompt), an **issue-key** segment from the `jira_key` resolved in Phase 0 (or the pattern's documented no-issue literal in direct mode), and the **description** segment from step 3's slug. A pattern with no identity segment gets none — never inject initials into a convention that does not ask for one. Only when the repo documents no convention (§1.4) build `<prefix>/<slug>` with `<prefix>` from the §2 ladder, whose fallback here is `feat/`.
+2. **Resolve the branch name** per `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` — **the repo's own documented convention wins**. Read the target repo's `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`, `CLAUDE.md` (+ `.claude/`) for a branch-naming section (§1.1); if one is found, classify its segments (§1.2) and fill them: an **identity** placeholder (`<your-name-or-initials>`, `<user>`, …) from the §2 ladder (`$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → the §2.5 prompt), an **issue-key** segment from the `key` resolved in Phase 0 (or the pattern's documented no-issue literal in direct mode), and the **description** segment from step 3's slug. A pattern with no identity segment gets none — never inject initials into a convention that does not ask for one. Only when the repo documents no convention (§1.4) build `<prefix>/<slug>` with `<prefix>` from the §2 ladder, whose fallback here is `feat/`.
 
-3. **Generate slug** — derive from the implementation description: lowercase, hyphens, max 40 chars, strip punctuation and special chars. Example: "Add user authentication to login page" → `add-user-authentication-login-page`. When a `jira_key` is resolved and the chosen shape has no separate issue-key segment, prefix it: `<jira_key>-<slug>`.
+3. **Generate slug** — derive from the implementation description: lowercase, hyphens, max 40 chars, strip punctuation and special chars. Example: "Add user authentication to login page" → `add-user-authentication-login-page`. When a `key` is resolved and the chosen shape has no separate issue-key segment, prefix it: `<KEY>-<slug>`.
 
 4. **Check HEAD context** — if HEAD is NOT on the default branch (`main` / `master` / `develop`), check for ahead commits: `git log origin/HEAD..HEAD --oneline 2>/dev/null`. If output is non-empty (branch has commits ahead), ask:
    ```
@@ -507,7 +511,7 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
 
    - If the fix report contains any `DEFERRED — plan-conflict` finding, surface it to the user **immediately** (do not wait for the BLOCK-still-BLOCK path): show the finding beside the plan text it contradicts and ask `choices: ["Revise the plan (the finding governs)", "Apply the fix against the plan (the plan governs — logged in Phase 5)", "Other… (describe)"]`. Act on the answer before re-running the review.
 
-7.5. **Spec/design conformance escalation.** For each unresolved `missing`/`contradicts` in-scope requirement from the code-review Spec/design-conformance dimension, write a `- [ ]` note back onto the source `specification.md`/`design.md` under an `## Engineering review` heading (the same escalation `/design` uses; annotate only — never mutate existing `[Uxx]`/`[ACxx]`/`[TCxx]` IDs). Never silently drop them, never invent new Jira work. Record which of `specification.md`/`design.md` actually received a note — the handoff step needs to know whether only one, or both, were annotated. The notes are written here and handed off later — see the escalation handoff after Phase 4.
+7.5. **Spec/design conformance escalation.** For each unresolved `missing`/`contradicts` in-scope requirement from the code-review Spec/design-conformance dimension, write a `- [ ]` note back onto the source `specification.md`/`design.md` under an `## Engineering review` heading (the same escalation `/design` uses; annotate only — never mutate existing `[Uxx]`/`[ACxx]`/`[TCxx]` IDs). Never silently drop them, never invent new work. Record which of `specification.md`/`design.md` actually received a note — the handoff step needs to know whether only one, or both, were annotated. The notes are written here and handed off later — see the escalation handoff after Phase 4.
 8. **Run Phase 3.5 (post-review).** After the review gate clears (non-BLOCK verdict), run the Phase 3.5 sequence (lint/build, `test-baseliner` verify, fix loop) — **not before**. This preserves the invariant "NEVER run tests for SIGNIFICANT / HIGH-RISK before Opus review returns non-BLOCK". The fix loop inside Phase 3.5 applies fixes via the session model; if the fixes are non-trivial **and** the reviewer was NOT down-classified in step 7, re-invoke the Opus code review on the delta after Phase 3.5 completes (first overwrite `review_diff_file` with a fresh `git add -N . && git diff` so the re-review reads the post-Phase-3.5 diff). If the reviewer WAS down-classified, skip the re-review.
 9. Verify the outcome matches the approved plan and the review verdict.
 10. Proceed to Phase 4.
@@ -587,7 +591,7 @@ Collect all four summaries for the Phase 5 report.
 returns, project its plugin-facing slice into the specs repo by citing
 `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
 `emit-auto` entry point (§6). Pass Agent 4's Lessons Learned report,
-`command: /implement`, the run's `jira_key` and `source`, and `plugin_version`
+`command: /implement`, the run's `key` and `source`, and `plugin_version`
 (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto`
 renders only the report's **Command workflow improvements**, **New agents /
 skills**, and plugin **Reference docs** sections plus the **Key observations**
@@ -668,11 +672,11 @@ Output a structured report — do NOT ask any closing confirmation:
 - [MINOR / NIT findings that were not applied] OR "none"
 
 ### Next step
-[Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. Jira mode: finish the remaining Epics under the PRD (breadth) — `/dev-workflows:implement <PRD> <another-Epic>` — and, once **all** Epics are implemented, `/dev-workflows:document <PRD>` then `/dev-workflows:release-notes <PRD>` (both PRD-level, run once). Depth vs breadth is the team's call. Direct mode: no forward pipeline step (omit). If review is still BLOCK, resolve that first.]
+[Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. keyed mode: finish the remaining Epics under the PRD (breadth) — `/dev-workflows:implement <PRD> <another-Epic>` — and, once **all** Epics are implemented, `/dev-workflows:document <PRD>` then `/dev-workflows:release-notes <PRD>` (both PRD-level, run once). Depth vs breadth is the team's call. Direct mode: no forward pipeline step (omit). If review is still BLOCK, resolve that first.]
 
 ### Context hygiene
 
-*(Jira mode only — omit this whole block in direct-prompt mode, like the `### Next step` above.)*
+*(keyed runs only — omit this whole block in direct-prompt mode, like the `### Next step` above.)*
 The resume pointer is written in the terminal cost phase (Phase 7), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
 
 - **More Epics to build (`/dev-workflows:implement <PRD> <Epic2>`) or on to `/dev-workflows:document <PRD>` — same build lane?** → run **`/compact`** — context stays relevant.
@@ -698,8 +702,8 @@ and executing its steps inline.
    explicitly excludes those as in-scope work already carried by the current
    task.
 2. **Filter** them with the reference's §6 qualifying predicate.
-3. **Resolve** the write target via the §4 ladder using `jira_key` and `source`
-   (jira-driven runs carry a key; direct-prompt runs usually do not, so tasks
+3. **Resolve** the write target via the §4 ladder using `key` and `source`
+   (keyed runs carry a key; direct-prompt runs usually do not, so tasks
    land in `Tasks.md # Irregular` when the vault is writable, else report-only);
    render + place tasks and verbose notes per §1–§3; dedupe per §5.
 4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.
@@ -722,7 +726,7 @@ token-cost contribution to the PRD by citing
 nothing".
 
 Call `emit-cost` with `command: /implement`, `phase: implementation`,
-`role: dev`, the run's `jira_key` (or `null`) and `source`, and `plugin_version`
+`role: dev`, the run's `key` (or `null`) and `source`, and `plugin_version`
 (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the
 session transcript + subagents (§1), loads and **advances the chained
 checkpoint** (§3), runs `scripts/session-cost.py` to compute the per-model
@@ -733,7 +737,7 @@ cross-check (§5), and appends one per-invocation entry to
 **The checkpoint advances even in the pending / report-only tiers.** Surface the
 persisted path (or the report-only notice) as this phase's only output.
 
-**Then write the resume pointer (Jira mode only).** Cite
+**Then write the resume pointer (keyed runs only).** Cite
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and write/overwrite
 `<PRD-dir>/dev-workflows/resume.md` now — after the cost entry above, so the
 pointer reflects the completed run, and before the commit step below, so it
@@ -764,7 +768,7 @@ directory; no user name is ever written (§10 privacy).
 
 ## Invariants (always enforced)
 
-- ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, jira-not-found, cancellation)
+- ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation)
 - NEVER skip Phase 1.5 classification — every run must state the level
 - NEVER use Opus for routine implementation; reserve it for planning + review on SIGNIFICANT / HIGH-RISK
 - NEVER run tests on SIGNIFICANT / HIGH-RISK work before the Opus code review returns a non-BLOCK verdict
@@ -782,7 +786,7 @@ directory; no user name is ever written (§10 privacy).
 - ALWAYS produce the Phase 5 report as the final output
 - ALWAYS end the Phase 5 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked; omitted in direct mode (no PRD/Epic pipeline context)
 - ALWAYS pass `Command run: /implement` in the Phase 4 Agent 4 session handoff
-- ALWAYS pass `Change type: code` in the Phase 4 change summary block (scopes the four maintenance agents' suggestions to code-change territory — docs / Jira variants use `docs`)
+- ALWAYS pass `Change type: code` in the Phase 4 change summary block (scopes the four maintenance agents' suggestions to code-change territory — docs variants use `docs`)
 - AFTER one review-fixer pass + one re-review, if verdict is still BLOCK: stop and surface to user — do NOT loop
 - AFTER two Phase 3.5 fix-loop attempts, if regressions remain: stop and surface to user — do NOT loop
 - ALWAYS classify each `@path` input by inspection (Phase 0) — never by matching the path string
@@ -793,5 +797,5 @@ directory; no user name is ever written (§10 privacy).
 - WHEN `task_shape: bug`: the ranked hypotheses MUST be backed by a repro `risk-planner` **actually ran** — its `### Hypotheses (ranked)` block carries the command, its redacted output, and the reproduction rate (`bug-diagnosis.md` step 1's completion criterion). If it returns "Ranking withheld — no red-capable repro", do NOT proceed to implementation on a guess: surface what it tried and ask `choices: ["Help construct a repro (you'll be prompted for what to try)", "Proceed without a repro (recorded in the Phase 5 report)", "Cancel"]`. Proceeding is the user's call to make explicitly, never the default.
 - ALWAYS fan out `code-scanner` one-per-repo in a single response, capped at 4 concurrent — never sequentially
 - NEVER silently skip a referenced `@dir` that is missing or unrecognized — surface it and ask (classification.md §8.4)
-- Scanning agents (`jira-reader`, `code-scanner`) are pinned to the §2.1 detection (Sonnet) chain like every mechanical step (never inherit the session model); escalate a single scanner to Opus only when one repo slice is oversized
+- Scanning agents (the folder read, `code-scanner`) are pinned to the §2.1 detection (Sonnet) chain like every mechanical step (never inherit the session model); escalate a single scanner to Opus only when one repo slice is oversized
 - ALWAYS end the Phase 5 report with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a same-lane `/compact` suggestion + `/rename <PRD-ID>-<slug>-dev`; **omitted in direct mode** (no PRD/Epic context, no `resume.md`); the Phase 3B checkpoint additionally suggests `/compact` mid-run. Guidance only, never auto-run.

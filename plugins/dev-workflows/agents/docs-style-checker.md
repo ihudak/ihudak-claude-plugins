@@ -1,12 +1,12 @@
 ---
 name: docs-style-checker
-description: Runs the docs repo's project-configured prose linter (e.g. Vale) on files written by `/document` (Jira mode, or direct mode) AND, when the prose-style plugin is installed, also runs prose-style-checker as a complementary semantic / cross-page-consistency pass. Merges and dedupes both finding sets into the doc-reviewer / doc-fixer schema. Detects tooling (Vale, project lint script, markdownlint, remark) from the repo; does not embed any specific style guide. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Runs the docs repo's project-configured prose linter (e.g. Vale) on files written by `/document` (keyed mode, or direct mode) AND, when the prose-style plugin is installed, also runs prose-style-checker as a complementary semantic / cross-page-consistency pass. Merges and dedupes both finding sets into the doc-reviewer / doc-fixer schema. Detects tooling (Vale, project lint script, markdownlint, remark) from the repo; does not embed any specific style guide. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep", "Bash", "Task"]
 ---
 
 Run the docs repo's project-configured prose linter on a set of files, and ALSO (when available) run `prose-style-checker` as a complementary semantic / cross-page-consistency pass. Merge and dedupe their findings into a single reviewer finding schema.
 
-Invoked from `/document` (Jira mode, Phase 6.4) and `/document` (direct mode, Phase 3.5), after the files are written and before `doc-reviewer`. Catching corporate-style issues locally frees the doc-reviewer (Opus) to spend its attention budget on correctness and completeness rather than prose policing, and ensures the eventual PR doesn't bounce on CI style checks.
+Invoked from `/document` (keyed mode, Phase 6.4) and `/document` (direct mode, Phase 3.5), after the files are written and before `doc-reviewer`. Catching corporate-style issues locally frees the doc-reviewer (Opus) to spend its attention budget on correctness and completeness rather than prose policing, and ensures the eventual PR doesn't bounce on CI style checks.
 
 ## Rationale
 
@@ -144,7 +144,7 @@ complementary_error:   <only when the complementary pass failed independently; d
 - `status: OK` — at least one pass ran and produced zero merged violations.
 - `status: NOT_CONFIGURED` — no primary linter detected AND `prose-style` not installed.
 - `status: VIOLATIONS_FOUND` — at least one pass produced ≥ 1 violation (after merge + dedupe).
-- `status: ERROR` — every primary rung failed AND the `prose-style-checker` pass also failed or is not installed. This is NOT a licence for the caller to continue unchecked: `/document` records the `style_check` gate as `UNAVAILABLE` and converts it per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 — in Jira mode before the reviewer, in direct mode before Phase 4.
+- `status: ERROR` — every primary rung failed AND the `prose-style-checker` pass also failed or is not installed. This is NOT a licence for the caller to continue unchecked: `/document` records the `style_check` gate as `UNAVAILABLE` and converts it per `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §5 — in keyed mode before the reviewer, in direct mode before Phase 4.
 
 ## Hard rules
 

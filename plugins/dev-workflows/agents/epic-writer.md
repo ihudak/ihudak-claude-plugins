@@ -1,6 +1,6 @@
 ---
 name: epic-writer
-description: Writes child Epic-definition files for /epics from a structured handoff file — one file per Epic, following the Epic template, traceable to the jira-reader handoff and code-scanner evidence. Write-only — writes vault content, never commits (still true — it runs no git at all). Returns the list of Epic files written. The orchestrator pins it to the §2.1 Sonnet detection chain for MODERATE runs (§2 Opus only if SIGNIFICANT/HIGH-RISK).
+description: Writes child Epic-definition files for /epics from a structured handoff file — one file per Epic, following the Epic template, traceable to the folder read handoff and code-scanner evidence. Write-only — writes vault content, never commits (still true — it runs no git at all). Returns the list of Epic files written. The orchestrator pins it to the §2.1 Sonnet detection chain for MODERATE runs (§2 Opus only if SIGNIFICANT/HIGH-RISK).
 tools: ["Read", "Glob", "Grep", "Write", "Edit"]
 ---
 
@@ -10,17 +10,17 @@ Epic-definition writer for `/epics` Phase 6. The orchestrator resolved scope and
 
 The orchestrator writes a **handoff file** (a temp file) and passes its absolute path. Read it first. It contains:
 
-- `jira_reader_handoff`
+- `folder_read`
 - `code_scanner_outputs` (when code scan ran; else empty)
 - `scope` — the Phase 2 in-scope / out-of-scope decisions
 - `existing_epics` — for non-duplication
-- `output_dir` — the resolved output directory (default `$VAULT_PATH/jira-drafts/<JIRA_KEY>/`)
-- `vi_goal`, `jira_key`
-- `requirements` + `requirements_source` — the PRD requirement inventory (from jira-reader); the coverage ground truth.
+- `output_dir` — the resolved output directory (default `$VAULT_PATH/epic-drafts/<KEY>/`)
+- `vi_goal`, `key`
+- `requirements` + `requirements_source` — the PRD requirement inventory (from the folder read); the coverage ground truth.
 - `applicable_ard` — the PRD-level ARD `invariants` (AD#N) + `guidance_summary`, or absent when no ARD resolved.
 - `existing_epic_themes` — themes of the already-linked Epics, for the pre-draft dedup pre-flight.
 - `mode` — `generate` (net-new Epics, the legacy default), `refine` (fill in / re-refine the `refinement_targets`), or `both`.
-- `refinement_targets` — list of `{key, team, scope_hint, current_body_path}` for the empty/existing Epics to fill in (present only when `mode` is `refine` or `both`; empty otherwise). `current_body_path` is the imported Epic file, e.g. `<jira_export_root>/<EPIC-KEY>/<EPIC-KEY>.md`.
+- `refinement_targets` — list of `{key, team, scope_hint, current_body_path}` for the empty/existing Epics to fill in (present only when `mode` is `refine` or `both`; empty otherwise). `current_body_path` is the imported Epic file, e.g. `<prd_dir>/<EPIC-KEY>/<EPIC-KEY>.md`.
 - `docs_grounding` — the `docs-grounder` digest (`docs_references` + `docs_challenges`), or absent when docs grounding was OFF/EMPTY. Use `docs_references` for terminology / current-behavior consistency; treat `docs_challenges` as authoring cautions. **Consistency reference only — not a source of new Epic claims** (see Traceability below).
 
 ## Entry validation (BLOCKED, never guess)
@@ -83,17 +83,16 @@ For each new Epic, emit a markdown file under the resolved output directory (def
 - ...
 
 ## References
-- Parent PRD: [[<JIRA_KEY>]]
+- Parent PRD: [[<KEY>]]
 - [Source: <path>#<Section>] — <code anchor from code-scanner evidence, when relevant>
 - ...
 ```
 
 Create the output directory if missing — your `Write` tool auto-creates parent directories (no shell). Write every Epic file before proceeding to the downstream clarification / style / review phases.
 
-Traceability: every claim in each Epic must be traceable to the handoff `jira_reader_handoff` (Jira key + which item type — PRD goal, existing Epic summary, Story theme) or `code_scanner_outputs` (`evidence.path` + symbols). Do not invent content the sources don't contain. `docs_grounding` (when present) is a **consistency reference** — align terminology and avoid contradicting shipped behavior with it — but it is never itself a source of new Epic claims; every Epic claim still traces to `jira_reader_handoff` or `code_scanner_outputs`.
+Traceability: every claim in each Epic must be traceable to the handoff `folder_read` (key + which item type — PRD goal, existing Epic summary, Story theme) or `code_scanner_outputs` (`evidence.path` + symbols). Do not invent content the sources don't contain. `docs_grounding` (when present) is a **consistency reference** — align terminology and avoid contradicting shipped behavior with it — but it is never itself a source of new Epic claims; every Epic claim still traces to `folder_read` or `code_scanner_outputs`.
 
 **Write restrictions** (enforced by invariants):
-- NEVER write inside `jira-products/` — re-created on every import.
 - NEVER write inside `_archive/` — read-only by convention.
 - NEVER write outside `$VAULT_PATH`.
 - ALWAYS write inside the handoff `output_dir`.
@@ -118,7 +117,7 @@ the draft INSTEAD of silently guessing. Rules:
 When `mode` is `refine` or `both`, treat every entry in `refinement_targets[]` as an Epic to **fill in**, not a duplicate to avoid:
 
 - **Iterate, don't regenerate.** Read the target's `current_body_path` (the imported Epic file) first. Preserve any real scope/acceptance content already there; fill the gaps and improve — never blow away existing substance.
-- **Keyed filename.** Write each refined Epic to `<output_dir>/<key>.md` using its real Jira Epic key (e.g. `PROJ-12573.md`) — NOT a slug. Slug-named files (`<slug>.md`) are reserved for net-new Epics with no Jira ID yet.
+- **Keyed filename.** Write each refined Epic to `<output_dir>/<key>.md` using its real Epic key (e.g. `PROJ-12573.md`) — NOT a slug. Slug-named files (`<slug>.md`) are reserved for net-new Epics with no work-item ID yet.
 - **Surface the team.** Emit the template's `**Team:** <team>` line under the H1. When `team` is empty, emit `**Team:** [NEEDS CLARIFICATION — team not found in import]` and add a matching `clarifications_needed[]` entry.
 - **Partition the PRD.** Distribute the PRD `requirements[]` across the refinement targets; each target's `## Covers` lists only its slice. Two targets must not silently claim the same requirement.
 - **Cross-team dependencies are expected.** When one team-Epic depends on another (e.g. a framework Epic that must land first), name the other Epic by key in `## Dependencies`. Such inter-target dependencies are legal (they encode build order) — do not suppress them.
@@ -128,11 +127,11 @@ In `mode: both`, also draft net-new Epics for scope no target covers (slug-named
 
 ## Coverage matrix (`_coverage.md`)
 
-Write ONE file `_coverage.md` into `output_dir` (never a Jira Epic — the leading
-underscore keeps it sorted above the Epic files and out of the paste-to-Jira set):
+Write ONE file `_coverage.md` into `output_dir` (never an Epic definition — the leading
+underscore keeps it sorted above the Epic files and out of the publishable set):
 
 ```markdown
-# Requirement coverage — <JIRA_KEY>
+# Requirement coverage — <KEY>
 
 _source: native | derived_
 **Roll-up: READY | NEEDS WORK | NOT READY — N/M requirements covered (P%), K gaps**

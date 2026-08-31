@@ -33,7 +33,7 @@ Gate fails on path / repo / permission grounds → report that the deliverable i
 
 ### 2.2 Branch resolution, and the collision rule
 
-Intended name: `<prefix>/<KEY>-<slug>`, where `<prefix>` is the caller's own (§2.9) and `<KEY>-<slug>` come from **the resolved feature folder the deliverable was written into** — never re-derived from the Jira title. Folder resolution already tolerates a human-adjusted slug and a stray `-`/`_` after the key, and re-deriving would produce a branch name that disagrees with the directory it commits.
+Intended name: `<prefix>/<KEY>-<slug>`, where `<prefix>` is the caller's own (§2.9) and `<KEY>-<slug>` come from **the resolved feature folder the deliverable was written into** — never re-derived from the item title. Folder resolution already tolerates a human-adjusted slug and a stray `-`/`_` after the key, and re-deriving would produce a branch name that disagrees with the directory it commits.
 
 Collision is normal, not exceptional: `_readiness.md` is overwritten on every `/ready` run, and a `/create-prd` re-run after its pull request merged wants the same name again. `gh pr create` fails on an already-merged branch, and force-pushing and `branch -D` are both forbidden (§1 rule 4). So:
 
@@ -151,8 +151,8 @@ Several consumers map `absent` to a hard stop, and every one of them is legitima
 | Caller | Input | Pre-existing absent behaviour, preserved |
 |---|---|---|
 | `/create-prd <KEY>` | `idea.md` | continue down the Phase 0 idea ladder — prompt for a path, or grill the PRD from scratch. **`/idea` is not a prerequisite.** |
-| `/create-ard` | the PRD | fall back to `jira-reader` against the Jira export — now **reported** rather than silent |
-| `/specify` | the PRD | `jira-reader` is already the primary read path (the merged PRD is a grounding confirmation, not a new content source); on `absent` the confirmation is simply skipped — now **reported** rather than silent, the same shape as `/create-ard`'s row |
+| `/create-ard` | the PRD | read the resolved folder's own contents — **reported** rather than silent |
+| `/specify` | the PRD | the folder read is already the primary read path (the merged PRD is a grounding confirmation, not a new content source); on `absent` the confirmation is simply skipped — now **reported** rather than silent, the same shape as `/create-ard`'s row |
 | `/specify` `/design` `/implement` `/epics` `/ready` | the ARD | `status: none` and the no-regression rule of `ard-resolution.md` |
 | `/epics` | PRD-level `specification.md` | `vi_spec_present: false`, the existing silent skip |
 | `/implement` | `specification.md` / `design.md` | only an **in-scope** spec is gated; a direct-prompt run resolves none |

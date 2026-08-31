@@ -370,7 +370,7 @@ Consume the `resolve-docs-grounding brd-ground` result cached in Phase 1 step 0 
 `docs_grounding: OFF` → skip silently, reporting the `OFF` line once. `docs_grounding: ON` →
 `dispatch-docs-grounder` (`${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`) with
 `feature_summary` = two to four sentences built from the Phase 0 step 8 claim list (what this BRD
-asserts and asks for, in product terms), `jira_key` = `<BRD-KEY>`, and `themes` = the capability
+asserts and asks for, in product terms), `key` = `<BRD-KEY>`, and `themes` = the capability
 themes those claims cluster into.
 
 ### A document is never evidence for a `[CG#n]`. Never.
@@ -752,12 +752,12 @@ halts, never a plugin capability gap. `BRD_GROUND_DIRTY_TREE`, `BRD_GROUND_NEEDS
    N/A; project root = the BRD folder.
 2. **Persist plugin feedback (automatic).** Cite `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`
    and call its `emit-auto` entry point (§6) with the Lessons Learned report, `command: /brd-ground`,
-   the run's `jira_key` (the `<BRD-KEY>`), `source`, and `plugin_version` (read from
+   the run's `key` (the `<BRD-KEY>`), `source`, and `plugin_version` (read from
    `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no
    plugin-facing signal — nothing persisted").
 3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and
    call its `emit-cost` entry point with `command: /brd-ground`, `phase: brd-to-prd`, `role: pa`,
-   the run's `jira_key`, `source`, and `plugin_version`. Surface the persisted path (or the
+   the run's `key`, `source`, and `plugin_version`. Surface the persisted path (or the
    report-only notice).
 4. **Write the resume pointer.** Cite `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and
    write/overwrite `<BRD-dir>/dev-workflows/resume.md` now — after the cost entry, before the

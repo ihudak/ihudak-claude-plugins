@@ -40,10 +40,10 @@ Run only when `prior_art: ON`. Dispatch in the **same response** as `dispatch-do
   > vault_path:      <vault_root>
   > feature_summary: <2–4 sentences: the problem + desired outcome>
   > themes:          [capability themes, or []]
-  > known_refs:      [{path: <abs path> | jira_key: <KEY>, has_summary: true|false}, …]"
+  > known_refs:      [{path: <abs path> | key: <KEY>, has_summary: true|false}, …]"
 ```
 
-A `known_refs` entry carries **either** a `path` **or** a `jira_key`. A supplied `prd` source has only a key — the caller does not know which vault directory holds it, and resolving that is the finder's job. A followed wikilink has only a path.
+A `known_refs` entry carries **either** a `path` **or** a `key`. A supplied `prd` source has only a key — the caller does not know which vault directory holds it, and resolving that is the finder's job. A followed wikilink has only a path.
 
 Wait for the digest. On `status: ERROR` or any dispatch failure, treat as `prior_art: OFF` and proceed (record one line in the final report). On `status: EMPTY`, proceed; the digest simply adds nothing.
 
@@ -53,8 +53,8 @@ Roots: `<vault_root>/Projects/Products/**` and `<vault_root>/Projects/ideas/**`.
 
 A path is **excluded** when it:
 
-- contains a `Jira - <KEY>/` directory segment — those are immutable snapshots from an older decentralized import, superseded by `jira-products/`;
-- belongs to an item whose work document carries `type: valuepack`, or whose Jira `issue_type` is `Value Pack` — the Value Pack layer is abandoned, and this plugin operates at Product Requirements Document level and below;
+- contains a `Jira - <KEY>/` directory segment — those are immutable snapshots left by an older import;
+- belongs to an item whose work document carries `type: valuepack` — the Value Pack layer is abandoned, and this plugin operates at Product Requirements Document level and below;
 - lies under any `_archive/` segment.
 
 ## Status resolution
@@ -62,7 +62,7 @@ A path is **excluded** when it:
 An item's Jira key comes from its work document's `jira.id`, else from the item directory name via `^([A-Z][A-Z0-9_]*-\d+)`.
 
 1. **Work-doc frontmatter** `jira.status` → map through the short-code table below → `status_source: vault-frontmatter`.
-2. **The export** → `resolve-export-for-key <KEY>` (`${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`) → its `status` → `status_source: jira-products`.
+2. *(retired — this rung read a tracker export; nothing resolves one, so the ladder is one rung shorter and a work-doc's own frontmatter is the only status source.)*
 3. Neither → `tracked_status: unknown`, `status_source: none`.
 
 **Frontmatter first, and that ordering is measured rather than assumed.** Across every work document carrying `jira.status` that also has an export, the two disagreed 8 times and the frontmatter was ahead in all 8 — zero the other way. The frontmatter is synced to keep dashboards current; exports are run occasionally.
@@ -99,7 +99,7 @@ Given an absolute path `P` inside the write root, its **container** is:
 
 An idea is written at `<container>/<candidate_slug>/idea.md`. Cases 2 and 3 are the **flat containers** — they name a root, not a specific area.
 
-**Choosing `P` for a Jira-key source.** A key has no vault path of its own; its export lives under `jira-products/`, outside `Projects/`, and would always fall to case 3. Instead `P` = the **vault item directory** whose work document carries `jira.id: <KEY>`, when one exists; absent otherwise. So a PRD key yields its grouper — a *new sibling* beside the PRD, which is right for extending or paralleling it and wrong for rewriting it in place. The write-path gate decides that; this derivation stays a pure path→path function and never guesses intent.
+*(The paragraph that stood here explained how to choose a container for a source addressed by tracker key. There is no such source: `/idea` takes a prompt or a file.)*
 
 **The top match** — used by `area_proposal` below and by `/idea`'s write-path gate — is the `prior_art` entry with the highest `match_confidence`, ties broken by array order. `prior_art` is returned ranked, so the top match is its first entry among those tied at the highest confidence. Defining this once matters: two consumers pick a row and a path from it, and "highest-confidence" is ambiguous the moment two entries tie.
 

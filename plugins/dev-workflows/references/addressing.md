@@ -198,13 +198,13 @@ precisely to become a PRD. Refusing a further child, not the walk, is the whole 
 ## 7. The shared fallback for existing commands
 
 Every command outside the `/brd-*` family that addresses a PRD directory resolved it as the flat form
-`specifications/<KEY>-<slug>/`, which on its own cannot see a nested PRD (one `/create-prd --from-brd`
+`specifications/<KEY>-<slug>/`, which on its own cannot see a nested PRD (one `/create-prd` on the BRD route
 authors inside a BRD). All of them therefore reach the tree through `resolve-address`, which searches
 every level §3 bounds and carries §5's fallback. One shared rule, defined here once rather than reinvented
 per caller. The adopter list below is the authority on who applies it — **it is longer than the six the
 original design named**, and it is meant to be read as a list, not summarised as a count.
 
-**Adopted in twelve files.** Nine commands cite this section from the step that resolves their PRD
+**Adopted in eleven files.** Ten commands cite this section from the step that resolves their PRD
 directory:
 
 | Command | Step (by name) | What the resolved directory is for |
@@ -218,31 +218,27 @@ directory:
 | `/ready` | *Map onto the specs repo (PRD dir + optional Epic subdir)*, Phase 0 — Resolve input | every artifact it judges |
 | `/idea` | *Phase 5* relocation | where `idea.md` is relocated once a key exists |
 | `/release-notes` | *Resolve `run_phase`*, Phase 6 — Render the draft | the `run_phase` signal |
+| `/document` | *Resolve the address*, Phase 0 step 1 | the `specs` files it grounds documentation in |
 
-Three further files adopt it and **none of them is a command** — all three are shared authorities that
-commands delegate to, which is why the adopter count and the command count differ:
+One further file adopts it and **it is not a command** — it is a shared authority commands delegate
+to, which is why the adopter count and the command count differ:
 
 - `references/ard-resolution.md`, from step 1 of its *Resolution (most-specific first)*. It is where the
   fallback reaches an **ARD**: `/create-ard`, `/design`, `/specify`, `/epics` and `/ready` delegate ARD
   lookup to it rather than resolving an ARD path themselves, so their own adoption above would not have
   found an ARD in a nested directory.
-- `references/jira-input-resolution.md`, from the PRD-folder bullet of its *Specs resolution
-  (jira-driven)*. It is where the fallback reaches the **`specs` file list** that shared front-end returns
-  to the commands citing it.
-- `references/prd-source-resolution.md`, from step 2 of `resolve-existing-prd`. It is where the fallback
-  reaches the **frozen specs draft** for `/update-prd` and `/create-prd --from-prd`. Both commands already
-  resolve their own feature folder in the table above, but neither resolves the draft itself: they delegate
-  that to this resolver, so a PRD authored inside a BRD would have been invisible to it.
+**Eleven files, eleven commands** — and the two matching is a coincidence of this moment, not a rule.
+One command adopts it purely **by delegation** and appears nowhere in the table: `/implement`, which
+resolves no PRD directory of its own and reaches an ARD solely by citing `ard-resolution.md`. Counting
+files rather than commands is what keeps both facts visible — a reader who counted only the table would
+conclude `/implement` was left flat, and one who counted only commands would miss a shared authority
+that needed the fallback in its own right.
 
-**Twelve files, eleven commands** — and neither number is derivable from the other. Two commands adopt it
-purely **by delegation** and appear nowhere in the table: `/implement`, which resolves no PRD directory of
-its own and reaches both an ARD and its `specs` list solely by citing `ard-resolution.md` and
-`jira-input-resolution.md`, and `/document`, which reaches its `specs` list the same way. The third shared
-authority adds a file without adding a command, because both commands that delegate to
-`prd-source-resolution.md` are already in the table on their own account. Counting files rather than
-commands is what keeps both facts visible — a reader who counted only the table would conclude
-`/implement` and `/document` were left flat, and one who counted only commands would miss a shared
-authority that needed the fallback in its own right.
+**Re-derive both, every time, rather than adjusting them.** Cutting the tracker moved this arithmetic
+twice in one increment and never by the amount a decrement would have guessed: retiring the shared
+front-end removed an authority *and* moved `/document` into the table on its own account, leaving both
+totals where they started; folding the PRD-source resolver into its two callers then removed a file
+without removing a command. Ten commands in the table, one by delegation, one shared authority.
 
 **Where a handoff crosses two adopters, both must carry it.** `/create-prd` redirects to `/update-prd` on
 finding an existing PRD (its *Prior PRD* step), including one found through this fallback; `/idea`
@@ -252,13 +248,12 @@ two are in the table rather than deferred as low-risk.
 
 **Not adopters, and correctly so.** The `/brd-*` commands resolve a folder with `resolve-address` (§3)
 directly, which already searches every level — the fallback here is §5's rule restated for callers that
-were never wired to it. `/implement` and `/document` are covered by delegation as above.
+were never wired to it. `/implement` is covered by delegation as above.
 
 **Adoption is additive, in all twelve.** §5's fallback is reached only where the prefixed glob already
 returned nothing, so a key whose folder resolves at the first attempt resolves exactly as it did before
 any of them adopted this — and where a command creates the folder it did not find, it still creates it
-with the §2 prefix: the fallback honors a legacy folder that exists, it never proposes one. None of the
-three shared authorities creates anything at all — all are readers, so for them the additive claim is
+with the §2 prefix: the fallback honors a legacy folder that exists, it never proposes one. Neither of the
+two shared authorities creates anything at all — both are readers, so for them the additive claim is
 simply that a resolvable key returns what it returned before: the same `found` / `none` / `unmerged` from
-`ard-resolution.md`, the same `specs` list from `jira-input-resolution.md`, and the same frozen specs
-draft from `prd-source-resolution.md`.
+`ard-resolution.md`.

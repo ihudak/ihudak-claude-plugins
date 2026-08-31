@@ -58,8 +58,8 @@ announcement_pages:
     path: cloud/_content/whats-new/technology/index.md
     kinds: [new-technology]
 branch_naming:
-  pattern: "<initials>/<JIRA-KEY>-<short-slug>"
-commit_convention: "<JIRA-KEY> <summary>"     # Phase 8.5 squash commit message format
+  pattern: "<initials>/<KEY>-<short-slug>"
+commit_convention: "<KEY> <summary>"     # Phase 8.5 squash commit message format
 frontmatter:                          # pointers only — NOT a re-spec
   owned_by_skill: docs-frontmatter
   changelog_guidelines: references/docs-profiles/changelog-guidelines.md
@@ -78,6 +78,6 @@ prerequisites:
 - `dev_servers.readiness_timeout_seconds` is optional (default 120) — how many seconds Phase 6.5 polls a booted server for readiness before falling back to the manual table.
 - `commands.per_space` is optional — a map keyed by a space id from `spaces[]`, each entry carrying any of `lint`, `build`, `format`. A repo that lints or builds each content root separately declares it here; consumers run the **lint** command for each space that owns a written file, and the **build** command for every space in the render verification set (`references/docs-profiles/render-verification.md` §2). Both fall back to the flat `commands.lint` / `commands.build` when the map is absent. A space id in `per_space` that is not in `spaces[]` is a profile error. A per-space entry carrying only some of `lint`/`build`/`format` is not specified — no shipped profile does it. A consumer meeting one should surface the gap rather than guess which fallback applies.
 - `commands.build` (flat) and `commands.per_space.<space>.build` are both optional. When neither exists, the consumer treats the dev-server boot as the build proof. Declare a build command whenever the repo has one — an absent build command disables `/document`'s gating build check.
-- `commit_convention` is optional — the squash commit-message format Phase 8.5 uses. When absent, the consumer infers it from recent `git log` / `CONTRIBUTING`, else falls back to `<JIRA_KEY> <summary>`.
+- `commit_convention` is optional — the squash commit-message format Phase 8.5 uses. When absent, the consumer infers it from recent `git log` / `CONTRIBUTING`, else falls back to `<KEY> <summary>`.
 - `announcement_pages` is optional — hand-authored destination pages that receive a given class of change regardless of where the feature itself is documented, typically inside a tree that is otherwise automation-owned. A repo without any omits the block. Each entry is `{postid, path, kinds}`; `kinds` is an open list of change kinds. `path` is authoritative when `path` and `postid` disagree; `postid` alone suffices when the repo's link convention is postid-based. A declared page is a **cross-cutting** destination: `doc-location-finder` proposes it whichever content root it sits under, even one no other target in the run touched.
 - `frontmatter.*` are pointers; never copy the rules here.

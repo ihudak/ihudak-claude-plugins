@@ -11,7 +11,7 @@ Every pipeline command classifies its own task before doing real work, and that 
 | `SIGNIFICANT` | Multi-file or cross-cutting, non-trivial design, real correctness risk. |
 | `HIGH-RISK` | Security-, data-, or contract-sensitive — a mistake here causes an outage or a breach. |
 
-All fourteen pipeline commands that load the `model-routing` skill run this classification as an early step and state their class plus a one-line reason: `/implement`, `/document`, `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/docs-profile`, `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`, and `/ready`. Each command has a typical class for its own kind of work (a Product Requirements Document authoring run is typically `MODERATE`, Jira-driven feature docs are typically `SIGNIFICANT`) but escalates when the task in front of it warrants it. What over-escalating costs differs by command — from an extra Opus planner call to a hard stop requiring an Opus session (`## What classification changes` below has the breakdown) — while misclassifying downward can ship bugs regardless of which command you're running, so the policy's own rule is to escalate one level whenever in doubt.
+All fourteen pipeline commands that load the `model-routing` skill run this classification as an early step and state their class plus a one-line reason: `/implement`, `/document`, `/epics`, `/release-notes`, `/vuln`, `/upgrade`, `/docs-profile`, `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`, and `/ready`. Each command has a typical class for its own kind of work (a Product Requirements Document authoring run is typically `MODERATE`, keyed feature docs are typically `SIGNIFICANT`) but escalates when the task in front of it warrants it. What over-escalating costs differs by command — from an extra Opus planner call to a hard stop requiring an Opus session (`## What classification changes` below has the breakdown) — while misclassifying downward can ship bugs regardless of which command you're running, so the policy's own rule is to escalate one level whenever in doubt.
 
 ## What classification changes
 
@@ -26,7 +26,7 @@ All fourteen pipeline commands that load the `model-routing` skill run this clas
 
 ## What floors a classification
 
-`/implement` has one classification floor beyond the ordinary triggers: **multi-source input**. Handing it more than one code repository, or any directory input (an exported Jira ticket folder, or a spec/design folder), floors the run at `SIGNIFICANT` even if nothing else about the change looks that size — a large multi-source brief is cross-cutting by nature, and it also triggers a parallel per-repo scan fan-out documented in the full policy below. The floor is overridable at plan approval if you judge the work genuinely smaller than its input footprint suggests.
+`/implement` has one classification floor beyond the ordinary triggers: **multi-source input**. Handing it more than one code repository, or any directory input (a saved file folder, or a spec/design folder), floors the run at `SIGNIFICANT` even if nothing else about the change looks that size — a large multi-source brief is cross-cutting by nature, and it also triggers a parallel per-repo scan fan-out documented in the full policy below. The floor is overridable at plan approval if you judge the work genuinely smaller than its input footprint suggests.
 
 ## The fallback chain
 

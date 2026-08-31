@@ -32,7 +32,7 @@ Refuse to run without a reviewer or style-checker output, and without severities
 2. **For each BLOCKER finding:**
    - Check whether it is **locally actionable**: a concrete change at a specific `path:line` that fixes a markdown, frontmatter, snippet, link, image reference, or Epic-section problem.
    - Apply the fix if locally actionable.
-   - If the finding requires **editorial judgment at paragraph scale** (rewrite the whole "How to use" section, restructure the Epic acceptance criteria from scratch, resolve a factual contradiction between the Jira description and the PR diff, invent missing content that wasn't in the sources), it cannot be safely auto-fixed. Flag as `"DEFERRED — needs human decision"` with a clear reason.
+   - If the finding requires **editorial judgment at paragraph scale** (rewrite the whole "How to use" section, restructure the Epic acceptance criteria from scratch, resolve a factual contradiction between the PRD description and the PR diff, invent missing content that wasn't in the sources), it cannot be safely auto-fixed. Flag as `"DEFERRED — needs human decision"` with a clear reason.
 
 3. **For each MAJOR finding:** same rule. Fix if locally actionable; defer if it requires editorial judgment.
 

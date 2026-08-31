@@ -1,10 +1,10 @@
 ---
 name: design
-description: Jira-driven engineering-design workflow (Dev phase). Takes over a merged specification.md from the specs repo's main branch, grounds strictly in the fully-mounted implementation code, and authors a reviewed engineering design.md through a relentless one-question-at-a-time grill that challenges the spec and designs the implementation; gates on the Opus design-reviewer and lands design.md + the spec's engineering-review edits on main via branch + PR for /implement. Optional --design-twice forces the Phase 5 interface fan-out even when no contested-interface signal fired.
+description: keyed engineering-design workflow (Dev phase). Takes over a merged specification.md from the specs repo's main branch, grounds strictly in the fully-mounted implementation code, and authors a reviewed engineering design.md through a relentless one-question-at-a-time grill that challenges the spec and designs the implementation; gates on the Opus design-reviewer and lands design.md + the spec's engineering-review edits on main via branch + PR for /implement. Optional --design-twice forces the Phase 5 interface fan-out even when no contested-interface signal fired.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
-Author an engineering design for the Jira item: $ARGUMENTS
+Author an engineering design for the resolved item: $ARGUMENTS
 
 `/design` is the **Dev-phase engineering-design** workflow — the design step of the PM→PA→PE→Dev pipeline
 (`/specify` → `specification.md`; then `/design` → `design.md`). The developer *takes over* a merged
@@ -24,21 +24,25 @@ Flags: `--design-twice` forces the Phase 5 interface fan-out on the run's load-b
 
 ## Phase 0 — Resolve input
 
-1. **Resolve the Jira input via the shared front-end.** Classify `$ARGUMENTS` minus every recognised flag (`--design-twice`) before resolving — strip it first, exactly as `commands/idea.md`'s Phase 1 strips its own flags: an unstripped `--design-twice` is parsed as part of the Jira key and the run resolves the wrong feature, or fails. Execute
-   `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against the stripped `$ARGUMENTS`. `/design` is
-   **jira-driven only**: expect `mode: jira-driven`. The front-end owns the `$VAULT_PATH` /
-   `jira-products` validation, Fallbacks A/B **and D/E**, and the PRD-selector (key-or-directory) +
-   focus-Epic grammar. Carry forward:
-   - `jira_key` — the resolved **top-level** key: the **PRD** when a focus Epic is present, or the
-     stand-alone top-level item's own key otherwise. Define `<PRD>` = `jira_key`.
-   - `focus_key` — the **Epic** to design within its PRD, or `null` for a bare PRD / stand-alone item /
-     directory. Define `<EPIC>` = `focus_key` (may be `null`).
+1. **Resolve the address — strip every recognised flag first.** `--design-twice` is removed from
+   `$ARGUMENTS` before anything else, exactly as `commands/idea.md`'s Phase 1 strips its own: an
+   unstripped flag is read as the positional token and resolution then fails on a token that was
+   never an address.
 
-   If the front-end returns `mode: direct`, stop with
-   `DESIGN_NEEDS_JIRA: /design needs a Jira key (a PRD or an Epic) or an imported-Jira directory.` —
-   `/design` has no direct-prompt behaviour. **`/design` uses the front-end only to parse the grammar
-   and classify the key; it does NOT call `jira-reader` and does NOT read the Jira export for content —
-   the requirements source of truth is the merged `specification.md` in the specs repo.**
+   Parse the **single positional address** from the stripped `$ARGUMENTS` — a `<KEY>`, or an
+   `@<path>` naming a folder or a file inside one — and resolve it with `resolve-address`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). Carry forward:
+   - `<PRD>` — the resolved **PRD folder's** `key`: the folder itself when the address named a
+     `PRD-` folder, its parent when the address named an `EPIC-` folder.
+   - `<EPIC>` — the resolved `EPIC-` folder's `key`, or `null` when the address named a `PRD-`
+     folder. **The kind decides the altitude**, which is what replaces the two-key grammar: the
+     second key was always derivable from the first.
+
+   With no positional address, stop with
+   `DESIGN_NEEDS_KEY: /design needs a PRD or Epic address — a key, or an @<path> to its folder.` —
+   `/design` has no direct-prompt behaviour. **Resolution supplies the address and nothing else:
+   `/design` reads no document for content at this step — the requirements source of truth is the
+   merged `specification.md` in the specs repo.**
 
 2. **Resolve `$SPECS_PATH`.** `/design` reads `specification.md` and writes `design.md` under
    `$SPECS_PATH/specifications/`. If `$SPECS_PATH` is unset, stop with a clear error naming `SPECS_PATH`
@@ -53,7 +57,7 @@ it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run �
 
 *(The preflight runs here, before the gate below, because `require-on-main` performs **no** `fetch` of its own — §3.2 — and relies on this step's best-effort one. Gating first would test never-fetched refs: a just-merged artifact would be missed on `origin/<default>` while the stale remote-tracking ref for its deleted branch still carries it, producing a false row D/E stop. `specs-preflight` self-gates on `$SPECS_PATH`, so it is safe this early.)*
 
-3. **Map onto the specs repo + require the spec on main.** Derive provisional kebab-case slugs from the relevant Jira title(s): `<vslug>` for `<PRD>`, and `<eslug>` for `<EPIC>` when `focus_key` is set.
+3. **Map onto the specs repo + require the spec on main.** Derive provisional kebab-case slugs from the relevant title(s): `<vslug>` for `<PRD>`, and `<eslug>` for `<EPIC>` when `focus_key` is set.
    - **Resolve the PRD dir:** call `resolve-address <PRD>` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3) and use its `path`; on `ambiguous`, stop naming every match and `@<path>` as the way through. No matching rule is written here — §5 owns it, and it carries the legacy fallback. Use a freshly derived `PRD-<PRD>-<vslug>` only on `status: absent`. Every later `specifications/<PRD>-<vslug>/` in this command — the Epic-enumeration ref test included — names the dir resolved here.
    - **Resolve the feature folder** by case:
      - **`focus_key` set** → the per-Epic home `specifications/<PRD>-<vslug>/<EPIC>-<eslug>/` (same honor-existing tolerance on the `<EPIC>-<eslug>` segment); the target is `specification.md` there.
@@ -67,7 +71,7 @@ it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run �
      to step 5.
    - **`focus_key` null** → inspect the resolved PRD dir in the specs repo:
      - it holds a **flat `specification.md`** (a stand-alone top-level Epic, or a broad PRD-level spec) → one design; the feature folder is the PRD dir itself. Skip the picker; go to step 5 (step 3's gate re-applies against this flat path).
-     - it holds **Epic subfolders** → enumerate the **spec'd** ones using the ref test `git -C "$SPECS_PATH" cat-file -e "origin/<default>:specifications/<PRD>-<vslug>/<EPIC>-<eslug>/specification.md" 2>/dev/null` (exit 0 = present on `<default>`; the `2>/dev/null` is required — git writes `fatal:` to stderr on absence) — never a worktree file-existence check, which would list a branch-only Epic as designable for a user to select before step 3's gate stops on it. A subfolder that fails the test is excluded from the actionable set and counted in the excluded-count report, with the reason distinguished: *"N Epic(s) excluded — no specification.md; M excluded — specification.md not yet merged to `<default>`."* Then branch on count — this is the reusable **progress-aware Epic-picker pattern** in `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` (§ Progress-aware Epic picker), applied here with `/design`'s own done-predicate and **enumerated from the specs repo** (not `jira-reader`):
+     - it holds **Epic subfolders** → enumerate the **spec'd** ones using the ref test `git -C "$SPECS_PATH" cat-file -e "origin/<default>:specifications/<PRD>-<vslug>/<EPIC>-<eslug>/specification.md" 2>/dev/null` (exit 0 = present on `<default>`; the `2>/dev/null` is required — git writes `fatal:` to stderr on absence) — never a worktree file-existence check, which would list a branch-only Epic as designable for a user to select before step 3's gate stops on it. A subfolder that fails the test is excluded from the actionable set and counted in the excluded-count report, with the reason distinguished: *"N Epic(s) excluded — no specification.md; M excluded — specification.md not yet merged to `<default>`."* Then branch on count — this is the reusable **progress-aware Epic-picker pattern** in `${CLAUDE_PLUGIN_ROOT}/references/epic-picker.md`, applied here with `/design`'s own done-predicate and enumerated from the specs repo, which is now the only place any command enumerates Epics from:
        - **exactly 1 spec'd Epic** → no picker; auto-select it; re-point the feature folder to its per-Epic subfolder; emit a one-line notice.
        - **≥2 spec'd Epics** → render the picker, one `choices` entry per spec'd Epic (its ○/◐/● marker + key + title), then `"Other… (describe)"`. Compute each Epic's state from `/design`'s **done-predicate** against that Epic's resolved folder:
          - **○ not started** — a `specification.md` exists there but no `design.md` and no `_design-session.md` → selectable.
@@ -146,7 +150,7 @@ user stories (`[Uxx]`), acceptance criteria (`[ACxx]`), and test cases (`[TCxx]`
 — this is the traceability baseline for **Requirements coverage** and the raw material the grill
 challenges. Note the spec's `Published` flag (governs whether Phase 5 may propose ID changes or must
 annotate-only) and any existing `- [ ]` open questions (spec-level; tolerated — the design may resolve
-or inherit them). **No Jira re-read** — the spec is the requirements source of truth.
+or inherit them). **No PRD re-read** — the spec is the requirements source of truth.
 
 ---
 
@@ -342,7 +346,7 @@ Write the feature folder: `design.md` (flat, alongside `specification.md`), the 
 Then **offer** (commit-when-asked — never automatic), presenting `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's choice array verbatim:
 `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`
 
-On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: design`; `feature_folder` as resolved in Phase 0 — the per-Epic subfolder for a **per-Epic** or **stand-alone-Epic** design (`<EPIC>` = `focus_key`, which for a stand-alone Epic equals `jira_key`), or the PRD dir for a **broad PRD-level** design (`focus_key` null); Epic keys are globally unique, so the per-Epic form needs no PRD prefix — §2.2 derives `design/<EPIC>-<eslug>` or `design/<PRD>-<vslug>` from it, matching today's branch names, both forms using hyphens; `deliverable_paths` = `design.md`, the amended `specification.md`, `_design-session.md`, and `_design-glossary.md`; `title: <EPIC|PRD> Add engineering design`; and `body_facts` = the `design.md` sections authored, the spec-challenge count (`## Engineering review` notes / new spec `- [ ]`), the confirmed repo set, and the `design-reviewer` verdict. **Merged-to-main = ready for `/implement`.** Emit its §4.1 outcome line in the Final report.
+On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: design`; `feature_folder` as resolved in Phase 0 — the per-Epic subfolder for a **per-Epic** or **stand-alone-Epic** design (`<EPIC>` = `focus_key`, which for a stand-alone Epic equals `key`), or the PRD dir for a **broad PRD-level** design (`focus_key` null); Epic keys are globally unique, so the per-Epic form needs no PRD prefix — §2.2 derives `design/<EPIC>-<eslug>` or `design/<PRD>-<vslug>` from it, matching today's branch names, both forms using hyphens; `deliverable_paths` = `design.md`, the amended `specification.md`, `_design-session.md`, and `_design-glossary.md`; `title: <EPIC|PRD> Add engineering design`; and `body_facts` = the `design.md` sections authored, the spec-challenge count (`## Engineering review` notes / new spec `- [ ]`), the confirmed repo set, and the `design-reviewer` verdict. **Merged-to-main = ready for `/implement`.** Emit its §4.1 outcome line in the Final report.
 
 ### Next Epic (after a per-Epic design from a multi-Epic PRD)
 
@@ -361,7 +365,7 @@ NEVER interrupts an earlier phase. `/design` has no built-in maintenance agent,
 so this phase invokes `impl-maintenance` on the Sonnet detection chain and then
 persists the plugin-facing slice of its report as session feedback.
 
-**Capture-at-block invariant.** This terminal phase captures gaps for a *completed* run. Separately, if an EARLIER phase **halts on a plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked), `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating — so a run abandoned at the block still records the gap. NEVER `emit-block` for a work-quality review BLOCK or an environment / user halt (repo/spec gate, jira-not-found, cancellation).
+**Capture-at-block invariant.** This terminal phase captures gaps for a *completed* run. Separately, if an EARLIER phase **halts on a plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked), `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating — so a run abandoned at the block still records the gap. NEVER `emit-block` for a work-quality review BLOCK or an environment / user halt (repo/spec gate, key-not-found, cancellation).
 
 **Session-hygiene invariant.** End the report with a `### Context hygiene` block per
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the
@@ -385,7 +389,7 @@ same-role `/compact` suggestion + `/rename <PRD-ID>-<slug>-dev`. Guidance only, 
    slice into the specs repo by citing
    `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
    `emit-auto` entry point (§6). Pass the Lessons Learned report,
-   `command: /design`, the run's `jira_key` and `source`, and `plugin_version`
+   `command: /design`, the run's `key` and `source`, and `plugin_version`
    (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto`
    renders only the report's **Command workflow improvements**, **New agents /
    skills**, and plugin **Reference docs** sections plus the **Key observations**
@@ -412,7 +416,7 @@ contribution to the PRD by citing
 nothing".
 
 Call `emit-cost` with `command: /design`, `phase: planning`, `role: dev`, the
-run's `jira_key` (or `null`) and `source`, and `plugin_version` (read from
+run's `key` (or `null`) and `source`, and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the session
 transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),
 runs `scripts/session-cost.py` to compute the per-model token-cost delta against

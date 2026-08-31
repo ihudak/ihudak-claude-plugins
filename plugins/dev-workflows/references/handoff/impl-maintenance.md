@@ -16,7 +16,7 @@ Session handoff:
 ```
 
 `Command run` is one of `/implement`, `/document` (direct mode), `/document`
-(Jira mode), `/epics`, `/vuln`, `/upgrade`, `/design`, `/specify`,
+(keyed mode), `/epics`, `/vuln`, `/upgrade`, `/design`, `/specify`,
 `/release-notes`, `/idea`, `/create-prd`, `/create-ard`, or `/ready` — it
 scopes any "Command workflow improvements" suggestions to the right command.
 If `Command run` is missing from the handoff, default to
@@ -70,7 +70,7 @@ Return this exact shape (no preamble, no chatter):
 - _or_ "No new agents suggested"
 
 #### Command workflow improvements
-- **Command**: [/implement | /document (direct mode) | /document (Jira mode) | /epics | /vuln | /upgrade | /design | /specify | /release-notes]
+- **Command**: [/implement | /document (direct mode) | /document (keyed mode) | /epics | /vuln | /upgrade | /design | /specify | /release-notes]
   **Section**: [Phase / step reference]
   **Change**: [what to change and why]
 - ...

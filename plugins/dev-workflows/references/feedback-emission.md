@@ -49,7 +49,7 @@ slug: env-ag-update-window
 ---
 ```
 
-- `prd` — the run's Jira key, or `n/a` when no key resolved.
+- `prd` — the run's key, or `n/a` when no key resolved.
 - `slug` — the feature slug from the PRD dir, or the ISO date on a keyless file.
 
 Each entry is appended as a dated H2 header + a fenced YAML block + prose:
@@ -99,7 +99,7 @@ capture, §5). Walk the ladder top-down and stop at the first tier that applies:
 1. **`$SPECS_PATH` resolvable + writable + the PRD dir exists** — the dir matched
    by `$SPECS_PATH/{specs|specifications|vis}/…/<KEY>{-|_}<slug>/…` →
    `<PRD-dir>/dev-workflows/<KEY>-feedback.md`. *[primary — the whole point]*
-2. **`$SPECS_PATH` writable but no PRD dir matched** (no `jira_key`, or no
+2. **`$SPECS_PATH` writable but no PRD dir matched** (no `key`, or no
    matching spec dir) → `$SPECS_PATH/dev-workflows-feedback/<KEY-or-date>.md` at
    the specs-repo root. Still committed & aggregated; notice:
    `unfiled — move under the PRD dir if it belongs to one.`
@@ -108,7 +108,7 @@ capture, §5). Walk the ladder top-down and stop at the first tier that applies:
    writable) → `$VAULT_PATH/dev-workflows/feedback/<KEY>-feedback.md`, with a
    **loud notice**:
    `⚠ $SPECS_PATH unavailable — saved to your vault; it will NOT auto-aggregate to the maintainer. Set $SPECS_PATH and commit, or forward manually.`
-4. **`source = directory`** (imported Jira dir, no specs/vault) → beside the
+4. **`source = directory`** (a passed directory, no specs/vault) → beside the
    imported directory, where `/epics` + `/release-notes` already drop their
    no-vault output.
 5. **Nothing resolvable** → **report-only**: keep the feedback in the run's
@@ -191,7 +191,7 @@ run's terminal `commit-artifacts` step
 ### `emit-auto` — automatic callers (the thirteen commands' maintenance phases)
 
 Inputs: the `impl-maintenance` **Lessons Learned report**, `command` (the exact
-slash-command name), `jira_key` (or `null`), `source` (`vault | directory |
+slash-command name), `key` (or `null`), `source` (`vault | directory |
 none`).
 
 Behavior: project the plugin-facing slice per §4 (Command workflow improvements
@@ -205,7 +205,7 @@ or "no plugin-facing signal — nothing persisted" when the slice is empty.
 
 Inputs: `command` (the exact name, or `n/a`), the user-authored **Friction** and
 **Suggested improvement** prose, an inferred-and-confirmed `category` (§1 vocab),
-`impact`, `jira_key` (or `null`), `source`.
+`impact`, `key` (or `null`), `source`.
 
 Behavior: `origin: manual`; never silently skipped (§3 collision rule); resolve
 the target (§2); write; surface the path + any degradation notice.
@@ -214,7 +214,7 @@ the target (§2); write; surface the path + any degradation notice.
 
 Inputs: `command` (inferred from recent context, or `n/a`), the **corrective
 triple** — Friction, the **verbatim User prompt**, and the Resolution — a
-`category`, `impact`, `jira_key` (or `null`), `source`.
+`category`, `impact`, `key` (or `null`), `source`.
 
 Behavior: `origin: prompt`; write the entry with the two extra prose blocks
 (User prompt verbatim + Resolution, §1); never silently skipped (§3); resolve
@@ -222,7 +222,7 @@ the target (§2); write silently (§5); surface the path.
 
 ### `emit-block` — capture-at-block (a run halting on a plugin gap)
 
-Inputs: `command` (exact slash-command name), `jira_key` (or `null`), `source`
+Inputs: `command` (exact slash-command name), `key` (or `null`), `source`
 (`vault | directory | none`), and the **halting gap** — a short description of
 the plugin capability / reference / skill / command-path the run needed but the
 plugin lacked. Unlike `emit-auto`, no `impl-maintenance` report exists (the run
@@ -239,6 +239,6 @@ surfaces its normal `BLOCKED` escalation — `emit-block` never prompts.
 **Predicate — fires ONLY for a plugin-facing gap** (the plugin lacked something
 the run needed). It does **NOT** fire for: a code / doc / Epic review **BLOCK**
 (a defect in the *work*, not the plugin); an environment / user halt
-(repo-missing, dirty-tree, jira-not-found, refresh-blocked, and the other
+(repo-missing, dirty-tree, key-not-found, refresh-blocked, and the other
 `escalation-rules.md` cases); or user cancellation. The §4 plugin-facing scoping
 applies (never target-project `CLAUDE.md` / hook advice).

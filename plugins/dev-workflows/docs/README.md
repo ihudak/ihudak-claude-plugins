@@ -48,7 +48,7 @@ Four pages orient you before you touch a command: [Getting started](getting-star
 - [`/prompt`](commands/prompt.md) — log a correction you just made to a command's output, then apply the fix directly.
 - [`/prompt-brainstorm`](commands/prompt-brainstorm.md) — log a correction, then hand off to `superpowers:brainstorming` to redesign it together.
 - [`/prompt-grill-me`](commands/prompt-grill-me.md) — log a correction, then grill the fix inline with a bounded interrogation.
-- [`/ready`](commands/ready.md) — verify a declared status against the ARD/spec/design record, without changing it.
+- [`/ready`](commands/ready.md) — derive the workflow phase from the ARD/spec/design record and report what is missing to leave it; `--claimed` checks a status you declare against it.
 - [`/release-notes`](commands/release-notes.md) — draft a release-notes Summary for a ticket, shaped by the destination it resolves to.
 - [`/specify`](commands/specify.md) — author an org-standard specification for one item through a relentless grill.
 - [`/statusline`](commands/statusline.md) — install the plugin's multi-line status line into your Claude Code settings.

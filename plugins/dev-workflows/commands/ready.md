@@ -145,30 +145,23 @@ falls to the Sonnet floor — record the degradation in `notes` and the final re
 
 ## Phase 2 — Read ground truth
 
-Read the resolved folder — this is the authoritative requirement source
-the reviewer verifies the declared status against (never Phase 1's status peek).
+**Read the resolved folder.** Its `prd.md`, and every `EPIC-` folder directly under it — that
+listing is the Epic set this command judges, and each folder's `epic.md` supplies its title and its
+own `key`. Carry forward:
 
-**Read the resolved folder directly.** Read its `prd.md`, and list the `EPIC-` subfolders under it —
-the set whose artifacts this command judges. Nothing here reads a declared status: `/ready` derives
-the phase from what the artifacts show, and `--claimed` is the only way a declaration enters the run.
-  >
-  > prd_dir: [resolved prd_dir]
-  > key:         [resolved key]
-  > depth:      prd-plus-epics"
-
-Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `key dir not found`
-rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On `OK`,
-carry forward:
-
-- `value_increment.status` — the PRD's declared status (PRD ladder).
-- `linked_items[]` filtered to `type == Epic` and their `.status` — each Epic's declared status (Epic
-  ladder). When `focus_key` is set, validate it is among these; if not, surface
-  `READY_FOCUS_NOT_FOUND: <focus_key> is not a linked Epic of <KEY>.` with
-  `choices: ["Check PRD-level readiness instead (the whole PRD)", "Re-enter the Epic key", "Cancel"]`.
 - `requirements[]` (+ `requirements_source`) — the coverage ground truth for Phase 3(a).
+- The per-Epic artifact inventory: for each `EPIC-` folder, whether `specification.md`, `design.md`
+  and `implementation.md` exist. **This is what Phase 3(0) derives the phase from**, and it is the
+  only status input this command has.
 
-These declared statuses are passed to the reviewer **exactly as read** — never inferred, never
-re-derived (per `readiness-reviewer.md`'s hard rules).
+When `focus_key` is set, validate it names one of those folders; if not, surface
+`READY_FOCUS_NOT_FOUND: <focus_key> is not an Epic of <KEY>.` with
+`choices: ["Check PRD-level readiness instead (the whole PRD)", "Re-enter the Epic key", "Cancel"]`.
+
+**Nothing here reads a declared status, because there is nothing to read one from.** The phase is
+derived in Phase 3(0) from the artifacts above; a status the operator declares enters the run only
+through `--claimed` (Phase 0 step 1a) and is compared against that derivation, never substituted for
+it.
 
 ---
 
@@ -257,13 +250,13 @@ this run. This is the mechanical half of that dimension.
 
 Dispatch `readiness-reviewer` (Opus, frontmatter-pinned — no override) with the Phase 3 skeleton, the
 artifact paths from Phase 1 (the reviewer Reads each end-to-end itself — it carries `Read`/`Glob`/
-`Grep`), the Phase 2 declared statuses, `applicable_ard` (omit entirely when Phase 2.5 was `none`),
+`Grep`), the Phase 3(0) derived phase and any `--claimed` value, `applicable_ard` (omit entirely when Phase 2.5 was `none`),
 and a pointer to the rubric.
 
 → Agent (subagent_type: "dev-workflows:readiness-reviewer", model: `<review_model — §2 Opus chain; frontmatter-pinned, recorded, no override>`):
   > "Review readiness for this brief:
   >
-  > Task description: [one paragraph: <PRD> [+ <EPIC>], the declared status(es), what is being verified]
+  > Task description: [one paragraph: <PRD> [+ <EPIC>], the derived phase(s), what is being verified]
   > requirements:            [paste the requirements[] array from Phase 2]
   > coverage_map:            [paste Phase 3(a)]
   > status_expectation:      [paste Phase 3(b), plus the workflow-states.md rubric reference]
@@ -388,7 +381,7 @@ plugin-gap halt (see Invariants).
 
    ### Next step
    [Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. SUPPORTED → `/dev-workflows:implement <PRD> [<Epic>]` (same lane, no handoff). PARTIAL / NOT-SUPPORTED → resolve the named gaps above and update the
-   declared status to match reality, then re-run `/dev-workflows:ready <PRD> [<Epic>]`.]
+   declared status to match the artifacts, then re-run `/dev-workflows:ready <PRD> [<Epic>]`.]
 
    ### Context hygiene
    The resume pointer is written in the terminal cost phase (Phase 8), per
@@ -528,7 +521,7 @@ the run's manual-step / out-of-scope follow-ups by citing
 1. **Collect** the qualifying follow-ups: the **named readiness gaps** from Phase 4's Findings that a
    `PARTIAL` / `NOT-SUPPORTED` verdict surfaced (each gap → one follow-up: "resolve <gap>, see
    `_readiness.md`"), plus a standing **"update any declared status to match the artifacts (or vice versa)"**
-   reminder whenever the verdict is not a clean `SUPPORTED` at the declared status.
+   reminder whenever the verdict is not a clean `SUPPORTED` at the derived phase.
 2. **Filter** them with the reference's §6 qualifying predicate — a `SUPPORTED` run with no gaps
    qualifies **nothing**; this phase is then a silent no-op (byte-identical to a run without it).
 3. **Resolve** the write target via the §4 ladder using `key` and `source`; render + place tasks
@@ -624,7 +617,7 @@ whatever branch Phase 5 left checked out), and NEVER writes into
 - ALWAYS resolve one positional address (Phase 0) and stop when none is given
 - ALWAYS require `$SPECS_PATH` — stop naming it explicitly if unset (like `/design`)
 - ALWAYS read artifacts from the specs repo's clean **main** — never a branch
-- ALWAYS pass the Phase 2 declared status to `readiness-reviewer` exactly as read — never inferred,
+- ALWAYS pass the Phase 3(0) derived phase to `readiness-reviewer` with the artifacts that placed it there, plus any `--claimed` value verbatim — never
   never re-derived
 - ALWAYS resolve the `model_routing` block at Phase 1.5 and pin the detection steps to the §2.1 Sonnet chain;
   `readiness-reviewer` keeps its frontmatter Opus pin (no override); coordination + the Phase 3

@@ -1,8 +1,8 @@
 # Release-note destinations & shapes — source of truth
 
 Consulted by `release-notes-writer` to decide **where a release note lands and what shape it must
-take**. This file is the single authority for the destination map, the per-destination draft shape,
-the per-destination prose rules, the deprecation-note rule, and Change Type sourcing. The
+take**. This file is the single authority for the section map, the per-section draft shape,
+the per-section prose rules, the deprecation-note rule, and Change Type sourcing. The
 `/release-notes` command cites this file for its own invariants (§1/§3 for the draft shape, §4 for
 the documentation-link rule) but never re-derives the writer's decision; the agent applies it and returns a proposed
 destination plus any gaps.

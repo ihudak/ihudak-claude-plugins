@@ -83,7 +83,7 @@ Spec 2 is largely a re-wiring of agents that already exist. Spec 3 is meaningles
 
 | Command | Job | Reuses |
 |---|---|---|
-| `/docs-init` | Scaffold the docs repo: generator, Diátaxis skeleton, Vale, snippets, two builds, CI; emit `docs-profile.yml` | profile schema, `/docs-brand` inline |
+| `/docs-init` | Scaffold the docs repo: generator, product-shaped page skeleton (D15), Vale, snippets, two builds, CI; emit `docs-profile.yml` | profile schema, `/docs-brand` inline |
 | `/docs-brand` | Extract logo + rough colour scheme from the code repos and apply them | `references/guidelines/accessibility.md` |
 | `/docs-serve` | Start/stop/status the docs server in the background; report a reachable URL | profile `dev_servers` |
 | `/docs-audit` | Enumerate surfaces, cross with Diátaxis, write the prioritised backlog | `code-scanner`, `docs-grounder` |

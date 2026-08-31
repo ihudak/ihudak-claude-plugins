@@ -61,14 +61,15 @@ appears, and the difference matters:
 
 | Command | What it does with the code | What it does about the convention |
 |---|---|---|
-| `/implement` | creates the branch, leaves the implementation **uncommitted** on it | names the key in the **branch**, and **states the subject convention at handover** — the moment the operator writes the commit |
-| `/upgrade` | leaves changes **uncommitted** | states the convention at handover, same reason |
+| `/implement`, `/upgrade` | create the branch, then hand over behind `references/code-handoff.md` §2's consent choice | **write the subject** on any committing option; on "leave it uncommitted", state the convention to the operator who will |
 | `/vuln` | commits and opens a PR through `vuln-fixer` | **writes the subject itself** |
 
-**Only `/vuln` commits into a code repository**, so only `/vuln` can write a compliant subject on its
-own. That is not a weakness of the convention — it is why the convention has to be *taught* rather
-than merely emitted: the human finishing the work `/implement` left on the branch is the person
-whose commit the scan will or will not find.
+**All three write it now, and the history is worth keeping** because it explains why the convention
+is also *documented* rather than merely emitted. Until `code-handoff.md` existed, `/implement` and
+`/upgrade` left the working tree dirty and could only ask the operator to name the key — strictly
+weaker than doing it. A command that does not commit cannot write a commit subject. Where the
+operator declines the commit, that is still the situation, which is why
+`docs/reference/commit-convention.md` exists for a contributor who has never run the plugin.
 
 - **The commit subject ends with `[<key>]`** — `feat(orders): add order intake [ACME-77-01]`.
 - **A `Work-Item: <workitem_key>` trailer**, when the resolved folder carries one
@@ -78,8 +79,7 @@ whose commit the scan will or will not find.
 
 **In the subject rather than a trailer, and that is the whole point.** A trailer does not survive
 `git log --oneline`, so it is invisible to the person deciding what their own commit should look
-like — and people copy the shape of the commits already in the log. Since most of the commits in a
-repository this plugin touched were written by a human at handover, a convention stated only in a
+like — and people copy the shape of the commits already in the log. A convention stated only in a
 trailer is a convention nobody sees.
 
 **The convention is documented as a convention**, in `docs/`, not merely implied by what the plugin

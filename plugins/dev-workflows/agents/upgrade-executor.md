@@ -5,7 +5,7 @@ description: >
   component: apply the upgrade plan produced by upgrade-planner, run the build,
   verify tests via test-baseliner, and auto-fix any test code breakage caused by
   the new version's API changes. Invoked sequentially by the /upgrade command orchestrator.
-  NOT triggered by direct user prompts. Leaves all changes uncommitted on the
+  NOT triggered by direct user prompts. Leaves the changes in the working tree for the orchestrator to hand over, on the
   current branch.
 tools: ["Read", "Glob", "Grep", "Bash", "Edit", "Task"]
 ---
@@ -72,7 +72,7 @@ granted, so this agent can never ask the user directly. The orchestrator owns th
 
 ## Invariants
 
-- Leave all changes **uncommitted** — no git commits, no PRs.
+- **Never commit, never push, never open a pull request.** Leave the changes in the working tree and return. This is a division of labour, not a policy about the work: the commit decision needs consent, an agent cannot prompt, so the orchestrator makes it in `/upgrade`'s own code-handoff step (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2).
 - Process one component per invocation.
 - The baseline provided by the orchestrator is authoritative; do not re-run it.
 - NEVER dispatch any subagent other than `test-baseliner`. That one dispatch is your entire `Task` authority. **Never dispatch a reviewer of your own.** Review is the caller's to schedule, not yours. Your caller deliberately runs no reviewer on some paths — a SIMPLE / MODERATE run is classified out of the Opus `code-review` gate on purpose — so a reviewer you spawn silently overrides the caller's own gate policy. Its verdict has no standing either: the caller never sees it, and you cannot act on it without exceeding your brief.

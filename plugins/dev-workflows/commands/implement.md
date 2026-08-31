@@ -10,6 +10,8 @@ Implement the following: $ARGUMENTS
 
 ## Phase 0 — Load and classify inputs
 
+**Strip `--no-commit` first**, before any other parsing: it is the only flag this command takes, and an unstripped flag is read as free-text prose and lands in the task description. When present, Phase 4.6's code handoff is skipped and the changes are left in the working tree — today's pre-3.8.0 behaviour, for anyone whose workflow depends on it.
+
 `$ARGUMENTS` may contain free-text prose plus **zero or more `@path` tokens** (today's single-`@file` form is a subset). Resolve each `@path` relative to the current working directory. Classify each `@path` — and the current working directory — **by inspection, not by matching the path string**:
 
 | Detected as | Recognition rule | Handling |
@@ -623,6 +625,23 @@ Placement is deliberate, not stylistic: step 7.5 sits inside Phase 3B, before th
 
 ---
 
+## Phase 4.6 — Code handoff (consent-gated)
+
+**Runs after the review gate and the test run have both passed, and never on a run that ended in an
+unresolved BLOCKER** — the point is to hand over work that is ready, not to persist work that is not.
+Skipped entirely under `--no-commit`.
+
+Execute `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2 against **the code repository** this
+run changed — not `$SPECS_PATH`. Present its consent choice verbatim; on any committing option, the
+commit subject ends with `[<key>]` and carries a `Work-Item:` trailer where the folder has one
+(`${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §3).
+
+**This is where the plugin writes that convention rather than teaching it.** A command that does not
+commit can only ask the operator to name the key; one that does, names it.
+
+Record what the operator chose — it is what Phase 4.7 writes as `pushed:`, and a declined push is
+recorded as `pushed: false` rather than omitted.
+
 ## Phase 4.7 — Write the implementation record (keyed runs only)
 
 **Skipped entirely when `mode: direct`** — there is no resolved folder to append to, and a
@@ -783,16 +802,8 @@ blocked` (§3.3 G0), re-emitting that notice. Because the Phase 5 report was
 composed before this phase, **print its §6 outcome line here**, as the run's
 last output — prefixed `Specs repo:`, with any guard notice repeated in full.
 
-**State the commit convention at handover.** The implementation is left uncommitted on the branch
-this run created, so the operator writes that commit — which makes this the one moment the convention
-can be taught to the person who will follow it. Say it plainly, once, in the Final Report: end the
-commit subject with `[<key>]`, and add a `Work-Item: <workitem_key>` trailer where the folder carries
-one. `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §3 owns the rule and §4 explains
-what it buys — a commit whose subject names the key is one `/document` and `/release-notes` can find
-later; one that names nothing is invisible to them.
-
-ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable
-(the implementation remains uncommitted on the branch created in Pre-Phase 3;
+ADDITIVE — this phase NEVER fails the run and NEVER commits the deliverable itself
+(Phase 4.6's code handoff owns that, behind its own consent choice;
 the terminal step above commits only the bounded session-artifact paths in
 `$SPECS_PATH`; the spec/design conformance notes from step 7.5 are handed off separately, before this phase, via `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2), and NEVER writes into the code repo or the current working
 directory; no user name is ever written (§10 privacy).

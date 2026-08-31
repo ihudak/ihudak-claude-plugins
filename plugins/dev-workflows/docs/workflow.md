@@ -95,7 +95,7 @@ See [Roles and phases](roles-and-phases.md) for what each role owns, consumes, a
 
 - **`$SPECS_PATH/specifications/<KEY>-<slug>/`** — the shared, team-visible home for the PRD, the ARD, `specification.md`, and `design.md`. Each authoring command lands its file here, then hands it onto the specs repo's default branch for the next command to find.
 - **`$VAULT_PATH`** — the personal store. Nothing in the pipeline reads a tracker export from it any more; what remains of its role is retired in a later increment.
-- **`$REPOS_PATH`** — the mounted code clones. `/implement` and, outside the PRD pipeline, `/upgrade` work here on a feature branch but leave changes uncommitted; `/vuln`, also outside the PRD pipeline, is the one that commits and opens a pull request, per fixed CVE. Product documentation itself is written into the external docs repo, not here.
+- **`$REPOS_PATH`** — the mounted code clones. `/implement` and, outside the PRD pipeline, `/upgrade` work here on a feature branch and hand the result over behind a consent choice (commit + push + PR, or less); `/vuln` commits and opens a PR as part of its own fix contract.
 - **Plugin bookkeeping** — feedback and session-cost files — lives under `<PRD-dir>/dev-workflows/` inside `$SPECS_PATH`, committed and pushed alongside the specs artifacts it describes. Follow-up tasks are the one exception: they land in your vault first and reach this directory only when no vault is available — see [Follow-ups](reference/follow-ups.md) for the full ladder.
 
 ## Sources of truth

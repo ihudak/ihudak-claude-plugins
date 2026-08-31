@@ -50,7 +50,7 @@ Eight `dev-workflows` subagents are dispatched: the folder read and `code-scanne
 
 ## What it produces
 
-Code changes on a freshly created feature branch (named per the target repo's own documented convention, or a `feat/<slug>` fallback) — left **uncommitted**; `/implement` never commits the implementation itself. New or changed tests for every new or changed behaviour, written by `test-writer`; if no test framework is detected, the run asks explicitly rather than silently skipping test-writing.
+Code changes on a freshly created feature branch — named per the target repo's own documented convention, or `<prefix>/<key>-<slug>` as the fallback — handed over behind a consent choice: commit + push + pull request (recommended), commit + push, commit only, or leave it uncommitted. On any committing option the subject ends with `[<key>]`, which is what lets `/document` and `/release-notes` find the work later. `--no-commit` skips the choice.
 
 Four Phase 4 maintenance outputs, always collected together: a documentation update (or an explicit "no update required"), a knowledge-base entry, an instructions (`CLAUDE.md`) update, and an `impl-maintenance` Lessons Learned report. On a `SIGNIFICANT`/`HIGH-RISK` run with a spec/design in scope, unresolved `missing`/`contradicts` findings from `code-review`'s conformance dimension are escalated as open-question notes written back onto the source `specification.md`/`design.md` (Phase 3B step 7.5) and, behind a consent choice, handed off onto the specs repo's main branch (Phase 4.5) — a silent no-op when nothing was escalated, which covers every `SIMPLE`/`MODERATE` run and every run with no spec/design in scope.
 

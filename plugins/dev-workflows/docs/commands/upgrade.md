@@ -43,7 +43,7 @@ flowchart TD
 
 ## What it produces
 
-Upgraded component version(s) applied on a freshly created feature branch, left **uncommitted** — `/upgrade` never commits the upgrade itself, unlike `/vuln`, which does commit and open a PR for each CVE fix. An Upgrade Summary table (component, before/after version, classification, review verdict, status, notes) and a `### Review triage` section for every `SIGNIFICANT`/`HIGH-RISK` component that went through Opus review. An `impl-maintenance` Lessons Learned report, always tagged `Command run: /upgrade`.
+Upgraded component version(s) applied on a freshly created feature branch, then handed over behind a consent choice — commit + push + pull request (recommended), commit + push, commit only, or leave it uncommitted. `--no-commit` skips the choice and leaves everything in the working tree.
 
 No cost entry is ever written (see [Who runs it](#who-runs-it) above), and no `resume.md` is written for `/upgrade` — its durable state is already the uncommitted branch on disk, not a PRD-scoped artifact. The terminal `commit-artifacts` step still runs, committing only `$SPECS_PATH`'s bounded session-artifact paths — never the code repo `/upgrade` just changed.
 

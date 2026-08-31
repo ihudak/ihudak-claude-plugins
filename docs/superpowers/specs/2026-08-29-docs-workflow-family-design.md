@@ -61,6 +61,8 @@ Spec 2 is largely a re-wiring of agents that already exist. Spec 3 is meaningles
 | D17 | **Every command in the family that writes an artefact passes a high-tier review gate, with triage and a fixer.** `/docs-serve` is the sole exemption and it writes no artefact. | The plugin's rule is that code and docs written by a command are reviewed by a high-tier model before they are trusted. `/docs-init` writes CI, `mkdocs.yml`, `.vale.ini` and CSS — that is code. `/docs-audit` writes the backlog every later run obeys. `/docs-verify` applies human confirmations to prose. `/docs-drift` marks pages stale. None of them are exempt because a sibling command has a gate. |
 | D18 | **Page frontmatter is a fixed contract, and four of its fields are load-bearing for this family.** | `type`, `audience`, `visibility` and `unit` are what make the coverage grid, the two-build split and drift detection computable at all. The rest — `title`, `description`, `owners`, `creator`, `published`, `updated`, `readtime`, `order`, `changelog` — are the portal's own metadata. `docs-frontmatter` owns the schema; this family declares its four reserved keys (§8.6). |
 | D19 | **Bookkeeping for a documentation run that has no PRD lands under `$SPECS_PATH/documentation/<docs-repo-slug>/`, not in the pending queue.** | The existing ladder parks a PRD-less cost entry as *pending*, awaiting reconciliation into a PRD directory. Documentation work frequently has no PRD and never will, so those entries would accumulate forever. The docs repo is this family's unit of attribution, exactly as the PRD directory is the pipeline's (§13.4). |
+| D20 | **The review model is the Opus chain for every gated command, with no tiering by unit.** Classification still varies per unit and still drives the planning model; it never lowers the reviewer. | Settled by the operator against the cost: a mechanical-looking reference page is exactly where a wrong claim survives review, because it reads plausibly and nobody re-derives it. Cost is controlled by throughput (`--batch` caps, visible per-run cost emission), never by weakening the gate. |
+| D21 | **A new page's default `owners` is its `creator`, until someone reassigns it.** | Accurate at write time, never blocks a write, and degrades honestly: an unmaintained page visibly names someone who has moved on, which is itself the signal to reassign. A single org-wide default would name the same owner on every page whether or not anyone is watching it, which is indistinguishable from no owner at all. `references/docs-profiles/default-owners.txt` is seeded with that convention rather than with a name. |
 
 ---
 
@@ -554,7 +556,7 @@ audience: user                           # RESERVED — user | engineering
 visibility: public                       # RESERVED — public | internal; the two-build split reads this
 unit: U-001                              # RESERVED — the backlog unit; drift reads this
 roles: [customer]                        # which product roles this page serves
-owners: [docs-team]                      # who maintains it
+owners: [i.gudak]                        # who maintains it; defaults to creator (D21)
 creator: i.gudak                         # who first authored it
 published: 2026-08-31                    # ISO date first published
 updated: 2026-09-04                      # ISO date of the last substantive change
@@ -912,7 +914,7 @@ flowchart TD
 | **Docs rot that drift cannot see** — a renamed product, a changed process, a page wrong with no code change | `review_by` in frontmatter is the calendar backstop; `/docs-audit --refresh` sweeps on `updated` and re-queues what has aged past its review date. Drift watches evidence, `review_by` watches time, and neither covers the other |
 | **In-repo images bloat the repository** (D16's default) | A 300 KB per-image CI budget beside the visibility gates, SVG preferred, an optimiser run when available, and one path per slot so a replacement overwrites rather than accumulating. `git-lfs` is named as the escape hatch |
 | **The release-notes harvest drifts** — a draft is edited after the page was written | The `artifact` evidence kind records the draft's path **and the commit it was read at**, so `/docs-drift` compares rather than guessing |
-| **Review cost** — an Opus gate on every unit across a large backlog | Classification is per unit, not per family: a reference page derived from one file is MODERATE, not SIGNIFICANT. `--batch` is capped and confirms its list first. Cost emission (§13.4) makes the spend visible per run rather than a month-end surprise. **The acceptable ceiling is the operator's call, not the design's** — see §18 |
+| **Review cost** — an Opus gate on every unit across a large backlog | Settled deliberately in favour of correctness (D20): the reviewer is never tiered down, because a mechanical-looking reference page is exactly where a wrong claim survives. The levers are throughput and visibility — `--batch` is capped and confirms its list first, and cost emission (§13.4) makes the spend visible per run rather than a month-end surprise |
 | Internal content leaks into the public build | Two output-level gates (§9.3), asserting on built HTML rather than on source paths or contributor discipline |
 | **The backlog and the pages disagree** — a second source of truth | `unit:` in frontmatter is the link in both directions. `/docs-audit --refresh` reconciles both ways and **never silently deletes a unit**: one whose surface vanished is marked `blocked_by: [surface-removed]` and reported, because a surface disappearing is as likely to be a failed scan as a real removal |
 | **The generated `nav:` drifts from the files** | Nav is regenerated from frontmatter `order` on every write, and the public build already runs `strict: true` with `validation.nav.omitted_files: warn` — so a page missing from the nav fails the build rather than going quietly unreachable |
@@ -922,9 +924,7 @@ flowchart TD
 
 ## 18. Open questions
 
-1. **What is the acceptable review spend per unit?** D17 puts an Opus gate on every writing command, which is right for correctness and is the largest recurring cost in the family. A forty-unit backlog is forty gated runs. The design cannot settle the ceiling — the operator can, and the answer changes whether `--batch` defaults to a small cap or a large one, and whether a MODERATE unit may fall back to a mid-tier reviewer. **Blocking for Spec 2, not for Spec 1.**
-2. **What are the default `owners`?** `references/docs-profiles/default-owners.txt` exists and the scaffold should seed it, but with what. An org default, a per-section map, or the `creator` until someone says otherwise.
-3. **Tutorial selection UX.** The audit proposes candidates and a human picks; whether that is an interactive prompt in `/docs-audit` or a marked section of the backlog to edit is unsettled.
-4. **Jira/GitHub projection of the backlog** (D5's optional emitter) is named but not designed. Deferred until someone needs it.
+1. **Tutorial selection UX.** The audit proposes candidates and a human picks; whether that is an interactive prompt in `/docs-audit` or a marked section of the backlog to edit is unsettled.
+2. **Jira/GitHub projection of the backlog** (D5's optional emitter) is named but not designed. Deferred until someone needs it.
 
-*(The question this document originally carried here — whether `docs-frontmatter` should own the evidence block — is settled by D18 and §8.6: the skill owns the schema, this family declares four reserved keys.)*
+*(Three questions this document originally carried are now settled and have moved into §3: whether `docs-frontmatter` should own the evidence block — D18; the acceptable review spend per unit — D20; and the default page owner — D21.)*

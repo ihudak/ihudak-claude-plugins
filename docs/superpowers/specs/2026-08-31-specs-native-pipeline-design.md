@@ -1,6 +1,6 @@
 # Design: the specs-native pipeline — removing the tracker round-trip from the open-source plugin
 
-**Status:** approved in brainstorming, not yet planned.
+**Status:** in review — §§1–5 revised after the first review pass (2026-08-31).
 **Supersedes in part:** `2026-06-29-jira-input-resolution-b2-design.md`,
 `2026-07-01-jira-input-adoption-epics-release-notes-b3-design.md`,
 `2026-07-07-two-key-grammar-foundation-design.md`, `2026-07-08-grammar-adoption-design.md`.
@@ -32,7 +32,8 @@ Three consequences today:
 
 **Scale.** 84 of 110 command/agent/reference files mention Jira. 29 of 41 documentation pages do.
 `jira-input-resolution.md` is cited by 16 files, `jira-reader` by 32, and 51 files carry `jira_key`.
-This is larger than the BRD route, which was 83 files.
+`$VAULT_PATH` appears 188 times across 50 files. This is larger than the BRD route, which was 83
+files.
 
 **The existence proof.** All six `/brd-*` commands have **zero** `$VAULT_PATH` references. They run
 entirely on `$SPECS_PATH`, including a customer sign-off loop, and hand into `/create-prd --from-brd`
@@ -45,18 +46,21 @@ without a tracker key. The model works; this design generalises it to the `/idea
 **In scope:** the input model of every pipeline command; the `$SPECS_PATH` tree shape; key grammar
 and addressing; `/idea`, `/create-prd`, `/epics`, `/specify`, `/design`, `/create-ard`,
 `/implement`, `/document`, `/release-notes`, `/ready`, `/brd-split`; the deletion of `jira-reader`
-and `jira-input-resolution.md`; `$VAULT_PATH` reduced to follow-up tasks; every affected reference,
+and `jira-input-resolution.md`; the deletion of `$VAULT_PATH`; every affected reference,
 documentation page, and `CLAUDE.md`.
 
 **Out of scope:** the `/brd-*` route's own mechanics (unchanged except `/brd-split`'s always-slice
-rule); `$DOCS_PATH` documentation grounding (vault-independent already); `/vuln`, `/upgrade`,
-`/docs-profile`, `/statusline`, `/feedback`, `/prompt*`, and the two reviewer commands.
+rule and the folder it names); `$DOCS_PATH` documentation grounding (vault-independent already);
+`/vuln`, `/upgrade`, `/docs-profile`, `/statusline`, `/feedback`, `/prompt*`, and the two reviewer
+commands.
 
 **Editions.** This is canonical-only. The mgd edition keeps the tracker loop because its environment
-still requires it, and copilot stays coupled to mgd. After this design the editions no longer share
-ten commands or two shared front-ends. That is accepted, deliberately, and recorded here so it is
-never discovered as a surprise: the divergence to date has been **additive** (canonical has commands
-mgd lacks), and this is the first change that **modifies** shared files.
+still requires it, and copilot stays coupled to mgd. **No edition can break as a consequence of this
+change**: each edition holds full copies of the files, never shared ones, so nothing here reaches
+mgd's tree or copilot's. What ends is the hand-maintained *synchronisation* of those copies —
+divergence to date has been additive (canonical has commands mgd lacks), and after this the same
+filename in two editions describes two different workflows. That is accepted, deliberately, and
+recorded so a later porting session does not treat the drift as a defect to reconcile.
 
 ---
 
@@ -67,8 +71,8 @@ mgd lacks), and this is the first change that **modifies** shared files.
 | **D1** | `$SPECS_PATH` is the system of record. No command reads a tracker, of any vendor, by any mechanism |
 | **D2** | Directories carry a **kind prefix** — `BRD-`, `PRD-`, `EPIC-`. Keys carry no kind |
 | **D3** | Filenames carry the **kind**, never a key. The path supplies identity; the filename supplies kind |
-| **D4** | Every command takes **one key**. A key encodes its own ancestry, so no command takes a chain |
-| **D5** | A BRD is a container, never implementable. `/brd-split` always produces at least one iteration |
+| **D4** | Every command takes **one** address. A key encodes its own ancestry, so no command takes a chain |
+| **D5** | A BRD is a container, never implementable. `/brd-split` always produces at least one PRD folder |
 | **D6** | Epics come from a PRD only. There are no Epics at BRD level |
 | **D7** | `/idea` requires its key up front and writes in its final location. No relocation, no staging |
 | **D8** | `/ready` derives the phase from artifacts. `--claimed "<status>"` restores the divergence check |
@@ -78,34 +82,38 @@ mgd lacks), and this is the first change that **modifies** shared files.
 | **D12** | `kind:` replaces `issue_type:`; `ValueIncrement` is retired |
 | **D13** | The release-note taxonomy stays. Its three destinations become **sections** of one file |
 | **D14** | The legacy flat layout is accepted as a deprecated fallback. No migration command ships |
-| **D15** | `$VAULT_PATH` is optional and serves follow-up tasks only |
-
-### Why D4, stated once
-
-A key encodes its ancestry: `ACME-90-01-01` is an Epic of `ACME-90-01`, which is an iteration of
-`ACME-90`. A command taking `<BRD> <SLICE> <PRD> <EPIC>` would take three arguments derivable from
-the fourth — and each redundant argument is one that can **disagree** with the key, which is a
-failure class the plugin does not have today. One key, resolved against the tree.
+| **D15** | **`$VAULT_PATH` is deleted.** The plugin reads and writes one tree, `$SPECS_PATH` |
+| **D16** | Every keyed command accepts `<KEY>` **or** `@<path>`. A path is used verbatim; only a key is resolved |
+| **D17** | A folder **asserts** its own key in frontmatter. No key is ever parsed out of a folder name |
+| **D18** | `--from-brd` is inferred from the resolved folder, not typed. The flag is retired |
 
 ### Why D5, stated once
 
 Without it, a BRD parent can be both split into iterations *and* PRD-eligible itself, so its folder
-holds iterations and Epics as siblings — two kinds in one namespace. Worse, `/brd-split` Phase 0
-step 9 enumerates subdirectories by name match and treats each as a child BRD; an Epic folder has no
-`brd-link.md`, reads as an empty `claims:` list, and Phase 4.5 then offers to **remove the folder**,
-deleting `epic.md`, `specification.md` and `design.md` with it. D5 removes the collision
-structurally, because the PRD gets its own directory level and iterations and Epics are never
-siblings.
+holds PRD folders and its own Epic folders as siblings — two kinds in one namespace. Worse,
+`/brd-split` Phase 0 step 9 enumerates subdirectories by name match and treats each as a child; an
+Epic folder has no `brd-link.md`, reads as an empty `claims:` list, and Phase 4.5 then offers to
+**remove the folder**, deleting `epic.md`, `specification.md` and `design.md` with it. D5 removes
+the collision structurally: everything directly under a BRD is a PRD folder, and Epics live one
+level further down.
 
 **Independently of D5**, `/brd-split` step 9 must require a `brd-link.md` carrying `parent:` before
-counting a subdirectory as a child BRD — a positive test, not a name match plus an
-absent-file-reads-as-empty inference.
+counting a subdirectory as a child — a positive test, not a name match plus an
+absent-file-reads-as-empty inference. Under §4.1 that same file is what distinguishes a
+BRD-route PRD folder from an idea-route one, so the positive test earns its keep twice.
 
 ### What D5 does *not* simplify
 
 `/brd-split` keeps orphan rows (a provisional claim withdrawn to *another* iteration), keeps
 standing-empty-children, and keeps `deferred-to` on a parent. What goes is `covered-here` on a
 parent and its escape-valve prose. This is a smaller collapse than it appears.
+
+### Why D4, stated once
+
+A key encodes its ancestry: `ACME-90-01-01` is an Epic of `ACME-90-01`, which is an iteration of
+`ACME-90`. A command taking `<BRD> <PRD> <EPIC>` would take two arguments derivable from the third —
+and each redundant argument is one that can **disagree** with the others, which is a failure class
+the plugin does not have today. One address, resolved once.
 
 ---
 
@@ -120,6 +128,7 @@ specifications/
 │   ├── prd.md
 │   ├── ard.md
 │   ├── release-notes.md
+│   ├── follow-ups.md
 │   └── EPIC-ACME-77-01-intake/
 │       ├── epic.md
 │       ├── specification.md
@@ -128,27 +137,39 @@ specifications/
 │
 └── BRD-ACME-90-platform/                    BRD route: BRD at level 1
     ├── brd/  grounding/  interview/
-    ├── coverage-ledger.md  decisions.md  slices.md  brd-link.md
-    └── BRD-ACME-90-01-orders/               iteration — always at least one
+    ├── coverage-ledger.md  decisions.md  slices.md
+    └── PRD-ACME-90-01-orders/               iteration AND PRD — one folder, level 2
         ├── brd-link.md  coverage-ledger.md  decisions.md
-        └── PRD-ACME-90-01-orders/           PRD at level 3
-            ├── prd.md  ard.md  release-notes.md
-            └── EPIC-ACME-90-01-01-intake/
-                ├── epic.md  specification.md  design.md  implementation.md
+        ├── prd.md  ard.md  release-notes.md
+        └── EPIC-ACME-90-01-01-intake/
+            ├── epic.md  specification.md  design.md  implementation.md
 ```
+
+**The iteration folder and the PRD folder are one folder.** `/brd-split` carves an iteration out of
+a BRD *so that a PRD can be written for it*; that iteration has no other purpose and no other
+consumer. Giving it a directory of its own, with a `PRD-` directory nested inside holding one file,
+bought a level of tree for nothing. Merged, the folder holds the iteration's own bookkeeping
+(`brd-link.md`, `coverage-ledger.md`, `decisions.md`) beside the documents authored from it — which
+is what the idea route's PRD folder already does with `idea.md`.
+
+The names then tell the story the workflow actually follows: **a BRD is what the customer sent; a
+PRD folder holds one part of it, and the PRD authored for that part.**
 
 ### 4.2 Naming
 
 `<KIND>-<KEY>-<slug>/`, kind ∈ `BRD` | `PRD` | `EPIC`.
 
-**The kind prefix disambiguates; the key is inherited.** An iteration and its PRD share a key
-(`ACME-90-01`) and differ only by prefix — which is what today's `<BRD-KEY>_<slug>.md` already
-expresses, promoted from a filename to a directory.
+**Two invariants, and the second is what the §4.1 merge bought.**
+
+1. Kinds appear in a fixed order down any path: `BRD` → `PRD` → `EPIC`, each optional at the top.
+2. **No path holds two folders of the same kind.** The tree is therefore at most three levels deep,
+   and every level is identifiable from its own name without reading its parent.
 
 **A user whose own key begins with a kind token gets `PRD-PRD-1234-…`.** That is a documented
-consequence of a documented convention, not a defect. The convention is stated in the README and in
-`docs/`; a user who then names their work `PRD-…` has chosen the collision. We cannot dodge every
-key any user might pick, and a convention we can rely on is worth more than one that bends.
+consequence of a documented convention, not a defect — and it is not hypothetical: a key like
+`EPIC-008` yields `PRD-EPIC-008-01-orders`. The convention is stated in the README and in `docs/`;
+a user who then names their work `PRD-…` has chosen the collision. We cannot dodge every key any
+user might pick, and a convention we can rely on is worth more than one that bends.
 
 ### 4.3 Filenames
 
@@ -160,13 +181,15 @@ convention rather than inventing one.
 |---|---|---|
 | `idea.md` | `/idea` | written in final location; never relocated |
 | `prd.md` | `/create-prd`, `/update-prd` | was `<KEY>_<slug>.md` |
-| `ard.md` | `/create-ard` | was `<KEY>_ARD.md`. **In the folder whose key the run was given** — the PRD folder for a PRD-level ARD, the Epic folder for an Epic-level one. `ard-resolution.md`'s most-specific-first ladder reads the Epic's, then the PRD's |
+| `ard.md` | `/create-ard` | was `<KEY>_ARD.md`. **In the folder whose address the run was given** — the PRD folder for a PRD-level ARD, the Epic folder for an Epic-level one. `ard-resolution.md`'s most-specific-first ladder reads the Epic's, then the PRD's |
 | `release-notes.md` | `/release-notes` | was a vault path |
 | `epic.md` | `/epics` | was `$VAULT_PATH/jira-drafts/<key>.md` or `<slug>.md` |
 | `specification.md` | `/specify` | unchanged |
 | `design.md` | `/design` | unchanged |
 | `implementation.md` | `/implement` | new — §7.3 |
 | `_readiness.md` | `/ready` | unchanged |
+| `follow-ups.md` | the follow-up emitter | was a vault task list — §8.1 |
+| `implementation-gaps.md` | `/document` | was `$VAULT_PATH/Projects/…/<KEY>-implementation-gaps.md` |
 
 **Three resolvers simplify as a direct consequence.** `/create-prd`'s prior-PRD check globs
 `<KEY>_*.md` *and* verifies frontmatter `issue_type: ValueIncrement`; `ard-resolution.md` globs
@@ -176,13 +199,31 @@ convention rather than inventing one.
 
 ```yaml
 kind: prd                    # prd | ard | epic | specification | design | brd | idea
+key: ACME-90-01              # written by the plugin; must agree with the folder name
 workitem_key: CU-8x9f2a1     # optional, the user's, never written by the plugin
 ```
 
+**`key:` is how a folder states its identity (D17).** Every artifact this plugin writes carries it,
+and **the command that creates a folder writes a keyed artifact into it in the same act** — so a
+folder is never keyless, not even for the moment between its creation and its first document.
+Resolution by key globs the folder name, but everything *downstream* of resolution — minting
+`<PRD-KEY>-NN` for a new Epic, naming a branch, citing an identifier in a report — **reads this
+field**, off whichever artifact the run had to open anyway. Nothing parses a key out of a directory
+name.
+
+That matters because a directory name is not a safe place to parse from. `PRD-ACME-90-01-orders`
+splits into key and slug only under a rule about where numeric segments stop, and `CLAUDE.md`'s
+standing rule is explicit that a key re-derived by pattern is a key nothing asserted. With `key:`
+present the folder asserts it, which is also what makes D16's `@<path>` form fully equivalent to a
+key: a path resolves to a folder, and the folder says who it is.
+
+**A `key:` that disagrees with its folder name is a hard stop**, naming both. That is the whole cost
+of carrying identity twice, and it converts a hand-rename from a silent divergence into a message.
+
 **`kind:` replaces `issue_type:` (D12).** `issue_type` is tracker vocabulary — Jira says *issue*,
 ClickUp says *task*, Rally says *work item* — and `ValueIncrement` is one vendor's custom type. With
-keyless filenames the filename is already the discriminator, so `kind:` exists for readers and sync
-tools rather than for resolution.
+keyless filenames the filename is already the discriminator, so `kind:` exists for readers, for the
+`@<path>` kind check, and for sync tools rather than for resolution.
 
 **`workitem_key` is reserved and never written (D11).** The plugin documents the field, preserves it
 across every frontmatter rewrite, and displays it in reports. It never mints it, never validates it,
@@ -208,36 +249,55 @@ is not depth**: how many segments a key carries says nothing about where its fol
 **The two-grammar rule is retired.** Today `brd_key` accepts two-or-more segments and `jira_key`
 accepts exactly two, and `CLAUDE.md`'s longest rule polices the gap — *"widening a tracker-side check
 to accept three segments is a defect, not a fix"* — because no tracker mints a three-segment key. The
-plugin now mints its own keys at up to four segments, no tracker is read, and there is no second
-grammar to protect. The rule, and the defect family it existed to prevent, both go.
+plugin now mints its own keys, no tracker is read, and there is no second grammar to protect. The
+rule, and the defect family it existed to prevent, both go.
 
-### 5.2 Resolution
+### 5.2 Two address forms (D16)
 
-`resolve-key <KEY> [<KIND>]` globs `specifications/**/*-<KEY>-*`, **bounded at four levels** below
-`specifications/`, and returns **the resolved folder and the kind it found**.
+Every keyed command takes **one positional address**, in one of two forms.
 
-**The kind is an output, not a required input.** A caller that already knows the kind may pass it to
-narrow the glob and to refuse a mismatch — `/create-prd --from-brd` wants a `BRD-` iteration and
-nothing else. A caller that does **not** know it must not have to guess: `/epics <KEY>` partitions
-when the key resolves to a `PRD-` folder and refines when it resolves to an `EPIC-` one (§6.3), and
-that branch is only possible because resolution reports the kind. A signature demanding the kind up
-front would make the mode undecidable at the point the mode is decided.
+**`@<path>` — used verbatim.** A directory, or a file inside one (the folder is its parent). No
+glob, no tree walk, no ambiguity, no legacy fallback: the operator has already answered the question
+resolution exists to ask. The command reads the folder's `kind:` (§4.4) and refuses a mismatch,
+which is the only check a path still needs.
 
-Four is the maximum depth the tree can hold: BRD → iteration → PRD → Epic. The bound is a
-**constant**, not a property of the key or of the tree, which is the property
-`brd-addressing.md` §2 actually argues for; the number 2 was never the point.
+**`<KEY>` — resolved.** `resolve-key <KEY> [<KIND>]` globs `specifications/**/*-<KEY>-*`, **bounded
+at three levels** below `specifications/`, and returns the resolved folder and the kind it found.
 
 - **Exactly one match** → return it.
 - **No match** → `absent`. The caller decides whether that is a stop or a folder to create.
 - **More than one match** → a hard stop naming every match. Two folders with one key is a tree
-  defect, and guessing between them would pick silently.
+  defect, and guessing between them would pick silently. `@<path>` is the stated way through it.
+
+**Why both, rather than paths alone.** Paths are the better address wherever the folder exists and
+the operator can see it, and they remove resolution entirely — that is why they are accepted
+everywhere. They cannot be the *only* form for two reasons that do not go away:
+
+1. **Two commands create the folder they are given.** `/idea` and `/brd-intake` open a route; there
+   is nothing on disk to point at and nothing for `@` to complete against. They take a key, exactly
+   as `/brd-intake <BRD-KEY>` does today.
+2. **`$SPECS_PATH` is normally not under the working directory.** Every command runs with cwd in a
+   code repository and reaches the specs repo through `git -C "$SPECS_PATH"`, never a `cd`. `@`
+   completion is rooted at the workspace, so the convenient completion that makes paths attractive
+   is unavailable in the case that matters, and the operator would be typing
+   `@../specs/specifications/BRD-ACME-90-platform/PRD-ACME-90-01-orders/` by hand.
+
+**The kind is an output of resolution, not a required input.** A caller that already knows the kind
+may pass it to narrow the glob and refuse a mismatch. A caller that does **not** know it must not
+have to guess: `/epics <KEY>` partitions when the key resolves to a `PRD-` folder and refines when
+it resolves to an `EPIC-` one (§6.3), and that branch is only possible because resolution reports
+the kind.
+
+Three is the maximum depth the tree can hold (§4.2 invariant 2). The bound is a **constant**, not a
+property of the key or of the tree, which is the property `brd-addressing.md` §2 actually argues
+for; the number 2 was never the point.
 
 ### 5.3 Legacy layout (D14)
 
 A repo written before this change holds `specifications/<KEY>-<slug>/` with no kind prefix.
 Resolution therefore falls back to the **unprefixed flat form** when the prefixed glob misses —
 reached only on a miss, so a prefixed tree resolves exactly as it should, and reported once per run
-as deprecated.
+as deprecated. `@<path>` bypasses the fallback along with the rest of resolution.
 
 **No migration command ships.** A user's specs repo is theirs, it is a git repository they review,
 and a renaming script we cannot test against their tree is a liability. Renaming a folder is one
@@ -249,39 +309,43 @@ That file resolved a Jira key against `$VAULT_PATH/jira-products/`, classified p
 Fallbacks A–E and the two-key `<PRD> <Epic>` grammar. It is deleted. In its place each command's
 Phase 0 does:
 
-1. Parse the single positional key; validate the §5.1 grammar.
-2. `resolve-key` it against the tree.
-3. Branch on the resolved folder's kind prefix where the command supports more than one level.
+1. Read the single positional address. `@`-prefixed → a path (§5.2). Otherwise validate the §5.1
+   grammar and `resolve-key` it.
+2. Read the resolved folder's `kind:` and branch where the command supports more than one level.
 
 **The two-key grammar collapses to one** — `/specify PRD-KEY EPIC-KEY` becomes `/specify EPIC-KEY`,
-and the key's kind decides whether the run is PRD-level or Epic-level. Fallbacks A–E disappear with
-the vault they described.
+and the kind decides whether the run is PRD-level or Epic-level. Fallbacks A–E disappear with the
+vault they described.
 
 ---
 
 ## 6. Command contracts
 
+Every row's *After* column accepts `@<path>` in place of the key (D16), except the two marked
+key-only.
+
 | Command | Today | After |
 |---|---|---|
-| `/idea` | `[<prompt>\|@file\|JiraID]`, writes to the vault, relocates later | `<PRD-KEY> [<prompt>\|@<file>]` — writes `idea.md` in final location |
-| `/create-prd` | `<JIRA-KEY> [@idea]` / `<BRD-KEY> --from-brd` | `<PRD-KEY>` / `<ITERATION-KEY> --from-brd` |
-| `/update-prd` | `<KEY>`, Jira-import-first | `<PRD-KEY>`, reads `prd.md` |
-| `/create-ard` | `<PRD> [<Epic>]` / `--from-brd` | one key; kind decides the level |
-| `/epics` | `<PRD>` + `mode: refine\|both` | `<PRD-KEY>` partitions; `<EPIC-KEY>` or `@<file>` refines |
-| `/specify` | `<PRD> [<Epic>]` | one key |
-| `/design` | `<PRD> <Epic>` | one key |
-| `/implement` | `<PRD> <Epic>` / direct | one key / direct — writes `implementation.md` |
-| `/document` | `<PRD>` / direct | `<PRD-KEY>` / direct |
-| `/release-notes` | `<PRD>` | `<PRD-KEY>` — writes `release-notes.md` |
-| `/ready` | `<PRD> [<Epic>]` | one key, `+ --claimed "<status>"` |
-| `/brd-*` | `<BRD-KEY>` | unchanged |
+| `/idea` | `[<prompt>\|@file\|JiraID]`, writes to the vault, relocates later | `<PRD-KEY> [<prompt>\|@<file>]` — **key-only**; writes `idea.md` in final location |
+| `/create-prd` | `<JIRA-KEY> [@idea]` / `<BRD-KEY> --from-brd` | one address; the BRD route is **inferred** (D18) |
+| `/update-prd` | `<KEY>`, Jira-import-first | one address, reads `prd.md` |
+| `/create-ard` | `<PRD> [<Epic>]` / `--from-brd` | one address; kind decides the level |
+| `/epics` | `<PRD>` + `mode: refine\|both` | `PRD-` partitions; `EPIC-` or `@<file>` refines |
+| `/specify` | `<PRD> [<Epic>]` | one address |
+| `/design` | `<PRD> <Epic>` | one address |
+| `/implement` | `<PRD> <Epic>` / direct | one address / direct — writes `implementation.md` |
+| `/document` | `<PRD>` / direct | one address / direct |
+| `/release-notes` | `<PRD>` | one address — writes `release-notes.md` |
+| `/ready` | `<PRD> [<Epic>]` | one address, `+ --claimed "<status>"` |
+| `/brd-intake` | `<BRD-KEY>` | unchanged — **key-only** |
+| other `/brd-*` | `<BRD-KEY>` | one address |
 
 ### 6.1 `/idea`
 
-**Takes its key up front (D7).** Today `idea.md` is written keyless to the vault and Phase 5
-relocates it once a Jira key exists. With `$SPECS_PATH` as the only home there is nowhere keyless to
-write, so the key is an argument — the same act `/brd-intake <BRD-KEY>` already asks for, validated
-for shape and never checked against anything.
+**Takes its key up front (D7), and takes only a key.** Today `idea.md` is written keyless to the
+vault and Phase 5 relocates it once a Jira key exists. With `$SPECS_PATH` as the only home there is
+nowhere keyless to write, so the key is an argument — the same act `/brd-intake <BRD-KEY>` already
+asks for, validated for shape and never checked against anything.
 
 **Deleted with it:** the relocation phase, the write-path derivation, the container rule, the
 `area_proposal`, the `prd_disposition` machinery, and the Jira source type with its
@@ -289,6 +353,9 @@ for shape and never checked against anything.
 
 **Sources become:** an inline prompt, a markdown file, a community post. The "an existing PRD this
 extends, parallels or rewrites" case is served by `@<path>` and by `/create-prd --from-prd`.
+`idea-reader` loses its `vault_path` input and with it `@wikilink` resolution: a wikilink has no
+root to resolve against once the vault is gone, so a source is a path. Wikilinks *inside* a source
+file are still followed one level where they resolve relative to that file's own directory.
 
 **Accepted cost:** an abandoned idea leaves a folder in `specifications/` where it used to die in the
 vault. Reintroducing a staging area to avoid that would restore the relocation step this removes.
@@ -301,25 +368,31 @@ absent. Rung 1's `require-on-main` gate stays; rung 2's out-of-contract `@path` 
 
 **`CREATE_PRD_NEEDS_KEY` loses "create an empty Jira workitem first to get the ID."**
 
-**`--from-brd`** now resolves an **iteration** key and creates `PRD-<KEY>-<slug>/` **inside** the
-iteration folder. Its two Phase 0 refusals are unchanged in substance and read over the iteration's
-own ledger rows.
+**`--from-brd` is retired as a flag (D18).** Under §4.1 the BRD route's PRD folder is created by
+`/brd-split`, carries `brd-link.md`, and holds the ledger rows the two Phase 0 refusals read. So the
+route is a property of the resolved folder, not something the operator restates: `/create-prd` takes
+one address, detects `brd-link.md`, and **prints which mode it entered** before doing anything. A
+flag that can disagree with the folder it names is one more of the disagreements D4 exists to
+remove, and `--from-brd` on a folder without `brd-link.md` was exactly that.
+
+`--from-prd` stays a flag. It names a *different* PRD to seed from — a genuine choice the folder
+cannot make on the operator's behalf.
 
 ### 6.3 `/epics`
 
-**Mints Epic keys** as `<PRD-KEY>-NN` — the next unused two-digit segment, operator may override,
-validated for shape and re-prompted rather than coerced. This is `/brd-split` Phase 3 step 1's
-mechanism, reused.
+**Mints Epic keys** as `<PRD-KEY>-NN` — where `<PRD-KEY>` is read from the PRD folder's `key:` field
+(D17) — the next unused two-digit segment, operator may override, validated for shape and
+re-prompted rather than coerced. This is `/brd-split` Phase 3 step 1's mechanism, reused.
 
 **Writes `epic.md`** into `EPIC-<PRD-KEY>-NN-<eslug>/` under the PRD folder. `$VAULT_PATH/jira-drafts/`
 is gone.
 
-**Three invocations, one rule — the argument decides the mode:**
+**Three invocations, one rule — the address decides the mode:**
 
-- `/epics <PRD-KEY>` — partition the PRD into Epics.
-- `/epics <EPIC-KEY>` — refine that Epic.
-- `/epics @<file>` — refine the Epic that file holds. **Stop if the file is not an Epic**, tested by
-  its `kind: epic` frontmatter, naming what it found instead.
+- a `PRD-` folder — partition the PRD into Epics.
+- an `EPIC-` folder — refine that Epic.
+- `@<file>` — refine the Epic that file holds. **Stop if the file is not an Epic**, tested by its
+  `kind: epic` frontmatter, naming what it found instead.
 
 **Refine's job changes, and the spec says so rather than letting a reader assume continuity.** Today
 refine fills in *empty Epics somebody else created in the tracker* — which existed so that linking an
@@ -391,8 +464,8 @@ empty diff.
 
 **Two limits, stated in the file's own authority:**
 
-- `/implement` in **direct mode writes nothing** — no key, no Epic folder, nothing to append to. A
-  directly-implemented change therefore has no diff source, exactly as today.
+- `/implement` in **direct mode writes nothing** — no address, no Epic folder, nothing to append to.
+  A directly-implemented change therefore has no diff source, exactly as today.
 - **The plugin knows only what it did.** Work done by hand or by another tool leaves no block, so
   diff grounding is best-effort over what this plugin implemented.
 
@@ -438,26 +511,61 @@ it renders as literal text. A plain label does the same job.
 |---|---|---|
 | `agents/jira-reader.md` | 32 files | §5.2 resolution + the tree |
 | `references/jira-input-resolution.md` | 16 files | each command's Phase 0 |
-| `agents/vault-prior-art-finder.md` | `/idea`, `/create-prd` | nothing — see below |
-| `references/vault-prior-art.md` | 2 commands | — |
 | `references/handoff/jira-reader.md` | dispatch contract | — |
-| `$VAULT_PATH/jira-products/**` | the mirror | `$SPECS_PATH` |
+| `agents/vault-prior-art-finder.md` | `/idea`, `/create-prd` | nothing — see §8.2 |
+| `references/vault-prior-art.md` | 2 commands | — |
+| **`$VAULT_PATH` itself** | **188 references in 50 files** | `$SPECS_PATH` |
+| `$VAULT_PATH/jira-products/**` | the mirror | the tree |
 | `$VAULT_PATH/jira-drafts/**` | `/epics` output | `EPIC-…/epic.md` |
+| the vault task machinery | `followup-emission.md` | §8.1 |
 | the paste + re-import round-trip | `/create-prd`, `/update-prd` | nothing |
+| `--from-brd` | 3 commands | inferred (D18) |
 | `dependencies.md`'s `jira-workitem-import` row | — | — |
 | `issue_type: ValueIncrement` | 11 files | `kind:` (D12) |
 
-**Vault prior art is dropped, and it is the one deletion that removes a capability rather than a
-redundancy.** `vault-prior-art-finder` searched `Projects/Products/**` for prior initiatives and fed
-`/idea` and `/create-prd` a bounded digest — genuinely useful, and *not* tracker-redundant. It goes
-because it is vault-dependent and D15 leaves the vault for follow-up tasks only. It was already
-advisory, already optional, and already a silent skip when absent, so nothing gates on it. Recorded
-here as a loss taken deliberately, not an oversight.
+### 8.1 Follow-ups keep the capture, lose the vault (D15)
 
-**Residual vendor vocabulary swept in the increment that touches each:**
-`prose-formatting.md` justifies its no-hard-wrap rule by *"copy-paste into Jira/Grammarly"* — the
-rule stays, the rationale is rewritten. `docs-profile.md` uses `gen3` as its example templating
-token — detection is generic, only the example is vendor-shaped.
+`followup-emission.md` is the largest vault-shaped surface left: Obsidian-Tasks line format with
+Fibonacci effort checkboxes and date symbols, `#tags` reused from
+`$VAULT_PATH/.obsidian/copilot/tag-index.md`, project files named `P<NNNN> <slug>.md`, a `Tasks.md`
+fallback, a `Journal.md` for verbose notes, and a Jira browse-URL discovered by grepping existing
+vault tasks. All of it goes.
+
+**The three follow-ups it was mostly emitting are the ones this design deletes** — paste the PRD
+into the tracker, paste the release note into the tracker, re-import the value increment. Those
+were round-trip chores, and with D1 they do not exist.
+
+**What survives is the out-of-scope finding**, which is not a chore: `/implement` naming work it
+deliberately did not do, `/ready` naming a coverage gap. Those outlive the session and belong beside
+the artifact that produced them, so they land in `follow-ups.md` in the resolved folder — a plain
+markdown checklist, no effort symbols, no tags, no vault. This is the emitter's existing tier 2,
+promoted to the only tier; tiers 1, 3 and 4, the availability preflight, the interactive escape and
+the notice ladder all go with the vault, and a run that cannot resolve a folder keeps its follow-ups
+in the Final Report as it does today.
+
+**The same collapse applies to the other three emitters**, which already prefer `$SPECS_PATH` and
+name the vault only as a lower tier: `feedback-emission.md`, `cost-emission.md` and
+`session-hygiene.md` each lose one branch of a ladder, not a feature.
+
+### 8.2 Vault prior art is dropped, and it is the one deletion that removes a capability
+
+`vault-prior-art-finder` searched `Projects/Products/**` for prior initiatives and fed `/idea` and
+`/create-prd` a bounded digest — genuinely useful, and *not* tracker-redundant. It goes because it
+is vault-dependent and D15 leaves no vault. It was already advisory, already optional, and already
+a silent skip when absent, so nothing gates on it. Recorded here as a loss taken deliberately, not
+an oversight.
+
+*(The specs tree is a plausible future home for the same idea — prior art discovered over
+`specifications/**` rather than over a vault. That is a separate design, not a quiet substitution
+inside this one.)*
+
+### 8.3 Residual vendor vocabulary
+
+Swept in the increment that touches each: `prose-formatting.md` justifies its no-hard-wrap rule by
+*"copy-paste into Jira/Grammarly"* — the rule stays, the rationale is rewritten. `docs-profile.md`
+uses `gen3` as its example templating token — detection is generic, only the example is
+vendor-shaped. `hooks/preload-context.sh` prints `VAULT_PATH` and describes `$VAULT_PATH`-based
+specs in a comment.
 
 **Checked and clear, recorded so the sweep is not repeated:** `references/api-guidelines/` is
 genuinely generic — 26 files citing NIST, IETF, AWS and `example.com`, no org content.
@@ -480,13 +588,15 @@ So each increment updates its own pages in the same change.
 | root `README.md` | install block + surface blurb | `check-docs.sh` check 7 pins `getting-started.md` to it verbatim |
 | `plugin.json` + `marketplace.json` | description | currently **898** of a 900-char warning threshold — this change frees words, and the blurb must be **rewritten, never appended to** |
 
-**No `AGENTS.md` or `.github/copilot-instructions.md` exists in canonical.** Those are mgd/copilot
-files and are out of scope; they matter only if this ever ports, which §2 says it will not.
-
 **Two documentation rules this design must not break.** `check-docs.sh` check 10 forbids any page
 under `docs/` from naming the marketplace or the containing repository. Check 9 gates seven prose
-counts against the tree — deleting two agents and two references moves the agent, reference-file and
-environment-variable totals, so those sentences change in the same commit.
+counts against the tree — deleting two agents and two references moves the agent and reference-file
+totals, and **deleting `$VAULT_PATH` moves the environment-variable total** — so those sentences
+change in the same commit as the deletion. Check 6's both-directions environment-variable inventory
+is the gate that will catch a half-done vault removal.
+
+**No `AGENTS.md` or `.github/copilot-instructions.md` exists in canonical.** Those are mgd/copilot
+files and are out of scope; they matter only if this ever ports, which §2 says it will not.
 
 ---
 
@@ -498,7 +608,8 @@ environment-variable totals, so those sentences change in the same commit.
 - **No migration command** (D14).
 - **No status field in the specs tree.** It would re-create the duplicated state this design removes,
   inside `$SPECS_PATH` instead of a tracker. The artifacts answer the question the field would.
-- **No change to the `/brd-*` route** beyond D5 and the step-9 positive test.
+- **No change to the `/brd-*` route** beyond D5, the folder merge (§4.1) and the step-9 positive test.
+- **No prior-art discovery over the specs tree** (§8.2) — a separate design.
 - **No port to mgd or copilot.**
 
 ---
@@ -509,20 +620,21 @@ Four increments. Each ships green, leaves the tree consistent, and is independen
 
 ### Increment A — the addressing model
 
-Rewrite `brd-addressing.md` for kind prefixes, the four-level bound, one-key resolution, keyless
-filenames and the legacy fallback. Update its **twelve** adopters — nine commands plus
-`ard-resolution.md`, `jira-input-resolution.md` and `prd-source-resolution.md`. Apply D5 and the
-step-9 positive test to `/brd-split`; follow through `coverage-ledger-format.md` §5 and
-`/create-prd`'s gate. Rename artifact files (§4.3) and simplify the three resolvers.
+Rewrite `brd-addressing.md` for kind prefixes, the three-level bound, one-address resolution
+(key **or** `@<path>`, D16), keyless filenames, `key:` frontmatter (D17) and the legacy fallback.
+Update its **twelve** adopters — nine commands plus `ard-resolution.md`, `jira-input-resolution.md`
+and `prd-source-resolution.md`. Apply D5, the §4.1 folder merge and the step-9 positive test to
+`/brd-split`; follow through `coverage-ledger-format.md` §5 and `/create-prd`'s gate. Rename
+artifact files (§4.3) and simplify the three resolvers.
 
 *Jira is untouched, so the plugin still runs end to end.* This is the seam everything else needs.
 
 ### Increment B — cut the tracker
 
-Delete `jira-reader` and `jira-input-resolution.md`. Rewrite every Phase 0 to resolve a key against
-the tree. Drop the paste/re-import round-trip and `prd-source-resolution.md`'s import-first ladder.
-Retire the mirror fields (§7.4), `issue_type` (D12) and the two-grammar rule (§5.1). Add
-`workitem_key` and the unknown-key preservation rule (D10, D11).
+Delete `jira-reader` and `jira-input-resolution.md`. Rewrite every Phase 0 to resolve one address
+against the tree. Drop the paste/re-import round-trip and `prd-source-resolution.md`'s import-first
+ladder. Retire `--from-brd` (D18), the mirror fields (§7.4), `issue_type` (D12) and the two-grammar
+rule (§5.1). Add `workitem_key` and the unknown-key preservation rule (D10, D11).
 
 *The largest increment. It can only follow A — commands need the new resolver before the old one goes.*
 
@@ -534,11 +646,16 @@ destinations; `/ready` derives the phase and gains `--claimed`; `workflow-states
 
 *These are exactly the capabilities B removes, and they need B's absence to be designed against.*
 
-### Increment D — `$VAULT_PATH` reduction and sweep
+### Increment D — delete `$VAULT_PATH`
 
-Vault → follow-up tasks only (D15). Delete `vault-prior-art-finder` and `vault-prior-art.md`. Sweep
-every residual vault reference, the `dependencies.md` row, and the residual vendor vocabulary in
-§8. Rewrite the plugin description.
+Collapse the four emitter ladders to `$SPECS_PATH` and rewrite `followup-emission.md` around
+`follow-ups.md` (§8.1). Delete `vault-prior-art-finder` and `vault-prior-art.md`. Move `/document`'s
+gaps draft into the PRD folder. Strip `vault_path` from `idea-reader` and the hook. Sweep every
+residual vault reference and the residual vendor vocabulary in §8.3, drop the `dependencies.md` row,
+and rewrite the plugin description.
+
+*Last, because the emitters run in every command and the ladder collapse is only safe once every
+command resolves a folder in `$SPECS_PATH`.*
 
 ### Verification, every increment
 

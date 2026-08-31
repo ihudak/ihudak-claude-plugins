@@ -53,7 +53,7 @@ trailer is a convention nobody sees.
 | | |
 |---|---|
 | [`/vuln`](../commands/vuln.md) | commits and opens a PR itself, so it writes a compliant subject |
-| [`/implement`](../commands/implement.md), [`/upgrade`](../commands/upgrade.md) | ask before committing. Say yes and they write the subject for you; say "leave it uncommitted" and **you** write that commit, so they state this convention on the way out |
+| [`/implement`](../commands/implement.md), [`/upgrade`](../commands/upgrade.md) | commit for you without asking, writing the subject themselves; only the push and the pull request are put to you. `--no-commit` opts out, and then **you** write that commit |
 
 So the convention is documented here rather than left implicit in what the plugin emits: whenever
 you decline the commit, or pick the work up later, or push a fix nobody ran a command for, you are

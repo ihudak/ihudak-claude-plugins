@@ -5,8 +5,8 @@ run, and the commit convention that makes work findable when the plugin was not 
 Design authority: `docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md` §7.3 and §7.3.1.
 
 **Written by `/implement`. Read by `/document` and `/release-notes`**, which hand the refs it records
-to `diff-summarizer`. §3's commit convention is a separate thing with a different writer set, and §3
-says who — because only one command in this plugin commits into a code repository at all.
+to `diff-summarizer`. §3's commit convention is a separate thing with a wider writer set — all three
+of the commands that change code — and §3 says how each of them writes it.
 
 ## 1. The block
 
@@ -61,15 +61,18 @@ appears, and the difference matters:
 
 | Command | What it does with the code | What it does about the convention |
 |---|---|---|
-| `/implement`, `/upgrade` | create the branch, then hand over behind `references/code-handoff.md` §2's consent choice | **write the subject** on any committing option; on "leave it uncommitted", state the convention to the operator who will |
-| `/vuln` | commits and opens a PR through `vuln-fixer` | **writes the subject itself** |
+| `/implement` | branches, then commits and pushes through `references/code-handoff.md`'s `finish-code-branch` (Phase 4.6) | **writes the subject itself** |
+| `/upgrade` | branches, commits each component in step 6.5, pushes once in step 7.5 | **writes the subject itself** |
+| `/vuln` | `vuln-fixer` branches and applies the fix; the orchestrator commits and pushes in Step 3.9, using its own template | **writes the subject itself**, from the template in `/vuln`'s Git Workflow |
 
-**All three write it now, and the history is worth keeping** because it explains why the convention
-is also *documented* rather than merely emitted. Until `code-handoff.md` existed, `/implement` and
+**All three write it, and the history is worth keeping** because it explains why the convention is
+also *documented* rather than merely emitted. Until `code-handoff.md` existed, `/implement` and
 `/upgrade` left the working tree dirty and could only ask the operator to name the key — strictly
-weaker than doing it. A command that does not commit cannot write a commit subject. Where the
-operator declines the commit, that is still the situation, which is why
-`docs/reference/commit-convention.md` exists for a contributor who has never run the plugin.
+weaker than doing it, and a command that does not commit cannot write a commit subject. That is no
+longer any command's situation: the commit is prompt-free (`code-handoff.md` §1 rule 5), so the only
+runs that end uncommitted are the ones that typed `--no-commit`. The convention still needs to be
+written down, because the people whose commits the §4 scan has to find are mostly not running the
+plugin at all — which is what `docs/reference/commit-convention.md` is for.
 
 - **The commit subject ends with `[<key>]`** — `feat(orders): add order intake [ACME-77-01]`.
 - **A `Work-Item: <workitem_key>` trailer**, when the resolved folder carries one

@@ -81,6 +81,10 @@ Process `READY` CVEs one at a time to avoid conflicting edits to the same depend
 
 For each `READY` CVE, before invoking the fixer, write its research report to a temp file (`mktemp -t dw-vuln-research-XXXX.md`, never inside a repo tree) and record its absolute path as `research_file`; the fixer, code-review, and resume steps below receive this path instead of the pasted report.
 
+**Start each CVE from the base branch, not from the previous CVE's.** Before invoking the fixer, resolve the base per `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.7 and run `git -C "<repo>" switch <base>` when HEAD is not already there. Every CVE gets its own branch and its own pull request, so a CVE that branches off its predecessor ships that predecessor's fix inside its own diff, its own review, and its own PR. The previous CVE's own change is already committed by Step 3.9 (or was reverted), so the switch carries nothing but any `pre_existing_dirty` paths the user chose to work around — it is a plain checkout and never touches content.
+
+**Record the tree state for Step 3.9.** On the first CVE, run `git status --porcelain --untracked-files=all` before anything is applied; anything it reports is `pre_existing_dirty` (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.2 carve-out 1) and is carried unchanged through every CVE in the run. `/vuln` never stashes, so `stash_ref` is always `null`.
+
 ### SIMPLE / MODERATE path
 
 Invoke `vuln-fixer` with `baseline_tests: run-fresh`:
@@ -166,8 +170,8 @@ task(
    - **Check the review's first line before acting on the verdict.** If it is `Diff: unreadable at <path>`, the orchestrator's own `review_diff_file` could not be read — an orchestrator bug, not a user choice: surface the unreadable path to the user and stop working this CVE, marking it `BLOCKED` in the Step 4 summary table. Do NOT triage the finding and do NOT dispatch `review-fixer`: the finding names a capture failure no fixer can act on, and running the cycle would spend a fix dispatch and a re-review to arrive back here.
    - **Triage sub-step** (before any fixer dispatch): follow `${CLAUDE_PLUGIN_ROOT}/references/finding-triage.md`. For each finding, verify its claimed consequence at the location it names; keep or dismiss; record every dismissal with a reason that disposes of that finding's own claim. Hand the fixer **survivors only**, and carry the dismissal list into this run's report.
    - If review returns `BLOCK` or `PASS WITH RECOMMENDATIONS`, invoke `review-fixer` with model: `<detection_model — §2.1 Sonnet chain>` for the surviving `BLOCKER` and `MAJOR` findings
-   - **Handle a `review-fixer` stop.** If its `Stop condition flag` is `NEEDS HUMAN`, do NOT re-run the review: surface the deferred BLOCKER(s) to the user with the reason `review-fixer` gave, mark this CVE `BLOCKED` in the Step 4 summary table, and stop working this CVE (do not continue to tests, commit, or PR). Only when the flag is `CLEAR` do you **overwrite `review_diff_file`** with a fresh `git add -N . && git diff` and re-run the Opus review once against that refreshed path — so the re-review reads the post-fix diff, not the stale pre-fix capture
-   - If the second verdict is still `BLOCK`, stop and escalate; do not continue to tests, commit, or PR
+   - **Handle a `review-fixer` stop.** If its `Stop condition flag` is `NEEDS HUMAN`, do NOT re-run the review: surface the deferred BLOCKER(s) to the user with the reason `review-fixer` gave, mark this CVE `BLOCKED` in the Step 4 summary table, and stop working this CVE — do not continue to tests, and do not re-review. Then run Step 3.9 with `clean_finish: false`: the fix is on disk and stopping the CVE is not a reason to leave it in a working tree, so it is committed and pushed, and its pull request is opened as a draft carrying the DO-NOT-MERGE banner (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.8). Only when the flag is `CLEAR` do you **overwrite `review_diff_file`** with a fresh `git add -N . && git diff` and re-run the Opus review once against that refreshed path — so the re-review reads the post-fix diff, not the stale pre-fix capture
+   - If the second verdict is still `BLOCK`, stop and escalate; do not continue to tests. Run Step 3.9 with `clean_finish: false` — same reasoning as the `NEEDS HUMAN` stop above: the work is committed and pushed, and the pull request is a draft the banner says not to merge
 
 4. **Resume the fixer after review** — Re-invoke `vuln-fixer` with `phase: verify-resume`, the same baseline block, and the original research report re-supplied from `research_file`. If the resumed agent returns `status: BLOCKED`, the re-supplied file path could not be read: report the named path to the user and stop this CVE. Do NOT retry, and do NOT reconstruct the artifact — a resume that re-derives its own input is the failure `${CLAUDE_PLUGIN_ROOT}/references/context-management.md`'s read-failure contract exists to prevent.
 
@@ -175,6 +179,27 @@ task(
    "Handling Test Failures" below, then re-invoke `vuln-fixer` with `phase: regression-resume` +
    the chosen `regression_decision`, the same baseline block, and the original research report
    re-supplied from `research_file`. If the resumed agent returns `status: BLOCKED`, the re-supplied file path could not be read: report the named path to the user and stop this CVE. Do NOT retry, and do NOT reconstruct the artifact — a resume that re-derives its own input is the failure `${CLAUDE_PLUGIN_ROOT}/references/context-management.md`'s read-failure contract exists to prevent.
+
+
+### Step 3.9 — Code-repo handoff (both paths, once per CVE)
+
+`vuln-fixer` creates the fix branch **before** its first edit and leaves the change on it, uncommitted; the commit, the push, and the pull request are the orchestrator's, because the consent choice they sit behind is one only the orchestrator can ask (subagents have no interactive tools). The branch-first ordering is what makes this step reachable on the paths where the fixer never runs to completion — an `AWAITING_REVIEW` return whose review then stops the CVE still has a branch to commit onto.
+
+Runs after the fixer's last return for this CVE — after the `verify-resume` call on the SIGNIFICANT / HIGH-RISK path, after the `regression-resume` call where one happened. Cite `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` and execute the full `finish-code-branch` entry point (§2) inline, with the §2.10 inputs:
+
+- `repo` and `branch` — the repo, and the branch name Step 1 resolved and the fixer created.
+- `pre_existing_dirty` — as recorded at the top of Step 3; `stash_ref: null`.
+- `key` and `workitem_key` — from the folder the CVE's address resolved to (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4), or `null` for a bare `CVE-ID` token.
+- `commit_template` — the "Commit message" template in this command's Git Workflow section below. `/vuln` is the one caller with a full template of its own, so §2.3 uses it verbatim rather than deriving a subject from the repo's log.
+- `title` — `fix(deps): <library> upgrade to remediate <CVE-ID>`, with ` [<key>]` appended when the CVE resolved one.
+- `body_facts` — the CVE summary, the vulnerable range, the version change applied, the classification, the Opus review verdict and triage where the CVE went through review, and the test counts before and after.
+- `clean_finish` — `false` when the CVE ended `BLOCKED`, when its review is still `BLOCK`, or when the user chose `keep-anyway` on a regression; `true` otherwise. Per §2.8 the commit and the push happen either way; only the pull request changes (draft, DO-NOT-MERGE banner).
+
+§2.4's choice is asked on the **first** CVE and reused for every later one (`code_handoff_choice`) — a ten-CVE run asks once, not ten times. Emit the §3.1 `Code repo:` line per CVE and carry its pull-request number into the Step 4 table's `PR` column.
+
+**Skipped for a CVE with nothing to hand off.** `BASELINE_FAILED` and `BLOCKED` return before the fixer's branch step, so no branch exists and nothing changed. `SKIPPED_BY_USER` never invoked the fixer at all. `BUILD_FAILED` and `REVERTED` reverted their own change, leaving the branch created in step 2 in place and empty — nothing to commit, and the plugin never deletes a branch (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §1 rule 3), so say so in the Step 4 table rather than leaving the stray ref unexplained.
+
+**Never skipped for a CVE that failed a gate.** A CVE stopped at an unresolved review `BLOCK` or at `NEEDS HUMAN` **is** handed off with `clean_finish: false`: its fix is applied and sitting on a branch that exists precisely because the fixer created it before the first edit, and §2.8 is exactly the case for it.
 
 ---
 
@@ -199,7 +224,7 @@ Then invoke `impl-maintenance` with a compact session handoff covering the CVEs 
 
 **Then persist plugin feedback (automatic).** After `impl-maintenance` returns, project its plugin-facing slice into the specs repo by citing `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its `emit-auto` entry point (§6). Pass the Lessons Learned report, `command: /vuln`, the run's `key` (or `null`) and `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto` renders only the report's **Command workflow improvements**, **New agents / skills**, and plugin **Reference docs** sections plus the **Key observations** that triggered them (§4 plugin-facing predicate) — never target-project `CLAUDE.md`/hook advice — as `origin: auto` entries, dedupes by stable `id` (§3), resolves the target via the §2 specs-first ladder, and writes silently. List the persisted path (or "no plugin-facing signal — nothing persisted") after the lessons-learned report. ADDITIVE — the impl-maintenance report still appears in the output; this step NEVER fails the run, NEVER commits (still true — the assertion is scoped to *this step*, which only writes the feedback file; those writes are committed by the separate terminal `commit-artifacts` step, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes into the code repo or the current working directory.
 
-**Then commit session artifacts (terminal).** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts (/vuln)` — or `NOISSUE …` when the run resolved no Jira key — and pushes per §4 step 5. It NEVER touches the code repo this run just fixed: the CVE branches, commits, and PRs are the code repo's, made by `vuln-fixer`, and are untouched here. It NEVER force-pushes, NEVER fails the run, and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Print its §6 outcome line after the feedback path, prefixed `Specs repo:`, with any guard notice repeated in full. No `resume.md` is written for `/vuln` (`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 skip list — the durable state is the branch and PR).
+**Then commit session artifacts (terminal).** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts (/vuln)` — or `NOISSUE …` when the run resolved no key — and pushes per §4 step 5. It NEVER touches the code repo this run just fixed: that repo's per-CVE branches, commits, pushes, and pull requests were Step 3.9's, through a different reference and against a different remote. It NEVER force-pushes, NEVER fails the run, and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Print its §6 outcome line after the feedback path, prefixed `Specs repo:`, with any guard notice repeated in full. No `resume.md` is written for `/vuln` (`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 skip list — the durable state is the branch and PR).
 
 ---
 
@@ -235,7 +260,7 @@ When the repo documents no convention (§1.4), `<prefix>` comes from the §2 lad
 
 ### Commit message
 
-Use the project's existing style. **End the subject with `[<key>]`** where the run resolved one — `/vuln` is the one command here that commits into a code repository, so it is the one that can write a compliant subject itself (`${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §3). Default template:
+Applied by the orchestrator in Step 3.9, never by `vuln-fixer` — it is passed to `finish-code-branch` as `commit_template` and used verbatim (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.3). Use the project's existing style. **End the subject with `[<key>]`** where the run resolved one, and carry a `Work-Item:` trailer where the resolved folder has one (`${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §3). Default template:
 
 **With Jira ID:**
 ```
@@ -262,11 +287,14 @@ Safe version: <version>
 Co-authored-by: Claude <noreply@anthropic.com>
 ```
 
-### PR
+### Commit, push, and PR
 
-- Base branch: `main` (fallback: `master`)
-- Title: `fix(deps): <library> upgrade to remediate <CVE-ID>` (append ` [<ADDRESS>]` when present)
-- Body: CVE summary, vulnerable range, version change made, classification, and test results (pass count before vs. after)
+All three are Step 3.9's, through `finish-code-branch` (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2) — never `vuln-fixer`'s. The commit-message template above is passed as that step's `commit_template` and used verbatim (§2.3).
+
+- Base branch: resolved per §2.7's ladder — `origin/HEAD`, then `origin/main`, `origin/master`, `origin/develop`. Never assumed.
+- Title: `fix(deps): <library> upgrade to remediate <CVE-ID>` (append ` [<key>]` when the CVE resolved one)
+- Body: CVE summary, vulnerable range, version change made, classification, review verdict and triage where the CVE went through review, and test results (pass count before vs. after)
+- Opened with `gh` behind §2.6's capability probe; on any failure the run falls back to §3.2's manual-open text rather than reporting a pull request that does not exist. A `clean_finish: false` CVE gets a draft plus the DO-NOT-MERGE banner (§2.8).
 
 ---
 
@@ -277,6 +305,8 @@ Co-authored-by: Claude <noreply@anthropic.com>
 - NEVER use Opus for a `MODERATE` fix unless the user explicitly asks for it
 - NEVER run tests for a `SIGNIFICANT` / `HIGH-RISK` CVE before the Opus review returns a non-BLOCK verdict
 - ALWAYS pass the captured baseline block back to `vuln-fixer` on `phase: verify-resume`
-- NEVER push the **code repo** directly to `main` / `master` — always use the dedicated fix branch (`agents/vuln-fixer.md`). This binds the code repo only: the specs-repo steps above push `$SPECS_PATH`'s bounded artifact paths to the specs repo's own branch (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §3.4 / §4), and never force-push (§1 rule 4)
+- ALWAYS run Step 3.9 (`finish-code-branch`, per `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md`) after a CVE's last fixer return — the commit is prompt-free (§1 rule 5), §2.4's choice is asked once per run and reused for every later CVE, and a CVE whose fix is on disk is never left uncommitted
+- NEVER let `vuln-fixer` commit, push, or open a pull request — it creates the branch and applies the fix; the orchestrator owns the handoff, because the consent choice behind it is one a subagent cannot ask
+- NEVER push the **code repo** directly to `main` / `master` — always use the dedicated fix branch (`agents/vuln-fixer.md`), one per CVE, branched from the base and not from the previous CVE's branch (Step 3). This binds the code repo only: the specs-repo steps above push `$SPECS_PATH`'s bounded artifact paths to the specs repo's own branch (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §3.4 / §4), and never force-push (§1 rule 4)
 - ALWAYS run `specs-preflight` at Step 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - After the run, suggest **`/compact`** (a big non-pipeline run) per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §3 — compact-only, no clear/resume pointer; guidance only, never auto-run.

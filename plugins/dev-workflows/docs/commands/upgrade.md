@@ -43,9 +43,9 @@ flowchart TD
 
 ## What it produces
 
-Upgraded component version(s) applied on a freshly created feature branch, then handed over behind a consent choice — commit + push + pull request (recommended), commit + push, commit only, or leave it uncommitted. `--no-commit` skips the choice and leaves everything in the working tree.
+Upgraded component version(s) applied on a freshly created feature branch, **each component committed on its own** as soon as its gates settle (step 6.5) — so a batch that dies part-way still has the finished components committed on a branch that bisects — and the branch pushed once for the batch behind a three-option consent choice (push + PR recommended, push only, or neither) in step 7.5. `--no-commit` skips both steps and leaves everything in the working tree.
 
-No cost entry is ever written (see [Who runs it](#who-runs-it) above), and no `resume.md` is written for `/upgrade` — its durable state is already the uncommitted branch on disk, not a PRD-scoped artifact. The terminal `commit-artifacts` step still runs, committing only `$SPECS_PATH`'s bounded session-artifact paths — never the code repo `/upgrade` just changed.
+No cost entry is ever written (see [Who runs it](#who-runs-it) above), and no `resume.md` is written for `/upgrade` — its durable state is already the branch on disk, not a PRD-scoped artifact. The terminal `commit-artifacts` step still runs, committing only `$SPECS_PATH`'s bounded session-artifact paths — never the code repo `/upgrade` just changed.
 
 ## Gates
 
@@ -61,7 +61,7 @@ Upgrade a framework to its latest stable release and a runtime to its latest LTS
 /dev-workflows:upgrade springboot:latest java:lts
 ```
 
-`upgrade-planner` runs both components in parallel, resolving `springboot`'s highest stable release and `java`'s current LTS, and checking each against the other's plan for conflicts. Once both plans are confirmed, a feature branch is created, a single test baseline is captured, and Phase 2 executes `springboot` then `java` in sequence — `springboot`'s major bump typically routes through `risk-planner` and the Opus review gate before tests, `java`'s LTS bump may or may not, depending on the API-surface change `upgrade-planner` found. The run closes with the Upgrade Summary table, the `impl-maintenance` report, and the `Specs repo:` outcome line for the bounded session-artifact commit — the code changes themselves are left uncommitted for review.
+`upgrade-planner` runs both components in parallel, resolving `springboot`'s highest stable release and `java`'s current LTS, and checking each against the other's plan for conflicts. Once both plans are confirmed, a feature branch is created, a single test baseline is captured, and Phase 2 executes `springboot` then `java` in sequence — `springboot`'s major bump typically routes through `risk-planner` and the Opus review gate before tests, `java`'s LTS bump may or may not, depending on the API-surface change `upgrade-planner` found. Each component is committed as its own gates settle, the branch is pushed once, and the run closes with the Upgrade Summary table, the `Code repo:` outcome line for the code repository, the `impl-maintenance` report, and the `Specs repo:` outcome line for the bounded session-artifact commit.
 
 ## See also
 

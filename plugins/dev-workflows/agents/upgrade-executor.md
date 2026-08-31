@@ -5,8 +5,9 @@ description: >
   component: apply the upgrade plan produced by upgrade-planner, run the build,
   verify tests via test-baseliner, and auto-fix any test code breakage caused by
   the new version's API changes. Invoked sequentially by the /upgrade command orchestrator.
-  NOT triggered by direct user prompts. Leaves the changes in the working tree for the orchestrator to hand over, on the
-  current branch.
+  NOT triggered by direct user prompts. Leaves all changes uncommitted for the
+  orchestrator, which commits each component in /upgrade step 6.5 and pushes the
+  branch once in step 7.5.
 tools: ["Read", "Glob", "Grep", "Bash", "Edit", "Task"]
 ---
 
@@ -72,7 +73,7 @@ granted, so this agent can never ask the user directly. The orchestrator owns th
 
 ## Invariants
 
-- **Never commit, never push, never open a pull request.** Leave the changes in the working tree and return. This is a division of labour, not a policy about the work: the commit decision needs consent, an agent cannot prompt, so the orchestrator makes it in `/upgrade`'s own code-handoff step (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2).
+- **Never commit, never push, never open a pull request.** Leave the changes in the working tree and return. This is a division of labour, not a policy that the work goes uncommitted: the orchestrator commits this component in `/upgrade` step 6.5 as soon as its gates settle, and pushes the branch once in step 7.5 (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.11). Committing here would strand the commit message outside the run's own report and, on a `gate_tests_on_review: true` call, commit work the Opus review has not seen.
 - Process one component per invocation.
 - The baseline provided by the orchestrator is authoritative; do not re-run it.
 - NEVER dispatch any subagent other than `test-baseliner`. That one dispatch is your entire `Task` authority. **Never dispatch a reviewer of your own.** Review is the caller's to schedule, not yours. Your caller deliberately runs no reviewer on some paths — a SIMPLE / MODERATE run is classified out of the Opus `code-review` gate on purpose — so a reviewer you spawn silently overrides the caller's own gate policy. Its verdict has no standing either: the caller never sees it, and you cannot act on it without exceeding your brief.

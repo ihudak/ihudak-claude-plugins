@@ -3,6 +3,19 @@
 The canonical structure and per-stage rules for a product `specification.md`. `/specify` authors
 against this file; `spec-reviewer` reviews against it. This is an embedded snapshot — see Provenance.
 
+## Frontmatter
+
+```yaml
+---
+kind: specification          # what this document is
+key: <KEY>                   # this folder's key — must match the folder name
+---
+```
+
+Both fields are how the folder asserts its own identity, so that nothing downstream parses a key out
+of a directory name (`references/addressing.md` §4). The filename is `specification.md` and carries
+no key: the folder supplies identity, the filename supplies kind.
+
 ## Header
 
 ```

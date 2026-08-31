@@ -11,7 +11,7 @@ this file governs *which artifact holds the current PRD text*, not code truth. D
 
 ## Procedure — `resolve-existing-prd <KEY>`
 
-1. **Validate** `<KEY>` against `^[A-Z][A-Z0-9_]*(-\d+)+$` — the grammar `references/brd-addressing.md` §1
+1. **Validate** `<KEY>` against `^[A-Z][A-Z0-9_]*(-\d+)+$` — the grammar `references/addressing.md` §1
    fixes, a superset of the two-segment form, so every key that validated here before still does.
    The extra depth is needed by both callers: `/update-prd` is redirected to with the key
    `/create-prd` resolved, and a PRD authored inside a BRD slice by `/create-prd --from-brd` carries a
@@ -19,16 +19,21 @@ this file governs *which artifact holds the current PRD text*, not code truth. D
 2. **Resolve the tracker key — `<KEY>` is an address, and an address is not a tracker identity.**
    Two keys, two uses, and they are never interchangeable. A **BRD key** (`EPIC-008-01`) names a
    folder in `$SPECS_PATH`; it is validated for shape only and **never looked up on a tracker**
-   (`references/brd-addressing.md` §1). A **tracker key** is the one the tracker minted, and it is
+   (`references/addressing.md` §1). A **tracker key** is the one the tracker minted, and it is
    the only key `jira-products/` resolves and the only key `jira-reader` accepts — that agent
    validates `^[A-Z][A-Z0-9_]*-\d+$` and refuses everything else, a three-segment slice key
    included. So locate the frozen specs draft **first** and read the tracker key off it:
 
-   - Resolve the feature folder for `<KEY>` — including `references/brd-addressing.md` §4's
-     one-level-deep fallback, so a PRD authored inside a slice folder is found — and glob
-     `<KEY>_*.md` with frontmatter `issue_type: ValueIncrement`. That file is the **frozen specs
-     draft**; step 6 reads its body as secondary grounding, and this step reads nothing from it but
-     two frontmatter keys.
+   - Resolve the feature folder for `<KEY>` with `resolve-address` (`references/addressing.md` §3),
+     which searches every level it bounds and carries §5's legacy fallback, so a PRD authored inside
+     a BRD folder is found — then read that folder's **`prd.md`**, confirming frontmatter
+     `issue_type: ValueIncrement`. That file is the **frozen specs draft**; step 6 reads its body as
+     secondary grounding, and this step reads nothing from it but two frontmatter keys.
+
+     The filename is the discriminator now that a PRD is `prd.md` rather than a keyed glob
+     (`references/prd-format.md`); the `issue_type` check is kept alongside it because a specs repo
+     written before the rename still holds `<KEY>_<slug>.md`, which §5's fallback resolves the folder
+     for and which this check is what identifies inside it.
    - The draft carries a `jira_key` → **`<TRACKER-KEY>` is that value.** It is what `/create-prd`'s
      Jira round-trip recorded, and that round-trip is the only step that ever gives a BRD key a
      tracker identity.
@@ -51,7 +56,7 @@ this file governs *which artifact holds the current PRD text*, not code truth. D
    **Where step 2 read a `brd_key` off the frozen draft, the workitem may not exist yet, and the
    stop says which of the two states this run is in rather than offering an import that cannot be
    performed.** A BRD key is a folder name in `$SPECS_PATH`, validated for shape and never looked up
-   on a tracker (`references/brd-addressing.md` §1), so a PRD `/create-prd --from-brd` authored can
+   on a tracker (`references/addressing.md` §1), so a PRD `/create-prd --from-brd` authored can
    be on disk while no workitem has ever been created — and "import it" then names a step nobody can
    take. The two states are distinguished by whether step 2 resolved a `<TRACKER-KEY>` at all:
 
@@ -70,8 +75,8 @@ this file governs *which artifact holds the current PRD text*, not code truth. D
    import date and offer:
    `choices: ["Re-import <TRACKER-KEY> now — I'll wait (Recommended)", "Proceed with the current import", "Cancel", "Other… (describe)"]`.
 6. **Secondary grounding (read-only; never the base):** the frozen `$SPECS_PATH` specs draft step 2
-   already located (glob `<KEY>_*.md`, `issue_type: ValueIncrement`), any `*_ARD.md`,
-   `specification.md`, and — for `/update-prd` — a user-supplied `@transcript` / notes path. These
-   enrich the grill; they never override the Jira import.
+   already located (`prd.md`, `issue_type: ValueIncrement`), the folder's `ard.md` and any
+   `ard-<area>.md`, `specification.md`, and — for `/update-prd` — a user-supplied `@transcript` /
+   notes path. These enrich the grill; they never override the Jira import.
 
 Product-level only — this reads markdown/comments; it mounts no repos and runs no code scan.

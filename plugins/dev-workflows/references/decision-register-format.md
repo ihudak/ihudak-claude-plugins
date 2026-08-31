@@ -13,7 +13,7 @@ finding carries and the `[CG#n]`/`[DG#n]` finding record itself belong to
 `references/grounding-format.md` (§5 and §2); the `[G]`/`[V]`/`[C]` tag that decides which register
 a question's answer lands in, and the rounds a decision is stamped with, belong to
 `references/interview-tagging.md` (§1 and §5); the `<BRD-KEY>` grammar a `conditional_on` uses
-belongs to `references/brd-addressing.md` §1.
+belongs to `references/addressing.md` §1.
 
 **Consumed by `commands/brd-interview.md`**, which writes `[VD#n]` and `[AS#n]` records against this
 shape and enforces §6; by `agents/brd-package-reviewer.md`, which reads them; and by
@@ -145,7 +145,7 @@ something that can drift underneath them. Bounding reopening to two external cau
 
 `conditional_on: <BRD-KEY>/<decision-id>` records that **this decision is correct only while a named
 decision of a named prerequisite BRD holds.** The key follows the grammar in
-`references/brd-addressing.md` §1; the second half names one specific decision in that BRD's own
+`references/addressing.md` §1; the second half names one specific decision in that BRD's own
 register, never the BRD as a whole — a prerequisite carries many decisions and only one of them is
 the one this position rests on.
 

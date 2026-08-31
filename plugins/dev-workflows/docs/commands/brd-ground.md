@@ -19,8 +19,8 @@ is the second command of that route, after [`/brd-intake`](brd-intake.md) and be
 /brd-ground <BRD-KEY> [--depends-on <BRD-KEY>…] [--derivation-matrix|--no-derivation-matrix] [--no-design] [--no-docs] [--rebaseline]
 ```
 
-- **`<BRD-KEY>`** (mandatory) — the BRD (or slice) to ground. Resolved via `resolve-brd`, so a
-  key at either of the two levels a BRD folder can occupy works; format-validated only, never
+- **`<BRD-KEY>`** (mandatory) — the BRD (or slice) to ground. Resolved via `resolve-address`, so a
+  key at either of either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it works; format-validated only, never
   checked against a tracker. Unlike [`/brd-split`](brd-split.md), this command refuses neither
   level.
 - **`--depends-on <BRD-KEY>`** (optional, repeatable) — declares a prerequisite BRD. Persisted to
@@ -35,7 +35,11 @@ is the second command of that route, after [`/brd-intake`](brd-intake.md) and be
   implementation-altitude data-source matrix on or off. Left unset, the command defaults it on for
   a BRD whose requirements read as reporting- or data-centric, and off otherwise.
 - **`--no-design`** (optional) — skip the `design-grounder` pass even when an exported frame set
-  is present.
+  is present. Frame sets live in the resolved folder's reserved **design/** subdirectory, one
+  subdirectory per set — images plus an index file naming what each frame depicts, which
+  `design-grounder` refuses to run without, since a filename is not a reliable statement of what a
+  frame shows ([`grounding-format.md`](../../references/grounding-format.md) §6.1). No **design/**
+  folder means the pass is skipped and the run says so.
 - **`--no-docs`** (optional) — turn documentation grounding off for this run.
 - **`--rebaseline`** (optional) — re-run grounding against code that has moved since the last
   pass. Supersedes the affected findings by id rather than renumbering them, so a citation into an
@@ -86,7 +90,7 @@ Phase 11, for session lessons-learned.
   [`/brd-reconcile`](brd-reconcile.md) does on its own row F. No `coverage-ledger.md` in the folder
   means it was never produced, and the stop names the producing run by level: a BRD with a source
   document of its own stops with `BRD_GROUND_NEEDS_INTAKE`, naming [`/brd-intake`](brd-intake.md); a
-  **slice** — a child BRD, recognised by the `parent:` field in its `brd-link.md` — stops with
+  **slice** — recognised by the `parent:` field in its `brd-link.md` — stops with
   `BRD_GROUND_NEEDS_SPLIT`, naming [`/brd-split`](brd-split.md) on the parent, because a slice has no
   source document of its own to intake and its ledger and inventory are written by the parent's split
   ([`brd-format.md`](../../references/brd-format.md) §2.1,
@@ -204,8 +208,8 @@ because nesting is capped at one level. `/brd-split` is not where the route ends
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pa` role owns and hands off.
-- [`brd-addressing.md`](../../references/brd-addressing.md) — the `<BRD-KEY>` grammar and folder
-  resolution this command uses by name (`brd-key-valid`, `resolve-brd`), including how a slice
+- [`addressing.md`](../../references/addressing.md) — the `<BRD-KEY>` grammar and folder
+  resolution this command uses by name (`key-valid`, `resolve-address`), including how a slice
   nests inside its parent.
 - [`grounding-format.md`](../../references/grounding-format.md) — the authority for the finding
   record, the six verdicts, the two horizons, the `baseline-integrity` procedure this command's

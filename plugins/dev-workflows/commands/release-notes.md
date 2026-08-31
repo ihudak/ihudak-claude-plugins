@@ -195,7 +195,7 @@ Diff grounding is opt-in and advisory here: a repo the user skips degrades the g
 **Resolve `run_phase`.** `/release-notes` runs at two points in a PRD's life, and the
 `release-note-types.md` §4 documentation-link rule depends on which. Reuse the existing signal from
 `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` §7 — resolve the PRD's specs dir
-(`$SPECS_PATH/specifications/<jira_key>-*/`), then glob it for `specification.md` and `design.md`. No match there → apply `${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §4's one-level-deep fallback before concluding none exists; it is reached only on a flat miss, so a flat key resolves exactly as it did before.
+by calling `resolve-address <jira_key>` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), then glob it for `specification.md` and `design.md`. That entry point searches every level §3 bounds and carries §5's legacy fallback; §7 records why this command is one of its adopters.
 A flat glob alone would also be **narrower than the signal this step says it reuses**: §7 defers to
 the specs-dir matching `feedback-emission.md` and `followup-emission.md` perform, whose pattern
 already spans both levels.

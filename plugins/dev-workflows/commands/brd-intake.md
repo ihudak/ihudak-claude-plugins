@@ -21,8 +21,8 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
 
 ## Phase 0 — Resolve inputs
 
-1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate it with `brd-key-valid`
-   (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §1 — shape only, `^[A-Z][A-Z0-9_]*(-\d+)+$`,
+1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate it with `key-valid`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1's `key-valid` — shape only,
    never checked against a tracker). If absent or invalid, **stop gracefully**:
    `BRD_INTAKE_NEEDS_KEY: /brd-intake needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. ACME-001) — pick a short stable identifier for this business requirements document, then re-run '/dev-workflows:brd-intake <KEY> @<brd-file>'.`
 2. **`@<brd-file>` (mandatory).** The customer's source file argument. If absent, **stop**:
@@ -51,8 +51,8 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
    clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
    `commit-artifacts` step skips on it.
-7. **Resolve or derive the BRD folder** via `resolve-brd <BRD-KEY>`
-   (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §2). Found → this is an existing BRD folder
+7. **Resolve or derive the BRD folder** via `resolve-address <BRD-KEY>`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). Found → this is an existing BRD folder
    and this invocation is a re-run over it; use it. **A slice is never a legitimate target here** —
    it has no source document of its own to intake, and its inventory and ledger are the parent's
    `/brd-split` to write (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1,

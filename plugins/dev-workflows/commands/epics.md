@@ -172,12 +172,11 @@ If a PRD-level specification exists, fold its requirements into the coverage
 inventory. **Additive, zero-cost when absent** — the common case, since
 `/specify` usually runs per-Epic *after* `/epics`.
 
-1. **Resolve the PRD dir:** `$SPECS_PATH/specifications/<PRD>-<vslug>/`, matched by
-   key-number, tolerating a stray `-`/`_` and a human-adjusted slug (the same
-   rule `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` step 1 uses). No match
-   there → apply `${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §4's
-   one-level-deep fallback before concluding none exists; it is reached only on a
-   flat miss, so a flat key resolves exactly as it did before. If `$SPECS_PATH` is
+1. **Resolve the PRD dir:** call `resolve-address <PRD>` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md`
+   §3), which searches every level §3 bounds and carries §5's legacy fallback. `status: found` →
+   use its `path`; `status: absent` → none exists; `status: ambiguous` → stop, naming every match
+   and `@<path>` as the way through. No matching rule is written here: a second copy of the one §5
+   states is the drift §1 warns about. If `$SPECS_PATH` is
    unset/unresolvable, or no PRD dir matches at either level → **skip** (set
    `vi_spec_present: false`) — the skip a PRD with no nested folder takes today,
    unchanged.

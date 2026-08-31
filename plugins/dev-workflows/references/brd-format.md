@@ -3,7 +3,7 @@
 The canonical structure for a **BRD** (business requirements document): what it is, how its
 requirements are inventoried into `[BR#n]` rows, and how defects found in it are classified. Design
 authority: `docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` §4, D11, D21. Key
-grammar and folder resolution are defined once in `references/brd-addressing.md` §1 — cited here,
+grammar and folder resolution are defined once in `references/addressing.md` §1 — cited here,
 not restated.
 
 ## 1. What a BRD is here
@@ -48,7 +48,7 @@ id is permanent even if the row it names is later split, superseded, or found de
 
 ### 2.1 A slice's inventory
 
-A **slice** — a child BRD nested inside its parent's folder (`references/brd-addressing.md` §3) —
+A **slice** — a BRD in every respect but its folder name, nested inside its parent's folder as the `PRD-` folder its PRD is authored in (`references/addressing.md` §6) —
 has no source document of its own: the customer supplied one document, and the slice is a partition
 of that document's requirements, not a second document. So a slice holds **no `brd/source/` and no
 `brd/brd-defect-log.md` of its own; it inherits both from its parent**, resolved through the
@@ -59,14 +59,22 @@ cites it rather than minting its own.
 A slice **does** hold its own `brd/brd-inventory.md`: the subset of its parent's rows its
 `brd-link.md` claims, copied row-for-row with `id`, `text`, `source_anchor`, and `defects` verbatim
 from the parent's inventory. **"Its parent" is literal and unambiguous**: nesting is capped at one
-level (`references/brd-addressing.md` §3), so a slice's parent is always the BRD that owns the
+level (`references/addressing.md` §6), so a slice's parent is always the BRD that owns the
 source document — there is no chain to walk and no case in which the named parent holds neither.
 The file opens with the two facts a reader needs to follow an anchor out of it:
 
 ```
+kind: brd
+key: <this folder's key — must match the folder name>
 parent: <PARENT-KEY>
 source: <the parent's brd/source/<basename>, relative to the parent's folder>
 ```
+
+**`kind:` and `key:` open every inventory, a slice's and a source-owning BRD's alike** — a
+source-owning BRD's inventory carries the two and no `parent:`/`source:` pair, because it *is* the
+source owner. They are how the folder asserts its own identity (`references/addressing.md` §4); the
+`brd/source/` document itself carries neither and never will, because it is the customer's and is
+immutable (§1).
 
 **Every `source_anchor` in a slice's inventory resolves against that path, never against anything
 inside the slice's own folder** — the slice has no `brd/source/` to resolve into, which is exactly
@@ -119,7 +127,7 @@ slice's ledger (`commands/brd-split.md` Phase 4), `/brd-reconcile` writing the `
 `withdrawn` resolutions a returned customer review settles
 (`commands/brd-reconcile.md`), or any reader following the `defects` column of the slice's copied
 inventory row — therefore looks it up in, and writes it to, the parent's log. That lookup is always
-**exactly one hop**: nesting is capped at one level (`references/brd-addressing.md` §3), so a
+**exactly one hop**: nesting is capped at one level (`references/addressing.md` §6), so a
 slice's parent always owns the source document and the log, and there is no chain to walk.
 
 A resolution changes the defect log entry's status only. It never touches `brd/source/`, and it

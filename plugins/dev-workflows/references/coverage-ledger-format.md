@@ -5,7 +5,7 @@ requirements document) keeps per requirement, the states that row can carry, and
 blocks a split until every row has one. Design authority:
 `docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` §4, §4.1. Requirement and defect
 identifiers (`[BR#n]`, `[DEF#n]`) are defined once in `references/brd-format.md` — cited here, not
-restated; key grammar and folder resolution are defined once in `references/brd-addressing.md`.
+restated; key grammar and folder resolution are defined once in `references/addressing.md`.
 
 ## 1. Purpose
 
@@ -30,15 +30,15 @@ reported as exactly that, and the line names how many were delegated and then no
 `covered-by` as covered on its own word is what would let the failure above pass this file's own
 arithmetic unremarked.
 
-One ledger exists per BRD, at either of the two levels a BRD can sit — a BRD that owns its source
-document, or a slice one level inside it (`references/brd-addressing.md` §3 caps nesting there). **What
+One ledger exists per BRD, at either level a `<BRD-KEY>` can name — a BRD that owns its source
+document, or a slice one level inside it (`references/addressing.md` §6 caps nesting there). **What
 its rows are is not the same at both levels**, and §3's creator table is the authority: a
 source-owning BRD gets one row per `[BR#n]` in the inventory `/brd-intake` extracted, while a slice
 gets one row per `[BR#n]` its `brd-link.md` claims **at the moment `/brd-split` creates it**. That
 is a floor, not a ceiling: a slice's ledger can later hold a row `claims:` no longer names, and §2
 says why. Only a slice has a `claims:` field — `/brd-split` writes it, and only into a child — so a
 consumer that defines a BRD's requirement set over `claims:` at both levels reads an empty set on
-every BRD that was never split.
+every source-owning BRD, which is every parent.
 
 ## 2. Row shape
 
@@ -90,7 +90,7 @@ starts in any other disposition.
 | Level | Creator | Rows |
 |---|---|---|
 | A BRD with a source document of its own | `/brd-intake` (`commands/brd-intake.md` Phase 5) | one per `[BR#n]` in the inventory it just extracted |
-| A slice — a child BRD nested in its parent's folder | `/brd-split` (`commands/brd-split.md` Phase 3) | one per `[BR#n]` the slice's `brd-link.md` claims |
+| A slice — nested in its parent's folder as a `PRD-` folder | `/brd-split` (`commands/brd-split.md` Phase 3) | one per `[BR#n]` the slice's `brd-link.md` claims |
 
 `/brd-intake` never runs on a slice — a slice has no document to intake (`brd-format.md` §2.1) — so
 if `/brd-split` did not write the slice's ledger at the moment it created the slice's folder,
@@ -123,7 +123,7 @@ different writer at each.** On a BRD that owns its source document it names a **
 written by that BRD's own Phase 4 walk. On a slice it names a **sibling under the same parent, or
 that parent**, and is written by the **parent's** Phase 4 walk — never by the slice's own. It is
 never a child at either level below the root: nesting is capped at one level
-(`references/brd-addressing.md` §3), so **no child can exist below a slice** and no key a slice
+(`references/addressing.md` §6), so **no child can exist below a slice** and no key a slice
 writes could name one.
 
 **The slice form exists for exactly one state — an orphan row (§2) — and for no other.** A slice's
@@ -147,9 +147,9 @@ says where a reader follows the obligation.
 
 The first three all say *another BRD owns this*, which is what `covered-by` means and what none of
 the other five can say: `deferred-to: <this BRD>` would falsely book it as the slice's own live obligation,
-and `superseded-by` names a requirement, not a BRD. Both keys resolve: `resolve-brd` finds a
+and `superseded-by` names a requirement, not a BRD. Both keys resolve: `resolve-address` finds a
 sibling one level under `specifications/` and the parent at the top level
-(`references/brd-addressing.md` §2), so neither form names a folder that does not exist.
+(`references/addressing.md` §3), so neither form names a folder that does not exist.
 
 **This is not a general-purpose delegation, and a slice's own walk never writes it.** Every row a
 slice's walk visits is a row that slice `claims:` — a row the parent's ledger allocated *here*.
@@ -197,7 +197,7 @@ BRD that owns the row, the question belongs to that BRD's own round.
 **A source-owning BRD carries no `claims:` field, so this is read off the `disposition` column and
 never off `claims:`** — the same trap `references/coverage-ledger-format.md` §5 and
 `commands/create-prd.md`'s gate set already spell out. Intersecting with `claims:` here would read an
-empty set on every BRD that was never split and put *nothing* in scope.
+empty set on every source-owning BRD and put *nothing* in scope.
 
 **Deferring is itself an allocation.**
 `deferred-to: <this BRD>` discharges the gate exactly as the other four terminal dispositions do;
@@ -237,35 +237,43 @@ picker changes.
 
 ## 5. PRD eligibility
 
-**A BRD is PRD-eligible if and only if at least one of its ledger rows is `covered-here`.**
+**A folder is PRD-eligible if and only if at least one of its ledger rows is `covered-here`.**
 
-- **Eligible.** At least one `covered-here` row exists. The BRD may go on to author its own
-  `<BRD-KEY>_<slug>.md`, which is what `/create-prd --from-brd` runs against this BRD to write.
+**Only a slice can satisfy that**, and it is worth saying plainly rather than leaving to be
+inferred: a parent BRD is a container and is never implementable itself, so `covered-here` is not a
+resolution its walk is offered (`commands/brd-split.md` Phase 4) and no row on its ledger can carry
+one. Eligibility is therefore a property of the `PRD-` folder a split produces, which is the folder
+the PRD is authored in — and since a split always produces at least one, the requirements always
+have somewhere eligible to land.
+
+- **Eligible.** At least one `covered-here` row exists. The folder may go on to author its own
+  `prd.md`, which is what `/create-prd --from-brd` runs against it to write.
 - **Not eligible.** No row is `covered-here`. Every row therefore resolves to one of the other four
   terminal dispositions — `covered-by: <BRD-KEY>`, `deferred-to: <this BRD>`, `rejected: [DEF#n]`
   or `superseded-by: [BR#n]` — in any mix, and **all four reach this case equally**: eligibility is
   the presence of a `covered-here` row and nothing else, so a disposition bears on it exactly by not
-  being `covered-here`. A BRD whose every row is `rejected` is ineligible owing nobody
+  being `covered-here`. A folder whose every row is `rejected` is ineligible owing nobody
   anything, and one whose every row was `superseded-by` another `[BR#n]` is ineligible too, even
   though §6.3 excludes those rows from the ledger line's counts — a line the eligibility check never
-  reads anyway (see the paragraph below on reading dispositions off the file). This BRD
-  holds no PRD of its own. A consumer that reaches this state must refuse to author a PRD here and
+  reads anyway (see the paragraph below on reading dispositions off the file). **Every parent BRD
+  reaches this case**, by construction rather than by outcome, and that is not a failure state: it
+  is what "a BRD is a container" means, and its consumer is told where the requirements went. This
+  folder holds no PRD of its own. A consumer that reaches this state must refuse to author a PRD here and
   say **where the requirements went**, rather than producing an empty or placeholder document.
 
-  **What there is to say depends on how the state was reached, and one of the three ways names no
-  child at all:**
+  **What there is to say depends on how the state was reached, and one of the two ways names no
+  slice at all:**
 
   | How every row left `covered-here` | What the consumer says |
   |---|---|
-  | Some rows are `covered-by: <CHILD-KEY>` | Name those children — and, per §6.1, which of them did not build the row delegated to it. A child that deferred, rejected or has not allocated it is not somewhere to send the reader |
-  | No row is `covered-by`: the BRD was never split | Name no child, because none exists — and say what the rows *did* resolve to rather than calling them all obligations. The three remaining dispositions say different things: a `deferred-to` row is a live obligation of this BRD, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it, and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. Then say a PRD needs one row resolved `covered-here` first |
-  | This is a **slice**, so no row of the set eligibility is read over can be `covered-by` | The same breakdown, for the reason the paragraph below gives |
+  | Some rows are `covered-by: <SLICE-KEY>` — the ordinary shape on a parent | Name those slices — and, per §6.1, which of them did not build the row delegated to it. A slice that deferred, rejected or has not allocated it is not somewhere to send the reader |
+  | No row is `covered-by` | Name no slice, because none holds one of these rows — and say what the rows *did* resolve to rather than calling them all obligations. The three remaining dispositions say different things: a `deferred-to` row is a live obligation of this folder, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it, and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. This is also the only shape a **slice** reaches, for the reason the paragraph below gives: no row of the set eligibility is read over on a slice can be `covered-by`. On a slice, add that a PRD needs one row resolved `covered-here` first |
 
-  "Name the children that do" is right only in the first row. In the other two there is nothing to
-  name, and a consumer that goes looking for a child to point at finds none and must not invent
+  "Name the slices that do" is right only in the first row. In the second there is nothing to
+  name, and a consumer that goes looking for a slice to point at finds none and must not invent
   one — the honest report is what each row actually resolved to, and, for the deferred ones, by whom.
-  "The requirements are deferred" is the common shape of those two cases, not the whole of them:
-  a BRD whose every row is `rejected` reaches this same case owing nobody anything, and
+  "The requirements are deferred" is the common shape of that case, not the whole of it:
+  a folder whose every row is `rejected` reaches it owing nobody anything, and
   saying it deferred them would be false.
 
 **A slice reaches eligibility by exactly this rule**, through the same Phase 4 walk on its own
@@ -279,9 +287,10 @@ writes `covered-by`. There is still no child below a slice for any row to point 
 
 **Eligibility is read over the rows this ledger holds, which §1 and §3 fix per level and which
 `claims:` narrows only on a slice.** A source-owning BRD carries no `claims:` field, so a consumer
-that intersects with one there tests an empty set, finds no `covered-here` row in it, and refuses
-the never-split BRD this route most often reaches — the very case §4's escape valve exists to let
-complete. On a slice the narrowing now does real work rather than coinciding with the ledger, and
+that intersects with one there tests an empty set and finds no `covered-here` row in it — which on a
+parent is the right answer for the wrong reason, and on the day someone reuses that consumer against
+a slice it is simply wrong. Read the ledger's own rows. On a slice the narrowing does real work
+rather than coinciding with the ledger, and
 it is safe in both directions: **an orphan row can neither create eligibility nor withhold it.** It
 is never `covered-here` — §3's table gives it `covered-by`, `rejected` or `superseded-by` and
 nothing else, and only the parent's walk writes it — so it cannot make an ineligible slice look
@@ -344,7 +353,7 @@ row that does:
   `covered-here` or `deferred-to` (§3's orphan table), never on another `covered-by`: a parent row
   reading `covered-by: <SIBLING-KEY>` is what produces the sibling form instead of the parent one.
 
-Nesting is capped at one level throughout (`references/brd-addressing.md` §3), so there is no third
+Nesting is capped at one level throughout (`references/addressing.md` §6), so there is no third
 level for a chain to reach even if one were somehow written.
 
 This is the arithmetic §1 promises. The failure §1 names — every child independently deciding the
@@ -378,7 +387,7 @@ whose fate this BRD has fully recorded — that is the resolution working, not a
 ### 6.2 A ledger that cannot be read is `unresolved`, never `covered`
 
 Resolution reads the named BRD's `coverage-ledger.md` **from the working tree**, through
-`resolve-brd` (`references/brd-addressing.md` §2) — not from git, because this line reports what
+`resolve-address` (`references/addressing.md` §3) — not from git, because this line reports what
 the run can actually see. A delegated row is `unresolved` when no folder resolves for the
 `<BRD-KEY>` it names; when that folder holds no `coverage-ledger.md`; when the tree the run is
 standing in does not carry that BRD at all, because the split that created it has not merged; or

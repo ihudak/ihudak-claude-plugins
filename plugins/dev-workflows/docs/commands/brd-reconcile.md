@@ -18,8 +18,8 @@ is the sixth and last command of that route, after `/brd-intake`, `/brd-ground`,
 /brd-reconcile <BRD-KEY> @<review-file>
 ```
 
-- **`<BRD-KEY>`** (mandatory) — the BRD this review answers. A key at either of the two levels a BRD
-  folder can occupy works, and both behave identically. Resolved via `resolve-brd`;
+- **`<BRD-KEY>`** (mandatory) — the BRD this review answers. A key naming either level a `<BRD-KEY>` can reach
+  folder can occupy works, and both behave identically. Resolved via `resolve-address`;
   format-validated only, never checked against a tracker.
 - **`@<review-file>`** (mandatory) — the file the customer sent back, **at whatever path it arrived
   on**. It does not have to be inside `$SPECS_PATH`, and it is never searched for: the operator says

@@ -214,6 +214,32 @@ ships and the assumption quietly stops holding.
 
 ## 6. Design grounding
 
+### 6.1 Where frame sets live
+
+**`design/` is a reserved subdirectory of any folder under `specifications/`** — a BRD folder, a PRD
+folder, or an Epic folder alike. Each of its immediate subdirectories is **one exported frame set**:
+screen or report images plus **an index file** naming what each frame depicts.
+
+```
+<any-specs-folder>/design/<frame-set-name>/   <images…> + an index file
+```
+
+**The index is not optional and its absence is not recoverable.** `design-grounder` returns
+`NO_INDEX` rather than reading the directory, because a filename is not a reliable statement of what
+a frame shows, and a finding citing a frame the agent cannot actually identify is worse than no
+finding. The index may be named by whatever the frame-set convention uses — a manifest, a captions
+file, a README enumerating the frames — but something must map frame to subject.
+
+**The location is stated here once and cited, never restated.** A command that re-derived it would
+be a second copy of a path rule, which is how the copies drift.
+
+**Defining the location is not the same as consuming it.** `design-grounder` is dispatched by
+`/brd-ground` and by nothing else, so today only the BRD route reads a `design/` folder. A PRD folder
+on the `/idea` route may hold one and nothing will look at it yet; that is a known and deliberate
+state, not a gap in this section.
+
+### 6.2 The four reconciliation classes
+
 `design-grounder` reads an exported frame set — screen or report images plus an index — and
 reconciles it against the BRD's requirements in exactly four classes:
 

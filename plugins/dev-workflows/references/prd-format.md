@@ -1,6 +1,6 @@
 # Product Requirements Document format (embedded authority)
 
-The canonical structure and per-section rules for a `<KEY>_<slug>.md` PRD file (frontmatter `issue_type: ValueIncrement`). `/create-prd` and `/update-prd` author
+The canonical structure and per-section rules for a `prd.md` PRD file — one per PRD folder, its identity carried by the folder rather than by its own name (`references/addressing.md` §2, §4). `/create-prd` and `/update-prd` author
 against this file; `prd-reviewer` reviews against it, and `/release-notes` reads its Jira-mirror fields. The PRD is **product-level** (a PRD): what / why /
 for-whom, **not** how — no implementation detail. A mandatory **spine** (always present) plus an
 **adapt-in menu** whose clusters are pulled only when the idea warrants them (never an empty section).
@@ -15,6 +15,8 @@ for-whom, **not** how — no implementation detail. A mandatory **spine** (alway
 
 ```yaml
 ---
+kind: prd                    # what this document is
+key: <KEY>                   # this folder's key — must match the folder name
 title: <human-readable PRD title>
 summary: <one-line>
 issue_type: ValueIncrement
@@ -53,14 +55,14 @@ commands used heavily by non-BRD routes and belongs in its own increment with it
 written, and preserved through a refresh, because provenance recorded at authoring time is the
 precondition for any future consumer: re-deriving it later would mean re-reading a BRD tree that may
 have moved on. A `brd_key` may carry a third numeric segment
-(`references/brd-addressing.md` §1 fixes no depth), so a PRD authored inside a BRD slice is filed
+(`references/addressing.md` §1 fixes no depth), so a PRD authored inside a BRD slice is filed
 under a key the two-segment form would reject — validate **that folder-side key**, and the
-`<KEY>_<slug>.md` filename built from it, against §1's grammar rather than a narrower one. This never
+folder name built from it, against §1's grammar rather than a narrower one. This never
 extends to `jira_key`, which is two-segment everywhere (below).
 
 **`brd_key` and `jira_key` are two keys with two uses and are never interchangeable.** `brd_key` is a
 folder name in `$SPECS_PATH`, validated for shape and never looked up on a tracker
-(`references/brd-addressing.md` §1); `jira_key` is what the tracker minted, and it is the only key
+(`references/addressing.md` §1); `jira_key` is what the tracker minted, and it is the only key
 `jira-products/` resolves and the only one `jira-reader` accepts (`^[A-Z][A-Z0-9_]*-\d+$`). On the
 `/idea` route `jira_key` is authored with the PRD, because the PM supplied a key they had already
 minted. On the `--from-brd` route it is **omitted at authoring time and written by the Jira

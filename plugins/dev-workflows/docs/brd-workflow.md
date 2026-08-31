@@ -44,16 +44,17 @@ flowchart TD
     review -->|answers come back as one file| reconcile
     reconcile -.->|a decision reopened, or a question askable again| interview
     reconcile -.->|questions still held for the customer| package
-    reconcile -->|BRD key + --from-brd — only if fully allocated and one row covered-here| createprd
-    reconcile -->|BRD key + --from-brd — unconditional| createard
-    reconcile -->|BRD key + --from-brd — unconditional| specify
+    reconcile -->|BRD key + --from-brd — nothing left to re-enter for, fully allocated, one row covered-here| createprd
+    reconcile -->|BRD key + --from-brd — nothing left to re-enter for| createard
+    reconcile -->|BRD key + --from-brd — nothing left to re-enter for| specify
 ```
 
 **The right-hand box is not part of the route.** Its three nodes are the PRD pipeline's own
 commands, drawn here because `/brd-reconcile` is where this route hands over to them and a reader
 following the diagram needs somewhere to go next. The route itself is still the six `/brd-*`
 commands: nothing in that box extracts a requirement, allocates a ledger row or opens a question —
-each of the three only reads its own altitude's seed and stamps `consumed_by` on what it took.
+each of the three only reads what this route already wrote, at its own altitude, and stamps
+`consumed_by` on what it took.
 
 **The `Off-platform` box is the route's defining feature, not a decoration.** Everything else in
 the diagram is a command this plugin runs; that box is a wait, and nothing in the plugin can
@@ -105,14 +106,20 @@ overturned.
 **Where the route hands over is `/brd-reconcile`**: a BRD whose customer decisions are frozen and
 whose tree holds nothing the review made false is the state the PRD pipeline is entered from.
 `--from-brd` **ships** on `/create-prd`, `/create-ard` and `/specify`, and `/brd-reconcile`'s
-next-step phase names all three against that same BRD key — `/create-prd --from-brd` only where the
-reconciled ledger leaves no row `unallocated` and at least one `covered-here` (the two
-refusals its own Phase 0 raises), and `/create-ard --from-brd` and `/specify --from-brd`
-unconditionally, since neither dispatches `jira-reader`, neither gates a PRD and neither reads the
-ledger. **The diagram above draws all three**, as the three solid edges leaving `/brd-reconcile`
-into the right-hand box. They are alternatives rather than a sequence: the two unconditional ones
-wait on nothing `/create-prd --from-brd` produces, so an ARD or a specification can be authored from
-a BRD whose ledger will never qualify for a PRD of its own. [Workflow overview](workflow.md) draws
+next-step phase names all three against that same BRD key — **on a run that left nothing to re-enter
+for.** That phase resolves an `advance_ready` first: a reopened decision, a `[C]` still held for the
+customer, a finding the review left to re-derive, or a dependent it could only record all drop the
+three advance options, because a `reopened` record may not be consumed downstream and all three
+consume the register. On an advancing run, `/create-prd --from-brd` carries one further condition —
+the reconciled ledger leaves no row `unallocated` and at least one `covered-here` (the two refusals
+its own Phase 0 raises) — while `/create-ard --from-brd` and `/specify --from-brd` carry none of
+their own, since neither dispatches `jira-reader`, neither gates a PRD and neither reads the ledger.
+The difference is where the enforcement sits: `/create-prd` refuses in its own Phase 0, whereas
+nothing downstream refuses an unsettled register, so the advance/re-entry split is a judgement only
+`/brd-reconcile` can make. **The diagram above draws all three**, as the three solid edges leaving
+`/brd-reconcile` into the right-hand box. They are alternatives rather than a sequence: neither of
+the other two waits on anything `/create-prd --from-brd` produces, so an ARD or a specification can
+be authored from a BRD whose ledger will never qualify for a PRD of its own. [Workflow overview](workflow.md) draws
 the same three edges with the same labels, into the same three commands.
 
 ## Parameters
@@ -131,8 +138,8 @@ each of those three also has a Jira-driven form that this route never uses.
 | `/brd-package` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…` | Repeatable, and any key at either level is admissible; a mistyped one is warned and dropped, never fatal. Each prerequisite's own package is copied into the bundle, marked *not for re-review* |
 | `/brd-reconcile` | `<BRD-KEY> @<review-file>` | — | The review is taken at whatever path it arrived on, inside `$SPECS_PATH` or not, and is never searched for: the operator names the file, because one this command picked is one nobody submitted |
 | `/create-prd` | `<BRD-KEY> --from-brd` | `--from-brd <dir>`, `--lean`/`--hybrid`/`--full`, `--no-docs`, `--no-prior-art`, `@<idea.md>` | Offered only where no ledger row is `unallocated` and one is `covered-here` (the BRD's own rows; `claims:` narrows them only on a slice). Profile defaults to `--full`; `--from-prd` is refused |
-| `/create-ard` | `<BRD-KEY> --from-brd` | `--from-brd <dir>`, `--no-docs` | Offered unconditionally: the run gates no PRD, dispatches no `jira-reader` and reads no ledger. One key only — a second stops the run (`CREATE_ARD_BRD_NO_EPIC`) |
-| `/specify` | `<BRD-KEY> --from-brd` | `--from-brd <dir>`, `--no-docs` | Offered unconditionally, on exactly the same terms. One key only — a second stops the run (`SPECIFY_BRD_NO_EPIC`) |
+| `/create-ard` | `<BRD-KEY> --from-brd` | `--from-brd <dir>`, `--no-docs` | Offered on any advancing run, with no further condition: it gates no PRD, dispatches no `jira-reader`, reads no ledger. One key only — a second stops the run (`CREATE_ARD_BRD_NO_EPIC`) |
+| `/specify` | `<BRD-KEY> --from-brd` | `--from-brd <dir>`, `--no-docs` | Offered on the same terms, with no further condition of its own. One key only — a second stops the run (`SPECIFY_BRD_NO_EPIC`) |
 
 `--no-docs` appears on two of the six **route** rows and means the same thing on both: turn off the
 optional grounding on shipped product documentation that `/brd-intake` and `/brd-ground` do when

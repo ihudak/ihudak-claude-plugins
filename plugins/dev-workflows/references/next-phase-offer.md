@@ -110,12 +110,22 @@ not required.
   remain for the customer, or `/dev-workflows:brd-ground <BRD-KEY> --rebaseline` where the review
   challenged a code claim. **Advance:** `--from-brd` on `/dev-workflows:create-prd`,
   `/dev-workflows:create-ard` and `/dev-workflows:specify` all ship, and that command's next-step
-  phase offers all three off the one BRD key — `/dev-workflows:create-prd <BRD-KEY> --from-brd` only
-  where the reconciled ledger leaves no row `unallocated` and at least one `covered-here`
-  (`references/coverage-ledger-format.md` §5, the two refusals its Phase 0 raises), the other two
-  unconditionally, since neither dispatches `jira-reader`, neither runs the PRD gate and neither
-  reads the ledger. None of the three carries `<merge-clause>`: none of them runs `require-on-main`
-  against anything `/dev-workflows:brd-reconcile` writes.
+  phase offers all three off the one BRD key — **but only on a run that left nothing to re-enter
+  for.** Advance and re-entry are two arrays there, not one: where that run reopened a decision,
+  left a `[C]` held for the customer, left a finding for a `--rebaseline` pass, or could only record
+  a dependent's sweep, all three advance options are dropped, because a `reopened` record may not be
+  consumed downstream (`references/decision-register-format.md` §3) and all three consume the
+  register. On an advancing run, `/dev-workflows:create-prd <BRD-KEY> --from-brd` carries the further
+  condition that the reconciled ledger leaves no row `unallocated` and at least one `covered-here`
+  (`references/coverage-ledger-format.md` §5, the two refusals its Phase 0 raises); the other two
+  carry none of their own, since neither dispatches `jira-reader`, neither runs the PRD gate and
+  neither reads the ledger. **That difference is where the two conditions come from, and it matters:**
+  `/create-prd`'s is enforced by its own Phase 0, so offering it wrongly hands over a run that stops;
+  the advance/re-entry split is enforced **nowhere downstream** — `/create-ard --from-brd` and
+  `/specify --from-brd` treat an `open` or `reopened` record as an open question to record rather
+  than as a stop — so `/dev-workflows:brd-reconcile` is the only station that can make it. None of
+  the three carries `<merge-clause>`: none of them runs `require-on-main` against anything
+  `/dev-workflows:brd-reconcile` writes.
 
 **PA — architecture (optional)**
 

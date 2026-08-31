@@ -4,6 +4,93 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.3.2] — 2026-08-31
+
+### Fixed — thirteen defects from a whole-feature review of the BRD route
+
+A comprehensive review of everything the BRD-to-PRD route shipped, read against the tree rather
+than against the plan. All three gates were green before and after; every one of these is content
+no gate can see.
+
+**Outward-facing and authority-level.**
+
+- **The customer bundle could ship the self-review.** Its content set was a deny-list — "this
+  package's own documents", with the delivery note as the only named exclusion — and the
+  documentation asserted outright that `self-review-<date>.md` was in the bundle. That file holds
+  every `[SR#n]` the adversarial pass raised, including the ones disposed `rejected-with-reason`,
+  whose reason "stays inside the delivery organisation. Nothing rejected reaches the customer".
+  The prompt's parts 7 and 9 carry a **filtered** set for exactly that reason; shipping the file
+  defeated the filter and handed the customer an internal disagreement to referee. The plugin-free
+  scan could never have caught it — it hunts plugin-internal tokens, and a self-review has none
+  while being the most internal document the command writes. `bundle-packaging.md` §1.1 is now an
+  **allow-list**, derived from the rule that a document reaches the bundle only where a prompt part
+  sends the reviewer to it, with the self-review excluded by name and by reason.
+- **A returned review was dated by when the package was sent.** `/brd-reconcile` derived the
+  review's date from the supplied filename first, and `/brd-package` stamped that filename with its
+  own packaging date — so the ordinary path, a customer returning the file unrenamed, produced the
+  date the delivery team *sent* the package, which the same phase says the date must not be. It
+  also fired the same-date suffix prompt on reviews returned weeks apart, telling the operator both
+  were "genuinely written on the same day". Fixed at both ends: the schema and the prompt ask the
+  reviewer for the date they finish, and the ladder reads the review's own section 1 first,
+  rejecting a filename date equal to the packaging date rather than trusting it.
+- **A shared authority contradicted the command it governs.** `escalation-rules.md`'s
+  closed-vocabulary carve-out listed five arrays and declared itself closed, so its own "one
+  permitted adjustment" rule instructed an orchestrator to add `"Other… (describe)"` to
+  `/brd-package`'s degradation-tier picker — a sixth such array, whose command forbids exactly
+  that. Added as a sixth row. A rule contradicted by its own authority is not a rule.
+
+**Claims with an expiry date, swept by phrase.**
+
+- **The three altitude seed files have no producer on the live route.** Only
+  `/brd-intake --sort-existing` writes one, and the route overview already said so — but four
+  places asserted the opposite, three commands routed skipped content to "its own seed's consumer",
+  and three input bullets described a seed as what the router "sent here". Nothing broke, since
+  every consumer already tolerated absence; but a reader told a decision was routed to a seed goes
+  looking for a file that is not there and concludes the content was lost. Every such sentence now
+  names the real channel — `decisions.md`, filtered by each record's `altitude`, plus the grounding
+  files and the derivation matrix — and the design's §7.2 router table is recorded as the unbuilt
+  half rather than left to read as a description of what runs.
+- **`/brd-ground` still said "nothing in this increment freezes a decision".** `/brd-interview`
+  writes the register and `/brd-reconcile` freezes `[CD#n]` in it; both ship. The
+  no-frozen-decision case is still ordinary — a prerequisite is declared while it is in flight —
+  but that is sequencing, not absence of the capability, and the two are now reported apart.
+- **"Frozen" had no definition**, though the register has carried the exact field since increment
+  2. `grounding-format.md` §5 now fixes it as `status: decided` and nothing else, with each
+  exclusion sourced to `decision-register-format.md` §3; `/brd-ground` and `code-grounder` read the
+  field instead of judging how settled a record sounds, and an unparseable register is reported as
+  unparseable rather than as empty.
+- **`/brd-split`'s description still described the one-part no-op** and offered grounding "on each
+  new child" — both superseded by the standing-empty-child work, which swept the phase bodies and
+  the docs page but not the frontmatter. The same one-part claim stood in
+  `coverage-ledger-format.md` §4 and in `/brd-ground`'s row-F clause, where it was reachable and
+  wrong: a slice claiming nothing makes the parent re-run live, so that clause now branches on the
+  slice's own `claims:` list.
+
+**The rest.**
+
+- **`/brd-reconcile` presented ten options in one array** — more than double any other list in the
+  plugin, offering advance into the PRD pipeline in the same breath as naming four reasons the
+  route is not finished. Split into two mutually exclusive lists on a resolved `advance_ready`,
+  each six options, with every re-entry option dropped where its trigger did not fire. Dropping the
+  three `--from-brd` options on the re-entry path is a refusal **only this phase can make**:
+  `/create-ard --from-brd` and `/specify --from-brd` run no gate that catches a reopened decision,
+  since routing an `open` record into their own open-questions section is correct behaviour rather
+  than a stop.
+- **A conditional `(Recommended when …)` marker** on `/brd-split`'s full-mode ledger picker, which
+  `escalation-rules.md` calls malformed by name — it hands the operator the gate the phase was
+  supposed to evaluate and cannot be honoured verbatim. The condition moved into the option's text
+  and the marker is gone; the `allocate-only` picker keeps its, because there `covered-here` is
+  genuinely unconditional.
+- **`/brd-interview`'s guarantee 3 contradicted its own Phase 6**, saying the operator queue "is
+  never appended to mid-round from another tag" when a re-tagged `[G]` is supposed to arrive.
+  Restated as what is actually guaranteed.
+- **`/brd-ground` Phase 10 branched on a `parent:` field its cited step never took.** Step 9 read
+  `depends-on:` only, and the two steps that do read `parent:` sit inside branches that stop, so on
+  the ordinary path neither had run. Step 9 now carries both.
+- **The baseline `[CG#n]` findings can never be consumed**, so `/create-ard`'s and `/specify`'s
+  unconsumed-item reports listed one permanently-open item per repository on every run, with no
+  action that could close one. `grounding-format.md` gains §4.1 and both reports exclude them.
+
 ## [3.3.1] — 2026-08-30
 
 ### Fixed — a slice's withdrawn claim no longer strands its ledger row

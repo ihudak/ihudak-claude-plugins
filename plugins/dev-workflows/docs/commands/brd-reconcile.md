@@ -71,9 +71,9 @@ flowchart TD
     p12 --> p13["Phase 13 — Handoff"]
     p13 --> p14["Phase 14 — Next steps"]
     p14 --> p15["Phase 15 — Session maintenance, feedback & cost"]
-    p14 -.->|"BRD key + --from-brd — only if no ledger row is unallocated and one is covered-here"| prd["/create-prd (PM)"]
-    p14 -.->|"BRD key + --from-brd"| ard["/create-ard (PA, optional)"]
-    p14 -.->|"BRD key + --from-brd"| spec["/specify (PE)"]
+    p14 -.->|"advance_ready + no unallocated row and one covered-here"| prd["/create-prd (PM)"]
+    p14 -.->|"advance_ready"| ard["/create-ard (PA, optional)"]
+    p14 -.->|"advance_ready"| spec["/specify (PE)"]
 ```
 
 `customer-review-reader` is dispatched once, on the detection chain. `impl-maintenance` runs in the
@@ -246,7 +246,8 @@ contradiction is invisible from the register, which is the only place anybody lo
 This is where the BRD-to-PRD route **hands over**, not where it ends. A reconciled BRD — decisions
 frozen, dependents swept, every artifact under the parent checked — is the state the PRD pipeline
 was waiting for, and Phase 14 offers all three `--from-brd` entry points against the same
-`<BRD-KEY>`, each under the precondition the offered command actually enforces:
+`<BRD-KEY>` — **on a run that left nothing to re-enter for**, and each under the precondition the
+offered command actually enforces:
 
 | Handover | Offered when | Why |
 |---|---|---|
@@ -266,8 +267,8 @@ Each takes **one** key: a second positional is refused (`CREATE_ARD_BRD_NO_EPIC`
 so neither of the optional two is ever offered with an Epic beside it. The three are **alternatives,
 not a sequence** — neither of the unconditional two waits on the PRD — and none of them carries the
 `<merge-clause>` placeholder, because none runs `require-on-main` against anything this command
-writes ([`next-phase-offer.md`](../../references/next-phase-offer.md)). No option in Phase 14's array
-carries `(Recommended)`: which one is right depends entirely on what the reconciliation left behind,
+writes ([`next-phase-offer.md`](../../references/next-phase-offer.md)). No option in either of
+Phase 14's arrays carries `(Recommended)`: which one is right depends entirely on what the reconciliation left behind,
 so each option states its own condition in its own text.
 
 The same phase also offers the route's **re-entries** — another [`/brd-interview`](brd-interview.md)
@@ -293,20 +294,24 @@ Reconcile the review that came back for a synthetic customer BRD, from wherever 
 saved:
 
 ```
-/dev-workflows:brd-reconcile EPIC-008 "@~/Downloads/EPIC-008 Customer Review 20260415.md"
+/dev-workflows:brd-reconcile EPIC-008 "@~/Downloads/EPIC-008 Customer Review 20260422.md"
 ```
 
 The `@<review-file>` token is **quoted**, because the command parses its arguments positionally and
 a returned review routinely arrives under a name with spaces in it — the same reason
 [`/brd-package`](brd-package.md)'s customer-facing note tells reviewers to quote the filename they
-send back. Unquoted, `Customer`, `Review` and `20260415.md` are three further positional tokens and
+send back. Unquoted, `Customer`, `Review` and `20260422.md` are three further positional tokens and
 the path the run resolves is not the file the customer sent.
 
-The run gates on the package being merged, copies the file to `customer-review-20260415.md` and
+The date in the name is the reviewer's own — `EPIC-008` was **packaged** on 15 April and the review
+came back finished on the 22nd — which is what makes the filename rung usable here. Had the reviewer
+returned the file still carrying the packaging date, the run would have rejected that rung and asked.
+
+The run gates on the package being merged, copies the file to `customer-review-20260422.md` and
 offers to commit it, dispatches `customer-review-reader`, surfaces every schema anomaly before
 anything is confirmed, walks each candidate against its verbatim quotation, freezes the confirmed
 answers as `[CD#n]` and closes their `[C]` questions, applies the review's required changes, banners
-the dated prompt and self-review the answers overturned, writes `customer-amended 20260415` and
+the dated prompt and self-review the answers overturned, writes `customer-amended 20260422` and
 `withdrawn` rows to the defect log, moves the ledger rows the decisions settled, sweeps `EPIC-014`
 and every other dependent starting with its `conditional_on` positions, sweeps every artifact under
 the parent for the changed ids and for prose still asserting the old position, and writes

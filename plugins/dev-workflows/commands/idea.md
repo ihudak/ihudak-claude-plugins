@@ -70,23 +70,20 @@ Classify `$ARGUMENTS` **minus every recognised flag** (`--deep`, `--no-docs`, `-
 2. Otherwise → **prompt** (the argument text is the raw idea).
 
 **There is no tracker-export source type, and there is no third classification.** A key used to
-resolve an export and be typed from its `issue_type`; nothing exports anything now, so an existing
-PRD reaches `/idea` the way every other file does — as a path — and `/create-prd --from-prd` is the
-route that seeds one PRD from another.
+resolve an export and be typed from a frontmatter field on it; nothing exports anything now, so an
+existing PRD reaches `/idea` the way every other file does — as a path — and `/create-prd --from-prd`
+is the route that seeds one PRD from another. **Case A of the confirmation below went with it**: it
+asked which of two tracker item types an unrecognised one should be read as, and there are no item
+types to disambiguate.
 
 **Confirm the classification — conditionally.** Per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` ("When a choice list fires"), a list is shown only where the answer genuinely varies. Two cases here do; the rest do not.
-
-**A — the key resolved but its `issue_type` is neither `ValueIncrement` nor `Product Need`.** Name the actual `issue_type` in prose beside the list, never inside an option:
-```
-choices: ["Read this as a prd — an existing Product Requirements Document (Recommended)", "Read this as an rfe — product feedback", "Cancel", "Other… (describe)"]
-```
 
 **B — the argument is path-like (contains `/`, ends in `.md`, or starts with `@`) but resolved to no existing file.** Without this gate it falls through precedence rule 3 to **prompt** and the path string itself becomes the raw idea text — a mistyped path silently ingested as prose:
 ```
 choices: ["Re-enter the path (Recommended)", "Read the argument as a prompt — the literal text is the idea", "Cancel", "Other… (describe)"]
 ```
 
-**Everything else** — a `.md` path or `@wikilink` that resolves, a key typed `ValueIncrement` or `Product Need`, and plain prose — is unambiguous. State the resolution in one line that invites correction and **proceed without waiting**; the list would have one plausible answer. (A dedicated `--as prompt|markdown|rfe|prd` override is future work — this inline confirmation covers a mis-detection.)
+**Everything else** — a `.md` path that resolves, and plain prose — is unambiguous. State the resolution in one line that invites correction and **proceed without waiting**; the list would have one plausible answer. (A dedicated `--as prompt|markdown|rfe|prd` override is future work — this inline confirmation covers a mis-detection.)
 
 Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
 

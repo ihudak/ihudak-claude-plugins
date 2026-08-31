@@ -16,7 +16,7 @@ The single positional argument is classified into one of four source forms (Phas
 
 - **An inline prompt** — plain text with no recognised flags stripped from it; the argument text itself becomes the raw idea.
 - **A markdown file or `@wikilink`** — an existing `.md` path, including a community post (typically under `Projects/Products/…`, tagged `community-post`) or a previously-written `idea.md` handed back for re-refinement.
-- **An exported Jira ticket** — a key matching `^[A-Z][A-Z0-9_]*-\d+$`, resolved via `resolve-export-for-key` and then typed from the export's own `issue_type` frontmatter, never from the project prefix: `ValueIncrement` reads as an existing PRD (prior art the user supplied), `Product Need` reads as product feedback (an RFE); any other `issue_type` is named to the user, who chooses, defaulting to PRD.
+- **A saved community post** — a markdown file the operator downloaded. It is read for its demand signals (upvotes, duplicate reports, the shape of the complaint); nothing fetches a URL.
 
 Four flags: `--deep` switches the grill from bounded (≤10 questions) to relentless (runs to convergence, no cap); `--ground-code [<repo>[,<repo>…]]` turns on the optional Phase 2.6 code-grounding scan — bare, the repo set is derived from mounted directories and the idea's themes, with a value it scans exactly the named repos; `--no-docs` turns off documentation grounding; `--no-prior-art` turns off vault prior-art discovery.
 

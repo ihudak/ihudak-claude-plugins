@@ -54,7 +54,7 @@ Roots: `<vault_root>/Projects/Products/**` and `<vault_root>/Projects/ideas/**`.
 A path is **excluded** when it:
 
 - contains a `Jira - <KEY>/` directory segment — those are immutable snapshots left by an older import;
-- belongs to an item whose work document carries `type: valuepack`, or whose Jira `issue_type` is `Value Pack` — the Value Pack layer is abandoned, and this plugin operates at Product Requirements Document level and below;
+- belongs to an item whose work document carries `type: valuepack` — the Value Pack layer is abandoned, and this plugin operates at Product Requirements Document level and below;
 - lies under any `_archive/` segment.
 
 ## Status resolution

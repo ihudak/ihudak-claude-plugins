@@ -198,7 +198,7 @@ precisely to become a PRD. Refusing a further child, not the walk, is the whole 
 ## 7. The shared fallback for existing commands
 
 Every command outside the `/brd-*` family that addresses a PRD directory resolved it as the flat form
-`specifications/<KEY>-<slug>/`, which on its own cannot see a nested PRD (one `/create-prd --from-brd`
+`specifications/<KEY>-<slug>/`, which on its own cannot see a nested PRD (one `/create-prd` on the BRD route
 authors inside a BRD). All of them therefore reach the tree through `resolve-address`, which searches
 every level §3 bounds and carries §5's fallback. One shared rule, defined here once rather than reinvented
 per caller. The adopter list below is the authority on who applies it — **it is longer than the six the

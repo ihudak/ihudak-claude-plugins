@@ -32,7 +32,7 @@ derived_from: <path to the PRD file, canonical prd.md — or, in a BRD folder th
 ```
 
 **`prd`, `epic` and `derived_from` are widened for the BRD route, and the widening is confined to
-them.** Under `/create-ard --from-brd` the run holds a **BRD key**, which addresses a folder under
+them.** Under `/create-ard` on the BRD route the run holds a **BRD key**, which addresses a folder under
 `$SPECS_PATH` and may carry a third numeric segment (`references/addressing.md` §1 fixes no
 depth), so `prd` and `epic` are validated against that grammar — `^[A-Z][A-Z0-9_]*(-\d+)+$` — rather
 than the two-segment form; `ard-reviewer` applies exactly this and `commands/create-ard.md` writes
@@ -40,7 +40,7 @@ exactly this, from one resolution rather than two. `scope` follows the same pair
 source-owning BRD is `prd`, a slice is `epic`, because a slice sits where an Epic sits — one level
 down, inheriting its parent's `AD#N` read-only. `derived_from` names the PRD file when the folder
 holds one (the ordinary case, since this route is normally reached from
-`/create-prd --from-brd`'s own next-step offer) and the folder's `ard-seed.md` when it does not: the
+`/create-prd` on the BRD route's own next-step offer) and the folder's `ard-seed.md` when it does not: the
 field records provenance, and naming a PRD path in a folder that holds no PRD would name a file that
 does not exist. No widening here reaches a **tracker** key — none of these fields is one.
 

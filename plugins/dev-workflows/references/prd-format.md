@@ -19,7 +19,6 @@ kind: prd                    # what this document is
 key: <KEY>                   # this folder's key — must match the folder name
 title: <human-readable PRD title>
 summary: <one-line>
-issue_type: ValueIncrement
 status: <e.g. draft>
 owning_program: <program>
 tracking_programs: [ ... ]
@@ -31,7 +30,7 @@ sources:                     # PROPAGATED from idea.md's recorded provenance —
     ref: <RFE key | post URL | ...>
 derived_from: <path to the idea.md this PRD was built from>
 seeded_from_prd: <PRD key or path when this PRD was seeded from another PRD via `/create-prd --from-prd`; omit otherwise>
-brd_key: <the BRD key this PRD was authored from via `/create-prd --from-brd`; omit otherwise>
+brd_key: <the BRD key this PRD was authored from via `/create-prd` on the BRD route; omit otherwise>
 brd_parent: <that BRD's own parent key, from its brd-link.md; omit when it owns its source document, and omit outside the BRD route>
 depends_on: [ ... ]           # prerequisite BRD keys, from that brd-link.md's depends-on; omit when empty or outside the BRD route
 revision_of: <path to the archived prior PRD snapshot; written by `/update-prd` on refresh; omit otherwise>
@@ -40,7 +39,7 @@ jira_key: <the tracker key; omit until the Jira round-trip mints one — see bel
 ---
 ```
 
-`brd_key`, `brd_parent` and `depends_on` are written only by `/create-prd --from-brd`, from the BRD's
+`brd_key`, `brd_parent` and `depends_on` are written only by `/create-prd` on the BRD route, from the BRD's
 own `brd-link.md`, and are never asked of the PM. **`/update-prd` preserves all three and authors
 none of them** — on a PRD that carries them it copies each through the refresh unchanged, and on a
 PRD that does not it writes none — so the *written only by* rule above still reads exactly as it

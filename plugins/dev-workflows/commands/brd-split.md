@@ -790,7 +790,7 @@ that is the real next step for this slice and it is offered by name. A slice rea
 decisions exactly as its parent does, and the register it writes is its own. If any row reached
 `covered-here` the slice is also PRD-eligible
 (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5), which is one of the two tests
-`/dev-workflows:create-prd <BRD-KEY> --from-brd` — a switch that **ships** — applies in its own Phase
+`/dev-workflows:create-prd <BRD-KEY>` — a switch that **ships** — applies in its own Phase
 0. It is still not offered here, and the reason is the register rather than the ledger: that run
 seeds its PRD from this slice's `decisions.md`, which `/dev-workflows:brd-interview` has not written
 yet, so starting it from here would author a PRD off an allocation and no decisions at all. The route
@@ -843,7 +843,7 @@ decisions is `/dev-workflows:brd-interview`, preparing the customer package is
 `/dev-workflows:brd-package`, and freezing the returned review is `/dev-workflows:brd-reconcile`;
 only the first of those three is the step *after this one*, so only it is offered here. Naming a
 child's grounding and this BRD's interview in one list is deliberate — they are different keys, and
-an operator who created children has both to do. `--from-brd` on `/create-prd`, `/create-ard` and
+an operator who created children has both to do. the BRD route on `/create-prd`, `/create-ard` and
 `/specify` all **ship**, and none of the three is offered on either path — for the same reason
 `/dev-workflows:brd-package` and `/dev-workflows:brd-reconcile` are not, that they sit further down
 the route than the step after this one. All three read an altitude seed and this BRD's decision

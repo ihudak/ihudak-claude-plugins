@@ -1,6 +1,6 @@
 ---
 name: create-ard
-description: Architecture-authoring workflow (Product Architect phase, sub-project 3 of the PRD-creation flow). Grounds on the mounted implementation repos (architect-driven discovery — no PRs) and authors an ARD for a PRD (/create-ard <PRD-KEY>) or an Epic (/create-ard <PRD-KEY> <Epic-KEY>, inheriting the PRD-level ARD), against references/ard-format.md, gated by the Opus ard-reviewer, written to $SPECS_PATH/specifications/<KEY>-<slug>/. Optional; scoped; product-architecture level (no code writing). Introduces the pa role. --from-brd seeds the run from a reconciled BRD instead of a PRD: it resolves the BRD folder at either level, reads that folder's architecture-altitude ard-seed.md, the architecture decisions in decisions.md and the verified [CG#n]/[DG#n] findings, seeds the ARD's grounding-findings section and its AD#N from them, freezes every [VD#n]/[CD#n] against the grill, runs no jira-reader and gates no PRD, and marks each consumed item consumed_by: ARD.
+description: Architecture-authoring workflow (Product Architect phase, sub-project 3 of the PRD-creation flow). Grounds on the mounted implementation repos (architect-driven discovery — no PRs) and authors an ARD for a PRD (/create-ard <PRD-KEY>) or an Epic (/create-ard <PRD-KEY> <Epic-KEY>, inheriting the PRD-level ARD), against references/ard-format.md, gated by the Opus ard-reviewer, written to $SPECS_PATH/specifications/<KEY>-<slug>/. Optional; scoped; product-architecture level (no code writing). Introduces the pa role. the BRD route seeds the run from a reconciled BRD instead of a PRD: it resolves the BRD folder at either level, reads that folder's architecture-altitude ard-seed.md, the architecture decisions in decisions.md and the verified [CG#n]/[DG#n] findings, seeds the ARD's grounding-findings section and its AD#N from them, freezes every [VD#n]/[CD#n] against the grill, runs no jira-reader and gates no PRD, and marks each consumed item consumed_by: ARD.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -13,10 +13,10 @@ invariants the downstream (`/specify`, `/design`, `/implement`) will later inher
 
 - `/create-ard <PRD-KEY>` → a **PRD-level** ARD.
 - `/create-ard <PRD-KEY> <Epic-KEY>` → an **Epic-level** ARD (inherits the PRD-level ARD read-only).
-- `/create-ard <BRD-KEY> --from-brd` → a **BRD-level** ARD, seeded from a reconciled BRD instead of a
-  PRD. One key only: `--from-brd` takes no second positional key (Phase 0 step 1b).
+- `/create-ard <BRD-KEY>` → a **BRD-level** ARD, seeded from a reconciled BRD instead of a
+  PRD. One key only: the BRD route takes no second positional key (Phase 0 step 1b).
 
-Usage: `/create-ard <PRD-KEY|BRD-KEY> [<Epic-KEY>] [--from-brd [<dir>]] [--no-docs]`.
+Usage: `/create-ard <ADDRESS> [--no-docs]`, where `<ADDRESS>` is a key or an `@<path>`.
 
 It authors architecture only — no code writing; grounding is **architect-driven** (there are no PRs at
 this stage). Zero Jira API.
@@ -24,9 +24,7 @@ this stage). Zero Jira API.
 ---
 
 ## Phase 0 — Resolve input
-1. **Scan the argument list for `--from-brd` before resolving anything.** The flag decides *which*
-   resolution runs, and the scan is pure argument parsing — it touches no filesystem, no Jira export
-   and no tracker, so it is safe this early.
+1. **Resolve the address.**
 
    **One resolution, both routes.** Parse the **single positional address** from `$ARGUMENTS` — a
    `<KEY>`, or an `@<path>` naming a folder — and resolve it with `resolve-address`
@@ -45,47 +43,35 @@ this stage). Zero Jira API.
    command line, and a flag that could disagree with the folder it names is one more disagreement to
    have. Print which route the run entered before doing anything else.
 
-1a. **`--from-brd [<dir>]` — a switch, not a path.** The positional key already identifies the BRD and
-    `resolve-address` (step 3) finds it at either level, so `/create-ard EPIC-008-01 --from-brd` needs no
-    path. A directory may be given for a BRD folder outside the normal layout; it is never required,
-    and a token following `--from-brd` is consumed as that path only when it is not itself a flag. A
-    given path that is not an existing directory stops with `CREATE_ARD_BRD_NOT_FOUND` (step 3) naming
-    the path as supplied, rather than being silently re-read as a key.
 
-1b. **A second positional key is refused under `--from-brd`.** Stop gracefully:
-    `CREATE_ARD_BRD_NO_EPIC: /create-ard --from-brd is BRD-level and takes one key; <second-token> was given as a second. A BRD has no Epics yet — they are minted from the PRD's Jira workitem after /dev-workflows:create-prd <BRD-KEY> --from-brd completes its round-trip — and ard-seed.md, decisions.md and grounding/ exist only at a BRD's own level. Re-run '/dev-workflows:create-ard <BRD-KEY> --from-brd'.`
-    The nesting a second key would express is served instead by `brd-link.md`'s `parent:`: a slice
-    inherits its parent BRD's ARD read-only exactly as an Epic-level run inherits its PRD-level one
-    (Phase 2), and the caller supplies no parent key for it — `resolve-address` and `brd-link.md` between
-    them already know it.
 2. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
 3. **Feature folder.** Resolve it with `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3) — `<PRD>` for a PRD-level run, `<EPIC>` for an Epic-level one, the kind it returns confirming which. That entry point searches every level §3 bounds and carries §5's legacy fallback, so no matching rule is written here: a second copy of §5's is the drift §1 warns about. Every later mention of the feature folder in this command — the PRD gate's `ls-tree` path and Phase 2's PRD read included — names the folder resolved here. On `status: absent` it is auto-created on first write, with the §2 kind prefix; resolution honors a folder that already exists wherever it sits, and never proposes one.
 
-   **Under `--from-brd` this is the resolved BRD folder**, and it is never created here: resolve it
+   **On the BRD route this is the resolved BRD folder**, and it is never created here: resolve it
    with `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), which already
-   searches both levels, or read the `--from-brd <dir>` path when one was given. The ARD this run
+   searches both levels, or read the `the BRD route <dir>` path when one was given. The ARD this run
    authors is written **into that folder**, beside the BRD artifacts it was derived from. `absent` is
    a graceful stop, not a folder to create — and it names **both** ways a BRD folder comes into being
    rather than picking one, because nothing on disk says whether this key names a BRD with a source
    document or a slice of one, and a key's segment count is a naming convention, never a depth
    declaration (§1):
    `CREATE_ARD_BRD_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
-   Where a `--from-brd <dir>` path was supplied and is not an existing directory, the same stop
-   substitutes that path for the search clause — `no BRD folder at <path> (supplied with --from-brd)` —
+   Where a `the BRD route <dir>` path was supplied and is not an existing directory, the same stop
+   substitutes that path for the search clause — `no BRD folder at <path> (supplied with the BRD route)` —
    because "both levels searched" would describe a search this run did not perform.
-4. **Prior ARD.** If the target `ard.md` exists → Phase 1 offers refine-vs-fresh. **Under `--from-brd` the target is `<BRD-dir>/ard.md`** — the same glob in the same folder, keyed by the BRD key this run resolved.
-5. **Optionality advisory.** Gauge size — the PRD's user-story count / scope breadth / number of candidate repos. For a small, single-repo PRD, note "an ARD may be optional here" and offer `choices: ["Author the ARD anyway", "Stop — no ARD needed", "Other… (describe)"]`. **Under `--from-brd` gauge the same question off the seed instead**, since there is no PRD to count user stories in: the number of architecture-altitude `decided` records in `decisions.md`, the number of `[CG#n]`/`[DG#n]` findings at architecture altitude, and the number of repositories `grounding/baselines.md` pinned. A BRD whose whole architecture altitude is one decision against one repository is exactly the case the advisory exists for.
+4. **Prior ARD.** If the target `ard.md` exists → Phase 1 offers refine-vs-fresh. **On the BRD route the target is `<BRD-dir>/ard.md`** — the same glob in the same folder, keyed by the BRD key this run resolved.
+5. **Optionality advisory.** Gauge size — the PRD's user-story count / scope breadth / number of candidate repos. For a small, single-repo PRD, note "an ARD may be optional here" and offer `choices: ["Author the ARD anyway", "Stop — no ARD needed", "Other… (describe)"]`. **On the BRD route gauge the same question off the seed instead**, since there is no PRD to count user stories in: the number of architecture-altitude `decided` records in `decisions.md`, the number of `[CG#n]`/`[DG#n]` findings at architecture altitude, and the number of repositories `grounding/baselines.md` pinned. A BRD whose whole architecture altitude is one decision against one repository is exactly the case the advisory exists for.
 
-`/create-ard` is **cwd-agnostic**; it reads the PRD/Epic — or, under `--from-brd`, the BRD folder's seed, register and findings — and scans repos under `$REPOS_PATH`.
+`/create-ard` is **cwd-agnostic**; it reads the PRD/Epic — or, on the BRD route, the BRD folder's seed, register and findings — and scans repos under `$REPOS_PATH`.
 
 **Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier run, retry an artifact commit that failed to push, and settle the branch. Prompt-free and silent when the specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal `commit-artifacts` step skips on it.
 
 **Gate the PRD.** Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against the PRD file in `specifications/<PRD>-<vslug>/` — **resolve its actual name on the ref first**: `git -C "$SPECS_PATH" ls-tree --name-only "origin/<default>" "specifications/<PRD>-<vslug>/"` filtered to `<PRD>_*.md`, falling back to the derived `<PRD>_<vslug>.md` only when that listing is empty. A human-adjusted slug is a supported state — `/create-prd` and this command's own Phase 2 reader both locate the PRD by glob plus frontmatter, and the feature folder is matched by key-number for the same reason — so gating an exact derived filename would report `absent` for a PRD that is present, and would let a slug-drifted file on a plugin branch escape the rows D/E stop entirely. Map its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4. Otherwise (`stopped: false`): on `pass`/`pass_amending`, read the authored PRD in Phase 2 as today; on `absent`, the existing `jira-reader` fallback applies — but report it: *"No authored PRD on `<default>` for `<PRD>` — architecting from the Jira export at `<path>`. If a PRD exists on a branch, this run would have stopped; it does not, so none does."*; on `unmanaged`, behave exactly as before this feature — reachable here even after step 2's own `$SPECS_PATH` check, since that check only rejects an unset value, never an invalid path or a non-git directory.
 
-**Under `--from-brd` the PRD gate does not run, because the PRD is not this route's content source.**
+**On the BRD route the PRD gate does not run, because the PRD is not this route's content source.**
 The gate exists so this command never architects from a PRD that is unmerged or stale; here the
 content source is the BRD folder's `ard-seed.md`, its architecture-altitude decisions, and its
-verified findings, and the PRD — which may not exist at all, since `/create-prd --from-brd` is not a
+verified findings, and the PRD — which may not exist at all, since `/create-prd` on the BRD route is not a
 prerequisite for this one — is read by nothing in this run. Gating an artifact the run does not read
 would promote an input this route never had into a prerequisite, which is exactly what
 `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §5 rule 3 forbids; and its `absent` branch above
@@ -94,14 +80,14 @@ key to a tracker lookup. So the gate is skipped, not re-pointed, and §3.4's `/c
 describing the route that runs it. What puts the seed on the default branch instead is the
 `/brd-*` family's own handoff discipline: each of those commands lands its deliverable on the specs
 default branch and the next refuses to start until it is there, so a reconciled BRD folder is already
-merged by the time this route reads it. This mirrors `/dev-workflows:create-prd --from-brd`, which
+merged by the time this route reads it. This mirrors `/dev-workflows:create-prd the BRD route`, which
 likewise skips the gate on the input its own seed replaces.
 
 ---
 
 ## Phase 1 — Configure
 Use `choices` arrays; the last choice is always `"Other… (describe)"`.
-1. **Confirm** the scope (PRD-level vs Epic-level) and the feature folder. **Under `--from-brd`**, confirm instead the BRD folder and a `from BRD:` line naming `<BRD-KEY>`, its `parent:` if `brd-link.md` records one (and therefore whether this run is BRD-level or slice-level), its `depends-on:` if any, and which of `ard-seed.md`, `decisions.md`, `grounding/code-grounding.md` and `grounding/design-grounding.md` are present — a stat, not a read; the read is Phase 2.
+1. **Confirm** the scope (PRD-level vs Epic-level) and the feature folder. **On the BRD route**, confirm instead the BRD folder and a `from BRD:` line naming `<BRD-KEY>`, its `parent:` if `brd-link.md` records one (and therefore whether this run is BRD-level or slice-level), its `depends-on:` if any, and which of `ard-seed.md`, `decisions.md`, `grounding/code-grounding.md` and `grounding/design-grounding.md` are present — a stat, not a read; the read is Phase 2.
    - Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
 2. **Refine vs fresh** (only if a prior `ard.md` exists): `choices: ["Refine the existing ARD (Recommended)", "Start fresh — overwrite", "Cancel", "Other… (describe)"]`.
 3. **Repos search base (`$REPOS_PATH`).** Read `${REPOS_PATH:-/workspace}` (may be colon-separated): `choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]`.
@@ -130,14 +116,14 @@ model_routing:
 
 ## Phase 2 — Read the PRD (+ Epic, + inherited ARD)
 
-**Under `--from-brd` everything in this phase down to the `--from-brd` section below is replaced, not
+**On the BRD route everything in this phase down to the the BRD route section below is replaced, not
 adapted**: no PRD read, no `jira-reader` dispatch of either kind, and the inherited-ARD resolution
 uses the `(prd, epic)` pair that section derives. "Epic-level run" in the paragraphs immediately below
-means a run invoked with a second positional key, which `--from-brd` refuses (Phase 0 step 1b) — a
+means a run invoked with a second positional key, which the BRD route refuses (Phase 0 step 1b) — a
 slice's `scope: epic` frontmatter (Phase 4) is a statement about altitude and inheritance, not about
 this phase's run mode.
 
-Read the PRD from the folder `resolve-address <PRD>` returned (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3) — its `prd.md`, whose frontmatter is `issue_type: ValueIncrement`, when present (authored source); else dispatch `jira-reader` to read it from the export:
+Read the PRD from the folder `resolve-address <PRD>` returned (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3) — its `prd.md`, whose frontmatter is `kind: prd`, when present (authored source); else dispatch `jira-reader` to read it from the export:
 
 **Read the resolved folder directly.** PRD-level → its `prd.md`. Epic-level → the Epic folder's own
 `specification.md` and `design.md` where present, plus the parent PRD folder's `prd.md` for the
@@ -151,9 +137,9 @@ For an **Epic-level** run always dispatch `jira-reader` this way (`depth: full`,
 
 Extract the problem/goal/scope frame + capability themes — the raw material for grounding + the grill.
 
-### `--from-brd` — read the architecture-altitude seed, the register, and the verified findings
+### the BRD route — read the architecture-altitude seed, the register, and the verified findings
 
-Under `--from-brd` this phase reads the BRD folder Phase 0 step 3 resolved and dispatches
+On the BRD route this phase reads the BRD folder Phase 0 step 3 resolved and dispatches
 `jira-reader` **not at all**. Read exactly these, and no other seed:
 
 - **`ard-seed.md`** — architecture-altitude content, when the folder holds any. **No `/brd-*` command writes this file on the normal route** — the one writer is
@@ -174,7 +160,7 @@ Under `--from-brd` this phase reads the BRD folder Phase 0 step 3 resolved and d
   coverage ledger: PRD eligibility and the allocation gate are
   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5's rule about authoring a **PRD**,
   applied "when eligibility is checked", and an ARD is not that artifact. Not checking it here is a
-  decision, not an omission — `/dev-workflows:create-prd --from-brd` is where that gate lives, and
+  decision, not an omission — `/dev-workflows:create-prd the BRD route` is where that gate lives, and
   this command is reachable without it.
 
 **Absence is reported, never a stop, and the seed's absence is the ordinary case.** Nothing on the
@@ -184,7 +170,7 @@ file from an unread one — and carry what is there.
 
 **Partition the register before the grill starts, because the partition is what freezes it.** The
 five states and their treatment are `decision-register-format.md` §3's, applied here exactly as
-`/dev-workflows:create-prd --from-brd` applies them one altitude up: a `decided` record is an
+`/dev-workflows:create-prd the BRD route` applies them one altitude up: a `decided` record is an
 **input** the ARD is authored from and never a question; `superseded` and `withdrawn` are terminal
 and read for context only; `open`, `reopened` and an open `[AS#n]` are **gaps**, which may not be
 consumed downstream while open (§3) and reach the ARD's `## Open questions` by id rather than being
@@ -211,7 +197,7 @@ each under `## Open questions` — or `## Deferred` where the prerequisite is wh
 the prerequisite BRD and the specific decision, alongside the `depends-on:` list `brd-link.md`
 carries.
 
-**Inheritance under `--from-brd` uses `brd-link.md`'s `parent:`, never a segment count.** Resolve any
+**Inheritance on the BRD route uses `brd-link.md`'s `parent:`, never a segment count.** Resolve any
 inherited ARD via `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with:
 
 - **no `parent:`** (this BRD owns its source document) → `prd: <BRD-KEY>`, `epic: null`;
@@ -230,7 +216,7 @@ There are no PRs at ARD time, so repos are **architect-driven**, not PR-derived:
 1. **Cheap discovery.** List the top-level directories under each `$REPOS_PATH` entry (`ls`). Optionally attach each dir's one-line identity — `timeout 5 git -C <dir> remote get-url origin 2>/dev/null` (slug) or its README first heading. Do **not** deep-scan to guess relevance.
 2. **Propose + ask.** From the PRD/Epic themes, propose a `theme → repo` mapping against those dirs, and **ask the architect to confirm / correct / add**. For any requirement that maps to no obvious repo, **ask outright**: "which repo covers `<X>`?"
 
-   **Under `--from-brd` the proposal starts from `<BRD-dir>/grounding/baselines.md`**, which already
+   **On the BRD route the proposal starts from `<BRD-dir>/grounding/baselines.md`**, which already
    records repository → pinned commit for every repo `/dev-workflows:brd-ground` read, rather than
    from PRD themes this route does not have. That is a better starting set than a theme guess and it
    is still only a proposal: the architect confirms, corrects and adds exactly as above, and a repo
@@ -270,7 +256,7 @@ There are no PRs at ARD time, so repos are **architect-driven**, not PR-derived:
 
 Author the ARD live against `${CLAUDE_PLUGIN_ROOT}/references/ard-format.md`, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md`, at the resolved altitude: Context → Grounding findings (cite `file:line`) → Architecture decisions (`AD#N`: Binds/Prevents/Rule) → Cross-repo/component approach → Stack & invariants → Edge cases & risks → Open questions → Deferred. At Epic level, list inherited PRD-level ADs read-only and never contradict them; PRD level stays at invariants/frame (no per-repo detailed solutions).
 
-### `--from-brd` — the seed fills the sections, and the grill is restricted to gaps
+### the BRD route — the seed fills the sections, and the grill is restricted to gaps
 
 **Where the seed's content lands.** `[CG#n]`/`[DG#n]` findings seed
 `## Grounding findings (architecture as-is)`, each keeping its own id and citing the `file:line`
@@ -318,7 +304,7 @@ through `/dev-workflows:brd-package <BRD-KEY>` and then
 convention — that one is for a *consumer* departing from an `AD#N`
 (`${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md`), and this run is the ARD's author.
 
-**Frontmatter under `--from-brd`**, per `ard-format.md`'s block, each field read from what Phase 2
+**Frontmatter on the BRD route**, per `ard-format.md`'s block, each field read from what Phase 2
 already holds and none of them asked of the user:
 
 - `scope: prd` when this BRD owns its source document; `scope: epic` when it is a slice. Not because
@@ -330,7 +316,7 @@ already holds and none of them asked of the user:
   because they are written from one resolution, not two.
 - `inherits:` the parent BRD folder's `ard.md` when `resolve-ard` returned one, else `null`.
 - `derived_from:` the PRD file in this BRD folder when one is there — the ordinary case, since this
-  route is normally reached from `/dev-workflows:create-prd --from-brd`'s own next-step offer — else
+  route is normally reached from `/dev-workflows:create-prd the BRD route`'s own next-step offer — else
   `<BRD-dir>/ard-seed.md`, the artifact this ARD was actually authored from. The field records
   provenance, and naming a PRD path in a folder that holds no PRD would name a file that does not
   exist.
@@ -351,7 +337,7 @@ finding; inline-fix the mechanical ones (renumber a duplicate `[AD#N]`, delete a
 token); leave content gaps for the grill/author. **Advisory** — never blocks;
 proceed to Phase 5 once findings are surfaced. `ard-reviewer` remains the gate.
 
-**Under `--from-brd`, a `<BRD-KEY>` in the ARD body is the Jira-key check's third branch, not its
+**On the BRD route, a `<BRD-KEY>` in the ARD body is the Jira-key check's third branch, not its
 second.** The body legitimately names prerequisite BRDs — a `will-change` finding's prerequisite, a
 `conditional_on` decision's — and the collision grep matches the leading two segments of any of them.
 A BRD key is not a requirement ID and it is **not a real Jira ticket**: it is a folder name under
@@ -377,7 +363,7 @@ On `BLOCK`, fix the BLOCKER findings inline (the orchestrator/grill edits the AR
 ## Phase 6 — Handoff
 Write the ARD file(s) into the feature folder.
 
-**Under `--from-brd`, also close the consumption loop before the offer.** The design's *Consumption
+**On the BRD route, also close the consumption loop before the offer.** The design's *Consumption
 tracking* section (§7.3) has every finding and decision record a `consumed_by`, so that "nothing was
 lost" is checkable rather than hoped for. Set `consumed_by: ARD` on each architecture-altitude
 `decided` record in `decisions.md` and on each `[CG#n]`/`[DG#n]` finding in
@@ -397,12 +383,12 @@ no per-item field to write and inventing one would mint a format this command al
 seed's consumption is reported at **file** granularity in the final report (consumed, or consumed in
 part with what was left over).
 
-Then **offer** (commit-when-asked — never automatic), presenting `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's choice array verbatim: `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`. On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: ard`; `feature_folder` as resolved in Phase 0 (the PRD dir for a PRD-level ARD, the Epic subfolder for an Epic-level ARD — §2.2 derives `ard/<PRD>-<vslug>` or `ard/<EPIC>-<eslug>` from it, matching today's branch names); `deliverable_paths` = the ARD file(s) — **plus, under `--from-brd`, `decisions.md`, `grounding/code-grounding.md` and `grounding/design-grounding.md`**, because the `consumed_by` writes above land in those three and an uncommitted consumption record is one no later run can read; `ard-seed.md` is not staged, because this run does not write to it; `title: <PRD|EPIC> Add architecture requirements document`; and `body_facts` = the ARD scope (PRD/Epic, any per-area split), the grounded/descoped repos, the `AD#N` count, the open-question count, and the `ard-reviewer` verdict — and, under `--from-brd`, the `<BRD-KEY>` this ARD was seeded from and how many items were marked `consumed_by: ARD`. Emit its §4.1 outcome line in the Final report.
+Then **offer** (commit-when-asked — never automatic), presenting `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's choice array verbatim: `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`. On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: ard`; `feature_folder` as resolved in Phase 0 (the PRD dir for a PRD-level ARD, the Epic subfolder for an Epic-level ARD — §2.2 derives `ard/<PRD>-<vslug>` or `ard/<EPIC>-<eslug>` from it, matching today's branch names); `deliverable_paths` = the ARD file(s) — **plus, on the BRD route, `decisions.md`, `grounding/code-grounding.md` and `grounding/design-grounding.md`**, because the `consumed_by` writes above land in those three and an uncommitted consumption record is one no later run can read; `ard-seed.md` is not staged, because this run does not write to it; `title: <PRD|EPIC> Add architecture requirements document`; and `body_facts` = the ARD scope (PRD/Epic, any per-area split), the grounded/descoped repos, the `AD#N` count, the open-question count, and the `ard-reviewer` verdict — and, on the BRD route, the `<BRD-KEY>` this ARD was seeded from and how many items were marked `consumed_by: ARD`. Emit its §4.1 outcome line in the Final report.
 
-**Under `--from-brd` the feature folder is the BRD folder**, so §2.2 derives the branch
+**On the BRD route the feature folder is the BRD folder**, so §2.2 derives the branch
 `ard/<BRD-KEY>-<slug>` from it — a slice's is `ard/<SLICE-KEY>-<slug>`, from the folder basename, not
-from a re-derived title. That name collides with neither `/dev-workflows:create-prd --from-brd`'s
-`prd/` branch on the same key, nor `/dev-workflows:specify --from-brd`'s `spec/` one, nor the
+from a re-derived title. That name collides with neither `/dev-workflows:create-prd the BRD route`'s
+`prd/` branch on the same key, nor `/dev-workflows:specify the BRD route`'s `spec/` one, nor the
 `/brd-*` family's shared `brd/` one, because §2.2's prefix is the caller's own. The commit message's key is the run's key, resolved as Phase 8 resolves it.
 
 ---
@@ -410,12 +396,12 @@ from a re-derived title. That name collides with neither `/dev-workflows:create-
 ## Phase 7 — Next-step offer (adaptive)
 - **PRD-level ARD:** if the PRD has 0 Epics → `choices: ["Hand to a Product Engineer — /dev-workflows:epics <ADDRESS> (PE) (Recommended) <merge-clause>", "Author a PRD-level spec — /dev-workflows:specify <PRD> (PE) <merge-clause>", "Stop here", "Other… (describe)"]`; else offer `/dev-workflows:specify <PRD>` (PE) carrying the same `<merge-clause>`. *(No `/design` — no Epics yet.)*
 - **Epic-level ARD:** `choices: ["Author the spec — /dev-workflows:specify <PRD> <Epic> (PE) (Recommended) <merge-clause>", "Hand to Dev — /dev-workflows:design <PRD> <Epic> (Dev) <merge-clause>", "Stop here", "Other… (describe)"]`. **Epic fan-out** — repeat this ARD for a sibling Epic: `/dev-workflows:create-ard <PRD> <another-Epic>`; that run inherits the PRD-level ARD, not this Epic-level one, so it waits on nothing this run produced and carries no clause.
-- **`--from-brd` (BRD-level ARD):** a different array, because **the key this run holds is a BRD key
+- **the BRD route (BRD-level ARD):** a different array, because **the key this run holds is a BRD key
   and only one of the three usual options can be reached with one**:
-  `choices: ["Author this BRD's specification — /dev-workflows:specify <BRD-KEY> --from-brd (PE) (Recommended) <merge-clause>", "Hand to a Product Engineer — /dev-workflows:epics <BRD-KEY> (PE) <merge-clause>", "Stop here", "Other… (describe)"]`
+  `choices: ["Author this BRD's specification — /dev-workflows:specify <BRD-KEY> the BRD route (PE) (Recommended) <merge-clause>", "Hand to a Product Engineer — /dev-workflows:epics <BRD-KEY> (PE) <merge-clause>", "Stop here", "Other… (describe)"]`
   — with the second option **present only when the test below passes, and dropped from the array
   entirely when it does not**.
-  - **`/dev-workflows:specify <BRD-KEY> --from-brd` is always reachable from this state.** It takes
+  - **`/dev-workflows:specify <BRD-KEY>` is always reachable from this state.** It takes
     the same BRD key this run resolved, finds the same folder through `resolve-address`
     (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), and needs no tracker key and no Jira
     export. It resolves this ARD through `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` and
@@ -427,12 +413,12 @@ from a re-derived title. That name collides with neither `/dev-workflows:create-
   - **`/dev-workflows:design` is offered on this route by neither branch.** It takes over a merged
     `specification.md` — a file this run did not write — and resolves its own key through the Jira
     export. The path to it runs through the first option: `/dev-workflows:specify <BRD-KEY>
-    --from-brd` writes that specification, and its own next-step offer is where `/dev-workflows:design`
+    the BRD route` writes that specification, and its own next-step offer is where `/dev-workflows:design`
     is named under the conditions that make it resolvable.
-  - **There is no Epic fan-out on this route.** `--from-brd` is BRD-level and takes no second
+  - **There is no Epic fan-out on this route.** the BRD route is BRD-level and takes no second
     positional key (Phase 0 step 1b), so there is no sibling Epic to repeat this ARD for. A sibling
     *slice* is a separate BRD with its own folder and its own seed: `/dev-workflows:create-ard
-    <SIBLING-SLICE-KEY> --from-brd` waits on nothing this run produced and would carry no clause.
+    <SIBLING-SLICE-KEY> the BRD route` waits on nothing this run produced and would carry no clause.
 
 **Every merge clause above is the `<merge-clause>` placeholder**, resolved from this run's own `Phase handoff:` outcome line per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`, and never the unconditional "once the pull request above is merged": a declined handoff, a failed push and a nothing-to-commit run each leave a different wait, and two of them open no pull request to wait on. It is a placeholder, not an instruction to reword an option, so the arrays are still presented verbatim per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`. **The wait it names is real for every command named above**, and it is a stop, not a silent degradation: `/dev-workflows:epics`, `/dev-workflows:specify` and `/dev-workflows:design` each read this ARD through `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` and each stops on `status: unmerged`, naming the branch and any open pull request. Only a handoff that reached no branch at all resolves `status: none`, where that reference's no-regression rule has the run proceed exactly as it would with no ARD.
 
@@ -445,7 +431,7 @@ The resume pointer is written in the terminal cost phase (Phase 8), per
 to PE/Dev, so:
 
 - **Handing to PE (`/dev-workflows:epics <PRD>` / `/dev-workflows:specify <PRD> <Epic>`) or Dev (`/dev-workflows:design <PRD> <Epic>`), even yourself?** → run **`/clear`** for a clean slate; the ARD is on disk.
-- **Under `--from-brd`, the handoff is `/dev-workflows:specify <BRD-KEY> --from-brd`** (Phase 7) — same answer, **`/clear`**; the ARD is on disk and that run reads it from the specs repo, not from this session.
+- **On the BRD route, the handoff is `/dev-workflows:specify <BRD-KEY>`** (Phase 7) — same answer, **`/clear`**; the ARD is on disk and that run reads it from the specs repo, not from this session.
 - Continuing to draft more ARD areas yourself right now? → **`/compact`** is fine.
 - Consider **`/rename <PRD-ID>-<slug>-pa`** so you can find this session later.
 
@@ -456,7 +442,7 @@ Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
 ## Phase 8 — Session maintenance, feedback & cost
 Terminal phase — runs after Phase 7, NEVER interrupts an earlier phase.
 
-**Capture-at-block invariant.** If an EARLIER phase **halts on a plugin / skill / command / reference gap**, `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating. NEVER `emit-block` for an environment / user halt (unset `$SPECS_PATH`, missing key, no-ARD-needed, unmounted-repo descope, cancellation) or a review BLOCK. **The three `--from-brd` stops are of that second class**: `CREATE_ARD_NEEDS_KEY`, `CREATE_ARD_BRD_NOT_FOUND` and `CREATE_ARD_BRD_NO_EPIC` report the operator's own argument list or BRD tree, not a capability this plugin lacks, so none of them `emit-block`s.
+**Capture-at-block invariant.** If an EARLIER phase **halts on a plugin / skill / command / reference gap**, `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating. NEVER `emit-block` for an environment / user halt (unset `$SPECS_PATH`, missing key, no-ARD-needed, unmounted-repo descope, cancellation) or a review BLOCK. **The three the BRD route stops are of that second class**: `CREATE_ARD_NEEDS_KEY`, `CREATE_ARD_BRD_NOT_FOUND` and `CREATE_ARD_BRD_NO_EPIC` report the operator's own argument list or BRD tree, not a capability this plugin lacks, so none of them `emit-block`s.
 
 **Session-hygiene invariant.** End Phase 7 with a `### Context hygiene` block per
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the
@@ -465,7 +451,7 @@ Terminal phase — runs after Phase 7, NEVER interrupts an earlier phase.
 guidance only), then a
 PA→PE/Dev handoff suggestion (`/clear`) + `/rename <PRD-ID>-<slug>-pa`. Guidance only, never auto-run.
 
-**The run's key under `--from-brd`.** Phase 0 resolved a BRD key, which is a folder name and never a
+**The run's key on the BRD route.** Phase 0 resolved a BRD key, which is a folder name and never a
 tracker key (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). The tracker key for this work,
 if one exists at all, is the `jira_key` in the PRD this BRD folder holds — the same one Phase 7's
 `/dev-workflows:epics` condition reads. So the `jira_key` passed to `emit-auto` and `emit-cost` below
@@ -488,7 +474,7 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git 
 ## Final report
 Report: the ARD path(s) + scope (PRD/Epic, any per-area split); the grounded repos + any descoped/ungrounded ones; `AD#N` count; open-question count; the `ard-reviewer` verdict; the `Phase handoff:` outcome line from `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1); resolved model routing (+ any Opus gate/degradation); the feedback + cost paths; the `Specs repo:` outcome line from `commit-artifacts` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; and the adaptive next-step recommendation.
 
-**Under `--from-brd`, additionally:** the `<BRD-KEY>` seeded from and its resolved folder; whether
+**On the BRD route, additionally:** the `<BRD-KEY>` seeded from and its resolved folder; whether
 this run was BRD-level or slice-level and, for a slice, the `parent:` key and whether its ARD was
 inherited (`found`) or absent (`none`); which of `ard-seed.md`, `decisions.md`,
 `grounding/code-grounding.md` and `grounding/design-grounding.md` were present; the frontmatter

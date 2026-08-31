@@ -37,7 +37,7 @@ signals** — requester names/handles, upvote/vote counts, recurring asks — in
 Then split by provenance:
 
 - **`rfe`** — product feedback (a `Product Need`). Distill the ticket summary/description into `raw_context`; put requester / customer-demand info into `signals`, as today.
-- **`prd`** — an existing Product Requirements Document. This is **prior art the user supplied**, not demand evidence. Distill its problem / goal / scope / current approach into `raw_context`, and record its `issue_type`, `status`, and `summary` in `tracked`. Do **not** mine it for requesters or upvotes — a PRD has none, and inventing them is fabrication. `signals` stays empty unless the ticket genuinely carries demand evidence of its own.
+- **`prd`** — an existing Product Requirements Document, supplied as a path. This is **prior art the user supplied**, not demand evidence.
 
 Note unresolved wikilinks/images in `wikilinks_broken` and continue — a broken link is never fatal.
 
@@ -50,7 +50,6 @@ status: OK | NOT_FOUND
 provenance: prompt | markdown | community-post | rfe | prd
 tracked:                 # present only for provenance: prd
   jira_key:   <KEY>
-  issue_type: <from the export frontmatter>
   status:     <from the export frontmatter>
   summary:    <from the export frontmatter>
 source_refs:

@@ -266,11 +266,11 @@ line in the final report.
 `brd` is the branch prefix `phase-handoff.md` §2.9 lists as shared by every `/brd-*`
 command (the way `prd` is shared by `/create-prd` and `/update-prd`) — a BRD is neither a PRD nor
 any of the other five prefixes, and reusing `prd` would collide with the `prd/<BRD-KEY>-<slug>`
-branch `/create-prd --from-brd` opens against the same key once this BRD is PRD-eligible. **That
+branch `/create-prd` on the BRD route opens against the same key once this BRD is PRD-eligible. **That
 switch ships**, so the collision is live rather than hypothetical: that command's handoff derives
 `prd/<BRD-KEY>-<slug>` from the very folder this run wrote into, exactly as
-`/dev-workflows:create-ard --from-brd` derives `ard/<BRD-KEY>-<slug>` and
-`/dev-workflows:specify --from-brd` derives `spec/<BRD-KEY>-<slug>` from it. Keeping `brd` separate
+`/dev-workflows:create-ard the BRD route` derives `ard/<BRD-KEY>-<slug>` and
+`/dev-workflows:specify the BRD route` derives `spec/<BRD-KEY>-<slug>` from it. Keeping `brd` separate
 is what lets all four branches exist on one key without either family renaming anything.
 
 ---

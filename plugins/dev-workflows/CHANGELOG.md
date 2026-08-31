@@ -4,6 +4,38 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.4.4] — 2026-08-31
+
+### Changed — three ideas ported back from the upstream grilling technique
+
+3.4.3 recorded where `references/grilling-technique.md` diverges from the
+`mattpocock-skills:grilling` it forks, and closed with "read upstream for ideas". These are the
+three ideas, taken deliberately. **Each arrived in part, never whole, and the half left behind was
+the same one every time — whatever depended on asking a full round at once.**
+
+- **Ask from the frontier.** The *frontier* is every decision whose prerequisites are settled — the
+  questions answerable now without guessing at an answer not yet heard. Ask **one**, then recompute.
+  This replaces "walk the decision tree in dependency order" with the same rule **named**, which is
+  what turns "is this askable yet?" into a test rather than a feeling. Upstream asks the *whole*
+  frontier in one round; that half is not ported.
+- **Fetch a fact rather than asking for it.** The fact-vs-decision split said facts are yours to
+  resolve; it did not say what to do when resolving one needs more than a read. It now does: where a
+  fact needs a sweep, dispatch for it — a question that hands the user a lookup spends their turn on
+  the half of the work they are worst placed to do. **Bounded to a fact a question actually being
+  asked turns on**, so a speculative dispatch is cost with no question behind it. Upstream's
+  *don't block on the dispatch* half is not ported: it works by asking the rest of the frontier
+  meanwhile, which one-question-at-a-time has no way to do.
+- **`Q<n>/<cap>` numbering, bounded callers only.** A bounded question renders as `Q3/5`, `Q7/10`, so
+  the user sees what they are committing to before answering. **The denominator is the cap, not a
+  plan** — a bounded grill that converges at `Q2/5` is finished, not truncated. A relentless caller
+  has no denominator (`Q4/?` is noise) and numbers nothing.
+
+**Where the fetch clause does *not* fire, said where it would otherwise look like a gap.**
+`/brd-split` Phase 1 states that no agent but `impl-maintenance` runs in that command; its Phase 1.5
+reads a row's `text`, `source_anchor` and disposition, all local reads of files the run already
+holds. Nothing there reaches for something a sweep would find, so no dispatch arises and that
+statement stays literally true.
+
 ## [3.4.3] — 2026-08-31
 
 ### Changed — the grilling technique records why it is a fork of the now-official upstream

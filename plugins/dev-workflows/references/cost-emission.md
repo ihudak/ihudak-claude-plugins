@@ -338,6 +338,27 @@ not attempt to infer it from anything else.
 than guessed, and aggregation should treat it as unattributed rather than folding
 it into `dev`.
 
+**`/vuln`, `/upgrade`, `/docs-profile` and the two reviewer commands emit no cost entry, and that is
+a decision about what the number is for.** A cost entry measures **AI investment in a product
+increment**, and the rule is: *a cost entry attaches to a run that advances a PRD- or BRD-scoped
+artifact.* A CVE remediation, a library version bump, a docs-profile refresh and a standalone
+guideline review advance none — they are noise against a PRD or a BRD, and a metric that averages
+the two answers a question nobody asked.
+
+**This is restated here because it lived only on the command pages.** `docs/commands/vuln.md` and
+`docs/commands/upgrade.md` have carried the reason all along — *"runs outside the PRD pipeline: no
+cost-attribution phase and no role"* — but this file, which is the runtime authority, said nothing,
+and an audit reading it found two commands emitting nothing and reported a defect. **Adding emission
+to them would be the defect.** Note also what is *not* the reason: both run `specs-preflight` and
+`commit-artifacts` and do write into `$SPECS_PATH`, with a `NOISSUE …` commit message where no key
+resolved — so "nowhere to write it" was never true either.
+
+**Session feedback is a different question with a different answer.** `/vuln` and `/upgrade` do emit
+it, and should: `emit-auto` records that *this plugin* lacked a capability the run needed
+(`references/feedback-emission.md` §6), which is how the plugin learns about its own gaps. A
+vulnerability run surfaces one as readily as a PRD run does, and the size of the work has nothing to
+do with it.
+
 **`/prompt-brainstorm` and `/prompt-grill-me` emit no cost entry — a structural
 limit, not a preference.** Both cede the session at their Phase 3 (a hand-off to
 another skill, or a long interactive grill), so there is no later point at which
@@ -360,9 +381,9 @@ Epics while still in PM/PE hands, so keying on Epics would misattribute the PM
 run. Cheap to check; matches the real workflow. Still a heuristic —
 reattributable at aggregation time (cost < quality).
 
-**Keys.** Reuse the existing PRD-dir resolution (the two-key `<PRD> <Epic>` grammar
-+ specs-dir matching already used by feedback/followups). Record `prd` always and
-`epic` when an Epic key is in scope.
+**Keys.** Reuse the run's own resolution — `resolve-address`
+(`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3) plus the specs-dir matching feedback and
+follow-ups already use. Record `prd` always and `epic` when the resolved kind is `epic`.
 
 ## 8. Persistence ladder (specs-first; never cwd)
 

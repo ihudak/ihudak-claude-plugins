@@ -17,9 +17,9 @@ Key distinction from every other pipeline command: `/ready` **authors nothing** 
 
 Key distinction from every other consumer of `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3 (`require-on-main`) and `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md`: every other caller stops when a gated ARD/spec/design resolves off the specs repo's default branch; `/ready` **never** does. That state becomes a readiness finding — "authored but not handed off" — that caps the eventual verdict at `PARTIAL`; an artifact that is absent outright is recorded as missing in the coverage roll-up, exactly as before this feature. Reporting readiness is `/ready`'s whole function, so a run that stops instead of reporting has failed at the one thing it exists to do.
 
-Key distinction from `/design`'s Epic-picker behavior: `/ready`'s two-key grammar treats a **null**
-`focus_key` as a first-class **PRD-level** check (workflow-states.md's PRD ladder), not something that
-must be resolved down to a single Epic. Pass an explicit `<PRD> <Epic>` to scope the check to one Epic
+Key distinction from `/design`'s Epic-picker behavior: a **`PRD-` address** is a first-class
+**PRD-level** check (workflow-states.md's PRD ladder), not something that must be resolved down to a
+single Epic. Address an `EPIC-` folder to scope the check to one Epic
 (the Epic ladder) instead.
 
 ---
@@ -381,7 +381,7 @@ plugin-gap halt (see Invariants).
 
    ### Next step
    [Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. SUPPORTED → `/dev-workflows:implement <PRD> [<Epic>]` (same lane, no handoff). PARTIAL / NOT-SUPPORTED → resolve the named gaps above and update the
-   declared status to match the artifacts, then re-run `/dev-workflows:ready <PRD> [<Epic>]`.]
+   any status you keep elsewhere to match the artifacts, then re-run `/dev-workflows:ready <ADDRESS>`.]
 
    ### Context hygiene
    The resume pointer is written in the terminal cost phase (Phase 8), per

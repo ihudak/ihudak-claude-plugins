@@ -9,7 +9,7 @@ Author an Architecture Requirements/Decision Document for the resolved item: $AR
 `/create-ard` is **sub-project 3 of the PRD-creation flow** — the **Product Architect (PA)** phase. It
 grounds on the mounted implementation repos and authors an **ARD** that establishes the architecture
 invariants the downstream (`/specify`, `/design`, `/implement`) will later inherit. The ARD is
-**optional** (a simple PRD may not need one) and **scoped** via the two-key grammar:
+**optional** (a simple PRD may not need one) and **scoped by the kind of the address it is given**:
 
 - `/create-ard <PRD-KEY>` → a **PRD-level** ARD.
 - `/create-ard <PRD-KEY> <Epic-KEY>` → an **Epic-level** ARD (inherits the PRD-level ARD read-only).

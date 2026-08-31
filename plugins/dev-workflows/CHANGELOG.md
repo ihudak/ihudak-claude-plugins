@@ -4,6 +4,71 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.4.1] — 2026-08-31
+
+### Fixed — six defects from a third round, scoped to the surface two rounds had not read closely
+
+Rounds 1 and 2 swept the six commands, the BRD references and three of the six agents in full. This
+round read what was left: `/brd-reconcile` Phases 4–8, three agent bodies, the delivery note,
+`bundle-packaging.md` §4–§5 and `customer-review-schema.md` §5–§6. Every finding below is in that
+remainder.
+
+- **A section-12 row could instruct an edit this command may not make.** Phase 6 sorted correction
+  targets into three classes and put `decisions.md`, `coverage-ledger.md`, `brd/brd-inventory.md`
+  and `brd-link.md` in the "live working document — corrected in place" class. Each of those carries
+  fields another rule fixes: allocation belongs to `/brd-split`'s walk and this command writes
+  exactly three ledger dispositions; an inventory row's `text` is the requirement **verbatim** from
+  the immutable source, so rewriting it edits the customer's document in the one place it is
+  mirrored; a register record moves only through this command's freeze, §4's two reopening causes,
+  or the sweep's four dispositions; `parent:` and `claims:` are `/brd-split`'s. The class is now
+  split per field, with `refused-with-reason` on each, **naming the channel that does carry the
+  substance** — a `[CD#n]`, a `customer-amended` defect resolution, a `/brd-split` walk. What is
+  refused is the edit, not the change. This is the same carve-out 3.3.3 added to the stale
+  cross-reference sweep; that sweep reaches these files by a text match the command made, while this
+  phase reaches them by an instruction the **customer** wrote, which is the channel with external
+  authority behind it and the worse one to leave open.
+
+- **A customer decision could not overturn an earlier customer decision.** Phase 5 reopened only
+  `[VD#n]`, though `decision-register-format.md` §3's statuses govern "each `[VD#n]` **and**
+  `[CD#n]`" and §4 admits an incoming customer decision as a reopening cause. The case is the
+  corrected resend Phase 2 explicitly calls an ordinary state: two reviews of one date, or a
+  corrected file weeks later, answer the same `[C]`, and Phase 4's skip rule covers only an earlier
+  pass over *this same review*. So a second `decided` `[CD#n]` was minted for one question — two
+  customer answers one record has no way to hold, arriving through the affordance built to accept a
+  correction. The earlier record now takes `superseded` where the new answer replaces it and
+  `reopened` where it contradicts without replacing, and the reconciliation record says which.
+
+- **The third id shape was unmatchable.** Phase 3 states that section 7 carries three id shapes and
+  argues at length that dropping the third would look like customer silence — but
+  `customer-review-reader` was given neither the self-review path nor an `[SR#n]` value in its
+  `answers` field, so every answer to a deliberately escalated finding came back `unmatched`. A rule
+  shipped whose consumer never gets the data. The agent gains `package.self_review`, matches all
+  three shapes, and reports which question sets it was given, so an unmatched row can be told from a
+  question set nobody passed.
+
+- **`bundle-packaging.md` §5 sent the reader to the wrong commit entry point.** It said the bundle is
+  committed "through the commit entry point `references/specs-repo-git.md` owns" — but that
+  reference's §2.1 bounds staging to three path shapes, all under `dev-workflows/**`, and a bundle is
+  under none of them. The bundle is a **deliverable** and travels through `handoff-to-main` behind
+  its consent choice. The repair a reader would reach for is widening §2.1, which would let the
+  prompt-free bookkeeping step commit a customer-facing deliverable with no consent in front of it —
+  exactly the boundary the two references were split to hold. "Committed" also now means "where the
+  operator accepted the handoff", since declining leaves the bundle written and uncommitted.
+
+- **`commit` was listed as a universal finding field.** §2 notes `class` and `cites` as
+  design-grounding-only but gave `commit` no applicability note, while `grounding-verifier`'s Inputs
+  table, `/brd-ground`'s Phase 7 dispatch and `design-grounder`'s own process all treat a class-1/2/3
+  `[DG#n]` as pinned to no commit. That matters because the verifier **honours** a commit it is
+  given: a design-only finding carrying one would be re-derived against a repository it was never
+  checked against. Fixed in §2, `design-grounder`'s output, `grounding-verifier`'s output and
+  `/brd-ground`'s write phase.
+
+- **A `[CD#n]` does not record which review froze it.** Phase 2 claimed the canonical name meant a
+  `[CD#n]` frozen from a corrected resend "is never mistaken for one frozen from the file it
+  replaced" — but §1 fixes eleven fields and none names a source document. The mapping lives in the
+  reconciliation record, whose per-pass heading names the review file; Phase 2 now says so, which is
+  what Phase 4's skip rule actually keys on.
+
 ## [3.4.0] — 2026-08-31
 
 ### Added — `/brd-split <BRD-KEY> [<instruction>]`, a verbal slicing instruction

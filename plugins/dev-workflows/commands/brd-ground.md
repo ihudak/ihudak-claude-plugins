@@ -628,8 +628,10 @@ a raw finding and one a downstream command may cite.
 Write `<BRD-dir>/grounding/code-grounding.md` (every `[CG#n]`) and
 `<BRD-dir>/grounding/design-grounding.md` (every `[DG#n]`, or a short note when Phase 5 skipped
 design grounding and why) — one block per finding, carrying every field
-`grounding-format.md` §2 defines (`id`, `claim`, `verdict`, `evidence`, `commit`, `altitude`,
-`horizon`, `class`/`cites` for `[DG#n]`, `consumed_by: none`) plus this run's verifier `outcome`.
+`grounding-format.md` §2 defines (`id`, `claim`, `verdict`, `evidence`, `altitude`, `horizon`,
+`consumed_by: none`, plus `class`/`cites` on a `[DG#n]` and `commit` on everything **except** a
+`[DG#n]` of class 1, 2 or 3 — those are settled from the frame set alone and are pinned to no commit,
+per §2's applicability note) plus this run's verifier `outcome`.
 A `--rebaseline` run appends its new findings after the existing ones and marks any finding it
 superseded with `verdict: SUPERSEDED`, id retained, rather than deleting or renumbering it.
 

@@ -44,7 +44,7 @@ Every finding — `[CG#n]` from `code-grounder`, `[DG#n]` from `design-grounder`
 | `claim` | the `[BR#n]` premise under test, quoted or closely paraphrased |
 | `verdict` | exactly one of the six values in §3 |
 | `evidence` | a `file:line` list, or — when the verdict is `NOT-PROVABLE` or the finding asserts an absence — an explicit statement of why no evidence exists rather than an empty field |
-| `commit` | the pinned commit SHA the finding was checked against (`baseline-integrity`, §4) |
+| `commit` | the pinned commit SHA the finding was checked against (`baseline-integrity`, §4); **absent on a `[DG#n]` of class 1, 2 or 3**, which is settled from the frame set and the BRD text alone (§6) and is pinned to no commit. A class-4 `[DG#n]` carries the cited `[CG#n]`'s own |
 | `altitude` | one of `product \| architecture \| implementation` |
 | `horizon` | one of `current \| will-change` (§5), naming the prerequisite decision when `will-change` |
 | `class` | *(design-grounding only)* one of the four `[DG#n]` reconciliation classes defined in §6; absent on a `[CG#n]` |
@@ -54,6 +54,14 @@ Every finding — `[CG#n]` from `code-grounder`, `[DG#n]` from `design-grounder`
 `class` and `cites` apply only to `[DG#n]` findings — a `[CG#n]` finding carries neither. See §6 for
 what the four classes mean and why the fourth requires a citation; this table fixes only the field
 names, where they apply, and when `cites` is required.
+
+**`commit` is the third field whose applicability is not universal, and saying so is load-bearing.**
+§8's verification is fail-closed on exactly this: `agents/grounding-verifier.md`'s Inputs table puts
+a `[DG#n]` in the design-only row **only** where its `class` positively reads 1, 2 or 3, and demands
+`repo_path` and `commit` everywhere else. A design-only finding that carried a `commit` anyway would
+be honoured — that agent uses a commit it is given rather than ignoring it — and would then be
+re-derived against a repository it was never checked against. A field listed without its
+applicability is a field an emitter fills to satisfy the table.
 
 **`evidence` is never blank.** A finding that asserts a mechanism is absent still owes the reader
 what was searched and where it was expected — "no route under `api/` handles this verb; searched

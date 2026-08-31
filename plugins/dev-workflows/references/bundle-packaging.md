@@ -232,8 +232,21 @@ cannot be missed.
 ## 5. Where the bundle lands
 
 The rendered bundle is written to **`bundle-<YYYYMMDD>/` inside the BRD folder** — resolved per
-`references/brd-addressing.md` §2 — and **committed to the specs repo** (D18), through the commit
-entry point `references/specs-repo-git.md` owns.
+`references/brd-addressing.md` §2 — and **committed to the specs repo** (D18), as a **deliverable**:
+through `handoff-to-main` (`references/phase-handoff.md` §2), behind that reference's §4.3 consent
+choice, with every file under the dated directory in the calling command's `deliverable_paths`.
+
+**Not through `references/specs-repo-git.md`, and the difference is not pedantry.** That reference
+owns the plugin's *bookkeeping* commit, and its §2.1 bounds staging to three path shapes, all of them
+under `dev-workflows/**` — a bundle is under none of them, so `commit-artifacts` cannot stage one and
+was never meant to. A reader sent to the wrong entry point finds the bundle missing from §2.1 and
+reaches for the plausible repair, which is to widen those path shapes; that would let the prompt-free
+bookkeeping step commit a customer-facing deliverable with no consent choice in front of it, which is
+exactly the boundary the two references were split to hold (`phase-handoff.md` §1 rule 7).
+
+**"Committed" therefore means "committed where the operator accepted the handoff".** Declining §4.3's
+choice leaves the bundle written and uncommitted, and the run says so — D18 is what the accepted path
+achieves, not something this file can assert of every run.
 
 For a synthetic BRD `EPIC-008` packaged on 15 April 2026, that is `bundle-20260415/` beside the
 package's other dated artifacts.

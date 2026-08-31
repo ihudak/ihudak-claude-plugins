@@ -107,7 +107,10 @@ findings:
         note: <what the frame actually shows, and how it diverges from the BRD text>
     cites:     <CG#n>          # shape and when-required fixed by grounding-format.md §2 — never
                                 # spelled out here
-    commit:    <per grounding-format.md §2 — for class 4 this is the cited [CG#n]'s own commit>
+    commit:    <per grounding-format.md §2 — class 4 only, and it is the cited [CG#n]'s own.
+                                # OMIT the field entirely on a class-1/2/3 finding: it is settled
+                                # from the frame set and the BRD text and is pinned to no commit,
+                                # and a commit supplied here sends it down the verifier's code row>
     altitude:  product | architecture | implementation
     horizon:   current | will-change
     prerequisite: <named prerequisite decision — only present when horizon is will-change>

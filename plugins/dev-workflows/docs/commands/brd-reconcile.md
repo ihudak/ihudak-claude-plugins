@@ -110,6 +110,14 @@ Under the BRD folder:
 | `customer-review-<date>.md` | The returned review, copied in byte for byte and committed **before** anything reads it. Stamped with the **customer's** date, not the run's; a second review of that date takes a `-<suffix>` |
 | `reconciliation-<date>.md` | What changed, why, which ids, and what still needs a human. Stamped with the run's date; a second pass on the same day appends rather than overwriting |
 
+A **customer decision that overturns an earlier customer decision** is handled like any other
+overturn, not left to mint a rival answer: the earlier `[CD#n]` is `superseded` where the new answer
+replaces it, and `reopened` where it contradicts or constrains without replacing. Both are statuses
+the register already defines for `[VD#n]` *and* `[CD#n]`, and an incoming customer decision is one of
+the two causes that may reopen anything. The case this exists for is the corrected resend the
+canonicalisation step calls ordinary — without it, two `decided` answers to one question sit in the
+register with nothing to adjudicate between them.
+
 And it updates, in place: `decisions.md` (the new `[CD#n]`, the superseded `[AS#n]`, the reopened
 `[VD#n]`), the round record and the `[C]` question set, `coverage-ledger.md`, the defect log — **the
 parent's**, when the run stands on a slice — every dated artifact it banners, every dependent BRD's
@@ -136,6 +144,13 @@ a question to the customer that never went through the tag test. A parser accept
 two would silently drop every answer to a finding the delivery team escalated on purpose — and the
 drop would look like customer silence. A row citing none of the three is carried as `unmatched`.
 
+**All three question sets are handed to the reader**, and that is what makes the third shape
+matchable rather than merely asserted: `interview/customer-questions.md`, `decisions.md`, and the
+most recent `self-review-<date>.md`. A reader given only the first two returns every escalated
+finding's answer as `unmatched` — an answer the customer gave, reported as matching nothing, which is
+indistinguishable from one they never gave. The reader also reports which sets it was given, so an
+unmatched row can be told apart from a question set nobody passed.
+
 ## Gates
 
 - **Phase 0 — the package merged.** Reconciling against a package that exists only in a working tree
@@ -156,6 +171,15 @@ drop would look like customer silence. A row citing none of the three is carried
   written the same day, and telling the operator to rename the incoming file would be telling them to
   record a date the review does not carry. Only declining to name a suffix stops the run
   (`BRD_RECONCILE_REVIEW_EXISTS`).
+- **Phase 6 — a section-12 row instructs an edit; it does not authorise a field this command may
+  not write.** Prose, `slices.md` and the seed files are corrected in place. A row asking to change a
+  coverage-ledger `disposition`, an inventory row's `id`/`text`/`source_anchor`, a register record's
+  `status`/`chosen`/`evidence`, or `brd-link.md`'s `parent:`/`claims:` is
+  **`refused-with-reason`** — each is fixed by a rule this command does not own, and the customer
+  cannot be expected to know which. The refusal names the channel that *does* carry the substance: a
+  `[CD#n]`, a `customer-amended` defect resolution, or a [`/brd-split`](brd-split.md) walk. **What is
+  refused is the edit, not the change** — and saying so is the difference between a refusal the
+  customer accepts and one they re-request next round.
 - **Phase 4 — the confirmation gate.** No `[CD#n]` is written while any decision the reader returned
   is unconfirmed. The four values are `confirm`, `correct`, `reject` and `ask-the-customer`; the
   picker carries no free-text entry and no bulk confirmation. That omission is enforceable because

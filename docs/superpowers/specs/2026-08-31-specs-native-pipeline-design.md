@@ -547,8 +547,8 @@ was taught is a scan that finds nothing. The key goes where a human will see it 
 
 - **The commit subject ends with `[<key>]`** — `feat(orders): add order intake [ACME-77-01]`. In
   the subject rather than a trailer, because a trailer does not survive `git log --oneline` and is
-  therefore invisible to the person deciding what their own commit should look like. `/vuln` writes
-  it; `/implement` and `/upgrade` **state it at handover**, to the operator who writes the commit.
+  therefore invisible to the person deciding what their own commit should look like. All three write it, behind `code-handoff.md` §2's consent choice; where an operator declines the
+  commit, they state it instead.
 - **A `Work-Item: <workitem_key>` trailer**, when the folder carries one (D11). The tracker key is
   for the operator's own integration and belongs where their tooling looks; it is never invented,
   and the trailer is absent when the field is.

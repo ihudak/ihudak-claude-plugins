@@ -4,6 +4,36 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.8.0] — 2026-08-31
+
+### Fixed — `/implement` and `/upgrade` no longer abandon work in a dirty tree
+
+**Two of the three commands that change code left the working tree uncommitted, and nothing anywhere
+stated a reason** — not the commands, not their agents, not their documentation.
+`agents/upgrade-executor.md` carried it as a bare invariant: *"Leave all changes uncommitted — no
+git commits, no PRs."* Meanwhile `/vuln` committed **and** opened a pull request in the same plugin,
+on the same kind of repository, and `phase-handoff.md` §4.3 already owned the consent-gated
+commit + push + PR pattern the other two should have been using.
+
+- **New `references/code-handoff.md`** — a consent choice offering commit + push + pull request (recommended), commit + push, commit only, or leave it uncommitted, executed against the **code** repository. Its mechanics are `phase-handoff.md`'s §2.4–§2.6 and §4.2, cited rather than restated, including the `gh` capability probe and its no-CLI fallback.
+- **`/implement` gains Phase 4.6** and **`/upgrade` step 9a**, both after the review gate and the test run, both skipped on an unresolved BLOCKER and under the new **`--no-commit`** flag.
+- **`upgrade-executor`'s invariant is re-stated as a division of labour**, not a policy about the work: an agent cannot prompt, so the commit decision belongs to the orchestrator.
+
+**Why uncommitted was the wrong default, stated because it was never stated:** a stray `git checkout`
+or a container restart loses an uncommitted tree, while a commit on a branch is recoverable by
+anyone. Not opening a pull request is defensible on a host with no CLI; not committing is not — and
+those are separate decisions, kept separate here.
+
+**This also makes `implementation-format.md` §3 true as originally written.** The commit convention
+needs the key in the subject so `/document` and `/release-notes` can find the work later; a command
+that does not commit cannot write that subject, only ask for it. All three commands write it now.
+The convention stays documented in `docs/reference/commit-convention.md` because an operator may
+decline the commit, and because work arrives that no command ran at all.
+
+### Fixed
+
+- `--no-commit` and `--claimed` were both named in prose and parsed by nothing. Both are parsed now; `--no-commit` is stripped before any other argument handling, since an unstripped flag is read as free text or as a component name.
+
 ## [3.7.0] — 2026-08-31
 
 ### Added — what the tracker used to supply (increment C)

@@ -6,11 +6,13 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 
 Upgrade components: $ARGUMENTS
 
+**Strip `--no-commit` first**, before parsing any component token: an unstripped flag is read as a component name and the run fails resolving it. When present, step 9a's code handoff is skipped and the changes are left in the working tree.
+
 Each token is one of: `component:1.2.3` (exact), `component:minor` (latest patch on current minor), `component:latest` (latest stable), `component:lts` (latest LTS), or bare `component` (latest compatible with everything else).
 
 `component` can be a library, framework, language runtime, build tool, or path like `.github/workflows`.
 
-All changes are left **uncommitted** on the current branch. Because the operator writes that commit, state the convention when handing over: end the subject with `[<key>]` where the run resolved one, per `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §3.
+Changes are handed over behind a consent choice (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2): commit + push + pull request, commit + push, commit only, or leave it uncommitted. Committing is the recommendation, not the default-by-omission — an uncommitted tree is recoverable only on this machine. `--no-commit` restores the old always-uncommitted behaviour.
 
 ---
 
@@ -164,6 +166,11 @@ Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `specs
 **Context hygiene.** This was a large run — consider **`/compact`** to free context before your next task (per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §3 — non-pipeline, so `/compact` only; guidance only).
 
 9. **Persist plugin feedback (automatic)** — After `impl-maintenance` returns, project its plugin-facing slice into the specs repo by citing `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its `emit-auto` entry point (§6). Pass the Lessons Learned report, `command: /upgrade`, the run's `key` (or `null`) and `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto` renders only the report's **Command workflow improvements**, **New agents / skills**, and plugin **Reference docs** sections plus the **Key observations** that triggered them (§4 plugin-facing predicate) — never target-project `CLAUDE.md`/hook advice — as `origin: auto` entries, dedupes by stable `id` (§3), resolves the target via the §2 specs-first ladder, and writes silently. List the persisted path (or "no plugin-facing signal — nothing persisted") after the lessons-learned report. ADDITIVE — this step NEVER fails the run, NEVER commits (still true — the assertion is scoped to *this step*, which only writes the feedback file; those writes are committed by the separate terminal `commit-artifacts` step, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), and NEVER writes into the code repo or the current working directory.
+
+9a. **Code handoff (consent-gated).** After the tests have passed and before the emitter tail,
+    execute `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2 against **the code repository**
+    this run changed. Present its consent choice verbatim. Skipped under `--no-commit`, and skipped
+    on any component left in `TEST_REGRESSION_REVERTED` — there is nothing to hand over there.
 
 10. **Commit session artifacts (terminal)** — Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts (/upgrade)` — or `NOISSUE …` when the run resolved no Jira key — and pushes per §4 step 5. It NEVER touches the code repo this run just upgraded: the upgrade changes are left uncommitted on the current branch by `upgrade-executor`, exactly as before. It NEVER force-pushes, NEVER fails the run, and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Print its §6 outcome line as the run's last output, prefixed `Specs repo:`, with any guard notice repeated in full. No `resume.md` is written for `/upgrade` (`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 skip list).
 

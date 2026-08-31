@@ -53,11 +53,11 @@ trailer is a convention nobody sees.
 | | |
 |---|---|
 | [`/vuln`](../commands/vuln.md) | commits and opens a PR itself, so it writes a compliant subject |
-| [`/implement`](../commands/implement.md), [`/upgrade`](../commands/upgrade.md) | leave their changes **uncommitted** on the branch — **you** write that commit, so they state this convention when they hand over |
+| [`/implement`](../commands/implement.md), [`/upgrade`](../commands/upgrade.md) | ask before committing. Say yes and they write the subject for you; say "leave it uncommitted" and **you** write that commit, so they state this convention on the way out |
 
-Most commits in a repository this plugin has touched are written by a person, not by the plugin.
-That is exactly why the convention is documented here rather than left implicit in what the plugin
-emits.
+So the convention is documented here rather than left implicit in what the plugin emits: whenever
+you decline the commit, or pick the work up later, or push a fix nobody ran a command for, you are
+the one writing the subject the scan will look for.
 
 ## See also
 

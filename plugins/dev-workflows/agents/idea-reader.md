@@ -49,7 +49,7 @@ Return this exact YAML shape (no preamble, no chatter):
 status: OK | NOT_FOUND
 provenance: prompt | markdown | community-post | rfe | prd
 tracked:                 # present only for provenance: prd
-  jira_key:   <KEY>
+  key:   <KEY>
   status:     <from the export frontmatter>
   summary:    <from the export frontmatter>
 source_refs:

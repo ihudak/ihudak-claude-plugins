@@ -41,9 +41,9 @@ Mirrors the wiki `_shared/task-rules.md` Obsidian-Tasks line:
 ## 2. Target-file resolution (Jira-first, deterministic)
 
 The run carries `source` (`vault | directory | none`) and, when Jira-driven, a
-`jira_key`. Resolve the task's home:
+`key`. Resolve the task's home:
 
-1. **Vault writable (§4) AND the run has a `jira_key`** → locate the project
+1. **Vault writable (§4) AND the run has a `key`** → locate the project
    folder with the existing pattern (`${CLAUDE_PLUGIN_ROOT}/references/finish-and-handoff.md`):
 
        find "$VAULT_PATH"/Projects -maxdepth 5 -type d -name "<JIRA_KEY>*"
@@ -51,7 +51,7 @@ The run carries `source` (`vault | directory | none`) and, when Jira-driven, a
    Inside it, the project file is `P<NNNN> <slug>.md`. Verify its frontmatter
    `tags:` includes `task` and `archived:` is `false` or absent, then insert
    the task under `## Work Items → ### Tasks`.
-2. **Vault writable but no project match / verification fails / no `jira_key`**
+2. **Vault writable but no project match / verification fails / no `key`**
    → fall back to `$VAULT_PATH/Tasks.md`, inserting under `# Irregular`. Create
    `Tasks.md` from the bootstrap template (frontmatter `tags: [task]` +
    `# Tasks` + `# Irregular`) if it does not exist.
@@ -97,7 +97,7 @@ is an existing directory **and** the path is writable.
    the imported Jira directory:
    `<parent-of-jira_export_root>/<KEY>-followups.md` (the imported hierarchy's
    parent — the same area under which /epics and /release-notes place their
-   no-vault drafts, e.g. /epics' epic-drafts/<jira_key>/).
+   no-vault drafts, e.g. /epics' epic-drafts/<KEY>/).
 4. **None resolvable** → **report-only.** Keep the follow-ups in the Final
    Report and emit the notice. **NEVER** write into the current working
    directory — it may be a code repository.
@@ -128,7 +128,7 @@ uncluttered and groups all dev-workflows output for a PRD in one place.
 
 Pipelines re-run. Before inserting, READ the existing tasks in the target
 section and SKIP any whose stable key already appears. **Stable key** = the
-finding's identity: `jira_key` + (file path | gap-id | signal-type). Report a
+finding's identity: `key` + (file path | gap-id | signal-type). Report a
 match as `SKIP — already exists` (mirrors `/wiki-tasks-extract` Step 5); never
 re-insert.
 
@@ -175,7 +175,7 @@ The calling phase provides:
 
 - `follow_up_items` — the qualifying signals it already aggregated in its Final
   Report follow-up sections.
-- `jira_key` — the run's resolved key, or `null`.
+- `key` — the run's resolved key, or `null`.
 - `source` — `vault | directory | none`, from the run's own input resolution.
 
 The phase applies §6 (filter) → §4 (resolve target) → §1–§3 (render + place) →

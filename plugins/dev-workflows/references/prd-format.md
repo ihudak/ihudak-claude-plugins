@@ -35,7 +35,7 @@ brd_parent: <that BRD's own parent key, from its brd-link.md; omit when it owns 
 depends_on: [ ... ]           # prerequisite BRD keys, from that brd-link.md's depends-on; omit when empty or outside the BRD route
 revision_of: <path to the archived prior PRD snapshot; written by `/update-prd` on refresh; omit otherwise>
 built_from_import: <YYYY-MM-DD of the Jira import the `/update-prd` refresh was built from; omit otherwise>
-jira_key: <the tracker key; omit until the Jira round-trip mints one — see below>
+key: <the tracker key; omit until the Jira round-trip mints one — see below>
 ---
 ```
 
@@ -48,7 +48,7 @@ could mint one from. They record, on the PRD itself, the BRD identity and the pr
 customer committed to — and **no command consumes them yet.** Neither `/epics` nor `/ready` reads any
 of the three; `brd_parent` and `depends_on` have no reader anywhere in the plugin; and the one field
 that is read at all is `brd_key`, read only for its **presence** — `commands/update-prd.md`
-step 2 treats a `brd_key` beside an absent `jira_key` as the statement that no tracker identity exists
+step 2 treats a `brd_key` beside an absent `key` as the statement that no tracker identity exists
 yet. **Nothing consumes the prerequisites these fields record.** Wiring a consumer is new behaviour on
 commands used heavily by non-BRD routes and belongs in its own increment with its own review. They are
 written, and preserved through a refresh, because provenance recorded at authoring time is the
@@ -57,7 +57,32 @@ have moved on. A `brd_key` may carry a third numeric segment
 (`references/addressing.md` §1 fixes no depth), so a PRD authored inside a BRD slice is filed
 under a key the two-segment form would reject — validate **that folder-side key**, and the
 folder name built from it, against §1's grammar rather than a narrower one. This never
-extends to `jira_key`, which is two-segment everywhere (below).
+extends to `key`, which is two-segment everywhere (below).
+
+**`workitem_key` is reserved, documented, and never written by the plugin.**
+
+```yaml
+workitem_key: CU-8x9f2a1     # optional, the user's own; the plugin never mints it
+```
+
+A user who also keeps their work in a tracker records its identity here. The plugin **preserves it
+across every frontmatter rewrite, and displays it in reports.** It never mints it, never validates
+its shape, and never resolves a folder by it — a folder is addressed by `key` and by nothing else.
+
+**The name is vendor-neutral on purpose.** Genericising in speech but not in a field name a tool
+parses is how a field ends up meaning something narrower than it says: someone writing a ClickUp sync
+who reads a field named for one vendor reasonably wonders whether it must be that vendor's shape.
+
+**It is not decorative, and here is its one consumer.** `/document` and `/release-notes` search commit
+messages for the run's identifiers, and `workitem_key` is one of the tokens they grep for — so a team
+whose commit convention carries their tracker key gets hand-made commits found. That is a *search for
+a token the run already holds*, not a lookup: the plugin still learns nothing about whether a tracker
+exists.
+
+**Unknown frontmatter keys are preserved.** Every command that rewrites this file — `/update-prd`
+most of all — keeps fields it does not recognise, in place and unmodified. Without this rule a user's
+own `clickup_id` disappears on the next run and nothing reports it. The rule is small and its blast
+radius is not: it is what makes the frontmatter extensible rather than a closed vocabulary.
 
 **There is one key namespace.** `brd_key` and `key` both name a folder in `$SPECS_PATH`, validated
 for shape and never looked up anywhere (`references/addressing.md` §1). The second, narrower grammar

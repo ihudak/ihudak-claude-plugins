@@ -14,7 +14,7 @@ never a writer, never a gate.**
 ```yaml
 docs_path:       <absolute path to the docs root ($DOCS_PATH); a single directory>
 feature_summary: <2–4 sentences: the goal + what this run is about>
-jira_key:        <optional — a PRD/Epic/ticket key; enables the git-grep backstop>
+key:        <optional — a PRD/Epic/ticket key; enables the git-grep backstop>
 themes:          <optional capability themes from the caller, or []>
 ```
 
@@ -56,12 +56,12 @@ Use when `qmd` is absent, off, or Path A failed:
    - Union the surviving hits, ordered by how many keywords each file matched, and **cap the shortlist at 40 files**.
    - Score only that shortlist: frontmatter (`title`/`description`/`tags`) + first ~50 body lines, overlap against `feature_summary` + `themes`; keep matches above threshold.
    - An empty shortlist ⇒ `status: EMPTY` with a `notes` line.
-2. **git-grep backstop** (only when `jira_key` is present):
-   `git -C "<docs_path>" log --all -E --grep="<jira_key>" -n 20 --name-only` and
+2. **git-grep backstop** (only when `key` is present):
+   `git -C "<docs_path>" log --all -E --grep="<KEY>" -n 20 --name-only` and
    union any pages it touched. This is a pure read and works on a read-only
    `.git` (see `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md`);
    **best-effort** — on any failure, degrade to keyword-overlap only,
-   never an error. Skip entirely when `jira_key` is absent (e.g. `/idea`).
+   never an error. Skip entirely when `key` is absent (e.g. `/idea`).
 3. Record `retrieval: fallback`.
 
 ### For every match (both paths)

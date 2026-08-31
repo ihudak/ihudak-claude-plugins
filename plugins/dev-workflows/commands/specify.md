@@ -76,11 +76,11 @@ a **BRD key**, and there is no second positional key (Phase 0 step 0).
        (Phase 2, Step A) → `specifications/<PRD>-<vslug>/specification.md` — flat at the PRD-dir level, no
        per-Epic subfolder; the feature folder is the PRD dir itself.
      - `focus_key` null **and** the item is a **stand-alone top-level Epic** (no parent PRD) →
-       `specifications/<EPIC>-<eslug>/`, where `<EPIC>` here is this item's own key (== `jira_key`,
+       `specifications/<EPIC>-<eslug>/`, where `<EPIC>` here is this item's own key (== `key`,
        since `focus_key` is null) — top-level, keyed by the Epic, no PRD wrapper. Physically this is
        the same dir the PRD-dir step above already resolved (`specifications/<PRD>-<vslug>/` with
-       `<PRD>` = `<EPIC>` = `jira_key`), so no separate resolution step is needed: the two null-`focus_key`
-       cases share one physical target, `specifications/<jira_key>-<slug>/`, with `specification.md`
+       `<PRD>` = `<EPIC>` = `key`), so no separate resolution step is needed: the two null-`focus_key`
+       cases share one physical target, `specifications/<KEY>-<slug>/`, with `specification.md`
        written flat inside it either way.
    - All delimiters this step writes are hyphens; matching an existing dir tolerates a stray `-`/`_`.
      Neither the PRD dir nor the feature folder is created here — the first phase that writes to it
@@ -169,13 +169,13 @@ Use `choices` arrays; the last choice in every array MUST be `"Other… (describ
    recording it.
 
 Also display (for user context): resolved feature folder; resolved `jira_export_root`; resolved
-`jira_key` (PRD); resolved `focus_key` (Epic, or 'none — PRD-level'); resolved `$REPOS_PATH`; resolved
+`key` (PRD); resolved `focus_key` (Epic, or 'none — PRD-level'); resolved `$REPOS_PATH`; resolved
 `$SPECS_PATH`.
 
 **On the BRD route, display instead** a `from BRD:` line naming `<BRD-KEY>` and its resolved folder,
 its `parent:` if `brd-link.md` records one, its `depends-on:` if any, and which of `spec-seed.md`,
 `decisions.md`, `grounding/code-grounding.md` and `grounding/design-grounding.md` are present — a
-stat, not a read; the read is Phase 2. `jira_export_root`, `jira_key` and `focus_key` are all
+stat, not a read; the read is Phase 2. `jira_export_root`, `key` and `focus_key` are all
 unresolved on this route and are shown as `none — seeded from a BRD` rather than left blank, so a
 reader is not left wondering which resolution ran.
 
@@ -232,7 +232,7 @@ that listing is the Epic set this phase branches on, and each folder's `key` and
 own frontmatter (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4).
   >
   > jira_export_root: [resolved jira_export_root]
-  > jira_key:         [resolved jira_key]
+  > key:         [resolved key]
   > depth:      prd-plus-epics"
 
 Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Jira key dir not found`
@@ -242,8 +242,8 @@ rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key"
 Epic-picker pattern** documented in `${CLAUDE_PLUGIN_ROOT}/references/epic-picker.md`, applied here with `/specify`'s own done-predicate:
 
 - **Stand-alone top-level Epic** (the item is itself an Epic, no parent PRD) → no picker; the item
-  *is* the focus. Set `focus_key` = the item (== `jira_key`). The feature folder stays the flat
-  `specifications/<jira_key>-<slug>/` resolved in Phase 0 — a stand-alone Epic has no distinct parent
+  *is* the focus. Set `focus_key` = the item (== `key`). The feature folder stays the flat
+  `specifications/<KEY>-<slug>/` resolved in Phase 0 — a stand-alone Epic has no distinct parent
   PRD, so `<PRD>` == `<EPIC>` and there is no self-nested subfolder (Phase 0 step 3's
   shared-physical-target note). Proceed to Step B.
 - **PRD with exactly 1 Epic** → no picker; auto-select it. Set `focus_key` = that Epic and emit a
@@ -297,7 +297,7 @@ Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Ji
 rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On
 `OK`:
 
-- **Epic-scope the read.** `jira-reader` is dispatched with `jira_key` = the PRD and returns the
+- **Epic-scope the read.** `jira-reader` is dispatched with `key` = the PRD and returns the
   **whole PRD** linked-item hierarchy (`jira-reader` itself is unchanged). When `focus_key` is set,
   **scope the returned hierarchy to `focus_key`'s subtree** — the Epic itself plus its linked
   Stories/Sub-tasks (`linked_items` whose `parent` chain leads to `focus_key`) — filtering
@@ -464,7 +464,7 @@ For each repo in the batch:
   >   switch_to_default_branch: [true if Phase 1 chose 'fetch + pull default branch' (default) or 'fetch only'; false if 'no refresh']
   >   pull: [true if 'fetch + pull default branch'; false otherwise]"
 
-**Documentation grounding (optional).** Run `resolve-docs-grounding specify` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the scoped Epic/PRD goal, `jira_key` = the focus key, `themes` = the Phase 2 capability themes. Carry the digest into the Phase 5 grill with **grill-rank** consumption. When OFF, skip silently.
+**Documentation grounding (optional).** Run `resolve-docs-grounding specify` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the scoped Epic/PRD goal, `key` = the focus key, `themes` = the Phase 2 capability themes. Carry the digest into the Phase 5 grill with **grill-rank** consumption. When OFF, skip silently.
 
 Handle per-repo status after the batch returns:
 
@@ -620,7 +620,7 @@ Then **offer** (commit-when-asked — never automatic), presenting `${CLAUDE_PLU
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
 
-On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: spec`; `feature_folder` = the Epic subfolder for a **per-Epic** spec (a PRD + focus Epic) or a **stand-alone-Epic** spec (`<EPIC>` = `focus_key`, which for a stand-alone Epic equals `jira_key`), or the PRD dir for a **broad PRD-level** spec (`focus_key` null), or **the BRD folder on the BRD route** — Epic keys are globally unique, so the per-Epic form needs no PRD prefix, and both forms use hyphens; §2.2 derives `spec/<EPIC>-<eslug>` or `spec/<PRD>-<vslug>` from that folder, matching today's branch names, and `spec/<BRD-KEY>-<slug>` from a BRD folder (a slice's from its own folder basename) — which collides with neither `/dev-workflows:create-prd the BRD route`'s `prd/` branch on the same key, nor `/dev-workflows:create-ard the BRD route`'s `ard/` one, nor the `/brd-*` family's shared `brd/` one, because §2.2's prefix is the caller's own; `deliverable_paths` = `specification.md`, `_session.md`, `_glossary.md`, and the rendered `.html` — **plus, on the BRD route, `decisions.md`, `grounding/code-grounding.md` and `grounding/design-grounding.md`**, because the `consumed_by` writes above land in those three and an uncommitted consumption record is one no later run can read; `spec-seed.md` is not staged, because this run does not write to it; `title: <EPIC|PRD> Add specification`; and `body_facts` = the stage/user-story/AC/TC counts, the open-question count, and the `spec-reviewer` verdict — and, on the BRD route, the `<BRD-KEY>` this specification was seeded from and how many items were marked `consumed_by: specification`. **Merged-to-main = ready for the dev-team handover** — Devs and `/design` read the spec from `main`, never from the branch, and `require-on-main` now enforces that rather than merely stating it. Emit its §4.1 outcome line in the Final report.
+On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: spec`; `feature_folder` = the Epic subfolder for a **per-Epic** spec (a PRD + focus Epic) or a **stand-alone-Epic** spec (`<EPIC>` = `focus_key`, which for a stand-alone Epic equals `key`), or the PRD dir for a **broad PRD-level** spec (`focus_key` null), or **the BRD folder on the BRD route** — Epic keys are globally unique, so the per-Epic form needs no PRD prefix, and both forms use hyphens; §2.2 derives `spec/<EPIC>-<eslug>` or `spec/<PRD>-<vslug>` from that folder, matching today's branch names, and `spec/<BRD-KEY>-<slug>` from a BRD folder (a slice's from its own folder basename) — which collides with neither `/dev-workflows:create-prd the BRD route`'s `prd/` branch on the same key, nor `/dev-workflows:create-ard the BRD route`'s `ard/` one, nor the `/brd-*` family's shared `brd/` one, because §2.2's prefix is the caller's own; `deliverable_paths` = `specification.md`, `_session.md`, `_glossary.md`, and the rendered `.html` — **plus, on the BRD route, `decisions.md`, `grounding/code-grounding.md` and `grounding/design-grounding.md`**, because the `consumed_by` writes above land in those three and an uncommitted consumption record is one no later run can read; `spec-seed.md` is not staged, because this run does not write to it; `title: <EPIC|PRD> Add specification`; and `body_facts` = the stage/user-story/AC/TC counts, the open-question count, and the `spec-reviewer` verdict — and, on the BRD route, the `<BRD-KEY>` this specification was seeded from and how many items were marked `consumed_by: specification`. **Merged-to-main = ready for the dev-team handover** — Devs and `/design` read the spec from `main`, never from the branch, and `require-on-main` now enforces that rather than merely stating it. Emit its §4.1 outcome line in the Final report.
 
 ### Next Epic (after a per-Epic spec from a multi-Epic PRD)
 
@@ -660,13 +660,13 @@ span suggestion (PRD-level→`/dev-workflows:epics` `/compact`; Epic-level→`/d
 
 **The run's key on the BRD route.** Phase 0 resolved a BRD key, which is a folder name and never a
 tracker key (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). The tracker key for this work,
-if one exists at all, is the `jira_key` in the PRD this BRD folder holds — glob
+if one exists at all, is the `key` in the PRD this BRD folder holds — glob
 the BRD folder's `prd.md`, `kind: prd`. So the address passed to
 `emit-auto` (below) and `emit-cost` (Phase 9) is that minted key when the folder holds a PRD carrying
 one, and `null` otherwise (`source: none` either way); `commit-artifacts` resolves its own key the
 same way and commits under `NOISSUE` when there is none, per
 `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4 step 4. The `<BRD-KEY>` is never passed as a
-`jira_key` — a folder key in a tracker-key field is the confusion the two fields exist to keep apart.
+`key` — a folder key in a tracker-key field is the confusion the two fields exist to keep apart.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
    > "Analyse this session and return a Lessons Learned report.
@@ -683,7 +683,7 @@ same way and commits under `NOISSUE` when there is none, per
    slice into the specs repo by citing
    `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
    `emit-auto` entry point (§6). Pass the Lessons Learned report,
-   `command: /specify`, the run's `jira_key` and `source`, and `plugin_version`
+   `command: /specify`, the run's `key` and `source`, and `plugin_version`
    (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto`
    renders only the report's **Command workflow improvements**, **New agents /
    skills**, and plugin **Reference docs** sections plus the **Key observations**
@@ -710,7 +710,7 @@ contribution to the PRD by citing
 nothing".
 
 Call `emit-cost` with `command: /specify`, `phase: specification`, `role: pe`,
-the run's `jira_key` (or `null`) and `source`, and `plugin_version` (read from
+the run's `key` (or `null`) and `source`, and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the session
 transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),
 runs `scripts/session-cost.py` to compute the per-model token-cost delta against

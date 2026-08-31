@@ -115,7 +115,7 @@ This rule binds every command in the plugin, not only the ones documented below.
 `choices: ["Re-enter key", "Cancel"]`
 
 Used when `jira-reader` returns `status: NOT_FOUND` or `status: EMPTY`, or when
-Phase 0 of `jira-reader` rejects an invalid `jira_key` format.
+Phase 0 of `jira-reader` rejects an invalid `key` format.
 
 ## Required path environment variable unset
 

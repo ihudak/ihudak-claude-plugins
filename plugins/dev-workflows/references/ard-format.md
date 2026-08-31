@@ -31,6 +31,8 @@ derived_from: <path to the PRD file, canonical prd.md — or, in a BRD folder th
 ---
 ```
 
+**Unknown frontmatter keys are preserved.** Every command that rewrites this file keeps fields it does not recognise, in place and unmodified — the same rule `references/prd-format.md` states for a PRD, and for the same reason: a user's own field must survive a run that did not author it. `workitem_key` is the documented example, and it is reserved rather than special-cased.
+
 **`prd`, `epic` and `derived_from` are widened for the BRD route, and the widening is confined to
 them.** Under `/create-ard` on the BRD route the run holds a **BRD key**, which addresses a folder under
 `$SPECS_PATH` and may carry a third numeric segment (`references/addressing.md` §1 fixes no

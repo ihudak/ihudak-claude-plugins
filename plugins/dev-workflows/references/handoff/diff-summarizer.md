@@ -17,7 +17,7 @@ pr_refs:
     status:      MERGED | OPEN | DECLINED | UNKNOWN
 context: |
   <what this repo's PRs relate to — for documentation focus>
-jira_keys_hierarchy:   # optional; passed by caller to enable Strategy 4 cross-key grep
+keys_hierarchy:   # optional; passed by caller to enable Strategy 4 cross-key grep
   - <PRD-KEY>
   - <every Epic/Story/Sub-task/Research/RFA/Bug key discovered by jira-reader>
 refresh:
@@ -63,7 +63,7 @@ prep:
 per_pr:
   - pr_id:          <id>
     url:            <url>
-    resolved_via:   pr_ref | branch_search | merge_commit | jira_key_commits | gh_cli | unresolved
+    resolved_via:   pr_ref | branch_search | merge_commit | key_commits | gh_cli | unresolved
     base:           <sha | null>
     head:           <sha | null>
     files_changed:  <count>

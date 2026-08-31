@@ -165,7 +165,7 @@ Consume the `resolve-docs-grounding brd-intake` result cached in Phase 1 — nev
 `docs_grounding: OFF`, skip silently and say so once in the final report. When `docs_grounding: ON`,
 `dispatch-docs-grounder` (`${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`) with
 `feature_summary` = two to four sentences drawn from the Phase 3 inventory (what this BRD asks the
-product to do, in the operator's own product terms), `jira_key` = `<BRD-KEY>`, and `themes` = the
+product to do, in the operator's own product terms), `key` = `<BRD-KEY>`, and `themes` = the
 capability themes the inventory rows cluster into. This runs after Phase 3 because the inventory is
 what the summary is built from, and before Phase 4 because Phase 4 is where the digest is consumed.
 
@@ -338,12 +338,12 @@ capability gap, so `emit-block` never fires from this command's own Phase 0.
    N/A; project root = the BRD folder.
 2. **Persist plugin feedback (automatic).** Cite
    `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6)
-   with the Lessons Learned report, `command: /brd-intake`, the run's `jira_key` (the `<BRD-KEY>`),
+   with the Lessons Learned report, `command: /brd-intake`, the run's `key` (the `<BRD-KEY>`),
    `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`).
    Surface the persisted path (or "no plugin-facing signal — nothing persisted").
 3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and call
    its `emit-cost` entry point with `command: /brd-intake`, `phase: brd-to-prd`, `role: pm`, the
-   run's `jira_key`, `source`, and `plugin_version`. Surface the persisted path (or the report-only
+   run's `key`, `source`, and `plugin_version`. Surface the persisted path (or the report-only
    notice).
 4. **Write the resume pointer.** Cite `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and
    write/overwrite `<BRD-dir>/dev-workflows/resume.md` now — after the cost entry above, and before

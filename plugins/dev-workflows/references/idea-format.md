@@ -60,7 +60,7 @@ otherwise.** One bullet per entry, in one of two shapes.
 ```
 
 **Supplied only** — a `prd` source the finder did not match (grounding off, or no vault work document
-for the key). The `tracked` block carries `jira_key`, `status`, and `summary` and nothing else — no
+for the key). The `tracked` block carries `key`, `status`, and `summary` and nothing else — no
 `relation`, no `match_reason`, no vault path — so the bullet omits the wikilink and the relation
 rather than inventing either:
 
@@ -72,7 +72,7 @@ Never promote a supplied-only entry into the discovered shape by guessing a `rel
 vocabulary is the finder's output, not the author's choice.
 
 In the discovered shape every slot is **transcribed from the prior-art digest, never invented**:
-`<JIRA-KEY>` and `<status>` from its `jira_key` / `tracked_status`, `<relation>` verbatim from its
+`<JIRA-KEY>` and `<status>` from its `key` / `tracked_status`, `<relation>` verbatim from its
 `relation` field (the closed vocabulary lives in
 `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md`), and `<one line>` a plain-language rendering of
 that entry's `match_reason` — why this initiative bears on the idea.

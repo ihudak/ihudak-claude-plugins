@@ -850,13 +850,13 @@ either — it is the gate working.
    the BRD folder.
 2. **Persist plugin feedback (automatic).** Cite
    `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6)
-   with the Lessons Learned report, `command: /brd-package`, the run's `jira_key` (the `<BRD-KEY>`),
+   with the Lessons Learned report, `command: /brd-package`, the run's `key` (the `<BRD-KEY>`),
    `source`, and `plugin_version` (read from
    `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no
    plugin-facing signal — nothing persisted").
 3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and call
    its `emit-cost` entry point with `command: /brd-package`, `phase: brd-to-prd`, `role: pm`, the
-   run's `jira_key`, `source`, and `plugin_version`. Surface the persisted path (or the report-only
+   run's `key`, `source`, and `plugin_version`. Surface the persisted path (or the report-only
    notice).
 4. **Write the resume pointer.** Cite `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and
    write/overwrite `<BRD-dir>/dev-workflows/resume.md` now — after the cost entry, before the commit

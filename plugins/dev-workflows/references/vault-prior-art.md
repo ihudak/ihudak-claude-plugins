@@ -40,10 +40,10 @@ Run only when `prior_art: ON`. Dispatch in the **same response** as `dispatch-do
   > vault_path:      <vault_root>
   > feature_summary: <2–4 sentences: the problem + desired outcome>
   > themes:          [capability themes, or []]
-  > known_refs:      [{path: <abs path> | jira_key: <KEY>, has_summary: true|false}, …]"
+  > known_refs:      [{path: <abs path> | key: <KEY>, has_summary: true|false}, …]"
 ```
 
-A `known_refs` entry carries **either** a `path` **or** a `jira_key`. A supplied `prd` source has only a key — the caller does not know which vault directory holds it, and resolving that is the finder's job. A followed wikilink has only a path.
+A `known_refs` entry carries **either** a `path` **or** a `key`. A supplied `prd` source has only a key — the caller does not know which vault directory holds it, and resolving that is the finder's job. A followed wikilink has only a path.
 
 Wait for the digest. On `status: ERROR` or any dispatch failure, treat as `prior_art: OFF` and proceed (record one line in the final report). On `status: EMPTY`, proceed; the digest simply adds nothing.
 

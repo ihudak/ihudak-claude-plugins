@@ -30,7 +30,7 @@ An artifact whose body is pasted into Jira must contain no token Jira will auto-
     grep -nE '\b[A-Z]{2,10}-[0-9]+\b' <file>
 
 For the PRD, run against the body **below the frontmatter** — `/create-prd` pastes only that, and the
-frontmatter's `jira_key:` / `ref:` / `seeded_from_prd:` / `revision_of:` legitimately carry keys.
+frontmatter's `key:` / `ref:` / `seeded_from_prd:` / `revision_of:` legitimately carry keys.
 For the ARD, scan **below the frontmatter**. For Epic files, scan the entire file (the template has no frontmatter).
 
 Discard a hit ONLY when it is a deliberate Jira reference: inside a wikilink (`[[KEY-123]]`), inside

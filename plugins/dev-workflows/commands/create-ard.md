@@ -130,7 +130,7 @@ Read the PRD from the folder `resolve-address <PRD>` returned (`${CLAUDE_PLUGIN_
 product frame this Epic sits in.
   >
   > jira_export_root: [resolved jira_export_root]
-  > jira_key:         [<PRD> for a PRD-level run, <EPIC> for an Epic-level run]
+  > key:         [<PRD> for a PRD-level run, <EPIC> for an Epic-level run]
   > depth:      prd-only (PRD-level) | full (Epic-level, scoped to focus_key)"
 
 For an **Epic-level** run always dispatch `jira-reader` this way (`depth: full`, scoped to `focus_key`) for the Epic's scope — the authored-PRD-file check above only applies PRD-level. Resolve any PRD-level ARD via `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` (`prd: <PRD>`, `epic: null`, `$SPECS_PATH`). On `status: found`, load its `AD#N` invariants to **inherit read-only**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr`. On `status: none`, proceed unchanged — there is no PRD-level ARD to inherit.
@@ -247,7 +247,7 @@ There are no PRs at ARD time, so repos are **architect-driven**, not PR-derived:
    - `prep.read_only: true` — not a failure. The scan ran at `prep.scanned_ref`. Escalate per the `Read-only mount — ref stale or diverged` rule **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`; otherwise proceed silently and cite evidence at `prep.scanned_ref`.
 
    A repo the user skips is dropped from the confirmed set and named in the Phase 6 handoff; it never silently disappears.
-5. **Documentation grounding (optional).** Run `resolve-docs-grounding create-ard` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the PRD/Epic goal + capability themes, `jira_key` = `<PRD>` (PRD-level) or `<EPIC>` (Epic-level), `themes` = the confirmed themes. Carry the digest into the Phase 4 grill with **grill-rank** consumption (documented analogs and building-block altitude/permissions are strong ARD grounding). When OFF, skip silently.
+5. **Documentation grounding (optional).** Run `resolve-docs-grounding create-ard` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the PRD/Epic goal + capability themes, `key` = `<PRD>` (PRD-level) or `<EPIC>` (Epic-level), `themes` = the confirmed themes. Carry the digest into the Phase 4 grill with **grill-rank** consumption (documented analogs and building-block altitude/permissions are strong ARD grounding). When OFF, skip silently.
 
 ---
 
@@ -453,17 +453,17 @@ PA→PE/Dev handoff suggestion (`/clear`) + `/rename <PRD-ID>-<slug>-pa`. Guidan
 
 **The run's key on the BRD route.** Phase 0 resolved a BRD key, which is a folder name and never a
 tracker key (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). The tracker key for this work,
-if one exists at all, is the `jira_key` in the PRD this BRD folder holds — the same one Phase 7's
-`/dev-workflows:epics` condition reads. So the `jira_key` passed to `emit-auto` and `emit-cost` below
+if one exists at all, is the `key` in the PRD this BRD folder holds — the same one Phase 7's
+`/dev-workflows:epics` condition reads. So the `key` passed to `emit-auto` and `emit-cost` below
 is that minted key when the folder holds a PRD carrying one, and `null` otherwise (`source: none`
 either way); `commit-artifacts` resolves its own key the same way and commits under `NOISSUE` when
 there is none, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4 step 4. The `<BRD-KEY>` is
-never passed as a `jira_key` — a folder key in a tracker-key field is the confusion the two fields
+never passed as a `key` — a folder key in a tracker-key field is the confusion the two fields
 exist to keep apart.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`) with a compact handoff: command `/create-ard`; what was authored (ARD scope + grounded repos); key events (grounding gaps/descopes, BLOCK reviews — or 'none'); workarounds; the `ard-reviewer` verdict; test result N/A; project root = the feature folder.
-2. **Persist plugin feedback (automatic).** Cite `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6) with the report, `command: /create-ard`, the run's `jira_key`, `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no plugin-facing signal — nothing persisted").
-3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and call its `emit-cost` entry point with `command: /create-ard`, `phase: architecture`, `role: pa`, the run's `jira_key`, `source`, and `plugin_version`. Surface the persisted path (or the report-only notice).
+2. **Persist plugin feedback (automatic).** Cite `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6) with the report, `command: /create-ard`, the run's `key`, `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no plugin-facing signal — nothing persisted").
+3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and call its `emit-cost` entry point with `command: /create-ard`, `phase: architecture`, `role: pa`, the run's `key`, `source`, and `plugin_version`. Surface the persisted path (or the report-only notice).
 4. **Write the resume pointer.** Cite `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and write/overwrite `<PRD-dir>/dev-workflows/resume.md` now — after the cost entry above, so the pointer reflects the completed run, and before the commit step below, so it is included in it. Redact per §1. Silent; the printed `### Context hygiene` guidance already appeared in the report.
 5. **Commit session artifacts (terminal).** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts (/create-ard)` with no `Co-Authored-By` trailer, and pushes to the branch this run's handoff phase created (§4.1). It NEVER touches a code repo, a docs repo, the vault, or the current working directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its §6 outcome line for the Final report.
 
@@ -492,5 +492,5 @@ reader can tell an empty list from an unrun check; `ard-seed.md`'s consumption a
 implementation-altitude content the grill surfaced and left for the command that authors at that
 altitude instead of the ARD (D5) — naming the command, never a seed file, since the register it will
 read that content out of is the one this run already read. Say plainly whether `/dev-workflows:epics` was offered and, when it was not, that no
-Jira export resolved under `<BRD-KEY>` itself — naming the minted `jira_key` where one exists but
+Jira export resolved under `<BRD-KEY>` itself — naming the minted `key` where one exists but
 differs, since that is the case a reader is most likely to mistake for reachable (Phase 7).

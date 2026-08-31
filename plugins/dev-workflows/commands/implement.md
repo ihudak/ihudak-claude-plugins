@@ -205,7 +205,7 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
    increment; `implementation.md` supplies them from the next one.
      >
      > jira_export_root: [the resolved jira_export_root (from the Phase 0 front-end), or the ticket-folder absolute path]
-     > jira_key:         [the resolved <KEY>]
+     > key:         [the resolved <KEY>]
      > depth:            full"
 
    Run multiple `jira-reader` calls sequentially (it is fast and read-only). Collect the themes and PR references.
@@ -349,9 +349,9 @@ Before writing any file:
    - **Proceed**: note in the Phase 5 report that the working tree was dirty at implementation start.
    - **Cancel**: stop and summarize what was planned.
 
-2. **Resolve the branch name** per `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` — **the repo's own documented convention wins**. Read the target repo's `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`, `CLAUDE.md` (+ `.claude/`) for a branch-naming section (§1.1); if one is found, classify its segments (§1.2) and fill them: an **identity** placeholder (`<your-name-or-initials>`, `<user>`, …) from the §2 ladder (`$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → the §2.5 prompt), an **issue-key** segment from the `jira_key` resolved in Phase 0 (or the pattern's documented no-issue literal in direct mode), and the **description** segment from step 3's slug. A pattern with no identity segment gets none — never inject initials into a convention that does not ask for one. Only when the repo documents no convention (§1.4) build `<prefix>/<slug>` with `<prefix>` from the §2 ladder, whose fallback here is `feat/`.
+2. **Resolve the branch name** per `${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` — **the repo's own documented convention wins**. Read the target repo's `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`, `CLAUDE.md` (+ `.claude/`) for a branch-naming section (§1.1); if one is found, classify its segments (§1.2) and fill them: an **identity** placeholder (`<your-name-or-initials>`, `<user>`, …) from the §2 ladder (`$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → the §2.5 prompt), an **issue-key** segment from the `key` resolved in Phase 0 (or the pattern's documented no-issue literal in direct mode), and the **description** segment from step 3's slug. A pattern with no identity segment gets none — never inject initials into a convention that does not ask for one. Only when the repo documents no convention (§1.4) build `<prefix>/<slug>` with `<prefix>` from the §2 ladder, whose fallback here is `feat/`.
 
-3. **Generate slug** — derive from the implementation description: lowercase, hyphens, max 40 chars, strip punctuation and special chars. Example: "Add user authentication to login page" → `add-user-authentication-login-page`. When a `jira_key` is resolved and the chosen shape has no separate issue-key segment, prefix it: `<jira_key>-<slug>`.
+3. **Generate slug** — derive from the implementation description: lowercase, hyphens, max 40 chars, strip punctuation and special chars. Example: "Add user authentication to login page" → `add-user-authentication-login-page`. When a `key` is resolved and the chosen shape has no separate issue-key segment, prefix it: `<KEY>-<slug>`.
 
 4. **Check HEAD context** — if HEAD is NOT on the default branch (`main` / `master` / `develop`), check for ahead commits: `git log origin/HEAD..HEAD --oneline 2>/dev/null`. If output is non-empty (branch has commits ahead), ask:
    ```
@@ -591,7 +591,7 @@ Collect all four summaries for the Phase 5 report.
 returns, project its plugin-facing slice into the specs repo by citing
 `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
 `emit-auto` entry point (§6). Pass Agent 4's Lessons Learned report,
-`command: /implement`, the run's `jira_key` and `source`, and `plugin_version`
+`command: /implement`, the run's `key` and `source`, and `plugin_version`
 (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto`
 renders only the report's **Command workflow improvements**, **New agents /
 skills**, and plugin **Reference docs** sections plus the **Key observations**
@@ -702,7 +702,7 @@ and executing its steps inline.
    explicitly excludes those as in-scope work already carried by the current
    task.
 2. **Filter** them with the reference's §6 qualifying predicate.
-3. **Resolve** the write target via the §4 ladder using `jira_key` and `source`
+3. **Resolve** the write target via the §4 ladder using `key` and `source`
    (keyed runs carry a key; direct-prompt runs usually do not, so tasks
    land in `Tasks.md # Irregular` when the vault is writable, else report-only);
    render + place tasks and verbose notes per §1–§3; dedupe per §5.
@@ -726,7 +726,7 @@ token-cost contribution to the PRD by citing
 nothing".
 
 Call `emit-cost` with `command: /implement`, `phase: implementation`,
-`role: dev`, the run's `jira_key` (or `null`) and `source`, and `plugin_version`
+`role: dev`, the run's `key` (or `null`) and `source`, and `plugin_version`
 (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the
 session transcript + subagents (§1), loads and **advances the chained
 checkpoint** (§3), runs `scripts/session-cost.py` to compute the per-model

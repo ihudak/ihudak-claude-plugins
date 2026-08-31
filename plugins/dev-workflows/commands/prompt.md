@@ -55,7 +55,7 @@ Cite `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its
 - **User prompt** — `$ARGUMENTS`, **verbatim** (never paraphrased).
 - **Resolution** — the one-line summary of the correction you just applied.
 - `command` (Phase 1), an inferred `category` (§1 vocab, reuse-first), `impact`,
-  `jira_key` (or `null`), `source`.
+  `key` (or `null`), `source`.
 
 `emit-prompt` resolves the write target via the §2 specs-first ladder, formats
 the entry with the two extra prose blocks (`origin: prompt`), and appends per §3
@@ -64,7 +64,7 @@ the entry with the two extra prose blocks (`origin: prompt`), and appends per §
 **Then emit session cost.** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md`
 and call its `emit-cost` entry point with `command: /prompt`, `phase: inferred`,
 `role: inferred`, `target_command: <the Phase 1 target command, or `n/a`>`, the run's
-`jira_key` (or `null`) and `source`, and `plugin_version`. **`target_command` is
+`key` (or `null`) and `source`, and `plugin_version`. **`target_command` is
 required** — §7 has no other source for it, so omitting it silently mis-attributes
 every correction to `plugin-feedback`/`n/a`. The cost phase resolves the real labels from the **target
 command** recorded above, per §7: a target with a fixed `phase`/`role` is
@@ -82,7 +82,7 @@ cost -> `resume.md` -> `commit-artifacts`; this command has no follow-ups or
 `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
 `commit-artifacts` entry point (§4) inline. It stages ONLY the §2.1 bounded
 artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session
-artifacts (/prompt)` — or `NOISSUE …` when no `jira_key` resolved — and
+artifacts (/prompt)` — or `NOISSUE …` when no `key` resolved — and
 pushes. It NEVER touches a code/docs repo, the vault, or the current working
 directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the
 run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its

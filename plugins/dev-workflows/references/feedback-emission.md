@@ -99,7 +99,7 @@ capture, §5). Walk the ladder top-down and stop at the first tier that applies:
 1. **`$SPECS_PATH` resolvable + writable + the PRD dir exists** — the dir matched
    by `$SPECS_PATH/{specs|specifications|vis}/…/<KEY>{-|_}<slug>/…` →
    `<PRD-dir>/dev-workflows/<KEY>-feedback.md`. *[primary — the whole point]*
-2. **`$SPECS_PATH` writable but no PRD dir matched** (no `jira_key`, or no
+2. **`$SPECS_PATH` writable but no PRD dir matched** (no `key`, or no
    matching spec dir) → `$SPECS_PATH/dev-workflows-feedback/<KEY-or-date>.md` at
    the specs-repo root. Still committed & aggregated; notice:
    `unfiled — move under the PRD dir if it belongs to one.`
@@ -191,7 +191,7 @@ run's terminal `commit-artifacts` step
 ### `emit-auto` — automatic callers (the thirteen commands' maintenance phases)
 
 Inputs: the `impl-maintenance` **Lessons Learned report**, `command` (the exact
-slash-command name), `jira_key` (or `null`), `source` (`vault | directory |
+slash-command name), `key` (or `null`), `source` (`vault | directory |
 none`).
 
 Behavior: project the plugin-facing slice per §4 (Command workflow improvements
@@ -205,7 +205,7 @@ or "no plugin-facing signal — nothing persisted" when the slice is empty.
 
 Inputs: `command` (the exact name, or `n/a`), the user-authored **Friction** and
 **Suggested improvement** prose, an inferred-and-confirmed `category` (§1 vocab),
-`impact`, `jira_key` (or `null`), `source`.
+`impact`, `key` (or `null`), `source`.
 
 Behavior: `origin: manual`; never silently skipped (§3 collision rule); resolve
 the target (§2); write; surface the path + any degradation notice.
@@ -214,7 +214,7 @@ the target (§2); write; surface the path + any degradation notice.
 
 Inputs: `command` (inferred from recent context, or `n/a`), the **corrective
 triple** — Friction, the **verbatim User prompt**, and the Resolution — a
-`category`, `impact`, `jira_key` (or `null`), `source`.
+`category`, `impact`, `key` (or `null`), `source`.
 
 Behavior: `origin: prompt`; write the entry with the two extra prose blocks
 (User prompt verbatim + Resolution, §1); never silently skipped (§3); resolve
@@ -222,7 +222,7 @@ the target (§2); write silently (§5); surface the path.
 
 ### `emit-block` — capture-at-block (a run halting on a plugin gap)
 
-Inputs: `command` (exact slash-command name), `jira_key` (or `null`), `source`
+Inputs: `command` (exact slash-command name), `key` (or `null`), `source`
 (`vault | directory | none`), and the **halting gap** — a short description of
 the plugin capability / reference / skill / command-path the run needed but the
 plugin lacked. Unlike `emit-auto`, no `impl-maintenance` report exists (the run

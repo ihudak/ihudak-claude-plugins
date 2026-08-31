@@ -275,7 +275,7 @@ in the PRD and the specs, not in the shipped diff. `diff-summarizer` itself is u
 re-pointed at `implementation.md` in the next increment.
   >
   > jira_export_root: [resolved jira_export_root from Phase 0]
-  > jira_key:         [resolved <JIRA_KEY>]
+  > key:         [resolved <JIRA_KEY>]
   > depth:            full"
 
 Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Jira key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`) and act accordingly. On `OK`, store the handoff for downstream phases.
@@ -343,7 +343,7 @@ For each repo, in the same Agent message:
   > pr_refs:     [ ... full PR entries from jira-reader handoff, filtered to this repo (and, when focus_key is set, to focus_items) ... ]
   > context:    |
   >   [1–2 sentences: PRD goal + themes relevant to this repo]
-  > jira_keys_hierarchy:
+  > keys_hierarchy:
   >   [PRD key + every linked_items key from jira-reader; when focus_key is set, restrict to focus_items — the focus Epic + its linked descendants]
   > refresh:
   >   fetch: [false if Phase 1 chose 'no refresh'; true otherwise]
@@ -901,7 +901,7 @@ Collect all four summaries for the Phase 9 report.
 returns, project its plugin-facing slice into the specs repo by citing
 `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
 `emit-auto` entry point (§6). Pass Agent 4's Lessons Learned report,
-`command: /document (Jira mode)`, the run's `jira_key` and `source`, and
+`command: /document (Jira mode)`, the run's `key` and `source`, and
 `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto` renders only
 the report's **Command workflow improvements**, **New agents / skills**, and
@@ -1012,7 +1012,7 @@ SIGNIFICANT — Jira-driven feature documentation has large blast radius if wron
 - ...
 
 ### PRs in scope
-- [PR URL] — status: [MERGED | OPEN | DECLINED | UNKNOWN], resolved_via: [pr_ref | branch_search | merge_commit | jira_key_commits | gh_cli | unresolved]
+- [PR URL] — status: [MERGED | OPEN | DECLINED | UNKNOWN], resolved_via: [pr_ref | branch_search | merge_commit | key_commits | gh_cli | unresolved]
 - ...
 
 ### Output file(s)
@@ -1105,7 +1105,7 @@ inline.
    out-of-scope / manual-step signals; drop in-scope items the report already
    tracks.
 3. **Resolve** the write target via the §4 vault-availability ladder using the
-   run's `jira_key` and `source`; render + place tasks and verbose notes per
+   run's `key` and `source`; render + place tasks and verbose notes per
    §1–§3; dedupe per §5.
 4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.
 
@@ -1128,7 +1128,7 @@ token-cost contribution to the PRD by citing
 nothing".
 
 Call `emit-cost` with `command: /document (Jira mode)`, `phase: documenting`,
-`role: dev`, the run's `jira_key` and `source`, and `plugin_version` (read from
+`role: dev`, the run's `key` and `source`, and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the session
 transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),
 runs `scripts/session-cost.py` to compute the per-model token-cost delta against
@@ -1437,7 +1437,7 @@ Collect all four summaries for the Phase 5 report.
 returns, project its plugin-facing slice into the specs repo by citing
 `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
 `emit-auto` entry point (§6). Pass Agent 4's Lessons Learned report,
-`command: /document (direct mode)`, the run's `jira_key` (usually `null` in
+`command: /document (direct mode)`, the run's `key` (usually `null` in
 direct mode) and `source`, and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto` renders only
 the report's **Command workflow improvements**, **New agents / skills**, and
@@ -1553,7 +1553,7 @@ its steps inline.
    no-op).
 2. **Filter** them with the reference's §6 qualifying predicate.
 3. **Resolve** the write target via the §4 ladder. Direct mode usually has no
-   `jira_key` (`source = none`), so tasks land in `Tasks.md # Irregular` when the
+   `key` (`source = none`), so tasks land in `Tasks.md # Irregular` when the
    vault is writable, else the phase degrades to report-only.
 4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.
 
@@ -1576,7 +1576,7 @@ token-cost contribution to the PRD by citing
 nothing".
 
 Call `emit-cost` with `command: /document (direct mode)`, `phase: documenting`,
-`role: dev`, the run's `jira_key` (usually `null` in direct mode) and `source`,
+`role: dev`, the run's `key` (usually `null` in direct mode) and `source`,
 and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the session
 transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),

@@ -342,7 +342,7 @@ Write the feature folder: `design.md` (flat, alongside `specification.md`), the 
 Then **offer** (commit-when-asked — never automatic), presenting `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's choice array verbatim:
 `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`
 
-On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: design`; `feature_folder` as resolved in Phase 0 — the per-Epic subfolder for a **per-Epic** or **stand-alone-Epic** design (`<EPIC>` = `focus_key`, which for a stand-alone Epic equals `jira_key`), or the PRD dir for a **broad PRD-level** design (`focus_key` null); Epic keys are globally unique, so the per-Epic form needs no PRD prefix — §2.2 derives `design/<EPIC>-<eslug>` or `design/<PRD>-<vslug>` from it, matching today's branch names, both forms using hyphens; `deliverable_paths` = `design.md`, the amended `specification.md`, `_design-session.md`, and `_design-glossary.md`; `title: <EPIC|PRD> Add engineering design`; and `body_facts` = the `design.md` sections authored, the spec-challenge count (`## Engineering review` notes / new spec `- [ ]`), the confirmed repo set, and the `design-reviewer` verdict. **Merged-to-main = ready for `/implement`.** Emit its §4.1 outcome line in the Final report.
+On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: design`; `feature_folder` as resolved in Phase 0 — the per-Epic subfolder for a **per-Epic** or **stand-alone-Epic** design (`<EPIC>` = `focus_key`, which for a stand-alone Epic equals `key`), or the PRD dir for a **broad PRD-level** design (`focus_key` null); Epic keys are globally unique, so the per-Epic form needs no PRD prefix — §2.2 derives `design/<EPIC>-<eslug>` or `design/<PRD>-<vslug>` from it, matching today's branch names, both forms using hyphens; `deliverable_paths` = `design.md`, the amended `specification.md`, `_design-session.md`, and `_design-glossary.md`; `title: <EPIC|PRD> Add engineering design`; and `body_facts` = the `design.md` sections authored, the spec-challenge count (`## Engineering review` notes / new spec `- [ ]`), the confirmed repo set, and the `design-reviewer` verdict. **Merged-to-main = ready for `/implement`.** Emit its §4.1 outcome line in the Final report.
 
 ### Next Epic (after a per-Epic design from a multi-Epic PRD)
 
@@ -385,7 +385,7 @@ same-role `/compact` suggestion + `/rename <PRD-ID>-<slug>-dev`. Guidance only, 
    slice into the specs repo by citing
    `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
    `emit-auto` entry point (§6). Pass the Lessons Learned report,
-   `command: /design`, the run's `jira_key` and `source`, and `plugin_version`
+   `command: /design`, the run's `key` and `source`, and `plugin_version`
    (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto`
    renders only the report's **Command workflow improvements**, **New agents /
    skills**, and plugin **Reference docs** sections plus the **Key observations**
@@ -412,7 +412,7 @@ contribution to the PRD by citing
 nothing".
 
 Call `emit-cost` with `command: /design`, `phase: planning`, `role: dev`, the
-run's `jira_key` (or `null`) and `source`, and `plugin_version` (read from
+run's `key` (or `null`) and `source`, and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the session
 transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),
 runs `scripts/session-cost.py` to compute the per-model token-cost delta against

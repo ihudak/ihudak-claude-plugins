@@ -96,7 +96,7 @@ default for this retrieval agent):
   >
   > docs_path:       <docs_root>
   > feature_summary: <2–4 sentences: the goal + capability themes for this run>
-  > jira_key:        <the PRD/Epic/ticket key, or omit for keyless /idea>
+  > key:        <the PRD/Epic/ticket key, or omit for keyless /idea>
   > themes:          [capability themes, or []]"
 ```
 

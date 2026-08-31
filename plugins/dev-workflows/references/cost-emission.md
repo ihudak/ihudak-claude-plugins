@@ -427,7 +427,7 @@ and acceptable.
 ## 11. Caller contract — `emit-cost`
 
 One entry point. Every caller supplies `command`, `phase`, `role` (or the
-`inferred` marker — `/release-notes`, `/prompt`, `/feedback`), `jira_key` (or
+`inferred` marker — `/release-notes`, `/prompt`, `/feedback`), `key` (or
 `null`), `source`, and `plugin_version`; `/prompt` and `/feedback` additionally
 supply `target_command`. `emit-cost` does the rest; it NEVER commits, NEVER writes
 into a docs/code repo or the current working directory, and NEVER fails the
@@ -453,7 +453,7 @@ Inputs:
   field, so the two never disagree. Omitting it is a caller error: §7 has no other
   source for it, and the entry would silently fall back to
   `plugin-feedback`/`n/a`, quietly mis-attributing every correction.
-- `jira_key` (or `null`), `source` (`vault | directory | none`).
+- `key` (or `null`), `source` (`vault | directory | none`).
 - `plugin_version` — read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`
   (`python3 -c "import json;print(json.load(open('<path>'))['version'])"`).
 

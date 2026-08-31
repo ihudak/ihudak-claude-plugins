@@ -117,9 +117,9 @@ frontmatter entry in Phase 4, and `tracked` seeds `## Prior art`.
 
 Dispatch both grounding agents **in a single response** so they run in parallel. Each is independent; either being OFF never suppresses the other.
 
-**Docs.** Run `resolve-docs-grounding idea` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the `idea-reader` digest's problem/outcome, `themes` = its signals; **omit `jira_key`** (idea is keyless, so the git-grep backstop is skipped). When OFF, skip silently.
+**Docs.** Run `resolve-docs-grounding idea` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the `idea-reader` digest's problem/outcome, `themes` = its signals; **omit `key`** (idea is keyless, so the git-grep backstop is skipped). When OFF, skip silently.
 
-**Prior art.** Using the `resolve-prior-art idea` result already obtained in Phase 1: when `prior_art: ON`, `dispatch-prior-art-finder` per `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md` with `feature_summary` = the same problem/outcome, `themes` = the digest's signals, and `known_refs` built from the reader's digest: every `wikilinks_followed` path and every filesystem-path `source_refs` ref as `{path, has_summary: true}` (`idea-reader` already summarised them), plus — for a `prd` source — `{jira_key: <KEY>, has_summary: true}`. Passing the key rather than a path is deliberate: the orchestrator does not know which vault directory holds that PRD, and resolving it is the finder's job. The supplied PRD is then classified and status-resolved by the same code path as a discovered one. When OFF, skip silently.
+**Prior art.** Using the `resolve-prior-art idea` result already obtained in Phase 1: when `prior_art: ON`, `dispatch-prior-art-finder` per `${CLAUDE_PLUGIN_ROOT}/references/vault-prior-art.md` with `feature_summary` = the same problem/outcome, `themes` = the digest's signals, and `known_refs` built from the reader's digest: every `wikilinks_followed` path and every filesystem-path `source_refs` ref as `{path, has_summary: true}` (`idea-reader` already summarised them), plus — for a `prd` source — `{key: <KEY>, has_summary: true}`. Passing the key rather than a path is deliberate: the orchestrator does not know which vault directory holds that PRD, and resolving it is the finder's job. The supplied PRD is then classified and status-resolved by the same code path as a discovered one. When OFF, skip silently.
 
 Carry both digests into Phase 3 with **grill-rank** consumption — challenges from the two compete together for the ≤10 question slots, they do not add slots. Carry `area_proposal` and the `prd` source's match into Phase 4.
 
@@ -230,7 +230,7 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
   OFF — it is prior art the user handed over, not something the finder discovered — and appears there
   **and** in `sources:`. Merge by Jira key so a supplied PRD the finder also matched yields one bullet: the finder's entry wins,
   because it is a strict superset of `tracked` (it adds `relation`, `match_reason`, and a vault path). A
-  finder match with `jira_key: null` cannot collide — a supplied PRD always has a key.
+  finder match with `key: null` cannot collide — a supplied PRD always has a key.
 - **`## Feasibility grounding`:** write the section per
   `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` when Phase 2.6 ran **and** returned at least one
   finding; omit it entirely otherwise. Head it with each grounded repo as `<repo>@<scanned_ref>`; give
@@ -307,13 +307,13 @@ abandoned at the block still records the gap. NEVER `emit-block` for an environm
    > - Project root: [the idea.md folder]"
 2. **Persist plugin feedback (automatic).** Cite
    `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6)
-   with the Lessons Learned report, `command: /idea`, `jira_key: null`, the run's `source`, and
+   with the Lessons Learned report, `command: /idea`, `key: null`, the run's `source`, and
    `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It renders only the
    plugin-facing slice (§4), dedupes by stable `id` (§3), resolves the target via the §2 specs-first
    ladder, and writes silently. Surface the persisted path (or "no plugin-facing signal — nothing
    persisted").
 3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and call its
-   `emit-cost` entry point with `command: /idea`, `phase: prd-creation`, `role: pm`, `jira_key: null`,
+   `emit-cost` entry point with `command: /idea`, `phase: prd-creation`, `role: pm`, `key: null`,
    the run's `source`, and `plugin_version`. A keyless run writes to the pending ladder (§9) and
    **advances the chained checkpoint** (§3); surface the persisted path (or the report-only notice).
 4. **Commit session artifacts (terminal).** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`

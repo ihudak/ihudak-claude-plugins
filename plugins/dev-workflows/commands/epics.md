@@ -10,7 +10,7 @@ Draft child Epics for the Jira Product Requirements Document: $ARGUMENTS
 
 Key distinction from `/document` (Jira mode): the PRD being Epic-ized is **not yet implemented** — there are no PRs to diff. Code scanning (when enabled) is a plain filesystem search to understand what exists and what needs to be built.
 
-`/epics` **never branches** and **never commits the Epic drafts** (still true — the run's git **writes** are confined to `$SPECS_PATH`, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`; the run does make read-only git calls elsewhere — Phase 4's `git remote get-url origin` per candidate clone and Phase 8's `git diff --stat` from `project_root` — but none of them writes), and writes only to the resolved output directory — `jira-drafts/<jira_key>/` under `$VAULT_PATH`, or a derived `epic-drafts/<jira_key>/` dir beside the imported hierarchy when `$VAULT_PATH` is unset. Git hygiene of the write target is the user's responsibility — they may or may not have it under version control. The run commits only inside `$SPECS_PATH`, and only its bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1) — via the `specs-preflight` flush at run start (§3.4) and the terminal `commit-artifacts` step (§4); never the drafts, never the write target. It still creates no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none).
+`/epics` **never branches** and **never commits the Epic drafts** (still true — the run's git **writes** are confined to `$SPECS_PATH`, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`; the run does make read-only git calls elsewhere — Phase 4's `git remote get-url origin` per candidate clone and Phase 8's `git diff --stat` from `project_root` — but none of them writes), and writes only to the resolved output directory — `jira-drafts/<KEY>/` under `$VAULT_PATH`, or a derived `epic-drafts/<KEY>/` dir beside the imported hierarchy when `$VAULT_PATH` is unset. Git hygiene of the write target is the user's responsibility — they may or may not have it under version control. The run commits only inside `$SPECS_PATH`, and only its bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1) — via the `specs-preflight` flush at run start (§3.4) and the terminal `commit-artifacts` step (§4); never the drafts, never the write target. It still creates no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none).
 
 ---
 
@@ -56,12 +56,12 @@ Ask about:
 - **Output directory.** One `.md` file per Epic, filename `<NEW-EPIC-SLUG>.md`
   (drafted Epics have no Jira ID yet, so they are slug-named files inside the
   PRD-keyed folder). The default depends on `$VAULT_PATH`:
-  - **`$VAULT_PATH` set** → `$VAULT_PATH/jira-drafts/<jira_key>/`. This lives
+  - **`$VAULT_PATH` set** → `$VAULT_PATH/jira-drafts/<KEY>/`. This lives
     outside any code or docs repository by design — it is
     every Jira import, so drafts written there would be lost; `jira-drafts/` is a
     sibling reserved for PM/PO work-in-progress.
   - **`$VAULT_PATH` unset** (directory input) →
-    `<parent-of-jira_export_root>/epic-drafts/<jira_key>/`. **Path-safety
+    `<parent-of-jira_export_root>/epic-drafts/<KEY>/`. **Path-safety
     guard:** warn and offer another path if this dir would fall *inside*
     `jira_export_root` (wiped and regenerated on every import). A pre-existing
     dir that already holds drafts is normal — **not** a warning.
@@ -93,7 +93,7 @@ Also display (for user context):
 - Resolved cwd absolute path
 - Resolved output directory
 - Resolved `$REPOS_PATH` (or "N/A — code scan off")
-- Resolved `jira_export_root` and `jira_key` (plus `$VAULT_PATH` when set)
+- Resolved `jira_export_root` and `key` (plus `$VAULT_PATH` when set)
 
 No branching context is shown — this command never branches (still true — `specs-preflight` only switches `$SPECS_PATH` between branches that already exist, and only ones the plugin created, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2; it creates none).
 
@@ -127,7 +127,7 @@ Each subagent dispatch below cites its chain (§9 role→chain map). **No relaun
 
 Present a concise plan:
 
-- Resolved `jira_key` and the `jira_export_root` path
+- Resolved `key` and the `jira_export_root` path
 - Existing Epics identified under this PRD (will NOT be duplicated)
 - Repos to scan (or "code scan off")
 - Docs grounding: the `docs grounding:` line that `resolve-docs-grounding` returned, verbatim — including its `retrieval:` value and any index-build, staleness, or shadowing clause (off switch: --no-docs)
@@ -151,7 +151,7 @@ choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
 ## Phase 2.5 — Resolve applicable ARD (optional)
 
 Resolve any PRD-level ARD for this PRD by citing
-`${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with `prd = jira_key`,
+`${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with `prd = key`,
 **`epic: null`** (Epics do not exist yet — PRD-level ARD only), and `$SPECS_PATH`.
 
 - On `status: none` (including `$SPECS_PATH` unset/unresolvable) → **skip and
@@ -212,7 +212,7 @@ the retired reader used to return. Each Epic folder's `key` and title come from 
 (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4), never from its directory name.
   >
   > jira_export_root: [resolved jira_export_root]
-  > jira_key:         [resolved jira_key]
+  > key:         [resolved key]
   > depth:      prd-plus-epics"
 
 Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Jira key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On `OK`, carry the handoff `requirements[]` and `requirements_source` forward —
@@ -230,7 +230,7 @@ On `OK`, identify the Epics already linked to the PRD (filter `linked_items` to 
 **Refinement target (`focus_key`).** `/epics` always reads and analyses the whole PRD
 (the partition and non-duplication logic are inherently PRD-holistic). When `focus_key`
 is set (explicit `<PRD> <Epic>`), validate it is among the linked Epics; if it is not,
-surface `EPICS_FOCUS_NOT_FOUND: <focus_key> is not a linked Epic of <jira_key>.` and
+surface `EPICS_FOCUS_NOT_FOUND: <focus_key> is not a linked Epic of <KEY>.` and
 offer `choices: ["Proceed PRD-level (draft the full partition)", "Re-enter the Epic key", "Cancel"]`.
 When present, treat `focus_key` as the **single refinement target**: Phase 6 re-drafts
 only that Epic's definition, and Phase 7 reviews only that file. The non-duplication
@@ -251,7 +251,7 @@ Runs only when `focus_key` is set OR `refinement_candidates` is non-empty. Other
 
 **No focus key, `refinement_candidates` non-empty** → present the detected set as a CONFIRMABLE list (detection only *proposes*; the PE is the authority) and ask the mode:
 ```
-Detected N empty/almost-empty team-Epic shells linked to <jira_key>:
+Detected N empty/almost-empty team-Epic shells linked to <KEY>:
   - <EPIC-KEY> · <team, or "team: [NEEDS CLARIFICATION]"> · <scope_hint>
   ...
 choices: ["Refine these N (partition the PRD across them) (Recommended)", "Generate net-new Epics (ignore the shells)", "Both — refine the shells and draft net-new for leftover scope", "Let me adjust which shells to refine (you'll be prompted)", "Other… (describe)"]
@@ -268,7 +268,7 @@ with a one-line rationale ("2+ team-Epics → code context helps draw the bounda
 
 ## Phase 3.6 — Documentation grounding dispatch
 
-**Documentation grounding dispatch (optional, independent of code scan).** `docs_grounding` was already resolved in Phase 2 — consume that cached result here; never re-run `resolve-docs-grounding`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the PRD goal + Epic-set intent, `jira_key` = the PRD key, `themes` = the `jira-reader` themes. Carry the digest into Phase 6 with **writer-attach** consumption. When OFF, skip silently.
+**Documentation grounding dispatch (optional, independent of code scan).** `docs_grounding` was already resolved in Phase 2 — consume that cached result here; never re-run `resolve-docs-grounding`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the PRD goal + Epic-set intent, `key` = the PRD key, `themes` = the `jira-reader` themes. Carry the digest into Phase 6 with **writer-attach** consumption. When OFF, skip silently.
 
 This phase sits **before** the conditional repo-resolution and code-scanning phases deliberately. It needs only Phase 3's output — the PRD goal and the `jira-reader` themes — and nothing from the code scan, and Phase 4 and Phase 5 both skip to Phase 6 when code scan is OFF. Dispatching from inside either of them would discard the digest on exactly the runs that turned code scanning off, after Phase 2 had already asked the user to consent to building an index for it.
 
@@ -341,7 +341,7 @@ Handle per-repo status after the batch returns:
 
 The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1 Sonnet detection chain for MODERATE; §2 Opus only if the run is SIGNIFICANT/HIGH-RISK — see `classification.md` §9.2). The orchestrator prepares a handoff and dispatches; it does not write Epics itself, and **nothing commits in this phase** (still true — `/epics` never branches, and the Epic drafts it writes are never committed; git hygiene of the write target is the user's responsibility. The run commits only inside `$SPECS_PATH`, and only its bounded session-artifact paths, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
 
-1. **Write the handoff file.** Create a temp file (`mktemp` — never the vault, never a repo) containing the `epic-writer` input contract: `jira_reader_handoff`, `code_scanner_outputs` (empty if no scan), `scope` (Phase 2 in/out of scope), `existing_epics` (non-duplication), `output_dir` (resolved Phase 1 dir), `vi_goal`, `jira_key`, `requirements` + `requirements_source` (from Phase 3), `applicable_ard` (the Phase 2.5 invariants + guidance_summary, or omit when status was none), `existing_epic_themes` (themes of the already-linked Epics), `mode` (`generate` | `refine` | `both` — from Phase 3.5; `generate` when 3.5 skipped), `refinement_targets` (list of `{key, team, scope_hint, current_body_path}`, where `current_body_path = <jira_export_root>/<EPIC-KEY>/<EPIC-KEY>.md`; empty in `generate` mode), and `docs_grounding` (the Phase 3.6 digest, or omit when OFF/EMPTY). Record its absolute path. When `focus_key` is set (the Phase 3 refinement target), set `scope` in-scope to just the focus Epic and `existing_epics` to the *other* linked Epics, so `epic-writer` re-drafts the single focus Epic's definition file; `output_dir` is unchanged.
+1. **Write the handoff file.** Create a temp file (`mktemp` — never the vault, never a repo) containing the `epic-writer` input contract: `jira_reader_handoff`, `code_scanner_outputs` (empty if no scan), `scope` (Phase 2 in/out of scope), `existing_epics` (non-duplication), `output_dir` (resolved Phase 1 dir), `vi_goal`, `key`, `requirements` + `requirements_source` (from Phase 3), `applicable_ard` (the Phase 2.5 invariants + guidance_summary, or omit when status was none), `existing_epic_themes` (themes of the already-linked Epics), `mode` (`generate` | `refine` | `both` — from Phase 3.5; `generate` when 3.5 skipped), `refinement_targets` (list of `{key, team, scope_hint, current_body_path}`, where `current_body_path = <jira_export_root>/<EPIC-KEY>/<EPIC-KEY>.md`; empty in `generate` mode), and `docs_grounding` (the Phase 3.6 digest, or omit when OFF/EMPTY). Record its absolute path. When `focus_key` is set (the Phase 3 refinement target), set `scope` in-scope to just the focus Epic and `existing_epics` to the *other* linked Epics, so `epic-writer` re-drafts the single focus Epic's definition file; `output_dir` is unchanged.
 
 2. **Dispatch the writer:**
 
@@ -543,7 +543,7 @@ Collect all four summaries for the Phase 9 report.
 returns, project its plugin-facing slice into the specs repo by citing
 `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
 `emit-auto` entry point (§6). Pass Agent 4's Lessons Learned report,
-`command: /epics`, the run's `jira_key` and `source`, and `plugin_version`
+`command: /epics`, the run's `key` and `source`, and `plugin_version`
 (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto`
 renders only the report's **Command workflow improvements**, **New agents /
 skills**, and plugin **Reference docs** sections plus the **Key observations**
@@ -664,7 +664,7 @@ and executing its steps inline.
    drafted Epics in Jira manually" — the drafts are vault/dir files, not Jira
    tickets) and the Phase 9 `### Deferred items` that are out-of-scope refinement.
 2. **Filter** them with the reference's §6 qualifying predicate.
-3. **Resolve** the write target via the §4 ladder using `jira_key` and `source`;
+3. **Resolve** the write target via the §4 ladder using `key` and `source`;
    render + place tasks and verbose notes per §1–§3; dedupe per §5.
 4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.
 
@@ -686,7 +686,7 @@ token-cost contribution to the PRD by citing
 nothing".
 
 Call `emit-cost` with `command: /epics`, `phase: epic-refinement`, `role: pe`,
-the run's `jira_key` (or `null`) and `source`, and `plugin_version` (read from
+the run's `key` (or `null`) and `source`, and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the session
 transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),
 runs `scripts/session-cost.py` to compute the per-model token-cost delta against
@@ -735,7 +735,7 @@ user name is ever written (§10 privacy).
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - NEVER write inside `_archive/` — read-only by convention
 - NEVER write inside `jira_export_root` — it is re-created on every Jira import, so drafts there would be lost (the Phase 1 path-safety guard enforces this for the derived `epic-drafts/` default)
-- ALWAYS write to the resolved `output_dir` — `$VAULT_PATH/jira-drafts/<jira_key>/` when `$VAULT_PATH` is set, else `<parent-of-jira_export_root>/epic-drafts/<jira_key>/` (or the user-confirmed alternative) — auto-create the directory if missing
+- ALWAYS write to the resolved `output_dir` — `$VAULT_PATH/jira-drafts/<KEY>/` when `$VAULT_PATH` is set, else `<parent-of-jira_export_root>/epic-drafts/<KEY>/` (or the user-confirmed alternative) — auto-create the directory if missing
 - ALWAYS escalate missing repos before proceeding — never silent skip
 - ALWAYS invoke `epic-reviewer` before Phase 8 maintenance
 - ALWAYS resolve the `model_routing` block at Phase 1.5 and pin each subagent dispatch to its §9 chain via `model:` — the mechanical steps (`jira-reader`, `code-scanner`, `prose-style-checker`, `doc-fixer`) and `epic-writer` (MODERATE) to the §2.1 Sonnet chain; `epic-reviewer` keeps its frontmatter Opus pin (no override); coordination + interactive gates run on `current_model`

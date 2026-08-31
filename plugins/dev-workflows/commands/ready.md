@@ -90,7 +90,7 @@ MUST be `"Other… (describe)"`.
    For each `specification.md` and `design.md` path located above (the `ard.md` files are handled by Phase 2.5's `ard-resolution.md`, not here), execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against its repo-relative path and map its §3.7 return value by `stopped` first, never by `on_main` alone — never a stop, per this command's defining trait: `stopped: false` with `on_main: pass`/`pass_amending` → **present** (with its absolute path); `stopped: false` with `on_main: absent` → **missing**, exactly as before this feature (§3.4's `/ready` row — this is row F only, never rows D/E, which also read `absent` on `origin/<default>` but return `stopped: true`); `stopped: false` with `on_main: unmanaged` → fall back to a raw filesystem presence check, exactly as before this feature (row H's own silent-skip contract); `stopped: true` → still never a stop for `/ready` — map the row to exactly one of three ⚠ reasons, never conflating them, because they are three different repository states, not one: rows D/E → ⚠ **authored only on `<branch>`, not merged** (naming the branch and any open PR); rows C′/C after a failed retry → ⚠ **on `<default>` but your local checkout is stale or dirty, so it could not be confirmed**; rows G/I (including the run's own `specs_git: blocked`) → ⚠ **could not be verified against any ref** (naming the returned `degraded` clause where present). Each is recorded verbatim as a readiness finding — `/ready` itself never asks a further question, retries, or stops on top of what came back: row C's own prompt-once-and-re-test-once (`phase-handoff.md` §3.3 row C, `:139-143`) and row C′'s own immediate stop naming the blocking files are `require-on-main`'s contract, already executed synchronously inside this very step; `/ready` only records whichever `stopped`/`degraded` state the call returned. Record each ARD as present (with its absolute path) or absent — its on-main state is Phase 2.5's job. Do not open/read file contents yet beyond what's needed for these checks — full reads happen in Phase 4 via the reviewer.
 
 3. **Quick Jira status peek (display only — not the ground truth).** Read
-   `<jira_export_root>/<jira_key>-index.md`'s `| Key | Type | Status | Summary | Role |` table directly
+   `<jira_export_root>/<KEY>-index.md`'s `| Key | Type | Status | Summary | Role |` table directly
    (mechanical — no subagent) and note the `Status` column for `<PRD>` and, when set, `<EPIC>`. This is
    for **Phase 1 display context only**; Phase 2's `jira-reader` read is the authoritative source the
    reviewer verifies against.
@@ -142,7 +142,7 @@ the set whose artifacts this command judges. Nothing here reads a declared statu
 the phase from what the artifacts show, and `--claimed` is the only way a declaration enters the run.
   >
   > jira_export_root: [resolved jira_export_root]
-  > jira_key:         [resolved jira_key]
+  > key:         [resolved key]
   > depth:      prd-plus-epics"
 
 Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Jira key dir not found`
@@ -152,7 +152,7 @@ carry forward:
 - `value_increment.status` — the PRD's declared status (PRD ladder).
 - `linked_items[]` filtered to `type == Epic` and their `.status` — each Epic's declared status (Epic
   ladder). When `focus_key` is set, validate it is among these; if not, surface
-  `READY_FOCUS_NOT_FOUND: <focus_key> is not a linked Epic of <jira_key>.` with
+  `READY_FOCUS_NOT_FOUND: <focus_key> is not a linked Epic of <KEY>.` with
   `choices: ["Check PRD-level readiness instead (the whole PRD)", "Re-enter the Epic key", "Cancel"]`.
 - `requirements[]` (+ `requirements_source`) — the coverage ground truth for Phase 3(a).
 
@@ -164,7 +164,7 @@ re-derived (per `readiness-reviewer.md`'s hard rules).
 ## Phase 2.5 — Resolve ARD
 
 Resolve any applicable ARD by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with
-`prd = jira_key`, `epic = focus_key` (may be `null`), and `$SPECS_PATH`.
+`prd = key`, `epic = focus_key` (may be `null`), and `$SPECS_PATH`.
 
 - **`status: none`** (including `$SPECS_PATH` unset/unresolvable) → the ARD dimension is **inactive** for
   this run — no prompt, no extra output, `readiness-reviewer`'s ARD-conformance dimension is skipped
@@ -465,7 +465,7 @@ concurrently.
 **Persist plugin feedback (automatic).** After Agent 4 (`impl-maintenance`) returns, project its
 plugin-facing slice into the specs repo by citing
 `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its `emit-auto` entry point (§6).
-Pass Agent 4's Lessons Learned report, `command: /ready`, the run's `jira_key` and `source`, and
+Pass Agent 4's Lessons Learned report, `command: /ready`, the run's `key` and `source`, and
 `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto` renders
 only the report's **Command workflow improvements**, **New agents / skills**, and plugin **Reference
 docs** sections plus the **Key observations** that triggered them (§4 plugin-facing predicate) — never
@@ -503,7 +503,7 @@ the run's manual-step / out-of-scope follow-ups by citing
    reminder whenever the verdict is not a clean `SUPPORTED` at the declared status.
 2. **Filter** them with the reference's §6 qualifying predicate — a `SUPPORTED` run with no gaps
    qualifies **nothing**; this phase is then a silent no-op (byte-identical to a run without it).
-3. **Resolve** the write target via the §4 ladder using `jira_key` and `source`; render + place tasks
+3. **Resolve** the write target via the §4 ladder using `key` and `source`; render + place tasks
    and verbose notes per §1–§3; dedupe per §5.
 4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.
 
@@ -529,7 +529,7 @@ Terminal phase — runs after Phase 7 and NEVER interrupts an earlier phase. Rec
 token-cost contribution to the PRD by citing `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and
 calling its single `emit-cost` entry point. **Cost ALWAYS runs** — it never "writes nothing".
 
-Call `emit-cost` with `command: /ready`, `phase: readiness`, `role: dev`, the run's `jira_key` (or
+Call `emit-cost` with `command: /ready`, `phase: readiness`, `role: dev`, the run's `key` (or
 `null`) and `source`, and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the session transcript + subagents
 (§1), loads and **advances the chained checkpoint** (§3), runs `scripts/session-cost.py` to compute the

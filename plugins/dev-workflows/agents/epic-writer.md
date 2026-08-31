@@ -15,7 +15,7 @@ The orchestrator writes a **handoff file** (a temp file) and passes its absolute
 - `scope` — the Phase 2 in-scope / out-of-scope decisions
 - `existing_epics` — for non-duplication
 - `output_dir` — the resolved output directory (default `$VAULT_PATH/jira-drafts/<JIRA_KEY>/`)
-- `vi_goal`, `jira_key`
+- `vi_goal`, `key`
 - `requirements` + `requirements_source` — the PRD requirement inventory (from jira-reader); the coverage ground truth.
 - `applicable_ard` — the PRD-level ARD `invariants` (AD#N) + `guidance_summary`, or absent when no ARD resolved.
 - `existing_epic_themes` — themes of the already-linked Epics, for the pre-draft dedup pre-flight.

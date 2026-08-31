@@ -4,6 +4,66 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.3.3] — 2026-08-31
+
+### Fixed — seven defects from a second review round
+
+Two of the seven are defects the 3.3.2 round introduced; they are marked as such.
+
+- **A split parent questioned and packaged requirements it does not own.**
+  `/brd-interview` generated its round from "the findings and the inventory" and `/brd-package`
+  stated review scope from the ledger and the inventory, neither reading the `disposition` column.
+  On a **slice** that is correct — its inventory is exactly the rows it claims — and on a **split
+  parent** it is over-broad, because the parent's inventory still holds every `[BR#n]` its own walk
+  delegated. So a delegated requirement was questioned at both levels and put to the customer in two
+  packages: the contradiction `interview-tagging.md` §5 names, reached across levels instead of
+  within one, costing two `[VD#n]` records in two registers that can disagree with nothing linking
+  them. `coverage-ledger-format.md` gains §3.1 — a `covered-by` row's requirement leaves this BRD's
+  scope as a *subject* while staying readable as context — and both commands read the `disposition`
+  column, never the inventory and never `claims:`. New stop `BRD_INTERVIEW_ALL_DELEGATED` for the
+  state scoping makes reachable: a BRD that kept nothing has nothing to decide, and an empty round
+  record is permanent and append-only.
+
+- **The propagation sweep could not reach a child.** `/brd-reconcile`'s ledger phase says a
+  `covered-by` row whose obligation the customer just withdrew is named in the owning BRD by "the
+  propagation sweep" — but that sweep found only BRDs declaring `depends-on:`, and a child declares
+  `parent:` and `claims:`. A customer withdrawing a delegated requirement therefore left the owning
+  BRD still grounding, interviewing and packaging an obligation that was gone. The swept set now has
+  two sources: the declared-dependents scan, and a **lookup** over this ledger's own `covered-by`
+  keys — no scan needed, because that relation is listed in this BRD's own folder, which is exactly
+  why it was missed.
+
+- **The stale cross-reference sweep could write what two other rules forbid.** Its scope is every
+  markdown file under the parent and names "the ledger" and "the inventory" outright, while its
+  `updated` outcome is guarded only by `require-on-main` — which passes on a merged file. So a hit
+  on a ledger `disposition` licensed the cross-BRD ledger write the same command's previous phase
+  prohibits, and a hit on an inventory row licensed an edit to text that mirrors an immutable
+  source. Hits inside a ledger disposition, an inventory row's `id`/`text`/`source_anchor`, and a
+  register record's `status`/`chosen`/`evidence` are now `needs-a-human`. `updated` is for prose.
+
+- **The customer's own source document was being de-Obsidianised** *(introduced in 3.3.2)*. The
+  §1.1 allow-list put `brd/source/<basename>` in the bundle without exempting it from the rendering
+  pass — but every `[BR#n]` anchors into it by heading path or line range, so a rendered copy breaks
+  the traceability the file is included to support; it is immutable by rule; and it is the
+  customer's own writing going back to them reformatted. New §2.1: copied byte for byte, with
+  anything a plain reader cannot open named in the manifest instead. The plugin-free scan gains its
+  only exemption for the same file — a hit there is the customer's own text, so it is reported for
+  the operator to decide rather than deadlocking a BRD that can never be repackaged.
+
+- **Two files the allow-list added were resolved nowhere** *(introduced in 3.3.2)*. `/brd-package`
+  Phase 0 now resolves `brd/source/` and `brd/brd-defect-log.md` — one hop up on a slice — so an
+  absent one is reported before a prompt is built. The returned-review date ladder now rejects a
+  filename date matching **any** packaging date in the folder, not only the most recent: a review
+  may legitimately answer an earlier package and would echo that package's stamp.
+
+- **`CLAUDE.md` named two of the four commands that need a minted tracker key.** `/epics`,
+  `/release-notes`, `/design` and `/ready` are all jira-driven-only front-end consumers; the map
+  line read as though `/design` and `/ready` ran on a BRD key. `/specify --from-brd` and
+  `/create-ard --from-brd` already test for the export before naming one.
+
+- **`/specify` named an artifact nothing writes** — "`/design` → `design.md` + `plan.md`".
+  `plan.md` appeared exactly once in the plugin and nothing produces it.
+
 ## [3.3.2] — 2026-08-31
 
 ### Fixed — thirteen defects from a whole-feature review of the BRD route

@@ -198,8 +198,13 @@ drop would look like customer silence. A row citing none of the three is carried
 
 ## The two sweeps
 
-**Propagation.** Every BRD whose `brd-link.md` declares `depends-on:` carrying this key is swept, at
-either level. Decisions and assumptions carrying `conditional_on` are the **first** target and are
+**Propagation.** Two sets are swept, and only the first is a scan: every BRD whose `brd-link.md`
+declares `depends-on:` carrying this key, at either level; **and every BRD this ledger delegates to**,
+looked up from its own `covered-by` rows. The second exists because a child declares `parent:` and
+`claims:`, never `depends-on:` — so the scan alone could not reach it, and a customer withdrawing a
+requirement this BRD had delegated would have left the owning BRD still grounding, interviewing and
+packaging an obligation that was gone. A row whose disposition this run moved puts its owning BRD in
+the set on that account alone, whether or not anything there cites a changed id. Decisions and assumptions carrying `conditional_on` are the **first** target and are
 swept whether or not they cite a changed id — that is what the field is for, and the order is
 load-bearing: the `conditional_on` pass is the complete one, found mechanically by a field, and
 running the incomplete textual pass first makes the complete one an afterthought. A dependent whose
@@ -212,6 +217,13 @@ across a line wrap; and prose asserting a now-superseded position with no id in 
 cannot be reduced to a pattern, and it is the one that matters — **updating a register while a value
 document still states the old position is the characteristic failure of this step**, and the
 contradiction is invisible from the register, which is the only place anybody looks.
+
+A hit is corrected only where it is **prose**. Inside a coverage ledger's `disposition`, an inventory
+row's `id`/`text`/`source_anchor`, or a register record's `status`/`chosen`/`evidence`, it becomes
+`needs-a-human` instead: each of those is fixed by a rule the sweep does not own — allocation belongs
+to [`/brd-split`](brd-split.md)'s walk, an inventory row mirrors an immutable source, and a decision
+moves only through the four sweep dispositions or the two reopening causes. The scope is every
+markdown file under the parent, which is exactly why the carve-out has to be written down.
 
 ## What it does not do
 

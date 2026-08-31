@@ -272,8 +272,10 @@ path nobody else can reproduce; the copy is the record.
       their own date in their own document, which is exactly what is wanted.
    2. **A `<YYYYMMDD>` in the supplied filename** — the schema asks the reviewer to name the file
       for the date they finished, so a file that came back unrenamed carries it. **Reject this rung
-      where that date equals the date on the `customer-review-prompt-<YYYYMMDD>.md` this run gated
-      on**, and fall through to rung 3: the two matching is the signature of a reviewer echoing the
+      where that date matches the date on *any* `customer-review-prompt-<YYYYMMDD>.md` in this
+      folder**, and fall through to rung 3 — *any*, not only the most recent one this run gated on,
+      because a review may legitimately answer an earlier package and would then echo that package's
+      stamp rather than the latest: the two matching is the signature of a reviewer echoing the
       package's own stamp rather than dating their work, and a filename that merely repeats the
       packaging date settles nothing. It is not proof — a review genuinely finished the day the
       package was built produces the same collision — which is why the fallback is a prompt that
@@ -771,13 +773,34 @@ answered; every `[BR#n]` whose ledger row moved; and every `[DEF#n]` that gained
 that grows while the sweep runs makes the sweep's own coverage unknowable — some items were checked
 against three ids and some against six, and afterwards nobody can say which.
 
-**Find every dependent BRD.** A dependent is any BRD whose `brd-link.md` declares `depends-on:`
-carrying this run's `<BRD-KEY>`, at **either** of the two levels a BRD folder can occupy — so the
-search scans `specifications/` and exactly one level below it, the same bound `resolve-brd` uses and
-for the same reason (`brd-addressing.md` §2, §3). This is the reverse of key resolution and is a
-scan, not a lookup: a dependency is declared by the dependent, and nothing in this BRD's own folder
-lists who depends on it. Any key at any level may declare it (D17), so a slice depending on a
-source-owning BRD and a BRD depending on a sibling are both found by the same scan.
+**The swept set has two sources, and only one of them is a scan.**
+
+1. **Declared dependents — a scan.** Any BRD whose `brd-link.md` declares `depends-on:` carrying
+   this run's `<BRD-KEY>`, at **either** of the two levels a BRD folder can occupy — so the search
+   scans `specifications/` and exactly one level below it, the same bound `resolve-brd` uses and for
+   the same reason (`brd-addressing.md` §2, §3). This is the reverse of key resolution: a dependency
+   is declared by the dependent, and nothing in this BRD's own folder lists who depends on it. Any
+   key at any level may declare it (D17), so a slice depending on a source-owning BRD and a BRD
+   depending on a sibling are both found by the same scan.
+2. **BRDs this ledger delegates to — a lookup, not a scan.** Every distinct `<OTHER-KEY>` named by a
+   `covered-by` row of `<BRD-dir>/coverage-ledger.md`, resolved with `resolve-brd`. No scan is needed
+   because this relation *is* listed in this BRD's own folder — which is exactly why it was missed:
+   the paragraph above defines a dependent as something that declares itself, and a child declares
+   `parent:` and `claims:`, never `depends-on:`.
+
+**The second source is what makes the *Update the coverage ledger* phase's promise true.** That
+phase writes a `[CD#n]`-driven `deferred-to`, `rejected` or `superseded-by` onto rows of **this**
+ledger, refuses to reach one hop down to write, and says "what the BRD it names does about it belongs
+to that BRD's own reconciliation, and the propagation sweep is what names it there." Reached only by
+the declared-dependents scan, that sentence named a mechanism that could not arrive: a customer
+withdrawing a requirement this BRD had delegated left the owning BRD still grounding it, still
+interviewing it and still packaging it, with nothing anywhere saying the obligation was gone. Where
+this run moved a `covered-by` row's disposition, that row's owning BRD is in the set **on that
+account alone**, whether or not anything in it cites a changed id.
+
+The cross-BRD write guard applies to both sources identically, and nothing about the second widens
+what may be written: a delegated row's fate in the owning BRD is still that BRD's to record, so what
+this sweep produces there is a disposition against its **register**, never a write into its ledger.
 
 **`conditional_on` positions are swept first, and they are swept whether or not they cite a changed
 id.** Every `[VD#n]`, `[CD#n]` and `[AS#n]` in a dependent BRD carrying
@@ -888,6 +911,25 @@ belong to some other BRD.
 **A hit inside a dated snapshot is never edited.** It is bannered by the *Banner the superseded dated
 snapshots* phase where that phase's rules reach it, and inside `bundle-<YYYYMMDD>/` it is neither
 edited nor bannered — it is recorded, for the byte-identical reason that phase gives.
+
+**Nor is a hit inside a structured record ever `updated`.** The scope above is deliberately every
+markdown file under the parent, which is what reaches a sibling's seed — but three of the file kinds
+it names carry content another rule already fixes, and `updated` on one of them would contradict that
+rule rather than correct a stale sentence:
+
+| Where the hit landed | Outcome, and the rule that decides it |
+|---|---|
+| a `coverage-ledger.md` `disposition` — **any** ledger's, this BRD's included | `needs-a-human`. Allocation is `/dev-workflows:brd-split`'s walk and nothing else's, and the *Update the coverage ledger* phase writes only the three `[CD#n]`-driven dispositions onto **this** ledger and never reaches one hop down or across (`coverage-ledger-format.md` §3, §4) |
+| a `brd/brd-inventory.md` row's `id`, `text` or `source_anchor` | `needs-a-human`. `text` is the requirement verbatim from an immutable source and `source_anchor` locates it there; an id is assigned once and never renumbered (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1, §2). A sweep that reflowed one would edit the record of what the customer actually wrote |
+| a `decisions.md` record's `status`, `chosen` or `evidence` | `needs-a-human` unless it is this run's own propagation-sweep write. Those three move only through the four dispositions the previous phase fixes, or through §4's two reopening causes — never because a sentence nearby went stale |
+
+**What `updated` is for is prose**, and only prose: a sentence in a seed, a rationale in `slices.md`,
+a summary in a round record, an `argumentation` paragraph that still argues the old position. Those
+have no other authority over them, which is why the correction is safe there and is refused
+everywhere above. **Saying so is not belt-and-braces.** The scope sentence names "the ledger" and
+"the inventory" outright, and a reader working the outcome table against a hit in one of them has no
+reason to stop — the guard on `updated` is `require-on-main`, which passes on a merged file and
+would license exactly the write two other rules forbid.
 
 ---
 

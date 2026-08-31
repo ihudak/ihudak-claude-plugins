@@ -7,7 +7,7 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 Author a product specification for the Jira item: $ARGUMENTS
 
 `/specify` is the **PE-phase specification-authoring** workflow — the specification step of the PM→PA→PE→Dev pipeline
-(`/specify` → `specification.md`; then `/design` → `design.md` + `plan.md`). Given a Jira Epic (or PRD)
+(`/specify` → `specification.md`; then `/design` → `design.md`). Given a Jira Epic (or PRD)
 key or an imported-Jira directory, it reads the item from pre-exported markdown, lightly scans code to
 ground feasibility, and authors an org-standard `specification.md` through a relentless
 one-question-at-a-time grill — resolving open questions live instead of stopping. It gates on the

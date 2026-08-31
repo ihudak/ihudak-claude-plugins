@@ -25,16 +25,13 @@ This command makes **zero external API calls** and **never writes into the docs 
 ## Phase 0 — Load
 
 1. **Resolve the Jira input via the shared front-end.** Execute
-   `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against
-   `$ARGUMENTS`. `/release-notes` is **jira-driven only**: expect
-   `mode: jira-driven` with `jira_key`, `jira_export_root` (the ticket export
-   dir — `$VAULT_PATH/jira-products/<KEY>` for a JiraID, or the passed
-   directory), and `source`. The front-end owns the `$VAULT_PATH` /
-   `jira-products` validation and Fallbacks A/B. Carry `jira_key`,
-   `jira_export_root`, and `focus_key` forward.
+   Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a
+   folder or a file inside one — and resolve it with `resolve-address`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). Carry the resolved `path`, `kind` and
+   `key` forward; `absent` → the folder does not exist; `ambiguous` → stop, naming every match.
 
-   If the front-end returns `mode: direct` (no Jira input), stop with
-   `RELEASE_NOTES_NEEDS_JIRA: /release-notes needs a Jira key or an imported-Jira directory.` —
+   With no positional address, stop with
+   `RELEASE_NOTES_NEEDS_KEY: /release-notes needs a PRD or Epic address — a key, or an @<path> to its folder.` —
    this command has no direct-prompt behavior.
 
 **Specs-repo preflight.** Cite
@@ -135,8 +132,13 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 
 Invoke `jira-reader`. Use `depth: prd-only` when diff grounding is OFF; `depth: full` when ON (to collect PR URLs from the hierarchy's `## Pull Requests` sections).
 
-→ Agent (subagent_type: "dev-workflows:jira-reader"):
-  > "Return the structured handoff for this brief:
+**Read the resolved folder directly.** Read its `prd.md` for the product content.
+
+**There is no PR-URL source in this increment.** The reader this replaces harvested them from the
+export; `implement.md`'s `implementation.md` record replaces them and does not exist yet. So diff
+grounding cannot run here — say so once, name what it costs (the prose is grounded in the PRD and
+the specs rather than in the shipped diff), and continue. Diff grounding was always opt-in and
+advisory here, so this is the state a user who declined it already got.
   >
   > jira_export_root: [resolved jira_export_root]
   > jira_key:         [resolved jira_key]

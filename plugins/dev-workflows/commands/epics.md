@@ -17,18 +17,18 @@ Key distinction from `/document` (Jira mode): the PRD being Epic-ized is **not y
 ## Phase 0 — Load
 
 1. **Resolve the Jira input via the shared front-end.** Execute
-   `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against
-   `$ARGUMENTS`. `/epics` is **jira-driven only**: expect `mode: jira-driven`
-   with `jira_key` (the input Product Requirements Document key), `jira_export_root` (the PRD
-   export dir — `$VAULT_PATH/jira-products/<KEY>` for a JiraID, or the passed
-   directory), and `source`. The front-end owns the `$VAULT_PATH` /
-   `jira-products` validation and Fallbacks A/B. Carry `jira_key`,
-   `jira_export_root`, and `focus_key` forward. Downstream, `<JIRA_KEY>` and
-   `<PRD-KEY>` both denote this `jira_key`.
+   Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an
+   `@<path>` naming a folder or a file inside one — and resolve it with
+   `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3).
+   `status: found` → carry its `path`, `kind` and `key` forward; `absent` → the
+   folder does not exist and there is nothing to partition; `ambiguous` → stop,
+   naming every match and `@<path>` as the way through.
 
-   If the front-end returns `mode: direct` (no Jira input), stop with
-   `EPICS_NEEDS_JIRA: /epics needs a Jira key or an imported-Jira directory.` —
-   `/epics` has no direct-prompt behavior.
+   `/epics` is **address-required**: with no positional address, stop with
+   `EPICS_NEEDS_KEY: /epics needs a PRD or Epic address — a key, or an @<path> to its folder.` —
+   `/epics` has no direct-prompt behavior. Downstream, `<PRD-KEY>` denotes the
+   resolved folder's own `key` (`addressing.md` §4), read from its frontmatter
+   and never parsed out of its directory name.
 
 `/epics` is **cwd-agnostic**: it writes Epic drafts to an absolute output
 directory (resolved in Phase 1), so it does **not** require cwd to be inside the
@@ -206,8 +206,10 @@ inventory. **Additive, zero-cost when absent** — the common case, since
 
 Invoke `jira-reader` with `depth: prd-plus-epics`. This depth is specifically designed for Epic writing: richer than `prd-only` so themes extracted for `code-scanner` aren't starved of context, but lighter than `full` so the agent doesn't read dozens of already-closed child Stories.
 
-→ Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
-  > "Return the structured handoff for this brief:
+**Read the PRD folder directly.** Read its `prd.md` for the product content, and list the `EPIC-`
+subfolders under it for the Epics that already exist — that listing *is* the linked-item hierarchy
+the retired reader used to return. Each Epic folder's `key` and title come from its own frontmatter
+(`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4), never from its directory name.
   >
   > jira_export_root: [resolved jira_export_root]
   > jira_key:         [resolved jira_key]

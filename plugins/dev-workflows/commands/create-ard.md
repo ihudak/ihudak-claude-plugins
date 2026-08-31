@@ -28,27 +28,22 @@ this stage). Zero Jira API.
    resolution runs, and the scan is pure argument parsing — it touches no filesystem, no Jira export
    and no tracker, so it is safe this early.
 
-   **Without `--from-brd` — unchanged.** Resolve the Jira input via
-   `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against `$ARGUMENTS` → `jira_key` (the
-   PRD), `focus_key` (the Epic, or `null`), `jira_export_root`, `source`. Define `<PRD>` = `jira_key`,
-   `<EPIC>` = `focus_key`.
+   **One resolution, both routes.** Parse the **single positional address** from `$ARGUMENTS` — a
+   `<KEY>`, or an `@<path>` naming a folder — and resolve it with `resolve-address`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). A key that fails §1's grammar stops with
+   `CREATE_ARD_NEEDS_KEY: /create-ard needs an address (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. EPIC-008 or the slice EPIC-008-01) — re-run '/dev-workflows:create-ard <ADDRESS>'.`
+   Shape only, and never checked against anything (§1) — a key names a folder in `$SPECS_PATH`.
 
-   **With `--from-brd` — the positional token is a BRD key**, and it is validated by `key-valid`
-   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1) instead. A slice's key carries a third
-   numeric segment (`EPIC-008-01`) and a slice is the level this route most often reaches an ARD at,
-   so validating it against a two-segment form would refuse the ordinary case. A key that fails the
-   grammar stops with
-   `CREATE_ARD_NEEDS_KEY: /create-ard --from-brd needs a BRD key (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. EPIC-008 or the slice EPIC-008-01) — re-run '/dev-workflows:create-ard <BRD-KEY> --from-brd'.`
-   Shape only, and never checked against a tracker (§1) — a BRD is a markdown file in `$SPECS_PATH`,
-   not a ticket. Define `<BRD-KEY>` = that key; `focus_key` stays `null`, `jira_export_root` is unset,
-   and `source: none`.
+   **The resolved kind decides the altitude**, which is what replaces the old two-key grammar:
+   - a `PRD-` folder → `<PRD>` is its `key`, `<EPIC>` is `null`;
+   - an `EPIC-` folder → `<EPIC>` is its `key` and `<PRD>` is its parent's;
+   - a `BRD-` folder, or a `PRD-` folder holding a `brd-link.md` → the BRD route. Define
+     `<BRD-KEY>` = the resolved folder's `key`.
 
-   **The shared front-end is not run at all on this route, and that is the point.**
-   `jira-input-resolution.md` resolves `$VAULT_PATH/jira-products/<KEY>` and fails its Fallback B when
-   that directory is missing; a BRD key names a folder under `$SPECS_PATH/specifications/` and was
-   never a tracker key, so handing it one would stop the run on a key that no tracker was ever asked
-   for. **No `jira-reader` dispatch happens anywhere in this command under `--from-brd`** — Phase 2
-   substitutes the BRD's own seed for the export read, and there is no other call site.
+   **The BRD route is detected, not declared.** A folder carrying `brd-link.md` was produced by
+   `/brd-split` and holds the seed this command reads; nothing about that needs restating on the
+   command line, and a flag that could disagree with the folder it names is one more disagreement to
+   have. Print which route the run entered before doing anything else.
 
 1a. **`--from-brd [<dir>]` — a switch, not a path.** The positional key already identifies the BRD and
     `resolve-address` (step 3) finds it at either level, so `/create-ard EPIC-008-01 --from-brd` needs no
@@ -144,8 +139,9 @@ this phase's run mode.
 
 Read the PRD from the folder `resolve-address <PRD>` returned (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3) — its `prd.md`, whose frontmatter is `issue_type: ValueIncrement`, when present (authored source); else dispatch `jira-reader` to read it from the export:
 
-→ Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §2.1 Sonnet chain>`):
-  > "Return the structured handoff for this brief:
+**Read the resolved folder directly.** PRD-level → its `prd.md`. Epic-level → the Epic folder's own
+`specification.md` and `design.md` where present, plus the parent PRD folder's `prd.md` for the
+product frame this Epic sits in.
   >
   > jira_export_root: [resolved jira_export_root]
   > jira_key:         [<PRD> for a PRD-level run, <EPIC> for an Epic-level run]
@@ -424,34 +420,10 @@ from a re-derived title. That name collides with neither `/dev-workflows:create-
     (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), and needs no tracker key and no Jira
     export. It resolves this ARD through `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` and
     stops on `status: unmerged`, so the wait is real and the clause is required.
-  - **`/dev-workflows:epics` is offered only when `$VAULT_PATH/jira-products/<BRD-KEY>/<BRD-KEY>-index.md`
-    exists.** That one test settles both halves of reachability, and it is deliberately stricter than
-    "some `jira_key` was minted". It settles the **key** half directly — it is exactly what
-    `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`'s JiraID resolution requires and what
-    its Fallback B fires on when it is missing — and it settles the **ARD** half, because
-    `/dev-workflows:epics` resolves this ARD through
-    `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` under the *same* key, reaching this folder at
-    either level via `addressing.md` §7's fallback. Passing that test means the BRD was keyed with
-    the tracker's own key, so `jira_key` and `<BRD-KEY>` are the same string and the option hands
-    `jira-reader` a real tracker key rather than a folder name (§1). **The option is written in
-    `<BRD-KEY>`, matching `/dev-workflows:specify`'s sibling site**, because that is the only key this
-    run resolves: no `jira_key` is in hand here — one exists only where the BRD folder happens to hold
-    a PRD carrying one, and this route requires no PRD — and the gate above is written entirely in
-    `<BRD-KEY>` too. Naming `<jira_key>` would name a placeholder nothing on this route binds. This is
-    not a two-keys violation: the gate is what establishes that the BRD key is the key the tracker
-    export is filed under, so the string handed over is a tracker key that happens to be spelled the
-    same as the folder key, and it is offered only where that has been shown.
-    **A minted `jira_key` that differs from `<BRD-KEY>` does not qualify**: under it `ard-resolution.md` resolves a different
-    `specifications/` folder, returns `status: none` for this ARD, and `/dev-workflows:epics` proceeds
-    with no ARD at all — which is not a wait the merge clause could describe but a permanent blind
-    spot, and naming the command there would promise an inheritance that never happens. Where the test
-    fails, **offer no command** and say what would make one reachable: the Jira round-trip in
-    `/dev-workflows:create-prd <BRD-KEY> --from-brd`'s handoff phase — create the workitem, paste the
-    PRD body in, re-import it to `$VAULT_PATH/jira-products/<KEY>` — is what mints a key and an export
-    at all, and `/dev-workflows:brd-split` is where an operator chooses to key a slice with the
-    tracker's key so the two coincide. Per the *When no option is safe to recommend* guidance in
-    `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`, nothing said in that state is marked
-    `(Recommended)` beyond the first option, which remains reachable regardless.
+  - **`/dev-workflows:epics <ADDRESS>` is offered unconditionally.** It resolves the same folder
+    this run resolved, through the same `resolve-address`, and reads the PRD there. It gates nothing
+    this run produced, so it carries no merge clause. The test that used to guard it — an export
+    directory existing under the key — guarded a lookup that no longer happens.
   - **`/dev-workflows:design` is offered on this route by neither branch.** It takes over a merged
     `specification.md` — a file this run did not write — and resolves its own key through the Jira
     export. The path to it runs through the first option: `/dev-workflows:specify <BRD-KEY>

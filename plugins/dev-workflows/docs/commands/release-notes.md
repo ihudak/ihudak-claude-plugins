@@ -16,7 +16,7 @@ Drafts a customer-facing release-notes summary for a Jira Product Requirements D
 /release-notes <JiraID | jira-export-dir> [<Epic-KEY>]
 ```
 
-`/release-notes` is **jira-driven only** — there is no free-text or `@file` input; a prompt that resolves no Jira input stops with `RELEASE_NOTES_NEEDS_JIRA`. The optional trailing Epic key narrows the rendered draft to that Epic's subtree (the focus Epic plus its linked descendants) instead of the whole PRD/ticket.
+`/release-notes` is **address-required** — there is no free-text or `@file` input; a prompt with no positional address stops with `RELEASE_NOTES_NEEDS_KEY`. The address is a `<KEY>`, or an `@<path>` naming a folder in the specs tree; [`addressing.md`](../../references/addressing.md) §3 resolves either.
 
 ## How it runs
 

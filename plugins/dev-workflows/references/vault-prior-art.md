@@ -62,7 +62,7 @@ A path is **excluded** when it:
 An item's Jira key comes from its work document's `jira.id`, else from the item directory name via `^([A-Z][A-Z0-9_]*-\d+)`.
 
 1. **Work-doc frontmatter** `jira.status` → map through the short-code table below → `status_source: vault-frontmatter`.
-2. **The export** → `resolve-export-for-key <KEY>` (`${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`) → its `status` → `status_source: jira-products`.
+2. **The export** → *(retired — no export exists; this rung is unreachable and is removed with the vault in a later increment)* → its `status` → `status_source: jira-products`.
 3. Neither → `tracked_status: unknown`, `status_source: none`.
 
 **Frontmatter first, and that ordering is measured rather than assumed.** Across every work document carrying `jira.status` that also has an export, the two disagreed 8 times and the frontmatter was ahead in all 8 — zero the other way. The frontmatter is synced to keep dashboards current; exports are run occasionally.

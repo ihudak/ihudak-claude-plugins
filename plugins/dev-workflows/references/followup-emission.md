@@ -109,7 +109,7 @@ behaviour — zero regression) and the pipeline never fails.
   `⚠ No writable vault — N follow-ups written to <path>`;
   tier 4: `⚠ No writable vault or specs dir — N follow-ups kept in this report only; set $VAULT_PATH or $SPECS_PATH to persist them`.
 - **Interactive escape** (folds into the §7 batch preview, mirroring Fallback A
-  in `jira-input-resolution.md`): below the vault tier, show the resolved
+  the retired tracker front-end used): below the vault tier, show the resolved
   fallback path and offer
   `choices: ["Save to <resolved path>", "Enter a vault path", "Keep in report only"]`,
   default = save.
@@ -176,7 +176,7 @@ The calling phase provides:
 - `follow_up_items` — the qualifying signals it already aggregated in its Final
   Report follow-up sections.
 - `jira_key` — the run's resolved key, or `null`.
-- `source` — `vault | directory | none` from `jira-input-resolution.md`.
+- `source` — `vault | directory | none`, from the run's own input resolution.
 
 The phase applies §6 (filter) → §4 (resolve target) → §1–§3 (render + place) →
 §5 (dedupe) → §7 (confirm), then writes. It is ADDITIVE: the follow-ups always

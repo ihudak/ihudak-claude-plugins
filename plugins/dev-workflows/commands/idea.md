@@ -64,20 +64,15 @@ step skips on it.
 
 Classify `$ARGUMENTS` **minus every recognised flag** (`--deep`, `--no-docs`, `--no-prior-art`, `--docs <path>` with its value, and `--ground-code` with its optional comma-separated repo value) by precedence. Strip them all before classifying: an unstripped flag lands inside the `prompt` branch's raw idea text and is handed to `idea-reader` as if the user had written it. The token after `--ground-code` is its value **only** when it contains no whitespace and every comma-separated part matches a top-level directory basename under `${REPOS_PATH:-/workspace}`; otherwise the flag is bare and the token is idea text — strip only the flag itself.
 
-1. Matches the Jira-key regex `^[A-Z][A-Z0-9_]*-\d+$` → resolve it with `resolve-export-for-key <KEY>`
-   (`${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`), then type it from the export's
-   **`issue_type` frontmatter** — never from the project prefix, which is a coincidence of Jira
-   configuration:
-   - `ValueIncrement` → **prd** — an existing PRD. Prior art the user supplied.
-   - `Product Need` → **rfe** — product feedback, handled as demand evidence exactly as today.
-   - anything else → name the actual `issue_type` in the confirmation below and let the user choose;
-     **default prd**, since a tracked delivery item is closer to prior art than to demand evidence.
-
-   `NOT_FOUND` from the entry point is handled as today (an environment/user halt, never `emit-block`).
-2. An existing `.md` path or an `@wikilink` → **markdown** (a community post is just a markdown file,
+1. An existing `.md` path → **markdown** (a community post is just a markdown file,
    typically under `Projects/Products/…` — the reader tags it `community-post`; an existing `idea.md`
    passed back for re-refinement is detected here too).
-3. Otherwise → **prompt** (the argument text is the raw idea).
+2. Otherwise → **prompt** (the argument text is the raw idea).
+
+**There is no tracker-export source type, and there is no third classification.** A key used to
+resolve an export and be typed from its `issue_type`; nothing exports anything now, so an existing
+PRD reaches `/idea` the way every other file does — as a path — and `/create-prd --from-prd` is the
+route that seeds one PRD from another.
 
 **Confirm the classification — conditionally.** Per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` ("When a choice list fires"), a list is shown only where the answer genuinely varies. Two cases here do; the rest do not.
 

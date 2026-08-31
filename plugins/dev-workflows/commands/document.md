@@ -18,8 +18,10 @@ For small one-off doc edits, use direct mode (below). For writing child Epic dra
 
 `/document` has **two modes**, selected by the first argument token:
 
-- **Jira mode (Mode A)** — the input resolves `jira-driven` via the shared front-end (`${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`): a first token matching a JiraID (`^[A-Z][A-Z0-9]+-[0-9]+`), **or** a directory that inspects as a Jira-export (contains `<KEY>-index.md`). The front-end's Fallback B handles a JiraID-shaped token with no `jira-products/<KEY>` folder.
-- **Direct mode (Mode B)** — the input resolves `direct` (a leading `@file` token, free-text prose, or a non-Jira-export directory, which Mode B handles via its existing "anything else" path).
+- **Keyed mode (Mode A)** — the first token is a **single positional address**: a `<KEY>` matching `references/addressing.md` §1's grammar, or an `@<path>` naming a folder in the specs tree. `resolve-address` (§3) turns it into a folder; `status: absent` means no such folder exists, and `ambiguous` is a stop naming every match.
+- **Direct mode (Mode B)** — no positional address: a leading `@file` token, free-text prose, or a directory that is not in the specs tree, which Mode B handles via its existing "anything else" path.
+
+**The mode test is the presence of an address**, which is what replaces the retired shared front-end's own mode return. Mode B is unchanged in every other respect — a direct-mode run is byte-identical to before.
 
 **Specs-repo preflight.** Cite
 `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
@@ -40,13 +42,12 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 
 ## Phase 0 — Load and dispatch
 
-1. **Resolve the Jira input via the shared front-end.** Execute
-   `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against
-   `$ARGUMENTS`. For Mode A the result is `mode: jira-driven` with `jira_key`,
-   `jira_export_root` (the ticket export dir — `$VAULT_PATH/jira-products/<KEY>`
-   for a JiraID, or the passed directory), `source`, and `specs`. The front-end
-   owns the `$VAULT_PATH`/`jira-products` validation and Fallbacks A/B. Carry
-   `jira_key`, `jira_export_root`, `focus_key`, and `specs` forward.
+1. **Resolve the address.** Parse the single positional address from `$ARGUMENTS` — a `<KEY>`, or
+   an `@<path>` naming a folder or a file inside one — and resolve it with `resolve-address`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). Present and resolving → `mode: keyed`;
+   absent from the argument list → `mode: direct`, and the rest of this phase's keyed steps are
+   skipped. Carry the resolved `path`, `kind`, `key`, and the `specs` files found in that folder
+   forward.
 
 2. **Resolve the docs repo (cwd-preferred).** This command writes feature documentation into a product docs repository; running it outside such a repository is almost always a mistake. The **docs signals** checked throughout this step are:
    - `package.json` with any script matching `*:start`, `*:build`, `*:lint`, `docs:*`, or
@@ -264,8 +265,14 @@ choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
 
 Invoke `jira-reader` with `depth: full`:
 
-→ Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
-  > "Return the structured handoff for this brief:
+**Read the resolved folder directly.** Read its `prd.md` for the product content, and the `specs`
+files Phase 0 resolved alongside it.
+
+**There is no PR-URL source in this increment.** The reader this replaces harvested them from the
+export; `implementation.md` replaces them and does not exist yet. The `diff-summarizer` dispatch
+below is therefore skipped — state that once, and name what it costs: the documentation is grounded
+in the PRD and the specs, not in the shipped diff. `diff-summarizer` itself is unchanged and is
+re-pointed at `implementation.md` in the next increment.
   >
   > jira_export_root: [resolved jira_export_root from Phase 0]
   > jira_key:         [resolved <JIRA_KEY>]

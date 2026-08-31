@@ -15,7 +15,7 @@ Writes or updates product documentation — either a full Jira-driven feature-do
 
 **A reader needs to know which mode a run is in before anything else on this page applies.** `/document` selects between two structurally different pipelines from the first argument token, and everything below — inputs, outputs, and gates — differs by mode:
 
-- **Jira mode (Mode A)** — the input resolves `jira-driven` through the shared front-end: a JiraID token, or a directory that inspects as a Jira export. This is the **feature-documentation** pipeline: read a PRD's full Jira hierarchy, resolve its PR diffs, and synthesise product documentation for it.
+- **Keyed mode (Mode A)** — the first token is a single positional address: a `<KEY>` matching [`addressing.md`](../../references/addressing.md) §1's grammar, or an `@<path>` naming a folder in the specs tree. The resolved folder supplies the PRD and the specs this run documents from.
 - **Direct mode (Mode B)** — everything else: a leading `@file` token, free-text prose, or a non-Jira-export directory. This is the **one-shot doc-edit** pipeline: apply a described change to existing pages with no Jira and no PR resolution at all.
 
 Jira mode takes the key and nothing else. Where each page is written follows from the page itself: Phase 5.5 resolves every write target against the content roots the resolved profile declares, and Phase 6.3 writes each page into the root that owns it. A repo whose profile declares several content roots is handled the same way — a page is edited where it lives, and the per-root lint, build, and dev-server commands are selected from the root that owns it.

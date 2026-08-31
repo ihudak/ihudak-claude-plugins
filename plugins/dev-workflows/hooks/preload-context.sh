@@ -5,7 +5,7 @@
 #                                         recent commits + small-repo directory
 #                                         listing); /implement also preloads
 #                                         Jira context when its argument is a
-#                                         JiraID (jira-driven via the shared
+#                                         JiraID (keyed via the shared
 #                                         Jira-input front-end)
 #   • /document                         → Jira context iff the argument is a
 #                                         JiraID (e.g. /document PRODUCT-1234);
@@ -109,7 +109,7 @@ case "$cmd" in
         emit_model_routing
         emit_git_full
         emit_dir_listing_if_small
-        # /implement <JiraID> is jira-driven — also preload Jira context.
+        # /implement <JiraID> is keyed — also preload Jira context.
         if [[ "$cmd" == "implement" && "$prompt" =~ ^/implement[[:space:]]+[A-Z][A-Z0-9]+-[0-9]+ ]]; then
             emit_jira_context
         fi

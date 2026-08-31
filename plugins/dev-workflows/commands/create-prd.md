@@ -550,38 +550,17 @@ rewording one: the options that are presented are presented verbatim, exactly as
 offer-only-what-resolves rule Phase 0's refusal 2 applies to its per-child offers. Do not go quiet
 either — name the round-trip as the step that unblocks the two, the way
 `${CLAUDE_PLUGIN_ROOT}/references/prd-source-resolution.md`'s own paste-first stop (step 4) does.
-**A recorded `jira_key` settles only the first half of the round-trip, and both halves gate those two
-options — on this route and on the `/idea` route alike.** `jira-reader` does not resolve a key; it
-resolves the export directory `$VAULT_PATH/jira-products/<jira_key>` that the round-trip's **step 2**
-creates. So a key that is real on the tracker — because step 1's paste minted it here, or because the
-PM minted it before an `/idea`-route run and Phase 5 authored it into the frontmatter — still points
-at nothing until the re-import lands, and `/dev-workflows:epics` and `/dev-workflows:release-notes`
-both drop into `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`'s Fallback B. **Present
-the two only where both halves are done**: a `jira_key` recorded on the PRD *and* the re-import
-performed against it. This command documents the round-trip rather than performing it, so at Phase 6
-neither half has happened in this session on either route — **do not stat the vault for it and do not
-assume it**; name the round-trip as the step that unblocks both, exactly as the no-`jira_key` case
-above does, and present the two once the operator says the re-import landed. Where they are withheld
-the `(Recommended)` marker goes with the `/dev-workflows:release-notes` option that carries it and is
-never moved onto another: per the *When no option is safe to recommend* guidance in
-`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`, nothing is marked in that state. The PA
-option is unaffected either way — it reads the specs repo and no export at all. Say which state this
-run is in rather than letting the operator discover it in the next command.
+**Every option is presented unconditionally now, and the reason the two used to be withheld is
+gone.** `/dev-workflows:epics` and `/dev-workflows:release-notes` were held back until a tracker key
+had been minted *and* an export re-imported against it, because both resolved that export and found
+nothing without it. Neither reads an export any more: both resolve a folder in the specs tree, which
+this run has just written. So there is no half-done state to report and no `(Recommended)` marker to
+withhold — the offer says what it always meant to say, one phase earlier.
 
-**The PA option changes on this route too, and for the same reason the other two do.** Presented
-verbatim it reads `/dev-workflows:create-ard <KEY>` with no flag, which sends `<BRD-KEY>` into the
-shared Jira front-end (`${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`) and dies in its
-Fallback B — `commands/create-ard.md` Phase 0 step 1 says so outright, in the paragraph explaining why
-its own `--from-brd` route skips that front-end entirely. **Under `--from-brd` the option therefore
-reads `/dev-workflows:create-ard <BRD-KEY> --from-brd`**, which resolves the BRD folder with
-`resolve-address` and reads its `ard-seed.md`, and it carries **no** merge clause on that route: the
-`--from-brd` run skips the PRD gate outright (`commands/create-ard.md`, *Under `--from-brd` the PRD
-gate does not run*), so it waits on nothing this run wrote, and every row of
-`${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`'s resolution table names a wait. That puts it
-in the same class as the `/dev-workflows:epics` and `/dev-workflows:release-notes` options on the
-`/idea` route — an option whose downstream command gates nothing the offering run produced — not in a
-new class. On the `/idea` route the option and its clause are unchanged, because there
-`/dev-workflows:create-ard` runs the front-end against a real tracker key and gates this run's PRD.
+**The PA option reads `/dev-workflows:create-ard <ADDRESS>` on both routes.** It resolves the folder
+with `resolve-address` and reads what that folder holds — an `ard-seed.md` where the BRD route left
+one, the PRD otherwise. It carries **no** merge clause where the run it offers gates nothing this run
+wrote, per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`'s resolution table.
 
 Guidance only — never auto-invokes another command. Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`.
 

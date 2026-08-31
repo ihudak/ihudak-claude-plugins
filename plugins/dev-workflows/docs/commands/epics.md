@@ -12,7 +12,7 @@ Reads a Product Requirements Document from exported markdown, optionally scans c
 /epics <PRD-KEY | dir> [<Epic-KEY>] [--no-docs]
 ```
 
-The positional input resolves through the shared Jira-input front-end: a **PRD JiraID** (requires `$VAULT_PATH`), or a **jira-export directory** (works without it). An optional trailing **Epic key** narrows the run to refining that one Epic. `/epics` is **jira-driven only** — a plain prompt with no Jira input stops with `EPICS_NEEDS_JIRA`. `--no-docs` turns off the optional Phase 2 documentation-grounding pass.
+The positional input is a **single address** — a `<KEY>`, or an `@<path>` naming a folder in the specs tree — resolved by [`addressing.md`](../../references/addressing.md) §3. A `PRD-` folder partitions; an `EPIC-` folder refines.
 
 ## How it runs
 

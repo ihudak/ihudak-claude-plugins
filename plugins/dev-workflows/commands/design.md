@@ -25,20 +25,20 @@ Flags: `--design-twice` forces the Phase 5 interface fan-out on the run's load-b
 ## Phase 0 — Resolve input
 
 1. **Resolve the Jira input via the shared front-end.** Classify `$ARGUMENTS` minus every recognised flag (`--design-twice`) before resolving — strip it first, exactly as `commands/idea.md`'s Phase 1 strips its own flags: an unstripped `--design-twice` is parsed as part of the Jira key and the run resolves the wrong feature, or fails. Execute
-   `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against the stripped `$ARGUMENTS`. `/design` is
-   **jira-driven only**: expect `mode: jira-driven`. The front-end owns the `$VAULT_PATH` /
-   `jira-products` validation, Fallbacks A/B **and D/E**, and the PRD-selector (key-or-directory) +
-   focus-Epic grammar. Carry forward:
-   - `jira_key` — the resolved **top-level** key: the **PRD** when a focus Epic is present, or the
-     stand-alone top-level item's own key otherwise. Define `<PRD>` = `jira_key`.
-   - `focus_key` — the **Epic** to design within its PRD, or `null` for a bare PRD / stand-alone item /
-     directory. Define `<EPIC>` = `focus_key` (may be `null`).
+   Parse the **single positional address** from the stripped `$ARGUMENTS` — a `<KEY>`, or an
+   `@<path>` naming a folder or a file inside one — and resolve it with `resolve-address`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). Carry forward:
+   - `<PRD>` — the resolved **PRD folder's** `key`: the folder itself when the address named a
+     `PRD-` folder, its parent when the address named an `EPIC-` folder.
+   - `<EPIC>` — the resolved `EPIC-` folder's `key`, or `null` when the address named a `PRD-`
+     folder. **The kind decides the altitude**, which is what replaces the two-key grammar: the
+     second key was always derivable from the first.
 
-   If the front-end returns `mode: direct`, stop with
-   `DESIGN_NEEDS_JIRA: /design needs a Jira key (a PRD or an Epic) or an imported-Jira directory.` —
-   `/design` has no direct-prompt behaviour. **`/design` uses the front-end only to parse the grammar
-   and classify the key; it does NOT call `jira-reader` and does NOT read the Jira export for content —
-   the requirements source of truth is the merged `specification.md` in the specs repo.**
+   With no positional address, stop with
+   `DESIGN_NEEDS_KEY: /design needs a PRD or Epic address — a key, or an @<path> to its folder.` —
+   `/design` has no direct-prompt behaviour. **Resolution supplies the address and nothing else:
+   `/design` reads no document for content at this step — the requirements source of truth is the
+   merged `specification.md` in the specs repo.**
 
 2. **Resolve `$SPECS_PATH`.** `/design` reads `specification.md` and writes `design.md` under
    `$SPECS_PATH/specifications/`. If `$SPECS_PATH` is unset, stop with a clear error naming `SPECS_PATH`
@@ -67,7 +67,7 @@ it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run �
      to step 5.
    - **`focus_key` null** → inspect the resolved PRD dir in the specs repo:
      - it holds a **flat `specification.md`** (a stand-alone top-level Epic, or a broad PRD-level spec) → one design; the feature folder is the PRD dir itself. Skip the picker; go to step 5 (step 3's gate re-applies against this flat path).
-     - it holds **Epic subfolders** → enumerate the **spec'd** ones using the ref test `git -C "$SPECS_PATH" cat-file -e "origin/<default>:specifications/<PRD>-<vslug>/<EPIC>-<eslug>/specification.md" 2>/dev/null` (exit 0 = present on `<default>`; the `2>/dev/null` is required — git writes `fatal:` to stderr on absence) — never a worktree file-existence check, which would list a branch-only Epic as designable for a user to select before step 3's gate stops on it. A subfolder that fails the test is excluded from the actionable set and counted in the excluded-count report, with the reason distinguished: *"N Epic(s) excluded — no specification.md; M excluded — specification.md not yet merged to `<default>`."* Then branch on count — this is the reusable **progress-aware Epic-picker pattern** in `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` (§ Progress-aware Epic picker), applied here with `/design`'s own done-predicate and **enumerated from the specs repo** (not `jira-reader`):
+     - it holds **Epic subfolders** → enumerate the **spec'd** ones using the ref test `git -C "$SPECS_PATH" cat-file -e "origin/<default>:specifications/<PRD>-<vslug>/<EPIC>-<eslug>/specification.md" 2>/dev/null` (exit 0 = present on `<default>`; the `2>/dev/null` is required — git writes `fatal:` to stderr on absence) — never a worktree file-existence check, which would list a branch-only Epic as designable for a user to select before step 3's gate stops on it. A subfolder that fails the test is excluded from the actionable set and counted in the excluded-count report, with the reason distinguished: *"N Epic(s) excluded — no specification.md; M excluded — specification.md not yet merged to `<default>`."* Then branch on count — this is the reusable **progress-aware Epic-picker pattern** in `${CLAUDE_PLUGIN_ROOT}/references/epic-picker.md`, applied here with `/design`'s own done-predicate and enumerated from the specs repo, which is now the only place any command enumerates Epics from:
        - **exactly 1 spec'd Epic** → no picker; auto-select it; re-point the feature folder to its per-Epic subfolder; emit a one-line notice.
        - **≥2 spec'd Epics** → render the picker, one `choices` entry per spec'd Epic (its ○/◐/● marker + key + title), then `"Other… (describe)"`. Compute each Epic's state from `/design`'s **done-predicate** against that Epic's resolved folder:
          - **○ not started** — a `specification.md` exists there but no `design.md` and no `_design-session.md` → selectable.

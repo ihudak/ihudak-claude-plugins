@@ -27,16 +27,19 @@ must be resolved down to a single Epic. Pass an explicit `<PRD> <Epic>` to scope
 ## Phase 0 — Resolve input
 
 1. **Resolve the Jira input via the shared front-end.** Execute
-   `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against `$ARGUMENTS`. `/ready` is
-   **jira-driven only**: expect `mode: jira-driven`. The front-end owns the `$VAULT_PATH` /
-   `jira-products` validation, Fallbacks A/B **and D/E**, and the PRD-selector (key-or-directory) +
-   focus-Epic grammar. Carry forward `jira_key`, `focus_key`, `jira_export_root`, `source`.
+   Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a
+   folder or a file inside one — and resolve it with `resolve-address`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). `status: found` → carry its `path`, `kind`
+   and `key` forward; `absent` → the folder does not exist; `ambiguous` → stop, naming every match.
 
-   Define **`<PRD>` = `jira_key`** and **`<EPIC>` = `focus_key`** (may be `null`) — the two-key grammar.
+   **The kind decides the altitude, replacing the two-key grammar.** A `PRD-` folder is a PRD-level
+   run (`<EPIC>` is `null`); an `EPIC-` folder is an Epic-level run, and its PRD folder is its
+   parent. Two positional keys are no longer accepted, because the second was always derivable from
+   the first — `addressing.md` §4's `key` is what supplies both.
 
-   If the front-end returns `mode: direct` (no Jira input), stop with
-   `READY_NEEDS_JIRA: /ready needs a Jira key or an imported-Jira directory.` — `/ready` has no
-   direct-prompt behavior.
+   `/ready` is **address-required**: with no positional address, stop with
+   `READY_NEEDS_KEY: /ready needs a PRD or Epic address — a key, or an @<path> to its folder.` —
+   `/ready` has no direct-prompt behavior.
 
 2. **Resolve `$SPECS_PATH`.** `/ready` reads the ARD/spec/design artifacts and writes `_readiness.md`
    under `$SPECS_PATH/specifications/`. If `$SPECS_PATH` is unset, stop with a clear error naming
@@ -134,8 +137,9 @@ falls to the Sonnet floor — record the degradation in `notes` and the final re
 Invoke `jira-reader` with `depth: prd-plus-epics` — this is the authoritative status/requirement source
 the reviewer verifies the declared status against (never Phase 1's status peek).
 
-→ Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
-  > "Return the structured handoff for this brief:
+**Read the resolved folder directly.** Read its `prd.md`, and list the `EPIC-` subfolders under it —
+the set whose artifacts this command judges. Nothing here reads a declared status: `/ready` derives
+the phase from what the artifacts show, and `--claimed` is the only way a declaration enters the run.
   >
   > jira_export_root: [resolved jira_export_root]
   > jira_key:         [resolved jira_key]

@@ -40,12 +40,10 @@ a **BRD key**, and there is no second positional key (Phase 0 step 0).
    not a ticket. Define `<BRD-KEY>` = that key; `focus_key` stays `null`, `jira_export_root` is unset,
    `specs` is empty, and `source: none`.
 
-   **Skipping the front-end is the point, not a shortcut.** `jira-input-resolution.md` resolves
-   `$VAULT_PATH/jira-products/<KEY>` and fires its Fallback B when that directory is missing; a BRD key
-   names a folder under `$SPECS_PATH/specifications/` and was never a tracker key, so handing it one
-   would stop the run on a key no tracker was ever asked for. It follows that `SPECIFY_NEEDS_JIRA`
-   below is **unreachable under `--from-brd`**: that stop reports the front-end returning
-   `mode: direct`, and the front-end does not run.
+   **One resolution serves both routes now.** A BRD key and a PRD key both name a folder under
+   `$SPECS_PATH/specifications/`, and `resolve-address` resolves either — so this step no longer
+   skips a front-end, it reads a different `kind` from the same resolution. What distinguishes the
+   routes is what the resolved folder holds, not how it was addressed.
 
    **A second positional key is refused under `--from-brd`.** Stop gracefully:
    `SPECIFY_BRD_NO_EPIC: /specify --from-brd is BRD-level and takes one key; <second-token> was given as a second. A BRD has no Epics yet — they are minted from the PRD's Jira workitem after /dev-workflows:create-prd <BRD-KEY> --from-brd completes its round-trip — and spec-seed.md, decisions.md and grounding/ exist only at a BRD's own level. Re-run '/dev-workflows:specify <BRD-KEY> --from-brd'.`
@@ -57,23 +55,18 @@ a **BRD key**, and there is no second positional key (Phase 0 step 0).
    `SPECIFY_BRD_NOT_FOUND` (step 3) naming the path as supplied, rather than being silently re-read as
    a key.
 
-1. **Resolve the Jira input via the shared front-end** (skipped entirely under `--from-brd`, per step
-   0). Execute
-   `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` against `$ARGUMENTS`. `/specify` is
-   **jira-driven only**: expect `mode: jira-driven`. The front-end owns the `$VAULT_PATH` /
-   `jira-products` validation, Fallbacks A/B **and D/E**, and the PRD-selector (key-or-directory) +
-   focus-Epic grammar. Carry forward:
-   - `jira_key` — the resolved **top-level** key: the **PRD** when a focus Epic is present, or the
-     stand-alone top-level item's own key otherwise.
-   - `focus_key` — the **Epic** to center on within `jira_export_root`, or `null` for a bare PRD /
-     stand-alone item / directory.
-   - `jira_export_root`, `source`.
+1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`,
+   or an `@<path>` naming a folder or a file inside one — and resolve it with `resolve-address`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). Carry forward:
+   - `<PRD>` — the resolved **PRD folder's** `key`: the folder itself when the address named a
+     `PRD-` folder, its parent when it named an `EPIC-` folder.
+   - `<EPIC>` — the `EPIC-` folder's `key`, or `null` when the address named a `PRD-` folder.
 
-   Define `<PRD>` = `jira_key` and `<EPIC>` = `focus_key` (may be `null`). Downstream steps use these
-   two symbols in place of the old single `<KEY>`.
+   **The kind decides the altitude**, which is what replaces the two-key grammar: the second key was
+   always derivable from the first, and `addressing.md` §4's `key` is what supplies both.
 
-   If the front-end returns `mode: direct` (no Jira input), stop with
-   `SPECIFY_NEEDS_JIRA: /specify needs a Jira key or an imported-Jira directory.` — `/specify` has no
+   With no positional address, stop with
+   `SPECIFY_NEEDS_KEY: /specify needs a PRD or Epic address — a key, or an @<path> to its folder.` — `/specify` has no
    direct-prompt behavior.
 
 2. **Resolve `$SPECS_PATH`.** `/specify` writes specifications under `$SPECS_PATH/specifications/`
@@ -253,8 +246,9 @@ Otherwise (`focus_key` is null), dispatch `jira-reader` at the **cheap** `depth:
 determine the item's type and enumerate its child Epics *without* reading the full Story/Sub-task
 subtree:
 
-→ Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §2.1 Sonnet chain>`):
-  > "Return the structured handoff for this brief:
+**Read the PRD folder directly.** Read its `prd.md`, and list the `EPIC-` subfolders under it —
+that listing is the Epic set this phase branches on, and each folder's `key` and title come from its
+own frontmatter (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4).
   >
   > jira_export_root: [resolved jira_export_root]
   > jira_key:         [resolved jira_key]
@@ -264,8 +258,7 @@ Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Ji
 rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On
 `OK`, read the item's type from `value_increment` / `linked_items` and enumerate its **child Epics**
 (filter `linked_items` to `type == Epic`). Then branch — this is the reusable **progress-aware
-Epic-picker pattern** documented in `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`
-(§ Progress-aware Epic picker), applied here with `/specify`'s own done-predicate:
+Epic-picker pattern** documented in `${CLAUDE_PLUGIN_ROOT}/references/epic-picker.md`, applied here with `/specify`'s own done-predicate:
 
 - **Stand-alone top-level Epic** (the item is itself an Epic, no parent PRD) → no picker; the item
   *is* the focus. Set `focus_key` = the item (== `jira_key`). The feature folder stays the flat
@@ -312,16 +305,12 @@ Epic). The stand-alone-Epic and broad-PRD-spec cases leave the Phase 0 folder un
 ### Step B — Full Epic-scoped read
 
 With granularity settled and `focus_key` resolved, dispatch `jira-reader` at `depth: full` — richer
-than Step A's `prd-plus-epics`, because `/specify` needs the full linked subtree (Stories/Sub-tasks) as
-the raw material for user stories, acceptance criteria, and test cases; `prd-plus-epics` would starve
-the grill of exactly the detail it needs.
-
-→ Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §2.1 Sonnet chain>`):
-  > "Return the structured handoff for this brief:
-  >
-  > jira_export_root: [resolved jira_export_root]
-  > jira_key:         [resolved jira_key]
-  > depth:      full"
+**Read the Epic folder itself, and everything under the PRD folder that bears on it.** The raw
+material for user stories, acceptance criteria and test cases is the PRD's own text plus whatever the
+Epic folder already holds — its `epic.md` where one exists, and any earlier `specification.md` or
+`design.md`. A linked subtree of Stories and Sub-tasks is not something the tree carries, so where the
+PRD is thin the grill has less to work from and must ask more; that is a real change in where the
+detail comes from, and it belongs to the operator's answers rather than to an import.
 
 Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `Jira key dir not found`
 rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On
@@ -810,47 +799,21 @@ was not, that no Jira export resolved for `<BRD-KEY>`.
 
 End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): **Epic-level spec** (`<PRD> <Epic>`) → hand to Dev → `/dev-workflows:design <PRD> <Epic>` `<merge-clause>`, which will not start until this spec is on the default branch — on every path, since `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3.4's `/design` row is a stop even for a spec that reached no branch — and the **Epic fan-out** `/dev-workflows:specify <PRD> <another-Epic>` for a sibling Epic (breadth), which waits on nothing this run produced and carries no clause; **PRD-level spec** (`<PRD>` only) → `/dev-workflows:epics <PRD>` (PE) `<merge-clause>`, which stops rather than skipping wherever this spec reached a branch (§3.3 rows D/E) and skips exactly as it did before wherever it reached none (§3.4's `/epics` row). If the run BLOCKED or left open `- [ ]` items, recommend resolving those first.
 
-**Under `--from-brd` neither branch above applies, because the key this run holds is a BRD key.**
-`/dev-workflows:design` and `/dev-workflows:epics` are both jira-driven: each classifies its key
-through `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`, which resolves
-`$VAULT_PATH/jira-products/<KEY>` and fires Fallback B when that directory is missing. A `<BRD-KEY>`
-is a folder name under `$SPECS_PATH` that was never checked against a tracker
-(`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1), so naming either command with one is an
-offer that cannot start. Test before naming:
+**On the BRD route the same two offers apply, and they no longer need a reachability test.**
+`/dev-workflows:design` and `/dev-workflows:epics` both resolve a folder in the specs tree with
+`resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3) — the same tree, and often
+the same folder, this run has just written into. There is nothing to check before naming them:
 
-- **Name `/dev-workflows:design <BRD-KEY>` `<merge-clause>` only when
-  `$VAULT_PATH/jira-products/<BRD-KEY>/<BRD-KEY>-index.md` exists.** That one test settles both halves
-  of reachability. It settles the key half directly — it is exactly what `jira-input-resolution.md`'s
-  JiraID resolution requires — and it settles the folder half because `/dev-workflows:design` resolves
-  its own directory from the same key through `resolve-address` (`addressing.md` §3), which reaches
-  this BRD folder wherever it sits. So the two resolutions land
-  on the same place precisely when the BRD was keyed with the tracker's own key — which
-  `/dev-workflows:brd-split` lets an operator do when it proposes the slice key, since a segment count
-  is a naming convention and never a depth declaration (§1). Its Phase 0 step 4 then takes the
-  "holds a flat `specification.md`" branch for this folder — the BRD key resolves no focus Epic, and a
-  BRD folder holding a spec is exactly that case — and step 3's gate re-applies against it, which is
-  the wait `<merge-clause>` states.
-- **Where the export does not resolve, name no command and say why.** The PRD's paste-and-re-import
-  round-trip — in `/dev-workflows:create-prd <BRD-KEY> --from-brd`'s handoff phase — is what mints a
-  tracker key and creates the export at all. Say also that a *minted key different from the BRD key*
-  does not make `/dev-workflows:design` reachable for this spec: under that key it resolves a
-  different `specifications/` folder and reports this specification absent. Per the *When no option is
-  safe to recommend* guidance in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`, nothing in
-  that state is marked `(Recommended)`.
-- **`/dev-workflows:epics` is not offered on this route either way.** It splits a PRD into Epic drafts
-  and is upstream of this command, not downstream of it; and under a minted key it would resolve a
-  different PRD directory, where this run's `specification.md` is not present — so the silent skip its
-  row F takes would leave the offer stating a wait that is not real.
+- **`/dev-workflows:design <ADDRESS>` `<merge-clause>`** — it gates the `specification.md` this run
+  wrote, so the clause is required.
+- **`/dev-workflows:epics <ADDRESS>`** — it reads the PRD folder and gates nothing this run
+  produced, so it carries no clause.
 
-`<merge-clause>` is the placeholder `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` owns, resolved from this run's own `Phase handoff:` outcome line (§4.1) and never written as the unconditional "once the pull request above is merged" — a declined handoff, a failed push and a nothing-to-commit run each leave a different wait, and two of them open no pull request to wait on.
+**What this replaces is worth naming, because a reader who remembers it will look for it.** Both
+offers used to be withheld unless an export directory existed under the key, a test that existed
+only because both commands resolved that export and found nothing without it. Neither reads an
+export any more. The test is not relaxed — its subject no longer exists.
 
-### Context hygiene
-
-The resume pointer is written in the terminal cost phase (Phase 9), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
-
-- **PRD-level spec → `/dev-workflows:epics <PRD>` (still PE)?** → run **`/compact`** — context still relevant.
-- **Epic-level spec → Dev `/dev-workflows:design <PRD> <Epic>` (even yourself)?** → run **`/clear`** for a clean slate.
-- **`--from-brd`?** → run **`/clear`**. The two lines above name commands this route's key cannot reach (`### Next step`), so neither describes the span that follows: whatever comes next starts from a merged artifact and a key this session does not hold, which is the clean-slate case.
 - Consider **`/rename <PRD-ID>-<slug>-pe`** to relocate this session later.
 
 Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.

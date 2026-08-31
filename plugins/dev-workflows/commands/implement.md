@@ -19,42 +19,42 @@ Implement the following: $ARGUMENTS
 | **Jira ticket folder** | a directory containing a `*-index.md`, or ticket-key subdirectories each containing a `KEY.md` | hand to `jira-reader` in Phase 1.7 |
 | **Code repo** | a directory where `git -C <path> rev-parse --is-inside-work-tree` succeeds (includes the cwd) | scan target in Phase 1.7 |
 
-**Jira-input resolution (shared front-end).** Before the per-`@path`
-classification above, run `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md`
-against `$ARGUMENTS`. It unifies the input grammar with `/document`: a **JiraID**
-token (`^[A-Z][A-Z0-9]+-[0-9]+`) is discovered under `$VAULT_PATH/jira-products/`
-(Fallbacks A/B on miss); a directory that inspects as a **jira-export** is used as
-`jira_export_root`; a **spec-folder** contributes to `specs`; everything else is
-`direct` (free-text/`@file`, this command's existing flow). The classification
-table above is the directory branch of that front-end — a Jira ticket folder ↔
-jira-export, a spec folder ↔ spec-folder, a code repo ↔ an `/implement`-only
-target. Carry `mode`, `jira_key`, `jira_export_root`, `focus_key`, and `specs` forward.
+**Address resolution.** Before the per-`@path` classification above, look for a **single positional
+address** in `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a folder in the specs tree. Present →
+resolve it with `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3) and the run
+is **keyed**; absent → the run is **direct** (free-text / `@file`, this command's existing flow).
+That is the whole mode test, and it unifies the input grammar with `/document`.
 
-**Epic-unit resolution (jira-driven).** `/implement` implements one Epic at a time.
-After the front-end resolves, when `mode: jira-driven`:
+The classification table above still applies to every other `@path` token: a spec folder contributes
+to `specs`, a code repo is an `/implement`-only scan target. Carry `mode` (`keyed | direct`), the
+resolved `path`, `kind` and `key`, and `specs` forward.
 
-- **`focus_key` set** (explicit `<PRD> <Epic>`, a bare nested `<Epic>`, or chosen in
-  the picker below) → proceed for that Epic. The Jira read (Phase 1.7) and specs
-  resolution both scope to it.
-- **`focus_key` null** → classify the target with a cheap `jira-reader`
-  `depth: prd-plus-epics` read on `jira_export_root`, then follow
-  `${CLAUDE_PLUGIN_ROOT}/references/jira-input-resolution.md` §"Progress-aware Epic
-  picker":
+**Epic-unit resolution (keyed runs).** `/implement` implements one Epic at a time. When
+`mode: keyed`:
+
+- **The address named an `EPIC-` folder** → `focus_key` is its `key`; proceed for that Epic. The
+  Phase 1.7 scan and specs resolution both scope to it.
+- **The address named a `PRD-` folder** → `focus_key` is null; enumerate the `EPIC-` folders
+  directly under it — a directory listing, which is what the linked-item hierarchy has become — and
+  run the progress-aware picker below.
   - the item is **itself an Epic** (stand-alone / top-level) → no picker; proceed
     directly (`focus_key` stays null; specs resolve at the item's top-level dir).
   - **PRD with exactly 1 Epic** → no picker; set `focus_key` to that Epic and proceed.
-  - **PRD with ≥2 Epics** → render the picker. `/implement`'s **done-predicate is the
-    Epic's Jira status** (`linked_items[].status`): map *done / closed / resolved* →
-    ● (greyed, not default-selectable; selecting offers "implement anyway"), *in
-    progress / in review* → ◐, anything else → ○; always show the raw status text
-    beside each row so a lagging status can't mislead. If the export carries no
-    status, degrade to a plain unstatused selection list. Include the explicit choice
+  - **PRD with ≥2 Epics** → render the picker. **`/implement`'s done-predicate is now the artifacts
+    present in each Epic folder**, which is the mechanism `/design`'s own Epic picker already uses:
+    `specification.md` but no `design.md` → ○; `design.md` present → ◐. **● is not determinable in
+    this increment** — the signal that an Epic was implemented is `implementation.md`, which
+    `/implement` itself begins writing in increment C — so say so beside the list rather than
+    showing a marker the tree cannot support. Reading the artifacts rather than a status field is
+    strictly better than what it replaces: a Jira status is a human's claim about the work and
+    could lag it, which is why the old picker had to print the raw status text as a hedge. Include the explicit choice
     **"Implement one broad PRD-level slice instead"** (`focus_key` stays null → specs
     resolve PRD-level). Selecting an Epic sets `focus_key` and proceeds for **that Epic
     only** — there is **no "Next Epic?" loop** (code-writing is heavy and branchy;
     each `/implement` run targets one Epic).
-  - **PRD with 0 Epics** → offer: split with `/dev-workflows:epics` first (then re-import), or
-    implement one broad PRD-level slice (`focus_key` stays null).
+  - **PRD with 0 Epics** → offer: split with `/dev-workflows:epics` first, or implement one broad
+    PRD-level slice (`focus_key` stays null). No re-import step follows `/epics` any more — it
+    writes into the tree this command reads.
 
 When the picker (or the 1-Epic auto-path) sets `focus_key` that was initially null,
 **re-resolve `specs`** per the shared reference §Specs-resolution now that `focus_key`
@@ -77,8 +77,8 @@ Rules:
 - A referenced `@dir` that is missing, or is neither a recognized folder type nor a git repo, MUST be surfaced to the user immediately (do not silently skip) — then ask whether to continue without it or stop. This mirrors `classification.md` §8.4.
 - Note any embedded images as "referenced image: <path>".
 - If a single `@file` cannot be read, stop and report the error immediately.
-- **Specs are required for jira-driven runs.** When `mode: jira-driven` and the
-  front-end resolved `specs: []`, do not plan blind — prompt:
+- **Specs are required for keyed runs.** When `mode: keyed` and the resolution found
+  `specs: []`, do not plan blind — prompt:
   `choices: ["Point me at a specs directory (you'll provide the path)", "Proceed without specs — not recommended", "Cancel"]`
   "Point me…" takes a path, classifies it as a spec-folder, and re-resolves
   `specs`. "Proceed without specs" is logged in the Phase 5 report's
@@ -100,20 +100,23 @@ run — the terminal `commit-artifacts` step skips on it.
 
 ---
 
-## Phase 0.5 — Readiness pre-flight (jira-driven only; advisory)
+## Phase 0.5 — Readiness pre-flight (keyed runs only; advisory)
 
-**Jira mode only.** When `mode: direct` this phase is a **no-op** — skip it entirely
+**Keyed runs only.** When `mode: direct` this phase is a **no-op** — skip it entirely
 (direct-mode runs are byte-identical to before).
 
-When `mode: jira-driven`, read the resolved item's declared Jira status (reuse the
-Phase 0 `prd-plus-epics` read if it ran, else a cheap Status-column read of
-`<jira_export_root>/<jira_key>-index.md`). Also, if `$SPECS_PATH` is set, check for a
-co-located `_readiness.md` in the item's specs dir.
+When `mode: keyed`, check the resolved folder for a co-located `_readiness.md`.
 
-Surface a **one-line, non-blocking** recommendation to run `/dev-workflows:ready <PRD> [<Epic>]` first when
-EITHER: the status is below the readiness bar (PRD below **Ready for Implementation**; Epic below
-**Refined**), OR a `_readiness.md` records **NOT-SUPPORTED** / **PARTIAL**. This NEVER blocks —
-proceed regardless; it is guidance only. If neither condition holds, say nothing and continue.
+Surface a **one-line, non-blocking** recommendation to run `/dev-workflows:ready <ADDRESS>` first
+when that `_readiness.md` records **NOT-SUPPORTED** / **PARTIAL**. This NEVER blocks — proceed
+regardless; it is guidance only. If it records SUPPORTED, or there is none, say nothing and continue.
+
+**The declared-status half of this check is gone, and that is the honest outcome rather than a
+loss.** It read a status a human had set on a tracker and compared it to a readiness bar. With no
+tracker there is no declaration to read — and `/ready` itself now derives the phase from the
+artifacts (`references/workflow-states.md`), so `_readiness.md` is the same signal with its
+reasoning attached. What disappears is the ability to catch a *wrong* declaration, which is the cost
+spec §6.4 records against `/ready --claimed`, not a second one.
 
 ---
 
@@ -197,8 +200,9 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
 
 1. **Read Jira ticket folders.** For each Jira ticket folder, invoke `jira-reader` (read-only):
 
-   → Agent (subagent_type: "dev-workflows:jira-reader", model: `<detection_model — §2.1 Sonnet chain>`):
-     > "Return the structured handoff for this brief — linked items, PR URLs (identifiers only — no fetching), and capability themes:
+   1. **Read the resolved folder.** Read its `prd.md` and the `specs` files resolved in Phase 0, plus —
+   for a PRD-level address — the `EPIC-` subfolders under it. No PR URLs are available in this
+   increment; `implementation.md` supplies them from the next one.
      >
      > jira_export_root: [the resolved jira_export_root (from the Phase 0 front-end), or the ticket-folder absolute path]
      > jira_key:         [the resolved <KEY>]
@@ -699,7 +703,7 @@ and executing its steps inline.
    task.
 2. **Filter** them with the reference's §6 qualifying predicate.
 3. **Resolve** the write target via the §4 ladder using `jira_key` and `source`
-   (jira-driven runs carry a key; direct-prompt runs usually do not, so tasks
+   (keyed runs carry a key; direct-prompt runs usually do not, so tasks
    land in `Tasks.md # Irregular` when the vault is writable, else report-only);
    render + place tasks and verbose notes per §1–§3; dedupe per §5.
 4. **Preview + confirm** per §7 (`approve-all | select | cancel`), then write.

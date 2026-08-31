@@ -93,9 +93,12 @@ BRD — it holds the same artifacts (`references/brd-format.md` §2.1,
 `references/coverage-ledger-format.md` §1), it is ground by `/brd-ground` on its own claimed
 requirements, it is allocated by `/brd-split` on its own ledger, and it may declare a `depends-on`
 against any other BRD. What the cap forbids is **child creation**, and only that: run on a slice,
-`/brd-split` skips its slice-proposal and child-creation phases and walks the ledger with
-`covered-by` unavailable (`commands/brd-split.md` Phase 0 step 5, the `BRD_SPLIT_ON_SLICE`
-notice — a notice, not a stop). So this path never exists:
+`/brd-split` skips its slice-proposal and child-creation phases and walks the ledger without
+offering `covered-by`, because on a slice that disposition names a sibling or the parent and is
+written by the parent's own walk, never chosen here
+(`references/coverage-ledger-format.md` §3, `commands/brd-split.md` Phase 0 step 5 and Phase 4 —
+the `BRD_SPLIT_ON_SLICE` notice is a notice, not a stop). **No key a slice writes ever names a
+child**, so this path never exists:
 
 ```
 specifications/<KEY>-<slug>/<CHILD-KEY>-<slug>/<GRANDCHILD-KEY>-<slug>/   # never created

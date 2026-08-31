@@ -83,10 +83,13 @@ against a logged defect, or marking it superseded — until none remain `unalloc
 split confirms is not a new route: it nests inside its parent's folder and re-enters at
 `/brd-ground` for its own grounding pass, which is what the dashed loop above shows, and then at
 `/brd-split` to allocate its own ledger. That second `/brd-split` runs in **allocate-only** mode: it
-offers four resolutions rather than five — `covered-by` is unavailable, because it names a child BRD
-and no child can exist below a slice — and it creates nothing. The cap is on nesting, not on
-allocation: a slice's rows must reach a fate too, or the slice could never become a PRD of its
-own.
+offers four resolutions rather than five and creates nothing, because no child can exist below a
+slice. `covered-by` is the resolution it does not offer — not because a slice may not carry one,
+but because the one a slice carries is written by the parent's own walk: when that walk settles a
+provisionally-claimed requirement on a different slice, the claim is withdrawn, the ledger row stays
+(a ledger row is never deleted), and it records the sibling — or the parent — that took it. The cap
+is on nesting, not on allocation: a slice's rows must reach a fate too, or the slice could never
+become a PRD of its own.
 
 `/brd-interview` then works the BRD's open questions to recorded decisions, one round at a time,
 under a single rule: every question is tagged `[G]` / `[V]` / `[C]` before it is asked, and the tag

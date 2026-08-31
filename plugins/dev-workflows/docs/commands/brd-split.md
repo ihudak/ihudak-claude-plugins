@@ -37,18 +37,24 @@ declaration.
 | Applies to | a BRD that owns its source document | a **slice** (`parent:` present) |
 | Phase 2 — propose slices | runs | skipped |
 | Phase 3 — key and nest children | runs | skipped — this is the child creation the one-level cap forbids |
-| Phase 4 — walk the ledger | runs, **five** resolutions | runs, **four** — no `covered-by` |
+| Phase 4 — walk the ledger | runs, **five** resolutions | runs, **four** — this walk offers no `covered-by` |
 | Phase 4.5 — resolve standing empty children | runs | skipped — a slice has no children |
 | `rejected: [DEF#n]` resolves in | this BRD's own defect log | the **parent's** log, one hop ([`brd-format.md`](../../references/brd-format.md) §4) |
 | Phase 7 — next steps | ground each new child | **the route does not end here** — [`/brd-interview`](brd-interview.md) on this slice, Recommended; *Stop here* is the other option, not the only one |
 | Announced? | no — the ordinary case | yes, `BRD_SPLIT_ON_SLICE`, a **notice, not a stop**, at Phase 0 and again in the final report |
 
-`covered-by` is unavailable on a slice because it names a child BRD that builds the row and no child
-can exist below a slice — so the disposition has nothing it could name
-([`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §3). The walk states that
-reason before its first row rather than presenting a shorter list without explanation. **The cap is
-on nesting, not on allocation**: a slice whose rows could never leave `unallocated` could never
-become PRD-eligible (§5), which is the deadlock the coverage ledger exists to prevent.
+A slice's walk offers no `covered-by`, and the reason is about **who writes** it, not about whether
+a slice may carry one. On a slice the disposition names a **sibling under the same parent, or that
+parent** — never a child, since none can exist below a slice — and it records a **provisional claim
+the parent's own walk withdrew**: Phase 3 writes a child's `claims:` provisionally, and where
+Phase 4 settles a claimed requirement elsewhere the claim and the copied inventory row are withdrawn
+while the ledger row stays and takes that walk's terminal disposition
+([`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §2, §3). Every row a
+slice's own walk stands on is a row that slice claims, so there is nothing for it to delegate. The
+walk states that reason before its first row rather than presenting a shorter list without
+explanation. **The cap is on nesting, not on allocation**: a slice whose rows could never leave
+`unallocated` could never become PRD-eligible (§5), which is the deadlock the coverage ledger exists
+to prevent.
 
 ## How it runs
 
@@ -111,7 +117,7 @@ reads was already independently verified by `/brd-ground`'s own agents.
 Under `$SPECS_PATH/specifications/<BRD-KEY>-<slug>/`:
 
 - `coverage-ledger.md` — updated so no row remains `unallocated`: each row now reads
-  `covered-here`, `covered-by: <CHILD-KEY>`, `deferred-to: <this BRD>`, `rejected: [DEF#n]`, or
+  `covered-here`, `covered-by: <BRD-KEY>`, `deferred-to: <this BRD>`, `rejected: [DEF#n]`, or
   `superseded-by: [BR#n]`.
 - `slices.md` — one block per confirmed slice (its key, its folder, and its buildable / blocked /
   depends-on rationale) plus one block per row deferred this run.
@@ -125,7 +131,12 @@ so no child folder is created.
   from this BRD's inventory under a header naming the parent's `brd/source/`, which every
   `source_anchor` in it still resolves against
   ([`brd-format.md`](../../references/brd-format.md) §2.1); and its own `coverage-ledger.md` with
-  every row `unallocated`. Those last two are what let the child re-enter the route: `/brd-ground`
+  every row `unallocated`. The claim list is **provisional** until the walk ends: a row proposed for
+  a child but settled elsewhere loses its claim and its inventory row, while its ledger row stays as
+  an **orphan row** carrying the disposition the walk settled — including `covered-by: <SIBLING-KEY>`
+  where another child took it. A ledger row is never deleted.
+
+  Those last two files are what let the child re-enter the route: `/brd-ground`
   gates on the child's ledger and reads the child's inventory, and `/brd-intake` — the only other
   command that writes either — never runs on a slice, which has no document to intake. Those rows
   are then allocated by `/brd-split` run on the child itself, in `allocate-only` mode, which is what
@@ -152,7 +163,8 @@ with a "nothing to commit" report on the no-op path.
   `unallocated`. Every remaining row is presented one at a time via `AskUserQuestion`, through
   exactly five resolutions in `split_mode: full` — build here (`covered-here`), assign to a named
   child (`covered-by`), defer to this BRD (`deferred-to`), reject citing a `[DEF#n]`, or mark
-  superseded by another `[BR#n]` — and the same four without `covered-by` in `allocate-only`. `covered-here` is the resolution that makes the whole BRD PRD-eligible, and
+  superseded by another `[BR#n]` — and the same four without `covered-by` in `allocate-only`, which
+  is the one that walk does not offer. `covered-here` is the resolution that makes the whole BRD PRD-eligible, and
   it is what an unsplit BRD reaches for every row — without it, a BRD nobody splits could never
   clear this gate.
 - **Phase 4.5 — no child left standing while claiming nothing** (`split_mode: full` only). The set is
@@ -160,7 +172,9 @@ with a "nothing to commit" report on the no-op path.
   ended the walk resolved elsewhere, and any child an earlier run left empty. A child with no
   recorded reason is offered removal (recommended); one already carrying a reason is offered keeping
   it (recommended), removing it now, or updating the reason — so a deliberate decision is not
-  re-litigated, and removal stays reachable. The phase never gives a child rows: `covered-by` is
+  re-litigated, and removal stays reachable. Such a child's ledger is not necessarily empty — it
+  keeps one terminal orphan row per withdrawn claim — but its `claims:` list is, which is what every
+  stop naming this phase reacts to. The phase never gives a child rows: `covered-by` is
   Phase 4's, and only against a row still `unallocated`.
 - **No-op on a fully-allocated ledger, with one exception.** Re-running `/brd-split` once every row
   already has a disposition changes nothing **unless** a child is standing empty, in which case

@@ -156,8 +156,8 @@ and nothing downstream can tell the difference afterwards.
    nobody has yet decided this BRD is building.
 
    **Read the dispositions in the file; never the ledger line.** The line's `unallocated` term is a
-   *resolved* count that follows every `covered-by` row one hop into its child, so a fully-allocated
-   parent routinely reports a non-zero term for rows a child has not walked yet
+   *resolved* count that follows every `covered-by` row one hop into the BRD it names, so a
+   fully-allocated parent routinely reports a non-zero term for rows a child has not walked yet
    (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6.1, which states outright that a
    consumer testing the gate reads the dispositions and never the line). Gating on the line would
    refuse to interview a BRD that is completely allocated, for work that belongs to a different BRD's
@@ -739,11 +739,15 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 ```
 
 `/brd-interview` never changes a ledger disposition — the line simply reports where allocation
-stands. **Reporting it reads one child ledger per `covered-by` row**, one hop, from the working tree
-via `resolve-brd` (`brd-addressing.md` §2), per `coverage-ledger-format.md` §6.1; a child that cannot
+stands. **Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree
+via `resolve-brd` (`brd-addressing.md` §2), per `coverage-ledger-format.md` §6.1 — a child on a BRD
+that owns its source document, a sibling or the parent on a slice (§3); a ledger that cannot
 be read there contributes `unresolved`, never `covered` (§6.2). This adds no precondition and no
 gate: the allocation gate in *Resolve inputs and gate the grounded BRD* is decided on this BRD's own
 rows before any of this, and a non-zero `unallocated` term in the line — a row this BRD delegated to
-a child that has not walked it yet — is that resolution working, never this run having failed. A
-slice reaches this with nothing to resolve, since `covered-by` is unavailable on one
-(`coverage-ledger-format.md` §3), so its line always reports zero delegated.
+a child that has not walked it yet — is that resolution working, never this run having failed. A slice does **not** always reach this with
+nothing to resolve. `covered-by` is legal on a slice (`coverage-ledger-format.md` §3), where it
+names a sibling under the same parent or that parent and marks an **orphan row** — a provisional
+claim the parent's walk withdrew (§2). Those rows are resolved one hop exactly like a parent's
+delegated rows, so a slice reports zero delegated only when its parent withdrew none of its
+claims.

@@ -1,6 +1,6 @@
 ---
 name: brd-split
-description: BRD-splitting workflow (PM phase, third command of the BRD-to-PRD route). Gates on every grounding finding carrying a verifier verdict, proposes candidate slices from the grounded picture (buildable now, blocked, or dependent), keys and nests a child BRD folder per confirmed slice with its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md, then walks every unallocated coverage-ledger row one at a time through five resolutions (build here, assign to a named child, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. Run on a slice it allocates but does not slice: nesting is capped at one level, so the walk offers four resolutions instead of five (no covered-by) and no child is created. Re-running on a fully-allocated BRD is a no-op that prints the ledger. Offers /brd-interview on the BRD just allocated, and /brd-ground on each new child, as the next steps.
+description: BRD-splitting workflow (PM phase, third command of the BRD-to-PRD route). Gates on every grounding finding carrying a verifier verdict, proposes candidate slices from the grounded picture (buildable now, blocked, or dependent), keys and nests a child BRD folder per confirmed slice with its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md, then walks every unallocated coverage-ledger row one at a time through five resolutions (build here, assign to a named child, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. Run on a slice it allocates but does not slice: nesting is capped at one level, so no child is created and the walk offers four resolutions instead of five - covered-by is not among them because on a slice it records a provisional claim this command's own walk on the parent withdrew, and the parent writes it. Re-running on a fully-allocated BRD is a no-op that prints the ledger. Offers /brd-interview on the BRD just allocated, and /brd-ground on each new child, as the next steps.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -24,8 +24,11 @@ resolves from the folder itself:
 - **`split_mode: allocate-only`** — a slice. Nesting is capped at one level
   (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §3), so **no child may be created below a
   slice**: Phases 2 and 3 are skipped entirely and the walk offers **four** resolutions, without
-  `covered-by`. The cap is on nesting, not on allocation — a slice whose rows could never leave
-  `unallocated` could never become PRD-eligible
+  `covered-by`. That last part is about **who writes** the disposition, not about whether a slice
+  may carry it: a slice's `covered-by` names a sibling or the parent and records a provisional
+  claim the *parent's* walk withdrew, so it is already terminal before this walk reads the ledger
+  (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2, §3). The cap is on nesting, not
+  on allocation — a slice whose rows could never leave `unallocated` could never become PRD-eligible
   (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5), which would make slicing
   pointless. The run announces the mode rather than quietly behaving differently.
 
@@ -62,7 +65,7 @@ resolves from the folder itself:
      it for the whole run, and **emit this notice now, and again in the final report** — a run that
      silently skips two phases and drops a resolution from its own picker is worse than one that
      says so:
-     `BRD_SPLIT_ON_SLICE (notice, not a stop): <BRD-KEY> is a slice of <PARENT-KEY>. This run allocates <BRD-KEY>'s ledger but creates no children: nesting is capped at one level, so Phases 2-3 are skipped and the Phase 4 walk offers four resolutions instead of five — covered-by is unavailable because no child BRD can exist below a slice.`
+     `BRD_SPLIT_ON_SLICE (notice, not a stop): <BRD-KEY> is a slice of <PARENT-KEY>. This run allocates <BRD-KEY>'s ledger but creates no children: nesting is capped at one level, so Phases 2-3 are skipped and no child BRD can exist below a slice. The Phase 4 walk offers four resolutions instead of five: covered-by is not one this walk can choose — on a slice it names a sibling or the parent, records a provisional claim the parent's own walk withdrew, and is written by that walk, so every row carrying it is already terminal here.`
    **This is a cap on nesting, not on allocation.** A grandchild would inherit `brd/source/` and a
    defect log from a parent that holds neither, so its inventory header would name a path that does
    not exist (`brd-addressing.md` §3, `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1) — that
@@ -131,8 +134,12 @@ resolves from the folder itself:
    satisfies the second half by construction — no child exists or can be created below a slice — and
    it had two fewer phases to skip. The step 5 notice is still emitted and still reported.
 9. **Enumerate existing children — `split_mode: full` only.** In `allocate-only` mode there are no
-   children and none can be created, so this step is skipped and `covered-by` is not offered in
-   Phase 4. In `full` mode: list every immediate subdirectory of `<BRD-dir>` whose name
+   children and none can be created, so this step is skipped — and with no child to enumerate there
+   is no `covered-by` target for Phase 4 to offer, which is the mechanical reason that picker is
+   four choices rather than five. A slice's own `covered-by` rows name a sibling or the parent and
+   are written by the parent's walk, never chosen here
+   (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3); this step never looks for
+   them and never needs to, because they are terminal already. In `full` mode: list every immediate subdirectory of `<BRD-dir>` whose name
    matches `<KEY>{-|_}<slug>` (`brd-addressing.md` §2 step 1), excluding `brd/`, `grounding/`, and
    `dev-workflows/` — none of those is ever a BRD folder. Each match is a child a previous
    `/brd-split` run already created, nested per §3, and remains a valid `covered-by` target in
@@ -231,8 +238,15 @@ For every slice Phase 2 confirmed:
 3. **Write the child's `brd-link.md`**: `parent: <BRD-KEY>` and `claims:` — the slice's `[BR#n]`
    rows as currently proposed. This is provisional: Phase 4's walk is the step that actually moves
    a row's disposition, and a row proposed here for this child but resolved differently there (for
-   example rejected instead) is removed from this list at that point, never left to disagree with
-   the ledger.
+   example rejected instead) is removed **from this list** at that point, never left to disagree
+   with the ledger. **Only the `claims:` entry and the inventory row step 4 copies for it are
+   withdrawn — the ledger row step 5 seeds is not.** A ledger row is never deleted
+   (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2), so the child keeps an
+   **orphan row** for that `[BR#n]`, and Phase 4's reconcile step writes it the terminal
+   disposition the walk settled — including `covered-by: <SIBLING-KEY>` where the walk gave the
+   requirement to another child of this BRD. Deleting it instead would erase the only record that a
+   claim was made and withdrawn; leaving it `unallocated` would block that slice's own §4 gate
+   forever, and with it every command that gates on the slice being fully allocated.
 4. **Write the child's `brd/brd-inventory.md`** — the subset of *this* BRD's inventory rows the
    `claims:` list above names, copied row-for-row (`id`, `text`, `source_anchor`, `defects`
    verbatim), under the `parent:`/`source:` header
@@ -296,11 +310,28 @@ choices: ["Build here — covered-here (Recommended: this slice was carved out t
 ```
 
 State once, before the first row of an `allocate-only` walk: *"`covered-by` is not offered here.
-It names a child BRD that builds the row, and nesting is capped at one level
-(`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §3), so no child can exist below this slice —
-the disposition has nothing it could name (`coverage-ledger-format.md` §3). The other four are
-unchanged, and `covered-here` is what makes this slice PRD-eligible (§5)."* The remaining four are
-a strict subset: nothing about them is redefined for a slice.
+On this slice it would name a sibling under the same parent, or that parent — never a child, since
+nesting is capped at one level and none can exist below a slice
+(`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §3). It is written by the **parent's** walk,
+on a provisional claim that walk withdrew, and every row carrying it is terminal before this run
+opens the file (`coverage-ledger-format.md` §2, §3). Every row this walk stands on is a row this
+slice claims — a row the parent allocated **here** — so there is nothing for this picker to
+delegate. The other four are unchanged, and `covered-here` is what makes this slice PRD-eligible
+(§5)."* The remaining four are a strict subset: nothing about them is redefined for a slice.
+
+**Why this walk may not offer it, stated once so no later edit re-adds it.** Delegating a claimed
+row to a sibling from inside the slice would leave the parent's ledger saying this slice owns the
+row while this slice says the sibling does — the two authorities disagreeing about which BRD owns a
+requirement, which is the failure the ledger exists to make impossible
+(`coverage-ledger-format.md` §1). It would also point at a sibling whose own inventory holds no row
+for that `[BR#n]` at all, and it would put a second hop under the parent's roll-up, which
+`coverage-ledger-format.md` §6.1 requires to terminate in one. **No command is named as the way to
+re-allocate instead, because none exists**: allocation is this walk and nothing else
+(`coverage-ledger-format.md` §3), the walk visits only rows still `unallocated`, and no command
+moves a row off a terminal disposition — so re-running `/brd-split` on the parent would find that
+row already allocated and report the no-op. The honest answer for an operator who wants the sibling
+to own a claimed row is that the allocation stands as the parent's walk recorded it, and the slice
+records what it decides to do with it.
 
 Both pickers offer nothing but **terminal** dispositions from
 `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3 — five in `full` mode, four in
@@ -357,11 +388,40 @@ that were `unallocated` when Phase 0 step 8 read the ledger, so the rows a pre-e
 already given by an earlier run are not revisited here and must not be dropped: the set each child
 ends with is the union of the rows it already claimed and the rows this walk newly resolved to it,
 minus only the rows this walk moved off `covered-by: <that child>` to something else. A rebuild
-from this walk's resolutions alone would silently strip every earlier claim. A row added to a child here gains its inventory and ledger rows here; a row proposed for
-a child in Phase 3 but resolved elsewhere loses all three together. Nothing is renumbered — ids are
-the parent's throughout — and a ledger row an earlier run already moved off `unallocated` in a
-pre-existing child is left exactly as it stands: this step adds and removes rows, and never
-rewrites a disposition another run recorded.
+from this walk's resolutions alone would silently strip every earlier claim. A row added to a child
+here gains its inventory and ledger rows here.
+
+**A row proposed for a child in Phase 3 but resolved elsewhere loses two of the three, never all
+three.** Its `claims:` entry and its copied inventory row are withdrawn together — a slice's
+inventory is the subset `claims:` names
+(`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1) — and **its ledger row stays**, because a
+ledger row is never deleted (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2). It
+stays as an **orphan row**, and this step writes it the terminal disposition this walk settled, so
+it never blocks that slice's own §4 gate:
+
+| This walk resolved the row | Write on the withdrawn child's ledger row |
+|---|---|
+| `covered-by: <another child of this BRD>` | `covered-by: <that child's key>` — a **sibling** of the withdrawn one |
+| `covered-here` — this BRD builds it | `covered-by: <this BRD's key>` — the **parent** |
+| `deferred-to: <this BRD>` | `covered-by: <this BRD's key>` — the **parent** |
+| `rejected: [DEF#n]` | `rejected: [DEF#n]`, verbatim |
+| `superseded-by: [BR#n]` | `superseded-by: [BR#n]`, verbatim |
+
+`coverage-ledger-format.md` §3 owns that mapping and says why each row of it is the only honest
+record available: the first three all say *another BRD owns this*, which is what `covered-by`
+means, while `deferred-to: <this BRD>` written on the slice would falsely book the requirement as
+that slice's own live obligation. The last two cite an id of **this** BRD's — the `[DEF#n]` in this
+BRD's defect log, the `[BR#n]` in its inventory — which the withdrawn child resolves one hop up like
+any other inherited id (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1, §4), so neither names
+something it cannot follow even though it no longer claims the row. **No key written here is ever a
+child of the slice** — it is a sibling under this BRD, or this BRD itself — so nothing about this
+widens the one-level cap.
+
+Nothing is renumbered — ids are the parent's throughout — and a ledger row an earlier run already
+moved off `unallocated` in a pre-existing child is left exactly as it stands: this step adds and
+removes `claims:` entries and inventory rows, it **never removes a ledger row**, and it never
+rewrites a disposition another run recorded. The orphan rows it writes are only ever rows this run
+seeded `unallocated` in Phase 3 step 5 moments earlier, so the two rules never collide.
 
 ---
 
@@ -370,10 +430,13 @@ rewrites a disposition another run recorded.
 `split_mode: full` only — `allocate-only` has no children and can create none.
 
 **A child claiming nothing is a folder nothing on this route can act on.** It has an empty
-`brd-link.md` `claims:` list and, beside it, an empty `brd/brd-inventory.md` and an empty
-`coverage-ledger.md`. `/brd-ground`, `/brd-split` and `/brd-interview` all stop on it, and all three
-of those stops name **this phase** as the fix, so this phase has to be reachable whenever such a
-child exists.
+`brd-link.md` `claims:` list and, beside it, an empty `brd/brd-inventory.md`. **Its
+`coverage-ledger.md` is not necessarily empty**: a child Phase 3 created this run whose every
+proposed row the walk then resolved elsewhere keeps one orphan row per withdrawn claim
+(`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2), each already terminal. Those
+rows change nothing here — the emptiness this phase acts on is the **claims** list, which is what
+`/brd-ground`, `/brd-split` and `/brd-interview` each stop on, and all three of those stops name
+**this phase** as the fix, so this phase has to be reachable whenever such a child exists.
 
 **The set is every child standing now, not only the ones this run created.** Two things put a child
 in it: a slice keyed and folder-created in Phase 3 whose every proposed `[BR#n]` row ended this walk
@@ -402,10 +465,15 @@ choices: ["Keep it — the recorded reason still stands (Recommended)", "Remove 
 ```
 
 Removing deletes the child's folder — `brd-link.md`, `brd/brd-inventory.md`, and
-`coverage-ledger.md` with it — and drops it from any later run's Phase 0 step 9 enumeration;
-keeping it writes or leaves a one-line `reason:` field in its `brd-link.md` beside the empty
-`claims:` list, and leaves the empty inventory and empty ledger in place, so the folder is still a
-well-formed BRD rather than a half-built one. Either way, Phase 7's next-step recommendation never
+`coverage-ledger.md` with it — and drops it from any later run's Phase 0 step 9 enumeration.
+**Removing one can never leave a `covered-by` key pointing at nothing**, at either level: a child
+this walk gave a row to claims that row and is therefore not in this phase's set, so no ledger
+anywhere names a child this phase can remove. Removal is the one place a ledger goes away, and it
+takes the whole BRD with it rather than deleting a row from a ledger that survives — which is why
+it does not contradict `coverage-ledger-format.md` §2. Keeping it, meanwhile, writes or leaves a
+one-line `reason:` field in its `brd-link.md` beside the empty
+`claims:` list, and leaves the empty inventory and the ledger — orphan rows and all — in place, so
+the folder is still a well-formed BRD rather than a half-built one. Either way, Phase 7's next-step recommendation never
 offers to ground a child still claiming nothing.
 
 **What this phase cannot do, said plainly so no stop promises it.** It does not give a child rows.
@@ -479,8 +547,12 @@ line.
 ## Phase 7 — Next steps
 
 **`split_mode: allocate-only` — no child of this slice is reachable, so no grounding of one is
-offered.** Phase 3 never ran, so there is no child to ground and no `covered-by` key to follow; and
-this slice cannot be split further, so re-running this command on it would only find a
+offered.** Phase 3 never ran, so there is no child to ground. This slice's ledger may still hold a
+`covered-by` key — an **orphan row** naming a sibling or the parent
+(`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2, §3), which the ledger line below
+follows one hop — but neither is a child of this slice and neither is this run's to ground: each is
+a BRD standing at its own level, on its own route. And this slice cannot be split further, so
+re-running this command on it would only find a
 fully-allocated ledger and report the no-op. **The route does not end here.** Its ledger now records
 a fate for every requirement it claims, which is exactly the precondition
 `/dev-workflows:brd-interview <BRD-KEY>` — the route's fourth command — refuses to start without, so
@@ -621,7 +693,10 @@ Opus degradation); every slice proposed, keyed, and its folder (or that none wer
 why — in `allocate-only` that reason is the cap, not an operator choice); any child removed or
 kept-with-reason for claiming nothing (Phase 4.5) — including any an earlier run left standing and this run resolved — and which; the ledger
 walk's resolution tally by disposition, with every new `covered-by` key and every
-`rejected`/`superseded-by` citation named; the `slices.md` path (or that it was skipped on the
+`rejected`/`superseded-by` citation named; **every provisional claim this run withdrew** — the
+`[BR#n]`, the child it was withdrawn from, and the terminal disposition its orphan row now carries
+(Phase 4's reconcile step), so a withdrawal is reported rather than only visible by re-reading two
+files; the `slices.md` path (or that it was skipped on the
 no-op path); the feedback + cost paths; the `Phase handoff:` outcome line from `handoff-to-main`
 (`phase-handoff.md` §4.1); the `Specs repo:` outcome line from `commit-artifacts`
 (`specs-repo-git.md` §6); the next-step recommendation; and end with the ledger line, exactly per
@@ -631,14 +706,20 @@ no-op path); the feedback + cost paths; the `Phase handoff:` outcome line from `
 ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> rejected, <unallocated> unallocated, <unresolved> unresolved (<delegated> delegated, <not-built> not built)
 ```
 
-**Computing it reads one child ledger per `covered-by` row**, one hop, from the working tree via
-`resolve-brd` (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §2) — the children this run
-created in Phase 3 and reconciled in Phase 4, and any it found already nested in Phase 0 step 9.
-A child whose ledger cannot be read there contributes `unresolved`, never `covered`
+**Computing it reads one ledger per `covered-by` row**, one hop, from the working tree via
+`resolve-brd` (`${CLAUDE_PLUGIN_ROOT}/references/brd-addressing.md` §2). In `full` mode those are
+the children this run created in Phase 3 and reconciled in Phase 4, and any it found already nested
+in Phase 0 step 9; in `allocate-only` they are the siblings and the parent this slice's orphan rows
+name (`coverage-ledger-format.md` §3), each of which `resolve-brd` finds at its own level.
+A ledger that cannot be read there contributes `unresolved`, never `covered`
 (`coverage-ledger-format.md` §6.2). **This changes no gate and no precondition of this command**:
 Phase 0's stops, the two-part no-op test step 10 decides, and §4's allocation gate are all decided on this
-BRD's own rows, before any of this. In `allocate-only` mode there is nothing to resolve at all —
-`covered-by` is not offered (Phase 4), so the line reports zero delegated.
+BRD's own rows, before any of this. **In `allocate-only` mode there may still be rows to resolve,
+and the hop lands elsewhere.** This walk offers no `covered-by`, so it adds none — but a slice can
+already hold **orphan rows** its parent's walk wrote (`coverage-ledger-format.md` §2), each naming
+a sibling under the same parent or that parent, and §6.1 resolves those exactly as it resolves a
+parent's delegated rows. So a slice's line reports zero delegated only when its parent withdrew
+none of its provisional claims — never as a property of being a slice.
 
 `/brd-split` is the only `/brd-*` command that can ever change this line's `unallocated` term as
 written on this ledger — a completed run always leaves **its own** rows with none

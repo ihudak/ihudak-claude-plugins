@@ -4,6 +4,46 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.3.1] — 2026-08-30
+
+### Fixed — a slice's withdrawn claim no longer strands its ledger row
+
+`/brd-split` Phase 3 writes a child's `claims:` list **provisionally** and seeds one `unallocated`
+ledger row per claimed `[BR#n]`. Phase 4's walk settles each requirement on the parent's ledger and
+may settle one away from the child that provisionally claimed it. What became of the child's ledger
+row was ambiguous, and both readings were wrong:
+
+- Deleting it violated `coverage-ledger-format.md` §2 ("never deleted and never renumbered") and
+  erased that the slice had ever claimed the requirement.
+- Keeping it at `unallocated` left `/brd-split` unable to complete on that slice for good (§4 blocks
+  while any row is `unallocated`), with `/brd-ground` and `/brd-interview` gated behind it — the
+  slice permanently unresolvable.
+
+The row is now **kept and always terminal**: it takes the disposition the parent's walk settled on.
+Where that is `covered-by`, the disposition is widened rather than the row deleted — `covered-by`
+is now legal on a slice, naming **a sibling under the same parent, or that parent**, and written by
+the **parent's** walk, never the slice's own. §3's prohibition existed because a slice has no
+*children*; naming a sibling or a parent is a different relation, and no key a slice writes ever
+names a child, so nesting stays capped at one level.
+
+A slice's own picker is unchanged at four resolutions. Letting a slice delegate would put a second
+`covered-by` in the path of a parent's roll-up and turn D23's single hop into two.
+
+Also fixed:
+
+- An orphan row carrying the parent's `superseded-by` could name a `[BR#n]` the slice never
+  claimed, which §6.3 said could not exist. Both carried-across dispositions now resolve one hop
+  up, as an inherited `[DEF#n]` already did.
+- `/brd-split` Phase 7 (allocate-only) claimed there was "no `covered-by` key to follow", which the
+  same file contradicted 160 lines later.
+- `/brd-ground` was offered "once per child the run created"; a child left holding only orphan rows
+  is a standing empty child, and grounding it stops at `BRD_GROUND_EMPTY_INVENTORY`. Now offered
+  only for non-empty children.
+- The `BRD_GROUND_EMPTY_INVENTORY` doc page dropped the qualifier that once the parent's ledger has
+  no `unallocated` row left, removal is the only thing that can change a standing empty child.
+
+Recorded as **R24**, amending **D23**.
+
 ## [3.3.0] — 2026-08-30
 
 ### Added — the BRD route reaches the PRD pipeline (increment 3)

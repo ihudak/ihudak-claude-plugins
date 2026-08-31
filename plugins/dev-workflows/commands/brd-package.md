@@ -830,8 +830,12 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 ```
 
 `/brd-package` never changes a ledger disposition — the line simply reports where allocation stands.
-**Reporting it reads one child ledger per `covered-by` row**, one hop, from the working tree via
-`resolve-brd` (`brd-addressing.md` §2), per `coverage-ledger-format.md` §6.1; a child that cannot be
-read there contributes `unresolved`, never `covered` (§6.2). A slice reaches this with nothing to
-resolve, since `covered-by` is unavailable on one (`coverage-ledger-format.md` §3), so its line
-always reports zero delegated.
+**Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree via
+`resolve-brd` (`brd-addressing.md` §2), per `coverage-ledger-format.md` §6.1 — a child on a BRD that
+owns its source document, a sibling or the parent on a slice (§3); a ledger that cannot be
+read there contributes `unresolved`, never `covered` (§6.2). A slice does **not** always reach this with
+nothing to resolve. `covered-by` is legal on a slice (`coverage-ledger-format.md` §3), where it
+names a sibling under the same parent or that parent and marks an **orphan row** — a provisional
+claim the parent's walk withdrew (§2). Those rows are resolved one hop exactly like a parent's
+delegated rows, so a slice reports zero delegated only when its parent withdrew none of its
+claims.

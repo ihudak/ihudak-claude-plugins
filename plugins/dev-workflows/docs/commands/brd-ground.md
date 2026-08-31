@@ -35,7 +35,11 @@ is the second command of that route, after [`/brd-intake`](brd-intake.md) and be
   implementation-altitude data-source matrix on or off. Left unset, the command defaults it on for
   a BRD whose requirements read as reporting- or data-centric, and off otherwise.
 - **`--no-design`** (optional) — skip the `design-grounder` pass even when an exported frame set
-  is present.
+  is present. Frame sets live in the resolved folder's reserved **design/** subdirectory, one
+  subdirectory per set — images plus an index file naming what each frame depicts, which
+  `design-grounder` refuses to run without, since a filename is not a reliable statement of what a
+  frame shows ([`grounding-format.md`](../../references/grounding-format.md) §6.1). No **design/**
+  folder means the pass is skipped and the run says so.
 - **`--no-docs`** (optional) — turn documentation grounding off for this run.
 - **`--rebaseline`** (optional) — re-run grounding against code that has moved since the last
   pass. Supersedes the affected findings by id rather than renumbering them, so a citation into an

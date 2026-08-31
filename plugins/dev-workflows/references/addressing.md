@@ -51,6 +51,13 @@ touches no filesystem — a pure string test, safe to call before `$SPECS_PATH` 
 2. **No path holds two folders of the same kind.** Every level is therefore identifiable from its own
    name without reading its parent, and the tree is at most three levels deep.
 
+**Reserved subdirectory names are not folder kinds.** A folder under `specifications/` may hold
+fixed-name subdirectories that carry no key and are never resolved by one — `brd/`, `grounding/`,
+`interview/`, `dev-workflows/`, and `design/` (exported frame sets, one per immediate subdirectory —
+`references/grounding-format.md` §6.1). None matches §3's `*-<KEY>-*` glob, so resolution passes over
+them without a rule of its own, and none carries a `brd-link.md`, so `/brd-split`'s positive test
+excludes them by construction rather than by an exclusion list.
+
 **A user whose own key begins with a kind token gets `PRD-PRD-1234-…`.** That is a documented
 consequence of a documented convention, not a defect, and it is not hypothetical: a key like
 `EPIC-008` yields `PRD-EPIC-008-01-orders` and `EPIC-EPIC-008-01-01-intake`. We cannot dodge every key

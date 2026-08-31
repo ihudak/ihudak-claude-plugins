@@ -634,6 +634,26 @@ Spec: D5, 3"
 
 ---
 
+### Task A5.5: `design/` is a reserved subdirectory, defined once
+
+**Added during execution**, from a review question: where do design files (png / pdf / svg) live, and how would design grounding find them?
+
+The answer was an asymmetry rather than a total gap. `/brd-ground` Phase 5 already reads `<BRD-dir>/design/`, treating each immediate subdirectory as one exported frame set, and `design-grounder` refuses a set with no index file. But the location was stated **inside the command** rather than in an authority, it was absent from the spec's own tree diagram, and the `/idea` route defined no such place at all — so a design file authored there had nowhere to live and nothing could find it.
+
+The §4.1 folder merge makes the fix nearly free: a BRD-route PRD folder **is** the slice folder `/brd-ground` already runs against, so `<PRD-folder>/design/<frame-set>/` works on that route today. Define it as a property of any folder under `specifications/` and there is one convention instead of two.
+
+**Files:** `references/grounding-format.md` (new §6.1), `references/addressing.md` §2, `commands/brd-ground.md` Phase 5, `docs/reference/references.md`, `docs/commands/brd-ground.md`, and the spec's §4.1.
+
+- [ ] **Step 1: State the location once**, in `grounding-format.md` §6.1: `<any-specs-folder>/design/<frame-set-name>/`, images plus an index file, the index non-optional and its absence unrecoverable (`NO_INDEX`).
+- [ ] **Step 2: Cite it, never restate it.** `/brd-ground` Phase 5 cites §6.1 instead of naming the path itself.
+- [ ] **Step 3: Name the reserved subdirectory names in `addressing.md` §2** — `brd/`, `grounding/`, `interview/`, `dev-workflows/`, `design/` — so a reader knows they are not folder kinds. None matches §3's glob and none carries a `brd-link.md`, so both resolution and `/brd-split`'s positive test already pass over them by construction.
+- [ ] **Step 4: Documentation**, and the spec's §4.1 tree.
+- [ ] **Step 5: Gates, commit.**
+
+**Scope boundary, stated because it is the interesting half.** This task defines a **location**, not a consumer. `design-grounder` is dispatched by `/brd-ground` and by nothing else, so a PRD folder on the `/idea` route may hold a `design/` folder that nothing yet reads. That is deliberate and recorded as such in `grounding-format.md` §6.1 — giving the `/idea` route design grounding means a dispatch, a findings file and a verifier pass it does not have, which is a capability decided on its own after increment A lands, not improvised alongside an addressing change.
+
+---
+
 ### Task A6: The nine commands resolve one address
 
 **Files:**

@@ -451,9 +451,11 @@ whatever the highest `CG#n` already on file is on a `--rebaseline` run — never
 own numbers as the BRD's numbering.
 
 **Then `design-grounder`, unless `--no-design`.** Look for `<BRD-dir>/design/`; each immediate
-subdirectory is a candidate exported frame set (`grounding-format.md` §6 convention — images plus
-an index file). None found → skip, reporting why (`--no-design` given, or no `design/` folder
-exists yet for this BRD). One or more found → dispatch one instance per frame set, same ≤4
+subdirectory is a candidate exported frame set. The location and the index requirement are
+`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §6.1's, cited here rather than restated —
+`design/` is a reserved subdirectory of any folder under `specifications/`, so the same path resolves
+whether this run stands on a BRD folder or on the PRD folder a slice is. None found → skip, reporting
+why (`--no-design` given, or no `design/` folder exists yet for this BRD). One or more found → dispatch one instance per frame set, same ≤4
 concurrent discipline, **after** the code-grounder batch above has fully returned — this agent's
 fourth reconciliation class cites a `[CG#n]`, so the findings it needs must already exist:
 

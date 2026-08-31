@@ -129,6 +129,8 @@ specifications/
 │   ├── ard.md
 │   ├── release-notes.md
 │   ├── follow-ups.md
+│   ├── design/                           exported frame sets — one subdir each
+│   │   └── orders-v3/  <images> index.md
 │   └── EPIC-ACME-77-01-intake/
 │       ├── epic.md
 │       ├── specification.md
@@ -141,6 +143,7 @@ specifications/
     └── PRD-ACME-90-01-orders/               iteration AND PRD — one folder, level 2
         ├── brd-link.md  coverage-ledger.md  decisions.md
         ├── prd.md  ard.md  release-notes.md
+        ├── design/                          exported frame sets — one subdir each
         └── EPIC-ACME-90-01-01-intake/
             ├── epic.md  specification.md  design.md  implementation.md
 ```
@@ -154,6 +157,25 @@ is what the idea route's PRD folder already does with `idea.md`.
 
 The names then tell the story the workflow actually follows: **a BRD is what the customer sent; a
 PRD folder holds one part of it, and the PRD authored for that part.**
+
+**`design/` is a reserved subdirectory, and it already exists — on one route only.** `/brd-ground`
+Phase 5 looks for `<BRD-dir>/design/` and treats each immediate subdirectory as one exported frame
+set: images plus an index file, which `design-grounder` **refuses to run without**, because a
+filename is not a reliable statement of what a frame depicts (`grounding-format.md` §6). Nothing on
+the `/idea` route defines such a place at all, so a design file authored there has nowhere to live
+and nothing could find it if it did.
+
+The §4.1 merge makes one convention out of two: a BRD-route PRD folder **is** the slice folder
+`/brd-ground` already runs against, so `<PRD-folder>/design/<frame-set>/` is a path that works on
+that route today. The location is therefore defined as a property of **any** folder under
+`specifications/` — BRD, PRD or Epic — stated once in `grounding-format.md` §6 and cited rather than
+restated by the commands that read it.
+
+**Defining the location is not wiring a consumer**, and the two are deliberately separated.
+`design-grounder` is dispatched by `/brd-ground` and by nothing else; giving the `/idea` route design
+grounding means a dispatch, a findings file and a verifier pass it does not have. That is a
+capability, not a directory, and it is decided on its own rather than improvised alongside an
+addressing change.
 
 ### 4.2 Naming
 

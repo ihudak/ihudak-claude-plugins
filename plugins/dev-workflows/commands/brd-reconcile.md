@@ -461,28 +461,42 @@ the operator, **one at a time, never batched**, with:
   candidate this one pulls against.
 
 ```
-choices: ["Confirm — this is what the customer decided; freeze it", "Correct it — the row does not match the quotation; supply the row that does, and freeze that", "Reject — this is not a customer decision at all; record why", "Ask the customer — the answer is not clear enough to freeze; the question stays open", "Cancel"]
+choices: ["Confirm — this is what the customer decided; freeze it", "Correct it — the row does not match the quotation; supply the row that does, and freeze that", "Reject — this is not a customer decision at all; record why", "Ask the customer — the answer is not clear enough to freeze; the question stays open"]
 ```
 
 **This is not an escalation choice list** — its four options are the four fates a candidate can take
 in this command, the same way `/brd-package`'s disposition picker draws its four from its reviewer
 agent's contract and `/brd-interview`'s will-change picker draws its three from
-`decision-register-format.md` §6. It carries **no `"Other… (describe)"` entry and no bulk
-confirmation**, and both omissions are required rather than merely permitted. A free-text fifth
-option in a picker about customer authority is an invitation to write something that is neither the
-customer's decision nor a refusal of it; and a "confirm the rest" entry would return the whole
-mechanism to the state D14 exists to end, in one keystroke.
+`decision-register-format.md` §6. It carries **no bulk confirmation**, and that omission is required rather than merely permitted: a
+"confirm the rest" entry would return the whole mechanism to the state D14 exists to end, in one
+keystroke.
 
-**That requirement is enforceable only because the shared reference carves this array out by name.**
-`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` otherwise calls adding the trailing
-`"Other… (describe)"` entry "the one permitted adjustment" — which would **authorise** an agent to
-open the exact hole D14 closes, on the authority of the file this command is bound by. Its
-*The permitted adjustment does not reach these arrays* section therefore names this picker, the
-missing-reason picker below and the propagation sweep's, and gives that reason. A rule contradicted
-by its own authority is not a rule, so it is stated in both places or in neither.
+**The free-text option cannot be omitted, so it is bounded instead.** The harness supplies it on
+every array (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0), and on a picker about
+customer authority that is exactly the box into which something which is neither the customer's
+decision nor a refusal of it could be typed and then frozen as theirs — the route D14 closes. So a
+free-text answer here is **normalised into one of the four dispositions, or the candidate is
+re-asked**; it is never written through as a fifth value, and it never becomes a `[CD#n]` on its own
+authority. If the operator's words do not land on one of the four, that is itself the signal to
+choose *Ask the customer*.
 
-**`Cancel` stops the run with nothing frozen, and that is the honest description.** No `[CD#n]`
-exists until the *Freeze the customer decisions* phase runs, so a cancelled walk has written nothing
+**That requirement is enforceable only because the shared reference names this array.**
+`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0 makes the free-text option unconditional —
+no array can decline it — so a picker about customer authority is protected by what the run does with
+the answer, not by the array's shape. Its *Closed-vocabulary pickers must normalise the free-text
+answer* section therefore names this picker, the missing-reason picker below and the propagation
+sweep's, and gives that reason. Until that section was rewritten the file said the opposite of what
+this command needs: it called adding a trailing free-text entry "the one permitted adjustment", which
+would have **authorised** an agent to open the exact hole D14 closes, on the authority of the file
+this command is bound by. A rule contradicted by its own authority is not a rule, so it is stated in
+both places or in neither.
+
+**Aborting the walk stops the run with nothing frozen, and that is the honest description.** The
+array lists the four dispositions and no `Cancel`: the harness always supplies a free-text option, so
+an abort is reachable without spending one of the four slots
+(`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0), and this paragraph is where its
+consequence is stated instead. No `[CD#n]`
+exists until the *Freeze the customer decisions* phase runs, so an aborted walk has written nothing
 to the register and the confirmations taken in it are lost with the session. What survives is what
 was on disk before: the canonicalised review, committed if its handoff was accepted. A re-run reads
 it again and re-offers every candidate — which is exactly why the resume rule below keys on the
@@ -880,13 +894,14 @@ every finding those decisions rest on.
 with the item, the changed id that reached it, and what changed about that id:
 
 ```
-choices: ["Inherited unchanged — the change does not move this position; say why", "Reverted — the position returns to what it stood at before the prerequisite moved it", "Reopened — this must be decided again; status: reopened, naming this cause", "Withdrawn — the question this answered has stopped applying", "Cancel"]
+choices: ["Inherited unchanged — the change does not move this position; say why", "Reverted — the position returns to what it stood at before the prerequisite moved it", "Reopened — this must be decided again; status: reopened, naming this cause", "Withdrawn — the question this answered has stopped applying"]
 ```
 
 **Not an escalation array either**: the four options are the four dispositions the design fixes for
 this sweep, in that order, and a fifth would be a disposition nothing downstream can read — which is
-why `escalation-rules.md`'s *The permitted adjustment does not reach these arrays* section names this
-picker among the six that never take a trailing `"Other… (describe)"` entry. No `(Recommended)`
+why `escalation-rules.md`'s *Closed-vocabulary pickers must normalise the free-text answer* section names this
+picker among the six whose free-text answer must be normalised into their own vocabulary rather than
+written through. No `(Recommended)`
 marker, and the reason is stated beside the list per the
 `When no option is safe to recommend` guidance in `escalation-rules.md`: which one is right is a
 judgement about a position in another BRD, taken by whoever owns it, and a marker would invite the
@@ -1121,25 +1136,57 @@ None true → `advance_ready: yes`. Each re-entry option below is **also** condi
 trigger and dropped where that trigger did not fire, exactly as the `/create-prd` option is dropped
 on a failed eligibility test — so the second array is typically two or three options long, not six.
 
-**`advance_ready: yes` — the route is finished with this BRD and crosses into the PRD pipeline:**
+**`advance_ready: yes` — the route is finished with this BRD and crosses into the PRD pipeline.**
+Print the full list as prose first, per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`'s
+overflow rule — five routes do not fit in four slots, and the prose is what carries all of them:
 
 ```
-choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Author this BRD's PRD — /dev-workflows:create-prd <BRD-KEY> the BRD route (PM)", "Author this BRD's architecture — /dev-workflows:create-ard <BRD-KEY> the BRD route (PA, optional)", "Author this BRD's specification — /dev-workflows:specify <BRD-KEY> the BRD route (PE)", "Reconcile another BRD or slice", "Other… (describe)"]
+Where this run can go next:
+  • Author this BRD's PRD           — /dev-workflows:create-prd <BRD-KEY>   (PM)
+  • Author this BRD's architecture  — /dev-workflows:create-ard <BRD-KEY>   (PA, optional)
+  • Author this BRD's specification — /dev-workflows:specify <BRD-KEY>      (PE)
+  • Reconcile another BRD or slice  — /dev-workflows:brd-reconcile <KEY> @<review-file>
 ```
+
+```
+choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Author this BRD's PRD — /dev-workflows:create-prd <BRD-KEY> the BRD route (PM)", "Author this BRD's architecture — /dev-workflows:create-ard <BRD-KEY> the BRD route (PA, optional)", "Author this BRD's specification — /dev-workflows:specify <BRD-KEY> the BRD route (PE)"]
+```
+
+**Reconciling another BRD is on the list and not in the array**, because it is the one lateral move
+among four forward ones and this run has just finished the BRD it was given. Say so in the line under
+the prompt: the list above is longer than the options, and anything on it is reachable through the
+free-text option.
 
 **`advance_ready: no` — the three the BRD route options are left out rather than offered and
 consumed against an unsettled register**, and each remaining option appears only where its own
 trigger above fired. Name, beside the list, which trigger fired and against which id, so the
 operator can see what advancing is waiting on rather than only that it is missing:
 
+List every re-entry whose trigger fired as prose, each beside the trigger that fired it:
+
 ```
-choices: ["Stop here — this run's changes are recorded; the route resumes when the items named above are settled", "Work another round — /dev-workflows:brd-interview <BRD-KEY>, for the decision this run reopened or the question it left askable", "Package again — /dev-workflows:brd-package <BRD-KEY> <merge-clause>, for the questions still held for the customer", "Re-ground a moved claim — /dev-workflows:brd-ground <BRD-KEY> --rebaseline <merge-clause>", "Sweep a dependent this run could only record — /dev-workflows:brd-reconcile <BRD-KEY> @<review-file> on this same review, once that dependent's register is on the default branch", "Other… (describe)"]
+Where this run can go next:
+  • Work another round      — /dev-workflows:brd-interview <BRD-KEY>        (<trigger, with the id>)
+  • Package again           — /dev-workflows:brd-package <BRD-KEY> <merge-clause>   (<trigger, with the id>)
+  • Re-ground a moved claim — /dev-workflows:brd-ground <BRD-KEY> --rebaseline <merge-clause>  (<trigger, with the id>)
+  • Sweep a dependent       — /dev-workflows:brd-reconcile <BRD-KEY> @<review-file>  (<trigger, with the id>)
 ```
+
+```
+choices: ["Stop here — this run's changes are recorded; the route resumes when the items named above are settled", "Work another round — /dev-workflows:brd-interview <BRD-KEY>, for the decision this run reopened or the question it left askable", "Package again — /dev-workflows:brd-package <BRD-KEY> <merge-clause>, for the questions still held for the customer", "Re-ground a moved claim — /dev-workflows:brd-ground <BRD-KEY> --rebaseline <merge-clause>"]
+```
+
+**The trigger filter runs first and the four-option cap applies to what survives it**
+(`${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`'s overflow rule). Typically two or three
+triggers fire and every one of them fits. Where all four fire, the prose above still names all four
+and the array carries `Stop here` plus the three whose triggers this run's own outcome makes most
+pressing — say in one line that the list is longer than the options and that the fourth is reachable
+through the free-text option.
 
 **"Reconcile another BRD or slice" is on the first list and not the second**, and the omission is
 the point rather than an oversight: it names work on a *different* key, and offering it to an
 operator whose current BRD has an unsettled register is how a reopened decision gets left standing
-while attention moves elsewhere. `"Other… (describe)"` still reaches it for anyone who means it.
+while attention moves elsewhere. The harness's free-text option still reaches it for anyone who means it.
 
 **Dropping the three the BRD route options here is a refusal this phase can make and their own
 Phase 0s cannot.** `/create-ard` on the BRD route and `/specify` on the BRD route run no gate that would catch a

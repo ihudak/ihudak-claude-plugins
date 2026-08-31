@@ -42,7 +42,9 @@ resolved `path`, `kind` and `key`, and `specs` forward.
   - the item is **itself an Epic** (stand-alone / top-level) → no picker; proceed
     directly (`focus_key` stays null; specs resolve at the item's top-level dir).
   - **PRD with exactly 1 Epic** → no picker; set `focus_key` to that Epic and proceed.
-  - **PRD with ≥2 Epics** → render the picker. **`/implement`'s done-predicate is now the artifacts
+  - **PRD with ≥2 Epics** → render the picker per `${CLAUDE_PLUGIN_ROOT}/references/epic-picker.md`,
+    honouring that file's *The cap*: every Epic listed as prose, the array carrying at most three rows
+    plus *"Another Epic from the list above — name its key"*. **`/implement`'s done-predicate is now the artifacts
     present in each Epic folder**, which is the mechanism `/design`'s own Epic picker already uses:
     `specification.md` but no `design.md` → ○; `design.md` present, no `implementation.md` → ◐;
     `implementation.md` present → ● (greyed, not default-selectable; selecting offers "implement
@@ -69,7 +71,7 @@ Rules:
   `design.md` or matching `*-design.md` (the `/design` output; distinct from a `specification.md`) —
   scan it for unresolved `- [ ]` open questions under its `## Open questions` heading. If any exist,
   **refuse to proceed**:
-  `choices: ["Cancel — resolve the design's open questions in /dev-workflows:design first (Recommended)", "Override and implement anyway (logged in the Phase 5 report)", "Other… (describe)"]`
+  `choices: ["Cancel — resolve the design's open questions in /dev-workflows:design first (Recommended)", "Override and implement anyway (logged in the Phase 5 report)"]`
   A design must be decision-complete before implementation (enforced upstream by `design-reviewer`;
   this is the cross-command backstop). **`specification.md`-level open questions are exempt** — they are
   the spec's way of flagging what the design phase resolves, and a design doc may legitimately
@@ -135,7 +137,7 @@ Before producing a plan, analyze the description for:
 
 If **any** ambiguity exists, ask the user. Rules:
 - Use `choices` arrays for every question — never plain text questions
-- The **last choice** in every `choices` array MUST be `"Other… (describe)"` to allow free-text
+- Every `choices` array carries 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0), which is what allows free-text
 - When a clearly superior default exists, make it the first choice and label it `"(Recommended)"`
 - Group related decisions into a single question (minimize total questions)
 - Do **not** proceed until all questions are answered
@@ -173,7 +175,7 @@ model_routing:
 
 Each subagent dispatch below cites its chain (§9 role→chain map); mechanical steps pin `detection_model` via `model:`, and the frontmatter-Opus gates (`risk-planner`, `code-review`) are recorded but never overridden.
 
-**Detect task shape.** Inspect the description for defect signals (fix / bug / regression / broken / incorrect / wrong output / crash / fails). If bug-shaped, set `task_shape: bug`. `task_shape: bug` only affects the SIGNIFICANT / HIGH-RISK path (Phase 2B/3B); for SIMPLE / MODERATE it is guidance only (no extra question). On the SIGNIFICANT / HIGH-RISK path, if it is genuinely ambiguous whether this is a defect fix or new work, ask with a `choices` prompt (last choice `"Other… (describe)"`).
+**Detect task shape.** Inspect the description for defect signals (fix / bug / regression / broken / incorrect / wrong output / crash / fails). If bug-shaped, set `task_shape: bug`. `task_shape: bug` only affects the SIGNIFICANT / HIGH-RISK path (Phase 2B/3B); for SIMPLE / MODERATE it is guidance only (no extra question). On the SIGNIFICANT / HIGH-RISK path, if it is genuinely ambiguous whether this is a defect fix or new work, ask with a `choices` prompt (2–4 options; the harness supplies the free-text escape).
 
 Then choose the branch:
 
@@ -391,7 +393,7 @@ Store the returned `## Test Baseline` block verbatim — it will be passed to `t
 2. Make precise, surgical changes — do not modify unrelated code
 3. Follow existing code style and LF line endings
 4. Assume broad permissions; avoid unnecessary stops
-5. If a **new ambiguity** emerges mid-implementation: STOP, ask with choices (last: `"Other… (describe)"`), resume after answer
+5. If a **new ambiguity** emerges mid-implementation: STOP, ask with choices (2–4 options; the harness supplies the free-text escape), resume after answer
 6. **Run Phase 3.5 below** (test writing + regression verification) — do NOT run tests directly here; Phase 3.5 owns the lint/build/test sequence and the fix loop
 7. Verify the outcome matches the approved plan
 8. Proceed to Phase 4 (post-implementation maintenance).
@@ -459,7 +461,7 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
 1. Work through each step in order
 2. Make precise, surgical changes — do not modify unrelated code
 3. Follow existing code style and LF line endings
-4. If a **new ambiguity** emerges mid-implementation: STOP, ask with choices (last: `"Other… (describe)"`), resume after answer
+4. If a **new ambiguity** emerges mid-implementation: STOP, ask with choices (2–4 options; the harness supplies the free-text escape), resume after answer
 4a. **Invoke `test-writer` agent** (inserted before the review diff capture in step 5 so the Opus review sees code and tests together — test adequacy is already a review dimension in `code-review.md`). First, at the orchestrator, capture the diff for the dispatch: write `git add -N . && git diff` (so new files are included) to a temp file (`mktemp -t dw-impl-diff-XXXX.patch`, never inside a repo tree) and record its absolute path as `test_diff_file`. `test-writer` has no shell tool — it can only `Read` the path it is given. Then spawn:
 
    → Agent (subagent_type: "dev-workflows:test-writer", model: `<detection_model — §2.1 Sonnet chain>`):
@@ -514,7 +516,7 @@ At each checkpoint, also consider suggesting **`/compact`** to free context befo
 
    Wait for the fix report. Re-capture the diff after the fixer completes, **overwriting `review_diff_file`** (write a fresh `git add -N . && git diff` to that same path) — so the one re-review at step 7 reads the post-fix diff, not the stale step-5 capture. Also write the fixer's full Fix Report to a temp file (`mktemp -t dw-impl-claims-XXXX.md`, never inside a repo tree) and record its path as `claims_file` — the one re-review reads it as the deferred claims input, so the reviewer checks the fixer's account of its own work instead of assuming it.
 
-   - If the fix report contains any `DEFERRED — plan-conflict` finding, surface it to the user **immediately** (do not wait for the BLOCK-still-BLOCK path): show the finding beside the plan text it contradicts and ask `choices: ["Revise the plan (the finding governs)", "Apply the fix against the plan (the plan governs — logged in Phase 5)", "Other… (describe)"]`. Act on the answer before re-running the review.
+   - If the fix report contains any `DEFERRED — plan-conflict` finding, surface it to the user **immediately** (do not wait for the BLOCK-still-BLOCK path): show the finding beside the plan text it contradicts and ask `choices: ["Revise the plan (the finding governs)", "Apply the fix against the plan (the plan governs — logged in Phase 5)"]`. Act on the answer before re-running the review.
 
 7.5. **Spec/design conformance escalation.** For each unresolved `missing`/`contradicts` in-scope requirement from the code-review Spec/design-conformance dimension, write a `- [ ]` note back onto the source `specification.md`/`design.md` under an `## Engineering review` heading (the same escalation `/design` uses; annotate only — never mutate existing `[Uxx]`/`[ACxx]`/`[TCxx]` IDs). Never silently drop them, never invent new work. Record which of `specification.md`/`design.md` actually received a note — the handoff step needs to know whether only one, or both, were annotated. The notes are written here and handed off later — see the escalation handoff after Phase 4.
 8. **Run Phase 3.5 (post-review).** After the review gate clears (non-BLOCK verdict), run the Phase 3.5 sequence (lint/build, `test-baseliner` verify, fix loop) — **not before**. This preserves the invariant "NEVER run tests for SIGNIFICANT / HIGH-RISK before Opus review returns non-BLOCK". The fix loop inside Phase 3.5 applies fixes via the session model; if the fixes are non-trivial **and** the reviewer was NOT down-classified in step 7, re-invoke the Opus code review on the delta after Phase 3.5 completes (first overwrite `review_diff_file` with a fresh `git add -N . && git diff` so the re-review reads the post-Phase-3.5 diff). If the reviewer WAS down-classified, skip the re-review.
@@ -840,7 +842,7 @@ directory; no user name is ever written (§10 privacy).
 - NEVER skip Phase 4.6 because a gate failed — a run whose review is still `BLOCK` or whose regressions the user kept is committed and pushed like any other, and sets `clean_finish: false` so its pull request is a draft carrying the DO-NOT-MERGE banner (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.8)
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - ALWAYS spawn Phase 4 agents in a single message — never sequentially
-- ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
+- ALWAYS use `choices` arrays for decision points; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0)
 - ALWAYS produce the Phase 5 report as the final output
 - ALWAYS end the Phase 5 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked; omitted in direct mode (no PRD/Epic pipeline context)
 - ALWAYS pass `Command run: /implement` in the Phase 4 Agent 4 session handoff

@@ -30,8 +30,8 @@ on its default branch. If a guard fires, emit its §5 notice; if it returns
 ## Phase 1 — Identify the target
 
 Infer the target command from recent context — which command's output you are
-correcting. Ask only if genuinely ambiguous (one grouped prompt, last choice
-`"Other… (describe)"`). If no command applies, use `n/a`.
+correcting. Ask only if genuinely ambiguous (one grouped prompt of 2–4 options; the
+harness supplies the free-text escape). If no command applies, use `n/a`.
 
 ## Phase 2 — Persist the corrective triple
 

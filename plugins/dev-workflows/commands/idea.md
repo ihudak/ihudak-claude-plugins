@@ -83,7 +83,7 @@ types to disambiguate.
 
 **B — the argument is path-like (contains `/`, ends in `.md`, or starts with `@`) but resolved to no existing file.** Without this gate it falls through precedence rule 3 to **prompt** and the path string itself becomes the raw idea text — a mistyped path silently ingested as prose:
 ```
-choices: ["Re-enter the path (Recommended)", "Read the argument as a prompt — the literal text is the idea", "Cancel", "Other… (describe)"]
+choices: ["Re-enter the path (Recommended)", "Read the argument as a prompt — the literal text is the idea", "Cancel"]
 ```
 
 **Everything else** — a `.md` path that resolves, and plain prose — is unambiguous. State the resolution in one line that invites correction and **proceed without waiting**; the list would have one plausible answer. (A dedicated `--as prompt|markdown|rfe|prd` override is future work — this inline confirmation covers a mis-detection.)
@@ -106,7 +106,7 @@ Dispatch `idea-reader` to read the source and return a structured digest:
 
 Wait for the digest. If `status: NOT_FOUND` (invalid key / missing file), surface:
 ```
-choices: ["Re-enter the source", "Cancel", "Other… (describe)"]
+choices: ["Re-enter the source", "Cancel"]
 ```
 This is an environment/user halt — do NOT `emit-block`. On `OK`, carry forward `raw_context`,
 `signals`, `images`, `candidate_title`, `candidate_slug`, `source_refs`, `provenance`, `tracked` (a
@@ -135,7 +135,7 @@ Runs only when `--ground-code` was given; otherwise take the OFF branch at the e
 - **Propose** a candidate set from the `idea-reader` digest's themes.
 - **Gate** — this list's answer varies every run, so it fires unconditionally:
   ```
-  choices: ["Ground the proposed set (Recommended)", "Ground a different set (you'll be prompted)", "Ground nothing — continue without a code scan", "Cancel", "Other… (describe)"]
+  choices: ["Ground the proposed set (Recommended)", "Ground a different set (you'll be prompted)", "Ground nothing — continue without a code scan", "Cancel"]
   ```
 - **Empty proposal — do not show that list.** When no theme matches any mounted repo its first option names a set that does not exist. Escalate instead per the `No repos derivable — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`. Every option in a shown list must name something that exists.
 - **"Ground nothing — continue without a code scan"** ends this phase for the run: no scanner is dispatched, Phase 4 writes no `## Feasibility grounding` section, and the Final report shows `code grounding: declined at the repo gate` — distinct from `code grounding: off`, which means the flag was never given at all.
@@ -201,7 +201,7 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
   `[NEEDS CLARIFICATION]` in **Open questions & assumptions**, never a hedged bullet.
 - **Existing file:** if `idea.md` already exists at that path, offer:
   ```
-  choices: ["Refine the existing idea.md (Recommended)", "Create a new one (you'll be prompted for a slug)", "Cancel", "Other… (describe)"]
+  choices: ["Refine the existing idea.md (Recommended)", "Create a new one (you'll be prompted for a slug)", "Cancel"]
   ```
   On *refine*, re-open it, resolve its open `[NEEDS CLARIFICATION]` items, and append the new source
   (`{provenance, ref}` built from Phase 2's `provenance` and `source_refs`) to `sources`.

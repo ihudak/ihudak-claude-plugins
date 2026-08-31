@@ -19,7 +19,7 @@ Key distinction from [`/epics`](epics.md): `/epics` *splits* a PRD into Epic dra
 - **A stand-alone top-level Epic** (no parent PRD) — no picker; the item is itself the focus.
 - **A PRD with exactly 1 Epic** — no picker; that Epic auto-resolves as the focus, with a one-line notice.
 - **A PRD with ≥2 Epics** — Phase 2 renders a progress-aware picker: one row per child Epic (marked ○ not started / ◐ in progress / ● done), plus an explicit **"Author one broad PRD-level spec instead"** choice.
-- **A PRD with 0 Epics** — offered `choices: ["Split into Epics first with /dev-workflows:epics (Recommended)", "Author one broad PRD-level spec now", "Cancel", "Other… (describe)"]`. `/epics` writes the Epic folders into this PRD folder, where `/specify` sees them immediately.
+- **A PRD with 0 Epics** — offered `choices: ["Split into Epics first with /dev-workflows:epics (Recommended)", "Author one broad PRD-level spec now", "Cancel"]`. `/epics` writes the Epic folders into this PRD folder, where `/specify` sees them immediately.
 
 An explicit `<PRD-Key> <Epic-Key>` (or `<dir> <Epic-Key>`) skips the picker entirely — the Epic is already chosen. `--no-docs` turns off the optional Phase 4 documentation-grounding pass.
 

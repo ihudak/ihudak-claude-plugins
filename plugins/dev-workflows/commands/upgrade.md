@@ -222,7 +222,7 @@ interactive tools, even when one is listed in their `tools:`. When it returns
 - Present the failing tests clearly (from the executor's `failing_tests` / `diagnosis`).
 - Ask:
   ```
-  choices: ["Keep the upgrade and leave the failing tests for you to fix", "Revert this upgrade and skip it", "Investigate further before deciding", "Other… (describe)"]
+  choices: ["Keep the upgrade and leave the failing tests for you to fix", "Revert this upgrade and skip it", "Investigate further before deciding"]
   ```
 - **"Investigate further"** → show more detail (the diff, full failure output) and re-ask
   the same choices — this loops here at the orchestrator until the user picks keep or revert.

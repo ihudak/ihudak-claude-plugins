@@ -92,7 +92,7 @@ resolving here, in the ordinary confirmation step, already puts the one consent-
 of every write and every dispatch.
 
 ```
-choices: ["Proceed with <folder> (Recommended)", "Use a different key or path (you'll be prompted)", "Cancel", "Other… (describe)"]
+choices: ["Proceed with <folder> (Recommended)", "Use a different key or path (you'll be prompted)", "Cancel"]
 ```
 
 ---
@@ -208,7 +208,7 @@ documentation, which are walked identically and marked in the report as docs-rai
 confirm each candidate individually via `AskUserQuestion`:
 
 ```
-choices: ["Confirm as written (Recommended)", "Confirm with an edited reason", "Reject — not a defect", "Cancel", "Other… (describe)"]
+choices: ["Confirm as written (Recommended)", "Confirm with an edited reason", "Reject — not a defect", "Cancel"]
 ```
 
 On confirmation, assign the next `[DEF#n]` id contiguously across the whole document (ids are never
@@ -284,14 +284,14 @@ downstream command on the route, so offering one here would name a run that stop
 **One or more `[BR#n]` rows — the ordinary case:**
 
 ```
-choices: ["Ground the inventory against code and design — /dev-workflows:brd-ground <BRD-KEY> (Recommended) <merge-clause>", "Stop here", "Other… (describe)"]
+choices: ["Ground the inventory against code and design — /dev-workflows:brd-ground <BRD-KEY> (Recommended) <merge-clause>", "Stop here"]
 ```
 
 **Zero `[BR#n]` rows (a Phase 3 `EMPTY` read) — `/dev-workflows:brd-ground` is left out rather than
 offered and refused:**
 
 ```
-choices: ["Re-run this intake with a corrected source — /dev-workflows:brd-intake <BRD-KEY> @<brd-file> (this folder is a re-run, not a refusal)", "Stop here — this document states no requirement the route can carry", "Other… (describe)"]
+choices: ["Re-run this intake with a corrected source — /dev-workflows:brd-intake <BRD-KEY> @<brd-file> (this folder is a re-run, not a refusal)", "Stop here — this document states no requirement the route can carry"]
 ```
 
 Neither option on that second list carries a `(Recommended)` marker, and the omission is deliberate

@@ -43,8 +43,8 @@ on its default branch. If a guard fires, emit its §5 notice; if it returns
 
 ## Phase 2 — Fill the metadata
 
-Resolve, then confirm with the user in one grouped prompt (last choice always
-`"Other… (describe)"`):
+Resolve, then confirm with the user in one grouped prompt (2–4 options; the harness
+supplies the free-text escape):
 
 - **`command`** — the exact slash-command name this note is about, inferred from
   recent context; or `n/a` if it is not about a specific command. Confirm.

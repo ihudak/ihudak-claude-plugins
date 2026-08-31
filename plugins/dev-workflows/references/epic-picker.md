@@ -21,7 +21,8 @@ Given a resolved `PRD-` folder (`references/addressing.md` §3) and no Epic in t
 - **Exactly one `EPIC-` folder** → no picker; auto-proceed for it, and emit a one-line notice saying
   which, so an auto-selection is never silent.
 - **Two or more** → render the picker, one row per Epic: its marker, its `key` (read from the
-  folder's frontmatter per §4, never parsed from the directory name) and its title.
+  folder's frontmatter per §4, never parsed from the directory name) and its title — **capped at four
+  options, see *The cap* below**.
 - **None** → the command's own no-Epics policy — typically: split with `/dev-workflows:epics` first,
   or author one broad PRD-level artifact.
 
@@ -36,6 +37,37 @@ folder** — never a status somebody declared:
   revise.
 
 Default cursor on the first actionable row, in-progress before not-started.
+
+## The cap
+
+`AskUserQuestion` renders at most four options (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`
+§0), and this picker is built from a directory listing — so a PRD with five Epics overflows it, and a
+`/specify` run that appends its own option overflows at four. A picker that is one row per Epic is a
+picker that stops working on a perfectly ordinary PRD, which is why this is part of the picker rather
+than advice beside it.
+
+**Print every Epic as prose above the prompt** — marker, key and title, one line each, in the
+ordering above — and let the array carry **at most three Epic rows plus one option naming the
+remainder**:
+
+    Epics under PRD-ACME-77 orders:
+      ◐ EPIC-ACME-77-02  order intake       (in progress)
+      ○ EPIC-ACME-77-03  billing hand-off
+      ○ EPIC-ACME-77-05  refund path
+      ● EPIC-ACME-77-01  catalogue sync     (done — selecting it offers to revise)
+
+    choices: ["◐ EPIC-ACME-77-02 order intake (Recommended)", "○ EPIC-ACME-77-03 billing hand-off", "○ EPIC-ACME-77-05 refund path", "Another Epic from the list above — name its key"]
+
+The last option is answered through the harness's free-text option, and the run resolves the typed
+key **against the keys it just listed** — never by parsing one out of the answer
+(`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). Four or fewer Epics need none of this: the
+array carries them all, and the prose list is still printed because a greyed ● row reads better
+there.
+
+**A command that adds its own option to this picker counts it against the four.** `/specify` appends
+*"Author one broad PRD-level spec instead"*, so its array carries at most **two** Epic rows plus that
+option plus the remainder option. The added option is never the one dropped: it is the alternative to
+picking any Epic at all, and a picker that hides it forces a choice the command means to leave open.
 
 **Reading the artifact rather than a declared status is the point, not an accident of the rewrite.**
 A status is a human's claim about the work and can lag it — which is why the version of this picker

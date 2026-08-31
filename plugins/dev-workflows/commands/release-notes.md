@@ -53,23 +53,23 @@ run — the terminal `commit-artifacts` step skips on it.
 
 ## Phase 1 — Clarification
 
-**Rule: Ask, don't guess.** Group questions; use `choices` arrays; the last choice MUST be `"Other… (describe)"`.
+**Rule: Ask, don't guess.** Group questions; use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0).
 
 - **Diff grounding** (default OFF — the PRD is usually enough for release notes):
   ```
-  choices: ["PRD content only (Recommended)", "Also ground in merged PR diffs (you'll pick repos)", "Cancel", "Other… (describe)"]
+  choices: ["PRD content only (Recommended)", "Also ground in merged PR diffs (you'll pick repos)", "Cancel"]
   ```
   If "ground in PR diffs", additionally ask the two sub-questions below.
 
 - **Repos search base (`$REPOS_PATH`)** (only if diff grounding is ON). Read `${REPOS_PATH:-/workspace}`; may be a colon-separated list. Ask:
   ```
-  choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]
+  choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]
   ```
   Clones are located in Phase 4 by matching `git remote` against each PR's repo slug — not by assuming a `<base>/<slug>` directory name.
 
 - **PR status filter** (only if diff grounding is ON):
   ```
-  choices: ["MERGED only (Recommended)", "All PRs (MERGED + OPEN + DECLINED)", "Specific list (you'll be prompted)", "Other… (describe)"]
+  choices: ["MERGED only (Recommended)", "All PRs (MERGED + OPEN + DECLINED)", "Specific list (you'll be prompted)"]
   ```
 
 - **Output destination — derived, not asked.** The draft lands in **`release-notes.md` in the
@@ -102,7 +102,7 @@ run — the terminal `commit-artifacts` step skips on it.
 
 - **Style check** (default ON when the `prose-style` plugin is installed):
   ```
-  choices: ["Run prose-style-checker then apply safe fixes (Recommended)", "Run prose-style-checker, report only (no auto-fix)", "Skip style check", "Other… (describe)"]
+  choices: ["Run prose-style-checker then apply safe fixes (Recommended)", "Run prose-style-checker, report only (no auto-fix)", "Skip style check"]
   ```
 
 Also display: the resolved PRD folder, its `key`, `$REPOS_PATH` (or "N/A — PRD-only"), and the version this draft will be filed under.
@@ -125,7 +125,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
      `RELEASE_NOTES_NOT_RELEVANT: <KEY> is flagged not relevant for release notes; the PRD's status rule does not require one.`
      Offer an override for drafting ahead of the flag:
      ```
-     choices: ["Cancel — nothing to draft (Recommended)", "Draft anyway — I'll set the flag later", "Other… (describe)"]
+     choices: ["Cancel — nothing to draft (Recommended)", "Draft anyway — I'll set the flag later"]
      ```
    - **`true` / `yes`** → proceed.
    - **absent** → **proceed silently.** The field defaults to true; absent is not false.
@@ -204,7 +204,7 @@ from anything, because nothing supplies it.
 
 Build a slug→clone map: for each top-level directory under each entry of `$REPOS_PATH`, run `timeout 5 git -C <dir> remote get-url origin 2>/dev/null`, strip a trailing `.git`, and take the URL's last path segment as the clone's slug. Resolve each in-scope PR repo slug against the map: one match → use it; multiple → auto-prefer basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last; zero matches → escalate:
 ```
-choices: ["Skip and continue without its PRs", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo", "Other… (describe)"]
+choices: ["Skip and continue without its PRs", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]
 ```
 
 ---
@@ -275,7 +275,7 @@ State the inference, then ask:
 > `<destination>`.
 
 ```
-choices: ["<proposed type> — <its shape>, in <its destination> (Recommended)", "Feature update — titled section with a docs link, in feature-updates.md", "Breaking change — titled section with remediation steps, in breaking-changes.md", "Fix — one self-contained sentence, in fixes.md", "Other… (describe)"]
+choices: ["<proposed type> — <its shape>, in <its destination> (Recommended)", "Feature update — titled section with a docs link, in feature-updates.md", "Breaking change — titled section with remediation steps, in breaking-changes.md", "Fix — one self-contained sentence, in fixes.md"]
 ```
 
 Drop the option that duplicates the recommended one. Apply the choice to
@@ -287,7 +287,7 @@ chosen value never becomes text in the draft.
 For a `field: deprecation_eol` gap (a deprecation was detected but the required
 end-of-life date is unclear), ask the user:
 ```
-choices: ["Enter the end-of-life date (you'll be prompted; end-of-support optional)", "Leave the <!-- TODO: end-of-life date --> marker in the draft", "This isn't a deprecation — drop the note", "Other… (describe)"]
+choices: ["Enter the end-of-life date (you'll be prompted; end-of-support optional)", "Leave the <!-- TODO: end-of-life date --> marker in the draft", "This isn't a deprecation — drop the note"]
 ```
 On a supplied date, replace the `<!-- TODO: end-of-life date -->` placeholder with the
 end-of-life date (and end-of-support date when given), formatted per the prose-style
@@ -298,7 +298,7 @@ When `release-notes-writer` returns `gaps[]` entries that have `prd_phrasing` an
 1. Show the analysis table (claim, PRD phrasing, source phrasing, location).
 2. Ask:
    ```
-   choices: ["Decide per discrepancy (Recommended)", "Document ALL as actual (code)", "Document ALL as intended (PRD)", "Skip ALL and report (drafts a bug report)", "Cancel", "Other… (describe)"]
+   choices: ["Decide per discrepancy (Recommended)", "Document ALL as actual (code)", "Document ALL as intended (PRD)", "Skip ALL and report (drafts a bug report)"]
    ```
 3. Apply the decision to the draft prose: `document-as-code` → use source phrasing; `document-as-spec` → use PRD phrasing (no marker in release notes prose — the gap is recorded only in the gaps file); `skip-and-report` → omit the claim.
 4. For `document-as-spec` or `skip-and-report`: resolve `bug_report_destination` to the resolved PRD folder. Write/append `<bug_report_destination>/<KEY>-implementation-gaps.md` using the §7.5 format from `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`, setting `Spec phrasing:` to `(no spec)` (this flow has no spec).
@@ -482,7 +482,7 @@ current working directory; no user name is ever written (§10).
 - The category label IS the PRD's `release_notes_category`, used verbatim; when the import carries none the line is OMITTED. Change Type is sourced `change_type` → infer, and is confirmed with the user ONLY when it was inferred with low confidence — by shape and destination, never by enum label. Neither field is ever asked for by enum label.
 - The run is GATED on the imported `relevant_for_release_notes`: an explicit `false` stops with `RELEASE_NOTES_NOT_RELEVANT` (overridable); absent proceeds silently.
 - NEVER write into a docs repo; the default destination is persistent (never `/tmp`).
-- ALWAYS use `choices` arrays; the last choice is always `"Other… (describe)"`.
+- ALWAYS use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0).
 - Light gate only — no Opus review, no tests, no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none), and no commit of the draft or of anything in a docs/code repo or the current working directory. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - ALWAYS end the Phase 8 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked; the pipeline leaf (adaptive: continue any pending PA/PE phase, else the PRD is fully processed).

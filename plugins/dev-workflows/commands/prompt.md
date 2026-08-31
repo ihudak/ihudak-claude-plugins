@@ -35,8 +35,8 @@ on its default branch. If a guard fires, emit its §5 notice; if it returns
 ## Phase 1 — Identify the target
 
 Infer the target command from recent context — which command's output you are
-correcting. Ask only if genuinely ambiguous (one grouped prompt, last choice
-`"Other… (describe)"`). If no command applies, use `n/a`. **Normalise the answer
+correcting. Ask only if genuinely ambiguous (one grouped prompt of 2–4 options; the
+harness supplies the free-text escape). If no command applies, use `n/a`. **Normalise the answer
 before it travels:** `target_command` must be a bare `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md`
 §7 row name (`/document`, never `/document (keyed mode)`), so map a free-text
 answer onto the row it names and use `n/a` when it names none — an unnormalised

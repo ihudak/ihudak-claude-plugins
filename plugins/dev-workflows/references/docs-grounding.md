@@ -41,8 +41,7 @@ documentation does not inform that decision.
    ```
    choices: ["Continue with the current index — some pages may be stale (Recommended)",
              "Finish the refresh now — uncapped",
-             "Turn docs grounding off for this run",
-             "Other… (describe)"]
+             "Turn docs grounding off for this run"]
    ```
 
    **No collection covers `docs_root`** → prompt once, at plan approval, before any of the run's real work. `<N>` is `find "$docs_root" -type f -name '*.md' | wc -l`:
@@ -50,8 +49,7 @@ documentation does not inform that decision.
    ```
    choices: ["Build the docs index now — one-time, <N> markdown files, downloads a ~1.3 GB model on first use (Recommended — every later run is faster and better grounded)",
              "Skip — ground with keyword fallback this run",
-             "Turn docs grounding off for this run",
-             "Other… (describe)"]
+             "Turn docs grounding off for this run"]
    ```
 
    On "Build": `qmd collection add "<docs_root>" --name docs` then `qmd embed`, **uncapped** — killing a consented build wastes the work it has already done — reporting elapsed time on completion. The prompt disappears permanently once the index exists.

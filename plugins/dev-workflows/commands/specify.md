@@ -137,24 +137,24 @@ replaces.
 
 **Rule: Ask, don't guess. This rule is absolute.**
 
-Use `choices` arrays; the last choice in every array MUST be `"Other… (describe)"`.
+Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0).
 
 1. **Feature folder.** Confirm the path resolved in Phase 0:
    ```
-   choices: ["Use <feature_folder> (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]
+   choices: ["Use <feature_folder> (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]
    ```
    - Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
 
 2. **Resume vs fresh** (only if Phase 0 found a `_session.md`). Read it back and summarise which
    stages/questions are already settled:
    ```
-   choices: ["Resume — skip settled stages/questions (Recommended)", "Start fresh — discard the prior session", "Cancel", "Other… (describe)"]
+   choices: ["Resume — skip settled stages/questions (Recommended)", "Start fresh — discard the prior session", "Cancel"]
    ```
    On resume, Phase 5 begins at the first unsettled stage instead of the header.
 
 3. **Repo refresh policy** (governs Phase 4's `code-scanner` dispatches):
    ```
-   choices: ["fetch + pull default branch (Recommended)", "fetch only", "no refresh", "Other… (describe)"]
+   choices: ["fetch + pull default branch (Recommended)", "fetch only", "no refresh"]
    ```
    `fetch + pull default branch` matches `code-scanner`'s own default
    (`refresh.switch_to_default_branch: true, refresh.pull: true`) — grounding wants present-day code,
@@ -163,7 +163,7 @@ Use `choices` arrays; the last choice in every array MUST be `"Other… (describ
 4. **Repos search base (`$REPOS_PATH`)**. Read `${REPOS_PATH:-/workspace}`. `$REPOS_PATH` may be a
    single directory or a colon-separated list:
    ```
-   choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]
+   choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]
    ```
    If "different path", validate that at least one directory exists under the given value before
    recording it.
@@ -262,16 +262,20 @@ Epic-picker pattern** documented in `${CLAUDE_PLUGIN_ROOT}/references/epic-picke
     (resume *stacks* on the picker, per the shared pattern).
   - **● done** — `specification.md` exists there → shown greyed, **not** default-selectable;
     selecting it offers *revise*.
-  Default cursor = the first actionable row (in-progress before not-started). Render as a `choices`
-  array: one entry per Epic (its ○/◐/● marker + key + title), then an explicit
-  **"Author one broad PRD-level spec instead"** choice, then `"Other… (describe)"`.
+  Default cursor = the first actionable row (in-progress before not-started). Render per
+  `${CLAUDE_PLUGIN_ROOT}/references/epic-picker.md`: every Epic listed as prose above the prompt, and
+  the array carrying **at most two** Epic rows (marker + key + title), the explicit
+  **"Author one broad PRD-level spec instead"** choice, and *"Another Epic from the list above — name
+  its key"*. That file's *The cap* section is why the Epic rows are the ones that give way: the
+  broad-spec choice is the alternative to picking any Epic at all, so hiding it would force a choice
+  this command means to leave open.
   - On selecting an Epic → set `focus_key` = that Epic; re-point the feature folder to its per-Epic
     subfolder (see *Re-pointing* below).
   - On **"Author one broad PRD-level spec instead"** → leave `focus_key` = null; the feature folder
     stays the flat PRD-dir path `specifications/<PRD>-<vslug>/` (Phase 0 step 3's `focus_key`-null PRD
     case). Step B then reads the whole PRD subtree.
 - **PRD with 0 Epics** → this PRD hasn't been split yet. Offer the existing without-Epics choices:
-  `choices: ["Split into Epics first with /dev-workflows:epics (Recommended)", "Author one broad PRD-level spec now", "Cancel", "Other… (describe)"]`
+  `choices: ["Split into Epics first with /dev-workflows:epics (Recommended)", "Author one broad PRD-level spec now", "Cancel"]`
   `/specify` does not write Epic folders itself — on "Split…", stop and point at
   `/dev-workflows:epics`, which writes them into this PRD folder where this command will see them. On
   "Author one broad PRD-level spec now", leave `focus_key` = null and proceed to Step B.
@@ -412,7 +416,7 @@ Resolve any ARD for this item by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-re
    empty, escalate per the `No repos derivable — /epics` rule in
    `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
    ```
-   choices: ["List repos to scan manually", "Proceed without code scan", "Cancel", "Other… (describe)"]
+   choices: ["List repos to scan manually", "Proceed without code scan", "Cancel"]
    ```
 
 2. **Build the slug→clone map** (`/epics`-style). For each top-level directory under each entry of
@@ -424,7 +428,7 @@ Resolve any ARD for this item by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-re
    matches) or zero matches both escalate per the `Repo unresolved (zero matches) — /epics` rule in
    `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
    ```
-   choices: ["Skip and continue without this repo's scan", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo", "Other… (describe)"]
+   choices: ["Skip and continue without this repo's scan", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]
    ```
 
 4. **Cross-check mounted status — soft gate.** A resolved repo slug that is not actually mounted under
@@ -578,7 +582,7 @@ the grill/author. **Advisory** — never blocks; proceed to Phase 6 once finding
      the `Review verdict BLOCK (unresolved after one fix cycle) — /epics` rule in
      `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` for each unresolved BLOCKER individually:
      ```
-     choices: ["Provide manual fix notes (you'll be prompted)", "Defer to a follow-up issue (record in the final report)", "Override and accept the finding", "Cancel the whole run", "Other… (describe)"]
+     choices: ["Provide manual fix notes (you'll be prompted)", "Defer to a follow-up issue (record in the final report)", "Override and accept the finding", "Cancel the whole run"]
      ```
      "Defer" means appending a `## Refinement notes` section to `specification.md` with a `- [ ]` item
      per deferred finding (mirrors `/epics`' Epic-refinement note), in addition to the final report.
@@ -626,7 +630,7 @@ On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/reference
 
 When this run authored a **per-Epic** spec that was selected from Step A's ≥2-Epics picker, offer — once Phase 7's write/commit completes — to continue with a sibling Epic under the same PRD:
 ```
-choices: ["Next Epic — re-open the picker (Recommended)", "Stop here", "Other… (describe)"]
+choices: ["Next Epic — re-open the picker (Recommended)", "Stop here"]
 ```
 On **"Next Epic"**, **re-render the Phase 2 Step A progress-aware picker minus the just-completed Epic** — recompute each remaining Epic's ○/◐/● state from its feature folder, so the freshly-authored spec now shows **● done** and drops out of the actionable set — then, on selection, set `focus_key` to the new Epic and loop back through Phase 2 Step B → Phases 3–7 for it. This offer does **not** apply to a stand-alone Epic, a single-Epic PRD, or a broad PRD-level spec — there is no sibling to advance to. It does not apply **on the BRD route** either, and for a stronger reason: Step A never ran, so there is no picker to re-render and no Epic set to subtract from. The sibling that exists on that route is another *slice*, which is a separate BRD with its own folder and its own seed — reached by re-running `/dev-workflows:specify <SIBLING-SLICE-KEY> the BRD route`, which waits on nothing this run produced.
 

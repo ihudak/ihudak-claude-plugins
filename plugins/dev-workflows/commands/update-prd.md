@@ -35,12 +35,12 @@ These reads are deliberately **not** gated: `require-on-main` (`${CLAUDE_PLUGIN_
 
 ## Phase 1 — Configure
 
-Use `choices` arrays; the last choice is always `"Other… (describe)"`.
+Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0).
 
 1. **Confirm** the feature folder; the resolved PRD base; and the secondary artifacts discovered (specs draft / ARD / spec / transcript).
    - Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
    - Report any discovered `ard.md` or `specification.md` that is not on the specs repo's default branch — per Phase 0 step 5, this grounding is unapproved but advisory-only; it is never a reason to stop the run.
-2. **Scope of the update.** `choices: ["Refresh (incorporate new info / comments / transcript) (Recommended)", "Re-do (substantive re-scope driven by an ARD/spec obstacle)", "Cancel", "Other… (describe)"]`.
+2. **Scope of the update.** `choices: ["Refresh (incorporate new info / comments / transcript) (Recommended)", "Re-do (substantive re-scope driven by an ARD/spec obstacle)", "Cancel"]`.
 
 ---
 
@@ -102,10 +102,27 @@ Act on the verdict as `/create-prd` Phase 4 does: on `BLOCK`, fix the BLOCKER fi
 
 ## Phase 6 — Next steps
 
-Offer (guidance only — never auto-invoke), per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`:
+Offer (guidance only — never auto-invoke), per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`.
+Five routes do not fit in four slots, so the prose carries all of them and the array carries `Stop
+here` plus three — that reference's overflow rule:
+
 ```
-choices: ["Re-draft the release note — /dev-workflows:release-notes <KEY> (PM)", "Re-run architecture — /dev-workflows:create-ard <KEY> (PA, if one exists) <merge-clause>", "Re-run epics — /dev-workflows:epics <KEY> (PE)", "Re-run the spec — /dev-workflows:specify <KEY> (PE, if one exists) <merge-clause>", "Stop here", "Other… (describe)"]
+An updated PRD can invalidate what was derived from it. Where this run can go next:
+  • Re-run the spec         — /dev-workflows:specify <KEY> <merge-clause>    (PE, if one exists)
+  • Re-run architecture     — /dev-workflows:create-ard <KEY> <merge-clause> (PA, if one exists)
+  • Re-run epics            — /dev-workflows:epics <KEY>                     (PE)
+  • Re-draft the release note — /dev-workflows:release-notes <KEY>           (PM)
 ```
+
+```
+choices: ["Re-run the spec — /dev-workflows:specify <KEY> (PE, if one exists) <merge-clause>", "Re-run architecture — /dev-workflows:create-ard <KEY> (PA, if one exists) <merge-clause>", "Re-run epics — /dev-workflows:epics <KEY> (PE)", "Stop here"]
+```
+
+**The release note is on the list and not in the array**, and the ordering is the reference's rule 3
+rather than taste: an updated PRD invalidates what was *derived* from it — the spec, the ARD, the
+Epics — before it changes what is *said about the release*, which is drafted last and from the
+shipped diff rather than from the PRD. Say in one line that the list is longer than the options and
+that the release-note route is reachable through the free-text option.
 
 **One key appears in that array.** `<ADDRESS>` is what this run was invoked with; it resolves the `$SPECS_PATH` folder Phase 0 step 3 found, and every command offered below resolves that same folder through the same entry point. There is no second identity to keep straight and no import to wait for.
 

@@ -58,7 +58,7 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
 
    - **(a) cwd with signals (preserves today's behavior).** Run `git rev-parse --show-toplevel` from cwd to resolve the git root. If it succeeds **and** ≥ 1 docs signal is present there → `docs_repo_path` = that git root and proceed silently. This keeps every downstream phase that assumes cwd correct.
    - **(a.5) `$DOCS_PATH` hint.** Else, resolve `${DOCS_PATH:-/workspace/docs}`. If it exists and carries **≥ 1 docs signal** (the same signal set as (a)) **or** an in-repo `.dev-workflows/docs-profile.yml`, set `docs_repo_path` = that path and proceed. In an AI container the docs clone is mounted here, so this is the common fast path when cwd carries no docs signals. The check is signal-based, never keyed to a particular repository's name or file layout.
-   - **(b) Search for a docs repo.** Else, look under `${REPOS_PATH:-/workspace}` (single dir or colon-separated list) for a git root that carries an in-repo `.dev-workflows/docs-profile.yml` **or** ≥ 1 docs signal from (a)'s set. If exactly one matches → `docs_repo_path` = that path. If several match, list them and ask which to use (`choices` array, a profiled repo recommended first, last item `"Other… (describe)"`). Discovery is by signal, never by repository name — no repo name is special-cased.
+   - **(b) Search for a docs repo.** Else, look under `${REPOS_PATH:-/workspace}` (single dir or colon-separated list) for a git root that carries an in-repo `.dev-workflows/docs-profile.yml` **or** ≥ 1 docs signal from (a)'s set. If exactly one matches → `docs_repo_path` = that path. If several match, list them and ask which to use (`choices` array of 2–4, a profiled repo recommended first; where more repos match than fit, list them all as prose and let the array carry the three likeliest plus one option naming the rest, per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`'s overflow rule). Discovery is by signal, never by repository name — no repo name is special-cased.
    - **(c) Ask.** Else, ask:
      ```
      "No product-docs-repo signals in this working tree and no docs repo found under ${REPOS_PATH:-/workspace}. The signals I checked in cwd:
@@ -66,7 +66,7 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
       - .docstack/, mkdocs.yml, docusaurus.config.js, antora.yml, .vale.ini, DOCUMENTATION-GUIDELINES.md
       - any _snippets/ directory under the repo root
       Where should I write the documentation?"
-     choices: ["Use cwd anyway — I confirm this is a docs repo (Recommended)", "Enter the docs repo path", "Cancel — switch to a docs repo first", "Other… (describe)"]
+     choices: ["Use cwd anyway — I confirm this is a docs repo (Recommended)", "Enter the docs repo path", "Cancel — switch to a docs repo first"]
      ```
      "Use cwd anyway" sets `docs_repo_path` = the git root of cwd (or cwd itself if not a git tree) and carries the user's confirmation forward. "Enter the docs repo path" takes a free-text absolute path and validates it exists.
 
@@ -85,7 +85,7 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
    - **exit 0 (present on base)** → proceed (the common case — the profile was merged earlier).
    - **non-zero (absent on base)** → the profile is only in the working tree / on an unmerged branch, so the docs branch Phase 6.2 cuts from `<base>` will not include it. Warn and ask:
      ```
-     choices: ["Proceed — the run uses the in-memory profile; I'll merge the profile PR separately", "Cancel — merge the profile PR first, then re-run", "Other… (describe)"]
+     choices: ["Proceed — the run uses the in-memory profile; I'll merge the profile PR separately", "Cancel — merge the profile PR first, then re-run"]
      ```
    Skip this check for `profile_source: built-in` (no profile file) and `generated` (the inline profiling branch is adopted by Phase 6.2, so the profile rides the single docs branch — a base check would false-fire).
 
@@ -156,28 +156,28 @@ All discovery defaults to `/workspace` (`${REPOS_PATH:-/workspace}`); on a host,
 
 **Rule: Ask, don't guess. This rule is absolute.**
 
-Group questions where possible; use `choices` arrays; the last choice in every array MUST be `"Other… (describe)"`.
+Group questions where possible; use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0).
 
 Ask about:
 
 - **Output filename / sub-path under the resolved `docs_repo_path`** (Phase 0) (default: `<KEY>-<slug>.md`; the `doc-location-finder` in Phase 5.5 may override this per target).
 - **PR status filter**:
   ```
-  choices: ["MERGED only (Recommended)", "All PRs (MERGED + OPEN + DECLINED)", "Specific list (you'll be prompted)", "Other… (describe)"]
+  choices: ["MERGED only (Recommended)", "All PRs (MERGED + OPEN + DECLINED)", "Specific list (you'll be prompted)"]
   ```
 - **Repo refresh policy**:
   ```
-  choices: ["fetch only (Recommended)", "fetch + pull default branch", "no refresh — resolve PRs from local objects only; a PR not yet fetched will not resolve, and a dirty clone stops blocking", "Other… (describe)"]
+  choices: ["fetch only (Recommended)", "fetch + pull default branch", "no refresh — resolve PRs from local objects only; a PR not yet fetched will not resolve, and a dirty clone stops blocking"]
   ```
   The `fetch only` default matches the `diff-summarizer` default (`refresh.fetch: true, refresh.pull: false`) — historical PR diffs don't need the current branch tip, and pulling risks moving HEAD away from the merge commit we want to reach.
 - **Repos search base (`$REPOS_PATH`)**. Read `${REPOS_PATH:-/workspace}` (the container mounts every repo under `/workspace`). `$REPOS_PATH` may be a single directory or a colon-separated list. Ask:
   ```
-  choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]
+  choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]
   ```
   If "different path", take free-text input (single dir or colon-separated list) and validate that at least one directory exists under it. Record the resolved value as `$REPOS_PATH`. Individual clones are located in Phase 4 by matching their `git remote` against each PR's repo slug — not by assuming a `<base>/<slug>` directory name.
 - **Screenshots** — this question seeds the **add-list** only; it never skips Phase 5.6. The candidate list itself is built later in **Phase 5.6** (by which point `specs_dir`, the folder read `attachments[]`, and the resolved repos are all available), and Phase 5.6 **always** runs — it also reviews the images already on the pages this run is about to edit, regardless of this answer:
   ```
-  choices: ["Yes — I have new screenshots to add (you'll pick the sources in Phase 5.6) (Recommended)", "No new screenshots", "Cancel", "Other… (describe)"]
+  choices: ["Yes — I have new screenshots to add (you'll pick the sources in Phase 5.6) (Recommended)", "No new screenshots", "Cancel"]
   ```
   Record the answer as `new_images_wanted` (true/false). When `false`, Phase 5.6 skips its **add** list only and still reviews existing images on the edited pages. The downstream `doc-planner` (Phase 5.7) detects the repo's `image_policy` and decides per screenshot whether the writer will copy it locally or stage it for manual upload.
 
@@ -188,7 +188,7 @@ Ask about:
   - **Found** → record the matched folder as `<project_dir>` (the project-folder root — reused as an image source in Phase 5.6), and set `<screenshot_staging_dir>` to that project folder's screenshot subfolder: prefer an existing `Doc screenshots/` or `Attachments/` subdirectory; otherwise `Doc screenshots/` (created on first write).
   - **Not found** (e.g. a ticket whose project has no project folder) → `<project_dir>` is null (Phase 5.6's project-folder scan then contributes nothing); ask:
     ```
-    choices: ["Enter an absolute staging directory (you'll be prompted)", "Skip — only needed if the docs repo turns out to be cdn_upload_required", "Cancel", "Other… (describe)"]
+    choices: ["Enter an absolute staging directory (you'll be prompted)", "Skip — only needed if the docs repo turns out to be cdn_upload_required", "Cancel"]
     ```
     Reject `/tmp` and any path inside the docs repo. Record the result as `<screenshot_staging_dir>` (or null if skipped).
 
@@ -339,7 +339,7 @@ From the folder read handoff `pull_requests` list:
      Missing repos are skipped: their code won't be diff-summarised or checked
      against the PRD's requirements, so the discrepancy analysis will be partial.
 
-     choices: ["Mount the missing repo(s) now — I'll wait, then re-scan (Recommended)", "Proceed without them — PRD-only for the missing repos", "Cancel", "Specify a different absolute path for a missing repo", "Other… (describe)"]
+     choices: ["Mount the missing repo(s) now — I'll wait, then re-scan (Recommended)", "Proceed without them — PRD-only for the missing repos", "Cancel", "Specify a different absolute path for a missing repo"]
      ```
      Choice semantics follow the `Repo unresolved (zero matches) — /document` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`, applied to the whole missing set at once:
      - **Mount now & re-scan** (≈ the rule's "I'll clone it — wait") — pause until the user confirms the clones are present under `$REPOS_PATH`, then re-run step 3's scan and re-render this gate. Loop until `missing` is empty or the user picks another option. This is how the operator gets per-repo control: mount whichever repos are available, re-scan, then choose "Proceed" for whatever remains.
@@ -378,11 +378,11 @@ After the batch returns, handle each per-repo status:
 - `REPO_MISSING` — should not happen at this stage (Phase 4 already checked). If it does, escalate per the `Repo missing (after resolution)` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
 - `DIRTY_TREE` — escalate:
   ```
-  choices: ["Stash changes and retry this repo", "Skip this repo", "Cancel", "Other… (describe)"]
+  choices: ["Stash changes and retry this repo", "Skip this repo", "Cancel"]
   ```
 - `REFRESH_BLOCKED` — escalate:
   ```
-  choices: ["Continue with current local state", "Skip this repo", "Cancel", "Other… (describe)"]
+  choices: ["Continue with current local state", "Skip this repo", "Cancel"]
   ```
 - `prep.read_only: true` — not a failure. The scan ran at `prep.scanned_ref`. Escalate per the `Read-only mount — ref stale or diverged` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`; otherwise proceed silently and cite evidence at `prep.scanned_ref`.
 - `NO_PRS_RESOLVED` — record all that repo's PRs as unresolved; continue.
@@ -466,7 +466,7 @@ A target with no image references contributes nothing.
 
 Present both lists — "Found `<N>` add-list candidate(s) (`<count>` from specs scan, `<count>` from folder attachments, `<count>` from the project folder)" and "Found `<M>` existing image(s) across `<K>` edited page(s) to review for staleness" — then ask:
 ```
-choices: ["Review both lists item by item (Recommended)", "Add-list only — existing images are current", "Nothing to do — no image work this run", "Cancel", "Other… (describe)"]
+choices: ["Review both lists item by item (Recommended)", "Add-list only — existing images are current", "Nothing to do — no image work this run", "Cancel"]
 ```
 When both lists are empty, skip presenting this prompt — there is nothing to show — and set `screenshots[] = []`, `existing_image_decisions[] = []` directly.
 
@@ -474,22 +474,22 @@ When both lists are empty, skip presenting this prompt — there is nothing to s
   - **Add list**, if non-empty, asks:
     ```
     "Found <N> candidate image(s): <count> from specs scan, <count> from folder attachments, <count> from the project folder. How would you like to source screenshots?"
-    choices: ["Use all auto-discovered + add manual paths (Recommended)", "Use all auto-discovered only", "Select a subset (you'll pick per candidate)", "Provide screenshot paths manually only (you'll be prompted)", "No images after all", "Other… (describe)"]
+    choices: ["Use all auto-discovered + add manual paths (Recommended)", "Use all auto-discovered only", "Select a subset (you'll pick per candidate)", "Provide screenshot paths manually only (you'll be prompted)"]
     ```
     - **Use all auto-discovered + add manual** → take every deduped candidate, then prompt for additional free-text absolute paths to append.
     - **Use all auto-discovered only** → take every deduped candidate; no manual prompt.
     - **Select a subset** → present the deduped candidates and let the user pick which to keep.
     - **Provide screenshot paths manually only** → ignore the auto-discovered candidates; take free text only.
-    - **No images after all** → leave `screenshots[]` empty; the add list contributes nothing further.
+    - **No images after all** is not listed — the outer prompt already offered *Nothing to do — no image work this run*, and a user who changes their mind here says so through the harness's own free-text option, which resolves to this: leave `screenshots[]` empty; the add list contributes nothing further.
   - **Existing-image list**, if non-empty, walks each occurrence in order — showing `target`, `section`, and `old_url` — and asks per item (no default is safe to recommend across arbitrary items, so no `(Recommended)` marker):
     ```
-    choices: ["Replace — I'll provide a new screenshot (staged via Phase 6.1)", "Leave as is — still accurate", "Cancel", "Other… (describe)"]
+    choices: ["Replace — I'll provide a new screenshot (staged via Phase 6.1)", "Leave as is — still accurate", "Cancel"]
     ```
     "Replace" appends an `existing_image_decisions[]` entry `{target, occurrence, old_url, new_url, section, decision: accepted}` with `new_url` left pending (Phase 6.1 resolves it) and records the replacement's source (a path from the add list just reviewed, or a new free-text path). "Leave as is" appends the same shape with `decision: declined` and no `new_url`.
 - **Add-list only — existing images are current** → run the add-list sub-flow above (if non-empty); `existing_image_decisions[] = []` — the user's verbatim choice is the record of the (skipped) existing-image review, not a per-item entry.
 - **Nothing to do — no image work this run** → `screenshots[] = []`, `existing_image_decisions[] = []`.
 - **Cancel** → stop and summarise.
-- **Other… (describe)** → takes free text and resolves to one of the three dispositions above — "Review both lists item by item", "Add-list only", or "Nothing to do" — and the run then behaves exactly as if that option had been chosen directly, including which ledger row it writes. There is no fourth disposition and no "skip on my own judgement" path here.
+- **The harness's free-text option** (supplied automatically, never authored into the array — `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0) → takes free text and resolves to one of the three dispositions above — "Review both lists item by item", "Add-list only", or "Nothing to do" — and the run then behaves exactly as if that option had been chosen directly, including which ledger row it writes. There is no fourth disposition and no "skip on my own judgement" path here.
 
 **Append the `image_review` ledger row once this phase's outcome is settled — by the user's answer to the merged prompt above, or by the both-lists-empty precondition when that prompt itself was skipped — outside any conditional branch above**, so every path through this phase writes exactly one row (schema: `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` §3; registry entry: §4):
 - `RAN` — the choice was "Review both lists item by item" and at least one of the two lists was non-empty; `mechanism: "per-item user review of the add list and the existing-image list built from extend-existing write targets"`; `findings:` = the count of existing-image occurrences reviewed.
@@ -572,13 +572,13 @@ the row `DEGRADED`, with `not_run:` naming what did not run (e.g.
 
 2. **Batch decision:**
    ```
-   choices: ["Decide per discrepancy (Recommended)", "Document ALL as intended (spec)", "Document ALL as actual (code)", "Skip ALL and report (drafts a bug report)", "Cancel", "Other… (describe)"]
+   choices: ["Decide per discrepancy (Recommended)", "Document ALL as intended (spec)", "Document ALL as actual (code)", "Skip ALL and report (drafts a bug report)"]
    ```
    "Document ALL as intended (spec)" uses the `spec_phrasing` (or the PRD phrasing when it is `(no spec)`).
 
 3. **Per-discrepancy** (if "Decide per discrepancy"): for each warning, show claim + PRD phrasing + Spec phrasing + Source (code) phrasing + location, then:
    ```
-   choices: ["Document as intended (spec)", "Document as actual (code)", "Skip this claim and report it", "Cancel", "Other… (describe)"]
+   choices: ["Document as intended (spec)", "Document as actual (code)", "Skip this claim and report it", "Cancel"]
    ```
    "Document as intended (spec)" describes the agreed contract — the `spec_phrasing` (or the PRD phrasing when it is `(no spec)`) — and, when the code lags the intended phrasing, adds an intentional-discrepancy marker + bug-report draft. "Document as actual (code)" matches what shipped, and when it is a qualifying `document-as-code` case per §7.5, also records the gap in the bug-report draft. "Skip this claim and report it" omits the claim but still records the gap in the bug-report draft.
 
@@ -603,7 +603,7 @@ Run this phase when, in the Phase 5.7 `doc-planner` return, **any** screenshot h
 
 2. **Ask how to handle the upload:**
    ```
-   choices: ["Upload now — I'll paste the CDN links (Recommended)", "Defer — stage with TODO placeholders + Phase 9 list", "Cancel", "Other… (describe)"]
+   choices: ["Upload now — I'll paste the CDN links (Recommended)", "Defer — stage with TODO placeholders + Phase 9 list", "Cancel"]
    ```
 
    - **Upload now** → collect one CDN URL per image (prompt per image, or one URL per line in image order). Validate each pasted value looks like a URL (e.g. starts with `http://` / `https://`); re-prompt for any that don't. Record `cdn_urls[<image>]` for a regular screenshot, or the entry's `new_url` for an existing-image replacement. Phase 6.3 then writes the **real CDN URL** into each markdown image reference instead of a TODO placeholder — for an existing-image replacement, it swaps that occurrence in place. Nothing is staged and the Phase 9 "Screenshots to upload manually" section stays empty for these images.
@@ -755,7 +755,7 @@ Resolve the build command per space — `profile.commands.per_space.<space>.buil
   ```
 - **Environmental failure** (the build tool will not run — missing toolchain, `command not found`, missing `.docstack` shim) → surface the reason; no `doc-fixer` loop:
   ```
-  choices: ["Install <the missing tool> and retry this gate", "Proceed without this check — record my decision", "Cancel the run", "Other… (describe)"]
+  choices: ["Install <the missing tool> and retry this gate", "Proceed without this check — record my decision", "Cancel the run"]
   ```
   This is the `gate-ledger.md` §5 conversion for `build_check`, not an orchestrator decision: "Proceed without this check" writes `SKIPPED_BY_USER` with the chosen option quoted verbatim in `user_decision`. Do NOT present this list when the `build_check` row already carries a `user_decision` from Phase 0's preflight naming the same missing tool — the user answered this question before anything was written, and that answer stands. Record the failure reason in the row, keep the existing `user_decision`, and continue to Step 2 without prompting.
 
@@ -765,7 +765,7 @@ When the profile declares **no** build command at either level, record "no build
 
 Offer it. Present this list **verbatim** — the "Choice lists are presented verbatim" rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` forbids moving `(Recommended)`, reordering the options, or re-wording them. Dev-server flakiness and a clean static check are reasons to say something in prose beside the list; they are never reasons to recommend Skip.
 ```
-choices: ["Run smoke-check (Recommended)", "Skip — use the manual table only", "Cancel", "Other… (describe)"]
+choices: ["Run smoke-check (Recommended)", "Skip — use the manual table only", "Cancel"]
 ```
 
 When run, boot each space in the **verification set** — every space whose `content_root` holds at least one affected page (see `render-verification.md` §2) — **sequentially** (`profile.dev_servers.concurrent: false` forbids overlap). Full mechanics in `render-verification.md`:
@@ -1211,7 +1211,7 @@ name is ever written (§10 privacy).
 - ALWAYS pass `Change type: docs` in the Phase 8 change summary block
 - ALWAYS pass `Command run: /document` in the Phase 8 Agent 4 session handoff
 - ALWAYS spawn Phase 8 agents in a single message — never sequentially
-- ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
+- ALWAYS use `choices` arrays for decision points; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0)
 - ALWAYS produce the Phase 9 report as the final output
 - ALWAYS end the Phase 9 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked; omitted in direct doc-edit mode (Mode B)
 - ALL written claims must be traceable to a resolved key or to PR diffs — attribution goes in the run's return payload and the commit message, NEVER inline in the rendered page (`${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1)
@@ -1280,7 +1280,7 @@ Before producing a plan, analyze the description for:
 
 If **any** ambiguity exists, ask the user. Rules:
 - Use `choices` arrays for every question — never plain text questions
-- The **last choice** in every `choices` array MUST be `"Other… (describe)"` to allow free-text
+- Every `choices` array carries 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0), which is what allows free-text
 - When a clearly superior default exists, make it the first choice and label it `"(Recommended)"`
 - Group related decisions into a single question (minimize total questions)
 - Do **not** proceed until all questions are answered
@@ -1358,7 +1358,7 @@ choices: ["Approve & implement now (Recommended)", "Revise plan", "Cancel"]
 1. Work through each edit in order
 2. Make precise, surgical changes — do not rewrite sections wholesale when a targeted edit is enough
 3. Follow the repo's detected style conventions from the Phase 2A exploration; LF line endings
-4. If a **new ambiguity** emerges mid-edit: STOP, ask with choices (last: `"Other… (describe)"`), resume after answer
+4. If a **new ambiguity** emerges mid-edit: STOP, ask with choices (2–4 options; the harness supplies the free-text escape), resume after answer
 5. After all edits: run the Validation checks from the plan's step 6. Fix any failures caused by your changes (broken links, unparseable frontmatter, bad heading hierarchy).
 6. **Do NOT run tests.** This command has no test phase — validation checks are all that's expected.
 7. **Do NOT create a branch, and do NOT commit the doc edits.** The user manages git manually for doc edits. (The run's terminal `commit-artifacts` step is a separate repository — it stages ONLY `$SPECS_PATH`'s bounded artifact paths, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1 — and never the files edited here.)
@@ -1650,7 +1650,7 @@ directory; no user name is ever written (§10 privacy).
 - ALWAYS pass `Change type: docs` in the Phase 4 change summary block
 - ALWAYS pass `Command run: /document (direct mode)` in the Phase 4 Agent 4 session handoff
 - ALWAYS spawn Phase 4 agents in a single message — never sequentially
-- ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
+- ALWAYS use `choices` arrays for decision points; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0)
 - ALWAYS produce the Phase 5 report as the final output
 - ALWAYS run the Validation checks from the plan — validation failures are surfaced in the Phase 5 report, not silently accepted
 - IF the task reads as SIGNIFICANT / HIGH-RISK on inspection: redirect to `/document` (keyed mode) or `/epics` rather than proceeding under the simplified flow

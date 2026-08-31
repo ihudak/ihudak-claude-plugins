@@ -352,19 +352,24 @@ at a time, never batched, with its class, its target, its attack and its `what_w
 statement, and take exactly one disposition:
 
 ```
-choices: ["Fixed — the package has been corrected; say what changed", "Accepted risk — ship it, and show this finding to the customer", "Escalated to the customer — turn it into something the package asks them", "Rejected with reason — the attack does not hold; say why", "Cancel"]
+choices: ["Fixed — the package has been corrected; say what changed", "Accepted risk — ship it, and show this finding to the customer", "Escalated to the customer — turn it into something the package asks them", "Rejected with reason — the attack does not hold; say why"]
 ```
 
 **This is not an escalation choice list**, and it is not one of the arrays
 `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` owns: its four options are the four
 disposition values `agents/brd-package-reviewer.md` fixes, drawn from that agent's own contract the
 same way `/brd-interview`'s will-change picker draws its three resolutions from
-`decision-register-format.md` §6. It carries **no** `"Other… (describe)"` entry, and that omission is
+`decision-register-format.md` §6. Its vocabulary is closed, and holding it closed is
 required rather than merely permitted: the disposition vocabulary is exactly four values, and a
 fifth would be a disposition nothing downstream can read — which is why `escalation-rules.md` names
-this picker in its *The permitted adjustment does not reach these arrays* section rather than leaving
-its own "one permitted adjustment" sentence to overrule the command. `Cancel` stops the run with every
-disposition already taken still written, so nobody is trapped and nothing is lost.
+this picker in its *Closed-vocabulary pickers must normalise the free-text answer* section, so a
+free-text answer that lands on none of the four re-asks rather than becoming a value no consumer
+handles. The array is those four values
+and nothing else: **there is no listed `Cancel`**, because the harness always supplies a free-text
+option and an abort is reachable through it without spending one of the four slots
+(`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0). Aborting the walk stops the run with
+every disposition already taken still written, so nobody is trapped and nothing is lost — say that
+where the walk is introduced, not in an option nobody can be shown.
 
 Each disposition carries a recorded reason, and each has a consequence the later phases execute:
 
@@ -421,12 +426,12 @@ to. Then:
   **Not an escalation array either**: the three options are the three rows of `bundle-packaging.md`
   §3's own table, in that table's order, and a fourth would be a tier nothing downstream can read —
   neither the prompt, which must state the tier and the evidence sentence §3's table pairs with it,
-  nor a returned review's own section 1, which is written against that sentence. It carries **no**
-  `"Other… (describe)"` entry, and that omission is **required rather than merely permitted**, which
-  is why `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` names this picker in its *The
-  permitted adjustment does not reach these arrays* section rather than leaving its own "one
-  permitted adjustment" sentence to overrule the command. `Cancel` is present, so nobody is trapped
-  by the absence. No `(Recommended)` marker, and the reason is stated beside
+  nor a returned review's own section 1, which is written against that sentence. Its vocabulary is closed, and holding it
+  closed is **required rather than merely permitted**, which is why
+  `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` names this picker among the six whose
+  free-text answer is normalised into their own vocabulary rather than written through. Nobody is
+  trapped: that free-text option is always present, and an answer that lands on none of the listed
+  values re-asks rather than inventing a value no consumer handles. No `(Recommended)` marker, and the reason is stated beside
   the list per the `When no option is safe to recommend` guidance in `escalation-rules.md`: which
   tier is right is not a judgement at all, it is a fact about what this customer can be given, and a
   marker would invite the run to ship at Full because Full is better.
@@ -802,7 +807,7 @@ on `/create-ard` and `/specify`, which read the architecture- and implementation
 alongside the same register. So the honest offer is the state this run actually leaves behind:
 
 ```
-choices: ["Stop here — the package is written and, if you handed it off, committed", "Send it — the delivery note is printed above and the archive command is in the report", "Reconcile the review once it comes back — /dev-workflows:brd-reconcile <BRD-KEY> @<review-file> <merge-clause>", "Package another BRD or slice", "Other… (describe)"]
+choices: ["Stop here — the package is written and, if you handed it off, committed", "Send it — the delivery note is printed above and the archive command is in the report", "Reconcile the review once it comes back — /dev-workflows:brd-reconcile <BRD-KEY> @<review-file> <merge-clause>", "Package another BRD or slice"]
 ```
 
 **No option carries a `(Recommended)` marker, and that omission is deliberate**, per the

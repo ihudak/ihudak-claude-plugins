@@ -157,8 +157,14 @@ Under `$SPECS_PATH/specifications/<BRD-KEY>-<slug>/`:
 - `coverage-ledger.md` — updated so no row remains `unallocated`: each row now reads
   `covered-here`, `covered-by: <BRD-KEY>`, `deferred-to: <this BRD>`, `rejected: [DEF#n]`, or
   `superseded-by: [BR#n]`.
-- `slices.md` — one block per confirmed slice (its key, its folder, and its buildable / blocked /
-  depends-on rationale) plus one block per row deferred this run.
+- `slices.md` — one block per confirmed slice (its key, its folder, and the rationale that grouped
+  its rows: the buildable / blocked / depends-on reading, or, for a group a slicing instruction
+  placed, what in the instruction placed it); one block per row deferred this run; and, when the run
+  was given an instruction, one block for the instruction itself — **verbatim**, with how it was
+  read: which rows Phase 1.5's Step A placed directly, which the Step B grill settled and by what
+  terminology decision, and which it could not place. That block is written whether or not the
+  instruction produced a slice, because a reading that produced nothing is the one a later reader
+  most needs, and the verbatim text is what shows whether the instruction or the reading was wrong.
 In `allocate-only` mode the run writes exactly the first two of the following; Phase 3 never runs,
 so no child folder is created.
 

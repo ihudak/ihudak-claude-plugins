@@ -4,6 +4,41 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.4.2] — 2026-08-31
+
+### Fixed — five documentation stalls, four of them created by this release line
+
+A dedicated pass over `docs/` for the claims `scripts/check-docs.sh` structurally cannot see: it
+gates links, anchors, inventories, counts and identity, never whether a page's *claims* still match
+the thing that runs. Four mechanical sweeps came back clean — every stop code a page names exists in
+a command, no page under-reports a dispatched agent, no page documents a flag its command does not
+parse, and every produced-artifact table matches its command's `deliverable_paths`. What the sweeps
+did **not** cover, and what these five were found by, is prose describing an artifact's internal
+structure and an authority's scope.
+
+- **`/brd-split`'s produced-artifact bullet described the old `slices.md`.** 3.4.0 added a third
+  block — the slicing instruction verbatim, with how it was read — and updated the synopsis, the
+  mode table, the flow diagram and the example, but not this. The rationale line was stale too: a
+  group a slicing instruction placed carries what in the instruction placed it, not a
+  buildable/blocked/depends-on reading.
+- **`grilling-technique.md`'s one-liner said "every authoring command (and `/prompt-grill-me`)".**
+  3.4.0 added `/brd-split` as a caller, and `/brd-split` is not an authoring command — it grills a
+  slicing instruction against a BRD's own rows. The line now names the callers and the depth each
+  declares.
+- **`bundle-packaging.md`'s one-liner omitted its content allow-list.** 3.3.2 made §1.1 the rule
+  that decides what may reach a customer, and 3.4.1 added §2.1's byte-for-byte source copy; neither
+  reached the summary a reader consults to decide whether to open the file.
+- **`coverage-ledger-format.md`'s one-liner omitted §3.1.** 3.4.1 made it the rule two commands read
+  to scope a round and a review, and it is the reason a delegated requirement no longer reaches the
+  customer in two packages.
+- **`grounding-format.md`'s one-liner omitted §4.1** — the three ways a baseline finding differs
+  from a claim finding, added in 3.3.2.
+
+**Why the summaries matter enough to gate on.** A reference one-liner is what a reader consults to
+decide whether the file answers their question. One that omits the file's newest rule sends them
+away from the answer, and the omission is invisible to every check in `scripts/` — it is prose about
+prose.
+
 ## [3.4.1] — 2026-08-31
 
 ### Fixed — six defects from a third round, scoped to the surface two rounds had not read closely

@@ -57,12 +57,13 @@ Spec 2 is largely a re-wiring of agents that already exist. Spec 3 is meaningles
 | D13 | **Vale is the deterministic pre-lint; `prose-style` is the semantic reviewer. Both, at different stations.** | `docs-style-checker` already runs `.vale.ini` as its primary rung with `prose-style-checker` as a complementary pass. `/docs-init` writing `.vale.ini` lights up the existing gate with no new wiring. |
 | D14 | **`/docs-brand` is a standalone command *and* a phase of `/docs-init`.** | Rebrands happen; re-scaffolding to pick up a new logo is absurd. This dual shape is the pattern `/docs-profile` already uses (standalone, plus `--inline` from `/document` Phase 0 case (c)). |
 | D15 | **The scaffold's navigation is product-shaped, not Diátaxis-shaped.** Diátaxis survives as the page **type** in frontmatter, not as the folder tree. | Diátaxis is an authoring discipline, not an information architecture. No product portal a reader recognises has "Tutorials / How-to / Reference / Explanation" as its top-level nav; they have *Discover*, *Get started*, *Guides*, *Reference*, *What's new*. Decoupling them costs nothing because **the coverage grid reads `type` from frontmatter** (§8.6), so the quadrant discipline is fully preserved while the nav is free to look like a product. |
-| D16 | **Image hosting is a profile field with two supported policies, and `in-repo` is the scaffold default.** | The CDN policy inherited from `/document` is one organisation's answer to a real cost — binaries in git are permanent, and a 200 KB screenshot revised twenty times is 4 MB of history nobody can reclaim — but it presumes CDN infrastructure most small teams do not have. Committing images beside the docs, as READMEs have always done, is legitimate. Both ship; the profile says which; the size budget (§8.4) is what keeps the default honest. |
+| D16 | **Image hosting is a profile field with three supported policies (`in-repo`, `object-store`, `cdn`), and `in-repo` is the scaffold default.** | The CDN policy inherited from `/document` is one organisation's answer to a real cost — binaries in git are permanent, and a 200 KB screenshot revised twenty times is 4 MB of history nobody can reclaim — but it presumes CDN infrastructure most small teams do not have. Committing images beside the docs, as READMEs have always done, is legitimate. All three ship because their **rules** differ, not just their provider; the profile says which; the size budget (§8.4) is what keeps the default honest. External hosting buys deletability rather than cost, and owes a third visibility gate in return (§8.4). |
 | D17 | **Every command in the family that writes an artefact passes a high-tier review gate, with triage and a fixer.** `/docs-serve` is the sole exemption and it writes no artefact. | The plugin's rule is that code and docs written by a command are reviewed by a high-tier model before they are trusted. `/docs-init` writes CI, `mkdocs.yml`, `.vale.ini` and CSS — that is code. `/docs-audit` writes the backlog every later run obeys. `/docs-verify` applies human confirmations to prose. `/docs-drift` marks pages stale. None of them are exempt because a sibling command has a gate. |
 | D18 | **Page frontmatter is a fixed contract, and four of its fields are load-bearing for this family.** | `type`, `audience`, `visibility` and `unit` are what make the coverage grid, the two-build split and drift detection computable at all. The rest — `title`, `description`, `owners`, `creator`, `published`, `updated`, `readtime`, `order`, `changelog` — are the portal's own metadata. `docs-frontmatter` owns the schema; this family declares its four reserved keys (§8.6). |
 | D19 | **Bookkeeping for a documentation run that has no PRD lands under `$SPECS_PATH/documentation/<docs-repo-slug>/`, not in the pending queue.** | The existing ladder parks a PRD-less cost entry as *pending*, awaiting reconciliation into a PRD directory. Documentation work frequently has no PRD and never will, so those entries would accumulate forever. The docs repo is this family's unit of attribution, exactly as the PRD directory is the pipeline's (§13.4). |
 | D20 | **The review model is the Opus chain for every gated command, with no tiering by unit.** Classification still varies per unit and still drives the planning model; it never lowers the reviewer. | Settled by the operator against the cost: a mechanical-looking reference page is exactly where a wrong claim survives review, because it reads plausibly and nobody re-derives it. Cost is controlled by throughput (`--batch` caps, visible per-run cost emission), never by weakening the gate. |
 | D21 | **A new page's default `owners` is its `creator`, until someone reassigns it.** | Accurate at write time, never blocks a write, and degrades honestly: an unmaintained page visibly names someone who has moved on, which is itself the signal to reassign. A single org-wide default would name the same owner on every page whether or not anyone is watching it, which is indistinguishable from no owner at all. `references/docs-profiles/default-owners.txt` is seeded with that convention rather than with a name. |
+| D22 | **Process capture is its own command, `/docs-capture`, with two supported inputs and no video.** | A how-to or tutorial encodes a sequence a person performs, which no amount of code reading yields. That reverses the flow — capture first, prose derived from the capture — which is a different lifecycle position, a different input (a human performance, not a document) and a new state (`captured`). Folding it into `/docs-verify` would give one command two inputs, two outputs and two positions in the lifecycle; folding it into `/docs-write` would bury a human-interactive step inside the one command that must stay unattended for `--batch` to mean anything. **Video is rejected outright, not deferred** — scene-change keyframes land mid-transition and make worse screenshots than purpose-taken ones, a demo records one happy path while docs need the error states, and a recording captures incidentally what a screenshot captures deliberately. |
 
 ---
 
@@ -75,6 +76,7 @@ Spec 2 is largely a re-wiring of agents that already exist. Spec 3 is meaningles
 | `/docs-serve` | Start/stop/status the docs server in the background; report a reachable URL | profile `dev_servers` |
 | `/docs-audit` | Enumerate surfaces, cross with Diátaxis, write the prioritised backlog | `code-scanner`, `docs-grounder`, `jira-reader` (optional) |
 | `/docs-write <unit>` | Ground → draft → style → review → publish one backlog unit *(Spec 2)* | `doc-writer`, `docs-style-checker`, `doc-fixer`, `doc-reviewer`, `finding-triage` |
+| `/docs-capture <unit>` | Record how a process is actually performed, producing the walkthrough *(Spec 2)* | `code-scanner` for the skeleton |
 | `/docs-verify <unit>` | Execute the walkthrough, record confirmations, fill image slots *(Spec 2)* | new |
 | `/docs-drift` | Re-check pages against the evidence they were built from *(Spec 3)* | `code-scanner`, `diff-summarizer` |
 
@@ -88,6 +90,7 @@ Every command that writes an artefact carries a review gate (D17):
 | `/docs-brand` | `code-review` @ Opus | `review-fixer` | Config and CSS, plus a contrast finding to adjudicate |
 | `/docs-audit` | `docs-audit-reviewer` @ Opus | orchestrator applies | Spot-checks that surfaces resolve to real paths, that types fit, and that each `priority_reason` actually supports its rank |
 | `/docs-write` | `doc-reviewer` @ Opus | `doc-fixer` | The existing documentation reviewer, unchanged |
+| `/docs-capture` | `doc-reviewer` @ Opus | `doc-fixer` | Checks the derived walkthrough against the capture: no step invented, no step silently dropped |
 | `/docs-verify` | `doc-reviewer` @ Opus | `doc-fixer` | Checks that the applied prose says what the human confirmed, and nothing more |
 | `/docs-drift` | `docs-audit-reviewer` @ Opus | orchestrator applies | Same artefact as the audit; the claim under review is "this page is stale" |
 | `/docs-serve` | — | — | Writes no artefact: a background process, a pidfile, a URL |
@@ -501,9 +504,18 @@ captures:
 | `images.policy` | How a slot is filled | Fits |
 |---|---|---|
 | `in-repo` *(scaffold default)* | The file is committed under `docs/assets/<section>/` and referenced by relative path. An updated screenshot **overwrites in place** — same path, new bytes | Most projects. No infrastructure, images version with the prose that describes them, a PR shows the new screenshot beside the text change |
+| `object-store` | An S3-compatible bucket (S3, R2, Spaces, B2). The docs reference bucket URLs. Overwrite in place is allowed — enable bucket versioning — and a **third visibility gate** is required (below) | Projects that also carry video or large media, or that need an image to be **deletable** |
 | `cdn` | The human uploads, supplies an immutable URL, and the docs edit is a URL swap. An image is **never refreshed in place**; every replacement is a new URL | Large portals where repository size and CDN delivery already matter |
 
-**The pushback, stated once so the default is chosen rather than assumed:** binaries in git are permanent. A 200 KB screenshot revised twenty times is 4 MB nobody can reclaim without rewriting history, and screenshots are the fastest-rotting artefact in any portal. That is the real reason large docs organisations push images out — not fashion. It is still the wrong default here, because the CDN path presumes infrastructure and an upload step that a small team does not have, and a portal with no screenshots is worse than a portal with a slightly heavy repository.
+Three policies rather than two because the **rules** differ, not merely the provider: mutability, who uploads, and what has to be gated.
+
+**The bloat cost, sized honestly rather than asserted.** Binaries in git are permanent, and that is the real reason large docs organisations push images out. But at the scale this family targets the number is small: 150 screenshots at 150 KB, each revised three times over three years, is about 67 MB of permanent history. Git carries that without complaint. The horror stories come from portals with thousands of images revised continuously — which is precisely who already runs a CDN. **Sizing it matters, because an infrastructure decision taken against an imagined cost is how a small team acquires a bucket it then has to secure, back up, and pay attention to.**
+
+**What external hosting actually buys, and it is not cost.** Object storage for this volume is effectively free either way — a few hundred screenshots is cents per month, and Cloudflare R2 charges no egress at all, which makes it a better choice than S3 for exactly this use. The real purchase is **deletability**: an image in a bucket can be removed, and an image in git cannot without rewriting history. That is not hypothetical — a screenshot taken against a real environment can capture a customer name, an internal hostname, a token in a URL bar. In-repo, discovering that later means a history rewrite. In a bucket it means a delete.
+
+**What external hosting costs, in this design specifically.** The public/internal split (§9) is enforced by the build: `exclude_docs` drops `internal/` and the marker grep asserts on the built HTML. **A bucket has no notion of the two builds.** A public page referencing an internal screenshot leaks the image while both existing gates pass, because the leak is in the object store, not in the HTML. So `object-store` requires a third gate — every image URL in the public build must resolve to the public prefix, with internal media under a separate prefix or bucket. It also costs the PR review: a reviewer no longer sees the new screenshot beside the text change. Both are payable; neither is free.
+
+So `in-repo` stays the default — the bloat maths does not justify infrastructure at this scale, and a portal with no screenshots is worse than one with a slightly heavy repository — while `object-store` is a supported, documented step up rather than something a project has to invent.
 
 So `in-repo` ships as the default with the cost bounded rather than ignored:
 
@@ -511,6 +523,8 @@ So `in-repo` ships as the default with the cost bounded rather than ignored:
 - **Prefer SVG**, then optimised PNG; the write path runs an optimiser when one is on the toolchain and says so when it is not.
 - **One path per slot** — a replacement overwrites; it never lands beside the old file under a new name. This is what actually keeps history bounded, and it is the rule the `cdn` policy has to invert.
 - **`git-lfs` is named, not scaffolded.** It solves the size problem and introduces a checkout dependency for every contributor; a project can adopt it, and the profile records that it did.
+
+`object-store` carries two obligations `in-repo` does not, both stated so a project adopting it does not discover them late: an **orphan sweep** (deleting a page does not delete its objects, and an unreferenced object is invisible and paid for forever), and the **third visibility gate** above.
 
 Switching policy later is a profile edit plus a rewrite of the affected references, which `/docs-drift` can enumerate — so the default is reversible, not a trap.
 
@@ -715,7 +729,37 @@ Classification is usually MODERATE for a single unit. The one genuinely new gate
 
 > **A unit may not be marked `published` while it carries unconfirmed claims.** It goes to `verified` only after `/docs-verify` resolves them.
 
-### 12.2 `/docs-verify <unit-id>` (Spec 2)
+### 12.2 `/docs-capture <unit-id> [<capture-dir>]` (Spec 2)
+
+Produces the walkthrough for a **process-shaped** unit — `how-to` and `tutorial` — which is the one thing no amount of code reading yields (D22). Fact-shaped units never run it.
+
+**It does not start blank.** Phase 1 derives a skeleton from code: the route sequence, the form fields and their validation messages, and which roles can reach which screen. The human's job is to correct twelve guessed steps, not to describe a process from memory.
+
+**Two inputs, selected by whether a directory is given:**
+
+| Invocation | Mode | What you prepare |
+|---|---|---|
+| `/docs-capture U-001` | **Interactive** | Nothing. The command renders the skeleton and walks you through it step by step in the session, recording `confirmed` / `differs` / `blocked` with the observed text on `differs` |
+| `/docs-capture U-001 ./captures/place-an-order/` | **Folder** | You perform the task once, screenshotting as you go, and write down what you did. Asynchronous — no agent waiting on you |
+
+**The folder convention, documented because a convention nobody can look up is not one.** Preferred shape — a `capture.md` of numbered steps with images referenced inline, which is what a person writes anyway and is unambiguous about order and alignment:
+
+```markdown
+1. From the orders list, click **New order**.
+   ![](01-orders-list.png)
+2. Fill in the customer, then click **Add item**.
+   ![](02-new-order-form.png)
+```
+
+Tolerated fallback — numbered image filenames (`01-*.png`, `02-*.png`) plus an optional free-prose `notes.md`. The command then **proposes an alignment of notes to images and asks you to confirm it** rather than assuming one.
+
+**Phase 3 reconciles the capture against the code skeleton, and the discrepancy is the point.** If the skeleton has five screens and the capture shows three, that is reported, not silently resolved: you may have skipped a step, or the code may carry a path you never use. Either is worth knowing, and neither is an error.
+
+Screenshots supplied in folder mode land in the unit's image slots per `images.policy` (§8.4) — so one pass yields both the process and the images. The unit moves `missing → captured`; `/docs-write` then derives the prose from the walkthrough instead of from code.
+
+`--role` overrides the role taken from the unit. Invoked on an uncaptured unit with no directory and no interactive session available, the command **prints the preparation instructions and stops** rather than guessing — the command teaches what to prepare.
+
+### 12.3 `/docs-verify <unit-id>` (Spec 2)
 
 **Two backends, matching the two implementations of the evidence contract (§8.2)** — one command, not two:
 
@@ -726,7 +770,7 @@ Both resolve marked claims and move the unit `drafted → verified`. v2 adds a b
 
 **Reviewed, not trusted** (D17): the pass edits prose to match what a human confirmed, and the failure mode is editing *more* than was confirmed — turning "the button says Add item" into three sentences of invented behaviour. `doc-reviewer` at Opus checks the diff against the recorded confirmations, findings are triaged, `doc-fixer` applies survivors.
 
-### 12.3 `/docs-drift` (Spec 3)
+### 12.4 `/docs-drift` (Spec 3)
 
 For each surface, diff `sources[].ref` → `HEAD` restricted to the surface's evidence paths, summarising via `diff-summarizer`. A non-empty diff marks that surface's units `stale` with the reason, and re-queues them. `sources[].ref` advances only when the resulting stale units have been re-verified — otherwise a drift run would erase the very evidence that a page is out of date.
 
@@ -751,10 +795,10 @@ Re-derived against the tree at `641981f` (dev-workflows 3.5.0), not against the 
 
 | Inventory | Now | After the family |
 |---|---|---|
-| Commands | 27 | 34 |
+| Commands | 27 | 35 |
 | Agents | 39 | 43 |
 | Reference files | 106 | 106 + `references/docs-workflow/*` |
-| `docs/` pages | 41 | 53 |
+| `docs/` pages | 41 | 54 |
 | Skills | 2 | 2 |
 | Hooks | 5 | 5 |
 
@@ -789,7 +833,7 @@ Three consequences worth stating because each is a place to get it wrong:
 
 ## 14. Operating procedure — from zero to a populated portal
 
-The commands are the machine; this is the procedure a person follows, and it belongs in the shipped documentation (§15.2) because a family of seven commands with no stated order is a family nobody finishes.
+The commands are the machine; this is the procedure a person follows, and it belongs in the shipped documentation (§15.2) because a family of eight commands with no stated order is a family nobody finishes.
 
 **Once, to stand the portal up:**
 
@@ -800,6 +844,7 @@ The commands are the machine; this is the procedure a person follows, and it bel
 **Then, repeatedly, until the coverage threshold is met:**
 
 4. **`/docs-write --next`** — writes the highest-priority missing unit and leaves it `drafted`, with any claim it could not ground marked in place.
+4b. **`/docs-capture --next`** for a `how-to` or `tutorial` unit — `/docs-write` will tell you when a unit needs it, and will not draft a process-shaped unit that has not been captured. Prepare either nothing (interactive) or a folder of screenshots plus a `capture.md` (§12.2). This is the step that cannot be automated away, and it is where the portal stops being derived from code and starts describing what people actually do.
 5. **`/docs-verify --next`** — walk the marked claims. For a user page that is a role-scoped walkthrough against Docker or staging; for an engineering page it is a code re-read and you are barely involved. The unit becomes `verified`, then `published`.
 6. Repeat. `/docs-write --batch <n>` grinds through a run of reference pages when the units are mechanical and similar.
 
@@ -808,7 +853,7 @@ The commands are the machine; this is the procedure a person follows, and it bel
 7. **`/docs-drift`** after each release, or on a schedule. It re-queues what the code moved under. `review_by` (§8.6) catches the rot no diff can see.
 8. **`/docs-audit --refresh`** when the product gains a surface — a new integration, a new role — so the denominator grows with the product rather than freezing at day one.
 
-**What "as much as possible from the existing code" actually yields, stated honestly:** `reference` and `explanation` units ground almost entirely from code and need little human input. `how-to` units draft from code and *require* the walkthrough, because a sequence of screens is not derivable from routes. `tutorial` units need a human to choose the journey first. So the realistic order — and the order the prioritiser produces on its own — front-loads reference and explanation, which is also where a reader with no documentation at all gets the most immediate value.
+**What "as much as possible from the existing code" actually yields, stated honestly:** `reference` and `explanation` units ground almost entirely from code and need little human input. `how-to` units draft from code and *require* a capture, because a sequence of screens is not derivable from routes. `tutorial` units need a human to choose the journey first, then a capture. So the realistic order — and the order the prioritiser produces on its own — front-loads reference and explanation, which is also where a reader with no documentation at all gets the most immediate value.
 
 ---
 
@@ -824,7 +869,7 @@ The README is a role-indexed pointer table, not prose. The family adds one row a
 
 | Role | Commands | What it does |
 |------|----------|--------------|
-| Docs | `/docs-init`, `/docs-audit`, `/docs-write`, `/docs-verify`, `/docs-drift` | Scaffold a documentation repository, audit what is missing, then write, verify and maintain it one unit at a time. |
+| Docs | `/docs-init`, `/docs-audit`, `/docs-write`, `/docs-capture`, `/docs-verify`, `/docs-drift` | Scaffold a documentation repository, audit what is missing, then write, verify and maintain it one unit at a time. |
 
 `/docs-brand` and `/docs-serve` join the existing *Anytime — maintenance* row beside `/docs-profile`, because both are utilities you reach for at any point rather than stages of the pipeline.
 
@@ -832,7 +877,9 @@ The README also carries **the family diagram from §4**, under a `## Documentati
 
 ### 15.2 New `docs/` pages
 
-Seven command pages under `docs/commands/` — `docs-init.md`, `docs-brand.md`, `docs-serve.md`, `docs-audit.md`, `docs-write.md`, `docs-verify.md`, `docs-drift.md` — each following the established page shape: synopsis, when to use it, prerequisites, phases, gates, outputs, failure modes.
+Eight command pages under `docs/commands/` — `docs-init.md`, `docs-brand.md`, `docs-serve.md`, `docs-audit.md`, `docs-write.md`, `docs-capture.md`, `docs-verify.md`, `docs-drift.md` — each following the established page shape: synopsis, when to use it, prerequisites, phases, gates, outputs, failure modes.
+
+`docs-capture.md` carries one section the others do not — **What to prepare** — spelling out both input modes, the `capture.md` shape with a worked example, the numbered-filename fallback, and what the command does when you give it neither. A capture convention nobody can look up is not a convention.
 
 Four reference pages under `docs/reference/`, mirroring the new `references/docs-workflow/` directory:
 
@@ -843,7 +890,7 @@ Four reference pages under `docs/reference/`, mirroring the new `references/docs
 | `docs-evidence.md` | The evidence contract and the walkthrough spec, including the marked-claim rule (§8.2, §8.3) |
 | `docs-visibility.md` | The two-build model, both traps, and the two output-level gates (§9) |
 
-**One route page, `docs/docs-workflow.md`** — the ordered walkthrough from §14, following the precedent of the existing `docs/brd-workflow.md`, which does exactly this for the BRD route. A family of seven commands needs a page that says which order to run them in; without it the per-command pages describe seven tools and no procedure.
+**One route page, `docs/docs-workflow.md`** — the ordered walkthrough from §14, following the precedent of the existing `docs/brd-workflow.md`, which does exactly this for the BRD route. A family of eight commands needs a page that says which order to run them in; without it the per-command pages describe eight tools and no procedure.
 
 `docs/README.md` gains rows in the "I want to…" table — *start documenting a project that has no docs* → `/docs-init`, `/docs-audit`; *write the next page* → `/docs-write`; *check the docs still match the code* → `/docs-drift`; *open the docs in a browser* → `/docs-serve`. `docs/workflow.md` gains the family as a fourth stage on the existing pipeline diagram, and `docs/roles-and-phases.md` gains the Docs role.
 
@@ -860,12 +907,17 @@ Four reference pages under `docs/reference/`, mirroring the new `references/docs
 ```mermaid
 stateDiagram-v2
     [*] --> missing
-    missing --> drafted: /docs-write grounds and drafts
+    missing --> drafted: /docs-write drafts from code (reference, explanation)
+    missing --> captured: /docs-capture records the process (how-to, tutorial)
+    captured --> drafted: /docs-write derives prose from the walkthrough
     drafted --> verified: /docs-verify resolves every marked claim
     verified --> published: page committed to the docs repo
     published --> stale: /docs-drift finds the evidence changed
-    stale --> drafted: /docs-write re-drafts against new evidence
+    stale --> drafted: the facts moved
+    stale --> captured: the process itself changed
 ```
+
+The diagram now shows the two shapes of unit that §14 describes in prose: a fact-shaped unit goes straight to `drafted`, a process-shaped one must be `captured` first. A stale page returns to whichever of the two its staleness reached — a renamed field sends it back to `drafted`, a changed screen sequence sends it back to `captured`.
 
 `drafted → published` is deliberately **not** a legal transition. That single missing edge is what stops the coverage grid reporting green on prose nobody checked, and it is the reason `verified` exists as a state rather than a boolean on the page.
 
@@ -885,7 +937,7 @@ flowchart TD
 
 ### 15.4 Counts to update in the same change
 
-`check-docs.sh` cross-checks six inventories plus the cost-emitting set against prose counts scattered across the tree, and each must move together: commands 27 → 34, agents 39 → 43, reference files 106 → 106 plus `references/docs-workflow/*`, docs pages 41 → 53 (7 command pages, 4 reference pages, 1 route page). `CLAUDE.md`'s command list, agent list and workflow map are updated in the same commit, and every new command handing `emit-cost` a fixed `phase`/`role` pair needs its matching row in `references/cost-emission.md` §7 — check 8 fails in both directions.
+`check-docs.sh` cross-checks six inventories plus the cost-emitting set against prose counts scattered across the tree, and each must move together: commands 27 → 35, agents 39 → 43, reference files 106 → 106 plus `references/docs-workflow/*`, docs pages 41 → 54 (8 command pages, 4 reference pages, 1 route page). `CLAUDE.md`'s command list, agent list and workflow map are updated in the same commit, and every new command handing `emit-cost` a fixed `phase`/`role` pair needs its matching row in `references/cost-emission.md` §7 — check 8 fails in both directions.
 
 **Do not copy these numbers forward without re-deriving them.** This document already carried a stale set once: it was written against a tree with 21 commands and 33 agents, and by the time it was reviewed the repository had 27 and 39. `CLAUDE.md` says it plainly — nothing gates any number written in prose, so re-derive against the tree you are actually changing.
 
@@ -918,7 +970,7 @@ flowchart TD
 | Internal content leaks into the public build | Two output-level gates (§9.3), asserting on built HTML rather than on source paths or contributor discipline |
 | **The backlog and the pages disagree** — a second source of truth | `unit:` in frontmatter is the link in both directions. `/docs-audit --refresh` reconciles both ways and **never silently deletes a unit**: one whose surface vanished is marked `blocked_by: [surface-removed]` and reported, because a surface disappearing is as likely to be a failed scan as a real removal |
 | **The generated `nav:` drifts from the files** | Nav is regenerated from frontmatter `order` on every write, and the public build already runs `strict: true` with `validation.nav.omitted_files: warn` — so a page missing from the nav fails the build rather than going quietly unreachable |
-| 34 commands is a maintainability **and** discoverability problem | All eight docs commands share the `/docs-*` namespace; `docs/docs-workflow.md` gives the family one route page; the README role row gives it one entry point. The new references stay in their own directory so a later extraction is a move, not an untangling — revisit after Spec 2 |
+| 35 commands is a maintainability **and** discoverability problem | All nine docs commands share the `/docs-*` namespace; `docs/docs-workflow.md` gives the family one route page; the README role row gives it one entry point. The new references stay in their own directory so a later extraction is a move, not an untangling — revisit after Spec 2 |
 | Python toolchain in a Ruby/Node shop is resented | The docs repo is a separate repo with its own toolchain; D9 keeps the generator choice reversible behind the profile, and VitePress is the named Node alternative |
 | The backlog goes stale as a file | `/docs-drift` (Spec 3) is what keeps it live. Until Spec 3 ships, `--refresh` is manual and that limitation is stated rather than papered over |
 

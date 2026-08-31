@@ -7,7 +7,7 @@ folder_read: <full YAML from the folder read; see ${CLAUDE_PLUGIN_ROOT}/referenc
 diff_summaries:      <optional array of diff-summarizer outputs; one entry per repo; omit when diff-grounding is off>
 code_repos:          <optional array of {slug, path}; provided when diff-grounding is on — enables the writer's Source-truth check>
 imported_change_type:            <change_type from the imported PRD frontmatter (the folder read handoff); null otherwise>
-imported_release_notes_category: <release_notes_category from the imported PRD frontmatter; null otherwise — used verbatim as the {{#context}} label>
+release_notes_category: <release_notes_category from the resolved PRD's frontmatter; null otherwise — used verbatim as the  label>
 run_phase:                       <"pm" | "dev" — inferred by the command from whether specification.md / design.md exist under the PRD's specs dir; gates the release-note-types.md §4 documentation-link rule only>
 model_routing:
   classification: MODERATE
@@ -32,7 +32,7 @@ release_notes_block:
   target_format: example-docs-release-notes-v1
   change_type:  <one of: "Breaking change" | "New technology support" | "Bug fix">   # selects the destination + shape; NEVER rendered as text
   destination:  <one of: "breaking-changes.md" | "feature-updates.md" | "fixes.md">  # per release-note-types.md §1
-  context_label: <the imported release_notes_category verbatim, e.g. "Platform | Settings"; null when the import carries none — the {{#context}} line is then omitted>
+  category_label: <the PRD's release_notes_category verbatim, e.g. "Platform | Settings"; null when the import carries none — the  line is then omitted>
   feature_title: <5–10 word headline; sentence case; no leading "New feature:"; no trailing period. null for the fixes destination.>
   prose: |
     <shaped customer-facing body; no work-item IDs; no PR links; no release version. For the titled
@@ -41,8 +41,8 @@ release_notes_block:
     sentence. See release-note-types.md §3 (shape) and §4 (prose rules).>
   combined_rendered: |
     <the exact text the PM publishes wherever release notes are published. For a titled destination:
-    "{{#context}}<context_label>{{/context}}", a blank line, "### <feature_title>", a blank line,
-    then <prose> — with the {{#context}} line omitted entirely when context_label is null. For the
+    "**Category:** <category_label>", a blank line, "### <feature_title>", a blank line,
+    then <prose> — with the category label omitted entirely when category_label is null. For the
     fixes destination: <prose> alone. NEVER a "Change type:" line, a "Release-notes category:" line,
     or a "--- Summary ---" divider.>
 

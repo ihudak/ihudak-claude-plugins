@@ -10,15 +10,25 @@ destination plus any gaps.
 The Change Type is a **field on the PRD, inferred and confirmed where the PRD does not carry one** (§7). It is never written into the draft
 and never collected as a field — the agent resolves it only to pick the destination and the shape.
 
-## 1. The destination map
+## 1. The section map
+
+**The three destinations are three sections of one `release-notes.md` in the PRD folder**, and the
+Change Type selects a **section** exactly as it selected a file before. The taxonomy is unchanged —
+breaking change / feature update / fix is universal, and every rule below about shape, prose and
+deprecation applies to a section exactly as it applied to a file. Only *where a draft lands* changed.
+
+**The release version is the heading those three sit under**, because in one file nothing else says
+which release a section belongs to. A run whose version the operator declined files under
+`## Unreleased`.
+
 
 The docs automation routes each note into one of three generated snippet files under
 `<space>/_snippets/release-notes/<product>/<sprint>/`. The Change Type selects the file:
 
 | Change Type | Destination | Draft shape |
 |---|---|---|
-| `Breaking change` | `breaking-changes.md` | `{{#context}}` label + `### title` + prose |
-| `New technology support` | `feature-updates.md` | `{{#context}}` label + `### title` + prose |
+| `Breaking change` | `breaking-changes.md` | plain **Category:** label + `### title` + prose |
+| `New technology support` | `feature-updates.md` | plain **Category:** label + `### title` + prose |
 | `Bug fix` | `fixes.md` | one self-contained sentence — **no label, no title** |
 | `not applicable` | — | no note is authored; the command's Phase 2 gate stops the run |
 
@@ -50,36 +60,36 @@ destinations roughly equally), record a `gaps[]` entry (`field: change_type`,
 `recommended_action: "ask user"`) carrying the proposed value. The command confirms it by
 **consequence** — the shape and the destination file — never by presenting the bare enum labels.
 
-## 3. Draft shape per destination
+## 3. Draft shape per section
 
 The **Summary** is the customer-facing body the PM publishes wherever release notes are published — the
 thing this file's rules shape. There is exactly one per run (§6). Its structure depends on the
 destination:
 
-### `feature-updates.md` and `breaking-changes.md`
+### `## Feature updates` and `## Breaking changes`
 
 Render exactly:
 
-```handlebars
-{{#context}}<Solution | Capability>{{/context}}
+```markdown
+**Category:** <Solution | Capability>
 
 ### <feature title>
 
 <prose>
 ```
 
-Omit the `{{#context}}` line entirely when no Solution label is available (§7).
+Omit the category label entirely when no Solution label is available (§7).
 
-### `fixes.md`
+### `## Fixes`
 
-Render **one self-contained sentence** — no `{{#context}}` line, no `###` title, and no key (the
+Render **one self-contained sentence** — no category label, no `###` title, and no key (the
 automation appends the key when it publishes). A shipped entry looks like:
 
 ```markdown
 Fixed an issue where the **GET account audits** endpoint of the Account Management API would return a `500` error instead of a `504` error in case of a timeout.
 ```
 
-## 4. Prose rules per destination
+## 4. Prose rules per section
 
 ### Breaking change
 - **Present tense.** State plainly what is breaking — the reader is scanning for impact, so do not
@@ -153,7 +163,7 @@ does not already state.
 - These rules complement, and do not duplicate, the prose-style checks run in the command's
   style-gate phase.
 
-## 7. Sourcing the Change Type and the `{{#context}}` label
+## 7. Sourcing the Change Type and the category label
 
 **Change Type — two rungs:**
 
@@ -168,7 +178,7 @@ does not already state.
    enum label**. This was the fallback rung and is now the ordinary one: nothing supplies the field
    from outside, so most runs reach it.
 
-**`{{#context}}` label — one rung.** It is your organization's product/solution taxonomy (e.g. `Platform`,
+**the category label label — one rung.** It is your organization's product/solution taxonomy (e.g. `Platform`,
 `Application Observability | Distributed Tracing`, `Infrastructure Observability | Kubernetes`) and it
 is exactly the PRD's `release_notes_category`:
 

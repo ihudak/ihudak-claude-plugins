@@ -9,7 +9,7 @@ Draft release notes for the resolved PRD: $ARGUMENTS
 `/release-notes` produces a **customer-facing release-notes draft** for a resolved
 Product Requirements Document (or any ticket) from pre-exported markdown in the user's Obsidian vault.
 It optionally grounds the prose in merged PR diffs, renders the example-docs authored
-release-notes body — a `{{#context}}` label + `### title` + prose for the `feature-updates` /
+release-notes body — a plain **Category:** label + `### title` + prose for the `feature-updates` /
 `breaking-changes` destinations, or one bare past-tense sentence for `fixes` — with **no
 `{{#internal-note}}`, no identifiers, no PR links** (the docs automation adds the metadata
 wrapper), runs a light style gate, and writes the draft to a persistent destination for the
@@ -72,25 +72,32 @@ run — the terminal `commit-artifacts` step skips on it.
   choices: ["MERGED only (Recommended)", "All PRs (MERGED + OPEN + DECLINED)", "Specific list (you'll be prompted)", "Other… (describe)"]
   ```
 
-- **Output destination.** Always write to a **file** (console-pasted markdown
-  loses formatting when pasted). Resolve the default:
-  - **`$VAULT_PATH` set** → resolve the ticket's persistent Obsidian project
-    folder (the durable home — regenerated on every
-    import):
-    ```bash
-    the resolved PRD folder
-    ```
-    Default = `<project-dir>/<KEY>-release-notes.md`. If no project folder
-    is found (e.g. a ticket from a project with no configured destination), use the derived default below.
-  - **`$VAULT_PATH` unset** (directory input) → default
-    `<PRD-folder>/<KEY>-release-notes.md`.
-  Then ask (the Recommended choice is always the resolved file):
+- **Output destination — derived, not asked.** The draft lands in **`release-notes.md` in the
+  resolved PRD folder**, appended as a section. There is one home now, so the destination question
+  and its `$VAULT_PATH` ladder are gone.
+
+  **The three former destinations are three sections of that one file**, selected by Change Type
+  exactly as they selected a file before: `## Breaking changes`, `## Feature updates`, `## Fixes`.
+  The taxonomy is unchanged and `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` remains its
+  authority — only where a draft lands changed.
+
+  **The release version is the section heading**, under which those three sit:
+
+  ```markdown
+  # Release notes — ACME-77 billing
+
+  ## 1.24.0
+
+  ### Feature updates
+  …
   ```
-  choices: ["Write to <default file> (Recommended)", "Write to a different absolute path (you'll be prompted)", "Print to screen only", "Skip writing", "Other… (describe)"]
-  ```
-  Print-to-screen and Skip remain available but are **never** the default. The
-  default is persistent (host-mounted; survives container restart, unlike
-  `/tmp`). NEVER offer or accept a path inside a docs repo or under
+
+  Exactly one Summary per run, appended under the resolved version and type. A run whose version the
+  operator declined appends under `## Unreleased`.
+
+  **NEVER write into a docs repo, a code repo, the vault, or the current working directory.** The PRD
+  folder is in `$SPECS_PATH`, which is where the terminal `commit-artifacts` step commits it with the
+  rest of the run's artifacts.
 
 
 - **Style check** (default ON when the `prose-style` plugin is installed):
@@ -98,7 +105,7 @@ run — the terminal `commit-artifacts` step skips on it.
   choices: ["Run prose-style-checker then apply safe fixes (Recommended)", "Run prose-style-checker, report only (no auto-fix)", "Skip style check", "Other… (describe)"]
   ```
 
-Also display: resolved `prd_dir`, `key` (plus `$VAULT_PATH` when set), `$REPOS_PATH` (or "N/A — PRD-only"), and the resolved destination.
+Also display: the resolved PRD folder, its `key`, `$REPOS_PATH` (or "N/A — PRD-only"), and the version this draft will be filed under.
 
 ---
 
@@ -226,7 +233,7 @@ This is the same inference `emit-cost` already applies in Phase 11; do not add a
   > diff_summaries:      [the Phase 5 array, or omit when diff grounding was off]
   > docs_grounding:      [the Phase 5.5 digest, or omit when OFF/EMPTY]
   > imported_change_type:            [from Phase 3, else null]
-  > imported_release_notes_category: [from Phase 3, else null]
+  > release_notes_category: [from Phase 3, else null]
   > run_phase:           [pm | dev — resolved immediately above, in this phase]
   > model_routing:       [the block from Phase 1.5]
   > code_repos:          [the Phase-4 resolved {slug, path} map when diff grounding is on; omit otherwise]"
@@ -301,7 +308,7 @@ If `prose-style` is not installed, skip this phase and note "style check skipped
    ## Release-notes draft — <KEY>
    - Destination: <path | stdout | skipped>
    - Shaped as: <Feature update | Breaking change | Fix> → <destination file>  (source: <imported | inferred>)
-   - Context label: <the {{#context}} value | none — omitted from the draft>
+   - Category label: <the value | none — omitted from the draft>
    - Deprecation: <EOL <date> (end-of-support <date | —>) | none>
    - Diff grounding: <on (repos: …) | off>
    - Style check: <applied N safe fixes | report only (M findings) | skipped (prose-style absent)>
@@ -448,8 +455,8 @@ current working directory; no user name is ever written (§10).
 - ZERO external API calls — PR URLs are identifiers only; all resolution is local `git`.
 - Every read of the specs tree is read-only.
 - The draft contains NO identifiers, NO PR links, and NO `{{#internal-note}}` block.
-- The draft is EXACTLY one Summary, shaped by its destination per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1/§3 — a `{{#context}}` label + `### title` + prose for `breaking-changes` / `feature-updates`, or ONE bare past-tense sentence for `fixes`. It carries NO `Change type:` line and NO `Release-notes category:` line, and its **prose** names no release version. **The title rule is about to invert and is stated here rather than discovered later**: the prohibition held because the destination file structure carried the release. Once the three destinations become sections of one `release-notes.md` in the PRD folder, nothing else can say which release a section belongs to, so the version becomes the **section heading** — and the prohibition survives for the body prose alone. The heading arrives with that file; `--version` captures the field it needs now. When the change deprecates something the Summary carries a deprecation note (end-of-life date required, end-of-support optional).
-- The `{{#context}}` label IS the PRD's `release_notes_category`, used verbatim; when the import carries none the line is OMITTED. Change Type is sourced `change_type` → infer, and is confirmed with the user ONLY when it was inferred with low confidence — by shape and destination, never by enum label. Neither field is ever asked for by enum label.
+- The draft is EXACTLY one Summary, shaped by its destination per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1/§3 — a plain **Category:** label + `### title` + prose for `breaking-changes` / `feature-updates`, or ONE bare past-tense sentence for `fixes`. It carries NO `Change type:` line and NO `Release-notes category:` line, and its **prose** names no release version — the version is the **section heading** the draft is filed under, which is the only thing that says which release a section belongs to now that the three destinations are three sections of one file. The prohibition survives for the body prose alone. When the change deprecates something the Summary carries a deprecation note (end-of-life date required, end-of-support optional).
+- The category label IS the PRD's `release_notes_category`, used verbatim; when the import carries none the line is OMITTED. Change Type is sourced `change_type` → infer, and is confirmed with the user ONLY when it was inferred with low confidence — by shape and destination, never by enum label. Neither field is ever asked for by enum label.
 - The run is GATED on the imported `relevant_for_release_notes`: an explicit `false` stops with `RELEASE_NOTES_NOT_RELEVANT` (overridable); absent proceeds silently.
 - NEVER write into a docs repo; the default destination is persistent (never `/tmp`).
 - ALWAYS use `choices` arrays; the last choice is always `"Other… (describe)"`.

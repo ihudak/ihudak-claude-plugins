@@ -516,9 +516,30 @@ gives up) gets its hand-made commits found.
 **unrecorded work**, named as such with its commits listed. A run that quietly folds hand-made
 commits into the recorded set makes the record look more complete than it is.
 
+**The plugin writes the convention it reads.** A scan that depends on a commit convention nobody
+was taught is a scan that finds nothing, and people copy the shape of the commits already in the
+log — so a plugin whose own commits omit the key teaches every human contributor to omit it too,
+and then the hand-made work this scan exists to recover is exactly the work that stays invisible.
+So every command that commits into a code repository — `/implement`, and `/vuln` and `/upgrade`
+with it — writes the key where a human will see it and copy it:
+
+- **The commit subject ends with `[<key>]`** — `feat(orders): add order intake [ACME-77-01]`. In
+  the subject rather than a trailer, because a trailer does not survive `git log --oneline` and is
+  therefore invisible to the person deciding what their own commit should look like.
+- **A `Work-Item: <workitem_key>` trailer**, when the folder carries one (D11). The tracker key is
+  for the operator's own integration and belongs where their tooling looks; it is never invented,
+  and the trailer is absent when the field is.
+- **The branch carries the key too** — `feat/<key>-<slug>` — which gives a second recovery path and
+  reuses `specs-repo-git.md` §3.5's `branch-key` resolution, already built to resolve a key out of a
+  branch name **against a set the run holds** rather than by pattern.
+
+The convention is documented as a convention, in `docs/`, not only implied by what the plugin
+happens to emit — a contributor who has never run `/implement` still has to be able to write a
+commit this scan can find.
+
 **What is honestly still lost**, and what the run therefore says out loud: only a commit whose
-message names the key is findable. A commit that names nothing is invisible, and that is a
-convention the operator controls — so the run **reports how many commits it scanned and how many
+message names the key is findable. A commit that names nothing is invisible, and no convention
+compels a human to follow one — so the run **reports how many commits it scanned and how many
 matched**. A zero-match scan in a repository with commits is a signal about the convention, not
 proof that no work happened.
 
@@ -731,8 +752,9 @@ rule (§5.1). Add `workitem_key` and the unknown-key preservation rule (D10, D11
 
 ### Increment C — refill what the tracker supplied
 
-`/epics` mints keys and writes `epic.md`; `/implement` writes `implementation.md`; `/document` and
-`/release-notes` diff from it; `release-notes.md` lands in the PRD folder with sections not
+`/epics` mints keys and writes `epic.md`; `/implement` writes `implementation.md` **and adopts the
+§7.3.1 commit convention, with `/vuln` and `/upgrade`**; `/document` and `/release-notes` diff from
+both it and the commit scan; `release-notes.md` lands in the PRD folder with sections not
 destinations; `/ready` derives the phase and gains `--claimed`; `workflow-states.md` is inverted.
 
 *These are exactly the capabilities B removes, and they need B's absence to be designed against.*

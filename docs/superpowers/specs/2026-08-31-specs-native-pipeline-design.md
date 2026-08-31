@@ -351,8 +351,13 @@ asks for, validated for shape and never checked against anything.
 `area_proposal`, the `prd_disposition` machinery, and the Jira source type with its
 `resolve-export-for-key` and `ValueIncrement`→`prd` / `Product Need`→`rfe` typing.
 
-**Sources become:** an inline prompt, a markdown file, a community post. The "an existing PRD this
-extends, parallels or rewrites" case is served by `@<path>` and by `/create-prd --from-prd`.
+**Sources become two things: an inline prompt, or a file.** Nothing else, because nothing else is
+reachable — `idea-reader` never went over HTTPS and this design does not give it a way to. A
+community post is still a first-class source and still read for its demand signals (upvotes,
+duplicate reports, the shape of the complaint); the operator saves it as a file first, and the
+"community post" case describes *how the file is read*, not a URL the plugin fetches. The "an
+existing PRD this extends, parallels or rewrites" case is served by `@<path>` and by
+`/create-prd --from-prd`.
 `idea-reader` loses its `vault_path` input and with it `@wikilink` resolution: a wikilink has no
 root to resolve against once the vault is gone, so a source is a path. Wikilinks *inside* a source
 file are still followed one level where they resolve relative to that file's own directory.
@@ -465,9 +470,9 @@ empty diff.
 **Two limits, stated in the file's own authority:**
 
 - `/implement` in **direct mode writes nothing** — no address, no Epic folder, nothing to append to.
-  A directly-implemented change therefore has no diff source, exactly as today.
-- **The plugin knows only what it did.** Work done by hand or by another tool leaves no block, so
-  diff grounding is best-effort over what this plugin implemented.
+  A directly-implemented change therefore has no block of its own.
+- **This file knows only what the plugin did.** Work done by hand or by another tool leaves no
+  block — which is why it is not the only source (§7.3.1).
 
 **Consumers, and which blocks they read.** `/document` reads **every** block under the PRD — it
 documents the feature as it now stands. `/release-notes` reads **only blocks appended since the last
@@ -476,19 +481,69 @@ one's work; with `release_versions` retired (§7.4) the file's own last-written 
 honest boundary, and the run **names the blocks it used** so a wrong boundary is visible rather than
 silent. Both hand `diff-summarizer` a `{repo_path, branch_from, branch_to}` triple — a shape its Inputs already
 declare, on the pure-local-git path it already prefers when `gh` is absent. No URL, no host
-classification, no `gh` requirement.
+classification, no `gh` requirement. The §7.3.1 scan feeds the same triple, with a commit SHA at
+either end, and inherits each consumer's boundary — every commit for `/document`, only commits
+dated after the last written section for `/release-notes`.
 
-### 7.4 The mirror fields → dropped, inferred, or asked
+### 7.3.1 Commit messages → work this plugin did not do
+
+`implementation.md` records what `/implement` did. It cannot record what a human did by hand, and
+that happens — a session runs out of budget and the work is finished manually. Release notes and
+documentation built only from recorded blocks would silently omit that work, and the omission would
+read as completeness.
+
+So `/document` and `/release-notes` **also scan git history for the run's own identifiers**:
+
+```
+git -C <repo> log --grep='<key>' --grep='<workitem_key>' --extended-regexp --regexp-ignore-case
+```
+
+over the repositories `implementation.md` names, or — when it names none — the repositories resolved
+from `$REPOS_PATH`, which is the discovery `/create-ard` already does.
+
+**This is a search for known tokens, never an extraction.** The keys come from the folder's own
+`key:` (D17) and its `workitem_key` (D11); nothing parses an identifier out of a commit message. It
+is the pattern `CLAUDE.md` prescribes — resolve against a set the run already holds — pointed at git
+history instead of at a folder name.
+
+**D11 is narrowed here, not contradicted.** "Never resolved by" means no *folder* is ever addressed
+by `workitem_key`. Using it as a grep token runs the other way: the plugin already knows which
+folder it is in and is asking git what mentions it. That is the field's main reason to exist — a
+team whose commit convention carries the tracker key (the Jira/PR linkage this design otherwise
+gives up) gets its hand-made commits found.
+
+**Merged and deduped by SHA**, and what the scan finds beyond the recorded blocks is reported as
+**unrecorded work**, named as such with its commits listed. A run that quietly folds hand-made
+commits into the recorded set makes the record look more complete than it is.
+
+**What is honestly still lost**, and what the run therefore says out loud: only a commit whose
+message names the key is findable. A commit that names nothing is invisible, and that is a
+convention the operator controls — so the run **reports how many commits it scanned and how many
+matched**. A zero-match scan in a repository with commits is a signal about the convention, not
+proof that no work happened.
+
+### 7.4 The mirror fields → inferred, then confirmed in the grill
 
 `prd-format.md` carries `release_versions`, `change_type` and `release_notes_category` as
-tracker-mirror fields set as dropdowns and returned by the importer.
+tracker-mirror fields — dropdowns set in the tracker and returned by the importer. **There is no
+importer** (§8). None of the three is retired for want of one: each becomes something the run infers
+and the operator confirms, which is what the grill already exists to do.
 
-- **`change_type`** — `release-note-types.md` already sources it `imported_change_type` → **infer**,
-  and confirms a low-confidence inference with the user. The import half goes; the infer half is
-  already the fallback and becomes the only path.
-- **`release_notes_category`** — supplied the `{{#context}}` label. Retired with it (§7.5).
-- **`release_versions`** — has no derivable source and no consumer that gates on it. Retired; a user
-  who wants it puts it in their own frontmatter, which D10 preserves.
+- **`change_type`** — inferred from the change itself. `release-note-types.md` already sources it
+  `imported_change_type` → **infer** and confirms a low-confidence inference; the import half goes
+  and inference becomes the only path. Because it selects the destination section (§7.5), it is
+  confirmed **by shape and destination, never by enum label** — today's rule, unchanged.
+- **`release_notes_category`** — the `{{#context}}` macro is retired (§7.5), but the label it
+  carried is not. It groups notes inside a section and a reader wants it, so it is inferred from the
+  work's subject area, confirmed in the same grill, and rendered as a plain label line.
+- **`release_versions`** — `/release-notes` gains `--version <v>`; absent, the grill asks. Never
+  invented, and absent from the draft when the operator declines to give one.
+
+**One of today's invariants inverts, and must be rewritten rather than left standing beside its
+replacement.** `/release-notes` currently forbids the release version in any title or prose, because
+the docs repo's own file structure carried it. In a single `release-notes.md` nothing else can say
+which release a section belongs to — so the version becomes the **section heading**, and the
+prohibition survives only for the body prose.
 
 ### 7.5 Release notes → one file, three sections (D13)
 
@@ -595,6 +650,42 @@ totals, and **deleting `$VAULT_PATH` moves the environment-variable total** — 
 change in the same commit as the deletion. Check 6's both-directions environment-variable inventory
 is the gate that will catch a half-done vault removal.
 
+### 9.1 Every command, every diagram
+
+Two obligations that no script gates, and that are therefore the easiest half of this work to leave
+half-done. Both were **audited against the tree** for this design rather than read out of
+`CLAUDE.md`'s summary of itself.
+
+**Every command participates in the session emitters.** The audit's result, per command, over
+`cost-emission.md`, `feedback-emission.md`, `followup-emission.md`, `session-hygiene.md` and
+`commit-artifacts`:
+
+- **The six `/brd-*` commands are complete.** All six emit cost and feedback, all six carry a
+  `cost-emission.md` §7 row, all six write a resume pointer and run `commit-artifacts`. Nothing was
+  forgotten when they were built.
+- **`/upgrade` and `/vuln` emit no session cost at all** — zero occurrences of the word in either
+  command, and neither has a §7 row, while both emit feedback. This is a pre-existing defect,
+  unrelated to this design, and it is **fixed in its own PR** rather than folded into an increment.
+- **`/docs-profile`, `/api-guideline-reviewer` and `/guideline-reviewer` emit nothing** and run no
+  `commit-artifacts`. All three do real, token-expensive work, so all three gain the emitter tail —
+  which moves `specs-repo-git.md`'s "twenty-three commands" to twenty-six and its exclusion list to
+  `/statusline` alone.
+- **`/statusline` stays out** — it configures a setting rather than running a task — and
+  `/prompt-brainstorm` / `/prompt-grill-me` keep their documented exemption: they cede the session
+  before a cost phase could run.
+- **Follow-up emission is deliberately narrower** — five commands cite `followup-emission.md`.
+  Increment D re-examines that boundary when it rewrites the file around `follow-ups.md` (§8.1),
+  since `/brd-split` and `/brd-interview` do surface deferred work.
+
+**Every workflow diagram is re-derived, not patched.** There are **21** mermaid diagrams —
+`workflow.md`, `brd-workflow.md`, and 19 of the 27 command pages. `check-docs.sh` validates none of
+their *content*, so every one will still render perfectly after this change while describing a
+pipeline that no longer exists. Each is rebuilt from its own command's `## Phase` headings in the
+increment that changes that command — the same derive-from-the-thing-that-runs rule the rest of
+`docs/` is held to. The eight command pages with no diagram are the simple ones — `feedback`,
+`prompt`, `prompt-brainstorm`, `prompt-grill-me`, `statusline` and the two reviewer commands —
+**except `/docs-profile`**, which scans a repository, writes a profile and opens a PR, and gains one.
+
 **No `AGENTS.md` or `.github/copilot-instructions.md` exists in canonical.** Those are mgd/copilot
 files and are out of scope; they matter only if this ever ports, which §2 says it will not.
 
@@ -664,6 +755,21 @@ This plugin is prose; there is no test framework and the plan must not pretend o
 `scripts/validate-catalog.py` all green; a read-through of each changed command end to end; and a
 **residue audit** asking *what did this make false elsewhere* — the technique that found five of the
 2026-08-31 round's findings and four of its documentation stalls.
+
+### Review protocol
+
+**Per increment.** A review pass over everything the increment changed, and **every defect it finds
+is fixed before the increment closes.** A defect that turns out to be unrelated to the increment is
+still fixed — in its own PR where that keeps the increment's diff readable. Nothing is carried
+forward as a known-but-unfixed finding; that is the standing bugs-first rule, and this design does
+not get an exemption from it.
+
+**After increment D closes.** A **comprehensive review of the whole design's changes by an Opus 5
+subagent**, given the four increments' diffs and this spec, reviewing across increment boundaries —
+which is where the defects the per-increment reviews cannot see will be, because each of those saw
+only its own diff. Every finding is fixed and the reviewer re-runs. **At most three re-review
+rounds**; anything still standing after the third is reported to the operator by name, never
+absorbed into a summary.
 
 **One standing item this design does not fix**, recorded so it is not mistaken for new: 40 of 232
 `choices:` arrays exceed `AskUserQuestion`'s four-option maximum. It is plugin-wide, predates this

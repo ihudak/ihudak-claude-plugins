@@ -86,7 +86,7 @@ Spec 2 is largely a re-wiring of agents that already exist. Spec 3 is meaningles
 | `/docs-init` | Scaffold the docs repo: generator, product-shaped page skeleton (D15), Vale, snippets, two builds, CI; emit `docs-profile.yml` | profile schema, `/docs-brand` inline |
 | `/docs-brand` | Extract logo + rough colour scheme from the code repos and apply them | `references/guidelines/accessibility.md` |
 | `/docs-serve` | Start/stop/status the docs server in the background; report a reachable URL | profile `dev_servers` |
-| `/docs-audit` | Enumerate surfaces, cross with Diátaxis, write the prioritised backlog | `code-scanner`, `docs-grounder` |
+| `/docs-audit` | Enumerate surfaces, assign each the page types it earns, write the prioritised backlog | `code-scanner`, `docs-grounder` |
 | `/docs-write <unit>` | Ground → draft → style → review → publish one backlog unit *(Spec 2)* | `doc-writer`, `docs-style-checker`, `doc-fixer`, `doc-reviewer`, `finding-triage` |
 | `/docs-capture <unit>` | Record how a process is actually performed, producing the walkthrough *(Spec 2)* | `code-scanner` for the skeleton |
 | `/docs-verify <unit>` | Execute the walkthrough, record confirmations, fill image slots *(Spec 2)* | new |
@@ -116,7 +116,7 @@ flowchart TD
     subgraph COLD["Cold start — Spec 1"]
         init["/docs-init — scaffold, Vale, two builds"]
         brand["/docs-brand — logo and colours"]
-        audit["/docs-audit — surfaces crossed with Diátaxis"]
+        audit["/docs-audit — surfaces and the pages they earn"]
     end
 
     profile[("docs-profile.yml")]
@@ -173,7 +173,7 @@ Enumerated mechanically from the scanned repos:
 
 Roles are a coverage **dimension**, not a nice-to-have: "what can a user in role R actually do" is the question user documentation exists to answer, and it is the reason walkthroughs are role-scoped.
 
-### 5.2 Crossing with Diátaxis
+### 5.2 Page types: crossing surfaces with Diátaxis
 
 Coverage is a grid of `(surface, audience, type)` cells, each `exists | missing | stale`.
 
@@ -711,7 +711,7 @@ Produces the `surfaces[]` table per §5.1, including `volatility` from `git log`
 
 ### Phase 4 — Type and prioritise (`ia-planner`)
 
-Crosses surfaces with Diátaxis per §5.2, applies the four prioritisation signals per §5.3 with a written `priority_reason` per unit, defaults `visibility` from `audience` (D12), and proposes tutorial candidates for human selection.
+Assigns each surface the page types it earns — the Diátaxis quadrants for user pages, the engineering set for the rest, per §5.2 — applies the four prioritisation signals per §5.3 with a written `priority_reason` per unit, defaults `visibility` from `audience` (D12), and proposes tutorial candidates for human selection.
 
 ### Phase 5 — Reconcile with what exists
 

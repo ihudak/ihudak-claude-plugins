@@ -52,9 +52,11 @@ Four `dev-workflows` subagents are dispatched: the folder read (Phase 3), `docs-
 
 ## What it produces
 
-**The authored body only** — never an identifier, a PR link, a `Change type:` line, or a `{{#internal-note}}` block, since the docs automation adds that metadata wrapper when it publishes. For a titled destination (`feature-updates.md` / `breaking-changes.md`) that's a `{{#context}}` label (the imported `release_notes_category`, used verbatim, or omitted entirely when none was imported), an `### title`, and customer-facing prose; for `fixes.md` it's **one bare past-tense sentence**, with no label and no title. Exactly **one** Summary is ever produced per run — never one block per declared release version — and no title or prose in it ever names the release version itself; the version is a separate field the PM sets.
+**Where it lands.** `release-notes.md` in the resolved PRD folder, appended as a section: the Change Type selects `## Breaking changes`, `## Feature updates` or `## Fixes`, and those sit under a heading for the release version (`--version <v>`, else asked; `## Unreleased` when declined). The three former destination *files* are those three sections — the taxonomy is unchanged, only where a draft lands.
 
-The destination is resolved from the PRD's `change_type` when it carries one, else inferred from the change's nature, with a low-confidence inference confirmed by its consequence (the shape and destination file) rather than by presenting the bare enum label. A deprecating change carries its required end-of-life date (and optional end-of-support date) as a trailing note in the Summary.The Phase 8 report states where it landed and reminds the user to publish it wherever their release notes are published. `/release-notes` also drafts an implementation-gaps bug report when `release-notes-writer` returns a PRD-vs-source discrepancy, resolved through the same per-claim decision table `/document` (keyed mode) Phase 5.8 uses.
+**The authored body only** — never an identifier, a PR link, a `Change type:` line, or a `{{#internal-note}}` block, since the docs automation adds that metadata wrapper when it publishes. For a titled destination (`feature-updates.md` / `breaking-changes.md`) that's a the category label label (the imported `release_notes_category`, used verbatim, or omitted entirely when none was imported), an `### title`, and customer-facing prose; for `fixes.md` it's **one bare past-tense sentence**, with no label and no title. Exactly **one** Summary is ever produced per run — never one block per declared release version — and no title or prose in it ever names the release version itself; the version is a separate field the PM sets.
+
+The **section** is resolved from the PRD's `change_type` when it carries one, else inferred from the change's nature, with a low-confidence inference confirmed by its consequence (the shape and destination file) rather than by presenting the bare enum label. A deprecating change carries its required end-of-life date (and optional end-of-support date) as a trailing note in the Summary.The Phase 8 report states where it landed and reminds the user to publish it wherever their release notes are published. `/release-notes` also drafts an implementation-gaps bug report when `release-notes-writer` returns a PRD-vs-source discrepancy, resolved through the same per-claim decision table `/document` (keyed mode) Phase 5.8 uses.
 
 ## Gates
 
@@ -74,7 +76,7 @@ One invocation, two runs — the command is the same either time, and only the i
 /dev-workflows:release-notes PRODUCT-1234
 ```
 
-The run checks `relevant_for_release_notes`, asks about diff grounding (default: PRD content only) and the output destination, classifies as `MODERATE`, reads the PRD, resolves `$DOCS_PATH` grounding if configured, and finds neither `specification.md` nor `design.md` under the PRD's specs dir — so it infers `run_phase: pm` and renders the draft via `release-notes-writer` with no documentation redirect link, because the feature isn't built and there is no page to point at yet. It then runs the optional style gate and writes the persistent draft with a reminder to publish it.
+The run checks `relevant_for_release_notes`, asks about diff grounding (default: PRD content only) and the release version, classifies as `MODERATE`, reads the PRD, resolves `$DOCS_PATH` grounding if configured, and finds neither `specification.md` nor `design.md` under the PRD's specs dir — so it infers `run_phase: pm` and renders the draft via `release-notes-writer` with no documentation redirect link, because the feature isn't built and there is no page to point at yet. It then runs the optional style gate and writes the persistent draft with a reminder to publish it.
 
 **The dev's later re-run**, once a specification or design is on record:
 
@@ -92,5 +94,5 @@ Byte for byte the same command, and every step above happens the same way. The s
 - [`/epics`](epics.md) — Epic drafting; deliberately excluded from the `/release-notes` phase/role discriminator even though it can run before or after this command.
 - [Model routing](../reference/model-routing.md) — the classification rules; `/release-notes` is always `MODERATE`.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Follow-ups](../reference/follow-ups.md) — the terminal Phase 9–11 bookkeeping every run emits.
-- [`release-note-types.md`](../../references/release-note-types.md) — the destination map, the per-destination draft shape and prose rules, and the deprecation-note rule `release-notes-writer` applies.
+- [`release-note-types.md`](../../references/release-note-types.md) — the section map, the per-section draft shape and prose rules, and the deprecation-note rule `release-notes-writer` applies.
 - [`cost-emission.md`](../../references/cost-emission.md) — §7's full phase/role inference this page's `## Who runs it` section is derived from.

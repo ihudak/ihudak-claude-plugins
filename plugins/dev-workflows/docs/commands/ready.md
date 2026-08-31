@@ -4,13 +4,17 @@ Verifies whether the ARD, specification, and design artifacts on record actually
 
 ## Who runs it
 
-`/ready` runs in the [dev](../roles-and-phases.md#dev--build-verify-and-deliver) role, cost-attribution phase [readiness](../roles-and-phases.md#readiness) — being in this phase means a declared status is being checked against the ARD / spec / design record, never changed.
+`/ready` runs in the [dev](../roles-and-phases.md#dev--build-verify-and-deliver) role, cost-attribution phase [readiness](../roles-and-phases.md#readiness) — being in this phase means the workflow phase is being derived from the ARD / spec / design record, never changed.
 
 ## Synopsis
 
 ```
 /ready <ADDRESS> [--claimed "<status>"]
 ```
+
+**`--claimed "<status>"`** (optional) — a workflow phase you declare, typically pasted from whatever tracker you keep. The run compares it against the phase it derives from the artifacts and reports any divergence; a claim **above** the derived phase caps the verdict, a claim below is reported and does not.
+
+**Without it, the run cannot catch a wrong claim** — a derived phase cannot contradict itself, so `/ready` reports what the artifacts show and nothing more. That is the cost of having no mirror to check against, and the flag is how anyone who does keep a tracker gets the check back, whichever tracker it is.
 
 `$ARGUMENTS` is a **single positional address** — a `<KEY>`, or an `@<path>` naming a folder in the specs tree. The resolved folder's kind decides the altitude: a `PRD-` folder is a PRD-level run, an `EPIC-` folder an Epic-level one. The two-key form is retired, because the second key was always derivable from the first.
 
@@ -47,11 +51,11 @@ Three `dev-workflows` subagents are dispatched: the folder read (Phase 2, `depth
 
 A `SUPPORTED` / `PARTIAL` / `NOT-SUPPORTED` verdict with a requirement coverage roll-up (N/M requirements covered, each `❌` gap named) and the full `readiness-reviewer` Findings section, by dimension. `/ready` **authors nothing** in the PRD/Epic/ARD/spec/design sense — its only authored write is `_readiness.md`, overwritten on every run at the PRD dir (PRD-level check) or the Epic subdir (Epic-level check).
 
-`_readiness.md` is committed and handed off only behind the `phase-handoff.md` §4.3 consent choice, creating `ready/<KEY>-<slug>` — never automatically. Declining leaves it uncommitted; the terminal `commit-artifacts` step stages only `$SPECS_PATH`'s bounded session-artifact paths and never `_readiness.md` itself.Phase 7 additionally emits one follow-up per named readiness gap on a `PARTIAL`/`NOT-SUPPORTED` verdict, plus a standing reminder to reconcile the declared status with the artifacts; a clean `SUPPORTED` run qualifies no follow-ups at all.
+`_readiness.md` is committed and handed off only behind the `phase-handoff.md` §4.3 consent choice, creating `ready/<KEY>-<slug>` — never automatically. Declining leaves it uncommitted; the terminal `commit-artifacts` step stages only `$SPECS_PATH`'s bounded session-artifact paths and never `_readiness.md` itself.Phase 7 additionally emits one follow-up per named readiness gap on a `PARTIAL`/`NOT-SUPPORTED` verdict, plus a standing reminder to reconcile any status you keep elsewhere with the artifacts; a clean `SUPPORTED` run qualifies no follow-ups at all.
 
 ## Gates
 
-Phase 4 dispatches `readiness-reviewer` — Opus, frontmatter-pinned, mandatory on every run regardless of classification — with the Phase 3 mechanical skeleton (coverage map, status-expectation checklist, repo availability), the Phase 2 declared status exactly as read, and the Phase 2.5 `applicable_ard` when one resolved. No verdict is written or reported without it. `readiness-reviewer` is the plugin's **only reviewer that does joint cross-artifact analysis** — every other Opus reviewer (`prd-reviewer`, `ard-reviewer`, `epic-reviewer`, `spec-reviewer`, `design-reviewer`, plus `code-review` and `doc-reviewer`) is scoped to judging one artifact's own quality; several also read a companion artifact for traceability or non-contradiction (`design-reviewer` reads the source `specification.md`, `ard-reviewer` reads an inherited PRD-level ARD, `spec-reviewer` reads `applicable_ard`, `epic-reviewer` reads sibling Epics), but none of them synthesizes a verdict across artifacts the way `readiness-reviewer` does.
+Phase 4 dispatches `readiness-reviewer` — Opus, frontmatter-pinned, mandatory on every run regardless of classification — with the Phase 3 mechanical skeleton (coverage map, status-expectation checklist, repo availability), the Phase 3(0) derived phase with the artifacts that placed it there, any `--claimed` value, and the Phase 2.5 `applicable_ard` when one resolved. No verdict is written or reported without it. `readiness-reviewer` is the plugin's **only reviewer that does joint cross-artifact analysis** — every other Opus reviewer (`prd-reviewer`, `ard-reviewer`, `epic-reviewer`, `spec-reviewer`, `design-reviewer`, plus `code-review` and `doc-reviewer`) is scoped to judging one artifact's own quality; several also read a companion artifact for traceability or non-contradiction (`design-reviewer` reads the source `specification.md`, `ard-reviewer` reads an inherited PRD-level ARD, `spec-reviewer` reads `applicable_ard`, `epic-reviewer` reads sibling Epics), but none of them synthesizes a verdict across artifacts the way `readiness-reviewer` does.
 
 Because `/ready` authors nothing, there is no fixer to dispatch and no `BLOCK`/re-review cycle — the gate's outcome *is* the verdict and its Findings section, not a pass/fail loop feeding a fix. A `⚠` artifact state (authored on a branch, unconfirmed on main, or unverifiable against any ref) is recorded as a `MAJOR`-or-worse finding for the reviewer's "Status consistency" dimension, but it never stops the run — it only caps how high the verdict can land.
 

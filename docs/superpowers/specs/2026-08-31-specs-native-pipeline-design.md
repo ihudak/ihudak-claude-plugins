@@ -538,16 +538,17 @@ gives up) gets its hand-made commits found.
 **unrecorded work**, named as such with its commits listed. A run that quietly folds hand-made
 commits into the recorded set makes the record look more complete than it is.
 
-**The plugin writes the convention it reads.** A scan that depends on a commit convention nobody
-was taught is a scan that finds nothing, and people copy the shape of the commits already in the
-log — so a plugin whose own commits omit the key teaches every human contributor to omit it too,
-and then the hand-made work this scan exists to recover is exactly the work that stays invisible.
-So every command that commits into a code repository — `/implement`, and `/vuln` and `/upgrade`
-with it — writes the key where a human will see it and copy it:
+**The convention is taught, and that is stronger than "written" — because only one command can
+write it.** Increment C's execution established the fact this paragraph originally got wrong:
+`/implement` and `/upgrade` leave their changes **uncommitted** on the branch, so **`/vuln` is the
+only command here that commits into a code repository**. Most commits in a repository this plugin
+touched are therefore written by a person at handover — which is exactly why a convention nobody
+was taught is a scan that finds nothing. The key goes where a human will see it and copy it:
 
 - **The commit subject ends with `[<key>]`** — `feat(orders): add order intake [ACME-77-01]`. In
   the subject rather than a trailer, because a trailer does not survive `git log --oneline` and is
-  therefore invisible to the person deciding what their own commit should look like.
+  therefore invisible to the person deciding what their own commit should look like. `/vuln` writes
+  it; `/implement` and `/upgrade` **state it at handover**, to the operator who writes the commit.
 - **A `Work-Item: <workitem_key>` trailer**, when the folder carries one (D11). The tracker key is
   for the operator's own integration and belongs where their tooling looks; it is never invented,
   and the trailer is absent when the field is.

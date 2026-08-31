@@ -10,7 +10,7 @@ Each token is one of: `component:1.2.3` (exact), `component:minor` (latest patch
 
 `component` can be a library, framework, language runtime, build tool, or path like `.github/workflows`.
 
-All changes are left **uncommitted** on the current branch.
+All changes are left **uncommitted** on the current branch. Because the operator writes that commit, state the convention when handing over: end the subject with `[<key>]` where the run resolved one, per `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §3.
 
 ---
 

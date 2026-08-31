@@ -4,6 +4,28 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.7.0] — 2026-08-31
+
+### Added — what the tracker used to supply (increment C)
+
+Third of four increments implementing
+`docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md`. Increment B removed the tracker
+and left three degradations in its own text; **this release closes all three**.
+
+- **`implementation.md`** — new `references/implementation-format.md`, written by `/implement` in a new Phase 4.7 for keyed runs. An append-only pointer record: one block per run, one entry per repository, holding refs and never a summary. A ref cannot drift; a description can, which is why `source-truth.md` exists.
+- **`/epics` mints Epic keys and writes `epic.md`** into `EPIC-<PRD-KEY>-NN-<eslug>/` under the PRD folder. Those folders **are** the linked-item hierarchy every other command now enumerates — a directory listing replaces an import. The output-directory question and its `$VAULT_PATH` ladder are gone: one home, derived. `_coverage.md` is PRD-holistic and lands beside `prd.md`, never inside an Epic folder.
+- **`/document` and `/release-notes` diff again**, from two sources merged: the record, and a `git log --grep` scan for the run's own `key` and `workitem_key` — which is what finds work the plugin did not do. Two honesty rules: anything beyond the recorded blocks is reported as **unrecorded work**, and the run reports **how many commits it scanned and how many matched**, because a zero-match scan is a signal about the commit convention rather than proof that no work happened.
+- **Release notes land in the PRD folder** as three sections of one `release-notes.md`, under a heading for the release version. The taxonomy is unchanged and `release-note-types.md` is still its authority; only where a draft lands changed.
+- **`/ready` derives the workflow phase from the artifacts** and gains **`--claimed "<status>"`**, which was named in 3.6.0's prose and parsed by nothing. A claim *above* the derived phase caps the verdict; a claim below is reported and does not, because artifacts can legitimately run ahead of somebody's bookkeeping.
+- **New `docs/reference/commit-convention.md`** — end your commit subject with `[<key>]`. Documented as a convention because a contributor who has never run the plugin must be able to write a findable commit.
+- **`{{#context}}` is retired.** A docs-automation macro renders as literal text in a plain markdown file; a **Category:** label does the same job.
+
+### Fixed
+
+- **A spec defect found by execution.** §7.3.1 said `/implement`, `/vuln` and `/upgrade` all write the commit convention. They do not: `/implement` and `/upgrade` leave their changes **uncommitted**, so `/vuln` is the only command that commits into a code repository. The mechanism now matches — `/vuln` writes a compliant subject, the other two **state the convention at handover**, to the operator who writes that commit. *(That `/implement` and `/upgrade` leave work uncommitted at all is a separate defect, fixed next.)*
+- `/ready` Phase 2 still read a declared status from fields that no longer exist; it now reads the per-Epic artifact inventory the derivation needs.
+- `/implement`'s Epic picker can show ● again, now that `implementation.md` supplies the signal.
+
 ## [3.6.0] — 2026-08-31
 
 ### Removed — the tracker round-trip (increment B)

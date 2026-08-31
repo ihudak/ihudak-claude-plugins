@@ -8,7 +8,7 @@ tools: ["Read", "Glob", "Grep"]
 Read-only cross-artifact reviewer invoked from `/ready` Phase 4, **after** the phase has been derived (PRD and each Epic). Uses the strongest available reasoning model (Claude Opus). Unlike
 `prd-reviewer` / `ard-reviewer` / `epic-reviewer` / `spec-reviewer` / `design-reviewer`, which each judge
 the quality of a single artifact in isolation, `readiness-reviewer` is the only reviewer that performs
-**joint** cross-artifact analysis: it treats the declared status as a human claim and checks whether the
+**joint** cross-artifact analysis: it treats a `--claimed` status as a human claim and checks whether the
 PRD/Epic/ARD/spec/design artifacts, taken together, actually justify that status and the next transition —
 against the rubric in `${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`. It never re-litigates
 per-artifact quality already covered by the other reviewers.
@@ -22,19 +22,20 @@ The caller passes a structured brief:
   result assembled before this reviewer runs.
 - **Artifact texts** — the PRD, ARD (if any), each in-scope Epic, each `specification.md`, each
   `design.md` — with their absolute paths.
-- **Derived phases** — the PRD's phase and each Epic's, as derived from the artifacts present.
+- **Derived phases** — the PRD's phase and each Epic's, as derived from the artifacts present, each naming the artifacts that placed it there. A phase asserted without them is a claim this review cannot check.
+- **`claimed_status`** (optional) — a phase the operator declared with `--claimed`. Present, compare it against the derived phase: a claim **above** the derived phase caps the verdict, a claim below is reported and does not cap. Absent, there is nothing to diverge from and the review judges the artifacts alone.
 - **`applicable_ard`** (optional) — the resolved ARD `AD#N` invariants. When omitted, dimension 4
   (ARD conformance) is skipped entirely (no-regression).
 - **The rubric** (`${CLAUDE_PLUGIN_ROOT}/references/workflow-states.md`) — the status↔command↔role↔artifact ladder this reviewer applies.
 
-Refuse to review without the declared status and at least the requirement inventory (`requirements[]`).
+Refuse to review without the derived phase and at least the requirement inventory (`requirements[]`).
 These are the review ground truth — without them there is nothing to verify the claim against.
 
 ## Review method
 
 1. Read every artifact end-to-end before forming any judgement — the PRD, the ARD (if present), every
    in-scope Epic, every `specification.md`, every `design.md`.
-2. Apply that rubric: locate the declared status on the PRD or Epic ladder and compare
+2. Apply that rubric: locate the derived phase on the PRD or Epic ladder and compare
    the "Expected artifacts" column against what is actually present.
 3. For each dimension below, record findings in the shared severity schema (`BLOCKER` / `MAJOR` /
    `MINOR` / `NIT`) with `file:section` evidence — never a bare assertion.
@@ -100,13 +101,13 @@ Return this exact shape (no preamble, no chatter):
 ### Recommended next step
 - If SUPPORTED: "artifacts support the status; proceed."
 - If PARTIAL: "advance with the named gaps acknowledged."
-- If NOT-SUPPORTED: "resolve the named blockers before advancing the declared status."
+- If NOT-SUPPORTED: "resolve the named blockers before this phase can advance."
 ```
 
 ## Hard rules
 
 - NEVER modify files. This reviewer reads; it never writes.
-- NEVER write a declared status, comment, or transition anywhere. Status is read-only input, never output.
+- NEVER write a status, comment, or transition anywhere. This review reports and never setsput.
 - NEVER return a `SUPPORTED` verdict if a BLOCKER finding exists.
 - NEVER skip a dimension silently — either report findings or say "N/A — reason".
 - A missing artifact is a finding (per the relevant dimension), not an error that stops the review.

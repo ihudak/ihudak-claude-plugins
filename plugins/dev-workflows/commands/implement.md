@@ -42,10 +42,10 @@ resolved `path`, `kind` and `key`, and `specs` forward.
   - **PRD with exactly 1 Epic** → no picker; set `focus_key` to that Epic and proceed.
   - **PRD with ≥2 Epics** → render the picker. **`/implement`'s done-predicate is now the artifacts
     present in each Epic folder**, which is the mechanism `/design`'s own Epic picker already uses:
-    `specification.md` but no `design.md` → ○; `design.md` present → ◐. **● is not determinable in
-    this increment** — the signal that an Epic was implemented is `implementation.md`, which
-    `/implement` itself begins writing in increment C — so say so beside the list rather than
-    showing a marker the tree cannot support. Reading the artifacts rather than a status field is
+    `specification.md` but no `design.md` → ○; `design.md` present, no `implementation.md` → ◐;
+    `implementation.md` present → ● (greyed, not default-selectable; selecting offers "implement
+    anyway"). All three markers are determinable, because `/implement` writes that record itself
+    (Phase 4.7). Reading the artifacts rather than a status field is
     strictly better than what it replaces: a declared status is a human's claim about the work and
     could lag it, which is why the old picker had to print the raw status text as a hedge. Include the explicit choice
     **"Implement one broad PRD-level slice instead"** (`focus_key` stays null → specs
@@ -201,8 +201,9 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
 1. **Read each referenced specs folder** (read-only):
 
    1. **Read the resolved folder.** Read its `prd.md` and the `specs` files resolved in Phase 0, plus —
-   for a PRD-level address — the `EPIC-` subfolders under it. No PR URLs are available in this
-   increment; `implementation.md` supplies them from the next one.
+   for a PRD-level address — the `EPIC-` subfolders under it. This phase reads no PR URLs:
+   `implementation.md` (Phase 4.7) is where this run records its own refs, and
+   `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §4 is how a later run reads them.
      >
      > prd_dir: [the resolved prd_dir (from the Phase 0 front-end), or the ticket-folder absolute path]
      > key:         [the resolved <KEY>]
@@ -358,7 +359,7 @@ Before writing any file:
    choices: ["Branch from current position — continue on this work (Recommended)", "Branch from default branch — fresh start", "Cancel"]
    ```
 
-5. **Create and checkout** — `git checkout -b <prefix>/<slug>`. If that name already exists, append the first 7 chars of HEAD's SHA: `<prefix>/<slug>-<short-sha>`.
+5. **Create and checkout** — `git checkout -b <prefix>/<key>-<slug>` on a keyed run, `<prefix>/<slug>` in direct mode. If that name already exists, append the first 7 chars of HEAD's SHA: `<prefix>/<slug>-<short-sha>`.
 
 ---
 
@@ -622,6 +623,30 @@ Placement is deliberate, not stylistic: step 7.5 sits inside Phase 3B, before th
 
 ---
 
+## Phase 4.7 — Write the implementation record (keyed runs only)
+
+**Skipped entirely when `mode: direct`** — there is no resolved folder to append to, and a
+directly-implemented change has no block, exactly as before.
+
+**Write `implementation.md`** in the resolved folder, appending one block per run against
+`${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §1: one entry per repository this run
+touched, each naming `repo`, `branch`, `base`, `commit` and `pushed`. Append-only — never edit or
+remove an earlier block, and a re-run adds a block rather than replacing one.
+
+**It records refs and nothing else.** No summary of what was implemented: a summary is a
+*description*, `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` exists because descriptions drift
+from the code they describe, and one here would be an unverified description in a folder of grounded
+artifacts. A ref cannot drift.
+
+**Record `pushed:` as it actually is.** A later run reading `pushed: false` says *"this was never
+pushed"* rather than reporting an empty diff against a ref the remote does not hold.
+
+This file is what `/document` and `/release-notes` read to ground their prose in the shipped diff
+(§4 of that reference), and what `epic-picker.md`'s ● marker is computed from. It is committed by
+the terminal `commit-artifacts` step with the rest of the run's `$SPECS_PATH` artifacts.
+
+---
+
 ## Phase 5 — Final Report
 
 Output a structured report — do NOT ask any closing confirmation:
@@ -757,6 +782,14 @@ NEVER fails the run; and skips entirely when the run carries `specs_git:
 blocked` (§3.3 G0), re-emitting that notice. Because the Phase 5 report was
 composed before this phase, **print its §6 outcome line here**, as the run's
 last output — prefixed `Specs repo:`, with any guard notice repeated in full.
+
+**State the commit convention at handover.** The implementation is left uncommitted on the branch
+this run created, so the operator writes that commit — which makes this the one moment the convention
+can be taught to the person who will follow it. Say it plainly, once, in the Final Report: end the
+commit subject with `[<key>]`, and add a `Work-Item: <workitem_key>` trailer where the folder carries
+one. `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §3 owns the rule and §4 explains
+what it buys — a commit whose subject names the key is one `/document` and `/release-notes` can find
+later; one that names nothing is invisible to them.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable
 (the implementation remains uncommitted on the branch created in Pre-Phase 3;

@@ -36,7 +36,7 @@ Every phase ends the same way: a producing command lands its deliverable on the 
 - **Owns:** breaking a PRD into Epics, and writing an org-standard specification for one item — an Epic, or, for a small PRD, the whole PRD.
 - **Runs:** `/epics`, `/specify`.
 - **Consumes:** the PRD, plus the ARD when one exists and any Epics already drafted.
-- **Produces:** Epic drafts under `$VAULT_PATH/epic-drafts/<PRD-KEY>/`; `specification.md`, landed on the specs repo's default branch.
+- **Produces:** one `EPIC-<PRD-KEY>-NN-<eslug>/epic.md` per Epic under the PRD folder, plus a PRD-holistic `_coverage.md` beside `prd.md`; `specification.md`, landed on the specs repo's default branch.
 - **Hands over at the seam:** `/specify` gates on the PRD the same way `/create-ard` does — an absent PRD falls back to the resolved folder, and is reported rather than silent, and the hard stop is an unmerged PRD, never a missing one. `/epics` has no PRD gate at all, but it does gate two other inputs: an optional PRD-level `specification.md`, whose absence is a silent skip (`vi_spec_present: false`), and the applicable ARD, where `status: unmerged` stops the run like every caller but `/ready`. `/specify` lands `specification.md` onto the specs repo's default branch, and `/design` refuses to start until it finds that specification there.
 - **Cost phase(s):** `epic-refinement` (`/epics`), `specification` (`/specify`) — both role `pe`.
 
@@ -93,7 +93,7 @@ Emitted by `/document`, role `dev`. Being in this phase means product documentat
 
 ### readiness
 
-Emitted by `/ready`, role `dev`. Being in this phase means a declared status is being checked against the ARD / spec / design record, never changed.
+Emitted by `/ready`, role `dev`. Being in this phase means the workflow phase is being derived from the ARD / spec / design record, never changed.
 
 ### plugin-feedback
 

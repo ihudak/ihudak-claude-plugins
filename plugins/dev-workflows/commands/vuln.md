@@ -235,11 +235,11 @@ When the repo documents no convention (§1.4), `<prefix>` comes from the §2 lad
 
 ### Commit message
 
-Use the project's existing style. Default template:
+Use the project's existing style. **End the subject with `[<key>]`** where the run resolved one — `/vuln` is the one command here that commits into a code repository, so it is the one that can write a compliant subject itself (`${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §3). Default template:
 
 **With Jira ID:**
 ```
-fix(deps): upgrade <library> to <version> to remediate <CVE-ID>
+fix(deps): upgrade <library> to <version> to remediate <CVE-ID> [<key>]
 
 Resolves <ADDRESS>
 Fixes <CVE-ID> - <one-line CVE description>

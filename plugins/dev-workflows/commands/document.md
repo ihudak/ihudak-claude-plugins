@@ -268,11 +268,35 @@ Invoke the folder read with `depth: full`:
 **Read the resolved folder directly.** Read its `prd.md` for the product content, and the `specs`
 files Phase 0 resolved alongside it.
 
-**There is no PR-URL source in this increment.** The reader this replaces harvested them from the
-export; `implementation.md` replaces them and does not exist yet. The `diff-summarizer` dispatch
-below is therefore skipped — state that once, and name what it costs: the documentation is grounded
-in the PRD and the specs, not in the shipped diff. `diff-summarizer` itself is unchanged and is
-re-pointed at `implementation.md` in the next increment.
+**Resolve the diff sources — two of them, merged.** Follow
+`${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §4:
+
+1. **The record.** Read `implementation.md` in the resolved folder. **Read every block under the PRD** — this command documents the feature as it now stands, so every change that reached it is in scope.
+2. **The scan.** For each repository — those `implementation.md` names, or, when it names none, the
+   repositories resolved from `$REPOS_PATH` — search commit messages for the identifiers this run
+   already holds:
+
+   ```
+   git -C <repo> log --grep='<key>' --grep='<workitem_key>' --extended-regexp --regexp-ignore-case
+   ```
+
+   The keys come from the resolved folder's own `key:` and its `workitem_key`; **nothing is parsed
+   out of a commit message.** This is what finds work the plugin did not do — a commit written by
+   hand after a session ended, a colleague's push, a follow-up nobody ran a command for.
+
+**Merge and dedupe by SHA.** Anything the scan finds beyond the recorded blocks is reported as
+**unrecorded work**, named as such with its commits listed: folding hand-made commits silently into
+the recorded set would make the record look more complete than it is.
+
+**Report the scan's own reach.** Say **how many commits it scanned and how many matched**. Only a
+commit whose message names the key is findable, and no convention compels a human to follow one — so
+a zero-match scan in a repository that has commits is a signal about the commit convention
+(`docs/reference/commit-convention.md`), not proof that no work happened.
+
+Hand each resolved ref to `diff-summarizer` as a `{repo_path, branch_from, branch_to}` triple — a
+shape its Inputs already declare, on the pure-local-git path it prefers when `gh` is absent. No URL,
+no host classification, no `gh` requirement.
+
   >
   > key:         [resolved <KEY>]
   > depth:            full"

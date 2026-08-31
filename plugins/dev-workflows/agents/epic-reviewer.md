@@ -7,7 +7,7 @@ tools: ["Read", "Glob", "Grep"]
 
 Deep post-write reviewer for **Epic drafts** produced by `/epics`. Uses the strongest available reasoning model (Claude Opus).
 
-Invoked from `/epics` Phase 7, after the writer (Phase 6) has drafted one `.md` file per Epic under the resolved output directory (default `$VAULT_PATH/epic-drafts/<PRD-KEY>/`). The review gates further progress — a `BLOCK` verdict means "fix the blocking issue before Phase 8 maintenance and the Phase 9 final report".
+Invoked from `/epics` Phase 7, after the writer (Phase 6) has written one `epic.md` per `EPIC-` folder under the resolved output directory (default `$VAULT_PATH/epic-drafts/<PRD-KEY>/`). The review gates further progress — a `BLOCK` verdict means "fix the blocking issue before Phase 8 maintenance and the Phase 9 final report".
 
 Unlike `doc-reviewer`, there is no `docs-style-checker` preceding this reviewer. Epic drafts are vault-internal and not subject to product-docs prose linting — prose style compliance matters at product-docs publication time, not at Epic scoping time.
 

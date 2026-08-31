@@ -97,7 +97,7 @@ is an existing directory **and** the path is writable.
    the folder in the specs tree:
    `<PRD-folder>/<KEY>-followups.md` (the imported hierarchy's
    parent — the same area under which /epics and /release-notes place their
-   no-vault drafts, e.g. /epics' epic-drafts/<KEY>/).
+   no-vault drafts).
 4. **None resolvable** → **report-only.** Keep the follow-ups in the Final
    Report and emit the notice. **NEVER** write into the current working
    directory — it may be a code repository.

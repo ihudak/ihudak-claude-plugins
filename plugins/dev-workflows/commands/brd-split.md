@@ -202,7 +202,12 @@ model_routing:
 
 `/brd-split` dispatches no grounding or review agent of its own — every finding it reads was
 already independently verified by `/brd-ground`'s `grounding-verifier` pass (`brd-ground.md` Phase 7) — so
-`detection_model` here exists only for the terminal `impl-maintenance` dispatch. **`authoring_model`
+`detection_model` here exists only for the terminal `impl-maintenance` dispatch. **The grilling
+technique's fetch-a-fact clause does not change that here**, and the reason is what the clause is
+bounded to: it fires where a fact needs *more than a read*, and every fact Phase 1.5 needs — a row's
+`text`, its `source_anchor`, its disposition — is a local read of files this run already has open.
+Nothing in the instruction-reading step reaches for something a sweep would have to find, so no
+dispatch arises and the comment above stays literally true. **`authoring_model`
 is recorded and is not a dispatch**: Phase 1.5 reads a slicing instruction against this BRD's rows and
 may grill the residue, and Phase 4 walks the ledger — all in the session, the same way
 `/brd-intake` records its own interactive defect walk. Recording it matters because the reading is a

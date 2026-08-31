@@ -766,13 +766,12 @@ halts, never a plugin capability gap. `BRD_GROUND_DIRTY_TREE`, `BRD_GROUND_NEEDS
    and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. Stages
    ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
    `<BRD-KEY> Add dev-workflows session artifacts (/brd-ground)` with no `Co-Authored-By` trailer,
-   and pushes to the branch Phase 9's handoff created. NEVER touches a code repo, the vault, or the
-   current working directory; NEVER force-pushes; NEVER fails the run; skips entirely when the run
+   and pushes to the branch Phase 9's handoff created. NEVER touches a code repo, or the current working directory; NEVER force-pushes; NEVER fails the run; skips entirely when the run
    carries `specs_git: blocked`, re-emitting that notice. Hold its §6 outcome line for the final
    report.
 
 ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (git for the deliverable
-is offered only in Phase 9), and NEVER writes into a code repo, the vault, or the current working
+is offered only in Phase 9), and NEVER writes into a code repo, or the current working
 directory; no user name is ever written.
 
 ---

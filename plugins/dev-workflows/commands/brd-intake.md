@@ -353,7 +353,7 @@ capability gap, so `emit-block` never fires from this command's own Phase 0.
    point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths
    inside `$SPECS_PATH`, commits `<BRD-KEY> Add dev-workflows session artifacts (/brd-intake)` with
    no `Co-Authored-By` trailer, and pushes to the branch Phase 7's handoff created. It NEVER touches
-   a code repo, a docs repo, the vault, or the current working directory; NEVER force-pushes; NEVER
+   a code repo, a docs repo, or the current working directory; NEVER force-pushes; NEVER
    fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting
    that notice. Hold its §6 outcome line for the final report.
 

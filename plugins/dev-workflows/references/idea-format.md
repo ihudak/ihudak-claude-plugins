@@ -49,7 +49,7 @@ belong in **Feasibility grounding** (Section 7).
 
 ## Section 6 — Prior art (optional)
 
-`## Prior art` — tracked initiatives in the vault that this idea covers, continues, parallels, or
+`## Prior art` — an existing PRD the operator supplied that this idea covers, continues, parallels, or
 rewrites. **Write it when the source is a `prd` the user supplied; omit it entirely
 otherwise.** One bullet per entry, in one of two shapes.
 
@@ -59,9 +59,8 @@ otherwise.** One bullet per entry, in one of two shapes.
 - [[<work doc>]] (<KEY>, <status>) — <relation>: <one line>
 ```
 
-**Supplied only** — a `prd` source the finder did not match (grounding off, or no vault work document
-for the key). The `tracked` block carries `key`, `status`, and `summary` and nothing else — no
-`relation`, no `match_reason`, no vault path — so the bullet omits the wikilink and the relation
+**Supplied only** — a `prd` source the finder did not match (the operator supplied it directly). The `tracked` block carries `key`, `status`, and `summary` and nothing else — no
+`relation`, no `match_reason`, no path — so the bullet omits the wikilink and the relation
 rather than inventing either:
 
 ```
@@ -77,8 +76,7 @@ Every slot is **transcribed from what the user supplied, never invented**:
 and `<one line>` a plain-language rendering of
 that entry's `match_reason` — why this initiative bears on the idea.
 
-The **key is the durable identifier**; the wikilink is a convenience that dangles once a vault item
-is renamed, so both are carried and a later reader re-resolves by key. An entry with no key carries
+The **key is the durable identifier**; a path is a convenience that dangles once a folder is renamed, so both are carried and a later reader re-resolves by key. An entry with no key carries
 only the wikilink, and that is accepted. Never fabricate a key or a status — an unresolved status is
 written as `status unknown`. A `prd` source appears here **and** in `sources:`: `sources` answers how the
 idea arrived, `## Prior art` answers what it must stay consistent with.

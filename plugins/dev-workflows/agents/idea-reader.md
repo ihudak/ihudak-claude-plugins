@@ -25,8 +25,7 @@ Refuse to run without `argument` and `provenance_hint`.
 Distill it into `raw_context`; `source_refs: []`.
 
 **markdown / community-post** (`provenance_hint: markdown | community-post`) — resolve `argument` to an
-existing `.md` file (accept an absolute path, a vault-relative path, or an `@wikilink` resolved under
-`vault_path`). Read it. Follow wikilinks (`[[...]]`) to other `.md` files **one level deep** (bounded)
+existing `.md` file (accept an absolute path, or one relative to the caller's working directory). Read it. Follow wikilinks (`[[...]]`) to other `.md` files **one level deep** (bounded)
 and read them for context. Enumerate linked images (extensions `.png/.jpg/.jpeg/.gif/.svg/.webp`,
 case-insensitive) — record **paths only, never read image content**. For a community post (a markdown
 file under a `Projects/Products/` path, or with a thread/comment shape), additionally extract **demand
@@ -74,7 +73,7 @@ candidate_slug:  <kebab-case slug inferred from the source>
 
 - NEVER modify any file. This agent is read-only.
 - NEVER read the **content** of image files — enumerating filenames/paths is permitted and required.
-- NEVER reach out over HTTPS to any host — operate purely on the inline prompt and pre-exported / vault markdown.
+- NEVER reach out over HTTPS to any host — operate purely on the inline prompt and the file the caller named.
 - NEVER fabricate demand signals, requesters, or sources not present in the input.
 - Follow wikilinks at most ONE level deep to bound the read.
 - On an invalid key or a missing file, return `status: NOT_FOUND` with a clear message; do not guess.

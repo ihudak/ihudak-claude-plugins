@@ -54,7 +54,7 @@ Classify the docs repo's `git remote get-url origin`:
 ## 5. PR draft (always; no API)
 
 Compose the draft and BOTH write and show it:
-- **write** to the vault project folder as `<KEY>-pr-draft.md`
+- **write** to the resolved PRD folder as `pr-draft.md`
   (the resolved PRD folder; ask if
   none) — the same destination convention as the release-notes / bug drafts.
 - **title**: per `commit_convention` (e.g. `<KEY> <summary>`).

@@ -289,7 +289,7 @@ marker explaining the gap. See §7 for the marker format.
 - Reviewer severity rule: a customer-visible option / label / count
   that does not appear in the source is **BLOCKER**, not CONCERN —
   unless an intentional-discrepancy marker is present (§7).
-- Bug-report draft destination is the same vault project folder used for
+- Bug-report draft destination is the same PRD folder used for
   the release-notes draft (auto-discovered by the orchestrator at
   the resolved PRD folder). File name:
   `implementation-gaps.md`. Same hard rule as for release-notes:
@@ -455,8 +455,7 @@ When `discrepancy_decisions` contains ANY entry with decision
 `document-as-spec` (where the code lags the intended phrasing),
 `skip-and-report`, or `document-as-code` **where the PRD phrasing asserts a
 specific value that contradicts the source**, the writer MUST emit a
-Markdown file alongside the release-notes draft at the auto-discovered vault
-project folder. Skip a `document-as-code` entry whose PRD phrasing is vague
+Markdown file alongside the release-notes draft in the resolved PRD folder. Skip a `document-as-code` entry whose PRD phrasing is vague
 or non-committal — "several registries" against a source with four is loose,
 not wrong. When the two readings are arguable, emit: the output is a draft
 the user reviews, so a spurious entry costs a paragraph while a miss leaves
@@ -495,7 +494,7 @@ team (or amend the PRD if the gap is intentional).
 ```
 
 The bug-report draft uses the same hard-rule for destination as the
-release-notes draft (vault, never `/tmp/`, never inside the docs repo).
+release-notes draft (the PRD folder, never `/tmp/`, never inside the docs repo).
 
 ### 7.6 Intentional-discrepancy marker format (for the writer)
 

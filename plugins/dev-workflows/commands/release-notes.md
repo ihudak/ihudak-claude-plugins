@@ -7,7 +7,7 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 Draft release notes for the resolved PRD: $ARGUMENTS
 
 `/release-notes` produces a **customer-facing release-notes draft** for a resolved
-Product Requirements Document (or any ticket) from pre-exported markdown in the user's Obsidian vault.
+Product Requirements Document (or any ticket) from the resolved PRD folder.
 It optionally grounds the prose in merged PR diffs, renders the example-docs authored
 release-notes body — a plain **Category:** label + `### title` + prose for the `feature-updates` /
 `breaking-changes` destinations, or one bare past-tense sentence for `fixes` — with **no
@@ -95,7 +95,7 @@ run — the terminal `commit-artifacts` step skips on it.
   Exactly one Summary per run, appended under the resolved version and type. A run whose version the
   operator declined appends under `## Unreleased`.
 
-  **NEVER write into a docs repo, a code repo, the vault, or the current working directory.** The PRD
+  **NEVER write into a docs repo, a code repo, or the current working directory.** The PRD
   folder is in `$SPECS_PATH`, which is where the terminal `commit-artifacts` step commits it with the
   rest of the run's artifacts.
 
@@ -458,8 +458,7 @@ guidance already appeared in the Phase 8 report.
 stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
 `<KEY> Add dev-workflows session artifacts (/release-notes)`, and pushes per
 §4 step 5. It NEVER writes into a docs repo — the release-note draft is
-untouched — NEVER touches a code repo, the vault,
-or the current working directory; NEVER force-pushes; NEVER fails the run;
+untouched — NEVER touches a code repo, or the current working directory; NEVER force-pushes; NEVER fails the run;
 and skips entirely when the run carries `specs_git: blocked` (§3.3 G0),
 re-emitting that notice. Because the Phase 8 report was composed before this
 phase, **print its §6 outcome line here**, as the run's last output — prefixed
@@ -484,7 +483,7 @@ current working directory; no user name is ever written (§10).
 - The run is GATED on the imported `relevant_for_release_notes`: an explicit `false` stops with `RELEASE_NOTES_NOT_RELEVANT` (overridable); absent proceeds silently.
 - NEVER write into a docs repo; the default destination is persistent (never `/tmp`).
 - ALWAYS use `choices` arrays; the last choice is always `"Other… (describe)"`.
-- Light gate only — no Opus review, no tests, no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none), and no commit of the draft or of anything in a docs/code repo, the vault, or the current working directory. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
+- Light gate only — no Opus review, no tests, no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none), and no commit of the draft or of anything in a docs/code repo or the current working directory. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - ALWAYS end the Phase 8 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked; the pipeline leaf (adaptive: continue any pending PA/PE phase, else the PRD is fully processed).
 - ALWAYS end the Phase 8 report with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a leaf-aware suggestion (done → nothing; pending role → `/clear`) + `/rename <PRD-ID>-<slug>-<role>` using this run's inferred lane (`pm` or `dev`, per the Phase 6 inference); guidance only, never auto-run.

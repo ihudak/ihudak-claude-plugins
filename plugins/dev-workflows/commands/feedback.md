@@ -60,8 +60,7 @@ Resolve, then confirm with the user in one grouped prompt (last choice always
 - **`plugin_version`** — read from
   `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`.
 
-Also resolve `key` (from recent context, or `null`) and `source`
-(`vault | directory | none`).
+Also resolve `key` (from recent context, or `null`) and `source` (`specs | directory | none`).
 
 ## Phase 3 — Persist
 
@@ -93,19 +92,18 @@ cost -> `resume.md` -> `commit-artifacts`; this command has no follow-ups or
 `commit-artifacts` entry point (§4) inline. It stages ONLY the §2.1 bounded
 artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session
 artifacts (/feedback)` — or `NOISSUE …` when no `key` resolved — and
-pushes. It NEVER touches a code/docs repo, the vault, or the current working
+pushes. It NEVER touches a code/docs repo, or the current working
 directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the
 run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its
 §6 outcome line for Phase 4.
 
 ## Phase 4 — Report
 
-Surface the persisted path and any degradation notice (e.g. the tier-3 vault
-warning, or tier-5 report-only), then the `Specs repo:` outcome line from
+Surface the persisted path and any degradation notice (e.g. the report-only tier), then the `Specs repo:` outcome line from
 `commit-artifacts` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6),
 with any guard notice repeated in full.
 
-This command NEVER commits into a docs/code repo, the vault, or the current
+This command NEVER commits into a docs/code repo, or the current
 working directory. The terminal `commit-artifacts` step commits ONLY
 `$SPECS_PATH`'s bounded artifact paths
 (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).

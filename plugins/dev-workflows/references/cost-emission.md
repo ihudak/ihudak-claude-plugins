@@ -470,7 +470,7 @@ Inputs:
   field, so the two never disagree. Omitting it is a caller error: §7 has no other
   source for it, and the entry would silently fall back to
   `plugin-feedback`/`n/a`, quietly mis-attributing every correction.
-- `key` (or `null`), `source` (`vault | directory | none`).
+- `key` (or `null`), `source` (`specs | directory | none`).
 - `plugin_version` — read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`
   (`python3 -c "import json;print(json.load(open('<path>'))['version'])"`).
 

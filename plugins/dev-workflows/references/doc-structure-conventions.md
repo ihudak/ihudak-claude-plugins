@@ -17,7 +17,7 @@ comments belong in the commit message and in the run's handoff — never in body
 changelog entry, never as a comment in the markdown.
 
 **Scope: rendered product-docs pages** — the pages `/document` writes into a docs repo. This section
-does not govern **vault documents**, such as the Epic drafts `/epics` writes into an Obsidian vault,
+does not govern **specs-tree documents**, such as the `epic.md` files `/epics` writes,
 where a `[[KEY]]` wikilink is the native idiom, resolves, and is the required traceability form.
 
 | Where | Carries |

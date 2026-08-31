@@ -51,9 +51,9 @@ a **BRD key**, and there is no second positional key (Phase 0 step 0).
    direct-prompt behavior.
 
 2. **Resolve `$SPECS_PATH`.** `/specify` writes specifications under `$SPECS_PATH/specifications/`
-   (exact layout resolved in step 3) — the specs repo, not the vault. If `$SPECS_PATH` is unset, stop
+   (exact layout resolved in step 3) — the specs repo. If `$SPECS_PATH` is unset, stop
    with a clear error naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`) —
-   there is no vault-relative fallback for this write target the way there is for reads.
+   there is no fallback for this write target the way there is for reads.
 
 3. **Resolve the feature folder.** Derive provisional kebab-case slugs from the relevant
    item title(s) (finalized once the folder read runs in Phase 2, but a
@@ -734,7 +734,7 @@ guidance already appeared in the report.
 stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
 `<KEY> Add dev-workflows session artifacts (/specify)` with no `Co-Authored-By`
 trailer, and pushes to the branch this run's handoff phase created (§4.1). It
-NEVER touches a code repo, a docs repo, the vault, or the current working
+NEVER touches a code repo, a docs repo, or the current working
 directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the
 run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its
 §6 outcome line for the Final report.

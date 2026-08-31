@@ -70,7 +70,7 @@ For each write target:
    **a. Image policy.** Count each image reference and classify:
    - **`local`** — relative path resolving inside the repo (e.g. `./img/foo.png`, `../images/bar.jpg`, `<page-dir>/img/...`); a matching file exists on disk.
    - **`cdn`** — absolute URL to an external host (e.g. `https://cdn.example.com/images/...`); no local file exists.
-   - **`wikilink`** — `![[name.png]]` Obsidian-style (unlikely in a docs repo but possible).
+   - **`wikilink`** — `![[name.png]]` wiki-style (unlikely in a docs repo but possible).
 
    Pick the policy:
    - `local` count > 0 and `cdn` count is 0 (or negligible) → `image_policy: local`; identify the idiomatic directory (most common pattern — typically `<page-dir>/img/` or `<page-dir>/images/`).
@@ -83,7 +83,7 @@ For each write target:
 
 6. **Plan screenshot placement per target.** For each user-provided screenshot that belongs on this target:
    - `image_policy: local` → set `dest` to an absolute path under `<page-dir>/img/` (or the detected idiomatic directory).
-   - `image_policy: cdn_upload_required` → set `staging` to an absolute path under the caller-provided `screenshot_staging_dir` (the persistent Obsidian project folder; e.g. `<screenshot_staging_dir>/<original-filename>`). NEVER place it inside `repo_root` and NEVER use `/tmp` — both are lost on container restart for repo-volume mounts / in-image `/tmp`, whereas a host-mounted directory the operator names is not. Populate `upload_note` with a 1-line instruction referencing the repo's image-management process (as inferred from `CONTRIBUTION.md`, `CONTRIBUTING.md`, or sibling page conventions).
+   - `image_policy: cdn_upload_required` → set `staging` to an absolute path under the caller-provided `screenshot_staging_dir` (the staging directory; e.g. `<screenshot_staging_dir>/<original-filename>`). NEVER place it inside `repo_root` and NEVER use `/tmp` — both are lost on container restart for repo-volume mounts / in-image `/tmp`, whereas a host-mounted directory the operator names is not. Populate `upload_note` with a 1-line instruction referencing the repo's image-management process (as inferred from `CONTRIBUTION.md`, `CONTRIBUTING.md`, or sibling page conventions).
    - `image_policy: ambiguous` → leave both `dest` and `staging` null; the writer prompts the user at Phase 6.3.
    - In all cases, populate `alt` with a proposed alt-text derived from the feature summary and the image filename.
 
@@ -150,7 +150,7 @@ checklist:
         # When image_policy == local:
         dest:        <absolute path under <page-dir>/img/ or the detected idiomatic directory>
         # When image_policy == cdn_upload_required:
-        staging:     <absolute path under the caller-provided screenshot_staging_dir (persistent Obsidian project folder); NOT inside the repo, never /tmp>
+        staging:     <absolute path under the caller-provided screenshot_staging_dir (a persistent directory the operator named); NOT inside the repo, never /tmp>
         upload_note: <1-line instruction for the user, e.g. "Upload via <repo's image-management process>; replace placeholder URL in page">
         # When image_policy == ambiguous: both dest and staging are null; the writer prompts the user at Phase 6.3.
         alt:         <proposed alt-text>

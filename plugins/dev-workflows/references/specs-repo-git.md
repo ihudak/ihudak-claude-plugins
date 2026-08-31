@@ -15,7 +15,7 @@ and must never touch git. This reference supplies the two steps that close the
 loop: a **run-start** flush and branch disposition (`specs-preflight`, §3) and a
 **terminal** commit (`commit-artifacts`, §4).
 
-**Scope.** ONLY the bounded artifact paths of §2.1, ONLY inside `$SPECS_PATH`. Nothing here ever touches a code repo, a docs repo, the vault, or the current working directory. Neither entry point here opens a pull request: `specs-preflight` and `commit-artifacts` are prompt-free bookkeeping steps, and opening a pull request is outward-facing. Deliverable handoff — including `gh pr create` where the host supports it — lives in `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.6, behind that reference's consent choice. `git push` here is git-protocol, already sanctioned by `finish-and-handoff.md` §3.
+**Scope.** ONLY the bounded artifact paths of §2.1, ONLY inside `$SPECS_PATH`. Nothing here ever touches a code repo, a docs repo, or the current working directory. Neither entry point here opens a pull request: `specs-preflight` and `commit-artifacts` are prompt-free bookkeeping steps, and opening a pull request is outward-facing. Deliverable handoff — including `gh pr create` where the host supports it — lives in `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.6, behind that reference's consent choice. `git push` here is git-protocol, already sanctioned by `finish-and-handoff.md` §3.
 
 ## 1. Hard rules
 
@@ -101,8 +101,7 @@ directory is **writable**. Test `.git` specifically, not just the worktree —
 `commit` and `fetch` both write there, and a read-only specs mount is a normal
 state in this container setup.
 
-Gate fails → **silent no-op**. The artifacts are going to a vault or
-report-only tier the plugin does not manage.
+Gate fails → **silent no-op**. The artifacts are going to a report-only tier the plugin does not manage.
 
 ### 3.2 Resolution inputs
 

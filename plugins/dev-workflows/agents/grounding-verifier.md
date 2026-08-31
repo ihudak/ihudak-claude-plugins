@@ -160,7 +160,8 @@ own_evidence:
   - path:  <relative to repo_path, or the frame path for a DG#n>
     lines: [<1-based line numbers>]   # omit only when the evidence is a whole-file read
     note:  <what this line or frame actually shows, and how it bears on the claim>
-commit: <the resolved commit this re-derivation was checked against>
+commit: <the resolved commit this re-derivation was checked against — omitted on a class-1/2/3
+         [DG#n], which is re-derived from the frame set alone and was checked against none>
 notes: |
   <optional — where your search diverged from the original's approach, any provenance caveat,
   anything the caller should know before recording this outcome>

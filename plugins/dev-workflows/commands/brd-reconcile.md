@@ -336,9 +336,17 @@ path nobody else can reproduce; the copy is the record.
    Only one thing here stops the run, and it is the operator declining to name a suffix at all:
    `BRD_RECONCILE_REVIEW_EXISTS: <BRD-dir>/customer-review-<YYYYMMDD>.md already exists and differs from the file supplied, and no disambiguating suffix was given — a returned review is never overwritten. Re-run and supply a suffix, or reconcile the review already on file.`
 3. **Copy the source to the resolved canonical name**, byte for byte. Everything below reads that
-   copy, cites that copy, and names that copy — including the suffix, where one was taken, so a
-   `[CD#n]` frozen from the corrected resend is never mistaken for one frozen from the file it
-   replaced.
+   copy, cites that copy, and names that copy — including the suffix, where one was taken.
+
+   **Which review a `[CD#n]` was frozen from is recorded in the reconciliation record, not on the
+   record itself.** `decision-register-format.md` §1 fixes eleven fields and none of them names a
+   source document, so `decisions.md` read alone cannot distinguish an answer frozen from a
+   corrected resend from one frozen from the file it replaced. What distinguishes them is the
+   *Write the reconciliation record* phase: each pass sits under its own heading naming the review
+   file that caused it, and lists the `[CD#n]` ids that pass froze. Say that plainly rather than
+   claiming the register carries it — the *Confirm every candidate* phase's skip rule keys on
+   "an earlier pass over **this same review**", and the only place that mapping exists is the
+   record this phase's canonical name feeds into.
 4. **Hand it off.** Present `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's choice array
    verbatim:
    ```
@@ -382,6 +390,7 @@ Dispatch `customer-review-reader` **once**, at `detection_model`:
   > package:
   >   questions:   [path to interview/customer-questions.md]
   >   assumptions: [path to decisions.md]
+  >   self_review: [path to the most recent self-review-<YYYYMMDD>.md, when one is on file]
   > mode: auto"
 
 Supply the inputs **exactly as that agent's own Inputs contract declares them**. It refuses to run
@@ -415,7 +424,10 @@ operator who meets them after confirming twelve candidates has already confirmed
 wrong reading. Nothing here is a stop: an anomalous review is still the customer's answer, and the
 anomalies travel into the reconciliation record and into the final report.
 
-**Section 7 of a returned review carries three id shapes, and the matcher accepts all three.** The
+**Section 7 of a returned review carries three id shapes, and the matcher accepts all three —
+which is why all three question sets are supplied above.** Passing only the first two would leave
+the third unmatchable however plainly this command asserts the matcher accepts it: a contract the
+agent is not given the input for is a rule with no consumer. The
 review's decision log answers what the package's part *the decisions the customer must make* put to
 it, and `/brd-package` fills that part from three sources:
 
@@ -580,12 +592,35 @@ Then, in the same phase and from the same confirmed set:
    (`decision-register-format.md` §7). An assumption whose row said `cannot-say` is **not**
    superseded — cannot-say is a real answer and not a settlement — and it stays open and travels
    into the next package.
-3. **Reopen what the answer overturned, here.** Every `[VD#n]` in **this** BRD's register that the
-   frozen answer contradicts or constrains takes `status: reopened`, naming that `[CD#n]` as its
-   cause — an incoming customer decision is precisely one of the two causes §4 admits, and a
-   reopening whose cause is unnamed is indistinguishable from somebody changing their mind. The same
-   test applied to **other** BRDs is the propagation sweep's, and it is deliberately not run here:
-   this BRD's own register is the one this phase is already holding open.
+3. **Reopen what the answer overturned, here — and `[CD#n]` is in scope, not only `[VD#n]`.** Every
+   record in **this** BRD's register that the frozen answer contradicts or constrains takes
+   `status: reopened`, naming that `[CD#n]` as its cause. §4 admits an incoming customer decision as
+   one of its two causes and §3's statuses govern "each `[VD#n]` **and** `[CD#n]`", so a customer
+   decision that contradicts an *earlier customer decision* is squarely inside the rule. A reopening
+   whose cause is unnamed is indistinguishable from somebody changing their mind. The same test
+   applied to **other** BRDs is the propagation sweep's, and it is deliberately not run here: this
+   BRD's own register is the one this phase is already holding open.
+
+   **The case this exists for is the corrected resend, which the *Canonicalise the returned review*
+   phase calls an ordinary state.** Two reviews of one date, or a corrected file weeks later, both
+   answer the same `[C]` — and the *Confirm every candidate* phase's skip rule covers only an earlier
+   pass over **this same review**, so a different review's candidates are offered and frozen. Without
+   this step that mints a second `decided` `[CD#n]` for one question, and **two customer answers to
+   one question is a contradiction one record has no way to hold**
+   (`decision-register-format.md` §1, `interview-tagging.md` §5) — the failure the whole register is
+   shaped to prevent, arriving through the affordance built to accept a correction.
+
+   **Which of the two the earlier record takes depends on what the new answer does to it**, and both
+   are §3 statuses rather than anything invented here:
+   - the new answer **replaces** it — the customer decided the same question differently →
+     `superseded`, naming the `[CD#n]` that replaces it. Terminal; the id is retained, never reused.
+   - the new answer **contradicts or constrains without replacing** it — it bears on the question
+     without answering it again → `reopened`, naming its cause, and it is re-decided like any other
+     reopened record.
+
+   Say which, per record, in the reconciliation record: a superseded answer and a reopened one leave
+   very different work behind, and the reader who has to do it cannot tell them apart from the fact
+   that a second `[CD#n]` exists.
 4. **Record an answered `[SR#n]`.** A finding disposed `escalated-to-customer` and answered in
    section 7 produces a `[CD#n]` like any other, whose record names the `[SR#n]` it answers. That is
    not this command minting a `[C]`: it mints no question at all, and records an answer to one the
@@ -621,9 +656,30 @@ Any row still undisposed when this phase would end → stop:
 
 **Three classes of target, and they are not treated alike:**
 
-1. **A live working document** — `decisions.md`, `coverage-ledger.md`, `brd/brd-inventory.md`,
-   `slices.md`, `brd-link.md`, a seed file. Corrected in place. These are the documents the route
-   works on, and they are supposed to move.
+1. **A live working document.** Corrected in place — these are the documents the route works on,
+   and they are supposed to move. **But "live" is not "unowned", and four of them carry fields
+   another rule fixes.** A section-12 row is the customer instructing an edit; it is not a licence to
+   write a field this command may not write, and the customer cannot know which those are. Split the
+   class:
+
+   | Target | Disposition |
+   |---|---|
+   | `slices.md`, a seed file, and the **prose** of any document below | Corrected in place. Nothing else owns these |
+   | `coverage-ledger.md` — a row's `disposition` | **`refused-with-reason`**, naming the ledger phase as where a `[CD#n]` may move a row and `/dev-workflows:brd-split` as the only allocator (`coverage-ledger-format.md` §3, §4). A customer asking for a row to be built here is asking for an allocation, and this command writes exactly three dispositions and never `covered-here` or `covered-by` |
+   | `brd/brd-inventory.md` — a row's `id`, `text` or `source_anchor` | **`refused-with-reason`**, for the reason class 3 gives about `brd/source/` itself: `text` is the requirement **verbatim** from the immutable source and `source_anchor` locates it there (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1, §2), so rewriting the row edits the customer's document in the one place it is mirrored. The amendment is a `customer-amended` defect resolution, which the *Resolve the defects the review settled* phase writes |
+   | `decisions.md` — a record's `status`, `chosen`, `evidence` or `argumentation` | **`refused-with-reason`** where the row asks for a direct edit. Those move only through this command's own freeze, §4's two reopening causes, or the propagation sweep's four dispositions. A customer who wants a decision changed has already changed it: their answer is a `[CD#n]`, frozen in the *Freeze the customer decisions* phase, which reopens what it contradicts |
+   | `brd-link.md` — `parent:` or `claims:` | **`refused-with-reason`**. Both are written by `/dev-workflows:brd-split`, and `claims:` disagreeing with the ledger is the state the whole allocation gate exists to prevent. `depends-on:` is prose-adjacent and merged additively by two other commands; a row asking to add one is `applied` |
+
+   **A refusal here is not a refusal of the customer's point.** In every row above the substance
+   reaches the register through the channel that owns it — a `[CD#n]`, a defect resolution, a
+   `/brd-split` walk — and the refusal says which, so the next package shows the customer their point
+   landed rather than that it was declined. What is refused is the *edit*, not the *change*. Saying
+   so is the difference between a refusal the customer accepts and one they re-request next round.
+
+   **This is the same carve-out the stale cross-reference sweep carries**, and it is written twice
+   deliberately: that sweep reaches these files by a text match this command made, while this phase
+   reaches them by an instruction the **customer** wrote. The second is the channel with external
+   authority behind it, so it is the one more likely to be exercised and the worse one to leave open.
 2. **A dated snapshot** — `self-review-<YYYYMMDD>.md`, `customer-review-prompt-<YYYYMMDD>.md`,
    `customer-delivery-note-<YYYYMMDD>.md`, `interview/round-<N>.md`, anything under
    `bundle-<YYYYMMDD>/`, an earlier `reconciliation-<YYYYMMDD>.md`. **Never rewritten.** The next

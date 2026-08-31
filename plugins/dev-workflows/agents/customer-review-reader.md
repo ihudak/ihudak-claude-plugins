@@ -50,17 +50,31 @@ review_path: <absolute path to the returned review file, already canonicalised b
 package:
   questions:   <path to the [C] question set the package put to the customer, when available>
   assumptions: <path to the register holding the open [AS#n] the package surfaced, when available>
+  self_review: <path to the dated self-review holding the [SR#n] findings the package escalated to
+                the customer, when available>
 mode: auto | schema | free-text   # default auto — see Process step 1
 ```
+
+**Three inputs, because the package puts three id shapes to the customer, not two.** Its
+decisions section is filled from the `[C]` question set, every open `[AS#n]`, **and** every
+`[SR#n]` a self-review finding disposed *escalated to the customer* — that third shape exists
+because the package escalates such a finding under its own id rather than minting a `[C]` for it,
+which would put a question to the customer that never went through the tag test
+(`${CLAUDE_PLUGIN_ROOT}/references/interview-tagging.md` §2). A reader given only the first two
+cannot match the third, so every answer to a deliberately escalated finding comes back
+`unmatched` — and an answer the customer gave, reported as matching nothing, is indistinguishable
+from an answer they never gave.
 
 **Refuse to run without `review_path`.** Return `status: INPUT_MISSING` naming it. If `review_path`
 does not resolve to a readable file, return `status: REVIEW_MISSING`. Never search for a review file
 to read instead: the caller has already decided which file is the review, and a file this agent
 picked is a file nobody committed as the customer's answer.
 
-`package.questions` and `package.assumptions` are optional and are used only to *match* what the
-review says onto what was asked. Their absence never blocks a run and never licenses invention: with
-no question set to match against, unmatched material is reported as unmatched.
+All three `package` paths are optional and are used only to *match* what the review says onto what
+was asked. Their absence never blocks a run and never licenses invention: with nothing to match
+against, unmatched material is reported as unmatched. **Report which of the three were supplied**, in
+`notes`, so the caller can tell an answer that matched nothing from an answer whose question set was
+never handed over — the two look identical in `answers: unmatched` and mean opposite things.
 
 ## The two modes
 
@@ -135,8 +149,9 @@ finding.
    `absent`. `stated-none` and `absent` are different facts and are never merged.
 
 4. **Extract the decisions**, marked `parsed` in schema mode and `candidate` in free-text mode, and
-   match each to a `[C]` question or an open `[AS#n]` when `package.questions` or
-   `package.assumptions` was supplied. An unmatched decision is reported as `unmatched` — a customer
+   match each against **all three** shapes the package can put to a customer, from whichever of
+   `package.questions`, `package.assumptions` and `package.self_review` was supplied: a `[C]`
+   question by its round and position, an open `[AS#n]`, or an `[SR#n]` the package escalated. An unmatched decision is reported as `unmatched` — a customer
    may legitimately decide something nobody asked, and forcing it onto the nearest question loses
    both the answer and the question.
 
@@ -170,7 +185,8 @@ evidence_limitations:
 decisions:
   - provenance: parsed | candidate      # candidate in free-text mode, without exception
     confirmed:  false                   # always false here; confirmation is the caller's step
-    answers:    <the [C] question id or [AS#n] it answers, or `unmatched`>
+    answers:    <what it answers: a [C] question by round and position, an [AS#n], or an [SR#n] —
+                 or `unmatched`. All three shapes, never only the first two>
     statement:  <the decision as it would be registered>
     answer:     <what the customer decided>
     reason:     <the customer's own reason, or `not stated`>

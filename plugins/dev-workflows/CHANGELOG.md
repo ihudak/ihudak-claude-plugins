@@ -4,6 +4,59 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.4.0] — 2026-08-31
+
+### Added — `/brd-split <BRD-KEY> [<instruction>]`, a verbal slicing instruction
+
+`/brd-split` accepts an optional trailing instruction in the operator's own words —
+`cover orders and measurements in the first iteration`, `slice everything no child covers`. Omit it
+and the command behaves exactly as it did before, on every path.
+
+**It seeds two things and decides nothing.** In `full` mode it seeds the Phase 2 grouping and the
+Phase 4 walk's per-row recommendation; in `allocate-only`, where Phase 2 never runs, it seeds the
+walk alone — which is what makes it a real argument on a slice rather than an ignored one.
+
+**New Phase 1.5 reads it in two steps.** *Step A* places every row the instruction plainly
+determines and raises no prompt — the fact-vs-decision split `grilling-technique.md` already
+mandates, applied before the grill rather than inside it; a set operation over the ledger resolves
+entirely here and asks nothing. *Step B* grills only the residue, bounded, **≤5 and gated on a value
+test: ask only where one answer places more than one row.**
+
+**The value test is the real gate, and the fallback is why.** Phase 4 visits every unallocated row
+one at a time regardless, and Phase 2's picker moves rows by hand, so an unplaced row costs nothing
+that was not already being paid and a question disambiguating a single row spends a turn to save a
+prompt that is coming anyway. That also sizes the cap against `/idea`'s ≤10: there an unresolved
+bounded question ships as a `[NEEDS CLARIFICATION]` marker inside the artifact, so the cap buys a
+hole in the deliverable; here the residue has a free fallback. `grilling-technique.md` gains
+`/brd-split` as a bounded caller and states that a caller's cap is sized by what its residue costs.
+
+**The instruction proposes; the grounded picture constrains.** Where a placement puts a
+`NOT-PROVABLE`, `REWRITTEN`, `FALSE-FRIEND` or `will-change` row into a group whose other rows are
+buildable now, Phase 2 names those rows with the verdict or prerequisite that blocks each and asks
+include-anyway / hold-back / decide-per-row. The operator's grouping wins where they confirm it and
+never silently — a slice that quietly mixed a blocked row in with buildable ones would discard the
+one signal that makes a slice worth carving.
+
+**Phase 4 gains a `<recommended>` placeholder**, resolved per row exactly as `<merge-clause>` and
+`<BRD-KEY>` are substituted, so the array is still presented verbatim. It is **not** a reversal of
+3.3.2's markerless picker: that marker was removed for printing its own condition for the operator to
+evaluate, which `escalation-rules.md` calls malformed; a marker the command computes and prints bare,
+with its reason, is the fix that rule prescribes — and it exists only because there is now an
+instruction to compute it from. On a run with no instruction the `full` picker is byte-for-byte what
+it was. The `allocate-only` picker's standing `covered-here` recommendation now reaches the option
+through the same placeholder rather than being written into it, so an instruction can never put two
+contradictory markers in one list. `escalation-rules.md` records the placeholder mechanism, so a
+per-row marker is not "corrected" later by someone reading the verbatim rule alone.
+
+**Nothing is invented for a row the reading could not place.** It is left unclustered and walked with
+no recommendation — the fate a row nothing clusters with already had. No new marker vocabulary
+reaches a ledger or an inventory whose field sets are fixed elsewhere. `slices.md`, the handoff facts
+and the final report carry the instruction verbatim alongside how it was read: rows placed directly,
+rows the grill settled and by what terminology decision, and rows left unplaced. Where a path
+swallowed the instruction — the no-op, or a run with no `unallocated` row — it is reported unused,
+naming that path, because an instruction typed and silently discarded is indistinguishable from one
+the command failed to parse.
+
 ## [3.3.3] — 2026-08-31
 
 ### Fixed — seven defects from a second review round

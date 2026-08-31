@@ -160,6 +160,45 @@ withdraws them (`commands/brd-split.md` Phase 4) and which are therefore never `
 the slice's walk runs. §4's disclaimer about the command owning its own interaction flow is
 unchanged: which resolutions a picker offers stays `commands/brd-split.md`'s to state.
 
+### 3.1 What `covered-by` means downstream — the row leaves this BRD's scope
+
+**A `covered-by` row's requirement is not this BRD's to question, to decide, or to put to a
+customer.** §3 says the named BRD *owns* it; ownership is the whole content of the disposition, and
+a BRD that owns nothing about a requirement has nothing to ask about it. Every consumer that puts a
+requirement in front of a human therefore reads it over the rows this BRD is answerable for —
+`covered-here`, `deferred-to`, `rejected` and `superseded-by` — and **never over a `covered-by`
+row.**
+
+**Which consumers, and why each needs saying.** `commands/brd-interview.md` generates its round from
+the findings and the inventory; `commands/brd-package.md` states the review's scope to the customer
+from the ledger and the inventory. **The inventory is the wrong set at one of the two levels**, and
+that asymmetry is the whole reason this section exists: a slice's inventory is exactly the rows it
+claims (`references/brd-format.md` §2.1), so a slice is correctly scoped by reading it — while a
+source-owning BRD's inventory holds **every** `[BR#n]`, including the ones its own walk delegated. A
+consumer that reads the inventory alone is therefore right on a slice and wrong on a split parent,
+which is the shape a defect hides in longest: it is invisible on the level most runs exercise.
+
+**The failure it prevents is a customer asked the same question twice.** The parent raises a
+question about a delegated `[BR#n]`; the child, ground and interviewed on its copied row for that
+same id, raises it again; both reach a package, and the customer answers one requirement in two
+reviews. `references/interview-tagging.md` §5 names that outcome for the within-a-BRD case — "asking
+a customer the same question twice is not an inefficiency, it is an invitation to a different
+answer, and two customer answers to one question is a contradiction the decision register has no way
+to resolve" — and the cross-level case is the same failure, reached by a different route. It costs
+two `[VD#n]` records in two registers that can disagree about one requirement with nothing linking
+them.
+
+**In scope as context, out of scope as subject.** A delegated row is not struck from the reader's
+view: what this BRD keeps may genuinely turn on what it gave away, and a question about a
+`covered-here` row may need to *cite* a delegated one to make sense. What the rule forbids is the
+delegated row being the thing asked about. The test is whose answer would settle it — if it is the
+BRD that owns the row, the question belongs to that BRD's own round.
+
+**A source-owning BRD carries no `claims:` field, so this is read off the `disposition` column and
+never off `claims:`** — the same trap `references/coverage-ledger-format.md` §5 and
+`commands/create-prd.md`'s gate set already spell out. Intersecting with `claims:` here would read an
+empty set on every BRD that was never split and put *nothing* in scope.
+
 **Deferring is itself an allocation.**
 `deferred-to: <this BRD>` discharges the gate exactly as the other four terminal dispositions do;
 the ledger's job is to record a requirement's fate, not to force every requirement to be built.

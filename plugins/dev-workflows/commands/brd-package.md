@@ -200,6 +200,15 @@ cannot review, and they will not tell you that — they will review it anyway, b
     `interview/round-<N>.md`; and, when this is a re-package, every earlier
     `self-review-<YYYYMMDD>.md`. A previous package's artifacts are inputs, never scratch: nothing
     below deletes, renames or rewrites a dated artifact another run wrote.
+
+    **Resolve `brd/source/<basename>` and `brd/brd-defect-log.md` here too**, even though nothing in
+    this run reads their *content*: both go into the bundle
+    (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §1.1), and on a **slice** neither is in
+    this folder at all — each resolves one hop up, through the `parent:` this step just read
+    (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1, §4). Resolving them now rather than at
+    assembly is what lets an absent one be reported before the run has built a prompt: a bundle
+    missing the customer's own document cannot answer the review's requirement-traceability section,
+    and finding that out at the copy step is finding it out too late to say so cheaply.
 11. **Fix the run's date.** One `<YYYYMMDD>` stamp, taken once, used for every artifact this run
     writes. If `bundle-<YYYYMMDD>/` already exists in the BRD folder, stop:
     `BRD_PACKAGE_BUNDLE_EXISTS: <BRD-dir>/bundle-<YYYYMMDD>/ already exists — a dated bundle is never rewritten. Move or rename the existing directory if it was never sent, or package on the next date.`
@@ -469,6 +478,25 @@ cannot be obtained after all — *review the documents and record in your sectio
 was independently verified; do not skip the review*; and, once, the rule that governs the whole
 session: **read the bundle, write exactly one new file, and modify nothing in the package** (D13).
 
+**Part 6 — Review scope, which is narrower than the inventory on a split parent.** State what this
+BRD is answerable for and what it is not, from `coverage-ledger.md`'s `disposition` column: the rows
+reading `covered-here`, `deferred-to`, `rejected` or `superseded-by` are this package's scope, and a
+row reading `covered-by: <OTHER-KEY>` is **out of it** —
+`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3.1. Name those requirements and the
+BRD that owns each, in one line apiece, and say plainly that they are covered by a separate package
+and are not for review here. **Both halves matter to the customer.** Omitting the delegated rows
+entirely reads as scope the delivery team dropped, which is the reading a customer is most likely to
+take and the most expensive one to correct later; putting them in for review gets the same
+requirement answered twice, in two packages, by the same person — the contradiction one `[CD#n]`
+record cannot hold (`${CLAUDE_PLUGIN_ROOT}/references/interview-tagging.md` §5). Naming them as
+somebody else's is the only reading that is both complete and true.
+
+**Read the `disposition` column, never the inventory alone.** On a **slice** the two agree — its
+inventory is exactly the rows it claims — so the error is invisible there and appears only on a
+**split parent**, whose inventory still holds every row its own walk delegated. And never `claims:`:
+a BRD that owns its source document has no such field, so intersecting with it would report an empty
+scope (`coverage-ledger-format.md` §5).
+
 **Part 4 — Code baselines and the verification procedure.** One row per repository: the repository,
 the commit it is pinned to, and how that pin was verified. Then the three `baseline-integrity`
 commands, **written out with the repository and the commit substituted**, as an instruction to run
@@ -596,6 +624,17 @@ artifact it was interpolated from:
 sentence in the package assumed a reader who has this plugin, and stripping the citation leaves that
 sentence unfollowable while making it look fine.
 
+**One document in the bundle can be neither sanitised nor corrected, and the scan must say so rather
+than deadlock.** `brd/source/<basename>` is the customer's own text, copied byte for byte and
+immutable by rule (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §2.1,
+`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §1). A hit inside it is not a leak this package
+committed — it is the customer having written the token themselves, most plausibly because they were
+told what tooling the delivery team uses. Report it, name the file and the token, and **let the
+operator decide** whether to ship: stopping outright would make that BRD permanently unpackageable,
+since the one repair the rule allows is not editing the file, and every other document's hit stays a
+hard stop exactly as above. This is the only exemption, and it exists because the alternatives are a
+deadlock or an edit to the customer's own document.
+
 Identifiers are **not** in the scan's classes and are meant to travel: `[BR#n]`, `[CG#n]`, `[DG#n]`,
 `[VD#n]`, `[AS#n]` and `[SR#n]` are how the returned review cites the package's own claims without
 minting identifiers of its own, and a prompt that hid them would get back a review nothing could be
@@ -673,7 +712,12 @@ self-review is free of them while being the most internal document this command 
    filename carries the `<BRD-KEY>` and is unique within the bundle, and every reference from one
    bundle document to another, and every instruction in the prompt that sends the reviewer to a
    document, names that filename and tells them to search for it.
-2. **De-Obsidianise every copied document.** Rewrite wikilinks to plain filename references, and get
+2. **De-Obsidianise every copied document — except the customer's own source, which is copied byte
+   for byte** (`${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md` §2.1). Every `[BR#n]` anchors
+   into that file by a heading path or a line range, so a rendered copy breaks the traceability the
+   file is in the bundle to support; it is immutable by rule; and it is the customer's own writing
+   going back to them. Anything in it a plain reader cannot open is named **in the manifest**, never
+   fixed in the file. For every *other* document: rewrite wikilinks to plain filename references, and get
    the three cases `bundle-packaging.md` §2 names right: an **aliased** link keeps the alias as the
    visible text *and* names the file; an **embedded image** becomes an ordinary markdown image
    reference to the image copied in beside it, or — when the image is not copied — a plain sentence

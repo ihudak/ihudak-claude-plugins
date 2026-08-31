@@ -51,6 +51,16 @@ reaches it that has not been through that phase, nor anything at all once the qu
 `[G]` can leave the `[G]` set only by re-tagging, which re-enters at the tagging phase and is
 admissible only against a named `NOT-PROVABLE` finding.
 
+**The round is scoped to the rows this BRD is answerable for.** Questions are generated over the
+ledger rows reading `covered-here`, `deferred-to`, `rejected` or `superseded-by` — never over a row
+reading `covered-by: <OTHER-KEY>`, whose requirement that BRD owns and whose questions belong to its
+own round ([`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §3.1). The set
+is read off the `disposition` column rather than the inventory, because the two agree on a **slice**
+and diverge on a **split parent**, whose inventory still holds every delegated row: generating from
+the inventory is right at one level and silently over-broad at the other, and the cost is the same
+requirement reaching the customer in two packages. A delegated row stays readable as context; what
+it may not be is the thing asked about.
+
 **A question carrying two tags is a defect in the question**, not a gap in the taxonomy: it is split
 until each part carries exactly one, and the `[G]` part is answered first, because its answer
 routinely changes what the business question should ask (§4). A question nobody can tag is
@@ -100,6 +110,11 @@ command reads was already independently re-derived by `/brd-ground`'s own verifi
   `BRD_INTERVIEW_UNVERIFIED`.
 - **A fully-allocated coverage ledger.** Any row still `unallocated` stops the run with
   `BRD_INTERVIEW_UNALLOCATED`, naming `/brd-split` as the fix.
+- **At least one row this BRD is answerable for.** A BRD whose every ledger row reads `covered-by`
+  delegated all of its requirements and kept none, so it has nothing of its own to decide and stops
+  with `BRD_INTERVIEW_ALL_DELEGATED`. That is a finished state, not a missing step — the same BRD
+  holds no PRD of its own either — and its inventory is *not* empty, which is why the
+  empty-inventory gate above never sees it.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH`.
 - **No repository, and no `$REPOS_PATH`.** Every `file:line` this command reads was already pinned
   and verified by `/brd-ground`, so nothing here opens a repository, and there is no baseline gate or

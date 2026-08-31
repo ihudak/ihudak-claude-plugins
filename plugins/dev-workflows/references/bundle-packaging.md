@@ -134,6 +134,30 @@ Three cases the rewrite has to get right:
   was forgotten, withheld, or renamed. Such a link becomes a plain description of the target and an
   explicit statement that it is not included.
 
+### 2.1 The customer's own source document is copied byte for byte, never rendered
+
+**The one file in the bundle the de-Obsidianising pass does not touch is `brd/source/<basename>`**
+(§1.1; the parent's, on a slice). It goes in as the bytes `/brd-intake` copied, unrewritten,
+unreflowed, and with nothing removed — even where it carries something that renders in exactly one
+tool. Three reasons, and each is fatal on its own:
+
+- **Every `[BR#n]` anchors into it by `source_anchor` — a heading path or a line range**
+  (`references/brd-format.md` §2). A rendered copy moves lines and can rewrite headings, so a
+  requirement's anchor stops resolving in precisely the copy the customer was given to check
+  traceability against. Requirement traceability is the *reason* the file is in the bundle at all;
+  a pass that breaks it defeats the inclusion.
+- **It is immutable by rule** (`brd-format.md` §1): nothing under `brd/source/` is ever edited,
+  reworded or reformatted, "no matter how badly worded a requirement inside it is". A bundle copy
+  that has been tidied is an edit the rule forbids, made where nobody looks for one.
+- **It is the customer's own writing, handed back to them.** §3's one-new-file rule exists so that
+  "nobody can otherwise tell what was sent from what was changed"; returning their document
+  reformatted is that failure committed by the delivery team first.
+
+Where that leaves something a plain reader cannot open — an embedded image, a one-tool block — the
+fix is **beside the file, never inside it**: copy the image in as §2 already requires, and say in the
+manifest what the reader may not be able to see. The manifest is prose this package wrote and may
+say anything; the source document is not.
+
 **Callouts are kept.** A `> [!note]` block degrades to an ordinary blockquote in any markdown reader
 — the reader loses the label's styling and keeps every word. Nothing that survives untranslated is
 worth translating.

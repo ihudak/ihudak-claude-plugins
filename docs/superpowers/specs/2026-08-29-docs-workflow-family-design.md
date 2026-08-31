@@ -2,7 +2,17 @@
 
 **Date:** 2026-08-29
 **Status:** Design approved in brainstorming; not implemented. Spec 1 of 3 specified in full; Specs 2 and 3 specified as contracts only.
-**Scope:** `plugins/dev-workflows` only
+**Scope:** one plugin — provisionally `plugins/dev-workflows`, see the banner below
+
+---
+
+> ### ⚠ The home plugin is provisional
+>
+> This design places the family in `dev-workflows` (D1). A marketplace restructure is planned ahead of implementation — extracting a shared `workflows-core`, then splitting the remainder into `pm-workflows`, `dev-workflows` and `docs-workflows`. **If that lands first, the family is born in `docs-workflows` instead**, and four things here are re-derived rather than followed: **D1** (which plugin), **§13.3** (every inventory count), **§13.5** (which becomes a record of what was done rather than what is possible), and **§15** (the documentation deliverable, whose paths and counts all assume one plugin).
+>
+> **Everything else is independent of the packaging** and stands as written: the coverage model (§5), the four frozen contracts (§8), the visibility model (§9), the per-command designs (§6, §7, §10, §11), and the operating procedure (§14).
+>
+> Re-derive every count against the tree you are actually changing. This document has already carried a stale set once — written against 21 commands and 33 agents, while 27 and 39 were the reality by the time it was reviewed.
 
 ---
 
@@ -859,9 +869,11 @@ So the honest cost of a split is **not** duplicated invariants. It is one skill 
 
 **Three caveats that would need handling, one of which is live in this repository right now:**
 
-1. **Auto-update resolves dependencies by git tag** — "the highest compatible git tag", not the marketplace's latest version. This repository's only tag is `v1.3.0` while `dev-workflows` is at 3.5.0. A version-ranged dependency on a core plugin would fail `no-matching-tag` immediately. **Splitting therefore requires adopting real release tags first** — a process change, not a file move.
+1. **Git tags matter only for *version-ranged* dependencies.** A bare-name dependency (`"dependencies": ["workflows-core"]`) tracks the latest available version and needs no tags at all. A ranged one (`{ "name": "workflows-core", "version": "~1.2.0" }`) is resolved by auto-update against "the highest compatible git tag", and this repository's only tag is `v1.3.0` while `dev-workflows` is at 3.5.0 — so a ranged dependency declared today would fail `no-matching-tag` immediately. **Start with bare names; adopt release tags at the point you want to pin.** Where every plugin ships from one repository at one commit, version skew is small enough that bare names are the honest default.
 2. **A declared dependency is hard, not optional.** An unsatisfied, conflicting, or out-of-range dependency produces a named error (`dependency-unsatisfied`, `range-conflict`, `dependency-version-unsatisfied`, `no-matching-tag`) and **Claude Code disables the affected plugin**. That is better than silent degradation, but it is a different character from today's only cross-plugin relationship, where `prose-style` is optional and skipped gracefully. A core version conflict would take the whole family down at once.
 3. **Two plugins to install**, and a core whose version must be compatible with every dependent simultaneously — the usual cost of a shared library, now with the version ranges to manage that implies.
+
+**Where `/release-notes` lands, if the split happens.** It is the one command the documented role model does not resolve — PM drafts it early, Dev finalises it. It belongs in `docs-workflows`, for three reasons: the role assignment was driven by a tracker rule (a ticket's status could not advance without release notes) that no longer applies; the command already resolves clones under `$REPOS_PATH` for optional diff grounding, which `docs-workflows` needs anyway for `/document`; and under this design its drafts are the evidence behind every What's-new page (§5.1's `release` surface), so co-locating them makes that integration intra-plugin instead of a cross-plugin contract.
 
 **Recommendation: keep D1 for this increment, and revisit after the family ships**, when the dependency surface is observed rather than predicted. Nothing in Spec 1 forecloses the split — the new references stay in `references/docs-workflow/`, so extraction is a `git mv` plus a manifest plus one skill wrapper per shared reference. What *would* foreclose it cheaply is scattering the family's references among the existing ones, which is why the own-directory rule in D1 is the part that matters most.
 

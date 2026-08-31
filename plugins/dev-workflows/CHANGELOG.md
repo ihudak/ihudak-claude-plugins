@@ -4,6 +4,38 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.4.3] — 2026-08-31
+
+### Changed — the grilling technique records why it is a fork of the now-official upstream
+
+`mattpocock-skills:grilling` ships in the official marketplace, and
+`references/grilling-technique.md` has always said it was "adapted from mattpocock grill-me/grilling"
+without saying **where it diverges or why**. That omission is the whole gap: the next reader who
+notices the upstream skill either re-derives the comparison or proposes a swap that would silently
+change eight commands.
+
+The file now carries the comparison — cadence, depth, the no-human-turn case, altitude — and says
+which way to jump on each. Three of the four rows are **caller management upstream has no reason to
+carry**: this plugin invokes the technique from eight commands at three depths, one of which may run
+with no human turn available, and a single-context skill has nothing to say about a `≤5` cap or about
+what to write when nobody is there to answer.
+
+**The cadence row is recorded as a genuine disagreement, not a win.** Upstream batches a computed
+*frontier* of questions in one numbered round; this file asks one at a time. For the relentless
+callers upstream may well have the better of it — numbering plus a per-question recommendation
+answers this file's own "a firehose is bewildering" objection. It is not adopted because
+`/brd-split`'s ledger walk is the one caller that is both a grilling caller and a never-batch caller,
+and a cadence that differs by caller is worse than one that is merely debatable.
+
+Also recorded: adopting it wholesale would cost the plugin its self-containment. Grilling is
+**mid-run in eight commands**, which is a different risk from `/prompt-brainstorm`'s single terminal
+hand-off to `superpowers:brainstorming` — the precedent the swap would be reasoned from.
+
+`references/dependencies.md` gains an *Attribution, not a companion* section so `mattpocock-skills`
+is not mistaken for an uninstalled dependency: nothing resolves it at runtime, nothing degrades when
+it is absent, and installing it changes no behaviour. `references/bug-diagnosis.md` is named there
+too, on the same footing.
+
 ## [3.4.2] — 2026-08-31
 
 ### Fixed — five documentation stalls, four of them created by this release line

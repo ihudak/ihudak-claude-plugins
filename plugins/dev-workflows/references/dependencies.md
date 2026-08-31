@@ -12,6 +12,22 @@ companion degrades the feature, never breaks the run.
 | `superpowers` (skill `brainstorming`) | `/prompt-brainstorm` | Recommended | Embedded technique; no hard dependency. |
 | `prose-style` (in this marketplace) | `docs-style-checker`; planning-doc style checks | Optional companion | `docs-style-checker` falls back to it when no repo-configured prose linter exists; `/epics` and `/release-notes` skip the style gate entirely if it is absent. |
 
+## Attribution, not a companion
+
+**`mattpocock-skills` is not a dependency of this plugin and does not belong in the table above.**
+`references/grilling-technique.md` and `references/bug-diagnosis.md` are both **adapted from** that
+author's `grilling` and `diagnosing-bugs`, and both say so. Since those skills now ship in the
+official marketplace, the distinction is worth stating outright: nothing here resolves them at
+runtime, nothing degrades when they are absent, and installing them changes no behaviour of this
+plugin.
+
+**Why they are forks rather than dependencies** is recorded where the fork lives — see
+`grilling-technique.md`'s *Relationship to the upstream technique it was adapted from*, which
+compares the two on cadence, depth, the no-human-turn case and altitude, and says which way to jump
+on each. The short version: this plugin invokes the technique from eight commands at three depths,
+one of which may run unattended, and a mid-run cross-marketplace dependency is precisely what the
+self-contained rule above forbids.
+
 ## Related external tooling (not a plugin)
 
 | Tool | Role |

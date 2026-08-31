@@ -24,7 +24,13 @@ is the second command of that route, after [`/brd-intake`](brd-intake.md) and be
   checked against a tracker. Unlike [`/brd-split`](brd-split.md), this command refuses neither
   level.
 - **`--depends-on <BRD-KEY>`** (optional, repeatable) — declares a prerequisite BRD. Persisted to
-  `brd-link.md` additively across runs; the file may also be edited by hand.
+  `brd-link.md` additively across runs; the file may also be edited by hand. A prerequisite
+  contributes a `will-change` horizon only through its **frozen** decisions, and frozen is a field
+  test rather than a judgement — `status: decided` in that BRD's own register
+  ([`decision-register-format.md`](../../references/decision-register-format.md) §3), never a record
+  that merely reads as settled. A prerequisite declared while it is still in flight carries `open`
+  records and contributes nothing, which is ordinary and is reported as its own state rather than as
+  a silent absence.
 - **`--derivation-matrix` / `--no-derivation-matrix`** (optional, mutually exclusive) — force the
   implementation-altitude data-source matrix on or off. Left unset, the command defaults it on for
   a BRD whose requirements read as reporting- or data-centric, and off otherwise.
@@ -88,8 +94,10 @@ Phase 11, for session lessons-learned.
   folder and on no ref means it was produced and its handoff was declined, and stops with
   `BRD_GROUND_NOT_HANDED_OFF`, whose action is to commit and merge the files already on disk. It
   names the producing command only where re-running it would actually stage them: never
-  `/brd-split`, which on a fully-allocated parent is a no-op that stages nothing and opens no pull
-  request; and `/brd-intake`, on a BRD that owns its source document, as a slower second route,
+  `/brd-split` — which on a fully-allocated parent with no standing empty child is a no-op that
+  stages nothing and opens no pull request, and which, where this slice claims nothing, is a live
+  run that resolves the empty child but stages that decision rather than this slice's inventory and
+  ledger; and `/brd-intake`, on a BRD that owns its source document, as a slower second route,
   since it re-extracts the inventory and rewrites the ledger before handing it off.
 - **`$REPOS_PATH`** — required; resolved as one directory or a colon-separated list. No resolvable
   entry stops the run naming `REPOS_PATH`.

@@ -216,6 +216,12 @@ parent does — the last three commands of the route behave identically at both 
 
 `--sort-existing <dir>` on `/brd-intake` additionally writes `prd-seed.md`, `ard-seed.md`, and
 `spec-seed.md` at the BRD folder's own level — a one-time migration path for a package written by
-hand before this route existed, not an output of the normal flow. See [Workflow
+hand before this route existed, not an output of the normal flow. **It is the only writer of any of
+the three**, which is worth stating plainly because `--from-brd` on `/create-prd`, `/create-ard` and
+`/specify` each reads one: a reconciled BRD normally holds no seed at all, so each of those runs
+reports its seed absent as the **ordinary** case rather than as a gap. What actually carries content
+to all three altitudes is `decisions.md` — every one of them reads the same register and filters it
+by each record's `altitude` — together with the grounding findings, and, for `/specify`, the
+derivation matrix appended to `code-grounding.md`. See [Workflow
 overview](workflow.md) for where this route's artifact home sits relative to the rest of the
 pipeline's, and [Roles and phases](roles-and-phases.md) for what each role owns across both routes.

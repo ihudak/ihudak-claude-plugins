@@ -40,7 +40,7 @@ declaration.
 | Phase 4 — walk the ledger | runs, **five** resolutions | runs, **four** — this walk offers no `covered-by` |
 | Phase 4.5 — resolve standing empty children | runs | skipped — a slice has no children |
 | `rejected: [DEF#n]` resolves in | this BRD's own defect log | the **parent's** log, one hop ([`brd-format.md`](../../references/brd-format.md) §4) |
-| Phase 7 — next steps | ground each new child | **the route does not end here** — [`/brd-interview`](brd-interview.md) on this slice, Recommended; *Stop here* is the other option, not the only one |
+| Phase 7 — next steps | ground each **non-empty** child | **the route does not end here** — [`/brd-interview`](brd-interview.md) on this slice, Recommended; *Stop here* is the other option, not the only one |
 | Announced? | no — the ordinary case | yes, `BRD_SPLIT_ON_SLICE`, a **notice, not a stop**, at Phase 0 and again in the final report |
 
 A slice's walk offers no `covered-by`, and the reason is about **who writes** it, not about whether

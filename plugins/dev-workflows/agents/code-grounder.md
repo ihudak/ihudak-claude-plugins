@@ -88,7 +88,8 @@ repository, a commit, or a claim to have something to ground.
 
 6. **Assign `altitude` and `horizon`** per `grounding-format.md` §2 and §5. `horizon: will-change`
    names the specific prerequisite decision that overturns the finding, not merely the prerequisite
-   BRD; if no prerequisite's decisions are frozen yet, the finding stays `current`.
+   BRD; if no prerequisite's decisions are frozen yet — frozen being `status: decided` and nothing
+   else, per that section — the finding stays `current`.
 
 7. **Emit exactly one finding per claim**, numbered contiguously as `[CG#n]` starting from `CG#1`
    in the order `claims` was given. Ids are assigned once and never renumbered across a run.

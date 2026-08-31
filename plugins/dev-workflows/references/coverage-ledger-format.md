@@ -180,8 +180,13 @@ level-specific pair drifts the next time either §3 or the picker changes. §3 i
 disposition's meaning and its writer are decided;
 `commands/brd-split.md` Phase 4 is where the paths a walk offers are decided — read each off the
 file that owns it, and never take one as the count of the other. Re-running `/brd-split` on a
-BRD whose ledger is already fully allocated is a no-op: nothing changes, and the command still
-reports the ledger line (§6).
+BRD whose ledger is already fully allocated changes **nothing this file owns**: no row moves, and
+the command still reports the ledger line (§6). **Whether that makes the whole run a no-op is not
+this file's to say, and it is no longer only about the ledger** — that command also resolves a child
+left standing while claiming nothing, which no ledger records and which this file therefore cannot
+see. Read the no-op test off `commands/brd-split.md` Phase 0, the same way the picker's shape is
+read off its Phase 4; a run that "changes no disposition" and a run that "does nothing" stopped
+being the same run once that resolution existed.
 
 **The set of resolutions the command offers, how each one writes its row, and how a row ever
 reaches `covered-here` are `/brd-split`'s own behavior** — see `commands/brd-split.md` Phase 4 —

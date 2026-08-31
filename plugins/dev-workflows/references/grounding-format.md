@@ -157,7 +157,13 @@ prerequisite BRD alone is not enough — a prerequisite can carry many decisions
 them is the one that overturns this particular finding; the finding names that specific decision.
 
 Grounding reads only a prerequisite's **frozen** decisions, never speculation, a draft position, or
-an interview answer still open for revision. **A prerequisite whose decisions are not yet frozen
+an interview answer still open for revision. **"Frozen" is a field, not a judgement: it means
+`status: decided`**, the second of the five statuses `references/decision-register-format.md` §3
+fixes, and nothing else qualifies — `open` and `reopened` may not be consumed downstream at all,
+`superseded` and `withdrawn` describe a position no longer held, and an `[AS#n]` never reaches
+`decided` (§7 there). A reader that weighed how settled a record *sounds* instead of reading its
+status would be inferring the one thing the register records outright. **A prerequisite whose
+decisions are not yet frozen
 contributes no `will-change` horizons at all** — there is nothing stable enough to name, so every
 finding that touches it stays `current`, and that absence is itself reported rather than silently
 assumed. A `will-change` finding is not deleted once its prerequisite ships and the code catches up

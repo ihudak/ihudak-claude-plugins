@@ -42,10 +42,10 @@ resolved `path`, `kind` and `key`, and `specs` forward.
   - **PRD with exactly 1 Epic** → no picker; set `focus_key` to that Epic and proceed.
   - **PRD with ≥2 Epics** → render the picker. **`/implement`'s done-predicate is now the artifacts
     present in each Epic folder**, which is the mechanism `/design`'s own Epic picker already uses:
-    `specification.md` but no `design.md` → ○; `design.md` present → ◐. **● is not determinable in
-    this increment** — the signal that an Epic was implemented is `implementation.md`, which
-    `/implement` itself begins writing in increment C — so say so beside the list rather than
-    showing a marker the tree cannot support. Reading the artifacts rather than a status field is
+    `specification.md` but no `design.md` → ○; `design.md` present, no `implementation.md` → ◐;
+    `implementation.md` present → ● (greyed, not default-selectable; selecting offers "implement
+    anyway"). All three markers are determinable, because `/implement` writes that record itself
+    (Phase 4.7). Reading the artifacts rather than a status field is
     strictly better than what it replaces: a declared status is a human's claim about the work and
     could lag it, which is why the old picker had to print the raw status text as a hedge. Include the explicit choice
     **"Implement one broad PRD-level slice instead"** (`focus_key` stays null → specs

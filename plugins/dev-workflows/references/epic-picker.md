@@ -44,6 +44,9 @@ does not.
 
 **A command whose done-predicate artifact does not exist yet shows the markers it can support and
 says which it cannot.** Claiming ● on a signal the tree cannot supply is worse than a shorter legend.
+Every consumer can support all three today — `/specify` on `specification.md`, `/design` on
+`design.md`, `/implement` on `implementation.md` — so this is a rule for the next command that adopts
+the picker, not a live caveat.
 
 ## What the picker does not do
 

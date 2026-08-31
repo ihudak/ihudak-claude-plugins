@@ -11,22 +11,23 @@ convention live in ONE place.
 
 ## Resolution (most-specific first)
 
-1. Resolve the PRD dir `$SPECS_PATH/specifications/<PRD>-<vslug>/` — match by key-number, tolerating a
-   stray `-`/`_` and a human-adjusted slug (the same rule the other commands use). No match there →
-   apply `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §7's one-level-deep fallback before
-   concluding none exists; it is reached only on a flat miss, so a flat key resolves exactly as it did
-   before.
+1. Resolve the PRD folder by calling `resolve-address <PRD>` — the entry point
+   `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3 defines. It searches every level §3 bounds and
+   carries §5's legacy fallback, so this step states no matching rule of its own: a key-number match
+   tolerating a stray `-`/`_` and a human-adjusted slug is exactly what §5 does, and a second copy of
+   it here is the drift `addressing.md` §1 warns about. `status: absent` → no ARD exists; return
+   `none`.
 
-   **This step is the only route by which that fallback reaches an ARD.** All six consumers below
-   delegate their ARD lookup here, so five of them resolving their *own* PRD dir with the fallback
-   would still not find an ARD in a nested dir — and `/implement` resolves no PRD dir at all, reaching
-   an ARD solely by citing this file.
-2. Collect candidate ARD files **inside the dir step 1 resolved** — every `<PRD>-<vslug>/` below names
-   that dir, never a flat path re-derived from the key:
-   - **Epic-level** (`epic` set): `<PRD>-<vslug>/<EPIC>-<eslug>/<EPIC>_ARD.md` and any
-     `<EPIC>-<area>_ARD.md` (the area-scoped file when `area` is given, else every per-area ARD) **plus**
-     the PRD-level `<PRD>-<vslug>/<PRD>_ARD.md` for inherited invariants.
-   - **PRD-level** (`epic` null): only `<PRD>-<vslug>/<PRD>_ARD.md`.
+   **This step is the only route by which that resolution reaches an ARD.** All six consumers below
+   delegate their ARD lookup here, so five of them resolving their *own* PRD folder would still not
+   find an ARD in a nested one — and `/implement` resolves no PRD folder at all, reaching an ARD
+   solely by citing this file.
+2. Collect candidate ARD files **inside the folder step 1 resolved**, by filename — never a path
+   re-derived from the key (`addressing.md` §4):
+   - **Epic-level** (`epic` set): the Epic folder's `ard.md` and any `ard-<area>.md` (the area-scoped
+     file when `area` is given, else every per-area ARD) **plus** the PRD folder's own `ard.md` for
+     inherited invariants.
+   - **PRD-level** (`epic` null): only the PRD folder's `ard.md`.
 3. Parse each file's `## Architecture decisions` into `AD#N {id, binds, prevents, rule, source}` where
    `source` ∈ `prd | epic | area`. PRD-level `AD#N` are the inherited base; Epic/area `AD#N` layer on top
    (Epic/area wins on any conflict — contradictions were already blocked by `ard-reviewer` at authoring).

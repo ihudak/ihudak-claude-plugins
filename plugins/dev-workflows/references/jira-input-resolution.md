@@ -103,15 +103,13 @@ as `VAULT_PATH`** — host-provided, mounted into the container (at
 order:
 
 1. **`$SPECS_PATH` set →** locate a `specs`/`specifications`/`vis` root inside
-   `$SPECS_PATH`, then resolve by **matching folders on the Jira key-number**
-   (tolerate `-`/`_` separators and a trailing slug):
-   - **Resolve the PRD folder once, first** — the folder matching `jira_key`
-     (`<PRD>{-|_}<vslug>/`) directly under that root. No match there → apply
-     `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §7's one-level-deep fallback
-     before concluding none exists; it is reached only on a flat miss, so a flat key
-     resolves exactly as it did before. **Both cases below name the folder resolved
-     here** and neither re-derives it from the key — a case that re-derived would
-     discard this resolution and lose the fallback on its own branch.
+   `$SPECS_PATH`, then resolve the folder through `addressing.md` §3:
+   - **Resolve the PRD folder once, first** — call `resolve-address <jira_key>`, the entry
+     point `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3 defines. It searches every
+     level §3 bounds and carries §5's legacy fallback, so this bullet states no matching
+     rule of its own; `status: absent` → no PRD folder exists. **Both cases below name the
+     folder resolved here** and neither re-derives it from the key — a case that
+     re-derived would discard this resolution and lose the fallback on its own branch.
    - **`focus_key` set →** prefer the nested per-Epic home: inside that PRD folder, the
      Epic folder matching `focus_key` (`<focus_key>{-|_}<eslug>/`), holding
      `specification.md`, `design.md`, and any other `.md`. If that nested Epic folder

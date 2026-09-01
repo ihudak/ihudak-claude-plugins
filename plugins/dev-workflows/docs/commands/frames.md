@@ -42,11 +42,11 @@ flowchart TD
 
 ## What it produces
 
-One `index.md` per frame set, in the format [`grounding-format.md`](../../references/grounding-format.md) §6.2 fixes — the same format and the same reconciliation contract [`/idea`](idea.md) Phase 4.5 follows, so two writers never leave one directory holding an index neither would have written. The index is rebuilt from the set **as it stands on disk**: every existing row whose image is still there is preserved verbatim, a row is appended for each frame this run described, a row whose image is gone is dropped and reported, and a frame the run could not account for gets `_no description on record_` and is reported.
+One `index.md` per frame set, in the format [`grounding-format.md`](../../references/grounding-format.md) §6.2 fixes — the same format and the same reconciliation contract [`/idea`](idea.md) Phase 4.5 follows, so two writers never leave one directory holding an index neither would have written. The index is rebuilt from the set **as it stands on disk**: every existing row whose image is still there is preserved verbatim — with one exception, and it is the whole convergence mechanism for a capped set: a row carrying `_no description on record_` holds no description to preserve, so the next writer that can obtain one fills it — a row is appended for each frame this run described, a row whose image is gone is dropped and reported, and a frame the run could not account for gets `_no description on record_` and is reported.
 
 Descriptions come from the `frame-describer` agent, which looks at the frames and returns one plain-language description each — an agent whose whole tool list is `Read`, `Glob`, `Grep`, so it cannot write the index it describes into. The command hands the frames to it rather than opening them itself, so every description in an index is one that something which actually saw the frame produced, and "transcribed, never inferred" is a rule about copying rather than a hope about restraint.
 
-The indexes are deliverables, so they reach the default branch through the [phase handoff](../../references/phase-handoff.md) — each named as one literal path, behind the usual consent choice. Declining leaves them written and on no ref; they still work locally, because a grounding run reads a frame set from the working tree.
+The indexes are deliverables, so they reach the default branch through the [phase handoff](../../references/phase-handoff.md) — each named as one literal path, behind the phase handoff's consent choice — the **no-§3.4-row variant**, whose second option says nothing downstream reads these rather than promising a stop, because no gate consumes a frame-set index. Declining leaves them written and on no ref; they still work locally, because a grounding run reads a frame set from the working tree.
 
 ## The cap
 
@@ -62,7 +62,7 @@ When the cap bites, every remaining frame still gets a row — `_no description 
 
 ## Gates
 
-No reviewer, and nothing to review — an index states what a directory holds. The checkpoints are the specs-repo git guards (`specs-preflight` at the start, `commit-artifacts` at the end, [`specs-repo-git.md`](../../references/specs-repo-git.md)) and the handoff's own consent choice. Nothing in the run is fatal: a frame that will not open, a set that could not be described, an index that could not be written — each is recorded and the run moves to the next set.
+No reviewer, and nothing to review — an index states what a directory holds. The checkpoints are the specs-repo git guards (`specs-preflight` at the start, `commit-artifacts` at the end, [`specs-repo-git.md`](../../references/specs-repo-git.md)) and the handoff's own consent choice. **Nothing in the indexing pass is fatal**: a frame that will not open, a set that could not be described, an index that could not be written — each is recorded and the run moves to the next set. Phase 0 is the exception and is where every hard stop lives (`FRAMES_NEEDS_ADDRESS`, `FRAMES_EXTRA_ARGUMENT`, `FRAMES_NO_FOLDER`, `FRAMES_NOT_A_SPEC_FOLDER`, an ambiguous key, and an unset `SPECS_PATH`) — the run refuses before it has resolved anything to index.
 
 ## What it is not
 

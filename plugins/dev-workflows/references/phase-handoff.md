@@ -6,7 +6,7 @@ Single source of truth for the two entry points that move a **phase deliverable*
 
 **Relationship to `specs-repo-git.md`.** That reference owns the *bookkeeping* paths (its §2.1) and the run-start/terminal steps for them. This one owns *deliverables*. It inherits four of that file's hard rules and deliberately differs on three; §1 states which.
 
-**Relationship to `code-handoff.md`.** That reference is this one's counterpart in the **code** repo: same shape (gate, stage, commit, push, `gh` probe, outcome line), different repository, and one deliberate inversion — its commit is prompt-free, because a deliverable is already safe on disk when this file's §4.3 choice is asked and a code change is not. Neither file's entry points ever run against the other's repository.
+**Relationship to `code-handoff.md`.** That reference is this one's counterpart in the **code** repo: same shape (gate, stage, commit, push, `gh` probe, outcome line), different repository, and two deliberate inversions. The first is staging scope: §2.2 there stages at **repository** scope, which §1 rule 2 here and in `specs-repo-git.md` both forbid — sanctioned there because that run branched off a verified-clean tree and the whole diff *is* the deliverable, and a reader who carries it back into either sibling breaks theirs. The second is the prompt: its commit is prompt-free, because a deliverable is already safe on disk when this file's §4.3 choice is asked and a code change is not. Neither file's entry points ever run against the other's repository.
 
 ## 1. Hard rules
 
@@ -15,7 +15,7 @@ Inherited from `specs-repo-git.md`, unchanged:
 1. **`git -C` always; `cd` never.** Every invocation is `git -C "$SPECS_PATH" …`. Most callers are running inside a *different* repository; a `cd` would corrupt their git state. The `gh` calls in §2.6 and §3.5 name the repository with `-R` for the same reason.
 2. **Bounded paths.** Only the calling command's own declared deliverable paths are staged, by enumeration (§2.3). `git add -A` is never issued at repository scope.
 3. **Bounded branches.** Only branches matching `^(idea|prd|ard|spec|design|ready|brd|frames)/` are the plugin's (`specs-repo-git.md` §2.2).
-4. **Never destructive.** No `push --force`, no `push -f`, no `branch -D`, no `merge`, no `rebase`, no `reset`, no `stash`, no `checkout --`, and never delete an `index.lock`.
+4. **Never destructive — and this one is WIDER than the rule it inherits, deliberately.** `specs-repo-git.md` §1 rule 4 forbids `push --force`, `push -f`, `branch -D`, `merge`, `rebase`, `reset`, and deleting an `index.lock`. This rule adds **`stash`** and **`checkout --`**, because a deliverable commit runs where the user's own work may be uncommitted and both of those discard it silently. Same repository, two rules — so the addition is declared here rather than left for a reader to notice. No `push --force`, no `push -f`, no `branch -D`, no `merge`, no `rebase`, no `reset`, no `stash`, no `checkout --`, and never delete an `index.lock`.
 
 Where this reference **differs** — each difference is deliberate, and a reader who "corrects" one to match `specs-repo-git.md` breaks this contract:
 
@@ -41,7 +41,11 @@ Collision is normal, not exceptional: `_readiness.md` is overwritten on every `/
 
 1. Test both `git -C "$SPECS_PATH" rev-parse --verify --quiet refs/heads/<name>` and `… refs/remotes/origin/<name>`.
 2. Neither exists → use `<name>`.
-3. **At least one exists** (the local ref, the remote ref, or — the common reuse case — both) **and** it is this run's own in-progress branch — its prefix is the caller's, `specs-repo-git.md` §3.5's `branch-key` resolves it to a key in the run key set (§3.2 there — the same resolution the preflight's B3 makes, so a branch the preflight stayed on is a branch this rule reuses), and `git -C "$SPECS_PATH" merge-base --is-ancestor refs/remotes/origin/<name> refs/remotes/origin/<default>` fails (not yet merged) → **reuse it**, switching to it rather than creating it.
+3. **At least one exists** (the local ref, the remote ref, or — the common reuse case — both) **and** it is this run's own in-progress branch — its prefix is the caller's, `specs-repo-git.md` §3.5's `branch-key` resolves it to a key in the run key set (§3.2 there — the same resolution the preflight's B3 makes, so a branch the preflight stayed on is a branch this rule reuses), and the branch is **not already merged** → **reuse it**, switching to it rather than creating it.
+
+   **Test the merge against a ref that still exists, and read a missing ref as merged.** Resolve the branch ref first — `refs/remotes/origin/<name>` when it exists, else `refs/heads/<name>` — and run `git -C "$SPECS_PATH" merge-base --is-ancestor <that ref> refs/remotes/origin/<default> 2>/dev/null`: exit 0 = merged (do not reuse; fall to rule 4 and create a fresh name), non-zero = not yet merged (reuse). The `2>/dev/null` is required for the same reason §3.2 gives for its own probe — on a missing ref git writes `fatal: Not a valid object name`, which must not leak into the run's output.
+
+   **Why the remote ref alone is not enough:** with GitHub's *delete branch on merge* — the ordinary configuration — a merged branch's **remote** ref is gone while the **local** one survives. Probing only `refs/remotes/origin/<name>` then exits 128, which reads as "not yet merged", so the run switches onto a merged branch and calls `gh pr create` — the failure this section's own premise names ("`gh pr create` fails on an already-merged branch"). `specs-repo-git.md`'s B2 asks the same question against a ref that exists, and the two must not disagree about which ref to test.
 4. Otherwise → append the lowest free integer suffix, starting at `-2`, retesting both refs each time. Report the substitution in the §4.1 outcome line, because a branch name the user did not expect is a branch name they will not find.
 
 ### 2.3 Staging the deliverable
@@ -102,7 +106,7 @@ The expressions strip a scheme, a `user@`, and a host with an optional `:port` t
 
 Title: the commit subject of §2.4.
 
-Body: written to a file (never passed inline, which would break on newlines and quoting) containing what the phase produced; the artifact paths; the reviewer verdict where the caller has one; the count of open questions or `[NEEDS CLARIFICATION]` markers; and the next command in the chain together with the fact that it will not run until this pull request is merged.
+Body: written to a file (never passed inline, which would break on newlines and quoting) containing what the phase produced; the artifact paths; the reviewer verdict where the caller has one; the count of open questions or `[NEEDS CLARIFICATION]` markers; and, **where the caller has one**, the next command in the chain together with the fact that it will not run until this pull request is merged — scoped exactly as the reviewer verdict beside it is, because a producer whose artifact has no §3.4 row has no next command to name and cannot render this sentence without inventing one.
 
 ### 2.8 Failure discipline
 
@@ -135,7 +139,7 @@ The four primitives, each verified against a real specs repo:
 - **The default-branch ref exists:** `git -C "$SPECS_PATH" rev-parse --verify --quiet "origin/<default>"` Exit 0 = the ref exists — run the next primitive. Non-zero = row G: nothing to verify against, stop. This runs **before** the next primitive, because that primitive's own required `2>/dev/null` discards the only signal that would otherwise distinguish "path absent on an existing ref" (row F) from "the ref itself does not exist" (row G) — `git cat-file -e` exits 128 for both, verified empirically: a missing path and a missing ref are indistinguishable by exit code alone.
 - **On the default branch:** `git -C "$SPECS_PATH" cat-file -e "origin/<default>:<path>" 2>/dev/null` Exit 0 = present. The `2>/dev/null` is required — on absence git writes `fatal: path '<path>' does not exist in 'origin/<default>'` to stderr, which must not leak into the run's output. Only reached once the ref-existence primitive above has already confirmed `origin/<default>` exists, so a non-zero exit here means the path is absent, never that the ref is.
 - **Worktree matches the ref:** `git -C "$SPECS_PATH" diff --quiet "origin/<default>" -- "<path>"` Exit 0 = identical. This also catches a **staged-only** change, which a `hash-object` comparison against the working file would miss.
-- **Plugin branches carrying the artifact:** `git -C "$SPECS_PATH" for-each-ref --format='%(refname:short)' refs/remotes/origin refs/heads` filtered to `(origin/)?(idea|prd|ard|spec|design|ready|brd|frames)/*`, then `git -C "$SPECS_PATH" cat-file -e "<ref>:<path>" 2>/dev/null` on each. **Local `refs/heads` are scanned as well as remote ones**, and for the same reason §2.2's branch resolution tests both: a deliverable that was committed but whose push failed (§2.5, reported by §4.1 as "NOT handed off") exists only on a local branch. Scanning remote refs alone would return `absent` for it — the one state §2.8 promises "the next phase's gate is what enforces the consequence" of. Prefer the remote ref when both carry the path, so rows D and E report the branch the pull request is open against.
+- **Plugin branches carrying the artifact:** `git -C "$SPECS_PATH" for-each-ref --format='%(refname:short)' refs/remotes/origin refs/heads` filtered to `(origin/)?(idea|prd|ard|spec|design|ready|brd|frames)/*`, then `git -C "$SPECS_PATH" cat-file -e "<ref>:<path>" 2>/dev/null` on each. **Local `refs/heads` are scanned as well as remote ones**, and for the same reason §2.2's branch resolution tests both: a deliverable that was committed but whose push failed (§2.5, reported by §4.1 as "NOT handed off") exists only on a local branch. Scanning remote refs alone would return `absent` for it — the one state §2.8 promises "the next phase's gate is what enforces the consequence" of. Prefer the remote ref when both carry the path, so rows D and E report the branch the pull request is open against. **Then strip a leading `origin/` and carry the bare branch name forward** — `%(refname:short)` of a remote ref is `origin/spec/PRD-2-y`, while the branch that exists on the host is `spec/PRD-2-y`. This is not cosmetic: §3.5 feeds this value to `gh pr list --head`, which filters by the head branch name **on the host** and matches nothing against an `origin/`-prefixed string, so leaving the prefix on made **row D unreachable in every repository state** — a pushed branch with an open pull request reported row E's "was never handed off", silently, with `gh` exiting 0. The bare name is also the only form the operator can act on.
 
 ### 3.3 The state table
 
@@ -144,12 +148,12 @@ First matching row applies.
 | # | On `origin/<default>` | Worktree | HEAD | Outcome |
 |---|---|---|---|---|
 | H | — | — | gate of §3.1 fails | **silent skip** — return `unmanaged`; the caller proceeds exactly as it did before this feature |
-| I | — | — | run carries `specs_git: blocked` (detached HEAD) | **stop**, re-emitting that notice. A phase cannot complete from a detached HEAD, so verifying one is meaningless |
+| I | — | — | run carries `specs_git: blocked` (detached HEAD), **or** HEAD is detached and no preflight set that flag | **stop**, re-emitting that notice where there is one. A phase cannot complete from a detached HEAD, so verifying one is meaningless |
 | G | `origin/<default>` ref does not exist | — | any | **stop** — the plugin cannot verify what is on `<default>` |
 | A | present | matches ref | any | **pass** |
 | B | present | differs | a branch **this run itself created or reused during this run**: created earlier in the same invocation via this caller's own `handoff-to-main`, or reused because `specs-repo-git.md` §3.5 B3 kept the preflight checkout on it AND the branch is the caller's **own** — its prefix is this caller's and its key is in the run key set (`specs-repo-git.md` §3.2). The test is **branch ownership, not artifact authorship**: the load-bearing case is `/design` resumed on its own `design/<EPIC>-<eslug>` branch gating the `specification.md` that same branch amends, and `/design` is not that file's original author (`/specify` is). Requiring authorship would exclude the one case this row exists for and drop it into row C, whose repair offer re-grounds the session on the un-amended copy. Ownership is still never merely a prefix the caller is *capable of* producing for an unrelated purpose, such as `/implement`'s Phase 4.5 escalation handoff onto `spec`/`design` | **pass, reported** — `reading <path> from your in-progress <branch>, which amends the approved version on <default>` |
-| C′ | present | differs | any other HEAD, **and** the tree is dirty in a way that would block a switch | **stop**, naming the exact files |
-| C″ | present | differs | HEAD **is** the default branch (so nothing to switch to), and the divergence is an uncommitted local edit | **stop**, naming the files and saying the repair offer cannot help here |
+| C′ | present | differs | any other HEAD, **and** the tree is dirty in a way that would block the switch **or** the `pull --ff-only` that follows it | **stop**, naming the exact files |
+| C″ | present | differs | HEAD **is** the default branch (so nothing to switch to), and the divergence is local — an uncommitted edit **or** a committed-but-unpushed one | **stop**, naming the files and saying the repair offer cannot help here |
 | C | present | differs | any other HEAD | **repair offer**, then re-test once |
 | D | not on ref | — | artifact found on a plugin ref, pull request open | **stop** — `<path> is on branch <branch> with PR #<n> open, not merged` |
 | E | not on ref | — | found on a plugin ref, no open pull request | **stop** — `<path> is on branch <branch> and was never handed off` |
@@ -157,7 +161,7 @@ First matching row applies.
 
 **`not on ref` describes the repository, not the return value.** Rows D, E, and F all read `not on ref` in the first column because none of the three has the artifact on `origin/<default>` — that column is a statement about the repository. It is row F alone that returns `absent` (§3.7), and D/E are stopping rows that never reach a caller's `absent` branch at all. A consumer that keys off this column instead of the returned `stopped` flag cannot tell D/E from F.
 
-**Row order matters.** H, I, and G precede everything else because they are about the repository, not the artifact — and G, like H and I, must precede every row that keys on `not on ref` (D, E, F) and every row that tests the worktree against the ref at all (A, B, C′, C): §3.2's ref-existence primitive runs before the on-ref-presence primitive, so a reader who has not first ruled out G cannot tell "path absent on an existing ref" (row F) from "the ref itself does not exist" (row G) — the defect `f5a9713` closed in §3.2 but this table, until now, never propagated to its own row order. C′ precedes C because offering a switch that git would refuse is worse than naming the blocker.
+**Row order matters.** H, I, and G precede everything else because they are about the repository, not the artifact — and G, like H and I, must precede every row that keys on `not on ref` (D, E, F) and every row that tests the worktree against the ref at all (A, B, C′, C″, C): §3.2's ref-existence primitive runs before the on-ref-presence primitive, so a reader who has not first ruled out G cannot tell "path absent on an existing ref" (row F) from "the ref itself does not exist" (row G) — the defect `f5a9713` closed in §3.2 but this table, until now, never propagated to its own row order. C′ precedes C because offering a switch that git would refuse is worse than naming the blocker.
 
 **Row B is load-bearing and must not be folded into C.** `/design` amends `specification.md` on its own branch, so on a resume the worktree copy legitimately differs from the default branch. Under row C the plugin would offer `switch to <default> + pull --ff-only` and **discard the in-progress design**. The distinguishing test is **branch ownership**, never whether the file differs.
 
@@ -169,9 +173,15 @@ First matching row applies.
 
 On the first choice: `git -C "$SPECS_PATH" switch <default>` then `git -C "$SPECS_PATH" pull --ff-only`, then re-test **once**. A second failure stops — never merge, rebase, or reset, and never loop.
 
+**Three states the C-row family used to misclassify, each fixed above and recorded so the narrowing is not undone.**
+
+- **A committed local divergence on the default branch (C″).** C″ once required the divergence to be an *uncommitted* edit, so a commit whose push failed — the state `specs-repo-git.md` §3.4's retry exists for — fell to row C. Row C's offer is `switch` + `pull --ff-only`, and on the default branch the switch reports *"Already on 'main'"* and the pull *"Already up to date."*, both exit 0: a repair that changes nothing, reports success, and then stops anyway. That is exactly the defect C″ was added to close, in the variant its wording excluded, and worse than the case it did cover — there the pull errored visibly.
+- **Dirt that blocks the pull rather than the switch (C′).** C′ exists because "offering a switch that git would refuse is worse than naming the blocker", but row C's offer is a switch **and** a pull, and a dirty file that is identical on both branches blocks only the second: `git switch` succeeds and moves the user off their branch, then `pull --ff-only` aborts with *"Your local changes … would be overwritten"*. The user is left relocated by a repair that failed. C′ must therefore test both commands, not the first.
+- **A detached HEAD on a read-only mount (I).** Row I keyed on the `specs_git: blocked` flag, whose only producer is `specs-preflight` — and §3.1 there requires a **writable** `.git`, which `require-on-main`'s own gate deliberately does not. On a read-only mount the preflight is a silent no-op, so the flag is never set, and a detached HEAD fell through to row C, whose offer is a write: `git switch` exits 128 with a raw `fatal: Unable to create '.git/index.lock': Permission denied`. Row I now tests the state as well as the flag.
+
 ### 3.4 Row F delegates — the gate never makes an optional input mandatory
 
-Row F is the difference between "this phase was not handed off" and "this phase never happened". Only the second is row F, and the gate has no opinion about it. **An input that was optional before this gate existed stays optional, and that must not change.** The gate returns `absent`; the caller does what it already does.
+Row F is the difference between "this phase was not handed off" and "this phase never happened". Only the second is row F **as the plugin produces it** — `handoff-to-main` always names a prefixed branch, so a plugin-internal run that handed off is found on a ref. A **person** working on their own branch is the third case: `specs-repo-git.md` G2 sanctions a run committing and pushing artifacts onto a non-plugin branch, and §3.2's scan is filtered to plugin prefixes, so that artifact is "found on no ref" and lands in row F too. Row F therefore means *not found on a branch this plugin manages*, which is not quite *never happened*; the gate has no opinion about either, which is why delegating rather than stopping is still right. **An input that was optional before this gate existed stays optional, and that must not change.** The gate returns `absent`; the caller does what it already does.
 
 Several consumers map `absent` to a hard stop, and every one of them is legitimate for the same reason: their gated input was **never optional to begin with** — it is a new input, introduced together with the command that reads it, with no pre-existing "what it already did" to fall back to. The rule this section protects is that the gate must not *promote* an optional input into a prerequisite; it does not require a genuinely mandatory input to be made optional.
 
@@ -199,12 +209,12 @@ For rows D and E, after §3.2's ref scan finds a carrying branch:
 
     gh pr list -R "$OWNER_REPO" --head <branch> --state open --json number,url
 
-`$OWNER_REPO` is derived as in §2.6. On `gh` failure, use **row E's** wording plus a note that the pull-request state could not be checked — never assert a pull request exists, and never assert one does not.
+**Derive `$OWNER_REPO` first (§2.6), and skip this probe when the derivation does not validate.** §2.6's slug test (`^[^/]+/[^/]+$`) is what says whether this remote is a `gh` target at all; running the probe before it means calling `gh` with an unvalidated `-R`. `<branch>` is the bare name §3.2 carried forward, never `origin/`-prefixed. On `gh` failure, use **row E's** wording plus a note that the pull-request state could not be checked — never assert a pull request exists, and never assert one does not.
 
 ### 3.6 Degraded verification
 
 - **Fetch failed** (offline, auth) → test against the last-known `origin/<default>` and say so, the precedent `specs-repo-git.md` §3.2 already sets: `offline — checked against the last-fetched ref`.
-- **Read-only specs mount** → `references/read-only-repos.md` applies: no `fetch`, use the existing ref, emit the degraded clause. The gate still functions; only its freshness degrades.
+- **Read-only specs mount** → `references/read-only-repos.md` applies: no `fetch`, use the existing ref, emit the degraded clause. **The read-only rows degrade in freshness only; the repair rows do not run at all.** Every classifying primitive in §3.2 is a read, so rows H/G/A/B/C″/D/E/F reach their verdict unchanged against a stale ref. Row C's offer, though, is a `switch` and a `pull` — writes that `read-only-repos.md` forbids and that git refuses with a raw `fatal:` — so on a read-only mount row C **stops with its finding instead of offering the repair**, naming the mount as the reason. Saying only that freshness degrades was false for the one row that writes.
 - **No `origin/<default>` ref at all** → row G. Nothing to verify against, and proceeding silently is the failure this reference exists to prevent.
 
 ### 3.7 Return value
@@ -221,7 +231,7 @@ For rows D and E, after §3.2's ref scan finds a carrying branch:
 
 **`on_main` is defined only when `stopped: false`.** Its four values — `pass` (row A), `pass_amending` (row B), `absent` (row F), `unmanaged` (row H) — are exhaustive for the non-stopping rows only. Every stopping row (I, C′, C, D, E, G) carries no defined `on_main` value; a caller has nothing to read there and must act on `stopped`/`branch`/`pr`/`degraded` instead.
 
-**A caller tests `stopped` before `on_main`.** `on_main: absent` is returned only by row F; every stopping row (I, C′, C, D, E, G) returns `stopped: true` regardless of what `on_main` reads. A caller that branches on `on_main == "absent"` before checking `stopped` cannot distinguish row F (never happened — §3.4 applies) from rows D/E (happened, but not handed off — the run must stop).
+**A caller tests `stopped` before `on_main`.** `on_main: absent` is returned only by row F; every stopping row (I, C′, C″, C, D, E, G — seven of the eleven) returns `stopped: true` regardless of what `on_main` reads. A caller that branches on `on_main == "absent"` before checking `stopped` cannot distinguish row F (never happened — §3.4 applies) from rows D/E (happened, but not handed off — the run must stop).
 
 ## 4. Reporting
 
@@ -231,14 +241,23 @@ Exactly one, prefixed `Phase handoff:`.
 
 | Case | Line |
 |---|---|
-| Committed, pushed, PR opened | `Phase handoff: <branch> pushed — PR #<n> open (<url>). The next phase runs once it is merged.` |
-| PR already existed | `Phase handoff: <branch> pushed to existing PR #<n> (<url>). The next phase runs once it is merged.` |
-| PR not opened | `Phase handoff: <branch> pushed — PR NOT opened (<reason>). Open it manually; the next phase will stop until it is merged.` |
+| Committed, pushed, PR opened | `Phase handoff: <branch> pushed — PR #<n> open (<url>). <downstream-clause>` |
+| PR already existed | `Phase handoff: <branch> pushed to existing PR #<n> (<url>). <downstream-clause>` |
+| PR not opened | `Phase handoff: <branch> pushed — PR NOT opened (<reason>). Open it manually. <downstream-clause>` |
 | Push failed | `Phase handoff: committed <sha7> on <branch> — push FAILED (<reason>). The phase is NOT handed off.` |
 | Nothing to commit | `Phase handoff: no deliverable changes to commit on <branch>` |
 | Branch name substituted | append `; branch name <intended> was taken, used <actual>` |
 | Declined by the user | `Phase handoff: skipped at your request — <artifact> is written but not on <default>. <next-phase-clause>` |
 | Gate failed | `Phase handoff: NOT handed off — <reason>` |
+
+**`<downstream-clause>` is resolved from §3.4's row too, and on the same principle.** Where §3.4 has
+a row for this artifact, it is `The next phase runs once it is merged.` — or, on the *PR not opened*
+row, `The next phase will stop until it is merged.` Where §3.4 has **no row at all**, it is `Nothing
+downstream reads it, so no command waits on this.` These three lines are the *success* path, and
+before this clause existed they asserted a waiting phase unconditionally — so a `/frames` run that
+handed off cleanly printed "The next phase runs once it is merged." having, in the same phase, just
+offered the §4.3 array that says nothing reads it. A run must not contradict its own prompt, and the
+outcome line is the half the operator acts on.
 
 **`<next-phase-clause>` is resolved from §3.4's row for this artifact, and it is not always a stop.**
 Declining writes no branch and no commit, so the next phase's gate reads **row F** — which delegates.
@@ -260,7 +279,8 @@ sentences cost nothing to tell apart: the producer knows which artifact it just 
     Open one from <branch> into <default> in the web UI, using this title:
       <title>
     The body is at <body-path>.
-    Until it is merged, the next phase will stop.
+    <downstream-clause>   # §4.1 — never the bare "until it is merged" sentence, which is
+                          # false for an artifact nothing downstream consumes.
 
 ### 4.3 The consent choice
 

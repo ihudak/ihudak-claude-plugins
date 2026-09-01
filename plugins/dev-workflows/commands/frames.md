@@ -107,13 +107,22 @@ step skips on it.
    ```
    frame sets: none — <folder> has no design/ subdirectory (nothing created)
    ```
-   or `… — <folder>/design/ holds no frame set (nothing created)`. Where `design/` holds images
-   *directly* — the near-miss of the gesture this command exists for — say so and name the fix:
-   `… — <folder>/design/ holds N images but no frame set; a set is a subdirectory of design/. Move them into design/<set-name>/ and re-run (nothing created)`.
+   or `… — <folder>/design/ holds no frame set (nothing created)`.
    **Create no `design/`, create no
    frame-set directory, and write no index.** §6.2 step 6 forbids writing an index where the listing
    is empty, and an empty `design/<frame-set>/` is a directory `design-grounder` would open for
    nothing. Skip Phases 2 and 3 entirely and go to Phase 4 — the run still records its own spend.
+
+2a. **Images sitting directly in `design/` are reported wherever they are found — not only when
+   there is no frame set.** A set is a subdirectory of `design/`, so a frame dropped into `design/`
+   itself is indexed by nothing. Say so and name the fix:
+   `design/: N images sit directly in design/ and are in no frame set; a set is a subdirectory. Move them into design/<set-name>/ and re-run.`
+   **This test is deliberately outside item 2.** Nesting it there — its first home — made it
+   unreachable in the state that produces it most often: `/idea` creates `design/idea-sources/` for
+   any idea-route folder whose source linked a readable image, so `design/` very commonly holds a
+   subdirectory *and* loose frames an operator exported later. Item 2 does not fire then, and the
+   loose frames went unmentioned while the run reported success on the sets it did find. A guard for
+   a near-miss has to fire in the mixed state or it does not fire at all.
 
 3. **List each set's images** — every file carrying one of the frame extensions §6.2 step 1 fixes.
    The set is that section's, not this command's: two writers of one index listing by two vocabularies
@@ -121,6 +130,13 @@ step skips on it.
    and it is the whole truth about what the set holds; `index.md` is not a frame and is never a row.
    A set whose listing is **empty** is reported and skipped — nothing is written into it and nothing
    is removed from it, exactly as §6.2 step 6 requires.
+
+   **Hold every file in the set that is NOT in that extension set, and name each once.** §6.2 step 1
+   requires it of every writer — *"a writer that finds one names it once in its own report so it is
+   visibly not indexed rather than invisibly missing"* — and this run is the writer. It gets no row
+   and is never described; it is reported so an operator who exported a `.fig`, a `.pdf` or a `.sketch`
+   into a set learns it will never be grounded, instead of inferring it from a row count. `index.md`
+   itself is excluded: it is this format's own file, not an un-indexed frame.
 
 4. **Read the index already there, where there is one.** `index.md` is the name every writer writes
    (§6.2). An index found under **another** name — a manifest, a captions file, a README — is
@@ -221,7 +237,11 @@ is repo-relative; an absolute path there matches nothing and stages nothing, sil
 many rows it now holds, how many this run added, how many it
 preserved, how many carry `_no description on record_` and why (`cap`, `missing`, `not_an_image`,
 `unreadable`, `not_a_frame`, or an agent status), and every row dropped because its image is gone.
-Carry the literal list of index paths written into Phase 3.
+Hold also **each file in the set that is not a frame at all** (Phase 1 step 3), which carries no row
+and must still be named, and **any `notes` the describer returned** — a frame illegible at the
+resolution supplied, or a set that is plainly several unrelated exports. `frame-describer` documents
+`notes` as output and nothing read it, so the observation it exists to surface was discarded; it is
+reported, never acted on, exactly as `/brd-ground` consumes `design-grounder`'s. Carry the literal list of index paths written into Phase 3.
 
 **The bookkeeping steps do not stage any of this.**
 `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1 classifies `design/**` as OTHER, so
@@ -283,7 +303,7 @@ see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
 
 ## Phase 4 — Session maintenance, feedback & cost
 
-Terminal phase — runs after Phase 3, NEVER interrupts an earlier phase, and **runs on every path**,
+Terminal phase — runs after Phase 3, NEVER interrupts an earlier phase, and **runs on every path that reached Phase 1**,
 including the run that found no `design/` at all.
 
 **Capture-at-block invariant.** If an EARLIER phase **halts on a plugin / skill / command / reference
@@ -311,7 +331,7 @@ gap** (a capability the run needed but the plugin lacked), `emit-block` (per
    its `emit-cost` entry point with `command: /frames`, `phase: inferred`, `role: inferred`, `key` =
    the resolved folder's key, the run's `source`, and `plugin_version`. §7's discriminator is the
    resolved folder's own `kind`, which Phase 0 already read: `brd` attributes the run to
-   `brd-to-prd`/`pm`, `prd` and `epic` to `prd-creation`/`pm`. The key is always present — this
+   `brd-to-prd`/`pm`, `prd` and `epic` to `prd-creation`/`pm`. The key is always present on any path that reaches here — Phase 0's stops (`FRAMES_NEEDS_ADDRESS`, `FRAMES_EXTRA_ARGUMENT`, `FRAMES_NO_FOLDER`, `FRAMES_NOT_A_SPEC_FOLDER`, an ambiguous key, an unset `SPECS_PATH`) all refuse before a folder is resolved, and this phase runs after them, which is why its scope is stated as *every path that reached Phase 1* rather than every path. This
    command refuses to run without a resolved folder — so the entry lands on the keyed tier and never
    on the pending ladder (§9), which **advances the chained checkpoint** (§3); surface the persisted
    path (or the report-only notice).
@@ -339,8 +359,10 @@ written, created, or rewritten; how many rows it now holds; how many rows this r
 many it **preserved verbatim**, and how many carry `_no description on record_` with the reason for
 each (`cap`, `missing`, `not_an_image`, `unreadable`, `not_a_frame`, or the agent status that
 stopped the set); every row **dropped** because its image is no longer in the directory; a set
-skipped for holding no image; and an index found under a name other than `index.md`, with the fact
-that `index.md` now sits beside it.
+skipped for holding no image; **each file in the set that is not a frame**, named once so it is
+visibly not indexed rather than invisibly missing (§6.2 step 1); and an index found under a name
+other than `index.md`, with the fact that `index.md` now sits beside it. Report, too, any images
+sitting directly in `design/` outside every set (Phase 1 step 2a).
 
 **Report the cap explicitly whenever it bit** — how many frames were described, how many were left,
 and that `/dev-workflows:frames <the same address>` describes the next 40 and converges. State the

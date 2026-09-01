@@ -41,7 +41,7 @@ loop: a **run-start** flush and branch disposition (`specs-preflight`, §3) and 
 
 ### 2.1 Paths
 
-Exactly three shapes, derived from the emission ladders. Nothing outside this
+Exactly five shapes, derived from the emission ladders — three directory shapes and the two single files §2.1 names below. Nothing outside this
 set is ever staged.
 
 ```
@@ -140,9 +140,11 @@ last-fetched ref`. Never fatal.
 own branches is *named for* — taking each key already resolved at the call site.
 A PRD-scoped run contributes its PRD key. An **Epic-scoped** run — one whose
 single address resolved an `EPIC-` folder (`/create-ard`, `/specify`, `/design`,
-`/ready`, `/frames`) — contributes **both**, because the Epic's key encodes its ancestry and
-the run reads the PRD from the folder above it: the Epic is as much this run's key
-as the PRD is, and §3.5 must recognise a branch named for either (§3.6). Two keys
+`/ready`, `/frames`) — contributes **both**, because the Epic's key encodes its ancestry: the Epic
+is as much this run's key as the PRD is. For four of the five the run also *reads* the PRD from the
+folder above; `/frames` does not (it indexes what the resolved folder holds and never looks up), so
+ancestry alone carries it — which is enough, because what the second key is for is §3.5 recognising a
+branch named for either, and §3.5 must recognise a branch named for either (§3.6). Two keys
 in the set, one address on the command line (D4). When no key is resolved at the call site the set is empty and
 the run is **keyless**. Both are correct behaviour — no command needs to defer
 its preflight in order to obtain a key.
@@ -201,8 +203,18 @@ Always runs when stage 1 matched nothing.
 - **Dirty ARTIFACT paths exist** → commit them **onto the current branch** (they
   belong to the run that wrote them) and push, per §4 steps 2–6.
 - **No dirty ARTIFACT path** → check whether the current branch is **ahead of
-  its upstream** and every ahead-commit touches only §2.1 artifact paths. If so,
-  **retry the push**. Without this, a push that failed in a previous run leaves
+  the branch it would push to** and every ahead-commit touches only §2.1 artifact
+  paths. If so, **retry the push**.
+
+  **Do not phrase that test as `@{u}`.** A failed `push -u` sets no upstream, so
+  `git rev-parse --abbrev-ref '@{u}'` and `git rev-list --count '@{u}..HEAD'` both
+  exit 128 with `fatal: no upstream configured` — the condition is not false but
+  *unevaluable*, and precisely in the state the retry exists for. Resolve the
+  comparison base instead: the upstream where one is configured, else
+  `refs/remotes/origin/<branch>` where that ref exists, else — a local-only branch
+  a failed `push -u` leaves behind — treat the branch as **entirely ahead** and
+  retry the push, which is the case that strands an artifact commit with nothing
+  to retry it. Without this, a push that failed in a previous run leaves
   a local commit that nothing ever retries — the original defect, re-created one
   layer up.
 

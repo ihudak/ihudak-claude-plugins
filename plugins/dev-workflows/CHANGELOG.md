@@ -4,6 +4,76 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.21.0] — 2026-09-01
+
+### Fixed — review round 3: a gate row that could never fire, and four states misclassified into a no-op
+
+Two Opus reviewers went over the git machinery and `/frames`, the first by **executing** every
+primitive in scratch repositories and against the live GitHub API rather than reading it.
+
+**`require-on-main`'s row D was unreachable in every repository state.** §3.2's ref scan ends "prefer
+the remote ref", and `%(refname:short)` of a remote ref is `origin/spec/PRD-2-y` — while the branch on
+the host is `spec/PRD-2-y`. Nothing stripped the prefix, and §3.5 feeds that value to
+`gh pr list --head`, which filters by the head branch name **on the host**. Demonstrated against this
+repository's own open pull request: the bare name returns it, the `origin/`-prefixed name returns
+nothing. So every state that should have reported *"is on branch X with PR #n open, not merged"*
+instead reported row E's *"was never handed off"* — about a branch with an open pull request, silently,
+with `gh` exiting 0. The scan now carries the bare name, and says why.
+
+**`handoff-to-main` rule 3 reused an already-merged branch.** It tested
+`merge-base --is-ancestor refs/remotes/origin/<name>` — but with GitHub's *delete branch on merge*, the
+ordinary configuration, a merged branch's remote ref is gone while the local one survives, so the probe
+exits 128 and "fails" reads as "not yet merged". The run then switched onto a merged branch and called
+`gh pr create` — the failure §2.2's own premise names. It now resolves a ref that exists, reads a
+missing ref as merged, and silences the `fatal:` the sibling rule already knew to silence.
+
+**Three states the C-row family classified into an offer that provably cannot help**, each constructed
+and run:
+- A **committed** local divergence on the default branch fell to row C, whose `switch` + `pull` reports
+  *"Already on 'main'"* and *"Already up to date."* — both exit 0 — and then stops anyway. C″ was
+  scoped to an *uncommitted* edit; it now covers both, which is the state `specs-repo-git.md` §3.4's
+  retry exists for.
+- Dirt that blocks the **pull** rather than the switch: C′ tested only the switch, so row C moved the
+  user off their branch and *then* failed. C′ now tests both commands.
+- A **detached HEAD on a read-only mount**: row I keyed on a flag whose only producer requires a
+  writable `.git`, so the flag was never set and a detached HEAD fell to row C — whose offer is a write
+  that git refuses with a raw `fatal: … Permission denied`. Row I now tests the state as well as the
+  flag, and §3.6's "only its freshness degrades" is corrected: the read-only rows degrade in freshness,
+  the one row that *writes* does not run at all.
+
+**`specs-repo-git.md` §3.4's push retry was unevaluable at its own trigger.** It asked whether the
+branch is ahead of `@{u}` — but a failed `push -u` sets no upstream, so both `rev-parse '@{u}'` and
+`rev-list '@{u}..HEAD'` exit 128 with `fatal: no upstream configured`. The condition was not false but
+unevaluable, in exactly the state the retry was added for, stranding an artifact commit with nothing to
+retry it. It now resolves a comparison base, and treats a local-only branch as entirely ahead.
+
+**§4.1's success rows promised a downstream phase unconditionally.** Three outcome lines, §4.2's no-`gh`
+text, and §2.7's body requirement all asserted a next phase. 3.20.1 fixed the §4.3 consent array for an
+artifact with no §3.4 row and left these five — so a `/frames` run that handed off cleanly printed "The
+next phase runs once it is merged." having, in the same phase, just offered the array that says nothing
+reads it. All five now resolve through a `<downstream-clause>`, on the same principle §4.1 already
+applied to its declined row.
+
+**`/frames`:** loose images in `design/` were reported only when there was *no* frame set — unreachable
+in the state that produces them most often, since `/idea` creates `design/idea-sources/`, so `design/`
+commonly holds a subdirectory *and* stray frames; a non-frame file in a set was never named, though
+`grounding-format.md` §6.2 step 1 requires every writer to name one and the docs page asserted it as
+output; a set whose frames all vanished silently kept an index whose every row is a dead promise, which
+`design-grounder` will read rather than returning `NO_INDEX`; `frame-describer`'s `notes` output had no
+consumer; `addressing.md` §4's key-disagreement stop would have fired on *every* frame-set index; and
+the docs page called the consent array "the usual" one and generalised "nothing is fatal" over a Phase 0
+that carries six hard stops.
+
+**Census and declared-divergence corrections:** the unset-path-variable rule's citer list was short by
+one (`/frames`); row C″ was missing from three row enumerations; §1 rule 4 is **wider** than the rule it
+said it inherited unchanged (it adds `stash` and `checkout --`), now declared; "one deliberate
+inversion" from `code-handoff.md` is two; and "Exactly three shapes" sat eleven lines above "the fourth
+and fifth shapes".
+
+**One reviewer finding dismissed with cause:** the git reviewer noted `CLAUDE.md` "still says seven
+prefixes and twenty-three commands". It does not — it says eight and twenty-four, and its regex carries
+`frames`. Already correct; nothing changed.
+
 ## [3.20.1] — 2026-09-01
 
 ### Fixed — `/frames` asked for consent on a promise it then contradicted

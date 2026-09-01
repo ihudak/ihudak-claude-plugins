@@ -222,7 +222,7 @@ check_inventory() {
 
   # reference FILES <-> docs/reference/references.md
   while IFS= read -r n; do
-    grep -qF "\`$n\`" "$d/reference/references.md" 2>/dev/null || fail 4 "reference file '$n' is absent from reference/references.md"
+    grep -qE "^[|-] .*\`$n\`" "$d/reference/references.md" 2>/dev/null || fail 4 "reference file '$n' has no row/entry in reference/references.md (a prose mention is not one)"
   done < <({ ls "$p/$REF_DIR"/*.md 2>/dev/null; ls "$p/$REF_DIR"/*.yaml 2>/dev/null; \
              [ -n "$REF_FLAT_EXTRA" ] && ls "$p/$REF_DIR/$REF_FLAT_EXTRA"/*.md 2>/dev/null; } | sed 's|.*/||')
   while IFS= read -r n; do
@@ -252,7 +252,7 @@ check_inventory() {
 
   # hooks <-> docs/reference/hooks.md
   while IFS= read -r n; do
-    grep -q "\`$n\`" "$d/reference/hooks.md" 2>/dev/null || fail 4 "hook '$n' is absent from reference/hooks.md"
+    grep -qE "^[|-] .*\`$n\`" "$d/reference/hooks.md" 2>/dev/null || fail 4 "hook '$n' has no row/entry in reference/hooks.md (a prose mention is not one)"
   done < <(ls "$p/hooks"/*.sh 2>/dev/null | sed 's|.*/||; s|\.sh$||')
   while IFS= read -r n; do
     [ -f "$p/hooks/$n.sh" ] || fail 4 "reference/hooks.md names '$n', which is not a hook"
@@ -270,7 +270,7 @@ check_inventory() {
     note "check 4 skills forward-check not applicable: skills/ is this edition's \$CMD_DIR, already covered by the command inventory above"
   else
     while IFS= read -r n; do
-      grep -q "\`$n\`" "$d/reference/references.md" 2>/dev/null || fail 4 "skill '$n' is absent from reference/references.md"
+      grep -qE "^[|-] .*\`$n\`" "$d/reference/references.md" 2>/dev/null || fail 4 "skill '$n' has no row/entry in reference/references.md (a prose mention is not one)"
     done < <(ls -d "$p/skills"/*/ 2>/dev/null | sed 's|/*$||; s|.*/||')
   fi
   while IFS= read -r n; do
@@ -814,6 +814,10 @@ selftest() {
   expect_fail "a broken link in the ROOT README is rejected" 1 "sed -i.bak 's|($PLUGIN_REL/README.md)|($PLUGIN_REL/NOPE.md)|' README.md"
   expect_fail "a broken bare #anchor is rejected"   2 "printf '\n[self](#no-such-heading-here)\n' >> $PLUGIN_REL/docs/README.md"
   expect_fail "a documented nonexistent agent is rejected"     4 "printf '\n| \`ghost-agent\` | fixture |\n' >> $PLUGIN_REL/docs/reference/agents.md"
+  # The agents direction was made ROW-anchored after a review proved a prose mention
+  # satisfied it; its three siblings were not. These two cases pin the fix.
+  expect_fail "a hook row replaced by a prose mention is rejected" 4 \
+    "F=$PLUGIN_REL/docs/reference/hooks.md; h=\$(grep -oE '^\| \`[a-z-]+\`' \$F | head -1 | tr -d '|\` '); sed -i.bak \"/^| \\\`\$h\\\`/d\" \$F; printf 'The \`%s\` hook is described here in prose.\\n' \"\$h\" >> \$F"
   expect_fail "a documented nonexistent hook is rejected"      4 "printf '\n| \`ghost-hook\` | fixture |\n' >> $PLUGIN_REL/docs/reference/hooks.md"
   expect_fail "a documented nonexistent reference file is rejected" 4 "printf '\n- \`ghost-ref.md\`\n' >> $PLUGIN_REL/docs/reference/references.md"
   expect_fail "a claimed-but-absent subtree is rejected"       4 "rm -rf $PLUGIN_REL/$REF_DIR/handoff"
@@ -885,6 +889,12 @@ selftest() {
     "printf '%s\n' \"\$(b64d \$FOREIGN_IDENTITY_SAMPLE_B64)\" >> README.md"
   expect_fail "a command missing from the plugin README is rejected" 15 \
     "sed -i.bak 's|, \`/alpha-two\`||' $PLUGIN_REL/README.md"
+  # /alpha is a strict PREFIX of /alpha-two, which is why this case exists: `\b`
+  # treats `-` as a word boundary, so `/alpha-two` used to satisfy the requirement
+  # for `/alpha` and this mutation passed. The live tree has exactly one such pair
+  # (/prompt against /prompt-brainstorm and /prompt-grill-me).
+  expect_fail "a command whose name prefixes another is not covered by it" 15 \
+    "sed -i.bak 's|\`/alpha\`, ||' $PLUGIN_REL/README.md"
   expect_fail "a command missing from the workflow DIAGRAM is rejected" 15 \
     "sed -i.bak 's|\"/alpha-two\"|\"/removed\"|' $PLUGIN_REL/docs/workflow.md"
   expect_fail "a workflow page with no diagram at all is rejected" 15 \
@@ -1142,6 +1152,13 @@ PYEOF
 #     cites the shipped defects it was created to remove and cannot quote them otherwise.
 # Each has to write the vendor's name in order to match, illustrate, or attribute it.
 #
+# Scope is *.md, and that is narrower than the reasoning supports. A tracker name
+# leaks as readily through plugin.json's user-visible `description` or a hook
+# script comment as through prose -- which is exactly the argument check 14 makes
+# for reading every text file. The non-.md tree is clean today, so this is a gap in
+# coverage rather than a live violation; widening it means deciding what a fixture
+# or a vendored reference may legitimately say, which check 14 already had to.
+#
 # What this deliberately does NOT catch, stated so nobody mistakes green for safe: it matches
 # NAMES, so a tracker-shaped CONCEPT wearing a neutral name -- a `team:` field an Epic no
 # longer carries, an import ladder -- is invisible to it. That half is review's.
@@ -1244,9 +1261,9 @@ check_index_membership() {
   for f in "$p"/commands/*.md; do
     [ -e "$f" ] || continue
     n=$(basename "$f" .md)
-    grep -qE "(/|:)$n\b" "$p/docs/README.md"   || fail 15 "/$n is not listed in docs/README.md"
-    grep -qE "(/|:)$n\b" "$p/README.md"        || fail 15 "/$n is not listed in $PLUGIN_REL/README.md"
-    printf '%s' "$diagram" | grep -qE "(/|:)$n\b" \
+    grep -qE "(/|:)$n([^a-zA-Z0-9_-]|\$)" "$p/docs/README.md"   || fail 15 "/$n is not listed in docs/README.md"
+    grep -qE "(/|:)$n([^a-zA-Z0-9_-]|\$)" "$p/README.md"        || fail 15 "/$n is not listed in $PLUGIN_REL/README.md"
+    printf '%s' "$diagram" | grep -qE "(/|:)$n([^a-zA-Z0-9_-]|\$)" \
       || fail 15 "/$n does not appear in docs/workflow.md's diagram, which says it shows every command (prose below it does not count -- that is where the last one went missing)"
   done
 }

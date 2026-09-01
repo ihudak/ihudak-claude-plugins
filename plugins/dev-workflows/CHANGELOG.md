@@ -6,6 +6,63 @@ Versions follow semver at the plugin level.
 
 ## [3.22.0] — 2026-09-02
 
+### Fixed — review round 4 (continued): two gate assertions that could not fail
+
+The other two reviewers landed after this entry was drafted. Their findings are in the same release.
+
+**Two gates were green on part of the surface they claim.** `check-docs.sh` check 4 was made
+ROW-anchored for the *agents* inventory after an earlier review proved a prose mention satisfied it —
+and its three siblings (hooks, skills, reference files) were left matching any backticked mention
+anywhere on the page. Demonstrated: replacing a hook's table row with a sentence naming it leaves the
+gate at PASS while the inventory table the page exists to be has silently lost a row. And check 15's
+`\b` treats `-` as a word boundary, so `/prompt-brainstorm` satisfied the requirement for `/prompt` —
+`/prompt` could be removed from the docs index, the plugin README **and** the workflow diagram, and the
+gate still passed. `/prompt` is the only command name that is a strict prefix of another, so the hole
+was one command wide, in a gate whose entire premise is that no command drops out of all three
+surfaces. Both fixed, and both now carry a red selftest case that fires for the stated reason.
+
+**Three shared authorities contradicted themselves.** `phase-handoff.md`'s `on_main` note listed six
+stopping rows two lines above the line naming seven — the C″ fix had landed in the consumer and not in
+the authority. `prd-format.md` said `brd_key`/`brd_parent`/`depends_on` have "no reader anywhere in the
+plugin" six lines after naming the reader (`prd-reviewer` raises a finding when one appears without the
+other); the claim is about *behaviour*, and an increment scoped on it would have been scoped against a
+check that already gates every PRD. `addressing.md` §7 filed `/implement` under "adopts by delegation"
+on the premise that it "resolves no PRD directory of its own" — it resolves a positional address with
+`resolve-address` like the `/brd-*` commands, which is the section's own criterion for *not* being an
+adopter.
+
+**An `EPIC-` address silently left the BRD route, and `/epics` recommends that address.** `/specify`
+detects the route from the resolved folder; an `EPIC-` folder carries no `brd-link.md`, so a run
+addressed at a slice-derived Epic skipped the whole BRD-route block — the implementation-altitude
+`[VD#n]` and `[CD#n]` the customer signed did not constrain the spec, the freeze rule did not apply,
+and those decisions stayed `consumed_by: none` forever. The same Epic reached through
+`/specify <SLICE-KEY>` and the picker kept all of it, and `prd-format.md` forbids implementation detail
+in the PRD, so nothing else recovered the loss. All three commands now look one level up.
+
+**`/create-ard` decided its container refusal on a resolution taken before `$SPECS_PATH` was known**,
+then re-resolved at step 3 without re-testing: with `$SPECS_PATH` unset the first resolution returned
+`absent`, the refusal did not fire, the operator supplied the path, and the run authored `ard.md` into
+the `BRD-` container the refusal exists to prevent. `/specify` has the milder variant of the same
+ordering (one resolution, so a stale `absent` survives and it stops on a folder that exists). Both now
+state the rule `/create-prd` already carried.
+
+**Also:** `dependencies.md` claimed the plugin "calls no service" while `/vuln` fetches from the NVD
+API, `/upgrade` queries package registries, and three agents shell to `qmd`/`gh`; `/create-prd`'s
+refusal table had no row for a slice whose ledger file is absent, where both existing rows evaluate
+false and the likeliest reading emits the offer `coverage-ledger-format.md` §5.2 forbids;
+`/brd-split`'s bulk offer fired on the raw `unallocated` count rather than the set it would actually
+offer, rendering *"Write `covered-here` on all 1 rows now"*; `epic-reviewer` gated three dimensions on
+an input absent from its own contract; `/specify` cited Step A under the wrong phase; `CLAUDE.md`'s
+sanctioned-marker count was stale by three **and** its prescribed re-derivation under-counts, because
+two of its own lines contain the word CHANGELOG; and one historical measurement was recorded twice with
+different numbers, now cited once rather than restated.
+
+**Recorded, not fixed:** check 13 reads only `*.md`, so `plugin.json`'s user-visible `description` and
+the shipped hook scripts are outside vendor neutrality — while its sibling check 14 reads every text
+file for exactly the reason check 13 gives. The non-`.md` tree is clean today, so this is a coverage
+gap rather than a live violation; closing it means deciding what a fixture or vendored reference may
+legitimately say, which is its own change. Noted in the check's own comment.
+
 ### Fixed — review round 4: `/implement` moved the user's checkout, and the BRD migration path wrote where nothing reads
 
 **BLOCKER — `/implement` silently relocated the repository it was about to branch.** Its Phase 1.7

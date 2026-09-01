@@ -1,6 +1,6 @@
 # dev-workflows — companion plugins & dependencies
 
-dev-workflows is **self-contained**: no command hard-requires another plugin, and **no command requires an external tool** — it reads and writes one markdown tree and calls no service. A user who wants their work in a tracker syncs it themselves; the plugin never learns whether one exists. There is **no
+dev-workflows is **self-contained**: no command hard-requires another plugin, and **no command in the PRD-authoring pipeline requires an external tool** — that pipeline reads and writes one markdown tree and calls no service. The commands outside it do reach the network, and saying otherwise would misdescribe them: `/vuln` fetches CVE records from the NVD REST API and `/upgrade` queries package registries, both by design; `docs-grounder` shells to `qmd` when it is installed, and `diff-summarizer` and `code-handoff.md` §2.6 to `gh`, each degrading gracefully when it is absent. A user who wants their work in a tracker syncs it themselves; the plugin never learns whether one exists. There is **no
 dependency-manifest field** in `.claude-plugin/plugin.json` (Claude Code plugins don't express one), so
 every cross-plugin relationship is **convention + runtime-resolve + graceful fallback** — a missing
 companion degrades the feature, never breaks the run.

@@ -497,7 +497,7 @@ convenient.** Both conditions in its row must hold:
 | Mode | Fires when |
 |---|---|
 | `full` | **exactly one** slice stands as a `covered-by` target — the union of the children Phase 3 keyed this run and the children Phase 0 step 9 enumerated is a single folder — **and** two or more rows are still `unallocated` |
-| `allocate-only` | two or more rows are still `unallocated` |
+| `allocate-only` | **two or more rows are in the set this step would actually offer** — every row still `unallocated`, *minus* any row Phase 1.5's reading already placed on a different disposition. Counting the raw `unallocated` set instead fires the offer on a set of one or zero: an instruction like *"defer everything except the login flow"* leaves five rows `unallocated` while Phase 1.5 places four of them on `deferred-to`, so the condition saw five and the step rendered *"Write `covered-here` on all 1 rows now"* — the degenerate prompt the rule below says is skipped |
 
 **Why each condition is the condition.** With one standing slice, `covered-by` has exactly one legal
 argument, so the offer picks no target on the operator's behalf: what is uniform by construction is

@@ -119,7 +119,7 @@ frontmatter entry in Phase 4, and `tracked` seeds `## Prior art`.
 
 Dispatch both grounding agents **in a single response** so they run in parallel. Each is independent; either being OFF never suppresses the other.
 
-**Docs.** Run `resolve-docs-grounding idea` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the `idea-reader` digest's problem/outcome, `themes` = its signals; **omit `key`** (idea is keyless, so the git-grep backstop is skipped). When OFF, skip silently.
+**Docs.** Run `resolve-docs-grounding idea` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the `idea-reader` digest's problem/outcome, `themes` = its signals; pass `key` = the run's own key, which enables the git-grep backstop. When OFF, skip silently.
 
 Carry both digests into Phase 3 with **grill-rank** consumption — challenges from the two compete together for the ≤10 question slots, they do not add slots. Carry `area_proposal` and the `prd` source's match into Phase 4.
 
@@ -205,6 +205,12 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
   ```
   On *refine*, re-open it, resolve its open `[NEEDS CLARIFICATION]` items, and append the new source
   (`{provenance, ref}` built from Phase 2's `provenance` and `source_refs`) to `sources`.
+- **`kind` and `key`:** write `kind: prd` and `key: <the key this run was invoked with>` into the
+  frontmatter (`${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`). This command creates the folder, so
+  until `/create-prd` writes `prd.md` this file is the only artifact carrying the pair
+  `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4 resolves the folder's identity from — and §4's
+  own invariant is that a folder is never keyless, not even between its creation and its first
+  document.
 - **`status`:** set frontmatter `status: refined` IFF zero `[NEEDS CLARIFICATION]` markers remain;
   otherwise `status: draft`.
 
@@ -216,8 +222,13 @@ Report where `idea.md` was written and its `status`, then offer the next phase �
 
 - **`status: refined`** — offer the handoff. Present
   `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim, then on the
-  first option execute `handoff-to-main` (§2) with `prefix: idea`, `feature_folder` = the folder
-  Phase 0 resolved, and `deliverable_paths` = `idea.md`. Then recommend
+  first option execute `handoff-to-main` (§2) with all five of its §2.9 inputs: `prefix: idea`;
+  `feature_folder` = the folder Phase 0 resolved; `deliverable_paths` = `idea.md`;
+  `title: <KEY> Add idea brief`; and `body_facts` = the idea's one-line goal, the number of
+  `[NEEDS CLARIFICATION]` markers left open, the logged assumptions, and whether docs grounding ran.
+  **All five are required** — §2.4's commit subject and §2.7's pull-request title are both derived
+  from `title`, and §2.6 supplies every `gh` argument precisely so the run never blocks on an
+  interactive editor; passing three of five leaves both unsourced. Then recommend
   `/dev-workflows:create-prd <KEY>`, which finds `idea.md` in that folder.
 
   **There is no key round-trip to wait for and no disposition to branch on.** The key was given in
@@ -272,19 +283,20 @@ source-not-found, cancellation).
    > - Project root: [the idea.md folder]"
 2. **Persist plugin feedback (automatic).** Cite
    `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6)
-   with the Lessons Learned report, `command: /idea`, `key: null`, the run's `source`, and
+   with the Lessons Learned report, `command: /idea`, `key` = the run's own key, the run's `source`, and
    `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It renders only the
    plugin-facing slice (§4), dedupes by stable `id` (§3), resolves the target via the §2 specs-first
    ladder, and writes silently. Surface the persisted path (or "no plugin-facing signal — nothing
    persisted").
 3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and call its
-   `emit-cost` entry point with `command: /idea`, `phase: prd-creation`, `role: pm`, `key: null`,
-   the run's `source`, and `plugin_version`. A keyless run writes to the pending ladder (§9) and
+   `emit-cost` entry point with `command: /idea`, `phase: prd-creation`, `role: pm`, `key` = the run's own key,
+   the run's `source`, and `plugin_version`. The key is always present — `/idea` refuses to run without
+   one — so the entry lands on the keyed tier and never on the pending ladder (§9), which
    **advances the chained checkpoint** (§3); surface the persisted path (or the report-only notice).
 4. **Commit session artifacts (terminal).** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`
    and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages
-   ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `NOISSUE Add dev-workflows
-   session artifacts (/idea)` (this run is keyless — no PRD-Key exists yet), and pushes. It NEVER
+   ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows
+   session artifacts (/idea)` — the key is mandatory here, so `NOISSUE` never applies — and pushes. It NEVER
    touches a code/docs repo, or the current working directory; NEVER force-pushes; NEVER
    fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting
    that notice. Hold its §6 outcome line for the Final report.

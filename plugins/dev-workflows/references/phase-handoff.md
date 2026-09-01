@@ -64,13 +64,23 @@ Message `<KEY> <summary>`, matching the specs repo's own `<KEY|NOISSUE> <summary
 
 ### 2.6 Open the pull request
 
-Derive the repository, run a cheap `gh auth status` pre-check purely to avoid a confusing raw error, then call `gh` with every argument that would otherwise make it prompt — the plugin must never block on an interactive editor:
+**First, probe for an existing pull request** — this entry point's §2.2 rule 3 deliberately *reuses* an in-progress branch, and §2.2 says in as many words that collision is normal rather than exceptional, so a branch that already carries a pull request is the ordinary case here:
 
-    OWNER_REPO=$(git -C "$SPECS_PATH" remote get-url origin \
-      | sed -E 's#^[a-zA-Z][a-zA-Z0-9+.-]*://##; s#^[^/@]+@##; s#^[^/:]+(:[0-9]+)?[/:]##; s#/+$##; s#\.git$##')
+    gh pr list -R "$OWNER_REPO" --head <branch> --state open --json number,url
+
+One already open ⇒ §2.5's push has already updated it. Report it through §4.1's *already existed* row and do **not** call `gh pr create`, which fails on the duplicate and would send the run down §4.2 telling the user to open a pull request that exists. This is the same primitive §3.5 already uses on the consumer side.
+
+Otherwise: derive the repository, run a cheap `gh auth status` pre-check purely to avoid a confusing raw error, then call `gh` with every argument that would otherwise make it prompt — the plugin must never block on an interactive editor:
+
+    url=$(git -C "$SPECS_PATH" remote get-url origin)
+    host=$(printf '%s' "$url" | sed -E 's#^[a-zA-Z][a-zA-Z0-9+.-]*://##; s#^[^/@]+@##; s#[:/].*$##')
+    slug=$(printf '%s' "$url" | sed -E 's#^[a-zA-Z][a-zA-Z0-9+.-]*://##; s#^[^/@]+@##; s#^[^/:]+(:[0-9]+)?[/:]##; s#/+$##; s#\.git$##')
+    case "$host" in github.com) OWNER_REPO="$slug" ;; *) OWNER_REPO="$host/$slug" ;; esac
 
     gh pr create -R "$OWNER_REPO" --base <default> --head <branch> \
                  --title "<title>" --body-file <body-path>
+
+**The host is kept, not stripped** — the same rule as `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.6, and for the same reason. `gh -R` accepts `[HOST/]OWNER/REPO`, and `gh auth status` succeeds whenever the user is authenticated to *any* host, so a bare `OWNER/REPO` derived from a GitHub Enterprise remote resolves against **github.com** — silently opening the phase's pull request on an unrelated public repository if one happens to sit at that path, with the capability probe catching nothing because the call succeeded. Only `github.com` may drop the host. Validate the slug against `^[^/]+/[^/]+$` before calling `gh`; anything else (a Bitbucket `scm/proj/repo`, a nested GitLab group) is not a `gh` target — skip to §4.2. §3.5's `gh pr list -R "$OWNER_REPO"` uses the same value and mistargets identically without this.
 
 
 The expressions strip a scheme, a `user@`, and a host with an optional `:port` terminated by `/` or `:` (the scp-like `git@host:Org/repo` form uses a colon), then a trailing slash and `.git`. The earlier two-expression form handled only `git@host:` and `https://host/`, and passed an `ssh://git@host/Org/repo.git` remote through unchanged — `gh` then failed on a repository argument that was a whole URL. Do not simplify it back.
@@ -129,6 +139,7 @@ First matching row applies.
 | A | present | matches ref | any | **pass** |
 | B | present | differs | a branch **this run itself created or reused during this run**: created earlier in the same invocation via this caller's own `handoff-to-main`, or reused because `specs-repo-git.md` §3.5 B3 kept the preflight checkout on it AND the branch is the caller's **own** — its prefix is this caller's and its key is in the run key set (`specs-repo-git.md` §3.2). The test is **branch ownership, not artifact authorship**: the load-bearing case is `/design` resumed on its own `design/<EPIC>-<eslug>` branch gating the `specification.md` that same branch amends, and `/design` is not that file's original author (`/specify` is). Requiring authorship would exclude the one case this row exists for and drop it into row C, whose repair offer re-grounds the session on the un-amended copy. Ownership is still never merely a prefix the caller is *capable of* producing for an unrelated purpose, such as `/implement`'s Phase 4.5 escalation handoff onto `spec`/`design` | **pass, reported** — `reading <path> from your in-progress <branch>, which amends the approved version on <default>` |
 | C′ | present | differs | any other HEAD, **and** the tree is dirty in a way that would block a switch | **stop**, naming the exact files |
+| C″ | present | differs | HEAD **is** the default branch (so nothing to switch to), and the divergence is an uncommitted local edit | **stop**, naming the files and saying the repair offer cannot help here |
 | C | present | differs | any other HEAD | **repair offer**, then re-test once |
 | D | not on ref | — | artifact found on a plugin ref, pull request open | **stop** — `<path> is on branch <branch> with PR #<n> open, not merged` |
 | E | not on ref | — | found on a plugin ref, no open pull request | **stop** — `<path> is on branch <branch> and was never handed off` |
@@ -143,6 +154,8 @@ First matching row applies.
 **Row C's repair offer:**
 
     choices: ["Switch to <default> and pull --ff-only, then continue (Recommended)", "Cancel"]
+
+**Row C″ exists because the offer above is a no-op on the branch you are already standing on.** Row B is scoped to a branch this run owns and row C′ requires a dirty state that would *block* a switch — so a user sitting on the default branch with an uncommitted edit to the gated artifact matched neither and fell to row C, which offered `git switch <default>` from `<default>` ("Already on 'main'") followed by a `git pull` that aborts on the unstaged change, then re-tested, failed, and stopped. The offer could never resolve it. Row C″ catches that state first and says so plainly instead of spending a prompt on it: the remedy is to commit, stash, or discard the local edit, and the stop names the files.
 
 On the first choice: `git -C "$SPECS_PATH" switch <default>` then `git -C "$SPECS_PATH" pull --ff-only`, then re-test **once**. A second failure stops — never merge, rebase, or reset, and never loop.
 
@@ -209,6 +222,7 @@ Exactly one, prefixed `Phase handoff:`.
 | Case | Line |
 |---|---|
 | Committed, pushed, PR opened | `Phase handoff: <branch> pushed — PR #<n> open (<url>). The next phase runs once it is merged.` |
+| PR already existed | `Phase handoff: <branch> pushed to existing PR #<n> (<url>). The next phase runs once it is merged.` |
 | PR not opened | `Phase handoff: <branch> pushed — PR NOT opened (<reason>). Open it manually; the next phase will stop until it is merged.` |
 | Push failed | `Phase handoff: committed <sha7> on <branch> — push FAILED (<reason>). The phase is NOT handed off.` |
 | Nothing to commit | `Phase handoff: no deliverable changes to commit on <branch>` |

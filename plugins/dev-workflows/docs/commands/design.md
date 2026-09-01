@@ -9,7 +9,7 @@ Takes over a merged specification from the specs repo's main branch, grounds str
 ## Synopsis
 
 ```
-/design <PRD-KEY | dir> [<Epic-KEY>] [--design-twice]
+/design <ADDRESS> [--design-twice]
 ```
 
 `/design` is **address-required** — a plain prompt with no positional address stops with `DESIGN_NEEDS_KEY`. Resolution supplies the address and nothing else: the requirements source of truth is the merged `specification.md` in the specs repo.
@@ -68,7 +68,7 @@ Ahead of the review, Phase 5.5 runs a structural pre-lint against the drafted `d
 Design a per-Epic implementation for an Epic whose specification is already merged:
 
 ```
-/dev-workflows:design PRODUCT-1234 EPIC-98760
+/dev-workflows:design EPIC-98760
 ```
 
 The run resolves `EPIC-98760` as the focus Epic within PRD `PRODUCT-1234`, gates its `specification.md` on the specs repo's main branch, resolves any ARD, derives and confirms the implementation repos, hard-stops if any is unmounted, scans the confirmed set, then grills you through challenging the spec and designing the implementation — offering the three-take interface fan-out if a seam turns out contested. Once `design-reviewer` passes, it offers to branch, commit, push, and open a pull request; once that pull request is merged, `/dev-workflows:implement PRODUCT-1234 EPIC-98760` can start.

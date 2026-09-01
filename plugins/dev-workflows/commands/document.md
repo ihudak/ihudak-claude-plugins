@@ -1,6 +1,6 @@
 ---
 name: document
-description: keyed feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in example-docs default → on-demand /docs-profile) and the PRD's specs dir under /workspace. Reads a Product Requirements Document hierarchy from exported markdown, resolves PR diffs in parallel, synthesises product documentation, and gates on style-check and Opus doc review.
+description: keyed feature-documentation workflow. Phase 0 preflight-discovers the docs repo + profile (in-repo → built-in example-docs default → on-demand /docs-profile) and the PRD's specs dir under /workspace. Reads a Product Requirements Document hierarchy from the resolved folder in the specs tree, resolves PR diffs in parallel, synthesises product documentation, and gates on style-check and Opus doc review.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -263,7 +263,7 @@ choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
 
 ## Phase 3 — Read the PRD folder
 
-Invoke the folder read with `depth: full`:
+**Read the resolved folder directly** (full depth — the PRD, its Epics, and every artifact present):
 
 **Read the resolved folder directly.** Read its `prd.md` for the product content, and the `specs`
 files Phase 0 resolved alongside it.
@@ -293,17 +293,14 @@ commit whose message names the key is findable, and no convention compels a huma
 a zero-match scan in a repository that has commits is a signal about the commit convention
 (`docs/reference/commit-convention.md`), not proof that no work happened.
 
-Hand each resolved ref to `diff-summarizer` as a `{repo_path, branch_from, branch_to}` triple — a
-shape its Inputs already declare, on the pure-local-git path it prefers when `gh` is absent. No URL,
+Hand each resolved ref to `diff-summarizer` as a `refs[]` element — `{repo_path, branch_from, branch_to}` — a
+shape its Inputs declare as `refs[]`, taken on the pure-local-git path. No URL,
 no host classification, no `gh` requirement.
 
-  >
-  > key:         [resolved <KEY>]
-  > depth:            full"
 
-Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`) and act accordingly. On `OK`, store the handoff for downstream phases.
+If the folder is missing or holds no PRD, surface the `key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`) and act accordingly. On `OK`, store the handoff for downstream phases.
 
-When `focus_key` is set (explicit `<PRD> <Epic>`), also derive `focus_items` = the
+When `focus_key` is set (the address resolved to an Epic folder), also derive `focus_items` = the
 focus Epic plus every linked item beneath it (its Stories / Sub-tasks). The
 change-scoped phases below consume `focus_items` in place of the full hierarchy —
 Phase 5 (diff summarisation) and Phase 5.7 (doc planning) — while every phase that
@@ -314,10 +311,10 @@ is null, every phase uses the full hierarchy exactly as today.
 
 ## Phase 4 — Resolve repos
 
-From the folder read handoff `pull_requests` list:
+From the **implementation record** — the `implementation.md` blocks in the resolved folder, plus the commit scan that complements them (`${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §4):
 
-1. Filter by `status` per the Phase 1 PR-status setting (default: MERGED only). This is the `pull_requests[].status` field, NOT the top-level the folder read `status`.
-2. Group the remaining PRs by `repo` (short repo name).
+1. Take every entry's `repo`, `branch`, `base` and `commit`. **There is no `pull_requests[]` to filter and no PR `status` to filter on** — nothing in this plugin reads a tracker or a pull-request API, so the record of what was implemented is `implementation.md` and the `git log --grep` scan beside it. An entry with `pushed: false` is still in scope: it is local to one machine, which the run reports rather than skipping.
+2. Group the entries by `repo` (short repo name).
 3. Build a slug→clone map. For each top-level directory under each entry of `$REPOS_PATH`, run `timeout 5 git -C <dir> remote get-url origin 2>/dev/null`, strip a trailing `.git`, and take the URL's last path segment as that clone's slug. Skip directories with no `.git` or whose `git remote` call fails/times out. Result: `<slug> → [<absolute path>, ...]`.
 4. Resolve each unique in-scope `repo` slug against the map:
    - **One match** — use that absolute path as `repo_path`.

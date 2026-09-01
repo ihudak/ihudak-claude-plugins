@@ -49,7 +49,7 @@ behaviour, not the behaviour.
    when the specs repo is clean and on its default branch. If it returns `specs_git: blocked`
    (§3.3 G0), carry that flag for the whole run.
 5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`addressing.md` §3), which searches
-   `specifications/` and exactly one level below it — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it.
+   `specifications/` and the levels below it that `resolve-address` searches (three, per `addressing.md` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it.
    Absent → stop, without asserting which command would create it: no folder exists, so no
    `brd-link.md` exists either, and nothing on disk says whether this key names a BRD with a source
    document or a slice of one. Naming `/brd-intake` unconditionally would be the wrong advice for
@@ -708,7 +708,7 @@ where it sits in the route, never its behaviour, which `commands/brd-split.md` o
 which of its two modes will run, so nobody expects a fan-out that cannot happen: on a slice it runs
 `allocate-only` (`commands/brd-split.md` Phase 0 step 5) — it creates no child, because nesting is
 capped at one level (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §6), and walks this
-slice's ledger to a recorded fate through four resolutions instead of five, `covered-by` being the
+slice's ledger to a recorded fate through its own four resolutions, `covered-by` being the
 one that command's walk does not offer on a slice. Allocating is what
 makes this slice PRD-eligible
 (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5), so it is a real next step, not a

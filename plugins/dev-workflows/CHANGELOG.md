@@ -4,6 +4,71 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.13.0] — 2026-09-01
+
+### Fixed — the whole-design review, round 1
+
+Four Opus reviewers swept every change from the four increments and three fix waves at once, each
+along one dimension, looking **across increment boundaries** — where the per-increment reviews
+structurally could not see. Between them: **10 BLOCKER, 27 MAJOR, 16 MINOR** after deduplication, every
+one verified at the location it named before anything was edited. Two are worth stating first because
+they were structural rather than textual.
+
+**`resolve-key` matched folder *names*, so the first child broke its parent.** The glob
+`specifications/**/*-<KEY>-*` matches every folder whose key merely *extends* `<KEY>` — and a child
+keyed from its parent is this plugin's default (`/brd-split` proposes "the parent's key plus the next
+unused two-digit segment" and nests it inside). On a BRD holding two slices the glob returned **three**
+matches for the parent's key, so `resolve-address` hard-stopped as `ambiguous` on a tree that was
+entirely correct, making the parent unaddressable by all six `/brd-*` commands from the moment its
+first child existed. The inverse was worse: a legacy parent holding a prefixed child globbed to exactly
+one match — the *child* — and returned `found` for it silently. §3 now **filters candidates by the key
+each one asserts**, which is `addressing.md` §4's own read applied as a filter rather than only to the
+winner. `<KIND>` moved into that filter too, since a slice is a `PRD-` folder asserting `kind: brd` and
+narrowing the glob by prefix missed it.
+
+**Nothing committed `implementation.md` or `release-notes.md`.** `commit-artifacts` classifies by a
+regex requiring a `dev-workflows/` path segment; both land without one, so both were classified `OTHER`
+and skipped — while `/implement` and `/release-notes` each told the operator the terminal step
+committed them. They then sat permanently dirty, firing the preflight's G1 guard on every later run of
+any of the twenty-three callers. §2.1 gains a fourth and fifth shape naming **the two files, never
+their folder** — the folder also holds the phase deliverables, which are `phase-handoff.md`'s to commit
+behind its own consent choice.
+
+**The other blockers:** the PRD gate globbed `<PRD>_*.md` while `/create-prd` writes `prd.md`, so
+`require-on-main` returned `absent` for every PRD that was present and its stop could never fire; a
+`--from-brd` → "the BRD route" substitution landed inside executable strings, and `/specify`'s stop told
+the operator to re-run a form whose extra tokens trigger the identical stop — a loop with no exit;
+`/release-notes`' worthiness gate read a field from an import that no longer exists and forbade the one
+file that carries it, so a PRD marked `relevant_for_release_notes: false` had a note drafted anyway;
+`getting-started.md` told a first-time user `/idea` "needs no key" and printed an example that
+hard-stops; `/create-prd` ran no `specs-preflight`, alone among the twenty-three, so its gate ran
+before the fetch it depends on; `/design`, `/ready` and `/specify` derived Epic subfolders without the
+`EPIC-` prefix that `/epics` creates, so `/design`'s ref test could never match and every Epic was
+excluded; the BRD-route PRD deferred its `key` to a round-trip that no longer exists, and
+`prd-reviewer` was told never to flag the absence; and `CLAUDE.md` described `/idea` in terms of a
+vault, a relocation step and a `prd_disposition` gate that increment D deleted.
+
+**Dead consumers with no producer**, all now wired to what exists: `/epics`' `requirements[]` — the
+coverage ground truth `epic-reviewer` gates on — was returned by a deleted agent and rebuilt by nothing;
+`pull_requests[]` had three consumers and no writer; `## Pull Requests` had five; `diff-summarizer`
+refused any input lacking `pr_refs`, which is not the shape either caller has; two agent contracts
+pointed at a schema file that does not exist; and `code-review`'s ARD-deviation branch read a record
+written after it returns.
+
+**Counts, every one re-derived rather than adjusted:** 37 agents (not 39), 42 documentation pages (not
+41), 10 reference pages (not 9), `/document`'s 34 phases split 23/11 (not 37 and 26/11), 20 commands
+loading `model-routing` (not 14), 19 with a maintenance phase (not 13), 5 `id-grammar-ok` markers
+across 5 files (not 10 across 6), 14 handoff producers (not 8), and `references/`'s own reconciliation
+arithmetic. The `phase-handoff.md` gate gains row C″ for a state rows B and C′ both missed, where the
+repair offer it fell to was a no-op on the branch the user was already standing on.
+
+**Also:** `phase-handoff.md` stripped the host from a remote, so a GitHub Enterprise specs repo opened
+its pull request against **github.com** — the same defect fixed in `code-handoff.md` in 3.12.0 and
+missed in its sibling; it also had no existing-pull-request probe, so every branch-reuse re-run reported
+"PR NOT opened" for one that was open. `/brd-interview`'s decision picker was the plugin's one
+runtime-built array with no cap, exceeding `AskUserQuestion`'s four options at three options considered.
+And the three-file release-note destination model still sat inside the authority that replaced it.
+
 ## [3.12.0] — 2026-08-31
 
 ### Fixed — the upstream review wave, audited against this edition

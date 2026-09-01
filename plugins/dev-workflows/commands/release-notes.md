@@ -1,6 +1,6 @@
 ---
 name: release-notes
-description: Release-notes drafting. Reads the resolved Product Requirements Document from exported markdown, optionally grounds in PR diffs, renders an example-docs release-notes body, runs a light prose-style-checker gate, and writes a persistent draft to publish wherever release notes are published.
+description: Release-notes drafting. Reads the resolved Product Requirements Document from the resolved folder in the specs tree, optionally grounds in PR diffs, renders an example-docs release-notes body, runs a light prose-style-checker gate, and writes a persistent draft to publish wherever release notes are published.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -117,10 +117,13 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 
 ## Phase 2 — Worthiness check + plan/approval
 
-1. **Worthiness gate.** Read `relevant_for_release_notes` directly from the **imported PRD frontmatter**
-   under `prd_dir` (this phase runs before Phase 3, so the folder has not been read yet,
-   and the folder read does not surface this field in any case). NEVER read it from the authored specs
-   draft.
+1. **Worthiness gate.** Read `relevant_for_release_notes` from the resolved folder's own `prd.md`
+   under `prd_dir`. **Read it from the PRD, which is the same reversal Phase 3 makes for its two
+   sibling fields**: this step used to read an import and was told explicitly *never* to read the
+   authored PRD. Nothing imports anything now, so that instruction made the field permanently absent
+   and the stop below unreachable — a PRD marked `false` had a release note drafted for it anyway.
+   The PRD is the only place the field can come from (`${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`).
+   Read it directly here rather than waiting for Phase 3's folder read, which runs later.
    - **`false` / `no`** → stop:
      `RELEASE_NOTES_NOT_RELEVANT: <KEY> is flagged not relevant for release notes; the PRD's status rule does not require one.`
      Offer an override for drafting ahead of the flag:
@@ -141,7 +144,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 
 ## Phase 3 — Read the PRD folder
 
-Invoke the folder read. Use `depth: prd-only` when diff grounding is OFF; `depth: full` when ON (to collect PR URLs from the hierarchy's `## Pull Requests` sections).
+**Read the resolved folder directly.** The PRD alone when diff grounding is OFF; the PRD plus the folder's `implementation.md` when ON, which is where the refs the diff grounding needs are recorded (`${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §1).
 
 **Read the resolved folder directly.** Read its `prd.md` for the product content.
 
@@ -170,23 +173,19 @@ commit whose message names the key is findable, and no convention compels a huma
 a zero-match scan in a repository that has commits is a signal about the commit convention
 (`docs/reference/commit-convention.md`), not proof that no work happened.
 
-Hand each resolved ref to `diff-summarizer` as a `{repo_path, branch_from, branch_to}` triple — a
-shape its Inputs already declare, on the pure-local-git path it prefers when `gh` is absent. No URL,
+Hand each resolved ref to `diff-summarizer` as a `refs[]` element — `{repo_path, branch_from, branch_to}` — a
+shape its Inputs declare as `refs[]`, taken on the pure-local-git path. No URL,
 no host classification, no `gh` requirement.
 
-  >
-  > prd_dir: [resolved prd_dir]
-  > key:         [resolved key]
-  > depth:      [prd-only | full]"
 
-When `focus_key` is set (explicit `<PRD> <Epic>`), scope the **Phase 6 render input**
+When `focus_key` is set (the address resolved to an Epic folder), scope the **Phase 6 render input**
 to the focus Epic's subtree — the focus Epic plus its linked descendants — so the
 release note covers that Epic's user-facing changes rather than the whole PRD. This
 scopes only what Phase 6 renders; it does not mutate the stored handoff that other
 phases read. When `focus_key` is null, the draft covers the whole ticket/PRD exactly as
 today.
 
-If `status: NOT_FOUND` / `EMPTY`, surface `["Re-enter key", "Cancel"]`.
+If the folder is missing or holds no PRD, surface `choices: ["Re-enter key", "Cancel"]`.
 
 Capture `change_type` and `release_notes_category` from the resolved folder's `prd.md`, where it
 carries them (null when absent). **Read them from the PRD, which is the reversal**: these were
@@ -275,10 +274,10 @@ State the inference, then ask:
 > `<destination>`.
 
 ```
-choices: ["<proposed type> — <its shape>, in <its destination> (Recommended)", "Feature update — titled section with a docs link, in feature-updates.md", "Breaking change — titled section with remediation steps, in breaking-changes.md", "Fix — one self-contained sentence, in fixes.md"]
+choices: ["<proposed type> — <its shape>, under <its section> (Recommended)", "Feature update — titled section with a docs link, under ## Feature updates", "Breaking change — titled section with remediation steps, under ## Breaking changes", "Fix — one self-contained sentence, under ## Fixes"]
 ```
 
-Drop the option that duplicates the recommended one. Apply the choice to
+The array is presented as written — the first option carries the proposal, so it never duplicates another (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`: there is no permitted adjustment). Apply the choice to
 `release_notes_block.change_type` (Feature update → `New technology support`, Breaking change →
 `Breaking change`, Fix → `Bug fix`) + `destination` and **re-render** the draft in the chosen shape —
 switching between `fixes` and a titled destination changes the body structure, not just a label. The
@@ -480,7 +479,7 @@ current working directory; no user name is ever written (§10).
 - The draft contains NO identifiers, NO PR links, and NO `{{#internal-note}}` block.
 - The draft is EXACTLY one Summary, shaped by its destination per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1/§3 — a plain **Category:** label + `### title` + prose for `breaking-changes` / `feature-updates`, or ONE bare past-tense sentence for `fixes`. It carries NO `Change type:` line and NO `Release-notes category:` line, and its **prose** names no release version — the version is the **section heading** the draft is filed under, which is the only thing that says which release a section belongs to now that the three destinations are three sections of one file. The prohibition survives for the body prose alone. When the change deprecates something the Summary carries a deprecation note (end-of-life date required, end-of-support optional).
 - The category label IS the PRD's `release_notes_category`, used verbatim; when the import carries none the line is OMITTED. Change Type is sourced `change_type` → infer, and is confirmed with the user ONLY when it was inferred with low confidence — by shape and destination, never by enum label. Neither field is ever asked for by enum label.
-- The run is GATED on the imported `relevant_for_release_notes`: an explicit `false` stops with `RELEASE_NOTES_NOT_RELEVANT` (overridable); absent proceeds silently.
+- The run is GATED on the PRD's own `relevant_for_release_notes`: an explicit `false` stops with `RELEASE_NOTES_NOT_RELEVANT` (overridable); absent proceeds silently.
 - NEVER write into a docs repo; the default destination is persistent (never `/tmp`).
 - ALWAYS use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0).
 - Light gate only — no Opus review, no tests, no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none), and no commit of the draft or of anything in a docs/code repo or the current working directory. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).

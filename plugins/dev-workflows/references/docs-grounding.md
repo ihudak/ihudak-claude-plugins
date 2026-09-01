@@ -59,8 +59,7 @@ documentation does not inform that decision.
 
 **Default-safety note.** A `/workspace/*` default is safe here because this is a
 read-only search base — a wrong/missing default just misses and silently skips.
-This mirrors `${REPOS_PATH:-/workspace}`. Write roots (`SPECS_PATH`,
-and `SPECS_PATH`) deliberately do **not** default; do not change them.
+This mirrors `${REPOS_PATH:-/workspace}`. The one write root, `SPECS_PATH`, deliberately does **not** default; do not change that.
 
 ## Plan-approval line
 

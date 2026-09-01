@@ -34,7 +34,7 @@ of `$SPECS_PATH` or the PRD's specs dir, so NEVER glob or otherwise check the fi
 files. The command resolves the phase and hands it to you; a self-check would silently produce the
 wrong answer.
 
-Refuse to run without `folder_read`.
+Refuse to run without `folder_read`. **It is assembled by the orchestrator** from the resolved folder rather than returned by an agent; the dispatch names its keys.
 
 When `docs_grounding` is present, use its `docs_references` for terminology and current-behavior consistency (align with the customer-facing terms the docs already use) and treat `docs_challenges` as authoring cautions. It never overrides the Change Type sourcing and never adds a claim not grounded in the handoff or diffs.
 

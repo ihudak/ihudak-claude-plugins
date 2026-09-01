@@ -24,7 +24,7 @@ The caller passes a structured brief:
 - **`applicable_ard`** — the PRD-level ARD `invariants` (AD#N), or omitted. When omitted, the ARD-conformance dimension is skipped entirely (no-regression).
 - **`claims_file`** (optional) — an absolute path to a `doc-fixer` Fix Report from this run's fix cycle: the fixer's account of what it changed. **DO NOT read this file when you read the brief.** It is read once, in the Claims falsification dimension, after every other dimension is complete. Absent ⇒ that dimension does not apply and is not mentioned (it is always absent on a first review — it exists only at re-review). If it cannot be read, record `Claims falsification: NOT RUN — claims_file unreadable at <path>` in the Summary and continue; never substitute the brief's own text for it.
 
-Refuse to review without the written file paths and the folder read handoff. These two are the review ground truth.
+Refuse to review without the written file paths and the caller's `requirements[]` (with its `requirements_source`). These two are the review ground truth. **`requirements[]` is built by the caller from the PRD it read** — `/epics` Phase 3 — not returned by an agent; a caller that passes an empty one has nothing to check coverage against, and reviewing against it would pass every draft vacuously.
 
 ## Review method
 

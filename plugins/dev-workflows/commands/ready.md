@@ -76,7 +76,7 @@ step skips on it.
    every level §3 bounds and carries §5's legacy fallback; `status: absent` means none exists, and
    `ambiguous` is a stop naming every match. The same entry point resolves what `ard-resolution.md`
    and `/design` resolve, which is what keeps the three from drifting apart. When `focus_key` is set, additionally resolve the per-Epic subdir
-   `<PRD-dir>/<EPIC>-<eslug>/` by the same tolerance. **Unlike `/design`, a missing dir is NOT a hard
+   `<PRD-dir>/EPIC-<EPIC>-<eslug>/` by the same tolerance. **Unlike `/design`, a missing dir is NOT a hard
    stop** — an early-lifecycle PRD (e.g. `Open` / `Problem stated`) legitimately has no specs-repo
    footprint yet, and "nothing exists" is itself readiness-relevant data, not an error. Record whichever
    dir(s) resolved (or "not found — no specs-repo footprint yet").
@@ -95,7 +95,7 @@ best-effort-checks repos under `$REPOS_PATH`; cwd need not be inside either.
 
 2. **Artifact inventory (mechanical presence + handoff check — no content judgment yet).** By mode:
    - **PRD-level** (`focus_key` null) — locate `<PRD-dir>/ard.md` (resolved via Phase 2.5, not here) and `<PRD-dir>/specification.md` (a PRD-level spec is optional per `workflow-states.md`); then enumerate **every** Epic subdirectory under `<PRD-dir>` that matches a key-number pattern, and for each locate `{ard.md, specification.md, design.md}` — this is per-Epic and plural, because a PRD's "Ready for Implementation" status requires **every in-scope Epic** to carry spec + design (`workflow-states.md`'s PRD row).
-   - **Epic-level** (`focus_key` set) — locate the PRD-level `<PRD-dir>/ard.md` (inherited invariants) plus the single focus Epic's `{ard.md, specification.md, design.md}` under `<PRD-dir>/<EPIC>-<eslug>/`.
+   - **Epic-level** (`focus_key` set) — locate the PRD-level `<PRD-dir>/ard.md` (inherited invariants) plus the single focus Epic's `{ard.md, specification.md, design.md}` under `<PRD-dir>/EPIC-<EPIC>-<eslug>/`.
 
    For each `specification.md` and `design.md` path located above (the `ard.md` files are handled by Phase 2.5's `ard-resolution.md`, not here), execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against its repo-relative path and map its §3.7 return value by `stopped` first, never by `on_main` alone — never a stop, per this command's defining trait: `stopped: false` with `on_main: pass`/`pass_amending` → **present** (with its absolute path); `stopped: false` with `on_main: absent` → **missing**, exactly as before this feature (§3.4's `/ready` row — this is row F only, never rows D/E, which also read `absent` on `origin/<default>` but return `stopped: true`); `stopped: false` with `on_main: unmanaged` → fall back to a raw filesystem presence check, exactly as before this feature (row H's own silent-skip contract); `stopped: true` → still never a stop for `/ready` — map the row to exactly one of three ⚠ reasons, never conflating them, because they are three different repository states, not one: rows D/E → ⚠ **authored only on `<branch>`, not merged** (naming the branch and any open PR); rows C′/C after a failed retry → ⚠ **on `<default>` but your local checkout is stale or dirty, so it could not be confirmed**; rows G/I (including the run's own `specs_git: blocked`) → ⚠ **could not be verified against any ref** (naming the returned `degraded` clause where present). Each is recorded verbatim as a readiness finding — `/ready` itself never asks a further question, retries, or stops on top of what came back: row C's own prompt-once-and-re-test-once (`phase-handoff.md` §3.3 row C, `:139-143`) and row C′'s own immediate stop naming the blocking files are `require-on-main`'s contract, already executed synchronously inside this very step; `/ready` only records whichever `stopped`/`degraded` state the call returned. Record each ARD as present (with its absolute path) or absent — its on-main state is Phase 2.5's job. Do not open/read file contents yet beyond what's needed for these checks — full reads happen in Phase 4 via the reviewer.
 
@@ -227,7 +227,7 @@ this run. This is the mechanical half of that dimension.
 
 **(c) Repo-availability presence-check (best-effort, presence only — never scanning).**
 
-1. Derive candidate repo names from: each in-scope Epic's `## Pull Requests` section URLs (the repo-name
+1. Derive candidate repo names from: each in-scope Epic's `implementation.md` entries, where one exists (the repo-name
    segment of each URL, per the PR URL formats `diff-summarizer` accepts); the confirmed-repos line of any `design.md`
    found (`design-format.md`'s header `- **Repos**: <the confirmed implementation repos this design
    spans>`); and any ARD's `grounded_repos:` frontmatter list (`ard-format.md`). Dedupe.

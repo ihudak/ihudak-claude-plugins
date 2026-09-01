@@ -20,7 +20,7 @@ The orchestrator writes a **handoff file** (a temp file) and passes its absolute
 - `applicable_ard` — the PRD-level ARD `invariants` (AD#N) + `guidance_summary`, or absent when no ARD resolved.
 - `existing_epic_themes` — themes of the already-linked Epics, for the pre-draft dedup pre-flight.
 - `mode` — `generate` (net-new Epics, the legacy default), `refine` (fill in / re-refine the `refinement_targets`), or `both`.
-- `refinement_targets` — list of `{key, team, scope_hint, current_body_path}` for the empty/existing Epics to fill in (present only when `mode` is `refine` or `both`; empty otherwise). `current_body_path` is the imported Epic file, e.g. `<prd_dir>/<EPIC-KEY>/<EPIC-KEY>.md`.
+- `refinement_targets` — list of `{key, team, scope_hint, current_body_path}` for the empty/existing Epics to fill in (present only when `mode` is `refine` or `both`; empty otherwise). `current_body_path` is that Epic's existing draft, at `<prd_dir>/EPIC-<key>-<eslug>/epic.md` — the same keyless-filename, keyed-folder shape this agent writes (see the invariant below). Nothing imports anything, and `<EPIC-KEY>.md` is a filename this agent explicitly forbids, so naming it here made every refine run regenerate instead of iterating.
 - `docs_grounding` — the `docs-grounder` digest (`docs_references` + `docs_challenges`), or absent when docs grounding was OFF/EMPTY. Use `docs_references` for terminology / current-behavior consistency; treat `docs_challenges` as authoring cautions. **Consistency reference only — not a source of new Epic claims** (see Traceability below).
 
 ## Entry validation (BLOCKED, never guess)

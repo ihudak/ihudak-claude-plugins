@@ -123,8 +123,13 @@ full review.
    invalidation, schema drop)? If it fails in prod, what's the undo?
 9. **ARD conformance** (conditional — only when `applicable_ard` is provided;
    otherwise this dimension does not apply — omit it silently) - does the diff
-   honor every `AD#N` `rule`? A violation with no recorded ARD-deviation (in the
-   caller's report) → `BLOCKER`; with a recorded deviation → `MAJOR` flagged note.
+   honor every `AD#N` `rule`? A violation with no recorded ARD-deviation → `BLOCKER`;
+   with one → `MAJOR` flagged note. **Read the deviation where you can actually see
+   it**: the `ard_deviations` list the caller passes in this dispatch, or, when the
+   caller passes none, a deviation recorded in the `applicable_ard` artifact itself —
+   never "the caller's report", which is written *after* this review returns and which
+   this agent is never given. A dispatch that omits the field is treated as no
+   deviations recorded, which is the conservative reading.
 10. **Spec/design conformance** (conditional — only when `applicable_spec` is
     provided; otherwise this dimension does not apply — omit it silently) —
     trace each `in_scope_ids` requirement against the diff and classify it:

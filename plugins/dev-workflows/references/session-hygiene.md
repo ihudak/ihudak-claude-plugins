@@ -36,7 +36,7 @@ uncommitted, since `commit-artifacts` runs after cost. Prepare-first is still sa
 the write happens before the run ends, and therefore before the user can act on the
 printed suggestion.
 
-**Skipped** (no PRD anchor to write against): `/idea` (pre-PRD, keyless), `/implement`
+**Skipped** (no PRD anchor to write against): `/idea` (its brief is the anchor, and it is written and handed off in the same run), `/implement`
 **direct** mode, `/document` **doc-edit** mode (Mode B), `/vuln`, `/upgrade`. There the
 durable state is the artifact / branch / PR already on disk; no resume pointer is written.
 

@@ -277,7 +277,7 @@ check_inventory() {
 # dir ($CMD_DIR), agents/, the reference dir ($REF_DIR), hooks/, and the literal
 # skills/ -- narrowing it to the first three would let a variable only a hook
 # reads look documented-but-unread. The
-# runtime-exclusion list is written in, so a SEVENTH user-settable variable fails
+# runtime-exclusion list is written in, so an EIGHTH user-settable variable fails
 # this check rather than passing silently. That silent pass is exactly how
 # GIT_USER_INITIALS and DEV_WORKFLOWS_COST_PRICES came to be missing from the
 # section named after them (defect D4).

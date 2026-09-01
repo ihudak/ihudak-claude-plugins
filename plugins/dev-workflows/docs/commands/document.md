@@ -24,15 +24,15 @@ For writing child Epic drafts from a PRD, use [`/epics`](epics.md). For release 
 
 ## How it runs
 
-`/document` has **37 `## Phase` headings — more than any other command in the plugin** (`/epics`, the next-largest, has 20). Almost all of that comes from running two pipelines under one name: 26 phases belong to keyed mode, 11 to direct mode, each numbered from its own Phase 0. A 37-node diagram would not be a diagram, it would be the file, so the graph below shows the shape a reader actually navigates — the mode split, then each mode's own phases collapsed into the steps a reader experiences as one decision or one unit of work.
+`/document` has **34 `## Phase` headings — more than any other command in the plugin** (`/epics`, the next-largest, has 20). Almost all of that comes from running two pipelines under one name: 23 phases belong to keyed mode, 11 to direct mode, each numbered from its own Phase 0. A 37-node diagram would not be a diagram, it would be the file, so the graph below shows the shape a reader actually navigates — the mode split, then each mode's own phases collapsed into the steps a reader experiences as one decision or one unit of work.
 
 ```mermaid
 flowchart TD
     IN["/document"] --> MD{"Address, or @file / free text? (Mode detection)"}
     MD -- "keyed mode" --> A0["Phase 0 — Load and dispatch"]
     A0 --> A12["Phase 1 — Clarification / 1.5 — Classify / 2 — Plan + approval"]
-    A12 --> A345["Phase 3 — Read the PRD folder / 4 — Resolve repos / 4.5 — Determine space(s)"]
-    A345 --> A59["Phase 5 — Parallel diff summarisation / 5.5 — Find documentation locations / 5.6 — Images / 5.6.5 — Counterpart-space reference discovery / 5.7 — Plan the documentation / 5.8 — Discrepancy analysis & user decision / 5.9 — Write-strategy approval"]
+    A12 --> A345["Phase 3 — Read the PRD folder / 4 — Resolve repos"]
+    A345 --> A59["Phase 5 — Parallel diff summarisation / 5.5 — Find documentation locations / 5.6 — Images / 5.7 — Plan the documentation / 5.8 — Discrepancy analysis & user decision"]
     A59 --> A665["Phase 6.1 — CDN handoff / 6.2 — Branch setup / 6.3 — Write / 6.4 — Style check / 6.5 — Render verification"]
     A665 --> A7["Phase 7 — Doc review gate"]
     A7 --> A886["Phase 8 — Maintenance / 8.5 — Finish & handoff / 8.6 — Maintenance proposals"]
@@ -47,7 +47,7 @@ flowchart TD
 
 The `MD` fork is the command's own `## Mode detection` section, run once before either pipeline starts. Both branches share one thing ahead of the split: a `specs-preflight` pass against `$SPECS_PATH`, run before dispatch so it covers Mode B as well as Mode A.
 
-Nine `dev-workflows` subagents are dispatched, none shared by both modes except `docs-style-checker`, `doc-fixer`, and `impl-maintenance`. Keyed-mode-only: the folder read (Phase 3, `depth: full`), `diff-summarizer` (Phase 5, up to 4 concurrent per batch), `doc-location-finder` (Phase 5.5), `doc-planner` (Phase 5.7, pinned to the Opus `planning_model` chain), `doc-writer` (Phase 6.3, also Opus-pinned — the sole author of the written pages; the orchestrator prepares its handoff and commits its output, but never writes pages itself), and `doc-reviewer` (Phase 7, Opus-pinned by its own frontmatter). Shared by both modes: `docs-style-checker` (Phase 6.4 in keyed mode, Phase 3.5 in direct mode), `doc-fixer` (invoked from the style-check phase in either mode, plus Phase 7 in keyed mode), and `impl-maintenance` (Phase 8 in keyed mode, Phase 4 in direct mode, alongside three general-purpose maintenance agents in a single dispatch). Direct mode additionally dispatches a read-only general-purpose exploration agent at Phase 2A before drafting its plan — so even the lighter pipeline dispatches well over the two-subagent floor.
+Eight `dev-workflows` subagents are dispatched, none shared by both modes except `docs-style-checker`, `doc-fixer`, and `impl-maintenance`. Keyed-mode-only: `diff-summarizer` (Phase 5, up to 4 concurrent per batch), `doc-location-finder` (Phase 5.5), `doc-planner` (Phase 5.7, pinned to the Opus `planning_model` chain), `doc-writer` (Phase 6.3, also Opus-pinned — the sole author of the written pages; the orchestrator prepares its handoff and commits its output, but never writes pages itself), and `doc-reviewer` (Phase 7, Opus-pinned by its own frontmatter). Shared by both modes: `docs-style-checker` (Phase 6.4 in keyed mode, Phase 3.5 in direct mode), `doc-fixer` (invoked from the style-check phase in either mode, plus Phase 7 in keyed mode), and `impl-maintenance` (Phase 8 in keyed mode, Phase 4 in direct mode, alongside three general-purpose maintenance agents in a single dispatch). Direct mode additionally dispatches a read-only general-purpose exploration agent at Phase 2A before drafting its plan — so even the lighter pipeline dispatches well over the two-subagent floor.
 
 ## What it needs
 

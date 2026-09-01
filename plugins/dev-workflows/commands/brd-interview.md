@@ -119,7 +119,7 @@ and nothing downstream can tell the difference afterwards.
    specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run.
 5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`addressing.md` §3), which searches
-   `specifications/` and exactly one level below it — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent
+   `specifications/` and the levels below it that `resolve-address` searches (three, per `addressing.md` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent
    → stop, without asserting which command would have created it, because nothing on disk says
    whether this key names a BRD with a source document or a slice of one:
    `BRD_INTERVIEW_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
@@ -440,8 +440,12 @@ The options presented are that question's own `options_considered`
 one trailing entry for an option the operator supplies themselves and the two standing exits:
 
 ```
-choices: [<one entry per option considered, in the order they were weighed>, "Defer this question — record why it is not answerable yet", "Cancel"]
+choices: [<up to two entries per option considered, in the order they were weighed>, "Defer this question — record why it is not answerable yet", "Another option from the list above — name it"]
 ```
+
+**The array is capped at four, like every other array in the plugin** (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0): `AskUserQuestion` renders `maxItems: 4`, so an uncapped `one entry per option considered` prompt cannot be presented at all once three options were weighed — and this phase is required to present its array verbatim. **List every option considered as prose above the prompt**, in the order they were weighed and with the argumentation each carries, then let the array offer the two strongest plus the defer entry plus a free-text route to the rest, which the run resolves against **the options it just listed**. Where two or fewer were weighed, every one of them fits and the last entry is dropped.
+
+**There is no listed `Cancel`.** The harness always supplies a free-text option, so an abort is reachable without spending one of four slots; say what an aborted round costs where the round is introduced, not in an option.
 
 This is **not** an escalation choice list, and it is not one of the arrays
 `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` owns: its options are the decision's own, the

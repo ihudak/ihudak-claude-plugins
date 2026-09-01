@@ -1,6 +1,6 @@
 ---
 name: epics
-description: keyed Epic-writing workflow. Reads a Product Requirements Document and existing Epics from exported markdown, optionally scans code repos, drafts child Epic definitions, and gates on prose-style-checker and Opus epic-reviewer.
+description: keyed Epic-writing workflow. Reads a Product Requirements Document and existing Epics from the resolved folder in the specs tree, optionally scans code repos, drafts child Epic definitions, and gates on prose-style-checker and Opus epic-reviewer.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -70,7 +70,7 @@ Ask about:
   ```
   choices: ["Scan repos referenced by sibling/parent Epics under this PRD (Recommended — auto-derived)", "Let me list the repos manually (you'll be prompted)", "Turn code scan off — produce Epic drafts from PRD content alone"]
   ```
-  When "auto-derived" is chosen, inspect the sibling/parent Epics' `## Pull Requests` sections (if any) for repo references; if none, fall back to asking the user to list repos.
+  When "auto-derived" is chosen, inspect the sibling/parent Epics' `implementation.md` records (if any) for repo references; if none, fall back to asking the user to list repos.
 
 - **Repo refresh policy** (only if code scan is ON):
   ```
@@ -199,19 +199,28 @@ inventory. **Additive, zero-cost when absent** — the common case, since
 
 ## Phase 3 — Read the PRD folder
 
-Invoke the folder read with `depth: prd-plus-epics`. This depth is specifically designed for Epic writing: richer than `prd-only` so themes extracted for `code-scanner` aren't starved of context, but lighter than `full` so the agent doesn't read dozens of already-closed child Stories.
-
 **Read the PRD folder directly.** Read its `prd.md` for the product content, and list the `EPIC-`
 subfolders under it for the Epics that already exist — that listing *is* the linked-item hierarchy
 the retired reader used to return. Each Epic folder's `key` and title come from its own frontmatter
 (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4), never from its directory name.
-  >
-  > prd_dir: [resolved prd_dir]
-  > key:         [resolved key]
-  > depth:      prd-plus-epics"
 
-Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On `OK`, carry the handoff `requirements[]` and `requirements_source` forward —
-they are the coverage ground truth for Phases 6–7.
+**Build `requirements[]` here, from the PRD you just read.** It is the coverage ground truth Phases 6–7
+run on — `epic-writer` receives it, `epic-reviewer` checks Epic coverage against it, and `_coverage.md`
+is rendered from it — so nothing downstream works if this step leaves it unset. One row per requirement
+the PRD states: its `id` (`[US#n]` / `[AC#n]` / `[SM#n]` / `[UC#n]` / `[FR#n]`), its `type`
+(`story` / `criterion` / `metric` / `use-case` / `functional`), and its text. Set
+`requirements_source: prd` alongside it.
+
+**Existing Epics come from the same read**, as one entry per `EPIC-` subfolder with its `key` and
+title, which is what the non-duplication dimension compares a new draft against. An empty PRD folder,
+or one whose `prd.md` states no requirements, is the `key dir not found` case: surface the rule in
+`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`choices: ["Re-enter key", "Cancel"]`) rather
+than proceeding with an empty ground truth, which would let every Epic pass coverage vacuously.
+
+**This step used to dispatch an agent and wait for a handoff.** That agent read a tracker export and
+was deleted; the direct read replaced it, but the `requirements[]` the handoff used to return had no
+replacement producer for a time — leaving `epic-reviewer`'s coverage dimension, whose undetected
+failure it calls a BLOCKER, running against nothing.
 
 When Phase 2.6 set `vi_spec_present: true`, **append** its
 `vi_spec_requirements[]` to this `requirements[]` — the PRD's own rows are
@@ -226,7 +235,7 @@ Identify the Epics that already exist — the `EPIC-` folders directly under the
 
 **Refinement target (`focus_key`).** `/epics` always reads and analyses the whole PRD
 (the partition and non-duplication logic are inherently PRD-holistic). When `focus_key`
-is set (explicit `<PRD> <Epic>`), validate it is among the linked Epics; if it is not,
+is set (the address resolved to an Epic folder), validate it is among the linked Epics; if it is not,
 surface `EPICS_FOCUS_NOT_FOUND: <focus_key> is not a linked Epic of <KEY>.` and
 offer `choices: ["Proceed PRD-level (draft the full partition)", "Re-enter the Epic key", "Cancel"]`.
 When present, treat `focus_key` as the **single refinement target**: Phase 6 re-drafts
@@ -278,7 +287,7 @@ If code scan is OFF, skip to Phase 6.
 If code scan is ON:
 
 1. Derive the repo list:
-   - **Auto-derived** (Phase 1 default) — walk the `EPIC-` folders under the PRD folder; for each `epic.md` (already read during Phase 3), collect repo names from its `## Pull Requests` section URLs. Dedupe. If the auto-derived list is empty, fall back to asking the user.
+   - **Auto-derived** (Phase 1 default) — walk the `EPIC-` folders under the PRD folder; for each `epic.md` (already read during Phase 3), collect repo names from the `implementation.md` beside it, where one exists. Dedupe. If the auto-derived list is empty, fall back to asking the user.
    - **Manual list** — prompt for a free-text list of repo short names (one per line or space-separated). Resolve each against the `$REPOS_PATH` slug→clone map built in step 2 below.
 
 2. Build a slug→clone map. For each top-level directory under each entry of `$REPOS_PATH`, run `timeout 5 git -C <dir> remote get-url origin 2>/dev/null`, strip a trailing `.git`, and take the URL's last path segment as that clone's slug. Skip directories with no `.git` or whose `git remote` call fails/times out. Resolve each in-scope repo slug against the map: one match → use it; multiple matches → auto-prefer basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last (show candidates at plan approval); zero matches → escalate per the `Repo unresolved (zero matches) — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
@@ -728,7 +737,7 @@ user name is ever written (§10 privacy).
 - ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation)
 - ALWAYS resolve one positional address (Phase 0) — a key or an `@<path>` naming a folder in the specs tree works without it; `/epics` is cwd-agnostic and rejects `mode: direct`
 - NEVER create a git branch — this command never branches. `specs-preflight` may switch `$SPECS_PATH` between branches that already exist, and only ones the plugin created (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none.
-- NEVER commit the Epic files, or anything in the current working directory — git management there is the user's responsibility. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
+- NEVER commit the Epic files, or anything in the current working directory — git management there is the user's responsibility. **Say what leaving them uncommitted costs**: an `epic.md` in the PRD folder is an `OTHER` path to `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1, so it fires §3.3's G1 advisory on every later run of any command and keeps the preflight's leftover flush and branch settle skipped until it is committed or removed. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - NEVER write inside `_archive/` — read-only by convention
 - ALWAYS write inside the resolved PRD folder — each Epic in its own `EPIC-` subfolder, `_coverage.md` beside `prd.md` (there is one home and it is derived, so no path is asked for)

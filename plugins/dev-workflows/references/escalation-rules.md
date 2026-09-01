@@ -146,8 +146,10 @@ This rule binds every command in the plugin, not only the ones documented below.
 
 `choices: ["Re-enter key", "Cancel"]`
 
-Used when the folder read returns `status: NOT_FOUND` or `status: EMPTY`, or when
-Phase 0 of the folder read rejects an invalid `key` format.
+Used when the resolved folder is missing or holds no artifact the run needs, or when a command's own
+Phase 0 rejects a `key` that fails `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1's grammar. (The
+folder read is an inline step each command performs, not an agent returning a status — this rule
+described a dispatch that no longer exists.)
 
 ## Required path environment variable unset
 

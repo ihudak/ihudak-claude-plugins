@@ -6,7 +6,7 @@ grounded picture, keys and nests a `PRD-` folder per confirmed slice with its ow
 own, then walks every unallocated coverage-ledger row one at a time through five
 resolutions until none remain `unallocated`, and writes `slices.md` with the rationale for each
 slice and each deferral. Run on a **slice** it allocates but does not slice: the proposal and
-child-creation phases are skipped and the walk offers four resolutions instead of five.
+child-creation phases are skipped and the walk offers its own four resolutions — the same count as `full` mode, a different set.
 
 ## Who runs it
 
@@ -122,7 +122,7 @@ reads was already independently verified by `/brd-ground`'s own agents.
 
 - **`<BRD-KEY>`** — mandatory; absent or malformed stops the run with `BRD_SPLIT_NEEDS_KEY`.
 - **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at `specifications/` and the
-  one level below it — stops the run with `BRD_SPLIT_NOT_FOUND`. That stop names both ways a folder
+  the levels below it that `resolve-address` searches — stops the run with `BRD_SPLIT_NOT_FOUND`. That stop names both ways a folder
   comes to exist rather than asserting one: `/brd-intake` for a BRD with a source document of its
   own, `/brd-split` on the parent for a slice. With no folder there is no `brd-link.md` to say
   which of the two the key was meant to be, and a key's segment count is a naming convention, not a

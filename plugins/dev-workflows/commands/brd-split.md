@@ -67,7 +67,7 @@ four-resolution one.
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
    `commit-artifacts` step skips on it.
 4. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`addressing.md` §3), which searches
-   `specifications/` and exactly one level below it (§2 step 2) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent → stop, without asserting which command would create it, because nothing on disk
+   `specifications/` and the levels below it that `resolve-address` searches (three, per `addressing.md` §3) (§2 step 2) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent → stop, without asserting which command would create it, because nothing on disk
    says whether this key names a BRD with a source document or a slice of one:
    `BRD_SPLIT_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
 5. **Resolve the run mode.** Read the resolved folder's `brd-link.md` and branch on its `parent:`
@@ -81,7 +81,7 @@ four-resolution one.
      it for the whole run, and **emit this notice now, and again in the final report** — a run that
      silently skips two phases and drops a resolution from its own picker is worse than one that
      says so:
-     `BRD_SPLIT_ON_SLICE (notice, not a stop): <BRD-KEY> is a slice of <PARENT-KEY>. This run allocates <BRD-KEY>'s ledger but creates no children: nesting is capped at one level, so Phases 2-3 are skipped and no child BRD can exist below a slice. The Phase 4 walk offers four resolutions instead of five: covered-by is not one this walk can choose — on a slice it names a sibling or the parent, records a provisional claim the parent's own walk withdrew, and is written by that walk, so every row carrying it is already terminal here.`
+     `BRD_SPLIT_ON_SLICE (notice, not a stop): <BRD-KEY> is a slice of <PARENT-KEY>. This run allocates <BRD-KEY>'s ledger but creates no children: nesting is capped at one level, so Phases 2-3 are skipped and no child BRD can exist below a slice. The Phase 4 walk offers its own four resolutions — the same count as full mode, a different set: covered-by is not one this walk can choose — on a slice it names a sibling or the parent, records a provisional claim the parent's own walk withdrew, and is written by that walk, so every row carrying it is already terminal here.`
    **This is a cap on nesting, not on allocation.** A grandchild would inherit `brd/source/` and a
    defect log from a parent that holds neither, so its inventory header would name a path that does
    not exist (`addressing.md` §6, `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1) — that
@@ -433,7 +433,7 @@ unclustered.
 **About the child's key.** The default proposed in step 1 — the parent's key plus the next unused
 two-digit segment — is a naming convention that keeps sibling slices distinguishable and reads as
 what it is. It buys the child no resolution depth and needs none: `resolve-address` searches
-`specifications/` and exactly one level below it, which is where this folder sits regardless of how
+`specifications/` and the levels below it that `resolve-address` searches (three, per `addressing.md` §3), which is where this folder sits regardless of how
 many segments its key carries (`addressing.md` §1, §3). So an operator-supplied key with no
 additional segment resolves exactly as the default does, and nothing about either choice makes the
 child sliceable — no key shape lifts the one-level cap (§3).
@@ -553,8 +553,9 @@ something different from an operator facing a blank picker, and neither is the s
 five rows at once.
 
 Both pickers offer nothing but **terminal** dispositions from
-`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3 — five in `full` mode, four in
-`allocate-only`, and `unallocated` in neither: it is the one disposition no choice above ever
+`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3 — four in each mode, though **a
+different four** (`full` offers `covered-by`, `allocate-only` offers `covered-here`), and
+`unallocated` in neither: it is the one disposition no choice above ever
 writes back. §4 states the gate those resolutions open, which this command
 **cannot complete while any row stays `unallocated`** — a `Cancel` mid-walk stops the run naming
 how many rows remain, but every row already resolved this pass stays written; nothing already
@@ -825,7 +826,7 @@ per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
 
 **Say what the child's own route looks like when offering it**: after `/brd-ground <CHILD-KEY>`,
 `/brd-split <CHILD-KEY>` runs in `allocate-only` mode (Phase 0 step 5) — it allocates that child's
-ledger through four resolutions instead of five, and creates nothing below it. `/brd-ground`'s own
+ledger through its own four resolutions — the same count as `full`, a different set — and creates nothing below it. `/brd-ground`'s own
 Phase 10 offers exactly that. A child removed, or kept empty with a recorded reason,
 for claiming nothing (Phase 4.5) is never offered here — grounding a BRD with no requirement to
 ground would have nothing to check a claim against. No children remain at all this run (none were created, or every one created was removed

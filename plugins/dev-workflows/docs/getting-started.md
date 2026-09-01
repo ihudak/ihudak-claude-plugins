@@ -63,7 +63,7 @@ The same idea for `/api-guideline-reviewer` — your own scope grammar, header s
 
 ### `DEV_WORKFLOWS_COST_PRICES`
 
-An optional path to your own price table, overriding the bundled `references/cost-prices.yaml` that session-cost reporting prices tokens against. It is the variable of the six you are least likely ever to set — the bundled defaults are used until you do.
+An optional path to your own price table, overriding the bundled `references/cost-prices.yaml` that session-cost reporting prices tokens against. It is the variable of the seven you are least likely ever to set — the bundled defaults are used until you do.
 
 ## Install the status line
 
@@ -83,16 +83,18 @@ Claude Code ships its own built-in `/statusline` command, so typing the bare for
 
 ## Your first run
 
-`/idea` is the pipeline's entry point, and it needs no key — which makes it the honest place to try the plugin for the first time. Point it at whatever you already have in mind: an inline prompt, a markdown file, a community post, or an existing PRD you want to extend.
+`/idea` is the pipeline's entry point. It takes **one argument you choose yourself** — the key that names the folder this idea will live in — because there is nowhere keyless to write: the brief lands in its final folder on the first write and is never moved afterwards. Point it at whatever you already have in mind: an inline prompt, or a markdown file with `@path`.
 
 ```
-/idea a lightweight way for on-call engineers to silence a noisy alert for one hour without editing the alerting rule
+/idea ACME-77 a lightweight way for on-call engineers to silence a noisy alert for one hour without editing the alerting rule
 ```
+
+`ACME-77` is yours to invent — nothing looks it up, and no tracker is read. It only has to match `^[A-Z][A-Z0-9_]*(-\d+)+$`.
 
 Here is what to expect:
 
-1. **A bounded grill.** `/idea` asks you up to ten questions, one at a time, to sharpen the idea before writing anything — scope, who it is for, what "done" looks like. Answer as best you can; a question you cannot answer yet becomes a logged `[NEEDS CLARIFICATION]` marker rather than a blocker.
-2. **A written brief.** It writes `idea.md` — a lean one-page brief — into the PRD folder you named. If `DOCS_PATH` is set and readable, the idea is also checked against what is already documented, and if your vault has prior related work, that surfaces too.
-3. **A handoff, once a key exists.** The moment you choose a key, re-running `/idea` relocates `idea.md` into `$SPECS_PATH/specifications/<KEY>-<slug>/` and lands it on the specs repo's default branch, where the next command, `/create-prd <KEY>`, finds it and takes over — `/create-prd` never does the relocating itself.
+1. **A bounded grill.** `/idea` asks you up to ten questions, one at a time, to sharpen the idea before writing anything — scope, who it is for, what "done" looks like. Answer as best you can; a question you cannot answer yet becomes a logged `[NEEDS CLARIFICATION]` marker rather than a blocker. (`--deep` drops the cap and grills to convergence instead.)
+2. **A written brief.** It writes `idea.md` — a lean one-page brief — into `$SPECS_PATH/specifications/PRD-ACME-77-<slug>/`, creating that folder if it does not exist. If `DOCS_PATH` is set and readable, the idea is also checked against what is already documented.
+3. **A handoff.** At the end it offers to commit the brief, push it, and open a pull request against the specs repo's default branch. Once that lands, `/create-prd ACME-77` finds `idea.md` in the same folder and takes over.
 
 From here, [Workflow overview](workflow.md) shows where every other command sits relative to `/idea`, and [Roles and phases](roles-and-phases.md) says what happens at each handoff along the way.

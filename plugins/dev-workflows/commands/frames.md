@@ -237,7 +237,7 @@ set empty — has no deliverable, offers no handoff, and says so; offering one w
 request for nothing.
 
 Report what each set now holds, then present
-`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim. On the first
+`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim — the **no-§3.4-row variant**, whose second option says nothing downstream reads this rather than promising a stop. A frame-set index has no downstream gate, so the default array's parenthetical would be false here and would contradict the §4.1 clause this phase prints on a decline. On the first
 option, execute `handoff-to-main` (§2) with all five of its §2.9 inputs: `prefix: frames`;
 `feature_folder` = the folder Phase 0 resolved; `deliverable_paths` = **every `index.md` this run
 wrote, one literal path each, repo-relative as Phase 2 held them**; `title: <KEY> Index design frame sets`; and

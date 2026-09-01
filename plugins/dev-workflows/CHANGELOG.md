@@ -4,6 +4,29 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.20.1] — 2026-09-01
+
+### Fixed — `/frames` asked for consent on a promise it then contradicted
+
+`/frames` presents `phase-handoff.md` §4.3's consent array verbatim, whose second option reads *"Just
+write the files — I'll handle git (the next phase will stop until this is on main)"*. §4.3 declares that
+parenthetical **load-bearing** — "the only place the user learns that declining has a downstream cost."
+For a frame-set index there is no such cost: nothing consumes it, `§3.4`'s table names no row for it,
+and `/frames` says so itself. So the operator was told to expect a refusal that cannot happen, and the
+run then **contradicted its own prompt** — §4.1's third `<next-phase-clause>`, added for exactly this
+case, correctly reports that nothing downstream reads it.
+
+The asymmetry is the giveaway: §4.1 was carefully given three clause variants and argues why ("printing
+the stop clause on a seam that does not stop tells the operator to expect a refusal they will not
+meet"), while §4.3 — the array shown *before* the decision, where it actually matters — had one. §4.3
+now carries a **no-§3.4-row variant** differing only in that parenthetical, and `/frames` cites it. Still
+three options, so the `AskUserQuestion` arity rule is unaffected; the thirteen producers that inline the
+default array are untouched.
+
+**Also:** `/update-prd` emitted `UPDATE_VI_NEEDS_KEY` — "Value Increment", the retired vocabulary —
+while its own sibling stop is `UPDATE_PRD_NO_PRD` and every other command uses `<COMMAND>_NEEDS_KEY`.
+The command and its docs page agreed with each other and were both wrong. Renamed.
+
 ## [3.20.0] — 2026-09-01
 
 Four-dimension review of 3.18.0 and 3.19.0 (`/idea`'s vendoring and `/frames`), fixed in full —

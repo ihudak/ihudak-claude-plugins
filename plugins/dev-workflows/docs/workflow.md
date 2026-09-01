@@ -36,6 +36,7 @@ flowchart TD
         improve["/feedback · /prompt · /prompt-brainstorm · /prompt-grill-me"]
         maint["/vuln · /dev-workflows:upgrade"]
         tooling["/dev-workflows:statusline · /docs-profile · /api-guideline-reviewer · /guideline-reviewer"]
+        framesidx["/dev-workflows:frames — (re)build a design/ frame-set index"]
     end
 
     createvi -->|PRD| createard

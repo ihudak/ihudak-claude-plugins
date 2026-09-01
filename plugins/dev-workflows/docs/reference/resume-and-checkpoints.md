@@ -22,7 +22,7 @@ Any secret, credential, token, or other sensitive value that might otherwise lan
 
 **Where it lands.** Three tiers, walked in order: `$SPECS_PATH` writable with the PRD directory matched → `<PRD-dir>/dev-workflows/resume.md`, the primary case; `$SPECS_PATH` writable but **no PRD directory matched** → the file is skipped outright and the run relies on the printed `### Next step` instead; and `$SPECS_PATH` not writable → skipped, with a one-line warning that no resume pointer could be persisted and you should set it.
 
-**Which runs skip it entirely.** A run with no PRD to anchor the pointer to writes none: `/idea` (pre-PRD, keyless), `/implement` in direct mode, `/document`'s doc-edit mode, and `/vuln` and `/upgrade` (their durable state is the branch or PR already on disk, not a PRD-scoped artifact).
+**Which runs skip it entirely.** `/implement` in direct mode and `/document`'s doc-edit mode have no PRD to anchor a pointer to. `/vuln` and `/upgrade` are non-pipeline runs whose durable state is the branch or PR already on disk. `/idea` and `/frames` do resolve a PRD folder, but neither is a phase a later run resumes — `/idea` hands its brief off in the same run, and `/frames` repairs a frame-set index rather than advancing the pipeline — so a pointer would only go stale.
 
 ## The suggestion: `/compact` or `/clear`
 

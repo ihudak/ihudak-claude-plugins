@@ -4,6 +4,190 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.20.0] — 2026-09-01
+
+Four-dimension review of 3.18.0 and 3.19.0 (`/idea`'s vendoring and `/frames`), fixed in full —
+plus the two gate holes the review found by mutating the gates themselves.
+
+### Fixed — `/idea` vendoring: the policy was specified, the mechanism was not
+
+- **Nothing bound `idea.md`'s links to the rewrite map's keys.** The map was keyed on the target
+  *as written in the source*, while `idea-format.md` Section 5 told the author to cite a linked image
+  *by path* — and `images[].path` is absolute. A brief citing a source the way its own format
+  document said to would match no key, rewrite nothing, and land on the default branch pointing at
+  one operator's disk, beside vendored copies nothing referenced. **Both forms are now keys** of the
+  map — the written `target` and the resolved absolute `path`, both already in the digest — and
+  Section 5 says so from the authoring side. A resolved path names exactly one file, so a bullet that
+  cited a path is never ambiguous.
+- **A `.md` page reached only by a standard markdown link was followed by nothing, copied by nothing
+  and reported by nothing.** The traversal followed `[[wikilinks]]` only, and `links_other[]`
+  excludes `.md` by construction — so the page fell into no array at all, which is exactly the state
+  "a link nothing copied and nothing reported is indistinguishable from a link that was never there"
+  forbids. Two documents meanwhile published a rewrite row for precisely that case, unreachable.
+  **`idea-reader` now follows both syntaxes**; a source written outside a vault uses the second.
+- **A re-run over an *edited* source left an orphan and a stale link.** The collision rule minted
+  `notes_01.md` for the changed content, while `idea.md` still pointed at `notes.md` — the copy
+  committed and unreferenced, the link committed and wrong, repeating every run. A copy is a mirror
+  of its source, not a version history, so an edited source now **refreshes the copy it wrote before**
+  — detected by the one condition only an earlier run of this command can produce: `idea.md` links
+  that exact destination path. A name taken by something `idea.md` does not link is still a genuine
+  second file and still takes a suffix.
+- **Byte-identity was compared against the candidate name rather than the destination directory**, so
+  a third run could mint `notes_02.md` as a twin of `notes_01.md`, and a fourth another — unbounded
+  growth from the rule written to prevent it.
+- **`deliverable_paths` was handed over short.** Phase 4.5 carried "the paths **written**"; Phase 5
+  required "every file Phase 4.5 wrote **or reused**" and said to pass the list through unchanged. A
+  reused copy from an earlier declined run therefore reached no ref, and `idea.md` landed linking it.
+- **Phase 4.5 restated a rule it said it restated none of, and got it wrong**: it wrote the frame-set
+  index "only where an image lands", while `grounding-format.md` §6.2 step 6 and `idea-format.md` both
+  require it wherever the set is non-empty — which is how a row whose image was deleted gets dropped.
+- **`## Prior art` could not be written at all.** It fires on `provenance: prd`, which Phase 1 cannot
+  compute and nothing upgraded to; its "Discovered" bullet shape transcribed `relation` and
+  `match_reason` from a prior-art finder deleted two releases ago; and it read `tracked_status`, a
+  field the producer emits on a *different* array. `idea-reader` now tags a source carrying
+  `kind: prd` as `prd` and fills `tracked` from its own frontmatter, the dead shape is gone with its
+  reason recorded, and the remaining slots name fields that exist.
+- **Two consumers with no producer**: `area_proposal` and `prior_art_challenges`, both left behind by
+  the same deletion. Phase 2.5 dispatches one grounding agent, not two.
+- **Phase 4's "Create a new one" offer produced a permanently ambiguous tree.** The key is fixed in
+  Phase 0, so a second brief under a different slug is a second folder asserting the same key —
+  `addressing.md` §4 rule 5's hard stop, which makes the key unaddressable by every command that
+  resolves one, including the `/create-prd <KEY>` the same run goes on to recommend. The option is
+  removed; a separate idea is a separate key, and the phase says so.
+- **Link anchors were undefined end to end.** `[[notes#Rollout]]` would have keyed on the anchor and
+  matched nothing, or dropped it silently. An anchor is now split off before matching and re-appended
+  verbatim.
+- **Percent-encoding covered the space and not the parentheses**, so a frame named `Screenshot (1).png`
+  produced a markdown link terminating at the first `)` — nothing, in a rewrite whose whole purpose is
+  a link that resolves.
+- Smaller, same family: `attachments/` was described as taking "text and markdown" when markdown is
+  all the reader opens, and a linked `.txt` was reported as "neither text/markdown nor an image",
+  which is false about that file — it is a file nothing read; `wikilinks_broken[]` was claimed by two
+  files to carry a `target:` field its schema did not define (it does now); Phase 1's gate cited a
+  "precedence rule 3" in a two-rule list; and `provenance_hint` was passed a five-value vocabulary of
+  which Phase 1 can compute two.
+
+### Fixed — `/frames`: refusals a reference asserted and the command did not implement
+
+- **The kind refusal `cost-emission.md` relies on did not exist.** Passing no `<KIND>` is right for a
+  command whose subject is reserved at every level, but it also disables the only guard the `@<path>`
+  branch has — so `@<path>` to a *frame*, the form the docs page teaches, resolved to the frame-set
+  directory, whose `index.md` asserts `kind: frame-set-index`. The run then looked for `design/`
+  inside a frame set, reported "no design/ subdirectory" about a directory holding eleven frames, and
+  reached a cost branch the reference declares unreachable. There is now a fourth-kind stop.
+- **Two writers of one index listed by two image vocabularies** — eight extensions here, six in
+  `idea-reader` — so each would drop the other's rows at §6.2 step 5 as frames that had gone missing,
+  while the files sat in the directory. The set is now defined **once**, in §6.2, as the extensions a
+  reader can actually open; a permanently unreadable frame would otherwise hold a placeholder that
+  rejoins the describe set on every run and defeats convergence.
+- **The clean re-run dispatched an agent to manufacture a failure.** With every description already on
+  record the describe set is empty, `frame-describer` refuses an empty list with `INPUT_MISSING`, and
+  the run reported a set as "stopped" while it was complete and correct. Same for every set after the
+  one the cap fell in. An empty describe set now dispatches nothing.
+- **`NO_INDEX` named no way out at either place a human meets it.** `/brd-ground` skips a set in
+  Phase 5 and hard-stops in Phase 7, and neither named `/frames` — the command built to repair
+  exactly that, shipped with no route to it. Both now name it, the Phase 7 stop as the fourth part of
+  its stop contract, and §6.1 names it at the refusal itself.
+- **`/frames` wrote no `resume.md` and appeared on neither list of the runs that skip one**, while
+  §1 calls the checkpoint unconditional for PRD-scoped runs and `/frames <PRD-KEY>` has the anchor.
+  The skip list now carries it with the reason stated — indexing is a repair, not a phase anyone
+  resumes — and the command states its exemption where `/vuln` states its own.
+- **A declined handoff had no true `<next-phase-clause>`**: §4.1 offered "the next phase will stop"
+  and "the next phase does not stop on that", and §3.4 has no row for a frame-set index because
+  nothing consumes one. A third value now exists for an artifact with no consumer, and the command
+  cites it instead of departing from the contract. The decline also now states the G1 consequence
+  `/idea` documents for the identical state.
+- Smaller: `deliverable_paths` demanded repo-relative paths from a list Phase 2 held in no stated
+  form; `$SPECS_PATH` was never validated, so an unset variable surfaced as a key-resolution failure;
+  a second address or an invented `--flag` was discarded in silence; images dropped directly into
+  `design/` — the near-miss of the gesture the command exists for — got a message naming no fix; and
+  the Epic-scoped command enumerations in `specs-repo-git.md` did not list it.
+
+### Fixed — enumerations no script gates
+
+`/frames` is the 21st `model-routing` loader, the 11th row of `addressing.md` §7's adopter table and
+the 28th documentation page. Every prose restatement of those was off by one: the skill's own
+frontmatter and `docs/reference/model-routing.md` said twenty, `docs/reference/references.md` said
+fourteen, `CLAUDE.md`'s loader/exempt partition accounted for 27 of 28 commands, and its docs-tree
+sentence said 42 pages and 27 command pages. Where a count restated another file's list, it is now a
+citation instead — which is what that section's own instruction always said. Also: `CLAUDE.md` drew
+the deprecated unprefixed folder its own §2 rule forbids, described `/ready` as read-only for a
+*tracker* status it never reads, and mapped `/idea`'s handoff as one file; `docs/brd-workflow.md`'s
+tree comment said `attachments/` is "PRD level only, never here" ten lines above the paragraph saying
+both levels; and one CHANGELOG version boundary had no blank line before it.
+
+### Fixed — documentation that contradicted the commands
+
+- `/idea`'s page said a read image "needs no index file", sixty lines above the section describing the
+  index it writes; the command said the same thing. An index makes a set readable, which is not the
+  same as grounding it, and both now say that instead.
+- `/idea`'s page promised **four** source forms and listed three, one of them twice, for a classifier
+  with two branches; it omitted the `--docs` flag; and its prior-art bullet had lost the negation that
+  made it true, asserting under "What it needs" that the command performs discovery it does not.
+- `/frames`'s page omitted five behaviours the command has — the mandatory address, the
+  create-nothing outcomes, the empty-set skip, the foreign index left alone with `index.md` written
+  beside it, and what counts as a frame.
+- `docs/reference/environment.md`'s PRD-folder tree listed neither `idea.md`, `attachments/` nor
+  `design/`; `docs/workflow.md`'s diagram omitted `/frames` under a sentence promising every command.
+
+### Fixed — `CLAUDE.md` described the plugin in a vocabulary the plugin no longer uses
+
+The plugin reached **zero** unmarked tracker mentions some releases ago. `CLAUDE.md` — which
+*describes* the plugin, and which check 13 did not scan — still held ten, and they were not
+rationale but claims: `/ready` "read-only for Jira status" (the very defect check 13's own header
+records as fixed, corrected in the README and left standing here), `doc-planner` "synthesizes Jira +
+diffs" when its agent file says PRD content, `/update-prd` excluded from `require-on-main` because
+"its base is the Jira import" when the command resolves a PRD from the specs tree, a written claim
+required to cite "the originating Jira key", and six more. Every authority they cite —
+`prose-formatting.md`, `doc-structure-conventions.md`, `diff-summarizer`, `release-notes-writer`,
+`source-truth.md` — was already neutral; only the file describing them was not.
+
+**Check 13's scope now includes `CLAUDE.md`.** A file outside the gate that describes the thing
+inside it is how a constraint comes back, and this is the evidence for it rather than the argument.
+The repo-root README stays out for its existing reason (it documents a sibling plugin whose subject
+is a vendor CLI). Three lines that must name a tracker to explain a hazard — the two rationales for
+the requirement-ID grammar and the pre-lint autolink detector, and check 13's own description
+quoting the defects it removed — carry the marker instead, and the sanctioned census is re-derived
+at 14 lines across 6 files in four kinds.
+
+### Fixed — a gate direction, and an undefined read
+
+- **Check 4's agent direction accepted a prose mention where a row was required.** A review replaced
+  an agent's table row in `docs/reference/agents.md` with a sentence naming it, and the gate passed —
+  the inventory table the page exists to be had silently lost a row. The reverse direction has been
+  row-anchored since it was written; a pair that disagrees about what counts as listed catches
+  phantoms and misses drop-outs, which is the half that actually goes wrong.
+- **`design-grounder` had no rule for two indexes in one directory** — a state `grounding-format.md`
+  §6.2 deliberately produces, by having a writer leave a foreign index alone and write `index.md`
+  beside it. `index.md` is now stated as the one read, with the other reported and not read.
+- `/frames` was the only command dispatching two or more subagents whose page carried no
+  *How it runs* diagram.
+
+### Added — two gates, because two constraints were held by nothing
+
+- **Check 14 — foreign-identity quarantine, repo-wide.** The organisation this plugin was extracted
+  from must be named nowhere in the repository. That was believed to be check 13's job and never was:
+  a review appended those names to a documentation page and to `CLAUDE.md` and the gate passed both
+  times — check 13's token set is trackers, and its scope stops at the plugin. The new check has no
+  sanctioning marker, no exception, and reads every text file outside `.git`. **Its token list is
+  stored base64-encoded**, for the reason that a denylist in clear text would itself put the names
+  into the tree — the gate would be the only violation of the rule it enforces. It has zero live
+  sites: the tree and its history are clean, and the check exists so that stays true by construction.
+- **Check 15 — index membership.** Check 4 proves a command has a page and check 3 proves that page
+  is reachable from *some* page; neither proves a reader can find it. A review deleted `/frames` from
+  the docs index, the workflow diagram and the plugin README's role table, and the build stayed green.
+  Every command must now appear in `docs/README.md`, in the plugin README, and inside
+  `docs/workflow.md`'s **mermaid diagram** — asserted separately from the page, because prose below a
+  diagram is where a command lands when someone adds it in a hurry. It caught the live defect on its
+  first run.
+- **`check-id-grammar.sh --selftest` now asserts which forms the gate named**, not only its exit code.
+  Each negative fixture carries several violating lines, so any surviving alternation of `PATTERN`
+  holds the exit at 1 — a review deleted both legacy counter-metric alternations, watched the selftest
+  print PASS, and then watched the degraded gate accept a live violation in a shipped reference file.
+  Verified by re-running that exact degradation against the hardened selftest, which now fails it.
+- **`scripts/validate-catalog.py` has a `--selftest`**, its two siblings having had one for releases,
+  and it is wired into the same workflow ahead of the run it guards.
+
 ## [3.19.0] — 2026-09-01
 
 ### Added — `/frames`: the recovery path for a frame set nothing could read
@@ -448,6 +632,7 @@ no reporting line behind it.
   example now carries one, and a second example shows a markdown source with a linked mockup.
 - **The same page listed four subagents and then said "All three run at the caller's
   `detection_model`".**
+
 ## [3.16.1] — 2026-09-01
 
 ### Fixed — review round 2 on the deferred-attribution feature

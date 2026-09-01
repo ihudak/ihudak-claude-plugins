@@ -207,8 +207,14 @@ check_inventory() {
   done < <(ls "$d/$DOC_CMD_DIR"/*.md 2>/dev/null | sed 's|.*/||; s|\.md$||')
 
   # agents <-> docs/reference/agents.md
+  # The forward direction is ROW-anchored, not merely "the name appears somewhere". It was the
+  # latter, and a review proved the gap by replacing an agent's table row with a sentence naming
+  # it in prose -- the gate passed, while the inventory table the page exists to be had silently
+  # lost a row. The reverse direction below has been row-anchored since it was written; a pair of
+  # directions that disagree about what counts as being listed catches phantoms and misses
+  # drop-outs, which is the half that actually goes wrong.
   while IFS= read -r n; do
-    grep -q "\`$n\`" "$d/reference/agents.md" 2>/dev/null || fail 4 "agent '$n' is absent from reference/agents.md"
+    grep -qE "^\| \`$n\`" "$d/reference/agents.md" 2>/dev/null || fail 4 "agent '$n' has no row in reference/agents.md (a prose mention is not a row)"
   done < <(ls "$p/agents"/*.md 2>/dev/null | sed 's|.*/||; s|\.md$||')
   while IFS= read -r n; do
     [ -f "$p/agents/$n.md" ] || fail 4 "reference/agents.md names '$n', which is not an agent"
@@ -850,7 +856,7 @@ selftest() {
   # Verified red (this case FAILs: "no count sentence found") with the word2num/alternation
   # additions stashed, green with them applied.
   expect_pass_after "a correctly-worded seventeen-command count is accepted" \
-    "for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && sed -i.bak 's|two slash commands|seventeen slash commands|' $PLUGIN_REL/README.md"
+    "for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && sed -i.bak 's|two slash commands|seventeen slash commands|' $PLUGIN_REL/README.md && for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15; do printf -- '\nCommand: \`/%s\`.\n' \$n >> $PLUGIN_REL/README.md; done && { printf -- '\n\`\`\`mermaid\nflowchart TD\n'; for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15; do printf -- '    x%s[\"/%s\"]\n' \$n \$n; done; printf -- '\`\`\`\n'; } >> $PLUGIN_REL/docs/workflow.md"
   # The same proof for the OTHER gated alternation. The case above exercises the commands
   # alternation only; the cost-emitting-commands alternation in check 9 has its own word list,
   # and until this case existed nothing exercised it -- a word missing from it would have failed
@@ -864,9 +870,25 @@ selftest() {
   # applied -- and the seventeen-command case above stays green throughout, which is what shows
   # the two cases cover different alternations.
   expect_pass_after "a correctly-worded seventeen cost-emitting-command count is accepted" \
-    "for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '\nCall \`emit-cost\` with \`command: /%s\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' \$n >> \$(cmd_file $PLUGIN_REL \$n); done && { printf -- '# Cost emission (fixture)\n\n## 7. Attribution (phase / role)\n\n| Command | phase | role |\n|---------|-------|------|\n| \`/alpha\` | fixture-phase | pm |\n'; for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '| \`/%s\` | fixture-phase | pm |\n' \$n; done; printf -- '\n## 8. Persistence\n\nNot modelled in the fixture.\n'; } > $PLUGIN_REL/$REF_DIR/cost-emission.md && sed -i.bak 's|two slash commands|eighteen slash commands|' $PLUGIN_REL/README.md && sed -i.bak 's|One commands emit a cost entry|Seventeen commands emit a cost entry|' $PLUGIN_REL/docs/reference/session-cost.md"
+    "for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '\nCall \`emit-cost\` with \`command: /%s\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' \$n >> \$(cmd_file $PLUGIN_REL \$n); done && { printf -- '# Cost emission (fixture)\n\n## 7. Attribution (phase / role)\n\n| Command | phase | role |\n|---------|-------|------|\n| \`/alpha\` | fixture-phase | pm |\n'; for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '| \`/%s\` | fixture-phase | pm |\n' \$n; done; printf -- '\n## 8. Persistence\n\nNot modelled in the fixture.\n'; } > $PLUGIN_REL/$REF_DIR/cost-emission.md && sed -i.bak 's|two slash commands|eighteen slash commands|' $PLUGIN_REL/README.md && sed -i.bak 's|One commands emit a cost entry|Seventeen commands emit a cost entry|' $PLUGIN_REL/docs/reference/session-cost.md && for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '\nCommand: \`/%s\`.\n' \$n >> $PLUGIN_REL/README.md; done && { printf -- '\n\`\`\`mermaid\nflowchart TD\n'; for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '    x%s[\"/%s\"]\n' \$n \$n; done; printf -- '\`\`\`\n'; } >> $PLUGIN_REL/docs/workflow.md"
   expect_fail "a wrong non-ASCII anchor is rejected"           2 "printf '\n[bad](#uber-config)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
   expect_fail "a wrong duplicate-heading index is rejected"    2 "printf '\n[bad](#notes-2)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
+  # Check 14 is asserted through the same decoder the check uses, so the fixture carries the
+  # name only for the instant the case runs and this file still never spells it out.
+  expect_fail "the foreign organisation named in a docs page is rejected" 14 \
+    "printf '%s\n' \"\$(b64d \$FOREIGN_IDENTITY_SAMPLE_B64)\" >> $PLUGIN_REL/docs/README.md"
+  expect_fail "an unmarked vendor token in CLAUDE.md is rejected" 13 \
+    "printf 'A stale claim about a Jira status.\n' >> CLAUDE.md"
+  expect_pass_after "a MARKED vendor token in CLAUDE.md is accepted" \
+    "printf 'A stale claim about a Jira status. <!-- vendor-token-ok: fixture -->\n' >> CLAUDE.md"
+  expect_fail "the foreign organisation named OUTSIDE the plugin is rejected" 14 \
+    "printf '%s\n' \"\$(b64d \$FOREIGN_IDENTITY_SAMPLE_B64)\" >> README.md"
+  expect_fail "a command missing from the plugin README is rejected" 15 \
+    "sed -i.bak 's|, \`/alpha-two\`||' $PLUGIN_REL/README.md"
+  expect_fail "a command missing from the workflow DIAGRAM is rejected" 15 \
+    "sed -i.bak 's|\"/alpha-two\"|\"/removed\"|' $PLUGIN_REL/docs/workflow.md"
+  expect_fail "a workflow page with no diagram at all is rejected" 15 \
+    "sed -i.bak 's|^\`\`\`mermaid$|text|' $PLUGIN_REL/docs/workflow.md"
   expect_fail "a titled link to a missing file is rejected"    1 "printf '\n[bad](nope.md \"T\")\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
   expect_fail "an angle-bracket link to a missing file is rejected" 1 "printf '\n[bad](<nope.md>)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
   expect_fail "an over-long INDENTED table cell is rejected"   6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"q\"; printf \"\n  | a | %s |\n  |---|---|\n\", s}' >> $PLUGIN_REL/docs/reference/agents.md"
@@ -1083,10 +1105,18 @@ PYEOF
 # same shape of result -- fires only on correct content, catches nothing -- on which check
 # 11's widening was measured and rejected twice, so it is rejected here for the same reason.
 #
-# SCOPE is $PLUGIN_REL only. The repo-root README documents the whole marketplace, including
-# a sibling plugin whose SUBJECT is a vendor CLI; vendor names there are its subject matter,
-# not this plugin's vocabulary -- the same reason check 10 leaves that file alone.
-# CHANGELOG.md is excluded: it is history, and history keeps the words it shipped with.
+# SCOPE is $PLUGIN_REL plus CLAUDE.md. The repo-root README stays out: it documents the whole
+# marketplace, including a sibling plugin whose SUBJECT is a vendor CLI, so vendor names there
+# are its subject matter rather than this plugin's vocabulary -- the same reason check 10 leaves
+# that file alone. CLAUDE.md was OUT of scope and is now in, on evidence: it DESCRIBES this
+# plugin's behaviour, so it drifts in exactly the way the plugin does, and it drifted. While the
+# plugin itself reached ZERO unmarked tracker mentions, CLAUDE.md still held ten -- among them
+# `/ready` described as "read-only for Jira status" (the very defect this check's header records
+# as fixed, corrected in the README and left standing here), `doc-planner` described as
+# synthesising a tracker's data when its own agent file says PRD content, and `/update-prd`
+# excluded from a gate because "its base is the Jira import" when the command resolves a PRD from
+# the specs tree. A file outside the gate that describes the thing inside it is how a constraint
+# comes back. CHANGELOG.md is excluded: it is history, and history keeps the words it shipped with.
 #
 # THE MARKER, `vendor-token-ok:`, predates this check by one user and had no enforcer.
 # It sanctions the line it sits on; on a fence-OPENING line it sanctions that fenced block,
@@ -1095,8 +1125,8 @@ PYEOF
 # comment on the offending line without corrupting what it quotes. A fenced block is NOT
 # skipped by default -- templates and handoff blocks are exactly where a tracker-shaped
 # field would hide -- so the marked/unmarked fence pair is a selftest case.
-# Sanctioned users -- 11 marked lines across 5 files, in three kinds. Re-derive with
-# `grep -rn vendor-token-ok: plugins/dev-workflows` rather than adjusting the number:
+# Sanctioned users -- 14 marked lines across 6 files, in four kinds. Re-derive with
+# `grep -rn vendor-token-ok: plugins/dev-workflows CLAUDE.md` rather than adjusting the number:
 #   * recognition (8): branch-naming.md's three quotes of a repository's own convention file
 #     plus its fenced verbatim pattern; /vuln's no-address placeholder literals (its prose
 #     step, its two handoff blocks) and the docs page mirroring them -- foreign text the
@@ -1105,7 +1135,11 @@ PYEOF
 #     a user keeps", which is that paragraph's whole argument, and a user's own frontmatter
 #     key the preserve-unknown-keys rule exists to protect;
 #   * provenance (1): getting-started.md naming the subject of a sibling plugin dev-workflows
-#     does not use.
+#     does not use;
+#   * instruction-file rationale (3): CLAUDE.md's two explanations of WHY the requirement-ID
+#     grammar and the pre-lint autolink detector exist -- both are rules about a tracker's key
+#     shape and are unexplainable without naming it -- and this check's own description, which
+#     cites the shipped defects it was created to remove and cannot quote them otherwise.
 # Each has to write the vendor's name in order to match, illustrate, or attribute it.
 #
 # What this deliberately does NOT catch, stated so nobody mistakes green for safe: it matches
@@ -1118,6 +1152,7 @@ check_vendor_tokens() {
   [ -n "$VENDOR_TOKENS" ] \
     || { fail 13 "VENDOR_TOKENS is empty -- this check would examine nothing"; return; }
   files=$(find "$p" -name '*.md' ! -name 'CHANGELOG.md' 2>/dev/null | sort)
+  [ -f "$root/CLAUDE.md" ] && files=$(printf '%s\n%s\n' "$files" "$root/CLAUDE.md")
   [ -n "$files" ] \
     || { fail 13 "no markdown under $PLUGIN_REL to scan -- this check would examine nothing"; return; }
   hits=$(while IFS= read -r f; do
@@ -1146,6 +1181,76 @@ check_vendor_tokens() {
   done <<<"$hits"
 }
 
+# ------------------------------------------------------------------ check 14
+# Foreign-identity quarantine, REPO-WIDE. The organisation this plugin was extracted from
+# must never be named anywhere in this repository -- not in the plugin, not in CLAUDE.md,
+# not in a script, not in the CHANGELOG. That is a hard constraint of a different kind from
+# check 13's: check 13 keeps the plugin from speaking a TRACKER's language about its own
+# behaviour, is scoped to $PLUGIN_REL, and has a sanctioning marker because a plugin
+# sometimes has to quote foreign text in order to match it. This one has no marker and no
+# exception, because there is no legitimate reason to write these names at all.
+#
+# WHY THE TOKENS ARE ENCODED. A denylist written in clear text would itself put the names
+# into the tree, which is the thing being forbidden -- the check would be the only violation
+# of the rule it enforces, and `grep -ri` for the names would come back dirty forever after.
+# base64 keeps the gate real while leaving the tree clean. It is obfuscation against a
+# grep, not against a reader, and it is not pretending otherwise.
+#
+# SCOPE is the whole repository minus .git, and it reads every text file rather than only
+# markdown, because a name leaks as easily through a script comment, a fixture, or a JSON
+# description as through prose. The measurement that motivated it: the tree is clean today
+# and its git history is clean, so this check has zero live sites -- it exists to keep a
+# constraint that currently holds by discipline from quietly stopping to hold. This was
+# found by a review that mutated a docs page with the names and watched check 13 pass.
+FOREIGN_IDENTITY_B64="KF58W15hLXpBLVowLTldKShzaXplW15hLXpBLVowLTldezAsM31zdHJlYW18YWJ0bykoW15hLXpBLVowLTldfCQp"
+FOREIGN_IDENTITY_SAMPLE_B64="QnVpbHQgZm9yIFNpemUgU3RyZWFtIGJ5IEFidG8u"
+
+b64d() { printf '%s' "$1" | base64 -d 2>/dev/null || printf '%s' "$1" | base64 -D 2>/dev/null; }
+
+check_foreign_identity() {
+  local root="$1" pat hits
+  pat="$(b64d "$FOREIGN_IDENTITY_B64")"
+  # A decoder that silently produced nothing would make this check examine nothing while
+  # reporting success -- the exact "green by accident" failure the selftest exists to catch.
+  [ -n "$pat" ] \
+    || { fail 14 "the foreign-identity pattern did not decode -- this check would examine nothing"; return; }
+  hits=$(grep -rEinI --exclude-dir=.git -- "$pat" "$root" 2>/dev/null | sed "s|^$root/||" | head -50)
+  [ -n "$hits" ] || return 0
+  local h; while IFS= read -r h; do
+    [ -n "$h" ] && fail 14 "${h%%:*} names the organisation this plugin was extracted from -- that name must appear nowhere in this repository, and there is no sanctioning marker for it"
+  done <<<"$hits"
+}
+
+# ------------------------------------------------------------------ check 15
+# Index membership. Check 4 proves a command HAS a docs page; check 3 proves that page is
+# reachable from SOME page. Neither proves the command is findable: a reader looking for it
+# arrives through one of three surfaces, and a command can drop out of all three while every
+# other check stays green. A review demonstrated exactly that -- it removed /frames from
+# the docs index (both places), from the workflow diagram and from the plugin README's role
+# table, and the gate passed. The defect that shipped this way was smaller and the same
+# shape: /frames reached the workflow page's prose but not its mermaid diagram, under an
+# opening sentence promising "every command shown here".
+#
+# THE THREE SURFACES, and why the diagram is asserted separately from the page: the prose
+# below a diagram is where a command lands when someone adds it in a hurry, so asserting
+# only "appears in workflow.md" would have passed the very defect this check was written
+# for. A node may be written bare (`/idea`) or namespaced (`/dev-workflows:release-notes`),
+# so both forms count.
+check_index_membership() {
+  local root="$1" p="$1/$PLUGIN_REL" n f diagram
+  diagram=$(awk '/^```mermaid/{f=1;next} /^```/{f=0} f' "$p/docs/workflow.md" 2>/dev/null)
+  [ -n "$diagram" ] \
+    || { fail 15 "docs/workflow.md holds no mermaid diagram -- this check would examine nothing"; return; }
+  for f in "$p"/commands/*.md; do
+    [ -e "$f" ] || continue
+    n=$(basename "$f" .md)
+    grep -qE "(/|:)$n\b" "$p/docs/README.md"   || fail 15 "/$n is not listed in docs/README.md"
+    grep -qE "(/|:)$n\b" "$p/README.md"        || fail 15 "/$n is not listed in $PLUGIN_REL/README.md"
+    printf '%s' "$diagram" | grep -qE "(/|:)$n\b" \
+      || fail 15 "/$n does not appear in docs/workflow.md's diagram, which says it shows every command (prose below it does not count -- that is where the last one went missing)"
+  done
+}
+
 # ---------------------------------------------------------------------- main
 [ "${1:-}" = "--selftest" ] && selftest
 
@@ -1171,6 +1276,8 @@ check_identity_quarantine "$ROOT"
 check_merge_clause      "$ROOT"
 check_choices_arity     "$ROOT"
 check_vendor_tokens     "$ROOT"
+check_foreign_identity  "$ROOT"
+check_index_membership  "$ROOT"
 
 if [ "$FAILURES" -gt 0 ]; then
   echo "FAIL: $FAILURES problem(s) under $PLUGIN_REL" >&2

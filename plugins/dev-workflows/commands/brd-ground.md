@@ -472,7 +472,8 @@ fourth reconciliation class cites a `[CG#n]`, so the findings it needs must alre
 Handle `status`: `OK` → collect `findings` (may be empty — agreement produces none). `INPUT_MISSING`
 / `FRAME_SET_MISSING` → should not occur; stop and name the gap if it does. `NO_INDEX` → this
 frame set cannot be reconciled without an index file; report it and skip that directory rather
-than guessing at frame identity. Renumber into one BRD-wide `[DG#n]` sequence the same way as
+than guessing at frame identity — and name the repair, `/dev-workflows:frames <this run's KEY>`,
+which writes the index and lets a re-run ground the set. Renumber into one BRD-wide `[DG#n]` sequence the same way as
 `[CG#n]` above, continuing from the highest `DG#n` already on file.
 
 **Record which frame set each `[DG#n]` came from** as you merge — the dispatch that produced it
@@ -599,7 +600,9 @@ finding carrying no outcome is not evidence and blocks `/brd-split` for as long 
   getting the contract wrong is a plugin gap, unlike Phase 0's environment halts.
 - **`REPO_MISSING` / `FRAME_SET_MISSING` / `NO_INDEX`** — the source this finding rests on is gone
   or unusable (a repository unmounted mid-run, a frame set removed or exported without an index
-  since it was ground). Stop, naming the finding and the path the agent reported.
+  since it was ground). Stop, naming the finding and the path the agent reported — and, per the
+  four-part stop contract, the command that resolves it: on `NO_INDEX` that is
+  `/dev-workflows:frames <this run's KEY>`, then re-run this command.
 
 **Nothing reaches Phase 8 unverified.** Any stop above happens before Phase 8's first write, so a
 finding without an outcome is never written into the package; whatever was on file from a previous

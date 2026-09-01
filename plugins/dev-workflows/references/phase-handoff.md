@@ -246,9 +246,13 @@ Where §3.4's row for that consumer says *stops*, the clause is
 `the next phase will stop until it is.` Where the row preserves a pre-existing absent behaviour — the
 `/create-prd` idea ladder, and the PRD read in `/create-ard` and `/specify` — the clause is
 `the next phase does not stop on that: it reports the artifact as un-landed and proceeds from the
-resolved folder.` Printing the stop clause on a seam that does not stop tells the operator to expect
-a refusal they will not meet, and the two sentences cost nothing to tell apart: the producer knows
-which artifact it just wrote.
+resolved folder.` Where §3.4 has **no row at all** because nothing downstream consumes the artifact —
+a frame-set index is the case, and `/frames` the producer — the clause is `nothing downstream reads it,
+so no command stops on this.` A missing row is not the same as a row that stops, and neither of the
+first two sentences is true of an artifact with no consumer: one promises a refusal that cannot
+happen, the other reports an un-landing to a phase that was never waiting. Printing the stop clause on
+a seam that does not stop tells the operator to expect a refusal they will not meet, and the three
+sentences cost nothing to tell apart: the producer knows which artifact it just wrote.
 
 ### 4.2 The no-`gh` fallback text
 

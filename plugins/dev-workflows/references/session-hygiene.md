@@ -36,9 +36,16 @@ uncommitted, since `commit-artifacts` runs after cost. Prepare-first is still sa
 the write happens before the run ends, and therefore before the user can act on the
 printed suggestion.
 
-**Skipped** (no PRD anchor to write against): `/idea` (its brief is the anchor, and it is written and handed off in the same run), `/implement`
-**direct** mode, `/document` **doc-edit** mode (Mode B), `/vuln`, `/upgrade`. There the
+**Skipped**: `/idea` (its brief is the anchor, and it is written and handed off in the same run), `/implement`
+**direct** mode, `/document` **doc-edit** mode (Mode B), `/vuln`, `/upgrade`, `/frames`. There the
 durable state is the artifact / branch / PR already on disk; no resume pointer is written.
+
+**Two reasons sit in that list, and only one of them is "no PRD anchor".** `/implement` direct mode,
+`/document` Mode B, `/vuln` and `/upgrade` have no PRD directory to write into. `/idea` and `/frames`
+do — but neither is a pipeline *phase* that a later run resumes: `/idea` hands its brief off in the
+same run, and `/frames` rebuilds an index, which is a repair rather than a step with a next one. A
+pointer to a phase nobody resumes is a file that only goes stale, so state the exemption in the
+command rather than writing one.
 
 **Location** (mirror `followup-emission.md` §4 resolution):
 

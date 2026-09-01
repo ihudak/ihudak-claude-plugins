@@ -1,6 +1,7 @@
 # Documentation
 
 - [Getting started](getting-started.md) and how to [install](getting-started.md#install)
+- [Workflow](workflow.md)
 - [alpha](commands/alpha.md)
 - [alpha-two](commands/alpha-two.md)
 - [Agents](reference/agents.md)

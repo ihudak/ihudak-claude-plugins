@@ -224,11 +224,16 @@ screen or report images plus **an index file** naming what each frame depicts.
 <any-specs-folder>/design/<frame-set-name>/   <images…> + an index file
 ```
 
-**The index is not optional and its absence is not recoverable.** `design-grounder` returns
-`NO_INDEX` rather than reading the directory, because a filename is not a reliable statement of what
+**The index is not optional, and its absence is recoverable in exactly one way.** `design-grounder`
+returns `NO_INDEX` rather than reading the directory, because a filename is not a reliable statement of what
 a frame shows, and a finding citing a frame the agent cannot actually identify is worse than no
 finding. The index may be named by whatever the frame-set convention uses — a manifest, a captions
 file, a README enumerating the frames — but something must map frame to subject.
+
+**The way out is `/dev-workflows:frames <ADDRESS>`**, which looks at the frames of every set in one
+resolved folder and writes the index this section requires. Any command or agent that reports
+`NO_INDEX` to a human names it: a refusal whose remedy is not stated reads as a dead end, and the
+hand-export it fires on is the ordinary way a frame set arrives.
 
 **The location is stated here once and cited, never restated.** A command that re-derived it would
 be a second copy of a path rule, which is how the copies drift.
@@ -325,8 +330,19 @@ description for a frame it never looked at.
 
 Every writer runs exactly these steps, **after** whatever files it was going to add have landed:
 
-1. **List the images actually in the directory** — every file carrying one of the image extensions.
-   `index.md` is not a frame and is never a row.
+1. **List the images actually in the directory** — every file carrying one of the **frame
+   extensions**: `.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`, case-insensitive. `index.md` is not
+   a frame and is never a row.
+
+   **This set is defined here and nowhere else, and every writer lists by it.** Two writers of one
+   index listing by two vocabularies is not a difference of taste: a file one includes and the other
+   does not is a row the second writer drops at step 5 and reports as an image that is no longer
+   there, while it sits in the directory — reproducing at row granularity the exact failure that moving
+   this format into one authority was meant to end. The set is the extensions a reader can actually
+   open, because a frame nothing can render can never carry a description and would hold a permanent
+   placeholder that rejoins the describe set on every run, defeating convergence. A file in the
+   directory outside this set is **not a frame and never a row**; a writer that finds one names it once
+   in its own report so it is visibly not indexed rather than invisibly missing.
 2. **Preserve every existing row whose image is still in that listing, verbatim** — the frame, its
    `Linked from`, and its description exactly as they stand. A run cannot reproduce a description it
    never received, so a row it cannot reproduce is a row it must not rewrite. **One exception, and it

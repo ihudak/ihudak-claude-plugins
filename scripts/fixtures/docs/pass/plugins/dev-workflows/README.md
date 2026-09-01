@@ -3,3 +3,5 @@
 See [the docs](docs/README.md).
 
 A fixture plugin of two slash commands.
+
+Commands: `/alpha`, `/alpha-two`.

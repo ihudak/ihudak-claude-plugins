@@ -343,6 +343,17 @@ Every writer runs exactly these steps, **after** whatever files it was going to 
    placeholder that rejoins the describe set on every run, defeating convergence. A file in the
    directory outside this set is **not a frame and never a row**; a writer that finds one names it once
    in its own report so it is visibly not indexed rather than invisibly missing.
+1a. **A set that once held frames and now holds none is reported as stale, not silently left.**
+   Step 6 forbids writing an index where the listing is empty, and step 5 requires dropping every row
+   whose image is gone; on an all-gone set those pull against each other, and the resolution is step 6
+   — nothing is written and nothing is removed. That leaves an `index.md` every row of which is, in
+   step 5's own words, a promise that resolves to nothing, and because an index is *present*
+   `design-grounder` will not return `NO_INDEX`: it will try to read frames that are not there. So the
+   writer **names that set explicitly as stale** — the index path, its row count, and that every row's
+   image is gone — rather than folding it into "skipped for holding no image". Nothing is deleted here:
+   an operator who moved frames out temporarily has not asked for their descriptions to be destroyed,
+   and the descriptions are the expensive part.
+
 2. **Preserve every existing row whose image is still in that listing, verbatim** — the frame, its
    `Linked from`, and its description exactly as they stand. A run cannot reproduce a description it
    never received, so a row it cannot reproduce is a row it must not rewrite. **One exception, and it

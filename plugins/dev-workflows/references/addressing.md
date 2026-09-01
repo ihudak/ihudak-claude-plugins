@@ -168,6 +168,13 @@ identifier defeats. Reading the field turns the guess into an assertion.
 An enumeration of carriers per kind would be a list that goes stale the first time a command writes a
 new artifact, and nothing in `scripts/` would catch it.
 
+**A reserved subdirectory is not a candidate for this test.** A frame-set index carries its
+*parent's* `key:` while sitting in a directory named for the set (`design/checkout-flow/`), so every
+frame-set index in the tree presents an apparent disagreement. Testing it there would tell an operator
+their tree is broken on the ordinary `@<path>`-to-a-frame-set gesture, where the right answer is the
+consuming command's own redirect (`/frames`'s `FRAMES_NOT_A_SPEC_FOLDER`: re-run against the folder
+above). §2's reserved subdirectories are passed over by key resolution and are passed over here too.
+
 **A `key:` that disagrees with its folder name is a hard stop naming both.** That is the whole cost of
 carrying identity in two places, and it buys the conversion of a hand-rename from a silent divergence
 into a message.

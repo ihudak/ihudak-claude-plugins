@@ -90,7 +90,7 @@ When one or more required tools are **missing**, print the `toolchain` rows (mis
 consequence — each affected gate and the outcome it will record — then ask:
 
 ```
-choices: ["Cancel — re-run in the docs container (Recommended)", "Continue anyway — record the degraded gates", "Other… (describe)"]
+choices: ["Cancel — re-run in the docs container (Recommended)", "Continue anyway — record the degraded gates"]
 ```
 
 Example consequence line:

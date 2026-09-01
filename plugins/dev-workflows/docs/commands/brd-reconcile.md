@@ -182,11 +182,13 @@ unmatched row can be told apart from a question set nobody passed.
   customer accepts and one they re-request next round.
 - **Phase 4 — the confirmation gate.** No `[CD#n]` is written while any decision the reader returned
   is unconfirmed. The four values are `confirm`, `correct`, `reject` and `ask-the-customer`; the
-  picker carries no free-text entry and no bulk confirmation. That omission is enforceable because
-  [`escalation-rules.md`](../../references/escalation-rules.md) carves this picker out **by name** —
-  its standing "one permitted adjustment" would otherwise authorise adding a free-text box to the one
-  picker through which customer authority enters the register. `Cancel` stops the run with **nothing
-  frozen**: no record exists until the freeze phase, so a cancelled walk loses its confirmations and
+  picker carries no bulk confirmation, and a free-text answer is **normalised into those four or the
+  candidate is re-asked** — never written through as a fifth value.
+  [`escalation-rules.md`](../../references/escalation-rules.md) names this picker for that reason:
+  the prompt's free-text option is supplied by the harness and no picker can decline it, so the one
+  picker through which customer authority enters the register is protected by what the run does with
+  the answer rather than by what the array leaves out. Aborting the walk stops the run with **nothing
+  frozen**: no record exists until the freeze phase, so an aborted walk loses its confirmations and
   a re-run re-offers every candidate.
 - **Phase 4 — a resumed run never re-asks what it already froze.** A candidate whose target already
   carries a `decided` `[CD#n]` from an earlier pass over the same review is skipped, because two

@@ -73,7 +73,7 @@ it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run �
      - it holds a **flat `specification.md`** (a stand-alone top-level Epic, or a broad PRD-level spec) → one design; the feature folder is the PRD dir itself. Skip the picker; go to step 5 (step 3's gate re-applies against this flat path).
      - it holds **Epic subfolders** → enumerate the **spec'd** ones using the ref test `git -C "$SPECS_PATH" cat-file -e "origin/<default>:specifications/<PRD>-<vslug>/<EPIC>-<eslug>/specification.md" 2>/dev/null` (exit 0 = present on `<default>`; the `2>/dev/null` is required — git writes `fatal:` to stderr on absence) — never a worktree file-existence check, which would list a branch-only Epic as designable for a user to select before step 3's gate stops on it. A subfolder that fails the test is excluded from the actionable set and counted in the excluded-count report, with the reason distinguished: *"N Epic(s) excluded — no specification.md; M excluded — specification.md not yet merged to `<default>`."* Then branch on count — this is the reusable **progress-aware Epic-picker pattern** in `${CLAUDE_PLUGIN_ROOT}/references/epic-picker.md`, applied here with `/design`'s own done-predicate and enumerated from the specs repo, which is now the only place any command enumerates Epics from:
        - **exactly 1 spec'd Epic** → no picker; auto-select it; re-point the feature folder to its per-Epic subfolder; emit a one-line notice.
-       - **≥2 spec'd Epics** → render the picker, one `choices` entry per spec'd Epic (its ○/◐/● marker + key + title), then `"Other… (describe)"`. Compute each Epic's state from `/design`'s **done-predicate** against that Epic's resolved folder:
+       - **≥2 spec'd Epics** → render the picker per `${CLAUDE_PLUGIN_ROOT}/references/epic-picker.md`, listing every spec'd Epic as prose and letting the array carry at most three rows plus *"Another Epic from the list above — name its key"* (that file's *The cap* section — four spec'd Epics already overflow the prompt, and a typed key is resolved against the keys just listed, never parsed). Compute each Epic's state from `/design`'s **done-predicate** against that Epic's resolved folder:
          - **○ not started** — a `specification.md` exists there but no `design.md` and no `_design-session.md` → selectable.
          - **◐ in progress** — a `_design-session.md` exists there but no `design.md` → selectable as a resume (per-Epic stage resume then runs in Phase 5 from that `_design-session.md`).
          - **● done** — a `design.md` exists there → shown greyed, **not** default-selectable; selecting offers *revise*.
@@ -91,18 +91,17 @@ scans repos under `$REPOS_PATH`; cwd need not be inside either.
 
 ## Phase 1 — Configure
 
-**Rule: Ask, don't guess. This rule is absolute.** Use `choices` arrays; the last choice in every array
-MUST be `"Other… (describe)"`.
+**Rule: Ask, don't guess. This rule is absolute.** Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0).
 
 1. **Feature folder.** Confirm the path resolved in Phase 0:
-   `choices: ["Use <feature_folder> (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]`
+   `choices: ["Use <feature_folder> (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]`
 2. **Resume vs fresh** (only if step 5 found a `_design-session.md`): read it back and summarise which
    stages are settled:
-   `choices: ["Resume — skip settled stages (Recommended)", "Start fresh — discard the prior design session", "Cancel", "Other… (describe)"]`
+   `choices: ["Resume — skip settled stages (Recommended)", "Start fresh — discard the prior design session", "Cancel"]`
 3. **Repo refresh policy** (governs Phase 4's `code-scanner` dispatches):
-   `choices: ["fetch + pull default branch (Recommended)", "fetch only", "no refresh", "Other… (describe)"]`
+   `choices: ["fetch + pull default branch (Recommended)", "fetch only", "no refresh"]`
 4. **Repos search base (`$REPOS_PATH`).** Read `${REPOS_PATH:-/workspace}` (may be colon-separated):
-   `choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]`
+   `choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]`
 
 Also display (context): resolved feature folder; resolved `<PRD>` / `<EPIC>` (or 'none — PRD-level');
 resolved `$SPECS_PATH`; resolved `$REPOS_PATH`.
@@ -134,7 +133,7 @@ The grill + authoring run inline on `current_model` (interactive judgment — no
 subagent):**
 - **SIGNIFICANT / HIGH-RISK + `current_model` is not an Opus-tier model → HARD gate.** Stop and require
   relaunching `/design` on Opus (the run is resumable from `_design-session.md`):
-  `choices: ["I'll relaunch /dev-workflows:design on Opus (Recommended)", "Override — proceed on the current model (logged in the final report)", "Cancel", "Other… (describe)"]`
+  `choices: ["I'll relaunch /dev-workflows:design on Opus (Recommended)", "Override — proceed on the current model (logged in the final report)", "Cancel"]`
   Design authoring for risky work must be Opus — the Opus `design-reviewer` reviews, it cannot originate
   good architecture.
 - **SIMPLE / MODERATE + not Opus → soft advisory.** Recommend Opus but proceed; record the choice in
@@ -168,15 +167,15 @@ Resolve any ARD for this item by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-re
    URL's last path segment as the slug; skip dirs with no `.git` or a failing/timed-out call.
 2. **Confirm the complete set — the developer owns it.** Present the derived candidates and ask the
    developer to confirm the **complete** list of implementation repos this design must span:
-   `choices: ["Confirm this set (Recommended)", "Add repos (you'll be prompted)", "Remove repos (you'll be prompted)", "Cancel", "Other… (describe)"]`
+   `choices: ["Confirm this set (Recommended)", "Add repos (you'll be prompted)", "Remove repos (you'll be prompted)", "Cancel"]`
 3. **Resolve each confirmed repo against the map.** One match → use it. Ambiguous or zero matches
    escalate per the `Repo unresolved (zero matches) — /epics` rule in
    `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
-   `choices: ["Skip and continue without this repo's scan", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo", "Other… (describe)"]`
+   `choices: ["Skip and continue without this repo's scan", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]`
 4. **STRICT mounted gate — hard-stop.** Any repo in the confirmed set that is **not mounted** under
    `$REPOS_PATH` **hard-stops** `/design` (unlike `/specify`'s soft gate): describe the missing
    capability and why the design needs it (you cannot name or link an unmounted repo's code), then:
-   `choices: ["I've remounted — re-scan", "Remove this repo from the design's scope (you confirm it's not needed)", "Cancel", "Other… (describe)"]`
+   `choices: ["I've remounted — re-scan", "Remove this repo from the design's scope (you confirm it's not needed)", "Cancel"]`
    On "remounted", the developer restarts the container with the repo mounted and re-runs `/design`
    (resuming from `_design-session.md`); a design cannot be completed while a confirmed repo is missing
    unless the developer explicitly removes it from scope. Record the confirmed repo set in
@@ -259,7 +258,7 @@ contested it actually is — a judgement that belongs to the user rather than to
 "no option safe to recommend" remedy in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
 
 ```
-choices: ["Design it three ways (3 parallel takes, then compare)", "Decide it in the interview", "Other… (describe)"]
+choices: ["Design it three ways (3 parallel takes, then compare)", "Decide it in the interview"]
 ```
 
 Declining costs nothing and changes nothing: the interview continues and the `### Alternatives considered` requirement is satisfied by hand as it would have been anyway.
@@ -329,7 +328,7 @@ Dispatch `design-reviewer` (Opus):
   or push it onto the spec (Phase 5) before handoff. If still `BLOCK`, escalate per the
   `Review verdict BLOCK (unresolved after one fix cycle) — /epics` rule in
   `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`, per unresolved BLOCKER individually:
-  `choices: ["Provide manual fix notes (you'll be prompted)", "Defer to a follow-up issue (record in the final report)", "Override and accept the finding", "Cancel the whole run", "Other… (describe)"]`
+  `choices: ["Provide manual fix notes (you'll be prompted)", "Defer to a follow-up issue (record in the final report)", "Override and accept the finding", "Cancel the whole run"]`
 - **`MAJOR` / `MINOR` / `NIT`** (surfaced under `PASS WITH RECOMMENDATIONS`) — defer to the final
   report; no mandatory fix cycle.
 - **`PASS`** / **`PASS WITH RECOMMENDATIONS`** — proceed to Phase 7.
@@ -352,7 +351,7 @@ On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/reference
 
 When this run designed a per-Epic Epic selected from Phase 0's ≥2-Epics picker, offer — once the
 write/commit completes:
-`choices: ["Next Epic — re-open the picker (Recommended)", "Stop here", "Other… (describe)"]`
+`choices: ["Next Epic — re-open the picker (Recommended)", "Stop here"]`
 On **"Next Epic"**, re-render the Phase 0 picker **minus the just-completed Epic** (recompute each
 remaining Epic's ○/◐/● state — the freshly-authored design now shows **● done** and drops out of the
 actionable set), then, on selection, loop back through Phases 2–7 for the selected Epic. This offer does

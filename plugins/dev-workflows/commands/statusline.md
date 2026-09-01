@@ -49,7 +49,7 @@ non-empty and begins with a `#!` shebang.
 ## Phase 4 — Merge the settings block (confirm first)
 
 Show the user the exact change and ask to confirm
-(`choices: ["Install", "Cancel", "Other… (describe)"]`) BEFORE writing settings.
+(`choices: ["Install", "Cancel"]`) BEFORE writing settings.
 On confirm, MERGE (never clobber sibling keys) so that:
 
 ```json

@@ -206,13 +206,13 @@ the manual path:
    proceeding); zero matches → escalate per the `Repo unresolved (zero matches) — /brd-ground` rule
    in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
    ```
-   choices: ["Skip and continue without this repo", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo", "Other… (describe)"]
+   choices: ["Skip and continue without this repo", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]
    ```
 4. Empty final list (every repo skipped or missing) → escalate per the `No repos derivable — /epics`
    rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`, whose `/brd-ground` variant
    this is:
    ```
-   choices: ["List repos to check manually", "Cancel", "Other… (describe)"]
+   choices: ["List repos to check manually", "Cancel"]
    ```
 
 Read-only throughout (`${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md`) — this command never
@@ -687,7 +687,7 @@ offering nothing.
 **No `parent:` — this BRD owns its source document:**
 
 ```
-choices: ["Split the BRD now that every finding carries a verifier outcome — /dev-workflows:brd-split <BRD-KEY> (Recommended) <merge-clause>", "Ground another declared prerequisite first", "Stop here", "Other… (describe)"]
+choices: ["Split the BRD now that every finding carries a verifier outcome — /dev-workflows:brd-split <BRD-KEY> (Recommended) <merge-clause>", "Ground another declared prerequisite first", "Stop here"]
 ```
 
 `/dev-workflows:brd-split <BRD-KEY>` is the third command of the BRD-to-PRD route, and the last
@@ -715,7 +715,7 @@ makes this slice PRD-eligible
 formality:
 
 ```
-choices: ["Allocate this slice's ledger — /dev-workflows:brd-split <BRD-KEY> (Recommended — allocate-only, so no child is created) <merge-clause>", "Ground another declared prerequisite first", "Stop here", "Other… (describe)"]
+choices: ["Allocate this slice's ledger — /dev-workflows:brd-split <BRD-KEY> (Recommended — allocate-only, so no child is created) <merge-clause>", "Ground another declared prerequisite first", "Stop here"]
 ```
 
 ### Context hygiene

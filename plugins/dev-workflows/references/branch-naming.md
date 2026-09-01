@@ -112,7 +112,7 @@ When the ladder yields nothing, the command MUST ask before creating the branch 
 
 ```
 "I couldn't infer a branch prefix from $GIT_USER_INITIALS, `git config user.initials`, or existing branches. This command's default is `<fallback>`. What prefix should I use?"
-choices: ["Use `<fallback>` (default for this command)", "Use my initials — I'll enter them", "Other… (describe)"]
+choices: ["Use `<fallback>` (default for this command)", "Use my initials — I'll enter them"]
 ```
 
 When an **identity** placeholder is being filled, the fallback choice is omitted — the documented convention requires a real identity, so ask for it directly:

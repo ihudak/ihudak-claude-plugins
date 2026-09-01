@@ -325,7 +325,7 @@ whose other rows are buildable now, name **those rows** — each with the verdic
 decision that makes it not buildable — and settle it before the slice is confirmed:
 
 ```
-choices: ["Include them anyway — this slice carries rows that are not buildable yet", "Hold them back — they return to the ledger walk unclustered", "Decide row by row", "Cancel", "Other… (describe)"]
+choices: ["Include them anyway — this slice carries rows that are not buildable yet", "Hold them back — they return to the ledger walk unclustered", "Decide row by row", "Cancel"]
 ```
 
 No option carries a `(Recommended)` marker, per the *When no option is safe to recommend* guidance
@@ -346,7 +346,7 @@ rationale that put them together — the buildable/blocked/depends-on reading, o
 instruction placed, what in the instruction placed it) and confirm before anything is created:
 
 ```
-choices: ["Accept these slices as proposed (Recommended)", "Edit one or more slices (rename, merge, move a row)", "Replace with a different slice list entirely", "Make this whole BRD one slice", "Cancel", "Other… (describe)"]
+choices: ["Accept these slices as proposed (Recommended)", "Edit one or more slices (rename, merge, move a row)", "Replace with a different slice list entirely", "Make this whole BRD one slice"]
 ```
 
 **Zero confirmed slices is not an outcome this phase can reach.** A BRD is a container, never
@@ -452,7 +452,7 @@ at a time, never batched**, via `AskUserQuestion` — quoting its `id`, `text`, 
 **`split_mode: full` — four resolutions:**
 
 ```
-choices: ["Assign to a named slice — covered-by<recommended>", "Defer to this BRD — deferred-to (a real allocation, not a shortcut)<recommended>", "Reject — citing a [DEF#n]<recommended>", "Mark superseded by another [BR#n]<recommended>", "Cancel", "Other… (describe)"]
+choices: ["Assign to a named slice — covered-by<recommended>", "Defer to this BRD — deferred-to (a real allocation, not a shortcut)<recommended>", "Reject — citing a [DEF#n]<recommended>", "Mark superseded by another [BR#n]<recommended>"]
 ```
 
 **No option on that picker carries a `(Recommended)` marker, and the omission is required rather
@@ -481,7 +481,7 @@ inconsistency: on a slice every row the walk stands on is a row the parent alloc
 placeholder the `full` picker uses, for the reason given below the table:
 
 ```
-choices: ["Build here — covered-here<recommended>", "Defer to this slice — deferred-to (a real allocation, not a shortcut)<recommended>", "Reject — citing a [DEF#n] in the parent's defect log<recommended>", "Mark superseded by another [BR#n]<recommended>", "Cancel", "Other… (describe)"]
+choices: ["Build here — covered-here<recommended>", "Defer to this slice — deferred-to (a real allocation, not a shortcut)<recommended>", "Reject — citing a [DEF#n] in the parent's defect log<recommended>", "Mark superseded by another [BR#n]<recommended>"]
 ```
 
 State once, before the first row of an `allocate-only` walk: *"`covered-by` is not offered here.
@@ -674,7 +674,7 @@ Read the child's `brd-link.md` for a `reason:` field:
 **No `reason:` recorded** — nobody has yet decided this folder should exist while claiming nothing:
 
 ```
-choices: ["Remove the empty child folder — it claims nothing (Recommended)", "Keep it, and record why (e.g. reserved for related future scope)", "Other… (describe)"]
+choices: ["Remove the empty child folder — it claims nothing (Recommended)", "Keep it, and record why (e.g. reserved for related future scope)"]
 ```
 
 **A `reason:` already recorded** — an earlier run asked this question and the operator answered it.
@@ -682,7 +682,7 @@ Do not re-ask it as though it were open, and do not recommend undoing a decision
 a state that decision deliberately created. Print the recorded reason verbatim beside the list:
 
 ```
-choices: ["Keep it — the recorded reason still stands (Recommended)", "Remove it now — it claims nothing, and nothing on the route can act on it", "Update the recorded reason", "Other… (describe)"]
+choices: ["Keep it — the recorded reason still stands (Recommended)", "Remove it now — it claims nothing, and nothing on the route can act on it", "Update the recorded reason"]
 ```
 
 Removing deletes the child's folder — `brd-link.md`, `brd/brd-inventory.md`, and
@@ -799,7 +799,7 @@ customer answers are frozen — three commands further on, which is why only the
 here:
 
 ```
-choices: ["Decide this slice's open questions — /dev-workflows:brd-interview <BRD-KEY> (Recommended) <merge-clause>", "Stop here — this slice's allocation is complete", "Other… (describe)"]
+choices: ["Decide this slice's open questions — /dev-workflows:brd-interview <BRD-KEY> (Recommended) <merge-clause>", "Stop here — this slice's allocation is complete"]
 ```
 
 **`split_mode: full`** — everything below. Every child folder Phase 3 created, still claiming at
@@ -811,7 +811,7 @@ this run's pull request. Grounding a child is possible only once that pull reque
 `/brd-intake` is never the answer for a child at any point:
 
 ```
-choices: ["Ground each non-empty child created above, one run per child — /dev-workflows:brd-ground <CHILD-KEY> (Recommended) <merge-clause>", "Decide this BRD's open questions — /dev-workflows:brd-interview <BRD-KEY> <merge-clause>", "Stop here — this BRD's own allocation is complete", "Other… (describe)"]
+choices: ["Ground each non-empty child created above, one run per child — /dev-workflows:brd-ground <CHILD-KEY> (Recommended) <merge-clause>", "Decide this BRD's open questions — /dev-workflows:brd-interview <BRD-KEY> <merge-clause>", "Stop here — this BRD's own allocation is complete"]
 ```
 
 **Every merge clause in this phase is the `<merge-clause>` placeholder**, resolved per

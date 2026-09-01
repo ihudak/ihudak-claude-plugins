@@ -185,7 +185,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
 
 ## Phase 1 — Configure
 
-Use `choices` arrays; the last choice is always `"Other… (describe)"`.
+Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0).
 
 1. **Confirm** the feature folder, the profile, and the resolved `idea.md` (or "none — grill from scratch"); on the BRD route, the BRD folder, the profile (`--full` unless a flag overrode it), and — instead of an idea — a `from BRD:` line naming `<BRD-KEY>`, its `parent:` if it has one, its `depends-on:` if any, how many of its gate-set rows (Phase 0 step 7) are `covered-here` out of how many, and whether `prd-seed.md` and `decisions.md` were found.
    - Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
@@ -194,15 +194,15 @@ Use `choices` arrays; the last choice is always `"Other… (describe)"`.
      exists here". `/update-prd` takes no the BRD route, so the redirect is honest about what it
      drops: it refreshes the PRD already on disk, it does not re-read the seed.
      ```
-     choices: ["Refresh the existing <BRD-KEY> PRD — /dev-workflows:update-prd <BRD-KEY> (the BRD seed is not re-read) (Recommended)", "Overwrite <BRD-KEY> as a fresh PRD authored from the BRD seed (archives the current one)", "Cancel", "Other… (describe)"]
+     choices: ["Refresh the existing <BRD-KEY> PRD — /dev-workflows:update-prd <BRD-KEY> (the BRD seed is not re-read) (Recommended)", "Overwrite <BRD-KEY> as a fresh PRD authored from the BRD seed (archives the current one)", "Cancel"]
      ```
    - **No `--from-prd`** → `/create-prd` is greenfield-only; **redirect**:
      ```
-     choices: ["Switch to /dev-workflows:update-prd <KEY> to refresh it (Recommended)", "Overwrite as a fresh PRD (archives the current one)", "Cancel", "Other… (describe)"]
+     choices: ["Switch to /dev-workflows:update-prd <KEY> to refresh it (Recommended)", "Overwrite as a fresh PRD (archives the current one)", "Cancel"]
      ```
    - **`--from-prd` present** → "create new (seeded)" conflicts with "a PRD already exists here":
      ```
-     choices: ["Update the existing <KEY> instead — /dev-workflows:update-prd <KEY> (seed ignored) (Recommended)", "Overwrite <KEY> as a new seeded PRD (archives the current one)", "Cancel", "Other… (describe)"]
+     choices: ["Update the existing <KEY> instead — /dev-workflows:update-prd <KEY> (seed ignored) (Recommended)", "Overwrite <KEY> as a new seeded PRD (archives the current one)", "Cancel"]
      ```
 3. **Draft idea → warn-and-fold** (no-op on the BRD route, which resolves no idea; the equivalent there is the open `[VD#n]`/`[CD#n]`/`[AS#n]` set Phase 2 carries in). If `idea.md` is `status: draft` (open `[NEEDS CLARIFICATION]`), note that the grill resolves those items — do **not** hard-block.
 
@@ -234,7 +234,7 @@ recommendation before Phase 2:
 > (`[FR#N]`) and richer Use Cases (`[UC#N]`) are available for stronger, more
 > traceable downstream Epic coverage."
 
-Offer `choices: ["Switch to --full", "Keep <profile>", "Other… (describe)"]`. On
+Offer `choices: ["Switch to --full", "Keep <profile>"]`. On
 "Keep", proceed unchanged. For a SIMPLE / MODERATE classification, or when the
 profile is already `--full`, this nudge does **not** fire.
 
@@ -302,7 +302,7 @@ land in. Where the register holds at least one such record and the profile is `-
 **non-blocking** choice before Phase 2.5, naming the count:
 
 ```
-choices: ["Switch to --full so the open register items have a home (Recommended)", "Switch to --hybrid (light open-questions list)", "Keep --lean — the open items are reported by id, never written into the PRD", "Other… (describe)"]
+choices: ["Switch to --full so the open register items have a home (Recommended)", "Switch to --hybrid (light open-questions list)", "Keep --lean — the open items are reported by id, never written into the PRD"]
 ```
 
 On "Keep `--lean`", the final report names every one of them by id. A gap this command silently drops
@@ -439,7 +439,7 @@ Dispatch `prd-reviewer` (Opus, frontmatter-pinned; recorded as `review_model`, n
   > Profile: [lean | hybrid | full]"
 
 Act on the verdict (mirrors `/specify`):
-- **`BLOCK`** — fix the BLOCKER findings inline (the orchestrator/grill edits the PRD — no delegated writer) and re-review **once**. If still `BLOCK`, escalate per the `Review verdict BLOCK` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` for each unresolved BLOCKER (`choices: ["Provide manual fix notes", "Defer to a follow-up issue", "Override and accept", "Cancel", "Other… (describe)"]`).
+- **`BLOCK`** — fix the BLOCKER findings inline (the orchestrator/grill edits the PRD — no delegated writer) and re-review **once**. If still `BLOCK`, escalate per the `Review verdict BLOCK` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` for each unresolved BLOCKER (`choices: ["Provide manual fix notes", "Defer to a follow-up issue", "Override and accept", "Cancel"]`).
 - **`PASS` / `PASS WITH RECOMMENDATIONS`** — proceed. Cap: one fix cycle + one re-review.
 
 ---
@@ -482,7 +482,7 @@ On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/reference
 Offer these — clearly labeling the role handoff:
 
 ```
-choices: ["Draft the release note now — /dev-workflows:release-notes <ADDRESS> (PM) (Recommended)", "Hand to a Product Architect — /dev-workflows:create-ard <KEY> (PA, optional) <merge-clause>", "Hand to a Product Engineer — /dev-workflows:epics <ADDRESS> (PE)", "Stop here", "Other… (describe)"]
+choices: ["Draft the release note now — /dev-workflows:release-notes <ADDRESS> (PM) (Recommended)", "Hand to a Product Architect — /dev-workflows:create-ard <KEY> (PA, optional) <merge-clause>", "Hand to a Product Engineer — /dev-workflows:epics <ADDRESS> (PE)", "Stop here"]
 ```
 
 **Two keys appear in that array and they are not interchangeable.** `<KEY>` is the address this run

@@ -10,5 +10,5 @@ On the first choice, execute `handoff-to-main` with `deliverable_paths` = `alpha
 and `title: fixture handoff`.
 
 ```
-choices: ["Run the gated consumer — /dev-workflows:omega <KEY> (Recommended) <merge-clause>", "Stop here", "Other… (describe)"]
+choices: ["Run the gated consumer — /dev-workflows:omega <KEY> (Recommended) <merge-clause>", "Stop here"]
 ```

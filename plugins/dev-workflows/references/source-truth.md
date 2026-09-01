@@ -382,9 +382,7 @@ ask_user(
     "Decide per discrepancy (Recommended)",
     "Document as intended (spec) for ALL",
     "Document as actual (code) for ALL",
-    "Skip & report for ALL (drafts a bug report; no claims documented)",
-    "Cancel"
-  ]
+    "Skip & report for ALL (drafts a bug report; no claims documented)"]
 )
 ```
 
@@ -402,9 +400,7 @@ ask_user(
     "Document as intended (spec) (Recommended) — describe the agreed contract (spec phrasing; PRD phrasing when no spec); the orchestrator drafts a bug-report so you can file a defect when the code lags",
     "Document as actual (code) — match what shipped; users see what's there",
     "Skip & report — the docs leave this paragraph out; the bug-report draft still records the gap (drafts a bug)",
-    "Cancel the whole run",
-    "Other… (describe)"
-  ]
+    "Cancel the whole run"]
 )
 ```
 

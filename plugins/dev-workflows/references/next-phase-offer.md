@@ -69,6 +69,25 @@ Final Report (guidance-only prose). A command MAY additionally present a richer 
 `choices:` offer (the reference commands `/dev-workflows:idea`, `/dev-workflows:create-prd`, `/dev-workflows:create-ard` do) — compatible,
 not required.
 
+**When there are more forward options than the array can hold.** `AskUserQuestion` renders at most
+four options (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0), and several offers have
+more forward steps than that. The prose is what carries the complete set — it is the universal
+minimum precisely because it has no arity limit — so an overflowing offer resolves like this, and
+never by silently deleting a route:
+
+1. **List every option in the prose**, above the prompt, each with the command that runs it. A route
+   named in prose is a route the operator can still take.
+2. **The array carries `Stop here` plus the three the run's own outcome makes most likely**, in the
+   same order the prose lists them. Rule 3 (adaptive to outcome) is what decides "most likely"; where
+   a command already drops options on their own triggers, that filtering runs first and the cap
+   applies to what survives it.
+3. **Say, in one line, that the prose list is longer than the prompt** and that anything on it is
+   reachable through the harness's free-text option. A demoted route the operator cannot find is the
+   same defect as a deleted one.
+
+An offer whose options fit in four does none of this: the prose stays the universal minimum and the
+array carries every option.
+
 ## The routing graph (role-aware)
 
 **PM — ideation & framing**

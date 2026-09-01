@@ -60,7 +60,7 @@ this stage). Zero external calls.
    substitutes that path for the search clause — `no BRD folder at <path> (supplied with the BRD route)` —
    because "both levels searched" would describe a search this run did not perform.
 4. **Prior ARD.** If the target `ard.md` exists → Phase 1 offers refine-vs-fresh. **On the BRD route the target is `<BRD-dir>/ard.md`** — the same glob in the same folder, keyed by the BRD key this run resolved.
-5. **Optionality advisory.** Gauge size — the PRD's user-story count / scope breadth / number of candidate repos. For a small, single-repo PRD, note "an ARD may be optional here" and offer `choices: ["Author the ARD anyway", "Stop — no ARD needed", "Other… (describe)"]`. **On the BRD route gauge the same question off the seed instead**, since there is no PRD to count user stories in: the number of architecture-altitude `decided` records in `decisions.md`, the number of `[CG#n]`/`[DG#n]` findings at architecture altitude, and the number of repositories `grounding/baselines.md` pinned. A BRD whose whole architecture altitude is one decision against one repository is exactly the case the advisory exists for.
+5. **Optionality advisory.** Gauge size — the PRD's user-story count / scope breadth / number of candidate repos. For a small, single-repo PRD, note "an ARD may be optional here" and offer `choices: ["Author the ARD anyway", "Stop — no ARD needed"]`. **On the BRD route gauge the same question off the seed instead**, since there is no PRD to count user stories in: the number of architecture-altitude `decided` records in `decisions.md`, the number of `[CG#n]`/`[DG#n]` findings at architecture altitude, and the number of repositories `grounding/baselines.md` pinned. A BRD whose whole architecture altitude is one decision against one repository is exactly the case the advisory exists for.
 
 `/create-ard` is **cwd-agnostic**; it reads the PRD/Epic — or, on the BRD route, the BRD folder's seed, register and findings — and scans repos under `$REPOS_PATH`.
 
@@ -86,12 +86,12 @@ likewise skips the gate on the input its own seed replaces.
 ---
 
 ## Phase 1 — Configure
-Use `choices` arrays; the last choice is always `"Other… (describe)"`.
+Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0).
 1. **Confirm** the scope (PRD-level vs Epic-level) and the feature folder. **On the BRD route**, confirm instead the BRD folder and a `from BRD:` line naming `<BRD-KEY>`, its `parent:` if `brd-link.md` records one (and therefore whether this run is BRD-level or slice-level), its `depends-on:` if any, and which of `ard-seed.md`, `decisions.md`, `grounding/code-grounding.md` and `grounding/design-grounding.md` are present — a stat, not a read; the read is Phase 2.
    - Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
-2. **Refine vs fresh** (only if a prior `ard.md` exists): `choices: ["Refine the existing ARD (Recommended)", "Start fresh — overwrite", "Cancel", "Other… (describe)"]`.
-3. **Repos search base (`$REPOS_PATH`).** Read `${REPOS_PATH:-/workspace}` (may be colon-separated): `choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]`.
-4. **Repo refresh policy** (governs Phase 3's `code-scanner`): `choices: ["fetch + pull default branch (Recommended)", "fetch only", "no refresh", "Other… (describe)"]`.
+2. **Refine vs fresh** (only if a prior `ard.md` exists): `choices: ["Refine the existing ARD (Recommended)", "Start fresh — overwrite", "Cancel"]`.
+3. **Repos search base (`$REPOS_PATH`).** Read `${REPOS_PATH:-/workspace}` (may be colon-separated): `choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]`.
+4. **Repo refresh policy** (governs Phase 3's `code-scanner`): `choices: ["fetch + pull default branch (Recommended)", "fetch only", "no refresh"]`.
 
 ---
 
@@ -110,7 +110,7 @@ model_routing:
   notes: <any §2/§2.1 fallback or degradation>
 ```
 
-**Tiered HARD model gate (like `/design`):** for `SIGNIFICANT` / `HIGH-RISK`, require an Opus session — if `opus_available` is false, stop: `choices: ["I'll relaunch /dev-workflows:create-ard on Opus (Recommended)", "Override — proceed on the current model (logged in the final report)", "Cancel", "Other… (describe)"]`. For `SIMPLE`/`MODERATE`, degradation is advisory (record in `notes`).
+**Tiered HARD model gate (like `/design`):** for `SIGNIFICANT` / `HIGH-RISK`, require an Opus session — if `opus_available` is false, stop: `choices: ["I'll relaunch /dev-workflows:create-ard on Opus (Recommended)", "Override — proceed on the current model (logged in the final report)", "Cancel"]`. For `SIMPLE`/`MODERATE`, degradation is advisory (record in `notes`).
 
 ---
 
@@ -224,7 +224,7 @@ There are no PRs at ARD time, so repos are **architect-driven**, not PR-derived:
    any other. A finding's evidence is cited at the commit that finding is pinned to
    (`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §2), which is not necessarily the commit a
    fresh scan reads; where the two differ, say so beside the claim rather than silently re-dating it.
-3. **Missing repo → consolidated mount-or-descope gate:** `choices: ["Mount now & re-scan", "Ground only the confirmed-mounted set (record the rest as open questions)", "Specify an absolute path for this repo", "Cancel", "Other… (describe)"]`.
+3. **Missing repo → consolidated mount-or-descope gate:** `choices: ["Mount now & re-scan", "Ground only the confirmed-mounted set (record the rest as open questions)", "Specify an absolute path for this repo", "Cancel"]`.
 4. **Ground the confirmed set.** Spawn `code-scanner` in batches of up to 4 concurrent agents per Agent message on the confirmed repos (wait for each batch), scoped by the themes:
 
    → Agent (subagent_type: "dev-workflows:code-scanner", model: `<detection_model — §2.1 Sonnet chain>`):
@@ -323,7 +323,7 @@ already holds and none of them asked of the user:
 - `grounded_repos:` unchanged — the repos Phase 3 confirmed, which is what every `file:line` in the
   ARD must cite into.
 
-**Per-area split.** If (Epic level) the confirmed grounding spans separable areas in one repo (e.g. `server/` backend + `ui/` frontend), grill: `choices: ["One combined ARD (Recommended)", "One ARD per area (backend / frontend / …)", "Other… (describe)"]`. On per-area, author one `ard-<area>.md` per area (each with its own `area:` frontmatter).
+**Per-area split.** If (Epic level) the confirmed grounding spans separable areas in one repo (e.g. `server/` backend + `ui/` frontend), grill: `choices: ["One combined ARD (Recommended)", "One ARD per area (backend / frontend / …)"]`. On per-area, author one `ard-<area>.md` per area (each with its own `area:` frontmatter).
 
 ---
 
@@ -394,11 +394,11 @@ from a re-derived title. That name collides with neither `/dev-workflows:create-
 ---
 
 ## Phase 7 — Next-step offer (adaptive)
-- **PRD-level ARD:** if the PRD has 0 Epics → `choices: ["Hand to a Product Engineer — /dev-workflows:epics <ADDRESS> (PE) (Recommended) <merge-clause>", "Author a PRD-level spec — /dev-workflows:specify <PRD> (PE) <merge-clause>", "Stop here", "Other… (describe)"]`; else offer `/dev-workflows:specify <PRD>` (PE) carrying the same `<merge-clause>`. *(No `/design` — no Epics yet.)*
-- **Epic-level ARD:** `choices: ["Author the spec — /dev-workflows:specify <PRD> <Epic> (PE) (Recommended) <merge-clause>", "Hand to Dev — /dev-workflows:design <PRD> <Epic> (Dev) <merge-clause>", "Stop here", "Other… (describe)"]`. **Epic fan-out** — repeat this ARD for a sibling Epic: `/dev-workflows:create-ard <PRD> <another-Epic>`; that run inherits the PRD-level ARD, not this Epic-level one, so it waits on nothing this run produced and carries no clause.
+- **PRD-level ARD:** if the PRD has 0 Epics → `choices: ["Hand to a Product Engineer — /dev-workflows:epics <ADDRESS> (PE) (Recommended) <merge-clause>", "Author a PRD-level spec — /dev-workflows:specify <PRD> (PE) <merge-clause>", "Stop here"]`; else offer `/dev-workflows:specify <PRD>` (PE) carrying the same `<merge-clause>`. *(No `/design` — no Epics yet.)*
+- **Epic-level ARD:** `choices: ["Author the spec — /dev-workflows:specify <PRD> <Epic> (PE) (Recommended) <merge-clause>", "Hand to Dev — /dev-workflows:design <PRD> <Epic> (Dev) <merge-clause>", "Stop here"]`. **Epic fan-out** — repeat this ARD for a sibling Epic: `/dev-workflows:create-ard <PRD> <another-Epic>`; that run inherits the PRD-level ARD, not this Epic-level one, so it waits on nothing this run produced and carries no clause.
 - **the BRD route (BRD-level ARD):** a different array, because **the key this run holds is a BRD key
   and only one of the three usual options can be reached with one**:
-  `choices: ["Author this BRD's specification — /dev-workflows:specify <BRD-KEY> the BRD route (PE) (Recommended) <merge-clause>", "Hand to a Product Engineer — /dev-workflows:epics <BRD-KEY> (PE) <merge-clause>", "Stop here", "Other… (describe)"]`
+  `choices: ["Author this BRD's specification — /dev-workflows:specify <BRD-KEY> the BRD route (PE) (Recommended) <merge-clause>", "Hand to a Product Engineer — /dev-workflows:epics <BRD-KEY> (PE) <merge-clause>", "Stop here"]`
   — with the second option **present only when the test below passes, and dropped from the array
   entirely when it does not**.
   - **`/dev-workflows:specify <BRD-KEY>` is always reachable from this state.** It takes

@@ -38,7 +38,7 @@ For one-off doc edits use direct mode; for keyed feature documentation use `/doc
    If **0** signals are present → ask before continuing:
    ```
    "No documentation-repo signals detected under <repo> (checked: package.json doc scripts, .docstack/, .vale.ini, */_content/, _snippets/). Profile it anyway?"
-   choices: ["Proceed — I confirm this is a docs repo (Recommended)", "Cancel — point me at a docs repo first", "Other… (describe)"]
+   choices: ["Proceed — I confirm this is a docs repo (Recommended)", "Cancel — point me at a docs repo first"]
    ```
    Default = Proceed. On Cancel, stop and report.
 
@@ -122,32 +122,32 @@ On the §2 powerful chain (`planning_model`), turn the detection report into a d
 
 ## Phase 4 — Confirm and fill gaps
 
-**Rule: Ask, don't guess.** For every field the synthesis marked `needs-confirmation` — and anything detection could not settle — ask the user. Use `choices` arrays; the **last** choice is always `"Other… (describe)"`; the recommended default is first and labelled `"(Recommended)"`. Group related fields into one question where possible.
+**Rule: Ask, don't guess.** For every field the synthesis marked `needs-confirmation` — and anything detection could not settle — ask the user. Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0); the recommended default is first and labelled `"(Recommended)"`. Group related fields into one question where possible.
 
 Typical gaps:
 
 - **Exact build / start command** when a script was ambiguous:
   ```
-  choices: ["Use detected `<cmd>` (Recommended)", "Enter the correct command", "Leave unset", "Other… (describe)"]
+  choices: ["Use detected `<cmd>` (Recommended)", "Enter the correct command", "Leave unset"]
   ```
 - **Prerequisites** such as the `.docstack` shim (e.g. an axios>=1.16 pin) that must be in place before `*:start` boots:
   ```
-  choices: ["Record detected prerequisite(s) (Recommended)", "Add a prerequisite I'll describe", "No prerequisites", "Other… (describe)"]
+  choices: ["Record detected prerequisite(s) (Recommended)", "Add a prerequisite I'll describe", "No prerequisites"]
   ```
 - **Ambiguous space mapping** (a content root with no obvious `id` / `base_path`):
   ```
-  choices: ["Accept proposed space mapping (Recommended)", "Edit a space's id/base_path", "Drop this space", "Other… (describe)"]
+  choices: ["Accept proposed space mapping (Recommended)", "Edit a space's id/base_path", "Drop this space"]
   ```
 - **Branch-naming convention** when none was documented (drives Phase 5):
   ```
-  choices: ["Use repo convention if detected, else `<prefix>/NOISSUE-docs-profile` (Recommended)", "Enter a different pattern", "Other… (describe)"]
+  choices: ["Use repo convention if detected, else `<prefix>/NOISSUE-docs-profile` (Recommended)", "Enter a different pattern"]
   ```
 
 **Idempotent refresh.** Before writing, check whether `<repo-root>/.dev-workflows/docs-profile.yml` already exists:
 - **Exists** → show a **field-level diff** (existing value → new value, per key) and confirm:
   ```
   "A docs-profile already exists. Apply these field-level changes?"
-  choices: ["Apply the diff — overwrite changed fields (Recommended)", "Keep existing, write nothing", "Edit specific fields first (you'll be prompted)", "Other… (describe)"]
+  choices: ["Apply the diff — overwrite changed fields (Recommended)", "Keep existing, write nothing", "Edit specific fields first (you'll be prompted)"]
   ```
   Do not overwrite without this confirmation.
 - **Absent** → bootstrap: proceed to Phase 5 with the confirmed draft.
@@ -166,16 +166,16 @@ Produce a reviewable PR in the **target repo** (never the plugin). **Never push 
    - Else (no convention documented, §1.4) use `<prefix>/NOISSUE-docs-profile`, where `<prefix>` comes from the same §2 ladder with fallback `docs/`. If the ladder yields nothing, run its §2.5 escalation:
      ```
      "I couldn't infer a branch prefix from $GIT_USER_INITIALS, `git config user.initials`, or existing branches. This command's default is `docs/`. What prefix should I use?"
-     choices: ["Use `docs/` (default for this command)", "Use my initials — I'll enter them", "Other… (describe)"]
+     choices: ["Use `docs/` (default for this command)", "Use my initials — I'll enter them"]
      ```
    Always confirm the final name (initials/slugs are subjective):
    ```
-   choices: ["Use proposed branch `<name>` (Recommended)", "Edit the name", "Other… (describe)"]
+   choices: ["Use proposed branch `<name>` (Recommended)", "Edit the name"]
    ```
 
 2. **Prepare the working tree.** `git -C <repo-root> status --porcelain`; if non-empty:
    ```
-   choices: ["Stash changes and continue (Recommended)", "Proceed anyway — pre-existing changes will appear in the diff", "Cancel", "Other… (describe)"]
+   choices: ["Stash changes and continue (Recommended)", "Proceed anyway — pre-existing changes will appear in the diff", "Cancel"]
    ```
    Then base the branch on the repo's default branch so the profile PR is cut from a clean base: resolve the base (`git -C <repo-root> symbolic-ref --short refs/remotes/origin/HEAD`; fall back to `main`, then `master`) and run `git -C <repo-root> switch <base> && git -C <repo-root> pull --ff-only` (the clean-tree check above already ran; if the fast-forward pull fails, offer the same stash/proceed/cancel choices). Then create the branch: `git -C <repo-root> switch -c <name>` (or `git -C <repo-root> switch <name>` if it already exists).
 
@@ -253,6 +253,6 @@ Branch <name> created with 1 commit on <repo-root>. NOT pushed and NOT merged �
 - ALWAYS show a field-level diff and confirm before overwriting an existing `.dev-workflows/docs-profile.yml` (idempotent refresh)
 - ALWAYS write the profile to `.dev-workflows/docs-profile.yml` in the TARGET repo — never the plugin
 - NEVER push or auto-merge — output a reviewable PR (branch + commit + drafted PR message) for the user to push
-- ALWAYS use `choices` arrays for decision points; recommended default first and labelled "(Recommended)"; last choice always `"Other… (describe)"`
+- ALWAYS use `choices` arrays for decision points; recommended default first and labelled "(Recommended)"; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0)
 - ALWAYS reference plugin paths with `${CLAUDE_PLUGIN_ROOT}`
 - ALWAYS produce the Phase 6 report as the final output, noting any §2.1/§2 model fallback

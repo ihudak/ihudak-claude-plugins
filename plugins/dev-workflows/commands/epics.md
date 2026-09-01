@@ -47,7 +47,7 @@ terminal `commit-artifacts` step skips on it.
 
 **Rule: Ask, don't guess. This rule is absolute.**
 
-Group questions where possible; use `choices` arrays; the last choice in every array MUST be `"Other… (describe)"`.
+Group questions where possible; use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0).
 
 Ask about:
 
@@ -68,19 +68,19 @@ Ask about:
 
 - **Code examination on/off** (default ON). If ON, ask which repos under `$REPOS_PATH` to scan:
   ```
-  choices: ["Scan repos referenced by sibling/parent Epics under this PRD (Recommended — auto-derived)", "Let me list the repos manually (you'll be prompted)", "Turn code scan off — produce Epic drafts from PRD content alone", "Other… (describe)"]
+  choices: ["Scan repos referenced by sibling/parent Epics under this PRD (Recommended — auto-derived)", "Let me list the repos manually (you'll be prompted)", "Turn code scan off — produce Epic drafts from PRD content alone"]
   ```
   When "auto-derived" is chosen, inspect the sibling/parent Epics' `## Pull Requests` sections (if any) for repo references; if none, fall back to asking the user to list repos.
 
 - **Repo refresh policy** (only if code scan is ON):
   ```
-  choices: ["fetch + pull default branch (Recommended)", "fetch only", "no refresh", "Other… (describe)"]
+  choices: ["fetch + pull default branch (Recommended)", "fetch only", "no refresh"]
   ```
   The `fetch + pull default branch` default matches `code-scanner`'s default (`refresh.switch_to_default_branch: true, refresh.pull: true`) — capability scans target present-day code and want the default-branch tip. This is deliberately different from `/document` (keyed mode), which keeps `pull: false` because historical merged commits must not move.
 
 - **Repos search base (`$REPOS_PATH`)** (only if code scan is ON). Read `${REPOS_PATH:-/workspace}` (the container mounts every repo under `/workspace`). `$REPOS_PATH` may be a single directory or a colon-separated list. Ask:
   ```
-  choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]
+  choices: ["Use $REPOS_PATH (default /workspace) (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]
   ```
   If "different path", take free-text input (single dir or colon-separated list) and validate that at least one directory exists under it. Record the resolved value as `$REPOS_PATH`. Individual clones are located in Phase 4 by matching their `git remote` against each repo slug — not by assuming a `<base>/<slug>` directory name.
 
@@ -251,13 +251,13 @@ Runs only when `focus_key` is set OR `refinement_candidates` is non-empty. Other
 Detected N empty/almost-empty team-Epic shells linked to <KEY>:
   - <EPIC-KEY> · <team, or "team: [NEEDS CLARIFICATION]"> · <scope_hint>
   ...
-choices: ["Refine these N (partition the PRD across them) (Recommended)", "Generate net-new Epics (ignore the shells)", "Both — refine the shells and draft net-new for leftover scope", "Let me adjust which shells to refine (you'll be prompted)", "Other… (describe)"]
+choices: ["Refine these N (partition the PRD across them) (Recommended)", "Generate net-new Epics (ignore the shells)", "Both — refine the shells and draft net-new for leftover scope", "Let me adjust which shells to refine (you'll be prompted)"]
 ```
 Record `mode` (`refine` | `generate` | `both`) and the confirmed `refinement_targets` (empty for `generate`). A target whose `team` is empty carries a `[NEEDS CLARIFICATION — team]` note into the writer handoff.
 
 **Adaptive code-scan default (refine / both only).** Re-surface the code-examination choice now that the target count is known — the Phase 1 answer was given before detection. Default **ON when `len(refinement_targets) >= 2`** (a real cross-team boundary to draw), **OFF when == 1**:
 ```
-choices: ["<adaptive default> (Recommended)", "<the other setting>", "Keep my Phase 1 choice", "Other… (describe)"]
+choices: ["<adaptive default> (Recommended)", "<the other setting>", "Keep my Phase 1 choice"]
 ```
 with a one-line rationale ("2+ team-Epics → code context helps draw the boundary" / "single Epic → no cross-team boundary; scan off is faster"). This runs ONLY in the refine branch, so the generate / no-candidate path never sees it (no-regression).
 
@@ -283,12 +283,12 @@ If code scan is ON:
 
 2. Build a slug→clone map. For each top-level directory under each entry of `$REPOS_PATH`, run `timeout 5 git -C <dir> remote get-url origin 2>/dev/null`, strip a trailing `.git`, and take the URL's last path segment as that clone's slug. Skip directories with no `.git` or whose `git remote` call fails/times out. Resolve each in-scope repo slug against the map: one match → use it; multiple matches → auto-prefer basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last (show candidates at plan approval); zero matches → escalate per the `Repo unresolved (zero matches) — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
    ```
-   choices: ["Skip and continue without this repo's scan", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo", "Other… (describe)"]
+   choices: ["Skip and continue without this repo's scan", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]
    ```
 
 3. If the final resolved repo list is empty (every repo was skipped or missing), escalate per the `No repos derivable — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
    ```
-   choices: ["List repos to scan manually", "Proceed without code scan", "Cancel", "Other… (describe)"]
+   choices: ["List repos to scan manually", "Proceed without code scan", "Cancel"]
    ```
 
 ---
@@ -363,7 +363,7 @@ If the writer returned a non-empty `clarifications_needed[]`, resolve it BEFORE
 the style check and review (so no review cycle is spent on known unknowns).
 Present ONE batched prompt listing every marker grouped by Epic; for each:
 ```
-choices: ["Use the writer's suggested answer", "I'll answer (you'll be prompted)", "Leave unresolved", "Other… (describe)"]
+choices: ["Use the writer's suggested answer", "I'll answer (you'll be prompted)", "Leave unresolved"]
 ```
 Fold each resolved answer into the affected Epic draft (Edit the file inline, or
 re-dispatch `epic-writer` once with the resolutions). Markers the user chooses to
@@ -373,7 +373,7 @@ BLOCKERs in Phase 7. If `clarifications_needed[]` is empty, this phase is a
 
 **Leftover disposition (refine / both only).** After the writer returns, read `_coverage.md`; every `❌ gap` row is a PRD requirement no team-Epic covers. In ONE batched prompt, ask per gap:
 ```
-choices: ["Assign to team-Epic <KEY> (re-drafts that Epic to include it)", "Propose as a new (net-new, slug-named) Epic", "Defer (leave as an uncovered row)", "Other… (describe)"]
+choices: ["Assign to team-Epic <KEY> (re-drafts that Epic to include it)", "Propose as a new (net-new, slug-named) Epic", "Defer (leave as an uncovered row)"]
 ```
 Fold the results back: *assign* → re-dispatch `epic-writer` once (or Edit inline) to add the requirement to the named target's `## Covers` + scope; *new Epic* → add a slug-named net-new draft; *defer* → the row stays `❌ gap` in `_coverage.md` and is listed in the Phase 9 report. Reuses the same batched-gate pattern as the clarification resolution above; no gaps → silent no-op.
 
@@ -445,7 +445,7 @@ Act on the verdict (same shape as `/document` keyed mode Phase 7):
 
 - **BLOCK** — invoke `doc-fixer` with `Severities to fix: BLOCKER and MAJOR`. Write the `doc-fixer` Fix Report to a temp file (`mktemp -t dw-epics-claims-XXXX.md`, never inside a repo tree or the specs tree), record its path as `claims_file`, then **check `doc-fixer`'s `Stop condition flag` before re-invoking anything**. If it is `NEEDS HUMAN`, the fixer deferred at least one BLOCKER as needing a human decision: do NOT re-invoke `epic-reviewer` — a re-review can only re-find the BLOCKER the fixer has just reported it could not resolve — and instead surface each deferred BLOCKER with the reason the fixer gave, then escalate it individually per the `Review verdict BLOCK (unresolved after one fix cycle) — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`, which names this entry point alongside the second-BLOCK one. Only when the flag is `CLEAR` do you re-invoke `epic-reviewer` once **passing `claims_file`** — so the re-review falsifies the fixer's account rather than assuming it. If still BLOCK, escalate per the `Review verdict BLOCK (unresolved after one fix cycle) — /epics` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` for each unresolved BLOCKER individually:
   ```
-  choices: ["Provide manual fix notes (you'll be prompted)", "Defer to a follow-up issue (record in Phase 9 report)", "Override and accept the finding", "Cancel the whole run", "Other… (describe)"]
+  choices: ["Provide manual fix notes (you'll be prompted)", "Defer to a follow-up issue (record in Phase 9 report)", "Override and accept the finding", "Cancel the whole run"]
   ```
   For `/epics`, "Defer" means the finding goes into an Epic-refinement note in the draft itself (appended as a `## Refinement notes` section) in addition to the Phase 9 report.
 
@@ -741,7 +741,7 @@ user name is ever written (§10 privacy).
 - ALWAYS pass `Change type: docs` in the Phase 8 change summary block
 - ALWAYS pass `Command run: /epics` in the Phase 8 Agent 4 session handoff
 - ALWAYS spawn Phase 8 agents in a single message — never sequentially
-- ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
+- ALWAYS use `choices` arrays for decision points; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0)
 - ALWAYS produce the Phase 9 report as the final output
 - ALWAYS end the Phase 9 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked
 - ALL written claims must be traceable to a resolved key (from the folder read) or code paths (from `code-scanner`); do not invent content the sources don't contain. `[[KEY]]` wikilinks in the draft are correct here and stay: `/epics` writes markdown that Obsidian and IntelliJ both render, where a wikilink resolves. `${CLAUDE_PLUGIN_ROOT}/references/doc-structure-conventions.md` §1 — which bans in-page provenance — governs **rendered product-docs pages** (`/document`'s write targets), not Epic definitions; do not apply it to them

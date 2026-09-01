@@ -95,7 +95,7 @@ coverage hole. The orchestrator converts it before the run continues, with a cho
 "Choice lists are presented verbatim" rule in `escalation-rules.md`:
 
 ```
-choices: ["Install <named tool> and retry this gate", "Proceed without this check — record my decision", "Cancel the run", "Other… (describe)"]
+choices: ["Install <named tool> and retry this gate", "Proceed without this check — record my decision", "Cancel the run"]
 ```
 
 - "Install and retry" → re-run the gate and rewrite its row.

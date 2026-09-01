@@ -68,7 +68,7 @@ step skips on it.
    `git -C $SPECS_PATH branch --show-current` and `git -C $SPECS_PATH status --porcelain`:
    - Not on `main`/`master`, or the tree is dirty → warn (a non-`main` or dirty checkout may show
      unmerged, in-flight artifacts as if they were the handed-off truth) and ask:
-     `choices: ["I've switched to a clean main — re-check", "Proceed anyway on the current checkout (read-only; noted in the report)", "Cancel", "Other… (describe)"]`
+     `choices: ["I've switched to a clean main — re-check", "Proceed anyway on the current checkout (read-only; noted in the report)", "Cancel"]`
    - Clean `main`/`master` → proceed silently.
 
 4. **Map onto the specs repo (PRD dir + optional Epic subdir).** Resolve the PRD dir with
@@ -88,11 +88,10 @@ best-effort-checks repos under `$REPOS_PATH`; cwd need not be inside either.
 
 ## Phase 1 — Clarify + artifact inventory
 
-**Rule: Ask, don't guess. This rule is absolute.** Use `choices` arrays; the last choice in every array
-MUST be `"Other… (describe)"`.
+**Rule: Ask, don't guess. This rule is absolute.** Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0).
 
 1. **Confirm the resolved scope.**
-   `choices: ["Use <PRD dir> [+ <Epic subdir>] (Recommended)", "Use a different path (you'll be prompted)", "Cancel", "Other… (describe)"]`
+   `choices: ["Use <PRD dir> [+ <Epic subdir>] (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]`
 
 2. **Artifact inventory (mechanical presence + handoff check — no content judgment yet).** By mode:
    - **PRD-level** (`focus_key` null) — locate `<PRD-dir>/ard.md` (resolved via Phase 2.5, not here) and `<PRD-dir>/specification.md` (a PRD-level spec is optional per `workflow-states.md`); then enumerate **every** Epic subdirectory under `<PRD-dir>` that matches a key-number pattern, and for each locate `{ard.md, specification.md, design.md}` — this is per-Epic and plural, because a PRD's "Ready for Implementation" status requires **every in-scope Epic** to carry spec + design (`workflow-states.md`'s PRD row).
@@ -625,7 +624,7 @@ whatever branch Phase 5 left checked out), and NEVER writes into
 - ALWAYS pass `Change type: docs` in the Phase 6 change summary block
 - ALWAYS pass `Command run: /ready` in the Phase 6 Agent 4 session handoff
 - ALWAYS spawn Phase 6's four maintenance agents in a single message — never sequentially
-- ALWAYS use `choices` arrays for decision points; last choice is always `"Other… (describe)"`
+- ALWAYS use `choices` arrays for decision points; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0)
 - ARD steps (Phase 2.5, the reviewer's `applicable_ard`, the report's ARD-conformance section) are
   ADDITIVE and guarded on `status: found` or `status: unmerged` — a run with no ARD (`status: none`) is
   byte-identical to before

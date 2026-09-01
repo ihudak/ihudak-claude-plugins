@@ -903,6 +903,26 @@ selftest() {
   expect_pass_after "a clause-free offer of a command this run does not feed is accepted" \
     "printf -- '\nchoices: [\"Hand to the ungated consumer — /${PLUGIN_REL##*/}:sigma <KEY>\", \"Stop here\"]\n' >> $(cmd_file $PLUGIN_REL alpha)"
 
+  # Check 12 -- one case per failure mode, plus the bracket-matching case that is the whole
+  # reason this check parses rather than regexes. A naive non-greedy `\[(.*?)\]` stops at the
+  # `]` inside the option text and skips the array entirely, so an over-long array hidden
+  # behind one would pass. That is not hypothetical: the census that motivated check 12 used
+  # the naive form and missed three live arrays, two of them six-option.
+  expect_fail "a five-option choices array is rejected" 12 \
+    "printf -- '\nchoices: [\"One\", \"Two\", \"Three\", \"Four\", \"Five\"]\n' >> $(cmd_file $PLUGIN_REL alpha)"
+  expect_fail "a one-option choices array is rejected" 12 \
+    "printf -- '\nchoices: [\"Only one\"]\n' >> $(cmd_file $PLUGIN_REL alpha)"
+  expect_fail "an authored Other option is rejected" 12 \
+    "printf -- '\nchoices: [\"One\", \"Two\", \"Other… (describe)\"]\n' >> $(cmd_file $PLUGIN_REL alpha)"
+  expect_fail "an over-long array whose option text contains brackets is rejected" 12 \
+    "printf -- '\nchoices: [\"Use <dir> [+ <sub>]\", \"Two\", \"Three\", \"Four\", \"Five\"]\n' >> $(cmd_file $PLUGIN_REL alpha)"
+  # ...and the matching green case: a LEGAL array whose option text contains brackets must not
+  # be flagged. Together with the case above this proves the parser reads such arrays rather
+  # than skipping them -- a skipping parser passes this one and the one above for the same
+  # wrong reason.
+  expect_pass_after "a four-option array whose option text contains brackets is accepted" \
+    "printf -- '\nchoices: [\"Use <dir> [+ <sub>]\", \"Two\", \"Three\", \"Four\"]\n' >> $(cmd_file $PLUGIN_REL alpha)"
+
   # The cost subsystem (check 8, and check 9's cost-emitting-commands sentence) does not
   # exist in every edition -- check_cost_attribution and that half of check_prose_counts
   # both return immediately when HAS_COST=0, so a mutation that only a cost check can see
@@ -922,6 +942,75 @@ selftest() {
 
   if [ "$rc" -eq 0 ]; then echo "SELFTEST PASS"; else echo "SELFTEST FAIL"; fi
   exit "$rc"
+}
+
+# ------------------------------------------------------------------ check 12
+# Every `choices:` array the plugin writes is an AskUserQuestion call, and that
+# tool's schema is `minItems: 2, maxItems: 4` with "There should be no 'Other'
+# option, that will be provided automatically". A five-option array is not a long
+# prompt -- it is a tool call rejected at validation, so the run cannot present it
+# at all, while `escalation-rules.md` simultaneously requires the array be shown
+# verbatim. That contradiction shipped: a convention stated in nine command files
+# ("last choice is always \"Other... (describe)\"") authored 136 duplicate options
+# across 30 files and pushed 42 arrays past the cap.
+#
+# The parser is bracket-matched and quote-aware, NOT a non-greedy regex. A naive
+# `choices:\s*\[(.*?)\]` stops at the first `]` -- including one inside an option
+# string ("Use <PRD dir> [+ <Epic subdir>]") -- and silently skips that array.
+# The census that motivated this check used the naive form and missed three
+# arrays, two of them six-option ones. A checker that cannot see the worst
+# offenders is worse than none, so this one matches brackets.
+#
+# CHANGELOG.md is excluded: it quotes retired arrays as history.
+#
+# What this CANNOT see, stated so nobody mistakes green for safe: an array built
+# at runtime from a directory listing -- the Epic picker `/specify`, `/design`
+# and `/implement` share -- has no literal options to count. Its cap lives in
+# `references/epic-picker.md` (*The cap*) and is held by review, not by this gate.
+check_choices_arity() {
+  local root="$1" hits
+  hits=$(python3 - "$root/$PLUGIN_REL" <<'PYEOF'
+import re, sys, io, glob, os
+root = sys.argv[1]
+START = re.compile(r'choices:\s*\[')
+def arrays(text):
+    for m in START.finditer(text):
+        i = m.end() - 1
+        depth = 0; j = i; inq = False; esc = False; opts = []; cur = None
+        while j < len(text):
+            c = text[j]
+            if inq:
+                if esc: esc = False; cur.append(c)
+                elif c == '\\': esc = True
+                elif c == '"': inq = False; opts.append(''.join(cur)); cur = None
+                else: cur.append(c)
+            else:
+                if c == '"': inq = True; cur = []
+                elif c == '[': depth += 1
+                elif c == ']':
+                    depth -= 1
+                    if depth == 0:
+                        yield (m.start(), opts); break
+                elif text[j:j+2] == '\n\n': break
+            j += 1
+for f in sorted(glob.glob(os.path.join(root, '**', '*.md'), recursive=True)):
+    if os.path.basename(f) == 'CHANGELOG.md': continue
+    s = io.open(f, encoding='utf-8').read()
+    rel = os.path.relpath(f, os.path.dirname(root.rstrip('/')))
+    for start, opts in arrays(s):
+        if not opts: continue
+        n = s[:start].count('\n') + 1
+        if len(opts) > 4:
+            print("%s:%d has %d options (AskUserQuestion renders at most 4)" % (rel, n, len(opts)))
+        if len(opts) < 2:
+            print("%s:%d has %d option(s) (AskUserQuestion needs at least 2)" % (rel, n, len(opts)))
+        for o in opts:
+            if o.strip().lower().startswith('other'):
+                print("%s:%d authors its own \"%s\" option (the harness supplies it)" % (rel, n, o[:40]))
+PYEOF
+)
+  [ -n "$hits" ] || return 0
+  local h; while IFS= read -r h; do [ -n "$h" ] && fail 12 "$h"; done <<<"$hits"
 }
 
 # ---------------------------------------------------------------------- main
@@ -947,6 +1036,7 @@ check_cost_attribution  "$ROOT"
 check_prose_counts      "$ROOT"
 check_identity_quarantine "$ROOT"
 check_merge_clause      "$ROOT"
+check_choices_arity     "$ROOT"
 
 if [ "$FAILURES" -gt 0 ]; then
   echo "FAIL: $FAILURES problem(s) under $PLUGIN_REL" >&2

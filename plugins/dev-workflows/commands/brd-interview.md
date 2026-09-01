@@ -440,13 +440,13 @@ The options presented are that question's own `options_considered`
 one trailing entry for an option the operator supplies themselves and the two standing exits:
 
 ```
-choices: [<one entry per option considered, in the order they were weighed>, "Defer this question — record why it is not answerable yet", "Cancel", "Other… (describe)"]
+choices: [<one entry per option considered, in the order they were weighed>, "Defer this question — record why it is not answerable yet", "Cancel"]
 ```
 
 This is **not** an escalation choice list, and it is not one of the arrays
 `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` owns: its options are the decision's own, the
 same way `/brd-split`'s ledger walk draws its picker from `coverage-ledger-format.md` §3's
-dispositions rather than from an escalation array. `"Other… (describe)"` returns an option the
+dispositions rather than from an escalation array. The harness's free-text option returns an option the
 operator names; that option joins `options_considered` and may then be `chosen`, so the record still
 shows what was actually on the table.
 
@@ -532,11 +532,11 @@ Record the outcome as that table prescribes: a changed `evidence` list, a `condi
 specific decision of the prerequisite (`EPIC-008/[VD#3]`, never `EPIC-008` alone — §5), or
 `status: open` with the blocking prerequisite named.
 
-**This picker carries no `"Other… (describe)"` entry, and that omission is required here rather than
-merely permitted.** `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` names this picker in its
-*The permitted adjustment does not reach these arrays* section for exactly that reason; it otherwise
-calls adding the trailing entry "the one permitted adjustment", not a mandatory one; and the rule
-being applied admits
+**This picker's vocabulary is closed, and holding it closed is required here rather than merely
+permitted.** `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` names this picker among the six
+whose free-text answer is normalised into their own vocabulary rather than written through — the
+harness supplies that option on every array and no picker can decline it, so the discipline is in
+what the run does with the answer, not in the array's shape. The rule being applied admits
 **exactly three** resolutions and says so — "Three resolutions, and exactly three"
 (`decision-register-format.md` §6). An open-ended fourth entry would invite a resolution the rule
 does not have, and the two most likely things an operator would write into it are precisely the two
@@ -651,14 +651,14 @@ delivery team owes the customer no decision.
 **`package_offerable: yes`:**
 
 ```
-choices: ["Stop here — this round's decisions are recorded", "Package this BRD for customer review — /dev-workflows:brd-package <BRD-KEY> <merge-clause>", "Work another round now — /dev-workflows:brd-interview <BRD-KEY> (only if findings or decisions have changed)", "Interview another BRD or slice", "Other… (describe)"]
+choices: ["Stop here — this round's decisions are recorded", "Package this BRD for customer review — /dev-workflows:brd-package <BRD-KEY> <merge-clause>", "Work another round now — /dev-workflows:brd-interview <BRD-KEY> (only if findings or decisions have changed)", "Interview another BRD or slice"]
 ```
 
 **`package_offerable: rounds-unsettled` — `/brd-package` is left out rather than offered and
 refused:**
 
 ```
-choices: ["Stop here — this round's decisions are recorded", "Work another round now — /dev-workflows:brd-interview <BRD-KEY> (the questions named above are still in a holding state the packaging step refuses)", "Re-ground a question no finding bears on yet — /dev-workflows:brd-ground <BRD-KEY>", "Interview another BRD or slice", "Other… (describe)"]
+choices: ["Stop here — this round's decisions are recorded", "Work another round now — /dev-workflows:brd-interview <BRD-KEY> (the questions named above are still in a holding state the packaging step refuses)", "Re-ground a question no finding bears on yet — /dev-workflows:brd-ground <BRD-KEY>", "Interview another BRD or slice"]
 ```
 
 **`package_offerable: nothing-to-review` — say plainly that this BRD is decided, and do not offer
@@ -668,7 +668,7 @@ findings or the decisions have moved, which nothing here has done. What can move
 grounding pass, so that is what the list carries:
 
 ```
-choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Re-derive the findings against current commits — /dev-workflows:brd-ground <BRD-KEY> --rebaseline (a changed finding is what makes a new round askable)", "Interview another BRD or slice", "Other… (describe)"]
+choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Re-derive the findings against current commits — /dev-workflows:brd-ground <BRD-KEY> --rebaseline (a changed finding is what makes a new round askable)", "Interview another BRD or slice"]
 ```
 
 **No option carries a `(Recommended)` marker, and that omission is deliberate**, per the

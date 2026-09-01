@@ -4,6 +4,59 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.11.0] — 2026-08-31
+
+### Fixed — every `choices:` array now fits the prompt that renders it
+
+`AskUserQuestion`'s schema is `minItems: 2, maxItems: 4`, and says in as many words: *"There should be
+no 'Other' option, that will be provided automatically."* The plugin shipped a convention saying the
+opposite — *"last choice is always `"Other… (describe)"`"*, stated in eight command files — which
+authored **139 duplicate options across 30 files** and pushed **42 arrays past the cap**, while
+`references/escalation-rules.md` simultaneously required every array be presented verbatim. A rule the
+harness made unfollowable. A five-option array is not a long prompt: it is a tool call rejected at
+validation, so the run cannot present it at all.
+
+**`escalation-rules.md` §0 states the real rule** — 2–4 options, never an authored "Other" — and
+retires *"adding the trailing entry is the one permitted adjustment"* along with the carve-out table
+built on it.
+
+**Two consequences that outlive the cleanup**, because the fix is not only arithmetic:
+
+- **The free-text option is now unconditional.** Six closed-vocabulary pickers used to protect
+  themselves by *omitting* it, and three of those are how a customer's authority enters the decision
+  register — D14 exists because normalising prose into a register row is inference, and promoting
+  inference to customer authority silently is the one way that workflow could fabricate a mandate the
+  customer never gave. The harness supplies the option whatever the array says, so the protection
+  moves from the array's shape to the run's handling of the answer: a free-text answer on those
+  pickers is **normalised into the picker's own vocabulary, or the question is re-asked** — never
+  written through as a value no consumer handles.
+- **A fifth option moves rather than disappears.** `references/next-phase-offer.md` gains an overflow
+  rule: the prose `### Next step` list — already that contract's "universal minimum" — carries every
+  route, the array carries `Stop here` plus the three the run's own outcome makes likeliest, and the
+  run says out loud that the list is longer than the prompt. Applied to `/brd-reconcile`'s two offers
+  and `/update-prd`'s.
+
+**The defect no static check can see, found while fixing the ones it can.** The progress-aware Epic
+picker `/specify`, `/design` and `/implement` share is built from a directory listing — *"one row per
+Epic"* — so a PRD with four Epics overflows a prompt that has no literal options to count, and
+`/specify`, which appends its own option, overflows at three. `references/epic-picker.md` gains *The
+cap*: every Epic listed as prose, the array carrying at most three rows plus one naming the remainder,
+whose typed key is resolved against the keys just listed rather than parsed out of the answer.
+
+**`scripts/check-docs.sh` gains check 12**, so the class cannot return: 2–4 options, no authored
+"Other", across every markdown file in the plugin. Its parser is **bracket-matched and quote-aware
+rather than a non-greedy regex** — `choices:\s*\[(.*?)\]` stops at a `]` inside an option string and
+skips that array silently, which is how the census that motivated this work missed three live arrays,
+two of them six-option, and reported 40 over-cap and 136 authored Others across 232 arrays when the
+truth was 42 and 139 across 227. Its selftest pairs each
+failure mode with a **green** case whose option text also contains brackets, because a skipping parser
+passes the red case and the green one for the same wrong reason.
+
+**Nine trailing `Cancel` options were dropped** from arrays that were over the cap. Where cancelling
+had a documented consequence — `/brd-package`'s and `/brd-reconcile`'s walks both state one — the
+reasoning moved into the prose introducing the walk, which is where it is visible without spending one
+of four slots.
+
 ## [3.10.0] — 2026-08-31
 
 ### Fixed — the code repo's own commit, push, and pull request

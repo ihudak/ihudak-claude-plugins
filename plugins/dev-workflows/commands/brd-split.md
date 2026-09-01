@@ -1,6 +1,6 @@
 ---
 name: brd-split
-description: BRD-splitting workflow (PM phase, third command of the BRD-to-PRD route). Gates on every grounding finding carrying a verifier verdict, proposes candidate slices from the grounded picture (buildable now, blocked, or dependent) - optionally seeded by a verbal <instruction> the operator types after the key, which is resolved against this BRD's own rows and grilled (bounded, <=5, and only where one answer places more than one row) before any slice is proposed. A BRD is a container and is never implementable itself, so this command always produces at least one slice; where nothing clusters, the whole BRD becomes one. Each confirmed slice is keyed and nested as a PRD- folder inside this BRD - the folder its PRD will be authored in - carrying its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md. It then walks every unallocated coverage-ledger row one at a time through four resolutions (assign to a named slice, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. covered-here is not among them on a parent: a parent builds nothing itself. Run on a slice it allocates but does not slice: nesting is capped at one level, so no child is created and the walk offers a different four - covered-here replaces covered-by, which on a slice records a provisional claim this command's own walk on the parent withdrew, and the parent writes it. Existing children are enumerated by a positive test - a subdirectory carrying a brd-link.md whose parent: names this BRD - never by a name match. Re-running is a no-op that prints the ledger only where the ledger is fully allocated AND no child is left standing while claiming nothing; a standing empty child keeps the run alive, because this is the only command that can remove it or keep it against a recorded reason. Offers /brd-interview on the BRD just allocated, and /brd-ground on each non-empty slice, as the next steps.
+description: BRD-splitting workflow (PM phase, third command of the BRD-to-PRD route). Gates on every grounding finding carrying a verifier verdict, proposes candidate slices from the grounded picture (buildable now, blocked, or dependent) - optionally seeded by a verbal <instruction> the operator types after the key, which is resolved against this BRD's own rows and grilled (bounded, <=5, and only where one answer places more than one row) before any slice is proposed. A BRD is a container and is never implementable itself, so this command always produces at least one slice; where nothing clusters, the whole BRD becomes one. Each confirmed slice is keyed and nested as a PRD- folder inside this BRD - the folder its PRD will be authored in - carrying its own brd-link.md, inherited brd/brd-inventory.md, and unallocated coverage-ledger.md. It then walks every unallocated coverage-ledger row one at a time through four resolutions (assign to a named slice, defer to this BRD, reject citing a defect, or mark superseded) until none remain unallocated, and writes slices.md with the rationale for each slice and each deferral. Where one answer is uniform by construction - exactly one slice standing on a parent, or any run on a slice - Phase 4 first offers to write that single disposition across every remaining row in one confirmation, stating each row it would write and letting any of them be held back to the one-at-a-time walk, which stays the default and is what a declined or unparsed answer falls back to. covered-here is not among them on a parent: a parent builds nothing itself. Run on a slice it allocates but does not slice: nesting is capped at one level, so no child is created and the walk offers a different four - covered-here replaces covered-by, which on a slice records a provisional claim this command's own walk on the parent withdrew, and the parent writes it. Existing children are enumerated by a positive test - a subdirectory carrying a brd-link.md whose parent: names this BRD - never by a name match. Re-running is a no-op that prints the ledger only where the ledger is fully allocated AND no child is left standing while claiming nothing; a standing empty child keeps the run alive, because this is the only command that can remove it or keep it against a recorded reason. Offers /brd-interview on the BRD just allocated, and /brd-ground on each non-empty slice, as the next steps.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 ---
 
@@ -19,8 +19,9 @@ Runs at either of the two levels `<BRD-KEY>` can name, in one of **two modes** P
 resolves from the folder itself:
 
 - **`split_mode: full`** — a BRD that owns its source document. Everything below runs: slices are
-  proposed, children are keyed and nested, and the ledger walk offers all five terminal
-  resolutions.
+  proposed, children are keyed and nested, and the ledger walk offers **four** terminal
+  resolutions — `covered-by`, `deferred-to`, `rejected`, `superseded-by`. `covered-here` is not one
+  of them: a parent BRD is a container and builds nothing itself.
 An `<instruction>` is honoured in **both** modes, and what it seeds differs: in `full` mode it seeds
 the Phase 2 grouping *and* the Phase 4 walk's per-row recommendation; in `allocate-only`, where
 Phase 2 never runs, it seeds the walk alone. That is why a slicing instruction on a slice is a real
@@ -151,8 +152,8 @@ four-resolution one.
    it had two fewer phases to skip. The step 5 notice is still emitted and still reported.
 9. **Enumerate existing children — `split_mode: full` only.** In `allocate-only` mode there are no
    children and none can be created, so this step is skipped — and with no child to enumerate there
-   is no `covered-by` target for Phase 4 to offer, which is the mechanical reason that picker is
-   four choices rather than five. A slice's own `covered-by` rows name a sibling or the parent and
+   is no `covered-by` target for Phase 4 to offer, which is the mechanical reason that picker's four
+   choices are a different four from the parent's, with `covered-here` where `covered-by` stands. A slice's own `covered-by` rows name a sibling or the parent and
    are written by the parent's walk, never chosen here
    (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3); this step never looks for
    them and never needs to, because they are terminal already. In `full` mode: list every immediate subdirectory of `<BRD-dir>` that
@@ -266,10 +267,11 @@ one at a time, each with a recommended answer, per that reference's mechanics �
 restated here. This command's **depth is bounded**, and the bound has two parts:
 
 1. **The value test, which is the real gate: ask only where one answer places more than one row.**
-   A question that disambiguates a single row is worse than useless here. Phase 4 visits every
-   unallocated row one at a time regardless, so that row's prompt is already coming — spending a
-   turn now to save nothing later is a pure cost, and it is paid before the operator has seen any
-   output at all. What earns a question is a **terminology decision that moves several rows at
+   A question that disambiguates a single row is worse than useless here. Phase 4 resolves every
+   unallocated row regardless — one at a time in its Step 2 walk, or inside the Step 1 offer where
+   that fires — so the row is already going to be settled, at a cost of one prompt or of none;
+   spending a turn now to save at most that is a pure cost, and it is paid before the operator has
+   seen any output at all. What earns a question is a **terminology decision that moves several rows at
    once**: *the BRD uses "form" for an order record and for a compliance artifact — which is meant
    in these six rows?* That is the reference's *force terminology precision* rule, and it is the
    whole reason this grill exists.
@@ -281,15 +283,16 @@ restated here. This command's **depth is bounded**, and the bound has two parts:
 **That difference is worth stating, because it is what sizes the cap.** In `/idea` an unanswered
 bounded question becomes a `[NEEDS CLARIFICATION]` marker that ships inside the artifact, so the cap
 buys a hole in the deliverable and ≤10 earns its length. Here an unplaced row simply reaches Phase 4
-without a recommendation, in a walk that was going to visit it anyway — and it can still be moved by
-hand in Phase 2's own edit/merge/move picker. Two downstream channels catch the same row for free,
+without a recommendation, in a phase that was going to settle it anyway — and it can still be moved
+by hand in Phase 2's own edit/merge/move picker. Two downstream channels catch the same row for free,
 so past the first few questions the grill is the most expensive of the three ways to place a row and
 the only one that runs before anything is visible.
 
 **A row still unplaced when this phase ends is left unclustered**, and that is a resolution rather
 than a failure: it is exactly the fate Phase 2 already gives a row nothing clusters with, and Phase 4
-walks it with no recommendation, which is this command's behaviour on every run that was given no
-instruction at all. **No new marker, no new record, and nothing carried forward** — inventing a
+settles it with no recommendation of its own — walked on a blank picker, or carried in the Step 1
+offer's set like any other row this reading did not place elsewhere — which is this command's
+behaviour on every run that was given no instruction at all. **No new marker, no new record, and nothing carried forward** — inventing a
 `[NEEDS CLARIFICATION]`-style marker for it would put a token into a ledger and an inventory whose
 field sets are fixed elsewhere (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2,
 `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2).
@@ -447,9 +450,142 @@ child sliceable — no key shape lifts the one-level cap (§3).
 **This phase runs in both modes** — it is the allocation walk, and allocation is not what the
 one-level cap restricts. What differs is the size of the picker.
 
-For every row in `coverage-ledger.md` still `disposition: unallocated`, present it **exactly one
-at a time, never batched**, via `AskUserQuestion` — quoting its `id`, `text`, `defects`, and
-`evidence` so the operator has everything needed without opening the file.
+**Three steps, in this order:** the uniform-answer offer (Step 1 — conditional, and skipped on most
+runs), the walk itself (Step 2 — the default, and the reason this phase exists), and the reconcile
+that follows it (Step 3 — `split_mode: full` only).
+
+### Step 1 — the uniform-answer offer, taken once before the first row
+
+**Skipped unless the firing condition below holds. Where it is skipped, nothing in Step 2 changes,
+and where it is declined, nothing is written by it.**
+
+**Why it exists.** A BRD is a container, so this command always produces at least one slice
+(Phase 2) — and the whole of a BRD becoming *one* slice is the ordinary shape of this route rather
+than a corner of it. In that shape every row on the parent takes `covered-by: <the one slice>`, and
+every row on that slice then takes `covered-here`: two walks whose answer the shape of the split
+settled before either opened a ledger. Asking once per row for an answer the run can already state
+is the defect `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` names under *When a choice list
+fires* — a list written for a question whose answer is already determined spends a user turn on a
+formality. A forty-row BRD resolved to a single slice costs **eighty** prompts across the two runs
+without this step and **two** with it.
+
+**It fires only where the answer is uniform by construction — never merely where it would be
+convenient.** Both conditions in its row must hold:
+
+| Mode | Fires when |
+|---|---|
+| `full` | **exactly one** slice stands as a `covered-by` target — the union of the children Phase 3 keyed this run and the children Phase 0 step 9 enumerated is a single folder — **and** two or more rows are still `unallocated` |
+| `allocate-only` | two or more rows are still `unallocated` |
+
+**Why each condition is the condition.** With one standing slice, `covered-by` has exactly one legal
+argument, so the offer picks no target on the operator's behalf: what is uniform by construction is
+the **key**, not the disposition — which is exactly why this offer is refusable per row rather than
+a completion. **With two or more slices standing it does not fire at all**, and that is not a
+limitation for a later edit to generalise away: which slice owns a row is the per-row judgement this
+walk exists to take, and no single confirmation could name a target without taking it for the
+operator. In `allocate-only` mode every row this walk stands on is a row the parent allocated
+**here** — which is why that picker already carries a standing
+`(Recommended — this slice was carved out to build these rows)` on `covered-here` for every row it
+shows; the offer is that same recommendation made once instead of N times, not a new claim. And
+below two rows there is nothing to save — one offer replacing one prompt — so the step is skipped
+rather than shown, by the same *When a choice list fires* rule.
+
+**Its vocabulary is two dispositions, and that is structural rather than a preference.** The offer
+writes `covered-by: <CHILD-KEY>` (`full`) or `covered-here` (`allocate-only`) and nothing else. The
+other three each need a per-row fact it cannot supply and must not invent: `deferred-to` needs the
+one-line rationale Phase 5 writes into `slices.md`, `rejected` needs the `[DEF#n]` that justifies
+it, and `superseded-by` needs the `[BR#n]` that replaced it. A bulk form of any of the three would
+either skip a prompt that carries content or copy one row's reason onto rows that do not share it.
+
+**The set it offers to write.** Every row still `unallocated`, **minus** any row Phase 1.5's reading
+placed on a *different* disposition. Those keep the recommendation the instruction earned them (the
+`<recommended>` table in Step 2) and are walked one at a time. An instruction the operator typed is
+not something a shortcut may quietly overrule, so the offer **names** those rows and what the
+instruction placed each on, rather than absorbing them.
+
+**What the offer states before anything is written**, in the prose beside the list:
+
+1. the disposition it will write, spelled out — `covered-by: <CHILD-KEY>` with the key filled in, or
+   `covered-here`;
+2. the count, and every `[BR#n]` in the set with the first line of its `text`, so a row that does
+   not belong is visible without opening the ledger;
+3. in `full` mode, that it also adds each of those `[BR#n]` to `<CHILD-KEY>`'s `brd-link.md`
+   `claims:` list — the same second write Step 2's **Assign to a named slice** bullet performs, not
+   an extra one;
+4. every row it will **not** write, and why — each row Phase 1.5 placed elsewhere, named with its
+   placement;
+5. that Step 3's reconcile, Phase 4.5 and Phase 6 all run exactly as they would after a
+   one-at-a-time walk, over the same files;
+6. that it settles nothing beyond those N rows: a bulk write is Step 2's per-row write taken N times
+   behind one confirmation — the same disposition vocabulary
+   (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3) and the same gate (§4), with no
+   row reaching a terminal disposition by a route that file does not already own.
+
+**The list.** `<N>`, `<CHILD-KEY>` and the disposition are substituted exactly as `<BRD-KEY>` and
+`<recommended>` are substituted elsewhere in this phase; the array is otherwise presented verbatim
+(`escalation-rules.md`, *Choice lists are presented verbatim*), and it is three options, inside §0's
+two-to-four cap, with the free-text answer the harness supplies handled below.
+
+**`split_mode: full`:**
+
+```
+choices: ["Write covered-by: <CHILD-KEY> on all <N> rows now", "Write it on all but the rows I name — I'll walk those one at a time", "Walk every remaining row one at a time — decide each row"]
+```
+
+**`split_mode: allocate-only`:**
+
+```
+choices: ["Write covered-here on all <N> rows now (Recommended — every row this walk stands on is a row the parent allocated here, which is the marker the per-row picker carries on each of them, made once)", "Write it on all but the rows I name — I'll walk those one at a time", "Walk every remaining row one at a time — decide each row"]
+```
+
+**Why one list carries a marker and the other does not** — the same rule both times, applied to what
+each picker already says. The `allocate-only` picker recommends `covered-here` on every row it
+shows, unconditionally and for a reason no instruction changes, so recommending it once here is that
+marker printed once: a reason annotation, honoured verbatim, of the kind `escalation-rules.md`
+admits explicitly. The `full` picker carries **no** marker unless an instruction placed the row,
+because which resolution is right is a fact about the row in front of the operator — and there being
+one slice does not change that. So the `full` offer carries none either, and says so beside the
+list: *no option here is recommended — this run knows which slice a delegated row would go to, not
+whether this row is one to delegate.* That is `escalation-rules.md`'s *When no option is safe to
+recommend*, not an omission.
+
+**Answering.**
+
+- **Option 1** — write the whole set (below), then continue into Step 2 with only the excluded rows
+  left to walk, if there are any.
+- **Option 2** — **one** further prompt, free text, not one per row: ask which `[BR#n]` ids to hold
+  back, restating in that prompt the disposition every row *not* named will receive. Validate each
+  id against the set: one that is not in it — unknown, already terminal, or already excluded — is
+  named back and the prompt repeated once, never silently dropped and never written. An empty answer
+  names no exception and is option 1. Then write the reduced set and walk the named rows in Step 2.
+  **This is what keeps a partial answer cheap**: three exceptions out of forty cost one offer, one
+  naming prompt and three row prompts, not forty.
+- **Option 3** — write nothing here. Step 2 runs over every row exactly as it does on a run where
+  this step never fired.
+- **A free-text answer** naming `[BR#n]` ids is read as option 2's answer and validated the same
+  way; anything else falls through to option 3. **The fall-through direction is the walk**, which is
+  what stops an answer this step could not parse from writing a row nobody answered for.
+
+**Writing the set.** For each row in it, write exactly what Step 2's bullet for that disposition
+writes — `disposition: covered-by: <CHILD-KEY>` plus the `claims:` entry, or
+`disposition: covered-here` — row by row in the file, so an interrupted run leaves every row either
+`unallocated` or terminal and none half-written. Ids are the parent's throughout, and nothing else
+about a row changes. Then report the rows written, under the one disposition, and the rows held back
+with why each was held back — named by the operator, or placed elsewhere by the instruction.
+
+**A row held back is walked, not dropped.** It is still `unallocated`, and §4's gate still blocks
+this command until Step 2 gives it a terminal disposition. A `Cancel` during that walk stops the run
+naming how many rows remain, and every row this step already wrote stays written — exactly as a row
+resolved early in a one-at-a-time walk does.
+
+### Step 2 — the walk
+
+For every row in `coverage-ledger.md` still `disposition: unallocated` when this step opens — every
+row on a run where Step 1 did not fire or was declined, and only the rows Step 1 held back on a run
+where it wrote — present it **one at a time, never batched**, via `AskUserQuestion` — quoting its
+`id`, `text`, `defects`, and `evidence` so the operator has everything needed without opening the
+file. **This is the default, and Step 1 does not displace it**: per-row judgement is what this walk
+is for, and no row is ever written in bulk without an offer that named it being shown and answered.
 
 **`split_mode: full` — four resolutions:**
 
@@ -548,11 +684,14 @@ same rule prescribes — and it becomes available only because there is now an i
 it from. On a run with no instruction there is still no basis for one, and the third row above is
 what keeps that run's picker byte-for-byte what it was.
 
-**A recommendation is not batching.** Rows are still presented **exactly one at a time**, unchanged;
-`${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` asks for a recommended answer on every
-question for the same reason this phase now carries one — an operator reacting to a proposal is doing
-something different from an operator facing a blank picker, and neither is the same as being handed
-five rows at once.
+**A recommendation is not batching, and Step 1 is not a recommendation.** Resolving `<recommended>`
+changes what a prompt says, never how many rows it carries: rows in this step are presented **one at
+a time**, unchanged; `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` asks for a recommended
+answer on every question for the same reason this phase carries one — an operator reacting to a
+proposal is doing something different from an operator facing a blank picker, and neither is the
+same as being handed five rows at once. Step 1 *does* hand the operator many rows at once, which is
+why it is a separate, conditional offer that names every row it would write and can be refused row
+by row, rather than a wording change inside this picker.
 
 Both pickers offer nothing but **terminal** dispositions from
 `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3 — four in each mode, though **a
@@ -560,8 +699,8 @@ different four** (`full` offers `covered-by`, `allocate-only` offers `covered-he
 `unallocated` in neither: it is the one disposition no choice above ever
 writes back. §4 states the gate those resolutions open, which this command
 **cannot complete while any row stays `unallocated`** — a `Cancel` mid-walk stops the run naming
-how many rows remain, but every row already resolved this pass stays written; nothing already
-decided is rolled back.
+how many rows remain, but every row already resolved this pass stays written, including any Step 1
+wrote; nothing already decided is rolled back.
 
 - **Build here** → `disposition: covered-here`. **`split_mode: allocate-only` only** — it is what
   makes a slice PRD-eligible (`coverage-ledger-format.md` §5), and it is the ordinary landing for
@@ -599,9 +738,11 @@ decided is rolled back.
 - **Mark superseded** → prompt for the replacing `[BR#n]`; it must already exist in
   `brd/brd-inventory.md`. Write `disposition: superseded-by: [BR#n]`.
 
-**Once every row is resolved, bring each surviving child's three files back into agreement
-(`split_mode: full` only — an `allocate-only` run has no child to reconcile and finishes at the
-last row).** The
+### Step 3 — reconcile each surviving child
+
+**Once every row is resolved — by Step 1, by Step 2, or by both — bring each surviving child's three
+files back into agreement (`split_mode: full` only — an `allocate-only` run has no child to
+reconcile and finishes at the last row).** The
 walk is what actually allocates, so a child's `claims:` list, its `brd/brd-inventory.md`, and its
 `coverage-ledger.md` are all provisional until this point. For every child still standing — created
 this run in Phase 3, or found already nested in Phase 0 step 9 and given a row by this walk —
@@ -719,6 +860,13 @@ Write `<BRD-dir>/slices.md`:
   rationale collected for it in Phase 4 — why it is a live obligation of this BRD rather than built
   now.
 
+- **One block for the bulk resolution, when Phase 4's Step 1 offer fired and was taken** — the
+  disposition it wrote, the `[BR#n]` rows it wrote it on, and the rows held back with why each was
+  held back (named by the operator, or placed elsewhere by the instruction). A later reader needs to
+  know whether forty rows were judged one at a time or confirmed once, and the ledger cannot say:
+  the rows read identically either way. Where the offer fired and was declined, record that in one
+  line too — a decision to walk is a decision.
+
 - **One block for the instruction, when this run was given one** — the instruction **verbatim**, and
   how it was read: which `[BR#n]` rows Step A placed directly, which the Step B grill settled and by
   what terminology decision, and which it could not place and left unclustered. Record it whether or
@@ -764,7 +912,9 @@ deletion —
 own deletions — and it stages a Phase 4.5 removal on the Phase 4.5-only path the same way), `title:` — `<BRD-KEY> Split into slices and allocate coverage` in `full` mode,
 `<BRD-KEY> Allocate slice coverage` in `allocate-only`, because a pull request titled "split" that
 created nothing would misdescribe itself — and `body_facts` = the run mode,
-the slice count and keys (`full` only), the walk's resolution tally by disposition, every standing
+the slice count and keys (`full` only), the walk's resolution tally by disposition, whether Phase 4's
+Step 1 offer fired and — where it was taken — how many rows it wrote in one confirmation and how many
+were held back to the walk, every standing
 empty child Phase 4.5 resolved and how, whether this run was given a slicing instruction and — when
 it was — how many rows its reading placed, settled by grill, and left unplaced, and whether this run
 was the no-op; emit its §4.1 outcome

@@ -206,10 +206,12 @@ the ledger's job is to record a requirement's fate, not to force every requireme
 ## 4. The allocation gate
 
 `/brd-split` cannot complete while any row in this BRD's ledger is `unallocated`.
-It opens the gate by walking every remaining `unallocated` row one at a time and offering a path
-off `unallocated` into a terminal disposition — and **the paths available are not the same set at
-both levels**. The difference is no longer a disposition §3 withholds from a slice: §3 makes
-`covered-by` legal at both. It is a difference of **writer and of row**. The slice form of
+It opens the gate by giving every remaining `unallocated` row a terminal disposition.
+**The walk is one row at a time, and that is its default**; where one answer is uniform by
+construction, the command may instead offer a single confirmation that settles a set of rows — an
+offer it states in full and the operator may refuse row by row. **The paths available are
+not the same set at both levels**, and the difference is no longer a disposition §3 withholds from
+a slice: §3 makes `covered-by` legal at both. It is a difference of **writer and of row**. The slice form of
 `covered-by` records an orphan row (§2) and is written by the *parent's* walk at the moment that
 walk withdraws the claim, so it is already terminal before a slice's own walk ever reads the
 ledger — a slice's walk never stands on a row it could write, and therefore never offers it.
@@ -234,6 +236,18 @@ vocabulary (§3) and the one rule every caller must honor: no row may stay `unal
 gate. It does not fix, and does not re-enumerate, the command's interaction flow — the picker's
 shape is the command's to own, and a count of it recorded here would only drift the next time that
 picker changes.
+
+**How many rows one answer settles is part of that interaction flow, and it is the command's too.**
+What this file fixes is the outcome: every row leaves this gate carrying one of §3's terminal
+dispositions, written on that row, whatever interaction put it there. A bulk confirmation is the
+same per-row write taken more than once behind one answer — it introduces no disposition, exempts no
+row, and moves no row that was already terminal, so nothing in §3, §5 or §6 reads differently after
+one. **The one-at-a-time walk is that phase's default, not this file's requirement**: the
+requirement is that no row stays `unallocated` past the gate, and a run in which the operator
+answered once for forty rows satisfies it exactly as one in which they answered forty times does.
+Whether such an offer is made, on what condition, over which rows and with which dispositions in its
+vocabulary is stated in `commands/brd-split.md` Phase 4 and read from there — a condition recorded
+here would drift the next time that phase changed, exactly as a picker count would.
 
 ## 5. PRD eligibility
 

@@ -31,7 +31,7 @@ Because the required fix is not known up front, start with a provisional `MODERA
 ## Step 1 — Prepare
 
 1. **Parse** — Extract the optional address and the CVE ID from each token. The address is a key resolved against `$SPECS_PATH` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), never a tracker lookup; a token may carry none.
-2. **Determine the no-address placeholder** — Scan recent branch names and commit history for `NOISSUE` / `NOJIRA` / `NO-JIRA`; use whichever the project already writes when a token carries no address.
+2. **Determine the no-address placeholder** — Scan recent branch names and commit history for `NOISSUE` / `NOJIRA` / `NO-JIRA`; use whichever the project already writes when a token carries no address. <!-- vendor-token-ok: literals a repo's own branch/commit history may contain, matched rather than minted -->
 3. **Filter** — Skip non-CVE IDs (`CWE-*`, OWASP patterns) with a warning.
 4. **Snapshot repo context** — Note the repo path and, when obvious, the primary ecosystem so the research agent can disambiguate detection.
 5. **Resolve the branch name per CVE** — Apply the "Git Workflow → Branch naming" section below now, once per CVE token, and record each result as that CVE's `branch`. This is the **only** place a branch name is produced: `vuln-fixer` creates the branch it is handed and never derives one, and Step 3.9 pushes the same value. A run that reaches the fixer without a `branch` in its prompt is a defect — the agent would invent a name, the orchestrator would push a different one, and `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.1 check 4 would fail the gate on the mismatch.
@@ -96,7 +96,7 @@ Three rules make that switch safe:
 
 Invoke `vuln-fixer` with `baseline_tests: run-fresh`:
 
-```
+```text <!-- vendor-token-ok: the no-address placeholder literals Step 1 detected, echoed into the handoff -->
 task(
   subagent_type: "dev-workflows:vuln-fixer",
   model: `<detection_model — §2.1 Sonnet chain>`,
@@ -143,7 +143,7 @@ prevent.
 1. **Capture baseline at the orchestrator** using the existing `test-baseliner` agent. Keep the full baseline block (`passing_count` and `passing_tests`).
 2. **Invoke `vuln-fixer` with review gating enabled**:
 
-```
+```text <!-- vendor-token-ok: the no-address placeholder literals Step 1 detected, echoed into the handoff -->
 task(
   subagent_type: "dev-workflows:vuln-fixer",
   model: `<detection_model for SIGNIFICANT; planning_model (§2 Opus chain) only if HIGH-RISK>`,

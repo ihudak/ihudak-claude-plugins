@@ -1,6 +1,6 @@
 ---
 name: update-prd
-description: PRD-update workflow (PM phase) — refresh/re-do an existing Product Requirements Document. Resolves the PRD from the specs tree (the only copy) with a 3-day freshness gate, grounds on the PRD + comments + any ARD/spec/transcript, updates it via a relentless grill against references/prd-format.md, gated by the Opus prd-reviewer, and writes canonical + archived revisions into $SPECS_PATH/specifications/PRD-<KEY>-<slug>/. Product-level (no code scan).
+description: PRD-update workflow (PM phase) — refresh/re-do an existing Product Requirements Document. Resolves the PRD from the specs tree (the only copy), grounds on the PRD + any ARD/spec/transcript, updates it via a relentless grill against references/prd-format.md, gated by the Opus prd-reviewer, and writes canonical + archived revisions into $SPECS_PATH/specifications/PRD-<KEY>-<slug>/. Product-level (no code scan).
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -124,7 +124,7 @@ Act on the verdict as `/create-prd` Phase 4 does: on `BLOCK`, fix the BLOCKER fi
 ## Phase 5 — Handoff (canonical + archive)
 
 1. **Archive the current canonical PRD** (if one exists) to `<feature-folder>/revisions/<KEY>_<slug>_<YYYYMMDD>.md` before overwrite (same-day second revision → suffix `-2`, `-3`, …).
-2. **Write the refreshed PRD** to the **canonical** path `<feature-folder>/prd.md`. Record `revision_of: <archived snapshot path>` and `built_from_import: <YYYY-MM-DD>` (the date the update was built from) in the frontmatter.
+2. **Write the refreshed PRD** to the **canonical** path `<feature-folder>/prd.md`. Record `revision_of: <archived snapshot path>` and `built_from_date: <YYYY-MM-DD>` (the date the update was built from) in the frontmatter.
 3. **Hand off** (commit-when-asked — never automatic). Present `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim: `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`. On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: prd`; `feature_folder` as resolved in Phase 0; `deliverable_paths` = the canonical PRD file (step 2) and the archived snapshot file (step 1); `title: <KEY> Update Product Requirements Document`; and `body_facts` = which sections changed, the date the update was built from, the open-question count, and the `prd-reviewer` verdict. Emit its §4.1 outcome line in the Final report.
 
 ---

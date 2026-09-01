@@ -34,7 +34,7 @@ brd_key: <the BRD key this PRD was authored from via `/create-prd` on the BRD ro
 brd_parent: <that slice's parent BRD key, from its brd-link.md; always present on the BRD route, since the route resolves a PRD- slice folder and a slice always has a parent:; omit outside the BRD route>
 depends_on: [ ... ]           # prerequisite BRD keys, from that brd-link.md's depends-on; omit when empty or outside the BRD route
 revision_of: <path to the archived prior PRD snapshot; written by `/update-prd` on refresh; omit otherwise>
-built_from_import: <YYYY-MM-DD of the resolved folder the `/update-prd` refresh was built from; omit otherwise>
+built_from_date: <YYYY-MM-DD of the resolved folder the `/update-prd` refresh was built from; omit otherwise>
 workitem_key: <optional — your own tracker's identity for this work; the plugin never writes it>
 ---
 ```
@@ -86,7 +86,7 @@ across every frontmatter rewrite, and displays it in reports.** It never mints i
 its shape, and never resolves a folder by it — a folder is addressed by `key` and by nothing else.
 
 **The name is vendor-neutral on purpose.** Genericising in speech but not in a field name a tool
-parses is how a field ends up meaning something narrower than it says: someone writing a ClickUp sync
+parses is how a field ends up meaning something narrower than it says: someone writing a ClickUp sync <!-- vendor-token-ok: one named third-party tool standing for "any tracker a user keeps", the argument's whole point -->
 who reads a field named for one vendor reasonably wonders whether it must be that vendor's shape.
 
 **It is not decorative, and here is its one consumer.** `/document` and `/release-notes` search commit
@@ -97,7 +97,7 @@ exists.
 
 **Unknown frontmatter keys are preserved.** Every command that rewrites this file — `/update-prd`
 most of all — keeps fields it does not recognise, in place and unmodified. Without this rule a user's
-own `clickup_id` disappears on the next run and nothing reports it. The rule is small and its blast
+own `clickup_id` disappears on the next run and nothing reports it. <!-- vendor-token-ok: an example of a user's OWN frontmatter key, which this rule exists to preserve --> The rule is small and its blast
 radius is not: it is what makes the frontmatter extensible rather than a closed vocabulary.
 
 **There is one key namespace.** `brd_key` and `key` both name a folder in `$SPECS_PATH`, validated

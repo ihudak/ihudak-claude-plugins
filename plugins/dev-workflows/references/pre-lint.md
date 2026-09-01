@@ -83,8 +83,7 @@ drafts, which are. Catching it at the source is cheaper than catching it downstr
 - A `_coverage.md` file is present in the output dir.
 - Refined Epic files (from `/epics` refinement mode — `EPIC-<EPIC-KEY>-<eslug>/epic.md`, the keyed
   folder and keyless filename `epic-writer` writes; never `<EPIC-KEY>.md`, which that agent forbids)
-  carry a `**Team:**` line
-  (`grep -nE '^\*\*Team:\*\*' <file>`) and a `## Scope` with real in/out bullets (not just the summary).
+  carry a `## Scope` with real in/out bullets (not just the summary).
 
 ## design — `design.md` (`/design`; format `design-format.md`)
 

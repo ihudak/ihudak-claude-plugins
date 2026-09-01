@@ -192,7 +192,7 @@ notice, never a quiet line.
 |---|---|---|
 | G0 | **HEAD is detached** | **Hand off, and set `specs_git: blocked` for the whole run** — `commit-artifacts` (§4) must also skip. §5 notice at **blocking** severity. See §3.7. |
 | G1 | Any dirty **OTHER** path (§2.1) | **Hand off** — no commit, no branch switch, no push. §5 notice at **advisory** severity, listing the paths. Those files are not the plugin's, and switching branches would carry them. **This does NOT set `specs_git: blocked`**: the terminal `commit-artifacts` still runs, because it stages only artifact paths and is safe beside unrelated dirt. Losing the artifacts to protect files the step never touches would be the worse failure. |
-| G2 | On a **named** branch that is neither the default branch nor a match for `^(idea\|prd\|ard\|spec\|design\|ready\|brd)/` | **Leave it; stay on it.** §5 notice at **advisory** severity, naming the branch, so the user knows where this run's artifacts will land. The commit is safe — a named branch cannot be lost — so `commit-artifacts` proceeds. The plugin manages only branches it created (§2.2). |
+| G2 | On a **named** branch that is neither the default branch nor a match for `^(idea\|prd\|ard\|spec\|design\|ready\|brd\|frames)/` | **Leave it; stay on it.** §5 notice at **advisory** severity, naming the branch, so the user knows where this run's artifacts will land. The commit is safe — a named branch cannot be lost — so `commit-artifacts` proceeds. The plugin manages only branches it created (§2.2). |
 
 ### 3.4 Stage 2 — flush leftovers
 
@@ -223,9 +223,9 @@ First matching row applies.
 *against the run key set*, by testing the keys the run already holds. It is never
 extracted from the branch name as free text.
 
-1. Strip the `idea/`, `prd/`, `ard/`, `spec/`, `design/`, `ready/`, or `brd/`
-   prefix. Call the remainder `R`. No prefix matches → not a plugin branch, and
-   no row here applies (§3.3 G2 already kept the run on it).
+1. Strip the `idea/`, `prd/`, `ard/`, `spec/`, `design/`, `ready/`, `brd/`, or
+   `frames/` prefix. Call the remainder `R`. No prefix matches → not a plugin
+   branch, and no row here applies (§3.3 G2 already kept the run on it).
 2. A key `K` in the run key set (§3.2) is a **candidate** when `R` is exactly `K`,
    or `R` begins with `K-` or `K_`. **The separator is required.** It is the same
    boundary folder resolution uses (`<KEY>{-|_}<slug>`,
@@ -438,7 +438,7 @@ If ignored: nothing is lost — your files stay uncommitted, and this run's
 
 Found:    <SPECS_PATH> is on branch `<branch>`, which is neither the default
           branch (`<default>`) nor a plugin branch (idea/ prd/ ard/ spec/
-          design/ ready/ brd/).
+          design/ ready/ brd/ frames/).
 Not done: the preflight did not switch away from it — the plugin manages only
           branches it created. This run's artifacts WILL be committed, on
           `<branch>`.

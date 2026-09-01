@@ -272,10 +272,9 @@ repairs where `idea.md` points.
    carrying a suffix.
 3. **Rebuild `design/idea-sources/index.md` per `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md`
    §6.2** — the one index format and reconciliation contract every writer of a frame-set index follows,
-   executed inline and restated nowhere. Its six steps list the directory, preserve every existing row
-   whose image is still there **verbatim**, append a row per frame this run accounts for, give a frame
-   the run accounts for in no way the `_no description on record_` row, drop a row whose image is gone,
-   and write the file whenever that listing is non-empty — reporting the last two. **What this run
+   executed inline and restated nowhere. That section owns the filename, the frontmatter, the table
+   shape, the `Linked from` semantics, and every one of its six reconciliation steps, including what
+   each of them reports — run them from there, never from a copy of them here. **What this run
    accounts for** is §6.2's writer table: the images step 2 copied, described from their digest
    `description`, transcribed verbatim and never invented. An image the collision rule *reused*
    (byte-identical content already at the destination) is not a new frame and gets no second row; the

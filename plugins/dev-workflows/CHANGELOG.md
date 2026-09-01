@@ -81,9 +81,10 @@ The indexes are deliverables, so `/frames` calls `handoff-to-main` with `deliver
 **every `index.md` it wrote, one literal path each** — never a directory and never a glob
 (`references/phase-handoff.md` §2.3). An index left out of that list is classified OTHER, never
 staged, and never reaches the default branch, leaving the set `NO_INDEX` for everybody but the
-operator who ran the command. That required an eighth branch prefix, `frames`, in
-`references/specs-repo-git.md` §1 rule 3 / §2.2 / §4 and `references/phase-handoff.md` §1 rule 3 /
-§2.9 / §3.5. Declining the handoff is reported honestly: the indexes are on disk and on no ref, and
+operator who ran the command. That required an eighth branch prefix, `frames`, at **every** site
+that enumerates the set: `references/specs-repo-git.md` §1 rule 3 / §2.2 / §3.3 G2 / §3.5
+`branch-key` / §4.1 / §5's G2 notice, `references/phase-handoff.md` §1 rule 3 / §2.9 / §3.2,
+`CLAUDE.md`, and `docs/reference/environment.md`. Declining the handoff is reported honestly: the indexes are on disk and on no ref, and
 `/brd-ground` reads a frame set from the working tree, so a decline is an unshared repair rather than
 a blocked grounding pass. No offer carries a `<merge-clause>` — nothing runs `require-on-main` on a
 frame-set index, and `references/next-phase-offer.md` now says so in place.
@@ -104,6 +105,52 @@ since long before the count was nineteen; its own opening paragraph said *ninete
 Both now say **twenty**, and `docs/reference/session-feedback.md`'s parenthetical — which derived the
 same stale thirteen from "the fourteen `model-routing` pipeline commands minus `/docs-profile`" — is
 replaced by a rule that can be checked against the tree.
+
+### Fixed — the eighth branch prefix reached three sites it had missed
+
+The `frames` prefix was added to `specs-repo-git.md`'s §1 rule 3, §2.2 and §4.1 and skipped its three
+remaining enumerations, each of which does real work.
+
+**§3.5 `branch-key` step 1** stripped seven prefixes and not `frames/`, so a `frames/<KEY>-<slug>`
+branch fell to *no prefix matches → not a plugin branch* and resolved to no key. The consequence sits
+one file over: `references/phase-handoff.md` §2.2 **rule 3** calls `branch-key` by name to recognise a
+run's own in-progress branch, so it could never recognise one for `/frames`, and **rule 4 fired
+instead — a second branch suffixed `-2` and a second pull request, the first orphaned**. The 40-frame
+cap makes a re-run over one folder the ordinary path (100 frames is three runs), so this was the
+common case, not the edge.
+
+**§3.3 guard G2** omitted `frames` from its alternation, and any guard match ends the preflight. So
+whenever `$SPECS_PATH` sat on a `frames/` branch, *every* command's preflight stopped at stage 1: the
+leftover-artifact flush, the failed-push retry and the branch disposition were all skipped, and a
+non-`/frames` run stayed on the frames branch and committed its artifacts there instead of switching
+to the default branch per B4.
+
+**§5's G2 operator notice** still listed seven prefixes, telling the operator a `frames/` branch was
+one "this plugin did not create" — false, and it misdirected the repair.
+
+The same sweep found an eighth site outside `specs-repo-git.md`: `docs/reference/environment.md`'s
+list of the specs-repo handoff branches that never enter the code-repo identity ladder. `CLAUDE.md`
+and `phase-handoff.md` were already correct.
+
+### Fixed — two documents that named the §6.2 step list they said they did not restate
+
+`references/idea-format.md` and `commands/idea.md` Phase 4.5 step 3 each bolded a claim (*"this file
+restates none of it"*, *"restated nowhere"*) and then re-enumerated all six `grounding-format.md` §6.2
+steps in the next sentence, literal `_no description on record_` included — and re-enumerated them
+**incompletely**, omitting step 2's placeholder exception and step 6's write-nothing-on-empty rule.
+Not a second normative copy, but a second place a reader learns the list, already out of date on the
+day it shipped. Both now name what §6.2 owns and send the reader there, matching the shape
+`commands/frames.md` Phase 2 already used.
+
+### Fixed — two counts that contradicted the tree
+
+`docs/reference/session-cost.md` said *the ten cost-attribution phases* while
+`docs/roles-and-phases.md` documents **eleven** (ten lifecycle phases plus `plugin-feedback`) and
+ships eleven `###` sections; that page's own closing note about the unrelated `model-routing` `phase:`
+vocabulary said *the ten phases above* for the same eleven. Both now say eleven.
+`docs/commands/epics.md` said *the fourteen commands* that offer a branch + commit + push +
+pull-request handoff and listed fourteen, omitting `/frames` — the producer set became fifteen in this
+same release (`grep -l handoff-to-main commands/*.md` returns 15).
 
 ### Counts moved, in this commit
 

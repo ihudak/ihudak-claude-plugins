@@ -213,11 +213,10 @@ permanently unreadable — worse than not vendoring the images at all.
 **The index format and its reconciliation contract are
 `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §6.2's, and this file restates none of it.**
 That section owns the filename, the frontmatter, the table shape, the `Linked from` semantics, and
-the six reconciliation steps — list the directory, preserve every surviving row verbatim, append a
-row per frame the run accounts for, give an unaccounted-for frame the `_no description on record_`
-row, drop a row whose image is gone, and write the file whenever the listing is non-empty. It lived
-here while `/idea` was the index's only writer; `/frames` is a second writer, and one format with two
-authorities is a format that drifts.
+every one of the six reconciliation steps — read them there, because a reader who learns the list
+from a second place learns whichever copy went stale first. It lived here while `/idea` was the
+index's only writer; `/frames` is a second writer, and one format with two authorities is a format
+that drifts.
 
 **What `/idea` contributes is one row of §6.2's writer table.** The frames it accounts for are the
 images it copied into `design/idea-sources/` this run; a new row's description is `idea-reader`'s

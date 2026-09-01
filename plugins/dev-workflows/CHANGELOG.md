@@ -44,6 +44,54 @@ routes, set to the resolved folder's own key. `release_versions`, `change_type` 
 (`/specify <PRD> <Epic>` and its five siblings) are retired everywhere a user reads them, not only
 where they were parsed (D4). `/idea` no longer claims to relocate anything (D7).
 
+### Fixed — review round A (the three correctness findings)
+
+- **`/brd-intake` created the root BRD folder without its kind prefix.** Its Phase 0 step 7 said
+  `specifications/<BRD-KEY>-<slug>/` and cited no addressing rule, so **every BRD this plugin
+  produced landed in the pre-prefix shape `references/addressing.md` §5 exists only to *tolerate***
+  — a drift live since increment A introduced the prefixes. Three consequences, all on the ordinary
+  current route: every fresh BRD resolved through §5's legacy fallback and was reported
+  `legacy: true` once per run by every downstream command; the primary `BRD-`-prefix test of all four
+  container refusals (`/create-prd` 5a, `/create-ard` 1a, `/specify` s0, `/epics` 1a) never fired on
+  a folder this plugin wrote, leaving only `coverage-ledger-format.md` §5.1's *legacy* branch doing
+  real work; and `/brd-split` Phase 3 step 2 wrote its slice into
+  `specifications/BRD-<PARENT-KEY>-<parent-slug>/…`, **a parent path that did not exist**, which
+  followed literally creates a second empty `BRD-` folder and orphans the slice. `/brd-intake` now
+  writes `specifications/BRD-<BRD-KEY>-<slug>/` citing §2, and `/brd-split` creates its slice inside
+  **the folder this run resolved** rather than a path re-derived from `<PARENT-KEY>` — which is also
+  what keeps a legacy unprefixed parent working. §5's fallback is untouched: it still resolves every
+  folder a pre-prefix repo holds, and this plugin no longer adds to them. Swept across
+  `commands/brd-intake.md`, `commands/brd-split.md`, `references/coverage-ledger-format.md` §5.1
+  (whose root-BRD bullet now says the shape is what `/brd-intake` wrote *before* the prefixes
+  shipped), the five `/brd-*` documentation pages, and the repo-root README's specs-tree sketch.
+
+- **`/epics` step 1a was prefix-only, and its dead end was reachable from one typo.** The other
+  three container refusals each cite `coverage-ledger-format.md` §5.1's positive test for an
+  unprefixed folder; `/epics` did not, while §5.1 itself claimed to serve "all three consumers". On
+  a legacy root BRD carrying `coverage-ledger.md` and `brd/brd-inventory.md`, step 1a never fired,
+  step 1b emitted `EPICS_NO_PRD` naming `/dev-workflows:create-prd <KEY>`, and `/create-prd` honoured
+  §5.1 and refused the same folder as a container — **a stop whose remedy stops**, verbatim the
+  anatomy step 1a exists to prevent. Step 1a now carries the same §5.1 clause, §5.1 names **four**
+  consumers as a list, and the design spec's §5.3 amendment — which asserted *"`/epics` is
+  unaffected: §6.3's gate reads `prd.md`'s own `kind: prd`"*, true of step 1b and false of step 1a —
+  is corrected in place rather than deleted.
+
+- **Four offers named `/create-prd` having tested one of its three refusals.** `/create-prd` refuses
+  a container, `CREATE_PRD_BRD_UNALLOCATED`, and `CREATE_PRD_BRD_NOT_ELIGIBLE`. `/epics`'s
+  `EPICS_NO_PRD`, `/create-ard` Phase 7's BRD-route bullet, `/specify`'s `### Next step` and
+  `/specify` Phase 3 Step A's zero-Epics picker each tested only the first — the `/epics` prose even
+  claimed step 1a had "already taken the one folder `/create-prd` would refuse", wrong on the count.
+  One state breaks all four: a slice, ground and allocated, every claimed row `deferred-to` or
+  `rejected`, no `prd.md`. Each sent the operator into `CREATE_PRD_BRD_NOT_ELIGIBLE` — the branch
+  that by design **names no command at all**. The rule is now stated once, in
+  `references/coverage-ledger-format.md` §5.2, and follows `commands/brd-reconcile.md` Phase 14's
+  precedent: run both data tests over the slice's own ledger rows narrowed by its `brd-link.md`
+  `claims:`, read out of the file and never off a `ledger:` line, then **drop the option and say
+  which test failed** — naming `/brd-split` on the slice for an `unallocated` row, `/brd-split` on
+  the parent for a standing empty child, and nothing at all for the branch that names nothing. A
+  folder carrying no `brd-link.md` has no gate set and reaches `/create-prd` on the container test
+  alone, so the idea route is unchanged.
+
 ### Fixed — the closing sweep
 
 - **`diff-summarizer`'s handoff contradicted its own agent, and `/document` dispatched the stale

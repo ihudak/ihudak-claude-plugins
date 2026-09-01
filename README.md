@@ -47,7 +47,7 @@ export DOCS_PATH="/workspace/docs"     # optional, read-only: product docs for g
 export GIT_USER_INITIALS="iv-gu"       # optional: branch prefix for every branch-creating command
 ```
 
-- **`SPECS_PATH`** — the shared, team-visible store for a ticket's `specification.md` / `design.md` / ARD under `specifications/<KEY>-<slug>/…`. Required by the specs-authoring commands (`/create-prd`, `/create-ard`, `/specify`, `/design`, `/ready`); advisory for `/implement`; additive for `/document`.
+- **`SPECS_PATH`** — the shared, team-visible store for a ticket's `specification.md` / `design.md` / ARD under `specifications/<KIND>-<KEY>-<slug>/…` (kind `BRD`/`PRD`/`EPIC`). Required by the specs-authoring commands (`/create-prd`, `/create-ard`, `/specify`, `/design`, `/ready`); advisory for `/implement`; additive for `/document`.
 - **`REPOS_PATH`** — where code clones live; a single directory or a colon-separated list. Defaults to `/workspace`. Repos are matched by their `git remote get-url origin` slug, not by directory name.
 - **`DOCS_PATH`** *(optional)* — a **read-only** clone of the product documentation (default `/workspace/docs`). When it is an existing directory containing markdown, `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, and `/release-notes` automatically ground on the existing shipped docs (via the read-only `docs-grounder` agent), and `/document` prefers it as a docs-repo discovery hint. Never written to; every miss is a silent, non-blocking skip. Disable per-run with `--no-docs`, or override the root with `--docs <path>`.
 - **`GIT_USER_INITIALS`** *(optional)* — your branch identifier, used verbatim (no trailing `/`) by every branch-creating command: `/implement`, `/document`, `/docs-profile`, `/upgrade`, and `/vuln`. Branch naming is **repo-rule-first**: each command reads the target repo's own `CONTRIBUTING.md` / `README.md` / `DOCUMENTATION-GUIDELINES.md` / `CLAUDE.md` and follows the convention documented there. Where that convention has a name/initials segment — as `example-docs` does (`<your-name-or-initials>/<JIRA-ISSUE-KEY>-<short-branch-name>`) — this variable fills it, giving `iv-gu/PRODUCT-1234-add-oauth`. Where it has none (say a plain `feat/<slug>` repo), the convention is followed as written and no initials are injected. Only when a repo documents no convention at all does this variable become the whole prefix. When unset, the commands fall back to `git config user.initials`, then infer from existing branch names, then ask. Full algorithm: `plugins/dev-workflows/references/branch-naming.md`.
@@ -74,7 +74,7 @@ The environment variables expect these layouts:
 
 ```
 $SPECS_PATH/                      # shared, team-visible store
-  specifications/<KEY>-<slug>/    # specification.md, design.md, ARD (+ per-Epic subfolders)
+  specifications/PRD-<KEY>-<slug>/  # prd.md, ard.md (+ EPIC-<KEY>-NN-<slug>/ holding specification.md, design.md)
 
 $REPOS_PATH/                      # code clones (default /workspace)
   <repo>/                         # matched by git remote slug, not directory name

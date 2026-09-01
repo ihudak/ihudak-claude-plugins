@@ -73,7 +73,7 @@ this stage). Zero external calls.
    **Where the folder resolved through `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §5's legacy
    fallback and carries no prefix, the question is answered by positive evidence that it is a BRD,
    never by the absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
-   §5.1, the shared authority `/create-prd` and `/specify` take this same test from. In short: a
+   §5.1, the shared authority `/create-prd`, `/specify` and `/epics` take this same test from. In short: a
    legacy folder carrying `coverage-ledger.md` or `brd/brd-inventory.md`, and no `brd-link.md`
    naming a `parent:`, is a root container; a legacy folder carrying **neither** of those two files
    is a legacy **idea-route PRD folder**, which holds `prd.md` and no `brd-link.md` either — this
@@ -263,11 +263,17 @@ the whole of the divergence this route is entitled to. Read exactly these, and n
 - **`grounding/code-grounding.md`** and **`grounding/design-grounding.md`** — the `[CG#n]` and
   `[DG#n]` finding records, per `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §2.
 - **`brd-link.md`** — for `parent:` and `depends-on:` only. This run reads no `claims:` list and no
-  coverage ledger: PRD eligibility and the allocation gate are
+  coverage ledger **as an authoring input**: PRD eligibility and the allocation gate are
   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5's rule about authoring a **PRD**,
   applied "when eligibility is checked", and an ARD is not that artifact. Not checking it here is a
   decision, not an omission — `/dev-workflows:create-prd` on the BRD route is where that gate lives, and
   this command is reachable without it.
+
+  **The one place this run does open either is Phase 7's next-step offer**, and it gates nothing
+  this run does: it decides whether `/dev-workflows:create-prd <SLICE-KEY>` can be *named* at
+  all, since that command refuses three shapes and not one
+  (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.2). Reading a ledger to
+  avoid offering a run that stops on arrival is not the same as gating this run on it.
 
 **Absence is reported, never a stop, and the seed's absence is the ordinary case.** Nothing on the
 normal route writes a seed file at all (above), so a reconciled BRD routinely holds none; and a BRD
@@ -509,8 +515,32 @@ accepts a folder holding a `prd.md` that asserts `kind: prd` and refuses one tha
 BRD route `/dev-workflows:create-prd` is not a prerequisite at all — so the folder it just wrote an
 ARD into may legitimately hold no PRD. **Test the resolved folder for an authored `prd.md`** before
 rendering the array: where there is one, offer `/dev-workflows:epics`; where there is not, **replace
-that option with `/dev-workflows:create-prd <ADDRESS>`**, which authors the PRD `/epics` then reads.
-Offering `/epics` there would name a run that stops on arrival.
+that option with `/dev-workflows:create-prd <ADDRESS>` — but only where that command can itself
+run**. Offering `/epics` on a folder holding no PRD would name a run that stops on arrival, and
+naming `/create-prd` without the test below does the same thing one command further on.
+
+**`/create-prd` refuses three shapes, not one**
+(`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.2, the authority, not restated
+here). This run has cleared only the container refusal, by resolving a `PRD-` folder itself. The
+other two are data refusals on a slice's own ledger and exist only where the resolved folder carries
+a `brd-link.md`; an idea-route PRD folder has no gate set, so `/dev-workflows:create-prd <ADDRESS>`
+is reachable there on the `prd.md` test alone. Where the folder is a **slice**, read its
+`coverage-ledger.md` — the rows its `brd-link.md` `claims:`, out of the file and never off a
+`ledger:` line (§6.1) — and resolve the replacement from it:
+
+| The slice's gate set | The replacement option |
+|---|---|
+| No row `unallocated`, and at least one `covered-here` | `/dev-workflows:create-prd <SLICE-KEY>` — all three refusals cleared |
+| A row still `unallocated` | `/dev-workflows:brd-split <SLICE-KEY>` instead: `/create-prd` would raise `CREATE_PRD_BRD_UNALLOCATED`, and that walk is what moves those rows (allocate-only on a slice). Its own Phase 0 gates on this slice's grounding findings carrying a verifier verdict, so say so beside the offer |
+| No row `covered-here`, gate set **empty** | `/dev-workflows:brd-split <PARENT-KEY>` instead — the keep-or-remove run for a standing empty child, and not a no-op there |
+| No row `covered-here`, gate set **non-empty** | **Drop the option and name nothing in its place.** `/create-prd` would raise `CREATE_PRD_BRD_NOT_ELIGIBLE`, whose non-empty branch names no command at all by design; say instead what the gate-set rows resolved to and that nothing in the plugin moves a terminal row back |
+
+**Dropping rather than annotating follows `commands/brd-reconcile.md` Phase 14**, which runs these
+same two data tests before offering `/dev-workflows:create-prd <SLICE-KEY>` and drops the option on
+the stated ground that a hard refusal in another command's Phase 0 is not a state the reader can
+judge for themselves. Where the option is dropped and nothing replaces it, the array still holds
+`/dev-workflows:specify <SLICE-KEY>` and `"Stop here"`, so it never falls below the two options
+`AskUserQuestion` requires.
 
 - **PRD-level ARD:** if the PRD has 0 Epics → `choices: ["Hand to a Product Engineer — /dev-workflows:epics <ADDRESS> (PE) (Recommended) <merge-clause>", "Author a PRD-level spec — /dev-workflows:specify <PRD> (PE) <merge-clause>", "Stop here"]` — with the first option becoming `"Author the PRD — /dev-workflows:create-prd <ADDRESS> (PM) (Recommended)"` where the precondition above fails; else offer `/dev-workflows:specify <PRD>` (PE) carrying the same `<merge-clause>`. *(No `/design` — no Epics yet.)*
 - **Epic-level ARD:** `choices: ["Author the spec — /dev-workflows:specify <EPIC> (PE) (Recommended) <merge-clause>", "Hand to Dev — /dev-workflows:design <EPIC> (Dev) <merge-clause>", "Stop here"]` — one address each, the Epic's own, because that is the only form either command accepts (D4). **Epic fan-out** — repeat this ARD for a sibling Epic: `/dev-workflows:create-ard <SIBLING-EPIC>`; that run inherits the PRD-level ARD, not this Epic-level one, so it waits on nothing this run produced and carries no clause.
@@ -518,7 +548,10 @@ Offering `/epics` there would name a run that stops on arrival.
   holds is a slice key and only one of the three usual options can be reached with one**:
   `choices: ["Author this slice's specification — /dev-workflows:specify <SLICE-KEY> (PE) (Recommended) <merge-clause>", "Hand to a Product Engineer — /dev-workflows:epics <SLICE-KEY> (PE) <merge-clause>", "Stop here"]`
   — with the second option **resolved by the test below**: `/dev-workflows:epics <SLICE-KEY>` where
-  the slice holds an authored `prd.md`, `/dev-workflows:create-prd <SLICE-KEY>` where it does not.
+  the slice holds an authored `prd.md`, and where it does not, whatever this phase's opening
+  precondition table resolves for this slice's gate set — `/dev-workflows:create-prd <SLICE-KEY>`,
+  `/dev-workflows:brd-split` against one of two keys, or **no second option at all**, in which case
+  the array is the first option and `"Stop here"`.
   - **`/dev-workflows:specify <SLICE-KEY>` is always reachable from this state.** It takes
     the same slice key this run resolved — and passes that command's own container refusal for the
     same reason this run did, finds the same folder through `resolve-address`
@@ -526,15 +559,20 @@ Offering `/epics` there would name a run that stops on arrival.
     resolves this ARD through `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` and
     stops on `status: unmerged`, so the wait is real and the clause is required.
   - **`/dev-workflows:epics <SLICE-KEY>` is offered where the slice holds an authored `prd.md`, and
-    replaced by `/dev-workflows:create-prd <SLICE-KEY>` where it does not.** It resolves the same
-    folder this run resolved, through the same `resolve-address`, and reads the PRD there — a slice
-    is a `PRD-` folder, so it passes that command's container refusal exactly as this run did. But
-    **this route does not require a PRD**: `/dev-workflows:create-prd` is not a prerequisite for it,
-    so a slice carrying an ARD and no `prd.md` is an ordinary state, and `/epics` refuses one
-    (`EPICS_NO_PRD`). The test is the precondition stated above this list, and it is a real test
-    again — unlike the one it replaces, which looked for an export directory under the key and
-    guarded a lookup that no longer happens. Neither option gates anything this run produced, so
-    neither carries a merge clause.
+    where it does not the second option is resolved by the precondition's table above.** `/epics`
+    resolves the same folder this run resolved, through the same `resolve-address`, and reads the
+    PRD there — a slice is a `PRD-` folder, so it passes that command's container refusal exactly as
+    this run did. But **this route does not require a PRD**: `/dev-workflows:create-prd` is not a
+    prerequisite for it, so a slice carrying an ARD and no `prd.md` is an ordinary state, and
+    `/epics` refuses one (`EPICS_NO_PRD`). **This route is where the second half of that test
+    matters most**, because it is the route on which the folder has a gate set: a slice that is
+    ground and fully allocated with every claimed row `deferred-to` or `rejected`, and no `prd.md`,
+    is an ordinary state of *this* route, and naming `/dev-workflows:create-prd <SLICE-KEY>` there
+    would send the operator into `CREATE_PRD_BRD_NOT_ELIGIBLE` — the one branch on this route that
+    names no command at all. The test is the precondition stated above this list, and it is a real
+    test again — unlike the one it replaces, which looked for an export directory under the key and
+    guarded a lookup that no longer happens. No option here gates anything this run produced, so
+    none carries a merge clause.
   - **`/dev-workflows:design` is offered on this route by neither branch.** It takes over a merged
     `specification.md` — a file this run did not write — and resolves its own key through the specs tree. The path to it runs through the first option: `/dev-workflows:specify <SLICE-KEY>` writes
     that specification, and its own next-step offer is where `/dev-workflows:design`
@@ -617,6 +655,10 @@ reader can tell an empty list from an unrun check; `ard-seed.md`'s consumption a
 implementation-altitude content the grill surfaced and left for the command that authors at that
 altitude instead of the ARD (D5) — naming the command, never a seed file, since the register it will
 read that content out of is the one this run already read. Say plainly whether `/dev-workflows:epics` was offered and, when it was not, **why**: the resolved
-folder holds no authored `prd.md`, so `/dev-workflows:create-prd <SLICE-KEY>` was offered in its place
-(Phase 7's precondition). Name the folder tested and the `key` it asserts. That is the case a reader is
-most likely to mistake for reachable.
+folder holds no authored `prd.md`, and name what Phase 7's precondition table put in its place —
+`/dev-workflows:create-prd <SLICE-KEY>`, a `/dev-workflows:brd-split` against this slice or its
+parent, or nothing at all where this slice's gate set holds no `covered-here` row and is not empty.
+Where the answer is *nothing*, say that too, and say why: `/create-prd` would raise
+`CREATE_PRD_BRD_NOT_ELIGIBLE` and that branch names no command either. Name the folder tested, the
+`key` it asserts, and the two gate-set figures the table was resolved on. That is the case a reader
+is most likely to mistake for reachable.

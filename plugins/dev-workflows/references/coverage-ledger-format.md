@@ -354,7 +354,9 @@ all**, so the prefix test cannot answer it. **The answer must be positive eviden
 is a BRD, never the absence of a file** — because a pre-prefix specs repo holds *two* unprefixed
 shapes and only one of them is a container:
 
-- a **root BRD folder**, `specifications/<KEY>-<slug>/` written by `/brd-intake`;
+- a **root BRD folder**, `specifications/<KEY>-<slug>/`, written by `/brd-intake` before the kind
+  prefixes shipped — a current run writes `BRD-<KEY>-<slug>/` and never reaches this test
+  (`commands/brd-intake.md` Phase 0 step 7, `references/addressing.md` §2);
 - a legacy **idea-route PRD folder**, `specifications/<KEY>-<slug>/` holding `idea.md` and `prd.md`,
   written before the kind prefixes shipped.
 
@@ -385,11 +387,63 @@ root BRD carries both; requiring both would let a folder left half-written by an
 pass the test and take a PRD authored into it. One of them is already evidence that the BRD route
 touched this folder, which is the only question this test asks.
 
-**It reads no PRD artifact, and that is what lets all three consumers share one rule.**
-`/create-prd` cannot test for `prd.md` — it is the run that is about to write it — so a test keyed
-off the PRD's presence would have to be worded differently in `/create-prd` than in `/create-ard`
-and `/specify`, and three copies of one rule is the drift this file exists to prevent. A prefixed
-tree never reaches this test at all, exactly as it never reaches `addressing.md` §5.
+**It reads no PRD artifact, and that is what lets all four consumers share one rule.** The four are
+`/create-prd` (Phase 0 step 5a), `/create-ard` (step 1a), `/specify` (step s0) and `/epics`
+(step 1a) — read that as a list, not as a count, and re-derive it against the tree rather than
+adjusting it. `/create-prd` cannot test for `prd.md` — it is the run that is about to write it — so
+a test keyed off the PRD's presence would have to be worded differently in `/create-prd` than in the
+other three, and four copies of one rule is the drift this file exists to prevent.
+
+**`/epics` is a consumer even though it *can* read `prd.md`, and that is the point.** Its step 1b
+gates on `prd.md`'s own `kind: prd`, which an unprefixed container fails for holding no `prd.md` —
+so an absence test looks sufficient. It is not, because 1b's stop names `/create-prd` as the remedy
+and `/create-prd` takes this test and refuses the same folder as a container: a stop whose remedy
+stops. The container refusal must therefore be taken one step earlier, at 1a, on the same evidence
+the other three use. A rule stated as covering three consumers while a fourth needed it is how that
+dead end shipped.
+
+A prefixed tree never reaches this test at all, exactly as it never reaches `addressing.md` §5.
+
+### 5.2 Offering `/create-prd` — three refusals, not one
+
+`/create-prd` refuses **three** shapes on the BRD route, and an offer that names it is safe only
+once it has tested all three. The container refusal is the one an offering command remembers,
+because it is usually the one that command took itself; the other two are data refusals read off the
+resolved slice's own ledger (`commands/create-prd.md` Phase 0 step 7):
+
+| Tested on | Fires when | What `/create-prd` then names |
+|---|---|---|
+| the resolved folder's kind (§5, §5.1) | it is a `BRD-` container | `CREATE_PRD_BRD_NOT_SLICED` — the `PRD-` slices under it, or `/brd-split` where there are none |
+| the gate set | a row is still `unallocated` | `CREATE_PRD_BRD_UNALLOCATED` — `/brd-split <SLICE-KEY>`, whose walk moves exactly those rows |
+| the gate set | no row is `covered-here` | `CREATE_PRD_BRD_NOT_ELIGIBLE` — `/brd-split <PARENT-KEY>` where the gate set is **empty** (a standing empty child), and **no command at all** where it is non-empty |
+
+**The gate set is this slice's own `coverage-ledger.md` rows, narrowed by its `brd-link.md`
+`claims:`** — the same set Phase 0 step 7 defines, read the same way, and read **out of the ledger
+file, never off a `ledger:` line**: that line's `unallocated` term is a *resolved* count and does not
+track §4's gate (§6.1), so keying an offer to it would withhold the option from a slice whose own
+gate is fully satisfied. An orphan row can neither add the option nor withhold it — `claims:` names
+none of them, and one is never `covered-here` and never `unallocated` (§2, §3).
+
+**`<PARENT-KEY>` is read, never derived.** It is the `parent:` field of the same `brd-link.md` the
+`claims:` list came from (`references/addressing.md` §4) — the offering run has already opened that
+file to build the gate set, so the key is in hand and is never parsed out of the slice's own key or
+its folder name.
+
+**Only a BRD-route folder has a gate set at all.** A resolved folder carrying no `brd-link.md` is an
+idea-route PRD folder: neither data refusal exists for it, and `/create-prd <ADDRESS>` is reachable
+on the container test alone.
+
+**Where a data refusal would fire, drop the `/create-prd` option and say which test failed.** The
+precedent is `commands/brd-reconcile.md` Phase 14, which runs both data tests before offering
+`/dev-workflows:create-prd <SLICE-KEY>` and **drops** the option rather than annotating it, on the
+stated ground that a hard refusal in another command's Phase 0 is not a state the reader can judge
+for themselves. Dropping is not going quiet: name what moves the failing test where a command exists
+— `/brd-split <SLICE-KEY>` for an `unallocated` row, the keep-or-remove `/brd-split <PARENT-KEY>` for
+a standing empty child — and where none exists, say so. **The non-empty
+`CREATE_PRD_BRD_NOT_ELIGIBLE` branch is the one that must never be offered into**: it names no
+command by design, so an offer that sends the operator there hands them a stop with no way out, and
+nothing in this plugin moves a `deferred-to`, `rejected` or `superseded-by` row back to
+`unallocated` (§3).
 
 ## 6. The ledger line
 

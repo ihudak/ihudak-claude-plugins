@@ -157,7 +157,9 @@ reads was already independently verified by `/brd-ground`'s own agents.
 
 ## What it produces
 
-Under `$SPECS_PATH/specifications/<BRD-KEY>-<slug>/`:
+Under the resolved BRD folder — `$SPECS_PATH/specifications/BRD-<BRD-KEY>-<slug>/` for a root
+BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
+([addressing](../reference/references.md) §2, §6):
 
 - `coverage-ledger.md` — updated so no row remains `unallocated`: each row now reads
   `covered-by: <SLICE-KEY>`, `deferred-to: <this BRD>`, `rejected: [DEF#n]`, or

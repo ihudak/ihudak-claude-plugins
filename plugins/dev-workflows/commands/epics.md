@@ -55,7 +55,25 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    **The test is the directory prefix, and never the folder's asserted `kind:`** — `/brd-split`
    writes `kind: brd` into the `brd-link.md` it places inside a `PRD-` slice folder, so a slice
    **asserts `brd` while being exactly the folder Epics belong under**, and a gate on the asserted
-   kind would refuse every slice and accept nothing. Stop gracefully:
+   kind would refuse every slice and accept nothing.
+
+   **Where the folder resolved through `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §5's legacy
+   fallback and carries no prefix, the question is answered by positive evidence that it is a BRD,
+   never by the absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
+   §5.1, the shared authority `/create-prd`, `/create-ard` and `/specify` take this same test from.
+   In short: a legacy folder carrying `coverage-ledger.md` or `brd/brd-inventory.md`, and no
+   `brd-link.md` naming a `parent:`, is a root container; a legacy folder carrying **neither** of
+   those two files is a legacy **idea-route PRD folder**, which holds `prd.md` and no `brd-link.md`
+   either — this refusal does not fire on it, and refusing it would offer `/dev-workflows:brd-split`
+   on a folder with no coverage ledger to walk. **Without this clause step 1a is prefix-only, and
+   the dead end this step exists to prevent is reachable from one typo**: an unprefixed root BRD
+   would pass 1a, fail 1b for holding no `prd.md`, and be sent to `/dev-workflows:create-prd`, which
+   takes §5.1 and refuses it as a container — a stop whose remedy stops. §5.1's test is a
+   **directory listing**, exactly like the remedy below: it asks which files the folder carries, and
+   opens neither. The one place this command opens a `coverage-ledger.md` is step 1b's
+   `EPICS_NO_PRD` offer test, which runs only after the run has already been refused.
+
+   Stop gracefully:
    ```
    EPICS_BRD_NOT_SLICED: <BRD-KEY> resolves to a BRD- container at <path>, and a BRD has no Epics — they are minted under the PRD- slices carved from it, one set each (addressing.md §2 invariant 1). <the remedy, per the branch below>
    ```
@@ -118,13 +136,34 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    from the one address rather than typed beside it (D4). `/epics` takes **one** address; there is no
    `<PRD> <Epic>` pair to give.
 
-   **No authored PRD.** Stop gracefully:
+   **No authored PRD.** The remedy is `/dev-workflows:create-prd`, and it is named **only where that
+   command can actually run**. `/create-prd` refuses **three** shapes, not one, and step 1a has
+   taken only the first — the container
+   (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.2, which is the authority and is
+   not restated here). The other two are data refusals on a slice's own ledger, and they exist only
+   for a folder carrying a `brd-link.md`, so an idea-route PRD folder takes the first row below with
+   no ledger opened. Read the dispositions from `coverage-ledger.md` itself, never from a `ledger:`
+   line (§6.1). **This is the one read of a coverage ledger `/epics` makes**, it is confined to this
+   stop, and it happens after every other gate has already refused the run — the step 1a remedy
+   above is still a directory listing, and no phase of a proceeding run opens a ledger.
+
+   | The resolved folder | What the stop names |
+   |---|---|
+   | No `brd-link.md` — an idea-route `PRD-` folder | `/dev-workflows:create-prd <KEY>`. It is greenfield-only and redirects to `/update-prd` where a PRD is already there, which this stop has already excluded, and neither data refusal exists off the BRD route |
+   | A `brd-link.md`; the gate set leaves **no** row `unallocated` **and** at least one `covered-here` | `/dev-workflows:create-prd <KEY>` — all three refusals cleared |
+   | A `brd-link.md`; a gate-set row is still `unallocated` | **Not** `/create-prd`, which raises `CREATE_PRD_BRD_UNALLOCATED`. Name `/dev-workflows:brd-split <KEY>`, whose walk moves exactly those rows and which on a slice runs allocate-only — and say beside it that its own Phase 0 gates on this slice's grounding findings each carrying a verifier verdict and stops naming `/dev-workflows:brd-ground <KEY>` when they do not |
+   | A `brd-link.md`; no gate-set row `covered-here`, and the gate set is **empty** | **Not** `/create-prd`, which raises `CREATE_PRD_BRD_NOT_ELIGIBLE`. This is a standing empty child: name the keep-or-remove `/dev-workflows:brd-split <PARENT-KEY>`, the one run that resolves one and not a no-op there (`commands/brd-split.md` Phase 0 step 10) |
+   | A `brd-link.md`; no gate-set row `covered-here`, and the gate set is **non-empty** | **Name no command at all**, and say why rather than going quiet: this slice holds no PRD of its own, `/create-prd` would raise `CREATE_PRD_BRD_NOT_ELIGIBLE` whose non-empty branch names nothing either, and nothing in this plugin moves a terminal row back to `unallocated` (§3). Report what the gate-set rows actually resolved to — `deferred-to` is a live obligation of this slice, `rejected` is an obligation of nobody, `superseded-by` was absorbed by the `[BR#n]` that replaced it |
+
+   Stop gracefully:
    ```
-   EPICS_NO_PRD: <KEY> resolves to <path>, which holds no prd.md asserting kind: prd — /epics partitions a PRD and there is nothing here to partition. Author it first with /dev-workflows:create-prd <KEY>, then re-run '/dev-workflows:epics <KEY>'.
+   EPICS_NO_PRD: <KEY> resolves to <path>, which holds no prd.md asserting kind: prd — /epics partitions a PRD and there is nothing here to partition. <the remedy, per the row above that matches — and in the last row, what became of the requirements and why no command is named>
    ```
-   That remedy runs in exactly the state this stop reports: `/create-prd` is greenfield-only and
-   redirects to `/update-prd` when a PRD is already there — which is the case this stop has already
-   excluded — and step 1a has already taken the one folder `/create-prd` would refuse.
+   **Naming `/create-prd <KEY>` unconditionally was a defect of exactly the anatomy step 1a exists
+   to prevent, one refusal further on.** The prose here claimed step 1a had "already taken the one
+   folder `/create-prd` would refuse", which is wrong on the count: a slice that is ground,
+   allocated, and holds every claimed row `deferred-to` or `rejected` passes step 1a, holds no
+   `prd.md`, and reaches `/create-prd` only to be refused by a branch that names no command.
 
    **A stand-alone `EPIC-` folder — one with no PRD above it.** Stop gracefully. It names no plugin
    command, because none of them authors a PRD over an `EPIC-` folder that already exists:

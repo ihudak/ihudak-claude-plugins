@@ -122,7 +122,9 @@ command reads was already independently re-derived by `/brd-ground`'s own verifi
 
 ## What it produces
 
-Under `$SPECS_PATH/specifications/<BRD-KEY>-<slug>/`:
+Under the resolved BRD folder — `$SPECS_PATH/specifications/BRD-<BRD-KEY>-<slug>/` for a root
+BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
+([addressing](../reference/references.md) §2, §6):
 
 - `decisions.md` — the decision register: one block per `[VD#n]` delivery-team decision and per
   `[AS#n]` assumption, each carrying the eleven fields

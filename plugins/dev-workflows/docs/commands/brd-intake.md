@@ -77,7 +77,8 @@ shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never 
 
 ## What it produces
 
-Under `$SPECS_PATH/specifications/<BRD-KEY>-<slug>/`:
+Under `$SPECS_PATH/specifications/BRD-<BRD-KEY>-<slug>/` — the `BRD-` kind prefix is part of the
+name the run creates ([addressing](../reference/references.md) §2):
 
 - `brd/source/<basename>` — the customer's source, copied byte-for-byte and never edited again.
 - `brd/brd-inventory.md` — one row per `[BR#n]`, each with its `source_anchor` and any confirmed

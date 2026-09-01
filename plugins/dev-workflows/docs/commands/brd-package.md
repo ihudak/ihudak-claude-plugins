@@ -106,7 +106,9 @@ terminal phase for session lessons-learned. No other subagent is dispatched.
 
 ## What it produces
 
-Under `$SPECS_PATH/specifications/<BRD-KEY>-<slug>/`, all stamped with one date taken once:
+Under the resolved BRD folder — `$SPECS_PATH/specifications/BRD-<BRD-KEY>-<slug>/` for a root
+BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
+([addressing](../reference/references.md) §2, §6), all stamped with one date taken once:
 
 | Artifact | What it is | In the bundle? |
 |---|---|---|

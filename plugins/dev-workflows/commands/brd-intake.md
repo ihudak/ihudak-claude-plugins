@@ -61,8 +61,23 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
    Phase 2 copies anything into it. Absent → this is a
    brand-new BRD: derive `<slug>` from the source file's first heading (kebab-cased), falling back
    to a kebab of the source filename when no heading is found, and prepare to create
-   `specifications/<BRD-KEY>-<slug>/` — the directory is not actually created until Phase 2's first
-   write.
+   `specifications/BRD-<BRD-KEY>-<slug>/` — **the `BRD-` kind prefix is part of the name**
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §2), never optional and never derived from the
+   key. The directory is not actually created until Phase 2's first write.
+
+   **Writing it unprefixed is the pre-prefix shape §5 exists to tolerate, never to produce**, and
+   the cost is not cosmetic. A folder created without the prefix misses `addressing.md` §3's
+   `*-<KEY>-*` glob by construction, so every downstream run resolves it through §5's legacy
+   fallback and reports it `legacy: true` — deprecated, once per run — on a tree this command wrote
+   minutes earlier. Worse, the container refusals `/dev-workflows:create-prd`,
+   `/dev-workflows:create-ard`, `/dev-workflows:specify` and `/dev-workflows:epics` each read
+   the `BRD-` prefix off the resolved folder's **own name**, falling through to
+   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1's positive test only for a
+   folder that has none — so an unprefixed root BRD moves all four refusals onto the legacy branch
+   they hold for repositories written before increment A. And `/dev-workflows:brd-split` Phase 3
+   step 2 creates its slice at `specifications/BRD-<PARENT-KEY>-<parent-slug>/PRD-…`, a path that
+   would not exist. `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §5 keeps resolving the folders
+   a pre-prefix repo already holds; this command does not add to them.
 
 `/brd-intake` is the **first command of the BRD-to-PRD route** — unlike every downstream `/brd-*`
 command, it consumes no prior phase's deliverable, so it runs no `require-on-main` gate here. It is
@@ -75,7 +90,8 @@ cwd-agnostic and needs no repos mounted (no `$REPOS_PATH`); grounding against co
 
 Show, and confirm before writing anything:
 
-- The BRD folder (existing, or the derived `<BRD-KEY>-<slug>` to be created).
+- The BRD folder (existing, or the derived `BRD-<BRD-KEY>-<slug>` to be created — the `BRD-`
+  prefix included, per `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §2).
 - The resolved absolute path to `@<brd-file>`.
 - Whether `--sort-existing <dir>` is in play, and its resolved directory.
 - The `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`

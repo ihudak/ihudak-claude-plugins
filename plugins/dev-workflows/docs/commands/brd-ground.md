@@ -131,7 +131,9 @@ Phase 11, for session lessons-learned.
 
 ## What it produces
 
-Under the resolved `<BRD-KEY>-<slug>/` folder:
+Under the resolved BRD folder — `$SPECS_PATH/specifications/BRD-<BRD-KEY>-<slug>/` for a root
+BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
+([addressing](../reference/references.md) §2, §6):
 
 - `grounding/baselines.md` — one dated entry per repository: the pinned commit and how it was
   verified. `--rebaseline` appends rather than overwrites.

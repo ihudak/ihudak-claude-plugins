@@ -345,9 +345,18 @@ scoring against itself. The test is instead evidence that the BRD route touched 
 `coverage-ledger.md` or `brd/brd-inventory.md`, written by `/brd-intake` and `/brd-split` and by
 nothing on the idea route, with `brd-link.md`'s `parent:` then separating root from slice. The rule
 is stated once, in `references/coverage-ledger-format.md` §5.1, and cited by `/create-prd`,
-`/create-ard` and `/specify` — none of which may substitute a test on `prd.md`, since `/create-prd`
-is the run that writes it. `/epics` is unaffected: §6.3's gate reads `prd.md`'s own `kind: prd` and
-no directory name, so it classifies an unprefixed folder exactly as a prefixed one.
+`/create-ard`, `/specify` **and `/epics`** — none of which may substitute a test on `prd.md`, since
+`/create-prd` is the run that writes it.
+
+**`/epics` is a consumer, and an earlier revision of this section said it was unaffected.** That
+sentence read *"§6.3's gate reads `prd.md`'s own `kind: prd` and no directory name, so it classifies
+an unprefixed folder exactly as a prefixed one."* It is true of `/epics` step 1b and false of step
+1a, and 1a is the step that takes the container refusal. 1b does classify an unprefixed folder
+correctly — it refuses a container for holding no `prd.md` — but its stop names `/create-prd` as the
+remedy, and `/create-prd` takes §5.1 and refuses that same folder as a container. A stop whose
+remedy stops is the dead end step 1a exists to prevent, and prefix-only, 1a never fires on an
+unprefixed container. So `/epics` needs the §5.1 clause the other three carry, at 1a, ahead of 1b.
+The sentence is corrected rather than deleted because a reader who remembers it will look for it.
 
 ### 5.4 What replaces `jira-input-resolution.md`
 

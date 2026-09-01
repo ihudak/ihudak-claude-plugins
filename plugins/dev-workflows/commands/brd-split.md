@@ -380,10 +380,21 @@ For every slice Phase 2 confirmed:
    Phase 0 step 9 already uses) and let the operator accept it or supply their own. Validate
    whatever is used with `key-valid` (`addressing.md` §1); an invalid key is re-prompted,
    never silently coerced.
-2. **Create the folder inside this one.** `specifications/BRD-<PARENT-KEY>-<parent-slug>/PRD-<CHILD-KEY>-<child-slug>/`,
-   per `addressing.md` §6 — the folder a slice gets **is** the folder its PRD will be authored in,
-   and it is never a sibling of its BRD. `<child-slug>` is a kebab of the slice's working name from
-   Phase 2.
+2. **Create the folder inside the folder this run resolved**, per `addressing.md` §6 — the folder a
+   slice gets **is** the folder its PRD will be authored in, and it is never a sibling of its BRD.
+   On a current tree that is
+   `specifications/BRD-<PARENT-KEY>-<parent-slug>/PRD-<CHILD-KEY>-<child-slug>/`, the parent
+   carrying the `BRD-` prefix `/brd-intake` writes (`commands/brd-intake.md` Phase 0 step 7,
+   `addressing.md` §2). `<child-slug>` is a kebab of the slice's working name from Phase 2.
+
+   **The parent half of that path is the resolved folder's actual name, never a path re-derived
+   from `<PARENT-KEY>`.** A parent that resolved through `addressing.md` §5's legacy fallback is
+   unprefixed on disk, and writing the prefixed form for it would create a second, empty `BRD-`
+   folder beside it and orphan the slice inside it — the parent's inventory, ledger and defect log
+   would all be one directory away. The child is created with the `PRD-` prefix either way: §5's
+   fallback honors a legacy folder that already exists and never proposes one, and a command that
+   creates the folder it did not find still creates it with the §2 prefix (`addressing.md` §7,
+   *Adoption is additive*).
 
    **It is a `PRD-` folder from the moment it is created, before any PRD exists in it.** A slice
    exists precisely to become a PRD; giving it a `BRD-` directory of its own with a `PRD-` directory

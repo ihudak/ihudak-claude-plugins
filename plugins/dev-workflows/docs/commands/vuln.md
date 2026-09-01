@@ -33,7 +33,7 @@ Two `dev-workflows` subagents are dispatched explicitly by name in Step 2 and St
 
 ## What it needs
 
-- **One or more CVE tokens**, each optionally paired with a Jira ID. A token with no Jira ID falls back to the repo's own `NOJIRA`/`NO-JIRA` convention, detected from recent branch names and commit history in Step 1.
+- **One or more CVE tokens**, each optionally paired with an **address** — a key resolved against `$SPECS_PATH`, never a tracker lookup. A token with no address falls back to whichever no-address placeholder the repo already writes (`NOISSUE` / `NOJIRA` / `NO-JIRA`), detected from recent branch names and commit history in Step 1. <!-- vendor-token-ok: placeholder literals a repo may already write, recognised rather than minted -->
 - **The target repo(s)** — inferred from the working context; each `vuln-research`/`vuln-fixer` dispatch carries an absolute repo path.
 - **`$SPECS_PATH`** — for the Step 0 specs-repo preflight and the terminal artifact commit; this repo is never the one being fixed, and the code repo is untouched by any specs-repo step.
 - **A test suite `test-baseliner` can run**, for the `SIGNIFICANT`/`HIGH-RISK` path's pre-fix baseline and post-fix verification.
@@ -52,7 +52,7 @@ A `TEST_REGRESSION` result on either path hands the decision to the orchestrator
 
 ## Example
 
-Fix one CVE tied to a Jira ticket and one bare CVE in the same run:
+Fix one CVE tied to an address and one bare CVE in the same run:
 
 ```
 /dev-workflows:vuln PROJ-2423:CVE-2023-46604 CVE-2024-99999

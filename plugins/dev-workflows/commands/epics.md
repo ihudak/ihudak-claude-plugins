@@ -423,7 +423,7 @@ Phase 6 re-emits it rather than skipping it as a duplicate. When `focus_key` is 
 is unchanged (draft the full partition of new Epics).
 When `focus_key` is set, `mode = refine` and `refinement_targets = [the focus Epic]` — Phase 6 iterates on that Epic's current `epic.md` (see `epic-writer` refinement mode) rather than regenerating from the PRD alone.
 
-**Refinement candidates.** From those same `EPIC-` folders, read each `epic.md`'s `refinement_candidate`, `team`, and `scope_hint` (emitted by the folder read at `prd-plus-epics`). Collect `refinement_candidates` = every linked Epic with `refinement_candidate: true`. These are empty/almost-empty team-Epic shells the PE pre-created to encode team boundaries — refinement *targets to fill in*, not non-duplication constraints. This set drives the Phase 3.5 gate.
+**Refinement candidates.** From those same `EPIC-` folders, read each `epic.md`'s `refinement_candidate` and `scope_hint` (emitted by the folder read at `prd-plus-epics`). Collect `refinement_candidates` = every linked Epic with `refinement_candidate: true`. These are near-empty Epic drafts left as placeholders — refinement *targets to fill in*, not non-duplication constraints. This set drives the Phase 3.5 gate.
 
 ---
 
@@ -435,18 +435,18 @@ Runs only when `focus_key` is set OR `refinement_candidates` is non-empty. Other
 
 **No focus key, `refinement_candidates` non-empty** → present the detected set as a CONFIRMABLE list (detection only *proposes*; the PE is the authority) and ask the mode:
 ```
-Detected N empty/almost-empty team-Epic shells linked to <KEY>:
-  - <EPIC-KEY> · <team, or "team: [NEEDS CLARIFICATION]"> · <scope_hint>
+Detected N near-empty Epic drafts under <KEY>:
+  - <EPIC-KEY> · <scope_hint>
   ...
-choices: ["Refine these N (partition the PRD across them) (Recommended)", "Generate net-new Epics (ignore the shells)", "Both — refine the shells and draft net-new for leftover scope", "Let me adjust which shells to refine (you'll be prompted)"]
+choices: ["Refine these N (partition the PRD across them) (Recommended)", "Generate net-new Epics (ignore the drafts)", "Both — refine the drafts and draft net-new for leftover scope", "Let me adjust which drafts to refine (you'll be prompted)"]
 ```
-Record `mode` (`refine` | `generate` | `both`) and the confirmed `refinement_targets` (empty for `generate`). A target whose `team` is empty carries a `[NEEDS CLARIFICATION — team]` note into the writer handoff.
+Record `mode` (`refine` | `generate` | `both`) and the confirmed `refinement_targets` (empty for `generate`).
 
-**Adaptive code-scan default (refine / both only).** Re-surface the code-examination choice now that the target count is known — the Phase 1 answer was given before detection. Default **ON when `len(refinement_targets) >= 2`** (a real cross-team boundary to draw), **OFF when == 1**:
+**Adaptive code-scan default (refine / both only).** Re-surface the code-examination choice now that the target count is known — the Phase 1 answer was given before detection. Default **ON when `len(refinement_targets) >= 2`** (a real scope boundary to draw), **OFF when == 1**:
 ```
 choices: ["<adaptive default> (Recommended)", "<the other setting>", "Keep my Phase 1 choice"]
 ```
-with a one-line rationale ("2+ team-Epics → code context helps draw the boundary" / "single Epic → no cross-team boundary; scan off is faster"). This runs ONLY in the refine branch, so the generate / no-candidate path never sees it (no-regression).
+with a one-line rationale ("2+ refinement targets → code context helps draw the boundary" / "single Epic → no boundary to draw; scan off is faster"). This runs ONLY in the refine branch, so the generate / no-candidate path never sees it (no-regression).
 
 ---
 
@@ -525,7 +525,7 @@ Handle per-repo status after the batch returns:
 
 The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1 Sonnet detection chain for MODERATE; §2 Opus only if the run is SIGNIFICANT/HIGH-RISK — see `classification.md` §9.2). The orchestrator prepares a handoff and dispatches; it does not write Epics itself, and **nothing commits in this phase** (still true — `/epics` never branches, and the Epic drafts it writes are never committed; git hygiene of the write target is the user's responsibility. The run commits only inside `$SPECS_PATH`, and only its bounded session-artifact paths, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
 
-1. **Write the handoff file.** Create a temp file (`mktemp` — never a repo, never the specs tree) containing the `epic-writer` input contract: `folder_read`, `code_scanner_outputs` (empty if no scan), `scope` (Phase 2 in/out of scope), `existing_epics` (non-duplication), `prd_dir` (the resolved PRD folder), `vi_goal`, `key`, `requirements` + `requirements_source` (from Phase 3), `applicable_ard` (the Phase 2.5 invariants + guidance_summary, or omit when status was none), `existing_epic_themes` (themes of the already-linked Epics), `mode` (`generate` | `refine` | `both` — from Phase 3.5; `generate` when 3.5 skipped), `refinement_targets` (list of `{key, team, scope_hint, current_body_path}`, where `current_body_path = <prd_dir>/EPIC-<EPIC-KEY>-<eslug>/epic.md` — the keyed folder, keyless filename shape `epic-writer` writes and `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §2/§4 define; empty in `generate` mode), and `docs_grounding` (the Phase 3.6 digest, or omit when OFF/EMPTY). Record its absolute path. When `focus_key` is set (the Phase 3 refinement target), set `scope` in-scope to just the focus Epic and `existing_epics` to the *other* linked Epics, so `epic-writer` re-drafts the single focus Epic's `epic.md`; the PRD folder is unchanged.
+1. **Write the handoff file.** Create a temp file (`mktemp` — never a repo, never the specs tree) containing the `epic-writer` input contract: `folder_read`, `code_scanner_outputs` (empty if no scan), `scope` (Phase 2 in/out of scope), `existing_epics` (non-duplication), `prd_dir` (the resolved PRD folder), `vi_goal`, `key`, `requirements` + `requirements_source` (from Phase 3), `applicable_ard` (the Phase 2.5 invariants + guidance_summary, or omit when status was none), `existing_epic_themes` (themes of the already-linked Epics), `mode` (`generate` | `refine` | `both` — from Phase 3.5; `generate` when 3.5 skipped), `refinement_targets` (list of `{key, scope_hint, current_body_path}`, where `current_body_path = <prd_dir>/EPIC-<EPIC-KEY>-<eslug>/epic.md` — the keyed folder, keyless filename shape `epic-writer` writes and `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §2/§4 define; empty in `generate` mode), and `docs_grounding` (the Phase 3.6 digest, or omit when OFF/EMPTY). Record its absolute path. When `focus_key` is set (the Phase 3 refinement target), set `scope` in-scope to just the focus Epic and `existing_epics` to the *other* linked Epics, so `epic-writer` re-drafts the single focus Epic's `epic.md`; the PRD folder is unchanged.
 
 2. **Dispatch the writer:**
 
@@ -558,9 +558,9 @@ re-dispatch `epic-writer` once with the resolutions). Markers the user chooses t
 BLOCKERs in Phase 7. If `clarifications_needed[]` is empty, this phase is a
 **silent no-op** (byte-identical to a run without it).
 
-**Leftover disposition (refine / both only).** After the writer returns, read `_coverage.md`; every `❌ gap` row is a PRD requirement no team-Epic covers. In ONE batched prompt, ask per gap:
+**Leftover disposition (refine / both only).** After the writer returns, read `_coverage.md`; every `❌ gap` row is a PRD requirement no refinement target covers. In ONE batched prompt, ask per gap:
 ```
-choices: ["Assign to team-Epic <KEY> (re-drafts that Epic to include it)", "Propose as a new (net-new, slug-named) Epic", "Defer (leave as an uncovered row)"]
+choices: ["Assign to Epic <KEY> (re-drafts that Epic to include it)", "Propose as a new (net-new, slug-named) Epic", "Defer (leave as an uncovered row)"]
 ```
 Fold the results back: *assign* → re-dispatch `epic-writer` once (or Edit inline) to add the requirement to the named target's `## Covers` + scope; *new Epic* → add a slug-named net-new draft; *defer* → the row stays `❌ gap` in `_coverage.md` and is listed in the Phase 9 report. Reuses the same batched-gate pattern as the clarification resolution above; no gaps → silent no-op.
 
@@ -624,7 +624,7 @@ Invoke `epic-reviewer` (Opus). This reviewer is Epic-specific — scope clarity,
   > _coverage.md path:    [absolute path of the coverage file from Phase 6]
   > applicable_ard:       [the Phase 2.5 invariants, or omit if status was none]"
 
-When `mode` is `refine`/`both`, include `refinement_targets` in the `epic-reviewer` brief so its conditional refinement dimensions (completeness, partition integrity, cross-team dependency sanity, team preserved) activate; omit it in `generate` mode so those dimensions report N/A.
+When `mode` is `refine`/`both`, include `refinement_targets` in the `epic-reviewer` brief so its conditional refinement dimensions (completeness, partition integrity, inter-target dependency sanity) activate; omit it in `generate` mode so those dimensions report N/A.
 
 Act on the verdict (same shape as `/document` keyed mode Phase 7):
 
@@ -940,7 +940,7 @@ user name is ever written (§10 privacy).
 - ARD steps (Phase 2.5, writer/reviewer `applicable_ard`, the Phase 9 ARD section) are ADDITIVE and guarded on `status: found` — a run with no ARD is byte-identical to before
 - ALWAYS pass `requirements[]`, `existing_epics`, the `_coverage.md` path, and `applicable_ard` (when found) to `epic-reviewer`
 - ALWAYS treat linked Epics flagged `refinement_candidate: true` as fill-in targets (not non-duplication constraints) once the Phase 3.5 gate selects `refine`/`both`; the confirmed target set is the PE's, not the raw detection
-- ALWAYS write every Epic to `EPIC-<key>-<eslug>/epic.md`, refined and net-new alike — the folder carries the key, the filename carries the kind (never `<slug>.md`; refined files carry a `**Team:**` line
+- ALWAYS write every Epic to `EPIC-<key>-<eslug>/epic.md`, refined and net-new alike — the folder carries the key, the filename carries the kind (never `<slug>.md`)
 - ALWAYS re-surface the code-scan default adaptively in Phase 3.5 for refine/both (ON at ≥2 targets, OFF at 1) — never in the generate path
 - ALWAYS run the Phase 6.1 leftover-disposition gate in refine/both when `_coverage.md` has `❌ gap` rows; silent no-op when none
 - Refinement mode (Phase 3.5 gate, `refinement_targets` handoff, leftover gate, keyed output) is ADDITIVE and guarded — no `refinement_candidate` targets AND no `focus_key` ⇒ `mode = generate` and the run is byte-identical to the legacy net-new flow

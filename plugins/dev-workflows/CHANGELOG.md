@@ -4,6 +4,88 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.15.0] — 2026-09-01
+
+### Removed — BREAKING for Epic content: team ownership
+
+**An Epic no longer records who owns it, and refined Epic files no longer carry a `**Team:**`
+line.** Team ownership was tracker-era machinery: a team owned an Epic because a tracker said so,
+and `/epics` read that assignment out of an import, carried it through the writer handoff, wrote it
+under the Epic's H1, and had `epic-reviewer` check it survived. The import is gone and §6.3 of the
+specs-native pipeline design retired the mode that populated the field, but the field itself stayed
+behind. It is now removed at every producer and consumer:
+
+- **`epic-writer`** drops `team` from the `refinement_targets[]` contract (`{key, scope_hint,
+  current_body_path}`), drops the `**Team:**` line from the Epic template, and drops the *Surface
+  the team* rule — including the `[NEEDS CLARIFICATION — team not found in import]` marker it
+  emitted, and the `clarifications_needed[]` entry that came with it, when the field was empty.
+- **`epic-reviewer`** loses the **Team preserved** dimension entirely (its findings section too),
+  and **Cross-team dependency sanity** is renamed **Inter-target dependency sanity** — the same
+  check, judging the same build-order edges between two refined Epics, without asserting that a
+  different team sits behind each one.
+- **`/epics`** stops reading `team` off `epic.md` at the folder read, stops printing it in the
+  Phase 3.5 detection list, stops carrying a `[NEEDS CLARIFICATION — team]` note into the writer
+  handoff, and drops `team` from the handoff contract. The refinement candidates are described as
+  what they are — near-empty Epic drafts left as placeholders — rather than as *team-Epic shells
+  encoding team boundaries*; the Phase 6.1 leftover option reads *Assign to Epic `<KEY>`*; and the
+  adaptive code-scan default is now justified by a scope boundary rather than a cross-team one
+  (the threshold, ON at ≥2 targets and OFF at 1, is unchanged).
+- **`references/pre-lint.md`** drops the `grep -nE '^\*\*Team:\*\*'` check on refined Epic files;
+  the `## Scope` half of that rule is unchanged. **`references/workflow-states.md`** describes
+  `refinement_candidate: true` drafts as placeholders rather than *team placeholders*.
+
+**What an Epic no longer contains.** A refined `epic.md` written by this version has no `**Team:**`
+line and no team-not-found clarification marker, so nothing in the artifact records which team owns
+it. A team that still needs to be named as a **dependency** names it in `## Dependencies`, which
+continues to list "other Epics, repos, teams, external systems" — that is a dependency on an
+organisation, not ownership of the Epic, and it is deliberately kept. Existing Epic files are not
+rewritten: a `**Team:**` line already on disk simply stops being produced, checked, or preserved.
+
+### Changed — `built_from_import` is now `built_from_date`
+
+The field `/update-prd` writes to record which day's material a refresh was built from was named
+for an import ladder that no longer exists. It is renamed **`built_from_date`** — the `built_from`
+stem the surrounding prose already uses ("the date the update was built from"), with the one
+tracker-era word replaced by what the value actually is. **No migration is needed and that is why
+it happens now**: no PRD has yet been authored by this workflow, so no file on disk carries the old
+name. Waiting would have turned a rename into a migration. Sites: `references/prd-format.md`,
+`commands/update-prd.md` Phase 5, `docs/commands/update-prd.md`.
+
+### Added — check 13: vendor-token quarantine
+
+`scripts/check-docs.sh` gains a **thirteenth check**, and vendor neutrality stops being a
+prose-only constraint. No `*.md` under `plugins/dev-workflows/` (CHANGELOG.md excepted, as history)
+may write a tracker's name unless the line — or the fence opening the block it sits in — carries
+`<!-- vendor-token-ok: <why> -->`. That marker convention already existed in
+`references/branch-naming.md` with **exactly one user and no enforcer**; it now has both.
+
+**The token set is narrow on measurement, and the numbers are recorded in the check so the widening
+is not re-proposed.** Over `commands/`, `references/`, `agents/`, `docs/` and `skills/` the tracker
+names fire on **13 sites: 3 real defects and 10 correct ones**. Adding the git-forge names fires on
+**70 further sites, every one correct content and none a defect** — host classification, CLI
+capability facts, and hard rules forbidding REST calls. A forge is something this plugin stands in
+front of and must name to behave correctly; a tracker is something it deliberately does not read.
+That is the same fires-only-on-correct-content result on which check 11's widening was measured and
+rejected twice, so it is rejected here for the same reason. `--selftest` gains **four** cases in two
+discriminating pairs — marked/unmarked line, and marked/unmarked fenced block. The fence pair is the
+load-bearing one: an implementation that simply skipped fenced code would pass the marked case for
+the wrong reason, and templates and handoff blocks are exactly where a tracker-shaped field hides.
+
+### Fixed — three sites where the plugin spoke a tracker's language about its own behaviour
+
+Found by the check-13 measurement, and each one a claim that was false, not merely off-tone:
+
+- **`README.md`** said `/ready` will "verify a Jira status against the record". `/ready` is
+  artifact-anchored: it derives the workflow phase from the artifacts and reads no tracker at all.
+- **`docs/commands/vuln.md`** called `/vuln`'s optional address "a Jira ID" and "a Jira ticket".
+  That argument is a key resolved against `$SPECS_PATH` (`references/addressing.md` §3), never a
+  tracker lookup, exactly as the command's own Step 1 says. The page now says so, and its mention
+  of the `NOISSUE` / `NOJIRA` / `NO-JIRA` placeholder literals — foreign text the run *matches* in
+  a repo's own branch and commit history — is marked rather than removed.
+- **`commands/update-prd.md`**'s description advertised "a 3-day freshness gate" over an imported
+  copy plus grounding on "comments". Phase 0 step 4 retired both when the import ladder went —
+  there is one copy, in the resolved folder, and nothing to go stale.
+
 ## [3.14.0] — 2026-09-01
 
 ### Changed — increment E: the BRD is a container

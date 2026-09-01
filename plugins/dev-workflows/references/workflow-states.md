@@ -46,7 +46,7 @@ stated cost of removing the mirror, not an oversight.
 > partitioning the PRD again, and it reaches that mode from either end. **Named:** address the
 > `EPIC-` folder itself (`/epics <EPIC-KEY>`) and the run re-grounds and sharpens that one Epic's
 > `epic.md` in place. **Detected:** run `/epics <PRD>` where Epics under that PRD carry
-> `refinement_candidate: true` — near-empty drafts left as team placeholders — and the run offers
+> `refinement_candidate: true` — near-empty drafts left as placeholders — and the run offers
 > to fill them in and partition the PRD's scope across them, instead of drafting net-new; the offer
 > is confirmable, and declining it gives the ordinary net-new run. Either way it is the same
 > `Open → Epic draft` transition and the same `EPIC-<PRD-KEY>-NN-<eslug>/epic.md` shape: refine

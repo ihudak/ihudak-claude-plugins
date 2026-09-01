@@ -20,7 +20,7 @@ The orchestrator writes a **handoff file** (a temp file) and passes its absolute
 - `applicable_ard` — the PRD-level ARD `invariants` (AD#N) + `guidance_summary`, or absent when no ARD resolved.
 - `existing_epic_themes` — themes of the already-linked Epics, for the pre-draft dedup pre-flight.
 - `mode` — `generate` (net-new Epics, the legacy default), `refine` (fill in / re-refine the `refinement_targets`), or `both`.
-- `refinement_targets` — list of `{key, team, scope_hint, current_body_path}` for the empty/existing Epics to fill in (present only when `mode` is `refine` or `both`; empty otherwise). `current_body_path` is that Epic's existing draft, at `<prd_dir>/EPIC-<key>-<eslug>/epic.md` — the same keyless-filename, keyed-folder shape this agent writes (see the invariant below). Nothing imports anything, and `<EPIC-KEY>.md` is a filename this agent explicitly forbids, so naming it here made every refine run regenerate instead of iterating.
+- `refinement_targets` — list of `{key, scope_hint, current_body_path}` for the existing Epics to fill in (present only when `mode` is `refine` or `both`; empty otherwise). `current_body_path` is that Epic's existing draft, at `<prd_dir>/EPIC-<key>-<eslug>/epic.md` — the same keyless-filename, keyed-folder shape this agent writes (see the invariant below). Nothing imports anything, and `<EPIC-KEY>.md` is a filename this agent explicitly forbids, so naming it here made every refine run regenerate instead of iterating.
 - `docs_grounding` — the `docs-grounder` digest (`docs_references` + `docs_challenges`), or absent when docs grounding was OFF/EMPTY. Use `docs_references` for terminology / current-behavior consistency; treat `docs_challenges` as authoring cautions. **Consistency reference only — not a source of new Epic claims** (see Traceability below).
 
 ## Entry validation (BLOCKED, never guess)
@@ -45,8 +45,6 @@ For each new Epic, create `EPIC-<key>-<eslug>/` under the handoff `prd_dir` and 
 
 ```markdown
 # <Epic title>
-
-**Team:** <assigned team, refinement mode only — verbatim, e.g. [DTT] Team Storage; omit this line for net-new Epics>
 
 ## Goal
 <one sentence, tied concretely to the parent PRD's outcome — NOT a technical milestone>
@@ -116,11 +114,10 @@ the draft INSTEAD of silently guessing. Rules:
 
 When `mode` is `refine` or `both`, treat every entry in `refinement_targets[]` as an Epic to **fill in**, not a duplicate to avoid:
 
-- **Iterate, don't regenerate.** Read the target's `current_body_path` (the imported Epic file) first. Preserve any real scope/acceptance content already there; fill the gaps and improve — never blow away existing substance.
+- **Iterate, don't regenerate.** Read the target's `current_body_path` (that Epic's existing draft) first. Preserve any real scope/acceptance content already there; fill the gaps and improve — never blow away existing substance.
 - **Keyless filename, keyed folder.** Write each Epic to `EPIC-<key>-<eslug>/epic.md` — the folder carries the key and the filename carries the kind (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §2). Never `<key>.md` (e.g. `PROJ-12573.md`) — NOT a slug. Slug-named files (`<slug>.md`) are reserved for net-new Epics with no work-item ID yet.
-- **Surface the team.** Emit the template's `**Team:** <team>` line under the H1. When `team` is empty, emit `**Team:** [NEEDS CLARIFICATION — team not found in import]` and add a matching `clarifications_needed[]` entry.
 - **Partition the PRD.** Distribute the PRD `requirements[]` across the refinement targets; each target's `## Covers` lists only its slice. Two targets must not silently claim the same requirement.
-- **Cross-team dependencies are expected.** When one team-Epic depends on another (e.g. a framework Epic that must land first), name the other Epic by key in `## Dependencies`. Such inter-target dependencies are legal (they encode build order) — do not suppress them.
+- **Inter-target dependencies are expected.** When one refined Epic depends on another (e.g. a framework Epic that must land first), name the other Epic by key in `## Dependencies`. Such inter-target dependencies are legal (they encode build order) — do not suppress them.
 - **Undrawable boundaries** → a `[NEEDS CLARIFICATION]` marker in the affected Epic + a `clarifications_needed[]` entry (subject to the ≤3-per-Epic cap).
 
 In `mode: both`, also draft net-new Epics for scope no target covers (slug-named, per the normal generate flow). In `mode: generate` (or when `refinement_targets[]` is empty) behaviour is exactly as before.

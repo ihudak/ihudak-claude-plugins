@@ -18,12 +18,12 @@ Extract both the **pattern** and any surrounding **guide** prose; real conventio
 
 **Every pattern below is quoted from a repository's own file, not written by this plugin.** A real
 convention frequently names the tracker its team uses, and this file's job is to *recognise* what it
-finds — so a token like `<JIRA-ISSUE-KEY>` appears here as foreign text being matched, never as this
+finds — so a token like `<JIRA-ISSUE-KEY>` appears here as foreign text being matched, never as this <!-- vendor-token-ok: quoted from a repository's own convention file, not this plugin's vocabulary -->
 plugin's own vocabulary, and never as something a run emits on its own. The rule this file supplies
 when a repository documents nothing (§1.4) names no vendor at all. Example, quoted verbatim from one
 repository's `CONTRIBUTING.md`:
 
-```
+```text <!-- vendor-token-ok: verbatim quote of one repository's own CONTRIBUTING.md -->
 <your-name-or-initials>/<JIRA-ISSUE-KEY>-<short-branch-name>
 <your-name-or-initials>/noissue-<short-branch-name>
 ```
@@ -40,7 +40,7 @@ For each placeholder in the documented pattern, decide where its value comes fro
 table. They are what a repository's own `CONTRIBUTING.md` may literally write, including a tracker's
 name, and this file's job is to match them. Genericising the list would not make the plugin more
 vendor-neutral; it would stop the reference recognising the files it reads, and a repo whose
-convention says `<JIRA-ISSUE-KEY>` would silently fall through to §1.4's no-convention branch and
+convention says `<JIRA-ISSUE-KEY>` would silently fall through to §1.4's no-convention branch and <!-- vendor-token-ok: quoted from a repository's own convention file, not this plugin's vocabulary -->
 get a branch name its team does not use.
 
 | Segment kind | Recognised as | Filled from |

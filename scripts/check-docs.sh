@@ -927,6 +927,28 @@ selftest() {
   expect_pass_after "a four-option array whose option text contains brackets is accepted" \
     "printf -- '\nchoices: [\"Use <dir> [+ <sub>]\", \"Two\", \"Three\", \"Four\"]\n' >> $(cmd_file $PLUGIN_REL alpha)"
 
+  # Check 13 -- vendor-token quarantine. Four cases, in two discriminating pairs. The first
+  # pair proves the check fires on an unmarked vendor name and stays quiet on a marked one --
+  # a check with no working marker would fail the green case, and one that matched nothing
+  # would pass both. The second pair is the FENCE rule, and it is the pair that matters: a
+  # naive implementation that simply skipped fenced blocks passes the marked-fence case and
+  # the plain-token case for the same wrong reason, and would let a tracker-shaped field hide
+  # in exactly the templates and handoff blocks this plugin is full of. Only the unmarked-fence
+  # red case separates "the marker sanctions this block" from "fenced code is not scanned".
+  #
+  # The token list itself is a constant of THIS file, and --selftest only ever mutates a copy
+  # of the fixture tree -- so its vacuity guard, like check 5's RUNTIME_VARS tripwire above,
+  # is verified out-of-band (empty VENDOR_TOKENS in a copy of this script, run against any
+  # tree, see check 13 fail) rather than by a case here.
+  expect_fail "an unmarked vendor token is rejected"          13 \
+    "printf -- '\nThe run reads the Jira ticket it was handed.\n' >> $(cmd_file $PLUGIN_REL alpha)"
+  expect_pass_after "a marked vendor token is accepted" \
+    "printf -- '\nQuoting a repo convention: \`<JIRA-ISSUE-KEY>\` <!-- vendor-token-ok: fixture quote -->\n' >> $(cmd_file $PLUGIN_REL alpha)"
+  expect_fail "a vendor token in an UNMARKED fenced block is rejected" 13 \
+    "printf -- '\n\`\`\`text\n<name>/<JIRA-ISSUE-KEY>-<slug>\n\`\`\`\n' >> $(cmd_file $PLUGIN_REL alpha)"
+  expect_pass_after "a vendor token in a MARKED fenced block is accepted" \
+    "printf -- '\n\`\`\`text <!-- vendor-token-ok: fixture quote -->\n<name>/<JIRA-ISSUE-KEY>-<slug>\n\`\`\`\n' >> $(cmd_file $PLUGIN_REL alpha)"
+
   # The cost subsystem (check 8, and check 9's cost-emitting-commands sentence) does not
   # exist in every edition -- check_cost_attribution and that half of check_prose_counts
   # both return immediately when HAS_COST=0, so a mutation that only a cost check can see
@@ -1017,6 +1039,92 @@ PYEOF
   local h; while IFS= read -r h; do [ -n "$h" ] && fail 12 "$h"; done <<<"$hits"
 }
 
+# ------------------------------------------------------------------ check 13
+# Vendor-token quarantine. Vendor neutrality is a HARD constraint of this plugin -- one
+# markdown tree is the system of record and no tracker is read -- and until this check it
+# was held by prose alone. On this codebase that is the losing side of a settled bet: every
+# rule enforced by a check has survived, every rule enforced by prose has drifted. It had
+# drifted here too. The measurement that motivated this check found THREE live sites where
+# the plugin was speaking a vendor's language about its own behaviour: the plugin README
+# claiming `/ready` "verify a Jira status" (it is artifact-anchored and reads no tracker),
+# and two on `docs/commands/vuln.md` calling `/vuln`'s optional ADDRESS -- a key resolved
+# against $SPECS_PATH, as that command's own Step 1 says -- a "Jira ID" and a "Jira ticket".
+# All three were fixed in the commit that added this check.
+#
+# THE TOKEN SET IS NARROW ON EVIDENCE, and the evidence is recorded here so the obvious
+# widening is not re-proposed. Over commands/, references/, agents/, docs/ and skills/ the
+# tracker-name set below fires on 13 sites: 3 real defects and 10 correct ones. Adding the
+# git-FORGE names (bitbucket, github, gitlab) fires on 70 further sites, EVERY ONE of them
+# correct content and NONE of them a defect -- they are host classification (`host ==
+# bitbucket.org`), CLI capability facts (`gh` exists, Bitbucket ships none), and hard rules
+# forbidding REST calls. A forge is a thing this plugin genuinely stands in front of and must
+# name to behave correctly; a tracker is a thing it deliberately does not read. That is the
+# same shape of result -- fires only on correct content, catches nothing -- on which check
+# 11's widening was measured and rejected twice, so it is rejected here for the same reason.
+#
+# SCOPE is $PLUGIN_REL only. The repo-root README documents the whole marketplace, including
+# a sibling plugin whose SUBJECT is a vendor CLI; vendor names there are its subject matter,
+# not this plugin's vocabulary -- the same reason check 10 leaves that file alone.
+# CHANGELOG.md is excluded: it is history, and history keeps the words it shipped with.
+#
+# THE MARKER, `vendor-token-ok:`, predates this check by one user and had no enforcer.
+# It sanctions the line it sits on; on a fence-OPENING line it sanctions that fenced block,
+# which is the only reachable granularity for a verbatim quote (a repository's own
+# CONTRIBUTING.md pattern) or an agent-prompt block, neither of which can carry an HTML
+# comment on the offending line without corrupting what it quotes. A fenced block is NOT
+# skipped by default -- templates and handoff blocks are exactly where a tracker-shaped
+# field would hide -- so the marked/unmarked fence pair is a selftest case.
+# Sanctioned users -- 11 marked lines across 5 files, in three kinds. Re-derive with
+# `grep -rn vendor-token-ok: plugins/dev-workflows` rather than adjusting the number:
+#   * recognition (8): branch-naming.md's three quotes of a repository's own convention file
+#     plus its fenced verbatim pattern; /vuln's no-address placeholder literals (its prose
+#     step, its two handoff blocks) and the docs page mirroring them -- foreign text the
+#     plugin MATCHES;
+#   * illustration (2): prd-format.md naming one third-party tool to stand for "any tracker
+#     a user keeps", which is that paragraph's whole argument, and a user's own frontmatter
+#     key the preserve-unknown-keys rule exists to protect;
+#   * provenance (1): getting-started.md naming the subject of a sibling plugin dev-workflows
+#     does not use.
+# Each has to write the vendor's name in order to match, illustrate, or attribute it.
+#
+# What this deliberately does NOT catch, stated so nobody mistakes green for safe: it matches
+# NAMES, so a tracker-shaped CONCEPT wearing a neutral name -- a `team:` field an Epic no
+# longer carries, an import ladder -- is invisible to it. That half is review's.
+VENDOR_TOKENS="jira atlassian confluence clickup trello asana youtrack redmine servicenow"
+
+check_vendor_tokens() {
+  local root="$1" p="$1/$PLUGIN_REL" files hits h
+  [ -n "$VENDOR_TOKENS" ] \
+    || { fail 13 "VENDOR_TOKENS is empty -- this check would examine nothing"; return; }
+  files=$(find "$p" -name '*.md' ! -name 'CHANGELOG.md' 2>/dev/null | sort)
+  [ -n "$files" ] \
+    || { fail 13 "no markdown under $PLUGIN_REL to scan -- this check would examine nothing"; return; }
+  hits=$(while IFS= read -r f; do
+           [ -n "$f" ] || continue
+           awk -v FILE="${f#$root/}" -v TOKENS="$VENDOR_TOKENS" '
+             BEGIN { nt = split(TOKENS, tok, " ") }
+             {
+               marked  = (index($0, "vendor-token-ok:") > 0)
+               isfence = ($0 ~ /^[ \t]*(```|~~~)/)
+               # A fence-opening line carrying the marker sanctions the block it opens; the
+               # closing fence clears it. Order matters: the state is updated BEFORE the
+               # skip tests, so the opening line itself is covered by its own marker.
+               if (isfence) {
+                 if (infence) { infence = 0; fok = 0 } else { infence = 1; fok = marked }
+               }
+               if (marked) next
+               if (infence && !isfence && fok) next
+               low = tolower($0)
+               for (i = 1; i <= nt; i++)
+                 if (index(low, tok[i])) { printf "%s:%d names \"%s\"\n", FILE, NR, tok[i]; break }
+             }' "$f"
+         done <<<"$files")
+  [ -n "$hits" ] || return 0
+  while IFS= read -r h; do
+    [ -n "$h" ] && fail 13 "$h -- vendor neutrality is a hard constraint of this plugin; if the name is foreign text being matched, quoted, or attributed rather than this plugin's own vocabulary, mark the line (or its opening fence) \`<!-- vendor-token-ok: <why> -->\`"
+  done <<<"$hits"
+}
+
 # ---------------------------------------------------------------------- main
 [ "${1:-}" = "--selftest" ] && selftest
 
@@ -1041,6 +1149,7 @@ check_prose_counts      "$ROOT"
 check_identity_quarantine "$ROOT"
 check_merge_clause      "$ROOT"
 check_choices_arity     "$ROOT"
+check_vendor_tokens     "$ROOT"
 
 if [ "$FAILURES" -gt 0 ]; then
   echo "FAIL: $FAILURES problem(s) under $PLUGIN_REL" >&2

@@ -167,6 +167,14 @@ array carries every option.
 
 - `/dev-workflows:specify <PRD>` (PRD-level spec) → `/dev-workflows:epics <PRD>`.
 - `/dev-workflows:epics <PRD>` → `/dev-workflows:specify <PRD> <Epic>` (per Epic); optional PA → `/dev-workflows:create-ard <PRD> <Epic>`.
+  **Every `/dev-workflows:epics` option above and below is conditional on the folder it names
+  holding an authored `prd.md`** (`kind: prd`): `/epics` accepts a PRD folder or an `EPIC-` folder
+  under one and refuses everything else (`commands/epics.md` Phase 0 step 1b). Where the caller's
+  resolved folder holds no PRD — which the BRD route reaches legitimately, since
+  `/dev-workflows:create-prd` is not a prerequisite for `/dev-workflows:create-ard` there — the
+  offer is `/dev-workflows:create-prd <ADDRESS>` instead — an offer whose run stops the moment it
+  starts is the same defect the `<merge-clause>` rules below exist to prevent: a next step the
+  operator cannot take from the state the report describes.
 - `/dev-workflows:specify <PRD> <Epic>` (Epic-level spec) → Dev → `/dev-workflows:design <PRD> <Epic>`.
 
 **Dev — build, verify & deliver**

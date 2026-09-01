@@ -38,9 +38,10 @@ resolved `path`, `kind` and `key`, and `specs` forward.
   Phase 1.7 scan and specs resolution both scope to it.
 - **The address named a `PRD-` folder** → `focus_key` is null; enumerate the `EPIC-` folders
   directly under it — a directory listing, which is what the linked-item hierarchy has become — and
-  run the progress-aware picker below.
-  - the item is **itself an Epic** (stand-alone / top-level) → no picker; proceed
-    directly (`focus_key` stays null; specs resolve at the item's top-level dir).
+  run the progress-aware picker below. **There is no third case.** A top-level `EPIC-` folder with no
+  PRD above it used to have a branch of its own here, nested — unreachably — inside this one;
+  `/dev-workflows:epics` is the only command that creates an `EPIC-` folder and it writes every one
+  of them under a PRD folder, so an Epic address is always the bullet above.
   - **PRD with exactly 1 Epic** → no picker; set `focus_key` to that Epic and proceed.
   - **PRD with ≥2 Epics** → render the picker per `${CLAUDE_PLUGIN_ROOT}/references/epic-picker.md`,
     honouring that file's *The cap*: every Epic listed as prose, the array carrying at most three rows

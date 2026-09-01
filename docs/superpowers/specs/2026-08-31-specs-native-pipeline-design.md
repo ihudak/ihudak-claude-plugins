@@ -420,9 +420,31 @@ is gone.
 **Three invocations, one rule — the address decides the mode:**
 
 - a `PRD-` folder — partition the PRD into Epics.
-- an `EPIC-` folder — refine that Epic.
+- an `EPIC-` folder **that has a PRD above it** — refine that Epic.
 - `@<file>` — refine the Epic that file holds. **Stop if the file is not an Epic**, tested by its
   `kind: epic` frontmatter, naming what it found instead.
+
+**And two refusals, because D6 is enforced structurally rather than assumed.** A **stand-alone
+`EPIC-` folder** — one with no PRD above it — is refused (`EPICS_EPIC_NOT_UNDER_PRD`), and so is a
+**`BRD-` container** (`EPICS_BRD_NOT_SLICED`, taken on the directory prefix before any read, naming
+the `PRD-` slices under it, one set of Epics each). **`/epics` is the only command that creates an
+`EPIC-` folder**: `/create-ard` and `/specify` each stop on an absent one rather than minting it on
+first write, and the *stand-alone top-level Epic* case those two commands carried — a `specification.md`
+or an `ard.md` written flat into a top-level `EPIC-` folder — is retired with it.
+
+**The accept gate is `prd.md`'s own `kind: prd`, never the folder's asserted kind.** A `PRD-` slice
+folder asserts `kind: brd` in the `brd-link.md` `/brd-split` writes into it (§4.1), so an
+asserted-kind gate would refuse every slice and accept nothing. `/create-prd` cannot take this test —
+it is the run that writes `prd.md` — but `/epics` can, because by then the PRD exists; the Epic side
+is the same test one level down, on `epic.md`'s own `kind: epic`. Neither test reads a directory
+name, so §5.3's legacy unprefixed folder is classified exactly as a prefixed one is. A `PRD-` folder
+in which no PRD has been authored yet is refused too (`EPICS_NO_PRD`), naming `/create-prd`.
+
+**`focus_key` is derived from the address, not typed beside it (D4).** `/epics` already parsed a
+refinement target but nothing ever set it, so refine-by-focus was unreachable and an `EPIC-` address
+was silently partitioned as though it were a PRD. It is now derived from a resolved `EPIC-` folder
+the way `/specify` derives its own altitude — the folder's kind decides, and `<PRD-KEY>` is the
+parent's asserted `key`.
 
 **Refine's job changes, and the spec says so rather than letting a reader assume continuity.** Today
 refine fills in *empty Epics somebody else created in the tracker* — which existed so that linking an

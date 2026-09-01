@@ -16,10 +16,11 @@ Reads the resolved Epic or PRD folder, lightly grounds in code, and authors an o
 
 Key distinction from [`/epics`](epics.md): `/epics` *splits* a PRD into Epic drafts; `/specify` *authors one specification* for a single item. **The PRD-level path is genuinely valid, not a fallback of last resort**: `/specify <PRD>` with no focus Epic stays in the PE lane and produces one broad `specification.md` at the PRD dir. What Phase 2 does with a bare PRD key depends on how many child Epics it has:
 
-- **A stand-alone top-level Epic** (no parent PRD) — no picker; the item is itself the focus.
 - **A PRD with exactly 1 Epic** — no picker; that Epic auto-resolves as the focus, with a one-line notice.
 - **A PRD with ≥2 Epics** — Phase 2 renders a progress-aware picker: one row per child Epic (marked ○ not started / ◐ in progress / ● done), plus an explicit **"Author one broad PRD-level spec instead"** choice.
 - **A PRD with 0 Epics** — offered `choices: ["Split into Epics first with /dev-workflows:epics (Recommended)", "Author one broad PRD-level spec now", "Cancel"]`. `/epics` writes the Epic folders into this PRD folder, where `/specify` sees them immediately.
+
+**There is no fourth case.** An Epic always has a PRD above it — [`/epics`](epics.md) is the only command that creates an `EPIC-` folder, and it writes every one of them under a PRD folder — so a top-level `EPIC-` folder with no PRD above it is no longer a shape `/specify` resolves. A per-Epic feature folder that does not exist is a stop (`SPECIFY_EPIC_NOT_FOUND`) naming `/dev-workflows:epics <PRD>`, never a directory this command creates.
 
 An explicit `<PRD-Key> <Epic-Key>` (or `<dir> <Epic-Key>`) skips the picker entirely — the Epic is already chosen. `--no-docs` turns off the optional Phase 4 documentation-grounding pass.
 
@@ -31,7 +32,7 @@ flowchart TD
     p1 --> p15["Phase 1.5 — Classify"]
     p15 --> p2["Phase 2 — Read the resolved folder"]
     p2 --> d1{"Epic count for this PRD? (Phase 2 Step A)"}
-    d1 -- "stand-alone Epic, or exactly 1 child Epic → auto-resolved" --> p25["Phase 2.5 — Resolve applicable ARD (optional)"]
+    d1 -- "exactly 1 child Epic → auto-resolved" --> p25["Phase 2.5 — Resolve applicable ARD (optional)"]
     d1 -- "≥2 child Epics → pick one, or author one broad PRD-level spec" --> p25
     d1 -- "0 child Epics → split via /epics, or author one broad PRD-level spec" --> p25
     p25 --> p3["Phase 3 — Derive repos + soft gate"]
@@ -71,7 +72,7 @@ On the BRD route the run is seeded by a reconciled BRD, and what it needs change
 
 ## What it produces
 
-`specification.md` (`Published: no`), `idea.md` (pre-spec brainstorming provenance derived from the scoped item text), `_session.md`, `_glossary.md`, and a rendered `.html` mirror — written into the feature folder: the Epic subfolder for a per-Epic or stand-alone-Epic spec, or the PRD dir itself for a broad PRD-level spec. `specification.md` is authored against `../../references/specification-format.md` through five ordered stages: Problem statement, Scope, User stories, Acceptance criteria (EARS phrasing), and Test cases — each stage's own numbered-ID scheme is the spec/design namespace `specification-format.md` defines, deliberately separate from a PRD's `[US#N]`-style grammar. Behind Phase 7's consent choice, the whole feature folder is committed, pushed, and a pull request opened against the specs repo's default branch — **merged-to-main is what makes the spec visible to Devs and to [`/design`](design.md)**, which reads it from `main` only, never from a branch. `Published: yes` is a separate, human-only freeze step outside this command's scope.
+`specification.md` (`Published: no`), `idea.md` (pre-spec brainstorming provenance derived from the scoped item text), `_session.md`, `_glossary.md`, and a rendered `.html` mirror — written into the feature folder: the Epic subfolder for a per-Epic spec, or the PRD dir itself for a broad PRD-level spec. `specification.md` is authored against `../../references/specification-format.md` through five ordered stages: Problem statement, Scope, User stories, Acceptance criteria (EARS phrasing), and Test cases — each stage's own numbered-ID scheme is the spec/design namespace `specification-format.md` defines, deliberately separate from a PRD's `[US#N]`-style grammar. Behind Phase 7's consent choice, the whole feature folder is committed, pushed, and a pull request opened against the specs repo's default branch — **merged-to-main is what makes the spec visible to Devs and to [`/design`](design.md)**, which reads it from `main` only, never from a branch. `Published: yes` is a separate, human-only freeze step outside this command's scope.
 
 **On the BRD route** the same files land flat in the resolved `PRD-` slice folder on a `spec/<SLICE-KEY>-<slug>` branch, with one omission: **no `idea.md`**, because there is no PRD text to derive one from and the folder already holds the committed provenance this spec was built from. That run also writes `consumed_by: specification` onto the implementation-altitude decisions and the verified findings the spec drew on — the only writes it makes into any BRD file — and commits `decisions.md` and the two `grounding/` files alongside the spec. `spec-seed.md` is read but never written, and the derivation matrix is not a record either, so both are reported at file granularity rather than stamped. The next-step offer names [`/design`](design.md) **only** when a resolved folder resolves for the BRD key itself — which is what makes the key and the folder resolve to the same work — and otherwise names no command.
 

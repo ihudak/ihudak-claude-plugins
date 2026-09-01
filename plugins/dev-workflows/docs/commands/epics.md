@@ -12,7 +12,11 @@ Reads a Product Requirements Document from the resolved folder in the specs tree
 /epics <ADDRESS> [--no-docs]
 ```
 
-The positional input is a **single address** — a `<KEY>`, or an `@<path>` naming a folder in the specs tree — resolved by [`addressing.md`](../../references/addressing.md) §3. A `PRD-` folder partitions; an `EPIC-` folder refines.
+The positional input is a **single address** — a `<KEY>`, or an `@<path>` naming a folder in the specs tree — resolved by [`addressing.md`](../../references/addressing.md) §3.
+
+**`/epics` accepts exactly two shapes and refuses everything else.** A `PRD-` folder partitions into new Epics; an `EPIC-` folder **that has a PRD above it** re-refines that Epic. A **stand-alone `EPIC-` folder** — one with no PRD above it — is refused (`EPICS_EPIC_NOT_UNDER_PRD`), and so is a **`BRD-` container** (`EPICS_BRD_NOT_SLICED`, taken on the directory prefix before any read, naming the `PRD-` slices under it, one set of Epics each). **Epics come from a PRD only**, and `/epics` is the only command in the plugin that creates an `EPIC-` folder — [`/create-ard`](create-ard.md) and [`/specify`](specify.md) both stop on an absent one rather than minting it.
+
+**The gate is `prd.md`'s own `kind: prd`, never the folder's asserted `kind:`.** A `PRD-` slice folder carved by [`/brd-split`](brd-split.md) asserts `kind: brd` in its `brd-link.md`, so a gate on the asserted kind would refuse every slice and accept nothing. [`/create-prd`](create-prd.md) cannot take this test — it is the run that writes `prd.md` — but `/epics` can, because by the time it runs the PRD exists. The Epic side is the same test one level down: `epic.md`'s own `kind: epic`. Neither reads a directory name, so a legacy unprefixed folder is classified exactly as a prefixed one is. A `PRD-` folder in which no PRD has been authored yet is refused too (`EPICS_NO_PRD`), naming `/create-prd <KEY>`.
 
 ## How it runs
 
@@ -40,7 +44,7 @@ Six `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 3.6, read-o
 
 ## What it needs
 
-- **A PRD or Epic** via the shared front-end — a `mode: direct` prompt is rejected outright (`EPICS_NEEDS_KEY`); `/epics` has no non-tracker behaviour.
+- **A PRD folder, or an Epic folder under one** — a `mode: direct` prompt is rejected outright (`EPICS_NEEDS_KEY`), and so are the two shapes above: a stand-alone `EPIC-` folder and a `BRD-` container. An `EPIC-` address sets `focus_key` (Phase 0 step 1b) and switches the run to `mode: refine`, with `prd_dir` resolved to the Epic folder's parent; a `PRD-` address leaves `focus_key` null and drafts the full partition.
 - **An optional PRD-level `specification.md`** — this is `/epics`' `require-on-main`-gated input (Phase 2.6, `commands/epics.md:180`); the PRD-level ARD below is gated too, via `../../references/ard-resolution.md`, which resolves `status: unmerged` through `require-on-main` as well. **Absent** is a silent skip (`vi_spec_present: false`) — the common case, since `/specify` usually runs per-Epic *after* `/epics` — with no prompt and no extra output. **Unmerged** is a hard stop, naming the branch and any open pull request: a spec that exists but hasn't landed on the default branch is weaker grounding than the one about to arrive, and Epics drafted against it would need redoing.
 - **An optional PRD-level ARD** (Phase 2.5), resolved via `../../references/ard-resolution.md` with `epic: null` (Epics don't exist yet). `status: none` skips silently and proceeds exactly as before; `status: unmerged` stops, naming the branch and any pull request; `status: found` carries its `[AD#N]` invariants into both `epic-writer` and `epic-reviewer`.
 - **`$DOCS_PATH`** (optional, default `/workspace/docs`) — resolved in Phase 2, **before** the Phase 2.5/2.6 ARD and spec gates, a deliberate ordering exception to the usual gate-first sequencing: it is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve before any of the run's real work, rather than risk a later phase stopping after that consent work already happened. Missing, unreadable, or empty is a silent, non-blocking skip. Turned off with `--no-docs`.

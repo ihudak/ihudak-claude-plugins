@@ -110,24 +110,30 @@ a **BRD key**, and there is no second positional key (Phase 0 step 0).
      `status: absent`. Every later
      `specifications/<PRD>-<vslug>/` in this command — the PRD gate's `ls-tree` path and Phase 2's
      per-Epic paths included — names the dir resolved here.
-   - **Resolve the feature folder itself**, by case:
+   - **Resolve the feature folder itself**, by case. **There are two cases, not three**: an Epic
+     always has a PRD above it, because `/dev-workflows:epics` is the only command that creates an
+     `EPIC-` folder and it writes every one of them under a PRD folder (D6). A top-level `EPIC-`
+     folder with no PRD above it — the third case this step used to carry — is retired: `/dev-workflows:epics`
+     refuses one rather than partitioning it, and this command refuses one rather than authoring a
+     specification flat inside it.
      - `focus_key` set (an Epic nested under a PRD) →
        `specifications/<PRD>-<vslug>/EPIC-<EPIC>-<eslug>/` — a per-Epic subfolder under the PRD dir
        (`<eslug>` = kebab of the Epic title). Apply the same honor-an-existing-dir tolerance to the
-       `EPIC-<EPIC>-<eslug>` segment.
-     - `focus_key` null **and** the item is a **PRD** for which the broad-PRD-spec choice is made
+       `EPIC-<EPIC>-<eslug>` segment. **This folder is never created here.** An `EPIC-` folder is
+       minted by `/dev-workflows:epics` and by nothing else, so one that does not exist is a stop,
+       not a directory to make:
+       `SPECIFY_EPIC_NOT_FOUND: no Epic folder for <EPIC> under <the resolved PRD dir> — an EPIC- folder is created by /dev-workflows:epics and by no other command. Run '/dev-workflows:epics <PRD>' to draft this PRD's Epics, then re-run '/dev-workflows:specify <EPIC>'.`
+       That remedy runs in the state this stop reports: `/dev-workflows:epics` takes the PRD address
+       this step already resolved, and gates only `<PRD-dir>/specification.md` — a file this run has
+       not written.
+     - `focus_key` null → the item is a **PRD** for which the broad-PRD-spec choice is made
        (Phase 2, Step A) → `specifications/<PRD>-<vslug>/specification.md` — flat at the PRD-dir level, no
-       per-Epic subfolder; the feature folder is the PRD dir itself.
-     - `focus_key` null **and** the item is a **stand-alone top-level Epic** (no parent PRD) →
-       `specifications/EPIC-<EPIC>-<eslug>/`, where `<EPIC>` here is this item's own key (== `key`,
-       since `focus_key` is null) — top-level, keyed by the Epic, no PRD wrapper. Physically this is
-       the same dir the PRD-dir step above already resolved (`specifications/<PRD>-<vslug>/` with
-       `<PRD>` = `<EPIC>` = `key`), so no separate resolution step is needed: the two null-`focus_key`
-       cases share one physical target, `specifications/<KEY>-<slug>/`, with `specification.md`
-       written flat inside it either way.
+       per-Epic subfolder; the feature folder is the PRD dir itself. **This is now the only
+       null-`focus_key` case**, so `<PRD>` is always a PRD's own key and never an Epic's.
    - All delimiters this step writes are hyphens; matching an existing dir tolerates a stray `-`/`_`.
-     Neither the PRD dir nor the feature folder is created here — the first phase that writes to it
-     (Phase 2's `idea.md` write, in a fresh run) creates it.
+     The PRD dir is not created here — the first phase that writes to it (Phase 2's `idea.md` write,
+     in a fresh run) creates it. The per-Epic feature folder is never created here at all, by the
+     stop above.
 
    **On the BRD route the feature folder is the resolved `PRD-` slice folder**, and it is never
    created here: resolve it with `resolve-address`
@@ -282,11 +288,12 @@ rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key"
 (filter `linked_items` to `type == Epic`). Then branch — this is the reusable **progress-aware
 Epic-picker pattern** documented in `${CLAUDE_PLUGIN_ROOT}/references/epic-picker.md`, applied here with `/specify`'s own done-predicate:
 
-- **Stand-alone top-level Epic** (the item is itself an Epic, no parent PRD) → no picker; the item
-  *is* the focus. Set `focus_key` = the item (== `key`). The feature folder stays the flat
-  `specifications/<KEY>-<slug>/` resolved in Phase 0 — a stand-alone Epic has no distinct parent
-  PRD, so `<PRD>` == `<EPIC>` and there is no self-nested subfolder (Phase 0 step 3's
-  shared-physical-target note). Proceed to Step B.
+**The item here is always a PRD.** This step runs only when `focus_key` is null on entry, and step 1
+sets `focus_key` from an `EPIC-` address — so an Epic never reaches the branch below. The
+top-level Epic with no PRD above it, which used to have a branch of its own here, is retired with
+the case itself (Phase 0 step 3): `/dev-workflows:epics` writes every `EPIC-` folder under a PRD folder, and
+is the only command that writes one at all.
+
 - **PRD with exactly 1 Epic** → no picker; auto-select it. Set `focus_key` = that Epic and emit a
   one-line notice (e.g. `Single child Epic <EPIC> '<title>' — authoring its spec.`). Re-point the
   feature folder to that Epic's per-Epic subfolder (see *Re-pointing* below). Proceed to Step B.
@@ -326,7 +333,7 @@ single-Epic and ≥2-Epic-selection cases), the feature folder becomes that Epic
 `specifications/<PRD>-<vslug>/EPIC-<EPIC>-<eslug>/` (Phase 0 step 3's `focus_key`-set case), superseding the
 provisional PRD-level folder confirmed in Phase 1 — Phase 0 already marks that folder provisional until
 the folder read runs. Re-detect a prior run there (a `_session.md` → a resume is available for that
-Epic). The stand-alone-Epic and broad-PRD-spec cases leave the Phase 0 folder unchanged.
+Epic). The broad-PRD-spec case — the only other one left — leaves the Phase 0 folder unchanged.
 
 ### Step B — Full Epic-scoped read
 
@@ -667,7 +674,7 @@ Then **offer** (commit-when-asked — never automatic), presenting `${CLAUDE_PLU
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
 
-On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: spec`; `feature_folder` = the Epic subfolder for a **per-Epic** spec (a PRD + focus Epic) or a **stand-alone-Epic** spec (`<EPIC>` = `focus_key`, which for a stand-alone Epic equals `key`), or the PRD dir for a **broad PRD-level** spec (`focus_key` null), or **the resolved `PRD-` slice folder on the BRD route** — Epic keys are globally unique, so the per-Epic form needs no PRD prefix, and both forms use hyphens; §2.2 derives `spec/<EPIC>-<eslug>` or `spec/<PRD>-<vslug>` from that folder, matching today's branch names, and `spec/<SLICE-KEY>-<slug>` from a slice folder's own basename — which collides with neither `/dev-workflows:create-prd the BRD route`'s `prd/` branch on the same key, nor `/dev-workflows:create-ard the BRD route`'s `ard/` one, nor the `/brd-*` family's shared `brd/` one, because §2.2's prefix is the caller's own; `deliverable_paths` = `specification.md`, `_session.md`, `_glossary.md`, and the rendered `.html` — **plus, on the BRD route, `decisions.md`, `grounding/code-grounding.md` and `grounding/design-grounding.md`**, because the `consumed_by` writes above land in those three and an uncommitted consumption record is one no later run can read; `spec-seed.md` is not staged, because this run does not write to it; `title: <EPIC|PRD> Add specification`; and `body_facts` = the stage/user-story/AC/TC counts, the open-question count, and the `spec-reviewer` verdict — and, on the BRD route, the `<BRD-KEY>` this specification was seeded from and how many items were marked `consumed_by: specification`. **Merged-to-main = ready for the dev-team handover** — Devs and `/design` read the spec from `main`, never from the branch, and `require-on-main` now enforces that rather than merely stating it. Emit its §4.1 outcome line in the Final report.
+On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: spec`; `feature_folder` = the Epic subfolder for a **per-Epic** spec (a PRD + focus Epic — the only Epic-level shape there is, since every `EPIC-` folder sits under a PRD folder), or the PRD dir for a **broad PRD-level** spec (`focus_key` null), or **the resolved `PRD-` slice folder on the BRD route** — Epic keys are globally unique, so the per-Epic form needs no PRD prefix, and both forms use hyphens; §2.2 derives `spec/<EPIC>-<eslug>` or `spec/<PRD>-<vslug>` from that folder, matching today's branch names, and `spec/<SLICE-KEY>-<slug>` from a slice folder's own basename — which collides with neither `/dev-workflows:create-prd the BRD route`'s `prd/` branch on the same key, nor `/dev-workflows:create-ard the BRD route`'s `ard/` one, nor the `/brd-*` family's shared `brd/` one, because §2.2's prefix is the caller's own; `deliverable_paths` = `specification.md`, `_session.md`, `_glossary.md`, and the rendered `.html` — **plus, on the BRD route, `decisions.md`, `grounding/code-grounding.md` and `grounding/design-grounding.md`**, because the `consumed_by` writes above land in those three and an uncommitted consumption record is one no later run can read; `spec-seed.md` is not staged, because this run does not write to it; `title: <EPIC|PRD> Add specification`; and `body_facts` = the stage/user-story/AC/TC counts, the open-question count, and the `spec-reviewer` verdict — and, on the BRD route, the `<BRD-KEY>` this specification was seeded from and how many items were marked `consumed_by: specification`. **Merged-to-main = ready for the dev-team handover** — Devs and `/design` read the spec from `main`, never from the branch, and `require-on-main` now enforces that rather than merely stating it. Emit its §4.1 outcome line in the Final report.
 
 ### Next Epic (after a per-Epic spec from a multi-Epic PRD)
 
@@ -675,7 +682,7 @@ When this run authored a **per-Epic** spec that was selected from Step A's ≥2-
 ```
 choices: ["Next Epic — re-open the picker (Recommended)", "Stop here"]
 ```
-On **"Next Epic"**, **re-render the Phase 2 Step A progress-aware picker minus the just-completed Epic** — recompute each remaining Epic's ○/◐/● state from its feature folder, so the freshly-authored spec now shows **● done** and drops out of the actionable set — then, on selection, set `focus_key` to the new Epic and loop back through Phase 2 Step B → Phases 3–7 for it. This offer does **not** apply to a stand-alone Epic, a single-Epic PRD, or a broad PRD-level spec — there is no sibling to advance to. It does not apply **on the BRD route** either, and for a stronger reason: Step A never ran, so there is no picker to re-render and no Epic set to subtract from. The sibling that exists on that route is another *slice*, which is a separate BRD with its own folder and its own seed — reached by re-running `/dev-workflows:specify <SIBLING-SLICE-KEY> the BRD route`, which waits on nothing this run produced.
+On **"Next Epic"**, **re-render the Phase 2 Step A progress-aware picker minus the just-completed Epic** — recompute each remaining Epic's ○/◐/● state from its feature folder, so the freshly-authored spec now shows **● done** and drops out of the actionable set — then, on selection, set `focus_key` to the new Epic and loop back through Phase 2 Step B → Phases 3–7 for it. This offer does **not** apply to a single-Epic PRD or a broad PRD-level spec — there is no sibling to advance to. It does not apply **on the BRD route** either, and for a stronger reason: Step A never ran, so there is no picker to re-render and no Epic set to subtract from. The sibling that exists on that route is another *slice*, which is a separate BRD with its own folder and its own seed — reached by re-running `/dev-workflows:specify <SIBLING-SLICE-KEY> the BRD route`, which waits on nothing this run produced.
 
 ### The Epic flow (document to the user)
 

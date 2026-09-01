@@ -94,7 +94,11 @@ this stage). Zero external calls.
 
 
 2. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
-3. **Feature folder.** Resolve it with `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3) — `<PRD>` for a PRD-level run, `<EPIC>` for an Epic-level one, the kind it returns confirming which. That entry point searches every level §3 bounds and carries §5's legacy fallback, so no matching rule is written here: a second copy of §5's is the drift §1 warns about. Every later mention of the feature folder in this command — the PRD gate's `ls-tree` path and Phase 2's PRD read included — names the folder resolved here. On `status: absent` it is auto-created on first write, with the §2 kind prefix; resolution honors a folder that already exists wherever it sits, and never proposes one.
+3. **Feature folder.** Resolve it with `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3) — `<PRD>` for a PRD-level run, `<EPIC>` for an Epic-level one, the kind it returns confirming which. That entry point searches every level §3 bounds and carries §5's legacy fallback, so no matching rule is written here: a second copy of §5's is the drift §1 warns about. Every later mention of the feature folder in this command — the PRD gate's `ls-tree` path and Phase 2's PRD read included — names the folder resolved here. **`status: absent` is a stop, not a folder to create.** This command creates no folder in the specs tree. It cannot even choose a §2 prefix for one: `resolve-address` returns no `kind` for a folder that does not exist, and the two kinds it would have to choose between are minted by different commands. **An `EPIC-` folder is created by `/dev-workflows:epics` and by nothing else** (D6) — auto-creating one here would put an Epic in the tree that no `/epics` run ever drafted, holding an `ard.md` and no `epic.md`, invisible to the `EPIC-` enumeration every other command reads. Stop gracefully:
+   ```
+   CREATE_ARD_NOT_FOUND: no folder found for <KEY> under $SPECS_PATH/specifications/ (every level addressing.md §3 bounds, plus §5's legacy fallback) — /create-ard architects an existing PRD or Epic folder and creates neither. A PRD folder is created by /dev-workflows:idea <KEY> or /dev-workflows:create-prd <KEY> on the idea route, and by /dev-workflows:brd-split on its parent on the BRD route; an EPIC- folder is created by /dev-workflows:epics <PRD-ADDRESS> and by no other command.
+   ```
+   Every command that stop names creates the folder it claims to: `/idea` and `/create-prd` both write `PRD-<KEY>-<slug>/` on their first write, `/brd-split` carves the slice folder, and `/epics` writes `EPIC-<PRD-KEY>-NN-<eslug>/` under the PRD folder it resolved. Resolution honors a folder that already exists wherever it sits, and never proposes one.
 
    **On the BRD route this is the resolved `PRD-` slice folder**, and it is never created here:
    resolve it with `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), which
@@ -439,23 +443,39 @@ branch `ard/<SLICE-KEY>-<slug>` from its own basename, not from a re-derived tit
 ---
 
 ## Phase 7 — Next-step offer (adaptive)
-- **PRD-level ARD:** if the PRD has 0 Epics → `choices: ["Hand to a Product Engineer — /dev-workflows:epics <ADDRESS> (PE) (Recommended) <merge-clause>", "Author a PRD-level spec — /dev-workflows:specify <PRD> (PE) <merge-clause>", "Stop here"]`; else offer `/dev-workflows:specify <PRD>` (PE) carrying the same `<merge-clause>`. *(No `/design` — no Epics yet.)*
+**One precondition governs every `/dev-workflows:epics` option below, on both routes.** `/epics`
+accepts a folder holding a `prd.md` that asserts `kind: prd` and refuses one that does not
+(`commands/epics.md` Phase 0 step 1b, `EPICS_NO_PRD`). This run does **not** require a PRD — its
+`require-on-main` gate has an `absent` branch that architects from the resolved folder, and on the
+BRD route `/dev-workflows:create-prd` is not a prerequisite at all — so the folder it just wrote an
+ARD into may legitimately hold no PRD. **Test the resolved folder for an authored `prd.md`** before
+rendering the array: where there is one, offer `/dev-workflows:epics`; where there is not, **replace
+that option with `/dev-workflows:create-prd <ADDRESS>`**, which authors the PRD `/epics` then reads.
+Offering `/epics` there would name a run that stops on arrival.
+
+- **PRD-level ARD:** if the PRD has 0 Epics → `choices: ["Hand to a Product Engineer — /dev-workflows:epics <ADDRESS> (PE) (Recommended) <merge-clause>", "Author a PRD-level spec — /dev-workflows:specify <PRD> (PE) <merge-clause>", "Stop here"]` — with the first option becoming `"Author the PRD — /dev-workflows:create-prd <ADDRESS> (PM) (Recommended)"` where the precondition above fails; else offer `/dev-workflows:specify <PRD>` (PE) carrying the same `<merge-clause>`. *(No `/design` — no Epics yet.)*
 - **Epic-level ARD:** `choices: ["Author the spec — /dev-workflows:specify <PRD> <Epic> (PE) (Recommended) <merge-clause>", "Hand to Dev — /dev-workflows:design <PRD> <Epic> (Dev) <merge-clause>", "Stop here"]`. **Epic fan-out** — repeat this ARD for a sibling Epic: `/dev-workflows:create-ard <PRD> <another-Epic>`; that run inherits the PRD-level ARD, not this Epic-level one, so it waits on nothing this run produced and carries no clause.
 - **the BRD route (an ARD in a `PRD-` slice folder):** a different array, because **the key this run
   holds is a slice key and only one of the three usual options can be reached with one**:
   `choices: ["Author this slice's specification — /dev-workflows:specify <SLICE-KEY> (PE) (Recommended) <merge-clause>", "Hand to a Product Engineer — /dev-workflows:epics <SLICE-KEY> (PE) <merge-clause>", "Stop here"]`
-  — with the second option **present only when the test below passes, and dropped from the array
-  entirely when it does not**.
+  — with the second option **resolved by the test below**: `/dev-workflows:epics <SLICE-KEY>` where
+  the slice holds an authored `prd.md`, `/dev-workflows:create-prd <SLICE-KEY>` where it does not.
   - **`/dev-workflows:specify <SLICE-KEY>` is always reachable from this state.** It takes
     the same slice key this run resolved — and passes that command's own container refusal for the
     same reason this run did, finds the same folder through `resolve-address`
     (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), and needs no key minted anywhere else
     export. It resolves this ARD through `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` and
     stops on `status: unmerged`, so the wait is real and the clause is required.
-  - **`/dev-workflows:epics <ADDRESS>` is offered unconditionally.** It resolves the same folder
-    this run resolved, through the same `resolve-address`, and reads the PRD there. It gates nothing
-    this run produced, so it carries no merge clause. The test that used to guard it — an export
-    directory existing under the key — guarded a lookup that no longer happens.
+  - **`/dev-workflows:epics <SLICE-KEY>` is offered where the slice holds an authored `prd.md`, and
+    replaced by `/dev-workflows:create-prd <SLICE-KEY>` where it does not.** It resolves the same
+    folder this run resolved, through the same `resolve-address`, and reads the PRD there — a slice
+    is a `PRD-` folder, so it passes that command's container refusal exactly as this run did. But
+    **this route does not require a PRD**: `/dev-workflows:create-prd` is not a prerequisite for it,
+    so a slice carrying an ARD and no `prd.md` is an ordinary state, and `/epics` refuses one
+    (`EPICS_NO_PRD`). The test is the precondition stated above this list, and it is a real test
+    again — unlike the one it replaces, which looked for an export directory under the key and
+    guarded a lookup that no longer happens. Neither option gates anything this run produced, so
+    neither carries a merge clause.
   - **`/dev-workflows:design` is offered on this route by neither branch.** It takes over a merged
     `specification.md` — a file this run did not write — and resolves its own key through the specs tree. The path to it runs through the first option: `/dev-workflows:specify <SLICE-KEY>
     the BRD route` writes that specification, and its own next-step offer is where `/dev-workflows:design`

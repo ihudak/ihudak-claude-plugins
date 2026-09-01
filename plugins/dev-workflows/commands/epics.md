@@ -542,7 +542,7 @@ Invoke `epic-reviewer` (Opus). This reviewer is Epic-specific — scope clarity,
   >
   > Task description: [one-paragraph: PRD key, PRD goal, number of Epics drafted]
   > Written Epic file paths: [absolute paths of every Epic file written in Phase 6]
-  > the folder read handoff: [paste full YAML from Phase 3]
+  > existing_epics: [one entry per EPIC- folder already under the resolved PRD folder, as read in Phase 3 — its asserted key, its title, and the absolute path of its epic.md; when focus_key is set, the *other* Epics, excluding the focus one]
   > code-scanner output:  [paste array of per-repo scanner outputs from Phase 5, or 'N/A — code scan off']
   > requirements:        [paste the requirements[] array from Phase 3]
   > _coverage.md path:    [absolute path of the coverage file from Phase 6]
@@ -862,7 +862,7 @@ user name is ever written (§10 privacy).
 - ALWAYS have `epic-writer` write `_coverage.md` to the PRD folder itself (PRD-holistic, even in focus mode); it is NOT an Epic definition and is never published
 - ALWAYS run the Phase 6.1 clarification gate when the writer returns clarifications; unresolved-by-choice markers become `epic-reviewer` BLOCKERs
 - ARD steps (Phase 2.5, writer/reviewer `applicable_ard`, the Phase 9 ARD section) are ADDITIVE and guarded on `status: found` — a run with no ARD is byte-identical to before
-- ALWAYS pass `requirements[]`, the `_coverage.md` path, and `applicable_ard` (when found) to `epic-reviewer`
+- ALWAYS pass `requirements[]`, `existing_epics`, the `_coverage.md` path, and `applicable_ard` (when found) to `epic-reviewer`
 - ALWAYS treat linked Epics flagged `refinement_candidate: true` as fill-in targets (not non-duplication constraints) once the Phase 3.5 gate selects `refine`/`both`; the confirmed target set is the PE's, not the raw detection
 - ALWAYS write every Epic to `EPIC-<key>-<eslug>/epic.md`, refined and net-new alike — the folder carries the key, the filename carries the kind (never `<slug>.md`; refined files carry a `**Team:**` line
 - ALWAYS re-surface the code-scan default adaptively in Phase 3.5 for refine/both (ON at ≥2 targets, OFF at 1) — never in the generate path

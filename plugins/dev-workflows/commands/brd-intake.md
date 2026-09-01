@@ -269,8 +269,8 @@ any of the other five prefixes, and reusing `prd` would collide with the `prd/<S
 branch `/create-prd` on the BRD route opens once a slice of this BRD is PRD-eligible. **That
 switch ships**, so the collision is live rather than hypothetical: that command's handoff derives
 `prd/<SLICE-KEY>-<slug>` from a slice folder nested inside the very folder this run wrote into,
-exactly as `/dev-workflows:create-ard the BRD route` derives `ard/<SLICE-KEY>-<slug>` and
-`/dev-workflows:specify the BRD route` derives `spec/<SLICE-KEY>-<slug>` from it. Keeping `brd`
+exactly as `/dev-workflows:create-ard` on the BRD route derives `ard/<SLICE-KEY>-<slug>` and
+`/dev-workflows:specify` on the BRD route derives `spec/<SLICE-KEY>-<slug>` from it. Keeping `brd`
 separate is what lets all four branches exist on one key without either family renaming anything —
 and this command's own `<BRD-KEY>` never carries the other three, because **the folder it creates is
 a container**: a PRD, an ARD and a specification are authored in the `PRD-` slices under it, one

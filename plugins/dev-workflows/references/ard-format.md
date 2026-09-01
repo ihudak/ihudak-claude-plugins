@@ -9,7 +9,7 @@ Epic-level ARD goes deeper on that Epic's repos/areas.
 ## Altitude & scope
 
 - **PRD-level** (`/create-ard <PRD-KEY>`) — cross-cutting invariants + broad-but-shallow grounding across the affected repos.
-- **Epic-level** (`/create-ard <PRD-KEY> <Epic-KEY>`) — deeper grounding on the Epic's repos/areas; **inherits the PRD-level ARD's `AD#N` read-only** and must not contradict them.
+- **Epic-level** (`/create-ard <EPIC-KEY>` — one address; the Epic's key encodes its ancestry, so the PRD is the folder above it and is never typed beside it, D4) — deeper grounding on the Epic's repos/areas; **inherits the PRD-level ARD's `AD#N` read-only** and must not contradict them.
 - **Per-area** — a big Epic spanning separable areas in one repo (e.g. backend `server/` + frontend `ui/`) may split into `ard-<area>.md` beside the folder's `ard.md` (grill-decided).
 
 ## Frontmatter

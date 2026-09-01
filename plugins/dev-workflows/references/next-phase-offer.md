@@ -154,8 +154,9 @@ array carries every option.
   the register. On an advancing slice run, `/dev-workflows:create-prd <SLICE-KEY>` carries the further
   condition that the reconciled ledger leaves no row `unallocated` and at least one `covered-here`
   (`references/coverage-ledger-format.md` §5, the two refusals its Phase 0 raises); the other two
-  carry none of their own, since neither dispatches the folder read, neither runs the PRD gate and
-  neither reads the ledger. **That difference is where the conditions come from, and it matters:**
+  carry none of their own: neither reads the ledger, and although both now run the PRD gate on every
+  route, that gate's `absent` branch proceeds — a slice holding no authored `prd.md` is the ordinary
+  state for both, since `/dev-workflows:create-prd` is a prerequisite for neither. **That difference is where the conditions come from, and it matters:**
   the level test and `/create-prd`'s eligibility test are each enforced by the offered command's own
   Phase 0, so offering either wrongly hands over a run that stops;
   the advance/re-entry split is enforced **nowhere downstream** — `/create-ard` on the BRD route and

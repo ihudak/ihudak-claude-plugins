@@ -300,8 +300,10 @@ no host classification, no `gh` requirement.
 
 If the folder is missing or holds no PRD, surface the `key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`) and act accordingly. On `OK`, store the handoff for downstream phases.
 
-When `focus_key` is set (the address resolved to an Epic folder), also derive `focus_items` = the
-focus Epic plus every linked item beneath it (its Stories / Sub-tasks). The
+When `focus_key` is set (the address resolved to an Epic folder), also derive `focus_items` = **that
+`EPIC-` folder and what it holds** — its `epic.md`, `specification.md`, `design.md` and
+`implementation.md`. There is no Story / Sub-task level beneath it: those were rows of a tracker export
+that no command produces any more, and the tree stops at the Epic folder (§4.1). The
 change-scoped phases below consume `focus_items` in place of the full hierarchy —
 Phase 5 (diff summarisation) and Phase 5.7 (doc planning) — while every phase that
 describes the PRD as a whole keeps the full handoff. When `focus_key`
@@ -364,7 +366,7 @@ For each repo, in the same Agent message:
   > context:    |
   >   [1–2 sentences: PRD goal + themes relevant to this repo]
   > keys_hierarchy:
-  >   [PRD key + every linked_items key from the folder read; when focus_key is set, restrict to focus_items — the focus Epic + its linked descendants]
+  >   [the PRD folder's own key + the key of every EPIC- folder under it, read from each folder's frontmatter (Phase 3); when focus_key is set, restrict to focus_items — the focus Epic and nothing beside it]
   > refresh:
   >   fetch: [false if Phase 1 chose 'no refresh'; true otherwise]
   >   pull:  [true if Phase 1 chose 'fetch + pull default branch'; false otherwise]"
@@ -399,7 +401,7 @@ Invoke `doc-location-finder`:
   > "Find write target(s) for the brief:
   >
   > repo_root:       [the resolved docs_repo_path (Phase 0)]
-  > feature_summary: [2–4 sentences combining the folder read themes + value_increment.goal]
+  > feature_summary: [2–4 sentences combining the Phase 3 themes + the PRD's own `## Goal` from prd.md]
   > diff_highlights: [key filenames / symbols from the diff-summarizer per_pr summaries]
   > profile:         [the resolved profile — its spaces[] content roots and its announcement_pages block]"
 

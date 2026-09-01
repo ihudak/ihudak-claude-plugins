@@ -1115,9 +1115,12 @@ test (an immediate subdirectory whose `brd-link.md` `parent:` names this BRD) �
   the level test alone**, with no further condition of their own, and
   that is read out of their own Phase
   0s rather than assumed symmetric with `/create-prd`'s. Neither reads outside the specs tree, so neither
-  needs anything outside the specs tree; neither runs the PRD gate, so neither waits on a PRD —
-  `/create-prd` on the BRD route is not a prerequisite for either (`commands/create-ard.md` and
-  `commands/specify.md`, *On the BRD route the PRD gate does not run*); and neither reads the
+  needs anything outside the specs tree; both run the PRD gate — on every route, as of increment E —
+  but neither waits on a PRD, because that gate's `absent` branch proceeds and reports, so
+  `/create-prd` on the BRD route is still not a prerequisite for either (`commands/create-ard.md` and
+  `commands/specify.md`, *The BRD route runs this gate too, and the `absent` branch is what makes that
+  safe*); the one state that would make either wait is a `prd.md` that exists on an unmerged branch,
+  which is not a condition this command can test for the operator; and neither reads the
   `claims:` list or the coverage ledger at all, because PRD eligibility is §5's rule about authoring
   a **PRD** and an ARD is not that artifact and neither is a specification. What each needs is this
   slice's folder, which `resolve-address` finds at either level, plus its own altitude's seed — and an

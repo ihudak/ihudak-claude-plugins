@@ -147,34 +147,34 @@ in the set, one address on the command line (D4). When no key is resolved at the
 the run is **keyless**. Both are correct behaviour — no command needs to defer
 its preflight in order to obtain a key.
 
-**`/create-prd` always has a key, on both of its routes** — and the paragraph that
-stood here said otherwise:
+**`/create-prd` contributes a key, and the rule does not read the route.** The
+positional token is validated by that command's own Phase 0 **step 1**, before the
+preflight at step 2b runs, and the folder it resolves is a `PRD-` folder on both
+routes — the one the operator named on the `/idea` route, the `PRD-` slice
+`/brd-split` carved on the BRD route. Either way the deliverable is written into
+that folder and `handoff-to-main` names `prd/<KEY>-<slug>` for it, so the run
+contributes that key. There is no per-route classification left to get wrong: no
+`/create-prd` run is keyless, and none is treated as though it were.
 
-- **On the `/idea` route** the positional token is the key the operator chose, and
-  Phase 0 **step 1** validates it before the preflight at step 2b even runs. It was
-  once described as "structurally keyless, its key minted by the handoff in a later
-  phase"; nothing mints anything now, and with an empty key set B3 could never be
-  satisfied, so §3.5's branch reuse would fail and rule 4 would append `-2` — the
-  self-duplication that section documents and fixes.
-- **On the BRD route it is not keyless**, and classifying it so is a defect
-  rather than a conservative default. The positional token is a **BRD key**,
-  resolved and validated at the call site by that command's own Phase 0 step 1 —
-  before this preflight runs — the deliverable is written into that BRD's folder,
-  and the branch `handoff-to-main` names is `prd/<BRD-KEY>-<slug>`. So the run
-  contributes that BRD key. Without it, a BRD-route run interrupted after its
-  branch exists takes **B4** on its own in-progress branch and switches away;
-  `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.2 rule 3 then cannot
-  resolve `branch-key` into an empty set, so rule 4 appends `-2` and the run
-  duplicates its own branch. The reason keyless is right on the other route is
-  untouched: it is about not stacking a *new* PRD on another PRD's branch, and a
-  BRD-route run reusing the branch it opened for **this** BRD key is not that.
+**Neither route may be classified keyless, and the failure is the same one.** With
+an empty key set B3 can never be satisfied, so §3.5's branch reuse fails: a run
+interrupted after its branch exists takes **B4** on its own in-progress branch and
+switches away, `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.2 rule 3
+cannot resolve `branch-key` into an empty set, and rule 4 appends `-2` — the
+self-duplication §3.5 documents and fixes. The `/idea` route was once described as
+"structurally keyless, its key minted by the handoff in a later phase" and the BRD
+route as keyless for conservatism; nothing mints anything now, and both
+descriptions produced that same duplicate branch. What genuinely stays keyless is a
+run that resolved **no** key at all at its call site — not a route.
 
 **The contributed key is a folder identity, and contributing it widens no tracker
-identity.** This set exists to match branch names in §3.5 and nothing else; a
-a longer key is matched here exactly as a shorter one is (§3.5,
-*A two-segment key resolves exactly as it did before*). `key` is minted by
-the handoff, stays two-segment, and is not written by this route's
-authoring phase at all.
+identity.** This set exists to match branch names in §3.5 and nothing else, and a
+longer key is matched here exactly as a shorter one is (§3.5,
+*A two-segment key resolves exactly as it did before*). The PRD's own `key`
+frontmatter is written by `/create-prd`, on both routes, and is set to that same
+resolved folder's key — a three-segment slice key included
+(`${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`). Nothing mints it, no handoff
+writes it, and it fixes no depth.
 
 **This run key set is the preflight's, and only the preflight's.** It exists to
 match branches in §3.5 and is resolved at the *start* of the run.

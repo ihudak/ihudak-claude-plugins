@@ -42,7 +42,17 @@ stated cost of removing the mirror, not an oversight.
 | In Review | Dev | /implement | PRs in review (past the gate) |
 | Closed | Dev | — | merged/done |
 
-> When the PE has pre-created empty Epic folders (one per team), `/epics <PRD>` detects and **refines** them in place — partitioning the PRD scope across teams — instead of generating net-new Epics. Same `Open → Epic draft` transition; the refined drafts are keyed `<EPIC-KEY>.md` and carry a `**Team:**` line.
+> **Refine — two ways in, one mode.** `/epics` re-refines an Epic that already exists rather than
+> partitioning the PRD again, and it reaches that mode from either end. **Named:** address the
+> `EPIC-` folder itself (`/epics <EPIC-KEY>`) and the run re-grounds and sharpens that one Epic's
+> `epic.md` in place. **Detected:** run `/epics <PRD>` where Epics under that PRD carry
+> `refinement_candidate: true` — near-empty drafts left as team placeholders — and the run offers
+> to fill them in and partition the PRD's scope across them, instead of drafting net-new; the offer
+> is confirmable, and declining it gives the ordinary net-new run. Either way it is the same
+> `Open → Epic draft` transition and the same `EPIC-<PRD-KEY>-NN-<eslug>/epic.md` shape: refine
+> iterates on a draft this command wrote, since **`/epics` is the only command that creates an
+> `EPIC-` folder** (D6) and every one of them sits under a PRD folder. There is no `<EPIC-KEY>.md`
+> file at either end — the folder carries the key, the filename carries the kind.
 
 ## Readiness targets (for `/ready`)
 

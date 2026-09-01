@@ -71,7 +71,7 @@ The run resolves the feature folder, reads its `prd.md` as the base, grills the 
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off at the `prd-update` seam.
-- [`/create-prd`](create-prd.md) — the greenfield sibling that authors a PRD from scratch; this command's Phase 0 does not redirect to it — an unimported `<KEY>` stops and asks you to run the workitem importer first.
+- [`/create-prd`](create-prd.md) — the greenfield sibling that authors a PRD from scratch. `/create-prd` redirects **here** when it finds a PRD already authored; going the other way, a resolved folder holding no `prd.md` stops this run with `UPDATE_PRD_NO_PRD`, and that stop names `/create-prd` only where that command can itself run — it refuses three shapes, not one, so on a BRD-route slice the stop resolves to [`/brd-split`](brd-split.md) against the slice or its parent, or to no command at all, where a data refusal would fire.
 - [`/create-ard`](create-ard.md), [`/specify`](specify.md), [`/epics`](epics.md), and [`/release-notes`](release-notes.md) — the role re-runs `/update-prd`'s Phase 6 offers when an ARD, spec, or release note already exists.
 - [Model routing](../reference/model-routing.md) — the classification and Opus fallback chain `prd-reviewer` runs under.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Resume and checkpoints](../reference/resume-and-checkpoints.md) — the terminal Phase 7 bookkeeping every run emits.

@@ -4,6 +4,309 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.14.0] — 2026-09-01
+
+### Changed — increment E: the BRD is a container
+
+**D5 and D6 are now enforced structurally rather than assumed.** A `BRD-` folder is refused by
+`/create-prd`, `/create-ard`, `/specify` and `/epics` on the **resolved folder's kind, before a
+single coverage-ledger row is read** (`CREATE_PRD_BRD_NOT_SLICED`, `CREATE_ARD_BRD_NOT_SLICED`,
+`SPECIFY_BRD_NOT_SLICED`, `EPICS_BRD_NOT_SLICED`), and each refusal's remedy is a directory listing
+of the `PRD-` slices under it — never a ledger read, and never a command whose output the refusal
+would then refuse. `/create-prd` stopped arguing *for* the behaviour the design forbids: the
+paragraph justifying an unsliced BRD's PRD cited an escape valve deleted in 3.5.0, and its two data
+refusals are now slice-only.
+
+**Epics come from a PRD only, and `/epics <EPIC-KEY>` re-refines.** `/epics` accepts a `PRD-` folder
+(draft) or an `EPIC-` folder with a PRD above it (re-refine) and refuses a stand-alone `EPIC-` folder
+(`EPICS_EPIC_NOT_UNDER_PRD`) and a `BRD-` container. **The accept gate is `prd.md`'s own `kind: prd`,
+never the folder's asserted kind** — a slice folder is `PRD-`-prefixed and asserts `kind: brd`, so an
+asserted-kind gate would refuse every slice and accept nothing. `focus_key` is derived from the
+resolved `EPIC-` folder, which revives a refine path that was written and unreachable. `/create-ard`
+and `/specify` no longer auto-create an absent `EPIC-` folder: `/epics` is the only command that
+creates one, and the *stand-alone top-level Epic* case is retired.
+
+**The two routes are identical from the PRD onward.** The PRD `require-on-main` gate runs on every
+route in `/create-ard` and `/specify`, and its `absent` branch reports and proceeds, so `/create-prd`
+remains a prerequisite for neither. Both read the authored `prd.md`; the BRD seed, register and
+findings are read *in addition*. `/create-ard`'s optionality advisory is one rule over the union of
+what the folder holds, with the PRD winning the gauge where a slice carries both.
+
+**`/brd-split` resolves in bulk.** Phase 4 gains a Step 1 uniform-answer offer that writes one
+disposition across every remaining `unallocated` row behind a single confirmation, naming each row
+first and refusable per row; the one-at-a-time walk stays the default and is where a declined or
+unparsed answer lands. A forty-row BRD resolved to a single slice costs 2 confirmations instead of
+80 prompts.
+
+**The round-trip that no command performs is gone.** `key` is written by `/create-prd` on **both**
+routes, set to the resolved folder's own key. `release_versions`, `change_type` and
+`release_notes_category` are authored fields, not importer returns. Two-key offer forms
+(`/specify <PRD> <Epic>` and its five siblings) are retired everywhere a user reads them, not only
+where they were parsed (D4). `/idea` no longer claims to relocate anything (D7).
+
+### Fixed — review round D (the last finding before the pull request)
+
+- **`/create-prd`'s two `absent` branches contradicted each other, and the unreachable one was the
+  stop.** Phase 0 step 5 made `status: absent` a graceful `CREATE_PRD_BRD_NOT_FOUND` on the BRD
+  route while the paragraph beneath it auto-created `PRD-<KEY>-<slug>/` at the first write. Only
+  one can be live, and it is the auto-create: **the BRD route is *detected* from a `brd-link.md`
+  inside the folder the address resolved to**, so a run that resolved no folder read no
+  `brd-link.md` and is on the idea route by construction — there is no state in which that stop
+  fires. It also contradicted four other stops that name this command *for* creating a folder
+  (`CREATE_ARD_NOT_FOUND`, `SPECIFY_BRD_NOT_FOUND`, `/update-prd`'s `absent` branch and
+  `EPICS_EPIC_NOT_UNDER_PRD` each send an operator to `/dev-workflows:create-prd <KEY>` where
+  nothing exists), so the stop reading would have made every one of them a dead end. The stop is
+  **retired**, for the same reason `CREATE_ARD_BRD_NOT_FOUND` was retired earlier in this
+  increment; a `BRD-` key whose folder *does* resolve is `CREATE_PRD_BRD_NOT_SLICED`'s to refuse,
+  so no state loses its report. The capture-at-block invariant and
+  `docs/commands/create-prd.md` drop it with the stop.
+- **The ordering that hid the contradiction is stated rather than left to inference.** Step 1 said
+  to print the route *"before doing anything else"* while the address is resolved at step 5, which
+  reads as though a route could be known before a folder was. It now says detection waits on
+  resolution, that the single `resolve-address` call is taken as soon as step 2b settles
+  `$SPECS_PATH` — ahead of step 2's `--full` default and step 3's skipped ladder, both of which
+  read the route — and that an address resolving to nothing is the idea route, not a stop.
+- **`/create-ard` and `/specify` do not share the defect, checked.** Both create no folder on any
+  route, so each takes one `absent` stop for both routes; `/specify` already records the reason this
+  fix turns on — *"a folder that resolved to nothing carries no `brd-link.md` to say which route it
+  would have been on"*.
+
+### Fixed — review round A (the three correctness findings)
+
+- **`/brd-intake` created the root BRD folder without its kind prefix.** Its Phase 0 step 7 said
+  `specifications/<BRD-KEY>-<slug>/` and cited no addressing rule, so **every BRD this plugin
+  produced landed in the pre-prefix shape `references/addressing.md` §5 exists only to *tolerate***
+  — a drift live since increment A introduced the prefixes. Three consequences, all on the ordinary
+  current route: every fresh BRD resolved through §5's legacy fallback and was reported
+  `legacy: true` once per run by every downstream command; the primary `BRD-`-prefix test of all four
+  container refusals (`/create-prd` 5a, `/create-ard` 1a, `/specify` s0, `/epics` 1a) never fired on
+  a folder this plugin wrote, leaving only `coverage-ledger-format.md` §5.1's *legacy* branch doing
+  real work; and `/brd-split` Phase 3 step 2 wrote its slice into
+  `specifications/BRD-<PARENT-KEY>-<parent-slug>/…`, **a parent path that did not exist**, which
+  followed literally creates a second empty `BRD-` folder and orphans the slice. `/brd-intake` now
+  writes `specifications/BRD-<BRD-KEY>-<slug>/` citing §2, and `/brd-split` creates its slice inside
+  **the folder this run resolved** rather than a path re-derived from `<PARENT-KEY>` — which is also
+  what keeps a legacy unprefixed parent working. §5's fallback is untouched: it still resolves every
+  folder a pre-prefix repo holds, and this plugin no longer adds to them. Swept across
+  `commands/brd-intake.md`, `commands/brd-split.md`, `references/coverage-ledger-format.md` §5.1
+  (whose root-BRD bullet now says the shape is what `/brd-intake` wrote *before* the prefixes
+  shipped), the five `/brd-*` documentation pages, and the repo-root README's specs-tree sketch.
+
+- **`/epics` step 1a was prefix-only, and its dead end was reachable from one typo.** The other
+  three container refusals each cite `coverage-ledger-format.md` §5.1's positive test for an
+  unprefixed folder; `/epics` did not, while §5.1 itself claimed to serve "all three consumers". On
+  a legacy root BRD carrying `coverage-ledger.md` and `brd/brd-inventory.md`, step 1a never fired,
+  step 1b emitted `EPICS_NO_PRD` naming `/dev-workflows:create-prd <KEY>`, and `/create-prd` honoured
+  §5.1 and refused the same folder as a container — **a stop whose remedy stops**, verbatim the
+  anatomy step 1a exists to prevent. Step 1a now carries the same §5.1 clause, §5.1 names **four**
+  consumers as a list, and the design spec's §5.3 amendment — which asserted *"`/epics` is
+  unaffected: §6.3's gate reads `prd.md`'s own `kind: prd`"*, true of step 1b and false of step 1a —
+  is corrected in place rather than deleted.
+
+- **Four offers named `/create-prd` having tested one of its three refusals.** `/create-prd` refuses
+  a container, `CREATE_PRD_BRD_UNALLOCATED`, and `CREATE_PRD_BRD_NOT_ELIGIBLE`. `/epics`'s
+  `EPICS_NO_PRD`, `/create-ard` Phase 7's BRD-route bullet, `/specify`'s `### Next step` and
+  `/specify` Phase 3 Step A's zero-Epics picker each tested only the first — the `/epics` prose even
+  claimed step 1a had "already taken the one folder `/create-prd` would refuse", wrong on the count.
+  One state breaks all four: a slice, ground and allocated, every claimed row `deferred-to` or
+  `rejected`, no `prd.md`. Each sent the operator into `CREATE_PRD_BRD_NOT_ELIGIBLE` — the branch
+  that by design **names no command at all**. The rule is now stated once, in
+  `references/coverage-ledger-format.md` §5.2, and follows `commands/brd-reconcile.md` Phase 14's
+  precedent: run both data tests over the slice's own ledger rows narrowed by its `brd-link.md`
+  `claims:`, read out of the file and never off a `ledger:` line, then **drop the option and say
+  which test failed** — naming `/brd-split` on the slice for an `unallocated` row, `/brd-split` on
+  the parent for a standing empty child, and nothing at all for the branch that names nothing. A
+  folder carrying no `brd-link.md` has no gate set and reaches `/create-prd` on the container test
+  alone, so the idea route is unchanged.
+
+### Fixed — review round C (the last findings before the pull request)
+
+- **`/update-prd` named `/create-prd` without testing its refusals.** Phase 0 step 4's
+  `UPDATE_PRD_NO_PRD` stop ran *"run `/dev-workflows:create-prd <ADDRESS>` to author one first"*
+  unconditionally, on a folder that exists and holds no `prd.md` — so on a `BRD-` container it named
+  a command that refuses a container, and on a slice whose every claimed row is `deferred-to` or
+  `rejected` it sent the operator into `CREATE_PRD_BRD_NOT_ELIGIBLE`, the branch that by design names
+  no command at all. `references/coverage-ledger-format.md` §5.2 already stated the rule — an offer
+  naming `/create-prd` is safe only once it has tested all three refusals — and four sites followed
+  it while this one, in the command furthest from the BRD route, did not. Step 4 now resolves its
+  remedy from a six-row table applying §5.2: the container's slices, `/create-prd` where the folder
+  has no gate set or clears both data tests, `/brd-split` against the slice or the parent where one
+  fails, and **no command at all** for the non-empty not-eligible branch, which reports what the rows
+  resolved to instead. That is the only coverage ledger `/update-prd` ever opens; it is confined to
+  the stop and runs after the refusal. Step 3's `absent` branch keeps naming `/create-prd`
+  unqualified and now says why it may — nothing resolved, so there is no folder, no gate set and no
+  kind to test — instead of claiming it is "the same remedy step 4 names".
+- **The route map made the same offer unconditionally.** `references/next-phase-offer.md`'s PE entry
+  told every caller to offer `/create-prd <ADDRESS>` where the resolved folder holds no PRD; it now
+  carries the §5.2 qualification the two commands that implement it already carried.
+- **A stale rationale outlived its instruction.** `commands/create-prd.md` Phase 0 step 3 rung 1 read
+  *"do not relocate, `/idea` already did"* — but D7 retired relocation and `/idea` writes `idea.md`
+  in place on the first write. The instruction was right and the reason was false; the reason is now
+  that nothing relocated it, because nothing does. The docs mirror carried the same claim.
+- **An overstated claim about §5.1's test.** `/epics` step 1a called it *"a directory listing … it
+  asks which files the folder carries, and opens neither"* — but §5.1's root-versus-slice rows read
+  `brd-link.md` for `parent:`. The load-bearing claim is that no *ledger* is opened at step 1a, and
+  that is what the sentence now says.
+- **An unspecified edge in the three new ledger reads.** None of `/epics`, `/create-ard` and
+  `/specify` said what to do on a slice carrying `brd-link.md` and **no** `coverage-ledger.md`.
+  `/brd-split` writes and lands both together, so it is reachable only by hand damage — which is a
+  thing to state rather than leave silent. `coverage-ledger-format.md` §5.2 now states it once, in
+  the authority all of them cite: it is not an empty gate set, so it must not resolve to the standing
+  empty child's `/brd-split <PARENT-KEY>`; name no option, report the missing path, and leave
+  recovery from the specs repo's history to the operator.
+- **A pre-existing count error.** `docs/reference/references.md` said *"The **55**-file subtree
+  figures below"* in the same paragraph that computes 24 + 11 + 9 + 5 + 3 + 2 = **54**. The six
+  subtrees hold 54 markdown pages and five non-markdown files; the sentence is the markdown count.
+  Not gated by `check-docs.sh` check 9, and carried since `cb45c0a`.
+- **Two docs pages still said their command "does not read the ledger".** `/create-ard`'s and
+  `/specify`'s pages were written before those commands gained the next-step read that decides
+  whether `/create-prd` can be named. Both now say what the commands say: nothing they author from
+  is a ledger row, and the read that exists gates nothing. `/update-prd`'s page dropped its retired
+  claim that an unimported key stops the run, and states the `UPDATE_PRD_NO_PRD` routing instead.
+
+### Fixed — review round B (the remaining findings)
+
+- **The destructive remedy was the only one offered.** Where a root BRD's ledger is fully allocated
+  *and* holds an illegal root `covered-here`, four stops named a `/brd-intake <KEY> @<file>` re-run —
+  whose Phase 5 rewrites **every** row back to `unallocated`, discarding the walk's `deferred-to`,
+  `rejected` and `superseded-by` decisions along with the illegal row. **A narrower repair exists and
+  is now offered first**: the illegal state is one row wide and every other row is already legal and
+  terminal, so hand-editing that single `disposition:` — to a legal terminal fate, or back to
+  `unallocated` so `/brd-split` has a row to walk — repairs it while leaving every other decision
+  standing. `references/coverage-ledger-format.md` §5 already named hand editing as the *cause* of
+  this state and §3 forbids no hand repair (it binds commands); §5 now owns the ordered remedy and
+  all four stops follow it. The `/brd-intake` re-run is second, and every stop that names it now
+  names **which** decisions it destroys rather than saying the dispositions are "replaced".
+  `/brd-intake` itself gains a re-run warning and a confirmation at Phase 0 step 7 — before the first
+  write, the last point at which declining is free — and Phase 5 restates what the rewrite discarded.
+- **`/brd-split`'s bulk offer fell through two opposite ways.** At the hold-back prompt an
+  **unparseable** answer fell to option 3, the walk, expressly so nothing was written nobody answered
+  for — while an **empty** answer "named no exception and was option 1", the maximal write. A stray
+  Enter is the input nearest to unparseable and got the opposite treatment. Every answer the step
+  cannot use now falls to the walk, at both prompts, and a **second** invalid id after the one
+  re-prompt — previously unspecified — falls there too.
+- **The four container refusals presented a state with a documented exit as having none.** The
+  "one slice removed as a standing empty child" sub-branch said *name none* — true of the customer
+  decision, false of the carrying-out, which is the same escape the sibling sub-branch names two
+  clauses later. It now reads as an ending rather than a sealed state, and names the two repairs that
+  carry the decision out once it is taken.
+- **`/idea` sent the operator into a stop it had just caused.** Phase 5's handoff offer recommended
+  `/create-prd <KEY>` with **no `<merge-clause>`**, while `/create-prd` Phase 0 step 3 rung 1 runs
+  `require-on-main` on that very `idea.md` and stops on rows D/E while the pull request is open —
+  the exact defect `references/next-phase-offer.md` names, in the one adopter its own adopter list
+  omitted. Both are fixed. `scripts/check-docs.sh` check 11 stays family-scoped: re-measured on this
+  tree, widening fires on **three** correct sites (down from four — the fourth went with the
+  relocation branch D7 retired) and catches **none** of the six defects, `/idea`'s included, whose
+  offer is prose and invisible to any `choices:` scanner. The numbers are recorded in
+  `next-phase-offer.md` and in check 11's own header so widening is not re-proposed without new ones.
+- **`/idea`'s `status: draft` path offered no next step at all**, and the un-handed-off `idea.md` was
+  then silently unread: `/create-prd` rung 1 gets row F `absent` for a file on no ref, falls through,
+  and grills from scratch in the folder it just resolved. The draft path now names two steps — re-run
+  `/idea` to close the markers, or `/create-prd <KEY> @<path>` to read the draft in place on rung 2's
+  terms — and rung 1 reports an in-contract `idea.md` that exists but is on no ref instead of passing
+  it over in silence. The fall-through itself is unchanged: `/idea` is not a prerequisite.
+- **`/specify` Phase 0 step 3 contradicted itself three ways on `absent`** — "Create
+  `PRD-<PRD>-<vslug>/` … only on `status: absent`" against "The PRD dir is not created here" against
+  "`absent` is a graceful stop, not a folder to create". It is a stop, on both routes; `/specify`
+  specifies a PRD that exists and creates no folder. `SPECIFY_BRD_NOT_FOUND` is now reachable on the
+  idea route too, so it names every creator rather than only the BRD route's.
+- **`/document` Mode A's `absent` stop named only `/create-prd <KEY>`** — wrong on the BRD route,
+  where that command refuses the container above the slice, and wrong for an `EPIC-` address, which
+  it never mints. It names the three creators, as `/ready`, `/release-notes`, `/epics` and
+  `/create-ard` already did.
+- **`/brd-split`'s frontmatter described the bulk offer's firing condition with one of its two
+  clauses**, omitting *two or more rows still `unallocated`*; `docs/commands/brd-split.md`'s summary
+  the same. Both now state both.
+- **`references/workflow-states.md` lost the only user-facing description of the detected refine
+  mode** when the re-refine description replaced it rather than joining it. `/epics <PRD>` still
+  detects `refinement_candidate: true` Epics and offers to partition the PRD across them; the entry
+  describes both ways in, and no longer names a `<EPIC-KEY>.md` file. `references/pre-lint.md` and
+  `/epics`' own report grouping named that filename too — `agents/epic-writer.md` forbids it.
+- **`commands/create-prd.md` still read *"Nothing writes it now, so the field stayed permanently
+  unset"*** ten lines under *"`key` — written on every route"*.
+- **The BRD design record still drew the pre-prefix tree** (`<BRD-KEY>-<slug>/`,
+  `<BRD-KEY>_<slug>.md`) and still compared the slice picker's four resolutions to five. Amended in
+  place as **R26**, with the reason recorded: leaving the wrong shape in the record this route's
+  implementers read is how `/brd-intake` came to write it.
+
+### Fixed — the closing sweep
+
+- **`diff-summarizer`'s handoff contradicted its own agent, and `/document` dispatched the stale
+  one.** `references/handoff/diff-summarizer.md` declared only `pr_refs` and refused any input
+  lacking it; the agent declares `refs:` as the ordinary shape because that is what
+  `implementation.md` records — no URL, no host, no PR id. The handoff now carries `refs`, the
+  `refs`-or-`pr_refs` refusal, and per-element output fields that a `refs` element can actually fill
+  (`ref`, `resolved_via: local_ref`). `/document` Phase 5 passed `pr_refs: [… from the folder read
+  handoff …]` while Phases 3/4 built `refs[]` from the implementation record — it now passes what it
+  built, and the PR-shaped vocabulary around it (a "recorded PRs" gate, a `host: other` filter on
+  elements that carry no host) says what the run actually holds. `/release-notes` Phases 4–5 the
+  same.
+- **Four commands could report a state with no way out of it.** `/epics`, `/ready`,
+  `/release-notes`, `/update-prd` and `/document` (keyed mode) each answered `resolve-address`'s
+  `absent` with "the folder does not exist" and named nothing — no error code, no remedy, no command
+  that creates one. `/epics` gains `EPICS_NOT_FOUND`; the others surface `escalation-rules.md`'s
+  `key dir not found` rule and name the run that creates the folder.
+- **Three stops named a remedy this increment had just made insufficient.**
+  `CREATE_PRD_BRD_NOT_FOUND`, `CREATE_ARD_BRD_NOT_FOUND` and `SPECIFY_BRD_NOT_FOUND` offered
+  `/brd-intake <BRD-KEY> @<brd-file>` as a way to produce the folder — which produces the `BRD-`
+  container all three now refuse. They name `/brd-split` on the parent, and say a parent BRD must be
+  grounded and split before any slice exists. `CREATE_ARD_BRD_NOT_FOUND` is retired outright: the
+  BRD route has one resolution and takes `CREATE_ARD_NOT_FOUND` like every other route.
+- **`/epics`' `EPICS_FOCUS_NOT_FOUND` was unreachable and offered a retired argument form.**
+  `focus_key` is derived from the resolved folder, so it cannot disagree with `prd_dir`; the check
+  and its *"Re-enter the Epic key"* choice belonged to the two-key grammar D4 removed.
+- **`/ready` read a `<prd_dir>/<KEY>-index.md` that nothing writes.** A tracker export wrote it; the
+  status peek is retired rather than reconstructed, since D8 derives the phase from artifacts and
+  `--claimed` is the only status anyone declares. `/implement`'s input-classification table
+  recognised a specs folder by `*-index.md` / `KEY.md` — both export shapes, and both keyed
+  filenames D3 forbids — and now recognises it by the `key:` a keyless artifact asserts.
+- **`/epics` handed `epic-writer` a `current_body_path` of `<prd_dir>/<EPIC-KEY>/<EPIC-KEY>.md`**,
+  the shape that agent explicitly forbids, so every refine run regenerated instead of iterating. It
+  is `<prd_dir>/EPIC-<EPIC-KEY>-<eslug>/epic.md`, matching what the agent writes.
+- **`workflow-states.md` described a refine mode that cannot happen** — a PE pre-creating empty Epic
+  folders per team, with drafts keyed `<EPIC-KEY>.md`. `/epics` is the only command that creates an
+  `EPIC-` folder (D6) and filenames carry no key (D3); the note now describes refine as §6.3 defines
+  it.
+- **`docs/roles-and-phases.md` said `/brd-reconcile` offers all three PRD-pipeline commands "against
+  the same BRD key", and `/create-ard` and `/specify` "unconditionally, since neither gates a PRD".**
+  All three refuse a `BRD-` container, the offers are made off a slice key, and both commands now run
+  the PRD gate.
+- **Three frontmatter `description:` fields named a folder shape that does not exist** —
+  `$SPECS_PATH/specifications/<KEY>-<slug>/` for `/create-prd`, `/create-ard` and `/update-prd`,
+  unprefixed since increment A. Same in `docs/reference/environment.md`'s tree, `docs/workflow.md`
+  and `docs/getting-started.md`. `/create-prd` also carried **two different texts for one
+  `CREATE_PRD_NEEDS_KEY`**, one of which told the operator to "create an address first to get the
+  ID" — an act with no counterpart since the cut.
+- **`handoff-to-main`'s declined-handoff line promised a stop that does not happen.** Declining
+  writes no branch and no commit, so the next phase's gate reads row F — which *delegates*. §4.1 now
+  resolves the clause from §3.4's row for that artifact: a stop where the input is a prerequisite,
+  and report-and-proceed for the `/create-prd` idea ladder and the PRD read in `/create-ard` and
+  `/specify`.
+- **`/design` named `mgd-specifications` as the handoff surface** — another edition's repository, in
+  the canonical edition — and its no-spec stop named `/dev-workflows:specify` with no address (D4).
+- **Residual importer vocabulary, live on four surfaces.** `release-notes-writer`'s handoff and agent
+  declared `imported_change_type` "from the imported PRD frontmatter", its own `description` sourced
+  the category label "from the imported `release_notes_category`", and both carried the empty
+  `{{#context}}` gap left by the macro's retirement ("a  label", "the  line"). `/update-prd` twice
+  ruled that "the import wins" three paragraphs after its own step 4 states there is nothing to
+  import. `release-note-types.md` §7 read "the category label label".
+- **`references/branch-naming.md`'s vendor tokens are now framed once, where a reader meets the
+  first one.** `<JIRA-ISSUE-KEY>` is quoted from a repository's own `CONTRIBUTING.md` and matched, not
+  written — and it is deliberately **not** genericised: the recognition table is what makes the
+  plugin honour a team's documented convention, and a swept list would drop such a repo into §1.4's
+  no-convention branch and give it a branch name its team does not use. `/upgrade` separately said
+  "the run's Jira key" of a key the plugin mints itself.
+- **`grilling-technique.md`** justified `/brd-split`'s ≤5 cap with "a walk that visits every row
+  anyway", which predates E5's Step 1; **`2026-08-29-brd-to-prd-workflow-design.md`** R18/R24/R25 and
+  §9.3, and `CLAUDE.md`'s BRD-route line, still described a slice's walk as "four resolutions instead
+  of five" — the parent's picker lost `covered-here` in 3.5.0, so both walks offer four and differ in
+  one member.
+- `CLAUDE.md` records the two traps this increment turns on: a slice folder is `PRD-`-prefixed while
+  asserting `kind: brd`, and PRD-eligibility is a folder-kind question before it is a ledger
+  question.
+
+Counts unchanged: **27 commands / 37 agents / 105 reference files.**
+
 ## [3.13.0] — 2026-09-01
 
 ### Fixed — the whole-design review, round 1

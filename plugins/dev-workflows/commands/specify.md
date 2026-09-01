@@ -1,6 +1,6 @@
 ---
 name: specify
-description: Specification-authoring workflow (PE phase). Reads the resolved PRD or Epic folder, lightly grounds in code, and authors an org-standard specification.md through a relentless one-question-at-a-time grill; gates on the Opus spec-reviewer and lands the spec on the specs repo's main branch via branch + PR for the /design dev take-over. the BRD route seeds the run from a reconciled BRD instead of a resolved folder: it resolves the BRD folder at either level, reads that folder's implementation-altitude spec-seed.md, the implementation decisions in decisions.md, the verified [CG#n]/[DG#n] findings and the derivation matrix /brd-ground appended to code-grounding.md, runs no PRD read and gates no PRD, freezes every [VD#n]/[CD#n] against the grill, and marks each consumed item consumed_by: specification.
+description: Specification-authoring workflow (PE phase). Reads the resolved PRD or Epic folder, lightly grounds in code, and authors an org-standard specification.md through a relentless one-question-at-a-time grill; gates on the Opus spec-reviewer and lands the spec on the specs repo's main branch via branch + PR for the /design dev take-over. the BRD route seeds the run from a reconciled BRD instead of a resolved folder: it resolves the BRD-route PRD- slice folder (the folder carrying brd-link.md) and refuses a BRD- container outright, since a BRD is a container and holds no specification; it reads that slice folder's implementation-altitude spec-seed.md, the implementation decisions in decisions.md, the verified [CG#n]/[DG#n] findings and the derivation matrix /brd-ground appended to code-grounding.md, runs the same PRD gate and the same folder read as the idea route, freezes every [VD#n]/[CD#n] against the grill, and marks each consumed item consumed_by: specification.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -17,9 +17,10 @@ Opus `spec-reviewer` and offers to land the spec on the specs repo's main branch
 Key distinction from `/epics`: `/epics` *splits* a PRD into Epic drafts; `/specify` *authors one
 specification* for a single item (typically an Epic). Run `/epics` first, then `/specify` per Epic.
 
-Usage: `/specify <ADDRESS> [--no-docs]`, where `<ADDRESS>` is a key or an `@<path>`. With
-on the BRD route the run is seeded from a reconciled BRD, and the positional token is
-a **BRD key**, and there is no second positional key (Phase 0 step 0).
+Usage: `/specify <ADDRESS> [--no-docs]`, where `<ADDRESS>` is a key or an `@<path>`. On the BRD
+route the run is seeded from a reconciled BRD and the address is the **`PRD-` slice key**
+`/brd-split` carved; a `BRD-` container is refused (Phase 0 step 0). One address on every route: a
+second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
 
 ---
 
@@ -30,11 +31,82 @@ a **BRD key**, and there is no second positional key (Phase 0 step 0).
    **One resolution serves both routes now.** A BRD key and a PRD key both name a folder under
    `$SPECS_PATH/specifications/`, and `resolve-address` resolves either — so this step no longer
    skips a front-end, it reads a different `kind` from the same resolution. What distinguishes the
-   routes is what the resolved folder holds, not how it was addressed.
+   routes is what the resolved folder holds, not how it was addressed. **The BRD route is a `PRD-`
+   folder carrying a `brd-link.md`** — the slice `/brd-split` carved — and nothing else.
 
-   **A second positional key is refused on the BRD route.** Stop gracefully:
-   `SPECIFY_BRD_NO_EPIC: /specify on the BRD route is BRD-level and takes one key; <second-token> was given as a second. A BRD has no Epics yet — they are minted from the PRD, so author it first with /dev-workflows:create-prd <BRD-KEY> — and spec-seed.md, decisions.md and grounding/ exist only at a BRD's own level. Re-run '/dev-workflows:specify <BRD-KEY>'.`
+   **A `BRD-` container is refused, on either route.** Take this on the folder **step 1 resolves**,
+   the moment that resolution returns `status: found` and ahead of every read this command makes —
+   and **not** as part of the BRD-route branch. The BRD route is detected from a `brd-link.md`, and a
+   root BRD folder need not carry one: `/brd-intake` writes none, and only `/brd-ground`,
+   `/brd-split` and `/brd-package` ever do. A refusal conditioned on the detected route would let
+   `/specify <ROOT-BRD-KEY>` fall through to the keyed route and author a specification into the
+   container. A BRD is a container: its requirements are built by the `PRD-`
+   slices under it, one specification each, and a `specification.md` written into the container
+   would sit beside `brd/`, `grounding/`, `coverage-ledger.md` and `slices.md` in a folder the
+   design's §4.1 tree gives no specification. **The test is the directory prefix, and never the
+   folder's asserted `kind:`** — `/brd-split` writes `kind: brd` into the `brd-link.md` inside a
+   `PRD-` slice folder, so a slice asserts `brd` while being exactly the folder a specification
+   belongs in, and a gate on the asserted kind would refuse every slice.
 
+   **Where the folder resolved through `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §5's legacy
+   fallback and carries no prefix, the question is answered by positive evidence that it is a BRD,
+   never by the absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
+   §5.1, the shared authority `/create-prd`, `/create-ard` and `/epics` take this same test from. In short: a
+   legacy folder carrying `coverage-ledger.md` or `brd/brd-inventory.md`, and no `brd-link.md`
+   naming a `parent:`, is a root container; a legacy folder carrying **neither** of those two files
+   is a legacy **idea-route PRD folder**, which holds `prd.md` and no `brd-link.md` either — this
+   refusal does not fire on it, and refusing it would offer `/dev-workflows:brd-split` on a folder
+   with no coverage ledger to walk. Stop gracefully:
+   `SPECIFY_BRD_NOT_SLICED: <BRD-KEY> resolves to a BRD- container at <path>, and a BRD is never the folder a specification is authored in — its requirements are specified in the PRD- slices under it, one specification each (coverage-ledger-format.md §5). <the remedy, per the branch below>`
+
+   **The remedy is the same two branches `/dev-workflows:create-prd`'s own container refusal takes,
+   and it is a directory listing rather than a ledger read** — this command reads no coverage ledger
+   and does not start now. Enumerate slices by `/brd-split` Phase 0 step 9's **positive test**: an
+   immediate subdirectory carrying a `brd-link.md` whose `parent:` names this BRD.
+   - **One or more slices** — the ordinary shape, since a split always confirms at least one. Name
+     every slice and offer `/dev-workflows:specify <SLICE-KEY>` once per slice. Do **not** name
+     `/dev-workflows:brd-split <BRD-KEY>`: the slices exist, and on a parent whose ledger is fully
+     allocated that run is a no-op (`commands/brd-split.md` Phase 0 step 10).
+   - **No slice at all** — `/dev-workflows:brd-split <BRD-KEY>` is the run that carves one, walking
+     every row still `unallocated` and always confirming at least one slice (its Phase 2). **Two
+     conditions travel with that offer**, in its own text, because this command holds neither
+     answer: its Phase 0 gates on this BRD's grounding findings each carrying a verifier verdict and
+     stops naming `/dev-workflows:brd-ground <BRD-KEY>` when they do not; and **where this BRD's
+     ledger leaves no row `unallocated` that run is a no-op** (its Phase 0 step 10) and carves
+     nothing, since nothing in this plugin moves a terminal row back to `unallocated`
+     (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3). Say what the operator does
+     then rather than leaving the offer to fail silently. There are two ways to reach it and **both
+     are leaveable** — one by a decision, one by a repair. Either the one slice the walk confirmed
+     was removed as a standing empty child, in which case every requirement is `deferred-to`,
+     `rejected` or `superseded-by`, every row is legal and terminal, and nothing is owed to anybody:
+     that is an **ending rather than a failure**, and no command decides otherwise, because
+     un-deferring a requirement is a decision taken with the customer. Name no command for the
+     decision — and say, rather than implying the state is sealed, that once it is taken it is
+     carried out by the same two repairs the other way below names, in the same order: hand-edit the
+     one row that is now to be built back to `unallocated`, after which
+     `/dev-workflows:brd-split <BRD-KEY>` has a row to walk and carves the slice; or re-run
+     `/dev-workflows:brd-intake <BRD-KEY> @<brd-file>`, which reopens **every** row and discards
+     every deferral and rejection recorded here. Or the ledger
+     records a fate a container can no longer hold — a **root** row `covered-here`, which only a
+     tree written before a BRD became a container, or a hand edit, can have produced
+     (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5). **Offer the narrower repair
+     first**, because the illegal state is one row wide and every other row is already legal and
+     terminal: hand-edit that one row's `disposition:` in `coverage-ledger.md`, leaving every other
+     row untouched — to `deferred-to: <this BRD>`, `rejected: [DEF#n]` or `superseded-by: [BR#n]`
+     where the requirement is not to be built here, which makes the ledger legal and lands on the
+     ending above; or back to `unallocated` where it is, after which `/dev-workflows:brd-split
+     <BRD-KEY>` has a row to walk, confirms a slice, and that slice's own walk takes the row to
+     `covered-here`, the one level at which `covered-here` is legal. §3's *no command ever moves a
+     row back to `unallocated`* binds the commands; this is a hand repair of a value no command
+     wrote, and §5 already names hand editing as how this state arises. **Offer the `/brd-intake`
+     re-run second, and only where the whole inventory is to be re-taken:** re-running
+     `/dev-workflows:brd-intake <BRD-KEY> @<brd-file>` over this same folder is a re-run rather than
+     a refusal (its Phase 0 step 7 warns and confirms before the first write) and rewrites the
+     ledger with **every** row `unallocated`, after which `/dev-workflows:brd-split <BRD-KEY>` has
+     rows to walk. It also **discards every disposition this ledger records**: each `deferred-to`,
+     `rejected` and `superseded-by` the walk decided is replaced by `unallocated` and must be
+     re-taken, and a `rejected` row must be re-cited against its `[DEF#n]`. Name those decisions —
+     saying only that the dispositions are replaced is not the disclosure.
 
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`,
    or an `@<path>` naming a folder or a file inside one — and resolve it with `resolve-address`
@@ -42,6 +114,16 @@ a **BRD key**, and there is no second positional key (Phase 0 step 0).
    - `<PRD>` — the resolved **PRD folder's** `key`: the folder itself when the address named a
      `PRD-` folder, its parent when it named an `EPIC-` folder.
    - `<EPIC>` — the `EPIC-` folder's `key`, or `null` when the address named a `PRD-` folder.
+
+   **A second positional token is refused, on every route** (D4). There is no `<PRD> <Epic>` form to
+   fall back to: an Epic key encodes its own ancestry, so a second argument would be derivable from
+   the first and able to disagree with it, which is the failure class D4 exists to remove. This
+   refusal is **not** conditioned on the route — the earlier BRD-route-only version of it argued
+   that "a BRD has no Epics yet — they are minted from the PRD", a premise `/epics` has since
+   changed: Epics are minted by `/epics` under a PRD folder, a slice **is** a PRD folder, so a
+   reconciled slice can hold `EPIC-` folders and the old sentence was false there as well as
+   redundant everywhere else. Stop gracefully:
+   `SPECIFY_ONE_ADDRESS: /specify takes one address; <second-token> was given as a second. The kind of the folder the address resolves to is what sets the altitude — an EPIC- folder specifies that Epic, with its PRD read from the folder above it; a PRD- folder authors a PRD-level specification; on the BRD route the address is the PRD- slice folder /brd-split carved. To specify one Epic, address the Epic: '/dev-workflows:specify <EPIC-KEY>'.`
 
    **The kind decides the altitude**, which is what replaces the two-key grammar: the second key was
    always derivable from the first, and `addressing.md` §4's `key` is what supplies both.
@@ -63,42 +145,66 @@ a **BRD key**, and there is no second positional key (Phase 0 step 0).
    - **Resolve/derive the PRD (top-level) dir:** call `resolve-address <PRD>`
      (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), which searches every level §3 bounds and
      carries §5's legacy fallback — including a slug a human has adjusted. No matching rule is
-     written here; §5 owns it. Create `PRD-<PRD>-<vslug>/` per §2's convention only on
-     `status: absent`. Every later
+     written here; §5 owns it. **`status: absent` is a stop, not a folder to create** — this command
+     creates no folder in the specs tree, on either route, and the stop it takes is the one written
+     out below. `/specify` specifies a PRD that exists; a PRD folder that does not exist holds no
+     `prd.md` for Phase 2 to read and no artifact for the PRD gate to find, so authoring into a
+     freshly-minted one would write a specification against nothing. Every later
      `specifications/<PRD>-<vslug>/` in this command — the PRD gate's `ls-tree` path and Phase 2's
      per-Epic paths included — names the dir resolved here.
-   - **Resolve the feature folder itself**, by case:
+   - **Resolve the feature folder itself**, by case. **There are two cases, not three**: an Epic
+     always has a PRD above it, because `/dev-workflows:epics` is the only command that creates an
+     `EPIC-` folder and it writes every one of them under a PRD folder (D6). A top-level `EPIC-`
+     folder with no PRD above it — the third case this step used to carry — is retired: `/dev-workflows:epics`
+     refuses one rather than partitioning it, and this command refuses one rather than authoring a
+     specification flat inside it.
      - `focus_key` set (an Epic nested under a PRD) →
        `specifications/<PRD>-<vslug>/EPIC-<EPIC>-<eslug>/` — a per-Epic subfolder under the PRD dir
        (`<eslug>` = kebab of the Epic title). Apply the same honor-an-existing-dir tolerance to the
-       `EPIC-<EPIC>-<eslug>` segment.
-     - `focus_key` null **and** the item is a **PRD** for which the broad-PRD-spec choice is made
+       `EPIC-<EPIC>-<eslug>` segment. **This folder is never created here.** An `EPIC-` folder is
+       minted by `/dev-workflows:epics` and by nothing else, so one that does not exist is a stop,
+       not a directory to make:
+       `SPECIFY_EPIC_NOT_FOUND: no Epic folder for <EPIC> under <the resolved PRD dir> — an EPIC- folder is created by /dev-workflows:epics and by no other command. Run '/dev-workflows:epics <PRD>' to draft this PRD's Epics, then re-run '/dev-workflows:specify <EPIC>'.`
+       That remedy runs in the state this stop reports: `/dev-workflows:epics` takes the PRD address
+       this step already resolved, and gates only `<PRD-dir>/specification.md` — a file this run has
+       not written.
+     - `focus_key` null → the item is a **PRD** for which the broad-PRD-spec choice is made
        (Phase 2, Step A) → `specifications/<PRD>-<vslug>/specification.md` — flat at the PRD-dir level, no
-       per-Epic subfolder; the feature folder is the PRD dir itself.
-     - `focus_key` null **and** the item is a **stand-alone top-level Epic** (no parent PRD) →
-       `specifications/EPIC-<EPIC>-<eslug>/`, where `<EPIC>` here is this item's own key (== `key`,
-       since `focus_key` is null) — top-level, keyed by the Epic, no PRD wrapper. Physically this is
-       the same dir the PRD-dir step above already resolved (`specifications/<PRD>-<vslug>/` with
-       `<PRD>` = `<EPIC>` = `key`), so no separate resolution step is needed: the two null-`focus_key`
-       cases share one physical target, `specifications/<KEY>-<slug>/`, with `specification.md`
-       written flat inside it either way.
+       per-Epic subfolder; the feature folder is the PRD dir itself. **This is now the only
+       null-`focus_key` case**, so `<PRD>` is always a PRD's own key and never an Epic's.
    - All delimiters this step writes are hyphens; matching an existing dir tolerates a stray `-`/`_`.
-     Neither the PRD dir nor the feature folder is created here — the first phase that writes to it
-     (Phase 2's `idea.md` write, in a fresh run) creates it.
+     The PRD dir is not created here **and not by a later phase either**: on `status: absent` this
+     step stops, so every phase that writes — Phase 2's `idea.md` write included — runs against a
+     folder that already existed when the address was resolved. The per-Epic feature folder is
+     likewise never created, by the `SPECIFY_EPIC_NOT_FOUND` stop above.
 
-   **On the BRD route the feature folder is the resolved BRD folder**, and it is never created here:
-   resolve it with `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), which
-   already searches both levels, or read an explicit BRD-directory path when one was given.
-   `specification.md` is written **flat inside that folder**, beside the BRD artifacts it was derived
-   from — there is no per-Epic subfolder on this route, because the BRD route resolves no Epic (step 0).
-   `absent` is a graceful stop, not a folder to create — and it names **both** ways a BRD folder comes
-   into being rather than picking one, because nothing on disk says whether this key names a BRD with
-   a source document or a slice of one, and a key's segment count is a naming convention, never a
-   depth declaration (§1):
-   `SPECIFY_BRD_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
-   Where an explicit BRD-directory path was supplied and is not an existing directory, the same stop
-   substitutes that path for the search clause — `no BRD folder at <path> (supplied with the BRD route)` —
-   because "both levels searched" would describe a search this run did not perform.
+   **On the BRD route the feature folder is the resolved `PRD-` slice folder**, and it is never
+   created here. There is no second resolution for that route and no `<BRD-dir>` argument to read:
+   the single positional address was resolved once with `resolve-address`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), step 0 refused the container the upper
+   level holds, and the folder that survives both **is** the slice.
+   **The write location then follows `focus_key`, by the same two cases as above and not by a rule of its
+   own.** A slice is a `PRD-` folder, so `focus_key` is null when the run starts and `specification.md`
+   is written flat inside the slice folder, beside the BRD artifacts it was derived from — the ordinary
+   shape, and the identical `focus_key`-null PRD case listed above. It is not flat *because* this is the
+   BRD route: where `/dev-workflows:epics` has minted `EPIC-` folders under the slice, Phase 2 Step A's
+   picker can set `focus_key` to one of them here exactly as it does under any other PRD folder, and the
+   feature folder is then re-pointed to that Epic's subfolder (Step A's *Re-pointing*). Addressing such an
+   Epic directly — `/dev-workflows:specify <EPIC-KEY>` — resolves an `EPIC-` folder, which carries no
+   `brd-link.md`, so it is not the BRD route at all and takes the `focus_key`-set case above with nothing
+   route-specific about it.
+   `absent` is a graceful stop, not a folder to create — the same stop the PRD-dir bullet of step 3
+   takes, and **one stop for both routes**, since a folder that resolved to nothing carries no
+   `brd-link.md` to say which route it would have been on. Its code keeps the `_BRD_` segment it was
+   minted with; what it must not keep is a remedy list that only fits one route, so it names every
+   command that creates a folder this one accepts, the same three `/dev-workflows:ready`,
+   `/dev-workflows:release-notes`, `/dev-workflows:epics` and `/dev-workflows:create-ard` each name
+   in their own `absent` stops — and step 0 refuses the `BRD-` container a `/dev-workflows:brd-intake` run
+   would leave behind:
+   `SPECIFY_BRD_NOT_FOUND: no folder found for <ADDRESS> under $SPECS_PATH/specifications/ (every level addressing.md §3 bounds, plus §5's legacy fallback) — check the address. /specify specifies an existing PRD or Epic folder and creates neither. A PRD- folder is created by /dev-workflows:idea <KEY> or /dev-workflows:create-prd <KEY> on the idea route, and by /dev-workflows:brd-split on its parent BRD on the BRD route — /specify writes into that folder, never into the BRD- container above it, and a parent BRD is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file> and then grounded and split before any slice exists. An EPIC- folder is created by /dev-workflows:epics <PRD-ADDRESS> and by no other command.`
+   Where the address was an **`@<path>`** the same stop substitutes that path for the search clause —
+   `no folder at <path> (given as a path)` — because "every level addressing.md §3 bounds" would
+   describe a search a verbatim path never performs.
 
 4. **Detect a prior run.** If a `_session.md` exists in the resolved feature folder, record that a
    resume is available — Phase 1 asks the user resume-vs-fresh. If no `_session.md` exists, this is a
@@ -114,22 +220,30 @@ when the specs repo is clean and on its default branch. If a guard fires, emit i
 it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
 `commit-artifacts` step skips on it.
 
-**Gate the PRD.** Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against the PRD file in `specifications/<PRD>-<vslug>/` — **resolve its actual name on the ref first**: `git -C "$SPECS_PATH" ls-tree --name-only "origin/<default>" "specifications/<PRD>-<vslug>/"` and take `prd.md` when the listing carries it, falling back to a `<PRD>_*.md` entry only when it does not — the keyless `prd.md` is what `/create-prd` and `/update-prd` write, and the `<KEY>_<slug>.md` form is the pre-rename shape a specs repo written before increment A still holds (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §5). **Gating the legacy glob alone was a defect**: it matches nothing in a current repo, so the gate returned `absent` for every PRD that was present and the rows D/E stop could never fire. A human-adjusted slug is a supported state — `/create-prd` and this command's own Phase 2 reader both locate the PRD by glob plus frontmatter, and the feature folder is matched by key-number for the same reason — so gating an exact derived filename would report `absent` for a PRD that is present, and would let a slug-drifted file on a plugin branch escape the rows D/E stop entirely. Map its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4. Otherwise (`stopped: false`): on `pass`/`pass_amending`, proceed — Phase 2 still reads the item via the folder read exactly as today; the merged PRD is a grounding confirmation, not a new content source; on `absent`, `/specify`'s existing specs-tree behaviour is unaffected — but report it: *"No authored PRD on `<default>` for `<PRD>` — specifying from the resolved folder at `<path>`. If a PRD exists on a branch, this run would have stopped; it does not, so none does."*; on `unmanaged`, behave exactly as before this feature — reachable here even after step 2's own `$SPECS_PATH` check, since that check only rejects an unset value, never an invalid path or a non-git directory.
+**Gate the PRD — on every route, with no branch.** The folder gated is **the PRD folder this run resolved**: the resolved folder itself when the address named a `PRD-` folder, its parent when the address named an `EPIC-` folder, and — on the BRD route — the resolved `PRD-` slice folder, which *is* that route's PRD folder (§4.1). One rule, one path expression, no route test. Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against the PRD file in that folder (written below as `specifications/<PRD>-<vslug>/` for brevity; the folder on disk carries its kind prefix — `PRD-<PRD>-<vslug>/` on a current tree, the unprefixed form only through §5's legacy fallback — and it is always the folder Phase 0 resolved, never a path re-derived here) — **resolve its actual name on the ref first**: `git -C "$SPECS_PATH" ls-tree --name-only "origin/<default>" "specifications/<PRD>-<vslug>/"` and take `prd.md` when the listing carries it, falling back to a `<PRD>_*.md` entry only when it does not — the keyless `prd.md` is what `/create-prd` and `/update-prd` write, and the `<KEY>_<slug>.md` form is the pre-rename shape a specs repo written before increment A still holds (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §5). **Gating the legacy glob alone was a defect**: it matches nothing in a current repo, so the gate returned `absent` for every PRD that was present and the rows D/E stop could never fire. A human-adjusted slug is a supported state — `/create-prd` and this command's own Phase 2 reader both locate the PRD by glob plus frontmatter, and the feature folder is matched by key-number for the same reason — so gating an exact derived filename would report `absent` for a PRD that is present, and would let a slug-drifted file on a plugin branch escape the rows D/E stop entirely. Map its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4. Otherwise (`stopped: false`): on `pass`/`pass_amending`, proceed — Phase 2 still reads the resolved folder exactly as today; the merged PRD is a grounding confirmation, not a new content source; on `absent`, `/specify`'s existing specs-tree behaviour is unaffected — but report it: *"No authored PRD on `<default>` for `<PRD>` — specifying from the resolved folder at `<path>`. If a PRD exists on a branch, this run would have stopped; it does not, so none does."*; on `unmanaged`, behave exactly as before this feature — reachable here even after step 2's own `$SPECS_PATH` check, since that check only rejects an unset value, never an invalid path or a non-git directory.
 
-**On the BRD route the PRD gate does not run, because the PRD is not this route's content source.**
-Its purpose here is a *grounding confirmation* on a route whose content comes from the PRD folder;
-this route's content comes from the BRD folder's `spec-seed.md`, its implementation-altitude
-decisions and its verified findings, and the PRD — which may not exist at all, since
-`/dev-workflows:create-prd the BRD route` is not a prerequisite for this command — is read by nothing in
-this run. Gating an artifact the run does not read would promote an input this route never had into a
-prerequisite, which `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §5 rule 3 forbids; and its
-`absent` branch has nothing further to fall back to. So the gate is skipped,
-not re-pointed, and §3.4's `/specify` row keeps describing the route that runs it. What puts the seed
-on the default branch instead is the `/brd-*` family's own handoff discipline: each of those commands
-lands its deliverable on the specs default branch and the next refuses to start until it is there, so
-a reconciled BRD folder is already merged by the time this route reads it. This mirrors
-`/dev-workflows:create-prd the BRD route`, which likewise skips the gate on the input its own seed
-replaces.
+**The BRD route runs this gate too, and the `absent` branch is what makes that safe.** It did not, and
+the rationale it carried was coherent while the route could resolve a `BRD-` container: the PRD "may not
+exist at all", and gating an artifact the run does not read would promote an input the route never had
+into a prerequisite, which `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §5 rule 3 forbids. Phase 0
+step 0 removed the premise. The BRD route now resolves **a `PRD-` slice folder in every case** — the same
+kind of folder the keyed route resolves — so there is one folder to gate, and the gate's own `absent`
+branch already handles the state the rationale was protecting: a slice in which no `prd.md` has been
+authored yet returns `absent`, is **reported**, and this run specifies from the resolved folder exactly as
+§3.4's `/specify` row says it may. Nothing is promoted into a prerequisite, because `absent` is not a stop
+— `/dev-workflows:create-prd` is still not a prerequisite for this command, on either route. What the gate
+adds on both routes is the state it was built for: a `prd.md` that **exists and was never handed off**,
+sitting on a branch (rows D/E). That state is as reachable on a slice as it is on a keyed PRD folder —
+`/dev-workflows:create-prd` opens `prd/<SLICE-KEY>-<slug>` there and its handoff can be declined — and
+specifying against an unmerged PRD is the failure the gate exists to prevent, whichever route wrote it.
+§3.4's `/specify` row therefore describes every run of this command, not one route's.
+
+**What the seed does not need the gate for is still true, and is not a reason to skip it.** The `/brd-*`
+family's own handoff discipline puts `spec-seed.md`, `decisions.md`, the grounding files and the
+derivation matrix on the specs default branch before this route reads them — each of those commands lands
+its deliverable there and the next refuses to start until it is. That is why this command gates no BRD
+artifact. It says nothing about the PRD, which is authored by `/dev-workflows:create-prd` under the `prd/`
+prefix like any other and carries no such discipline.
 
 ---
 
@@ -172,12 +286,14 @@ Also display (for user context): resolved feature folder; resolved `prd_dir`; re
 `key` (PRD); resolved `focus_key` (Epic, or 'none — PRD-level'); resolved `$REPOS_PATH`; resolved
 `$SPECS_PATH`.
 
-**On the BRD route, display instead** a `from BRD:` line naming `<BRD-KEY>` and its resolved folder,
+**On the BRD route, display in addition** a `from BRD:` line naming `<SLICE-KEY>` and its resolved folder,
 its `parent:` if `brd-link.md` records one, its `depends-on:` if any, and which of `spec-seed.md`,
 `decisions.md`, `grounding/code-grounding.md` and `grounding/design-grounding.md` are present — a
-stat, not a read; the read is Phase 2. `prd_dir`, `key` and `focus_key` are all
-unresolved on this route and are shown as `none — seeded from a BRD` rather than left blank, so a
-reader is not left wondering which resolution ran.
+stat, not a read; the read is Phase 2. **Display the `prd_dir`, `key` and `focus_key` lines as well**,
+which resolve on this route exactly as on the keyed one: `prd_dir` is the slice folder itself (a slice
+*is* the PRD folder), `key` is the slice's own asserted `key`, and `focus_key` is `none — PRD-level`
+until Phase 2 Step A settles it. They were once shown as `none — seeded from a BRD`; that described a
+route that resolved a container and had no PRD folder to name, which Phase 0 step 0 has retired.
 
 ---
 
@@ -203,11 +319,20 @@ The grill + authoring run inline on `current_model` (interactive judgment — no
 
 ## Phase 2 — Read the resolved folder
 
-**On the BRD route this phase reads no PRD at all.** Steps A and B are skipped in their entirety —
-no folder read, no granularity picker, no `idea.md` write — and the *BRD route — read
-the implementation-altitude seed* section at the end of this phase runs in their place. Everything
-below Step B that says "the scoped subtree" means, on that route, the seed material that section
-carries forward.
+**Steps A and B run on every route.** Phase 0 step 0 means the BRD route resolves a `PRD-` slice
+folder — a PRD folder, which can hold a `prd.md` and can hold `EPIC-` folders that `/dev-workflows:epics`
+minted under it — so there is nothing for a route test to decide here. The *BRD route — read the
+implementation-altitude seed* section at the end of this phase is an **addition** to Steps A and B, not a
+replacement for them: it reads the seed, the register, the verified findings and the derivation matrix a
+slice carries and a keyed-route PRD folder does not.
+
+**One divergence stays, and it is a real one: no `idea.md` is written on the BRD route.** Step B's
+`idea.md` write records pre-spec provenance for an item whose provenance is otherwise unrecorded. A slice
+folder already carries its provenance in the tree — `brd-link.md`, the register, the grounding findings,
+and the customer's own document under the parent's `brd/source/` — and writing a fourth, derived account
+of it beside those would put an unreviewed restatement of a signed-off document in the folder. So the
+`idea.md` bullet in Step B is skipped on the BRD route and the run says so; every other part of Steps A
+and B runs unchanged.
 
 Phase 2 reads the folder in **two steps, cheap before expensive**. Step A settles *granularity* — the
 input's type and, for a multi-Epic PRD, *which* Epic — with a cheap `prd-plus-epics` read (and, when
@@ -219,29 +344,43 @@ Phase 2 is just the full read (Step B).
 
 ### Step A — Resolve granularity + focus Epic (cheap enumeration + picker)
 
-**Skip this step entirely when `focus_key` is already set on entry** — any two-token form
-(`<PRD-Key> <Epic-Key>`, `<dir> <Epic-Key>`) or a bare `<Epic-Key>` auto-resolved to its parent PRD in
-Phase 0. The Epic is already chosen, so go straight to Step B.
+**Skip this step entirely when `focus_key` is already set on entry** — that is, when step 1's single
+address resolved to an `EPIC-` folder (or to an `@<path>` naming one), and the PRD was read from the
+folder above it. The Epic is already chosen, so go straight to Step B. There is no two-token form
+that could set it: `/specify` takes one address (step 1, `SPECIFY_ONE_ADDRESS`).
 
-Otherwise (`focus_key` is null), dispatch the folder read at the **cheap** `depth: prd-plus-epics` to
-determine the item's type and enumerate its child Epics *without* reading the full Story/Sub-task
-subtree:
+Otherwise (`focus_key` is null), perform the **cheap** `prd-plus-epics` read — the folder's own `prd.md`
+plus a listing of its `EPIC-` subfolders — to determine the item's type and enumerate its child Epics
+*without* opening every Epic folder's contents:
 
 **Read the PRD folder directly.** Read its `prd.md`, and list the `EPIC-` subfolders under it —
 that listing is the Epic set this phase branches on, and each folder's `key` and title come from its
 own frontmatter (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4).
 
-If the folder is missing or holds no PRD, surface the `key dir not found`
-rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On
-`OK`, read the item's type from `value_increment` / `linked_items` and enumerate its **child Epics**
-(filter `linked_items` to `type == Epic`). Then branch — this is the reusable **progress-aware
+**A missing folder and a folder holding no `prd.md` are two different states, and only the first is a
+stop.** If the folder is missing, surface the `key dir not found` rule in
+`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`) — reachable only
+through a folder deleted between Phase 0 and here, since Phase 0 step 3 already stopped on `absent`. If
+the folder is there but holds **no `prd.md`**, do not stop and do not re-report: the Phase 0 gate has
+already returned `absent` and printed the line naming the folder this run specifies from instead. That is
+the ordinary state on the BRD route, where `/dev-workflows:create-prd` is not a prerequisite for this
+command, and a supported one on the keyed route; escalating it here would contradict the gate's own
+`absent` branch two steps earlier and offer a "Re-enter key" for a key that resolved correctly. Enumerate
+the `EPIC-` subfolders exactly as below and carry on with whatever the folder holds.
+
+Otherwise take the type from the resolved folder's own `prd.md` (`kind: prd`) and enumerate its **child
+Epics** as the `EPIC-` subfolders listed above, each one's `key` and title read from its own
+frontmatter. `value_increment` and `linked_items` were fields of a tracker export that no command
+produces any more; the folder listing is the enumeration now, and it is the same one the paragraph
+above performs. Then branch — this is the reusable **progress-aware
 Epic-picker pattern** documented in `${CLAUDE_PLUGIN_ROOT}/references/epic-picker.md`, applied here with `/specify`'s own done-predicate:
 
-- **Stand-alone top-level Epic** (the item is itself an Epic, no parent PRD) → no picker; the item
-  *is* the focus. Set `focus_key` = the item (== `key`). The feature folder stays the flat
-  `specifications/<KEY>-<slug>/` resolved in Phase 0 — a stand-alone Epic has no distinct parent
-  PRD, so `<PRD>` == `<EPIC>` and there is no self-nested subfolder (Phase 0 step 3's
-  shared-physical-target note). Proceed to Step B.
+**The item here is always a PRD.** This step runs only when `focus_key` is null on entry, and step 1
+sets `focus_key` from an `EPIC-` address — so an Epic never reaches the branch below. The
+top-level Epic with no PRD above it, which used to have a branch of its own here, is retired with
+the case itself (Phase 0 step 3): `/dev-workflows:epics` writes every `EPIC-` folder under a PRD folder, and
+is the only command that writes one at all.
+
 - **PRD with exactly 1 Epic** → no picker; auto-select it. Set `focus_key` = that Epic and emit a
   one-line notice (e.g. `Single child Epic <EPIC> '<title>' — authoring its spec.`). Re-point the
   feature folder to that Epic's per-Epic subfolder (see *Re-pointing* below). Proceed to Step B.
@@ -270,22 +409,41 @@ Epic-picker pattern** documented in `${CLAUDE_PLUGIN_ROOT}/references/epic-picke
   - On **"Author one broad PRD-level spec instead"** → leave `focus_key` = null; the feature folder
     stays the flat PRD-dir path `specifications/<PRD>-<vslug>/` (Phase 0 step 3's `focus_key`-null PRD
     case). Step B then reads the whole PRD subtree.
-- **PRD with 0 Epics** → this PRD hasn't been split yet. Offer the existing without-Epics choices:
+- **PRD with 0 Epics** → this PRD hasn't been split yet. Offer the without-Epics choices:
   `choices: ["Split into Epics first with /dev-workflows:epics (Recommended)", "Author one broad PRD-level spec now", "Cancel"]`
   `/specify` does not write Epic folders itself — on "Split…", stop and point at
   `/dev-workflows:epics`, which writes them into this PRD folder where this command will see them. On
   "Author one broad PRD-level spec now", leave `focus_key` = null and proceed to Step B.
+  - **`/dev-workflows:epics` is only offered where the resolved folder holds an authored `prd.md`.**
+    That command accepts a folder holding a `prd.md` asserting `kind: prd` and refuses one that does not
+    (`commands/epics.md` Phase 0 step 1b, `EPICS_NO_PRD`), so offering it on a folder with no PRD would
+    name a run that stops on arrival. Where the folder holds none — the ordinary BRD-route state, and the
+    one the Phase 0 gate reported as `absent` — the first choice becomes
+    `"Author the PRD first — /dev-workflows:create-prd <ADDRESS> (Recommended)"`, which is the run that
+    writes the PRD `/epics` then reads and takes the single address this run already resolved.
+    **Passing that command's container refusal is not enough to name it**, and it is the only one of
+    its three refusals this run has cleared: on the BRD route the resolved folder is a slice with a
+    gate set of its own, and a slice that is fully allocated with no `covered-here` row sends this
+    choice into `CREATE_PRD_BRD_NOT_ELIGIBLE`, the branch that names no command at all. Resolve the
+    first choice from the same table the `### Next step` uses
+    (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.2, applied there) — the
+    `/dev-workflows:create-prd` option where the gate set clears both data tests, the corresponding
+    `/dev-workflows:brd-split` where one fails and a command exists, and **no first choice at all**
+    where none does, leaving the two below it. A folder carrying no `brd-link.md` has no gate set and
+    takes `/dev-workflows:create-prd <ADDRESS>` on the container test alone. The second and third
+    choices are unchanged either way: a broad spec authored from the folder as it stands is still
+    reachable, which is what keeps the array at two options in the worst case rather than one.
 
 **Re-pointing the feature folder after the picker.** When Step A sets `focus_key` to an Epic (the
 single-Epic and ≥2-Epic-selection cases), the feature folder becomes that Epic's per-Epic subfolder
 `specifications/<PRD>-<vslug>/EPIC-<EPIC>-<eslug>/` (Phase 0 step 3's `focus_key`-set case), superseding the
 provisional PRD-level folder confirmed in Phase 1 — Phase 0 already marks that folder provisional until
 the folder read runs. Re-detect a prior run there (a `_session.md` → a resume is available for that
-Epic). The stand-alone-Epic and broad-PRD-spec cases leave the Phase 0 folder unchanged.
+Epic). The broad-PRD-spec case — the only other one left — leaves the Phase 0 folder unchanged.
 
 ### Step B — Full Epic-scoped read
 
-With granularity settled and `focus_key` resolved, dispatch the folder read at `depth: full` — richer
+With granularity settled and `focus_key` resolved, perform the `full` read.
 **Read the Epic folder itself, and everything under the PRD folder that bears on it.** The raw
 material for user stories, acceptance criteria and test cases is the PRD's own text plus whatever the
 Epic folder already holds — its `epic.md` where one exists, and any earlier `specification.md` or
@@ -293,29 +451,32 @@ Epic folder already holds — its `epic.md` where one exists, and any earlier `s
 PRD is thin the grill has less to work from and must ask more; that is a real change in where the
 detail comes from, and it belongs to the operator's answers rather than to an import.
 
-If the folder is missing or holds no PRD, surface the `key dir not found`
-rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On
-`OK`:
+The same two states apply here as in Step A: a **missing** folder surfaces the `key dir not found` rule
+in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`); a folder holding
+**no `prd.md`** is not a stop — the Phase 0 gate reported it already, and the grill works from what the
+folder does hold. Then:
 
-- **Epic-scope the read.** The read is scoped to the PRD folder and returns the
-  **whole PRD** linked-item hierarchy (the folder read itself is unchanged). When `focus_key` is set,
-  **scope the returned hierarchy to `focus_key`'s subtree** — the Epic itself plus its linked
-  Stories/Sub-tasks (`linked_items` whose `parent` chain leads to `focus_key`) — filtering
-  in-orchestrator and discarding sibling Epics' subtrees before feeding the downstream phases. When
-  `focus_key` is null (broad PRD-level spec), use the whole PRD subtree as today. Everything below —
-  themes, `idea.md`, the Phase 5 raw material — derives from this scoped `focus_key` subtree.
-- Extract **capability themes** and component/product mentions from the scoped subtree — feeds
+- **Epic-scope the read, against the tree.** The material is the PRD folder and what sits under it.
+  When `focus_key` is set, read **that `EPIC-` folder** — its `epic.md`, and any `specification.md` or
+  `design.md` already in it — plus the PRD folder's own `prd.md` for the frame, and read no sibling
+  `EPIC-` folder at all. When `focus_key` is null (broad PRD-level spec), read the PRD folder and every
+  `EPIC-` folder under it. There is no `linked_items` list and no Story/Sub-task subtree to filter: those
+  were fields of a tracker export that no command produces any more (Step A), and the `EPIC-` folders on
+  disk are the hierarchy now. Everything below — themes, `idea.md`, the Phase 5 raw material — derives
+  from the folders this bullet named.
+- Extract **capability themes** and component/product mentions from the folders just read — feeds
   Phase 3's repo derivation and Phase 4's `code-scanner` dispatches.
-- Write **`idea.md`** in the feature folder from the scoped item text (the focus item's summary,
-  description, and its linked-item summaries) — pre-spec brainstorming provenance, in the same spirit
+- Write **`idea.md`** in the feature folder from the text of the folders just read — **except on the
+  BRD route**, where the provenance is already in the tree and this write is skipped and reported (the
+  divergence named at the head of this phase) — pre-spec brainstorming provenance, in the same spirit
   as the `idea.md` convention `source-truth.md` already treats as non-authoritative once
   `specification.md` exists.
-- Carry the scoped linked-item tree (the Epic's Stories/Sub-tasks) forward into Phase 5 — the raw
-  material the grill mines for user stories, acceptance criteria, and test cases.
+- Carry what those folders hold forward into Phase 5 — the raw material the grill mines for user
+  stories, acceptance criteria, and test cases.
 
 ### the BRD route — read the implementation-altitude seed, the register, and the verified findings
 
-Read the BRD folder Phase 0 step 3 resolved. Read exactly these, and no other seed:
+**Additionally** read the `PRD-` slice folder Phase 0 step 3 resolved — additionally, because Steps A and B have already read that same folder's `prd.md` and its `EPIC-` subfolders, or reported the PRD's absence. What follows is what a slice carries and a keyed-route PRD folder does not, and it is the whole of the divergence this route is entitled to. Read exactly these, and no other seed:
 
 - **`spec-seed.md`** — implementation-altitude content, when the folder holds any. **No `/brd-*` command writes this file on the normal route** — the one writer is
   `/dev-workflows:brd-intake --sort-existing`, a one-time migration path for a package authored
@@ -333,18 +494,24 @@ Read the BRD folder Phase 0 step 3 resolved. Read exactly these, and no other se
 - **`grounding/code-grounding.md`** and **`grounding/design-grounding.md`** — the `[CG#n]` and
   `[DG#n]` finding records, per `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §2 — **and, in
   the first of the two, the derivation matrix.** The matrix is not a file of its own and is not inside
-  `spec-seed.md`: `/dev-workflows:brd-ground` appends its rows to `<BRD-dir>/grounding/code-grounding.md`
+  `spec-seed.md`: `/dev-workflows:brd-ground` appends its rows to the slice folder's `grounding/code-grounding.md`
   (that command's Phase 8), classed per `grounding-format.md` §7
   (`EXISTS | DERIVED | NEW-CAPTURE | NEW-CONFIG | PARTNER | DEFERRED | DEPENDENCY`). It is
   implementation-altitude by construction, which is why this command is the one that reads it — and
   an absent matrix is ordinary, since `/dev-workflows:brd-ground` runs it only on a reporting- or
   data-centric BRD or under an explicit `--derivation-matrix`.
 - **`brd-link.md`** — for `parent:` and `depends-on:` only. This run reads no `claims:` list and no
-  coverage ledger: PRD eligibility and the allocation gate are
+  coverage ledger **as an authoring input**: PRD eligibility and the allocation gate are
   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5's rule about authoring a **PRD**,
   applied "when eligibility is checked", and a specification is not that artifact. Not checking it
-  here is a decision, not an omission — `/dev-workflows:create-prd the BRD route` is where that gate
+  here is a decision, not an omission — `/dev-workflows:create-prd` on the BRD route is where that gate
   lives, and this command is reachable without it.
+
+  **Two places do open both, and neither gates anything this run does**: Phase 3 Step A's
+  zero-Epics choice, and the `### Next step` offer. Each decides only whether
+  `/dev-workflows:create-prd <SLICE-KEY>` can be *named* at all, since that command refuses three
+  shapes and not one (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.2). Reading a
+  ledger to avoid offering a run that stops on arrival is not the same as gating this run on it.
 
 **Absence is reported, never a stop, and the seed's absence is the ordinary case.** Nothing on the
 normal route writes a seed file at all (above), so a reconciled BRD routinely holds none; and a BRD
@@ -392,7 +559,7 @@ place of the PRD-derived themes.
 
 ## Phase 2.5 — Resolve applicable ARD (optional)
 
-Resolve any ARD for this item by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with `<PRD>`, `<EPIC>` (`focus_key`), and `$SPECS_PATH`. **On the BRD route the pair comes from `brd-link.md`'s `parent:`, never from a segment count**: with no `parent:` (this BRD owns its source document) pass `prd: <BRD-KEY>`, `epic: null`; with a `parent:` (this BRD is a slice) pass `prd: <parent-key>`, `epic: <BRD-KEY>`. The second mapping needs no change to that reference — a slice folder sits inside its parent's exactly as an Epic subfolder sits inside a PRD dir, the layout its Epic-level branch already collects — and it is the same pair `/dev-workflows:create-ard <BRD-KEY>` writes into the ARD's own `prd:`/`epic:` frontmatter, so the two agree by construction rather than by coincidence. On `status: none`, **skip and proceed exactly as before**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr`. On `status: found`, keep the spec's user stories + scope consistent with the returned `invariants` + `guidance_summary` during the Phase 5 grill; record a necessary deviation under the spec's `### Open questions` (never edit the ARD). Pass the `invariants` to `spec-reviewer` in Phase 6 as `applicable_ard`.
+Resolve any ARD for this item by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with `<PRD>`, `<EPIC>` (`focus_key`), and `$SPECS_PATH`. **On the BRD route the pair comes from `brd-link.md`'s `parent:`, never from a segment count**: the route resolves a slice and nothing else (Phase 0 step 0), so the `parent:` is always there — pass `prd: <parent-key>`, `epic: <SLICE-KEY>`. The second mapping needs no change to that reference — a slice folder sits inside its parent's exactly as an Epic subfolder sits inside a PRD dir, the layout its Epic-level branch already collects — and it is the same pair `/dev-workflows:create-ard <SLICE-KEY>` writes into the ARD's own `prd:`/`epic:` frontmatter, so the two agree by construction rather than by coincidence. On `status: none`, **skip and proceed exactly as before**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr`. On `status: found`, keep the spec's user stories + scope consistent with the returned `invariants` + `guidance_summary` during the Phase 5 grill; record a necessary deviation under the spec's `### Open questions` (never edit the ARD). Pass the `invariants` to `spec-reviewer` in Phase 6 as `applicable_ard`.
 
 ---
 
@@ -402,8 +569,8 @@ Resolve any ARD for this item by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-re
    resolved folder's `implementation.md` records (`${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md`
    §1 — its `repo` entries), build a candidate repo-slug list. There is no PR list to read: nothing here
    reads a tracker or a pull-request API. **Under
-   the BRD route there is no implementation record either; derive the list from
-   `<BRD-dir>/grounding/baselines.md` instead**, which already records repository → pinned commit for
+   the BRD route there is no implementation record either; derive the list from the resolved slice
+   folder's `grounding/baselines.md` instead**, which already records repository → pinned commit for
    every repo `/dev-workflows:brd-ground` read, plus the Phase 2 themes. That is a stronger starting
    set than a theme guess, and the rest of this phase treats it identically — step 3 resolves each
    entry against the slug map and step 4's soft gate handles one that is not mounted. A finding's
@@ -594,7 +761,7 @@ Cap: one fix cycle + one re-review maximum.
 
 ## Phase 7 — Handoff
 
-Write the feature folder: `specification.md` (`Published: no`), `idea.md`, `_session.md`, `_glossary.md`, and the rendered `.html`. **On the BRD route there is no `idea.md`** (Phase 2) — the other four are written exactly as above, into the BRD folder.
+Write the feature folder: `specification.md` (`Published: no`), `idea.md`, `_session.md`, `_glossary.md`, and the rendered `.html`. **On the BRD route there is no `idea.md`** (Phase 2, the one divergence that phase keeps) — the other four are written exactly as above, into the feature folder Phase 2 resolved: the slice folder itself when `focus_key` is null, or the `EPIC-` subfolder Step A selected when it is set.
 
 **On the BRD route, also close the consumption loop before the offer.** The design's *Consumption
 tracking* section (§7.3) has every finding and decision record a `consumed_by`, so that "nothing was
@@ -622,7 +789,7 @@ Then **offer** (commit-when-asked — never automatic), presenting `${CLAUDE_PLU
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
 
-On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: spec`; `feature_folder` = the Epic subfolder for a **per-Epic** spec (a PRD + focus Epic) or a **stand-alone-Epic** spec (`<EPIC>` = `focus_key`, which for a stand-alone Epic equals `key`), or the PRD dir for a **broad PRD-level** spec (`focus_key` null), or **the BRD folder on the BRD route** — Epic keys are globally unique, so the per-Epic form needs no PRD prefix, and both forms use hyphens; §2.2 derives `spec/<EPIC>-<eslug>` or `spec/<PRD>-<vslug>` from that folder, matching today's branch names, and `spec/<BRD-KEY>-<slug>` from a BRD folder (a slice's from its own folder basename) — which collides with neither `/dev-workflows:create-prd the BRD route`'s `prd/` branch on the same key, nor `/dev-workflows:create-ard the BRD route`'s `ard/` one, nor the `/brd-*` family's shared `brd/` one, because §2.2's prefix is the caller's own; `deliverable_paths` = `specification.md`, `_session.md`, `_glossary.md`, and the rendered `.html` — **plus, on the BRD route, `decisions.md`, `grounding/code-grounding.md` and `grounding/design-grounding.md`**, because the `consumed_by` writes above land in those three and an uncommitted consumption record is one no later run can read; `spec-seed.md` is not staged, because this run does not write to it; `title: <EPIC|PRD> Add specification`; and `body_facts` = the stage/user-story/AC/TC counts, the open-question count, and the `spec-reviewer` verdict — and, on the BRD route, the `<BRD-KEY>` this specification was seeded from and how many items were marked `consumed_by: specification`. **Merged-to-main = ready for the dev-team handover** — Devs and `/design` read the spec from `main`, never from the branch, and `require-on-main` now enforces that rather than merely stating it. Emit its §4.1 outcome line in the Final report.
+On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: spec`; `feature_folder` = the Epic subfolder for a **per-Epic** spec (a PRD + focus Epic — the only Epic-level shape there is, since every `EPIC-` folder sits under a PRD folder), or the PRD dir for a **broad PRD-level** spec (`focus_key` null), a `PRD-` slice folder on the BRD route being that same PRD-dir case rather than a third one, since a slice *is* a PRD folder — Epic keys are globally unique, so the per-Epic form needs no PRD prefix, and both forms use hyphens; §2.2 derives `spec/<EPIC>-<eslug>` or `spec/<PRD>-<vslug>` from that folder, matching today's branch names, and `spec/<SLICE-KEY>-<slug>` from a slice folder's own basename — which collides with neither `/dev-workflows:create-prd` on the BRD route's `prd/` branch on the same key, nor `/dev-workflows:create-ard` on the BRD route's `ard/` one, nor the `/brd-*` family's shared `brd/` one, because §2.2's prefix is the caller's own; `deliverable_paths` = `specification.md`, `_session.md`, `_glossary.md`, and the rendered `.html` — **plus, on the BRD route, `decisions.md`, `grounding/code-grounding.md` and `grounding/design-grounding.md`**, because the `consumed_by` writes above land in those three and an uncommitted consumption record is one no later run can read; `spec-seed.md` is not staged, because this run does not write to it; `title: <EPIC|PRD> Add specification`; and `body_facts` = the stage/user-story/AC/TC counts, the open-question count, and the `spec-reviewer` verdict — and, on the BRD route, the `<BRD-KEY>` this specification was seeded from and how many items were marked `consumed_by: specification`. **Merged-to-main = ready for the dev-team handover** — Devs and `/design` read the spec from `main`, never from the branch, and `require-on-main` now enforces that rather than merely stating it. Emit its §4.1 outcome line in the Final report.
 
 ### Next Epic (after a per-Epic spec from a multi-Epic PRD)
 
@@ -630,7 +797,7 @@ When this run authored a **per-Epic** spec that was selected from Step A's ≥2-
 ```
 choices: ["Next Epic — re-open the picker (Recommended)", "Stop here"]
 ```
-On **"Next Epic"**, **re-render the Phase 2 Step A progress-aware picker minus the just-completed Epic** — recompute each remaining Epic's ○/◐/● state from its feature folder, so the freshly-authored spec now shows **● done** and drops out of the actionable set — then, on selection, set `focus_key` to the new Epic and loop back through Phase 2 Step B → Phases 3–7 for it. This offer does **not** apply to a stand-alone Epic, a single-Epic PRD, or a broad PRD-level spec — there is no sibling to advance to. It does not apply **on the BRD route** either, and for a stronger reason: Step A never ran, so there is no picker to re-render and no Epic set to subtract from. The sibling that exists on that route is another *slice*, which is a separate BRD with its own folder and its own seed — reached by re-running `/dev-workflows:specify <SIBLING-SLICE-KEY> the BRD route`, which waits on nothing this run produced.
+On **"Next Epic"**, **re-render the Phase 2 Step A progress-aware picker minus the just-completed Epic** — recompute each remaining Epic's ○/◐/● state from its feature folder, so the freshly-authored spec now shows **● done** and drops out of the actionable set — then, on selection, set `focus_key` to the new Epic and loop back through Phase 2 Step B → Phases 3–7 for it. This offer does **not** apply to a single-Epic PRD or a broad PRD-level spec — there is no sibling to advance to. **On the BRD route it applies on exactly the same terms**: Step A runs there too, so a slice holding two or more `EPIC-` folders re-renders the picker like any other PRD folder, and a slice holding none or one does not — the same two exclusions as above, reached by the same test rather than by a route branch. What is *not* a sibling Epic is another **slice**: that is a separate folder with its own seed, reached by re-running `/dev-workflows:specify <SIBLING-SLICE-KEY>`, which waits on nothing this run produced.
 
 ### The Epic flow (document to the user)
 
@@ -639,8 +806,8 @@ On **"Next Epic"**, **re-render the Phase 2 Step A progress-aware picker minus t
 
 **There is no step between them.** `/epics` writes into the tree this command reads, so an Epic is
 visible to `/specify` the moment it is written — no creating it anywhere else, and nothing to import.
-That gap used to be a manual round-trip through a tracker, and removing it is most of what this
-increment is for.
+That gap used to be a manual export-and-re-import through a tracker, and removing it is most of what
+this increment is for.
 
 
 ## Phase 8 — Session maintenance & feedback
@@ -650,7 +817,7 @@ NEVER interrupts an earlier phase. `/specify` has no built-in maintenance agent,
 so this phase invokes `impl-maintenance` on the Sonnet detection chain and then
 persists the plugin-facing slice of its report as session feedback.
 
-**Capture-at-block invariant.** This terminal phase captures gaps for a *completed* run. Separately, if an EARLIER phase **halts on a plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked), `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating — so a run abandoned at the block still records the gap. NEVER `emit-block` for a work-quality review BLOCK or an environment / user halt (repo/spec gate, key-not-found, cancellation). **The three the BRD route stops are of that second class**: `SPECIFY_NEEDS_KEY`, `SPECIFY_BRD_NOT_FOUND` and `SPECIFY_BRD_NO_EPIC` report the operator's own argument list or BRD tree, not a capability this plugin lacks, so none of them `emit-block`s.
+**Capture-at-block invariant.** This terminal phase captures gaps for a *completed* run. Separately, if an EARLIER phase **halts on a plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked), `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating — so a run abandoned at the block still records the gap. NEVER `emit-block` for a work-quality review BLOCK or an environment / user halt (repo/spec gate, key-not-found, cancellation). **The four argument- and tree-shaped stops are of that second class**: `SPECIFY_NEEDS_KEY`, `SPECIFY_ONE_ADDRESS`, `SPECIFY_BRD_NOT_FOUND` and `SPECIFY_BRD_NOT_SLICED` report the operator's own argument list or BRD tree, not a capability this plugin lacks, so none of them `emit-block`s.
 
 **Session-hygiene invariant.** End the report with a `### Context hygiene` block per
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the
@@ -676,7 +843,7 @@ same way and commits under `NOISSUE` when there is none, per
    > Session handoff:
    > - Command run: /specify
    > - What was done: [one-paragraph summary of the specification authored]
-   > - Key events: [BLOCK reviews and their reason, unmounted-repo soft-gate advisories, unresolved open questions, picker / round-trip friction — or 'none']
+   > - Key events: [BLOCK reviews and their reason, unmounted-repo soft-gate advisories, unresolved open questions, picker or handoff friction — or 'none']
    > - Workarounds used: [manual steps not automated by the workflow — or 'none']
    > - Review verdict: [the spec-reviewer verdict — PASS | PASS WITH RECOMMENDATIONS | BLOCK]
    > - Test result: N/A (no tests in /specify)
@@ -749,10 +916,10 @@ written (§10 privacy).
 
 ## Final report
 
-Report: feature-folder path; stage/user-story/AC/TC counts; open-question count; unmounted-repo advisories; the `spec-reviewer` verdict; the `Phase handoff:` outcome line from `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1); the `Specs repo:` outcome line from `commit-artifacts` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; and a reminder of the round-trip described above + that `Published: yes` is a human-only freeze step.
+Report: feature-folder path; stage/user-story/AC/TC counts; open-question count; unmounted-repo advisories; **the PRD gate's return value and whether an authored `prd.md` was read from the resolved folder** — the same two lines on every route, so a reader can tell an `absent` PRD from an unrun gate; the `spec-reviewer` verdict; the `Phase handoff:` outcome line from `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.1); the `Specs repo:` outcome line from `commit-artifacts` (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; and a reminder of the Epic flow described above + that `Published: yes` is a human-only freeze step.
 
-**On the BRD route, additionally:** the `<BRD-KEY>` seeded from and its resolved folder; whether this
-run was BRD-level or slice-level and, for a slice, the `parent:` key and the `(prd, epic)` pair Phase
+**On the BRD route, additionally:** the `<SLICE-KEY>` seeded from and its resolved folder; this run's
+`parent:` key — every run of this route is slice-level — and the `(prd, epic)` pair Phase
 2.5 passed to `ard-resolution.md` with the `status` it returned; which of `spec-seed.md`,
 `decisions.md`, `grounding/code-grounding.md` and `grounding/design-grounding.md` were present, and
 whether `code-grounding.md` carried a derivation matrix; that no `idea.md` was written and why; every
@@ -771,17 +938,53 @@ was not.
 
 ### Next step
 
-End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): **Epic-level spec** (`<PRD> <Epic>`) → hand to Dev → `/dev-workflows:design <PRD> <Epic>` `<merge-clause>`, which will not start until this spec is on the default branch — on every path, since `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3.4's `/design` row is a stop even for a spec that reached no branch — and the **Epic fan-out** `/dev-workflows:specify <PRD> <another-Epic>` for a sibling Epic (breadth), which waits on nothing this run produced and carries no clause; **PRD-level spec** (`<PRD>` only) → `/dev-workflows:epics <PRD>` (PE) `<merge-clause>`, which stops rather than skipping wherever this spec reached a branch (§3.3 rows D/E) and skips exactly as it did before wherever it reached none (§3.4's `/epics` row). If the run BLOCKED or left open `- [ ]` items, recommend resolving those first.
+End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): **Epic-level spec** (the address resolved an `EPIC-` folder) → hand to Dev → `/dev-workflows:design <EPIC>` `<merge-clause>`, which will not start until this spec is on the default branch — on every path, since `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3.4's `/design` row is a stop even for a spec that reached no branch — and the **Epic fan-out** `/dev-workflows:specify <SIBLING-EPIC>` for a sibling Epic (breadth), which waits on nothing this run produced and carries no clause; **PRD-level spec** (the address resolved a `PRD-` folder) → `/dev-workflows:epics <PRD>` (PE) `<merge-clause>`, which stops rather than skipping wherever this spec reached a branch (§3.3 rows D/E) and skips exactly as it did before wherever it reached none (§3.4's `/epics` row). If the run BLOCKED or left open `- [ ]` items, recommend resolving those first.
 
-**On the BRD route the same two offers apply, and they no longer need a reachability test.**
+**One precondition governs every `/dev-workflows:epics` option above, on both routes.** `/epics` accepts
+a folder holding a `prd.md` that asserts `kind: prd` and refuses one that does not
+(`commands/epics.md` Phase 0 step 1b, `EPICS_NO_PRD`). This run does **not** require a PRD — its Phase 0
+gate has an `absent` branch that specifies from the resolved folder, and on the BRD route
+`/dev-workflows:create-prd` is not a prerequisite at all — so the folder it just wrote a specification
+into may legitimately hold no PRD. **Test the resolved PRD folder for an authored `prd.md`** before
+rendering the recommendation: where there is one, name `/dev-workflows:epics <ADDRESS>`; where there
+is not, name **`/dev-workflows:create-prd <ADDRESS>`** instead — **but only where that command can
+itself run**. Offering `/epics` there would name a run that stops on arrival, and naming
+`/create-prd` without the test below does the same thing one command further on.
+
+**`/create-prd` refuses three shapes, not one**
+(`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.2, the authority, not restated
+here). This run has cleared only the container refusal, by resolving a `PRD-` folder itself. The
+other two are data refusals on a slice's own ledger and exist only where the resolved PRD folder
+carries a `brd-link.md`; an idea-route PRD folder has no gate set, so `/dev-workflows:create-prd
+<ADDRESS>` is reachable there on the `prd.md` test alone. Where the folder is a **slice**, read its
+`coverage-ledger.md` — the rows its `brd-link.md` `claims:`, out of the file and never off a
+`ledger:` line (§6.1) — and resolve the recommendation from it:
+
+| The slice's gate set | What the `### Next step` names |
+|---|---|
+| No row `unallocated`, and at least one `covered-here` | `/dev-workflows:create-prd <SLICE-KEY>` — all three refusals cleared |
+| A row still `unallocated` | `/dev-workflows:brd-split <SLICE-KEY>` instead: `/create-prd` would raise `CREATE_PRD_BRD_UNALLOCATED`, and that walk is what moves those rows (allocate-only on a slice). Its own Phase 0 gates on this slice's grounding findings carrying a verifier verdict, so say so beside the offer |
+| No row `covered-here`, gate set **empty** | `/dev-workflows:brd-split <PARENT-KEY>` instead — the keep-or-remove run for a standing empty child, and not a no-op there |
+| No row `covered-here`, gate set **non-empty** | **Name neither `/create-prd` nor `/epics`.** `/create-prd` would raise `CREATE_PRD_BRD_NOT_ELIGIBLE`, whose non-empty branch names no command at all by design; say instead what the gate-set rows resolved to and that nothing in the plugin moves a terminal row back. `/dev-workflows:design <ADDRESS>` is unaffected and is still recommended — it takes over the specification this run just wrote and needs no PRD |
+
+**Dropping rather than annotating follows `commands/brd-reconcile.md` Phase 14**, which runs these
+same two data tests before offering `/dev-workflows:create-prd <SLICE-KEY>` and drops the option on
+the stated ground that a hard refusal in another command's Phase 0 is not a state the reader can
+judge for themselves. A `### Next step` is prose rather than a `choices:` array, so dropping an
+option costs it no arity — it says what it can honestly recommend and why the rest is absent.
+
+**On the BRD route the same offers apply, on the same terms.**
 `/dev-workflows:design` and `/dev-workflows:epics` both resolve a folder in the specs tree with
 `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3) — the same tree, and often
-the same folder, this run has just written into. There is nothing to check before naming them:
+the same folder, this run has just written into:
 
 - **`/dev-workflows:design <ADDRESS>` `<merge-clause>`** — it gates the `specification.md` this run
   wrote, so the clause is required.
 - **`/dev-workflows:epics <ADDRESS>`** — it reads the PRD folder and gates nothing this run
-  produced, so it carries no clause.
+  produced, so it carries no clause; it is subject to the `prd.md` precondition above, which is the
+  same test on both routes and not a BRD-route qualification. **Its replacement is not**: only a
+  BRD-route slice has a gate set, so the table above is where a slice with no `prd.md` and no
+  `covered-here` row stops the `/create-prd` recommendation from being made at all.
 
 **What this replaces is worth naming, because a reader who remembers it will look for it.** Both
 offers used to be withheld unless an export directory existed under the key, a test that existed

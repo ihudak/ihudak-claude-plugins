@@ -115,6 +115,17 @@ A key encodes its ancestry: `ACME-90-01-01` is an Epic of `ACME-90-01`, which is
 and each redundant argument is one that can **disagree** with the others, which is a failure class
 the plugin does not have today. One address, resolved once.
 
+**D4 binds what a command *prints* as hard as what it parses.** Retiring the grammar from the parsers
+while `references/next-phase-offer.md` and a dozen command reports still offered
+`/specify <PRD> <Epic>`, `/design <PRD> <Epic>` and `/create-ard <PRD> <Epic>` left the pair alive in
+the only place a user meets it — and an offer naming an argument form no command accepts is this
+plugin's signature defect, not a cosmetic lag. So the shared offer contract carries the rule
+explicitly: **one address per offer**, an Epic-scoped step named by the Epic's own key, and a second
+positional token refused (`CREATE_ARD_ONE_ADDRESS`, `SPECIFY_ONE_ADDRESS`) on **every** route rather
+than only on the BRD one. The route-scoped version of that refusal argued "a BRD has no Epics yet —
+they are minted from the PRD", which §6.3 has since falsified: a slice *is* a PRD folder and can hold
+`EPIC-` folders.
+
 ---
 
 ## 4. The artifact model
@@ -325,6 +336,28 @@ as deprecated. `@<path>` bypasses the fallback along with the rest of resolution
 and a renaming script we cannot test against their tree is a liability. Renaming a folder is one
 `git mv`, and the fallback means they need never do it.
 
+**Every kind test that a prefix would have answered must be *positive* in the unprefixed case.** The
+fallback resolves two shapes that a prefixed tree tells apart by name alone — a root BRD folder and
+an idea-route PRD folder — and neither carries a `brd-link.md`, so a container test written as *the
+absence* of one refuses both. D5's refusals then offer `/brd-split` on an idea-route folder that has
+no coverage ledger to walk, which is the stop-naming-an-unreachable-remedy anatomy this design keeps
+scoring against itself. The test is instead evidence that the BRD route touched the folder:
+`coverage-ledger.md` or `brd/brd-inventory.md`, written by `/brd-intake` and `/brd-split` and by
+nothing on the idea route, with `brd-link.md`'s `parent:` then separating root from slice. The rule
+is stated once, in `references/coverage-ledger-format.md` §5.1, and cited by `/create-prd`,
+`/create-ard`, `/specify` **and `/epics`** — none of which may substitute a test on `prd.md`, since
+`/create-prd` is the run that writes it.
+
+**`/epics` is a consumer, and an earlier revision of this section said it was unaffected.** That
+sentence read *"§6.3's gate reads `prd.md`'s own `kind: prd` and no directory name, so it classifies
+an unprefixed folder exactly as a prefixed one."* It is true of `/epics` step 1b and false of step
+1a, and 1a is the step that takes the container refusal. 1b does classify an unprefixed folder
+correctly — it refuses a container for holding no `prd.md` — but its stop names `/create-prd` as the
+remedy, and `/create-prd` takes §5.1 and refuses that same folder as a container. A stop whose
+remedy stops is the dead end step 1a exists to prevent, and prefix-only, 1a never fires on an
+unprefixed container. So `/epics` needs the §5.1 clause the other three carry, at 1a, ahead of 1b.
+The sentence is corrected rather than deleted because a reader who remembers it will look for it.
+
 ### 5.4 What replaces `jira-input-resolution.md`
 
 That file resolved a Jira key against `$VAULT_PATH/jira-products/`, classified path tokens, owned
@@ -387,6 +420,14 @@ file are still followed one level where they resolve relative to that file's own
 **Accepted cost:** an abandoned idea leaves a folder in `specifications/` where it used to die in the
 vault. Reintroducing a staging area to avoid that would restore the relocation step this removes.
 
+**Nothing may describe `/idea` as relocating anything, including its own frontmatter description and
+`references/addressing.md`'s adopter notes.** D7 is not a change of default that a second sentence
+can qualify: there is no relocating branch left to reach, so a line saying `/idea` "relocates
+`idea.md`" describes a step that cannot run, and a reader who believes it looks for the brief
+somewhere it never was. The one true statement is that `idea.md` lands in `PRD-<KEY>-<slug>/` on the
+**first** write, resolved by `references/addressing.md` §3, and is never moved afterwards — not by
+`/idea`, not by `/create-prd`, not by anything.
+
 ### 6.2 `/create-prd`
 
 **The idea ladder collapses to two states.** Rungs 3 (same-session) and 4 (`find "$VAULT_PATH/Projects"
@@ -395,8 +436,30 @@ absent. Rung 1's `require-on-main` gate stays; rung 2's out-of-contract `@path` 
 
 **`CREATE_PRD_NEEDS_KEY` loses "create an empty Jira workitem first to get the ID."**
 
+**`/create-prd` writes `key`, on both routes, and nothing else does.** It is the resolved folder's own
+key — the positional key on the idea route, the `PRD-` slice's key on the BRD route — and
+`/update-prd` carries it forward without re-deriving it. This has to be *stated* rather than left
+implied, because the BRD route previously **deferred** the field to the tracker step that minted a
+second identity and wrote it back. Cutting the tracker removed the writer and nothing replaced it, so
+the field stayed permanently unset: the folder's only `kind:`+`key:` carrier was the `brd-link.md`
+asserting `kind: brd`, which made a PRD folder resolve as a BRD (§4.4), and `/document` and
+`/release-notes` grepped commit messages for an empty string. The residue was durable because it was
+written as a *deferral to a later step* rather than as an omission — six sites deferred work to "the
+round-trip" while `references/followup-emission.md` stated plainly that no command performs one, and
+no reader had to reconcile the two. **A deferral naming a step that does not run is the same defect
+as a stop naming a remedy that cannot run**, and it is caught the same way: nothing under `commands/`
+or `agents/` may name a round-trip.
+
+**`release_versions`, `change_type` and `release_notes_category` are authored, not returned.** They
+were tracker dropdowns an import handed back, so `/create-prd` was told not to ask for them and
+`/release-notes` to read them "from the import". `references/prd-format.md` reversed that; both
+commands now say so, and the place each is *known* is `/release-notes`' own grill.
+
 **`--from-brd` is retired as a flag (D18).** Under §4.1 the BRD route's PRD folder is created by
-`/brd-split`, carries `brd-link.md`, and holds the ledger rows the two Phase 0 refusals read. So the
+`/brd-split`, carries `brd-link.md`, and holds the ledger rows the two *data* Phase 0 refusals read
+— which are reached only after a third, structural one has passed: a `BRD-` container is refused on
+the resolved folder's kind before any ledger row is read (D5), so the two data refusals are
+slice-only and there are three in all. So the
 route is a property of the resolved folder, not something the operator restates: `/create-prd` takes
 one address, detects `brd-link.md`, and **prints which mode it entered** before doing anything. A
 flag that can disagree with the folder it names is one more of the disagreements D4 exists to
@@ -417,9 +480,31 @@ is gone.
 **Three invocations, one rule — the address decides the mode:**
 
 - a `PRD-` folder — partition the PRD into Epics.
-- an `EPIC-` folder — refine that Epic.
+- an `EPIC-` folder **that has a PRD above it** — refine that Epic.
 - `@<file>` — refine the Epic that file holds. **Stop if the file is not an Epic**, tested by its
   `kind: epic` frontmatter, naming what it found instead.
+
+**And two refusals, because D6 is enforced structurally rather than assumed.** A **stand-alone
+`EPIC-` folder** — one with no PRD above it — is refused (`EPICS_EPIC_NOT_UNDER_PRD`), and so is a
+**`BRD-` container** (`EPICS_BRD_NOT_SLICED`, taken on the directory prefix before any read, naming
+the `PRD-` slices under it, one set of Epics each). **`/epics` is the only command that creates an
+`EPIC-` folder**: `/create-ard` and `/specify` each stop on an absent one rather than minting it on
+first write, and the *stand-alone top-level Epic* case those two commands carried — a `specification.md`
+or an `ard.md` written flat into a top-level `EPIC-` folder — is retired with it.
+
+**The accept gate is `prd.md`'s own `kind: prd`, never the folder's asserted kind.** A `PRD-` slice
+folder asserts `kind: brd` in the `brd-link.md` `/brd-split` writes into it (§4.1), so an
+asserted-kind gate would refuse every slice and accept nothing. `/create-prd` cannot take this test —
+it is the run that writes `prd.md` — but `/epics` can, because by then the PRD exists; the Epic side
+is the same test one level down, on `epic.md`'s own `kind: epic`. Neither test reads a directory
+name, so §5.3's legacy unprefixed folder is classified exactly as a prefixed one is. A `PRD-` folder
+in which no PRD has been authored yet is refused too (`EPICS_NO_PRD`), naming `/create-prd`.
+
+**`focus_key` is derived from the address, not typed beside it (D4).** `/epics` already parsed a
+refinement target but nothing ever set it, so refine-by-focus was unreachable and an `EPIC-` address
+was silently partitioned as though it were a PRD. It is now derived from a resolved `EPIC-` folder
+the way `/specify` derives its own altitude — the folder's kind decides, and `<PRD-KEY>` is the
+parent's asserted `key`.
 
 **Refine's job changes, and the spec says so rather than letting a reader assume continuity.** Today
 refine fills in *empty Epics somebody else created in the tracker* — which existed so that linking an

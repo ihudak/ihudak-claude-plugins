@@ -32,7 +32,7 @@ This command makes **zero external API calls** and **never writes into the docs 
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a
    folder or a file inside one — and resolve it with `resolve-address`
    (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). Carry the resolved `path`, `kind` and
-   `key` forward; `absent` → the folder does not exist; `ambiguous` → stop, naming every match.
+   `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/dev-workflows:idea <KEY>` or `/dev-workflows:create-prd <KEY>` on the idea route and from `/dev-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/dev-workflows:epics <PRD-ADDRESS>` and from no other command.
 
    With no positional address, stop with
    `RELEASE_NOTES_NEEDS_KEY: /release-notes needs a PRD or Epic address — a key, or an @<path> to its folder.` —
@@ -201,20 +201,20 @@ from anything, because nothing supplies it.
 
 ## Phase 4 — Resolve repos (only if diff grounding is ON)
 
-Build a slug→clone map: for each top-level directory under each entry of `$REPOS_PATH`, run `timeout 5 git -C <dir> remote get-url origin 2>/dev/null`, strip a trailing `.git`, and take the URL's last path segment as the clone's slug. Resolve each in-scope PR repo slug against the map: one match → use it; multiple → auto-prefer basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last; zero matches → escalate:
+Build a slug→clone map: for each top-level directory under each entry of `$REPOS_PATH`, run `timeout 5 git -C <dir> remote get-url origin 2>/dev/null`, strip a trailing `.git`, and take the URL's last path segment as the clone's slug. Resolve each in-scope `repo` slug — the ones the Phase 3 implementation record and its commit scan named — against the map: one match → use it; multiple → auto-prefer basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last; zero matches → escalate:
 ```
-choices: ["Skip and continue without its PRs", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]
+choices: ["Skip and continue without its refs", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]
 ```
 
 ---
 
 ## Phase 5 — Diff summarisation (only if diff grounding is ON)
 
-Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent message, passing each resolved absolute `repo_path` plus `repo_url_slug` and the PRs filtered to that repo. Collect the outputs into a `diff_summaries` array.
+Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent message, passing each resolved absolute `repo_path`, its `repo_url_slug`, and `refs[]` — the `{branch_from, branch_to, title}` elements Phase 3 built for that repo, which is the shape that agent's Inputs declare as the ordinary one. Collect the outputs into a `diff_summaries` array.
 
 **Per-repo summarizer status.** Handle each returned status before continuing:
 
-- `OK` / `PARTIAL` / `NO_PRS_RESOLVED` — use the result; record unresolved PRs in the run report.
+- `OK` / `PARTIAL` / `NO_PRS_RESOLVED` — use the result; record unresolved refs in the run report.
 - `REPO_MISSING` — escalate per the `Repo missing (after resolution)` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
 - `DIRTY_TREE` — escalate per the `Dirty working tree` rule in the same file.
 - `REFRESH_BLOCKED` — escalate per the `Refresh blocked` rule in the same file.
@@ -255,7 +255,7 @@ This is the same inference `emit-cost` already applies in Phase 11; do not add a
   > folder_read: [the Phase 3 handoff — scoped to the focus Epic's subtree when focus_key is set]
   > diff_summaries:      [the Phase 5 array, or omit when diff grounding was off]
   > docs_grounding:      [the Phase 5.5 digest, or omit when OFF/EMPTY]
-  > imported_change_type:            [from Phase 3, else null]
+  > change_type:            [from Phase 3, else null]
   > release_notes_category: [from Phase 3, else null]
   > run_phase:           [pm | dev — resolved immediately above, in this phase]
   > model_routing:       [the block from Phase 1.5]
@@ -478,7 +478,7 @@ current working directory; no user name is ever written (§10).
 - Every read of the specs tree is read-only.
 - The draft contains NO identifiers, NO PR links, and NO `{{#internal-note}}` block.
 - The draft is EXACTLY one Summary, shaped by its destination per `${CLAUDE_PLUGIN_ROOT}/references/release-note-types.md` §1/§3 — a plain **Category:** label + `### title` + prose for `breaking-changes` / `feature-updates`, or ONE bare past-tense sentence for `fixes`. It carries NO `Change type:` line and NO `Release-notes category:` line, and its **prose** names no release version — the version is the **section heading** the draft is filed under, which is the only thing that says which release a section belongs to now that the three destinations are three sections of one file. The prohibition survives for the body prose alone. When the change deprecates something the Summary carries a deprecation note (end-of-life date required, end-of-support optional).
-- The category label IS the PRD's `release_notes_category`, used verbatim; when the import carries none the line is OMITTED. Change Type is sourced `change_type` → infer, and is confirmed with the user ONLY when it was inferred with low confidence — by shape and destination, never by enum label. Neither field is ever asked for by enum label.
+- The category label IS the PRD's `release_notes_category`, used verbatim; when the PRD carries none the line is OMITTED. Change Type is sourced `change_type` → infer, and is confirmed with the user ONLY when it was inferred with low confidence — by shape and destination, never by enum label. Neither field is ever asked for by enum label.
 - The run is GATED on the PRD's own `relevant_for_release_notes`: an explicit `false` stops with `RELEASE_NOTES_NOT_RELEVANT` (overridable); absent proceeds silently.
 - NEVER write into a docs repo; the default destination is persistent (never `/tmp`).
 - ALWAYS use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0).

@@ -3,9 +3,12 @@
 Gates on every grounding finding carrying a verifier verdict, proposes candidate slices from the
 grounded picture, keys and nests a `PRD-` folder per confirmed slice with its own
 `brd-link.md`, an inventory of the rows it inherits, and an unallocated coverage ledger of its
-own, then walks every unallocated coverage-ledger row one at a time through five
+own, then walks every unallocated coverage-ledger row one at a time through four
 resolutions until none remain `unallocated`, and writes `slices.md` with the rationale for each
-slice and each deferral. Run on a **slice** it allocates but does not slice: the proposal and
+slice and each deferral. Where one answer is uniform by construction **and two or more rows are
+still `unallocated`** — exactly one slice standing on a parent, or any run on a slice — the walk
+first offers to write that single disposition across every remaining row in one confirmation,
+stating each row it would write and letting any of them be held back to the one-at-a-time walk. Run on a **slice** it allocates but does not slice: the proposal and
 child-creation phases are skipped and the walk offers its own four resolutions — the same count as `full` mode, a different set.
 
 ## Who runs it
@@ -42,10 +45,11 @@ asking nothing: a set operation over the ledger (*everything no child covers*) r
 here. *Step B* grills only the residue — one question at a time, each with a recommended answer,
 **capped at five and gated on a value test: ask only where one answer places more than one row.**
 
-**The value test is the real gate, and the reason is the fallback.** Phase 4 visits every unallocated
-row one at a time regardless, and Phase 2's picker lets you move rows by hand — so an unplaced row
-costs nothing you were not already paying, and a question that disambiguates a single row spends a
-turn to save a prompt that is coming anyway. What earns a question is a terminology decision that
+**The value test is the real gate, and the reason is the fallback.** Phase 4 settles every
+unallocated row regardless — one at a time, or inside its Step 1 offer where that fires — and
+Phase 2's picker lets you move rows by hand, so an unplaced row costs nothing you were not already
+paying, and a question that disambiguates a single row spends a turn to save at most one prompt that
+was coming anyway. What earns a question is a terminology decision that
 moves several rows at once. That also sizes the cap: in [`/idea`](idea.md) an unresolved bounded
 question ships as a marker inside the artifact, so ≤10 earns its length; here the residue has a free
 fallback, so ≤5 does.
@@ -74,7 +78,8 @@ declaration.
 | Phase 1.5 — read the slicing instruction | runs (when one was given) | runs (when one was given) — it seeds the walk, not a grouping |
 | Phase 2 — propose slices | runs | skipped |
 | Phase 3 — key and nest children | runs | skipped — this is the child creation the one-level cap forbids |
-| Phase 4 — walk the ledger | runs, **five** resolutions | runs, **four** — this walk offers no `covered-by` |
+| Phase 4 — walk the ledger | runs, **four** resolutions — no `covered-here` | runs, **four** — this walk offers no `covered-by` |
+| Phase 4 Step 1 — the bulk offer | fires only when **exactly one** slice stands and ≥2 rows are unallocated; writes `covered-by: <that slice>` | fires whenever ≥2 rows are unallocated; writes `covered-here`, and carries the marker the per-row picker already carries |
 | Phase 4.5 — resolve standing empty children | runs | skipped — a slice has no children |
 | `rejected: [DEF#n]` resolves in | this BRD's own defect log | the **parent's** log, one hop ([`brd-format.md`](../../references/brd-format.md) §4) |
 | Phase 7 — next steps | ground each **non-empty** child | **the route does not end here** — [`/brd-interview`](brd-interview.md) on this slice, Recommended; *Stop here* is the other option, not the only one |
@@ -101,7 +106,7 @@ flowchart TD
     p1 --> p15["Phase 1.5 — Read the slicing instruction (only when one was given; both modes)"]
     p15 --> p2["Phase 2 — Propose slices"]
     p2 --> p3["Phase 3 — Key and nest each confirmed slice"]
-    p3 --> p4["Phase 4 — Walk the ledger"]
+    p3 --> p4["Phase 4 — Walk the ledger (Step 1 bulk offer where one answer is uniform by construction, then the one-at-a-time walk)"]
     p4 --> p45["Phase 4.5 — Resolve standing empty children"]
     p45 --> p5["Phase 5 — Write slices.md"]
     p5 --> p6["Phase 6 — Handoff"]
@@ -152,14 +157,17 @@ reads was already independently verified by `/brd-ground`'s own agents.
 
 ## What it produces
 
-Under `$SPECS_PATH/specifications/<BRD-KEY>-<slug>/`:
+Under the resolved BRD folder — `$SPECS_PATH/specifications/BRD-<BRD-KEY>-<slug>/` for a root
+BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
+([addressing](../reference/references.md) §2, §6):
 
 - `coverage-ledger.md` — updated so no row remains `unallocated`: each row now reads
   `covered-by: <SLICE-KEY>`, `deferred-to: <this BRD>`, `rejected: [DEF#n]`, or
   `superseded-by: [BR#n]`.
 - `slices.md` — one block per confirmed slice (its key, its folder, and the rationale that grouped
   its rows: the buildable / blocked / depends-on reading, or, for a group a slicing instruction
-  placed, what in the instruction placed it); one block per row deferred this run; and, when the run
+  placed, what in the instruction placed it); one block per row deferred this run; one block for the
+  Phase 4 Step 1 bulk offer where it fired, naming what it wrote and what was held back; and, when the run
   was given an instruction, one block for the instruction itself — **verbatim**, with how it was
   read: which rows Phase 1.5's Step A placed directly, which the Step B grill settled and by what
   terminology decision, and which it could not place. That block is written whether or not the
@@ -212,6 +220,31 @@ with a "nothing to commit" report on the no-op path.
   PRD-eligible, and it is absent from the parent's picker because a BRD is a container that builds
   nothing itself — every row that must be built goes to a slice, and Phase 2 always produces at
   least one.
+- **Phase 4 Step 1 — the bulk offer, and it is an offer.** Slicing is mandatory, so a whole BRD
+  becoming one slice is the ordinary shape of this route: every row on the parent takes
+  `covered-by: <the one slice>`, and every row on that slice then takes `covered-here`. Where that
+  answer is fixed by construction — **exactly one** slice standing on a parent, any run on a slice —
+  and two or more rows are still `unallocated`, the walk asks **once** instead of once per row. A
+  forty-row BRD resolved to a single slice costs 40 + 40 = **80** prompts without it and **2** with
+  it, across the same two runs and the same two pull requests.
+
+  Three things keep it an offer rather than a mode. It **states what it will write** before you
+  answer — the disposition spelled out, the count, every `[BR#n]` with the first line of its text,
+  and the `brd-link.md` `claims:` entries it adds alongside. It is **refusable per row**: the second
+  option takes a list of `[BR#n]` ids to hold back and walks exactly those one at a time, so three
+  exceptions out of forty cost one offer, one naming prompt and three row prompts — **5**, not 40.
+  And the **third option is the ordinary walk**, which is where *every* answer the run cannot use
+  falls through to — at the offer itself and at the hold-back prompt, an empty answer included — so
+  nothing is ever written in bulk that you were not shown and did not confirm.
+
+  Its vocabulary is those two dispositions and no others: `deferred-to` needs a per-row rationale,
+  `rejected` a `[DEF#n]`, and `superseded-by` a `[BR#n]`, and a bulk form of any of the three would
+  either skip a prompt that carries content or copy one row's reason onto rows that do not share it.
+  It does not fire where two or more slices stand — which slice owns a row is the per-row judgement
+  the walk exists to take — nor on a single remaining row, where it would spend a prompt to save
+  one. A row the run's `<instruction>` placed on a different disposition is excluded from the set
+  and named in the offer, never absorbed by it. `slices.md` records that the offer fired, what it
+  wrote, and what was held back, because the ledger rows read identically either way.
 - **Phase 4.5 — no child left standing while claiming nothing** (`split_mode: full` only). The set is
   **every** child standing now, not only the ones this run created: a slice whose every proposed row
   ended the walk resolved elsewhere, and any child an earlier run left empty. A child with no

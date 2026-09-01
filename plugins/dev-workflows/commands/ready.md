@@ -29,7 +29,7 @@ single Epic. Address an `EPIC-` folder to scope the check to one Epic
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a
    folder or a file inside one — and resolve it with `resolve-address`
    (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). `status: found` → carry its `path`, `kind`
-   and `key` forward; `absent` → the folder does not exist; `ambiguous` → stop, naming every match.
+   and `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/dev-workflows:idea <KEY>` or `/dev-workflows:create-prd <KEY>` on the idea route and from `/dev-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/dev-workflows:epics <PRD-ADDRESS>` and from no other command.
 
    **The kind decides the altitude, replacing the two-key grammar.** A `PRD-` folder is a PRD-level
    run (`<EPIC>` is `null`); an `EPIC-` folder is an Epic-level run, and its PRD folder is its
@@ -99,14 +99,18 @@ best-effort-checks repos under `$REPOS_PATH`; cwd need not be inside either.
 
    For each `specification.md` and `design.md` path located above (the `ard.md` files are handled by Phase 2.5's `ard-resolution.md`, not here), execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against its repo-relative path and map its §3.7 return value by `stopped` first, never by `on_main` alone — never a stop, per this command's defining trait: `stopped: false` with `on_main: pass`/`pass_amending` → **present** (with its absolute path); `stopped: false` with `on_main: absent` → **missing**, exactly as before this feature (§3.4's `/ready` row — this is row F only, never rows D/E, which also read `absent` on `origin/<default>` but return `stopped: true`); `stopped: false` with `on_main: unmanaged` → fall back to a raw filesystem presence check, exactly as before this feature (row H's own silent-skip contract); `stopped: true` → still never a stop for `/ready` — map the row to exactly one of three ⚠ reasons, never conflating them, because they are three different repository states, not one: rows D/E → ⚠ **authored only on `<branch>`, not merged** (naming the branch and any open PR); rows C′/C after a failed retry → ⚠ **on `<default>` but your local checkout is stale or dirty, so it could not be confirmed**; rows G/I (including the run's own `specs_git: blocked`) → ⚠ **could not be verified against any ref** (naming the returned `degraded` clause where present). Each is recorded verbatim as a readiness finding — `/ready` itself never asks a further question, retries, or stops on top of what came back: row C's own prompt-once-and-re-test-once (`phase-handoff.md` §3.3 row C, `:139-143`) and row C′'s own immediate stop naming the blocking files are `require-on-main`'s contract, already executed synchronously inside this very step; `/ready` only records whichever `stopped`/`degraded` state the call returned. Record each ARD as present (with its absolute path) or absent — its on-main state is Phase 2.5's job. Do not open/read file contents yet beyond what's needed for these checks — full reads happen in Phase 4 via the reviewer.
 
-3. **Quick artifact peek (display only — not the ground truth).** Read
-   `<prd_dir>/<KEY>-index.md`'s `| Key | Type | Status | Summary | Role |` table directly
-   (mechanical — no subagent) and note the `Status` column for `<PRD>` and, when set, `<EPIC>`. This is
-   for **Phase 1 display context only**; Phase 2's folder read is the authoritative source the
-   reviewer verifies against.
+3. **The status peek is retired, and nothing replaces it.** It read a
+   `| Key | Type | Status | Summary | Role |` table out of a per-key index file that a tracker export
+   wrote. Nothing in `$SPECS_PATH` writes such a file, so the read had no source — and D8 removed its
+   purpose as well: the phase is **derived from the artifacts** (Phase 3(0)), and the only status
+   anyone declares is the one the operator passes to `--claimed` (step 1a), which Phase 3 compares
+   against the derivation rather than displaying beside it. **Do not reconstruct it**: a second,
+   softer statement of the phase beside the derived one is exactly the duplicated state D8 exists to
+   remove.
 
 4. **Display** (context, no further prompt): resolved cwd; resolved PRD dir (+ Epic subdir); resolved
-   `$SPECS_PATH`; the artifact inventory table from step 2; the status peek from step 3.
+   `$SPECS_PATH`; the artifact inventory table from step 2; and any `--claimed` value verbatim, marked
+   as the operator's claim rather than as this run's finding.
 
 No branching context is shown — nothing here branches this run; the only branch `/ready` ever creates is `ready/<KEY>-<slug>`, and only later, at Phase 5's handoff, and only on the §4.3 consent choice. `specs-preflight` itself still creates none, switching `$SPECS_PATH` only between branches that already exist and are plugin-created, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2.
 
@@ -379,7 +383,7 @@ plugin-gap halt (see Invariants).
    The next phase runs once it is merged." or the declined/gate-failed/nothing-to-commit variant]
 
    ### Next step
-   [Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. SUPPORTED → `/dev-workflows:implement <PRD> [<Epic>]` (same lane, no handoff). PARTIAL / NOT-SUPPORTED → resolve the named gaps above and update the
+   [Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. SUPPORTED → `/dev-workflows:implement <ADDRESS>` — the same single address this run judged (D4), no handoff. PARTIAL / NOT-SUPPORTED → resolve the named gaps above and update the
    any status you keep elsewhere to match the artifacts, then re-run `/dev-workflows:ready <ADDRESS>`.]
 
    ### Context hygiene
@@ -387,7 +391,7 @@ plugin-gap halt (see Invariants).
    `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1, recording the readiness
    verdict as a carry-forward line. Then:
 
-   - **SUPPORTED → `/dev-workflows:implement <PRD> [<Epic>]` (still Dev)?** → run **`/compact`** — context stays relevant.
+   - **SUPPORTED → `/dev-workflows:implement <ADDRESS>` (still Dev)?** → run **`/compact`** — context stays relevant.
    - **PARTIAL / NOT-SUPPORTED → resolving the gaps yourself now?** → **`/compact`**.
    - Consider **`/rename <PRD-ID>-<slug>-dev`** to relocate this session later.
 

@@ -40,7 +40,7 @@ refresh:
 
 Refuse to run without `repo_path` and at least one element in **`refs` or `pr_refs`**.
 
-**`refs` is the shape the callers actually have**, and the refusal used to name `pr_refs` alone. `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §1 records `repo` / `branch` / `base` / `commit` / `pushed` — no URL, no host, no PR id — because nothing in this plugin reads a tracker or a pull-request API any more. A caller holding only that record could satisfy neither the required field nor the host routing below, so every host-specific strategy is skipped for a `refs` element and the diff is taken directly: `git -C <repo_path> diff <branch_to>...<branch_from>`, with `branch_from` accepted as a commit sha when the branch is gone (`implementation-format.md` §1 records both for exactly that reason). `pr_refs` still routes by host where a URL is known.
+**`refs` is the shape the callers actually have**, and the refusal used to name `pr_refs` alone. `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §1 records `repo` / `branch` / `base` / `commit` / `pushed` — no URL, no host, no PR id — because nothing in this plugin reads a tracker or a pull-request API any more. A caller holding only that record could satisfy neither the required field nor the host routing below, so every host-specific strategy is skipped for a `refs` element (`resolved_via: local_ref`) and the diff is taken directly: `git -C <repo_path> diff <branch_to>...<branch_from>`, with `branch_from` accepted as a commit sha when the branch is gone (`implementation-format.md` §1 records both for exactly that reason). `pr_refs` still routes by host where a URL is known.
 
 When `repo_url_slug` is provided, before summarising run
 `git -C <repo_path> remote get-url origin`, strip a trailing `.git`, and compare
@@ -140,10 +140,11 @@ prep:
   scanned_ref:      <ref name, e.g. "origin/main"; the default branch name when writable>
   ref_committed_at: <ISO-8601 timestamp of the ref's newest commit>
   head_divergence:  { branch: <working-tree branch>, ahead: <n>, behind: <n> }
-per_pr:
-  - pr_id: <id>
-    url: <url>
-    resolved_via: pr_ref | branch_search | merge_commit | key_commits | gh_cli | unresolved
+per_pr:                        # one entry per input element, whether it came from refs or pr_refs
+  - pr_id: <id; null for a refs element, which has none>
+    url: <url; null for a refs element>
+    ref: <"<branch_to>...<branch_from>" for a refs element; null for a pr_refs one>
+    resolved_via: local_ref | pr_ref | branch_search | merge_commit | key_commits | gh_cli | unresolved
     base: <sha | null>
     head: <sha | null>
     files_changed: <count>
@@ -155,9 +156,10 @@ per_pr:
       If resolved_via == key_commits, the summary MUST note that the diff was
       reconstructed from commits matching a key and may not exactly correspond to
       the original PR content.>
-unresolved_prs:
-  - pr_id: <id>
-    url: <url>
+unresolved_prs:                # unresolved input elements, from either list
+  - pr_id: <id; null for a refs element>
+    url: <url; null for a refs element>
+    ref: <"<branch_to>...<branch_from>" for a refs element; null otherwise>
     reason: <why resolution failed>
     candidates: [<sha — first line, if Strategy 4 found any>]
 aggregate_summary: |

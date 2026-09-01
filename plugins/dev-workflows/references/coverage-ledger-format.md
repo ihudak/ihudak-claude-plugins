@@ -75,7 +75,7 @@ Exactly six. Only the last one blocks the gate in §4.
 
 | Disposition | Meaning |
 |---|---|
-| `covered-here` | This BRD builds it; the BRD is therefore PRD-eligible (§5) |
+| `covered-here` | This folder builds it; a `PRD-` slice folder carrying one is therefore PRD-eligible (§5). Never written on a root: a container builds nothing itself |
 | `covered-by: <BRD-KEY>` | A named BRD owns it. On a BRD that owns its source document the key is a **child**; on a slice it is a **sibling under the same parent, or that parent** — never a child, because none can exist below a slice (see below) |
 | `deferred-to: <this BRD>` | Kept as a live obligation of this BRD, not built now |
 | `rejected: [DEF#n]` | Not built, citing the `[DEF#n]` that justifies rejecting it |
@@ -206,10 +206,12 @@ the ledger's job is to record a requirement's fate, not to force every requireme
 ## 4. The allocation gate
 
 `/brd-split` cannot complete while any row in this BRD's ledger is `unallocated`.
-It opens the gate by walking every remaining `unallocated` row one at a time and offering a path
-off `unallocated` into a terminal disposition — and **the paths available are not the same set at
-both levels**. The difference is no longer a disposition §3 withholds from a slice: §3 makes
-`covered-by` legal at both. It is a difference of **writer and of row**. The slice form of
+It opens the gate by giving every remaining `unallocated` row a terminal disposition.
+**The walk is one row at a time, and that is its default**; where one answer is uniform by
+construction, the command may instead offer a single confirmation that settles a set of rows — an
+offer it states in full and the operator may refuse row by row. **The paths available are
+not the same set at both levels**, and the difference is no longer a disposition §3 withholds from
+a slice: §3 makes `covered-by` legal at both. It is a difference of **writer and of row**. The slice form of
 `covered-by` records an orphan row (§2) and is written by the *parent's* walk at the moment that
 walk withdraws the claim, so it is already terminal before a slice's own walk ever reads the
 ledger — a slice's walk never stands on a row it could write, and therefore never offers it.
@@ -235,16 +237,51 @@ gate. It does not fix, and does not re-enumerate, the command's interaction flow
 shape is the command's to own, and a count of it recorded here would only drift the next time that
 picker changes.
 
+**How many rows one answer settles is part of that interaction flow, and it is the command's too.**
+What this file fixes is the outcome: every row leaves this gate carrying one of §3's terminal
+dispositions, written on that row, whatever interaction put it there. A bulk confirmation is the
+same per-row write taken more than once behind one answer — it introduces no disposition, exempts no
+row, and moves no row that was already terminal, so nothing in §3, §5 or §6 reads differently after
+one. **The one-at-a-time walk is that phase's default, not this file's requirement**: the
+requirement is that no row stays `unallocated` past the gate, and a run in which the operator
+answered once for forty rows satisfies it exactly as one in which they answered forty times does.
+Whether such an offer is made, on what condition, over which rows and with which dispositions in its
+vocabulary is stated in `commands/brd-split.md` Phase 4 and read from there — a condition recorded
+here would drift the next time that phase changed, exactly as a picker count would.
+
 ## 5. PRD eligibility
 
-**A folder is PRD-eligible if and only if at least one of its ledger rows is `covered-here`.**
+**A folder is PRD-eligible if and only if it is a `PRD-` slice folder *and* at least one of its
+ledger rows is `covered-here`.** Two tests, and the first one is about the **folder**, not about any
+row.
 
-**Only a slice can satisfy that**, and it is worth saying plainly rather than leaving to be
-inferred: a parent BRD is a container and is never implementable itself, so `covered-here` is not a
-resolution its walk is offered (`commands/brd-split.md` Phase 4) and no row on its ledger can carry
-one. Eligibility is therefore a property of the `PRD-` folder a split produces, which is the folder
-the PRD is authored in — and since a split always produces at least one, the requirements always
-have somewhere eligible to land.
+**The level test is a check the consumer performs, and it comes first.** A BRD is a container and is
+never the folder a PRD is authored in, so a consumer handed a `BRD-` folder refuses it **before
+opening `coverage-ledger.md` at all** — on the resolved folder's own kind, never on what its rows
+say. The check is: the `BRD-` prefix `references/addressing.md` §2 fixes, read off the resolved
+folder's name. A `PRD-` or an `EPIC-` prefix is not a container and needs no further test; an
+**unprefixed** folder is answered by §5.1's positive test.
+
+**Never the folder's asserted `kind:`.** `/brd-split` writes `kind: brd` into the `brd-link.md` it
+places inside a `PRD-` slice folder, so a slice **asserts `brd` while being exactly the folder a PRD
+belongs in**: a consumer gating on the asserted kind would refuse every slice and accept nothing.
+
+**Stating it this way rather than as an inference from the walk is deliberate.** It was previously
+argued that a parent cannot be eligible because `covered-here` "is not a resolution its walk is
+offered" (`commands/brd-split.md` Phase 4). That is true, and it is the wrong load-bearing
+sentence: it makes a structural rule depend on a picker's current shape, so a ledger written before
+that picker changed — or edited by hand — reads as eligible at root and no consumer catches it. The
+rule is structural. Eligibility is a property of the `PRD-` folder a split produces, which is the
+folder the PRD is authored in; and since a split always produces at least one, the requirements
+always have somewhere eligible to land.
+
+**Why a container, rather than letting a BRD hold its own PRD.** A BRD that could be split *and* be
+PRD-eligible itself would hold PRD folders and its own Epic folders as siblings — two kinds in one
+namespace, which `references/addressing.md` §2's second invariant forbids, and which `/brd-split`
+Phase 0 step 9's child enumeration would then have to tell apart. One slice always existing means the
+requirements always land somewhere a PRD can be written, and that somewhere is always one level down.
+This argument is stated **here**, in the authority the refusals cite, rather than only in the command
+that carves the slices.
 
 - **Eligible.** At least one `covered-here` row exists. The folder may go on to author its own
   `prd.md`, which is what `/create-prd` on the BRD route runs against it to write.
@@ -261,15 +298,43 @@ have somewhere eligible to land.
   folder holds no PRD of its own. A consumer that reaches this state must refuse to author a PRD here and
   say **where the requirements went**, rather than producing an empty or placeholder document.
 
-  **What there is to say depends on how the state was reached, and one of the two ways names no
-  slice at all:**
+  **What there is to say depends on how the state was reached, and the first way is settled on the
+  folder rather than on any row:**
 
   | How every row left `covered-here` | What the consumer says |
   |---|---|
+  | **The folder is a `BRD-` container** — decided on the folder, before a row is read | Every row of a root's ledger ends `covered-by`, `deferred-to`, `rejected` or `superseded-by`; `covered-here` is not among them, and a root row carrying one is a ledger written before a BRD became a container, or edited by hand. Refuse on the level and name the `PRD-` slices under the container, one PRD each — enumerated by `/brd-split` Phase 0 step 9's positive test (an immediate subdirectory whose `brd-link.md` `parent:` names this BRD), never by a name match. Where the container holds no slice at all, the run that carves one is `/brd-split` on it — which is a **no-op** on a ledger with no `unallocated` row (§4), so a consumer naming it must say what the operator does then rather than leaving the offer to fail silently |
   | Some rows are `covered-by: <SLICE-KEY>` — the ordinary shape on a parent | Name those slices — and, per §6.1, which of them did not build the row delegated to it. A slice that deferred, rejected or has not allocated it is not somewhere to send the reader |
   | No row is `covered-by` | Name no slice, because none holds one of these rows — and say what the rows *did* resolve to rather than calling them all obligations. The three remaining dispositions say different things: a `deferred-to` row is a live obligation of this folder, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it, and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. This is also the only shape a **slice** reaches, for the reason the paragraph below gives: no row of the set eligibility is read over on a slice can be `covered-by`. On a slice, add that a PRD needs one row resolved `covered-here` first |
 
-  "Name the slices that do" is right only in the first row. In the second there is nothing to
+
+  **A root row `covered-here` is repairable one row at a time, and the narrow repair is named before
+  the wide one.** The illegal state is **one row wide**: every other row of that ledger is already
+  legal and terminal, and no command in this plugin wrote the illegal one. So a consumer that
+  reports it names, **first**, hand-editing that single row's `disposition:` in
+  `coverage-ledger.md`, leaving every other row untouched — to `deferred-to: <this BRD>`,
+  `rejected: [DEF#n]` or `superseded-by: [BR#n]` where the requirement is not to be built here, or
+  back to `unallocated` where it is, which is the state `/brd-split`'s walk consumes and which lets
+  that run confirm a slice whose own walk may legally write `covered-here`. §3's *no command ever
+  moves a row back to `unallocated`* binds the **commands**; a hand repair of a value no command
+  wrote is not one of them, and the row above already names hand editing as how this state arises.
+  **Second**, and only where the whole inventory is to be re-taken, `/brd-intake` re-run over the
+  same folder rewrites the ledger with **every** row `unallocated` (`commands/brd-intake.md`
+  Phase 5), discarding every `deferred-to`, `rejected` and `superseded-by` the walk decided — each
+  has to be re-taken, and a `rejected` row re-cited against its `[DEF#n]`. **A consumer naming that
+  option names those decisions**: "the dispositions are replaced" is not the disclosure, because it
+  does not say which judgement is destroyed.
+
+  **The neighbouring state needs no repair and is still not sealed.** A container whose one slice was
+  removed as a standing empty child holds no illegal row at all — every row is legally `deferred-to`,
+  `rejected` or `superseded-by`, and nothing is owed to anybody. That is an **ending**, and a
+  consumer reporting it names no command for the decision to un-defer a requirement, which is taken
+  with the customer (`escalation-rules.md`, *When no option is safe to recommend*). It must not,
+  however, report it as a state with no exit: once that decision is taken it is carried out by the
+  same two repairs, in the same order — the one row moved back to `unallocated` by hand so
+  `/brd-split` has a row to walk, or the `/brd-intake` re-run that reopens every row.
+
+  "Name the slices that do" is right in the first two rows only. In the third there is nothing to
   name, and a consumer that goes looking for a slice to point at finds none and must not invent
   one — the honest report is what each row actually resolved to, and, for the deferred ones, by whom.
   "The requirements are deferred" is the common shape of that case, not the whole of it:
@@ -308,6 +373,117 @@ through the BRD that owns it, the line's `unallocated` term also counts rows thi
 `covered-by` and that BRD has not walked yet — rows whose fate this BRD *has* recorded. A consumer
 keying the refusal off that term would hard-refuse a BRD whose own gate is fully satisfied. The
 refusal is about this ledger's own written dispositions, and about nothing else.
+
+### 5.1 The unprefixed folder — a positive test, never an absence
+
+A folder resolved through `references/addressing.md` §5's legacy fallback carries **no prefix at
+all**, so the prefix test cannot answer it. **The answer must be positive evidence that this folder
+is a BRD, never the absence of a file** — because a pre-prefix specs repo holds *two* unprefixed
+shapes and only one of them is a container:
+
+- a **root BRD folder**, `specifications/<KEY>-<slug>/`, written by `/brd-intake` before the kind
+  prefixes shipped — a current run writes `BRD-<KEY>-<slug>/` and never reaches this test
+  (`commands/brd-intake.md` Phase 0 step 7, `references/addressing.md` §2);
+- a legacy **idea-route PRD folder**, `specifications/<KEY>-<slug>/` holding `idea.md` and `prd.md`,
+  written before the kind prefixes shipped.
+
+**Neither carries a `brd-link.md`.** `/brd-intake` writes none — only `/brd-ground`, `/brd-split`
+and `/brd-package` ever do, and the first and third write one carrying `depends-on:` and no
+`parent:` — and the idea route has never written one at all. So "no `brd-link.md`, or one carrying
+no `parent:`", which is the correct test for **root versus slice** *once a folder is known to be on
+the BRD route*, separates nothing here: used as the container test it refuses the legacy idea-route
+PRD folder too, and then offers `/brd-split` on a folder holding no coverage ledger to walk — a stop
+naming a remedy that cannot run. An unprefixed idea-route folder is not an exotic input: it misses
+`references/addressing.md` §3's `*-<KEY>-*` prefixed glob by construction and lands in §5's fallback
+every time.
+
+**What a root BRD carries and an idea-route PRD folder never does is the BRD bookkeeping**, and
+exactly two commands write it: `coverage-ledger.md` (`/brd-intake` Phase 5; `/brd-split` Phase 3
+step 5 for a slice) and `brd/brd-inventory.md` (`/brd-intake` Phase 3; `/brd-split` Phase 3 step 4
+for a slice). **No command on the idea route writes either, ever**, so their presence — not any
+absence — is the test. On an unprefixed folder:
+
+| What the folder carries | What it is | The container refusal |
+|---|---|---|
+| **Neither** `coverage-ledger.md` **nor** `brd/brd-inventory.md` | a legacy **idea-route PRD folder** — the ordinary unprefixed shape | **does not fire.** The consumer proceeds exactly as it does on a `PRD-` folder |
+| Either file, **and** a `brd-link.md` carrying `parent:` | a legacy **slice** | does not fire — a slice is the folder a PRD is authored in |
+| Either file, and **no** `brd-link.md` carrying `parent:` | a legacy **root BRD container** | **fires** |
+
+**Either file, not both, and deliberately.** The two are written by the same run, so an ordinary
+root BRD carries both; requiring both would let a folder left half-written by an interrupted intake
+pass the test and take a PRD authored into it. One of them is already evidence that the BRD route
+touched this folder, which is the only question this test asks.
+
+**It reads no PRD artifact, and that is what lets all four consumers share one rule.** The four are
+`/create-prd` (Phase 0 step 5a), `/create-ard` (step 1a), `/specify` (step s0) and `/epics`
+(step 1a) — read that as a list, not as a count, and re-derive it against the tree rather than
+adjusting it. `/create-prd` cannot test for `prd.md` — it is the run that is about to write it — so
+a test keyed off the PRD's presence would have to be worded differently in `/create-prd` than in the
+other three, and four copies of one rule is the drift this file exists to prevent.
+
+**`/epics` is a consumer even though it *can* read `prd.md`, and that is the point.** Its step 1b
+gates on `prd.md`'s own `kind: prd`, which an unprefixed container fails for holding no `prd.md` —
+so an absence test looks sufficient. It is not, because 1b's stop names `/create-prd` as the remedy
+and `/create-prd` takes this test and refuses the same folder as a container: a stop whose remedy
+stops. The container refusal must therefore be taken one step earlier, at 1a, on the same evidence
+the other three use. A rule stated as covering three consumers while a fourth needed it is how that
+dead end shipped.
+
+A prefixed tree never reaches this test at all, exactly as it never reaches `addressing.md` §5.
+
+### 5.2 Offering `/create-prd` — three refusals, not one
+
+`/create-prd` refuses **three** shapes on the BRD route, and an offer that names it is safe only
+once it has tested all three. The container refusal is the one an offering command remembers,
+because it is usually the one that command took itself; the other two are data refusals read off the
+resolved slice's own ledger (`commands/create-prd.md` Phase 0 step 7):
+
+| Tested on | Fires when | What `/create-prd` then names |
+|---|---|---|
+| the resolved folder's kind (§5, §5.1) | it is a `BRD-` container | `CREATE_PRD_BRD_NOT_SLICED` — the `PRD-` slices under it, or `/brd-split` where there are none |
+| the gate set | a row is still `unallocated` | `CREATE_PRD_BRD_UNALLOCATED` — `/brd-split <SLICE-KEY>`, whose walk moves exactly those rows |
+| the gate set | no row is `covered-here` | `CREATE_PRD_BRD_NOT_ELIGIBLE` — `/brd-split <PARENT-KEY>` where the gate set is **empty** (a standing empty child), and **no command at all** where it is non-empty |
+
+**The gate set is this slice's own `coverage-ledger.md` rows, narrowed by its `brd-link.md`
+`claims:`** — the same set Phase 0 step 7 defines, read the same way, and read **out of the ledger
+file, never off a `ledger:` line**: that line's `unallocated` term is a *resolved* count and does not
+track §4's gate (§6.1), so keying an offer to it would withhold the option from a slice whose own
+gate is fully satisfied. An orphan row can neither add the option nor withhold it — `claims:` names
+none of them, and one is never `covered-here` and never `unallocated` (§2, §3).
+
+**`<PARENT-KEY>` is read, never derived.** It is the `parent:` field of the same `brd-link.md` the
+`claims:` list came from (`references/addressing.md` §4) — the offering run has already opened that
+file to build the gate set, so the key is in hand and is never parsed out of the slice's own key or
+its folder name.
+
+**Only a BRD-route folder has a gate set at all.** A resolved folder carrying no `brd-link.md` is an
+idea-route PRD folder: neither data refusal exists for it, and `/create-prd <ADDRESS>` is reachable
+on the container test alone.
+
+**The converse — a `brd-link.md` with no `coverage-ledger.md` beside it — is reachable only by hand
+damage, and it is not an empty gate set.** `/brd-split` writes both files in the same Phase 3 and
+commits them together, so no run of this plugin leaves a slice carrying one and not the other. A
+consumer that meets it can evaluate neither data refusal, and must not read the absent file as a gate
+set of zero rows: that is the *standing empty child* — a slice whose ledger exists and whose `claims:`
+list is empty — which the table above resolves to `/brd-split <PARENT-KEY>`, and resolving a missing
+file to the same offer would send an operator to keep-or-remove a slice on evidence nobody has.
+**Name no option at all.** Report the absent `<slice-dir>/coverage-ledger.md` by path, say that
+`/brd-split` wrote it and landed it with the slice, and leave recovering it from the specs repo's
+history to the operator — nothing in this plugin rewrites a slice's ledger in place. Stated once
+here, in the authority every offering command already cites, rather than three times over in the
+commands that read a slice's ledger to shape an offer.
+
+**Where a data refusal would fire, drop the `/create-prd` option and say which test failed.** The
+precedent is `commands/brd-reconcile.md` Phase 14, which runs both data tests before offering
+`/dev-workflows:create-prd <SLICE-KEY>` and **drops** the option rather than annotating it, on the
+stated ground that a hard refusal in another command's Phase 0 is not a state the reader can judge
+for themselves. Dropping is not going quiet: name what moves the failing test where a command exists
+— `/brd-split <SLICE-KEY>` for an `unallocated` row, the keep-or-remove `/brd-split <PARENT-KEY>` for
+a standing empty child — and where none exists, say so. **The non-empty
+`CREATE_PRD_BRD_NOT_ELIGIBLE` branch is the one that must never be offered into**: it names no
+command by design, so an offer that sends the operator there hands them a stop with no way out, and
+nothing in this plugin moves a `deferred-to`, `rejected` or `superseded-by` row back to
+`unallocated` (§3).
 
 ## 6. The ledger line
 

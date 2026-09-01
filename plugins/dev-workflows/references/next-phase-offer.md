@@ -5,7 +5,7 @@ surfaces at the end of its run, naming the natural next command(s). Cited by all
 commands so the routing graph and the offer rules live in ONE place (the same shape as
 `emit-block` in `feedback-emission.md`).
 
-## The offer contract (6 rules)
+## The offer contract (7 rules)
 
 1. **Guidance-only** — the offer NAMES the next command(s); it NEVER auto-invokes anything.
 2. **Role-labeled** — it names the concrete command(s) for the next step, tagged with the owning
@@ -17,20 +17,28 @@ commands so the routing graph and the offer rules live in ONE place (the same sh
    ad-hoc mode (no PRD/Epic context — `/dev-workflows:implement` direct, `/dev-workflows:document` doc-edit) it is OMITTED,
    not invented.
 5. **Epic fan-out** — a command operating at **Epic scope** offers TWO branches:
-   - **Depth** — the next command for the SAME Epic (`/dev-workflows:design <PRD> E1` → `/dev-workflows:implement <PRD> E1`).
-   - **Breadth** — the SAME command for the NEXT Epic under the PRD (`/dev-workflows:design <PRD> E1` →
-     `/dev-workflows:design <PRD> E2`).
+   - **Depth** — the next command for the SAME Epic (`/dev-workflows:design <EPIC>` → `/dev-workflows:implement <EPIC>`).
+   - **Breadth** — the SAME command for the NEXT Epic under the PRD (`/dev-workflows:design <EPIC-1>` →
+     `/dev-workflows:design <EPIC-2>`).
 
    So a team can go `/dev-workflows:design E1 → /dev-workflows:design E2 → /dev-workflows:implement E1 → /dev-workflows:implement E2` OR
    `/dev-workflows:design E1 → /dev-workflows:implement E1 → /dev-workflows:design E2 …` — their call. Applies to the per-Epic commands
-   only: `/dev-workflows:create-ard <PRD> <Epic>`, `/dev-workflows:specify <PRD> <Epic>`, `/dev-workflows:design <PRD> <Epic>`,
-   `/dev-workflows:implement <PRD> <Epic>`. `/dev-workflows:document` and `/dev-workflows:release-notes` are PRD-level (whole-feature, run
+   only: `/dev-workflows:create-ard <EPIC>`, `/dev-workflows:specify <EPIC>`, `/dev-workflows:design <EPIC>`,
+   `/dev-workflows:implement <EPIC>`. `/dev-workflows:document` and `/dev-workflows:release-notes` are PRD-level (whole-feature, run
    once after ALL Epics are implemented) and do NOT fan out.
 6. **Fully qualified when printed** — every command name the run PRINTS for the user to invoke is
    written `/dev-workflows:<command>`. A bare `/<command>` can resolve to a Claude Code built-in of
    the same name — Claude Code's own `/release-notes`, `/upgrade`, and `/statusline` all collide
    today, and the built-in wins — so the bare form is NEVER printed. Prose that describes the
    pipeline to a reader of this plugin's source keeps the short form.
+7. **One address, never a pair** — every offer prints exactly ONE positional address, because every
+   keyed command takes exactly one (D4: a key encodes its own ancestry, so an Epic address is all an
+   Epic-scoped run needs and the PRD is derived from the folder above it). An offer written
+   `/dev-workflows:specify <PRD> <Epic>` names an argument form no command accepts: the run reads the
+   first token, and the second either disagrees with it or is refused. Write `/dev-workflows:specify
+   <EPIC>` for an Epic-scoped step and `/dev-workflows:specify <PRD>` for a PRD-scoped one — the kind
+   of the folder the address resolves to is what sets the altitude, so the offer never has to say it
+   twice.
 
 **A next-step offer that names a downstream command must also name the merge.** The downstream command executes `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) and stops while this phase's pull request is open, so an offer that reads "next: `/dev-workflows:create-ard <KEY>`" without "once the pull request is merged" sends the user into a stop they were not warned about.
 
@@ -48,7 +56,7 @@ commands so the routing graph and the offer rules live in ONE place (the same sh
 
 `Branch name substituted` is an append to another line rather than an outcome of its own — whatever branch the emitted line ends up naming is the branch the clause names. **Only two rows name a branch, and that is the point**: §4.1's declined and gate-failed lines carry none, because on those paths `handoff-to-main` committed nothing, so there is no branch in existence to send anyone to.
 
-**Where this rule applies: every next-step offer this plugin prints.** The `<merge-clause>` placeholder is the convention the six `/dev-workflows:brd-*` commands write their offers to, and an offer added to that route carries it. It is equally the convention of the five older pipeline offers, converted after the route shipped: `/dev-workflows:create-prd`'s and `/dev-workflows:update-prd`'s *Next steps* phases, `/dev-workflows:create-ard`'s *Next-step offer (adaptive)* phase, and the `### Next step` sections of `/dev-workflows:specify` and `/dev-workflows:design`. Four of those five hardcoded "once the pull request above is merged" on runs that reach outcomes opening no pull request; the fifth, `/dev-workflows:update-prd`, named two downstream commands that gate this run's own PRD and stated no wait at all. No offer in this plugin now names a downstream gate its own run feeds and states the wait unconditionally, and an offer added anywhere carries the placeholder.
+**Where this rule applies: every next-step offer this plugin prints.** The `<merge-clause>` placeholder is the convention the six `/dev-workflows:brd-*` commands write their offers to, and an offer added to that route carries it. It is equally the convention of the **six** older pipeline offers, converted after the route shipped: `/dev-workflows:create-prd`'s and `/dev-workflows:update-prd`'s *Next steps* phases, `/dev-workflows:create-ard`'s *Next-step offer (adaptive)* phase, the `### Next step` sections of `/dev-workflows:specify` and `/dev-workflows:design`, and `/dev-workflows:idea`'s Phase 5 handoff offer. Four of the first five hardcoded "once the pull request above is merged" on runs that reach outcomes opening no pull request; the fifth, `/dev-workflows:update-prd`, named two downstream commands that gate this run's own PRD and stated no wait at all. **The sixth was left off this list for a round and was defective the whole time**: `/idea` Phase 5 recommended `/dev-workflows:create-prd <KEY>` with no clause of any kind, while `/create-prd` Phase 0 step 3 rung 1 runs `require-on-main` on the very `idea.md` whose pull request that offer had just opened — this rule's own named failure, in the one adopter the rule's own adopter list omitted. It carries the placeholder now; and its `status: draft` branch, which hands nothing off so no row of the table above could resolve, names the `@<path>` read form instead of a wait. No offer in this plugin now names a downstream gate its own run feeds and states the wait unconditionally, and an offer added anywhere carries the placeholder.
 
 **A gate enforces adoption, and it enforces exactly one half of this rule.** `scripts/check-docs.sh` check 11 asserts that every `choices:` option in the `/dev-workflows:brd-*` family naming a command whose `require-on-main` target the offering run writes carries the `<merge-clause>` token. It derives that family from the first such phrase in the scope paragraph above, the gate targets from `phase-handoff.md` §3.4's table, and what a run writes from each command's own `deliverable_paths` list. **Three things it does not check, and each is a place a defect has lived or can live:**
 
@@ -58,7 +66,7 @@ commands so the routing graph and the offer rules live in ONE place (the same sh
 
 The gate is a floor under the convention, never a substitute for reading it: an offer can satisfy check 11 and still be false.
 
-**The family scope is deliberate, and recorded here so widening is not re-proposed without new evidence.** Adoption is plugin-wide, as the scope paragraph above says; the gate is not. Removing the family filter and running check 11 over every command in this plugin fires on four sites and catches none of the five offers converted for the paragraph above. All four hits are correct content: `commands/document.md` runs neither `handoff-to-main` nor `require-on-main`, so it declares no `deliverable_paths` and the per-command writer assertion rejects it outright; `commands/implement.md`'s Phase 0 design-doc open-question guard and `commands/specify.md`'s Phase 2 zero-Epic redirect are refusals rather than offers, both taken long before the offering run reaches its own handoff phase, so there is no §4.1 outcome line for a clause to resolve from; and the `commands/idea.md` hit is the option scanner reading a report sentence that follows the array on the same line — a sentence on the path that says outright that nothing was handed off. The five real defects stay invisible to the widened check as well, and for two different reasons — only one of which is the extractor. `/dev-workflows:specify`'s and `/dev-workflows:design`'s offers **do** carry the intersection the check looks for: `specification.md` and `design.md` are both backticked in §3.4's rows, and each run declares the file it writes. They are missed solely because they are prose. The three that *are* `choices:` arrays are missed on both relations at once: §3.4 names their gated inputs in prose — "the PRD", "the ARD" — so `targets` is empty for `/dev-workflows:create-ard` and `/dev-workflows:specify` as *offered* commands, and the same prose in each offering command's own `deliverable_paths` = declaration ("the ARD file(s)", "the PRD file") leaves `writers` blind to what it wrote. A `choices:` array in this plugin is a refusal or a mid-run branch point as often as it is an offer, and nothing in the file marks which; a gate that cannot tell them apart blocks correct work, and a gate that blocks correct work gets disabled. Same verdict, and the same reason, as the stop-routing check `scripts/check-docs.sh` records as never shipped.
+**The family scope is deliberate, and recorded here so widening is not re-proposed without new evidence.** Adoption is plugin-wide, as the scope paragraph above says; the gate is not. **Re-measured on the current tree, and the number moved.** Removing the family filter and running check 11 over every command in this plugin fires on **three** sites and catches **none** of the six offers converted for the paragraph above. All three hits are correct content: `commands/document.md` runs neither `handoff-to-main` nor `require-on-main`, so it declares no `deliverable_paths` and the per-command writer assertion rejects it outright; and `commands/implement.md`'s Phase 0 design-doc open-question guard and `commands/specify.md`'s Phase 2 zero-Epic redirect are refusals rather than offers, both taken long before the offering run reaches its own handoff phase, so there is no §4.1 outcome line for a clause to resolve from. **The fourth hit this paragraph used to name is gone, and its going is evidence rather than tidying**: it was the option scanner reading a report sentence trailing a `choices:` array on one line of `commands/idea.md`, in the relocation branch D7 retired — so the widened check's whole yield fell by a quarter while finding no defect and preventing none. The six real defects stay invisible to the widened check as well, and for two different reasons — only one of which is the extractor. `/dev-workflows:specify`'s and `/dev-workflows:design`'s offers **do** carry the intersection the check looks for: `specification.md` and `design.md` are both backticked in §3.4's rows, and each run declares the file it writes. They are missed solely because they are prose. The three that *are* `choices:` arrays are missed on both relations at once: §3.4 names their gated inputs in prose — "the PRD", "the ARD" — so `targets` is empty for `/dev-workflows:create-ard` and `/dev-workflows:specify` as *offered* commands, and the same prose in each offering command's own `deliverable_paths` = declaration ("the ARD file(s)", "the PRD file") leaves `writers` blind to what it wrote. **`/idea`'s is the sixth and the plainest**: its offer is a prose sentence, so the widened check cannot see it at all — widening would have bought nothing on the one live instance of exactly the failure it targets, found instead by reading. A `choices:` array in this plugin is a refusal or a mid-run branch point as often as it is an offer, and nothing in the file marks which; a gate that cannot tell them apart blocks correct work, and a gate that blocks correct work gets disabled. Same verdict, and the same reason, as the stop-routing check `scripts/check-docs.sh` records as never shipped. **The measurement is recorded here so widening is not re-proposed without new numbers: three correct sites fired on, zero of six defects caught.**
 
 **Resolving this placeholder is not a rewording.** The array is still presented verbatim per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`'s *Choice lists are presented verbatim*, exactly as `<BRD-KEY>` or `<KEY>` is substituted in the same strings. A command that instead told the orchestrator to *adjust the wording* of an option would be contradicting that convention, which is why the variation lives in a placeholder and not in an instruction.
 
@@ -127,19 +135,30 @@ array carries every option.
   pipeline, and its own re-entry. **Re-entry:** another `/dev-workflows:brd-interview <BRD-KEY>`
   round where this run reopened a decision, `/dev-workflows:brd-package <BRD-KEY>` where questions
   remain for the customer, or `/dev-workflows:brd-ground <BRD-KEY> --rebaseline` where the review
-  challenged a code claim. **Advance:** the BRD route on `/dev-workflows:create-prd`,
-  `/dev-workflows:create-ard` and `/dev-workflows:specify` all ship, and that command's next-step
-  phase offers all three off the one BRD key — **but only on a run that left nothing to re-enter
-  for.** Advance and re-entry are two arrays there, not one: where that run reopened a decision,
-  left a `[C]` held for the customer, left a finding for a `--rebaseline` pass, or could only record
-  a dependent's sweep, all three advance options are dropped, because a `reopened` record may not be
-  consumed downstream (`references/decision-register-format.md` §3) and all three consume the
-  register. On an advancing run, `/dev-workflows:create-prd <BRD-KEY>` carries the further
+  challenged a code claim. **Advance, and the first condition is the level.** the BRD route on
+  `/dev-workflows:create-prd`, `/dev-workflows:create-ard` and `/dev-workflows:specify` all ship, and
+  that command's next-step phase offers all three off **a slice key** — never off a root BRD key. A
+  BRD is a container and each of the three refuses a `BRD-` folder in its own Phase 0
+  (`CREATE_PRD_BRD_NOT_SLICED`, `CREATE_ARD_BRD_NOT_SLICED`, `SPECIFY_BRD_NOT_SLICED`;
+  `references/coverage-ledger-format.md` §5), so naming one against a root hands over a run that
+  stops on its first phase. **A root's advance is its slices instead** — `/dev-workflows:brd-ground
+  <SLICE-KEY>` once per non-empty slice, each re-entering the route in its own right and reaching
+  this same hand-over on its own key. That one **does** carry `<merge-clause>`, because
+  `/dev-workflows:brd-ground` gates `coverage-ledger.md` on the default branch and the reconciliation
+  wrote to a ledger.
+  **On a slice, and only on a slice, the three are offered — but only on a run that left nothing to
+  re-enter for.** Advance and re-entry are separate arrays there, not one: where that run reopened a
+  decision, left a `[C]` held for the customer, left a finding for a `--rebaseline` pass, or could
+  only record a dependent's sweep, all three advance options are dropped, because a `reopened` record
+  may not be consumed downstream (`references/decision-register-format.md` §3) and all three consume
+  the register. On an advancing slice run, `/dev-workflows:create-prd <SLICE-KEY>` carries the further
   condition that the reconciled ledger leaves no row `unallocated` and at least one `covered-here`
   (`references/coverage-ledger-format.md` §5, the two refusals its Phase 0 raises); the other two
-  carry none of their own, since neither dispatches the folder read, neither runs the PRD gate and
-  neither reads the ledger. **That difference is where the two conditions come from, and it matters:**
-  `/create-prd`'s is enforced by its own Phase 0, so offering it wrongly hands over a run that stops;
+  carry none of their own: neither reads the ledger, and although both now run the PRD gate on every
+  route, that gate's `absent` branch proceeds — a slice holding no authored `prd.md` is the ordinary
+  state for both, since `/dev-workflows:create-prd` is a prerequisite for neither. **That difference is where the conditions come from, and it matters:**
+  the level test and `/create-prd`'s eligibility test are each enforced by the offered command's own
+  Phase 0, so offering either wrongly hands over a run that stops;
   the advance/re-entry split is enforced **nowhere downstream** — `/create-ard` on the BRD route and
   `/specify` on the BRD route treat an `open` or `reopened` record as an open question to record rather
   than as a stop — so `/dev-workflows:brd-reconcile` is the only station that can make it. None of
@@ -150,23 +169,36 @@ array carries every option.
 
 - `/dev-workflows:create-ard <PRD>` (PRD-level) → PE → `/dev-workflows:epics <PRD>` (recommended) or `/dev-workflows:specify <PRD>`.
   *(No `/dev-workflows:design` — no Epics yet.)*
-- `/dev-workflows:create-ard <PRD> <Epic>` (Epic-level) → `/dev-workflows:specify <PRD> <Epic>` (recommended) or Dev →
-  `/dev-workflows:design <PRD> <Epic>`.
+- `/dev-workflows:create-ard <EPIC>` (Epic-level) → `/dev-workflows:specify <EPIC>` (recommended) or Dev →
+  `/dev-workflows:design <EPIC>`.
 
 **PE — breakdown & specification**
 
 - `/dev-workflows:specify <PRD>` (PRD-level spec) → `/dev-workflows:epics <PRD>`.
-- `/dev-workflows:epics <PRD>` → `/dev-workflows:specify <PRD> <Epic>` (per Epic); optional PA → `/dev-workflows:create-ard <PRD> <Epic>`.
-- `/dev-workflows:specify <PRD> <Epic>` (Epic-level spec) → Dev → `/dev-workflows:design <PRD> <Epic>`.
+- `/dev-workflows:epics <PRD>` → `/dev-workflows:specify <EPIC>` (per Epic); optional PA → `/dev-workflows:create-ard <EPIC>`.
+  **Every `/dev-workflows:epics` option above and below is conditional on the folder it names
+  holding an authored `prd.md`** (`kind: prd`): `/epics` accepts a PRD folder or an `EPIC-` folder
+  under one and refuses everything else (`commands/epics.md` Phase 0 step 1b). Where the caller's
+  resolved folder holds no PRD — which the BRD route reaches legitimately, since
+  `/dev-workflows:create-prd` is not a prerequisite for `/dev-workflows:create-ard` there — the
+  offer is `/dev-workflows:create-prd <ADDRESS>` instead, **and only where that command can itself
+  run**: it refuses three shapes and not one, so on a BRD-route slice the two data refusals on that
+  slice's own ledger are tested first and the offer resolves to `/dev-workflows:brd-split` against
+  one of two keys, or to no option at all, where either fails
+  (`references/coverage-ledger-format.md` §5.2, the authority, applied by each offering command). An
+  offer whose run stops the moment it starts is the same defect the `<merge-clause>` rules below
+  exist to prevent, one command further on: a next step the operator cannot take from the state the
+  report describes.
+- `/dev-workflows:specify <EPIC>` (Epic-level spec) → Dev → `/dev-workflows:design <EPIC>`.
 
 **Dev — build, verify & deliver**
 
-- `/dev-workflows:design <PRD> <Epic>` → optionally `/dev-workflows:ready <PRD> <Epic>` (verify readiness) →
-  `/dev-workflows:implement <PRD> <Epic>`.
-- `/dev-workflows:ready <PRD> [<Epic>]` → **SUPPORTED** → `/dev-workflows:implement <PRD> [<Epic>]`; **PARTIAL / NOT-SUPPORTED**
+- `/dev-workflows:design <EPIC>` → optionally `/dev-workflows:ready <EPIC>` (verify readiness) →
+  `/dev-workflows:implement <EPIC>`.
+- `/dev-workflows:ready <ADDRESS>` → **SUPPORTED** → `/dev-workflows:implement <ADDRESS>` (the same address); **PARTIAL / NOT-SUPPORTED**
   → resolve the named gaps, then re-run `/dev-workflows:ready`. *(Read-only verifier;
   not itself a linear pipeline node — an optional gate before build.)*
-- `/dev-workflows:implement <PRD> <Epic>` → finish remaining Epics (breadth); once ALL Epics implemented →
+- `/dev-workflows:implement <EPIC>` → finish remaining Epics (breadth); once ALL Epics implemented →
   `/dev-workflows:document <PRD>` → `/dev-workflows:release-notes <PRD>`. *(Direct mode → no forward offer.)*
 - `/dev-workflows:document <PRD>` (PRD-level, after all Epics) → `/dev-workflows:release-notes <PRD>`. *(Doc-edit mode → no
   forward offer.)*

@@ -1,6 +1,6 @@
 ---
 name: idea
-description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (with wikilinks/images), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Writes into the PRD folder the key names; no code change; it relocates `idea.md` into `$SPECS_PATH/specifications/<KEY>-<slug>/`, and on a completed handoff also opens a pull request for it (`references/phase-handoff.md` §2) — declining leaves it relocated but not on the default branch; its session artifacts are committed by `commit-artifacts`.
+description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (with wikilinks/images), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Writes into the PRD folder the key names; no code change; `idea.md` lands in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/` on the first write and is never relocated (D7), and on a completed handoff the run also opens a pull request for it (`references/phase-handoff.md` §2) — declining leaves it written in place but not on the default branch; its session artifacts are committed by `commit-artifacts`.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -229,13 +229,37 @@ Report where `idea.md` was written and its `status`, then offer the next phase �
   **All five are required** — §2.4's commit subject and §2.7's pull-request title are both derived
   from `title`, and §2.6 supplies every `gh` argument precisely so the run never blocks on an
   interactive editor; passing three of five leaves both unsourced. Then recommend
-  `/dev-workflows:create-prd <KEY>`, which finds `idea.md` in that folder.
+  `/dev-workflows:create-prd <KEY> <merge-clause>`, which finds `idea.md` in that folder —
+  `<merge-clause>` resolved from the `Phase handoff:` line §4.1 just emitted, per
+  `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`'s resolution table, and never written
+  unconditionally. **The clause is load-bearing here, not decoration**: `/create-prd` Phase 0 step 3
+  rung 1 runs `require-on-main` on exactly this `idea.md`, so while the pull request this offer just
+  opened is still open that command stops on rows D/E — an unqualified recommendation sends the
+  operator into a stop this run itself caused.
 
-  **There is no key round-trip to wait for and no disposition to branch on.** The key was given in
-  Phase 0, the folder was resolved from it, and `idea.md` was written there — so the three states this
-  offer used to distinguish (rewrite in place, mint a new key, or neither) collapse into one.
+  **There is no key to wait for and no disposition to branch on.** The key was given in Phase 0, the
+  folder was resolved from it, and `idea.md` was written there — so the three states this offer used
+  to distinguish (rewrite in place, mint a new key, or neither) collapse into one.
 - **`status: draft`** (N open `[NEEDS CLARIFICATION]`) — **never hand off**, and do not ask. By the
-  governing principle the phase is not finished, so there is nothing to hand over.
+  governing principle the phase is not finished, so there is nothing to hand over. **Offer a next
+  step even so**, because an offer left empty here is what makes a draft disappear: the file is
+  written, on no branch, and the command that would read it does not. Two steps, in order:
+  1. **Recommended — `/dev-workflows:idea <KEY> <the same source>`.** Re-running over the folder
+     this run resolved takes Phase 4's *Refine the existing `idea.md`* path, re-opens this file, and
+     puts the N open markers one at a time. Closing all of them sets `status: refined`, and the
+     handoff offer above fires on that run instead. No merge clause: this run handed nothing off, so
+     there is no pull request to wait for.
+  2. **Only where the PRD is to be grilled from the draft as it stands —
+     `/dev-workflows:create-prd <KEY> @<the absolute path of this idea.md>`.** The `@<path>` is
+     required, and this is the one place the reason is visible. Nothing was handed off, so
+     `/create-prd`'s in-contract rung 1 runs `require-on-main` against this file, finds it on no ref
+     and returns row F `absent` — which is a fall-through rather than a stop, and no later rung of
+     that ladder looks in the folder again. Named as a path, the file is read where it sits on
+     rung 2's terms — never relocated, never gated, reported once as out-of-contract — and its open
+     markers are folded into that command's own grill. `/dev-workflows:create-prd <KEY>` with no
+     path resolves the same folder and grills the PRD from scratch, ignoring this file: that is the
+     wait this offer names in place of a merge clause, and it is discharged by the path, not by a
+     merge.
 
 Also report the code grounding when Phase 2.6 ran: the grounded repos with their `scanned_ref`s, any
 repo descoped or unmounted with the themes left unverified, any theme still inconclusive after round 2,

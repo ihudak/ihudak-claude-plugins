@@ -6,8 +6,8 @@
 folder_read: <the YAML the orchestrator assembled by reading the resolved folder — the PRD frontmatter and body, the Epic set, and the artifacts present; the orchestrator names its keys in the dispatch, since no schema file defines them>
 diff_summaries:      <optional array of diff-summarizer outputs; one entry per repo; omit when diff-grounding is off>
 code_repos:          <optional array of {slug, path}; provided when diff-grounding is on — enables the writer's Source-truth check>
-imported_change_type:            <change_type from the imported PRD frontmatter (the folder read handoff); null otherwise>
-release_notes_category: <release_notes_category from the resolved PRD's frontmatter; null otherwise — used verbatim as the  label>
+change_type:            <change_type from the resolved PRD's frontmatter; null otherwise — nothing returns it from outside, so an absent value is inferred and confirmed in the command's own grill>
+release_notes_category: <release_notes_category from the resolved PRD's frontmatter; null otherwise — used verbatim as the category label>
 run_phase:                       <"pm" | "dev" — inferred by the command from whether specification.md / design.md exist under the PRD's specs dir; gates the release-note-types.md §4 documentation-link rule only>
 model_routing:
   classification: MODERATE
@@ -32,7 +32,7 @@ release_notes_block:
   target_format: example-docs-release-notes-v1
   change_type:  <one of: "Breaking change" | "New technology support" | "Bug fix">   # selects the destination + shape; NEVER rendered as text
   destination:  <one of: "## Breaking changes" | "## Feature updates" | "## Fixes">  # a section of release-notes.md, per release-note-types.md §1
-  category_label: <the PRD's release_notes_category verbatim, e.g. "Platform | Settings"; null when the import carries none — the  line is then omitted>
+  category_label: <the PRD's release_notes_category verbatim, e.g. "Platform | Settings"; null when the PRD carries none — the label line is then omitted>
   feature_title: <5–10 word headline; sentence case; no leading "New feature:"; no trailing period. null for the fixes destination.>
   prose: |
     <shaped customer-facing body; no work-item IDs; no PR links; no release version. For the titled
@@ -61,5 +61,5 @@ gaps:
 
 | Status    | Meaning                                                              |
 |-----------|---------------------------------------------------------------------|
-| `OK`      | Draft rendered; the Summary has its prose and, when the import supplied one, its context label.|
+| `OK`      | Draft rendered; the Summary has its prose and, when the PRD supplied one, its category label.|
 | `PARTIAL` | Draft rendered but at least one gap needs the user (low-confidence destination, missing end-of-life date, or an unverifiable claim). |

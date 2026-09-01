@@ -71,9 +71,10 @@ flowchart TD
     p12 --> p13["Phase 13 — Handoff"]
     p13 --> p14["Phase 14 — Next steps"]
     p14 --> p15["Phase 15 — Session maintenance, feedback & cost"]
-    p14 -.->|"advance_ready + no unallocated row and one covered-here"| prd["/create-prd (PM)"]
-    p14 -.->|"advance_ready"| ard["/create-ard (PA, optional)"]
-    p14 -.->|"advance_ready"| spec["/specify (PE)"]
+    p14 -.->|"on a slice + advance_ready + no unallocated row and one covered-here"| prd["/create-prd (PM)"]
+    p14 -.->|"on a slice + advance_ready"| ard["/create-ard (PA, optional)"]
+    p14 -.->|"on a slice + advance_ready"| spec["/specify (PE)"]
+    p14 -.->|"on a root BRD — its slices advance instead"| grd["/brd-ground &lt;SLICE-KEY&gt; (PA)"]
 ```
 
 `customer-review-reader` is dispatched once, on the detection chain. `impl-maintenance` runs in the
@@ -283,25 +284,34 @@ markdown file under the parent, which is exactly why the carve-out has to be wri
 
 This is where the BRD-to-PRD route **hands over**, not where it ends. A reconciled BRD — decisions
 frozen, dependents swept, every artifact under the parent checked — is the state the PRD pipeline
-was waiting for, and Phase 14 offers all three the BRD route entry points against the same
-`<BRD-KEY>` — **on a run that left nothing to re-enter for**, and each under the precondition the
-offered command actually enforces:
+was waiting for, and Phase 14 offers all three of the route's entry points into the PRD pipeline against the same
+`<SLICE-KEY>` — **on a slice, on a run that left nothing to re-enter for**, and each under the
+precondition the offered command actually enforces:
 
 | Handover | Offered when | Why |
 |---|---|---|
-| [`/create-prd <BRD-KEY>`](create-prd.md) (PM) | **Conditionally** — no ledger row still `unallocated`, and one `covered-here` | Exactly the two refusals its own Phase 0 raises; offering it otherwise hands over a run that stops immediately |
-| [`/create-ard <BRD-KEY>`](create-ard.md) (PA, optional) | **Unconditionally** | Reads only the specs tree, so it needs no key minted anywhere else; no PRD gate, so no wait on a PRD; and it reads neither `claims:` nor the ledger |
-| [`/specify <BRD-KEY>`](specify.md) (PE) | **Unconditionally** | The same three reasons, read out of its own Phase 0 rather than assumed symmetric with `/create-prd`'s |
+| [`/create-prd <SLICE-KEY>`](create-prd.md) (PM) | **On a slice**, and only where no ledger row is still `unallocated` and one is `covered-here` | Exactly the three refusals its own Phase 0 raises; offering it otherwise hands over a run that stops immediately |
+| [`/create-ard <SLICE-KEY>`](create-ard.md) (PA, optional) | **On a slice**, with no further condition | Reads only the specs tree; the PRD gate runs on every route but its `absent` branch proceeds, so no wait on a PRD that has not been authored; and it reads neither `claims:` nor the ledger |
+| [`/specify <SLICE-KEY>`](specify.md) (PE) | **On a slice**, with no further condition | The same reasons, read out of its own Phase 0 rather than assumed symmetric with `/create-prd`'s |
 
-Both `/create-prd` tests are read over the BRD's **own ledger rows** — `brd-link.md`'s `claims:`
-narrows that set only on a slice, since a BRD owning its source document carries no such field — and
+**The level test comes first, and on a root BRD all three are dropped.** A BRD is a container:
+`prd.md`, `ard.md` and `specification.md` are authored in the `PRD-` slice folders under it, one of
+each per slice, and every one of the three refuses a `BRD-` folder in its own Phase 0
+(`CREATE_PRD_BRD_NOT_SLICED`, `CREATE_ARD_BRD_NOT_SLICED`, `SPECIFY_BRD_NOT_SLICED`). Reconciling a
+root therefore advances into its slices instead — [`/brd-ground <SLICE-KEY>`](brd-ground.md) once per
+non-empty slice, each re-entering the route on its own key and reaching this same hand-over in its
+own right. That one offer carries `<merge-clause>`, unlike the three above, because `/brd-ground`
+gates `coverage-ledger.md` on the default branch and this run wrote to a ledger.
+
+Both `/create-prd` tests are read over the slice's **own claimed ledger rows** — narrowed by
+`brd-link.md`'s `claims:` — and
 off the ledger **file**, never off a `ledger:` line, whose `unallocated` term is a resolved count
 that also holds rows a child has not walked yet. Where either test fails the option is **dropped from
 the array** rather than annotated, and the text says which one failed: a row still `unallocated` is
-walked to a terminal disposition by [`/brd-split`](brd-split.md), while a BRD with no `covered-here`
-row holds no PRD of its own at all — on a `covered-by` row the PRD is the named BRD's to author.
+walked to a terminal disposition by [`/brd-split`](brd-split.md), while a slice with no `covered-here`
+row holds no PRD of its own at all.
 
-Each takes **one** key: a second positional is refused (`CREATE_ARD_BRD_NO_EPIC` / `SPECIFY_BRD_NO_EPIC`),
+Each takes **one** address: a second positional token is refused (`CREATE_ARD_ONE_ADDRESS` / `SPECIFY_ONE_ADDRESS`), on every route,
 so neither of the optional two is ever offered with an Epic beside it. The three are **alternatives,
 not a sequence** — neither of the unconditional two waits on the PRD — and none of them carries the
 `<merge-clause>` placeholder, because none runs `require-on-main` against anything this command
@@ -319,7 +329,8 @@ own register on the default branch.
 `advance_ready` from what the run left behind — any reopened decision, any `[C]` still held for the
 customer, any finding the review left to re-derive, any dependent it could only record — and where
 any of those is true the three the BRD route options are **dropped**, not annotated. That is a
-refusal only this phase can make: `/create-ard` on the BRD route and `/specify` on the BRD route run no gate
+refusal only this phase can make, unlike the level refusal above, which each of the three now makes
+for itself: `/create-ard` on the BRD route and `/specify` on the BRD route run no gate
 that catches a reopened decision, since routing an `open` or `reopened` record into their own
 open-questions section is correct behaviour rather than a stop, so an operator sent there would get
 an artifact built around a hole with nothing having refused it. Each re-entry option is likewise
@@ -355,17 +366,28 @@ and every other dependent starting with its `conditional_on` positions, sweeps e
 the parent for the changed ids and for prose still asserting the old position, and writes
 `reconciliation-<date>.md`.
 
-Phase 14 then hands the route over. `EPIC-008`'s reconciled ledger leaves no row `unallocated` and
-several `covered-here`, so all three exits are offered against that one key:
+Phase 14 then hands the route over — **and `EPIC-008` is a root BRD, so the hand-over is into its
+slices, not into the PRD pipeline.** A BRD is a container: its requirements are built by the `PRD-`
+slices under it, one PRD, one ARD and one specification each, and all three of those commands refuse
+a `BRD-` folder. What this run offers is therefore:
 
 ```
-/dev-workflows:create-prd EPIC-008
-/dev-workflows:create-ard EPIC-008
-/dev-workflows:specify EPIC-008
+/dev-workflows:brd-ground EPIC-008-01     # once per non-empty slice
 ```
 
-Had the run left a row `unallocated`, or left none `covered-here`, the first line would be dropped
-from the offer and the stop would say which test failed; the other two would still be offered.
+Run against the slice instead, all three exits are offered off that one key once its own
+reconciliation leaves nothing to re-enter for and its own ledger leaves no row `unallocated` and at
+least one `covered-here`:
+
+```
+/dev-workflows:create-prd EPIC-008-01
+/dev-workflows:create-ard EPIC-008-01
+/dev-workflows:specify EPIC-008-01
+```
+
+Had that slice run left a row `unallocated`, or left none `covered-here`, the first line would be
+dropped from the offer and the stop would say which test failed; the other two would still be
+offered.
 
 ## See also
 

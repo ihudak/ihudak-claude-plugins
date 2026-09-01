@@ -1,6 +1,6 @@
 ---
 name: release-notes-writer
-description: Renders an example-docs release-notes draft (the authored body only) for a resolved PRD/ticket from the folder read handoff and optional PR-diff summaries. Emits exactly ONE Summary. Resolves the note's destination (breaking-changes / feature-updates / fixes) to pick the draft's shape — a  label + H3 title + prose, or a single bare sentence for fixes — and never writes the Change Type as text. Sources the  label from the imported release_notes_category and omits it when absent. Emits NO identifiers, NO PR links, and NO {{#internal-note}} block (the docs automation adds those). Does NOT write files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Renders an example-docs release-notes draft (the authored body only) for a resolved PRD/ticket from the folder read the orchestrator hands it, plus optional diff summaries. Emits exactly ONE Summary. Resolves the note's destination (breaking-changes / feature-updates / fixes) to pick the draft's shape — a category label + H3 title + prose, or a single bare sentence for fixes — and never writes the Change Type as text. Sources the category label from the resolved PRD's release_notes_category and omits it when absent. Emits NO identifiers, NO PR links, and NO {{#internal-note}} block (the docs automation adds those). Does NOT write files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep"]
 ---
 
@@ -17,7 +17,7 @@ You do NOT write files — you return the rendered draft to the caller.
 ```yaml
 folder_read: <full YAML from the folder read>
 diff_summaries:      <optional array of diff-summarizer outputs; omit when diff-grounding is off>
-imported_change_type:            <change_type from the imported PRD frontmatter (the folder read handoff); null otherwise>
+change_type:            <change_type from the resolved PRD's frontmatter; null otherwise>
 release_notes_category: <release_notes_category from the resolved PRD's frontmatter; null otherwise>
 run_phase:           <pm | dev — which of the two /release-notes runs this is; gates the §4 documentation-link rule>
 model_routing:       <standard block>
@@ -102,7 +102,7 @@ When `docs_grounding` is present, use its `docs_references` for terminology and 
      - **Editorial hierarchy.** Lead with the new default / recommended path. Demote a
        deprecated, legacy, or "manual-only" option out of the primary list into a
        trailing sentence or an optional `> Note:` line — do not present it as an equal
-       peer to the recommended choice. The the folder read handoff's "Current vs Target
+       peer to the recommended choice. The folder read's "Current vs Target
        State" / deprecation signals tell you which option to demote.
      - **Markdown affordances** (use where they aid clarity, matching shipped
        feature-updates): **bold** for UI element / screen / field names, inline
@@ -157,7 +157,7 @@ Return YAML exactly as defined in `${CLAUDE_PLUGIN_ROOT}/references/handoff/rele
   low confidence, still set it and record a `field: change_type` gap.
 - NEVER write the Change Type as text anywhere in the draft. It selects the destination and the shape
   only.
-- The category label IS the PRD's `release_notes_category`, used verbatim. When the import
+- The category label IS the PRD's `release_notes_category`, used verbatim. When the PRD
   does not carry one, omit the category label — never infer, guess, or ask for a label.
 - NEVER name the release version in any `feature_title` or `prose`, and NEVER emit more than one
   Summary.

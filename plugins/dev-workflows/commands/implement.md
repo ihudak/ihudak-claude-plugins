@@ -18,7 +18,7 @@ Implement the following: $ARGUMENTS
 |---|---|---|
 | **Spec file** | a single `.md` file | read fully; use as the description/spec |
 | **Spec folder** | a directory containing `prompt.md` and/or a `*-design.md` | read all `.md` specs within; fold into the description |
-| **Specs folder** | a directory containing a `*-index.md`, or ticket-key subdirectories each containing a `KEY.md` | hand to the folder read in Phase 1.7 |
+| **Specs folder** | a directory under `specifications/` that asserts a `key:` in a keyless artifact it holds — `prd.md`, `epic.md`, `specification.md` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4) | hand to the folder read in Phase 1.7 |
 | **Code repo** | a directory where `git -C <path> rev-parse --is-inside-work-tree` succeeds (includes the cwd) | scan target in Phase 1.7 |
 
 **Address resolution.** Before the per-`@path` classification above, look for a **single positional
@@ -38,9 +38,10 @@ resolved `path`, `kind` and `key`, and `specs` forward.
   Phase 1.7 scan and specs resolution both scope to it.
 - **The address named a `PRD-` folder** → `focus_key` is null; enumerate the `EPIC-` folders
   directly under it — a directory listing, which is what the linked-item hierarchy has become — and
-  run the progress-aware picker below.
-  - the item is **itself an Epic** (stand-alone / top-level) → no picker; proceed
-    directly (`focus_key` stays null; specs resolve at the item's top-level dir).
+  run the progress-aware picker below. **There is no third case.** A top-level `EPIC-` folder with no
+  PRD above it used to have a branch of its own here, nested — unreachably — inside this one;
+  `/dev-workflows:epics` is the only command that creates an `EPIC-` folder and it writes every one
+  of them under a PRD folder, so an Epic address is always the bullet above.
   - **PRD with exactly 1 Epic** → no picker; set `focus_key` to that Epic and proceed.
   - **PRD with ≥2 Epics** → render the picker per `${CLAUDE_PLUGIN_ROOT}/references/epic-picker.md`,
     honouring that file's *The cap*: every Epic listed as prose, the array carrying at most three rows
@@ -729,14 +730,14 @@ Output a structured report — do NOT ask any closing confirmation:
 - [MINOR / NIT findings that were not applied] OR "none"
 
 ### Next step
-[Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. keyed mode: finish the remaining Epics under the PRD (breadth) — `/dev-workflows:implement <PRD> <another-Epic>` — and, once **all** Epics are implemented, `/dev-workflows:document <PRD>` then `/dev-workflows:release-notes <PRD>` (both PRD-level, run once). Depth vs breadth is the team's call. Direct mode: no forward pipeline step (omit). If review is still BLOCK, resolve that first.]
+[Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. keyed mode: finish the remaining Epics under the PRD (breadth) — `/dev-workflows:implement <SIBLING-EPIC>`, one address, the Epic's own (D4) — and, once **all** Epics are implemented, `/dev-workflows:document <PRD>` then `/dev-workflows:release-notes <PRD>` (both PRD-level, run once). Depth vs breadth is the team's call. Direct mode: no forward pipeline step (omit). If review is still BLOCK, resolve that first.]
 
 ### Context hygiene
 
 *(keyed runs only — omit this whole block in direct-prompt mode, like the `### Next step` above.)*
 The resume pointer is written in the terminal cost phase (Phase 7), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
 
-- **More Epics to build (`/dev-workflows:implement <PRD> <Epic2>`) or on to `/dev-workflows:document <PRD>` — same build lane?** → run **`/compact`** — context stays relevant.
+- **More Epics to build (`/dev-workflows:implement <SIBLING-EPIC>`) or on to `/dev-workflows:document <PRD>` — same build lane?** → run **`/compact`** — context stays relevant.
 - Consider **`/rename <PRD-ID>-<slug>-dev`** to relocate this session later.
 
 Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.

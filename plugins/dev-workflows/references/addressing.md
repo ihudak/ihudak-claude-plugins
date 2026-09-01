@@ -46,8 +46,12 @@ touches no filesystem — a pure string test, safe to call before `$SPECS_PATH` 
 **Two invariants, and §3's bound is derived from the second:**
 
 1. **Kinds appear in a fixed order down any path** — `BRD` → `PRD` → `EPIC`, each optional at the top.
-   An idea-route PRD sits directly under `specifications/`; a BRD-route PRD sits inside its BRD. Both
-   are `PRD-` folders and both hold their Epics one level below.
+   An idea-route PRD folder sits directly under `specifications/`; a BRD-route PRD folder is the
+   slice folder inside its BRD. Both are `PRD-` folders, both are where the `prd.md` is authored, and
+   both hold their Epics one level below. **The `BRD-` folder itself is never one of them**: it is a
+   container, and `prd.md`, `ard.md` and `specification.md` are authored in the `PRD-` slice folders
+   under it, never beside `brd/` and `coverage-ledger.md`
+   (`references/coverage-ledger-format.md` §5).
 2. **No path holds two folders of the same kind.** Every level is therefore identifiable from its own
    name without reading its parent, and the tree is at most three levels deep.
 
@@ -218,8 +222,8 @@ precisely to become a PRD. Refusing a further child, not the walk, is the whole 
 ## 7. The shared fallback for existing commands
 
 Every command outside the `/brd-*` family that addresses a PRD directory resolved it as the flat form
-`specifications/<KEY>-<slug>/`, which on its own cannot see a nested PRD (one `/create-prd` on the BRD route
-authors inside a BRD). All of them therefore reach the tree through `resolve-address`, which searches
+`specifications/<KEY>-<slug>/`, which on its own cannot see a nested PRD (`/create-prd` on the BRD
+route authors into the `PRD-` slice folder one level inside a BRD). All of them therefore reach the tree through `resolve-address`, which searches
 every level §3 bounds and carries §5's fallback. One shared rule, defined here once rather than reinvented
 per caller. The adopter list below is the authority on who applies it — **it is longer than the six the
 original design named**, and it is meant to be read as a list, not summarised as a count.
@@ -262,8 +266,9 @@ without removing a command. Ten commands in the table, one by delegation, one sh
 
 **Where a handoff crosses two adopters, both must carry it.** `/create-prd` redirects to `/update-prd` on
 finding an existing PRD (its *Prior PRD* step), including one found through this fallback; `/idea`
-relocates `idea.md` into the folder `/create-prd` then reads. A redirect or a relocation into a command
-with a narrower resolution than the one that produced the state is a dead-end handoff, which is why those
+writes `idea.md` into the folder `/create-prd` then reads, resolving it with this file's §3 on its
+first write and **never relocating it afterwards** (D7). A redirect, or a first write into a folder a
+command with a narrower resolution then has to find again, is a dead-end handoff, which is why those
 two are in the table rather than deferred as low-risk.
 
 **Not adopters, and correctly so.** The `/brd-*` commands resolve a folder with `resolve-address` (§3)

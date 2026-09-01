@@ -61,8 +61,50 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
    Phase 2 copies anything into it. Absent → this is a
    brand-new BRD: derive `<slug>` from the source file's first heading (kebab-cased), falling back
    to a kebab of the source filename when no heading is found, and prepare to create
-   `specifications/<BRD-KEY>-<slug>/` — the directory is not actually created until Phase 2's first
-   write.
+   `specifications/BRD-<BRD-KEY>-<slug>/` — **the `BRD-` kind prefix is part of the name**
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §2), never optional and never derived from the
+   key. The directory is not actually created until Phase 2's first write.
+
+   **Writing it unprefixed is the pre-prefix shape §5 exists to tolerate, never to produce**, and
+   the cost is not cosmetic. A folder created without the prefix misses `addressing.md` §3's
+   `*-<KEY>-*` glob by construction, so every downstream run resolves it through §5's legacy
+   fallback and reports it `legacy: true` — deprecated, once per run — on a tree this command wrote
+   minutes earlier. Worse, the container refusals `/dev-workflows:create-prd`,
+   `/dev-workflows:create-ard`, `/dev-workflows:specify` and `/dev-workflows:epics` each read
+   the `BRD-` prefix off the resolved folder's **own name**, falling through to
+   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1's positive test only for a
+   folder that has none — so an unprefixed root BRD moves all four refusals onto the legacy branch
+   they hold for repositories written before increment A. And `/dev-workflows:brd-split` Phase 3
+   step 2 creates its slice at `specifications/BRD-<PARENT-KEY>-<parent-slug>/PRD-…`, a path that
+   would not exist. `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §5 keeps resolving the folders
+   a pre-prefix repo already holds; this command does not add to them.
+
+
+   **A re-run over an existing folder rewrites every ledger disposition, and the confirmation for
+   that is taken here — before Phase 2's first write.** Where the folder resolved above already
+   holds a `coverage-ledger.md` with any row not `unallocated`, read it and state, before anything
+   is copied: how many rows carry each terminal disposition and which `[BR#n]`s they are —
+   `covered-by`, `deferred-to`, `rejected`, `superseded-by`, and any illegal root `covered-here`
+   (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5) — and that Phase 5 replaces
+   **every one of them** with `unallocated`. Name what that destroys rather than calling it a
+   rewrite: each `deferred-to`, `rejected` and `superseded-by` decision `/dev-workflows:brd-split`'s
+   walk took is discarded and has to be re-taken, a `rejected` row re-cited against its `[DEF#n]`,
+   and every child's `claims:` re-allocated. Then ask:
+   ```
+   choices: ["Re-run: re-extract the inventory and rewrite the ledger, discarding the <n> recorded dispositions above", "Cancel — leave this BRD as it stands"]
+   ```
+   **Here and not in Phase 5, because this is the last point at which declining is free.** By
+   Phase 5 the source has been re-copied and the inventory re-extracted, so a decline there would
+   leave the folder holding an inventory its standing ledger no longer matches — a worse state than
+   either answer to this question. On `Cancel` nothing is written at all. Where the folder holds no
+   ledger, or every row of it is still `unallocated`, there is nothing to discard and this
+   confirmation is skipped silently.
+
+   **A single illegal root `covered-here` row does not need this run**, and the offer says so rather
+   than letting a re-run be taken for the only exit: `coverage-ledger-format.md` §5 names the
+   one-row hand repair that leaves every other disposition standing, and the four container refusals
+   in `/dev-workflows:create-prd`, `/dev-workflows:create-ard`, `/dev-workflows:specify` and
+   `/dev-workflows:epics` offer that repair first and this re-run second.
 
 `/brd-intake` is the **first command of the BRD-to-PRD route** — unlike every downstream `/brd-*`
 command, it consumes no prior phase's deliverable, so it runs no `require-on-main` gate here. It is
@@ -75,7 +117,8 @@ cwd-agnostic and needs no repos mounted (no `$REPOS_PATH`); grounding against co
 
 Show, and confirm before writing anything:
 
-- The BRD folder (existing, or the derived `<BRD-KEY>-<slug>` to be created).
+- The BRD folder (existing, or the derived `BRD-<BRD-KEY>-<slug>` to be created — the `BRD-`
+  prefix included, per `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §2).
 - The resolved absolute path to `@<brd-file>`.
 - Whether `--sort-existing <dir>` is in play, and its resolved directory.
 - The `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`
@@ -232,6 +275,16 @@ mirrored from the inventory, `evidence` empty (grounding has not run yet — tha
 job), and **`disposition: unallocated` on every row**, per §3: "the initial state; the only one of
 the six that blocks §4." No row is ever written in any other disposition here.
 
+**On a re-run this phase rewrites every disposition, and it does so unconditionally by design.**
+Where Phase 0 step 7 resolved an **existing** folder, the ledger that folder holds is replaced row
+for row: every `covered-by`, `deferred-to`, `rejected` and `superseded-by` `/dev-workflows:brd-split`'s
+walk wrote is gone, and so is any illegal root `covered-here`. **The warning and the confirmation
+for that are step 7's**, taken before Phase 2 copied anything, because by the time this phase runs
+the source has been re-copied and the inventory re-extracted and there is no state left to decline
+into. What this phase owes is the restatement: report which dispositions this write discarded, how
+many of each, and that they must be re-taken in `/dev-workflows:brd-split`'s walk. A rewrite the
+operator consented to at step 7 is still a rewrite the run has to name.
+
 ---
 
 ## Phase 6 — Migrate existing work (`--sort-existing <dir>`, optional)
@@ -265,13 +318,17 @@ line in the final report.
 
 `brd` is the branch prefix `phase-handoff.md` §2.9 lists as shared by every `/brd-*`
 command (the way `prd` is shared by `/create-prd` and `/update-prd`) — a BRD is neither a PRD nor
-any of the other five prefixes, and reusing `prd` would collide with the `prd/<BRD-KEY>-<slug>`
-branch `/create-prd` on the BRD route opens against the same key once this BRD is PRD-eligible. **That
+any of the other five prefixes, and reusing `prd` would collide with the `prd/<SLICE-KEY>-<slug>`
+branch `/create-prd` on the BRD route opens once a slice of this BRD is PRD-eligible. **That
 switch ships**, so the collision is live rather than hypothetical: that command's handoff derives
-`prd/<BRD-KEY>-<slug>` from the very folder this run wrote into, exactly as
-`/dev-workflows:create-ard the BRD route` derives `ard/<BRD-KEY>-<slug>` and
-`/dev-workflows:specify the BRD route` derives `spec/<BRD-KEY>-<slug>` from it. Keeping `brd` separate
-is what lets all four branches exist on one key without either family renaming anything.
+`prd/<SLICE-KEY>-<slug>` from a slice folder nested inside the very folder this run wrote into,
+exactly as `/dev-workflows:create-ard` on the BRD route derives `ard/<SLICE-KEY>-<slug>` and
+`/dev-workflows:specify` on the BRD route derives `spec/<SLICE-KEY>-<slug>` from it. Keeping `brd`
+separate is what lets all four branches exist on one key without either family renaming anything —
+and this command's own `<BRD-KEY>` never carries the other three, because **the folder it creates is
+a container**: a PRD, an ARD and a specification are authored in the `PRD-` slices under it, one
+each, and all three commands refuse the container itself
+(`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5).
 
 ---
 

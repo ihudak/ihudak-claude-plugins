@@ -30,29 +30,35 @@ is written down does not have to be hooked.
   the later slice for itself. The slices are disjoint and sum to the window that run would otherwise
   have claimed whole. §3, §7 and §11 pick up the cross-references; §11 gains step 0, a no-op when no
   intent record exists, so the nineteen self-measuring commands are untouched.
-- **`scripts/session-cost.py`** — gains `--until-ts` (end the window early) and `--commands-dir`
-  (the known-command set), and reports `command_boundaries` for every plugin-command invocation in
-  the scanned window. Two disciplines make boundary detection safe, and both are load-bearing: the
-  `<command-name>` marker must **start** the message, because the same text appears inside quoted
-  file content elsewhere in a transcript; and the name is **resolved against the shipped
-  `commands/` directory, never parsed**, so `/compact`, `/login` and another plugin's commands are
-  not boundaries and a namespaced `/dev-workflows:implement` resolves to `/implement`. This is
-  `specs-repo-git.md` §3.5's `branch-key` discipline applied to a transcript.
-- **`scripts/session-cost.py --selftest` (new)** — eleven checks over a fixture built to
-  discriminate rather than merely to pass. The splitter's failure mode is silent: a boundary missed
-  or invented still yields a plausible dollar figure, filed against the wrong phase. So the fixture
-  carries a `<command-name>` marker quoted mid-message and a `/compact` invocation, and was verified
-  against the broken implementations it exists to catch — an unanchored match and one that skips the
-  known-command set each report three boundaries where the correct implementation reports two, and
-  the faithful unanchored variant fails five of the eleven assertions. Wired into CI after the two
-  existing gate selftests.
-- **`/prompt-brainstorm` and `/prompt-grill-me`** gain **Phase 2.5 — Defer the cost entry**, which
-  writes the intent record before ceding. It computes no cost and prints no figure, because the
-  spend it stands for has not happened yet.
-- **Attribution** — both commands gain `inferred`/`inferred` rows in §7 and inherit the corrected
-  command's labels exactly as `/prompt` and `/feedback` do, so the cost of fixing a phase's output
-  belongs to that phase. The rule that a correction *to a correction* resolves to
-  `plugin-feedback`/`n/a` is unchanged, and now reads on all four.
+- **`scripts/session-cost.py`** — gains `--commands-dir` (the known-command set
+  and this plugin's own namespace) and a repeatable `--claim`, and reports
+  `command_boundaries`. Given claims it partitions the window: each claim takes the
+  segment from its own invocation to the next boundary of any kind, and the
+  remainder — including whole segments belonging to commands that emit no cost
+  entry — stays with the replaying run. **Three disciplines are load-bearing, and
+  each was a defect first.** (a) The match is anchored on the *envelope*, not on
+  one tag: Claude Code writes built-ins name-first and plugin commands
+  message-first, so a matcher anchored on `<command-name>` alone sees no plugin
+  command at all and the feature is silently inert — which is how it was first
+  written here. (b) Claims are matched **by name, never by position**: a window
+  routinely holds boundaries no claim corresponds to (`/vuln`, `/upgrade`,
+  `/statusline`, `/docs-profile`, the two guideline reviewers, or an interrupted
+  run), and positional pairing shifts every claim by one, filing a security run's
+  spend under a PRD lifecycle phase. (c) A namespace is **resolved against the
+  plugin's declared name**, never stripped, so another plugin's
+  `/superpowers:implement` is not a boundary.
+- **`scripts/session-cost.py --selftest` (new)** — 21 checks over a fixture built
+  to discriminate rather than merely to pass, using the **real** transcript record
+  shapes. The splitter's failure mode is silent: a boundary missed or invented
+  still yields a plausible dollar figure filed against the wrong phase. So the
+  fixture carries a message-first plugin invocation, a `/vuln` boundary between the
+  ceding run and the replaying one, a foreign namespace over a shared bare name, a
+  marker quoted mid-message, a marker with no timestamp, list-block content,
+  subagent spend either side of a boundary, and a statusline snapshot. Nine of ten
+  mutations are caught, including every one above; the tenth (dropping the
+  leading-slash test) is not independently observable, because that test and the
+  offset after it are coupled — recorded in a comment rather than covered by an
+  assertion that could not fail. Wired into CI.
 
 **What is still not measured, stated rather than buried:** a session in which no cost-emitting
 command ever follows the grill. There the spend stays in §3's ordinary post-last-command tail,
@@ -60,11 +66,15 @@ unattributed — the same tail every other command already has. The statusline c
 is also not split, since it measures whole renders; a split slice omits it and leaves the delta to
 the final slice.
 
-**Stale claims retired**, swept by phrase rather than by line: `docs/reference/session-cost.md`
-(the count sentence, the *what does not emit one* paragraph, and a new *Spend a command cannot
-measure itself* section), `docs/roles-and-phases.md` (the `plugin-feedback` phase is reachable from
-four commands, not two), both command pages (each asserted *emits **no** cost entry — deliberately*),
-and `CLAUDE.md`.
+**Stale claims retired**, swept by phrase rather than by line. The first sweep was done per file
+remembered rather than per phrase and missed several, which review caught: `docs/reference/session-cost.md`
+(the count sentence, the *what does not emit one* paragraph, a *"cannot report honestly"* paragraph
+that survived two lines above the section contradicting it, and a *"why the other eight"* count that
+is now six), `docs/reference/session-feedback.md` (never opened by the first sweep, and flatly wrong),
+`docs/roles-and-phases.md` (**two** sentences — the `plugin-feedback` phase and the inheritance rule,
+both naming two of four commands), `references/cost-emission.md` itself (*"three inferred exceptions"*
+above a five-row table, plus five §11 sites still describing the pre-change contract), both command
+pages, and `CLAUDE.md`.
 
 ## [3.15.0] — 2026-09-01
 

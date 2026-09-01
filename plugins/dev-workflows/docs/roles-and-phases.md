@@ -53,7 +53,7 @@ Every phase ends the same way: a producing command lands its deliverable on the 
 
 ## Cost-attribution phases
 
-Every cost-emitting command tags its cost line with a `phase` and a `role`. Eleven phases exist; each entry below names the command that emits it and what being in that phase means. The first ten are lifecycle phases; the eleventh exists for spend that belongs to no phase at all. Each of the ten can also be reached **by inheritance**: `/prompt` and `/feedback` adopt the phase and role of whatever they are correcting, so a correction to a `/specify` output is a second entry in `specification`. Only the commands named below emit a phase *directly*.
+Every cost-emitting command tags its cost line with a `phase` and a `role`. Eleven phases exist; each entry below names the command that emits it and what being in that phase means. The first ten are lifecycle phases; the eleventh exists for spend that belongs to no phase at all. Each of the ten can also be reached **by inheritance**: `/prompt`, `/feedback`, `/prompt-brainstorm` and `/prompt-grill-me` adopt the phase and role of whatever they are correcting, so a correction to a `/specify` output is a second entry in `specification`. Only the commands named below emit a phase *directly*.
 
 ### prd-creation
 

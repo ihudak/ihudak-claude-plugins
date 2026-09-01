@@ -7,8 +7,9 @@ its steps inline through the single `emit-cost` entry point (§11).
 **Which commands those are is §7's attribution table, and nothing else.** A command
 emits a cost entry if and only if §7 gives it a row, so no roster and no total is
 restated here: the PRD-lifecycle commands have rows there, so do the `/brd-*`
-commands of the BRD-to-PRD route, and so do `/prompt` and `/feedback`, which are
-not PRD-lifecycle and infer their labels rather than carrying fixed ones. Read the
+commands of the BRD-to-PRD route, and so do the four feedback
+commands, which are not PRD-lifecycle and infer their labels rather than carrying
+fixed ones. Read the
 table for the set; a second copy of it in this preamble is what went stale before —
 the list this sentence replaces named the PRD-lifecycle commands only, and had
 already omitted every `/brd-*` emitter.
@@ -276,7 +277,7 @@ that model exactly as before).
 
 ## 7. Attribution (phase / role / keys)
 
-Fixed per-command labels, with three inferred exceptions:
+Fixed per-command labels, with five inferred exceptions:
 
 | Command | phase | role |
 |---------|-------|------|
@@ -456,9 +457,10 @@ and acceptable.
 ## 11. Caller contract — `emit-cost`
 
 One entry point. Every caller supplies `command`, `phase`, `role` (or the
-`inferred` marker — `/release-notes`, `/prompt`, `/feedback`), `key` (or
-`null`), `source`, and `plugin_version`; `/prompt` and `/feedback` additionally
-supply `target_command`. `emit-cost` does the rest; it NEVER commits, NEVER writes
+`inferred` marker — `/release-notes` and the four feedback commands), `key` (or
+`null`), `source`, and `plugin_version`; the four feedback commands additionally
+supply `target_command` — `/prompt` and `/feedback` directly, `/prompt-brainstorm`
+and `/prompt-grill-me` through the §13 record a replay reads it from. `emit-cost` does the rest; it NEVER commits, NEVER writes
 into a docs/code repo or the current working directory, and NEVER fails the
 run. The cost entry is committed later, once, by the run's terminal
 `commit-artifacts` step (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`
@@ -467,13 +469,15 @@ run. The cost entry is committed later, once, by the run's terminal
 Inputs:
 - `command` — the exact slash-command name (e.g. `/implement`,
   `/document (keyed mode)`, `/document (direct mode)`).
-- `phase`, `role` — the §7 labels, or the `inferred` marker for the three
-  commands §7 resolves. The three resolve from **different** data, and each must
+- `phase`, `role` — the §7 labels, or the `inferred` marker for the five
+  commands §7 resolves. They resolve from **different** data, and each must
   therefore be given it:
   - `/release-notes` — resolved from `specification.md` / `design.md` presence
     under the PRD's specs dir. `emit-cost` reads that itself; nothing is passed.
-  - `/prompt`, `/feedback` — resolved from `target_command`, which **cannot** be
-    re-derived from disk (it lives in the run's own context). It is passed in.
+  - The four feedback commands — resolved from `target_command`, which **cannot**
+    be re-derived from disk (it lives in the run's own context). It is passed in:
+    directly by `/prompt` and `/feedback`, and out of the §13.1 record for the two
+    that deferred.
 - `target_command` — **required when `command` is `/prompt` or `/feedback`.** The
   §7 **row name** of the command whose output is being corrected or remarked on, or
   `n/a`. Note this is the bare row name (`/document`), not the mode-qualified form
@@ -487,20 +491,23 @@ Inputs:
   (`python3 -c "import json;print(json.load(open('<path>'))['version'])"`).
 
 Behavior:
-0. **Replay any deferred attributions (§13) before measuring this run.** Absent a
-   deferred file this step is a no-op and nothing below changes.
 1. Resolve session artifacts (§1) and the price table (§4).
-2. Run `session-cost.py` (§2) with the checkpoint (§3) and, when present, the
-   snapshot (§5).
-3. Apply attribution (§7); build the per-invocation entry (§6); evaluate the
-   §6.1 dominance trigger against the built entry and print its warning to the
-   run output if it holds.
-4. Resolve the target via the ladder (§8); on a keyless run write pending and run
+2. Read the §13.1 deferred file, if any. Run `session-cost.py` (§2) with the
+   checkpoint (§3), the snapshot (§5) when present, `--commands-dir`, and **one
+   `--claim` per deferred record, oldest first**. With no deferred file this is
+   the call it has always been and every step below is unchanged.
+3. If `unmatched_claims` comes back non-empty, take §13.4 before writing
+   anything.
+4. Apply attribution (§7) to **this run**, whose spend is the returned remainder;
+   build the per-invocation entry (§6); evaluate the §6.1 dominance trigger
+   against the built entry and print its warning to the run output if it holds.
+5. Resolve the target via the ladder (§8); on a keyless run write pending and run
    opportunistic reconciliation (§9).
-5. Append the entry (create the file with frontmatter on first write).
-6. **Write `new_checkpoint` back (§3) in EVERY tier**, including pending /
-   report-only.
-7. Return the persisted path (or the report-only notice) as the phase's output.
+6. Append the entry (create the file with frontmatter on first write), then
+   append one entry per **matched claim** as §13.3 describes.
+7. **Write `new_checkpoint` back (§3) in EVERY tier**, including pending /
+   report-only, and delete the deferred file.
+8. Return the persisted path (or the report-only notice) as the phase's output.
 
 ## 12. Maintainer checklist — onboarding a new model generation
 
@@ -536,67 +543,83 @@ on that run's behalf.**
 
 ### 13.1 The intent file
 
-A ceding command writes one record, at the end of its Phase 2, immediately
-before ceding:
+A ceding command writes one record in its **Phase 2.5**, after Phase 2's
+`commit-artifacts` and immediately before ceding:
 
 ```
 ~/.claude/dev-workflows/cost-state/deferred-<session_id>.json
 ```
 
-A JSON array, appended to (a session may cede more than once), oldest first.
-Each record carries exactly what §11 cannot re-derive from disk once the run is
-over:
+A JSON array, appended to (a session may cede more than once), oldest first:
 
 ```json
-{"command": "/prompt-grill-me", "target_command": "/document",
- "key": "PRODUCT-1234", "source": "specs", "plugin_version": "3.16.0",
- "ceded_at": "2026-09-01T10:01:00Z"}
+{"command": "/prompt-grill-me", "phase": "inferred", "role": "inferred",
+ "target_command": "/document", "key": "PRODUCT-1234", "source": "specs",
+ "plugin_version": "3.16.0", "ceded_at": "2026-09-01T10:04:00Z"}
 ```
 
+Every field has a consumer, and none is a measurement: `command` and
+`plugin_version` build the entry (§6); `phase`/`role` are the `inferred` marker
+§11 takes, resolved from `target_command` through §7 at replay time; `key` and
+`source` choose the §8 tier; `ceded_at` becomes the replayed entry's `date` and
+the timestamp in its `id`, which is what keeps two records replayed by one run
+from colliding on §6's uniqueness rule.
+
 Same home, lifetime and status as the §3 checkpoint beside it — **per-user,
-per-session, transient, local, NEVER committed, and safe to delete.** It holds
-labels, never measurements.
+per-session, transient, local, NEVER committed, and safe to delete.**
 
 ### 13.2 Where the window is cut
 
-The boundary is not guessed and is not recorded by the ceding run: it is read
-out of the transcript, which already marks every slash-command invocation as a
-`type: user` record whose content **begins** with a `<command-name>` marker.
+The boundary is not guessed and is not recorded by the ceding run: it is read out
+of the transcript, which marks every slash-command invocation.
 `session-cost.py --commands-dir <plugin>/commands` reports them as
-`command_boundaries`, and two disciplines make that safe:
+`command_boundaries`. Three disciplines make that safe, and each exists because
+its absence was a live defect:
 
-- **Anchored.** The marker must start the message. The same text appears inside
-  quoted file content elsewhere in a transcript, and an unanchored match reads
-  those as invocations.
-- **Resolved, never parsed.** A marker records what the user typed, bare
-  (`/implement`) or namespaced (`/dev-workflows:implement`); the name is resolved
-  against the set of this plugin's own command files, so `/compact`, `/login` and
-  another plugin's commands are not boundaries. This is
+- **Anchored to the envelope, not to one tag.** Claude Code writes the envelope
+  in two orders — built-ins name-first (`<command-name>…`), plugin commands
+  message-first (`<command-message>…<command-name>…`) — so a match anchored on
+  `<command-name>` alone sees **no plugin command at all** and the feature is
+  silently inert. Anchoring on either opener keeps the property that matters: the
+  envelope must *start* the message, so the same marker text quoted inside prose
+  or a pasted file is not an invocation.
+- **Namespace resolved, never discarded.** A marker records what the user typed,
+  bare (`/implement`) or namespaced (`/dev-workflows:implement`). The namespace is
+  checked against this plugin's declared name from its own `plugin.json`; another
+  installed plugin's `/superpowers:implement` is **not** a boundary. Stripping the
+  namespace instead would invent one under a name this plugin never ran. This is
   `specs-repo-git.md` §3.5's `branch-key` discipline applied to a transcript.
+- **Matched by name, never by position.** See §13.3.
 
-Both are covered by `session-cost.py --selftest`, each paired with the broken
-implementation it exists to catch.
+`session-cost.py --selftest` covers each, paired with the broken implementation it
+exists to catch.
 
 ### 13.3 The replay
 
-`emit-cost` step 0. **No deferred file ⇒ skip entirely**; the nineteen commands
-that measure themselves are untouched by this section.
+`emit-cost` step 2 (§11). **No deferred file ⇒ nothing changes**; the nineteen
+commands that measure themselves never take this path.
 
-Otherwise, run `session-cost.py` once over the ordinary window (§3 checkpoint →
-now) with `--commands-dir`, and read `command_boundaries`. The last boundary is
-this run's own invocation; each earlier one is a ceding run named by a deferred
-record, in the same order. Then, for each deferred record in order:
+Otherwise the run passes one `--claim <command>` per deferred record, oldest
+first, and the script partitions the window:
 
-1. Re-run `session-cost.py` with the current checkpoint and `--until-ts` set to
-   the **next** boundary's timestamp — the moment the following run began.
-2. Build the entry (§6) from that slice, taking `phase`/`role` by resolving the
-   record's own `target_command` through §7.
-3. Append it through the §8 ladder, and write `new_checkpoint` back (§3).
+- Each claim is matched to a boundary **by name**, scanning forward. It gets
+  exactly the segment from its own boundary to the **next boundary of any kind**.
+- Everything else — including whole segments belonging to commands that emit no
+  cost entry — stays in the **remainder**, which is this run's own spend, exactly
+  as it would have been without any of this.
 
-Delete the deferred file, then continue at step 1 for this run's own slice —
-whose window now starts at the last boundary, so it carries only its own work.
-The slices are disjoint and sum to the window that would otherwise have been
-claimed whole by this run.
+**Matching by name is the whole point, and positional pairing is the trap.** A
+window routinely holds boundaries no claim corresponds to: `/vuln`, `/upgrade`,
+`/docs-profile`, `/statusline` and the two guideline reviewers are real commands
+that emit no cost entry, and an interrupted run leaves a boundary too. Pair the
+k-th claim with the k-th boundary and a single `/vuln` in the window shifts every
+claim by one — filing a security run's spend under a PRD lifecycle phase, which
+is the exact misattribution this section exists to remove.
+
+For each matched claim, build the entry (§6) from its segment, taking
+`phase`/`role` by resolving that record's own `target_command` through §7, and
+dating it `ceded_at` (§13.1). Append it through the §8 ladder using the record's
+own `key` and `source` — which may differ from this run's.
 
 **A deferred entry is committed by the run that replays it**, through that run's
 own terminal `commit-artifacts`. The ceding run's `commit-artifacts` has long
@@ -604,17 +627,22 @@ since finished, which is why it could never have committed its own.
 
 ### 13.4 What this does not do
 
-- **It never invents a boundary.** If the window holds fewer boundaries than
-  deferred records plus one — a rotated transcript, a session resumed elsewhere —
-  the split is abandoned whole: no deferred entry is written, the file is left in
-  place for the next run to try, and the run reports one line saying so. A stale
-  file is transient and safe to delete, exactly like the checkpoint.
+- **It never invents a boundary.** A claim matching no boundary comes back in
+  `unmatched_claims`. Its entry is **not written** — nothing is guessed onto a
+  neighbouring boundary — and its spend simply stays in the remainder, where it
+  would have been anyway. The run reports one line naming the command whose
+  attribution was lost, and the deferred file is still deleted: the checkpoint has
+  advanced past that boundary, so no later run could ever match it, and leaving
+  the file would re-print the same line every run for the rest of the session.
+  Nothing is lost that was not already lost; only the attribution is.
 - **It does not split Option B.** The statusline cross-check (§5) measures whole
-  renders and cannot be apportioned, so a split slice omits
-  `cost_statusline_usd` and leaves the baseline for the final slice to claim.
+  renders and cannot be apportioned, so a window carrying any claim omits
+  `cost_statusline_usd` rather than over-reporting it against the remainder.
 - **It does not rescue a session that ends there.** With no later cost-emitting
   command the spend stays in §3's post-last-command tail, unattributed — the same
-  tail every command already has.
+  tail every command already has. A resumed session that starts a new transcript
+  is this case: the new session has its own `deferred-<session_id>.json`, so the
+  old record is never read again and is safe to delete.
 - **It is not a general mechanism for skipping the cost phase.** A command that
   *can* measure itself must; deferral exists only for a run that provably cannot,
   and adding a third deferring command means showing that its Phase 3 cedes the

@@ -239,35 +239,140 @@ set. A PRD folder on the `/idea` route holds one whenever that idea's source lin
 could open, and nothing reconciles it yet; that is a known and deliberate state, not a gap in this
 section.
 
-**The `/idea` route now WRITES a frame set here, and it writes the index with it.** `/idea` Phase 4.5
-copies the images it actually read into `<PRD-folder>/design/idea-sources/` and writes that set's
-`index.md` from `idea-reader`'s per-image `description`
-(`${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`, *Vendored sources*). **Writing the images without
-the index was never an option**: the paragraph above makes the index's absence unrecoverable, so images
-dropped into a frame set with no index would be a directory `design-grounder` refuses on sight and no
-later run could repair — permanently unreadable, and worse than not vendoring them at all. The
-descriptions are transcribed verbatim from the reader and never inferred, which is the very inference
-this section's index rule exists to forbid; an image the reader did not read carries no description, is
-not copied, and appears in no row.
+**Two commands WRITE a frame set's index, and §6.2 is the one format both write.** `/idea` Phase 4.5
+copies the images it actually read into `<PRD-folder>/design/idea-sources/` and indexes that set;
+`/frames` (re)builds the index of **every** `design/*/` set of one resolved folder, whatever kind of
+folder that is. **Writing images into a set without its index was never an option**: the paragraph
+above makes the index's absence unrecoverable, so images dropped into a frame set with no index would
+be a directory `design-grounder` refuses on sight. That is also the state a human produces by
+exporting frames and dropping the folder in, and it is exactly what `/frames` exists to repair — the
+requirement above is strict *and*, until that command, had no recovery but hand-authoring an index.
 
-**Writing an index is not consuming one, and `/idea` design grounding has NOT shipped.** Nothing on
-that route dispatches `design-grounder`, produces a `[DG#n]`, consults an index, or reaches a verifier.
-The index makes the frame set *readable* — it does not make anything read it. That capability remains
-deliberately unbuilt and is a decision of its own, and this paragraph exists to foreclose the mistake of
-reading either `idea-reader`'s image support or the index `/idea` now writes as that capability having
-arrived.
+**Writing an index is not consuming one, and `/idea`-route design grounding has NOT shipped.** Neither
+writer dispatches `design-grounder`, produces a `[DG#n]`, consults an index, or reaches a verifier.
+The index makes the frame set *readable* — it does not make anything read it. **`/frames` is not that
+capability and must not be read as it having arrived**: it describes frames so that a set *can* be
+read, and reconciles nothing against any requirement. Indexing makes frames readable; grounding makes
+them `[DG#n]` findings, and only `/brd-ground` does the second. That capability remains deliberately
+unbuilt on every other route and is a decision of its own, and this paragraph exists to foreclose the
+mistake of reading `idea-reader`'s image support, `frame-describer`'s descriptions, or either writer's
+index as that decision having been reversed.
 
-**Reading a picture is not design grounding, and the `/idea` route does the first without doing the
-second.** `idea-reader` reads the images an idea source links and returns a description of each — as
-**context** for the grill and the brief, never as evidence. Nothing on that route produces a `[DG#n]`
-or reaches a verifier, so none of this section's *finding* requirements applies to it: the index rule
-above exists because a *filename* is not a reliable statement of what a frame depicts, which is the
-right standard for a finding someone will act on and the wrong one for a brief whose operator handed
-the mockup over themselves. What `/idea` inherits from this section is the index obligation alone —
-because that one is about the directory, which it now creates, rather than about a finding, which it
-still does not make.
+**Reading a picture is not design grounding, and both writers do the first without doing the second.**
+`idea-reader` reads the images an idea source links; `frame-describer` reads the frames of a set being
+indexed. Each returns a description of what it saw — as **context**, never as evidence. Neither
+produces a `[DG#n]` or reaches a verifier, so none of this section's *finding* requirements applies to
+them: the index rule above exists because a *filename* is not a reliable statement of what a frame
+depicts, which is the right standard for a finding someone will act on and the wrong one for a
+description whose whole job is to say what the operator's own export shows. What both writers inherit
+from this section is the index obligation alone — because that one is about the directory, which they
+create or repair, rather than about a finding, which neither makes.
 
-### 6.2 The four reconciliation classes
+### 6.2 The frame-set index
+
+**The format §6.1 makes mandatory is fixed here, once, and every writer cites it.** It lived in
+`${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` while `/idea` was its only author; `/frames` is a
+second author, and one format with two authorities is the defect family this plugin keeps paying for.
+That file now states only what `/idea` contributes to a row and cites this section for everything
+else. It belongs here rather than there because it is the *satisfaction* of §6.1's requirement, and a
+requirement and its satisfaction drift apart the moment they live in different files.
+
+`<any-specs-folder>/design/<frame-set>/index.md`:
+
+```markdown
+---
+kind: frame-set-index
+key: <the resolved folder's own key, read from its frontmatter, never parsed from its name>
+frame_set: <the frame-set directory's own name>
+written_by: <the command that last wrote this file>
+---
+
+# Frame set: <frame-set>
+
+Every frame this set holds. The set accumulates across runs and across commands, so a row may well
+predate the run that last wrote this file. Each description is the describing agent's own account of
+what the frame shows — **context, not evidence**: what somebody drew, not what anything does.
+
+| Frame | Linked from | What the frame shows |
+|---|---|---|
+| `toggle-01.png` | `notes/dark-mode.md` | <the description, verbatim> |
+```
+
+**`index.md` is the name a *writer* writes.** §6.1 lets a *reader* accept whatever name the frame-set
+convention used, because a set exported elsewhere may already carry a manifest under another name. A
+writer has no such excuse, and picks one name so that two writers never leave two indexes disagreeing
+in one directory. A run that finds an index under another name reports it and writes `index.md`
+beside it rather than editing a file whose shape it never fixed.
+
+**`key` is read, never parsed** — `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4, the same rule
+every resolver follows. **`written_by` names the command that last wrote the file**, so it changes when
+a second writer rebuilds an index the first one authored; it is a record of authorship, never a claim
+of ownership, and no rule anywhere keys off it.
+
+**`Linked from` is provenance, and it is frequently absent.** Where the frame arrived through a link —
+`/idea` vendoring an image an idea source pointed at — it is the original path of the file that carried
+that link, kept as the frame's provenance and **never repointed at the copy**. Where nothing linked it —
+a human exported the frames and dropped the folder in — it is `—`.
+
+#### The reconciliation contract
+
+**The index is rebuilt from the frame set as it stands on disk, never from the list of images the run
+itself produced.** A set accumulates, so from the second run onward "what this run touched" and "what
+the set holds" are different sets — and writing the smaller one leaves every earlier frame sitting in
+an indexed directory that identifies none of them: §6.1's own unrecoverable failure, reproduced at row
+granularity and silently. Nor is it recoverable from the run's own inputs, because a run holds no
+description for a frame it never looked at.
+
+Every writer runs exactly these steps, **after** whatever files it was going to add have landed:
+
+1. **List the images actually in the directory** — every file carrying one of the image extensions.
+   `index.md` is not a frame and is never a row.
+2. **Preserve every existing row whose image is still in that listing, verbatim** — the frame, its
+   `Linked from`, and its description exactly as they stand. A run cannot reproduce a description it
+   never received, so a row it cannot reproduce is a row it must not rewrite. **One exception, and it
+   is that reason read forwards**: a row whose description is step 4's literal `_no description on
+   record_` holds no description to preserve, so a writer that *can* obtain one replaces that row
+   instead of preserving it. A writer that cannot leaves it exactly as it stands. Without this
+   exception the placeholder would be permanent, and step 4 would convert every cap and every failed
+   read into a frame nothing could ever describe.
+3. **Append one row per frame this run accounts for and the index does not, in run order**, after the
+   rows already present, built from that frame's description and its `Linked from` — **transcribed
+   verbatim, never invented**. What a run "accounts for" is the one thing that differs per writer, and
+   the table below is where each writer's answer is recorded.
+4. **A frame in the listing the run accounts for in no way still gets a row** — `—` in `Linked from`,
+   and the literal `_no description on record_` in the last column. Something the run cannot speak for
+   put that frame in the set, or a cap or a failed read stopped the run from looking at it. Omitting it
+   would rebuild the exact defect this contract exists to prevent, and inventing a description for it is
+   the inference §6.1 forbids. **Report it**, with the run's reason where it has one, so the operator
+   knows a re-run has work left.
+5. **A row whose image is no longer in the listing is dropped**, and reported. The index states what the
+   set holds, and a row naming a frame that is not there is a promise `design-grounder` would resolve to
+   nothing. Nothing is restored and nothing is re-copied: this step reconciles an index with a directory,
+   it never manages the directory.
+6. **Write the index whenever that listing is non-empty** — not only when the run added something. A
+   re-run that added nothing writes it too, and, with every row preserved and none appended, writes back
+   exactly the file that was there. Where the listing is empty, or the directory does not exist, **write
+   nothing and create nothing**: an empty index is a claim about a set that does not exist, and an empty
+   `design/<frame-set>/` is a directory `design-grounder` would open for nothing.
+
+**The index is written whole or not at all.** Steps 1–5 resolve every row before step 6 writes the file
+once, so a run stopped by a cap, an unreadable frame, or an image nothing could describe still leaves a
+**valid and complete** index — every frame in the listing carries a row — rather than a half-written
+one. What such a run leaves behind is step 4's placeholder and a report saying so; step 2's exception is
+what lets the next run finish the job.
+
+**What each writer accounts for.** The steps above are identical for every writer; only this differs:
+
+| Writer | The frames it accounts for | Where a new row's description comes from |
+|---|---|---|
+| `/idea` | each image it copied into `design/idea-sources/` this run | `idea-reader`'s per-image `description` |
+| `/frames` | each frame `frame-describer` read for the set this run | that agent's per-frame `description` |
+
+Neither invents one. An image `/idea`'s reader never opened is not copied and is accounted for nowhere;
+a frame `/frames` could not describe, or did not reach before its cap bit, is accounted for nowhere
+either. Both land on step 4, and both are reported.
+
+### 6.3 The four reconciliation classes
 
 `design-grounder` reads an exported frame set — screen or report images plus an index — and
 reconciles it against the BRD's requirements in exactly four classes:

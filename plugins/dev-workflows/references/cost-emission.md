@@ -1,7 +1,7 @@
 # Session Cost Emission — Shared Reference
 
-Single source of truth for the dev-workflows session-cost subsystem. Nineteen of
-the twenty-one commands with an §7 row cite this file from their terminal
+Single source of truth for the dev-workflows session-cost subsystem. Twenty of
+the twenty-two commands with an §7 row cite this file from their terminal
 "Session cost" phase and execute its steps inline through the single `emit-cost`
 entry point (§11). The other two — `/prompt-brainstorm` and `/prompt-grill-me` —
 cede the session before such a phase could run, call `emit-cost` never, and
@@ -304,7 +304,7 @@ that model exactly as before).
 
 ## 7. Attribution (phase / role / keys)
 
-Fixed per-command labels, with five inferred exceptions:
+Fixed per-command labels, with six inferred exceptions:
 
 | Command | phase | role |
 |---------|-------|------|
@@ -319,6 +319,7 @@ Fixed per-command labels, with five inferred exceptions:
 | `/create-prd` | prd-creation | pm |
 | `/update-prd` | prd-update | pm |
 | `/create-ard` | architecture | pa |
+| `/frames` | **inferred** | **inferred** |
 | `/brd-intake` | brd-to-prd | pm |
 | `/brd-ground` | brd-to-prd | pa |
 | `/brd-split` | brd-to-prd | pm |
@@ -339,6 +340,27 @@ discriminator is the presence of **downstream engineering artifacts** — any
   which is fine, since a freshly created PRD with no Epics is exactly the PM case).
 - **Either present -> `phase: documenting`, `role: dev`** (the dev re-run, when
   PRD + Epics + specs + design + code all exist).
+
+**`/frames` inference (which route the indexed folder sits on).** The
+discriminator is the **resolved folder's own `kind`**, which the run has already
+read off its frontmatter (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4) in
+order to address it at all — re-derivable from disk, like `/release-notes`'s and
+unlike the `target_command` one below:
+
+- **`kind: brd` -> `phase: brd-to-prd`, `role: pm`.** A frame set under a BRD
+  folder is on the BRD-to-PRD route, where `/brd-ground` is the command that
+  reconciles it; spend preparing it belongs to that route's phase.
+- **`kind: prd` or `kind: epic` -> `phase: prd-creation`, `role: pm`.** A frame
+  set under a PRD folder or one of its Epics is the PRD's own design record —
+  `/idea` vendors one there during PRD creation — and an Epic folder sits under
+  its PRD on the same route.
+
+**There is no third branch**, because §3 of
+`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` returns exactly those three kinds
+and `/frames` refuses to run on an address that resolves to none of them. Indexing
+a frame set is real spend on a real artifact in the specs tree, which is why this
+command emits at all — the alternative is not "unmeasured" but *misattributed*, per
+§3's semantics rolling it into whatever command runs next.
 
 **`/prompt`, `/feedback`, `/prompt-brainstorm` and `/prompt-grill-me` inference
 (inherit the corrected command's labels).**
@@ -364,6 +386,9 @@ not attempt to infer it from anything else.
   `role: n/a`.** The second case covers `/vuln`, `/upgrade`, `/docs-profile`,
   `/statusline`, and the two guideline reviewers, none of which emits cost and so
   has nothing to inherit.
+- **Target is `/frames` -> resolve ITS inference first**, then inherit the result,
+  exactly as for `/release-notes`. One level only. Where no folder resolves — which
+  for `/frames` means the run never started — treat it as the `n/a` case.
 - **Target is `/feedback`, `/prompt`, `/prompt-brainstorm` or `/prompt-grill-me` -> treat as `n/a`.**
   A correction to a correction has no lifecycle phase of its own, and inheriting
   from an inferred row would regress without a base case. This is the one rule the
@@ -483,7 +508,7 @@ and acceptable.
 
 ## 11. Caller contract — `emit-cost`
 
-One entry point, called by the nineteen commands that measure themselves and by
+One entry point, called by the twenty commands that measure themselves and by
 whichever of them replays a §13 record (never by the two that defer — they call
 nothing). Every caller supplies `command`, `phase`, `role` (or the
 `inferred` marker — `/release-notes` and the four feedback commands), `key` (or
@@ -650,7 +675,7 @@ exists to catch.
 
 ### 13.3 The replay
 
-`emit-cost` step 2 (§11). **No deferred file ⇒ nothing changes**; the nineteen
+`emit-cost` step 2 (§11). **No deferred file ⇒ nothing changes**; the twenty
 commands that measure themselves never take this path.
 
 Otherwise the run passes one `--claim <command>` per deferred record, oldest

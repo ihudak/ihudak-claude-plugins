@@ -50,7 +50,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
     its own (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3), so without the preflight's
     best-effort fetch ahead of it a merged `idea.md` reads as "on a branch and never handed off" and
     the run hard-stops on work that is already on the default branch. This command was for a time the
-    only one of the twenty-three `commit-artifacts` callers running no preflight — deleted as
+    only one of the twenty-four `commit-artifacts` callers running no preflight — deleted as
     collateral with an adjacent paragraph — which also left `specs_git: blocked` unset, so the G0
     guard in both `commit-artifacts` and `handoff-to-main` was inert here and a detached-HEAD specs
     repo would take this command's commits to an unreachable place and report success.

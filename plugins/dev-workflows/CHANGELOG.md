@@ -4,6 +4,165 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.19.0] — 2026-09-01
+
+### Added — `/frames`: the recovery path for a frame set nothing could read
+
+`references/grounding-format.md` §6.1 makes a frame set's index **mandatory and its absence
+unrecoverable** — `design-grounder` returns `NO_INDEX` rather than reading a directory, because a
+filename is not a reliable statement of what a frame shows. That requirement is right and it had no
+recovery. The obvious workflow is a human exporting frames and dropping the folder into `design/`,
+which produces a set the plugin refuses to read and no command could repair; 3.18.0 taught `/idea` to
+write an index for the images *it* vendors, and nothing else wrote one.
+
+**`/frames <KEY>|@<path>` (re)builds the index of every `design/*/` set of one resolved folder.** It
+lists the images, reads the index already there, describes the frames no row accounts for, and writes
+the index. **One address, any kind** — `design/` is reserved in BRD, PRD **and** Epic folders, so the
+command calls `references/addressing.md`'s `resolve-address` with no `<KIND>`; narrowing it would
+refuse two of the three. It creates no folder: an address resolving to nothing is a stop, and a folder
+with no `design/` is a clean report that creates nothing, not even an empty directory.
+
+**Name.** `/design-index` was considered and rejected: `/design` is the engineering-design workflow,
+and an adjacent name invites an operator who wants indexing into the wrong command. *Frame set* and
+*frame* are §6.1's own vocabulary.
+
+**The boundary is stated in the command, in the docs page, and in §6.1.** Indexing makes frames
+*readable*; grounding makes them `[DG#n]` findings. `/frames` dispatches no `design-grounder`,
+produces no finding, cites no `[BR#n]` or `[CG#n]`, and never reaches `grounding-verifier`.
+`/idea`-route design grounding remains deliberately unbuilt and §6.1 still says so.
+
+### Changed — the frame-set index format moved to `grounding-format.md` §6.2, and both writers cite it
+
+The format lived in `references/idea-format.md` because `/idea` was its only writer. With a second
+writer that is two authorities for one format — the defect family this repo keeps paying for — so the
+format, the frontmatter, the table shape, the `Linked from` semantics and the six-step reconciliation
+contract are now **`references/grounding-format.md` §6.2**, beside the §6.1 requirement they satisfy.
+`idea-format.md` keeps only what `/idea` contributes to a row (`idea-reader`'s `description`, the
+digest's `linked_from`, the `idea-sources` set name) and cites §6.2 for the rest; `commands/idea.md`
+Phase 4.5 step 3 cites it too and restates none of it. The former §6.2, *The four reconciliation
+classes*, is now §6.3; nothing cited it by number.
+
+**§6.2 carries one new rule, and it is what makes a capped or failed run recoverable.** Step 2
+preserves an existing row verbatim *because* a run cannot reproduce a description it never received —
+so a row whose description is step 4's literal `_no description on record_` holds no description to
+preserve, and a writer that **can** obtain one replaces it instead of preserving it. Without that
+exception the placeholder would be permanent and every cap would be a frame nothing could ever
+describe. `/idea` still cannot obtain one and still leaves such a row exactly as it stands.
+
+### Added — the `frame-describer` agent (37 → 38)
+
+A bounded read returning a structured result, the plugin's own idiom: it is handed a frame set
+directory and an explicit list of basenames, looks at each one, and returns a plain-language
+description per frame. **Inline was the alternative and it was worse on three counts.** Forty images
+is the most context-expensive read this plugin does and it belongs outside the orchestrator's window;
+describing a picture is detection work that should run on the Sonnet chain while the orchestrator
+stays on its own tier; and separating the looker from the writer makes "transcribed, never inferred"
+**structural** — the orchestrator never sees an image, so it cannot describe one from a filename,
+which is the exact inference §6.1 exists to forbid. The agent reads only the basenames it was handed
+(the cap lives in the caller), emits no finding, no verdict, no id and no citation, and never opens an
+index, a requirements document, or any code.
+
+### Added — a cap of 40 frames per run, and an index that is valid whether or not it bites
+
+`/idea` caps at 6 images because reading a mockup is incidental to writing a brief. `/frames` is
+invoked *to* index, so 6 would make it useless on the first real export it met; 40 is the size of a
+feature's screen flow as humans actually export one, counted across every set a run touches.
+
+**When it bites, the set still ends in a valid, complete index.** §6.2 resolves every row before
+writing the file once, so every frame in the listing carries a row: the ones past the budget carry
+`_no description on record_` with `cap` as the reported reason. Because §6.2 step 2's new exception
+treats that placeholder as a row to be filled rather than preserved, the next run describes the next
+40 and the set converges — a 45-frame set is two runs, a 100-frame set three, and it is readable after
+the first. A half-written index is not a state this command can reach.
+
+### Added — the eighth branch prefix, and the handoff that makes the indexes real
+
+The indexes are deliverables, so `/frames` calls `handoff-to-main` with `deliverable_paths` naming
+**every `index.md` it wrote, one literal path each** — never a directory and never a glob
+(`references/phase-handoff.md` §2.3). An index left out of that list is classified OTHER, never
+staged, and never reaches the default branch, leaving the set `NO_INDEX` for everybody but the
+operator who ran the command. That required an eighth branch prefix, `frames`, at **every** site
+that enumerates the set: `references/specs-repo-git.md` §1 rule 3 / §2.2 / §3.3 G2 / §3.5
+`branch-key` / §4.1 / §5's G2 notice, `references/phase-handoff.md` §1 rule 3 / §2.9 / §3.2,
+`CLAUDE.md`, and `docs/reference/environment.md`. Declining the handoff is reported honestly: the indexes are on disk and on no ref, and
+`/brd-ground` reads a frame set from the working tree, so a decline is an unshared repair rather than
+a blocked grounding pass. No offer carries a `<merge-clause>` — nothing runs `require-on-main` on a
+frame-set index, and `references/next-phase-offer.md` now says so in place.
+
+### Added — cost attribution for `/frames`, inferred from the resolved folder's kind
+
+Describing 40 frames is real spend, and a run that measured nothing would not be free — per
+`references/cost-emission.md` §3 it would roll into whatever command ran next. `/frames` therefore
+emits, as the sixth inferred exception in §7, with a discriminator that is re-derivable from disk like
+`/release-notes`'s: the resolved folder's own `kind`. `brd` attributes the run to `brd-to-prd`/`pm`,
+`prd` and `epic` to `prd-creation`/`pm`. **No new phase was invented** — the eleven in
+`docs/roles-and-phases.md` are unchanged.
+
+### Fixed — a stale caller count in `feedback-emission.md`
+
+`### emit-auto — automatic callers (the thirteen commands' maintenance phases)` had said *thirteen*
+since long before the count was nineteen; its own opening paragraph said *nineteen* four lines above.
+Both now say **twenty**, and `docs/reference/session-feedback.md`'s parenthetical — which derived the
+same stale thirteen from "the fourteen `model-routing` pipeline commands minus `/docs-profile`" — is
+replaced by a rule that can be checked against the tree.
+
+### Fixed — the eighth branch prefix reached three sites it had missed
+
+The `frames` prefix was added to `specs-repo-git.md`'s §1 rule 3, §2.2 and §4.1 and skipped its three
+remaining enumerations, each of which does real work.
+
+**§3.5 `branch-key` step 1** stripped seven prefixes and not `frames/`, so a `frames/<KEY>-<slug>`
+branch fell to *no prefix matches → not a plugin branch* and resolved to no key. The consequence sits
+one file over: `references/phase-handoff.md` §2.2 **rule 3** calls `branch-key` by name to recognise a
+run's own in-progress branch, so it could never recognise one for `/frames`, and **rule 4 fired
+instead — a second branch suffixed `-2` and a second pull request, the first orphaned**. The 40-frame
+cap makes a re-run over one folder the ordinary path (100 frames is three runs), so this was the
+common case, not the edge.
+
+**§3.3 guard G2** omitted `frames` from its alternation, and any guard match ends the preflight. So
+whenever `$SPECS_PATH` sat on a `frames/` branch, *every* command's preflight stopped at stage 1: the
+leftover-artifact flush, the failed-push retry and the branch disposition were all skipped, and a
+non-`/frames` run stayed on the frames branch and committed its artifacts there instead of switching
+to the default branch per B4.
+
+**§5's G2 operator notice** still listed seven prefixes, telling the operator a `frames/` branch was
+one "this plugin did not create" — false, and it misdirected the repair.
+
+The same sweep found an eighth site outside `specs-repo-git.md`: `docs/reference/environment.md`'s
+list of the specs-repo handoff branches that never enter the code-repo identity ladder. `CLAUDE.md`
+and `phase-handoff.md` were already correct.
+
+### Fixed — two documents that named the §6.2 step list they said they did not restate
+
+`references/idea-format.md` and `commands/idea.md` Phase 4.5 step 3 each bolded a claim (*"this file
+restates none of it"*, *"restated nowhere"*) and then re-enumerated all six `grounding-format.md` §6.2
+steps in the next sentence, literal `_no description on record_` included — and re-enumerated them
+**incompletely**, omitting step 2's placeholder exception and step 6's write-nothing-on-empty rule.
+Not a second normative copy, but a second place a reader learns the list, already out of date on the
+day it shipped. Both now name what §6.2 owns and send the reader there, matching the shape
+`commands/frames.md` Phase 2 already used.
+
+### Fixed — two counts that contradicted the tree
+
+`docs/reference/session-cost.md` said *the ten cost-attribution phases* while
+`docs/roles-and-phases.md` documents **eleven** (ten lifecycle phases plus `plugin-feedback`) and
+ships eleven `###` sections; that page's own closing note about the unrelated `model-routing` `phase:`
+vocabulary said *the ten phases above* for the same eleven. Both now say eleven.
+`docs/commands/epics.md` said *the fourteen commands* that offer a branch + commit + push +
+pull-request handoff and listed fourteen, omitting `/frames` — the producer set became fifteen in this
+same release (`grep -l handoff-to-main commands/*.md` returns 15).
+
+### Counts moved, in this commit
+
+27 → 28 commands (`plugin.json`, `marketplace.json`, the repo-root `README.md`, the plugin `README.md`,
+`CLAUDE.md`, and `scripts/check-docs.sh`'s check-9 word list and alternation, which had no
+`twenty-eight`); 37 → 38 agents (`plugin.json`, `marketplace.json`, `CLAUDE.md`,
+`docs/reference/agents.md` twice, plus its unpinned subtotal 25 → 26); 23 → 24 `commit-artifacts`
+callers (`CLAUDE.md` three sentences, `references/specs-repo-git.md`, `commands/create-prd.md`);
+14 → 15 `handoff-to-main` producers; 7 → 8 branch prefixes; 21 → 22 cost-emitting commands with 5 → 6
+inferring; 19 → 20 `emit-auto` and `emit-cost` callers; and `references/addressing.md`'s §7 adopter
+arithmetic from eleven files / eleven commands to twelve and twelve.
+
 ## [3.18.1] — 2026-09-01
 
 ### Fixed — three defects in 3.18.0's vendoring: an orphaning index, an unresolvable link map, and links that resolved nowhere

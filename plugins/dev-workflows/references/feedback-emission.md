@@ -1,7 +1,7 @@
 # Session Feedback Emission — Shared Reference
 
 Single source of truth for the dev-workflows session-feedback emitter. Every
-capture surface — the automatic maintenance phase of all nineteen workflow
+capture surface — the automatic maintenance phase of all twenty workflow
 commands, and the `/feedback` and `/prompt*` commands — cites this file and
 executes its steps inline. The orchestrator owns every prompt; this reference
 owns the entry format, the persistence ladder, dedup/attribution, the
@@ -182,7 +182,7 @@ current working directory. The artifacts are committed later, once, by the
 run's terminal `commit-artifacts` step
 (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4).
 
-### `emit-auto` — automatic callers (the thirteen commands' maintenance phases)
+### `emit-auto` — automatic callers (the twenty commands' maintenance phases)
 
 Inputs: the `impl-maintenance` **Lessons Learned report**, `command` (the exact
 slash-command name), `key` (or `null`), `source` (`specs | directory | none`).

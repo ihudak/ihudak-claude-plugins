@@ -57,7 +57,7 @@ Every cost-emitting command tags its cost line with a `phase` and a `role`. Elev
 
 ### prd-creation
 
-Emitted by `/idea` and `/create-prd`, role `pm`. Being in this phase means the PRD does not yet have a merged specification or design — the work underway is idea refinement or PRD authoring, and Epics may or may not exist yet. `/release-notes` also lands here, by inference, on a run where neither `specification.md` nor `design.md` exists under the PRD's specs directory.
+Emitted by `/idea` and `/create-prd`, role `pm`. Being in this phase means the PRD does not yet have a merged specification or design — the work underway is idea refinement or PRD authoring, and Epics may or may not exist yet. `/release-notes` also lands here, by inference, on a run where neither `specification.md` nor `design.md` exists under the PRD's specs directory; so does `/frames`, on a run whose resolved folder is a PRD folder or one of its Epics.
 
 ### prd-update
 
@@ -65,7 +65,7 @@ Emitted by `/update-prd`, role `pm`. Being in this phase means an existing PRD i
 
 ### brd-to-prd
 
-Emitted by `/brd-intake`, `/brd-split`, `/brd-interview`, `/brd-package` and `/brd-reconcile`, role `pm`, and by `/brd-ground`, role `pa`. Being in this phase means a customer-supplied BRD is somewhere on the BRD-to-PRD route — its requirement inventory is being extracted, grounded against code and design, split and allocated, decided, packaged for customer review, or reconciled against the review that came back — rather than a PRD already existing for it. This is the one phase in this section shared across two roles: every command on the route runs as PM except `/brd-ground`, which is PM-initiated but PA/Dev-executed, and all of them tag their cost line `brd-to-prd`.
+Emitted by `/brd-intake`, `/brd-split`, `/brd-interview`, `/brd-package` and `/brd-reconcile`, role `pm`, and by `/brd-ground`, role `pa`. Being in this phase means a customer-supplied BRD is somewhere on the BRD-to-PRD route — its requirement inventory is being extracted, grounded against code and design, split and allocated, decided, packaged for customer review, or reconciled against the review that came back — rather than a PRD already existing for it. This is the one phase in this section shared across two roles: every command on the route runs as PM except `/brd-ground`, which is PM-initiated but PA/Dev-executed, and all of them tag their cost line `brd-to-prd`. `/frames` also lands here, by inference, on a run whose resolved folder is a BRD folder.
 
 ### architecture
 
@@ -101,4 +101,4 @@ Emitted by `/prompt`, `/feedback`, `/prompt-brainstorm` and `/prompt-grill-me`, 
 
 ---
 
-**A second, unrelated `phase:` vocabulary exists in this plugin.** The model-routing resume phases — `full`, `verify-resume`, `regression-resume` — are what `/vuln` and `/upgrade` pass to their fixer/executor agents to say how far a re-entered run should re-execute after a review or a failed test. Neither `/vuln` nor `/upgrade` emits a cost-attribution phase at all; they sit outside the ten phases above entirely. The two vocabularies share a field name, `phase`, and nothing else — one names where a run sits in the product lifecycle, the other names how much of a single command's own work must be redone.
+**A second, unrelated `phase:` vocabulary exists in this plugin.** The model-routing resume phases — `full`, `verify-resume`, `regression-resume` — are what `/vuln` and `/upgrade` pass to their fixer/executor agents to say how far a re-entered run should re-execute after a review or a failed test. Neither `/vuln` nor `/upgrade` emits a cost-attribution phase at all; they sit outside the eleven phases above entirely. The two vocabularies share a field name, `phase`, and nothing else — one names where a run sits in the product lifecycle, the other names how much of a single command's own work must be redone.

@@ -1,6 +1,6 @@
 # dev-workflows
 
-A role-based pipeline of twenty-seven slash commands. Its spine runs idea refinement → Product Requirements Document → architecture → Epic breakdown → specification → design → readiness → implementation → documentation → release notes, with Opus-backed risk planning, code review, and doc/design review gates along the way; around that spine sit CVE remediation, dependency upgrades, guideline reviews, and the plugin's own feedback commands. The table below is the complete list.
+A role-based pipeline of twenty-eight slash commands. Its spine runs idea refinement → Product Requirements Document → architecture → Epic breakdown → specification → design → readiness → implementation → documentation → release notes, with Opus-backed risk planning, code review, and doc/design review gates along the way; around that spine sit CVE remediation, dependency upgrades, guideline reviews, and the plugin's own feedback commands. The table below is the complete list.
 
 > Part of the `ihudak-plugins` marketplace — see the [repo-root setup guide](../../README.md) for marketplace install + prerequisites.
 
@@ -17,6 +17,7 @@ Every command owns one role's step in the pipeline and hands a concrete artifact
 | PE | [`/epics`](docs/commands/epics.md), [`/specify`](docs/commands/specify.md) | Break a PRD into Epics, then author an org-standard specification through a grill. |
 | Dev | [`/design`](docs/commands/design.md), [`/implement`](docs/commands/implement.md), [`/ready`](docs/commands/ready.md), [`/document`](docs/commands/document.md), `/release-notes` *(final run)* | Design against the spec, implement it under review gates, verify readiness against the artifacts, document the result, and draft the final [`/release-notes`](docs/commands/release-notes.md) note. |
 | Anytime — maintenance | [`/vuln`](docs/commands/vuln.md), [`/upgrade`](docs/commands/upgrade.md), [`/docs-profile`](docs/commands/docs-profile.md), [`/statusline`](docs/commands/statusline.md) | Remediate a CVE, upgrade a dependency, profile a docs repo, or install the status line. |
+| Anytime — specs-tree repair | [`/frames`](docs/commands/frames.md) | (Re)build the index every exported design frame set must carry before anything can read it. |
 | Anytime — guideline review | [`/api-guideline-reviewer`](docs/commands/api-guideline-reviewer.md), [`/guideline-reviewer`](docs/commands/guideline-reviewer.md) | Review an OpenAPI spec or app UI against the bundled guidelines. |
 | Anytime — plugin feedback | [`/feedback`](docs/commands/feedback.md), [`/prompt`](docs/commands/prompt.md), [`/prompt-brainstorm`](docs/commands/prompt-brainstorm.md), [`/prompt-grill-me`](docs/commands/prompt-grill-me.md) | Log friction about the plugin itself, or capture and act on a correction. |
 

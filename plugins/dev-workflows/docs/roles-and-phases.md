@@ -53,7 +53,7 @@ Every phase ends the same way: a producing command lands its deliverable on the 
 
 ## Cost-attribution phases
 
-Every cost-emitting command tags its cost line with a `phase` and a `role`. Eleven phases exist; each entry below names the command that emits it and what being in that phase means. The first ten are lifecycle phases; the eleventh exists for spend that belongs to no phase at all. Each of the ten can also be reached **by inheritance**: `/prompt` and `/feedback` adopt the phase and role of whatever they are correcting, so a correction to a `/specify` output is a second entry in `specification`. Only the commands named below emit a phase *directly*.
+Every cost-emitting command tags its cost line with a `phase` and a `role`. Eleven phases exist; each entry below names the command that emits it and what being in that phase means. The first ten are lifecycle phases; the eleventh exists for spend that belongs to no phase at all. Each of the ten can also be reached **by inheritance**: `/prompt`, `/feedback`, `/prompt-brainstorm` and `/prompt-grill-me` adopt the phase and role of whatever they are correcting, so a correction to a `/specify` output is a second entry in `specification`. Only the commands named below emit a phase *directly*.
 
 ### prd-creation
 
@@ -97,7 +97,7 @@ Emitted by `/ready`, role `dev`. Being in this phase means the workflow phase is
 
 ### plugin-feedback
 
-Emitted by `/prompt` and `/feedback`, role `n/a`. Being in this phase means the run was about **the plugin itself** rather than the product, and no lifecycle phase owns it. Neither command reaches this phase by default: each first tries to inherit the labels of the command it is correcting or remarking on, so a `/prompt` against a `/specify` output is priced as `specification`/`pe`. This phase is the fallback for a run with no target command, a target that emits no cost of its own, or a target that is itself a feedback command. `role: n/a` is the absence of a role recorded rather than guessed — aggregation should treat it as unattributed, never fold it into `dev`.
+Emitted by `/prompt`, `/feedback`, `/prompt-brainstorm` and `/prompt-grill-me`, role `n/a`. Being in this phase means the run was about **the plugin itself** rather than the product, and no lifecycle phase owns it. No command reaches this phase by default: each first tries to inherit the labels of the command it is correcting or remarking on, so a `/prompt` against a `/specify` output is priced as `specification`/`pe`. This phase is the fallback for a run with no target command, a target that emits no cost of its own, or a target that is itself a feedback command. `role: n/a` is the absence of a role recorded rather than guessed — aggregation should treat it as unattributed, never fold it into `dev`.
 
 ---
 

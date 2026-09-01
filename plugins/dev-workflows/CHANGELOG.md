@@ -4,7 +4,7 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
-## [3.16.0] — 2026-09-01
+## [3.17.0] — 2026-09-01
 
 ### Added — `/idea` reads more of the source it was given
 
@@ -98,6 +98,136 @@ no reporting line behind it.
   example now carries one, and a second example shows a markdown source with a linked mockup.
 - **The same page listed four subagents and then said "All three run at the caller's
   `detection_model`".**
+## [3.16.1] — 2026-09-01
+
+### Fixed — review round 2 on the deferred-attribution feature
+
+Three Opus reviewers went over 3.16.0. Both of that release's own blocking findings were
+confirmed fixed and backward compatibility was verified byte-identical against the twelve
+largest real transcripts on the author's machine. What follows is what round 2 found on top.
+
+- **A bare built-in minted a phantom boundary.** Claude Code's built-ins are written *bare*
+  (`/upgrade`) while plugin commands are written *namespaced* (`/dev-workflows:upgrade`) — and
+  `/upgrade` is a name this plugin also ships. Accepting a bare marker therefore turned Claude
+  Code's own subscription command into a cost boundary, observed on real transcripts, which
+  truncated a ceded run's segment and moved most of its spend into the replaying run. **A
+  namespace is now required**, checked against the `name` in the plugin's own `plugin.json`.
+  This errs safe by design: a missed invocation becomes an unmatched claim, reported and
+  dropped, where a phantom one silently misfiles spend.
+- **§2 — the script's documented invocation — omitted `--commands-dir` and `--claim`, and its
+  stdout schema omitted `command_boundaries`, `claims` and `unmatched_claims`.** A run following
+  §2 literally would have passed no `--commands-dir`, detected no boundary, and discarded every
+  attribution: the inertness failure of 3.16.0, reachable a second way. §2 now documents all of
+  it, and says outright that omitting `--commands-dir` turns detection silently off.
+- **The intent file was declared a JSON array and shown as a bare object**, with no append
+  instruction in either command. A session that ceded twice would have overwritten the first
+  record and lost an attribution nothing can reconstruct. Both the reference and both commands
+  now state append-never-overwrite, and the schema is shown as an array.
+- **§3 still described the retired window boundary** — closing a ceded run's window "at the
+  transcript boundary where that run began" rather than at the next command of any kind, which
+  is the misattribution §13.3 exists to remove, contradicting it from 500 lines earlier.
+- **The deferral moved out of a Phase 2.5 and back inside Phase 2, ahead of `commit-artifacts`.**
+  A new phase after the terminal commit falsified six sentences across `specs-repo-git.md`,
+  `session-hygiene.md` and `CLAUDE.md` that say the commit is the last thing these runs do before
+  ceding. The deferral has no dependency on the commit, so **reordering keeps all six true** —
+  cheaper and safer than rewording an invariant stated in three authorities.
+- **The file's own opening scope sentence** claimed every cost-emitting command has a terminal
+  "Session cost" phase citing `emit-cost`; two of the twenty-one have neither.
+- Also: `target_command` is required of all four feedback commands, not two; §6.1's unpriced-model
+  warning now fires per built entry, replayed ones included; §5's auto-detect documents its third
+  suppressor; the record carries `epic` so a replayed entry is keyed like a self-measured one; and
+  the "sum to the window" claim is restated as **token-exact**, since per-bucket rounding can move
+  the summed dollars by a fraction of a cent.
+
+**`scripts/check-docs.sh` — check 8 was green for the wrong reason.** The two deferring commands
+contain no `emit-cost` at all; their §7 rows were satisfied because an intent-record bullet
+happened to match the call-site regex verbatim. Rewording that bullet — an entirely natural edit —
+would have turned the build red with a message blaming the §7 table, the exact inversion the
+check's own comment exists to prevent. Check 8 now recognises **two** routes to a §7 row (calls
+`emit-cost`, or records a §13 intent), its extractor-coverage backstop sees both, and a new
+selftest case rejects a row backed only by look-alike prose.
+
+**The selftest was decoration and is now a gate.** Review measured 18 of 39 mutations surviving,
+ten on load-bearing lines with real dollar consequences — including the very flooring defect the
+code's own comment says it prevents. The fixture was rebuilt around the defects rather than around
+coverage: sub-second boundary and record stamps, records sitting exactly on a segment's start and
+end, the same command ceding twice, a shipped command name that is a strict prefix of another, a
+usage record with no timestamp, subagent spend inside and outside the window, a bare built-in whose
+name this plugin ships, and a foreign namespace. Fifteen of fifteen mutations are now caught,
+against three of sixteen for the original. **No count of caught mutations is recorded in the
+file**, deliberately: the last one written there was measured against a fixture two rewrites old.
+
+## [3.16.0] — 2026-09-01
+
+### Fixed — the spend of a command that cedes the session is no longer misattributed
+
+**`/prompt-brainstorm` and `/prompt-grill-me` now produce a cost entry.** Both cede the session at
+their Phase 3 — a hand-off to a brainstorming skill, or a long interactive grill — and never regain
+control, so neither could ever run a cost phase after its own expensive work. The consequence was
+not a missing number but a **wrong** one: because neither advanced the chained checkpoint, its spend
+rolled into the next command's window per §3's ordinary semantics, so a long grill followed by
+`/implement` was priced as `implementation`/`dev`. Fixing a documentation page looked like
+implementation spend, and the phase whose output was actually being corrected looked cheap.
+
+`references/cost-emission.md` recorded this as a known limitation and asserted it could not be fixed
+without *"a cost hook that survives the hand-off, which the current entry point does not provide"*.
+**That claim was wrong**, and its removal is the substance of this release: no new harness capability
+is needed, because the transcript already records every slash-command invocation, and a boundary that
+is written down does not have to be hooked.
+
+- **`references/cost-emission.md` §13 (new)** — deferred attribution. A ceding command writes a
+  local, transient, never-committed intent record beside the §3 checkpoint, holding only the labels
+  that cannot be re-derived from disk once the run is over (`target_command` above all). The next
+  cost-emitting run in the session replays it: it splits its own measurement window at the boundary
+  where the ceded run began, writes the earlier slice under the ceded run's labels, and keeps only
+  the later slice for itself. The slices are disjoint and sum to the window that run would otherwise
+  have claimed whole. §3, §7 and §11 pick up the cross-references; §11 gains step 0, a no-op when no
+  intent record exists, so the nineteen self-measuring commands are untouched.
+- **`scripts/session-cost.py`** — gains `--commands-dir` (the known-command set
+  and this plugin's own namespace) and a repeatable `--claim`, and reports
+  `command_boundaries`. Given claims it partitions the window: each claim takes the
+  segment from its own invocation to the next boundary of any kind, and the
+  remainder — including whole segments belonging to commands that emit no cost
+  entry — stays with the replaying run. **Three disciplines are load-bearing, and
+  each was a defect first.** (a) The match is anchored on the *envelope*, not on
+  one tag: Claude Code writes built-ins name-first and plugin commands
+  message-first, so a matcher anchored on `<command-name>` alone sees no plugin
+  command at all and the feature is silently inert — which is how it was first
+  written here. (b) Claims are matched **by name, never by position**: a window
+  routinely holds boundaries no claim corresponds to (`/vuln`, `/upgrade`,
+  `/statusline`, `/docs-profile`, the two guideline reviewers, or an interrupted
+  run), and positional pairing shifts every claim by one, filing a security run's
+  spend under a PRD lifecycle phase. (c) A namespace is **resolved against the
+  plugin's declared name**, never stripped, so another plugin's
+  `/superpowers:implement` is not a boundary.
+- **`scripts/session-cost.py --selftest` (new)** — 21 checks over a fixture built
+  to discriminate rather than merely to pass, using the **real** transcript record
+  shapes. The splitter's failure mode is silent: a boundary missed or invented
+  still yields a plausible dollar figure filed against the wrong phase. So the
+  fixture carries a message-first plugin invocation, a `/vuln` boundary between the
+  ceding run and the replaying one, a foreign namespace over a shared bare name, a
+  marker quoted mid-message, a marker with no timestamp, list-block content,
+  subagent spend either side of a boundary, and a statusline snapshot. Nine of ten
+  mutations are caught, including every one above; the tenth (dropping the
+  leading-slash test) is not independently observable, because that test and the
+  offset after it are coupled — recorded in a comment rather than covered by an
+  assertion that could not fail. Wired into CI.
+
+**What is still not measured, stated rather than buried:** a session in which no cost-emitting
+command ever follows the grill. There the spend stays in §3's ordinary post-last-command tail,
+unattributed — the same tail every other command already has. The statusline cross-check (option B)
+is also not split, since it measures whole renders; a split slice omits it and leaves the delta to
+the final slice.
+
+**Stale claims retired**, swept by phrase rather than by line. The first sweep was done per file
+remembered rather than per phrase and missed several, which review caught: `docs/reference/session-cost.md`
+(the count sentence, the *what does not emit one* paragraph, a *"cannot report honestly"* paragraph
+that survived two lines above the section contradicting it, and a *"why the other eight"* count that
+is now six), `docs/reference/session-feedback.md` (never opened by the first sweep, and flatly wrong),
+`docs/roles-and-phases.md` (**two** sentences — the `plugin-feedback` phase and the inheritance rule,
+both naming two of four commands), `references/cost-emission.md` itself (*"three inferred exceptions"*
+above a five-row table, plus five §11 sites still describing the pre-change contract), both command
+pages, and `CLAUDE.md`.
 
 ## [3.15.0] — 2026-09-01
 

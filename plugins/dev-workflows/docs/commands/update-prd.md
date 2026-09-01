@@ -36,7 +36,7 @@ Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2, read-o
 
 ## What it needs
 
-- **`<KEY>`** — mandatory; absent or malformed stops the run with `UPDATE_VI_NEEDS_KEY`.
+- **`<KEY>`** — mandatory; absent or malformed stops the run with `UPDATE_PRD_NEEDS_KEY`.
 - **`$SPECS_PATH`** (required) — if unset, the run stops naming `SPECS_PATH` and offers to enter a path or cancel.
 - **The PRD**, at the resolved folder's `prd.md` — the only copy there is, and therefore the base without a freshness test.
 - **Secondary grounding** (all optional and read-only): a frozen specs-repo draft (**prd.md**), any **ard.md**, **specification.md**, and the `@transcript`/notes path(s) passed on the command line. None of these gate the run. Where a discovered **ard.md** or **specification.md** is not on the specs repo's default branch, the Phase 1 confirmation flags it as unapproved — advisory only, never a reason to stop.

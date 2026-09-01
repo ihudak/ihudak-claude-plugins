@@ -83,7 +83,9 @@ behaviour, not the behaviour.
      slice has no document of its own to intake (`brd-format.md` §2.1), and the command that writes
      a slice's ledger and inventory is `/brd-split` on the parent
      (`coverage-ledger-format.md` §3). Stop:
-     `BRD_GROUND_NEEDS_SPLIT: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory and ledger exist on no ref and in no folder — run /dev-workflows:brd-split <PARENT-KEY> and merge the pull request first. Do not run /brd-intake on a slice; it has no source document of its own.`
+     `BRD_GROUND_NEEDS_SPLIT: <BRD-KEY> is a slice of <PARENT-KEY> and its inventory and ledger exist on no ref and in no folder — where <PARENT-KEY>'s ledger still holds unallocated rows, run /dev-workflows:brd-split <PARENT-KEY> and merge the pull request first. Where the parent is already fully allocated and this slice claims rows, that run is a no-op that stages nothing: the slice's files were lost after they were written, and no command re-creates them — restore them from the ref that carried them, or report it. Do not run /brd-intake on a slice; it has no source document of its own.`
+
+     **The condition qualifies the remedy, and both branches must carry it.** The sibling rule thirty lines below already says not to name `/brd-split` for a fully-allocated parent, because re-running it there stages nothing and opens no pull request. Naming it unconditionally here sent the operator to a command that would report success and change nothing, leaving the slice ungroundable with no other route offered — and `coverage-ledger-format.md` rules on this same shape elsewhere with *"name no option at all"* rather than a remedy that cannot work.
 
    **(b) `coverage-ledger.md` is in the folder, and on no ref — it was produced and its handoff was
    declined.** The files exist; what is missing is a commit. **Say so, and name landing them as the
@@ -437,7 +439,7 @@ different system is exactly what `NOT-PROVABLE` exists to say, not a reason to p
   > refresh:
   >   pull: false"
 
-Handle `status`: `OK` → collect `findings`. `INPUT_MISSING` / `REPO_MISSING` → should not occur
+Handle `status`: `OK` → collect `findings`, **and collect `notes`** — a claim that touched a false-friend name, a claim whose search budget was exhausted. Report them with the findings: without them a `NOT-PROVABLE` `[CG#n]` whose search ran out is indistinguishable from one the code genuinely refutes, and only the first is worth another pass. `INPUT_MISSING` / `REPO_MISSING` → should not occur
 (Phases 0/1/3 already checked); if it does, stop and name the gap. `COMMIT_MISMATCH` → the tree
 moved between Phase 3 and this dispatch — stop and re-run from Phase 3 **with `--rebaseline`**, for
 the reason Phase 7's `BRD_GROUND_VERIFY_COMMIT_MISMATCH` row states: this run already recorded a
@@ -636,7 +638,7 @@ design grounding and why) — one block per finding, carrying every field
 `grounding-format.md` §2 defines (`id`, `claim`, `verdict`, `evidence`, `altitude`, `horizon`,
 `consumed_by: none`, plus `class`/`cites` on a `[DG#n]` and `commit` on everything **except** a
 `[DG#n]` of class 1, 2 or 3 — those are settled from the frame set alone and are pinned to no commit,
-per §2's applicability note) plus this run's verifier `outcome`.
+per §2's applicability note) plus this run's verifier `outcome` **and any `notes` the verifier returned**. Its contract calls those *"anything the caller should know before recording this outcome"*, so they are read before the outcome is written, not after — a verdict recorded without them is recorded against a caveat the verifier raised and nothing carried.
 A `--rebaseline` run appends its new findings after the existing ones and marks any finding it
 superseded with `verdict: SUPERSEDED`, id retained, rather than deleting or renumbering it.
 

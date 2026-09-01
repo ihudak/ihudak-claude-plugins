@@ -159,6 +159,8 @@ model_routing:
 its own frontmatter pin. If no Opus resolves for `current_model`, **degrade to best-available +
 record** in `notes` and the final report — do not hard-block.
 
+**Collect `brd-reader`'s own `notes` too, and report them** — an unusually structured source, a passage that could not be confidently split. The inventory is the spine every later command walks, so a `[BR#n]` split out of a passage the reader was unsure of must not read as confidently extracted.
+
 ---
 
 ## Phase 2 — Copy the source
@@ -181,7 +183,25 @@ Dispatch `brd-reader`:
 
 Act on `status`:
 - **`OK`** — write `<BRD-dir>/brd/brd-inventory.md` per `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md`
-  §2: one row per returned `[BR#n]` (`id`, `text`, `source_anchor`), numbered exactly as returned.
+  §2: one row per returned `[BR#n]` (`id`, `text`, `source_anchor`).
+
+  **On a first intake, number exactly as returned. On a re-run over a folder that already holds an
+  inventory, RECONCILE — this is the id coordination `brd-reader` delegates and nothing else performs.**
+  The agent numbers in source order from `BR#1` on every read, so a BRD v2 with one requirement inserted
+  early returns a set in which every later id has shifted by one. Writing that straight through
+  renumbers text that already has an id, which `references/brd-format.md` forbids outright (*"assigned
+  once, never renumbered"*, and *"re-extraction would mint a second set of ids for text that already has
+  them"*). Nothing downstream would notice: every `[CG#n]` premise, every `[DEF#n]` target, every
+  child's copied inventory and `claims:` list cites `[BR#n]` **by id**, and `/brd-split`'s reconcile
+  unions claimed rows by id too — so a shift silently re-attaches each claim to a different requirement,
+  and no gate reads a `[BR#n]` against the text it names.
+
+  So: read the existing `brd/brd-inventory.md` first. For each returned row, match it to an existing
+  row by `source_anchor`, else by its `text`; **a matched row keeps the id it already has**, whatever
+  the agent returned for it. Only text that matches nothing existing is new, and it takes the next id
+  after the highest already in use — never a gap-filling reuse of a retired one. Report the
+  reconciliation: how many ids were preserved, how many minted, and any existing row this source no
+  longer contains (which keeps its id and is reported, never renumbered away).
   Leave each row's `defects` column empty for now — it is filled in Phase 4, once a candidate is
   actually confirmed into a `[DEF#n]`, never before. Carry every returned `defect_candidates` entry
   forward into Phase 4; nothing here treats a candidate as a decision.
@@ -292,7 +312,18 @@ operator consented to at step 7 is still a rewrite the run has to name.
 Only when `--sort-existing <dir>` was given (Phase 0/1). Read the hand-written package at `<dir>`
 and sort its sections **by altitude** — product-level content (what / why / for-whom) into
 `<BRD-dir>/prd-seed.md`, architecture-level content into `<BRD-dir>/ard-seed.md`, and
-implementation-level content into `<BRD-dir>/spec-seed.md`. State plainly in the run's output that
+implementation-level content into `<BRD-dir>/spec-seed.md`.
+
+**These land on the BRD root, and every consumer resolves a slice — so say where they are.** `<BRD-dir>`
+is always a root `BRD-` container (Phase 0 step 7 calls a slice a mis-keyed invocation), while
+`/create-prd`, `/create-ard` and `/specify` each read their seed out of the resolved `PRD-` slice and
+each refuse a `BRD-` container before reading anything. Slices do not exist yet at intake time, so the
+seeds cannot be written into them here, and this run must not pretend otherwise: **name the three paths
+in the run's output and state that a later slice consumer reads them from this folder, one level up
+from itself.** Without that the migration's whole output sits where nothing looks — written, committed,
+and never read by any command.
+
+State plainly in the run's output that
 this is **the migration path for work already done by hand**, before this workflow existed — and
 that it **writes seeds only, never findings**: no `[CG#n]`/`[DG#n]` grounding, no ledger
 disposition, comes out of this phase. Those are `/brd-ground`'s and `/brd-split`'s to produce, once
@@ -310,7 +341,7 @@ choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write 
 
 On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md`
 §2) with `prefix: brd`, `feature_folder` as resolved in Phase 0, `deliverable_paths` = every file
-this run wrote under `<BRD-dir>` (`brd/source/**`, `brd/brd-inventory.md`, `brd/brd-defect-log.md`,
+this run wrote under `<BRD-dir>` — **enumerated, one literal repo-relative path each: never a glob and never a directory**, because §2.3 classifies either as OTHER and stages it silently, so a declaration that looks complete ships nothing. That is each file this run actually copied into `brd/source/` named individually (the copy step knows them; `brd/source/**` is not a path), plus `brd/brd-inventory.md`, `brd/brd-defect-log.md`,
 `coverage-ledger.md`, and — only when Phase 6 ran — `prd-seed.md`, `ard-seed.md`, `spec-seed.md`),
 `title: <BRD-KEY> Intake BRD source and requirement inventory`, and `body_facts` = the requirement
 count, the confirmed-defect count by class, and whether Phase 6 wrote seeds; emit its §4.1 outcome

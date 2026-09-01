@@ -358,6 +358,17 @@ and the degenerate case has an honest answer rather than an escape valve: where 
 the whole BRD becomes one slice, which is what *"Make this whole BRD one slice"* selects. Editing
 the list down to nothing re-asks this question rather than proceeding.
 
+**One exception, and Phase 0 step 9 already states it: a parent that already has children.** There the
+run's job may be to allocate rows to slices that exist rather than to carve new ones — step 9 says an
+existing child "remains a valid `covered-by` target in Phase 4 even when this run proposes no new slice
+of its own". Where at least one child already stands, **"propose no new slice — allocate to the
+existing children" is an available answer** and the walk proceeds to Phase 4 on the children already
+there. Without it the operator must confirm a slice they do not want, watch the walk assign it nothing,
+and then accept Phase 4.5's offer to remove the folder Phase 3 just created — cancelling mid-key-taking
+to get the slice dropped is a workaround, not a stated behaviour. The rule that a BRD always yields at
+least one slice is unchanged: on a **first** split there are no children, so the degenerate case still
+resolves to *"Make this whole BRD one slice"*.
+
 **Why a container, rather than letting a BRD hold its own PRD** — the namespace argument now lives
 in `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5, the authority every PRD-eligibility
 refusal cites, and is not restated here: a BRD that could be split *and* be PRD-eligible itself would
@@ -922,10 +933,16 @@ in Phase 0, `deliverable_paths` = every file this run wrote, updated, or removed
 — **in `allocate-only` mode that is exactly two, this slice's own `coverage-ledger.md` and
 `slices.md`, because Phase 3 never ran** —
 (this BRD's own `coverage-ledger.md`, `slices.md`; in `full` mode additionally, for every slice
-still standing after Phase 4.5, its folder and all three of the files this run wrote into it — `brd-link.md`,
+still standing after Phase 4.5, the three files this run wrote into it — `brd-link.md`,
 `brd/brd-inventory.md`, and its own `coverage-ledger.md`, the two that `/brd-ground` will gate and
-read when the child re-enters the route; and, for a child Phase 4.5 removed as empty, that folder's
-deletion —
+read when the child re-enters the route; and, for a child Phase 4.5 removed as empty, **those same
+three paths again, named individually** —
+
+**Name files, never the folder.** §2.9 requires one literal repo-relative path each and §2.3 classifies
+a directory as OTHER, silently. On a removal that failure is invisible and total: `git status
+--porcelain` reports three ` D` lines, a folder-shaped declaration matches none of them, so `slices.md`
+and the parent ledger land on the default branch while the removal does not — and the next run's
+Phase 0 step 9 re-enumerates the child as still standing. —
 §2.3's `-A` staging is what stages a removal, exactly as it does for `/idea`'s or `/update-prd`'s
 own deletions — and it stages a Phase 4.5 removal on the Phase 4.5-only path the same way), `title:` — `<BRD-KEY> Split into slices and allocate coverage` in `full` mode,
 `<BRD-KEY> Allocate slice coverage` in `allocate-only`, because a pull request titled "split" that

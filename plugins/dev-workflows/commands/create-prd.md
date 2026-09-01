@@ -340,7 +340,7 @@ If there is no idea (Phase 0 ladder exhausted), grill the PRD from scratch.
 
 Read exactly two files from the BRD folder Phase 0 step 5 resolved, and no other seed:
 
-- **`prd-seed.md`** — product-altitude content, when the folder holds any. **No `/brd-*` command writes this file on the normal route** — the one writer is
+- **`prd-seed.md`** — product-altitude content, when the folder holds any. **Where to look, and it is two places.** The resolved slice first. Then, when the slice holds none, the **parent BRD folder** named by `brd-link.md`'s `parent:` — that is where `--sort-existing` actually writes all three seeds, because slices do not exist when intake runs. A seed found there is BRD-wide content, not slice-scoped: read it as context for this slice, say which folder it came from, and never treat it as though it were written for this slice alone. Finding neither remains the ordinary case. **No `/brd-*` command writes this file on the normal route** — the one writer is
   `/dev-workflows:brd-intake --sort-existing`, a one-time migration path for a package authored
   by hand before this route existed. Its absence is therefore the **ordinary** case, not a
   degraded one, and is reported rather than treated as a gap; what the route actually carries at

@@ -4,6 +4,68 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.22.0] — 2026-09-02
+
+### Fixed — review round 4: `/implement` moved the user's checkout, and the BRD migration path wrote where nothing reads
+
+**BLOCKER — `/implement` silently relocated the repository it was about to branch.** Its Phase 1.7
+`code-scanner` dispatch passed `repo_path`, `capability_themes`, `context` and `search_hints` — and no
+`refresh:` block. The agent's declared default is `{switch_to_default_branch: true, pull: true}`, and
+Phase 0 classifies **the cwd itself** as a scan target, so every fan-out run executed `git switch
+<default>` and `git pull --ff-only` in the user's working repository, before Pre-Phase 3 created the
+branch and with no consent step anywhere in the command. `/implement` was the only one of six
+`code-scanner` callers with no `refresh` at all.
+
+Two consequences beyond the switch. **Pre-Phase 3's HEAD guard became unreachable on the ordinary
+path** — it offers *"Branch from current position — continue on this work"* only when HEAD is not on
+the default branch, and the scan had already moved it there, so a user who invoked `/implement` from a
+feature branch with committed work could never be offered the option they would have picked. And
+`DIRTY_TREE` became reachable (the agent gates it on `refresh.pull`), so a scanner could stash the
+user's pre-existing changes in a repo where Pre-Phase 3 then recorded `stash_ref: null` — leaving the
+stash unmentioned by the run and unnamed by `code-handoff.md`'s carve-out. `refresh` is now pinned
+`{false, false}`, as `/idea` pins it, and `DIRTY_TREE` is stated unreachable here.
+
+**MAJOR — four agents declared a `notes` output that no caller read.** `grounding-verifier`,
+`code-grounder`, `brd-reader` and `brd-package-reviewer` each document `notes`, and each sole caller
+enumerated the other returned fields and never mentioned it — the same shape fixed for
+`frame-describer` one release earlier, with `/brd-ground`'s handling of `design-grounder` cited as the
+precedent while four siblings were left behind. The verifier's case is the sharpest: its contract calls
+`notes` *"anything the caller should know **before recording this outcome**"*, and the caller recorded
+the outcome without reading them. Consequence: a `NOT-PROVABLE` `[CG#n]` whose search budget ran out
+was indistinguishable from one the code refutes; a self-review whose coverage was partial went into a
+customer package as though complete. All four now have a consumer.
+
+**MAJOR — `--sort-existing` wrote all three altitude seeds into the one folder every consumer
+refuses.** Phase 6 writes them to `<BRD-dir>`, always a root `BRD-` container; `/create-prd`,
+`/create-ard` and `/specify` each read their seed out of the resolved `PRD-` **slice** and each refuse
+a `BRD-` container before reading anything. The migration path's whole output was written, committed,
+and unreadable by any command. Slices do not exist at intake time, so the seeds cannot be written into
+them there — instead `/brd-intake` now names the three paths and says a slice consumer reads them one
+level up, and each consumer, finding no seed in its slice, looks to the parent named by `brd-link.md`
+and reports the seed as BRD-wide context rather than slice-scoped. (The *normal-route* absence remains
+deliberate and correctly handled; the defect was where the sole writer put them.)
+
+**MAJOR — `[BR#n]` ids were renumbered on every re-intake.** `brd-reader` states that coordinating ids
+across runs is the orchestrator's job; `/brd-intake` wrote them "numbered exactly as returned" and
+never read the existing inventory. Since the agent numbers from `BR#1` in source order on every read, a
+BRD v2 with one requirement inserted early shifted every later id — and every `[CG#n]` premise, every
+`[DEF#n]` target, every child's copied inventory and `claims:` list cites `[BR#n]` **by id**, with
+`/brd-split`'s reconcile unioning claimed rows by id too. Each claim silently re-attached to a
+different requirement, and no gate reads a `[BR#n]` against the text it names. Phase 3 now reconciles:
+a row matched by `source_anchor` or text keeps the id it has, only genuinely new text takes a new one,
+and the run reports how many were preserved versus minted.
+
+**Also:** `/ready` mapped six of `require-on-main`'s seven stopping rows, leaving row C″ — widened in
+3.21.0 — with nowhere to go under a "never conflate" instruction; a read-only enumeration I wrote in
+3.21.0 was itself short by two rows (C′ and I); `deliverable_paths` named a glob in `/brd-intake` and a
+folder twice in `/brd-split`, where §2.9 requires literal per-file paths and §2.3 stages anything else
+as OTHER **silently** — on a slice removal that meant `slices.md` reached the default branch while the
+removal did not, and the next run re-enumerated the child as still standing; `/brd-split` Phase 2
+forbade an outcome Phase 0 step 9 states a run can reach (a parent with existing children and no new
+slice to propose); `BRD_GROUND_NEEDS_SPLIT` routed unconditionally to a command its own sibling rule
+says is a no-op in one of the reported states; and three line-number citations into other files had
+gone stale, now cited by content as the repo's own rule requires — a sweep confirms zero remain.
+
 ## [3.21.0] — 2026-09-01
 
 ### Fixed — review round 3: a gate row that could never fire, and four states misclassified into a no-op

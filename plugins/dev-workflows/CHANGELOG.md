@@ -130,6 +130,39 @@ both levels; and one CHANGELOG version boundary had no blank line before it.
 - `docs/reference/environment.md`'s PRD-folder tree listed neither `idea.md`, `attachments/` nor
   `design/`; `docs/workflow.md`'s diagram omitted `/frames` under a sentence promising every command.
 
+### Fixed — `CLAUDE.md` described the plugin in a vocabulary the plugin no longer uses
+
+The plugin reached **zero** unmarked tracker mentions some releases ago. `CLAUDE.md` — which
+*describes* the plugin, and which check 13 did not scan — still held ten, and they were not
+rationale but claims: `/ready` "read-only for Jira status" (the very defect check 13's own header
+records as fixed, corrected in the README and left standing here), `doc-planner` "synthesizes Jira +
+diffs" when its agent file says PRD content, `/update-prd` excluded from `require-on-main` because
+"its base is the Jira import" when the command resolves a PRD from the specs tree, a written claim
+required to cite "the originating Jira key", and six more. Every authority they cite —
+`prose-formatting.md`, `doc-structure-conventions.md`, `diff-summarizer`, `release-notes-writer`,
+`source-truth.md` — was already neutral; only the file describing them was not.
+
+**Check 13's scope now includes `CLAUDE.md`.** A file outside the gate that describes the thing
+inside it is how a constraint comes back, and this is the evidence for it rather than the argument.
+The repo-root README stays out for its existing reason (it documents a sibling plugin whose subject
+is a vendor CLI). Three lines that must name a tracker to explain a hazard — the two rationales for
+the requirement-ID grammar and the pre-lint autolink detector, and check 13's own description
+quoting the defects it removed — carry the marker instead, and the sanctioned census is re-derived
+at 14 lines across 6 files in four kinds.
+
+### Fixed — a gate direction, and an undefined read
+
+- **Check 4's agent direction accepted a prose mention where a row was required.** A review replaced
+  an agent's table row in `docs/reference/agents.md` with a sentence naming it, and the gate passed —
+  the inventory table the page exists to be had silently lost a row. The reverse direction has been
+  row-anchored since it was written; a pair that disagrees about what counts as listed catches
+  phantoms and misses drop-outs, which is the half that actually goes wrong.
+- **`design-grounder` had no rule for two indexes in one directory** — a state `grounding-format.md`
+  §6.2 deliberately produces, by having a writer leave a foreign index alone and write `index.md`
+  beside it. `index.md` is now stated as the one read, with the other reported and not read.
+- `/frames` was the only command dispatching two or more subagents whose page carried no
+  *How it runs* diagram.
+
 ### Added — two gates, because two constraints were held by nothing
 
 - **Check 14 — foreign-identity quarantine, repo-wide.** The organisation this plugin was extracted

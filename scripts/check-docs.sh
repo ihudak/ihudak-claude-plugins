@@ -207,8 +207,14 @@ check_inventory() {
   done < <(ls "$d/$DOC_CMD_DIR"/*.md 2>/dev/null | sed 's|.*/||; s|\.md$||')
 
   # agents <-> docs/reference/agents.md
+  # The forward direction is ROW-anchored, not merely "the name appears somewhere". It was the
+  # latter, and a review proved the gap by replacing an agent's table row with a sentence naming
+  # it in prose -- the gate passed, while the inventory table the page exists to be had silently
+  # lost a row. The reverse direction below has been row-anchored since it was written; a pair of
+  # directions that disagree about what counts as being listed catches phantoms and misses
+  # drop-outs, which is the half that actually goes wrong.
   while IFS= read -r n; do
-    grep -q "\`$n\`" "$d/reference/agents.md" 2>/dev/null || fail 4 "agent '$n' is absent from reference/agents.md"
+    grep -qE "^\| \`$n\`" "$d/reference/agents.md" 2>/dev/null || fail 4 "agent '$n' has no row in reference/agents.md (a prose mention is not a row)"
   done < <(ls "$p/agents"/*.md 2>/dev/null | sed 's|.*/||; s|\.md$||')
   while IFS= read -r n; do
     [ -f "$p/agents/$n.md" ] || fail 4 "reference/agents.md names '$n', which is not an agent"
@@ -871,6 +877,10 @@ selftest() {
   # name only for the instant the case runs and this file still never spells it out.
   expect_fail "the foreign organisation named in a docs page is rejected" 14 \
     "printf '%s\n' \"\$(b64d \$FOREIGN_IDENTITY_SAMPLE_B64)\" >> $PLUGIN_REL/docs/README.md"
+  expect_fail "an unmarked vendor token in CLAUDE.md is rejected" 13 \
+    "printf 'A stale claim about a Jira status.\n' >> CLAUDE.md"
+  expect_pass_after "a MARKED vendor token in CLAUDE.md is accepted" \
+    "printf 'A stale claim about a Jira status. <!-- vendor-token-ok: fixture -->\n' >> CLAUDE.md"
   expect_fail "the foreign organisation named OUTSIDE the plugin is rejected" 14 \
     "printf '%s\n' \"\$(b64d \$FOREIGN_IDENTITY_SAMPLE_B64)\" >> README.md"
   expect_fail "a command missing from the plugin README is rejected" 15 \
@@ -1095,10 +1105,18 @@ PYEOF
 # same shape of result -- fires only on correct content, catches nothing -- on which check
 # 11's widening was measured and rejected twice, so it is rejected here for the same reason.
 #
-# SCOPE is $PLUGIN_REL only. The repo-root README documents the whole marketplace, including
-# a sibling plugin whose SUBJECT is a vendor CLI; vendor names there are its subject matter,
-# not this plugin's vocabulary -- the same reason check 10 leaves that file alone.
-# CHANGELOG.md is excluded: it is history, and history keeps the words it shipped with.
+# SCOPE is $PLUGIN_REL plus CLAUDE.md. The repo-root README stays out: it documents the whole
+# marketplace, including a sibling plugin whose SUBJECT is a vendor CLI, so vendor names there
+# are its subject matter rather than this plugin's vocabulary -- the same reason check 10 leaves
+# that file alone. CLAUDE.md was OUT of scope and is now in, on evidence: it DESCRIBES this
+# plugin's behaviour, so it drifts in exactly the way the plugin does, and it drifted. While the
+# plugin itself reached ZERO unmarked tracker mentions, CLAUDE.md still held ten -- among them
+# `/ready` described as "read-only for Jira status" (the very defect this check's header records
+# as fixed, corrected in the README and left standing here), `doc-planner` described as
+# synthesising a tracker's data when its own agent file says PRD content, and `/update-prd`
+# excluded from a gate because "its base is the Jira import" when the command resolves a PRD from
+# the specs tree. A file outside the gate that describes the thing inside it is how a constraint
+# comes back. CHANGELOG.md is excluded: it is history, and history keeps the words it shipped with.
 #
 # THE MARKER, `vendor-token-ok:`, predates this check by one user and had no enforcer.
 # It sanctions the line it sits on; on a fence-OPENING line it sanctions that fenced block,
@@ -1107,8 +1125,8 @@ PYEOF
 # comment on the offending line without corrupting what it quotes. A fenced block is NOT
 # skipped by default -- templates and handoff blocks are exactly where a tracker-shaped
 # field would hide -- so the marked/unmarked fence pair is a selftest case.
-# Sanctioned users -- 11 marked lines across 5 files, in three kinds. Re-derive with
-# `grep -rn vendor-token-ok: plugins/dev-workflows` rather than adjusting the number:
+# Sanctioned users -- 14 marked lines across 6 files, in four kinds. Re-derive with
+# `grep -rn vendor-token-ok: plugins/dev-workflows CLAUDE.md` rather than adjusting the number:
 #   * recognition (8): branch-naming.md's three quotes of a repository's own convention file
 #     plus its fenced verbatim pattern; /vuln's no-address placeholder literals (its prose
 #     step, its two handoff blocks) and the docs page mirroring them -- foreign text the
@@ -1117,7 +1135,11 @@ PYEOF
 #     a user keeps", which is that paragraph's whole argument, and a user's own frontmatter
 #     key the preserve-unknown-keys rule exists to protect;
 #   * provenance (1): getting-started.md naming the subject of a sibling plugin dev-workflows
-#     does not use.
+#     does not use;
+#   * instruction-file rationale (3): CLAUDE.md's two explanations of WHY the requirement-ID
+#     grammar and the pre-lint autolink detector exist -- both are rules about a tracker's key
+#     shape and are unexplainable without naming it -- and this check's own description, which
+#     cites the shipped defects it was created to remove and cannot quote them otherwise.
 # Each has to write the vendor's name in order to match, illustrate, or attribute it.
 #
 # What this deliberately does NOT catch, stated so nobody mistakes green for safe: it matches
@@ -1130,6 +1152,7 @@ check_vendor_tokens() {
   [ -n "$VENDOR_TOKENS" ] \
     || { fail 13 "VENDOR_TOKENS is empty -- this check would examine nothing"; return; }
   files=$(find "$p" -name '*.md' ! -name 'CHANGELOG.md' 2>/dev/null | sort)
+  [ -f "$root/CLAUDE.md" ] && files=$(printf '%s\n%s\n' "$files" "$root/CLAUDE.md")
   [ -n "$files" ] \
     || { fail 13 "no markdown under $PLUGIN_REL to scan -- this check would examine nothing"; return; }
   hits=$(while IFS= read -r f; do

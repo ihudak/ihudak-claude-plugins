@@ -56,7 +56,12 @@ guess, not a citation.
 1. **Verify `frame_set_dir` exists.** If it is not a directory, return `status: FRAME_SET_MISSING`.
 
 2. **Verify an index file is present** inside `frame_set_dir` per the refusal above. If none is
-   found, return `status: NO_INDEX` and stop — no finding is produced.
+   found, return `status: NO_INDEX` and stop — no finding is produced. **Where more than one index
+   is present, `index.md` is the one to read**, and say in the report that another was found and not
+   read. That state is reachable and sanctioned: `grounding-format.md` §6.2 has a writer that meets a
+   foreign index — a manifest, a captions file, a README — leave it byte-for-byte alone and write
+   `index.md` beside it rather than edit a file whose shape it never fixed. `index.md` is the name
+   every writer of this format writes, so it is the one a reader can attribute.
 
 3. **Read the index** to build the frame inventory: for each frame, what screen/report/state it
    depicts, and which fields or columns it shows. Read each frame image the index names before

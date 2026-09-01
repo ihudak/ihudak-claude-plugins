@@ -22,6 +22,16 @@ That is strict on purpose, and it left the obvious workflow with no way out. A h
 
 One address, resolved with the same resolver every keyed command uses: a key, or `@<path>` to the folder or to a file inside it. No kind is passed, because `design/` is reserved at every level.
 
+## How it runs
+
+```mermaid
+flowchart TD
+    p0["Phase 0 — Resolve the address (kind-gated) + model routing"] --> p1["Phase 1 — Enumerate the frame sets"]
+    p1 --> p2["Phase 2 — Reconcile, describe (frame-describer), write each index"]
+    p2 --> p3["Phase 3 — Handoff (only where an index was written)"]
+    p3 --> p4["Phase 4 — Session maintenance, feedback & cost"]
+```
+
 ## What it needs
 
 - **A folder that already exists, of one of the three kinds.** This command indexes; it creates no folder and refuses an address that resolves to none. An ambiguous key is a hard stop naming every match, and an address that resolves to something other than a BRD, PRD or Epic folder is refused by name — pointing `@<path>` at a frame *inside* a set resolves to the set, not to the folder that holds it, so the refusal says which folder to pass instead.

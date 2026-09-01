@@ -93,7 +93,7 @@ default for this retrieval agent):
   >
   > docs_path:       <docs_root>
   > feature_summary: <2–4 sentences: the goal + capability themes for this run>
-  > key:        <the PRD/Epic/ticket key, or omit for keyless /idea>
+  > key:        <the PRD/Epic/ticket key, or omit when the run holds none>
   > themes:          [capability themes, or []]"
 ```
 

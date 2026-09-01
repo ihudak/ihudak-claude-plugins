@@ -234,9 +234,19 @@ file, a README enumerating the frames — but something must map frame to subjec
 be a second copy of a path rule, which is how the copies drift.
 
 **Defining the location is not the same as consuming it.** `design-grounder` is dispatched by
-`/brd-ground` and by nothing else, so today only the BRD route reads a `design/` folder. A PRD folder
-on the `/idea` route may hold one and nothing will look at it yet; that is a known and deliberate
-state, not a gap in this section.
+`/brd-ground` and by nothing else, so today only the BRD route reads a `design/` folder as a frame set.
+A PRD folder on the `/idea` route may hold one and nothing will reconcile it yet; that is a known and
+deliberate state, not a gap in this section.
+
+**Reading a picture is not design grounding, and the `/idea` route does the first without doing the
+second.** `idea-reader` reads the images an idea source links and returns a description of each — as
+**context** for the grill and the brief, never as evidence. Nothing on that route produces a `[DG#n]`,
+consults an index, or reaches a verifier, so none of this section's requirements applies to it: the
+index rule above exists because a *filename* is not a reliable statement of what a frame depicts, which
+is the right standard for a finding someone will act on and the wrong one for a brief whose operator
+handed the mockup over themselves. Design grounding on the `/idea` route remains unbuilt and is a
+decision of its own; this paragraph forecloses the mistake of reading `idea-reader`'s image support as
+that capability having arrived.
 
 ### 6.2 The four reconciliation classes
 

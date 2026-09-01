@@ -329,6 +329,8 @@ Read the resolved `idea.md` **directly** (it is the plugin's own format — `ide
 
 Optionally ground in the idea's cited sources and any strategy/vision docs the user points to. **No code scan; no repos.**
 
+**Text sources only — an image citation is carried, never opened here.** `## Signals & evidence` may cite images the idea's original source linked, because `idea-reader` reads those on the `/idea` run and describes them to that run's grill. Its bounds — two wikilink levels, twelve files, six images, every exclusion reported — belong to that agent and do **not** travel with the file, so opening an image path found here would be an unbounded read this phase has no cap or reporting line for. What those frames showed has already been put to the operator and survives in the idea's prose; treat the path as provenance and read the prose.
+
 If `--from-prd` was resolved (Phase 0 step 2a), also read the **seed PRD** (body + comments) as read-only
 grounding — structure, personas, scope shape, and metrics to *adapt* (never copy) to the new PRD.
 

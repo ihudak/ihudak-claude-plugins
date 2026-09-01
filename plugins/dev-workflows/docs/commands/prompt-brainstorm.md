@@ -23,7 +23,7 @@ Logs a corrective interaction, then hands off to `superpowers:brainstorming` to 
 
 ## What it produces
 
-An `origin: prompt` entry (Friction, User prompt verbatim, Resolution fixed at `Handed off to superpowers:brainstorming to redesign the correction.`), appended via the ladder [Session feedback](../reference/session-feedback.md) describes. **The terminal `commit-artifacts` step runs inside Phase 2, before the Phase 3 hand-off** — not after, the way `/feedback` and `/prompt` commit at the very end — because the brainstorming skill takes over the session there, and a commit placed after it would never execute. Session then hands off to `superpowers:brainstorming` to explore and redesign the correction with you.
+An `origin: prompt` entry (Friction, User prompt verbatim, Resolution fixed at `Handed off to superpowers:brainstorming to redesign the correction.`), appended via the ladder [Session feedback](../reference/session-feedback.md) describes. **A deferred session-cost record too** — written in Phase 2 alongside the feedback entry, carrying the labels the cost entry will take. It is local and never committed; the next cost-emitting run in the session turns it into a real entry, attributed to the phase whose output you were correcting. See [Session cost](../reference/session-cost.md#spend-a-command-cannot-measure-itself). **The terminal `commit-artifacts` step runs inside Phase 2, before the Phase 3 hand-off** — not after, the way `/feedback` and `/prompt` commit at the very end — because the brainstorming skill takes over the session there, and a commit placed after it would never execute. Session then hands off to `superpowers:brainstorming` to explore and redesign the correction with you.
 
 ## Gates
 

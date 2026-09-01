@@ -6,7 +6,7 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 
 Refine an idea into `idea.md`: $ARGUMENTS
 
-`/idea` is the **front door of the PRD-creation flow** (PM phase) — upstream of `/create-prd` (future) and
+`/idea` is the **front door of the PRD-creation flow** (PM phase) — upstream of `/create-prd` and
 the existing pipeline. It ingests one source, refines it through a grill, and writes a lean one-page
 `idea.md` (per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`) that seeds the Product Requirements Document. It is
 **not** a PRD: no code change. Output lands in the PRD folder the key names, on the first write and never relocated.

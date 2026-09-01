@@ -390,12 +390,29 @@ check_install_block() {
 # survived since the command shipped. `/document` is the shape that defeats a naive
 # grep: it calls emit-cost twice, as `/document (Jira mode)` and `/document (direct
 # mode)`, against a single `/document` row.
+# A command earns a section-7 row two ways: it calls emit-cost itself, or it CEDES
+# the session and records a section-13 intent that a later run replays on its
+# behalf. Both declare the same triple. A file doing NEITHER must not match --
+# otherwise ordinary prose that happens to have the call site's shape satisfies
+# the check, which is exactly how the two deferring commands first passed it: they
+# contain no `emit-cost` at all, and their intent-record bullet matched the regex
+# by coincidence. Rewording that bullet then turned the build red with a message
+# blaming the section-7 table.
+# Whitespace is normalised before matching: these files are hard-wrapped prose, so
+# the phrase routinely straddles a newline and a line-oriented grep misses it.
+cost_role_marker() { # <file> -> emit | defer | (empty)
+  local flat; flat=$(tr '\n' ' ' < "$1" | tr -s ' ')
+  if grep -q 'emit-cost' "$1"; then printf 'emit\n'
+  elif printf '%s' "$flat" | grep -q '13.1 intent record'; then printf 'defer\n'
+  fi
+}
 emit_cost_calls() { # <plugin-dir>  ->  lines of  <command>|<phase>|<role>
   local p="$1" f n
   while IFS= read -r n; do
     [ -n "$n" ] || continue
     f=$(cmd_file "$p" "$n")
     [ -f "$f" ] || continue
+    [ -n "$(cost_role_marker "$f")" ] || continue
     tr '\n' ' ' < "$f" | tr -s ' ' \
       | grep -oE '`command: /[a-z-]+( \([A-Za-z]+ mode\))?`, `phase: [a-z-]+`, `role: [a-z]+`' \
       | sed -E 's/`command: //; s/ \([A-Za-z]+ mode\)//; s/`, `phase: /|/; s/`, `role: /|/; s/`$//'
@@ -425,22 +442,23 @@ check_cost_attribution() {
   while IFS='|' read -r cmd phase role; do
     [ -n "$cmd" ] || continue
     grep -qF "$cmd|" <<<"$calls" \
-      || fail 8 "cost-emission.md section 7 attributes $cmd, which passes emit-cost no fixed phase/role"
+      || fail 8 "cost-emission.md section 7 attributes $cmd, which neither passes emit-cost a phase/role pair nor records a section-13 intent"
   done <<<"$table"
 
-  # Extractor-coverage assertion. Every command file that mentions emit-cost must yield a
-  # triple; otherwise a reworded call site makes this check go QUIET, and the message above
-  # would blame the table for what is really an extractor miss. `/document` is the live
-  # example -- it calls emit-cost twice under parenthesised names.
+  # Extractor-coverage assertion. Every command file that calls emit-cost OR records a
+  # section-13 intent must yield a triple; otherwise a reworded call site makes this check
+  # go QUIET, and the message above would blame the table for what is really an extractor
+  # miss. `/document` is the live example -- it calls emit-cost twice under parenthesised
+  # names.
   local f n cn
   while IFS= read -r cn; do
     [ -n "$cn" ] || continue
     f=$(cmd_file "$p" "$cn")
     [ -f "$f" ] || continue
-    grep -q 'emit-cost' "$f" || continue
+    [ -n "$(cost_role_marker "$f")" ] || continue
     n="/$cn"
     grep -qF "$n|" <<<"$calls" \
-      || fail 8 "$CMD_DIR/$cn$CMD_SUFFIX calls emit-cost but no phase/role triple matched -- the EXTRACTOR has drifted, not the table; fix the regex, never the row"
+      || fail 8 "$CMD_DIR/$cn$CMD_SUFFIX calls emit-cost (or records a section-13 intent) but no phase/role triple matched -- the EXTRACTOR has drifted, not the table; fix the regex, never the row"
   done < <(cmd_names "$p")
 }
 
@@ -959,6 +977,8 @@ selftest() {
   if [ "$HAS_COST" = 1 ]; then
     expect_fail "a drifted emit-cost call site is rejected" 8 "sed -i.bak 's|\`command: /alpha\`, \`phase: fixture-phase\`, \`role: pm\`|\`command: /alpha\`, \`role: pm\`, \`phase: fixture-phase\`|' $(cmd_file $PLUGIN_REL alpha)"
     expect_fail "an unattributed emit-cost call is rejected" 8 "mkdir -p $(dirname $(cmd_file $PLUGIN_REL zeta)) 2>/dev/null; printf -- '---\nname: zeta\n---\n\nCall \`emit-cost\` with \`command: /zeta\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' > $(cmd_file $PLUGIN_REL zeta) && printf -- '# /zeta\n\nFixture page.\n' > $PLUGIN_REL/docs/$DOC_CMD_DIR/zeta.md && sed -i.bak 's|($DOC_CMD_DIR/alpha.md)|($DOC_CMD_DIR/alpha.md), [\`/zeta\`]($DOC_CMD_DIR/zeta.md)|' $PLUGIN_REL/docs/README.md"
+    expect_fail "a section-7 row backed only by look-alike prose is rejected" 8 \
+      "sed -i.bak 's|Call \`emit-cost\` with |Recorded as |' $(cmd_file $PLUGIN_REL alpha)"
     expect_fail "a drifted attributed role is rejected"      8 "sed -i.bak 's;| \`/alpha\` | fixture-phase | pm |;| \`/alpha\` | fixture-phase | pe |;' $PLUGIN_REL/$REF_DIR/cost-emission.md"
     expect_fail "a section-7 row for a non-emitting command is rejected" 8 "sed -i.bak 's;| \`/alpha\` | fixture-phase | pm |;| \`/alpha\` | fixture-phase | pm |\n| \`/omega\` | fixture-phase | pm |;' $PLUGIN_REL/$REF_DIR/cost-emission.md"
     expect_fail "a drifted cost-emitting count is rejected"  9 "sed -i.bak 's|One commands emit a cost entry|Five commands emit a cost entry|' $PLUGIN_REL/docs/reference/session-cost.md"

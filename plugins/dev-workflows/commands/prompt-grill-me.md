@@ -51,21 +51,7 @@ Cite `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its
 the entry with the two extra prose blocks (`origin: prompt`), appends per §3
 (never silently skipped), and writes silently. Surface the persisted path.
 
-**Then commit session artifacts (terminal).** Cite
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
-`commit-artifacts` entry point (§4) inline — before the Phase 3 grill, which is
-interactive and may run long. It stages ONLY the §2.1 bounded artifact paths
-inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts
-(/prompt-grill-me)` — or `NOISSUE …` when no `key` resolved — and pushes.
-It NEVER touches a code/docs repo, or the current working
-directory; NEVER force-pushes; NEVER fails the run; and skips entirely when
-the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice.
-Print its §6 outcome line here, prefixed `Specs repo:`, with any guard notice
-repeated in full.
-
-## Phase 2.5 — Defer the cost entry
-
-This command cedes the session at Phase 3 and never regains control, so it
+**Then defer the cost entry.** This command cedes the session at Phase 3 and never regains control, so it
 cannot measure its own spend. Record what a cost phase would have claimed, and
 let the next cost-emitting run in this session claim it — cite
 `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` §13 and write its §13.1
@@ -77,11 +63,29 @@ intent record now, before ceding:
 - `target_command` — the Phase 1 target, as the bare §7 row name (`/document`,
   never `/document (keyed mode)`), so it matches the `command:` the feedback
   entry already carries.
-- `key` (or `null`), `source`, `plugin_version`, and `ceded_at`.
+- `key` (or `null`), `epic` (when the resolved kind is `epic`, else
+  `null`), `source`, `plugin_version`, and `ceded_at`.
+
+**Append — never overwrite.** The file holds a JSON **array**: read it if it
+exists, append this record, write it back; create it with a one-element array
+when absent. A session may cede more than once, and a record that replaces its
+predecessor destroys an attribution nothing can reconstruct.
 
 The file is local, transient and **never committed** — the same status as the §3
 checkpoint beside it. Writing it is silent; **it computes no cost and prints no
 figure here**, because the spend this record stands for has not happened yet.
+
+**Then commit session artifacts (terminal).** Cite
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
+`commit-artifacts` entry point (§4) inline — before the Phase 3 grill, which is
+interactive and may run long. It stages ONLY the §2.1 bounded artifact paths
+inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts
+(/prompt-grill-me)` — or `NOISSUE …` when no `key` resolved — and pushes.
+It NEVER touches a code/docs repo, or the current working
+directory; NEVER force-pushes; NEVER fails the run; and skips entirely when
+the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice.
+Print its §6 outcome line here, prefixed `Specs repo:`, with any guard notice
+repeated in full.
 
 ## Phase 3 — Grill the fix (inline)
 

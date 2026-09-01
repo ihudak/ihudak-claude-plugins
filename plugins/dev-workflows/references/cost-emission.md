@@ -1,8 +1,12 @@
 # Session Cost Emission — Shared Reference
 
-Single source of truth for the dev-workflows session-cost subsystem. The terminal
-"Session cost" phase of every cost-emitting command cites this file and executes
-its steps inline through the single `emit-cost` entry point (§11).
+Single source of truth for the dev-workflows session-cost subsystem. Nineteen of
+the twenty-one commands with an §7 row cite this file from their terminal
+"Session cost" phase and execute its steps inline through the single `emit-cost`
+entry point (§11). The other two — `/prompt-brainstorm` and `/prompt-grill-me` —
+cede the session before such a phase could run, call `emit-cost` never, and
+instead record an intent in Phase 2 that a later run replays on their behalf
+(§13). Both routes produce the same §6 entry.
 
 **Which commands those are is §7's attribution table, and nothing else.** A command
 emits a cost entry if and only if §7 gives it a row, so no roster and no total is
@@ -70,8 +74,15 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/session-cost.py" \
   --prices        <resolved price table (§4)> \
   --checkpoint    ~/.claude/dev-workflows/cost-state/<session_id>.json \
   --snapshot      ~/.claude/dev-workflows/cost-snapshots/<session_id>.json \
-  --now-ts        <current UTC ISO8601>
+  --now-ts        <current UTC ISO8601> \
+  --commands-dir  "${CLAUDE_PLUGIN_ROOT}/commands" \
+  --claim         </command per §13.1 deferred record, oldest first; repeatable>
 ```
+
+`--commands-dir` is what makes command boundaries visible; **omit it and boundary
+detection is silently off** — every claim comes back unmatched and §13.4 discards
+the attribution. Pass it on every invocation, not only when a claim is present.
+`--claim` is absent on the ordinary run, which is every run with no §13.1 file.
 
 The helper reads the main transcript **from the checkpoint's line offset
 forward, skipping JSON-parsing of every line before that offset** — I/O still
@@ -89,9 +100,22 @@ re-parsing lines already processed by a prior command — plus every
   "cost_computed_usd": 0.0,
   "cost_statusline_usd": null,
   "duration_s": 0,
+  "command_boundaries": [{"command": "/x", "ts": "...Z", "line_offset": 0}],
+  "claims": [
+    {"command": "/x", "ts": "...Z", "models": [], "cost_computed_usd": 0.0,
+     "duration_s": 0}
+  ],
+  "unmatched_claims": [],
   "new_checkpoint": {"line_offset": 0, "last_ts": "...Z", "last_snapshot_cost": null}
 }
 ```
+
+With no `--claim`, `claims` and `unmatched_claims` are empty and
+`models`/`cost_computed_usd` cover the whole window exactly as before. With
+claims, **the top-level block is the remainder** — this run's own spend — and each
+`claims[]` entry carries its own `models`, `cost_computed_usd` and `duration_s`,
+which is what §13.3 builds a replayed §6 entry from. `command_boundaries` is
+reported whenever `--commands-dir` resolves, claim or no claim.
 
 An unknown model (absent from the table) is recorded with its tokens,
 `cost_usd: null`, and `note: unpriced-model` — the run never fails. `emit-cost`
@@ -114,8 +138,9 @@ dev-workflows command's END in the same session.
   so the next command's window is correct.** The write is a plain overwrite of
   the transient local file (no git, no specs repo).
 - **A command that cedes the session advances the checkpoint late, not never**
-  (§13): its window is closed retroactively by the next cost-emitting run, at the
-  transcript boundary where that run began.
+  (§13): a later run closes its window retroactively, at **the next command
+  invocation of any kind** — not at that later run's own start, which would fold
+  any intervening command's spend into the ceded run's phase.
 - **Semantics (for users):** the whole session's spend is attributed to the PRD;
   activity between commands rolls into the next command's bucket; the
   pre-first-command and post-last-command tails are unattributed (~0 for a clean
@@ -186,9 +211,11 @@ installed (via `/dev-workflows:statusline`):
   checkpoint) — a **per-invocation delta on this entry only**, chained
   identically to Option A. **Never an aggregate, never a shared source of truth**
   -> immune to the merge concern.
-- **Auto-detect:** the field is emitted only when BOTH the current snapshot file
-  exists AND a prior checkpoint baseline (`last_snapshot_cost`) is already
-  recorded; otherwise it is `null` and simply omitted from the entry. No
+- **Auto-detect:** the field is emitted only when the current snapshot file
+  exists, a prior checkpoint baseline (`last_snapshot_cost`) is already recorded,
+  **and no §13 claim matched in this window** (a whole-render measurement cannot
+  be apportioned across a split); otherwise it is `null` and simply omitted from
+  the entry. No
   configuration. In practice, the **first** cost phase in a session always omits
   the field — even with the statusline installed, there is no baseline yet — and
   the **second and later** commands emit the delta against it.
@@ -456,7 +483,9 @@ and acceptable.
 
 ## 11. Caller contract — `emit-cost`
 
-One entry point. Every caller supplies `command`, `phase`, `role` (or the
+One entry point, called by the nineteen commands that measure themselves and by
+whichever of them replays a §13 record (never by the two that defer — they call
+nothing). Every caller supplies `command`, `phase`, `role` (or the
 `inferred` marker — `/release-notes` and the four feedback commands), `key` (or
 `null`), `source`, and `plugin_version`; the four feedback commands additionally
 supply `target_command` — `/prompt` and `/feedback` directly, `/prompt-brainstorm`
@@ -478,7 +507,9 @@ Inputs:
     be re-derived from disk (it lives in the run's own context). It is passed in:
     directly by `/prompt` and `/feedback`, and out of the §13.1 record for the two
     that deferred.
-- `target_command` — **required when `command` is `/prompt` or `/feedback`.** The
+- `target_command` — **required for all four feedback commands** (supplied
+  directly by `/prompt` and `/feedback`; read out of the §13.1 record when a
+  replay builds the entry for `/prompt-brainstorm` or `/prompt-grill-me`). The
   §7 **row name** of the command whose output is being corrected or remarked on, or
   `n/a`. Note this is the bare row name (`/document`), not the mode-qualified form
   the `command` field above uses (`/document (keyed mode)`) — a qualified value
@@ -501,6 +532,9 @@ Behavior:
 4. Apply attribution (§7) to **this run**, whose spend is the returned remainder;
    build the per-invocation entry (§6); evaluate the §6.1 dominance trigger
    against the built entry and print its warning to the run output if it holds.
+   Evaluate it **per built entry**, replayed ones included — §6.1 fires in every
+   tier, and a claim dominated by an unpriced model is exactly as misleading as
+   this run's would be.
 5. Resolve the target via the ladder (§8); on a keyless run write pending and run
    opportunistic reconciliation (§9).
 6. Append the entry (create the file with frontmatter on first write), then
@@ -543,27 +577,41 @@ on that run's behalf.**
 
 ### 13.1 The intent file
 
-A ceding command writes one record in its **Phase 2.5**, after Phase 2's
-`commit-artifacts` and immediately before ceding:
+A ceding command writes one record in its **Phase 2**, after the feedback entry
+and **before** the terminal `commit-artifacts` step — which stays the last thing
+the run does before ceding, exactly as `specs-repo-git.md` §4 requires:
 
 ```
 ~/.claude/dev-workflows/cost-state/deferred-<session_id>.json
 ```
 
-A JSON array, appended to (a session may cede more than once), oldest first:
+**A JSON array, and appending to it is the whole point** — a session may cede
+more than once, and each cede is a separate measurement. Read the file if it
+exists, append this record to the array, and write it back; **create it with a
+one-element array when absent, and never overwrite an existing one.** A record
+that replaces its predecessor destroys an attribution nothing can reconstruct,
+because the earlier run is over.
 
 ```json
-{"command": "/prompt-grill-me", "phase": "inferred", "role": "inferred",
- "target_command": "/document", "key": "PRODUCT-1234", "source": "specs",
- "plugin_version": "3.16.0", "ceded_at": "2026-09-01T10:04:00Z"}
+[
+  {"command": "/prompt-grill-me", "phase": "inferred", "role": "inferred",
+   "target_command": "/document", "key": "PRODUCT-1234", "epic": null,
+   "source": "specs", "plugin_version": "3.16.1",
+   "ceded_at": "2026-09-01T10:04:00Z"}
+]
 ```
 
-Every field has a consumer, and none is a measurement: `command` and
-`plugin_version` build the entry (§6); `phase`/`role` are the `inferred` marker
-§11 takes, resolved from `target_command` through §7 at replay time; `key` and
-`source` choose the §8 tier; `ceded_at` becomes the replayed entry's `date` and
-the timestamp in its `id`, which is what keeps two records replayed by one run
-from colliding on §6's uniqueness rule.
+No field is a measurement — the spend has not happened yet — and each is here
+because a replay cannot re-derive it once the run is over. `command` and
+`plugin_version` build the entry (§6). `target_command` resolves `phase`/`role`
+through §7 at replay time; the two are carried literally as `inferred` because
+that is the marker §11's contract takes, and carrying them keeps the record a
+complete §11 input rather than one the replay must patch. `key`, `epic` and
+`source` choose the §8 tier and fill §7's Keys rule — `epic` set when the
+resolved kind is `epic`, `null` otherwise, so a replayed entry is keyed exactly
+as a self-measured one. `ceded_at` becomes the replayed entry's `date` and the
+timestamp in its `id`, which is what keeps two records replayed by one run from
+colliding on §6's uniqueness rule.
 
 Same home, lifetime and status as the §3 checkpoint beside it — **per-user,
 per-session, transient, local, NEVER committed, and safe to delete.**
@@ -583,12 +631,18 @@ its absence was a live defect:
   silently inert. Anchoring on either opener keeps the property that matters: the
   envelope must *start* the message, so the same marker text quoted inside prose
   or a pasted file is not an invocation.
-- **Namespace resolved, never discarded.** A marker records what the user typed,
-  bare (`/implement`) or namespaced (`/dev-workflows:implement`). The namespace is
-  checked against this plugin's declared name from its own `plugin.json`; another
-  installed plugin's `/superpowers:implement` is **not** a boundary. Stripping the
-  namespace instead would invent one under a name this plugin never ran. This is
-  `specs-repo-git.md` §3.5's `branch-key` discipline applied to a transcript.
+- **Namespaced, and resolved against this plugin's own name.** A boundary is
+  accepted only as `<this plugin>:<known command>`, the namespace checked against
+  the `name` in the plugin's own `plugin.json`. Two facts force that. Claude
+  Code's built-ins are written **bare**, and one of them — `/upgrade` — collides
+  with a command this plugin also ships, so accepting a bare name mints a boundary
+  from a subscription command the plugin never ran. And another installed plugin's
+  `/superpowers:implement` must not read as this plugin's `/implement`, which is
+  what discarding the namespace would do. This is `specs-repo-git.md` §3.5's
+  `branch-key` discipline applied to a transcript: resolve against the set you
+  hold, never parse. It errs safe — an invocation missed becomes an unmatched
+  claim, reported and dropped (§13.4), where a phantom one would silently file one
+  command's spend under another's phase.
 - **Matched by name, never by position.** See §13.3.
 
 `session-cost.py --selftest` covers each, paired with the broken implementation it
@@ -619,7 +673,13 @@ is the exact misattribution this section exists to remove.
 For each matched claim, build the entry (§6) from its segment, taking
 `phase`/`role` by resolving that record's own `target_command` through §7, and
 dating it `ceded_at` (§13.1). Append it through the §8 ladder using the record's
-own `key` and `source` — which may differ from this run's.
+own `key`, `epic` and `source` — which may differ from this run's.
+
+The partition is **exhaustive and disjoint at the token level**: every usage
+record lands in exactly one bucket, so the claims' tokens plus the remainder's
+are exactly those of the unsplit window. Dollars are rounded per bucket, so the
+summed dollar figures may differ from the unsplit total by a fraction of a cent —
+an artefact of rounding, never lost spend.
 
 **A deferred entry is committed by the run that replays it**, through that run's
 own terminal `commit-artifacts`. The ceding run's `commit-artifacts` has long
@@ -636,8 +696,10 @@ since finished, which is why it could never have committed its own.
   the file would re-print the same line every run for the rest of the session.
   Nothing is lost that was not already lost; only the attribution is.
 - **It does not split Option B.** The statusline cross-check (§5) measures whole
-  renders and cannot be apportioned, so a window carrying any claim omits
-  `cost_statusline_usd` rather than over-reporting it against the remainder.
+  renders and cannot be apportioned, so a window in which any claim **matched**
+  omits `cost_statusline_usd` rather than over-reporting it against the remainder.
+  A window whose claims all went unmatched was never split, so it keeps the
+  field.
 - **It does not rescue a session that ends there.** With no later cost-emitting
   command the spend stays in §3's post-last-command tail, unattributed — the same
   tail every command already has. A resumed session that starts a new transcript

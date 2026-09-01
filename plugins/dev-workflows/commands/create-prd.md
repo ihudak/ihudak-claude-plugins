@@ -99,10 +99,23 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    `prd.md`'s own `kind: prd`, the way a reader of an authored PRD does: this run is greenfield and
    `prd.md` is the file it is about to write. So the test is the `BRD-` prefix
    `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §2 fixes, read off the resolved folder's own
-   name. Where the folder resolved through that file's §5 legacy fallback and carries no prefix at
-   all, the same question is answered by `brd-link.md`'s **`parent:`** — absent, or no `brd-link.md`
-   at all, is a root container; present is a slice — which is the level test the rest of this route
-   already uses, and is still not the asserted kind.
+   name. A `PRD-` prefix passes; a `BRD-` prefix refuses.
+
+   **Where the folder resolved through that file's §5 legacy fallback and carries no prefix at all,
+   the question is answered by positive evidence that it is a BRD, never by the absence of a file**
+   — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.1, which is the authority and
+   is not restated here. In short: a legacy folder carrying `coverage-ledger.md` or
+   `brd/brd-inventory.md`, and no `brd-link.md` naming a `parent:`, is a root container; a legacy
+   folder carrying **neither** of those two files is a legacy **idea-route PRD folder** and this
+   refusal does not fire on it.
+
+   **This is the branch a test written as an absence gets wrong, and it is reachable by design.** A
+   legacy idea-route PRD folder — `specifications/<KEY>-<slug>/` holding `prd.md`, authored before
+   the kind prefixes shipped — carries no `brd-link.md` either, misses §3's `*-<KEY>-*` prefixed
+   glob by construction, and lands in §5's fallback every time. Refusing it as a container would
+   offer `/dev-workflows:brd-split` on a folder with no coverage ledger to walk: a stop naming a
+   remedy that cannot run. The two files §5.1 tests for are written by `/brd-intake` and
+   `/brd-split` alone and by nothing on the idea route, which is what makes the test positive.
 
    Stop gracefully:
    ```

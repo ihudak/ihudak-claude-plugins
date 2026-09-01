@@ -45,10 +45,17 @@ a **BRD key**, and there is no second positional key (Phase 0 step 0).
    design's §4.1 tree gives no specification. **The test is the directory prefix, and never the
    folder's asserted `kind:`** — `/brd-split` writes `kind: brd` into the `brd-link.md` inside a
    `PRD-` slice folder, so a slice asserts `brd` while being exactly the folder a specification
-   belongs in, and a gate on the asserted kind would refuse every slice. Where the folder resolved
-   through `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §5's legacy fallback and carries no
-   prefix, the same question is answered by `brd-link.md`'s **`parent:`** — absent, or no
-   `brd-link.md` at all, is a root container; present is a slice. Stop gracefully:
+   belongs in, and a gate on the asserted kind would refuse every slice.
+
+   **Where the folder resolved through `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §5's legacy
+   fallback and carries no prefix, the question is answered by positive evidence that it is a BRD,
+   never by the absence of a file** — `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md`
+   §5.1, the shared authority `/create-prd` and `/create-ard` take this same test from. In short: a
+   legacy folder carrying `coverage-ledger.md` or `brd/brd-inventory.md`, and no `brd-link.md`
+   naming a `parent:`, is a root container; a legacy folder carrying **neither** of those two files
+   is a legacy **idea-route PRD folder**, which holds `prd.md` and no `brd-link.md` either — this
+   refusal does not fire on it, and refusing it would offer `/dev-workflows:brd-split` on a folder
+   with no coverage ledger to walk. Stop gracefully:
    `SPECIFY_BRD_NOT_SLICED: <BRD-KEY> resolves to a BRD- container at <path>, and a BRD is never the folder a specification is authored in — its requirements are specified in the PRD- slices under it, one specification each (coverage-ledger-format.md §5). <the remedy, per the branch below>`
 
    **The remedy is the same two branches `/dev-workflows:create-prd`'s own container refusal takes,

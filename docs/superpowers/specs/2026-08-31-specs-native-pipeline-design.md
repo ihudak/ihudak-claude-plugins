@@ -325,6 +325,19 @@ as deprecated. `@<path>` bypasses the fallback along with the rest of resolution
 and a renaming script we cannot test against their tree is a liability. Renaming a folder is one
 `git mv`, and the fallback means they need never do it.
 
+**Every kind test that a prefix would have answered must be *positive* in the unprefixed case.** The
+fallback resolves two shapes that a prefixed tree tells apart by name alone — a root BRD folder and
+an idea-route PRD folder — and neither carries a `brd-link.md`, so a container test written as *the
+absence* of one refuses both. D5's refusals then offer `/brd-split` on an idea-route folder that has
+no coverage ledger to walk, which is the stop-naming-an-unreachable-remedy anatomy this design keeps
+scoring against itself. The test is instead evidence that the BRD route touched the folder:
+`coverage-ledger.md` or `brd/brd-inventory.md`, written by `/brd-intake` and `/brd-split` and by
+nothing on the idea route, with `brd-link.md`'s `parent:` then separating root from slice. The rule
+is stated once, in `references/coverage-ledger-format.md` §5.1, and cited by `/create-prd`,
+`/create-ard` and `/specify` — none of which may substitute a test on `prd.md`, since `/create-prd`
+is the run that writes it. `/epics` is unaffected: §6.3's gate reads `prd.md`'s own `kind: prd` and
+no directory name, so it classifies an unprefixed folder exactly as a prefixed one.
+
 ### 5.4 What replaces `jira-input-resolution.md`
 
 That file resolved a Jira key against `$VAULT_PATH/jira-products/`, classified path tokens, owned

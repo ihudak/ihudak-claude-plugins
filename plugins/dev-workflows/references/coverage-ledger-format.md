@@ -259,9 +259,8 @@ row.
 never the folder a PRD is authored in, so a consumer handed a `BRD-` folder refuses it **before
 opening `coverage-ledger.md` at all** — on the resolved folder's own kind, never on what its rows
 say. The check is: the `BRD-` prefix `references/addressing.md` §2 fixes, read off the resolved
-folder's name; and, for a folder resolved through that file's §5 legacy fallback and carrying no
-prefix, `brd-link.md`'s **`parent:`** — absent, or no `brd-link.md` at all, is a root container;
-present is a slice.
+folder's name. A `PRD-` or an `EPIC-` prefix is not a container and needs no further test; an
+**unprefixed** folder is answered by §5.1's positive test.
 
 **Never the folder's asserted `kind:`.** `/brd-split` writes `kind: brd` into the `brd-link.md` it
 places inside a `PRD-` slice folder, so a slice **asserts `brd` while being exactly the folder a PRD
@@ -347,6 +346,50 @@ through the BRD that owns it, the line's `unallocated` term also counts rows thi
 `covered-by` and that BRD has not walked yet — rows whose fate this BRD *has* recorded. A consumer
 keying the refusal off that term would hard-refuse a BRD whose own gate is fully satisfied. The
 refusal is about this ledger's own written dispositions, and about nothing else.
+
+### 5.1 The unprefixed folder — a positive test, never an absence
+
+A folder resolved through `references/addressing.md` §5's legacy fallback carries **no prefix at
+all**, so the prefix test cannot answer it. **The answer must be positive evidence that this folder
+is a BRD, never the absence of a file** — because a pre-prefix specs repo holds *two* unprefixed
+shapes and only one of them is a container:
+
+- a **root BRD folder**, `specifications/<KEY>-<slug>/` written by `/brd-intake`;
+- a legacy **idea-route PRD folder**, `specifications/<KEY>-<slug>/` holding `idea.md` and `prd.md`,
+  written before the kind prefixes shipped.
+
+**Neither carries a `brd-link.md`.** `/brd-intake` writes none — only `/brd-ground`, `/brd-split`
+and `/brd-package` ever do, and the first and third write one carrying `depends-on:` and no
+`parent:` — and the idea route has never written one at all. So "no `brd-link.md`, or one carrying
+no `parent:`", which is the correct test for **root versus slice** *once a folder is known to be on
+the BRD route*, separates nothing here: used as the container test it refuses the legacy idea-route
+PRD folder too, and then offers `/brd-split` on a folder holding no coverage ledger to walk — a stop
+naming a remedy that cannot run. An unprefixed idea-route folder is not an exotic input: it misses
+`references/addressing.md` §3's `*-<KEY>-*` prefixed glob by construction and lands in §5's fallback
+every time.
+
+**What a root BRD carries and an idea-route PRD folder never does is the BRD bookkeeping**, and
+exactly two commands write it: `coverage-ledger.md` (`/brd-intake` Phase 5; `/brd-split` Phase 3
+step 5 for a slice) and `brd/brd-inventory.md` (`/brd-intake` Phase 3; `/brd-split` Phase 3 step 4
+for a slice). **No command on the idea route writes either, ever**, so their presence — not any
+absence — is the test. On an unprefixed folder:
+
+| What the folder carries | What it is | The container refusal |
+|---|---|---|
+| **Neither** `coverage-ledger.md` **nor** `brd/brd-inventory.md` | a legacy **idea-route PRD folder** — the ordinary unprefixed shape | **does not fire.** The consumer proceeds exactly as it does on a `PRD-` folder |
+| Either file, **and** a `brd-link.md` carrying `parent:` | a legacy **slice** | does not fire — a slice is the folder a PRD is authored in |
+| Either file, and **no** `brd-link.md` carrying `parent:` | a legacy **root BRD container** | **fires** |
+
+**Either file, not both, and deliberately.** The two are written by the same run, so an ordinary
+root BRD carries both; requiring both would let a folder left half-written by an interrupted intake
+pass the test and take a PRD authored into it. One of them is already evidence that the BRD route
+touched this folder, which is the only question this test asks.
+
+**It reads no PRD artifact, and that is what lets all three consumers share one rule.**
+`/create-prd` cannot test for `prd.md` — it is the run that is about to write it — so a test keyed
+off the PRD's presence would have to be worded differently in `/create-prd` than in `/create-ard`
+and `/specify`, and three copies of one rule is the drift this file exists to prevent. A prefixed
+tree never reaches this test at all, exactly as it never reaches `addressing.md` §5.
 
 ## 6. The ledger line
 

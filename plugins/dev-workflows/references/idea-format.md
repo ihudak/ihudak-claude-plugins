@@ -64,8 +64,15 @@ demand is shown by who asked, not by a mockup existing.
 
 **The path a bullet cites is the vendored copy's, wherever one exists.** Phase 4.5 rewrites this
 section's links onto `attachments/` and `design/idea-sources/` per **Vendored sources** below; a
-source that was not copied — past a cap, broken, unreadable, or not text/markdown/an image — keeps
+source that was not copied — past a cap, broken, unreadable, or not markdown/an image — keeps
 the path it was written with, because a link is only ever repointed at a copy that exists.
+
+**Cite a source in one of the two forms the digest carries — its `target` as the author wrote it, or
+its resolved `path`.** Both are keys of the rewrite map below, so either is repointed at the copy.
+This is the one thing this section owes that phase: the rewrite opens no path of its own and matches
+on strings alone, so a bullet citing a source in a *third* form — a path tidied, shortened, or
+reconstructed while writing — is a link nothing can match, and it survives into the record pointing
+at the operator's own disk.
 
 **Code findings never go here.** This section is *demand* evidence only. Feasibility findings from a
 `--ground-code` run — what the code already does, what is missing, and any reframing they force —
@@ -77,32 +84,27 @@ belong in **Feasibility grounding** (Section 7).
 rewrites. **Write it when the source is a `prd` the user supplied; omit it entirely
 otherwise.** One bullet per entry, in one of two shapes.
 
-**Discovered** — the finder matched the item, so every slot has a source:
-
-```
-- [[<work doc>]] (<KEY>, <status>) — <relation>: <one line>
-```
-
-**Supplied only** — a `prd` source the finder did not match (the operator supplied it directly). The `tracked` block carries `key`, `status`, and `summary` and nothing else — no
-`relation`, no `match_reason`, no path — so the bullet omits the wikilink and the relation
-rather than inventing either:
+**There is one shape, because there is one producer.** Nothing discovers prior art: the operator
+hands over a PRD as the source, `idea-reader` tags it `provenance: prd` off its own `kind: prd`
+frontmatter, and its `tracked` block carries `key`, `status` and `summary` and nothing else. So the
+bullet names those three and invents no relation:
 
 ```
 - <KEY> (<status>) — supplied source: <summary>
 ```
 
-Never promote a supplied-only entry into the discovered shape by guessing a `relation`; the closed
-vocabulary is the finder's output, not the author's choice.
+A **discovered** shape — a wikilinked work doc with a `relation` and a `match_reason` — belonged to a
+prior-art finder this plugin no longer has. Do not write one: there is no field to transcribe a
+relation from, so every such bullet would be the author guessing, and a guessed relation reads as
+authoritative. (It would also put a `[[wikilink]]` into a file whose links are rewritten to standard
+markdown — see *Link rewriting* below.)
 
-Every slot is **transcribed from what the user supplied, never invented**:
-`<KEY>` and `<status>` from its `key` / `tracked_status`, `<relation>` verbatim from its
-`relation` field, and `<one line>` a plain-language rendering of
-that entry's `match_reason` — why this initiative bears on the idea.
-
-The **key is the durable identifier**; a path is a convenience that dangles once a folder is renamed, so both are carried and a later reader re-resolves by key. An entry with no key carries
-only the wikilink, and that is accepted. Never fabricate a key or a status — an unresolved status is
-written as `status unknown`. A `prd` source appears here **and** in `sources:`: `sources` answers how the
-idea arrived, `## Prior art` answers what it must stay consistent with.
+Every slot is **transcribed from what the user supplied, never invented**: `<KEY>` from `tracked.key`,
+`<status>` from `tracked.status`, and `<summary>` from `tracked.summary`. The **key is the durable
+identifier** — a path is a convenience that dangles once a folder is renamed — so a later reader
+re-resolves by key. Never fabricate a key or a status: a source whose frontmatter carries none is
+written as `status unknown`. A `prd` source appears here **and** in `sources:`: `sources` answers how
+the idea arrived, `## Prior art` answers what it must stay consistent with.
 
 ## Section 7 — Feasibility grounding (optional)
 
@@ -155,12 +157,18 @@ same brief. What breaks without this is the *record*.
 
 | What `idea-reader` reports it read | Where the copy lands |
 |---|---|
-| a text or markdown file — the source itself, and every `wikilinks_followed[]` page | `<PRD-folder>/attachments/<name>` |
+| a markdown file — the source itself, and every `wikilinks_followed[]` page | `<PRD-folder>/attachments/<name>` |
 | an image carrying `read: true` | `<PRD-folder>/design/idea-sources/<name>` |
 
-**Nothing else is ever copied** — no PDF, no archive, no other binary. A linked file that is neither
-text/markdown nor an image is left where it sits, its link in `idea.md` is left exactly as written,
-and it is reported (below).
+**Nothing else is ever copied** — no PDF, no archive, no other binary. A linked file the reader does
+not open is left where it sits, its link in `idea.md` is left exactly as written, and it is reported
+(below).
+
+**The copy set is markdown and images because that is all `idea-reader` opens.** The traversal follows
+links to `.md` pages and the image pass reads image extensions; everything else is enumerated into
+`links_other[]` and never opened. So a linked `.txt` is not copied — not because it is not text, but
+because nothing read it — and the run must report it in those terms. `attachments/` is the reserved
+name for the text and markdown a folder vendors; what reaches it *today* is markdown.
 
 `design/` is not a name this file invents: it is the reserved frame-set subdirectory
 `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §6.1 already fixes for **any** folder under
@@ -188,7 +196,7 @@ truncation the operator is not told about is indistinguishable from a source tha
 | `wikilinks_not_followed[]` | the traversal never reached it | the target, the file that linked it, and its `cap`/`depth` reason |
 | `wikilinks_broken[]` | it resolves to nothing | the target as written |
 | `images[]` with `read: false` | it was never opened | the path and its `cap`/`unreadable`/`not_an_image` reason |
-| `links_other[]` | it resolves to a file that is neither text/markdown nor an image | the path and its extension |
+| `links_other[]` | it resolves to a file the reader does not open — not markdown, not an image | the path and its extension |
 
 **None of the four is fatal**, and none of them has its link rewritten: a link is repointed only at a
 copy that exists.
@@ -241,16 +249,32 @@ decision of its own; `grounding-format.md` §6.1 says so, and this section keeps
 Two linked files may share a basename from different directories, and a re-run meets its own earlier
 copies. The destination name is the source's basename; where that name is already taken:
 
-1. **Identical content is not a collision.** Compare the bytes. A destination file already holding
-   exactly this content is reused — nothing is copied, no suffix is minted, and the link points at it.
-   This is what makes a re-run over the same source idempotent, and what stops one file linked twice
-   from landing twice.
+1. **Identical content is not a collision.** Compare the bytes **against every file already in the
+   destination directory**, not only against the candidate name. A file already holding exactly this
+   content is reused — nothing is copied, no suffix is minted, and the link points at it. Scoping the
+   comparison to the candidate name instead would mint `notes_02.md` as a byte-identical twin of
+   `notes_01.md` on the next run, and again on the one after: unbounded growth from a rule written to
+   prevent it. This is what makes a re-run over the same source idempotent, and what stops one file
+   linked twice from landing twice.
 2. **Otherwise append `_NN`** before the extension — `notes_01.md`, `notes_02.md`, `notes_03.md` — the
    lowest free integer starting at `01`, zero-padded to two digits and tested against the destination
    directory as it actually stands.
 3. **A suffix is never compounded.** The stem a suffix is appended to is always the **original**
    basename, never a name that already carries one, so the third collision is `notes_03.md` and never
    `notes_01_01.md`. Derive the number from the directory; never derive it from the last name minted.
+
+4. **An edited source refreshes the copy it wrote before; it does not mint a version.** Where the
+   candidate name is taken, the content differs, **and `idea.md` currently carries a link whose target
+   is that destination-relative path**, the copy is *overwritten* and no suffix is minted. That third
+   condition is the whole test: the only thing that writes such a link is an earlier `/idea` run
+   vendoring this same source into this same folder, so what is at that name is this source's own
+   stale mirror. A vendored copy mirrors a source; it is not a version history, and git already holds
+   the previous bytes. Without this, editing a linked page and re-running leaves `attachments/note_01.md`
+   committed and unreferenced while `idea.md` still points at the stale `attachments/note.md` — an
+   orphan and a lie, repeated on every subsequent run. Report every refresh, like every substitution.
+
+   Where the name is taken by something `idea.md` does **not** link, rule 2 applies unchanged: that is
+   a genuine second file that happens to share a basename.
 
 The same rule, with the same counter semantics, applies in **both** destinations.
 
@@ -284,9 +308,22 @@ collision rule minted. Pair them:
 | Key | Value |
 |---|---|
 | the `target` as written, together with the `linked_from`/`from` it was written in | the path of that entry's copy, relative to the PRD folder |
+| that same entry's resolved absolute `path` | the same copy |
+
+**Two key forms, because a brief may cite either.** Section 5 tells the author to cite a source as the
+digest carries it — the written `target`, or the resolved `path` — and both come out of the same digest
+entry, so both map to the same copy. Keying on the written form alone would leave every path-cited
+bullet unrewritten while the copy sat beside it, which is the whole failure this rule exists to prevent;
+the digest already holds both halves, so admitting both costs nothing and re-resolves nothing.
+
+**An anchor is not part of the key.** Split a trailing `#…` off a link's target before matching, and
+re-append it verbatim to the rewritten target: `[[notes#Rollout]]` becomes
+`[notes#Rollout](attachments/notes.md#Rollout)`. The anchor addresses a place *inside* the file, so it
+survives the repointing untouched; folding it into the key would match nothing and leave the link on the
+operator's disk, and dropping it would silently lose the only part of the link that said where to look.
 
 **Nothing here re-resolves a link.** This rule opens no path of its own; the map is the whole of what it
-knows, so a written form that is not a key is a link nothing copied. Match each link in `idea.md` on its
+knows, so a form that is neither key is a link nothing copied. Match each link in `idea.md` on its
 target string:
 
 1. **Exactly one key carries that written target** — rewrite it to that key's copy. The ordinary case, and
@@ -302,7 +339,8 @@ target string:
    `mockups/settings/toggle-01.png` and `mockups/onboarding/toggle-01.png`, which render identically and
    differ only in a prefix a reader skims past — are two distinct keys, and rule 1 sends each to its own
    copy. That is what keying on the written form buys, and exactly what matching on the basename would
-   get wrong.
+   get wrong. **A resolved `path` names exactly one file**, so a bullet that cited a source by path is
+   never ambiguous: rule 3 can fire only on a written target.
 
 | Written as | Becomes | Note |
 |---|---|---|
@@ -326,8 +364,10 @@ bare `[[note]]` does — the target as written. A bare image embed has no text a
 **original** basename with its extension dropped — `![[toggle-01.png]]` gives `![toggle-01](…)`. Derive
 it from what the author wrote, never from the name the collision rule minted, so a `_NN` suffix never
 surfaces as alt text. A new target is written relative to the PRD folder — `idea.md` sits at its root —
-and a space in it is percent-encoded (`%20`), which is the only form left once every rewritten link is
-markdown.
+and the three characters that break a markdown target are percent-encoded in it — a space as `%20`,
+`(` as `%28`, `)` as `%29`. A space is the common one; the parentheses are the silent one, because
+`![Screenshot (1)](design/idea-sources/Screenshot%20(1).png)` terminates at the first `)` and resolves
+to nothing, in a rewrite whose entire purpose is a link that resolves.
 
 **`![[note]]` on a markdown file becomes a plain link, and that is a deliberate semantic change.**
 Obsidian transcludes the page's content inline; standard markdown has no equivalent, and `![…](…)`

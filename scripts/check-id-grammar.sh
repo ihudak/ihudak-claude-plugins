@@ -3,25 +3,43 @@
 # Spec: docs/superpowers/specs/2026-08-18-jira-safe-requirement-ids-design.md
 set -uo pipefail
 
-# --selftest runs the gate against its own fixtures and asserts the exit code of
-# each. Without it the fixtures are decorative: CI only ever ran `--root .`, so
-# nothing proved the gate could still FAIL. A check that cannot be shown to fail
-# proves nothing when it passes.
+# --selftest runs the gate against its own fixtures and asserts, per fixture, the
+# exit code AND every form the gate must have named. Without it the fixtures are
+# decorative: CI only ever ran `--root .`, so nothing proved the gate could still
+# FAIL. A check that cannot be shown to fail proves nothing when it passes.
+#
+# THE EXIT CODE ALONE IS NOT ENOUGH, and this was proven, not assumed. Each negative
+# fixture carries several violating lines, so ANY surviving alternation of PATTERN
+# holds the exit code at 1: a review deleted both `SM-C` alternations and watched
+# `--selftest` print SELFTEST PASS, then watched the degraded gate accept a live
+# `[SM-C1]` in a shipped reference file. The sibling gate's selftest had asserted
+# WHICH check fired since the day it was written, for exactly this reason. So every
+# negative case here also asserts the forms in the gate's own output, one grep per
+# form, which is what makes an alternation impossible to delete quietly.
 if [ "${1:-}" = "--selftest" ]; then
   here=$(cd "$(dirname "$0")" && pwd)
   rc=0
-  expect() { # <description> <expected-exit> <root>
-    "$0" --root "$3" >/dev/null 2>&1
-    got=$?
-    if [ "$got" -eq "$2" ]; then
-      printf 'ok    %s (exit %s)\n' "$1" "$got"
+  expect() { # <description> <expected-exit> <root> [<form-that-must-be-reported>...]
+    local desc="$1" want="$2" root="$3"; shift 3
+    local out got form missing=""
+    out=$("$0" --root "$root" 2>&1); got=$?
+    for form in "$@"; do
+      grep -qF -- "$form" <<<"$out" || missing="$missing $form"
+    done
+    if [ "$got" -eq "$want" ] && [ -z "$missing" ]; then
+      printf 'ok    %s (exit %s%s)\n' "$desc" "$got" "$([ $# -gt 0 ] && printf ', %s forms named' "$#")"
+    elif [ "$got" -ne "$want" ]; then
+      printf 'FAIL  %s: expected exit %s, got %s\n' "$desc" "$want" "$got"; rc=1
     else
-      printf 'FAIL  %s: expected exit %s, got %s\n' "$1" "$2" "$got"
-      rc=1
+      printf 'FAIL  %s: exit %s was right, but the gate never named:%s -- an alternation of PATTERN has stopped matching\n' "$desc" "$got" "$missing"; rc=1
     fi
   }
-  expect "numeric dash forms are rejected"      1 "$here/fixtures/prd-bad.md"
-  expect "placeholder dash forms are rejected"  1 "$here/fixtures/prd-bad-placeholders.md"
+  # The form lists are the whole point: each one pins one alternation of PATTERN.
+  # Bracketed and bare are separate branches of the regex and are asserted separately.
+  expect "numeric dash forms are rejected"      1 "$here/fixtures/prd-bad.md" \
+         "[US-1]" "[AC-1]" "[AC-2]" "[SM-1]"
+  expect "placeholder dash forms are rejected"  1 "$here/fixtures/prd-bad-placeholders.md" \
+         "[US-n]" "[AC-x]" "[AC-X]" "[SM-Cx]" "bare SM-Cx"
   expect "hash forms and real keys are accepted" 0 "$here/fixtures/prd-good.md"
   expect "a nonexistent root is an error"       2 "$here/fixtures/no-such-file.md"
   if [ "$rc" -eq 0 ]; then

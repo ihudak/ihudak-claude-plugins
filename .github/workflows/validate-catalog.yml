@@ -49,6 +49,9 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Self-test the catalog validator
+        run: python3 scripts/validate-catalog.py --selftest
+
       - name: Validate manifests and catalog
         run: python3 scripts/validate-catalog.py
 

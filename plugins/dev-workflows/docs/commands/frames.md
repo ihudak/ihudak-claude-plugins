@@ -24,7 +24,9 @@ One address, resolved with the same resolver every keyed command uses: a key, or
 
 ## What it needs
 
-- **A folder that already exists.** This command indexes; it creates no folder and refuses an address that resolves to none. An ambiguous key is a hard stop naming every match.
+- **A folder that already exists, of one of the three kinds.** This command indexes; it creates no folder and refuses an address that resolves to none. An ambiguous key is a hard stop naming every match, and an address that resolves to something other than a BRD, PRD or Epic folder is refused by name — pointing `@<path>` at a frame *inside* a set resolves to the set, not to the folder that holds it, so the refusal says which folder to pass instead.
+- **One address, and no flags.** `/frames` defines none; a second address or a `--flag` is a stop rather than a silent discard, because a discarded second address is a folder you believe was indexed and was not.
+- **An address is mandatory.** Absent or malformed, the run stops before anything is read.
 - **`$SPECS_PATH`** — the specs-preflight step at Phase 0 settles the branch before anything is written; silent when the repo is already clean and on its default branch.
 - **Nothing else.** No PRD, no BRD, no code repo, no docs repo, and no Opus.
 
@@ -32,13 +34,19 @@ One address, resolved with the same resolver every keyed command uses: a key, or
 
 One `index.md` per frame set, in the format [`grounding-format.md`](../../references/grounding-format.md) §6.2 fixes — the same format and the same reconciliation contract [`/idea`](idea.md) Phase 4.5 follows, so two writers never leave one directory holding an index neither would have written. The index is rebuilt from the set **as it stands on disk**: every existing row whose image is still there is preserved verbatim, a row is appended for each frame this run described, a row whose image is gone is dropped and reported, and a frame the run could not account for gets `_no description on record_` and is reported.
 
-Descriptions come from the `frame-describer` agent, which looks at the frames and returns one plain-language description each. The command itself never sees an image, which is what makes "transcribed, never inferred" structural rather than a promise.
+Descriptions come from the `frame-describer` agent, which looks at the frames and returns one plain-language description each — an agent whose whole tool list is `Read`, `Glob`, `Grep`, so it cannot write the index it describes into. The command hands the frames to it rather than opening them itself, so every description in an index is one that something which actually saw the frame produced, and "transcribed, never inferred" is a rule about copying rather than a hope about restraint.
 
 The indexes are deliverables, so they reach the default branch through the [phase handoff](../../references/phase-handoff.md) — each named as one literal path, behind the usual consent choice. Declining leaves them written and on no ref; they still work locally, because a grounding run reads a frame set from the working tree.
 
 ## The cap
 
 **Forty frames described per run**, counted across every set the run touches. [`/idea`](idea.md) caps at six because reading a mockup is incidental to writing a brief; this command is invoked *to* index, so six would make it useless on the first real export it met.
+
+**What counts as a frame** is the extension set [`grounding-format.md`](../../references/grounding-format.md) §6.2 fixes — `.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`. One vocabulary, shared with [`/idea`](idea.md), because two writers of one index listing by two different sets would each drop the other's rows as frames that had gone missing. Anything else in the directory is not a frame, gets no row, and is named once in the report so it is visibly not indexed rather than invisibly absent.
+
+**Where nothing is written, nothing is created.** A folder with no `design/`, a `design/` holding no subdirectory, and a frame set holding no frames are all clean outcomes reported as such — no directory is created, no index is written, and no handoff is offered, because there would be nothing to open a pull request for. Images dropped *directly* into `design/` rather than into a set are called out with the fix: a set is a subdirectory of `design/`.
+
+**An index under another name** — a manifest, a captions file, a README enumerating the frames — is reported and left byte-for-byte alone. This command did not author that file's shape and will not edit it, so it writes its own `index.md` beside it and the report names both. `index.md` is the name every writer of this format writes.
 
 When the cap bites, every remaining frame still gets a row — `_no description on record_`, with `cap` as its reason — and the index is still **valid and complete**, because it is written once after every row is resolved. The run says how many frames it left, and a re-run describes the next forty: a row carrying that placeholder holds no description to preserve, so the next writer that can obtain one fills it. A hundred-frame set converges in three runs and is readable after the first.
 

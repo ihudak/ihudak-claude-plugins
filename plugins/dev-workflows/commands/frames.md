@@ -31,6 +31,17 @@ adjacent to it would invite an operator who wanted an index into the wrong comma
 
 ## Phase 0 — Resolve the address + model routing
 
+0. **The environment.** `$SPECS_PATH` must resolve: every path this command reads or writes is under
+   it. Unset or not a directory → apply the *Required path environment variable unset* rule in
+   `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` and stop there. Without this the only
+   reachable stop is the key-resolution one below, which would report "no folder under
+   `/specifications/`" — a message naming a failure that is not the failure.
+
+   **`/frames` defines no flags, and takes exactly one address.** A second non-flag token, or a token
+   beginning with `--`, is a stop rather than a silent discard:
+   `FRAMES_EXTRA_ARGUMENT: /frames takes one address and no flags; '<token>' is neither. It indexes the frame sets of one folder per run — re-run once per folder.`
+   A discarded second address is a folder the operator believes was indexed and was not.
+
 1. **The address (mandatory).** Parse the first non-flag token and resolve it with `resolve-address`
    (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3) — a key, or `@<path>` to a folder or a file
    inside one. **Pass no `<KIND>`**: `design/` is reserved at every level, so a BRD folder, a PRD
@@ -47,6 +58,18 @@ adjacent to it would invite an operator who wanted an index into the wrong comma
      through it. Never choose between them.
    - `status: found` → carry `path`, `kind` and `key`. Report `legacy: true` once as deprecated when
      §5's fallback resolved it.
+
+   **Then test the kind, because passing no `<KIND>` removed the only guard the path branch had.**
+   §3's path branch checks a supplied `<KIND>` against the folder's own and nothing else, so with none
+   supplied *any* directory resolves. `kind` must be one of `brd`, `prd`, `epic`; anything else — or a
+   folder asserting no `kind:` at all — is a stop:
+   `FRAMES_NOT_A_SPEC_FOLDER: <path> is not a BRD, PRD or Epic folder (it asserts <kind, or 'no kind'>). A design/<frame-set>/ directory is one of the sets this command indexes, not the folder that holds them. Re-run against the folder above it — '/dev-workflows:frames <KEY>' or '@<path to that folder>'.`
+   **The reachable case is the documented one**: `@<path>` to a frame image resolves to its parent — the
+   frame-set directory — whose `index.md` asserts `kind: frame-set-index` (§6.2's frontmatter). Without
+   this gate the run would look for `design/` *inside* a frame set, report "no design/ subdirectory"
+   about a directory visibly holding frames, and reach Phase 4's cost attribution on a kind
+   `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` declares unreachable precisely because this
+   refusal exists.
 
 2. **Resolve model routing.** Invoke the `model-routing` skill (Skill tool,
    `skill: "dev-workflows:model-routing"`), then record:
@@ -84,13 +107,17 @@ step skips on it.
    ```
    frame sets: none — <folder> has no design/ subdirectory (nothing created)
    ```
-   or `… — <folder>/design/ holds no frame set (nothing created)`. **Create no `design/`, create no
+   or `… — <folder>/design/ holds no frame set (nothing created)`. Where `design/` holds images
+   *directly* — the near-miss of the gesture this command exists for — say so and name the fix:
+   `… — <folder>/design/ holds N images but no frame set; a set is a subdirectory of design/. Move them into design/<set-name>/ and re-run (nothing created)`.
+   **Create no `design/`, create no
    frame-set directory, and write no index.** §6.2 step 6 forbids writing an index where the listing
    is empty, and an empty `design/<frame-set>/` is a directory `design-grounder` would open for
    nothing. Skip Phases 2 and 3 entirely and go to Phase 4 — the run still records its own spend.
 
-3. **List each set's images** — every file carrying one of the image extensions
-   (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.svg`, `.bmp`, `.tiff`). This listing is §6.2 step 1
+3. **List each set's images** — every file carrying one of the frame extensions §6.2 step 1 fixes.
+   The set is that section's, not this command's: two writers of one index listing by two vocabularies
+   would each drop the other's rows as images that are no longer there. This listing is §6.2 step 1
    and it is the whole truth about what the set holds; `index.md` is not a frame and is never a row.
    A set whose listing is **empty** is reported and skipped — nothing is written into it and nothing
    is removed from it, exactly as §6.2 step 6 requires.
@@ -118,7 +145,9 @@ For each frame set, in directory order:
    into exactly one of:
    - **has a row whose description is real** → §6.2 step 2 preserves it **verbatim** — the frame, its
      `Linked from`, and its description exactly as they stand. This command never rewrites a
-     description it did not produce, and never re-describes a frame that already has one.
+     description it did not produce, and never re-describes a frame that already has a row in
+     `index.md` — an index under some other name is reported and never read, so it neither preserves
+     nor contradicts what that file happens to say.
    - **has a row whose description is the literal `_no description on record_`** → §6.2 step 2's one
      exception. That row holds no description to preserve and this command *can* obtain one, so the
      frame joins the describe set. **This is what makes a capped run recoverable**, and it is why the
@@ -148,7 +177,15 @@ For each frame set, in directory order:
    describes up to 40 more and the set converges — 100 frames is three runs, and no run ever leaves
    the set unreadable in between.
 
-3. **Describe the frames in this set's describe set** — dispatch once per set, never per frame:
+3. **Describe the frames in this set's describe set — where there is one.** An **empty** describe set
+   dispatches nothing: every frame already carries a real description, or the cap was spent before this
+   set. That is the ordinary shape of a re-run over a complete index and of every set after the one the
+   cap fell in, and `frame-describer` refuses an empty `frames` list with `INPUT_MISSING` — so
+   dispatching would spend an agent to manufacture a failure status, and the report would name a set
+   that "stopped" while being complete and correct. Skip to step 4 and write the index from the rows
+   already resolved.
+
+   Otherwise dispatch once per set, never per frame:
 
    → Agent (subagent_type: "dev-workflows:frame-describer", model: `<detection_model — §2.1 Sonnet chain>`):
      > "Describe these frames and return the structured result:
@@ -178,7 +215,10 @@ For each frame set, in directory order:
    run moves to the next one. A failure in one set never abandons the sets after it, and never fails
    the run.
 
-Hold, per set: the index path, how many rows it now holds, how many this run added, how many it
+Hold, per set: the index path **as a repo-relative path** — that is the form `deliverable_paths`
+takes in Phase 3, and `handoff-to-main` §2.3 matches it against `git status --porcelain` output, which
+is repo-relative; an absolute path there matches nothing and stages nothing, silently. Hold also how
+many rows it now holds, how many this run added, how many it
 preserved, how many carry `_no description on record_` and why (`cap`, `missing`, `not_an_image`,
 `unreadable`, `not_a_frame`, or an agent status), and every row dropped because its image is gone.
 Carry the literal list of index paths written into Phase 3.
@@ -200,7 +240,7 @@ Report what each set now holds, then present
 `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim. On the first
 option, execute `handoff-to-main` (§2) with all five of its §2.9 inputs: `prefix: frames`;
 `feature_folder` = the folder Phase 0 resolved; `deliverable_paths` = **every `index.md` this run
-wrote, one literal repo-relative path each**; `title: <KEY> Index design frame sets`; and
+wrote, one literal path each, repo-relative as Phase 2 held them**; `title: <KEY> Index design frame sets`; and
 `body_facts` = each set with its row count, how many rows this run added, how many carry no
 description on record and why, and every row dropped.
 
@@ -212,10 +252,17 @@ Phase 2 held, unchanged.
 
 **Decline and the indexes are written but on no ref.** They are still on disk, and a grounding pass
 reads a frame set from the working tree rather than off a ref, so a declined handoff is an unshared
-repair rather than a blocked one. Say exactly that — neither more nor less — and name no command that
-could not run against the folder this run actually resolved.
+repair rather than a blocked one. Say that, and say one thing more, because it is not free: each
+index is an OTHER path under `design/**`, so on the next run of any command sharing this repo
+`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §3.3's **G1** matches — the preflight ends there
+at advisory severity listing the paths, and §3.4's leftover flush and §3.5's branch disposition are
+suppressed for the rest of that session. G1 does not set `specs_git: blocked`, so nothing is lost or
+halted, and the suppression repeats until the paths are committed or the handoff is taken. Beyond
+those two facts, neither more nor less — and name no command that could not run against the folder
+this run actually resolved.
 
-**No downstream gate reads these files, so no offer here carries a `<merge-clause>`.** Nothing runs
+**No downstream gate reads these files, so no offer here carries a `<merge-clause>`**, and a declined
+run takes §4.1's third `<next-phase-clause>` — the one written for an artifact with no §3.4 row. Nothing runs
 `require-on-main` on a frame-set index (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3.4's
 table names none), and `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`'s rule attaches the
 clause to an offer naming a gate this run's own output feeds. There is none. Recommend nothing
@@ -223,6 +270,10 @@ unconditional either: this command sits beside the pipeline rather than inside i
 next is a question about the folder, not about the index.
 
 ### Context hygiene
+
+No `resume.md` is written for `/frames` (`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 skip
+list — indexing is not a pipeline phase, so there is nothing to resume; the durable state is the index
+on disk and the pull request).
 
 A `/frames` run over a large set carries forty descriptions and nothing else it needs to keep. Going
 on to other work in this session? → run **`/compact`**; every index is already on disk. Guidance only —

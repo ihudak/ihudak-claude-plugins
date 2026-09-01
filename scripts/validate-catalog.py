@@ -28,9 +28,20 @@ caught by applying the length check to both files.
 
 Usage:
     python3 scripts/validate-catalog.py [REPO_ROOT ...]
+    python3 scripts/validate-catalog.py --selftest
 
 With no arguments, validates the repository containing this script. Exits 0
 when everything passes, 1 on any error. Warnings alone do not fail the run.
+
+``--selftest`` builds a minimal catalog in a temporary directory, mutates it once
+per failure mode, and asserts both the exit status and WHICH error was reported.
+Its two siblings under ``scripts/`` have had one for releases; this one did not,
+so nothing proved it could still fail -- and a checker that cannot be shown to
+fail proves nothing when it passes. Asserting the message rather than the exit
+code alone is deliberate: every mutation here trips a non-zero exit, so exit
+status alone would let a mutation that broke a DIFFERENT rule register as
+success, which is exactly how the sibling gate's selftest went green over a real
+regression.
 """
 
 from __future__ import annotations
@@ -172,7 +183,66 @@ def validate_repo(root: Path) -> tuple[int, int]:
     return errors, warnings
 
 
+def _selftest() -> int:
+    """Build a passing catalog, mutate it once per rule, assert what was reported."""
+    import tempfile
+
+    def build(root: Path, *, version: str = "1.0.0", catalog_version: str | None = None,
+              description: str = "A fixture plugin.") -> None:
+        plugin = root / "plugins" / "fixture" / ".claude-plugin"
+        plugin.mkdir(parents=True)
+        (plugin / "plugin.json").write_text(json.dumps(
+            {"name": "fixture", "version": version, "description": description}), encoding="utf-8")
+        market = root / ".claude-plugin"
+        market.mkdir(parents=True)
+        (market / "marketplace.json").write_text(json.dumps({
+            "name": "fixture-plugins",
+            "plugins": [{"name": "fixture", "source": "./plugins/fixture",
+                         "version": catalog_version or version,
+                         "description": description}],
+        }), encoding="utf-8")
+
+    rc = 0
+
+    def case(desc: str, want_ok: bool, needle: str, **kw) -> None:
+        nonlocal rc
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            build(root, **kw)
+            import io as _io
+            import contextlib
+            buf = _io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                errors, _ = validate_repo(root)
+            out = buf.getvalue()
+            ok = (errors == 0)
+            if ok != want_ok:
+                print(f"FAIL  {desc}: expected {'no errors' if want_ok else 'an error'}, "
+                      f"got {errors}")
+                rc = 1
+            elif needle and needle not in out:
+                print(f"FAIL  {desc}: the right outcome, but the report never said "
+                      f"{needle!r} -- a different rule may have fired")
+                rc = 1
+            else:
+                print(f"ok    {desc}")
+
+    case("a consistent catalog passes", True, "OK")
+    case("version drift between catalog and manifest is rejected", False,
+         "but plugins/fixture/.claude-plugin/plugin.json says", catalog_version="9.9.9")
+    case("an over-long description is rejected", False, "ERROR",
+         description="x" * (DESCRIPTION_MAX + 1))
+    case("a description past the warning threshold is reported", True, "WARN",
+         description="x" * (DESCRIPTION_WARN + 1))
+
+    print("SELFTEST PASS" if rc == 0 else "SELFTEST FAIL")
+    return rc
+
+
 def main(argv: list[str]) -> int:
+    if len(argv) > 1 and argv[1] == "--selftest":
+        return _selftest()
+
     roots = (
         [Path(a).resolve() for a in argv[1:]]
         if len(argv) > 1

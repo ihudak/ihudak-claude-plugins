@@ -212,7 +212,7 @@ specifications/BRD-<BRD-KEY>-<slug>/
 ├── reconciliation-<date>.md     # what the review changed and what still needs a human, /brd-reconcile
 ├── dev-workflows/                # session bookkeeping: resume pointer, feedback, cost entries
 └── PRD-<CHILD-KEY>-<child-slug>/ # a slice /brd-split confirmed — where its PRD, ARD and spec are authored
-    ├── attachments/          # text/markdown sources /idea vendored — PRD level only, never here
+    ├── attachments/          # text/markdown sources /idea vendored — reserved at either level
     └── design/idea-sources/  # images /idea vendored, with the frame-set index it writes
 ```
 

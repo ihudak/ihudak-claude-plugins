@@ -1,6 +1,6 @@
 ---
 name: idea
-description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (whose wikilinks are followed two levels deep and whose linked images are read as context), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Copies the sources it actually read into the PRD folder (text and markdown into attachments/, images into design/idea-sources/ with the index that frame set requires) and rewrites idea.md's links onto the copies. Writes into the PRD folder the key names; no code change; `idea.md` lands in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/` on the first write and is never relocated (D7), and on a completed handoff the run also opens a pull request for it (`references/phase-handoff.md` §2) — declining leaves it written in place but not on the default branch; its session artifacts are committed by `commit-artifacts`.
+description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (whose links to other pages are followed two levels deep, in either syntax, and whose linked images are read as context), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Copies the sources it actually read into the PRD folder (markdown into attachments/, images into design/idea-sources/ with the index that frame set requires) and rewrites idea.md's links onto the copies. Writes into the PRD folder the key names; no code change; `idea.md` lands in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/` on the first write and is never relocated (D7), and on a completed handoff the run also opens a pull request for it (`references/phase-handoff.md` §2) — declining leaves it written in place but not on the default branch; its session artifacts are committed by `commit-artifacts`.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -83,7 +83,7 @@ types to disambiguate.
 
 **Confirm the classification — conditionally.** Per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` ("When a choice list fires"), a list is shown only where the answer genuinely varies. Two cases here do; the rest do not.
 
-**B — the argument is path-like (contains `/`, ends in `.md`, or starts with `@`) but resolved to no existing file.** Without this gate it falls through precedence rule 3 to **prompt** and the path string itself becomes the raw idea text — a mistyped path silently ingested as prose:
+**B — the argument is path-like (contains `/`, ends in `.md`, or starts with `@`) but resolved to no existing file.** Without this gate it falls through precedence rule 2 to **prompt** and the path string itself becomes the raw idea text — a mistyped path silently ingested as prose:
 ```
 choices: ["Re-enter the path (Recommended)", "Read the argument as a prompt — the literal text is the idea", "Cancel"]
 ```
@@ -103,7 +103,7 @@ Dispatch `idea-reader` to read the source and return a structured digest:
   > "Ingest this idea source and return the structured digest:
   >
   > argument:        [the resolved argument]
-  > provenance_hint: [prompt | markdown | community-post | rfe | prd from Phase 1]
+  > provenance_hint: [prompt | markdown — the only two Phase 1 computes; the reader upgrades to community-post or prd off the file itself]
 "
 
 Wait for the digest. If `status: NOT_FOUND` (invalid key / missing file), surface:
@@ -125,8 +125,10 @@ which it is forbidden to do.
 deep** under one total-file cap and **reads** the images the source links, returning a
 `description` of what each frame shows rather than a bare path. Both are **context**: they inform the
 grill and the prose Phase 4 writes. Neither is grounded evidence — an image here is never a `[DG#n]`
-finding, carries no index file, and gets no verifier pass (`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md`
-§6 governs *that*, and this route does not enter it). Treat a described frame the way you treat a
+finding and gets no verifier pass (`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md`
+§6 governs *that*, and this route does not enter it). Phase 4.5 does write the index its vendored
+frame set requires — §6.1 makes that mandatory for any set — but an index makes a set **readable**,
+which is not the same as reconciling it into evidence. Treat a described frame the way you treat a
 sentence in the source file: something the operator handed over, to be put back to them as a question,
 never a fact about what ships.
 
@@ -146,7 +148,7 @@ Dispatch both grounding agents **in a single response** so they run in parallel.
 
 **Docs.** Run `resolve-docs-grounding idea` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the `idea-reader` digest's problem/outcome, `themes` = its signals; pass `key` = the run's own key, which enables the git-grep backstop. When OFF, skip silently.
 
-Carry both digests into Phase 3 with **grill-rank** consumption — challenges from the two compete together for the ≤10 question slots, they do not add slots. Carry `area_proposal` and the `prd` source's match into Phase 4.
+Carry the digest into Phase 3 with **grill-rank** consumption — its challenges compete for the ≤10 question slots, they do not add slots. (One digest, not two: prior-art discovery was removed with its finder, so `docs_challenges` is the only challenge set an agent produces here. There is no `area_proposal` to carry either — nothing proposes a write path now that the key names the folder.)
 
 ---
 
@@ -195,7 +197,7 @@ and **proceed without waiting** — an inline confirmation per `${CLAUDE_PLUGIN_
 **Interview technique (grilling — embedded; no runtime dependency).** Follow the shared technique in `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` — one question at a time, recommend each answer, fact-vs-decision split (look up facts from the `idea-reader` digest, put only decisions to the user), walk the design tree in dependency order. **Depth: bounded by default (below); `--deep` = relentless.**
 
 Scan for gaps against an idea-stage **ambiguity taxonomy**: *problem clarity, target users, desired
-outcome/value, scope boundaries, evidence/demand sufficiency, success signal, terminology.* Rank gaps by **Impact × Uncertainty**, ranking every `docs_challenges` and `prior_art_challenges` entry from Phase 2.5 into that same list. Challenges **compete** for the slots below; they never add slots. **Code findings are facts, not questions.** A Phase 2.6 finding answers a gap rather than raising one — look it up, cite it, and do not spend a question on it. The one exception is the finding that **contradicts the idea's premise** (the capability already exists, or the gap is far smaller than the idea assumes): that becomes a challenge ranked into the same Impact × Uncertainty list, competing for a slot exactly like a `docs_challenges` or `prior_art_challenges` entry and never adding one. At most **2** such challenges.
+outcome/value, scope boundaries, evidence/demand sufficiency, success signal, terminology.* Rank gaps by **Impact × Uncertainty**, ranking every `docs_challenges` entry from Phase 2.5 into that same list. Challenges **compete** for the slots below; they never add slots. **Code findings are facts, not questions.** A Phase 2.6 finding answers a gap rather than raising one — look it up, cite it, and do not spend a question on it. The one exception is the finding that **contradicts the idea's premise** (the capability already exists, or the gap is far smaller than the idea assumes): that becomes a challenge ranked into the same Impact × Uncertainty list, competing for a slot exactly like a `docs_challenges` entry and never adding one. At most **2** such challenges.
 
 **A described image is material for the grill, not an answer in it.** Where a Phase 2 `images` entry carries a `description`, use it the way you use the source's own prose — to sharpen a question (*"the mockup shows the toggle per project; is the setting per project or per account?"*) and to avoid asking about something the operator has already shown you. It never closes a gap on its own and it never adds a question slot, because a frame is what somebody drew, not what anything does. **Never write a described frame into `idea.md` as fact** unless the grill confirms it or the source's prose already says it. An image the reader did not read (`read: false`) contributes nothing at all — never reason from its filename or its path.
 
@@ -228,10 +230,19 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
   `[NEEDS CLARIFICATION]` in **Open questions & assumptions**, never a hedged bullet.
 - **Existing file:** if `idea.md` already exists at that path, offer:
   ```
-  choices: ["Refine the existing idea.md (Recommended)", "Create a new one (you'll be prompted for a slug)", "Cancel"]
+  choices: ["Refine the existing idea.md (Recommended)", "Cancel"]
   ```
   On *refine*, re-open it, resolve its open `[NEEDS CLARIFICATION]` items, and append the new source
   (`{provenance, ref}` built from Phase 2's `provenance` and `source_refs`) to `sources`.
+
+  **There is no "write a second one beside it" option, and the reason is structural.** The key was fixed
+  in Phase 0, so a second brief under a different slug is a second folder asserting the *same* key —
+  `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4 rule 5's hard `ambiguous` stop, which makes the key
+  unaddressable by every command that resolves one, `/create-prd <KEY>` — the command this run is about to
+  recommend — included. Phase 4.5 would vendor into the folder Phase 0 resolved rather than the new one,
+  and Phase 5 would hand off a `feature_folder` the deliverable was not written into. A genuinely separate
+  idea is a separate key: say so, and name `/dev-workflows:idea <ANOTHER-KEY> <the same source>` as the way
+  to write one.
 - **`kind` and `key`:** write `kind: prd` and `key: <the key this run was invoked with>` into the
   frontmatter (`${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`). This command creates the folder, so
   until `/create-prd` writes `prd.md` this file is the only artifact carrying the pair
@@ -301,8 +312,10 @@ repairs where `idea.md` points.
    **Rewrite from the digest's own written-form → copy map, and re-resolve nothing.** Every link array
    carries the target **as written** beside the path it resolved to — `images[].target` with its
    `linked_from`, `wikilinks_followed[].target` with its `from` — and step 2 knows the name each copy took;
-   pair them and match `idea.md`'s links on the target string. This phase opens no path of its own, so a
-   target that is not a key of that map is a link nothing copied and is left alone. Where two entries share
+   pair them and match `idea.md`'s links against **both** key forms that file defines — the target as
+   written, and the entry's resolved absolute path — because Section 5 lets a bullet cite either, splitting
+   a trailing `#anchor` off before matching and re-appending it after. This phase opens no path of its own,
+   so a form that is neither key is a link nothing copied and is left alone. Where two entries share
    one written target but resolved to **different** files, that target is ambiguous — `idea.md` records
    nothing per occurrence to separate them — so **leave every occurrence as written and report it** rather
    than repoint one at the wrong copy. Targets that merely *look* alike but differ as strings
@@ -310,8 +323,11 @@ repairs where `idea.md` points.
    copy.
 5. **Record `vendored:`** beside each vendored entry's `ref:` in `sources:`. `ref` is not rewritten —
    it answers how the idea arrived, and that is still true of a path nobody else can resolve.
-6. **Create nothing empty.** `attachments/` only where a file lands in it, `design/idea-sources/` and
-   its index only where an image does. A bare-prompt run creates neither directory, writes no index,
+6. **Create nothing empty — but creating a directory and writing its index are not the same act.**
+   `attachments/` is created only where a file lands in it and `design/idea-sources/` only where an
+   image does; the index, per §6.2 step 6, is written whenever that frame set holds at least one frame,
+   **including on a run that copied no image into a set an earlier run populated** — which is how a row
+   whose image is gone gets dropped. A bare-prompt run creates neither directory, writes no index,
    rewrites no link, and hands Phase 5 the deliverable set it would have handed it before this phase
    existed.
 7. **Nothing here is fatal.** A copy that fails — permissions, a full disk, an unreadable source that
@@ -325,8 +341,10 @@ repairs where `idea.md` points.
    indexed as `_no description on record_`, and every index row step 3 dropped because its image is gone.
 
 Hold the vendoring outcome — what landed in each destination, what was skipped and why, and any name
-substituted by the collision rule — for the Final report, and carry the literal list of paths written
-into Phase 5's `deliverable_paths`.
+substituted or refreshed by the collision rule — for the Final report, and carry into Phase 5's
+`deliverable_paths` the literal list of paths this phase **wrote or reused**. Reused belongs in it:
+a byte-identical copy was not written by this run, but `idea.md` links it and an earlier run may have
+left it on no ref, so omitting it is a link to a file that never lands.
 
 **The bookkeeping steps do not stage any of this.** `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`
 §2.1 classifies `attachments/**` and `design/**` as OTHER, so `commit-artifacts` never touches them —
@@ -447,7 +465,7 @@ source-not-found, cancellation).
    > Session handoff:
    > - Command run: /idea
    > - What was done: [one-paragraph summary of the idea refined + source type]
-   > - Key events: [source-detection corrections, unresolved clarifications, broken wikilinks, links the traversal did not reach, images that were not read, links to files that are neither text/markdown nor an image, sources that failed to vendor — or 'none']
+   > - Key events: [source-detection corrections, unresolved clarifications, broken wikilinks, links the traversal did not reach, images that were not read, links to files the reader does not open, sources that failed to vendor — or 'none']
    > - Workarounds used: [manual steps not automated by the workflow — or 'none']
    > - Review verdict: N/A (no reviewer in /idea)
    > - Test result: N/A (no tests in /idea)
@@ -491,8 +509,8 @@ holds against how many this run added, every name the collision rule substituted
 rewritten in `idea.md` **and every target left unrewritten because two copied entries were written
 identically** (with each source and each copy), every frame indexed with no description on record, every
 index row dropped because its image is gone, and every source left uncopied with its
-reason (`cap`, `depth`, broken, `unreadable`, `not_an_image`, a linked file that is neither
-text/markdown nor an image with its extension, or a copy that failed) — stated plainly where nothing was
+reason (`cap`, `depth`, broken, `unreadable`, `not_an_image`, a linked file the reader does not open —
+not markdown, not an image — with its extension, or a copy that failed) — stated plainly where nothing was
 vendored at all ("no source to vendor: the idea came from a prompt", or "nothing linked"), and naming no
 directory this run did not actually create; the resolved model routing (+ any Opus degradation); the feedback path; the cost
 path (or notice); the `Specs repo:` outcome line from `commit-artifacts`

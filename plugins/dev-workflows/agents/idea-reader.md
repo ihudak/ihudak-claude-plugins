@@ -31,10 +31,23 @@ For a community post (a markdown file under a `Projects/Products/` path, or with
 additionally extract **demand signals** — requester names/handles, upvote/vote counts, recurring asks —
 into `signals`.
 
-### Wikilink traversal
+**A source that is itself a Product Requirements Document is tagged `prd`.** Read the file's own
+frontmatter: `kind: prd` (or a `prd.md` / `idea.md` under a `PRD-<KEY>-<slug>/` folder) means the operator
+handed over prior art rather than demand evidence, so return `provenance: prd` and fill `tracked` from
+that same frontmatter — `key` from `key:`, `status` from `status:`, `summary` from the document's own goal
+line. The caller passes `provenance_hint: markdown` for every existing `.md` path, so this upgrade is the
+only thing that ever produces `provenance: prd`, and `## Prior art` is written off nothing else.
 
-Follow `[[...]]` wikilinks to other `.md` files **up to two levels deep**: the source file's own links
+### Link traversal
+
+Follow every link to another `.md` file **up to two levels deep**: the source file's own links
 (`depth: 1`) and the links on those pages (`depth: 2`). Depth 3 is never reached.
+
+**Both syntaxes are followed** — `[[wikilink]]` and standard markdown `[text](path.md)` alike. A source
+written outside a vault uses the second form, and a `.md` page reached only by it would otherwise be
+followed by nothing, copied by nothing and reported by nothing — which is exactly the state
+"a link nothing copied and nothing reported is indistinguishable from a link that was never there"
+forbids. `wikilinks_followed` keeps its name and carries both.
 
 Traverse **breadth-first**, in document order within each file — the source's links first in the order they
 appear, then each depth-1 page's links the same way. The order is deterministic, so two runs over the same
@@ -48,8 +61,8 @@ not an error, not a broken link, does not count against the cap, and is not re-s
 `wikilinks_followed` entry is the record.
 
 **At the cap, report — never stop silently.** Once the total-file cap is reached, stop reading but keep
-enumerating: every wikilink on an already-read file that resolves to a readable `.md` file and was not read
-goes into `wikilinks_not_followed` with the file that linked it and `reason: cap`. Wikilinks sitting on a
+enumerating: every link on an already-read file that resolves to a readable `.md` file and was not read
+goes into `wikilinks_not_followed` with the file that linked it and `reason: cap`. Links sitting on a
 `depth: 2` page are out of scope by the depth bound rather than by the cap; list them with `reason: depth`
 so a reader can see what the bound cost. `wikilinks_not_followed` is never truncated — it is bounded already
 by the small set of files that were read.
@@ -129,9 +142,9 @@ Return this exact YAML shape (no preamble, no chatter):
 status: OK | NOT_FOUND
 provenance: prompt | markdown | community-post | rfe | prd
 tracked:                 # present only for provenance: prd
-  key:   <KEY>
-  status:     <from the export frontmatter>
-  summary:    <from the export frontmatter>
+  key:        <the source document's own key>
+  status:     <from the source's own frontmatter; omit when it carries none>
+  summary:    <the source's goal line, in one sentence>
 source_refs:
   - ref:             <path | KEY | url>
     salient_summary: <≤150 words: what this source says that matters to the idea — omit for an inline prompt>
@@ -158,7 +171,8 @@ wikilinks_not_followed:
     from:   <absolute path of the file that linked it>
     reason: cap | depth
 wikilinks_broken:
-  - <unresolved wikilink or image target>
+  - target: <the unresolved link or image target, exactly as written>
+    from:   <absolute path of the file that linked it>
 links_other:
   - target: <the link target as written>
     path:   <resolved absolute path>
@@ -191,7 +205,7 @@ collapsed into one entry.
 - NEVER normalise, resolve, complete, or otherwise rewrite a `target`: it is the link exactly as it appears in the file that carried it. A caller that repoints links compares written forms, so a tidied `target` silently points a link at the wrong file. Two entries sharing a `target` with different `linked_from`/`from` are two entries, never one.
 - NEVER reach out over HTTPS to any host — operate purely on the inline prompt and the file the caller named.
 - NEVER fabricate demand signals, requesters, or sources not present in the input.
-- Follow wikilinks at most **TWO** levels deep, never read the same resolved path twice, and never exceed the total-file cap in `## Bounding`. A revisit is a silent skip, never an error and never a broken link.
+- Follow links at most **TWO** levels deep, never read the same resolved path twice, and never exceed the total-file cap in `## Bounding`. A revisit is a silent skip, never an error and never a broken link.
 - NEVER let a cap pass unreported: an item the depth bound, the file cap, or the image cap excluded is listed with its `reason`. Silent truncation is a defect, not a bound.
 - An unreadable image, a non-image file behind an image extension, and a broken link are all **noted and survived** — none of them ends the run.
 - NEVER open, read, summarise, or describe a `links_other` file. It is enumerated so the caller can report what it did not copy, and enumerating is the whole of the obligation; its content is never inferred from its name or its extension.

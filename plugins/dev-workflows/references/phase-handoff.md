@@ -52,6 +52,15 @@ Staging is by enumeration, never by glob — the same discipline as `specs-repo-
 2. Classify each reported path against the caller's declared deliverable paths (§2.9). Everything else is **OTHER** and is never staged — including the `dev-workflows/**` bookkeeping paths, which belong to `commit-artifacts`.
 3. `git -C "$SPECS_PATH" add -A -- <path> [<path>…]` with the literal paths. `-A` is used deliberately: a producer may delete a file it relocated (`/update-prd` supersedes a revision), and that deletion must be staged. `-A` states the intent explicitly and was strictly required before git 2.0; on git ≥ 2.0 a plain `git add -- <path>` stages a deletion for a literal path too — verified empirically — so keep `-A`, but do not justify it by claiming plain `git add` cannot stage the deletion.
 
+**A declared path is always a file, never a directory and never a glob.** Step 2 classifies each
+reported path against the declaration, so a directory in the list would leave every file under it
+ambiguous — matched by a reader who expands it, OTHER by one who does not. A caller whose phase writes
+a set of files rather than one (`/idea` vendors its sources into `attachments/` and
+`design/<frame-set>/` — `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`, *Vendored sources*)
+enumerates every one of them literally. The consequence of leaving one out is silent and total: it is
+classified OTHER, never staged, and never reaches the default branch, while the deliverable that links
+it lands there pointing at a path on no ref.
+
 Nothing staged → no commit. Emit the §4.1 `nothing to commit` line. This is not an error: a re-run that changed nothing is a legitimate outcome.
 
 ### 2.4 Commit
@@ -104,7 +113,7 @@ Every failure is reported and the phase is described as **not handed off**. The 
 |---|---|
 | `prefix` | one of `idea`, `prd`, `ard`, `spec`, `design`, `ready`, `brd` (shared by every `/brd-*` command, the way `prd` is shared by `/create-prd` and `/update-prd`) |
 | `feature_folder` | the resolved directory the deliverable was written into |
-| `deliverable_paths` | the literal repo-relative paths this phase authored |
+| `deliverable_paths` | the literal repo-relative paths this phase wrote — authored or copied in — one file each, never a directory (§2.3) |
 | `title` | the commit subject and pull-request title |
 | `body_facts` | what §2.7 renders |
 

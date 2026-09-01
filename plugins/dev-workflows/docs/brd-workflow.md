@@ -196,6 +196,9 @@ specifications/BRD-<BRD-KEY>-<slug>/
 │   ├── baselines.md             # one dated entry per pinned repository, /brd-ground
 │   ├── code-grounding.md        # [CG#n] findings, /brd-ground
 │   └── design-grounding.md      # [DG#n] findings, /brd-ground (skipped or noted with --no-design)
+├── design/                      # exported frame sets — one subdirectory each, images + an index
+│   └── <frame-set>/             # what /brd-ground Phase 5 reads; no index means it is not read
+├── attachments/                 # text/markdown sources a run copied in — written by /idea
 ├── brd-link.md                  # depends-on / parent-child links, /brd-ground, /brd-split, /brd-package
 ├── slices.md                    # slice rationale and deferral notes, /brd-split
 ├── decisions.md                 # the register: [VD#n] and [AS#n] from /brd-interview, [CD#n] from /brd-reconcile
@@ -211,6 +214,15 @@ specifications/BRD-<BRD-KEY>-<slug>/
 ├── dev-workflows/                # session bookkeeping: resume pointer, feedback, cost entries
 └── PRD-<CHILD-KEY>-<child-slug>/ # a slice /brd-split confirmed — where its PRD, ARD and spec are authored
 ```
+
+Two of those entries are **reserved subdirectory names** rather than this route's own files, and both
+are shared with the idea route: `design/` holds exported frame sets, one immediate subdirectory each,
+images plus an index that [`grounding-format.md`](../references/grounding-format.md) §6.1 makes
+mandatory — `design-grounder` returns `NO_INDEX` rather than read a frame set without one, because a
+filename is not a reliable statement of what a frame shows. `attachments/` holds the text and markdown
+sources a run copied into the folder; today [`/idea`](commands/idea.md) is its only writer. Neither
+carries a key, neither is resolved by one, and both may appear at either level — a `BRD-` folder or a
+`PRD-` folder inside it.
 
 The dated artifacts are the ones to read carefully. **A dated bundle is never rewritten**, and a
 superseded snapshot is bannered rather than edited: rewriting either destroys the only evidence of

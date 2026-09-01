@@ -4,6 +4,86 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.18.0] — 2026-09-01
+
+### Added — `/idea` vendors the sources it read into the PRD folder
+
+**`idea.md` used to land in the system of record carrying links only its author could follow.** The
+brief was written into `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/`, but every file and image it
+cited still pointed at wherever the operator's source happened to live — usually outside the specs
+repo entirely. The folder that is the record therefore held a provenance document nobody else could
+open. A new **Phase 4.5** copies the sources the run actually read into that same folder and rewrites
+`idea.md`'s links onto the copies.
+
+- **Text and markdown → `<PRD-folder>/attachments/`** — the source file itself and every page the
+  wikilink traversal followed.
+- **Images → `<PRD-folder>/design/idea-sources/`** — every image `idea-reader` opened, reusing the
+  frame-set convention `references/grounding-format.md` §6.1 already reserves rather than inventing a
+  second place for pictures.
+- **Nothing else, ever.** No PDF, no archive, no other binary. `idea-reader` now returns a
+  `links_other[]` list — every link that resolved to a file it neither follows nor renders,
+  enumerated and never opened — so a linked PDF is named in the report instead of vanishing between
+  the copy set and the digest.
+
+**The frame set is written with its index, and that was never optional.** §6.1 makes a frame set's
+index mandatory and its absence unrecoverable — `design-grounder` returns `NO_INDEX` rather than read
+a directory without one, because a filename is not a reliable statement of what a frame shows. Images
+dropped into `design/idea-sources/` without an index would therefore have been a frame set nothing
+could ever read, and no later run could repair it. The material was already in hand: `idea-reader`
+returns a `description` per read image, and `index.md` is written from those descriptions,
+transcribed verbatim and never inferred.
+
+**Writing an index is not consuming one, and `/idea` design grounding has NOT shipped.** Nothing on
+this route dispatches `design-grounder`, produces a `[DG#n]`, consults an index, or reaches a
+verifier. The index makes the frame set *readable*; it does not make anything read it. That
+capability remains deliberately unbuilt, `references/grounding-format.md` §6.1 still says so, and
+that paragraph was rewritten rather than deleted so the distinction is met where the mistake would be
+made.
+
+**Only what was actually read is copied, and everything else is reported.** The copy set is exactly
+the digest's positive reads and inherits `idea-reader`'s existing caps — 12 files, 6 images — adding
+no bound of its own, because Phase 4.5 opens no path the reader did not already open. Four sets are
+deliberately left behind and each is named in the Final report with its reason: `wikilinks_not_followed`
+(`cap`/`depth`), `wikilinks_broken`, `images[].read: false` (`cap`/`unreadable`/`not_an_image`), and
+the new `links_other`. None of them is copied, none has its link rewritten, and none of them is fatal
+— nor is a copy that simply fails, which leaves that file unvendored and its link untouched.
+
+**Name collisions get a suffix that never compounds.** Two linked files may share a basename from
+different directories, and a re-run meets its own earlier copies. Byte-identical content at the
+destination is reused rather than duplicated, which makes a re-run idempotent; otherwise the name
+takes the lowest free `_NN`, derived from the destination directory and appended to the **original**
+basename. The third collision is `notes_03.md`, never `notes_01_01.md`. The same rule, with the same
+counter, applies in both destinations.
+
+### Changed — `deliverable_paths` grew, because a copy nothing declares never lands
+
+`/idea` declared `deliverable_paths` = `idea.md` alone. `references/specs-repo-git.md` and
+`references/phase-handoff.md` §2.3 both stage **the literal declared paths only**, classifying
+everything else as OTHER, so the copies would have been written, left dirty, and never reached the
+default branch — landing `idea.md` there pointing at `attachments/` paths that exist on one machine
+and on no ref, a worse record than the one this release set out to repair. The declaration now names
+`idea.md` plus every file Phase 4.5 wrote, **one literal path each, never a directory and never a
+glob**, which is what §2.3's enumeration requires. A bare-prompt run vendors nothing and passes
+`idea.md` alone, exactly as before.
+
+### Changed — the two reserved subdirectory names are registered together
+
+`references/addressing.md` §2 listed `design/` among the reserved subdirectory names resolution
+passes over; `attachments/` now sits beside it, with the rule made explicit that the register cites
+each name's authority rather than defining it — `design/` is `grounding-format.md` §6.1's,
+`attachments/` is `idea-format.md`'s. `references/idea-format.md` gains the **Vendored sources**
+section that owns the two destinations, the copy set, the index format, the collision rule and the
+link-rewriting rule, plus a `sources[].vendored` field: `ref` is never rewritten, because how the
+idea arrived is still true of a path nobody else can resolve, and `vendored` says where it can be
+read now.
+
+### Fixed — a drawn tree that had never shown `design/`
+
+`plugins/dev-workflows/docs/brd-workflow.md`'s "What lands where" tree enumerated the BRD folder's
+files but omitted the reserved `design/` subdirectory `/brd-ground` Phase 5 reads — the one route
+that has consumed frame sets since they were defined. Both reserved names are now drawn there and in
+the design's §4.1 tree, each with a line saying what it holds and who writes it.
+
 ## [3.17.1] — 2026-09-01
 
 ### Fixed — the review leftovers, cleared rather than carried

@@ -68,10 +68,13 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    on a folder with no coverage ledger to walk. **Without this clause step 1a is prefix-only, and
    the dead end this step exists to prevent is reachable from one typo**: an unprefixed root BRD
    would pass 1a, fail 1b for holding no `prd.md`, and be sent to `/dev-workflows:create-prd`, which
-   takes §5.1 and refuses it as a container — a stop whose remedy stops. §5.1's test is a
-   **directory listing**, exactly like the remedy below: it asks which files the folder carries, and
-   opens neither. The one place this command opens a `coverage-ledger.md` is step 1b's
-   `EPICS_NO_PRD` offer test, which runs only after the run has already been refused.
+   takes §5.1 and refuses it as a container — a stop whose remedy stops. §5.1's test **opens no
+   ledger**, exactly like the remedy below: it asks which files the folder carries —
+   `coverage-ledger.md` and `brd/brd-inventory.md` are tested for presence and never read — and
+   opens at most one file, the `brd-link.md` whose `parent:` separates a legacy root from a legacy
+   slice, which is the same single file the remedy's slice enumeration below reads. The one place
+   this command opens a `coverage-ledger.md` is step 1b's `EPICS_NO_PRD` offer test, which runs only
+   after the run has already been refused.
 
    Stop gracefully:
    ```

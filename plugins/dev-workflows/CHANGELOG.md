@@ -92,6 +92,51 @@ where they were parsed (D4). `/idea` no longer claims to relocate anything (D7).
   folder carrying no `brd-link.md` has no gate set and reaches `/create-prd` on the container test
   alone, so the idea route is unchanged.
 
+### Fixed — review round C (the last findings before the pull request)
+
+- **`/update-prd` named `/create-prd` without testing its refusals.** Phase 0 step 4's
+  `UPDATE_PRD_NO_PRD` stop ran *"run `/dev-workflows:create-prd <ADDRESS>` to author one first"*
+  unconditionally, on a folder that exists and holds no `prd.md` — so on a `BRD-` container it named
+  a command that refuses a container, and on a slice whose every claimed row is `deferred-to` or
+  `rejected` it sent the operator into `CREATE_PRD_BRD_NOT_ELIGIBLE`, the branch that by design names
+  no command at all. `references/coverage-ledger-format.md` §5.2 already stated the rule — an offer
+  naming `/create-prd` is safe only once it has tested all three refusals — and four sites followed
+  it while this one, in the command furthest from the BRD route, did not. Step 4 now resolves its
+  remedy from a six-row table applying §5.2: the container's slices, `/create-prd` where the folder
+  has no gate set or clears both data tests, `/brd-split` against the slice or the parent where one
+  fails, and **no command at all** for the non-empty not-eligible branch, which reports what the rows
+  resolved to instead. That is the only coverage ledger `/update-prd` ever opens; it is confined to
+  the stop and runs after the refusal. Step 3's `absent` branch keeps naming `/create-prd`
+  unqualified and now says why it may — nothing resolved, so there is no folder, no gate set and no
+  kind to test — instead of claiming it is "the same remedy step 4 names".
+- **The route map made the same offer unconditionally.** `references/next-phase-offer.md`'s PE entry
+  told every caller to offer `/create-prd <ADDRESS>` where the resolved folder holds no PRD; it now
+  carries the §5.2 qualification the two commands that implement it already carried.
+- **A stale rationale outlived its instruction.** `commands/create-prd.md` Phase 0 step 3 rung 1 read
+  *"do not relocate, `/idea` already did"* — but D7 retired relocation and `/idea` writes `idea.md`
+  in place on the first write. The instruction was right and the reason was false; the reason is now
+  that nothing relocated it, because nothing does. The docs mirror carried the same claim.
+- **An overstated claim about §5.1's test.** `/epics` step 1a called it *"a directory listing … it
+  asks which files the folder carries, and opens neither"* — but §5.1's root-versus-slice rows read
+  `brd-link.md` for `parent:`. The load-bearing claim is that no *ledger* is opened at step 1a, and
+  that is what the sentence now says.
+- **An unspecified edge in the three new ledger reads.** None of `/epics`, `/create-ard` and
+  `/specify` said what to do on a slice carrying `brd-link.md` and **no** `coverage-ledger.md`.
+  `/brd-split` writes and lands both together, so it is reachable only by hand damage — which is a
+  thing to state rather than leave silent. `coverage-ledger-format.md` §5.2 now states it once, in
+  the authority all of them cite: it is not an empty gate set, so it must not resolve to the standing
+  empty child's `/brd-split <PARENT-KEY>`; name no option, report the missing path, and leave
+  recovery from the specs repo's history to the operator.
+- **A pre-existing count error.** `docs/reference/references.md` said *"The **55**-file subtree
+  figures below"* in the same paragraph that computes 24 + 11 + 9 + 5 + 3 + 2 = **54**. The six
+  subtrees hold 54 markdown pages and five non-markdown files; the sentence is the markdown count.
+  Not gated by `check-docs.sh` check 9, and carried since `cb45c0a`.
+- **Two docs pages still said their command "does not read the ledger".** `/create-ard`'s and
+  `/specify`'s pages were written before those commands gained the next-step read that decides
+  whether `/create-prd` can be named. Both now say what the commands say: nothing they author from
+  is a ledger row, and the read that exists gates nothing. `/update-prd`'s page dropped its retired
+  claim that an unimported key stops the run, and states the `UPDATE_PRD_NO_PRD` routing instead.
+
 ### Fixed — review round B (the remaining findings)
 
 - **The destructive remedy was the only one offered.** Where a root BRD's ledger is fully allocated

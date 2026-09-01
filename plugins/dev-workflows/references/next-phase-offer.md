@@ -181,9 +181,14 @@ array carries every option.
   under one and refuses everything else (`commands/epics.md` Phase 0 step 1b). Where the caller's
   resolved folder holds no PRD — which the BRD route reaches legitimately, since
   `/dev-workflows:create-prd` is not a prerequisite for `/dev-workflows:create-ard` there — the
-  offer is `/dev-workflows:create-prd <ADDRESS>` instead — an offer whose run stops the moment it
-  starts is the same defect the `<merge-clause>` rules below exist to prevent: a next step the
-  operator cannot take from the state the report describes.
+  offer is `/dev-workflows:create-prd <ADDRESS>` instead, **and only where that command can itself
+  run**: it refuses three shapes and not one, so on a BRD-route slice the two data refusals on that
+  slice's own ledger are tested first and the offer resolves to `/dev-workflows:brd-split` against
+  one of two keys, or to no option at all, where either fails
+  (`references/coverage-ledger-format.md` §5.2, the authority, applied by each offering command). An
+  offer whose run stops the moment it starts is the same defect the `<merge-clause>` rules below
+  exist to prevent, one command further on: a next step the operator cannot take from the state the
+  report describes.
 - `/dev-workflows:specify <EPIC>` (Epic-level spec) → Dev → `/dev-workflows:design <EPIC>`.
 
 **Dev — build, verify & deliver**

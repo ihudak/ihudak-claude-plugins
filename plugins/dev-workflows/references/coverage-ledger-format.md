@@ -460,6 +460,19 @@ its folder name.
 idea-route PRD folder: neither data refusal exists for it, and `/create-prd <ADDRESS>` is reachable
 on the container test alone.
 
+**The converse — a `brd-link.md` with no `coverage-ledger.md` beside it — is reachable only by hand
+damage, and it is not an empty gate set.** `/brd-split` writes both files in the same Phase 3 and
+commits them together, so no run of this plugin leaves a slice carrying one and not the other. A
+consumer that meets it can evaluate neither data refusal, and must not read the absent file as a gate
+set of zero rows: that is the *standing empty child* — a slice whose ledger exists and whose `claims:`
+list is empty — which the table above resolves to `/brd-split <PARENT-KEY>`, and resolving a missing
+file to the same offer would send an operator to keep-or-remove a slice on evidence nobody has.
+**Name no option at all.** Report the absent `<slice-dir>/coverage-ledger.md` by path, say that
+`/brd-split` wrote it and landed it with the slice, and leave recovering it from the specs repo's
+history to the operator — nothing in this plugin rewrites a slice's ledger in place. Stated once
+here, in the authority every offering command already cites, rather than three times over in the
+commands that read a slice's ledger to shape an offer.
+
 **Where a data refusal would fire, drop the `/create-prd` option and say which test failed.** The
 precedent is `commands/brd-reconcile.md` Phase 14, which runs both data tests before offering
 `/dev-workflows:create-prd <SLICE-KEY>` and **drops** the option rather than annotating it, on the

@@ -7,7 +7,7 @@ defined once rather than reinvented per caller. Design authority:
 
 **Consumed by every command that addresses a folder in the specs tree.** Each calls `resolve-address`
 (§3) and, where it validates a key before touching the filesystem, `key-valid` (§1). The six `/brd-*`
-commands, the nine commands in §7's table, and the three shared authorities §7 names all reach the
+commands, the ten commands in §7's table, and the one shared authority §7 names all reach the
 tree through this file; `references/brd-format.md` and `references/coverage-ledger-format.md` cite it
 for the key grammar and folder resolution neither of them restates. Read §7's list as a **list**, not
 as a count — it is longer than a reader expects, and summarising it is how an adopter goes missing.
@@ -86,14 +86,34 @@ the kind is frequently what decides the run's mode.
 
 ### Entry point: `resolve-key <KEY> [<KIND>]`
 
-1. **Glob `specifications/**/*-<KEY>-*`, bounded at three levels below `specifications/`.** With
-   `<KIND>` supplied, narrow to `<KIND>-<KEY>-*` and treat a match of another kind as no match.
-2. **Exactly one match** → `status: found`.
-3. **No match** → apply §5's legacy fallback. Still nothing → `status: absent`. The caller decides
-   whether that is a stop or a folder to create; this resolver never creates one.
-4. **More than one match** → `status: ambiguous`, a **hard stop naming every match**. Two folders
-   carrying one key is a defect in the tree, and choosing between them would pick silently — the one
-   failure mode a resolver must never have. Name `@<path>` in the stop as the way through it.
+1. **Glob `specifications/**/*-<KEY>-*`, bounded at three levels below `specifications/`.** Do not
+   narrow the glob by `<KIND>`: the folder **prefix** and the asserted **`kind:`** are allowed to
+   differ, and on the BRD route they routinely do — `/brd-split` creates a slice as a `PRD-` folder
+   whose `brd-link.md` asserts `kind: brd`, so globbing `BRD-<KEY>-*` for `<KIND> = brd` would miss a
+   folder that exists, fall through to §5, miss again, and return `absent`. `<KIND>` is applied in
+   step 2 instead, against what each candidate asserts.
+2. **Filter the candidates by what each one asserts.** A glob matches *names*, and a name is not an
+   assertion. Open each candidate and keep only those whose own frontmatter says `key: <KEY>` — and,
+   where `<KIND>` was supplied, whose `kind:` equals it. This is §4's read, applied as a filter rather
+   than only to the winner, and it is the only place `<KIND>` narrows anything. **This step is not optional and it is not
+   tidiness**: `*-<KEY>-*` matches every folder whose key merely *extends* `<KEY>`, and a child keyed
+   from its parent is this plugin's default. `/brd-split` proposes "the parent's key plus the next
+   unused two-digit segment" and nests the child inside the parent, so on a tree holding
+   `BRD-ACME-90-billing-intake/` with children `PRD-ACME-90-01-invoicing/` and
+   `PRD-ACME-90-02-dunning/`, the bare glob returns **three** matches for `ACME-90` — and step 4 would
+   hard-stop as `ambiguous` on a tree that is entirely correct, making the parent unaddressable by all
+   six `/brd-*` commands from the moment its first child exists. Exactly one of those three asserts
+   `key: ACME-90`.
+3. **Exactly one surviving candidate** → `status: found`.
+4. **No surviving candidate** → apply §5's legacy fallback. Still nothing → `status: absent`. The
+   caller decides whether that is a stop or a folder to create; this resolver never creates one.
+   **A folder that matched the glob but asserts a different key is not a match**, so a legacy parent
+   holding a prefixed child no longer returns the child: before the filter, `ACME-90-billing/` with
+   `PRD-ACME-90-01-invoicing/` inside it globbed to exactly one match — the child — and returned
+   `found` for it silently, with §5's fallback never reached because the prefixed glob had not missed.
+5. **More than one surviving candidate** → `status: ambiguous`, a **hard stop naming every match**. Two
+   folders *asserting* one key is a defect in the tree, and choosing between them would pick silently —
+   the one failure mode a resolver must never have. Name `@<path>` in the stop as the way through it.
 
 ### The resolution record
 
@@ -216,7 +236,7 @@ directory:
 | `/specify` | *Resolve the feature folder*, Phase 0 — Resolve input | the spec it authors, and each Epic subfolder under it |
 | `/design` | *Map onto the specs repo + require the spec on main*, Phase 0 — Resolve input | the merged spec it takes over |
 | `/ready` | *Map onto the specs repo (PRD dir + optional Epic subdir)*, Phase 0 — Resolve input | every artifact it judges |
-| `/idea` | *Phase 5* relocation | where `idea.md` is relocated once a key exists |
+| `/idea` | *Resolve the address*, Phase 0 step 1 | the folder `idea.md` is written into on the first write |
 | `/release-notes` | *Resolve `run_phase`*, Phase 6 — Render the draft | the `run_phase` signal |
 | `/document` | *Resolve the address*, Phase 0 step 1 | the `specs` files it grounds documentation in |
 
@@ -250,10 +270,9 @@ two are in the table rather than deferred as low-risk.
 directly, which already searches every level — the fallback here is §5's rule restated for callers that
 were never wired to it. `/implement` is covered by delegation as above.
 
-**Adoption is additive, in all twelve.** §5's fallback is reached only where the prefixed glob already
+**Adoption is additive, in all eleven.** §5's fallback is reached only where the prefixed glob already
 returned nothing, so a key whose folder resolves at the first attempt resolves exactly as it did before
 any of them adopted this — and where a command creates the folder it did not find, it still creates it
-with the §2 prefix: the fallback honors a legacy folder that exists, it never proposes one. Neither of the
-two shared authorities creates anything at all — both are readers, so for them the additive claim is
-simply that a resolvable key returns what it returned before: the same `found` / `none` / `unmerged` from
-`ard-resolution.md`.
+with the §2 prefix: the fallback honors a legacy folder that exists, it never proposes one. The one shared authority creates nothing at all — `ard-resolution.md` is a reader, so for it the additive
+claim is simply that a resolvable key returns what it returned before: the same `found` / `none` /
+`unmerged`.

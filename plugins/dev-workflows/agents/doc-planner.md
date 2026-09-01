@@ -11,7 +11,7 @@ Not a writer — this agent plans; the main command writes.
 ## Inputs
 
 ```yaml
-folder_read:    <full YAML from the folder read; see ${CLAUDE_PLUGIN_ROOT}/agents/the folder read.md output schema>
+folder_read:    <the YAML the orchestrator assembled by reading the resolved folder — the PRD frontmatter and body, the Epic set, and the artifacts present; the orchestrator names its keys in the dispatch, since no schema file defines them>
 diff_summaries:         <array of diff-summarizer outputs; one entry per repo>
 write_targets:          <confirmed list from doc-location-finder + user; each has kind, section, path, rationale>
 screenshots:            [<array of user-provided absolute image paths; possibly empty>]
@@ -22,7 +22,7 @@ repo_root:              <absolute path to the docs repo root>
 profile:                <the resolved docs-profile (built-in example-docs default, in-repo, or generated); supplies spaces[], tokens, internal_links>
 ```
 
-Refuse to run without `folder_read`, `write_targets`, and `repo_root`.
+Refuse to run without `folder_read`, `write_targets`, and `repo_root`. **`folder_read` is assembled by the orchestrator** from the resolved folder — it is not an agent's return value, and no schema file defines it; the dispatch names its keys.
 
 ## Process
 

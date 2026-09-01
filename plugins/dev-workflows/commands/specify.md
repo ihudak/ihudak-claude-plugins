@@ -33,7 +33,7 @@ a **BRD key**, and there is no second positional key (Phase 0 step 0).
    routes is what the resolved folder holds, not how it was addressed.
 
    **A second positional key is refused on the BRD route.** Stop gracefully:
-   `SPECIFY_BRD_NO_EPIC: /specify the BRD route is BRD-level and takes one key; <second-token> was given as a second. A BRD has no Epics yet — they are minted from the PRD after /dev-workflows:create-prd <BRD-KEY> the BRD route completes its round-trip — and spec-seed.md, decisions.md and grounding/ exist only at a BRD's own level. Re-run '/dev-workflows:specify <BRD-KEY> the BRD route'.`
+   `SPECIFY_BRD_NO_EPIC: /specify on the BRD route is BRD-level and takes one key; <second-token> was given as a second. A BRD has no Epics yet — they are minted from the PRD, so author it first with /dev-workflows:create-prd <BRD-KEY> — and spec-seed.md, decisions.md and grounding/ exist only at a BRD's own level. Re-run '/dev-workflows:specify <BRD-KEY>'.`
 
 
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`,
@@ -69,14 +69,14 @@ a **BRD key**, and there is no second positional key (Phase 0 step 0).
      per-Epic paths included — names the dir resolved here.
    - **Resolve the feature folder itself**, by case:
      - `focus_key` set (an Epic nested under a PRD) →
-       `specifications/<PRD>-<vslug>/<EPIC>-<eslug>/` — a per-Epic subfolder under the PRD dir
+       `specifications/<PRD>-<vslug>/EPIC-<EPIC>-<eslug>/` — a per-Epic subfolder under the PRD dir
        (`<eslug>` = kebab of the Epic title). Apply the same honor-an-existing-dir tolerance to the
-       `<EPIC>-<eslug>` segment.
+       `EPIC-<EPIC>-<eslug>` segment.
      - `focus_key` null **and** the item is a **PRD** for which the broad-PRD-spec choice is made
        (Phase 2, Step A) → `specifications/<PRD>-<vslug>/specification.md` — flat at the PRD-dir level, no
        per-Epic subfolder; the feature folder is the PRD dir itself.
      - `focus_key` null **and** the item is a **stand-alone top-level Epic** (no parent PRD) →
-       `specifications/<EPIC>-<eslug>/`, where `<EPIC>` here is this item's own key (== `key`,
+       `specifications/EPIC-<EPIC>-<eslug>/`, where `<EPIC>` here is this item's own key (== `key`,
        since `focus_key` is null) — top-level, keyed by the Epic, no PRD wrapper. Physically this is
        the same dir the PRD-dir step above already resolved (`specifications/<PRD>-<vslug>/` with
        `<PRD>` = `<EPIC>` = `key`), so no separate resolution step is needed: the two null-`focus_key`
@@ -114,7 +114,7 @@ when the specs repo is clean and on its default branch. If a guard fires, emit i
 it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
 `commit-artifacts` step skips on it.
 
-**Gate the PRD.** Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against the PRD file in `specifications/<PRD>-<vslug>/` — **resolve its actual name on the ref first**: `git -C "$SPECS_PATH" ls-tree --name-only "origin/<default>" "specifications/<PRD>-<vslug>/"` filtered to `<PRD>_*.md`, falling back to the derived `<PRD>_<vslug>.md` only when that listing is empty. A human-adjusted slug is a supported state — `/create-prd` and this command's own Phase 2 reader both locate the PRD by glob plus frontmatter, and the feature folder is matched by key-number for the same reason — so gating an exact derived filename would report `absent` for a PRD that is present, and would let a slug-drifted file on a plugin branch escape the rows D/E stop entirely. Map its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4. Otherwise (`stopped: false`): on `pass`/`pass_amending`, proceed — Phase 2 still reads the item via the folder read exactly as today; the merged PRD is a grounding confirmation, not a new content source; on `absent`, `/specify`'s existing specs-tree behaviour is unaffected — but report it: *"No authored PRD on `<default>` for `<PRD>` — specifying from the resolved folder at `<path>`. If a PRD exists on a branch, this run would have stopped; it does not, so none does."*; on `unmanaged`, behave exactly as before this feature — reachable here even after step 2's own `$SPECS_PATH` check, since that check only rejects an unset value, never an invalid path or a non-git directory.
+**Gate the PRD.** Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against the PRD file in `specifications/<PRD>-<vslug>/` — **resolve its actual name on the ref first**: `git -C "$SPECS_PATH" ls-tree --name-only "origin/<default>" "specifications/<PRD>-<vslug>/"` and take `prd.md` when the listing carries it, falling back to a `<PRD>_*.md` entry only when it does not — the keyless `prd.md` is what `/create-prd` and `/update-prd` write, and the `<KEY>_<slug>.md` form is the pre-rename shape a specs repo written before increment A still holds (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §5). **Gating the legacy glob alone was a defect**: it matches nothing in a current repo, so the gate returned `absent` for every PRD that was present and the rows D/E stop could never fire. A human-adjusted slug is a supported state — `/create-prd` and this command's own Phase 2 reader both locate the PRD by glob plus frontmatter, and the feature folder is matched by key-number for the same reason — so gating an exact derived filename would report `absent` for a PRD that is present, and would let a slug-drifted file on a plugin branch escape the rows D/E stop entirely. Map its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4. Otherwise (`stopped: false`): on `pass`/`pass_amending`, proceed — Phase 2 still reads the item via the folder read exactly as today; the merged PRD is a grounding confirmation, not a new content source; on `absent`, `/specify`'s existing specs-tree behaviour is unaffected — but report it: *"No authored PRD on `<default>` for `<PRD>` — specifying from the resolved folder at `<path>`. If a PRD exists on a branch, this run would have stopped; it does not, so none does."*; on `unmanaged`, behave exactly as before this feature — reachable here even after step 2's own `$SPECS_PATH` check, since that check only rejects an unset value, never an invalid path or a non-git directory.
 
 **On the BRD route the PRD gate does not run, because the PRD is not this route's content source.**
 Its purpose here is a *grounding confirmation* on a route whose content comes from the PRD folder;
@@ -230,12 +230,8 @@ subtree:
 **Read the PRD folder directly.** Read its `prd.md`, and list the `EPIC-` subfolders under it —
 that listing is the Epic set this phase branches on, and each folder's `key` and title come from its
 own frontmatter (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4).
-  >
-  > prd_dir: [resolved prd_dir]
-  > key:         [resolved key]
-  > depth:      prd-plus-epics"
 
-Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `key dir not found`
+If the folder is missing or holds no PRD, surface the `key dir not found`
 rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On
 `OK`, read the item's type from `value_increment` / `linked_items` and enumerate its **child Epics**
 (filter `linked_items` to `type == Epic`). Then branch — this is the reusable **progress-aware
@@ -253,7 +249,7 @@ Epic-picker pattern** documented in `${CLAUDE_PLUGIN_ROOT}/references/epic-picke
   first resolve its **actual** feature folder the same way Phase 0 step 3 does: look under
   `specifications/<PRD>-<vslug>/` for an existing dir matched by that Epic's key-number (tolerate a
   stray `-`/`_` after the key, and a pre-existing slug that doesn't exactly match a freshly-derived
-  one), falling back to the freshly-derived `specifications/<PRD>-<vslug>/<EPIC>-<eslug>/` only when no
+  one), falling back to the freshly-derived `specifications/<PRD>-<vslug>/EPIC-<EPIC>-<eslug>/` only when no
   such dir exists — this keeps a human-adjusted Epic dir slug from mis-displaying as ○ not-started.
   Compute each Epic's status from `/specify`'s **done-predicate** against that resolved folder:
   - **○ not started** — no `specification.md` and no `_session.md` there → selectable.
@@ -282,7 +278,7 @@ Epic-picker pattern** documented in `${CLAUDE_PLUGIN_ROOT}/references/epic-picke
 
 **Re-pointing the feature folder after the picker.** When Step A sets `focus_key` to an Epic (the
 single-Epic and ≥2-Epic-selection cases), the feature folder becomes that Epic's per-Epic subfolder
-`specifications/<PRD>-<vslug>/<EPIC>-<eslug>/` (Phase 0 step 3's `focus_key`-set case), superseding the
+`specifications/<PRD>-<vslug>/EPIC-<EPIC>-<eslug>/` (Phase 0 step 3's `focus_key`-set case), superseding the
 provisional PRD-level folder confirmed in Phase 1 — Phase 0 already marks that folder provisional until
 the folder read runs. Re-detect a prior run there (a `_session.md` → a resume is available for that
 Epic). The stand-alone-Epic and broad-PRD-spec cases leave the Phase 0 folder unchanged.
@@ -297,7 +293,7 @@ Epic folder already holds — its `epic.md` where one exists, and any earlier `s
 PRD is thin the grill has less to work from and must ask more; that is a real change in where the
 detail comes from, and it belongs to the operator's answers rather than to an import.
 
-Wait for the handoff. If `status: NOT_FOUND` or `status: EMPTY`, surface the `key dir not found`
+If the folder is missing or holds no PRD, surface the `key dir not found`
 rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`["Re-enter key", "Cancel"]`). On
 `OK`:
 
@@ -402,9 +398,11 @@ Resolve any ARD for this item by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-re
 
 ## Phase 3 — Derive repos + soft gate
 
-1. **Auto-derive candidate repos.** From the Phase 2 capability themes and any linked PR URLs in the
-   the folder read handoff (`pull_requests[].repo`), build a candidate repo-slug list. **Under
-   the BRD route there is no folder read handoff and therefore no PR URL; derive the list from
+1. **Auto-derive candidate repos.** From the Phase 2 capability themes and any repositories the
+   resolved folder's `implementation.md` records (`${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md`
+   §1 — its `repo` entries), build a candidate repo-slug list. There is no PR list to read: nothing here
+   reads a tracker or a pull-request API. **Under
+   the BRD route there is no implementation record either; derive the list from
    `<BRD-dir>/grounding/baselines.md` instead**, which already records repository → pinned commit for
    every repo `/dev-workflows:brd-ground` read, plus the Phase 2 themes. That is a stronger starting
    set than a theme guess, and the rest of this phase treats it identically — step 3 resolves each

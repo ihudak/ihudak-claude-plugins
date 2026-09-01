@@ -48,7 +48,26 @@ set is ever staged.
 <specs-root>/{specs|specifications|vis}/**/dev-workflows/**   # tier 1: feedback, cost, follow-ups, resume.md
 <specs-root>/dev-workflows-feedback/**                        # feedback-emission.md §2 tier 2 (keyless runs)
 <specs-root>/dev-workflows-cost/**                            # cost-emission.md §9 pending files (keyless runs)
+<specs-root>/{specs|specifications|vis}/**/implementation.md  # implementation-format.md §1, appended by /implement
+<specs-root>/{specs|specifications|vis}/**/release-notes.md   # the /release-notes draft
 ```
+
+**The fourth and fifth shapes name two files, never their folder, and the distinction is the whole
+safety property.** Both sit in the feature folder rather than under `dev-workflows/`, because both are
+read by *key* rather than by session — `implementation.md` is what `/document`, `/release-notes` and
+`epic-picker.md`'s ● marker read, and a record only one machine holds is a record the next run cannot
+use. But that same folder holds the phase deliverables (`prd.md`, `ard.md`, `specification.md`,
+`design.md`, `idea.md`, `_readiness.md`), which are `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md`'s
+to commit behind its own consent choice. Widening this shape to the folder would sweep them into a
+prompt-free bookkeeping commit and take the operator's choice away, so the two files are named
+literally and nothing else in that directory is ever staged here.
+
+**Both were outside this set until a review found them**, while `/implement` and `/release-notes` each
+told the operator the terminal step committed them. It did not: step 2 below classified each as OTHER,
+step 3 skipped it, and the file then sat permanently dirty — which fired §3.3's G1 dirty-tree guard on
+every later run of any of the twenty-three callers, suppressing the leftover flush and the branch
+disposition for the rest of the session. `/epics` is the deliberate contrast and stays as it is: it
+writes `epic.md` files this reference never stages, and says so in place.
 
 Sources: `feedback-emission.md` §2 tiers 1–2, `cost-emission.md` §8 tier 1 and
 §9 pending, `followup-emission.md` §4 (the shared per-PRD area),
@@ -63,7 +82,9 @@ fragile to express and to review. The procedure is:
    staged.
 2. Classify each reported path: **ARTIFACT** if it matches
    `^(specs|specifications|vis)/.+/dev-workflows/` or `^dev-workflows-feedback/`
-   or `^dev-workflows-cost/`; **OTHER** otherwise.
+   or `^dev-workflows-cost/` or
+   `^(specs|specifications|vis)/.+/(implementation|release-notes)\.md$`;
+   **OTHER** otherwise.
 3. Stage the literal ARTIFACT paths only:
    `git -C "$SPECS_PATH" add -A -- <path> [<path>…]`.
 
@@ -124,12 +145,15 @@ for either (§3.6). When no key is resolved at the call site the set is empty an
 the run is **keyless**. Both are correct behaviour — no command needs to defer
 its preflight in order to obtain a key.
 
-**Keyless is a property of the route, not of the command**, and `/create-prd` is
-where the two routes diverge:
+**`/create-prd` always has a key, on both of its routes** — and the paragraph that
+stood here said otherwise:
 
-- **On the `/idea` route** it is structurally keyless here: its key is minted by
-  the handoff in a later phase, and keyless is the right classification
-  for it — a new PRD must not stack on another PRD's branch.
+- **On the `/idea` route** the positional token is the key the operator chose, and
+  Phase 0 **step 1** validates it before the preflight at step 2b even runs. It was
+  once described as "structurally keyless, its key minted by the handoff in a later
+  phase"; nothing mints anything now, and with an empty key set B3 could never be
+  satisfied, so §3.5's branch reuse would fail and rule 4 would append `-2` — the
+  self-duplication that section documents and fixes.
 - **On the BRD route it is not keyless**, and classifying it so is a defect
   rather than a conservative default. The positional token is a **BRD key**,
   resolved and validated at the call site by that command's own Phase 0 step 1 —
@@ -398,7 +422,11 @@ Not done: the preflight did not commit, switch branches, or push. Those files
 Fix:      git -C "<SPECS_PATH>" status
           git -C "<SPECS_PATH>" add <path list> && git -C "<SPECS_PATH>" commit
 If ignored: nothing is lost — your files stay uncommitted, and this run's
-          artifacts are committed alongside them.
+          artifacts are committed alongside them. But the preflight ends here
+          on EVERY later run too, so the leftover flush and the branch
+          settle (stages 2-3) stay skipped until these paths are committed
+          or removed. An Epic draft left in place by /epics is the usual
+          cause, and it is a supported state — this is what it costs.
 ```
 
 **G2 — advisory:**

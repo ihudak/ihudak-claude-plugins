@@ -76,7 +76,7 @@ The three edges leaving `/brd-reconcile` into the PRD pipeline, as each command'
 | `/create-ard` | `<BRD-KEY>` | `--no-docs` | Unconditionally — the run gates no PRD, reads no PRD, and reads no ledger |
 | `/specify` | `<BRD-KEY>` | `--no-docs` | Unconditionally, on exactly the same terms as `/create-ard` |
 
-the BRD route is a **switch, not a path** on all three rows: the positional key already identifies the BRD folder, so the optional `<dir>` is only ever for a BRD folder outside the normal layout. On `/create-prd` it is additionally mutually exclusive with `--from-prd`, which is a second seed for the same PRD.
+**The BRD route is detected, never declared.** There is no flag and no `<dir>` operand on any of the three rows: each takes one positional address, and where that address resolves to a folder carrying `brd-link.md`, the run is on the BRD route and says so before doing anything. A flag that could disagree with the folder it names would be one more disagreement to have. `/create-prd` still takes `--from-prd`, which is not the same thing and is not excluded by the route — it names a *different* PRD to seed from, which no folder can decide on the operator's behalf.
 
 `<BRD-KEY>` is `^[A-Z][A-Z0-9_]*(-\d+)+$` — **two segments or three**, so the slice `EPIC-008-01` is as valid as `EPIC-008`, and all three commands resolve a BRD folder at either level. It is checked for shape only and never against a tracker: a BRD is a markdown file under `$SPECS_PATH`, not a ticket. Each of the three takes exactly **one** key; `/create-ard` and `/specify` stop on a second positional key, because a BRD has no Epics yet.
 

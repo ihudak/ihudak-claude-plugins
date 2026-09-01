@@ -155,7 +155,7 @@ write would re-ask a question already answered.
    specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run.
 5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`addressing.md` §3), which searches
-   `specifications/` and exactly one level below it — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent
+   `specifications/` and the levels below it that `resolve-address` searches (three, per `addressing.md` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent
    → stop, without asserting which command would have created it:
    `BRD_RECONCILE_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
 6. **Gate the sent package on main.** This command **consumes** `$SPECS_PATH` deliverables it did not
@@ -847,7 +847,7 @@ against three ids and some against six, and afterwards nobody can say which.
 
 1. **Declared dependents — a scan.** Any BRD whose `brd-link.md` declares `depends-on:` carrying
    this run's `<BRD-KEY>`, at **either** of either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it — so the search
-   scans `specifications/` and exactly one level below it, the same bound `resolve-address` uses and for
+   scans `specifications/` and the levels below it that `resolve-address` searches (three, per `addressing.md` §3), the same bound `resolve-address` uses and for
    the same reason (`addressing.md` §3, §6). This is the reverse of key resolution: a dependency
    is declared by the dependent, and nothing in this BRD's own folder lists who depends on it. Any
    key at any level may declare it (D17), so a slice depending on a source-owning BRD and a BRD
@@ -1149,7 +1149,7 @@ Where this run can go next:
 ```
 
 ```
-choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Author this BRD's PRD — /dev-workflows:create-prd <BRD-KEY> the BRD route (PM)", "Author this BRD's architecture — /dev-workflows:create-ard <BRD-KEY> the BRD route (PA, optional)", "Author this BRD's specification — /dev-workflows:specify <BRD-KEY> the BRD route (PE)"]
+choices: ["Stop here — the decisions are frozen and both sweeps are recorded", "Author this BRD's PRD — /dev-workflows:create-prd <BRD-KEY> (PM)", "Author this BRD's architecture — /dev-workflows:create-ard <BRD-KEY> (PA, optional)", "Author this BRD's specification — /dev-workflows:specify <BRD-KEY> (PE)"]
 ```
 
 **Reconciling another BRD is on the list and not in the array**, because it is the one lateral move

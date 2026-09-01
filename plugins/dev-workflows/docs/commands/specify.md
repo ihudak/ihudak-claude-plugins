@@ -44,7 +44,7 @@ flowchart TD
     p8 --> p9["Phase 9 — Session cost"]
 ```
 
-Five `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 4, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), the folder read (Phase 2, twice on a multi-Epic PRD — a cheap `prd-plus-epics` read for Step A's picker, then a `depth: full` read scoped to the resolved Epic), `code-scanner` (Phase 4, one instance per mounted candidate repo, up to 4 concurrent per batch — deliberately **light** relative to `/epics`' scan, grounding for feasibility rather than a full reuse audit), `spec-reviewer` (Phase 6, Opus-pinned), and `impl-maintenance` (Phase 8, session lessons-learned). The grill and the `specification.md` authoring itself run inline on `current_model` rather than through a delegated subagent.
+Four `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 4, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `code-scanner` (Phase 4, one instance per mounted candidate repo, up to 4 concurrent per batch — deliberately **light** relative to `/epics`' scan, grounding for feasibility rather than a full reuse audit), `spec-reviewer` (Phase 6, Opus-pinned), and `impl-maintenance` (Phase 8, session lessons-learned). The grill and the `specification.md` authoring itself run inline on `current_model` rather than through a delegated subagent.
 
 ## What it needs
 
@@ -85,7 +85,7 @@ Ahead of the review, Phase 5.5 runs a structural pre-lint (`../../references/pre
 Author a specification for a single Epic already selected:
 
 ```
-/dev-workflows:specify PRODUCT-1234 EPIC-98761
+/dev-workflows:specify EPIC-98761
 ```
 
 The run resolves the PRD and the named focus Epic (skipping the picker, since it was given explicitly), reads the full Epic subtree, resolves any applicable ARD, derives and lightly scans mounted repos, grills you relentlessly through Problem statement → Scope → User stories → Acceptance criteria → Test cases, runs the structural pre-lint, then `spec-reviewer`. On a passing verdict it offers to branch, commit, push, and open a pull request; if this Epic came from a multi-Epic PRD's picker, it then offers to loop straight into the next sibling Epic.
@@ -93,7 +93,7 @@ The run resolves the PRD and the named focus Epic (skipping the picker, since it
 Author the specification for a reconciled BRD slice instead:
 
 ```
-/dev-workflows:specify EPIC-008-01 the BRD route
+/dev-workflows:specify EPIC-008-01
 ```
 
 The run resolves `EPIC-008-01`'s folder one level under `specifications/`, reads `spec-seed.md`, the register, the verified findings and any derivation matrix, resolves the ARD under the parent's key with this slice as the Epic, scans the repositories `grounding/baselines.md` pinned, and grills **only the gaps** — every `[VD#n]` and `[CD#n]` the register holds as decided is an input the interview never reopens, because the customer signed it. A `NEW-CAPTURE` matrix row is work this spec must deliver and lands in `## Scope` and an EARS acceptance criterion, not in a footnote.

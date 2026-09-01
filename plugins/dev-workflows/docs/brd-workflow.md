@@ -138,7 +138,7 @@ each of those three also has a keyed form that this route never uses.
 | `/brd-interview` | `<BRD-KEY>` | `--round N` | Rounds are numbered, permanent and resumable. No flag continues at the first question with no terminal disposition; `--round N` resumes an open round, or re-opens a closed one with its cause recorded |
 | `/brd-package` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…` | Repeatable, and any key at either level is admissible; a mistyped one is warned and dropped, never fatal. Each prerequisite's own package is copied into the bundle, marked *not for re-review* |
 | `/brd-reconcile` | `<BRD-KEY> @<review-file>` | — | The review is taken at whatever path it arrived on, inside `$SPECS_PATH` or not, and is never searched for: the operator names the file, because one this command picked is one nobody submitted |
-| `/create-prd` | `<BRD-KEY>` | `--lean`/`--hybrid`/`--full`, `--no-docs`, `@<idea.md>` | Offered only where no ledger row is `unallocated` and one is `covered-here` (the BRD's own rows; `claims:` narrows them only on a slice). Profile defaults to `--full`; `--from-prd` is refused |
+| `/create-prd` | `<BRD-KEY>` | `--lean`/`--hybrid`/`--full`, `--no-docs`, `@<idea.md>` | Offered only where no ledger row is `unallocated` and one is `covered-here` (the BRD's own rows; `claims:` narrows them on a slice). Profile defaults to `--full`; `--from-prd` is accepted |
 | `/create-ard` | `<BRD-KEY>` | `--no-docs` | Offered on any advancing run, with no further condition: it gates no PRD, reads no PRD, reads no ledger. One key only — a second stops the run (`CREATE_ARD_BRD_NO_EPIC`) |
 | `/specify` | `<BRD-KEY>` | `--no-docs` | Offered on the same terms, with no further condition of its own. One key only — a second stops the run (`SPECIFY_BRD_NO_EPIC`) |
 
@@ -162,9 +162,11 @@ between them. The three the BRD route rows take the same shape and resolve at ei
 which is what lets a PRD, an ARD or a specification be authored from a slice rather than only from
 the BRD above it.
 
-the BRD route is a **switch, not a path** on all three of those rows: the positional key already
-identifies the BRD folder, so the optional `<dir>` is only ever for a BRD folder outside the normal
-layout, and a token following the flag is consumed as that path only when it is not itself a flag.
+**The BRD route is detected, never declared**, on all three of those rows. There is no flag and no
+`<dir>` operand: each command takes one positional address, and where that address resolves to a
+folder carrying `brd-link.md`, the run is on the BRD route and prints which route it entered before
+doing anything else. A flag that could disagree with the folder it names would be one more
+disagreement to have.
 
 ## What lands where
 

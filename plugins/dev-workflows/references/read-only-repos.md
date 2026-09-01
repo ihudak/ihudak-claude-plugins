@@ -2,7 +2,7 @@
 
 The AI container mounts repositories from the host, and some arrive **read-only** — verified 2026-08-11, 2 of 12 clones under `/workspace` are (`docs`, `observability-requirements`). Every agent that prepares a clone before reading it must work on those mounts rather than fail on them.
 
-This file is the single source of truth for that behavior. Consumers: `code-scanner`, `diff-summarizer`, `docs-grounder` — the first two also emit the §6 `prep` block; `docs-grounder` consumes §1–§4 only.
+This file is the single source of truth for that behavior. Consumers: `code-scanner`, `diff-summarizer`, `docs-grounder`, `code-grounder` and `grounding-verifier` — the first two also emit the §6 `prep` block; the other three return a digest or a finding instead, and `docs-grounder` consumes §1–§4 only.
 
 **Nothing here changes behavior on a writable mount.** `git switch` and `git pull --ff-only` remain sanctioned prep on a writable clone — they change which committed revision is present, not the content of it. Everything below is reached only when the mount is read-only.
 
@@ -29,9 +29,16 @@ Read-only mode is not a failure. It NEVER returns `REFRESH_BLOCKED` on its own; 
 
 In order, stopping at the first that succeeds:
 
-1. `git -C "<repo_path>" symbolic-ref --short refs/remotes/origin/HEAD`
-2. `git -C "<repo_path>" rev-parse --verify origin/main`
-3. `git -C "<repo_path>" rev-parse --verify origin/master`
+1. `git -C "<repo_path>" symbolic-ref --quiet --short refs/remotes/origin/HEAD` — `--quiet` is
+   required, or a clone whose `origin/HEAD` is unset leaks `fatal: ref refs/remotes/origin/HEAD is not
+   a symbolic ref` into the run's output.
+2. `git -C "<repo_path>" rev-parse --verify --quiet origin/main >/dev/null`
+3. `git -C "<repo_path>" rev-parse --verify --quiet origin/master >/dev/null`
+
+**Rungs 2–3 are existence probes, not name sources.** `rev-parse` prints a 40-character SHA, so a
+caller that takes its stdout records a SHA where §6 defines `scanned_ref` as a ref *name* (`origin/main`).
+Redirect the output and use the literal name you probed — the same rule
+`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.8 states for its own ladder.
 
 `git remote set-head origin --auto` is **not** part of this chain — it writes. An exhausted chain is a genuine `REFRESH_BLOCKED` with reason `cannot resolve default branch on a read-only mount`.
 

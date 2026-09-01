@@ -179,8 +179,11 @@ attack.
   is keyed on **every finding carrying a non-`undisposed` value**, and on nothing else: the reviewer
   agent returns no severity and no PASS/BLOCK verdict by design, so the disposition is the only gate
   there is. The four values are `fixed`, `accepted-risk`, `escalated-to-customer` and
-  `rejected-with-reason`; the picker carries no free-text entry, because a fifth disposition is one
-  nothing downstream can read.
+  `rejected-with-reason`, and the array carries those four and nothing else. The harness always
+  supplies a free-text option, so the picker cannot decline one — what protects the closed vocabulary
+  is what the run *does* with the answer: a free-text reply is normalised into one of the four, or the
+  finding is re-asked. It is never written through, because a fifth disposition is one nothing
+  downstream can read ([`escalation-rules.md`](../reference/references.md) §0).
 - **Phase 4 — a `fixed` correction re-opens the review, exactly once.** Correcting the package
   changes what the review was written against, so the reviewer runs again over the corrected package
   with the first pass in `prior_reviews`. Once, not until clean: an unbounded loop trades the
@@ -189,8 +192,9 @@ attack.
   promoted, never chosen by the reviewer, and never quietly Full because the repositories were
   *probably* at the right commit. A tier is not a quality grade: a documents-only review that states
   its tier can be weighed correctly, and a full-tier review that states nothing cannot be weighed at
-  all. The picker carries no free-text entry either, for the same reason the `[SR#n]` one does not:
-  a fourth tier is one neither the prompt nor a returned review's section 1 could state.
+  all. Its free-text answer is normalised the same way the `[SR#n]` picker's is, for the same reason:
+  a fourth tier is one neither the prompt nor a returned review's section 1 could state, so a reply
+  landing on none of the three re-asks rather than inventing one.
 - **Phase 6 — the render boundary.** The schema is rendered from section 2 onward, and the run stops
   with `BRD_PACKAGE_SCHEMA_BOUNDARY` if that file no longer declares where its boundary falls. The
   rendered headings are renumbered so the customer's copy runs from 1 rather than visibly beginning

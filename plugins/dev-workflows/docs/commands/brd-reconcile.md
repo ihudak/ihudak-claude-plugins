@@ -359,9 +359,9 @@ Phase 14 then hands the route over. `EPIC-008`'s reconciled ledger leaves no row
 several `covered-here`, so all three exits are offered against that one key:
 
 ```
-/dev-workflows:create-prd EPIC-008 the BRD route
-/dev-workflows:create-ard EPIC-008 the BRD route
-/dev-workflows:specify EPIC-008 the BRD route
+/dev-workflows:create-prd EPIC-008
+/dev-workflows:create-ard EPIC-008
+/dev-workflows:specify EPIC-008
 ```
 
 Had the run left a row `unallocated`, or left none `covered-here`, the first line would be dropped

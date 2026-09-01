@@ -33,6 +33,23 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
     `prd.md` for a key, or read the given path directly. The seed is **grounding, not content**
     (Phase 3 adapts it; it is never copied wholesale).
 
+2b. **`$SPECS_PATH`, then the specs-repo preflight — both before step 3's gate.** If `$SPECS_PATH` is
+    unset, stop naming it (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`). Then cite
+    `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `specs-preflight` entry point
+    (§3) inline: flush any leftover session artifacts from an earlier run, retry an artifact commit
+    that failed to push, and settle the branch. Prompt-free and silent when the specs repo is clean and
+    on its default branch. If a guard fires, emit its §5 notice; if it returns `specs_git: blocked`
+    (§3.3 G0), carry that flag for the whole run — the terminal `commit-artifacts` step skips on it.
+
+    **The ordering is the point, not the tidiness.** Step 3's `require-on-main` performs no fetch of
+    its own (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3), so without the preflight's
+    best-effort fetch ahead of it a merged `idea.md` reads as "on a branch and never handed off" and
+    the run hard-stops on work that is already on the default branch. This command was for a time the
+    only one of the twenty-three `commit-artifacts` callers running no preflight — deleted as
+    collateral with an adjacent paragraph — which also left `specs_git: blocked` unset, so the G0
+    guard in both `commit-artifacts` and `handoff-to-main` was inert here and a detached-HEAD specs
+    repo would take this command's commits to an unreachable place and report success.
+
 3. **Resolve `idea.md` (ladder — stop at first hit). Skipped entirely on the BRD route**, where
    `prd-seed.md` is the seed and there is no `idea.md` to find: rung 1 would return `absent` on a
    BRD folder that never held one, and rungs 3 and 4 would then offer an idea from some other
@@ -46,7 +63,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    3. **same-session** — if `/idea` ran earlier in this session, use its recorded output path (confirm with the user) — out-of-contract, as rung 2;
    4. *(retired — the discover rung searched a personal store for a stray `idea.md`. `/idea` writes into the resolved folder now, so rung 1 finds it.)* — out-of-contract, as rung 2;
    5. prompt for a path, or — last resort — proceed with **no idea** and grill the PRD from scratch. **`/idea` is not a prerequisite for `/create-prd`** — an `absent` in-contract idea must reach this rung, never a stop.
-4. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
+4. **`$SPECS_PATH` (required).** Already established in step 2b, which had to run before step 3's gate; nothing re-checks it here.
 5. **Feature folder. On the BRD route this is the resolved BRD folder**, and it is never created
    here: resolve it with `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3),
    which already searches both levels, or read an explicit BRD-directory path when one was given. The
@@ -105,7 +122,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
 
    **Refusal 1 — a row of the gate set is still `unallocated`.** Stop gracefully:
    ```
-   CREATE_PRD_BRD_UNALLOCATED: <BRD-KEY>'s coverage-ledger.md still writes `unallocated` on <n> of the <total> requirement rows this BRD is answerable for <on a slice: — the rows its brd-link.md claims> — <[BR#n] list>. coverage-ledger-format.md §5 makes that a hard refusal: the allocation gate was never satisfied, and an unallocated row is neither an implicit `covered-here` nor an implicit `deferred-to` in either direction. Run '/dev-workflows:brd-split <BRD-KEY>' to walk each one to a terminal disposition, then re-run '/dev-workflows:create-prd <BRD-KEY> the BRD route'.
+   CREATE_PRD_BRD_UNALLOCATED: <BRD-KEY>'s coverage-ledger.md still writes `unallocated` on <n> of the <total> requirement rows this BRD is answerable for <on a slice: — the rows its brd-link.md claims> — <[BR#n] list>. coverage-ledger-format.md §5 makes that a hard refusal: the allocation gate was never satisfied, and an unallocated row is neither an implicit `covered-here` nor an implicit `deferred-to` in either direction. Run '/dev-workflows:brd-split <BRD-KEY>' to walk each one to a terminal disposition, then re-run '/dev-workflows:create-prd <BRD-KEY>'.
    ```
    `/dev-workflows:brd-split` is safe to name here **because there is something for it to do**: it is
    the command whose walk exists to move exactly these rows off `unallocated`, and it runs on a
@@ -143,7 +160,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
 
    **What this stop may offer, and what it may not.** Two of the four cases have a next command that
    exists in the state being reported, and they are the first and the last. The **first** offers
-   `/dev-workflows:create-prd <CHILD-KEY> the BRD route`, once per named child **that the one-hop
+   `/dev-workflows:create-prd <CHILD-KEY>`, once per named child **that the one-hop
    resolution showed is actually building its row** — the children resolving to `deferred`,
    `rejected`, `unallocated` or `unresolved` are named as facts and offered as nothing. That child
    run applies this same gate to its **own** ledger, which is the point: the offer is that a PRD is
@@ -334,7 +351,17 @@ Carry both digests into Phase 3 with **grill-rank** consumption. When both are O
 
 Author `prd.md` live against `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md` for the selected profile, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md`. Walk the **spine** in dependency order:
 
-1. Frontmatter — `relevant_for_release_notes` (defaults to `yes`; ask only to confirm a `no`); `sources` (propagated), `derived_from`, `seeded_from_prd` (only when `--from-prd` was used), and `key` — **written here only on the `/idea` route**, where the positional token is a key the user minted on the tracker before the run, so it is a tracker identity the moment it is written. **On the BRD route `key` is omitted here**, and the round-trip's step 1 is what writes it, because that step is where a tracker identity is minted for the first time; writing `<BRD-KEY>` into it now would put a `$SPECS_PATH` folder name in the one field every downstream consumer reads as a tracker key, and nothing later could tell a minted key from an un-minted address. Its absence is therefore load-bearing and is read as "no tracker identity yet" by nothing in the plugin — no offer is withheld for it any more. **On the BRD route, additionally `brd_key`, `brd_parent` and `depends_on`**, per `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`'s frontmatter block, each read from what Phase 0 step 7 already holds and none of them asked of the user: `brd_key` is the resolved BRD key, `brd_parent` is `brd-link.md`'s `parent:` (**omitted** on a BRD that owns its source document, where there is none), and `depends_on` is its `depends-on:` list (**omitted** when empty). Writing them here records the BRD identity and the customer-committed prerequisites on the PRD itself. **No command consumes the three fields yet** — neither `/dev-workflows:epics` nor `/dev-workflows:ready` reads any of them, and wiring a consumer is separate work with its own review. They are written anyway because provenance captured at authoring time is the precondition for any future consumer: re-deriving it later would mean re-reading a BRD tree that may have moved on. `derived_from` is **omitted** on this route — there is no `idea.md` this PRD was built from, and pointing it at a BRD artifact would misname the field; `brd_key` carries that provenance instead. `sources` still carries real provenance: the BRD's own source document, as `provenance: markdown` with `ref:` resolved **by level, and never from `brd-link.md`** — no writer of that file emits a `source:` field at either level, so a ref read from there would resolve to nothing. On a BRD that owns its source document, `ref:` is the single file under `<BRD-dir>/brd/source/`, which `/brd-intake` copied in verbatim and which nothing afterwards edits or moves. On a **slice**, `ref:` is the path the `source:` line at the top of `<BRD-dir>/brd/brd-inventory.md` names — the `parent:`/`source:` header `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1 fixes and `/brd-split` writes — which resolves against the **parent's** folder, because a slice holds no `brd/source/` of its own and that header exists precisely so an anchor can be followed out of it. Name the file the ref was read from in the final report, so a reader can tell the two resolutions apart. Do NOT ask for `release_versions`, `change_type`, or `release_notes_category` — they are inferred and confirmed by `/release-notes`, and the importer returns on the round-trip (`${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`); `/release-notes` reads them from the import. Dates and deprecation details also stay out of frontmatter — they belong in the release-notes Summary.
+1. Frontmatter — `relevant_for_release_notes` (defaults to `yes`; ask only to confirm a `no`); `sources` (propagated), `derived_from`, `seeded_from_prd` (only when `--from-prd` was used), and `key` — **written on every route**, set to the address this run resolved. On the `/idea` route that is the positional key the operator chose; on the BRD route it is the `<BRD-KEY>`, which is also the name of the folder this PRD is written into.
+
+   **Do NOT ask for `release_versions`, `change_type` or `release_notes_category` here.** They are
+   authored fields now rather than tracker dropdowns returned by an import
+   (`${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`), but the place each is *known* is
+   `/release-notes` — it infers and confirms `change_type` and `release_notes_category` in its own
+   grill, and takes `release_versions` from its `--version` flag or that same grill. Write whichever
+   the operator volunteers; never invent one, and never spend a question here on an answer that
+   command asks for anyway. An unanswered field is omitted, not filled.
+
+   **`key` was for a time omitted on the BRD route, deferred to a round-trip that no longer exists** — the tracker step that once minted a separate identity. Nothing writes it now, so the field stayed permanently unset, and a folder whose only `kind:`+`key:` carrier is `brd-link.md` (`kind: brd`) resolves as a BRD rather than a PRD (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4), while `/document` and `/release-notes` build their commit scan from a `key` that is empty and silently match nothing. There is no second identity to keep straight any more: one namespace, one grammar, and the folder's key is the key.
 2. **Problem**
 3. **Goal** (crisp 2–3 sentences)
 4. **Target audience** (personas)
@@ -538,7 +565,7 @@ then a span suggestion (PM continue → `/compact`; PA/PE handoff → `/clear`).
 label yet (no PRD-Key). Guidance only, never auto-run.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`) with a compact handoff: command `/create-prd`; what was authored (PRD + profile); key events (source-ladder friction, unresolved clarifications, BLOCK reviews — or 'none'); workarounds; the `prd-reviewer` verdict; test result N/A; project root = the feature folder.
-2. **Persist plugin feedback (automatic).** Cite `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6) with the Lessons Learned report, `command: /create-prd`, the run's `key` — or, where the BRD route left it unwritten until the round-trip, the run's `brd_key`, which is the key that matches this PRD's own `$SPECS_PATH` folder and so keeps the write on that reference's primary tier instead of dropping it to the unfiled one — `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no plugin-facing signal — nothing persisted").
+2. **Persist plugin feedback (automatic).** Cite `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6) with the Lessons Learned report, `command: /create-prd`, the run's `key` — which on the BRD route is the `<BRD-KEY>`, matching this PRD's own `$SPECS_PATH` folder, so the write stays on that reference's primary tier instead of dropping to the unfiled one — `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no plugin-facing signal — nothing persisted").
 3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and call its `emit-cost` entry point with `command: /create-prd`, `phase: prd-creation`, `role: pm`, the run's `key` (or `brd_key`, on the BRD route, for the reason step 2 gives), `source`, and `plugin_version`. Surface the persisted path (or the report-only notice).
 4. **Write the resume pointer.** Cite `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and write/overwrite `<PRD-dir>/dev-workflows/resume.md` now — after the cost entry above, so the pointer reflects the completed run, and before the commit step below, so it is included in it. Redact per §1. Silent; the printed `### Context hygiene` guidance already appeared in the report.
 5. **Commit session artifacts (terminal).** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts (/create-prd)` — or `NOISSUE …` when the run resolved no key at all — with no `Co-Authored-By` trailer. **On the BRD route that `<KEY>` is the BRD key, not `NOISSUE`**: this is a specs-repo commit-message prefix, not a tracker lookup, and the BRD key is the key this run resolved and the name of the folder the staged artifacts sit in. A key the handoff has not yet minted is missing from `key`, which is a different field for a different purpose, and pushes to the branch this run's handoff phase created (§4.1). It NEVER touches anything outside `$SPECS_PATH`; NEVER force-pushes; NEVER fails the run; and skips entirely when the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Hold its §6 outcome line for the Final report.

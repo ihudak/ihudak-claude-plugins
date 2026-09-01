@@ -15,10 +15,9 @@ Ivan Gudak's open-source Claude Code plugin marketplace.
 
 - **Claude Code** — the plugins install into Claude Code (some `obsidian-llm-wiki` commands also support GitHub Copilot).
 - **`superpowers`** *(recommended)* — the Claude Code plugin `dev-workflows` leans on for `/prompt-brainstorm` and its brainstorm → plan → subagent-driven-development flow. No hard dependency; commands degrade gracefully without it.
-- **[`jira-workitem-import`](https://github.com/ivan-gudak/jira-workitem-import)** *(required for Jira-driven commands)* — imports Jira tickets into `$VAULT_PATH/jira-products/<KEY>/` in the exact structure the plugins expect. Every Jira-driven command (`/idea` from an RFE, `/create-prd`, `/update-prd`, `/epics`, `/specify`, `/design`, `/implement`, `/document`, `/release-notes`, `/ready`) consumes this tree.
 - **`gh` + `gh auth login`** *(recommended)* — enables reading GitHub PR diffs (`/document`, `/release-notes`); without it those commands fall back to local-git strategies.
 - **`vale`** *(optional)* — a prose linter for docs; `dev-workflows` falls back to a repo lint script, then the `prose-style` plugin, when `vale` is absent.
-- **Recommended environment: [`ihudak/ai-containers`](https://github.com/ihudak/ai-containers)** — mounts every repository and your Obsidian vault under one `/workspace` umbrella (repos at `/workspace/<repo>`, vault at `/workspace/vault`), so the default `$REPOS_PATH` (`/workspace`) and an exported `VAULT_PATH` just work; it also installs `gh` and mounts the host `gh` auth. Outside a container the commands still work — set `$REPOS_PATH` yourself and manage `gh` login.
+- **Recommended environment: [`ihudak/ai-containers`](https://github.com/ihudak/ai-containers)** — mounts every repository and your specs repo under one `/workspace` umbrella (repos at `/workspace/<repo>`, the specs repo at `/workspace/specs`), so the default `$REPOS_PATH` (`/workspace`) and an exported `SPECS_PATH` just work; it also installs `gh` and mounts the host `gh` auth. Outside a container the commands still work — set `$REPOS_PATH` yourself and manage `gh` login.
 
 ## Installation
 
@@ -42,14 +41,12 @@ claude plugin install acli@ihudak-plugins
 `dev-workflows` resolves its inputs and outputs through three core environment variables — plus an optional, read-only `DOCS_PATH` for documentation grounding. Export them in your shell profile (or rely on the AI-Container defaults):
 
 ```bash
-export VAULT_PATH="$HOME/obsidian"     # personal store: Jira imports + idea/project files
 export SPECS_PATH="/workspace/specs"   # shared store: specifications, designs, ARDs
 export REPOS_PATH="/workspace"         # where your code clones live (default: /workspace)
 export DOCS_PATH="/workspace/docs"     # optional, read-only: product docs for grounding (default: /workspace/docs)
 export GIT_USER_INITIALS="iv-gu"       # optional: branch prefix for every branch-creating command
 ```
 
-- **`VAULT_PATH`** — your personal store. Holds `jira-products/<KEY>/` (produced by `jira-workitem-import`) and `Projects/<area>/<slug>/` (idea and project files).
 - **`SPECS_PATH`** — the shared, team-visible store for a ticket's `specification.md` / `design.md` / ARD under `specifications/<KEY>-<slug>/…`. Required by the specs-authoring commands (`/create-prd`, `/create-ard`, `/specify`, `/design`, `/ready`); advisory for `/implement`; additive for `/document`.
 - **`REPOS_PATH`** — where code clones live; a single directory or a colon-separated list. Defaults to `/workspace`. Repos are matched by their `git remote get-url origin` slug, not by directory name.
 - **`DOCS_PATH`** *(optional)* — a **read-only** clone of the product documentation (default `/workspace/docs`). When it is an existing directory containing markdown, `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/epics`, and `/release-notes` automatically ground on the existing shipped docs (via the read-only `docs-grounder` agent), and `/document` prefers it as a docs-repo discovery hint. Never written to; every miss is a silent, non-blocking skip. Disable per-run with `--no-docs`, or override the root with `--docs <path>`.
@@ -76,10 +73,6 @@ claude plugin marketplace update ihudak-plugins
 The environment variables expect these layouts:
 
 ```
-$VAULT_PATH/                      # personal store (e.g. an Obsidian vault)
-  jira-products/<KEY>/            # Jira hierarchy from jira-workitem-import (input; regenerated each import)
-  Projects/<area>/<slug>/         # idea.md and project working files
-
 $SPECS_PATH/                      # shared, team-visible store
   specifications/<KEY>-<slug>/    # specification.md, design.md, ARD (+ per-Epic subfolders)
 

@@ -38,10 +38,10 @@ Called once per branch the run finished work on, at the point where **every** in
 
 ### 2.1 Gate
 
-Resolve the base branch (§2.7) **first** — the gate's last check needs its value. Then require all of:
+Resolve the base branch (§2.8) **first** — the gate's last check needs its value. Then require all of:
 
 1. `repo` is set and is an existing directory, and `git -C "<repo>" rev-parse --git-dir` succeeds.
-2. `git -C "<repo>" symbolic-ref --quiet --short HEAD` succeeds (HEAD is on a branch, not detached). **`--short` is required**: without it the command prints `refs/heads/<name>`, which can never compare equal to the short name §2.7 resolves, so checks 3 and 4 would both silently pass on every run.
+2. `git -C "<repo>" symbolic-ref --quiet --short HEAD` succeeds (HEAD is on a branch, not detached). **`--short` is required**: without it the command prints `refs/heads/<name>`, which can never compare equal to the short name §2.8 resolves, so checks 3 and 4 would both silently pass on every run.
 3. That name is **not** the resolved base branch.
 4. That name **equals the caller's `branch` input**. `git commit` writes to HEAD while `git push -u origin <branch>` pushes the ref *named* `<branch>`; if the two differ both succeed and the run reports a push that never happened. Mismatch is a gate failure naming both values, never a silent correction.
 
@@ -49,7 +49,7 @@ Resolve the base branch (§2.7) **first** — the gate's last check needs its va
 
 A failed gate is reported through §3.1's `NOT committed` line and the run continues. Detached HEAD is worth naming rather than merely reporting: it is the same blocking state `specs-repo-git.md` §3.3 G0 names, for the same reason — a commit made there is reachable from no ref. Report it; never create a branch to escape it, because the branch this run was supposed to be on is not the one this step gets to choose.
 
-**No `origin` remote is not a gate failure.** §2.7's ladder is unresolvable without one, so checks 3 and 4 fall back to comparing HEAD against the caller's `branch` input alone, the commit proceeds, and §2.5 reports that there was nothing to push. A local-only clone is a legitimate setup and must never cost the user their commit.
+**No `origin` remote is not a gate failure.** §2.8's ladder is unresolvable without one, so checks 3 and 4 fall back to comparing HEAD against the caller's `branch` input alone, the commit proceeds, and §2.5 reports that there was nothing to push. A local-only clone is a legitimate setup and must never cost the user their commit.
 
 ### 2.2 What gets staged
 
@@ -67,7 +67,7 @@ Three carve-outs:
 
 3. **Temp files are already out of reach.** Every caller writes its diffs, claims files, and scan summaries to `mktemp -t …` outside any repo tree specifically so `add -A` cannot pick them up. This step does not re-verify that; a caller that writes a temp file inside the tree breaks this step's staging, which is why the rule sits in the callers.
 
-**Nothing staged.** Do **not** emit a line here — §3.1 allows exactly one per call, and this path continues. If the branch carries commits this run made earlier (the §2.11 split form), proceed to §2.4 and report the run's outcome from the pushing rows. If it carries none, the call ends and §3.1's `no changes to commit` row is the line. An `/upgrade` component already at its target version, or a re-run that changed nothing, both land here legitimately.
+**Nothing staged.** Do **not** emit a line here — §3.1 allows exactly one per call, and this path continues. If the branch carries commits this run made earlier (the §2.12 split form), proceed to §2.4 and report the run's outcome from the pushing rows. If it carries none, the call ends and §3.1's `no changes to commit` row is the line. An `/upgrade` component already at its target version, or a re-run that changed nothing, both land here legitimately.
 
 ### 2.3 Commit
 
@@ -87,7 +87,7 @@ Everything the convention leaves open comes from the repository, never from habi
 
 Never `--amend` (§1 rule 3): an amend rewrites a commit that may already be pushed, and this step is reachable more than once per run.
 
-**A rejected commit is a reported failure, never a silent one.** A `pre-commit` / `commit-msg` hook can reject the commit; the changes then stay staged. Do not retry, do not bypass with `--no-verify`, and do not proceed to the next unit as though the commit landed — a later unit's `add -A` would fold this unit's diff into that unit's commit under the wrong message. Record the failure and its hook output; in the §2.11 split form the caller reports it in its own per-unit results table, and the terminal call's §3.1 line names the count of units that failed to commit.
+**A rejected commit is a reported failure, never a silent one.** A `pre-commit` / `commit-msg` hook can reject the commit; the changes then stay staged. Do not retry, do not bypass with `--no-verify`, and do not proceed to the next unit as though the commit landed — a later unit's `add -A` would fold this unit's diff into that unit's commit under the wrong message. Record the failure and its hook output; in the §2.12 split form the caller reports it in its own per-unit results table, and the terminal call's §3.1 line names the count of units that failed to commit.
 
 ### 2.4 The consent choice
 
@@ -115,7 +115,7 @@ There is deliberately no `Cancel`: the commit has already happened, so there is 
 
     gh pr list -R "<owner_repo>" --head <branch> --state open --json number,url
 
-One already open ⇒ the push in §2.5 has already updated it. Report it as the run's pull request (§3.1 rows 1–2) and do **not** call `gh pr create`, which would fail on the duplicate and send the run down §3.2 telling the user to open a pull request that exists. This is `phase-handoff.md` §3.5's primitive, applied here.
+One already open ⇒ the push in §2.5 has already updated it. Report it through §3.1's *pushed to existing PR* row — not the rows for a pull request this run opened, which would assert something that did not happen (§2.10) and would leave that row reachable by nothing — and do **not** call `gh pr create`, which would fail on the duplicate and send the run down §3.2 telling the user to open a pull request that exists. This is `phase-handoff.md` §3.5's primitive, applied here.
 
 A `gh pr create` that exits 0 but prints nothing parseable as a number or URL is **not** treated as a failure — the pull request very likely exists, and falling back to §3.2 would tell the user to open a second one. Report it with the dedicated §3.1 row instead.
 
@@ -141,7 +141,7 @@ The `sed` expressions strip, in order: a scheme (`ssh://`, `https://`), a `user@
 
 Title: the commit subject of §2.3.
 
-Body: **written to a file** — `<body-path>`, a `mktemp -t` path outside any repo tree — never passed inline, which would break on newlines and quoting. It contains what the run produced (`body_facts`), the files changed, the reviewer verdict where the caller has one, the test result, and, on a `clean_finish: false` run, §2.8's banner as its **first line**. The same file is what §3.2 names when `gh` is unavailable, so the user pastes the identical body — banner included — into the web UI.
+Body: **written to a file** — `<body-path>`, a `mktemp -t` path outside any repo tree — never passed inline, which would break on newlines and quoting. It contains what the run produced (`body_facts`), the files changed, the reviewer verdict where the caller has one, the test result, and, on a `clean_finish: false` run, §2.9's banner as its **first line**. The same file is what §3.2 names when `gh` is unavailable, so the user pastes the identical body — banner included — into the web UI.
 
 ### 2.8 Resolving the base branch
 
@@ -150,7 +150,7 @@ In order, stopping at the first that succeeds — never assume `main`:
 1. `git -C "<repo>" symbolic-ref --quiet --short refs/remotes/origin/HEAD` → strip the leading `origin/`; what remains is the name. `--quiet` is required, or a clone whose `origin/HEAD` is unset leaks `fatal: ref refs/remotes/origin/HEAD is not a symbolic ref` into the run's output.
 2. For `main`, then `master`, then `develop`: `git -C "<repo>" rev-parse --verify --quiet origin/<name> >/dev/null` — and on success take **`<name>`**, never the command's output.
 
-**Rungs 2–4 are existence probes, not name sources.** `rev-parse` prints a 40-character SHA, so a caller that uses its stdout gets a SHA: `git switch <sha>` detaches HEAD — the state §2.1 treats as blocking — and `gh pr create --base <sha>` is rejected outright. Redirect the output and use the literal name you probed.
+**The `main`/`master`/`develop` probes are existence tests, not name sources.** `rev-parse` prints a 40-character SHA, so a caller that uses its stdout gets a SHA: `git switch <sha>` detaches HEAD — the state §2.1 treats as blocking — and `gh pr create --base <sha>` is rejected outright. Redirect the output and use the literal name you probed.
 
 An exhausted ladder (or no `origin`) means no pull request can be opened: report it through §3.1 and skip §2.6.
 

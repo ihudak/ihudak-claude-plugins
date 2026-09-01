@@ -13,14 +13,18 @@ Summarise a single code repository's PR diff(s) from a documentation-consumer's 
 ```yaml
 repo_path:   <absolute path to a local clone, e.g. /workspace/<repo-name>>
 repo_url_slug: <repo slug from the PR URL, e.g. "cluster"; optional>
-pr_refs:
+refs:                              # the ordinary shape: what implementation.md records
+  - branch_from: <the feature branch, or the commit sha, this run wrote>
+    branch_to:   <the base it was branched from>
+    title:       <one line naming the work; optional>
+pr_refs:                           # optional enrichment, only where a PR URL is genuinely known
   - url:         <full PR URL>
     host:        github_cloud | bitbucket_cloud | bitbucket_server | other
     repo:        <repo name>
     owner:       <github_cloud: <OWNER>; bitbucket_cloud: <WORKSPACE>; null otherwise>
     pr_id:       <id>
-    branch_from: <feature branch from the folder read>
-    branch_to:   <target branch from the folder read>
+    branch_from: <feature branch>
+    branch_to:   <target branch>
     title:       <link text>
     status:      MERGED | OPEN | DECLINED | UNKNOWN
 context: |
@@ -34,7 +38,9 @@ refresh:
                 # pulling risks moving HEAD away from the merge commit we want to reach.
 ```
 
-Refuse to run without `repo_path` and at least one element in `pr_refs`.
+Refuse to run without `repo_path` and at least one element in **`refs` or `pr_refs`**.
+
+**`refs` is the shape the callers actually have**, and the refusal used to name `pr_refs` alone. `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §1 records `repo` / `branch` / `base` / `commit` / `pushed` — no URL, no host, no PR id — because nothing in this plugin reads a tracker or a pull-request API any more. A caller holding only that record could satisfy neither the required field nor the host routing below, so every host-specific strategy is skipped for a `refs` element and the diff is taken directly: `git -C <repo_path> diff <branch_to>...<branch_from>`, with `branch_from` accepted as a commit sha when the branch is gone (`implementation-format.md` §1 records both for exactly that reason). `pr_refs` still routes by host where a URL is known.
 
 When `repo_url_slug` is provided, before summarising run
 `git -C <repo_path> remote get-url origin`, strip a trailing `.git`, and compare

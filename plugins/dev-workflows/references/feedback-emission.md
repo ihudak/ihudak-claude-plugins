@@ -1,7 +1,7 @@
 # Session Feedback Emission — Shared Reference
 
 Single source of truth for the dev-workflows session-feedback emitter. Every
-capture surface — the automatic maintenance phase of all thirteen workflow
+capture surface — the automatic maintenance phase of all nineteen workflow
 commands, and the `/feedback` and `/prompt*` commands — cites this file and
 executes its steps inline. The orchestrator owns every prompt; this reference
 owns the entry format, the persistence ladder, dedup/attribution, the

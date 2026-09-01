@@ -78,9 +78,11 @@ EXCLUDED_SUBTREES='^\./(docs|\.remember|\.superpowers|scripts/fixtures)/'
 
 # CHANGELOG.md is history and keeps the dash form (spec Global Constraints).
 # A line carrying the marker `id-grammar-ok:` is documenting the legacy form on
-# purpose. Sanctioned users -- 10 marked lines across 6 files, in three kinds:
-#   * reader tolerance (6): jira-reader's five parse rules, and ard-resolution's
-#     parse of `## Architecture decisions` -- these ACCEPT the legacy form;
+# purpose. Sanctioned users -- 5 marked lines across 5 files, in three kinds.
+# It was 10 across 6 until the tracker-reading agent holding five reader-tolerance
+# lines was deleted; re-derive with grep rather than adjusting the number:
+#   * reader tolerance (1): ard-resolution's
+#     parse of `## Architecture decisions` -- this ACCEPTS the legacy form;
 #   * authoring BLOCKER rules (3): prd-reviewer, ard-reviewer, epic-reviewer --
 #     these FORBID it in a file their own command just wrote;
 #   * readiness-reviewer's MINOR rule (1) -- it REPORTS the legacy form in an

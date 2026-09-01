@@ -1,6 +1,6 @@
 # /epics
 
-Reads a Product Requirements Document from exported markdown, optionally scans code repos, and drafts reviewed child Epic definitions.
+Reads a Product Requirements Document from the resolved folder in the specs tree, optionally scans code repos, and drafts reviewed child Epic definitions.
 
 ## Who runs it
 
@@ -9,7 +9,7 @@ Reads a Product Requirements Document from exported markdown, optionally scans c
 ## Synopsis
 
 ```
-/epics <PRD-KEY | dir> [<Epic-KEY>] [--no-docs]
+/epics <ADDRESS> [--no-docs]
 ```
 
 The positional input is a **single address** — a `<KEY>`, or an `@<path>` naming a folder in the specs tree — resolved by [`addressing.md`](../../references/addressing.md) §3. A `PRD-` folder partitions; an `EPIC-` folder refines.
@@ -36,7 +36,7 @@ flowchart TD
     p8 --> p91011["Phase 9 — Final Report / 10 — Emit follow-up tasks / 11 — Session cost"]
 ```
 
-Seven `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 3.6, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), the folder read (Phase 3, `depth: prd-plus-epics`), `code-scanner` (Phase 5, one instance per confirmed repo, up to 4 concurrent, only when code scan is ON), `epic-writer` (Phase 6, the sole author of the Epic drafts), `doc-fixer` (Phases 6.2 and 7, fixing style violations and surviving BLOCKER/MAJOR review findings), `epic-reviewer` (Phase 7, Opus-pinned), and `impl-maintenance` (Phase 8, session lessons-learned). The detection-tier agents (and `epic-writer` when the run is `MODERATE`) run at `detection_model`; `epic-reviewer` keeps its frontmatter Opus pin.
+Six `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 3.6, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `code-scanner` (Phase 5, one instance per confirmed repo, up to 4 concurrent, only when code scan is ON), `epic-writer` (Phase 6, the sole author of the Epic drafts), `doc-fixer` (Phases 6.2 and 7, fixing style violations and surviving BLOCKER/MAJOR review findings), `epic-reviewer` (Phase 7, Opus-pinned), and `impl-maintenance` (Phase 8, session lessons-learned). The detection-tier agents (and `epic-writer` when the run is `MODERATE`) run at `detection_model`; `epic-reviewer` keeps its frontmatter Opus pin.
 
 ## What it needs
 
@@ -44,13 +44,13 @@ Seven `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 3.6, read
 - **An optional PRD-level `specification.md`** — this is `/epics`' `require-on-main`-gated input (Phase 2.6, `commands/epics.md:180`); the PRD-level ARD below is gated too, via `../../references/ard-resolution.md`, which resolves `status: unmerged` through `require-on-main` as well. **Absent** is a silent skip (`vi_spec_present: false`) — the common case, since `/specify` usually runs per-Epic *after* `/epics` — with no prompt and no extra output. **Unmerged** is a hard stop, naming the branch and any open pull request: a spec that exists but hasn't landed on the default branch is weaker grounding than the one about to arrive, and Epics drafted against it would need redoing.
 - **An optional PRD-level ARD** (Phase 2.5), resolved via `../../references/ard-resolution.md` with `epic: null` (Epics don't exist yet). `status: none` skips silently and proceeds exactly as before; `status: unmerged` stops, naming the branch and any pull request; `status: found` carries its `[AD#N]` invariants into both `epic-writer` and `epic-reviewer`.
 - **`$DOCS_PATH`** (optional, default `/workspace/docs`) — resolved in Phase 2, **before** the Phase 2.5/2.6 ARD and spec gates, a deliberate ordering exception to the usual gate-first sequencing: it is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve before any of the run's real work, rather than risk a later phase stopping after that consent work already happened. Missing, unreadable, or empty is a silent, non-blocking skip. Turned off with `--no-docs`.
-- **Mounted repos under `$REPOS_PATH`** — only consulted when code examination is ON (default). The repo list is auto-derived from sibling/parent Epics' `## Pull Requests` sections, or entered manually. A repo that resolves to zero matches is escalated, never silently dropped; an entirely empty resolved list still lets the run proceed without a code scan if the user chooses.
+- **Mounted repos under `$REPOS_PATH`** — only consulted when code examination is ON (default). The repo list is auto-derived from sibling/parent Epics' `implementation.md` records, or entered manually. A repo that resolves to zero matches is escalated, never silently dropped; an entirely empty resolved list still lets the run proceed without a code scan if the user chooses.
 
 ## What it produces
 
 One `EPIC-<PRD-KEY>-NN-<eslug>/` folder per new or refined Epic under the resolved PRD folder, each holding `epic.md`. The key is minted as the next unused two-digit segment, proposed and overridable, validated and re-prompted rather than coerced. `_coverage.md` is PRD-holistic and lands beside `prd.md`, never inside an Epic folder.
 
-**`/epics` never creates a branch.** Its git writes are confined to `$SPECS_PATH`, and only to its bounded session-artifact paths — the Epic drafts themselves are never committed by this command at all; git hygiene of the write target is the user's own responsibility. This is unlike the eight commands that do offer a branch + commit + push + pull-request handoff for their own deliverable — [`/idea`](idea.md), [`/create-prd`](create-prd.md), [`/update-prd`](update-prd.md), [`/create-ard`](create-ard.md), [`/specify`](specify.md), [`/design`](design.md), [`/implement`](implement.md), and [`/ready`](ready.md).
+**`/epics` never creates a branch.** Its git writes are confined to `$SPECS_PATH`, and only to its bounded session-artifact paths — the Epic drafts themselves are never committed by this command at all; git hygiene of the write target is the user's own responsibility. This is unlike the fourteen commands that do offer a branch + commit + push + pull-request handoff for their own deliverable — [`/idea`](idea.md), [`/create-prd`](create-prd.md), [`/update-prd`](update-prd.md), [`/create-ard`](create-ard.md), [`/specify`](specify.md), [`/design`](design.md), [`/implement`](implement.md), [`/ready`](ready.md), and the six commands of the BRD-to-PRD route.
 
 ## Gates
 

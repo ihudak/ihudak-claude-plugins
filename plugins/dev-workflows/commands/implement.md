@@ -208,10 +208,6 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
    for a PRD-level address — the `EPIC-` subfolders under it. This phase reads no PR URLs:
    `implementation.md` (Phase 4.7) is where this run records its own refs, and
    `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §4 is how a later run reads them.
-     >
-     > prd_dir: [the resolved prd_dir (from the Phase 0 front-end), or the ticket-folder absolute path]
-     > key:         [the resolved <KEY>]
-     > depth:            full"
 
    Read each folder in turn. Collect the themes; there are no PR references until `implementation.md` exists.
 

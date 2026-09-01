@@ -56,7 +56,7 @@
 
 **Resolution.** First-found-wins, three tiers: `$DEV_WORKFLOWS_COST_PRICES` (a path) → a repo-local `cost-prices.yaml` → the bundled `${CLAUDE_PLUGIN_ROOT}/references/cost-prices.yaml`. Whichever file resolves must carry a top-level `models:` map keyed by model id (`input`/`output`/`cache_read`/`cache_write_5m`/`cache_write_1h`, in USD per million tokens) — a file missing that wrapper, whether it is the override or the shipped default, prices every model as `cost_usd: null` rather than raising an error.
 
-**When unset.** Resolution falls straight through to the repo-local file, then the bundled default — this is the variable of the six most users never touch — though `$REPOS_PATH`, `$DOCS_PATH`, and `$GIT_USER_INITIALS` all have working fallbacks too.
+**When unset.** Resolution falls straight through to the repo-local file, then the bundled default — this is the variable of the seven most users never touch — though `$REPOS_PATH`, `$DOCS_PATH`, and `$GIT_USER_INITIALS` all have working fallbacks too.
 
 **When it points somewhere unreadable.** An unreadable or missing path at this tier is treated the same as "not set at this tier" — resolution continues down the same first-found-wins chain to the next tier rather than failing the run.
 
@@ -84,7 +84,7 @@
 
 ## Directory layout
 
-The four directory-valued variables above expect this layout. `$GIT_USER_INITIALS` holds a string, not a path, and `$DEV_WORKFLOWS_COST_PRICES` names one file rather than a directory, so neither appears here.
+The five directory-valued variables above expect this layout. `$GIT_USER_INITIALS` holds a string, not a path, and `$DEV_WORKFLOWS_COST_PRICES` names one file rather than a directory, so neither appears here.
 
 ```
 

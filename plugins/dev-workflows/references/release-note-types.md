@@ -22,18 +22,20 @@ which release a section belongs to. A run whose version the operator declined fi
 `## Unreleased`.
 
 
-The docs automation routes each note into one of three generated snippet files under
-`<space>/_snippets/release-notes/<product>/<sprint>/`. The Change Type selects the file:
+The Change Type selects the **section** of that one file:
 
-| Change Type | Destination | Draft shape |
+| Change Type | Section | Draft shape |
 |---|---|---|
-| `Breaking change` | `breaking-changes.md` | plain **Category:** label + `### title` + prose |
-| `New technology support` | `feature-updates.md` | plain **Category:** label + `### title` + prose |
-| `Bug fix` | `fixes.md` | one self-contained sentence — **no label, no title** |
+| `Breaking change` | `## Breaking changes` | plain **Category:** label + `### title` + prose |
+| `New technology support` | `## Feature updates` | plain **Category:** label + `### title` + prose |
+| `Bug fix` | `## Fixes` | one self-contained sentence — **no label, no title** |
 | `not applicable` | — | no note is authored; the command's Phase 2 gate stops the run |
 
-`spotlight.md` also exists in the generated output, but it is curated by the docs team — a Value
-Increment never routes there.
+**The three-file model this replaced is gone, not merely renamed.** Drafts once landed in generated
+snippet files under `<space>/_snippets/release-notes/<product>/<sprint>/`, written into a docs repo by
+an automation this plugin no longer talks to; a curated `spotlight.md` sat beside them and was never a
+destination this command could choose. Nothing here writes into a docs repo any more, so a draft's
+destination is a heading in `release-notes.md` and nothing else. The taxonomy is untouched.
 
 ## 2. Classification order
 

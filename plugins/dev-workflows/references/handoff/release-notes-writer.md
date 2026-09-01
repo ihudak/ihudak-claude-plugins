@@ -3,7 +3,7 @@
 ## Input
 
 ```yaml
-folder_read: <full YAML from the folder read; see ${CLAUDE_PLUGIN_ROOT}/references/handoff/the folder read.md output schema>
+folder_read: <the YAML the orchestrator assembled by reading the resolved folder — the PRD frontmatter and body, the Epic set, and the artifacts present; the orchestrator names its keys in the dispatch, since no schema file defines them>
 diff_summaries:      <optional array of diff-summarizer outputs; one entry per repo; omit when diff-grounding is off>
 code_repos:          <optional array of {slug, path}; provided when diff-grounding is on — enables the writer's Source-truth check>
 imported_change_type:            <change_type from the imported PRD frontmatter (the folder read handoff); null otherwise>
@@ -31,7 +31,7 @@ status: OK | PARTIAL
 release_notes_block:
   target_format: example-docs-release-notes-v1
   change_type:  <one of: "Breaking change" | "New technology support" | "Bug fix">   # selects the destination + shape; NEVER rendered as text
-  destination:  <one of: "breaking-changes.md" | "feature-updates.md" | "fixes.md">  # per release-note-types.md §1
+  destination:  <one of: "## Breaking changes" | "## Feature updates" | "## Fixes">  # a section of release-notes.md, per release-note-types.md §1
   category_label: <the PRD's release_notes_category verbatim, e.g. "Platform | Settings"; null when the import carries none — the  line is then omitted>
   feature_title: <5–10 word headline; sentence case; no leading "New feature:"; no trailing period. null for the fixes destination.>
   prose: |

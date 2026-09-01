@@ -7,6 +7,8 @@ from, NOT a mini-PRD.
 
 ```yaml
 ---
+kind: prd
+key: <the key the run was invoked with>
 title: <candidate human-readable title>
 slug: <candidate-kebab-slug>
 sources:
@@ -16,6 +18,8 @@ created: <YYYY-MM-DD>
 status: draft | refined        # refined IFF zero open [NEEDS CLARIFICATION] remain
 ---
 ```
+
+**`kind` and `key` are required, and they are why the folder is resolvable at all.** `/idea` is the command that *creates* `PRD-<KEY>-<slug>/`, and `idea.md` is usually its only file — so until `/create-prd` writes `prd.md`, this is the one artifact carrying the pair that `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4 resolves a folder's identity from. §4 forbids recovering either from the directory name ("a key re-derived by pattern is a key nothing in the tree ever asserted"), and states as its own invariant that a folder is never keyless, "not even between its creation and its first document". A frontmatter without them leaves every later `resolve-address` on that key unable to fill `kind` and `key`. `kind: prd` is correct here even though the file is an idea: the folder is a PRD folder, and `kind` names the folder's altitude rather than this file's genre.
 
 Rules: `status` is `refined` only when the **Open questions & assumptions** section carries zero
 `[NEEDS CLARIFICATION]` markers; otherwise `draft`. `sources` lists every ingested source with its
@@ -72,8 +76,7 @@ vocabulary is the finder's output, not the author's choice.
 
 Every slot is **transcribed from what the user supplied, never invented**:
 `<KEY>` and `<status>` from its `key` / `tracked_status`, `<relation>` verbatim from its
-`relation` field (the closed vocabulary lives in
-and `<one line>` a plain-language rendering of
+`relation` field, and `<one line>` a plain-language rendering of
 that entry's `match_reason` — why this initiative bears on the idea.
 
 The **key is the durable identifier**; a path is a convenience that dangles once a folder is renamed, so both are carried and a later reader re-resolves by key. An entry with no key carries

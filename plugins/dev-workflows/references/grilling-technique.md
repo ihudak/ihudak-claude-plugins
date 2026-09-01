@@ -19,8 +19,17 @@ technique adapted from mattpocock grill-me/grilling. Each caller cites this file
 When the command runs with **no human turn available** to answer (autonomous or background
 invocation), do NOT fabricate answers to genuine **decision** questions. The fact-vs-decision split
 still holds — facts you resolve yourself — but a genuine decision that would otherwise go to the user
-is **recorded as an open question** (`[NEEDS CLARIFICATION]` for bounded callers, `- [ ]` for relentless
-callers) rather than self-answered. Never grill yourself into a fabricated decision.
+is **recorded as an open question** rather than self-answered. Never grill yourself into a fabricated
+decision.
+
+**Which notation is used is the artifact's choice, not the depth's.** Use whatever the caller's own
+format authority defines: `[NEEDS CLARIFICATION]` for `idea.md`
+(`${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`) — including under `--deep`, which changes the
+depth but never the file format — and `- [ ]` for the PRD / ARD / specification / design artifacts
+whose formats define it. Keying the notation on depth was a defect: `/idea --deep` is the one caller
+whose depth changes at runtime, and writing `- [ ]` into an `idea.md` would leave zero
+`[NEEDS CLARIFICATION]` markers, compute `status: refined` (`idea-format.md` — refined **iff** zero
+open markers remain), and hand an idea carrying unresolved decisions to `/create-prd`.
 
 ## Relationship to the upstream technique it was adapted from
 

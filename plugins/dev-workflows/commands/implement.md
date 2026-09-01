@@ -635,16 +635,20 @@ Runs on **every** run that created a branch in Pre-Phase 3 — both classificati
 
 **The commit is prompt-free and the push and pull request are not** (§1 rule 5). There is no "leave it uncommitted" option in §2.4's choice, and a run that ends with the implementation sitting in a working tree is a defect rather than a style.
 
+**"Every run" includes every early stop that happens after the branch exists.** This command has exits that stop *after* Pre-Phase 3 created the branch and after files were written: the two unreadable-`test_diff_file` stops (Phase 3.5 step 2 and Phase 3B step 4a), the Cancel arms of both framework prompts, the Cancel and *Investigate further* arms of the Phase 3.5 regression prompt, the unreadable-`review_diff_file` stop (Phase 3B), the `review-fixer` `NEEDS HUMAN` stop, and a second verdict still `BLOCK`. **Each of those runs Phase 4.6 before it stops**, with `clean_finish: false` and the stop's reason as the blocking fact. Skipping it would leave a written, branched, sometimes fully-reviewed implementation uncommitted — which this command's own invariants call a defect, and which is the case where losing the work costs most. Phase 4 is skipped on these paths (its maintenance agents have nothing to summarise for an aborted run), so 4.6's "after every in-repo write" precondition is satisfied trivially. Report the §3.1 line with the stop, not in a Phase 5 report that will not be produced.
+
+**The Phase 2B repro prompt's Cancel is not in that set**, and the distinction is the branch: Phase 2B runs *before* Pre-Phase 3, so cancelling there leaves no branch and no written file — there is nothing for this phase to commit.
+
 Placement is load-bearing. Phase 4's maintenance agents edit files **inside the code repo** — `README.md`, `CHANGELOG.md`, `docs/`, `CLAUDE.md`, and any project-level memory entry — so a call placed before Phase 4 would commit a partial run and leave those edits behind (`code-handoff.md` §4 obligation 1). Phase 4.5 runs first because it commits a *different* repository (`$SPECS_PATH`), and interleaving the two would make the run's two outcome lines impossible to attribute.
 
-Pass the §2.10 inputs:
+Pass the §2.11 inputs:
 
 - `repo` — the repo Pre-Phase 3 branched; `branch` — the name it created.
 - `pre_existing_dirty` and `stash_ref` — as recorded in Pre-Phase 3 step 1; both `null` on the clean-tree path.
 - `key` and `workitem_key` — from the resolved folder (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4); both `null` in direct mode. §2.3 turns them into the `[<key>]` subject suffix and the `Work-Item:` trailer that `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §3 requires — **this is where the plugin writes that convention rather than teaching it**.
 - `title` — the commit subject and pull-request title: with a key, `<one-line summary of what was built> [<key>]`; in direct mode, the imperative summary alone.
 - `body_facts` — what was implemented; the files changed; the Opus review verdict and triage summary where Phase 3B produced one; the `test-baseliner` verify result against the Pre-Phase 3.5 baseline; and any deferred `MINOR`/`NIT` findings.
-- `clean_finish` — `false` when the Opus review is still `BLOCK` after its one fix cycle plus re-review, or when the Phase 3.5 fix loop ended with regressions the user chose to keep; `true` otherwise. Per §2.8 this changes only the pull request (draft, with a DO-NOT-MERGE banner) — **never** whether the commit and push happen.
+- `clean_finish` — `false` when the Opus review is still `BLOCK` after its one fix cycle plus re-review, or when the Phase 3.5 fix loop ended with regressions the user chose to keep; `true` otherwise. Per §2.9 this changes only the pull request (draft, with a DO-NOT-MERGE banner) — **never** whether the commit and push happen.
 - `commit_template: null` — `/implement` documents no full template of its own, so §2.3 derives the rest of the subject from the repo's own `git log`.
 
 Emit the §3.1 `Code repo:` outcome line in the Phase 5 report's `### Branch` section — once, and verbatim. **Under `--no-commit`** the entry point is not called at all, and §3.1's `--no-commit` row is emitted in its place, so the report still says where the work ended up.
@@ -839,7 +843,7 @@ directory; no user name is ever written (§10 privacy).
 - ALWAYS check for a clean working tree before branching; stash or get explicit user consent if dirty — and record `stash_ref` / `pre_existing_dirty` for Phase 4.6, which cannot honour `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.2's carve-outs without them
 - ALWAYS run Phase 4.6 (`finish-code-branch`, per `${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md`) after Phase 4 and before the Phase 5 report — the commit is prompt-free (§1 rule 5) and the push + pull request sit behind §2.4's choice; a run that ends with the implementation uncommitted is a defect, not a style, and `--no-commit` is its only opt-out
 - NEVER commit the implementation before Phase 4 — Phase 4's maintenance agents write into the same repo, and a commit ahead of them ships a partial run
-- NEVER skip Phase 4.6 because a gate failed — a run whose review is still `BLOCK` or whose regressions the user kept is committed and pushed like any other, and sets `clean_finish: false` so its pull request is a draft carrying the DO-NOT-MERGE banner (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.8)
+- NEVER skip Phase 4.6 because a gate failed — a run whose review is still `BLOCK` or whose regressions the user kept is committed and pushed like any other, and sets `clean_finish: false` so its pull request is a draft carrying the DO-NOT-MERGE banner (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.9)
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - ALWAYS spawn Phase 4 agents in a single message — never sequentially
 - ALWAYS use `choices` arrays for decision points; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0)

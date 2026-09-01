@@ -7,8 +7,8 @@
 repo: /absolute/path/to/repo
 cves:
   - id: CVE-2023-46604
-    jira: PROJ-2423        # omit if no Jira ticket
-  - id: CVE-2024-12345    # bare CVE, no Jira
+    address: PROJ-2423     # optional folder key; omit when the token carried none
+  - id: CVE-2024-12345    # bare CVE, no address
 ecosystem_hint: java      # optional; helps when auto-detection is ambiguous
 model_routing:            # optional; if present, echo back in output.
   classification: SIGNIFICANT      # See `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` for the full model-routing schema.
@@ -26,7 +26,7 @@ model_routing:            # optional; if present, echo back in output.
 
 ### CVE-2023-46604
 status: READY             # READY | NOT_IN_REPO | LOOKUP_FAILED | SKIP_NON_CVE
-jira: PROJ-2423
+address: PROJ-2423
 description: "Apache ActiveMQ RCE via ClassInfo deserialization"
 library: activemq-broker
 ecosystem: Maven

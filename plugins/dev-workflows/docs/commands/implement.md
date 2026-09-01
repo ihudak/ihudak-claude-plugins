@@ -18,7 +18,7 @@ Classifies a task's risk, creates a branch, plans and implements the change, wri
 
 ## How it runs
 
-`/implement` has 17 `## Phase` headings. Rather than walk every one, the diagram below deliberately names none of them: it compresses the whole run into its two real decision points instead of naming each phase.
+`/implement` has 19 `## Phase` headings. Rather than walk every one, the diagram below deliberately names none of them: it compresses the whole run into its two real decision points instead of naming each phase.
 
 ```mermaid
 flowchart TD
@@ -50,7 +50,7 @@ Eight `dev-workflows` subagents are dispatched: the folder read and `code-scanne
 
 ## What it produces
 
-Code changes on a freshly created feature branch — named per the target repo's own documented convention, or `<prefix>/<key>-<slug>` as the fallback — **committed** in Phase 4.6 without asking, then pushed and opened as a pull request behind a three-option consent choice (push + PR recommended, push only, or neither). The commit subject ends with `[<key>]` and carries a `Work-Item:` trailer where the folder has one, which is what lets `/document` and `/release-notes` find the work later. A run whose review or tests did not clear is committed and pushed like any other — only its pull request becomes a draft carrying a DO-NOT-MERGE banner. `--no-commit` skips the phase entirely and leaves everything in the working tree.
+Code changes on a freshly created feature branch — named per the target repo's own documented convention, or `<prefix>/<key>-<slug>` as the fallback — **committed** in Phase 4.6 without asking, then pushed and opened as a pull request behind a three-option consent choice (push + PR recommended, push only, or neither). The commit subject ends with `[<key>]` and carries a `Work-Item:` trailer where the folder has one, which is what lets `/document` and `/release-notes` find the work later. A run whose review or tests did not clear is committed like any other, and still *offered* for push and pull request under the same consent choice — a failed gate never downgrades what you are offered. What changes is the pull request itself: it is opened as a draft whose body leads with a DO-NOT-MERGE line naming the blocking fact. `--no-commit` skips the phase entirely and leaves everything in the working tree.
 
 Four Phase 4 maintenance outputs, always collected together: a documentation update (or an explicit "no update required"), a knowledge-base entry, an instructions (`CLAUDE.md`) update, and an `impl-maintenance` Lessons Learned report. On a `SIGNIFICANT`/`HIGH-RISK` run with a spec/design in scope, unresolved `missing`/`contradicts` findings from `code-review`'s conformance dimension are escalated as open-question notes written back onto the source `specification.md`/`design.md` (Phase 3B step 7.5) and, behind a consent choice, handed off onto the specs repo's main branch (Phase 4.5) — a silent no-op when nothing was escalated, which covers every `SIMPLE`/`MODERATE` run and every run with no spec/design in scope.
 

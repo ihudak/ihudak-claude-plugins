@@ -730,14 +730,14 @@ Output a structured report — do NOT ask any closing confirmation:
 - [MINOR / NIT findings that were not applied] OR "none"
 
 ### Next step
-[Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. keyed mode: finish the remaining Epics under the PRD (breadth) — `/dev-workflows:implement <PRD> <another-Epic>` — and, once **all** Epics are implemented, `/dev-workflows:document <PRD>` then `/dev-workflows:release-notes <PRD>` (both PRD-level, run once). Depth vs breadth is the team's call. Direct mode: no forward pipeline step (omit). If review is still BLOCK, resolve that first.]
+[Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. keyed mode: finish the remaining Epics under the PRD (breadth) — `/dev-workflows:implement <SIBLING-EPIC>`, one address, the Epic's own (D4) — and, once **all** Epics are implemented, `/dev-workflows:document <PRD>` then `/dev-workflows:release-notes <PRD>` (both PRD-level, run once). Depth vs breadth is the team's call. Direct mode: no forward pipeline step (omit). If review is still BLOCK, resolve that first.]
 
 ### Context hygiene
 
 *(keyed runs only — omit this whole block in direct-prompt mode, like the `### Next step` above.)*
 The resume pointer is written in the terminal cost phase (Phase 7), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
 
-- **More Epics to build (`/dev-workflows:implement <PRD> <Epic2>`) or on to `/dev-workflows:document <PRD>` — same build lane?** → run **`/compact`** — context stays relevant.
+- **More Epics to build (`/dev-workflows:implement <SIBLING-EPIC>`) or on to `/dev-workflows:document <PRD>` — same build lane?** → run **`/compact`** — context stays relevant.
 - Consider **`/rename <PRD-ID>-<slug>-dev`** to relocate this session later.
 
 Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.

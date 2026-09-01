@@ -1111,8 +1111,8 @@ test (an immediate subdirectory whose `brd-link.md` `parent:` names this BRD) â€
   here and not inconsistent with the in-text conditions the other options carry: those name a state
   the reader can judge for themselves, while this one names a hard refusal in another command's
   Phase 0.
-- **`/dev-workflows:create-ard <SLICE-KEY>` and `/dev-workflows:specify <SLICE-KEY>
-  the BRD route` are offered on the level test alone**, with no further condition of their own, and
+- **`/dev-workflows:create-ard <SLICE-KEY>` and `/dev-workflows:specify <SLICE-KEY>` are offered on
+  the level test alone**, with no further condition of their own, and
   that is read out of their own Phase
   0s rather than assumed symmetric with `/create-prd`'s. Neither reads outside the specs tree, so neither
   needs anything outside the specs tree; neither runs the PRD gate, so neither waits on a PRD â€”
@@ -1122,8 +1122,8 @@ test (an immediate subdirectory whose `brd-link.md` `parent:` names this BRD) â€
   a **PRD** and an ARD is not that artifact and neither is a specification. What each needs is this
   slice's folder, which `resolve-address` finds at either level, plus its own altitude's seed â€” and an
   absent `ard-seed.md` or `spec-seed.md` is reported by those runs, never a stop. Each takes **one**
-  key: a second positional is refused (`CREATE_ARD_BRD_NO_EPIC` / `SPECIFY_BRD_NO_EPIC`), so neither
-  is ever offered with an Epic beside it.
+  address: a second positional token is refused on every route (`CREATE_ARD_ONE_ADDRESS` /
+  `SPECIFY_ONE_ADDRESS`), so neither is ever offered with an Epic beside it.
 
 **Advance and re-entry are two lists, not one, and they are mutually exclusive.** Written as a
 single array this phase offered ten options â€” advancing into the PRD pipeline in the same breath as

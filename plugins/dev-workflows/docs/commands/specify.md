@@ -12,7 +12,7 @@ Reads the resolved Epic or PRD folder, lightly grounds in code, and authors an o
 /specify <ADDRESS> [--no-docs]
 ```
 
-**The BRD route** — where the resolved folder carries a `brd-link.md`, the run authors the specification for a reconciled BRD slice. A `BRD-` container is refused (`SPECIFY_BRD_NOT_SLICED`). Detected, not a path**: the positional token is then a **BRD key**, validated against `^[A-Z][A-Z0-9_]*(-\d+)+$` (so a three-segment slice key such as `EPIC-008-01` is as valid as `EPIC-008`) and resolved to a folder at either level under `specifications/`, so a path is only for a BRD folder outside the normal layout. It takes **one key**: a second positional key stops the run (`SPECIFY_BRD_NO_EPIC`), because a BRD has no Epics yet and the seeds live only at a BRD's own level. Everything in the paragraphs below about pickers, Epic counts and the resolved folder describes the keyed route only — BRD-route runs none of it.
+**The BRD route** — where the resolved folder carries a `brd-link.md`, the run authors the specification for a reconciled BRD slice. A `BRD-` container is refused (`SPECIFY_BRD_NOT_SLICED`). Detected, not a path**: the positional token is then a **BRD key**, validated against `^[A-Z][A-Z0-9_]*(-\d+)+$` (so a three-segment slice key such as `EPIC-008-01` is as valid as `EPIC-008`) and resolved to a folder at either level under `specifications/`, so a path is only for a BRD folder outside the normal layout. It takes **one address**, like every other route: a second positional token stops the run (`SPECIFY_ONE_ADDRESS`), because a key encodes its own ancestry and no command takes a chain (D4). Everything in the paragraphs below about pickers, Epic counts and the resolved folder describes the keyed route only — BRD-route runs none of it.
 
 Key distinction from [`/epics`](epics.md): `/epics` *splits* a PRD into Epic drafts; `/specify` *authors one specification* for a single item. **The PRD-level path is genuinely valid, not a fallback of last resort**: `/specify <PRD>` with no focus Epic stays in the PE lane and produces one broad `specification.md` at the PRD dir. What Phase 2 does with a bare PRD key depends on how many child Epics it has:
 
@@ -22,7 +22,7 @@ Key distinction from [`/epics`](epics.md): `/epics` *splits* a PRD into Epic dra
 
 **There is no fourth case.** An Epic always has a PRD above it — [`/epics`](epics.md) is the only command that creates an `EPIC-` folder, and it writes every one of them under a PRD folder — so a top-level `EPIC-` folder with no PRD above it is no longer a shape `/specify` resolves. A per-Epic feature folder that does not exist is a stop (`SPECIFY_EPIC_NOT_FOUND`) naming `/dev-workflows:epics <PRD>`, never a directory this command creates.
 
-An explicit `<PRD-Key> <Epic-Key>` (or `<dir> <Epic-Key>`) skips the picker entirely — the Epic is already chosen. `--no-docs` turns off the optional Phase 4 documentation-grounding pass.
+Addressing the Epic directly — `/specify <EPIC-KEY>`, or an `@<path>` to its folder — skips the picker entirely: the Epic is already chosen, and its parent PRD is the folder above it. There is no two-key form to skip the picker with; `/specify` takes **one** address and refuses a second positional token (`SPECIFY_ONE_ADDRESS`). `--no-docs` turns off the optional Phase 4 documentation-grounding pass.
 
 ## How it runs
 

@@ -1,6 +1,6 @@
 ---
 name: idea
-description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (with wikilinks/images), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Writes into the PRD folder the key names; no code change; it relocates `idea.md` into `$SPECS_PATH/specifications/<KEY>-<slug>/`, and on a completed handoff also opens a pull request for it (`references/phase-handoff.md` §2) — declining leaves it relocated but not on the default branch; its session artifacts are committed by `commit-artifacts`.
+description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (with wikilinks/images), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Writes into the PRD folder the key names; no code change; `idea.md` lands in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/` on the first write and is never relocated (D7), and on a completed handoff the run also opens a pull request for it (`references/phase-handoff.md` §2) — declining leaves it written in place but not on the default branch; its session artifacts are committed by `commit-artifacts`.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -231,9 +231,9 @@ Report where `idea.md` was written and its `status`, then offer the next phase �
   interactive editor; passing three of five leaves both unsourced. Then recommend
   `/dev-workflows:create-prd <KEY>`, which finds `idea.md` in that folder.
 
-  **There is no key round-trip to wait for and no disposition to branch on.** The key was given in
-  Phase 0, the folder was resolved from it, and `idea.md` was written there — so the three states this
-  offer used to distinguish (rewrite in place, mint a new key, or neither) collapse into one.
+  **There is no key to wait for and no disposition to branch on.** The key was given in Phase 0, the
+  folder was resolved from it, and `idea.md` was written there — so the three states this offer used
+  to distinguish (rewrite in place, mint a new key, or neither) collapse into one.
 - **`status: draft`** (N open `[NEEDS CLARIFICATION]`) — **never hand off**, and do not ask. By the
   governing principle the phase is not finished, so there is nothing to hand over.
 

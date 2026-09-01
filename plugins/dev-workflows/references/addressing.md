@@ -266,8 +266,9 @@ without removing a command. Ten commands in the table, one by delegation, one sh
 
 **Where a handoff crosses two adopters, both must carry it.** `/create-prd` redirects to `/update-prd` on
 finding an existing PRD (its *Prior PRD* step), including one found through this fallback; `/idea`
-relocates `idea.md` into the folder `/create-prd` then reads. A redirect or a relocation into a command
-with a narrower resolution than the one that produced the state is a dead-end handoff, which is why those
+writes `idea.md` into the folder `/create-prd` then reads, resolving it with this file's §3 on its
+first write and **never relocating it afterwards** (D7). A redirect, or a first write into a folder a
+command with a narrower resolution then has to find again, is a dead-end handoff, which is why those
 two are in the table rather than deferred as low-risk.
 
 **Not adopters, and correctly so.** The `/brd-*` commands resolve a folder with `resolve-address` (§3)

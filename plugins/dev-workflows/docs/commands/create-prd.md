@@ -97,7 +97,7 @@ The run resolves `EPIC-008-01`'s `PRD-` slice folder one level under `specificat
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off at the `prd-creation` seam.
-- [`/idea`](idea.md) — the upstream command that authors and relocates the `idea.md` this command consumes.
+- [`/idea`](idea.md) — the upstream command that authors the `idea.md` this command consumes, in the folder this command then resolves.
 - [`/update-prd`](update-prd.md) — where an already-existing PRD for `<KEY>` is refreshed instead.
 - [`/create-ard`](create-ard.md) and [`/epics`](epics.md) — the two role handoffs `/create-prd`'s Phase 6 offers.
 - [Model routing](../reference/model-routing.md) — the classification and Opus fallback chain `prd-reviewer` runs under.

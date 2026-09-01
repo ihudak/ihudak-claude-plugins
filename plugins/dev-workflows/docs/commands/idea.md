@@ -43,13 +43,13 @@ Four subagents are dispatched along this path: `idea-reader` (Phase 2, ingests t
 - **`$DOCS_PATH`** (optional, default `/workspace/docs`) — documentation grounding. Missing, unreadable, or carrying no markdown file is a silent, non-blocking skip: `docs grounding: OFF`, never an error. Turned off explicitly with `--no-docs`.
 - *(Prior-art discovery over a personal store it searched. Prior art now means a PRD you hand the command yourself, as a path.)*
 - **`--ground-code` repo(s)** (optional) — only runs when the flag is given. A named repo that is not mounted is neither invented nor silently dropped — it is escalated and, if declined, carried forward by name with its themes left unverified. With no flag at all, the run instead does one cheap detection pass and prints at most one advisory line naming a repo the idea mentions; it never scans.
-- **`$SPECS_PATH`** — not needed to start the run at all, and an unresolvable path is a silent no-op rather than a stop. It is touched twice: `specs-preflight` runs against it at the end of Phase 0 (which can emit a guard notice and set `specs_git: blocked` for the whole run), and it becomes load-bearing from Phase 5 onward, once a key has resolved and `idea.md` is relocated there for the git handoff.
+- **`$SPECS_PATH`** — not needed to start the run at all, and an unresolvable path is a silent no-op rather than a stop. It is touched twice: `specs-preflight` runs against it at the end of Phase 0 (which can emit a guard notice and set `specs_git: blocked` for the whole run), and it becomes load-bearing from Phase 5 onward, when the `idea.md` already written there is handed off to git.
 
 ## What it produces
 
 `idea.md`, authored against `../../references/idea-format.md`, written into `PRD-<KEY>-<slug>/` under `$SPECS_PATH/specifications/` on the first write and never relocated afterwards. [`/create-prd`](create-prd.md) finds it there.
 
-**Relocation is `/idea`'s alone.** [`/create-prd <KEY>`](create-prd.md) finds `idea.md` at that path afterward and never moves it itself — an explicit `@<path>` argument to [`/create-prd`](create-prd.md) is a separate, out-of-contract read that is likewise never relocated.
+**Nothing relocates it, at any point.** The key is a mandatory argument precisely so the brief lands in its final folder on the first write, and [`/create-prd <KEY>`](create-prd.md) finds `idea.md` at that path afterward and never moves it either — an explicit `@<path>` argument to [`/create-prd`](create-prd.md) is a separate, out-of-contract read that is likewise never relocated.
 
 ## Gates
 
@@ -68,7 +68,7 @@ The run validates the key, classifies the argument as a prompt, ingests it via `
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off at the `prd-creation` seam.
-- [`/create-prd`](create-prd.md) — the next phase; finds `idea.md` once `/idea` has relocated and handed it off.
+- [`/create-prd`](create-prd.md) — the next phase; finds `idea.md` in the folder `/idea` wrote it into, once `/idea` has handed it off.
 - [Model routing](../reference/model-routing.md) — the classification and model-fallback rules `/idea` applies in Phase 0.
 - [Session cost](../reference/session-cost.md) and [Session feedback](../reference/session-feedback.md) — the terminal Phase 6 bookkeeping every run emits.
 - [`idea-format.md`](../../references/idea-format.md) — the canonical structure `idea.md` is authored against.

@@ -379,7 +379,7 @@ plugin-gap halt (see Invariants).
    The next phase runs once it is merged." or the declined/gate-failed/nothing-to-commit variant]
 
    ### Next step
-   [Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. SUPPORTED → `/dev-workflows:implement <PRD> [<Epic>]` (same lane, no handoff). PARTIAL / NOT-SUPPORTED → resolve the named gaps above and update the
+   [Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. SUPPORTED → `/dev-workflows:implement <ADDRESS>` — the same single address this run judged (D4), no handoff. PARTIAL / NOT-SUPPORTED → resolve the named gaps above and update the
    any status you keep elsewhere to match the artifacts, then re-run `/dev-workflows:ready <ADDRESS>`.]
 
    ### Context hygiene
@@ -387,7 +387,7 @@ plugin-gap halt (see Invariants).
    `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1, recording the readiness
    verdict as a carry-forward line. Then:
 
-   - **SUPPORTED → `/dev-workflows:implement <PRD> [<Epic>]` (still Dev)?** → run **`/compact`** — context stays relevant.
+   - **SUPPORTED → `/dev-workflows:implement <ADDRESS>` (still Dev)?** → run **`/compact`** — context stays relevant.
    - **PARTIAL / NOT-SUPPORTED → resolving the gaps yourself now?** → **`/compact`**.
    - Consider **`/rename <PRD-ID>-<slug>-dev`** to relocate this session later.
 

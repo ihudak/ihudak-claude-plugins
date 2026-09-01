@@ -746,14 +746,14 @@ MODERATE — Epic drafting for a single PRD
 The project root has uncommitted changes. `/epics` never commits the project root — git management there is your responsibility. (This run's `$SPECS_PATH` session artifacts are committed separately by the terminal step — see its outcome line at the end of the run.)
 
 ### Next step
-[Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. For each Epic just drafted, author its spec → `/dev-workflows:specify <PRD> <Epic>` (PE); the **Epic fan-out** (depth vs breadth) applies from the spec/design stage on. Optionally a Product Architect adds an Epic-level ARD first → `/dev-workflows:create-ard <PRD> <Epic>`. If the review BLOCKED, resolve that first.]
+[Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. For each Epic just drafted, author its spec → `/dev-workflows:specify <EPIC>` (PE) — one address, the Epic's own (D4); the **Epic fan-out** (depth vs breadth) applies from the spec/design stage on. Optionally a Product Architect adds an Epic-level ARD first → `/dev-workflows:create-ard <EPIC>`. If the review BLOCKED, resolve that first.]
 
 ### Context hygiene
 
 The resume pointer is written in the terminal cost phase (Phase 11), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
 
-- **Continuing as PE (`/dev-workflows:specify <PRD> <Epic>`)?** → run **`/compact`** — context still relevant.
-- **Handing to PA (`/dev-workflows:create-ard <PRD> <Epic>`), even yourself?** → run **`/clear`** for a clean slate.
+- **Continuing as PE (`/dev-workflows:specify <EPIC>`)?** → run **`/compact`** — context still relevant.
+- **Handing to PA (`/dev-workflows:create-ard <EPIC>`), even yourself?** → run **`/clear`** for a clean slate.
 - Consider **`/rename <PRD-ID>-<slug>-pe`** to relocate this session later.
 
 Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.

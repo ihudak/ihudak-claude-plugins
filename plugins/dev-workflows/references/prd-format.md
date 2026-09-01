@@ -51,18 +51,29 @@ PRD that does not it writes none — so the *written only by* rule above still r
 says: carrying an existing value forward mints no new one, and `/update-prd` reads no BRD tree it
 could mint one from. They record, on the PRD itself, the BRD identity and the prerequisites the
 customer committed to — and **no command consumes them yet.** Neither `/epics` nor `/ready` reads any
-of the three; `brd_parent` and `depends_on` have no reader anywhere in the plugin; and the one field
-that is read at all is `brd_key`, read only for its **presence** — `commands/update-prd.md`
-step 2 treats a `brd_key` beside an absent `key` as the statement that no tracker identity exists
-yet. **Nothing consumes the prerequisites these fields record.** Wiring a consumer is new behaviour on
+of the three, and none of them has a reader anywhere in the plugin.
+**Nothing consumes the prerequisites these fields record.** Wiring a consumer is new behaviour on
 commands used heavily by non-BRD routes and belongs in its own increment with its own review. They are
 written, and preserved through a refresh, because provenance recorded at authoring time is the
 precondition for any future consumer: re-deriving it later would mean re-reading a BRD tree that may
 have moved on. A `brd_key` may carry a third numeric segment
 (`references/addressing.md` §1 fixes no depth), so a PRD authored inside a BRD slice is filed
 under a key the two-segment form would reject — validate **that folder-side key**, and the
-folder name built from it, against §1's grammar rather than a narrower one. This never
-extends to `key`, which is two-segment everywhere (below).
+folder name built from it, against §1's grammar rather than a narrower one. **The same holds of
+`key`**, which on the BRD route *is* that slice key: it fixes no depth either, and a rule that
+`key` is "two-segment everywhere" would reject the ordinary BRD-route PRD.
+
+**`key` is written by `/create-prd`, on both routes, and by nothing else.** It is set to the key of
+the folder the run resolved — the positional key on the idea route, the `PRD-` slice's own key on the
+BRD route (`commands/create-prd.md` Phase 3, the frontmatter step) — and `/update-prd` carries it
+forward unchanged rather than re-deriving it. **It was for a time deferred on the BRD route** to a
+tracker step that minted a second identity and wrote it back; that step is gone, nothing replaced it,
+and the field simply stayed unset — which left a folder whose only `kind:`+`key:` carrier was
+`brd-link.md` (`kind: brd`) resolving as a BRD rather than a PRD (`references/addressing.md` §4), and
+left `/document` and `/release-notes` grepping commits for an empty key. There is no second identity
+to keep straight: one namespace, one grammar, and the folder's key is the key. **So there is no
+legitimate state in which `brd_key` stands beside an absent `key`** — `agents/prd-reviewer.md` raises
+one as a finding on every route.
 
 **`workitem_key` is reserved, documented, and never written by the plugin.**
 

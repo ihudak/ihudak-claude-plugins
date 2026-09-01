@@ -311,7 +311,7 @@ the array** rather than annotated, and the text says which one failed: a row sti
 walked to a terminal disposition by [`/brd-split`](brd-split.md), while a slice with no `covered-here`
 row holds no PRD of its own at all.
 
-Each takes **one** key: a second positional is refused (`CREATE_ARD_BRD_NO_EPIC` / `SPECIFY_BRD_NO_EPIC`),
+Each takes **one** address: a second positional token is refused (`CREATE_ARD_ONE_ADDRESS` / `SPECIFY_ONE_ADDRESS`), on every route,
 so neither of the optional two is ever offered with an Epic beside it. The three are **alternatives,
 not a sequence** — neither of the unconditional two waits on the PRD — and none of them carries the
 `<merge-clause>` placeholder, because none runs `require-on-main` against anything this command

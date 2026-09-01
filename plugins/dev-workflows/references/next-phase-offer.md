@@ -5,7 +5,7 @@ surfaces at the end of its run, naming the natural next command(s). Cited by all
 commands so the routing graph and the offer rules live in ONE place (the same shape as
 `emit-block` in `feedback-emission.md`).
 
-## The offer contract (6 rules)
+## The offer contract (7 rules)
 
 1. **Guidance-only** — the offer NAMES the next command(s); it NEVER auto-invokes anything.
 2. **Role-labeled** — it names the concrete command(s) for the next step, tagged with the owning
@@ -17,20 +17,28 @@ commands so the routing graph and the offer rules live in ONE place (the same sh
    ad-hoc mode (no PRD/Epic context — `/dev-workflows:implement` direct, `/dev-workflows:document` doc-edit) it is OMITTED,
    not invented.
 5. **Epic fan-out** — a command operating at **Epic scope** offers TWO branches:
-   - **Depth** — the next command for the SAME Epic (`/dev-workflows:design <PRD> E1` → `/dev-workflows:implement <PRD> E1`).
-   - **Breadth** — the SAME command for the NEXT Epic under the PRD (`/dev-workflows:design <PRD> E1` →
-     `/dev-workflows:design <PRD> E2`).
+   - **Depth** — the next command for the SAME Epic (`/dev-workflows:design <EPIC>` → `/dev-workflows:implement <EPIC>`).
+   - **Breadth** — the SAME command for the NEXT Epic under the PRD (`/dev-workflows:design <EPIC-1>` →
+     `/dev-workflows:design <EPIC-2>`).
 
    So a team can go `/dev-workflows:design E1 → /dev-workflows:design E2 → /dev-workflows:implement E1 → /dev-workflows:implement E2` OR
    `/dev-workflows:design E1 → /dev-workflows:implement E1 → /dev-workflows:design E2 …` — their call. Applies to the per-Epic commands
-   only: `/dev-workflows:create-ard <PRD> <Epic>`, `/dev-workflows:specify <PRD> <Epic>`, `/dev-workflows:design <PRD> <Epic>`,
-   `/dev-workflows:implement <PRD> <Epic>`. `/dev-workflows:document` and `/dev-workflows:release-notes` are PRD-level (whole-feature, run
+   only: `/dev-workflows:create-ard <EPIC>`, `/dev-workflows:specify <EPIC>`, `/dev-workflows:design <EPIC>`,
+   `/dev-workflows:implement <EPIC>`. `/dev-workflows:document` and `/dev-workflows:release-notes` are PRD-level (whole-feature, run
    once after ALL Epics are implemented) and do NOT fan out.
 6. **Fully qualified when printed** — every command name the run PRINTS for the user to invoke is
    written `/dev-workflows:<command>`. A bare `/<command>` can resolve to a Claude Code built-in of
    the same name — Claude Code's own `/release-notes`, `/upgrade`, and `/statusline` all collide
    today, and the built-in wins — so the bare form is NEVER printed. Prose that describes the
    pipeline to a reader of this plugin's source keeps the short form.
+7. **One address, never a pair** — every offer prints exactly ONE positional address, because every
+   keyed command takes exactly one (D4: a key encodes its own ancestry, so an Epic address is all an
+   Epic-scoped run needs and the PRD is derived from the folder above it). An offer written
+   `/dev-workflows:specify <PRD> <Epic>` names an argument form no command accepts: the run reads the
+   first token, and the second either disagrees with it or is refused. Write `/dev-workflows:specify
+   <EPIC>` for an Epic-scoped step and `/dev-workflows:specify <PRD>` for a PRD-scoped one — the kind
+   of the folder the address resolves to is what sets the altitude, so the offer never has to say it
+   twice.
 
 **A next-step offer that names a downstream command must also name the merge.** The downstream command executes `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) and stops while this phase's pull request is open, so an offer that reads "next: `/dev-workflows:create-ard <KEY>`" without "once the pull request is merged" sends the user into a stop they were not warned about.
 
@@ -160,13 +168,13 @@ array carries every option.
 
 - `/dev-workflows:create-ard <PRD>` (PRD-level) → PE → `/dev-workflows:epics <PRD>` (recommended) or `/dev-workflows:specify <PRD>`.
   *(No `/dev-workflows:design` — no Epics yet.)*
-- `/dev-workflows:create-ard <PRD> <Epic>` (Epic-level) → `/dev-workflows:specify <PRD> <Epic>` (recommended) or Dev →
-  `/dev-workflows:design <PRD> <Epic>`.
+- `/dev-workflows:create-ard <EPIC>` (Epic-level) → `/dev-workflows:specify <EPIC>` (recommended) or Dev →
+  `/dev-workflows:design <EPIC>`.
 
 **PE — breakdown & specification**
 
 - `/dev-workflows:specify <PRD>` (PRD-level spec) → `/dev-workflows:epics <PRD>`.
-- `/dev-workflows:epics <PRD>` → `/dev-workflows:specify <PRD> <Epic>` (per Epic); optional PA → `/dev-workflows:create-ard <PRD> <Epic>`.
+- `/dev-workflows:epics <PRD>` → `/dev-workflows:specify <EPIC>` (per Epic); optional PA → `/dev-workflows:create-ard <EPIC>`.
   **Every `/dev-workflows:epics` option above and below is conditional on the folder it names
   holding an authored `prd.md`** (`kind: prd`): `/epics` accepts a PRD folder or an `EPIC-` folder
   under one and refuses everything else (`commands/epics.md` Phase 0 step 1b). Where the caller's
@@ -175,16 +183,16 @@ array carries every option.
   offer is `/dev-workflows:create-prd <ADDRESS>` instead — an offer whose run stops the moment it
   starts is the same defect the `<merge-clause>` rules below exist to prevent: a next step the
   operator cannot take from the state the report describes.
-- `/dev-workflows:specify <PRD> <Epic>` (Epic-level spec) → Dev → `/dev-workflows:design <PRD> <Epic>`.
+- `/dev-workflows:specify <EPIC>` (Epic-level spec) → Dev → `/dev-workflows:design <EPIC>`.
 
 **Dev — build, verify & deliver**
 
-- `/dev-workflows:design <PRD> <Epic>` → optionally `/dev-workflows:ready <PRD> <Epic>` (verify readiness) →
-  `/dev-workflows:implement <PRD> <Epic>`.
-- `/dev-workflows:ready <PRD> [<Epic>]` → **SUPPORTED** → `/dev-workflows:implement <PRD> [<Epic>]`; **PARTIAL / NOT-SUPPORTED**
+- `/dev-workflows:design <EPIC>` → optionally `/dev-workflows:ready <EPIC>` (verify readiness) →
+  `/dev-workflows:implement <EPIC>`.
+- `/dev-workflows:ready <ADDRESS>` → **SUPPORTED** → `/dev-workflows:implement <ADDRESS>` (the same address); **PARTIAL / NOT-SUPPORTED**
   → resolve the named gaps, then re-run `/dev-workflows:ready`. *(Read-only verifier;
   not itself a linear pipeline node — an optional gate before build.)*
-- `/dev-workflows:implement <PRD> <Epic>` → finish remaining Epics (breadth); once ALL Epics implemented →
+- `/dev-workflows:implement <EPIC>` → finish remaining Epics (breadth); once ALL Epics implemented →
   `/dev-workflows:document <PRD>` → `/dev-workflows:release-notes <PRD>`. *(Direct mode → no forward offer.)*
 - `/dev-workflows:document <PRD>` (PRD-level, after all Epics) → `/dev-workflows:release-notes <PRD>`. *(Doc-edit mode → no
   forward offer.)*

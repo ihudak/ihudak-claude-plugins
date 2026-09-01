@@ -465,7 +465,7 @@ The report always states exactly one of the Phase 5 interface fan-out outcomes w
 
 ### Next step
 
-End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): → `/dev-workflows:implement <PRD> <Epic>` (depth, still Dev) `<merge-clause>`, which stops rather than proceeding wherever this design reached a branch (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3.3 rows D/E) and is unaffected wherever it reached none (§3.4's `/implement` row); the **Epic fan-out** `/dev-workflows:design <PRD> <another-Epic>` designs a sibling Epic (breadth, no merge wait — a different Epic's design). If the run BLOCKED or `design.md` has open questions, recommend resolving those first.
+End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` (guidance only — never auto-invoked): → `/dev-workflows:implement <EPIC>` (depth, still Dev) `<merge-clause>`, which stops rather than proceeding wherever this design reached a branch (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3.3 rows D/E) and is unaffected wherever it reached none (§3.4's `/implement` row); the **Epic fan-out** `/dev-workflows:design <SIBLING-EPIC>` designs a sibling Epic (breadth, no merge wait — a different Epic's design). Each is **one** address — the Epic's own key encodes its ancestry, so no command here takes a `<PRD> <Epic>` pair (D4). If the run BLOCKED or `design.md` has open questions, recommend resolving those first.
 
 `<merge-clause>` is the placeholder `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` owns, resolved from this run's own `Phase handoff:` outcome line (§4.1) and never written as the unconditional "once the pull request above is merged" — the handoff offered above reaches a declined, a push-failed and a nothing-to-commit outcome, and two of the three open no pull request to wait on. This offer is prose rather than a `choices:` array, so `scripts/check-docs.sh` check 11 cannot see it: it is held by review alone, even though `design.md` is exactly the intersection that check looks for.
 
@@ -473,7 +473,7 @@ End the report with a `### Next step` recommendation per `${CLAUDE_PLUGIN_ROOT}/
 
 The resume pointer is written in the terminal cost phase (Phase 9), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
 
-- **Continuing on this Epic (`/dev-workflows:ready` / `/dev-workflows:implement <PRD> <Epic>`) or the next Epic (`/dev-workflows:design <PRD> <Epic2>`) — all still Dev?** → run **`/compact`** — context stays relevant.
+- **Continuing on this Epic (`/dev-workflows:ready <EPIC>` / `/dev-workflows:implement <EPIC>`) or the next Epic (`/dev-workflows:design <SIBLING-EPIC>`) — all still Dev?** → run **`/compact`** — context stays relevant.
 - Consider **`/rename <PRD-ID>-<slug>-dev`** to relocate this session later.
 
 Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.

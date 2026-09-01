@@ -405,7 +405,7 @@ Author `prd.md` live against `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md` fo
    the operator volunteers; never invent one, and never spend a question here on an answer that
    command asks for anyway. An unanswered field is omitted, not filled.
 
-   **`key` was for a time omitted on the BRD route, deferred to a round-trip that no longer exists** — the tracker step that once minted a separate identity. Nothing writes it now, so the field stayed permanently unset, and a folder whose only `kind:`+`key:` carrier is `brd-link.md` (`kind: brd`) resolves as a BRD rather than a PRD (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4), while `/document` and `/release-notes` build their commit scan from a `key` that is empty and silently match nothing. There is no second identity to keep straight any more: one namespace, one grammar, and the folder's key is the key.
+   **`key` was for a time omitted on the BRD route**, deferred to a tracker step — long retired — that once minted a separate identity and wrote it back. Nothing writes it now, so the field stayed permanently unset, and a folder whose only `kind:`+`key:` carrier is `brd-link.md` (`kind: brd`) resolves as a BRD rather than a PRD (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4), while `/document` and `/release-notes` build their commit scan from a `key` that is empty and silently match nothing. There is no second identity to keep straight any more: one namespace, one grammar, and the folder's key is the key.
 2. **Problem**
 3. **Goal** (crisp 2–3 sentences)
 4. **Target audience** (personas)

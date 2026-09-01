@@ -70,7 +70,7 @@ Split a PRD with two existing Epics not yet covering all its scope:
 /dev-workflows:epics PRODUCT-1234
 ```
 
-The run resolves the PRD, asks for the output directory and whether to scan code (default on, repos auto-derived from sibling Epics' PR links), resolves any PRD-level ARD and specification, reads the PRD folder at `prd-plus-epics` depth, scans the confirmed repos in batches of up to 4, delegates the drafting to `epic-writer`, runs the Prose style check and structural pre-lint, then `epic-reviewer`. On a passing verdict it reports the Epics written and `_coverage.md`'s gap list, and recommends `/dev-workflows:specify <PRD> <Epic>` per drafted Epic as the next step — Epic drafting itself was never committed, so publishing the Epics to a tracker remains a manual step.
+The run resolves the PRD, asks for the output directory and whether to scan code (default on, repos auto-derived from sibling Epics' PR links), resolves any PRD-level ARD and specification, reads the PRD folder at `prd-plus-epics` depth, scans the confirmed repos in batches of up to 4, delegates the drafting to `epic-writer`, runs the Prose style check and structural pre-lint, then `epic-reviewer`. On a passing verdict it reports the Epics written and `_coverage.md`'s gap list, and recommends `/dev-workflows:specify <EPIC>` per drafted Epic as the next step — one address, the Epic's own — Epic drafting itself was never committed, so publishing the Epics to a tracker remains a manual step.
 
 ## See also
 

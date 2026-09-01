@@ -138,10 +138,12 @@ last-fetched ref`. Never fatal.
 
 **Run key set:** every key the run is scoped to — the identity each of this run's
 own branches is *named for* — taking each key already resolved at the call site.
-A PRD-scoped run contributes its PRD key. A run invoked as `<PRD> <Epic>`
-(`/create-ard`, `/specify`, `/design`, `/ready`) contributes **both** — the Epic
-is as much this run's key as the PRD is, and §3.5 must recognise a branch named
-for either (§3.6). When no key is resolved at the call site the set is empty and
+A PRD-scoped run contributes its PRD key. An **Epic-scoped** run — one whose
+single address resolved an `EPIC-` folder (`/create-ard`, `/specify`, `/design`,
+`/ready`) — contributes **both**, because the Epic's key encodes its ancestry and
+the run reads the PRD from the folder above it: the Epic is as much this run's key
+as the PRD is, and §3.5 must recognise a branch named for either (§3.6). Two keys
+in the set, one address on the command line (D4). When no key is resolved at the call site the set is empty and
 the run is **keyless**. Both are correct behaviour — no command needs to defer
 its preflight in order to obtain a key.
 
@@ -276,7 +278,7 @@ B3 now exists for two reasons.
 
 **Second, `/ready`'s explicit checkout.** The user may choose to proceed on the current checkout rather than switch to the default branch. Switching off it mid-run while the readiness report still claims that checkout is the one that was read would make the report false.
 
-**The same shape reaches Epic-scoped runs — which is why §3.2 resolves a key *set*, not a single key.** `/specify <PRD> <Epic>` authors `specification.md` on `spec/<EPIC>-<eslug>`, a branch keyed by the **Epic**. The follow-up `/design <PRD> <Epic>` run resolves the PRD as its primary key, so a single-key comparison would read branch key ≠ run key, fall through to B4, and switch away from the branch holding the very `specification.md` `/design`'s resume depends on — the same reachability loss described above, one key earlier in the chain. Matching the branch key against **any** key in the set keeps B3 in force for the `<PRD> <Epic>` invocations (`/create-ard`, `/specify`, `/design`, `/ready`) exactly as it holds for PRD-scoped ones.
+**The same shape reaches Epic-scoped runs — which is why §3.2 resolves a key *set*, not a single key.** `/specify <EPIC>` authors `specification.md` on `spec/<EPIC>-<eslug>`, a branch keyed by the **Epic**. The follow-up `/design <EPIC>` run resolves the PRD as its primary key, so a single-key comparison would read branch key ≠ run key, fall through to B4, and switch away from the branch holding the very `specification.md` `/design`'s resume depends on — the same reachability loss described above, one key earlier in the chain. Matching the branch key against **any** key in the set keeps B3 in force for Epic-scoped runs (`/create-ard`, `/specify`, `/design`, `/ready`) exactly as it holds for PRD-scoped ones.
 
 The failure this section used to defend against — `/create-ard` continuing silently against the wrong source when the authored PRD file existed only on an unmerged branch — is now caught loudly instead: `phase-handoff.md` §3.3 rows D and E stop that run rather than letting it proceed, so the defense moved there.
 

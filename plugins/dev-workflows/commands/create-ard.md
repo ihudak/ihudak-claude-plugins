@@ -12,11 +12,13 @@ invariants the downstream (`/specify`, `/design`, `/implement`) will later inher
 **optional** (a simple PRD may not need one) and **scoped by the kind of the address it is given**:
 
 - `/create-ard <PRD-KEY>` → a **PRD-level** ARD.
-- `/create-ard <PRD-KEY> <Epic-KEY>` → an **Epic-level** ARD (inherits the PRD-level ARD read-only).
+- `/create-ard <EPIC-KEY>` → an **Epic-level** ARD (inherits the PRD-level ARD read-only). The Epic's
+  own key is the whole address: it encodes its ancestry, so the PRD is the folder above it and is
+  never typed beside it (D4).
 - `/create-ard <SLICE-KEY>` → an ARD on the **BRD route**, authored in the `PRD-` slice folder
-  `/brd-split` carved and seeded from the reconciled BRD instead of from a PRD. One key only: the
-  BRD route takes no second positional key (Phase 0 step 1b). A `BRD-` container is refused
-  (Phase 0 step 1a).
+  `/brd-split` carved and seeded from the reconciled BRD instead of from a PRD. A `BRD-` container is
+  refused (Phase 0 step 1a). One address on every route: a second positional token is refused
+  (Phase 0 step 1, `CREATE_ARD_ONE_ADDRESS`).
 
 Usage: `/create-ard <ADDRESS> [--no-docs]`, where `<ADDRESS>` is a key or an `@<path>`.
 
@@ -33,6 +35,12 @@ this stage). Zero external calls.
    (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). A key that fails §1's grammar stops with
    `CREATE_ARD_NEEDS_KEY: /create-ard needs an address (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. EPIC-008 or the slice EPIC-008-01) — re-run '/dev-workflows:create-ard <ADDRESS>'.`
    Shape only, and never checked against anything (§1) — a key names a folder in `$SPECS_PATH`.
+
+   **A second positional token is refused, on every route** (D4). There is no `<PRD> <Epic>` form to
+   fall back to: an Epic key encodes its own ancestry, so a second argument would be derivable from
+   the first and able to disagree with it, which is the failure class D4 exists to remove. Stop
+   gracefully:
+   `CREATE_ARD_ONE_ADDRESS: /create-ard takes one address; <second-token> was given as a second. The kind of the folder the address resolves to is what sets the altitude — an EPIC- folder gives an Epic-level ARD, with its PRD read from the folder above it; a PRD- folder gives a PRD-level one. Re-run '/dev-workflows:create-ard <ADDRESS>' with the single address you meant.`
 
    **The resolved kind decides the altitude**, which is what replaces the old two-key grammar:
    - a `PRD-` folder → `<PRD>` is its `key`, `<EPIC>` is `null`;
@@ -141,7 +149,7 @@ key to a tracker lookup. So the gate is skipped, not re-pointed, and §3.4's `/c
 describing the route that runs it. What puts the seed on the default branch instead is the
 `/brd-*` family's own handoff discipline: each of those commands lands its deliverable on the specs
 default branch and the next refuses to start until it is there, so a reconciled BRD folder is already
-merged by the time this route reads it. This mirrors `/dev-workflows:create-prd the BRD route`, which
+merged by the time this route reads it. This mirrors `/dev-workflows:create-prd` on the BRD route, which
 likewise skips the gate on the input its own seed replaces.
 
 ---
@@ -180,9 +188,9 @@ model_routing:
 **On the BRD route everything in this phase down to the BRD-route section below is replaced, not
 adapted**: no PRD read of either kind, and the inherited-ARD resolution
 uses the `(prd, epic)` pair that section derives. "Epic-level run" in the paragraphs immediately below
-means a run invoked with a second positional key, which the BRD route refuses (Phase 0 step 1b) — a
-slice's `scope: epic` frontmatter (Phase 4) is a statement about altitude and inheritance, not about
-this phase's run mode.
+means a run whose single address resolved to an `EPIC-` folder, which the BRD route never does — that
+route resolves a `PRD-` slice folder — so a slice's `scope: epic` frontmatter (Phase 4) is a
+statement about altitude and inheritance, not about this phase's run mode.
 
 Read the PRD from the folder `resolve-address <PRD>` returned (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3) — its `prd.md`, whose frontmatter is `kind: prd`, when present (authored source); else dispatch the folder read to read it from the export:
 
@@ -217,7 +225,7 @@ the folder read **not at all**. Read exactly these, and no other seed:
   coverage ledger: PRD eligibility and the allocation gate are
   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5's rule about authoring a **PRD**,
   applied "when eligibility is checked", and an ARD is not that artifact. Not checking it here is a
-  decision, not an omission — `/dev-workflows:create-prd the BRD route` is where that gate lives, and
+  decision, not an omission — `/dev-workflows:create-prd` on the BRD route is where that gate lives, and
   this command is reachable without it.
 
 **Absence is reported, never a stop, and the seed's absence is the ordinary case.** Nothing on the
@@ -227,7 +235,7 @@ file from an unread one — and carry what is there.
 
 **Partition the register before the grill starts, because the partition is what freezes it.** The
 five states and their treatment are `decision-register-format.md` §3's, applied here exactly as
-`/dev-workflows:create-prd the BRD route` applies them one altitude up: a `decided` record is an
+`/dev-workflows:create-prd` on the BRD route applies them one altitude up: a `decided` record is an
 **input** the ARD is authored from and never a question; `superseded` and `withdrawn` are terminal
 and read for context only; `open`, `reopened` and an open `[AS#n]` are **gaps**, which may not be
 consumed downstream while open (§3) and reach the ARD's `## Open questions` by id rather than being
@@ -373,7 +381,7 @@ already holds and none of them asked of the user:
   because they are written from one resolution, not two.
 - `inherits:` the parent BRD folder's `ard.md` when `resolve-ard` returned one, else `null`.
 - `derived_from:` the PRD file in this BRD folder when one is there — the ordinary case, since this
-  route is normally reached from `/dev-workflows:create-prd the BRD route`'s own next-step offer — else
+  route is normally reached from `/dev-workflows:create-prd`'s own next-step offer on the BRD route — else
   `<BRD-dir>/ard-seed.md`, the artifact this ARD was actually authored from. The field records
   provenance, and naming a PRD path in a folder that holds no PRD would name a file that does not
   exist.
@@ -443,8 +451,7 @@ part with what was left over).
 Then **offer** (commit-when-asked — never automatic), presenting `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's choice array verbatim: `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`. On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2) with `prefix: ard`; `feature_folder` as resolved in Phase 0 (the PRD dir for a PRD-level ARD, the Epic subfolder for an Epic-level ARD — §2.2 derives `ard/<PRD>-<vslug>` or `ard/<EPIC>-<eslug>` from it, matching today's branch names); `deliverable_paths` = the ARD file(s) — **plus, on the BRD route, `decisions.md`, `grounding/code-grounding.md` and `grounding/design-grounding.md`**, because the `consumed_by` writes above land in those three and an uncommitted consumption record is one no later run can read; `ard-seed.md` is not staged, because this run does not write to it; `title: <PRD|EPIC> Add architecture requirements document`; and `body_facts` = the ARD scope (PRD/Epic, any per-area split), the grounded/descoped repos, the `AD#N` count, the open-question count, and the `ard-reviewer` verdict — and, on the BRD route, the `<SLICE-KEY>` this ARD was seeded from and how many items were marked `consumed_by: ARD`. Emit its §4.1 outcome line in the Final report.
 
 **On the BRD route the feature folder is the resolved `PRD-` slice folder**, so §2.2 derives the
-branch `ard/<SLICE-KEY>-<slug>` from its own basename, not from a re-derived title. That name collides with neither `/dev-workflows:create-prd the BRD route`'s
-`prd/` branch on the same key, nor `/dev-workflows:specify the BRD route`'s `spec/` one, nor the
+branch `ard/<SLICE-KEY>-<slug>` from its own basename, not from a re-derived title. That name collides with neither the `prd/` branch `/dev-workflows:create-prd` derives on the BRD route for the same key, nor the `spec/` one `/dev-workflows:specify` derives on the BRD route, nor the
 `/brd-*` family's shared `brd/` one, because §2.2's prefix is the caller's own. The commit message's key is the run's key, resolved as Phase 8 resolves it.
 
 ---
@@ -461,7 +468,7 @@ that option with `/dev-workflows:create-prd <ADDRESS>`**, which authors the PRD 
 Offering `/epics` there would name a run that stops on arrival.
 
 - **PRD-level ARD:** if the PRD has 0 Epics → `choices: ["Hand to a Product Engineer — /dev-workflows:epics <ADDRESS> (PE) (Recommended) <merge-clause>", "Author a PRD-level spec — /dev-workflows:specify <PRD> (PE) <merge-clause>", "Stop here"]` — with the first option becoming `"Author the PRD — /dev-workflows:create-prd <ADDRESS> (PM) (Recommended)"` where the precondition above fails; else offer `/dev-workflows:specify <PRD>` (PE) carrying the same `<merge-clause>`. *(No `/design` — no Epics yet.)*
-- **Epic-level ARD:** `choices: ["Author the spec — /dev-workflows:specify <PRD> <Epic> (PE) (Recommended) <merge-clause>", "Hand to Dev — /dev-workflows:design <PRD> <Epic> (Dev) <merge-clause>", "Stop here"]`. **Epic fan-out** — repeat this ARD for a sibling Epic: `/dev-workflows:create-ard <PRD> <another-Epic>`; that run inherits the PRD-level ARD, not this Epic-level one, so it waits on nothing this run produced and carries no clause.
+- **Epic-level ARD:** `choices: ["Author the spec — /dev-workflows:specify <EPIC> (PE) (Recommended) <merge-clause>", "Hand to Dev — /dev-workflows:design <EPIC> (Dev) <merge-clause>", "Stop here"]` — one address each, the Epic's own, because that is the only form either command accepts (D4). **Epic fan-out** — repeat this ARD for a sibling Epic: `/dev-workflows:create-ard <SIBLING-EPIC>`; that run inherits the PRD-level ARD, not this Epic-level one, so it waits on nothing this run produced and carries no clause.
 - **the BRD route (an ARD in a `PRD-` slice folder):** a different array, because **the key this run
   holds is a slice key and only one of the three usual options can be reached with one**:
   `choices: ["Author this slice's specification — /dev-workflows:specify <SLICE-KEY> (PE) (Recommended) <merge-clause>", "Hand to a Product Engineer — /dev-workflows:epics <SLICE-KEY> (PE) <merge-clause>", "Stop here"]`
@@ -470,8 +477,8 @@ Offering `/epics` there would name a run that stops on arrival.
   - **`/dev-workflows:specify <SLICE-KEY>` is always reachable from this state.** It takes
     the same slice key this run resolved — and passes that command's own container refusal for the
     same reason this run did, finds the same folder through `resolve-address`
-    (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), and needs no key minted anywhere else
-    export. It resolves this ARD through `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` and
+    (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), and needs no key minted anywhere else. It
+    resolves this ARD through `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` and
     stops on `status: unmerged`, so the wait is real and the clause is required.
   - **`/dev-workflows:epics <SLICE-KEY>` is offered where the slice holds an authored `prd.md`, and
     replaced by `/dev-workflows:create-prd <SLICE-KEY>` where it does not.** It resolves the same
@@ -484,13 +491,14 @@ Offering `/epics` there would name a run that stops on arrival.
     guarded a lookup that no longer happens. Neither option gates anything this run produced, so
     neither carries a merge clause.
   - **`/dev-workflows:design` is offered on this route by neither branch.** It takes over a merged
-    `specification.md` — a file this run did not write — and resolves its own key through the specs tree. The path to it runs through the first option: `/dev-workflows:specify <SLICE-KEY>
-    the BRD route` writes that specification, and its own next-step offer is where `/dev-workflows:design`
+    `specification.md` — a file this run did not write — and resolves its own key through the specs tree. The path to it runs through the first option: `/dev-workflows:specify <SLICE-KEY>` writes
+    that specification, and its own next-step offer is where `/dev-workflows:design`
     is named under the conditions that make it resolvable.
-  - **There is no Epic fan-out on this route.** the BRD route takes no second
-    positional key (Phase 0 step 1b), so there is no sibling Epic to repeat this ARD for. A sibling
+  - **There is no Epic fan-out on this route.** The address resolved a `PRD-` slice folder, not an
+    `EPIC-` one, so there is no sibling Epic to repeat this ARD for — and no second positional key to
+    name one with (Phase 0 step 1, `CREATE_ARD_ONE_ADDRESS`). A sibling
     *slice* is a separate BRD with its own folder and its own seed: `/dev-workflows:create-ard
-    <SIBLING-SLICE-KEY> the BRD route` waits on nothing this run produced and would carry no clause.
+    <SIBLING-SLICE-KEY>` waits on nothing this run produced and would carry no clause.
 
 **Every merge clause above is the `<merge-clause>` placeholder**, resolved from this run's own `Phase handoff:` outcome line per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`, and never the unconditional "once the pull request above is merged": a declined handoff, a failed push and a nothing-to-commit run each leave a different wait, and two of them open no pull request to wait on. It is a placeholder, not an instruction to reword an option, so the arrays are still presented verbatim per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`. **The wait it names is real for every command named above**, and it is a stop, not a silent degradation: `/dev-workflows:epics`, `/dev-workflows:specify` and `/dev-workflows:design` each read this ARD through `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` and each stops on `status: unmerged`, naming the branch and any open pull request. Only a handoff that reached no branch at all resolves `status: none`, where that reference's no-regression rule has the run proceed exactly as it would with no ARD.
 
@@ -502,7 +510,7 @@ The resume pointer is written in the terminal cost phase (Phase 8), per
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. The next step hands off from PA
 to PE/Dev, so:
 
-- **Handing to PE (`/dev-workflows:epics <PRD>` / `/dev-workflows:specify <PRD> <Epic>`) or Dev (`/dev-workflows:design <PRD> <Epic>`), even yourself?** → run **`/clear`** for a clean slate; the ARD is on disk.
+- **Handing to PE (`/dev-workflows:epics <PRD>` / `/dev-workflows:specify <EPIC>`) or Dev (`/dev-workflows:design <EPIC>`), even yourself?** → run **`/clear`** for a clean slate; the ARD is on disk.
 - **On the BRD route, the handoff is `/dev-workflows:specify <SLICE-KEY>`** (Phase 7) — same answer, **`/clear`**; the ARD is on disk and that run reads it from the specs repo, not from this session.
 - Continuing to draft more ARD areas yourself right now? → **`/compact`** is fine.
 - Consider **`/rename <PRD-ID>-<slug>-pa`** so you can find this session later.
@@ -514,7 +522,7 @@ Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
 ## Phase 8 — Session maintenance, feedback & cost
 Terminal phase — runs after Phase 7, NEVER interrupts an earlier phase.
 
-**Capture-at-block invariant.** If an EARLIER phase **halts on a plugin / skill / command / reference gap**, `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating. NEVER `emit-block` for an environment / user halt (unset `$SPECS_PATH`, missing key, no-ARD-needed, unmounted-repo descope, cancellation) or a review BLOCK. **The three the BRD route stops are of that second class**: `CREATE_ARD_NEEDS_KEY`, `CREATE_ARD_BRD_NOT_FOUND` and `CREATE_ARD_BRD_NO_EPIC` report the operator's own argument list or BRD tree, not a capability this plugin lacks, so none of them `emit-block`s.
+**Capture-at-block invariant.** If an EARLIER phase **halts on a plugin / skill / command / reference gap**, `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating. NEVER `emit-block` for an environment / user halt (unset `$SPECS_PATH`, missing key, no-ARD-needed, unmounted-repo descope, cancellation) or a review BLOCK. **The four argument- and tree-shaped stops are of that second class**: `CREATE_ARD_NEEDS_KEY`, `CREATE_ARD_ONE_ADDRESS`, `CREATE_ARD_BRD_NOT_FOUND` and `CREATE_ARD_BRD_NOT_SLICED` report the operator's own argument list or BRD tree, not a capability this plugin lacks, so none of them `emit-block`s.
 
 **Session-hygiene invariant.** End Phase 7 with a `### Context hygiene` block per
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the

@@ -198,17 +198,53 @@ as written. This is the re-refinement case — `/idea <KEY> @<that folder>/idea.
 the brief into its own `attachments/`.
 
 **Nothing empty is created.** `attachments/` is created only when a file is about to land in it, and
-`design/idea-sources/` with its index only when an image is. A bare-prompt run creates neither
-directory and writes no index.
+`design/idea-sources/` only when an image is. A bare-prompt run creates neither directory and writes no
+index. **Creating a directory and writing its index are not the same act**: the index is written
+whenever that directory holds at least one frame, including on a run that copied no image into a set an
+earlier run had already populated — see *The index is mandatory*, below.
 
-### The index is mandatory, and the descriptions are what it is written from
+### The index is mandatory, and it describes the frame set as it stands
 
 `grounding-format.md` §6.1: `design-grounder` returns `NO_INDEX` rather than reading a frame set that
 has no index, because *a filename is not a reliable statement of what a frame shows*. Writing images
 into `design/idea-sources/` **without** an index would therefore create a frame set that is
-permanently unreadable — worse than not vendoring the images at all. The material an index needs is
+permanently unreadable — worse than not vendoring the images at all. The material a **new** row needs is
 already in hand: `idea-reader` returns a `description` per read image, and an image it did not read
 carries none, is not copied, and contributes no row.
+
+**The index is rebuilt from the frame set as it stands on disk, never from the list of images this run
+copied.** The set is one per PRD folder rather than one per run, so from the second run onward "what this
+run copied" and "what the set holds" are different sets — and writing the smaller one leaves every
+earlier frame sitting in an indexed directory that identifies none of them: §6.1's own failure at row
+granularity, and silent. There is no recovering it from the inputs, either, because this run's digest
+holds no `description` for a frame an earlier run vendored. It is worse again under *identical content is
+not a collision* (below): an idempotent re-run copies nothing at all, so an index written from "each
+image copied" would resolve to no rows.
+
+The procedure runs **after the copies land**, and is a directory listing reconciled against the index
+already there:
+
+1. **List the images actually in `design/idea-sources/`** — every file carrying one of the image
+   extensions. `index.md` is not a frame and is never a row.
+2. **Preserve every existing row whose image is still in that listing, verbatim** — the frame, its
+   `Linked from`, and its description exactly as they stand. This run cannot reproduce a description it
+   never received, so a row it cannot reproduce is a row it must not rewrite.
+3. **Append one row per image this run copied**, in copy order, after the rows already present, built from
+   that image's `description` and `linked_from` in the digest — transcribed verbatim, never invented. An
+   image the collision rule *reused* (byte-identical content already at the destination) is not a new
+   frame and gets no second row; the row already describing it stands.
+4. **An image present in the listing with no row and no `description` in this run's digest still gets a
+   row** — `—` in `Linked from`, and the literal `_no description on record_` in the last column. Something
+   other than an `/idea` run put a frame in this set; omitting it would rebuild the exact defect this
+   procedure exists to prevent, and inventing a description for it is the inference §6.1 forbids. Report it.
+5. **A row whose image is no longer in the listing is dropped**, and reported. The index states what the
+   set holds, and a row naming a frame that is not there is a promise `design-grounder` would resolve to
+   nothing. Nothing is restored and nothing is re-copied: this step reconciles an index with a directory,
+   it never manages the directory.
+6. **Write the index whenever that listing is non-empty** — not only when this run copied something. A
+   re-run that copied nothing writes it too, and, with every row preserved and none appended, writes back
+   exactly the file that was there. Where the listing is empty, or the directory does not exist, write
+   nothing and create nothing.
 
 `<PRD-folder>/design/idea-sources/index.md`:
 
@@ -222,8 +258,10 @@ written_by: /idea
 
 # Frame set: idea-sources
 
-Frames this `/idea` run vendored from the source(s) it read. Each description is `idea-reader`'s own
-account of what the frame shows — **context, not evidence**: what somebody drew, not what anything does.
+Every frame this set holds, in the order it was vendored. The set is one per PRD folder and accumulates
+across `/idea` runs over that folder, so a row may well predate the run that last wrote this file. Each
+description is `idea-reader`'s own account of what the frame shows — **context, not evidence**: what
+somebody drew, not what anything does.
 
 | Frame | Linked from | What the frame shows |
 |---|---|---|
@@ -231,8 +269,10 @@ account of what the frame shows — **context, not evidence**: what somebody dre
 ```
 
 `Linked from` is the digest's `linked_from` — the original path of the `.md` that carried the link,
-kept as the frame's provenance and never repointed at the copy. A description is transcribed verbatim
-and **never** invented; §6.1's index rule exists to forbid exactly the inference a filename invites.
+kept as the frame's provenance and never repointed at the copy; a frame no run's digest accounts for
+carries `—` there per step 4. A description is transcribed verbatim and **never** invented; §6.1's index
+rule exists to forbid exactly the inference a filename invites, and that prohibition is why step 2
+preserves an older run's row rather than regenerating it.
 
 **Writing this index does not mean `/idea` design grounding has shipped.** Nothing on this route
 dispatches `design-grounder`, produces a `[DG#n]`, or reaches `grounding-verifier` — the index makes
@@ -261,23 +301,85 @@ The same rule, with the same counter semantics, applies in **both** destinations
 
 Rewrite a link in `idea.md` **only** where its target was actually copied. Every other link — broken,
 past a cap, an unreadable image, a PDF, an external URL, a file already in the PRD folder — is left
-byte-for-byte as it stands.
+byte-for-byte as it stands, **syntax included, and deliberately so**: a wikilink that still reads
+`[[rollout]]` is the visible signal that the cap bit and nothing was copied for it, which is precisely
+what the author needs in order to vendor that file by hand. Converting an uncopied link to markdown
+would give it the shape of a repaired link while leaving it as dead as it was.
 
-The rule is: **replace the target; preserve the syntax and the display text.**
+The rule is: **replace the target, preserve the display text, and write the result as standard
+markdown.**
 
-| Written as | Becomes |
+**A rewritten link is always standard markdown, never a wikilink — and that is the point of the
+rewrite.** `$SPECS_PATH` is a git repository, read on a forge's web view and in ordinary editors; it is
+not an Obsidian vault. Nothing there resolves `[[name]]`, and a forge renders it as literal text. So a
+link repointed *into* the repo precisely so that it would resolve, but left in wikilink syntax, still
+resolves nowhere the repo is actually read — the copy lands and the record stays unfollowable, which is
+the whole failure this section exists to fix. Standard markdown resolves on the forge, in editors **and**
+in Obsidian, so converting loses nothing and gains the capability.
+
+**The map this decision runs on, and where both halves come from.** Deciding on the resolved file means
+holding, per copied entry, the target **as written** *and* the destination its copy landed at. The digest
+carries the written form on every link array — `images[].target` beside its `path` and `linked_from`,
+`wikilinks_followed[].target` beside its `from` and `path`, and the same field on
+`wikilinks_not_followed[]`, `wikilinks_broken[]` and `links_other[]` — and the copy step knows the name the
+collision rule minted. Pair them:
+
+| Key | Value |
 |---|---|
-| `[[notes]]` | `[[attachments/notes.md\|notes]]` |
-| `[[notes\|see this]]` | `[[attachments/notes.md\|see this]]` |
-| `![[toggle-01.png]]` | `![[design/idea-sources/toggle-01.png]]` |
-| `[the note](../vault/notes.md)` | `[the note](attachments/notes.md)` |
-| `![the toggle](/home/x/img/toggle-01.png)` | `![the toggle](design/idea-sources/toggle-01.png)` |
+| the `target` as written, together with the `linked_from`/`from` it was written in | the path of that entry's copy, relative to the PRD folder |
 
-Both link syntaxes are rewritten, and absolute and relative targets alike: what decides a rewrite is
-the file the target **resolved to**, never the shape of the string. A bare `[[name]]` gains an alias
-equal to its original target text so that what the page renders does not change. A new target is
-written relative to the PRD folder — `idea.md` sits at its root — and a space in a name is
-percent-encoded in the markdown form (`%20`) and written literally in the wikilink form.
+**Nothing here re-resolves a link.** This rule opens no path of its own; the map is the whole of what it
+knows, so a written form that is not a key is a link nothing copied. Match each link in `idea.md` on its
+target string:
+
+1. **Exactly one key carries that written target** — rewrite it to that key's copy. The ordinary case, and
+   it is decided on the resolved file: the key exists only because that entry resolved and was copied.
+2. **No key carries it** — leave it byte-for-byte, per the paragraph above.
+3. **Two or more keys carry the same written target and resolved to different files** — leave **every**
+   occurrence byte-for-byte, and report the ambiguity: the target, each source path it resolved to, and
+   each copy it landed at. Two directories may each hold `toggle-01.png`, each linked by bare name from
+   its own page; the copies are then `toggle-01.png` and `toggle-01_01.png`, and `idea.md` carries nothing
+   per occurrence that says which is which. **A link left as written is one nobody else can follow; a link
+   repointed at the wrong frame reads as authoritative and is false.** The second is the worse record, so
+   this rule takes the first and names it rather than guessing. Targets written *differently* —
+   `mockups/settings/toggle-01.png` and `mockups/onboarding/toggle-01.png`, which render identically and
+   differ only in a prefix a reader skims past — are two distinct keys, and rule 1 sends each to its own
+   copy. That is what keying on the written form buys, and exactly what matching on the basename would
+   get wrong.
+
+| Written as | Becomes | Note |
+|---|---|---|
+| `[[notes]]` | `[notes](attachments/notes.md)` | the target text becomes the link text |
+| `[[notes\|see this]]` | `[see this](attachments/notes.md)` | the alias is the link text |
+| `![[toggle-01.png]]` | `![toggle-01](design/idea-sources/toggle-01.png)` | embed → image; alt from the original basename |
+| `![[notes]]` (a `.md` transclusion) | `[notes](attachments/notes.md)` | embed → **link**; see below |
+| `[the note](../vault/notes.md)` | `[the note](attachments/notes.md)` | already standard; target only |
+| `![the toggle](/home/x/img/toggle-01.png)` | `![the toggle](design/idea-sources/toggle-01.png)` | already standard; target only |
+
+Both link syntaxes are read, and absolute and relative targets alike; only one is ever written. **What
+decides a rewrite is the file the target resolved to; what identifies the link is the target as written,
+and both halves are load-bearing.** Deciding on the shape of the string alone points two same-named
+frames at one copy; holding the resolved path alone leaves no way back from a link in `idea.md` to the
+copy it belongs to except resolving it a second time, which this rule does not do.
+
+**Display text is preserved, never dropped and never invented.** An aliased wikilink keeps its alias; a
+bare `[[name]]` takes `name` as its link text, so what the page renders does not change; a markdown link
+keeps the text it already had; and a bare `![[note]]` transclusion takes its link text exactly the way a
+bare `[[note]]` does — the target as written. A bare image embed has no text at all, so its alt is derived from the
+**original** basename with its extension dropped — `![[toggle-01.png]]` gives `![toggle-01](…)`. Derive
+it from what the author wrote, never from the name the collision rule minted, so a `_NN` suffix never
+surfaces as alt text. A new target is written relative to the PRD folder — `idea.md` sits at its root —
+and a space in it is percent-encoded (`%20`), which is the only form left once every rewritten link is
+markdown.
+
+**`![[note]]` on a markdown file becomes a plain link, and that is a deliberate semantic change.**
+Obsidian transcludes the page's content inline; standard markdown has no equivalent, and `![…](…)`
+pointed at a `.md` file renders as a broken image rather than as the page. The embed renders nothing on
+a forge or in an editor either way, so *preserving* it preserves only the appearance of meaning, while
+`[note](attachments/note.md)` resolves and opens the copy everywhere — including in Obsidian, where only
+the inline transclusion is lost and the destination still resolves. We take the trade: a link the reader
+must follow beats an embed nobody's reader expands. It is written down here so nobody restores the embed
+believing the conversion was an oversight.
 
 **The copies themselves are never edited.** A copy is a verbatim record of what was read, and
 rewriting the links *inside* one would falsify that record. A copied page's own wikilinks therefore

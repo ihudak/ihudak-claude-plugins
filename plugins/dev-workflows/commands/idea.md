@@ -116,7 +116,10 @@ This is an environment/user halt — do NOT `emit-block`. On `OK`, carry forward
 `wikilinks_broken` — and `links_other`. `source_refs`/`provenance` feed the `sources:` frontmatter
 entry in Phase 4, and `tracked` seeds `## Prior art`. **Every one of those lists is also Phase 4.5's
 input**: `wikilinks_followed` and the read `images` are what gets copied, and the other three are what
-gets reported instead.
+gets reported instead. **Carry each entry whole, `target` included.** Every link array names the target
+**as written** beside the path it resolved to; that pairing is the only map Phase 4.5 has from a link in
+`idea.md` back to the copy it belongs to, and dropping it would force that phase to resolve links itself —
+which it is forbidden to do.
 
 **What the digest now carries, and what it is worth.** The reader follows wikilinks **two levels
 deep** under one total-file cap and **reads** the images the source links, returning a
@@ -266,17 +269,43 @@ repairs where `idea.md` points.
    destination is reused rather than re-copied; otherwise the name takes the lowest free `_NN`, derived
    from the destination directory and appended to the **original** basename, never to a name already
    carrying a suffix.
-3. **Write `design/idea-sources/index.md`** from the `description` of each image copied, in the format
-   that reference fixes. **The index is not optional**: `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md`
-   §6.1 makes its absence unrecoverable, so images written without one would be a frame set nothing can
-   ever read. Transcribe each description verbatim and invent none. **Writing it does not mean `/idea`
-   design grounding has shipped** — nothing here dispatches `design-grounder`, produces a `[DG#n]`, or
-   reaches a verifier, and that capability remains deliberately unbuilt (§6.1 says so; this phase keeps
-   it true).
+3. **Rebuild `design/idea-sources/index.md` from the frame set as it stands on disk**, in the format that
+   reference fixes: list the directory, keep every existing row whose image is still there **verbatim**,
+   append a row per image *this* run copied from its digest `description`, give a frame with neither a row
+   nor a description the `_no description on record_` row, and drop a row whose image is gone — reporting
+   the last two. **Write it whenever that listing is non-empty, not only when this run copied something**:
+   the frame set is one per PRD folder and accumulates across runs, so an index written from this run's
+   copy list alone would orphan every frame an earlier run vendored, and an idempotent re-run — which
+   copies nothing — would write no rows at all. This run holds no `description` for an earlier run's
+   frames, which is why step 2's rows are preserved rather than regenerated. **The index is not optional**:
+   `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §6.1 makes its absence unrecoverable, so images
+   written without one would be a frame set nothing can ever read. Transcribe each description verbatim and
+   invent none. **Writing it does not mean `/idea` design grounding has shipped** — nothing here dispatches
+   `design-grounder`, produces a `[DG#n]`, or reaches a verifier, and that capability remains deliberately
+   unbuilt (§6.1 says so; this phase keeps it true).
 4. **Rewrite `idea.md`'s links onto the copies** — `[[wikilinks]]`, `![[embeds]]`, `[text](path)` and
-   `![alt](path)`, absolute and relative alike — replacing the target and preserving the syntax and the
-   display text. **Rewrite only a link whose target this phase actually copied.** Every other link is
-   left byte-for-byte as it stands. The copies themselves are never edited.
+   `![alt](path)`, absolute and relative alike — replacing the target, preserving the display text, and
+   **writing every rewritten link as standard markdown**. `$SPECS_PATH` is a git repo read on a forge and
+   in editors, not an Obsidian vault: nothing there resolves `[[name]]`, so a link repointed into the repo
+   but left in wikilink syntax still resolves nowhere the record is actually read. `[[rollout]]` becomes
+   `[rollout](attachments/rollout.md)`, `[[rollout|the plan]]` becomes `[the plan](attachments/rollout.md)`,
+   `![[toggle-01.png]]` becomes `![toggle-01](design/idea-sources/toggle-01.png)` (alt from the **original**
+   basename, never the collision-rule name), and `![[note]]` on a markdown file becomes the plain link
+   `[note](attachments/note.md)` — a transclusion has no standard equivalent and renders nowhere here
+   either way, so a link that resolves beats an embed that does not. **Rewrite only a link whose target
+   this phase actually copied.** Every other link is left byte-for-byte as it stands, **syntax included**:
+   a surviving `[[rollout]]` is the signal that the cap bit and the author may want to vendor that file by
+   hand. The copies themselves are never edited.
+   **Rewrite from the digest's own written-form → copy map, and re-resolve nothing.** Every link array
+   carries the target **as written** beside the path it resolved to — `images[].target` with its
+   `linked_from`, `wikilinks_followed[].target` with its `from` — and step 2 knows the name each copy took;
+   pair them and match `idea.md`'s links on the target string. This phase opens no path of its own, so a
+   target that is not a key of that map is a link nothing copied and is left alone. Where two entries share
+   one written target but resolved to **different** files, that target is ambiguous — `idea.md` records
+   nothing per occurrence to separate them — so **leave every occurrence as written and report it** rather
+   than repoint one at the wrong copy. Targets that merely *look* alike but differ as strings
+   (`settings/toggle-01.png` vs `onboarding/toggle-01.png`) are two keys and each is rewritten to its own
+   copy.
 5. **Record `vendored:`** beside each vendored entry's `ref:` in `sources:`. `ref` is not rewritten —
    it answers how the idea arrived, and that is still true of a path nobody else can resolve.
 6. **Create nothing empty.** `attachments/` only where a file lands in it, `design/idea-sources/` and
@@ -289,7 +318,9 @@ repairs where `idea.md` points.
 8. **Report what was not copied, in the Final report** — `wikilinks_not_followed[]` with each `cap`/
    `depth` reason, `wikilinks_broken[]`, every `images[]` entry with `read: false` and its reason, and
    every `links_other[]` entry with its extension. None of the four is copied, none of them has its
-   link rewritten, and none of them is fatal.
+   link rewritten, and none of them is fatal. **Report three more things the steps above produce**: every
+   ambiguous target step 4 declined to rewrite (with each source path and each copy), every frame step 3
+   indexed as `_no description on record_`, and every index row step 3 dropped because its image is gone.
 
 Hold the vendoring outcome — what landed in each destination, what was skipped and why, and any name
 substituted by the collision rule — for the Final report, and carry the literal list of paths written
@@ -297,9 +328,22 @@ into Phase 5's `deliverable_paths`.
 
 **The bookkeeping steps do not stage any of this.** `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`
 §2.1 classifies `attachments/**` and `design/**` as OTHER, so `commit-artifacts` never touches them —
-they are deliverables, and they reach the default branch only through Phase 5's handoff. A declined
-handoff therefore leaves them dirty in the specs repo exactly as it already leaves `idea.md`, which
-that reference's §3.3 G1 guard reports at advisory severity on a later run without blocking it.
+they are deliverables, and they reach the default branch only through Phase 5's handoff.
+
+**What a run without a handoff therefore leaves behind, stated at its real size.** Not one file: `idea.md`
+**and every path this phase wrote** — up to 12 copies in `attachments/` (the reader's total-file cap), up
+to 6 in `design/idea-sources/` (its image cap) and that set's `index.md`, which is **19 beside `idea.md`,
+so as many as 20 dirty OTHER paths**. Two routes reach that state, and only one of them is a decline:
+Phase 5's `status: refined` branch offers the handoff and the operator may decline it, while its
+`status: draft` branch **never offers one at all** — so a draft run leaves the whole set dirty by
+construction rather than by a choice.
+
+On the next run of any command sharing that repo, §3.3's **G1** matches. Its consequences are three, not
+one: the preflight **ends** there, at advisory severity, listing the paths — no commit, no branch switch,
+no push — and because §3.4's leftover flush and §3.5's branch disposition run only when stage 1 matched
+nothing, **both are suppressed for the rest of that session**. G1 does **not** set `specs_git: blocked`,
+so the terminal `commit-artifacts` still runs and nothing is lost or halted; the suppression repeats on
+every later run until those paths are committed or the handoff is taken.
 
 ---
 
@@ -312,8 +356,11 @@ the next phase — **adapted to status**:
   `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim, then on the
   first option execute `handoff-to-main` (§2) with all five of its §2.9 inputs: `prefix: idea`;
   `feature_folder` = the folder Phase 0 resolved; `deliverable_paths` = `idea.md`, **plus every file
-  Phase 4.5 wrote** — each copy under `attachments/`, each image copy under `design/idea-sources/`,
-  and that frame set's `index.md`; `title: <KEY> Add idea brief`; and `body_facts` = the idea's
+  Phase 4.5 wrote or reused** — each copy under `attachments/`, each image copy under
+  `design/idea-sources/`, and that frame set's `index.md`. **Reused counts**: a copy the collision rule
+  matched byte-for-byte was not written by this run, but `idea.md`'s link points at it and an earlier run
+  may have left it on no ref — naming a path whose content is unchanged stages nothing, while omitting one
+  is a link to a file that never lands; `title: <KEY> Add idea brief`; and `body_facts` = the idea's
   one-line goal, the number of `[NEEDS CLARIFICATION]` markers left open, the logged assumptions,
   whether docs grounding ran, and what was vendored.
   **All five are required** — §2.4's commit subject and §2.7's pull-request title are both derived
@@ -437,8 +484,11 @@ reason, how many linked images were read, and every image left with `read: false
 these even when nothing was excluded ("all N linked images read; no link left unfollowed"), because
 the absence of a truncation notice is only informative once the run is known to print one; **what the
 run vendored and what it did not** — the count of files copied into `attachments/` and of images copied
-into `design/idea-sources/`, whether that frame set's `index.md` was written, every name the collision
-rule substituted, the number of links rewritten in `idea.md`, and every source left uncopied with its
+into `design/idea-sources/`, whether that frame set's `index.md` was written and how many rows it now
+holds against how many this run added, every name the collision rule substituted, the number of links
+rewritten in `idea.md` **and every target left unrewritten because two copied entries were written
+identically** (with each source and each copy), every frame indexed with no description on record, every
+index row dropped because its image is gone, and every source left uncopied with its
 reason (`cap`, `depth`, broken, `unreadable`, `not_an_image`, a linked file that is neither
 text/markdown nor an image with its extension, or a copy that failed) — stated plainly where nothing was
 vendored at all ("no source to vendor: the idea came from a prompt", or "nothing linked"), and naming no

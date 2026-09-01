@@ -59,6 +59,11 @@ sources it actually read into the same PRD folder and rewrites `idea.md`'s links
 - **Images → `design/idea-sources/`.** Every image the reader opened, together with an `index.md`
   saying what each frame shows — written from the reader's own descriptions, transcribed and never
   invented.
+- **One frame set per PRD folder, and its index accumulates.** A second `/idea` run over the same folder
+  adds its images to that set and **rebuilds the index from the directory**, keeping every earlier row
+  word for word and appending its own — a later run holds no description for a frame an earlier one
+  vendored, so a row it cannot reproduce is one it does not touch. The index is rewritten whenever the set
+  holds a frame, so a re-run that copies nothing leaves it correct rather than empty.
 - **Nothing else, ever.** No PDF, no archive, no other binary. A linked file that is neither
   text/markdown nor an image keeps its link exactly as written and is named in the final report.
 - **Only what was read.** A link past the twelve-file or six-image cap, a broken link, an image that
@@ -66,8 +71,34 @@ sources it actually read into the same PRD folder and rewrites `idea.md`'s links
 - **Names never collide silently.** A second file with the same basename becomes `notes_01.md`, a
   third `notes_02.md`, and a suffix is never appended to a suffix. A copy whose content is already
   there byte-for-byte is reused rather than duplicated, so a re-run does not grow the folder.
+- **A repointed link comes out as standard markdown, never a wikilink.** The specs repo is browsed on a
+  forge and in editors, where `[[wikilink]]` is literal text that resolves to nothing — so a link
+  repointed into the repo but left in wikilink syntax still would not open anywhere the record is
+  actually read. Display text is kept; a bare image embed takes its alt from the original filename. An
+  `![[note]]` embed of a markdown page becomes a plain link rather than an embed — transclusion has no
+  standard equivalent and renders nowhere in a git repo, so a link that opens the copy is worth more than
+  syntax that does not. A link **nothing copied** keeps its original syntax untouched, on purpose: a
+  surviving `[[wikilink]]` is how you see that a cap bit.
+- **Links are repointed by the target as written, not by its filename.** Two mockups called
+  `toggle-01.png` in different directories become two copies, and the link that named each one goes to
+  its own. Where two links are written *identically* and reached different files, neither is rewritten —
+  `idea.md` says nothing about which occurrence meant which, and the report names the ambiguity so you can
+  point them by hand. A link nobody else can follow is a poor record; a link pointing confidently at the
+  wrong frame is a false one.
 - **Nothing empty is created.** A run over a bare prompt has nothing to copy and creates neither
   directory.
+
+What a rewrite looks like, in `idea.md`:
+
+```markdown
+[[rollout]]                        →  [rollout](attachments/rollout.md)
+[[rollout|the plan]]               →  [the plan](attachments/rollout.md)
+![[toggle-01.png]]                 →  ![toggle-01](design/idea-sources/toggle-01.png)
+![[note]]                          →  [note](attachments/note.md)        (embed → link)
+[the survey](/abs/survey.md)       →  [the survey](attachments/survey.md)
+![alt](/abs/toggle-01.png)         →  ![alt](design/idea-sources/toggle-01.png)
+[[capped-note]]                    →  [[capped-note]]                    (not copied — untouched)
+```
 
 The copies and the index are handed to the handoff alongside `idea.md`, so they reach the default
 branch with it rather than sitting on one machine.

@@ -4,6 +4,100 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.18.1] — 2026-09-01
+
+### Fixed — three defects in 3.18.0's vendoring: an orphaning index, an unresolvable link map, and links that resolved nowhere
+
+Review of 3.18.0 found three ways the new Phase 4.5 damages, or fails to repair, the record it exists to
+protect. All three are fixed here, with three smaller inaccuracies beside them.
+
+**The `design/idea-sources/` index orphaned every frame an earlier run vendored.** The frame set is one
+per PRD folder and accumulates across runs, but the index was written "from the `description` of each
+image **copied**" — this run's copies only. A second run that vendored one new image therefore rewrote
+the index down to that one row, leaving run 1's frames sitting in an indexed directory that identified
+none of them: `references/grounding-format.md` §6.1's own unrecoverable failure, reproduced at row
+granularity and silently. Nor could a run repair it, because this run's digest holds no `description`
+for a frame an earlier run vendored. Under the byte-identical-content rule it was worse again — an
+idempotent re-run copies nothing, so "each image copied" was empty and the index resolved to no rows at
+all. **The index is now rebuilt from the frame set as it stands on disk**: the directory is listed, every
+existing row whose image is still there is preserved **verbatim**, rows for this run's copies are
+appended, and it is written **whenever that listing is non-empty** rather than only when something was
+copied. Two states the old rule never named are now stated and reported: a row whose image is gone is
+dropped (an index must state what the set holds, not what it once held), and an image with no row and no
+description in hand is given one carrying `_no description on record_` — omitting it would rebuild the
+very defect, and inventing a description for it is the inference §6.1 forbids.
+
+**Link rewriting had no way back from a link to the copy it belonged to.** `references/idea-format.md`
+made the rewrite decision "the file the target **resolved to**, never the shape of the string" — correct,
+and unimplementable, because neither copied list carried the target *as written*: `images[]` had
+`path`/`linked_from` and `wikilinks_followed[]` had `path` alone, while `wikilinks_not_followed[]` and
+`links_other[]` both carried `target:`. Phase 4.5 would have had to re-resolve every link, which
+`commands/idea.md` forbids in the same breath. The concrete cost: two `toggle-01.png` in different
+directories, copied as `toggle-01.png` and `toggle-01_01.png`, with nothing to stop a link being
+repointed at the wrong frame. **`idea-reader` now returns `target:` on `images[]` and `wikilinks_followed[]`,
+and `from:` on `wikilinks_followed[]`**, so every link array carries the written form beside the path it
+resolved to; Phase 4.5 pairs them into a written-form → copy map and matches on it, re-resolving nothing.
+Targets that merely *look* alike (`settings/toggle-01.png` vs `onboarding/toggle-01.png`) are distinct
+keys and each reaches its own copy. Where two entries were written **identically** and reached different
+files, `idea.md` records nothing per occurrence to separate them, so **neither is rewritten** and the
+ambiguity is reported with each source and each copy — a link nobody else can follow is a poor record,
+but a link pointing confidently at the wrong frame is a false one.
+
+### Fixed — a rewritten link stayed a wikilink, so it resolved nowhere the repo is read
+
+Phase 4.5 preserved the original syntax on rewrite: `[[rollout]]` became `[[attachments/rollout.md|rollout]]`.
+But `$SPECS_PATH` is a **git repository** — browsed on a forge's web view and in ordinary editors — not an
+Obsidian vault. Nothing there resolves `[[name]]`; a forge renders it as literal text. A link deliberately
+repointed *into* the repo so that it would resolve therefore still resolved nowhere the record is actually
+read, which is the entire failure vendoring exists to fix: the copy landed and the brief stayed
+unfollowable. **Every rewritten link is now standard markdown** — `[rollout](attachments/rollout.md)`,
+`[the plan](attachments/rollout.md)` for an alias, `![toggle-01](design/idea-sources/toggle-01.png)` for an
+image embed — which resolves on the forge, in editors **and** in Obsidian, so nothing is lost by
+converting. Display text is preserved (a bare `[[name]]` takes `name`; an aliased one keeps its alias), and
+a bare image embed derives its alt from the **original** basename, never from the name the collision rule
+minted, so a `_NN` suffix never surfaces as alt text. Markdown links and images were already in the right
+form and continue to have their target replaced and nothing else.
+
+**`![[note]]` on a markdown file becomes a plain link, and the call is stated rather than buried.** An
+Obsidian transclusion has no standard-markdown equivalent, and `![…](…)` pointed at a `.md` file renders as
+a broken image rather than as the page. The embed renders nothing on a forge or in an editor either way, so
+preserving it preserves only the appearance of meaning, while `[note](attachments/note.md)` resolves and
+opens the copy everywhere — in Obsidian too, where only the inline transclusion is lost. We take the trade:
+a link the reader must follow beats an embed nobody's reader expands. It is written where the rule lives so
+nobody restores the embed believing the conversion was an oversight.
+
+**A link whose target was NOT copied keeps its original syntax, deliberately.** Past a cap, broken,
+unreadable, a PDF, an external URL: it is left byte-for-byte, wikilink and all. A surviving `[[rollout]]` is
+the visible signal that the cap bit and the author may want to vendor that file by hand; converting it would
+give a dead link the shape of a repaired one.
+
+### Fixed — three smaller inaccuracies
+
+- **`wikilinks_followed[].path`** said "path of a followed .md" where every sibling field says
+  **absolute**. Phase 4.5 copies from that field.
+- **`docs/brd-workflow.md`** drew `attachments/` inside the **BRD** folder annotated "written by /idea",
+  but `/idea`'s write root is always a **PRD** folder and no route writes attachments at BRD level. It now
+  hangs off the `PRD-<CHILD-KEY>-…` slice folder, beside `design/idea-sources/`. The `design/` entry at
+  BRD level is `/brd-ground`'s and is unchanged.
+- **The G1 consequence was understated by an order of magnitude.** `commands/idea.md` said a declined
+  handoff leaves the vendored files dirty "exactly as it already leaves `idea.md`". It leaves far more:
+  `idea.md` **plus every path Phase 4.5 wrote** — up to 12 copies in `attachments/`, 6 in
+  `design/idea-sources/` and that set's `index.md`, so as many as **20 dirty OTHER paths**. And a decline
+  is not the only route there: the `status: draft` branch never offers a handoff at all, so a draft run
+  reaches that state by construction. `references/specs-repo-git.md` §3.3 G1 then ends the preflight and,
+  because §3.4's leftover flush and §3.5's branch disposition run only when stage 1 matched nothing,
+  **suppresses both for the rest of the session** — not merely "an advisory notice". It still does not set
+  `specs_git: blocked`, so the terminal commit runs and nothing is lost.
+
+### Changed — `deliverable_paths` names reused copies too
+
+A copy the collision rule matched byte-for-byte was not *written* by this run, so "every file Phase 4.5
+wrote" left it out — yet `idea.md`'s link points at it and an earlier declined handoff may have left it on
+no ref. The declaration is now "every file Phase 4.5 wrote **or reused**": naming a path whose content is
+unchanged stages nothing, while omitting one is a link to a file that never lands.
+
+Counts unchanged: 27 commands / 37 agents / 105 reference files.
+
 ## [3.18.0] — 2026-09-01
 
 ### Added — `/idea` vendors the sources it read into the PRD folder

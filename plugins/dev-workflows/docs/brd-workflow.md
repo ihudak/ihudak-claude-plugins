@@ -198,7 +198,6 @@ specifications/BRD-<BRD-KEY>-<slug>/
 │   └── design-grounding.md      # [DG#n] findings, /brd-ground (skipped or noted with --no-design)
 ├── design/                      # exported frame sets — one subdirectory each, images + an index
 │   └── <frame-set>/             # what /brd-ground Phase 5 reads; no index means it is not read
-├── attachments/                 # text/markdown sources a run copied in — written by /idea
 ├── brd-link.md                  # depends-on / parent-child links, /brd-ground, /brd-split, /brd-package
 ├── slices.md                    # slice rationale and deferral notes, /brd-split
 ├── decisions.md                 # the register: [VD#n] and [AS#n] from /brd-interview, [CD#n] from /brd-reconcile
@@ -213,6 +212,8 @@ specifications/BRD-<BRD-KEY>-<slug>/
 ├── reconciliation-<date>.md     # what the review changed and what still needs a human, /brd-reconcile
 ├── dev-workflows/                # session bookkeeping: resume pointer, feedback, cost entries
 └── PRD-<CHILD-KEY>-<child-slug>/ # a slice /brd-split confirmed — where its PRD, ARD and spec are authored
+    ├── attachments/          # text/markdown sources /idea vendored — PRD level only, never here
+    └── design/idea-sources/  # images /idea vendored, with the frame-set index it writes
 ```
 
 Two of those entries are **reserved subdirectory names** rather than this route's own files, and both

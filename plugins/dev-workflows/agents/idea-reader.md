@@ -140,13 +140,16 @@ raw_context: |
 signals:
   - <demand-evidence bullet: requester, upvotes, recurring ask, linked case>
 images:
-  - path:        <absolute path to the linked image>
+  - target:      <the image link target exactly as written in the file that linked it>
+    path:        <absolute path to the linked image>
     linked_from: <absolute path of the .md file that linked it>
     read:        true | false
     description: <≤60 words: what the frame shows — present IFF read: true, never inferred>
     reason:      cap | unreadable | not_an_image        # present IFF read: false
 wikilinks_followed:
-  - path:            <path of a followed .md>
+  - target:          <the wikilink target exactly as written in the file that linked it>
+    from:            <absolute path of the file that linked it>
+    path:            <absolute path of the followed .md>
     depth:           1 | 2
     salient_summary: <≤150 words: the facts that mattered — status, named customers, what shipped, what closed>
     tracked_status:  <the item's status when its frontmatter carries one, else omit>
@@ -168,11 +171,24 @@ candidate_slug:  <kebab-case slug inferred from the source>
 `images`, `wikilinks_followed`, `wikilinks_not_followed`, `wikilinks_broken` and `links_other` are each
 `[]` when empty — never omitted, so the caller can tell "nothing linked" from "the key went missing".
 
+**Every link array carries the target as written, beside the path it resolved to.** `wikilinks_not_followed`,
+`wikilinks_broken` and `links_other` always did; `images` and `wikilinks_followed` do too, and the pair is
+not redundant. The caller repoints links inside a document, so it needs a map from *the string in the file*
+to *the file that string reached* — and it holds only what this digest returns. Given the resolved `path`
+alone, the only way back to the link is to resolve it a second time, which is precisely the work the caller
+is forbidden to redo. So: **`target` is the link target verbatim** — never normalised, never expanded to an
+absolute path, never made relative to anything, and never carrying an alias's display half (`[[notes|see this]]`
+has `target: notes`). `linked_from` (images) and `from` (wikilinks) name the file the string was written in,
+which is what distinguishes two entries that share a `target` and resolved to different files. That is a real
+state — two directories holding `toggle-01.png`, each linked by name from its own page — and it is never
+collapsed into one entry.
+
 ## Hard rules
 
 - NEVER modify any file. This agent is read-only.
 - Read a linked image as **context only** — it informs `raw_context` and the caller's grill. It NEVER becomes a `[DG#n]` finding, NEVER requires or implies a frame-set index file, and NEVER goes to a verifier. This agent is not `design-grounder` and must not behave like one.
 - NEVER write a `description` for an image that was not read, and NEVER infer what a frame shows from its filename or path.
+- NEVER normalise, resolve, complete, or otherwise rewrite a `target`: it is the link exactly as it appears in the file that carried it. A caller that repoints links compares written forms, so a tidied `target` silently points a link at the wrong file. Two entries sharing a `target` with different `linked_from`/`from` are two entries, never one.
 - NEVER reach out over HTTPS to any host — operate purely on the inline prompt and the file the caller named.
 - NEVER fabricate demand signals, requesters, or sources not present in the input.
 - Follow wikilinks at most **TWO** levels deep, never read the same resolved path twice, and never exceed the total-file cap in `## Bounding`. A revisit is a silent skip, never an error and never a broken link.

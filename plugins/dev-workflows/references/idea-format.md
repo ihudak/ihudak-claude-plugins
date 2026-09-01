@@ -47,6 +47,14 @@ insufficient. No proposed solution, no technology detail.
 `## Signals & evidence` — demand evidence grounding the idea: RFE reference, community-post
 requesters/upvotes, wikilinked docs, and image references. Cite sources; never fabricate.
 
+**A linked image is cited by path, and what it shows is described only where the grill settled it.**
+`idea-reader` reads the images an idea source links and returns a short description of each frame, but
+that description is **context, not evidence** — it says what somebody drew, not what anything does. So
+an image bullet names the file and, at most, what the operator confirmed about it during the grill;
+never write a frame's contents here as an established fact, and never describe an image the reader
+reported it did not read. An image is also never the sole support for a bullet in this section:
+demand is shown by who asked, not by a mockup existing.
+
 **Code findings never go here.** This section is *demand* evidence only. Feasibility findings from a
 `--ground-code` run — what the code already does, what is missing, and any reframing they force —
 belong in **Feasibility grounding** (Section 7).

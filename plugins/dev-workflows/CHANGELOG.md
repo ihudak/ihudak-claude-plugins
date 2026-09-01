@@ -4,6 +4,100 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.17.0] — 2026-09-01
+
+### Added — `/idea` reads more of the source it was given
+
+**An idea run now opens the images its source links, and follows that source's wikilinks two levels
+instead of one.** Given a markdown source, `idea-reader` previously recorded an image as a path and
+nothing else, and stopped at the source's immediate neighbours. Both bounds have moved, and both
+moves are bounded in their own right.
+
+- **Linked images are read, and what each frame shows reaches the grill.** The reader enumerates
+  every image the source *and every followed page* links, opens the first **6** in traversal order,
+  and returns a ≤60-word `description` of each — the screens, fields, states and flow on the frame.
+  A run over a note that links a mockup can now ask "the frame puts the toggle per project; is the
+  setting per project or per account?" instead of asking what the file is.
+- **Wikilinks are followed two levels deep** — the source's own `[[links]]`, and the links on those
+  pages. Depth 3 is never reached, and links found on a depth-2 page are listed rather than walked.
+
+**What an image counts as: context, not evidence — and that is the whole design.** A read image
+informs `raw_context`, the grill's questions and the prose `idea.md` ends up with. It does **not**
+become a `[DG#n]` design-grounding finding, it needs **no** index file, and it gets **no** verifier
+pass. `design-grounder` is not wired into this route and `references/grounding-format.md` §6's
+index requirement is deliberately *not* imported: that requirement exists because a **filename** is
+not a reliable statement of what a frame depicts, which is the right standard for a finding somebody
+will act on and the wrong one for a brief whose operator handed the mockup over themselves. §6.1 now
+says so where a reader will meet it, so nobody mistakes this for the `/idea`-route design-grounding
+capability — which remains deliberately unbuilt and is a decision of its own. The rule that carries
+the distinction: **a described frame is never written into `idea.md` as fact** unless the grill
+confirmed it or the source's prose already said it, and an image that was not read carries no
+description at all — never one inferred from its filename.
+
+### Changed — one level was the bound, so it was replaced with a real one
+
+At two levels a wikilink read fans out as the product of two branching factors, so the old
+"one level deep (bounded)" clause stopped being a bound the moment the depth moved. Three mechanisms
+replace it, all stated in the agent's new `## Bounding` section:
+
+- **Cycle protection.** A visited set of resolved absolute paths, with the source file as its first
+  member. The same file is never read twice, so A→B→A terminates. **A revisit is a silent skip** —
+  not an error, not a broken link, not counted against the cap, not re-summarised; the file's
+  existing `wikilinks_followed` entry is the record.
+- **A total-file cap of 12** across the whole traversal, the source counting as the first — a
+  *total*, never a per-level allowance. Twelve rather than the 8 pages `docs-grounder` reads, because
+  that traversal prunes a ranked candidate set while this one starts from a file the operator named:
+  depth 1 *is* the source's own context, and a tighter cap would spend the whole budget there and
+  never reach depth 2, which is the capability the new depth exists to permit.
+- **An image cap of 6**, for the item that costs the most per unit of information in the digest.
+  Six takes a short screen flow whole, which is the shape a linked mockup set usually has.
+
+**Nothing is truncated silently, and nothing new is fatal.** Every bound that bites is reported on
+the item it stopped, following the shape `wikilinks_broken` already set: a new `wikilinks_not_followed`
+array names each in-scope link the traversal did not reach with `reason: cap | depth`, and each
+`images` entry that was not opened carries `read: false` with `reason: cap | unreadable |
+not_an_image`. A missing image path still goes to `wikilinks_broken`; an image that exists but cannot
+be rendered, and a non-image file behind an image extension, are noted and survived exactly as a
+broken wikilink always has been. `/idea`'s Final report now states what the source read cost and what
+it left — **including when it left nothing**, because the absence of a truncation notice only means
+anything once the run is known to print one.
+
+### Changed — digest schema
+
+`idea-reader`'s output gained one array and reshaped two, so every consumer is updated in the same
+release:
+
+- `images[]` — was a list of bare paths; is now `{path, linked_from, read, description?, reason?}`.
+- `wikilinks_followed[]` — gained `depth: 1 | 2`.
+- `wikilinks_not_followed[]` — **new**: `{target, from, reason}`.
+- `images`, `wikilinks_followed`, `wikilinks_not_followed` and `wikilinks_broken` are each `[]` when
+  empty and never omitted, so a caller can tell "nothing linked" from "the key went missing".
+
+`/idea` Phase 2 carries all three wikilink lists forward, Phase 3 states how a description is used in
+the grill (material for a question, never an answer in it, never a slot of its own),
+`references/idea-format.md` §5 states how an image is cited in **Signals & evidence** (by path; a
+frame is never the sole support for a demand bullet), and the `idea-reader` frontmatter `description`
+— what a user meets in `/help` — now says two levels and images-read instead of one level and
+paths-only.
+
+**`/create-prd` is unchanged, and now says so.** It reads `idea.md` directly and never dispatches
+`idea-reader`; an image path cited in the brief's **Signals & evidence** is carried forward as
+provenance and **not reopened** there. `idea-reader`'s caps and reporting belong to the `/idea` run
+and do not travel with the file, so opening one downstream would be an unbounded read with no cap and
+no reporting line behind it.
+
+### Fixed
+
+- **`docs-grounder` and `references/docs-grounding.md` still offered "keyless `/idea`" as the example
+  of a caller that omits `key`.** `/idea` has taken a mandatory key since the address became an
+  argument, and its Phase 2.5 dispatch passes it — the example named a state the command cannot be
+  in. The tolerant no-key branch stays (a caller that holds no key still omits the field); the false
+  example is gone.
+- **`docs/commands/idea.md`'s worked example ran `/dev-workflows:idea` with no key**, which stops at
+  `IDEA_NEEDS_KEY` before Phase 1 — while the sentence under it said "the run validates the key". The
+  example now carries one, and a second example shows a markdown source with a linked mockup.
+- **The same page listed four subagents and then said "All three run at the caller's
+  `detection_model`".**
 ## [3.16.1] — 2026-09-01
 
 ### Fixed — review round 2 on the deferred-attribution feature

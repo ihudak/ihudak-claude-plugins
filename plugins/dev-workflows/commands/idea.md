@@ -1,6 +1,6 @@
 ---
 name: idea
-description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (with wikilinks/images), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Writes into the PRD folder the key names; no code change; `idea.md` lands in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/` on the first write and is never relocated (D7), and on a completed handoff the run also opens a pull request for it (`references/phase-handoff.md` §2) — declining leaves it written in place but not on the default branch; its session artifacts are committed by `commit-artifacts`.
+description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (whose wikilinks are followed two levels deep and whose linked images are read as context), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Writes into the PRD folder the key names; no code change; `idea.md` lands in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/` on the first write and is never relocated (D7), and on a completed handoff the run also opens a pull request for it (`references/phase-handoff.md` §2) — declining leaves it written in place but not on the default branch; its session artifacts are committed by `commit-artifacts`.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -110,8 +110,23 @@ choices: ["Re-enter the source", "Cancel"]
 ```
 This is an environment/user halt — do NOT `emit-block`. On `OK`, carry forward `raw_context`,
 `signals`, `images`, `candidate_title`, `candidate_slug`, `source_refs`, `provenance`, `tracked` (a
-`prd` source only), and the followed/broken wikilinks — `source_refs`/`provenance` feed the `sources:`
-frontmatter entry in Phase 4, and `tracked` seeds `## Prior art`.
+`prd` source only), and all three wikilink lists — `wikilinks_followed`, `wikilinks_not_followed`,
+`wikilinks_broken`. `source_refs`/`provenance` feed the `sources:` frontmatter entry in Phase 4, and
+`tracked` seeds `## Prior art`.
+
+**What the digest now carries, and what it is worth.** The reader follows wikilinks **two levels
+deep** under one total-file cap and **reads** the images the source links, returning a
+`description` of what each frame shows rather than a bare path. Both are **context**: they inform the
+grill and the prose Phase 4 writes. Neither is grounded evidence — an image here is never a `[DG#n]`
+finding, carries no index file, and gets no verifier pass (`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md`
+§6 governs *that*, and this route does not enter it). Treat a described frame the way you treat a
+sentence in the source file: something the operator handed over, to be put back to them as a question,
+never a fact about what ships.
+
+**Every bound that bit is surfaced, never swallowed.** An `images` entry with `read: false` names its
+`reason` (`cap`, `unreadable`, `not_an_image`), and `wikilinks_not_followed` names each in-scope link
+the traversal did not reach and why (`cap`, `depth`). Carry all of them to the Final report — a
+truncated read the operator is not told about is indistinguishable from a source that said less.
 
 ---
 
@@ -171,6 +186,8 @@ and **proceed without waiting** — an inline confirmation per `${CLAUDE_PLUGIN_
 
 Scan for gaps against an idea-stage **ambiguity taxonomy**: *problem clarity, target users, desired
 outcome/value, scope boundaries, evidence/demand sufficiency, success signal, terminology.* Rank gaps by **Impact × Uncertainty**, ranking every `docs_challenges` and `prior_art_challenges` entry from Phase 2.5 into that same list. Challenges **compete** for the slots below; they never add slots. **Code findings are facts, not questions.** A Phase 2.6 finding answers a gap rather than raising one — look it up, cite it, and do not spend a question on it. The one exception is the finding that **contradicts the idea's premise** (the capability already exists, or the gap is far smaller than the idea assumes): that becomes a challenge ranked into the same Impact × Uncertainty list, competing for a slot exactly like a `docs_challenges` or `prior_art_challenges` entry and never adding one. At most **2** such challenges.
+
+**A described image is material for the grill, not an answer in it.** Where a Phase 2 `images` entry carries a `description`, use it the way you use the source's own prose — to sharpen a question (*"the mockup shows the toggle per project; is the setting per project or per account?"*) and to avoid asking about something the operator has already shown you. It never closes a gap on its own and it never adds a question slot, because a frame is what somebody drew, not what anything does. **Never write a described frame into `idea.md` as fact** unless the grill confirms it or the source's prose already says it. An image the reader did not read (`read: false`) contributes nothing at all — never reason from its filename or its path.
 
 - **Default (bounded):** ask **≤10** questions across the ranked gaps, then stop. Remaining high-impact
   gaps become `- [NEEDS CLARIFICATION: <question>]` in the `idea.md` **Open questions & assumptions**
@@ -300,7 +317,7 @@ source-not-found, cancellation).
    > Session handoff:
    > - Command run: /idea
    > - What was done: [one-paragraph summary of the idea refined + source type]
-   > - Key events: [source-detection corrections, unresolved clarifications, broken wikilinks — or 'none']
+   > - Key events: [source-detection corrections, unresolved clarifications, broken wikilinks, links the traversal did not reach, images that were not read — or 'none']
    > - Workarounds used: [manual steps not automated by the workflow — or 'none']
    > - Review verdict: N/A (no reviewer in /idea)
    > - Test result: N/A (no tests in /idea)
@@ -333,7 +350,11 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (idea
 
 Report: the `idea.md` path + `status` (refined / draft with N open clarifications); the source type and
 `sources`; the count of `[NEEDS CLARIFICATION]` items and Assumptions; any source-detection correction
-or broken wikilinks; the resolved model routing (+ any Opus degradation); the feedback path; the cost
+or broken wikilinks; **what the source read cost and what it left** — how many files the wikilink
+traversal read (and at which depths), every `wikilinks_not_followed` entry with its `cap`/`depth`
+reason, how many linked images were read, and every image left with `read: false` and why. Report
+these even when nothing was excluded ("all N linked images read; no link left unfollowed"), because
+the absence of a truncation notice is only informative once the run is known to print one; the resolved model routing (+ any Opus degradation); the feedback path; the cost
 path (or notice); the `Specs repo:` outcome line from `commit-artifacts`
 (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; the
 `Phase handoff:` outcome line when the handoff ran; the code grounding outcome — the grounded repos with their `scanned_ref`s, any

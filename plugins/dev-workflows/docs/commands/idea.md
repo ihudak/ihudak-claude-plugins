@@ -15,7 +15,7 @@ Refines one raw source — a prompt, a file, a community post, or a saved file �
 The single positional argument is classified into one of four source forms (Phase 1), by precedence:
 
 - **An inline prompt** — plain text with no recognised flags stripped from it; the argument text itself becomes the raw idea.
-- **A markdown file or `@wikilink`** — an existing `.md` path, including a community post (typically under `Projects/Products/…`, tagged `community-post`) or a previously-written `idea.md` handed back for re-refinement.
+- **A markdown file or `@wikilink`** — an existing `.md` path, including a community post (typically under `Projects/Products/…`, tagged `community-post`) or a previously-written `idea.md` handed back for re-refinement. Its `[[wikilinks]]` are followed **two levels deep**, and the images it links are **read** — see [What it reads](#what-it-reads).
 - **A saved community post** — a markdown file the operator downloaded. It is read for its demand signals (upvotes, duplicate reports, the shape of the complaint); nothing fetches a URL.
 
 Three flags: `--deep` switches the grill from bounded (≤10 questions) to relentless (runs to convergence, no cap); `--ground-code` adds an optional code-grounding pass; `--no-docs` turns documentation grounding off.
@@ -34,7 +34,18 @@ flowchart TD
     p5 --> p6["Phase 6 — Session maintenance, feedback & cost"]
 ```
 
-Four subagents are dispatched along this path: `idea-reader` (Phase 2, ingests the source), `docs-grounder` (Phase 2.5, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `code-scanner` (Phase 2.6, one instance per confirmed repo, only when `--ground-code` is given), and `impl-maintenance` (Phase 6, session lessons-learned). All three run at the caller's `detection_model` — the §2.1 Sonnet chain — never on a fixed pin; the interactive grill and the authoring itself run inline on the session's own `current_model` rather than through a delegated subagent.
+Four subagents are dispatched along this path: `idea-reader` (Phase 2, ingests the source), `docs-grounder` (Phase 2.5, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `code-scanner` (Phase 2.6, one instance per confirmed repo, only when `--ground-code` is given), and `impl-maintenance` (Phase 6, session lessons-learned). All four run at the caller's `detection_model` — the §2.1 Sonnet chain — never on a fixed pin; the interactive grill and the authoring itself run inline on the session's own `current_model` rather than through a delegated subagent.
+
+## What it reads
+
+When the source is a markdown file, `idea-reader` does not stop at that one file.
+
+- **Wikilinks, two levels deep.** The source's own `[[links]]`, and the links on *those* pages. Depth 3 is never reached.
+- **Linked images, read — not just listed.** Every image the source or a followed page links is enumerated; the first six are opened and described in a line or two, so the run knows what a linked mockup actually shows instead of only where it lives.
+- **Bounded, and every bound reported.** Twelve files in total across the whole traversal (the source counting as the first) and six images. The same file is never read twice, so a link cycle — A links B, B links back to A — is a silent skip rather than an error or a loop. Whatever the caps left out is named in the final report: each unfollowed link with its reason (`cap` or `depth`), each unopened image with its reason (`cap`, `unreadable`, or `not_an_image`). Nothing is truncated quietly.
+- **Nothing here is fatal.** A broken wikilink, a missing image, a file that will not open — each is noted and the run carries on, exactly as a broken wikilink always has.
+
+**What a read image counts as: context, not evidence.** It informs the questions the grill asks and the prose the brief ends up with. It is not a design-grounding finding, needs no index file describing the frames, and gets no verifier pass — a frame is what somebody drew, not what the product does, so nothing seen in one is written into `idea.md` as fact unless you confirm it during the grill. Design grounding proper (`[DG#n]` findings over an exported frame set) belongs to a different route and is not part of `/idea`.
 
 ## What it needs
 
@@ -60,10 +71,18 @@ Four subagents are dispatched along this path: `idea-reader` (Phase 2, ingests t
 Refine an inline prompt, grounding it against the mounted frontend repo:
 
 ```
-/dev-workflows:idea "Add a dark-mode toggle to the settings page" --ground-code frontend
+/dev-workflows:idea PRODUCT-1234 "Add a dark-mode toggle to the settings page" --ground-code frontend
 ```
 
-The run validates the key, classifies the argument as a prompt, ingests it via `idea-reader`, grounds it against the documentation when `$DOCS_PATH` resolves, grills it, and writes `idea.md` into the resolved folder.
+The run validates the key, classifies the argument as a prompt, ingests it via `idea-reader`, grounds it against the documentation when `$DOCS_PATH` resolves, grills it, and writes `idea.md` into the resolved folder. The key is not optional — without it the run stops before Phase 1.
+
+Refine a note that links a mockup and a couple of related pages:
+
+```
+/dev-workflows:idea PRODUCT-1234 @notes/dark-mode.md
+```
+
+Here the reader walks that note's `[[wikilinks]]` two levels out, opens the images it links, and hands the grill both the prose and what the frames show — then reports anything the twelve-file or six-image cap left behind.
 
 ## See also
 

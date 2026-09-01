@@ -61,7 +61,8 @@ Use when `qmd` is absent, off, or Path A failed:
    union any pages it touched. This is a pure read and works on a read-only
    `.git` (see `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md`);
    **best-effort** — on any failure, degrade to keyword-overlap only,
-   never an error. Skip entirely when `key` is absent (e.g. `/idea`).
+   never an error. Skip entirely when `key` is absent — the caller omits it
+   only when its run holds no key.
 3. Record `retrieval: fallback`.
 
 ### For every match (both paths)

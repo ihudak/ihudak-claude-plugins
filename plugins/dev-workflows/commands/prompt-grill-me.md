@@ -63,6 +63,26 @@ the run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice.
 Print its §6 outcome line here, prefixed `Specs repo:`, with any guard notice
 repeated in full.
 
+## Phase 2.5 — Defer the cost entry
+
+This command cedes the session at Phase 3 and never regains control, so it
+cannot measure its own spend. Record what a cost phase would have claimed, and
+let the next cost-emitting run in this session claim it — cite
+`${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` §13 and write its §13.1
+intent record now, before ceding:
+
+- `command: /prompt-grill-me`, `phase: inferred`, `role: inferred` — the labels are
+  resolved from `target_command` by §7 when the entry is finally written, exactly
+  as they are for `/prompt` and `/feedback`.
+- `target_command` — the Phase 1 target, as the bare §7 row name (`/document`,
+  never `/document (keyed mode)`), so it matches the `command:` the feedback
+  entry already carries.
+- `key` (or `null`), `source`, `plugin_version`, and `ceded_at`.
+
+The file is local, transient and **never committed** — the same status as the §3
+checkpoint beside it. Writing it is silent; **it computes no cost and prints no
+figure here**, because the spend this record stands for has not happened yet.
+
 ## Phase 3 — Grill the fix (inline)
 
 Interrogate the correction directly, following

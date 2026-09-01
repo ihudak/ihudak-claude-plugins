@@ -4,6 +4,68 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.16.0] — 2026-09-01
+
+### Fixed — the spend of a command that cedes the session is no longer misattributed
+
+**`/prompt-brainstorm` and `/prompt-grill-me` now produce a cost entry.** Both cede the session at
+their Phase 3 — a hand-off to a brainstorming skill, or a long interactive grill — and never regain
+control, so neither could ever run a cost phase after its own expensive work. The consequence was
+not a missing number but a **wrong** one: because neither advanced the chained checkpoint, its spend
+rolled into the next command's window per §3's ordinary semantics, so a long grill followed by
+`/implement` was priced as `implementation`/`dev`. Fixing a documentation page looked like
+implementation spend, and the phase whose output was actually being corrected looked cheap.
+
+`references/cost-emission.md` recorded this as a known limitation and asserted it could not be fixed
+without *"a cost hook that survives the hand-off, which the current entry point does not provide"*.
+**That claim was wrong**, and its removal is the substance of this release: no new harness capability
+is needed, because the transcript already records every slash-command invocation, and a boundary that
+is written down does not have to be hooked.
+
+- **`references/cost-emission.md` §13 (new)** — deferred attribution. A ceding command writes a
+  local, transient, never-committed intent record beside the §3 checkpoint, holding only the labels
+  that cannot be re-derived from disk once the run is over (`target_command` above all). The next
+  cost-emitting run in the session replays it: it splits its own measurement window at the boundary
+  where the ceded run began, writes the earlier slice under the ceded run's labels, and keeps only
+  the later slice for itself. The slices are disjoint and sum to the window that run would otherwise
+  have claimed whole. §3, §7 and §11 pick up the cross-references; §11 gains step 0, a no-op when no
+  intent record exists, so the nineteen self-measuring commands are untouched.
+- **`scripts/session-cost.py`** — gains `--until-ts` (end the window early) and `--commands-dir`
+  (the known-command set), and reports `command_boundaries` for every plugin-command invocation in
+  the scanned window. Two disciplines make boundary detection safe, and both are load-bearing: the
+  `<command-name>` marker must **start** the message, because the same text appears inside quoted
+  file content elsewhere in a transcript; and the name is **resolved against the shipped
+  `commands/` directory, never parsed**, so `/compact`, `/login` and another plugin's commands are
+  not boundaries and a namespaced `/dev-workflows:implement` resolves to `/implement`. This is
+  `specs-repo-git.md` §3.5's `branch-key` discipline applied to a transcript.
+- **`scripts/session-cost.py --selftest` (new)** — eleven checks over a fixture built to
+  discriminate rather than merely to pass. The splitter's failure mode is silent: a boundary missed
+  or invented still yields a plausible dollar figure, filed against the wrong phase. So the fixture
+  carries a `<command-name>` marker quoted mid-message and a `/compact` invocation, and was verified
+  against the broken implementations it exists to catch — an unanchored match and one that skips the
+  known-command set each report three boundaries where the correct implementation reports two, and
+  the faithful unanchored variant fails five of the eleven assertions. Wired into CI after the two
+  existing gate selftests.
+- **`/prompt-brainstorm` and `/prompt-grill-me`** gain **Phase 2.5 — Defer the cost entry**, which
+  writes the intent record before ceding. It computes no cost and prints no figure, because the
+  spend it stands for has not happened yet.
+- **Attribution** — both commands gain `inferred`/`inferred` rows in §7 and inherit the corrected
+  command's labels exactly as `/prompt` and `/feedback` do, so the cost of fixing a phase's output
+  belongs to that phase. The rule that a correction *to a correction* resolves to
+  `plugin-feedback`/`n/a` is unchanged, and now reads on all four.
+
+**What is still not measured, stated rather than buried:** a session in which no cost-emitting
+command ever follows the grill. There the spend stays in §3's ordinary post-last-command tail,
+unattributed — the same tail every other command already has. The statusline cross-check (option B)
+is also not split, since it measures whole renders; a split slice omits it and leaves the delta to
+the final slice.
+
+**Stale claims retired**, swept by phrase rather than by line: `docs/reference/session-cost.md`
+(the count sentence, the *what does not emit one* paragraph, and a new *Spend a command cannot
+measure itself* section), `docs/roles-and-phases.md` (the `plugin-feedback` phase is reachable from
+four commands, not two), both command pages (each asserted *emits **no** cost entry — deliberately*),
+and `CLAUDE.md`.
+
 ## [3.15.0] — 2026-09-01
 
 ### Removed — BREAKING for Epic content: team ownership

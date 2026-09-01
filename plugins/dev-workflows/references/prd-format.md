@@ -31,7 +31,7 @@ sources:                     # PROPAGATED from idea.md's recorded provenance —
 derived_from: <path to the idea.md this PRD was built from>
 seeded_from_prd: <PRD key or path when this PRD was seeded from another PRD via `/create-prd --from-prd`; omit otherwise>
 brd_key: <the BRD key this PRD was authored from via `/create-prd` on the BRD route; omit otherwise>
-brd_parent: <that BRD's own parent key, from its brd-link.md; omit when it owns its source document, and omit outside the BRD route>
+brd_parent: <that slice's parent BRD key, from its brd-link.md; always present on the BRD route, since the route resolves a PRD- slice folder and a slice always has a parent:; omit outside the BRD route>
 depends_on: [ ... ]           # prerequisite BRD keys, from that brd-link.md's depends-on; omit when empty or outside the BRD route
 revision_of: <path to the archived prior PRD snapshot; written by `/update-prd` on refresh; omit otherwise>
 built_from_import: <YYYY-MM-DD of the resolved folder the `/update-prd` refresh was built from; omit otherwise>
@@ -40,7 +40,12 @@ workitem_key: <optional — your own tracker's identity for this work; the plugi
 ```
 
 `brd_key`, `brd_parent` and `depends_on` are written only by `/create-prd` on the BRD route, from the BRD's
-own `brd-link.md`, and are never asked of the PM. **`/update-prd` preserves all three and authors
+own `brd-link.md`, and are never asked of the PM. **`brd_parent` is present on every PRD that carries
+`brd_key`.** The BRD route resolves a `PRD-` slice folder and refuses a `BRD-` container before any
+seed is read (`commands/create-prd.md` Phase 0 step 5a), and a slice always carries a
+`parent:` — so the earlier "omitted when it owns its source document" case describes a PRD the route
+can no longer author. An absent `brd_parent` beside a present `brd_key` is therefore a **finding**,
+not a legitimate omission, and `agents/prd-reviewer.md` raises it. **`/update-prd` preserves all three and authors
 none of them** — on a PRD that carries them it copies each through the refresh unchanged, and on a
 PRD that does not it writes none — so the *written only by* rule above still reads exactly as it
 says: carrying an existing value forward mints no new one, and `/update-prd` reads no BRD tree it

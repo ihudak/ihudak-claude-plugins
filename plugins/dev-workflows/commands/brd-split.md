@@ -355,11 +355,13 @@ and the degenerate case has an honest answer rather than an escape valve: where 
 the whole BRD becomes one slice, which is what *"Make this whole BRD one slice"* selects. Editing
 the list down to nothing re-asks this question rather than proceeding.
 
-**Why a container, rather than letting a BRD hold its own PRD.** A BRD that could be split *and* be
-PRD-eligible itself would hold PRD folders and its own Epic folders as siblings — two kinds in one
-namespace, which `addressing.md` §2's second invariant forbids, and which Phase 0 step 9 would then
-have to tell apart. One slice always existing means the requirements always land somewhere a PRD can
-be written, and that somewhere is always one level down.
+**Why a container, rather than letting a BRD hold its own PRD** — the namespace argument now lives
+in `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5, the authority every PRD-eligibility
+refusal cites, and is not restated here: a BRD that could be split *and* be PRD-eligible itself would
+hold PRD folders and its own Epic folders as siblings, which `addressing.md` §2's second invariant
+forbids and which Phase 0 step 9 would then have to tell apart. What this phase contributes to it is
+the guarantee: one slice always existing means the requirements always land somewhere a PRD can be
+written, and that somewhere is always one level down.
 
 ---
 
@@ -791,8 +793,8 @@ that is the real next step for this slice and it is offered by name. A slice rea
 decisions exactly as its parent does, and the register it writes is its own. If any row reached
 `covered-here` the slice is also PRD-eligible
 (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5), which is one of the two tests
-`/dev-workflows:create-prd <BRD-KEY>` — a switch that **ships** — applies in its own Phase
-0. It is still not offered here, and the reason is the register rather than the ledger: that run
+`/dev-workflows:create-prd <SLICE-KEY>` applies in its own Phase 0 — the other being the level
+test that refuses the `BRD-` container this slice sits inside. It is still not offered here, and the reason is the register rather than the ledger: that run
 seeds its PRD from this slice's `decisions.md`, which `/dev-workflows:brd-interview` has not written
 yet, so starting it from here would author a PRD off an allocation and no decisions at all. The route
 crosses into the PRD pipeline from `/dev-workflows:brd-reconcile`'s own next-step offer, once the

@@ -44,9 +44,9 @@ flowchart TD
     review -->|answers come back as one file| reconcile
     reconcile -.->|a decision reopened, or a question askable again| interview
     reconcile -.->|questions still held for the customer| package
-    reconcile -->|BRD key + the BRD route — nothing left to re-enter for, fully allocated, one row covered-here| createprd
-    reconcile -->|BRD key + the BRD route — nothing left to re-enter for| createard
-    reconcile -->|BRD key + the BRD route — nothing left to re-enter for| specify
+    reconcile -->|slice key + the BRD route — nothing left to re-enter for, fully allocated, one row covered-here| createprd
+    reconcile -->|slice key + the BRD route — nothing left to re-enter for| createard
+    reconcile -->|slice key + the BRD route — nothing left to re-enter for| specify
 ```
 
 **The right-hand box is not part of the route.** Its three nodes are the PRD pipeline's own
@@ -107,15 +107,26 @@ overturned.
 **Where the route hands over is `/brd-reconcile`**: a BRD whose customer decisions are frozen and
 whose tree holds nothing the review made false is the state the PRD pipeline is entered from.
 the BRD route **ships** on `/create-prd`, `/create-ard` and `/specify`, and `/brd-reconcile`'s
-next-step phase names all three against that same BRD key — **on a run that left nothing to re-enter
-for.** That phase resolves an `advance_ready` first: a reopened decision, a `[C]` still held for the
+next-step phase names all three — **against a slice key, and on a run that left nothing to re-enter
+for.**
+
+**The first condition is the level, and it is the one this increment added.** A BRD is a container:
+`prd.md`, `ard.md` and `specification.md` are authored in the `PRD-` slice folders under it, one of
+each per slice, and all three commands refuse a `BRD-` folder in their own Phase 0
+(`CREATE_PRD_BRD_NOT_SLICED`, `CREATE_ARD_BRD_NOT_SLICED`, `SPECIFY_BRD_NOT_SLICED`). Reconciling a
+**root** BRD therefore advances into its slices instead — `/brd-ground <SLICE-KEY>` once per
+non-empty slice, each re-entering the route on its own key and reaching this same hand-over in its
+own right — which is the dashed slice loop the diagram already draws.
+
+That phase then resolves an `advance_ready`: a reopened decision, a `[C]` still held for the
 customer, a finding the review left to re-derive, or a dependent it could only record all drop the
 three advance options, because a `reopened` record may not be consumed downstream and all three
-consume the register. On an advancing run, `/create-prd` on the BRD route carries one further condition —
+consume the register. On an advancing slice run, `/create-prd` on the BRD route carries one further condition —
 the reconciled ledger leaves no row `unallocated` and at least one `covered-here` (the two refusals
 its own Phase 0 raises) — while `/create-ard` on the BRD route and `/specify` on the BRD route carry none of
 their own, since neither dispatches the folder read, neither gates a PRD and neither reads the ledger.
-The difference is where the enforcement sits: `/create-prd` refuses in its own Phase 0, whereas
+The difference is where the enforcement sits: the level test and `/create-prd`'s eligibility test are
+each refused by the offered command's own Phase 0, whereas
 nothing downstream refuses an unsettled register, so the advance/re-entry split is a judgement only
 `/brd-reconcile` can make. **The diagram above draws all three**, as the three solid edges leaving
 `/brd-reconcile` into the right-hand box. They are alternatives rather than a sequence: neither of
@@ -138,9 +149,9 @@ each of those three also has a keyed form that this route never uses.
 | `/brd-interview` | `<BRD-KEY>` | `--round N` | Rounds are numbered, permanent and resumable. No flag continues at the first question with no terminal disposition; `--round N` resumes an open round, or re-opens a closed one with its cause recorded |
 | `/brd-package` | `<BRD-KEY>` | `--depends-on <BRD-KEY>…` | Repeatable, and any key at either level is admissible; a mistyped one is warned and dropped, never fatal. Each prerequisite's own package is copied into the bundle, marked *not for re-review* |
 | `/brd-reconcile` | `<BRD-KEY> @<review-file>` | — | The review is taken at whatever path it arrived on, inside `$SPECS_PATH` or not, and is never searched for: the operator names the file, because one this command picked is one nobody submitted |
-| `/create-prd` | `<BRD-KEY>` | `--lean`/`--hybrid`/`--full`, `--no-docs`, `@<idea.md>` | Offered only where no ledger row is `unallocated` and one is `covered-here` (the BRD's own rows; `claims:` narrows them on a slice). Profile defaults to `--full`; `--from-prd` is accepted |
-| `/create-ard` | `<BRD-KEY>` | `--no-docs` | Offered on any advancing run, with no further condition: it gates no PRD, reads no PRD, reads no ledger. One key only — a second stops the run (`CREATE_ARD_BRD_NO_EPIC`) |
-| `/specify` | `<BRD-KEY>` | `--no-docs` | Offered on the same terms, with no further condition of its own. One key only — a second stops the run (`SPECIFY_BRD_NO_EPIC`) |
+| `/create-prd` | `<SLICE-KEY>` | `--lean`/`--hybrid`/`--full`, `--no-docs`, `@<idea.md>` | A `BRD-` container is refused. Otherwise offered only where the slice's own claimed rows leave none `unallocated` and one `covered-here`. Profile defaults to `--full`; `--from-prd` accepted |
+| `/create-ard` | `<SLICE-KEY>` | `--no-docs` | A `BRD-` container is refused. Otherwise offered on any advancing slice run: it gates no PRD, reads no PRD, reads no ledger. One key only — a second stops the run (`CREATE_ARD_BRD_NO_EPIC`) |
+| `/specify` | `<SLICE-KEY>` | `--no-docs` | A `BRD-` container is refused. Otherwise offered on the same terms as `/create-ard`. One key only — a second stops the run (`SPECIFY_BRD_NO_EPIC`) |
 
 `--no-docs` appears on two of the six **route** rows and means the same thing on both: turn off the
 optional grounding on shipped product documentation that `/brd-intake` and `/brd-ground` do when
@@ -158,9 +169,9 @@ tracker ticket. **That shape is two segments or three**: a BRD owning its source
 `EPIC-008` and a slice of it `EPIC-008-01`, and the grammar prefers neither — a key's segment count
 is a naming convention, never a depth declaration. Every command after `/brd-intake` accepts a key
 at either of either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it, and only `/brd-split` behaves differently
-between them. The three the BRD route rows take the same shape and resolve at either level too,
-which is what lets a PRD, an ARD or a specification be authored from a slice rather than only from
-the BRD above it.
+between them. The three handover rows resolve at either level too — and then **refuse the upper one**: a PRD, an
+ARD and a specification are authored in a slice's `PRD-` folder, never in the `BRD-` container above
+it.
 
 **The BRD route is detected, never declared**, on all three of those rows. There is no flag and no
 `<dir>` operand: each command takes one positional address, and where that address resolves to a
@@ -175,7 +186,7 @@ such folder inside its parent's — one level, and only one, per the addressing 
 shares):
 
 ```
-specifications/<BRD-KEY>-<slug>/
+specifications/BRD-<BRD-KEY>-<slug>/
 ├── brd/
 │   ├── source/<basename>        # the customer's file, copied verbatim — never edited again
 │   ├── brd-inventory.md         # [BR#n] rows, /brd-intake
@@ -198,7 +209,7 @@ specifications/<BRD-KEY>-<slug>/
 ├── customer-review-<date>.md    # the returned review, copied in byte for byte, /brd-reconcile
 ├── reconciliation-<date>.md     # what the review changed and what still needs a human, /brd-reconcile
 ├── dev-workflows/                # session bookkeeping: resume pointer, feedback, cost entries
-└── <CHILD-KEY>-<child-slug>/    # a slice /brd-split confirmed — the same shape, one level only
+└── PRD-<CHILD-KEY>-<child-slug>/ # a slice /brd-split confirmed — where its PRD, ARD and spec are authored
 ```
 
 The dated artifacts are the ones to read carefully. **A dated bundle is never rewritten**, and a

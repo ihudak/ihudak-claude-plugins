@@ -127,19 +127,29 @@ array carries every option.
   pipeline, and its own re-entry. **Re-entry:** another `/dev-workflows:brd-interview <BRD-KEY>`
   round where this run reopened a decision, `/dev-workflows:brd-package <BRD-KEY>` where questions
   remain for the customer, or `/dev-workflows:brd-ground <BRD-KEY> --rebaseline` where the review
-  challenged a code claim. **Advance:** the BRD route on `/dev-workflows:create-prd`,
-  `/dev-workflows:create-ard` and `/dev-workflows:specify` all ship, and that command's next-step
-  phase offers all three off the one BRD key — **but only on a run that left nothing to re-enter
-  for.** Advance and re-entry are two arrays there, not one: where that run reopened a decision,
-  left a `[C]` held for the customer, left a finding for a `--rebaseline` pass, or could only record
-  a dependent's sweep, all three advance options are dropped, because a `reopened` record may not be
-  consumed downstream (`references/decision-register-format.md` §3) and all three consume the
-  register. On an advancing run, `/dev-workflows:create-prd <BRD-KEY>` carries the further
+  challenged a code claim. **Advance, and the first condition is the level.** the BRD route on
+  `/dev-workflows:create-prd`, `/dev-workflows:create-ard` and `/dev-workflows:specify` all ship, and
+  that command's next-step phase offers all three off **a slice key** — never off a root BRD key. A
+  BRD is a container and each of the three refuses a `BRD-` folder in its own Phase 0
+  (`CREATE_PRD_BRD_NOT_SLICED`, `CREATE_ARD_BRD_NOT_SLICED`, `SPECIFY_BRD_NOT_SLICED`;
+  `references/coverage-ledger-format.md` §5), so naming one against a root hands over a run that
+  stops on its first phase. **A root's advance is its slices instead** — `/dev-workflows:brd-ground
+  <SLICE-KEY>` once per non-empty slice, each re-entering the route in its own right and reaching
+  this same hand-over on its own key. That one **does** carry `<merge-clause>`, because
+  `/dev-workflows:brd-ground` gates `coverage-ledger.md` on the default branch and the reconciliation
+  wrote to a ledger.
+  **On a slice, and only on a slice, the three are offered — but only on a run that left nothing to
+  re-enter for.** Advance and re-entry are separate arrays there, not one: where that run reopened a
+  decision, left a `[C]` held for the customer, left a finding for a `--rebaseline` pass, or could
+  only record a dependent's sweep, all three advance options are dropped, because a `reopened` record
+  may not be consumed downstream (`references/decision-register-format.md` §3) and all three consume
+  the register. On an advancing slice run, `/dev-workflows:create-prd <SLICE-KEY>` carries the further
   condition that the reconciled ledger leaves no row `unallocated` and at least one `covered-here`
   (`references/coverage-ledger-format.md` §5, the two refusals its Phase 0 raises); the other two
   carry none of their own, since neither dispatches the folder read, neither runs the PRD gate and
-  neither reads the ledger. **That difference is where the two conditions come from, and it matters:**
-  `/create-prd`'s is enforced by its own Phase 0, so offering it wrongly hands over a run that stops;
+  neither reads the ledger. **That difference is where the conditions come from, and it matters:**
+  the level test and `/create-prd`'s eligibility test are each enforced by the offered command's own
+  Phase 0, so offering either wrongly hands over a run that stops;
   the advance/re-entry split is enforced **nowhere downstream** — `/create-ard` on the BRD route and
   `/specify` on the BRD route treat an `open` or `reopened` record as an open question to record rather
   than as a stop — so `/dev-workflows:brd-reconcile` is the only station that can make it. None of

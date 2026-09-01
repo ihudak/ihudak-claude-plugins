@@ -75,7 +75,7 @@ Exactly six. Only the last one blocks the gate in §4.
 
 | Disposition | Meaning |
 |---|---|
-| `covered-here` | This BRD builds it; the BRD is therefore PRD-eligible (§5) |
+| `covered-here` | This folder builds it; a `PRD-` slice folder carrying one is therefore PRD-eligible (§5). Never written on a root: a container builds nothing itself |
 | `covered-by: <BRD-KEY>` | A named BRD owns it. On a BRD that owns its source document the key is a **child**; on a slice it is a **sibling under the same parent, or that parent** — never a child, because none can exist below a slice (see below) |
 | `deferred-to: <this BRD>` | Kept as a live obligation of this BRD, not built now |
 | `rejected: [DEF#n]` | Not built, citing the `[DEF#n]` that justifies rejecting it |
@@ -237,14 +237,38 @@ picker changes.
 
 ## 5. PRD eligibility
 
-**A folder is PRD-eligible if and only if at least one of its ledger rows is `covered-here`.**
+**A folder is PRD-eligible if and only if it is a `PRD-` slice folder *and* at least one of its
+ledger rows is `covered-here`.** Two tests, and the first one is about the **folder**, not about any
+row.
 
-**Only a slice can satisfy that**, and it is worth saying plainly rather than leaving to be
-inferred: a parent BRD is a container and is never implementable itself, so `covered-here` is not a
-resolution its walk is offered (`commands/brd-split.md` Phase 4) and no row on its ledger can carry
-one. Eligibility is therefore a property of the `PRD-` folder a split produces, which is the folder
-the PRD is authored in — and since a split always produces at least one, the requirements always
-have somewhere eligible to land.
+**The level test is a check the consumer performs, and it comes first.** A BRD is a container and is
+never the folder a PRD is authored in, so a consumer handed a `BRD-` folder refuses it **before
+opening `coverage-ledger.md` at all** — on the resolved folder's own kind, never on what its rows
+say. The check is: the `BRD-` prefix `references/addressing.md` §2 fixes, read off the resolved
+folder's name; and, for a folder resolved through that file's §5 legacy fallback and carrying no
+prefix, `brd-link.md`'s **`parent:`** — absent, or no `brd-link.md` at all, is a root container;
+present is a slice.
+
+**Never the folder's asserted `kind:`.** `/brd-split` writes `kind: brd` into the `brd-link.md` it
+places inside a `PRD-` slice folder, so a slice **asserts `brd` while being exactly the folder a PRD
+belongs in**: a consumer gating on the asserted kind would refuse every slice and accept nothing.
+
+**Stating it this way rather than as an inference from the walk is deliberate.** It was previously
+argued that a parent cannot be eligible because `covered-here` "is not a resolution its walk is
+offered" (`commands/brd-split.md` Phase 4). That is true, and it is the wrong load-bearing
+sentence: it makes a structural rule depend on a picker's current shape, so a ledger written before
+that picker changed — or edited by hand — reads as eligible at root and no consumer catches it. The
+rule is structural. Eligibility is a property of the `PRD-` folder a split produces, which is the
+folder the PRD is authored in; and since a split always produces at least one, the requirements
+always have somewhere eligible to land.
+
+**Why a container, rather than letting a BRD hold its own PRD.** A BRD that could be split *and* be
+PRD-eligible itself would hold PRD folders and its own Epic folders as siblings — two kinds in one
+namespace, which `references/addressing.md` §2's second invariant forbids, and which `/brd-split`
+Phase 0 step 9's child enumeration would then have to tell apart. One slice always existing means the
+requirements always land somewhere a PRD can be written, and that somewhere is always one level down.
+This argument is stated **here**, in the authority the refusals cite, rather than only in the command
+that carves the slices.
 
 - **Eligible.** At least one `covered-here` row exists. The folder may go on to author its own
   `prd.md`, which is what `/create-prd` on the BRD route runs against it to write.
@@ -261,15 +285,16 @@ have somewhere eligible to land.
   folder holds no PRD of its own. A consumer that reaches this state must refuse to author a PRD here and
   say **where the requirements went**, rather than producing an empty or placeholder document.
 
-  **What there is to say depends on how the state was reached, and one of the two ways names no
-  slice at all:**
+  **What there is to say depends on how the state was reached, and the first way is settled on the
+  folder rather than on any row:**
 
   | How every row left `covered-here` | What the consumer says |
   |---|---|
+  | **The folder is a `BRD-` container** — decided on the folder, before a row is read | Every row of a root's ledger ends `covered-by`, `deferred-to`, `rejected` or `superseded-by`; `covered-here` is not among them, and a root row carrying one is a ledger written before a BRD became a container, or edited by hand. Refuse on the level and name the `PRD-` slices under the container, one PRD each — enumerated by `/brd-split` Phase 0 step 9's positive test (an immediate subdirectory whose `brd-link.md` `parent:` names this BRD), never by a name match. Where the container holds no slice at all, the run that carves one is `/brd-split` on it — which is a **no-op** on a ledger with no `unallocated` row (§4), so a consumer naming it must say what the operator does then rather than leaving the offer to fail silently |
   | Some rows are `covered-by: <SLICE-KEY>` — the ordinary shape on a parent | Name those slices — and, per §6.1, which of them did not build the row delegated to it. A slice that deferred, rejected or has not allocated it is not somewhere to send the reader |
   | No row is `covered-by` | Name no slice, because none holds one of these rows — and say what the rows *did* resolve to rather than calling them all obligations. The three remaining dispositions say different things: a `deferred-to` row is a live obligation of this folder, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it, and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. This is also the only shape a **slice** reaches, for the reason the paragraph below gives: no row of the set eligibility is read over on a slice can be `covered-by`. On a slice, add that a PRD needs one row resolved `covered-here` first |
 
-  "Name the slices that do" is right only in the first row. In the second there is nothing to
+  "Name the slices that do" is right in the first two rows only. In the third there is nothing to
   name, and a consumer that goes looking for a slice to point at finds none and must not invent
   one — the honest report is what each row actually resolved to, and, for the deferred ones, by whom.
   "The requirements are deferred" is the common shape of that case, not the whole of it:

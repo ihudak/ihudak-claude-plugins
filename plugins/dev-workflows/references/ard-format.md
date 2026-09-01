@@ -20,8 +20,8 @@ kind: ard                    # what this document is
 key: <KEY>                   # this folder's key — must match the folder name
 title: <PRD or Epic title> — ARD
 scope: prd | epic
-prd: <PRD-KEY — or, on the BRD route, a BRD key: the BRD's own when it owns its source document, its parent's when it is a slice>
-epic: <EPIC-KEY | null — on the BRD route, the slice's own BRD key, or null for a source-owning BRD>
+prd: <PRD-KEY — or, on the BRD route, the slice's parent BRD key (the route resolves a PRD- slice folder and refuses a BRD- container)>
+epic: <EPIC-KEY | null — on the BRD route, always the slice's own key>
 area: <name | null>
 status: draft | reviewed
 grounded_repos:

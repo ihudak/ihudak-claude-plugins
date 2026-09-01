@@ -396,7 +396,10 @@ absent. Rung 1's `require-on-main` gate stays; rung 2's out-of-contract `@path` 
 **`CREATE_PRD_NEEDS_KEY` loses "create an empty Jira workitem first to get the ID."**
 
 **`--from-brd` is retired as a flag (D18).** Under §4.1 the BRD route's PRD folder is created by
-`/brd-split`, carries `brd-link.md`, and holds the ledger rows the two Phase 0 refusals read. So the
+`/brd-split`, carries `brd-link.md`, and holds the ledger rows the two *data* Phase 0 refusals read
+— which are reached only after a third, structural one has passed: a `BRD-` container is refused on
+the resolved folder's kind before any ledger row is read (D5), so the two data refusals are
+slice-only and there are three in all. So the
 route is a property of the resolved folder, not something the operator restates: `/create-prd` takes
 one address, detects `brd-link.md`, and **prints which mode it entered** before doing anything. A
 flag that can disagree with the folder it names is one more of the disagreements D4 exists to

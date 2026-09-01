@@ -44,6 +44,33 @@ routes, set to the resolved folder's own key. `release_versions`, `change_type` 
 (`/specify <PRD> <Epic>` and its five siblings) are retired everywhere a user reads them, not only
 where they were parsed (D4). `/idea` no longer claims to relocate anything (D7).
 
+### Fixed — review round D (the last finding before the pull request)
+
+- **`/create-prd`'s two `absent` branches contradicted each other, and the unreachable one was the
+  stop.** Phase 0 step 5 made `status: absent` a graceful `CREATE_PRD_BRD_NOT_FOUND` on the BRD
+  route while the paragraph beneath it auto-created `PRD-<KEY>-<slug>/` at the first write. Only
+  one can be live, and it is the auto-create: **the BRD route is *detected* from a `brd-link.md`
+  inside the folder the address resolved to**, so a run that resolved no folder read no
+  `brd-link.md` and is on the idea route by construction — there is no state in which that stop
+  fires. It also contradicted four other stops that name this command *for* creating a folder
+  (`CREATE_ARD_NOT_FOUND`, `SPECIFY_BRD_NOT_FOUND`, `/update-prd`'s `absent` branch and
+  `EPICS_EPIC_NOT_UNDER_PRD` each send an operator to `/dev-workflows:create-prd <KEY>` where
+  nothing exists), so the stop reading would have made every one of them a dead end. The stop is
+  **retired**, for the same reason `CREATE_ARD_BRD_NOT_FOUND` was retired earlier in this
+  increment; a `BRD-` key whose folder *does* resolve is `CREATE_PRD_BRD_NOT_SLICED`'s to refuse,
+  so no state loses its report. The capture-at-block invariant and
+  `docs/commands/create-prd.md` drop it with the stop.
+- **The ordering that hid the contradiction is stated rather than left to inference.** Step 1 said
+  to print the route *"before doing anything else"* while the address is resolved at step 5, which
+  reads as though a route could be known before a folder was. It now says detection waits on
+  resolution, that the single `resolve-address` call is taken as soon as step 2b settles
+  `$SPECS_PATH` — ahead of step 2's `--full` default and step 3's skipped ladder, both of which
+  read the route — and that an address resolving to nothing is the idea route, not a stop.
+- **`/create-ard` and `/specify` do not share the defect, checked.** Both create no folder on any
+  route, so each takes one `absent` stop for both routes; `/specify` already records the reason this
+  fix turns on — *"a folder that resolved to nothing carries no `brd-link.md` to say which route it
+  would have been on"*.
+
 ### Fixed — review round A (the three correctness findings)
 
 - **`/brd-intake` created the root BRD folder without its kind prefix.** Its Phase 0 step 7 said

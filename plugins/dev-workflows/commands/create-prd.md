@@ -22,8 +22,13 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
 
    **The BRD route is detected, not declared.** A folder carrying `brd-link.md` was produced by
    `/brd-split` and holds the seeds this command reads; the operator restates nothing on the command
-   line, and there is no flag that could disagree with the folder it names. Print which route the run
-   entered before doing anything else. A key that fails §1's grammar stops with
+   line, and there is no flag that could disagree with the folder it names. **Detection therefore
+   waits on resolution.** The address is resolved once, with `resolve-address` (step 5), and that
+   resolution is taken as soon as step 2b has settled `$SPECS_PATH` — ahead of step 2's profile
+   default and step 3's ladder, both of which read the route. Print which route the run entered at
+   that point, before any other work. Where the address resolves to nothing there is no folder and
+   no `brd-link.md` to read one off, so the run is on the **idea route**; step 5 says what happens
+   then, and it is not a stop. A key that fails §1's grammar stops with
    `CREATE_PRD_NEEDS_KEY: /create-prd needs an address (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. EPIC-008 or the slice EPIC-008-01) — re-run '/dev-workflows:create-prd <ADDRESS>'.`
 
 2. **Profile.** `--lean | --hybrid | --full`; default `--hybrid` — **or `--full` when the BRD route is present** and no profile flag was given, per the design's *Profile default* section (§7.4): that profile is the one carrying `## Functional requirements` (`[FR#N]`), `## API specification`, `## UX prototype / UI mockups` and the full `## Assumptions & open questions` Contradictions Log, so considerably more BRD-derived content has a legitimate **product-altitude** home than `--hybrid` allows. An explicit `--lean`/`--hybrid` still wins: the default is a default, not an override.
@@ -70,10 +75,26 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    the single positional address was resolved once with `resolve-address`
    (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). The
    PRD this run authors is written **into that folder** as `prd.md`, beside the BRD
-   artifacts it was derived from. `absent` is a graceful stop, not a folder to
-   create — and the remedy it names is the one that produces a folder this command accepts, since
-   step 5a refuses the `BRD-` container a `/dev-workflows:brd-intake` run would leave behind:
-   `CREATE_PRD_BRD_NOT_FOUND: no folder found for <ADDRESS> under $SPECS_PATH/specifications/ (every level addressing.md §3 bounds, plus §5's legacy fallback) — check the address. /create-prd authors into a PRD- folder, never the BRD- container above it: a slice is created by /dev-workflows:brd-split on its parent BRD, and a parent BRD is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file> and then grounded and split before any slice exists.`
+   artifacts it was derived from.
+
+   **`absent` is not a state this route can be in, and there is no stop here for it.** The BRD
+   route is *detected*, not declared (step 1) — from a `brd-link.md` **inside the folder the
+   address resolved to** — so a run that resolved no folder read no `brd-link.md` and is on the
+   idea route by construction, which is the disposition the next paragraph gives it. `/specify`
+   states the same thing from the other side, taking **one stop for both routes** *"since a folder
+   that resolved to nothing carries no `brd-link.md` to say which route it would have been on"*
+   (`commands/specify.md` Phase 0 step 3); it reaches a stop rather than a creation only because
+   that command creates no folder at all, and this one does. A `BRD-` key whose folder **does**
+   resolve is step 5a's container refusal, immediately below — so nothing is left uncovered.
+
+   **A `CREATE_PRD_BRD_NOT_FOUND` stop stood here and is retired**, for the reason
+   `CREATE_ARD_BRD_NOT_FOUND` was retired before it: it offered `/dev-workflows:brd-split` on a
+   parent BRD as the remedy for an address that resolved to nothing, a state no run reaches, and it
+   contradicted the behaviour four other stops name this command *for*. `/create-ard`'s
+   `CREATE_ARD_NOT_FOUND`, `/specify`'s `SPECIFY_BRD_NOT_FOUND`, `/update-prd`'s `absent` branch and
+   `/epics`' `EPICS_EPIC_NOT_UNDER_PRD` each name `/dev-workflows:create-prd <KEY>` as the run that
+   **creates** a `PRD-` folder where none exists; were the stop the live reading, all four would be
+   naming a command that refuses them.
    Without the BRD route, unchanged in substance: resolve the folder with `resolve-address <KEY>` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), which searches every level §3 bounds and carries §5's legacy fallback; no matching rule is written here, because a second copy of §5's is the drift §1 warns about. This is the resolution every mention of the feature folder in this command means, step 3's rung-1 `idea.md` included. On `status: absent` the folder is auto-created by the first write (Phase 5) as `PRD-<KEY>-<slug>/` per §2's convention, `<slug>` from the idea title (else a kebab of the PRD summary) — resolution honors a folder that already exists wherever it sits, and never proposes one.
 5a. **The container refusal — a `BRD-` folder is never a `/create-prd` target, on either route.**
    Take this the moment step 5 returns `status: found`, **before `coverage-ledger.md` is opened at
@@ -601,7 +622,7 @@ Guidance only — nothing is auto-run. See `${CLAUDE_PLUGIN_ROOT}/references/ses
 
 Terminal phase — runs after Phase 6, NEVER interrupts an earlier phase.
 
-**Capture-at-block invariant.** If an EARLIER phase **halts on a plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked), `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating. NEVER `emit-block` for an environment / user halt (missing key, unset `$SPECS_PATH`, cancellation) or a work-quality review BLOCK. **The three BRD-route refusals are of that second class, not the first**: `CREATE_PRD_BRD_NOT_SLICED` (structural, step 5a), `CREATE_PRD_BRD_UNALLOCATED` and `CREATE_PRD_BRD_NOT_ELIGIBLE` (slice-only, step 7) each report the state of the operator's own BRD tree, not a capability this plugin lacks, so none of them `emit-block`s. `CREATE_PRD_NEEDS_KEY`, `CREATE_PRD_BRD_NOT_FOUND` and `CREATE_PRD_TWO_SEEDS` are the same.
+**Capture-at-block invariant.** If an EARLIER phase **halts on a plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked), `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating. NEVER `emit-block` for an environment / user halt (missing key, unset `$SPECS_PATH`, cancellation) or a work-quality review BLOCK. **The three BRD-route refusals are of that second class, not the first**: `CREATE_PRD_BRD_NOT_SLICED` (structural, step 5a), `CREATE_PRD_BRD_UNALLOCATED` and `CREATE_PRD_BRD_NOT_ELIGIBLE` (slice-only, step 7) each report the state of the operator's own BRD tree, not a capability this plugin lacks, so none of them `emit-block`s. `CREATE_PRD_NEEDS_KEY` and `CREATE_PRD_TWO_SEEDS` are the same.
 
 **Session-hygiene invariant.** End Phase 6 with a `### Context hygiene` block per
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the

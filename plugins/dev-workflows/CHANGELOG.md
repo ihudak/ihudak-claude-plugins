@@ -4,6 +4,65 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.16.1] — 2026-09-01
+
+### Fixed — review round 2 on the deferred-attribution feature
+
+Three Opus reviewers went over 3.16.0. Both of that release's own blocking findings were
+confirmed fixed and backward compatibility was verified byte-identical against the twelve
+largest real transcripts on the author's machine. What follows is what round 2 found on top.
+
+- **A bare built-in minted a phantom boundary.** Claude Code's built-ins are written *bare*
+  (`/upgrade`) while plugin commands are written *namespaced* (`/dev-workflows:upgrade`) — and
+  `/upgrade` is a name this plugin also ships. Accepting a bare marker therefore turned Claude
+  Code's own subscription command into a cost boundary, observed on real transcripts, which
+  truncated a ceded run's segment and moved most of its spend into the replaying run. **A
+  namespace is now required**, checked against the `name` in the plugin's own `plugin.json`.
+  This errs safe by design: a missed invocation becomes an unmatched claim, reported and
+  dropped, where a phantom one silently misfiles spend.
+- **§2 — the script's documented invocation — omitted `--commands-dir` and `--claim`, and its
+  stdout schema omitted `command_boundaries`, `claims` and `unmatched_claims`.** A run following
+  §2 literally would have passed no `--commands-dir`, detected no boundary, and discarded every
+  attribution: the inertness failure of 3.16.0, reachable a second way. §2 now documents all of
+  it, and says outright that omitting `--commands-dir` turns detection silently off.
+- **The intent file was declared a JSON array and shown as a bare object**, with no append
+  instruction in either command. A session that ceded twice would have overwritten the first
+  record and lost an attribution nothing can reconstruct. Both the reference and both commands
+  now state append-never-overwrite, and the schema is shown as an array.
+- **§3 still described the retired window boundary** — closing a ceded run's window "at the
+  transcript boundary where that run began" rather than at the next command of any kind, which
+  is the misattribution §13.3 exists to remove, contradicting it from 500 lines earlier.
+- **The deferral moved out of a Phase 2.5 and back inside Phase 2, ahead of `commit-artifacts`.**
+  A new phase after the terminal commit falsified six sentences across `specs-repo-git.md`,
+  `session-hygiene.md` and `CLAUDE.md` that say the commit is the last thing these runs do before
+  ceding. The deferral has no dependency on the commit, so **reordering keeps all six true** —
+  cheaper and safer than rewording an invariant stated in three authorities.
+- **The file's own opening scope sentence** claimed every cost-emitting command has a terminal
+  "Session cost" phase citing `emit-cost`; two of the twenty-one have neither.
+- Also: `target_command` is required of all four feedback commands, not two; §6.1's unpriced-model
+  warning now fires per built entry, replayed ones included; §5's auto-detect documents its third
+  suppressor; the record carries `epic` so a replayed entry is keyed like a self-measured one; and
+  the "sum to the window" claim is restated as **token-exact**, since per-bucket rounding can move
+  the summed dollars by a fraction of a cent.
+
+**`scripts/check-docs.sh` — check 8 was green for the wrong reason.** The two deferring commands
+contain no `emit-cost` at all; their §7 rows were satisfied because an intent-record bullet
+happened to match the call-site regex verbatim. Rewording that bullet — an entirely natural edit —
+would have turned the build red with a message blaming the §7 table, the exact inversion the
+check's own comment exists to prevent. Check 8 now recognises **two** routes to a §7 row (calls
+`emit-cost`, or records a §13 intent), its extractor-coverage backstop sees both, and a new
+selftest case rejects a row backed only by look-alike prose.
+
+**The selftest was decoration and is now a gate.** Review measured 18 of 39 mutations surviving,
+ten on load-bearing lines with real dollar consequences — including the very flooring defect the
+code's own comment says it prevents. The fixture was rebuilt around the defects rather than around
+coverage: sub-second boundary and record stamps, records sitting exactly on a segment's start and
+end, the same command ceding twice, a shipped command name that is a strict prefix of another, a
+usage record with no timestamp, subagent spend inside and outside the window, a bare built-in whose
+name this plugin ships, and a foreign namespace. Fifteen of fifteen mutations are now caught,
+against three of sixteen for the original. **No count of caught mutations is recorded in the
+file**, deliberately: the last one written there was measured against a fixture two rewrites old.
+
 ## [3.16.0] — 2026-09-01
 
 ### Fixed — the spend of a command that cedes the session is no longer misattributed

@@ -230,15 +230,22 @@ def command_marker(obj, known, plugin_name=None):
     typed = raw[1:].strip()
     if not typed or known is None:
         return None
-    if typed in known:
-        return typed
-    # A namespace is RESOLVED, never discarded. Stripping it would read another
-    # installed plugin's `/superpowers:implement` as this plugin's `/implement`
-    # and invent a boundary under a name this plugin never ran.
-    if ":" in typed:
-        ns, rest = typed.split(":", 1)
-        if plugin_name and ns == plugin_name and rest in known:
-            return rest
+    # The namespace is REQUIRED, and that is a deliberate asymmetry with how a
+    # user thinks about these commands. Two facts force it. Claude Code's own
+    # built-ins are always written bare, and one of them -- `/upgrade` -- collides
+    # with a command name this plugin also ships, so accepting a bare name mints a
+    # boundary from a subscription command the plugin never ran (observed on real
+    # transcripts). And a namespace is resolved, never discarded: stripping it
+    # would read another installed plugin's `/superpowers:implement` as this
+    # plugin's `/implement`. Requiring `<this plugin>:<known command>` excludes
+    # both, and errs safe -- an invocation missed becomes an unmatched claim,
+    # reported and dropped (section 13.4), where a phantom one silently files one
+    # command's spend under another's phase.
+    if ":" not in typed:
+        return None
+    ns, rest = typed.split(":", 1)
+    if plugin_name and ns == plugin_name and rest in known:
+        return rest
     return None
 
 
@@ -399,13 +406,13 @@ def read_snapshot_cost(path):
 #
 # The window split (section 13 of cost-emission.md) is the one part of this
 # script whose failure is silent: a boundary that is missed or invented still
-# produces a plausible number, in the wrong bucket. So each case below is
-# paired with the broken implementation it exists to catch, and the fixture
-# was checked against those: an UNANCHORED marker match (one that accepts the
-# marker text anywhere in a message rather than only at its start) and a
-# match that skips the known-command set both report 3 boundaries where the
-# correct implementation reports 2. A fixture that cannot tell those apart
-# would pass for the wrong reason, which is the whole failure mode here.
+# produces a plausible number, in the wrong bucket. So the fixture is built to
+# DISCRIMINATE, and every row of it exists for a specific broken implementation
+# rather than for coverage -- see _st_rows for which defect each row pins.
+# Deliberately not recorded here: a count of mutations caught. That number moves
+# with the fixture and with the mutation set someone chooses to try, and the last
+# one written here was measured against a fixture two rewrites old. Re-derive it
+# by mutating a load-bearing line and running --selftest.
 # --------------------------------------------------------------------------
 
 SELFTEST_PRICES = """models:
@@ -420,28 +427,35 @@ default: null
 
 
 def _st_rows():
-    """A window shaped like the ones that actually broke this feature.
+    """A window carrying every trap this splitter has actually fallen into.
 
-    Three traps, each pinned to a real defect: a plugin command written in the
-    MESSAGE-FIRST envelope Claude Code really emits (anchoring on <command-name>
-    alone made the feature inert); a `/vuln` boundary between the ceding run and
-    the replaying one (positional pairing filed /vuln's spend under the grill's
-    PRD labels); and a FOREIGN namespace over a shared bare name (discarding the
-    namespace invented a boundary this plugin never ran)."""
+    Each row exists for a defect, not for coverage: a MESSAGE-FIRST plugin
+    envelope (anchoring on <command-name> alone made the feature inert); a bare
+    built-in `/upgrade`, whose name this plugin also ships (accepting bare names
+    minted boundaries from a subscription command); a `/vuln` boundary between the
+    ceding run and the replaying one (positional pairing filed its spend under a
+    PRD phase); a FOREIGN namespace over a shared bare name; the SAME command
+    ceding twice (a cursor that does not advance pairs both claims to one
+    boundary); SUB-SECOND boundary and record stamps (flooring the edge moves
+    records between runs); records sitting exactly ON a boundary (edge
+    inclusivity); and a usage record with no timestamp at all."""
     def asst(ts, out):
-        return {"type": "assistant", "timestamp": ts,
-                "message": {"role": "assistant", "model": "claude-opus-5",
-                            "usage": {"input_tokens": 0, "output_tokens": out,
-                                      "cache_read_input_tokens": 0,
-                                      "cache_creation_input_tokens": 0}}}
+        rec = {"type": "assistant",
+               "message": {"role": "assistant", "model": "claude-opus-5",
+                           "usage": {"input_tokens": 0, "output_tokens": out,
+                                     "cache_read_input_tokens": 0,
+                                     "cache_creation_input_tokens": 0}}}
+        if ts:
+            rec["timestamp"] = ts
+        return rec
 
-    def builtin(ts, name):          # built-ins are name-first
+    def builtin(ts, name):          # built-ins: name-first AND bare
         return {"type": "user", "timestamp": ts,
                 "message": {"role": "user", "content":
                             MARKER_OPEN + name + MARKER_CLOSE +
                             "\n  <command-message>x</command-message>"}}
 
-    def plugin_cmd(ts, name, as_blocks=False):   # plugin commands are message-first
+    def plugin_cmd(ts, name, as_blocks=False):   # plugin commands: message-first
         body = (MARKER_MSG + name.lstrip("/") + "</command-message>\n"
                 + MARKER_OPEN + name + MARKER_CLOSE + "\n<command-args></command-args>")
         content = ([{"type": "text", "text": body}] if as_blocks else body)
@@ -450,31 +464,27 @@ def _st_rows():
             rec["timestamp"] = ts
         return rec
 
+    G = "/dev-workflows:prompt-grill-me"
     return [
-        asst("2026-09-01T10:00:00.000Z", 1000),                     # 0 prior work
-        builtin("2026-09-01T10:01:00.000Z", "/compact"),            # 1 not this plugin
-        plugin_cmd("2026-09-01T10:02:00.000Z", "/dev-workflows:vuln"),        # 2 emits no cost
-        asst("2026-09-01T10:03:00.000Z", 4000),                     # 3 /vuln's spend
-        plugin_cmd("2026-09-01T10:04:00.000Z", "/dev-workflows:prompt-grill-me"),  # 4 ceding
-        asst("2026-09-01T10:05:00.000Z", 2000),                     # 5 the grill
-        {"type": "user", "timestamp": "2026-09-01T10:06:00.000Z",   # 6 marker quoted
-         "message": {"role": "user",                                #   mid-content
-                     "content": "a doc quoting " + MARKER_OPEN +
-                                "/implement" + MARKER_CLOSE + " inline"}},
-        plugin_cmd("2026-09-01T10:07:00.000Z", "/superpowers:implement"),     # 7 FOREIGN
-        plugin_cmd(None, "/dev-workflows:specify"),                 # 8 no timestamp
-        asst("2026-09-01T10:08:00.000Z", 1000),                     # 9 still the grill
-        plugin_cmd("2026-09-01T10:09:00.000Z", "/dev-workflows:implement", True),  # 10 blocks
-        asst("2026-09-01T10:10:00.000Z", 3000),                     # 11 replaying run
-        # 12 the envelope is preceded by whitespace -- still an invocation.
-        {"type": "user", "timestamp": "2026-09-01T10:10:30.000Z",
-         "message": {"role": "user", "content":
-                     "\n   " + MARKER_MSG + "dev-workflows:specify</command-message>\n"
-                     + MARKER_OPEN + "/dev-workflows:specify" + MARKER_CLOSE}},
-        # 13 a name with no leading slash is not an invocation.
-        {"type": "user", "timestamp": "2026-09-01T10:10:40.000Z",
-         "message": {"role": "user", "content":
-                     MARKER_OPEN + "implement" + MARKER_CLOSE}},
+        asst("2026-09-01T10:00:00.000Z", 1000),          # prior activity
+        builtin("2026-09-01T10:00:30.000Z", "/upgrade"),  # BARE built-in, name we ship
+        plugin_cmd("2026-09-01T10:01:00.000Z", "/dev-workflows:vuln"),   # emits no cost
+        asst("2026-09-01T10:01:30.000Z", 4000),          # /vuln's spend
+        plugin_cmd("2026-09-01T10:02:00.000Z", G),       # cede #1
+        asst("2026-09-01T10:02:00.000Z", 500),           # exactly ON the boundary
+        asst("2026-09-01T10:02:00.500Z", 500),           # sub-second, inside cede #1
+        asst(None, 700),                                 # no timestamp -> remainder
+        plugin_cmd("2026-09-01T10:02:30.000Z", "/superpowers:implement"),  # FOREIGN
+        {"type": "user", "timestamp": "2026-09-01T10:02:40.000Z",
+         "message": {"role": "user", "content": "a doc quoting " + MARKER_OPEN +
+                     "/dev-workflows:implement" + MARKER_CLOSE + " inline"}},
+        builtin("2026-09-01T10:02:50.000Z", "/compact"),
+        asst("2026-09-01T10:03:00.200Z", 300),           # still cede #1 (before edge)
+        plugin_cmd("2026-09-01T10:03:00.500Z", G),       # cede #2 -- SAME name
+        asst("2026-09-01T10:03:00.500Z", 100),           # exactly ON cede #1's END
+        asst("2026-09-01T10:03:00.700Z", 800),           # cede #2
+        plugin_cmd("2026-09-01T10:04:00.000Z", "/dev-workflows:implement", True),
+        asst("2026-09-01T10:04:30.000Z", 3000),          # the replaying run
     ]
 
 
@@ -499,8 +509,6 @@ def selftest():
     ppath = os.path.join(tmp, "prices.yaml")
     with open(ppath, "w", encoding="utf-8") as fh:
         fh.write(SELFTEST_PRICES)
-    # commands/ must sit beside a .claude-plugin/plugin.json: the declared name is
-    # the namespace a marker carries.
     proot = os.path.join(tmp, "plugin-root")
     cdir = os.path.join(proot, "commands")
     os.makedirs(cdir)
@@ -508,15 +516,19 @@ def selftest():
     with open(os.path.join(proot, ".claude-plugin", "plugin.json"), "w",
               encoding="utf-8") as fh:
         json.dump({"name": "dev-workflows", "version": "0.0.0"}, fh)
-    for n in ("implement", "prompt-grill-me", "prompt-brainstorm", "vuln", "specify"):
+    # `/prompt` is shipped and is a strict PREFIX of the two deferring commands:
+    # a claim matcher using startswith instead of equality mispairs on it.
+    for n in ("implement", "prompt-grill-me", "prompt-brainstorm", "vuln",
+              "specify", "prompt", "upgrade"):
         with open(os.path.join(cdir, n + ".md"), "w", encoding="utf-8") as fh:
             fh.write("x\n")
-    # Subagent spend must be segmented exactly as the main transcript's is.
     sdir = os.path.join(tmp, "subagents")
     os.makedirs(sdir)
     with open(os.path.join(sdir, "agent-1.jsonl"), "w", encoding="utf-8") as fh:
-        for ts, out in (("2026-09-01T10:05:30.000Z", 400),      # inside the grill
-                        ("2026-09-01T10:10:30.000Z", 600)):     # inside this run
+        for ts, out in (("2026-09-01T10:02:15.000Z", 400),   # inside cede #1
+                        ("2026-09-01T10:03:30.000Z", 200),   # inside cede #2
+                        ("2026-09-01T09:00:00.000Z", 900),   # BEFORE the window
+                        ("2026-09-01T11:00:00.000Z", 600)):  # AFTER the window
             fh.write(json.dumps({"timestamp": ts, "message": {
                 "role": "assistant", "model": "claude-opus-5",
                 "usage": {"input_tokens": 0, "output_tokens": out,
@@ -524,99 +536,97 @@ def selftest():
                           "cache_creation_input_tokens": 0}}}) + "\n")
     snap = os.path.join(tmp, "snap.json")
     with open(snap, "w", encoding="utf-8") as fh:
-        json.dump({"ts": "2026-09-01T10:11:00Z", "cost_usd": 9.9}, fh)
+        json.dump({"ts": "2026-09-01T10:05:00Z", "cost_usd": 9.9}, fh)
     ckpt = os.path.join(tmp, "ck.json")
     with open(ckpt, "w", encoding="utf-8") as fh:
-        json.dump({"line_offset": 0, "last_ts": None, "last_snapshot_cost": 9.0}, fh)
+        json.dump({"line_offset": 0, "last_ts": "2026-09-01T09:30:00.000Z",
+                   "last_snapshot_cost": 9.0}, fh)
 
-    def run(*extra):
+    def run(*extra, **kw):
         cmd = [sys.executable, os.path.abspath(__file__),
                "--transcript", tpath, "--prices", ppath,
-               "--subagents-dir", sdir, "--commands-dir", cdir,
-               "--snapshot", snap, "--checkpoint", ckpt,
-               "--now-ts", "2026-09-01T10:11:00.000Z"] + list(extra)
+               "--now-ts", "2026-09-01T10:05:00.000Z"]
+        if kw.get("subagents", True):
+            cmd += ["--subagents-dir", sdir]
+        if kw.get("commands", True):
+            cmd += ["--commands-dir", cdir]
+        cmd += ["--snapshot", snap, "--checkpoint", ckpt] + list(extra)
         out = subprocess.run(cmd, capture_output=True, text=True)
         if out.returncode != 0:
             bad("run failed: " + " ".join(extra) + " -> " + out.stderr.strip()[:200])
             return None
         return json.loads(out.stdout)
 
+    def tokens(block):
+        return sum(m["input_tokens"] + m["output_tokens"] + m["cache_read_tokens"]
+                   + m["cache_write_tokens"] for m in block)
+
     whole = run()
     if whole is None:
         print("SELFTEST FAIL"); return 1
     names = [b["command"] for b in whole["command_boundaries"]]
-    check(names == ["/vuln", "/prompt-grill-me", "/implement", "/specify"],
-          "the four plugin invocations are boundaries, in order (got %r)" % (names,))
-    check(names.count("/specify") == 1,
-          "an envelope preceded by whitespace is still an invocation")
-    check("/prompt-grill-me" in names,
-          "a MESSAGE-FIRST envelope is recognised (the real plugin-command shape)")
-    check("/compact" not in names,
-          "/compact is not a boundary -- it is not one of this plugin's commands")
+    check(names == ["/vuln", "/prompt-grill-me", "/prompt-grill-me", "/implement"],
+          "boundaries are the four plugin invocations, in order (got %r)" % (names,))
+    check("/upgrade" not in names,
+          "a BARE built-in is not a boundary, even when this plugin ships that name")
+    check("/compact" not in names, "/compact is not a boundary")
     check(names.count("/implement") == 1,
           "a FOREIGN namespace (/superpowers:implement) is not a boundary")
-    check(len([b for b in whole["command_boundaries"]
-               if b["command"] == "/specify"]) == 1,
-          "a marker with no timestamp is not a boundary (and does not crash)")
     check(len(names) == 4,
           "a marker quoted mid-message is not a boundary (anchored match)")
-    check(any(b["command"] == "/implement" for b in whole["command_boundaries"]),
-          "list-block message content is read, not skipped")
-    check(abs(whole["cost_computed_usd"] - 0.300) < 1e-9,
-          "unclaimed, the whole window is this run's (12000 tok = $0.3000)")
+    check(whole["plugin_namespace"] == "dev-workflows",
+          "the namespace is read from plugin.json, not from the parent directory")
+    check(tokens(whole["models"]) == 11500,
+          "unclaimed, the window is 11500 tok (out-of-window subagents excluded)")
+    check(abs(whole["cost_computed_usd"] - 0.2875) < 1e-9,
+          "...priced at $0.2875")
     check(whole["cost_statusline_usd"] == 0.9,
           "with no claim the statusline delta is reported")
 
-    one = run("--claim", "/prompt-grill-me")
-    if one is None:
+    two = run("--claim", "/prompt-grill-me", "--claim", "/prompt-grill-me")
+    if two is None:
         print("SELFTEST FAIL"); return 1
-    check(len(one["claims"]) == 1 and one["unmatched_claims"] == [],
-          "the claim is matched by name")
-    claimed = one["claims"][0]["cost_computed_usd"] if one["claims"] else -1
-    check(abs(claimed - 0.085) < 1e-9,
-          "the claim gets its OWN segment ($0.0850) -- not the preceding /vuln "
-          "boundary's ($0.1000), which positional pairing would have taken")
-    check(abs(one["cost_computed_usd"] - 0.215) < 1e-9,
-          "the remainder keeps everything unclaimed, /vuln's spend included")
-    check(abs(one["cost_computed_usd"] + claimed - whole["cost_computed_usd"]) < 1e-9,
-          "claim + remainder are disjoint and sum to the unsplit window")
-    check(one["cost_statusline_usd"] is None,
+    check(len(two["claims"]) == 2 and two["unmatched_claims"] == [],
+          "two cedes of the SAME command match two DIFFERENT boundaries")
+    c1, c2 = (two["claims"] + [None, None])[:2]
+    check(c1 and abs(c1["cost_computed_usd"] - 0.0425) < 1e-9,
+          "cede #1 gets its own segment ($0.0425) -- not /vuln's, which positional "
+          "pairing would have taken")
+    check(c2 and abs(c2["cost_computed_usd"] - 0.0275) < 1e-9,
+          "cede #2 gets its own segment ($0.0275)")
+    check(c1 and tokens(c1["models"]) == 1700 and c2 and tokens(c2["models"]) == 1100,
+          "a segment is half-open [start, end): a record exactly ON a boundary "
+          "opens the new segment and does not also close the old one, and a "
+          "sub-second record before the edge stays where it ran")
+    check(c1 and c1["duration_s"] == 60 and c2 and c2["duration_s"] == 59,
+          "each claim's duration spans its own segment, not the whole window")
+    check(tokens(two["models"]) + tokens(c1["models"]) + tokens(c2["models"])
+          == tokens(whole["models"]),
+          "claims + remainder are token-exact against the unsplit window")
+    check(two["cost_statusline_usd"] is None,
           "a claimed window reports no statusline delta (option B cannot split)")
-    check(one["new_checkpoint"]["line_offset"] == whole["new_checkpoint"]["line_offset"],
-          "claiming does not move where the checkpoint lands")
 
-    subless = subprocess.run(
-        [sys.executable, os.path.abspath(__file__), "--transcript", tpath,
-         "--prices", ppath, "--commands-dir", cdir,
-         "--now-ts", "2026-09-01T10:11:00.000Z", "--claim", "/prompt-grill-me"],
-        capture_output=True, text=True)
-    if subless.returncode == 0:
-        d = json.loads(subless.stdout)
-        check(abs(d["claims"][0]["cost_computed_usd"] - 0.075) < 1e-9,
-              "subagent spend lands in the segment it ran in, not elsewhere")
-    else:
-        bad("subagent-free run failed")
+    pre = run("--claim", "/prompt")
+    check(pre is not None and pre["unmatched_claims"] == ["/prompt"]
+          and pre["claims"] == [],
+          "/prompt does not match /prompt-grill-me (equality, not prefix)")
 
     miss = run("--claim", "/prompt-brainstorm")
     check(miss is not None and miss["unmatched_claims"] == ["/prompt-brainstorm"]
           and miss["claims"] == [],
           "a claim with no matching boundary is reported, never guessed onto one")
-    check(miss is not None
-          and abs(miss["cost_computed_usd"] - whole["cost_computed_usd"]) < 1e-9,
+    check(miss is not None and tokens(miss["models"]) == tokens(whole["models"]),
           "an unmatched claim carves out nothing -- no spend is lost")
 
-    bare = subprocess.run(
-        [sys.executable, os.path.abspath(__file__), "--transcript", tpath,
-         "--prices", ppath, "--subagents-dir", sdir,
-         "--now-ts", "2026-09-01T10:11:00.000Z"], capture_output=True, text=True)
-    if bare.returncode == 0:
-        d = json.loads(bare.stdout)
-        check(d["command_boundaries"] == [],
-              "without --commands-dir no boundary is reported (nothing is guessed)")
-        check(abs(d["cost_computed_usd"] - whole["cost_computed_usd"]) < 1e-9,
-              "boundary detection never changes the cost figure")
-    else:
-        bad("run without --commands-dir failed")
+    nosub = run("--claim", "/prompt-grill-me", subagents=False)
+    check(nosub is not None and abs(nosub["claims"][0]["cost_computed_usd"] - 0.0325) < 1e-9,
+          "subagent spend lands in the segment it ran in, not elsewhere")
+
+    bare = run(commands=False)
+    check(bare is not None and bare["command_boundaries"] == [],
+          "without --commands-dir no boundary is reported (nothing is guessed)")
+    check(bare is not None and tokens(bare["models"]) == tokens(whole["models"]),
+          "boundary detection never changes the cost figure")
 
     if failures:
         print("SELFTEST FAIL (%d)" % len(failures))
@@ -804,6 +814,7 @@ def main():
         "cost_computed_usd": cost_computed,
         "cost_statusline_usd": cost_statusline,
         "duration_s": duration_s,
+        "plugin_namespace": plugin_name,
         "command_boundaries": boundaries,
         "claims": claims_out,
         "unmatched_claims": unmatched,

@@ -5,10 +5,10 @@ grounded picture, keys and nests a `PRD-` folder per confirmed slice with its ow
 `brd-link.md`, an inventory of the rows it inherits, and an unallocated coverage ledger of its
 own, then walks every unallocated coverage-ledger row one at a time through four
 resolutions until none remain `unallocated`, and writes `slices.md` with the rationale for each
-slice and each deferral. Where one answer is uniform by construction — exactly one slice standing —
-the walk first offers to write that single disposition across every remaining row in one
-confirmation, stating each row it would write and letting any of them be held back to the
-one-at-a-time walk. Run on a **slice** it allocates but does not slice: the proposal and
+slice and each deferral. Where one answer is uniform by construction **and two or more rows are
+still `unallocated`** — exactly one slice standing on a parent, or any run on a slice — the walk
+first offers to write that single disposition across every remaining row in one confirmation,
+stating each row it would write and letting any of them be held back to the one-at-a-time walk. Run on a **slice** it allocates but does not slice: the proposal and
 child-creation phases are skipped and the walk offers its own four resolutions — the same count as `full` mode, a different set.
 
 ## Who runs it
@@ -233,8 +233,9 @@ with a "nothing to commit" report on the no-op path.
   and the `brd-link.md` `claims:` entries it adds alongside. It is **refusable per row**: the second
   option takes a list of `[BR#n]` ids to hold back and walks exactly those one at a time, so three
   exceptions out of forty cost one offer, one naming prompt and three row prompts — **5**, not 40.
-  And the **third option is the ordinary walk**, which is also where an answer the run cannot parse
-  falls through to, so nothing is ever written in bulk that you were not shown and did not confirm.
+  And the **third option is the ordinary walk**, which is where *every* answer the run cannot use
+  falls through to — at the offer itself and at the hold-back prompt, an empty answer included — so
+  nothing is ever written in bulk that you were not shown and did not confirm.
 
   Its vocabulary is those two dispositions and no others: `deferred-to` needs a per-row rationale,
   `rejected` a `[DEF#n]`, and `superseded-by` a `[BR#n]`, and a bulk form of any of the three would

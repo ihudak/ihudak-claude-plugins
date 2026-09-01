@@ -97,14 +97,38 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
      not; and **where this BRD's ledger leaves no row `unallocated` that run is a no-op** (its
      Phase 0 step 10) and carves nothing, since nothing in this plugin moves a terminal row back to
      `unallocated` (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3). Say what the
-     operator does then rather than leaving the offer to fail silently: either the one slice the walk
-     confirmed was removed as a standing empty child, in which case every requirement is
-     `deferred-to`, `rejected` or `superseded-by`, no Epic is owed by anybody, and un-deferring one
-     is a decision taken with the customer rather than a command; or the ledger records a fate a
-     container can no longer hold — a **root** row `covered-here` — where re-running
+     operator does then rather than leaving the offer to fail silently. There are two ways to reach
+     it and **both are leaveable** — one by a decision, one by a repair. Either the one slice the
+     walk confirmed was removed as a standing empty child, in which case every requirement is
+     `deferred-to`, `rejected` or `superseded-by`, every row is legal and terminal, and no Epic is
+     owed by anybody: that is an **ending rather than a failure**, and no command decides otherwise,
+     because un-deferring a requirement is a decision taken with the customer. Name no command for
+     the decision — and say, rather than implying the state is sealed, that once it is taken it is
+     carried out by the same two repairs the other way below names, in the same order: hand-edit the
+     one row that is now to be built back to `unallocated`, after which
+     `/dev-workflows:brd-split <BRD-KEY>` has a row to walk and carves the slice; or re-run
+     `/dev-workflows:brd-intake <BRD-KEY> @<brd-file>`, which reopens **every** row and discards
+     every deferral and rejection recorded here. Or the ledger
+     records a fate a container can no longer hold — a **root** row `covered-here`, which only a
+     tree written before a BRD became a container, or a hand edit, can have produced
+     (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5). **Offer the narrower repair
+     first**, because the illegal state is one row wide and every other row is already legal and
+     terminal: hand-edit that one row's `disposition:` in `coverage-ledger.md`, leaving every other
+     row untouched — to `deferred-to: <this BRD>`, `rejected: [DEF#n]` or `superseded-by: [BR#n]`
+     where the requirement is not to be built here, which makes the ledger legal and lands on the
+     ending above; or back to `unallocated` where it is, after which `/dev-workflows:brd-split
+     <BRD-KEY>` has a row to walk, confirms a slice, and that slice's own walk takes the row to
+     `covered-here`, the one level at which `covered-here` is legal. §3's *no command ever moves a
+     row back to `unallocated`* binds the commands; this is a hand repair of a value no command
+     wrote, and §5 already names hand editing as how this state arises. **Offer the `/brd-intake`
+     re-run second, and only where the whole inventory is to be re-taken:** re-running
      `/dev-workflows:brd-intake <BRD-KEY> @<brd-file>` over this same folder is a re-run rather than
-     a refusal and rewrites the ledger with every row `unallocated`, after which
-     `/dev-workflows:brd-split <BRD-KEY>` has rows to walk.
+     a refusal (its Phase 0 step 7 warns and confirms before the first write) and rewrites the
+     ledger with **every** row `unallocated`, after which `/dev-workflows:brd-split <BRD-KEY>` has
+     rows to walk. It also **discards every disposition this ledger records**: each `deferred-to`,
+     `rejected` and `superseded-by` the walk decided is replaced by `unallocated` and must be
+     re-taken, and a `rejected` row must be re-cited against its `[DEF#n]`. Name those decisions —
+     saying only that the dispositions are replaced is not the disclosure.
 
 1b. **`/epics` accepts exactly two shapes, and the gate is the artifact's own `kind:`.** A `PRD-`
    folder is partitioned into Epics; an `EPIC-` folder **that has a PRD above it** is re-refined.
@@ -721,7 +745,7 @@ into the current working directory.
 
 Output a structured report — do NOT ask any closing confirmation:
 
-**When `mode` is `refine`/`both`,** begin the report with a `Mode: <refine | both>` line and split the written-Epics listing into three labelled groups: **Refined** (keyed `<EPIC-KEY>.md`), **Net-new** (slug-named), and **Deferred** (PRD requirements left uncovered via the Phase 6.1 leftover gate). In `generate` mode the report is unchanged.
+**When `mode` is `refine`/`both`,** begin the report with a `Mode: <refine | both>` line and split the written-Epics listing into three labelled groups: **Refined** (identified by the target's `<EPIC-KEY>`; the file itself is that Epic folder's own `epic.md`, never `<EPIC-KEY>.md`), **Net-new** (slug-named), and **Deferred** (PRD requirements left uncovered via the Phase 6.1 leftover gate). In `generate` mode the report is unchanged.
 
 ```
 ## keyed Epic Drafting Report

@@ -79,6 +79,33 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
    would not exist. `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §5 keeps resolving the folders
    a pre-prefix repo already holds; this command does not add to them.
 
+
+   **A re-run over an existing folder rewrites every ledger disposition, and the confirmation for
+   that is taken here — before Phase 2's first write.** Where the folder resolved above already
+   holds a `coverage-ledger.md` with any row not `unallocated`, read it and state, before anything
+   is copied: how many rows carry each terminal disposition and which `[BR#n]`s they are —
+   `covered-by`, `deferred-to`, `rejected`, `superseded-by`, and any illegal root `covered-here`
+   (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5) — and that Phase 5 replaces
+   **every one of them** with `unallocated`. Name what that destroys rather than calling it a
+   rewrite: each `deferred-to`, `rejected` and `superseded-by` decision `/dev-workflows:brd-split`'s
+   walk took is discarded and has to be re-taken, a `rejected` row re-cited against its `[DEF#n]`,
+   and every child's `claims:` re-allocated. Then ask:
+   ```
+   choices: ["Re-run: re-extract the inventory and rewrite the ledger, discarding the <n> recorded dispositions above", "Cancel — leave this BRD as it stands"]
+   ```
+   **Here and not in Phase 5, because this is the last point at which declining is free.** By
+   Phase 5 the source has been re-copied and the inventory re-extracted, so a decline there would
+   leave the folder holding an inventory its standing ledger no longer matches — a worse state than
+   either answer to this question. On `Cancel` nothing is written at all. Where the folder holds no
+   ledger, or every row of it is still `unallocated`, there is nothing to discard and this
+   confirmation is skipped silently.
+
+   **A single illegal root `covered-here` row does not need this run**, and the offer says so rather
+   than letting a re-run be taken for the only exit: `coverage-ledger-format.md` §5 names the
+   one-row hand repair that leaves every other disposition standing, and the four container refusals
+   in `/dev-workflows:create-prd`, `/dev-workflows:create-ard`, `/dev-workflows:specify` and
+   `/dev-workflows:epics` offer that repair first and this re-run second.
+
 `/brd-intake` is the **first command of the BRD-to-PRD route** — unlike every downstream `/brd-*`
 command, it consumes no prior phase's deliverable, so it runs no `require-on-main` gate here. It is
 cwd-agnostic and needs no repos mounted (no `$REPOS_PATH`); grounding against code and design is
@@ -247,6 +274,16 @@ Write `<BRD-dir>/coverage-ledger.md` per `${CLAUDE_PLUGIN_ROOT}/references/cover
 mirrored from the inventory, `evidence` empty (grounding has not run yet — that is `/brd-ground`'s
 job), and **`disposition: unallocated` on every row**, per §3: "the initial state; the only one of
 the six that blocks §4." No row is ever written in any other disposition here.
+
+**On a re-run this phase rewrites every disposition, and it does so unconditionally by design.**
+Where Phase 0 step 7 resolved an **existing** folder, the ledger that folder holds is replaced row
+for row: every `covered-by`, `deferred-to`, `rejected` and `superseded-by` `/dev-workflows:brd-split`'s
+walk wrote is gone, and so is any illegal root `covered-here`. **The warning and the confirmation
+for that are step 7's**, taken before Phase 2 copied anything, because by the time this phase runs
+the source has been re-copied and the inventory re-extracted and there is no state left to decline
+into. What this phase owes is the restatement: report which dispositions this write discarded, how
+many of each, and that they must be re-taken in `/dev-workflows:brd-split`'s walk. A rewrite the
+operator consented to at step 7 is still a rewrite the run has to name.
 
 ---
 

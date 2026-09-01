@@ -607,13 +607,17 @@ check_identity_quarantine() {
 # Three relations, every one DERIVED, none written in here:
 #   family  -- the `<plugin>:<family>*` glob next-phase-offer.md names, which is this gate's
 #              scope. Only offers made BY a command of that family are checked. Widening it
-#              was measured, not assumed: with the filter removed the check fires on four
-#              sites -- a command that runs no handoff at all, two mid-run refusals, and a
-#              report sentence trailing an array on the same line -- every one correct
-#              content, and catches none of the five offers outside the family that DID
-#              carry an unconditional clause. A `choices:` array here is a refusal or a
-#              branch point as often as it is an offer, and nothing marks which. Do not
-#              widen without new evidence; next-phase-offer.md holds the full record.
+#              was measured, not assumed, and re-measured since: with the filter removed the
+#              check fires on THREE sites -- a command that runs no handoff at all, and two
+#              mid-run refusals -- every one correct content, and catches NONE of the six
+#              offers outside the family that carried an unconditional clause or no clause
+#              at all. The fourth site the earlier measurement named (a report sentence
+#              trailing an array on one line of idea.md) is gone with the branch it sat in,
+#              so widening now yields less and still catches nothing -- including the /idea
+#              offer that was the sixth defect, which is prose and invisible to any
+#              `choices:` scanner. A `choices:` array here is a refusal or a branch point as
+#              often as it is an offer, and nothing marks which. Do not widen without new
+#              evidence; next-phase-offer.md holds the full record and the numbers.
 #   targets -- what each command runs `require-on-main` against, read out of
 #              phase-handoff.md's row-F table (column 2's backticked *.md, by basename).
 #   writers -- what a command declares it hands off, read out of its own

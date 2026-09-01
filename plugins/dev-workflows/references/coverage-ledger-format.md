@@ -307,6 +307,33 @@ that carves the slices.
   | Some rows are `covered-by: <SLICE-KEY>` — the ordinary shape on a parent | Name those slices — and, per §6.1, which of them did not build the row delegated to it. A slice that deferred, rejected or has not allocated it is not somewhere to send the reader |
   | No row is `covered-by` | Name no slice, because none holds one of these rows — and say what the rows *did* resolve to rather than calling them all obligations. The three remaining dispositions say different things: a `deferred-to` row is a live obligation of this folder, a `rejected` one is an obligation of nobody and cites the `[DEF#n]` justifying it, and a `superseded-by` one was absorbed into the `[BR#n]` that replaced it. This is also the only shape a **slice** reaches, for the reason the paragraph below gives: no row of the set eligibility is read over on a slice can be `covered-by`. On a slice, add that a PRD needs one row resolved `covered-here` first |
 
+
+  **A root row `covered-here` is repairable one row at a time, and the narrow repair is named before
+  the wide one.** The illegal state is **one row wide**: every other row of that ledger is already
+  legal and terminal, and no command in this plugin wrote the illegal one. So a consumer that
+  reports it names, **first**, hand-editing that single row's `disposition:` in
+  `coverage-ledger.md`, leaving every other row untouched — to `deferred-to: <this BRD>`,
+  `rejected: [DEF#n]` or `superseded-by: [BR#n]` where the requirement is not to be built here, or
+  back to `unallocated` where it is, which is the state `/brd-split`'s walk consumes and which lets
+  that run confirm a slice whose own walk may legally write `covered-here`. §3's *no command ever
+  moves a row back to `unallocated`* binds the **commands**; a hand repair of a value no command
+  wrote is not one of them, and the row above already names hand editing as how this state arises.
+  **Second**, and only where the whole inventory is to be re-taken, `/brd-intake` re-run over the
+  same folder rewrites the ledger with **every** row `unallocated` (`commands/brd-intake.md`
+  Phase 5), discarding every `deferred-to`, `rejected` and `superseded-by` the walk decided — each
+  has to be re-taken, and a `rejected` row re-cited against its `[DEF#n]`. **A consumer naming that
+  option names those decisions**: "the dispositions are replaced" is not the disclosure, because it
+  does not say which judgement is destroyed.
+
+  **The neighbouring state needs no repair and is still not sealed.** A container whose one slice was
+  removed as a standing empty child holds no illegal row at all — every row is legally `deferred-to`,
+  `rejected` or `superseded-by`, and nothing is owed to anybody. That is an **ending**, and a
+  consumer reporting it names no command for the decision to un-defer a requirement, which is taken
+  with the customer (`escalation-rules.md`, *When no option is safe to recommend*). It must not,
+  however, report it as a state with no exit: once that decision is taken it is carried out by the
+  same two repairs, in the same order — the one row moved back to `unallocated` by hand so
+  `/brd-split` has a row to walk, or the `/brd-intake` re-run that reopens every row.
+
   "Name the slices that do" is right in the first two rows only. In the third there is nothing to
   name, and a consumer that goes looking for a slice to point at finds none and must not invent
   one — the honest report is what each row actually resolved to, and, for the deferred ones, by whom.

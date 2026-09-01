@@ -81,7 +81,9 @@ drafts, which are. Catching it at the source is cheaper than catching it downstr
 - `## Covers` references parent-PRD IDs in bracketed form (`[US#N]`/`[AC#N]`/`[SM#N]`); Epics do not
   mint their own criterion IDs.
 - A `_coverage.md` file is present in the output dir.
-- Refined Epic files (keyed `<EPIC-KEY>.md`, from `/epics` refinement mode) carry a `**Team:**` line
+- Refined Epic files (from `/epics` refinement mode — `EPIC-<EPIC-KEY>-<eslug>/epic.md`, the keyed
+  folder and keyless filename `epic-writer` writes; never `<EPIC-KEY>.md`, which that agent forbids)
+  carry a `**Team:**` line
   (`grep -nE '^\*\*Team:\*\*' <file>`) and a `## Scope` with real in/out bullets (not just the summary).
 
 ## design — `design.md` (`/design`; format `design-format.md`)

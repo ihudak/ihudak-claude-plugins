@@ -119,6 +119,7 @@ refusing to start until its predecessor's artifact landed on the specs default b
 | D20 | **A package whose prerequisite is not yet customer-reviewed may ship, loudly.** | Blocking would fully serialise delivery and let a slow customer stall everything downstream. Instead the delivery note and the customer prompt both name which prerequisite decisions are still provisional and which positions here depend on them — the customer is told what could still move. |
 | D18 | **The rendered bundle is committed to the specs repo.** | It serves a git-capable customer directly and a zip-only customer via one command, and it is the permanent record of exactly what was sent — which is what makes D13's byte-identical property checkable months later. The cost is a derived duplicate in the repo. |
 | R25 | **A BRD is a container, and PRD eligibility is a property of the slice folder rather than of a ledger row.** `/brd-split` on a source-owning BRD always confirms at least one slice and its walk offers **four** resolutions — `covered-here` left the parent's picker, so a parent and a slice each offer four, differing in one member — so no row of a root's ledger can carry one, and `/create-prd`, `/create-ard` and `/specify` each **refuse a `BRD-` folder on the resolved folder's kind, before any ledger row is read** (`CREATE_PRD_BRD_NOT_SLICED`, `CREATE_ARD_BRD_NOT_SLICED`, `SPECIFY_BRD_NOT_SLICED`). This amends §4.1's *PRD eligibility* paragraph and §9.3's five-choice picker, both of which still described the escape valve. `--from-brd` is also retired as a flag: the route is inferred from the resolved folder (`docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md` D18), so every `--from-brd` in this document reads as "the BRD route, detected". | Left as written, a BRD could be split *and* hold its own PRD, so its folder would carry PRD folders and its own Epic folders as siblings — two kinds in one namespace, which the addressing invariant forbids and which `/brd-split`'s child enumeration would then have to tell apart. The escape valve §9.3 justified `covered-here` with was deleted when the parent's picker lost it, so the paragraph justified current behaviour with a mechanism that no longer existed while the gate below it still implemented that behaviour. Making the refusal structural rather than a sixth disposition also removes the class of defect where a command and its format authority disagree about which rows count: a container stops on its prefix, and no row can argue it out of that. **The remedy the refusal names must run in the state it reports** — a container holding slices names them; one holding none names `/brd-split`, which is a no-op on a ledger with no `unallocated` row, so the stop says what the operator does then. |
+| R26 | **Every folder in this tree carries its kind prefix, and the PRD is a keyless `prd.md` inside a slice.** The root is `BRD-<BRD-KEY>-<slug>/` and a slice is `PRD-<CHILD-KEY>-<slug>/`; no root holds a `<BRD-KEY>_<slug>.md`. This amends §4's tree and the paragraph under it, which still drew the pre-prefix layout, and §9.3's *four resolutions rather than five*, a comparison R25 retired. | The kind prefixes and keyless artifact filenames shipped in `docs/superpowers/specs/2026-08-31-specs-native-pipeline-design.md` D2/D3. A folder written without its prefix misses `references/addressing.md` §3's `*-<KEY>-*` glob by construction, resolves only through §5's legacy fallback, and is reported deprecated once per run by every downstream command — and the four container refusals read the `BRD-` prefix off the resolved folder's own name, so an unprefixed root moves all four onto the legacy branch. Leaving the pre-prefix tree drawn in the record this route's implementers read is how `/brd-intake` came to write it, which is the defect fix round A closed; a superseded design record that still shows the wrong shape is a source, not a relic. The root's PRD entry goes with R25 for its own reason: a container is never the folder a PRD is authored in. |
 
 ---
 
@@ -129,7 +130,7 @@ PRD, each with its own Jira key).
 
 ```
 $SPECS_PATH/specifications/
-  <BRD-KEY>-<slug>/                      # a BRD at any level
+  BRD-<BRD-KEY>-<slug>/                  # a source-owning BRD; the BRD- kind prefix is part of the name (R26)
     brd/
       source/<original BRD file(s)>      # verbatim, never edited (D11); markdown only
       brd-inventory.md                   # every requirement -> stable [BR#n]
@@ -149,8 +150,8 @@ $SPECS_PATH/specifications/
     customer-delivery-note-<YYYYMMDD>.md  # covering letter; NOT part of the bundle
     reconciliation-<YYYYMMDD>.md
     bundle-<YYYYMMDD>/                   # de-Obsidianised, plain markdown + images (D18)
-    <BRD-KEY>_<slug>.md                  # the PRD, once /create-prd --from-brd has run
-    <CHILD-KEY>-<slug>/                  # a slice: the same structure, one level only
+    PRD-<CHILD-KEY>-<slug>/              # a slice: the same structure, one level only, PRD- prefixed (R26)
+      prd.md                             # the PRD -- authored in the slice, never at the root (R25, R26)
 ```
 
 A slice is the same object one level down (D17), and one level is the maximum — `/brd-split` run on
@@ -158,9 +159,11 @@ a slice creates no child below it, though it still walks that slice's ledger (R1
 `brd/source/` and its defect log from its parent rather than
 re-intaking a document that does not separately exist; its inventory and ledger are written for it
 by `/brd-split` (§9.3) and allocated by `/brd-split` run on the slice itself;
-everything from `/brd-ground` onwards runs at its own level. Only a BRD that has been through
-`/create-prd --from-brd` holds a `<BRD-KEY>_<slug>.md`; a parent that was fully sliced normally
-holds none.
+everything from `/brd-ground` onwards runs at its own level. **No root BRD holds a PRD of its own
+(R25, R26).** The PRD is authored inside the slice, as a keyless `prd.md`; the root
+`<BRD-KEY>_<slug>.md` entry this tree once carried went with the escape valve that justified it, and
+`/create-prd`, `/create-ard`, `/specify` and `/epics` each refuse a `BRD-` folder on its kind before
+a ledger row is read.
 
 ### 4.1 The coverage ledger
 
@@ -607,9 +610,10 @@ Read-only against repositories throughout, per `references/read-only-repos.md`.
 `brd-link.md`, **that child's `brd/brd-inventory.md` and `coverage-ledger.md`**, and an updated
 parent ledger.
 **Two modes (R18).** On a BRD that owns its source document, all of the above. On a slice,
-`allocate-only`: slice proposal and child creation are skipped, and the walk offers four
-resolutions rather than five — `covered-by` is legal on a slice but written by the parent's walk,
-not chosen here (R24); it produces an updated ledger and `slices.md` only.
+`allocate-only`: slice proposal and child creation are skipped, and the walk offers **four**
+resolutions — the same count the parent's walk offers since R25, a different four: `covered-by` is
+legal on a slice but written by the parent's walk, not chosen here (R24), and `covered-here` stands
+where it does. It produces an updated ledger and `slices.md` only.
 
 The child's inventory and ledger are written here because this is the only command holding both
 the parent inventory and the allocation. A child has no source document of its own — it inherits

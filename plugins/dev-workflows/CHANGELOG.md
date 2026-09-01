@@ -92,6 +92,71 @@ where they were parsed (D4). `/idea` no longer claims to relocate anything (D7).
   folder carrying no `brd-link.md` has no gate set and reaches `/create-prd` on the container test
   alone, so the idea route is unchanged.
 
+### Fixed — review round B (the remaining findings)
+
+- **The destructive remedy was the only one offered.** Where a root BRD's ledger is fully allocated
+  *and* holds an illegal root `covered-here`, four stops named a `/brd-intake <KEY> @<file>` re-run —
+  whose Phase 5 rewrites **every** row back to `unallocated`, discarding the walk's `deferred-to`,
+  `rejected` and `superseded-by` decisions along with the illegal row. **A narrower repair exists and
+  is now offered first**: the illegal state is one row wide and every other row is already legal and
+  terminal, so hand-editing that single `disposition:` — to a legal terminal fate, or back to
+  `unallocated` so `/brd-split` has a row to walk — repairs it while leaving every other decision
+  standing. `references/coverage-ledger-format.md` §5 already named hand editing as the *cause* of
+  this state and §3 forbids no hand repair (it binds commands); §5 now owns the ordered remedy and
+  all four stops follow it. The `/brd-intake` re-run is second, and every stop that names it now
+  names **which** decisions it destroys rather than saying the dispositions are "replaced".
+  `/brd-intake` itself gains a re-run warning and a confirmation at Phase 0 step 7 — before the first
+  write, the last point at which declining is free — and Phase 5 restates what the rewrite discarded.
+- **`/brd-split`'s bulk offer fell through two opposite ways.** At the hold-back prompt an
+  **unparseable** answer fell to option 3, the walk, expressly so nothing was written nobody answered
+  for — while an **empty** answer "named no exception and was option 1", the maximal write. A stray
+  Enter is the input nearest to unparseable and got the opposite treatment. Every answer the step
+  cannot use now falls to the walk, at both prompts, and a **second** invalid id after the one
+  re-prompt — previously unspecified — falls there too.
+- **The four container refusals presented a state with a documented exit as having none.** The
+  "one slice removed as a standing empty child" sub-branch said *name none* — true of the customer
+  decision, false of the carrying-out, which is the same escape the sibling sub-branch names two
+  clauses later. It now reads as an ending rather than a sealed state, and names the two repairs that
+  carry the decision out once it is taken.
+- **`/idea` sent the operator into a stop it had just caused.** Phase 5's handoff offer recommended
+  `/create-prd <KEY>` with **no `<merge-clause>`**, while `/create-prd` Phase 0 step 3 rung 1 runs
+  `require-on-main` on that very `idea.md` and stops on rows D/E while the pull request is open —
+  the exact defect `references/next-phase-offer.md` names, in the one adopter its own adopter list
+  omitted. Both are fixed. `scripts/check-docs.sh` check 11 stays family-scoped: re-measured on this
+  tree, widening fires on **three** correct sites (down from four — the fourth went with the
+  relocation branch D7 retired) and catches **none** of the six defects, `/idea`'s included, whose
+  offer is prose and invisible to any `choices:` scanner. The numbers are recorded in
+  `next-phase-offer.md` and in check 11's own header so widening is not re-proposed without new ones.
+- **`/idea`'s `status: draft` path offered no next step at all**, and the un-handed-off `idea.md` was
+  then silently unread: `/create-prd` rung 1 gets row F `absent` for a file on no ref, falls through,
+  and grills from scratch in the folder it just resolved. The draft path now names two steps — re-run
+  `/idea` to close the markers, or `/create-prd <KEY> @<path>` to read the draft in place on rung 2's
+  terms — and rung 1 reports an in-contract `idea.md` that exists but is on no ref instead of passing
+  it over in silence. The fall-through itself is unchanged: `/idea` is not a prerequisite.
+- **`/specify` Phase 0 step 3 contradicted itself three ways on `absent`** — "Create
+  `PRD-<PRD>-<vslug>/` … only on `status: absent`" against "The PRD dir is not created here" against
+  "`absent` is a graceful stop, not a folder to create". It is a stop, on both routes; `/specify`
+  specifies a PRD that exists and creates no folder. `SPECIFY_BRD_NOT_FOUND` is now reachable on the
+  idea route too, so it names every creator rather than only the BRD route's.
+- **`/document` Mode A's `absent` stop named only `/create-prd <KEY>`** — wrong on the BRD route,
+  where that command refuses the container above the slice, and wrong for an `EPIC-` address, which
+  it never mints. It names the three creators, as `/ready`, `/release-notes`, `/epics` and
+  `/create-ard` already did.
+- **`/brd-split`'s frontmatter described the bulk offer's firing condition with one of its two
+  clauses**, omitting *two or more rows still `unallocated`*; `docs/commands/brd-split.md`'s summary
+  the same. Both now state both.
+- **`references/workflow-states.md` lost the only user-facing description of the detected refine
+  mode** when the re-refine description replaced it rather than joining it. `/epics <PRD>` still
+  detects `refinement_candidate: true` Epics and offers to partition the PRD across them; the entry
+  describes both ways in, and no longer names a `<EPIC-KEY>.md` file. `references/pre-lint.md` and
+  `/epics`' own report grouping named that filename too — `agents/epic-writer.md` forbids it.
+- **`commands/create-prd.md` still read *"Nothing writes it now, so the field stayed permanently
+  unset"*** ten lines under *"`key` — written on every route"*.
+- **The BRD design record still drew the pre-prefix tree** (`<BRD-KEY>-<slug>/`,
+  `<BRD-KEY>_<slug>.md`) and still compared the slice picker's four resolutions to five. Amended in
+  place as **R26**, with the reason recorded: leaving the wrong shape in the record this route's
+  implementers read is how `/brd-intake` came to write it.
+
 ### Fixed — the closing sweep
 
 - **`diff-summarizer`'s handoff contradicted its own agent, and `/document` dispatched the stale

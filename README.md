@@ -6,7 +6,7 @@ Ivan Gudak's open-source Claude Code plugin marketplace.
 
 | Plugin | Description |
 |--------|-------------|
-| [dev-workflows](plugins/dev-workflows/) | Twenty-seven slash commands for the PM → PA → PE → Dev pipeline, with Opus-backed planning and review gates. [Docs](plugins/dev-workflows/docs/README.md) |
+| [dev-workflows](plugins/dev-workflows/) | Twenty-eight slash commands for the PM → PA → PE → Dev pipeline, with Opus-backed planning and review gates. [Docs](plugins/dev-workflows/docs/README.md) |
 | [prose-style](plugins/prose-style/) | Pluggable prose style enforcement: `/prose-review-pr`, `/prose-review-docs`, `/prose-style-refresh`, plus sub-agents `dev-workflows` uses for Epics and docs. Vendor-neutral, overridable baseline. |
 | [obsidian-llm-wiki](plugins/obsidian-llm-wiki/) | Ten slash commands for compiling Obsidian vault knowledge into a persistent, cross-referenced wiki with task management; supports Claude Code and GitHub Copilot. |
 | [acli](plugins/acli/) | Atlassian CLI (`acli`) skill for Jira and Confluence — search, work items, comments, attachments, boards, sprints, pages. From [pi-skill-acli](https://github.com/ziegenberg/pi-skill-acli) (MIT). |

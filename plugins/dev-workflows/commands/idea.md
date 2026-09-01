@@ -251,8 +251,9 @@ Runs after Phase 4 and before Phase 5, because the handoff stages what this phas
 `idea.md` there with links still pointing at wherever the operator's source happened to live. Left
 alone, the record holds a provenance document nobody but that operator can follow. Cite
 `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` and execute its **Vendored sources** rules inline —
-that file owns the two destinations, the copy set, the index format, the collision rule and the
-rewriting rule, and this phase restates none of them.
+that file owns the two destinations, the copy set, the collision rule and the rewriting rule, and
+cites `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §6.2 for the index format and its
+reconciliation contract. This phase restates none of them.
 
 **It changes nothing the brief says.** `idea-reader` distilled every source into `raw_context` in
 Phase 2 and the grill consumed it in Phase 3, so this phase never revisits what `idea.md` claims. It
@@ -269,20 +270,22 @@ repairs where `idea.md` points.
    destination is reused rather than re-copied; otherwise the name takes the lowest free `_NN`, derived
    from the destination directory and appended to the **original** basename, never to a name already
    carrying a suffix.
-3. **Rebuild `design/idea-sources/index.md` from the frame set as it stands on disk**, in the format that
-   reference fixes: list the directory, keep every existing row whose image is still there **verbatim**,
-   append a row per image *this* run copied from its digest `description`, give a frame with neither a row
-   nor a description the `_no description on record_` row, and drop a row whose image is gone — reporting
-   the last two. **Write it whenever that listing is non-empty, not only when this run copied something**:
-   the frame set is one per PRD folder and accumulates across runs, so an index written from this run's
-   copy list alone would orphan every frame an earlier run vendored, and an idempotent re-run — which
-   copies nothing — would write no rows at all. This run holds no `description` for an earlier run's
-   frames, which is why step 2's rows are preserved rather than regenerated. **The index is not optional**:
+3. **Rebuild `design/idea-sources/index.md` per `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md`
+   §6.2** — the one index format and reconciliation contract every writer of a frame-set index follows,
+   executed inline and restated nowhere. Its six steps list the directory, preserve every existing row
+   whose image is still there **verbatim**, append a row per frame this run accounts for, give a frame
+   the run accounts for in no way the `_no description on record_` row, drop a row whose image is gone,
+   and write the file whenever that listing is non-empty — reporting the last two. **What this run
+   accounts for** is §6.2's writer table: the images step 2 copied, described from their digest
+   `description`, transcribed verbatim and never invented. An image the collision rule *reused*
+   (byte-identical content already at the destination) is not a new frame and gets no second row; the
+   row already describing it stands. **The index is not optional**:
    `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §6.1 makes its absence unrecoverable, so images
-   written without one would be a frame set nothing can ever read. Transcribe each description verbatim and
-   invent none. **Writing it does not mean `/idea` design grounding has shipped** — nothing here dispatches
-   `design-grounder`, produces a `[DG#n]`, or reaches a verifier, and that capability remains deliberately
-   unbuilt (§6.1 says so; this phase keeps it true).
+   written without one would be a frame set nothing can ever read. **Writing it does not mean `/idea`
+   design grounding has shipped** — nothing here dispatches `design-grounder`, produces a `[DG#n]`, or
+   reaches a verifier, and that capability remains deliberately unbuilt (§6.1 says so; this phase keeps
+   it true). A set left with rows the run could not describe is repaired by
+   `/dev-workflows:frames <KEY>`, which reads the frames themselves and fills exactly those rows.
 4. **Rewrite `idea.md`'s links onto the copies** — `[[wikilinks]]`, `![[embeds]]`, `[text](path)` and
    `![alt](path)`, absolute and relative alike — replacing the target, preserving the display text, and
    **writing every rewritten link as standard markdown**. `$SPECS_PATH` is a git repo read on a forge and

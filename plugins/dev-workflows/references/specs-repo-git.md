@@ -25,7 +25,7 @@ loop: a **run-start** flush and branch disposition (`specs-preflight`, §3) and 
    fire; a `cd` would corrupt their git state.
 2. **Bounded paths.** Only §2.1 paths are ever staged. `git add -A` is never
    issued at repository scope — always `git add -A -- <literal paths>`.
-3. **Bounded branches.** Only branches matching `^(idea|prd|ard|spec|design|ready|brd)/`
+3. **Bounded branches.** Only branches matching `^(idea|prd|ard|spec|design|ready|brd|frames)/`
    are the plugin's to switch away from or delete (§2.2).
 4. **Never destructive.** No `push --force`, no `push -f`, no `branch -D`, no
    `merge`, no `rebase`, no `reset`, and never delete an `index.lock`.
@@ -65,7 +65,7 @@ literally and nothing else in that directory is ever staged here.
 **Both were outside this set until a review found them**, while `/implement` and `/release-notes` each
 told the operator the terminal step committed them. It did not: step 2 below classified each as OTHER,
 step 3 skipped it, and the file then sat permanently dirty — which fired §3.3's G1 dirty-tree guard on
-every later run of any of the twenty-three callers, suppressing the leftover flush and the branch
+every later run of any of the twenty-four callers, suppressing the leftover flush and the branch
 disposition for the rest of the session. `/epics` is the deliberate contrast and stays as it is: it
 writes `epic.md` files this reference never stages, and says so in place.
 
@@ -99,7 +99,7 @@ do not justify it by claiming plain `git add` cannot stage the deletion.
 ### 2.2 Branches
 
 **The plugin manages only branches it created.** A branch is plugin-owned when
-its name matches `^(idea|prd|ard|spec|design|ready|brd)/`.
+its name matches `^(idea|prd|ard|spec|design|ready|brd|frames)/`.
 
 Any other **named** branch — the user's own work, a hand-made branch — is left
 alone and never switched away from (§3.3 G2). The run's artifacts are still
@@ -355,7 +355,7 @@ than one invocation.
 
 ### 4.1 Where the commit lands
 
-- **A command that opened a specs-repo branch at handoff** (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`, `/implement`, `/ready`, and every `/brd-*` command) — on that `idea|prd|ard|spec|design|ready|brd/*` branch, so the push updates the pull request already open. Two commits on one branch: the deliverable, then the artifacts. Every `/brd-*` command opens on the shared `brd` prefix (`phase-handoff.md` §2.9), so a later `/brd-*` run that reuses the branch a prior phase of the same BRD opened lands there rather than on the default branch.
+- **A command that opened a specs-repo branch at handoff** (`/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/specify`, `/design`, `/implement`, `/ready`, `/frames`, and every `/brd-*` command) — on that `idea|prd|ard|spec|design|ready|brd|frames/*` branch, so the push updates the pull request already open. Two commits on one branch: the deliverable, then the artifacts. Every `/brd-*` command opens on the shared `brd` prefix (`phase-handoff.md` §2.9), so a later `/brd-*` run that reuses the branch a prior phase of the same BRD opened lands there rather than on the default branch.
 - **The same command when the user declined git at handoff** ("just write the
   files — I'll handle git") — the repo is still on the default branch and the
   deliverable is uncommitted there. `commit-artifacts` still runs and commits

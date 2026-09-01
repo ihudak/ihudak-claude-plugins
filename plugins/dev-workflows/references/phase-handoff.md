@@ -14,7 +14,7 @@ Inherited from `specs-repo-git.md`, unchanged:
 
 1. **`git -C` always; `cd` never.** Every invocation is `git -C "$SPECS_PATH" …`. Most callers are running inside a *different* repository; a `cd` would corrupt their git state. The `gh` calls in §2.6 and §3.5 name the repository with `-R` for the same reason.
 2. **Bounded paths.** Only the calling command's own declared deliverable paths are staged, by enumeration (§2.3). `git add -A` is never issued at repository scope.
-3. **Bounded branches.** Only branches matching `^(idea|prd|ard|spec|design|ready|brd)/` are the plugin's (`specs-repo-git.md` §2.2).
+3. **Bounded branches.** Only branches matching `^(idea|prd|ard|spec|design|ready|brd|frames)/` are the plugin's (`specs-repo-git.md` §2.2).
 4. **Never destructive.** No `push --force`, no `push -f`, no `branch -D`, no `merge`, no `rebase`, no `reset`, no `stash`, no `checkout --`, and never delete an `index.lock`.
 
 Where this reference **differs** — each difference is deliberate, and a reader who "corrects" one to match `specs-repo-git.md` breaks this contract:
@@ -56,8 +56,9 @@ Staging is by enumeration, never by glob — the same discipline as `specs-repo-
 reported path against the declaration, so a directory in the list would leave every file under it
 ambiguous — matched by a reader who expands it, OTHER by one who does not. A caller whose phase writes
 a set of files rather than one (`/idea` vendors its sources into `attachments/` and
-`design/<frame-set>/` — `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`, *Vendored sources*)
-enumerates every one of them literally. The consequence of leaving one out is silent and total: it is
+`design/<frame-set>/` — `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`, *Vendored sources*;
+`/frames` writes one `index.md` per `design/*/` set of the folder it resolved —
+`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §6.2) enumerates every one of them literally. The consequence of leaving one out is silent and total: it is
 classified OTHER, never staged, and never reaches the default branch, while the deliverable that links
 it lands there pointing at a path on no ref.
 
@@ -111,7 +112,7 @@ Every failure is reported and the phase is described as **not handed off**. The 
 
 | Input | Meaning |
 |---|---|
-| `prefix` | one of `idea`, `prd`, `ard`, `spec`, `design`, `ready`, `brd` (shared by every `/brd-*` command, the way `prd` is shared by `/create-prd` and `/update-prd`) |
+| `prefix` | one of `idea`, `prd`, `ard`, `spec`, `design`, `ready`, `brd` (shared by every `/brd-*` command, the way `prd` is shared by `/create-prd` and `/update-prd`), `frames` |
 | `feature_folder` | the resolved directory the deliverable was written into |
 | `deliverable_paths` | the literal repo-relative paths this phase wrote — authored or copied in — one file each, never a directory (§2.3) |
 | `title` | the commit subject and pull-request title |
@@ -134,7 +135,7 @@ The four primitives, each verified against a real specs repo:
 - **The default-branch ref exists:** `git -C "$SPECS_PATH" rev-parse --verify --quiet "origin/<default>"` Exit 0 = the ref exists — run the next primitive. Non-zero = row G: nothing to verify against, stop. This runs **before** the next primitive, because that primitive's own required `2>/dev/null` discards the only signal that would otherwise distinguish "path absent on an existing ref" (row F) from "the ref itself does not exist" (row G) — `git cat-file -e` exits 128 for both, verified empirically: a missing path and a missing ref are indistinguishable by exit code alone.
 - **On the default branch:** `git -C "$SPECS_PATH" cat-file -e "origin/<default>:<path>" 2>/dev/null` Exit 0 = present. The `2>/dev/null` is required — on absence git writes `fatal: path '<path>' does not exist in 'origin/<default>'` to stderr, which must not leak into the run's output. Only reached once the ref-existence primitive above has already confirmed `origin/<default>` exists, so a non-zero exit here means the path is absent, never that the ref is.
 - **Worktree matches the ref:** `git -C "$SPECS_PATH" diff --quiet "origin/<default>" -- "<path>"` Exit 0 = identical. This also catches a **staged-only** change, which a `hash-object` comparison against the working file would miss.
-- **Plugin branches carrying the artifact:** `git -C "$SPECS_PATH" for-each-ref --format='%(refname:short)' refs/remotes/origin refs/heads` filtered to `(origin/)?(idea|prd|ard|spec|design|ready|brd)/*`, then `git -C "$SPECS_PATH" cat-file -e "<ref>:<path>" 2>/dev/null` on each. **Local `refs/heads` are scanned as well as remote ones**, and for the same reason §2.2's branch resolution tests both: a deliverable that was committed but whose push failed (§2.5, reported by §4.1 as "NOT handed off") exists only on a local branch. Scanning remote refs alone would return `absent` for it — the one state §2.8 promises "the next phase's gate is what enforces the consequence" of. Prefer the remote ref when both carry the path, so rows D and E report the branch the pull request is open against.
+- **Plugin branches carrying the artifact:** `git -C "$SPECS_PATH" for-each-ref --format='%(refname:short)' refs/remotes/origin refs/heads` filtered to `(origin/)?(idea|prd|ard|spec|design|ready|brd|frames)/*`, then `git -C "$SPECS_PATH" cat-file -e "<ref>:<path>" 2>/dev/null` on each. **Local `refs/heads` are scanned as well as remote ones**, and for the same reason §2.2's branch resolution tests both: a deliverable that was committed but whose push failed (§2.5, reported by §4.1 as "NOT handed off") exists only on a local branch. Scanning remote refs alone would return `absent` for it — the one state §2.8 promises "the next phase's gate is what enforces the consequence" of. Prefer the remote ref when both carry the path, so rows D and E report the branch the pull request is open against.
 
 ### 3.3 The state table
 

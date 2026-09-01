@@ -18,6 +18,7 @@
 | build the thing | [`/implement`](commands/implement.md) |
 | document it, then announce it | [`/document`](commands/document.md), [`/release-notes`](commands/release-notes.md) |
 | check whether a ticket is really ready | [`/ready`](commands/ready.md) |
+| make a folder of exported design frames readable | [`/frames`](commands/frames.md) |
 | fix a CVE or upgrade a dependency | [`/vuln`](commands/vuln.md), [`/upgrade`](commands/upgrade.md) |
 | tell the plugin it got something wrong | [`/feedback`](commands/feedback.md), [`/prompt`](commands/prompt.md) |
 | review an API spec or a UI against guidelines | [`/api-guideline-reviewer`](commands/api-guideline-reviewer.md), [`/guideline-reviewer`](commands/guideline-reviewer.md) |
@@ -42,6 +43,7 @@ Four pages orient you before you touch a command: [Getting started](getting-star
 - [`/document`](commands/document.md) — write or update product documentation: a one-shot direct edit, or the full keyed feature-documentation workflow.
 - [`/epics`](commands/epics.md) — break a Product Requirements Document into reviewed child Epic drafts.
 - [`/feedback`](commands/feedback.md) — log a note about the plugin itself, for the maintainer to aggregate.
+- [`/frames`](commands/frames.md) — (re)build the index every `design/<frame-set>/` of one resolved folder must carry before anything can read it.
 - [`/guideline-reviewer`](commands/guideline-reviewer.md) — review app code and UI against the bundled UI design-system and accessibility guidelines.
 - [`/idea`](commands/idea.md) — refine a raw prompt, file, community post, or existing PRD into a one-page idea brief.
 - [`/implement`](commands/implement.md) — classify, plan, implement, test, and review a code change end to end.

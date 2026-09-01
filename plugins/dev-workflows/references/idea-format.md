@@ -203,76 +203,34 @@ index. **Creating a directory and writing its index are not the same act**: the 
 whenever that directory holds at least one frame, including on a run that copied no image into a set an
 earlier run had already populated — see *The index is mandatory*, below.
 
-### The index is mandatory, and it describes the frame set as it stands
+### The index is mandatory, and its format is not this file's
 
 `grounding-format.md` §6.1: `design-grounder` returns `NO_INDEX` rather than reading a frame set that
 has no index, because *a filename is not a reliable statement of what a frame shows*. Writing images
 into `design/idea-sources/` **without** an index would therefore create a frame set that is
-permanently unreadable — worse than not vendoring the images at all. The material a **new** row needs is
-already in hand: `idea-reader` returns a `description` per read image, and an image it did not read
-carries none, is not copied, and contributes no row.
+permanently unreadable — worse than not vendoring the images at all.
 
-**The index is rebuilt from the frame set as it stands on disk, never from the list of images this run
-copied.** The set is one per PRD folder rather than one per run, so from the second run onward "what this
-run copied" and "what the set holds" are different sets — and writing the smaller one leaves every
-earlier frame sitting in an indexed directory that identifies none of them: §6.1's own failure at row
-granularity, and silent. There is no recovering it from the inputs, either, because this run's digest
-holds no `description` for a frame an earlier run vendored. It is worse again under *identical content is
-not a collision* (below): an idempotent re-run copies nothing at all, so an index written from "each
-image copied" would resolve to no rows.
+**The index format and its reconciliation contract are
+`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §6.2's, and this file restates none of it.**
+That section owns the filename, the frontmatter, the table shape, the `Linked from` semantics, and
+the six reconciliation steps — list the directory, preserve every surviving row verbatim, append a
+row per frame the run accounts for, give an unaccounted-for frame the `_no description on record_`
+row, drop a row whose image is gone, and write the file whenever the listing is non-empty. It lived
+here while `/idea` was the index's only writer; `/frames` is a second writer, and one format with two
+authorities is a format that drifts.
 
-The procedure runs **after the copies land**, and is a directory listing reconciled against the index
-already there:
+**What `/idea` contributes is one row of §6.2's writer table.** The frames it accounts for are the
+images it copied into `design/idea-sources/` this run; a new row's description is `idea-reader`'s
+per-image `description`, transcribed verbatim and never invented, and its `Linked from` is that
+image's `linked_from` in the digest. An image the reader did not read carries no `description`, is not
+copied, and is accounted for nowhere — so a frame an earlier run vendored, or something other than an
+`/idea` run dropped in, lands on §6.2 step 4 and is reported rather than described. `written_by` is
+`/idea`; `frame_set` is `idea-sources`; `key` is the key the run was invoked with, which is the
+resolved folder's own.
 
-1. **List the images actually in `design/idea-sources/`** — every file carrying one of the image
-   extensions. `index.md` is not a frame and is never a row.
-2. **Preserve every existing row whose image is still in that listing, verbatim** — the frame, its
-   `Linked from`, and its description exactly as they stand. This run cannot reproduce a description it
-   never received, so a row it cannot reproduce is a row it must not rewrite.
-3. **Append one row per image this run copied**, in copy order, after the rows already present, built from
-   that image's `description` and `linked_from` in the digest — transcribed verbatim, never invented. An
-   image the collision rule *reused* (byte-identical content already at the destination) is not a new
-   frame and gets no second row; the row already describing it stands.
-4. **An image present in the listing with no row and no `description` in this run's digest still gets a
-   row** — `—` in `Linked from`, and the literal `_no description on record_` in the last column. Something
-   other than an `/idea` run put a frame in this set; omitting it would rebuild the exact defect this
-   procedure exists to prevent, and inventing a description for it is the inference §6.1 forbids. Report it.
-5. **A row whose image is no longer in the listing is dropped**, and reported. The index states what the
-   set holds, and a row naming a frame that is not there is a promise `design-grounder` would resolve to
-   nothing. Nothing is restored and nothing is re-copied: this step reconciles an index with a directory,
-   it never manages the directory.
-6. **Write the index whenever that listing is non-empty** — not only when this run copied something. A
-   re-run that copied nothing writes it too, and, with every row preserved and none appended, writes back
-   exactly the file that was there. Where the listing is empty, or the directory does not exist, write
-   nothing and create nothing.
-
-`<PRD-folder>/design/idea-sources/index.md`:
-
-```markdown
----
-kind: frame-set-index
-key: <the key the run was invoked with>
-frame_set: idea-sources
-written_by: /idea
----
-
-# Frame set: idea-sources
-
-Every frame this set holds, in the order it was vendored. The set is one per PRD folder and accumulates
-across `/idea` runs over that folder, so a row may well predate the run that last wrote this file. Each
-description is `idea-reader`'s own account of what the frame shows — **context, not evidence**: what
-somebody drew, not what anything does.
-
-| Frame | Linked from | What the frame shows |
-|---|---|---|
-| `toggle-01.png` | `notes/dark-mode.md` | <the reader's description, verbatim> |
-```
-
-`Linked from` is the digest's `linked_from` — the original path of the `.md` that carried the link,
-kept as the frame's provenance and never repointed at the copy; a frame no run's digest accounts for
-carries `—` there per step 4. A description is transcribed verbatim and **never** invented; §6.1's index
-rule exists to forbid exactly the inference a filename invites, and that prohibition is why step 2
-preserves an older run's row rather than regenerating it.
+**`idea-sources` is one frame set per PRD folder, not one per run** — see *The two destinations* above —
+which is exactly why §6.2 rebuilds from the directory rather than from what a run copied: an idempotent
+re-run copies nothing at all, and an index written from "each image copied" would resolve to no rows.
 
 **Writing this index does not mean `/idea` design grounding has shipped.** Nothing on this route
 dispatches `design-grounder`, produces a `[DG#n]`, or reaches `grounding-verifier` — the index makes

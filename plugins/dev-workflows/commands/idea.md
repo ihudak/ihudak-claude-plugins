@@ -1,6 +1,6 @@
 ---
 name: idea
-description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (whose wikilinks are followed two levels deep and whose linked images are read as context), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Writes into the PRD folder the key names; no code change; `idea.md` lands in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/` on the first write and is never relocated (D7), and on a completed handoff the run also opens a pull request for it (`references/phase-handoff.md` §2) — declining leaves it written in place but not on the default branch; its session artifacts are committed by `commit-artifacts`.
+description: Idea-refinement workflow (PM phase, front of the PRD-creation flow). Takes one source — an inline prompt, a markdown file (whose wikilinks are followed two levels deep and whose linked images are read as context), a community post, or a saved file (product feedback, or an existing Product Requirements Document the idea extends, parallels, or rewrites) — and, through a bounded one-question-at-a-time grill (--deep for relentless), authors a well-refined idea.md — a lean one-page brief that seeds the future /create-prd. Copies the sources it actually read into the PRD folder (text and markdown into attachments/, images into design/idea-sources/ with the index that frame set requires) and rewrites idea.md's links onto the copies. Writes into the PRD folder the key names; no code change; `idea.md` lands in `$SPECS_PATH/specifications/PRD-<KEY>-<slug>/` on the first write and is never relocated (D7), and on a completed handoff the run also opens a pull request for it (`references/phase-handoff.md` §2) — declining leaves it written in place but not on the default branch; its session artifacts are committed by `commit-artifacts`.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -10,6 +10,8 @@ Refine an idea into `idea.md`: $ARGUMENTS
 the existing pipeline. It ingests one source, refines it through a grill, and writes a lean one-page
 `idea.md` (per `${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`) that seeds the Product Requirements Document. It is
 **not** a PRD: no code change. Output lands in the PRD folder the key names, on the first write and never relocated.
+It then **vendors what it read into that same folder** (Phase 4.5) so the record the specs repo keeps is
+one whose links resolve for everybody, not only for the operator whose disk the sources came off.
 
 Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless (until convergence).
 `--no-docs` turns off documentation grounding (see Phase 1).
@@ -110,9 +112,14 @@ choices: ["Re-enter the source", "Cancel"]
 ```
 This is an environment/user halt — do NOT `emit-block`. On `OK`, carry forward `raw_context`,
 `signals`, `images`, `candidate_title`, `candidate_slug`, `source_refs`, `provenance`, `tracked` (a
-`prd` source only), and all three wikilink lists — `wikilinks_followed`, `wikilinks_not_followed`,
-`wikilinks_broken`. `source_refs`/`provenance` feed the `sources:` frontmatter entry in Phase 4, and
-`tracked` seeds `## Prior art`.
+`prd` source only), all three wikilink lists — `wikilinks_followed`, `wikilinks_not_followed`,
+`wikilinks_broken` — and `links_other`. `source_refs`/`provenance` feed the `sources:` frontmatter
+entry in Phase 4, and `tracked` seeds `## Prior art`. **Every one of those lists is also Phase 4.5's
+input**: `wikilinks_followed` and the read `images` are what gets copied, and the other three are what
+gets reported instead. **Carry each entry whole, `target` included.** Every link array names the target
+**as written** beside the path it resolved to; that pairing is the only map Phase 4.5 has from a link in
+`idea.md` back to the copy it belongs to, and dropping it would force that phase to resolve links itself —
+which it is forbidden to do.
 
 **What the digest now carries, and what it is worth.** The reader follows wikilinks **two levels
 deep** under one total-file cap and **reads** the images the source links, returning a
@@ -125,8 +132,11 @@ never a fact about what ships.
 
 **Every bound that bit is surfaced, never swallowed.** An `images` entry with `read: false` names its
 `reason` (`cap`, `unreadable`, `not_an_image`), and `wikilinks_not_followed` names each in-scope link
-the traversal did not reach and why (`cap`, `depth`). Carry all of them to the Final report — a
-truncated read the operator is not told about is indistinguishable from a source that said less.
+the traversal did not reach and why (`cap`, `depth`). `links_other` names each link that resolved to a
+file the reader neither follows nor renders — a PDF, an archive, any other binary — enumerated and never
+opened. Carry all of them to the Final report — a truncated read the operator is not told about is
+indistinguishable from a source that said less, and a link nothing copied and nothing reported is
+indistinguishable from a link that was never there.
 
 ---
 
@@ -233,19 +243,137 @@ Phase 0, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/re
 
 ---
 
+## Phase 4.5 — Vendor the sources into the PRD folder
+
+Runs after Phase 4 and before Phase 5, because the handoff stages what this phase writes.
+
+**Why this phase exists.** `$SPECS_PATH` is the system of record, and Phase 4 has just written
+`idea.md` there with links still pointing at wherever the operator's source happened to live. Left
+alone, the record holds a provenance document nobody but that operator can follow. Cite
+`${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` and execute its **Vendored sources** rules inline —
+that file owns the two destinations, the copy set, the index format, the collision rule and the
+rewriting rule, and this phase restates none of them.
+
+**It changes nothing the brief says.** `idea-reader` distilled every source into `raw_context` in
+Phase 2 and the grill consumed it in Phase 3, so this phase never revisits what `idea.md` claims. It
+repairs where `idea.md` points.
+
+1. **Build the copy set from the Phase 2 digest, and from nothing else.** The source file (unless
+   `provenance: prompt`), every `wikilinks_followed[]` entry, and every `images[]` entry with
+   `read: true`. This phase opens no path of its own and reads no file the reader did not already
+   read, so `idea-reader`'s caps — 12 files, 6 images — bound it without a second bound being
+   written anywhere. Drop any entry that already sits inside the resolved PRD folder: it is vendored
+   already, and its link stays as written.
+2. **Copy each entry to its destination** — text and markdown to `<PRD-folder>/attachments/`, images
+   to `<PRD-folder>/design/idea-sources/` — applying the collision rule. Byte-identical content at the
+   destination is reused rather than re-copied; otherwise the name takes the lowest free `_NN`, derived
+   from the destination directory and appended to the **original** basename, never to a name already
+   carrying a suffix.
+3. **Rebuild `design/idea-sources/index.md` from the frame set as it stands on disk**, in the format that
+   reference fixes: list the directory, keep every existing row whose image is still there **verbatim**,
+   append a row per image *this* run copied from its digest `description`, give a frame with neither a row
+   nor a description the `_no description on record_` row, and drop a row whose image is gone — reporting
+   the last two. **Write it whenever that listing is non-empty, not only when this run copied something**:
+   the frame set is one per PRD folder and accumulates across runs, so an index written from this run's
+   copy list alone would orphan every frame an earlier run vendored, and an idempotent re-run — which
+   copies nothing — would write no rows at all. This run holds no `description` for an earlier run's
+   frames, which is why step 2's rows are preserved rather than regenerated. **The index is not optional**:
+   `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §6.1 makes its absence unrecoverable, so images
+   written without one would be a frame set nothing can ever read. Transcribe each description verbatim and
+   invent none. **Writing it does not mean `/idea` design grounding has shipped** — nothing here dispatches
+   `design-grounder`, produces a `[DG#n]`, or reaches a verifier, and that capability remains deliberately
+   unbuilt (§6.1 says so; this phase keeps it true).
+4. **Rewrite `idea.md`'s links onto the copies** — `[[wikilinks]]`, `![[embeds]]`, `[text](path)` and
+   `![alt](path)`, absolute and relative alike — replacing the target, preserving the display text, and
+   **writing every rewritten link as standard markdown**. `$SPECS_PATH` is a git repo read on a forge and
+   in editors, not an Obsidian vault: nothing there resolves `[[name]]`, so a link repointed into the repo
+   but left in wikilink syntax still resolves nowhere the record is actually read. `[[rollout]]` becomes
+   `[rollout](attachments/rollout.md)`, `[[rollout|the plan]]` becomes `[the plan](attachments/rollout.md)`,
+   `![[toggle-01.png]]` becomes `![toggle-01](design/idea-sources/toggle-01.png)` (alt from the **original**
+   basename, never the collision-rule name), and `![[note]]` on a markdown file becomes the plain link
+   `[note](attachments/note.md)` — a transclusion has no standard equivalent and renders nowhere here
+   either way, so a link that resolves beats an embed that does not. **Rewrite only a link whose target
+   this phase actually copied.** Every other link is left byte-for-byte as it stands, **syntax included**:
+   a surviving `[[rollout]]` is the signal that the cap bit and the author may want to vendor that file by
+   hand. The copies themselves are never edited.
+   **Rewrite from the digest's own written-form → copy map, and re-resolve nothing.** Every link array
+   carries the target **as written** beside the path it resolved to — `images[].target` with its
+   `linked_from`, `wikilinks_followed[].target` with its `from` — and step 2 knows the name each copy took;
+   pair them and match `idea.md`'s links on the target string. This phase opens no path of its own, so a
+   target that is not a key of that map is a link nothing copied and is left alone. Where two entries share
+   one written target but resolved to **different** files, that target is ambiguous — `idea.md` records
+   nothing per occurrence to separate them — so **leave every occurrence as written and report it** rather
+   than repoint one at the wrong copy. Targets that merely *look* alike but differ as strings
+   (`settings/toggle-01.png` vs `onboarding/toggle-01.png`) are two keys and each is rewritten to its own
+   copy.
+5. **Record `vendored:`** beside each vendored entry's `ref:` in `sources:`. `ref` is not rewritten —
+   it answers how the idea arrived, and that is still true of a path nobody else can resolve.
+6. **Create nothing empty.** `attachments/` only where a file lands in it, `design/idea-sources/` and
+   its index only where an image does. A bare-prompt run creates neither directory, writes no index,
+   rewrites no link, and hands Phase 5 the deliverable set it would have handed it before this phase
+   existed.
+7. **Nothing here is fatal.** A copy that fails — permissions, a full disk, an unreadable source that
+   was readable in Phase 2 — leaves that file unvendored, leaves its link exactly as written, and is
+   reported beside the four sets below. A failed copy never blocks the handoff and never fails the run.
+8. **Report what was not copied, in the Final report** — `wikilinks_not_followed[]` with each `cap`/
+   `depth` reason, `wikilinks_broken[]`, every `images[]` entry with `read: false` and its reason, and
+   every `links_other[]` entry with its extension. None of the four is copied, none of them has its
+   link rewritten, and none of them is fatal. **Report three more things the steps above produce**: every
+   ambiguous target step 4 declined to rewrite (with each source path and each copy), every frame step 3
+   indexed as `_no description on record_`, and every index row step 3 dropped because its image is gone.
+
+Hold the vendoring outcome — what landed in each destination, what was skipped and why, and any name
+substituted by the collision rule — for the Final report, and carry the literal list of paths written
+into Phase 5's `deliverable_paths`.
+
+**The bookkeeping steps do not stage any of this.** `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`
+§2.1 classifies `attachments/**` and `design/**` as OTHER, so `commit-artifacts` never touches them —
+they are deliverables, and they reach the default branch only through Phase 5's handoff.
+
+**What a run without a handoff therefore leaves behind, stated at its real size.** Not one file: `idea.md`
+**and every path this phase wrote** — up to 12 copies in `attachments/` (the reader's total-file cap), up
+to 6 in `design/idea-sources/` (its image cap) and that set's `index.md`, which is **19 beside `idea.md`,
+so as many as 20 dirty OTHER paths**. Two routes reach that state, and only one of them is a decline:
+Phase 5's `status: refined` branch offers the handoff and the operator may decline it, while its
+`status: draft` branch **never offers one at all** — so a draft run leaves the whole set dirty by
+construction rather than by a choice.
+
+On the next run of any command sharing that repo, §3.3's **G1** matches. Its consequences are three, not
+one: the preflight **ends** there, at advisory severity, listing the paths — no commit, no branch switch,
+no push — and because §3.4's leftover flush and §3.5's branch disposition run only when stage 1 matched
+nothing, **both are suppressed for the rest of that session**. G1 does **not** set `specs_git: blocked`,
+so the terminal `commit-artifacts` still runs and nothing is lost or halted; the suppression repeats on
+every later run until those paths are committed or the handoff is taken.
+
+---
+
 ## Phase 5 — Handoff: adaptive next-phase offer
 
-Report where `idea.md` was written and its `status`, then offer the next phase — **adapted to status**:
+Report where `idea.md` was written and its `status`, and what Phase 4.5 vendored beside it, then offer
+the next phase — **adapted to status**:
 
 - **`status: refined`** — offer the handoff. Present
   `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim, then on the
   first option execute `handoff-to-main` (§2) with all five of its §2.9 inputs: `prefix: idea`;
-  `feature_folder` = the folder Phase 0 resolved; `deliverable_paths` = `idea.md`;
-  `title: <KEY> Add idea brief`; and `body_facts` = the idea's one-line goal, the number of
-  `[NEEDS CLARIFICATION]` markers left open, the logged assumptions, and whether docs grounding ran.
+  `feature_folder` = the folder Phase 0 resolved; `deliverable_paths` = `idea.md`, **plus every file
+  Phase 4.5 wrote or reused** — each copy under `attachments/`, each image copy under
+  `design/idea-sources/`, and that frame set's `index.md`. **Reused counts**: a copy the collision rule
+  matched byte-for-byte was not written by this run, but `idea.md`'s link points at it and an earlier run
+  may have left it on no ref — naming a path whose content is unchanged stages nothing, while omitting one
+  is a link to a file that never lands; `title: <KEY> Add idea brief`; and `body_facts` = the idea's
+  one-line goal, the number of `[NEEDS CLARIFICATION]` markers left open, the logged assumptions,
+  whether docs grounding ran, and what was vendored.
   **All five are required** — §2.4's commit subject and §2.7's pull-request title are both derived
   from `title`, and §2.6 supplies every `gh` argument precisely so the run never blocks on an
-  interactive editor; passing three of five leaves both unsourced. Then recommend
+  interactive editor; passing three of five leaves both unsourced.
+
+  **The vendored files are named literally, one path each — never a directory and never a glob.**
+  §2.3 stages by enumeration and classifies everything it was not handed as OTHER, so a copy left out
+  of this list is a copy that never reaches the default branch: `idea.md` would land there pointing at
+  `attachments/` paths that exist on the operator's disk and on no ref, which is a worse record than
+  the one this feature set out to repair. Phase 4.5 hands over that literal list; pass it through
+  unchanged. A bare-prompt run vendored nothing and passes `idea.md` alone, exactly as before this
+  phase existed. Then recommend
   `/dev-workflows:create-prd <KEY> <merge-clause>`, which finds `idea.md` in that folder —
   `<merge-clause>` resolved from the `Phase handoff:` line §4.1 just emitted, per
   `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`'s resolution table, and never written
@@ -317,7 +445,7 @@ source-not-found, cancellation).
    > Session handoff:
    > - Command run: /idea
    > - What was done: [one-paragraph summary of the idea refined + source type]
-   > - Key events: [source-detection corrections, unresolved clarifications, broken wikilinks, links the traversal did not reach, images that were not read — or 'none']
+   > - Key events: [source-detection corrections, unresolved clarifications, broken wikilinks, links the traversal did not reach, images that were not read, links to files that are neither text/markdown nor an image, sources that failed to vendor — or 'none']
    > - Workarounds used: [manual steps not automated by the workflow — or 'none']
    > - Review verdict: N/A (no reviewer in /idea)
    > - Test result: N/A (no tests in /idea)
@@ -354,7 +482,17 @@ or broken wikilinks; **what the source read cost and what it left** — how many
 traversal read (and at which depths), every `wikilinks_not_followed` entry with its `cap`/`depth`
 reason, how many linked images were read, and every image left with `read: false` and why. Report
 these even when nothing was excluded ("all N linked images read; no link left unfollowed"), because
-the absence of a truncation notice is only informative once the run is known to print one; the resolved model routing (+ any Opus degradation); the feedback path; the cost
+the absence of a truncation notice is only informative once the run is known to print one; **what the
+run vendored and what it did not** — the count of files copied into `attachments/` and of images copied
+into `design/idea-sources/`, whether that frame set's `index.md` was written and how many rows it now
+holds against how many this run added, every name the collision rule substituted, the number of links
+rewritten in `idea.md` **and every target left unrewritten because two copied entries were written
+identically** (with each source and each copy), every frame indexed with no description on record, every
+index row dropped because its image is gone, and every source left uncopied with its
+reason (`cap`, `depth`, broken, `unreadable`, `not_an_image`, a linked file that is neither
+text/markdown nor an image with its extension, or a copy that failed) — stated plainly where nothing was
+vendored at all ("no source to vendor: the idea came from a prompt", or "nothing linked"), and naming no
+directory this run did not actually create; the resolved model routing (+ any Opus degradation); the feedback path; the cost
 path (or notice); the `Specs repo:` outcome line from `commit-artifacts`
 (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §6), with any guard notice repeated in full; the
 `Phase handoff:` outcome line when the handoff ran; the code grounding outcome — the grounded repos with their `scanned_ref`s, any

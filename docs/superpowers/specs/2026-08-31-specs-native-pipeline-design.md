@@ -140,8 +140,11 @@ specifications/
 │   ├── ard.md
 │   ├── release-notes.md
 │   ├── follow-ups.md
+│   ├── attachments/                      text/markdown sources /idea copied in
+│   │   └── dark-mode-notes.md
 │   ├── design/                           exported frame sets — one subdir each
-│   │   └── orders-v3/  <images> index.md
+│   │   ├── orders-v3/  <images> index.md
+│   │   └── idea-sources/  <images> index.md
 │   └── EPIC-ACME-77-01-intake/
 │       ├── epic.md
 │       ├── specification.md
@@ -154,6 +157,7 @@ specifications/
     └── PRD-ACME-90-01-orders/               iteration AND PRD — one folder, level 2
         ├── brd-link.md  coverage-ledger.md  decisions.md
         ├── prd.md  ard.md  release-notes.md
+        ├── attachments/                     text/markdown sources /idea copied in
         ├── design/                          exported frame sets — one subdir each
         └── EPIC-ACME-90-01-01-intake/
             ├── epic.md  specification.md  design.md  implementation.md
@@ -187,6 +191,16 @@ restated by the commands that read it.
 grounding means a dispatch, a findings file and a verifier pass it does not have. That is a
 capability, not a directory, and it is decided on its own rather than improvised alongside an
 addressing change.
+
+**`attachments/` is the second reserved subdirectory, and it is the `/idea` route's.** `/idea` copies
+the text and markdown sources it actually read into `<PRD-folder>/attachments/` and the images it read
+into `<PRD-folder>/design/idea-sources/`, then rewrites `idea.md`'s links onto the copies — so the tree
+that is the system of record stops holding a brief whose links resolve on one operator's disk and
+nowhere else. Both names are reserved by `references/addressing.md` §2, `attachments/` is defined once
+in `references/idea-format.md` (*Vendored sources*), and the frame set carries the `index.md` §6.1 of
+`references/grounding-format.md` makes mandatory. **That index is still not a consumer**: `/idea` writes
+one so the frame set is readable at all, and the paragraph above stands unchanged — design grounding on
+that route remains unbuilt.
 
 ### 4.2 Naming
 

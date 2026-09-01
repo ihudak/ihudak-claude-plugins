@@ -234,19 +234,38 @@ file, a README enumerating the frames — but something must map frame to subjec
 be a second copy of a path rule, which is how the copies drift.
 
 **Defining the location is not the same as consuming it.** `design-grounder` is dispatched by
-`/brd-ground` and by nothing else, so today only the BRD route reads a `design/` folder as a frame set.
-A PRD folder on the `/idea` route may hold one and nothing will reconcile it yet; that is a known and
-deliberate state, not a gap in this section.
+`/brd-ground` and by nothing else, so today only the BRD route *reads* a `design/` folder as a frame
+set. A PRD folder on the `/idea` route holds one whenever that idea's source linked an image the reader
+could open, and nothing reconciles it yet; that is a known and deliberate state, not a gap in this
+section.
+
+**The `/idea` route now WRITES a frame set here, and it writes the index with it.** `/idea` Phase 4.5
+copies the images it actually read into `<PRD-folder>/design/idea-sources/` and writes that set's
+`index.md` from `idea-reader`'s per-image `description`
+(`${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`, *Vendored sources*). **Writing the images without
+the index was never an option**: the paragraph above makes the index's absence unrecoverable, so images
+dropped into a frame set with no index would be a directory `design-grounder` refuses on sight and no
+later run could repair — permanently unreadable, and worse than not vendoring them at all. The
+descriptions are transcribed verbatim from the reader and never inferred, which is the very inference
+this section's index rule exists to forbid; an image the reader did not read carries no description, is
+not copied, and appears in no row.
+
+**Writing an index is not consuming one, and `/idea` design grounding has NOT shipped.** Nothing on
+that route dispatches `design-grounder`, produces a `[DG#n]`, consults an index, or reaches a verifier.
+The index makes the frame set *readable* — it does not make anything read it. That capability remains
+deliberately unbuilt and is a decision of its own, and this paragraph exists to foreclose the mistake of
+reading either `idea-reader`'s image support or the index `/idea` now writes as that capability having
+arrived.
 
 **Reading a picture is not design grounding, and the `/idea` route does the first without doing the
 second.** `idea-reader` reads the images an idea source links and returns a description of each — as
-**context** for the grill and the brief, never as evidence. Nothing on that route produces a `[DG#n]`,
-consults an index, or reaches a verifier, so none of this section's requirements applies to it: the
-index rule above exists because a *filename* is not a reliable statement of what a frame depicts, which
-is the right standard for a finding someone will act on and the wrong one for a brief whose operator
-handed the mockup over themselves. Design grounding on the `/idea` route remains unbuilt and is a
-decision of its own; this paragraph forecloses the mistake of reading `idea-reader`'s image support as
-that capability having arrived.
+**context** for the grill and the brief, never as evidence. Nothing on that route produces a `[DG#n]`
+or reaches a verifier, so none of this section's *finding* requirements applies to it: the index rule
+above exists because a *filename* is not a reliable statement of what a frame depicts, which is the
+right standard for a finding someone will act on and the wrong one for a brief whose operator handed
+the mockup over themselves. What `/idea` inherits from this section is the index obligation alone —
+because that one is about the directory, which it now creates, rather than about a finding, which it
+still does not make.
 
 ### 6.2 The four reconciliation classes
 

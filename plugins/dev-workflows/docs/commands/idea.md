@@ -30,7 +30,8 @@ flowchart TD
     p25 --> p26["Phase 2.6 — Code grounding (optional)"]
     p26 --> p3["Phase 3 — Refine via grill"]
     p3 --> p4["Phase 4 — Write idea.md"]
-    p4 --> p5["Phase 5 — Handoff: adaptive next-phase offer"]
+    p4 --> p45["Phase 4.5 — Vendor the sources into the PRD folder"]
+    p45 --> p5["Phase 5 — Handoff: adaptive next-phase offer"]
     p5 --> p6["Phase 6 — Session maintenance, feedback & cost"]
 ```
 
@@ -47,6 +48,68 @@ When the source is a markdown file, `idea-reader` does not stop at that one file
 
 **What a read image counts as: context, not evidence.** It informs the questions the grill asks and the prose the brief ends up with. It is not a design-grounding finding, needs no index file describing the frames, and gets no verifier pass — a frame is what somebody drew, not what the product does, so nothing seen in one is written into `idea.md` as fact unless you confirm it during the grill. Design grounding proper (`[DG#n]` findings over an exported frame set) belongs to a different route and is not part of `/idea`.
 
+## What it vendors
+
+The specs repo is the system of record, so a brief whose links point at the folder the source happened
+to live in is a record only its author can follow. After `idea.md` is written, the run **copies the
+sources it actually read into the same PRD folder and rewrites `idea.md`'s links onto the copies**.
+
+- **Text and markdown → `attachments/`.** The source file itself, and every page the wikilink
+  traversal followed.
+- **Images → `design/idea-sources/`.** Every image the reader opened, together with an `index.md`
+  saying what each frame shows — written from the reader's own descriptions, transcribed and never
+  invented.
+- **One frame set per PRD folder, and its index accumulates.** A second `/idea` run over the same folder
+  adds its images to that set and **rebuilds the index from the directory**, keeping every earlier row
+  word for word and appending its own — a later run holds no description for a frame an earlier one
+  vendored, so a row it cannot reproduce is one it does not touch. The index is rewritten whenever the set
+  holds a frame, so a re-run that copies nothing leaves it correct rather than empty.
+- **Nothing else, ever.** No PDF, no archive, no other binary. A linked file that is neither
+  text/markdown nor an image keeps its link exactly as written and is named in the final report.
+- **Only what was read.** A link past the twelve-file or six-image cap, a broken link, an image that
+  would not open — none of them is copied, each of them is reported, and none of them is fatal.
+- **Names never collide silently.** A second file with the same basename becomes `notes_01.md`, a
+  third `notes_02.md`, and a suffix is never appended to a suffix. A copy whose content is already
+  there byte-for-byte is reused rather than duplicated, so a re-run does not grow the folder.
+- **A repointed link comes out as standard markdown, never a wikilink.** The specs repo is browsed on a
+  forge and in editors, where `[[wikilink]]` is literal text that resolves to nothing — so a link
+  repointed into the repo but left in wikilink syntax still would not open anywhere the record is
+  actually read. Display text is kept; a bare image embed takes its alt from the original filename. An
+  `![[note]]` embed of a markdown page becomes a plain link rather than an embed — transclusion has no
+  standard equivalent and renders nowhere in a git repo, so a link that opens the copy is worth more than
+  syntax that does not. A link **nothing copied** keeps its original syntax untouched, on purpose: a
+  surviving `[[wikilink]]` is how you see that a cap bit.
+- **Links are repointed by the target as written, not by its filename.** Two mockups called
+  `toggle-01.png` in different directories become two copies, and the link that named each one goes to
+  its own. Where two links are written *identically* and reached different files, neither is rewritten —
+  `idea.md` says nothing about which occurrence meant which, and the report names the ambiguity so you can
+  point them by hand. A link nobody else can follow is a poor record; a link pointing confidently at the
+  wrong frame is a false one.
+- **Nothing empty is created.** A run over a bare prompt has nothing to copy and creates neither
+  directory.
+
+What a rewrite looks like, in `idea.md`:
+
+```markdown
+[[rollout]]                        →  [rollout](attachments/rollout.md)
+[[rollout|the plan]]               →  [the plan](attachments/rollout.md)
+![[toggle-01.png]]                 →  ![toggle-01](design/idea-sources/toggle-01.png)
+![[note]]                          →  [note](attachments/note.md)        (embed → link)
+[the survey](/abs/survey.md)       →  [the survey](attachments/survey.md)
+![alt](/abs/toggle-01.png)         →  ![alt](design/idea-sources/toggle-01.png)
+[[capped-note]]                    →  [[capped-note]]                    (not copied — untouched)
+```
+
+The copies and the index are handed to the handoff alongside `idea.md`, so they reach the default
+branch with it rather than sitting on one machine.
+
+**The index does not mean `/idea` grounds designs.** `design/` is the frame-set directory the
+grounding contract reserves, and its index is mandatory there — a frame set without one is refused
+outright, so writing the images without it would leave a directory nothing could ever read. Writing an
+index makes the frame set readable; it does not make anything read it. No design-grounding finding,
+index consultation, or verifier pass exists on this route, and that capability remains deliberately
+unbuilt.
+
 ## What it needs
 
 - **A PRD key** — the first positional argument, validated for shape and checked against nothing. It names the folder `idea.md` will live in, which is why it is required up front: there is nowhere keyless to write.
@@ -59,6 +122,10 @@ When the source is a markdown file, `idea-reader` does not stop at that one file
 ## What it produces
 
 `idea.md`, authored against `../../references/idea-format.md`, written into `PRD-<KEY>-<slug>/` under `$SPECS_PATH/specifications/` on the first write and never relocated afterwards. [`/create-prd`](create-prd.md) finds it there.
+
+Beside it, where the source had anything to vendor: `attachments/<name>` for each text or markdown
+source that was read, `design/idea-sources/<name>` for each image that was opened, and
+`design/idea-sources/index.md` naming what each frame shows. See [What it vendors](#what-it-vendors).
 
 **Nothing relocates it, at any point.** The key is a mandatory argument precisely so the brief lands in its final folder on the first write, and [`/create-prd <KEY>`](create-prd.md) finds `idea.md` at that path afterward and never moves it either — an explicit `@<path>` argument to [`/create-prd`](create-prd.md) is a separate, out-of-contract read that is likewise never relocated.
 
@@ -90,5 +157,6 @@ Here the reader walks that note's `[[wikilinks]]` two levels out, opens the imag
 - [`/create-prd`](create-prd.md) — the next phase; finds `idea.md` in the folder `/idea` wrote it into, once `/idea` has handed it off.
 - [Model routing](../reference/model-routing.md) — the classification and model-fallback rules `/idea` applies in Phase 0.
 - [Session cost](../reference/session-cost.md) and [Session feedback](../reference/session-feedback.md) — the terminal Phase 6 bookkeeping every run emits.
-- [`idea-format.md`](../../references/idea-format.md) — the canonical structure `idea.md` is authored against.
+- [`idea-format.md`](../../references/idea-format.md) — the canonical structure `idea.md` is authored against, and the *Vendored sources* rules for `attachments/`, `design/idea-sources/`, the collision suffix, and the link rewriting.
+- [`grounding-format.md`](../../references/grounding-format.md) — §6.1 reserves `design/` for exported frame sets and makes each set's index mandatory, which is why `/idea` writes one for the images it vendors.
 - [`docs-grounding.md`](../../references/docs-grounding.md) — the documentation-grounding resolution gate and how a grill command consumes its digest.

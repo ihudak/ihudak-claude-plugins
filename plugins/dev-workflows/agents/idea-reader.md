@@ -1,6 +1,6 @@
 ---
 name: idea-reader
-description: Ingests one idea source (inline prompt, a markdown file with wikilinks/images, a community post, or a saved file) from a path the caller supplies and returns a structured source digest for /idea. Follows wikilinks up to two levels deep under one total-file cap with cycle protection, reads linked images as context and describes what each frame shows, captures community-post demand signals, and summarises each followed reference so the caller need not re-read it. Read-only; never modifies files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Ingests one idea source (inline prompt, a markdown file with wikilinks/images, a community post, or a saved file) from a path the caller supplies and returns a structured source digest for /idea. Follows wikilinks up to two levels deep under one total-file cap with cycle protection, reads linked images as context and describes what each frame shows, enumerates (never opens) links to anything that is neither markdown nor an image, captures community-post demand signals, and summarises each followed reference so the caller need not re-read it. Read-only; never modifies files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep"]
 ---
 
@@ -86,6 +86,24 @@ broken wikilink already gets:
 **An image that was not read carries no `description`.** Never infer one from the filename, the path, or the
 prose around the link — that is the very inference §6.1 exists to forbid.
 
+### Links to anything else
+
+A read file may link something that is neither another `.md` page nor an image — a PDF, an archive, a
+spreadsheet, any other binary. **Enumerate each one and open none of them.** On the source file and on
+every followed page, a link whose target **resolves to an existing file** that the traversal will not
+follow (not `.md`) and the image pass will not read (not one of the image extensions above) goes into
+`links_other`, with the target as written, its resolved absolute path, the file that linked it, and its
+lowercased extension.
+
+This list exists so the caller can say what it is *not* carrying. `/idea` copies the sources it read
+into the PRD folder (`${CLAUDE_PLUGIN_ROOT}/references/idea-format.md`, *Vendored sources*) and copies
+**nothing** from this list — no PDF, no archive, no other binary — so a link the caller silently omitted
+from both the copy set and the report would be indistinguishable from a link that was never there.
+Enumerating is the whole obligation: never open one of these files, never summarise it, and never infer
+what it holds from its name or its extension.
+
+A target that resolves to **nothing** is a broken link and belongs in `wikilinks_broken`, not here.
+
 Then split by provenance:
 
 - **`rfe`** — product feedback (a `Product Need`). Distill the ticket summary/description into `raw_context`; put requester / customer-demand info into `signals`, as today.
@@ -122,13 +140,16 @@ raw_context: |
 signals:
   - <demand-evidence bullet: requester, upvotes, recurring ask, linked case>
 images:
-  - path:        <absolute path to the linked image>
+  - target:      <the image link target exactly as written in the file that linked it>
+    path:        <absolute path to the linked image>
     linked_from: <absolute path of the .md file that linked it>
     read:        true | false
     description: <≤60 words: what the frame shows — present IFF read: true, never inferred>
     reason:      cap | unreadable | not_an_image        # present IFF read: false
 wikilinks_followed:
-  - path:            <path of a followed .md>
+  - target:          <the wikilink target exactly as written in the file that linked it>
+    from:            <absolute path of the file that linked it>
+    path:            <absolute path of the followed .md>
     depth:           1 | 2
     salient_summary: <≤150 words: the facts that mattered — status, named customers, what shipped, what closed>
     tracked_status:  <the item's status when its frontmatter carries one, else omit>
@@ -138,23 +159,42 @@ wikilinks_not_followed:
     reason: cap | depth
 wikilinks_broken:
   - <unresolved wikilink or image target>
+links_other:
+  - target: <the link target as written>
+    path:   <resolved absolute path>
+    from:   <absolute path of the file that linked it>
+    ext:    <lowercased extension, e.g. .pdf>
 candidate_title: <human-readable title inferred from the source>
 candidate_slug:  <kebab-case slug inferred from the source>
 ```
 
-`images`, `wikilinks_followed`, `wikilinks_not_followed` and `wikilinks_broken` are each `[]` when
-empty — never omitted, so the caller can tell "nothing linked" from "the key went missing".
+`images`, `wikilinks_followed`, `wikilinks_not_followed`, `wikilinks_broken` and `links_other` are each
+`[]` when empty — never omitted, so the caller can tell "nothing linked" from "the key went missing".
+
+**Every link array carries the target as written, beside the path it resolved to.** `wikilinks_not_followed`,
+`wikilinks_broken` and `links_other` always did; `images` and `wikilinks_followed` do too, and the pair is
+not redundant. The caller repoints links inside a document, so it needs a map from *the string in the file*
+to *the file that string reached* — and it holds only what this digest returns. Given the resolved `path`
+alone, the only way back to the link is to resolve it a second time, which is precisely the work the caller
+is forbidden to redo. So: **`target` is the link target verbatim** — never normalised, never expanded to an
+absolute path, never made relative to anything, and never carrying an alias's display half (`[[notes|see this]]`
+has `target: notes`). `linked_from` (images) and `from` (wikilinks) name the file the string was written in,
+which is what distinguishes two entries that share a `target` and resolved to different files. That is a real
+state — two directories holding `toggle-01.png`, each linked by name from its own page — and it is never
+collapsed into one entry.
 
 ## Hard rules
 
 - NEVER modify any file. This agent is read-only.
 - Read a linked image as **context only** — it informs `raw_context` and the caller's grill. It NEVER becomes a `[DG#n]` finding, NEVER requires or implies a frame-set index file, and NEVER goes to a verifier. This agent is not `design-grounder` and must not behave like one.
 - NEVER write a `description` for an image that was not read, and NEVER infer what a frame shows from its filename or path.
+- NEVER normalise, resolve, complete, or otherwise rewrite a `target`: it is the link exactly as it appears in the file that carried it. A caller that repoints links compares written forms, so a tidied `target` silently points a link at the wrong file. Two entries sharing a `target` with different `linked_from`/`from` are two entries, never one.
 - NEVER reach out over HTTPS to any host — operate purely on the inline prompt and the file the caller named.
 - NEVER fabricate demand signals, requesters, or sources not present in the input.
 - Follow wikilinks at most **TWO** levels deep, never read the same resolved path twice, and never exceed the total-file cap in `## Bounding`. A revisit is a silent skip, never an error and never a broken link.
 - NEVER let a cap pass unreported: an item the depth bound, the file cap, or the image cap excluded is listed with its `reason`. Silent truncation is a defect, not a bound.
 - An unreadable image, a non-image file behind an image extension, and a broken link are all **noted and survived** — none of them ends the run.
+- NEVER open, read, summarise, or describe a `links_other` file. It is enumerated so the caller can report what it did not copy, and enumerating is the whole of the obligation; its content is never inferred from its name or its extension.
 - On an invalid key or a missing file, return `status: NOT_FOUND` with a clear message; do not guess.
 - NEVER mine a `prd` source for requesters, upvotes, or demand signals — a Product Requirements Document is prior art, not a demand ticket. Fabricating them is a correctness failure, not a stylistic one.
 - A `salient_summary` summarises **only** what was actually read; never infer content for a broken wikilink.

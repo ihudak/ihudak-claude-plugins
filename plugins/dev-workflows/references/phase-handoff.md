@@ -270,6 +270,12 @@ Every producing command presents this array verbatim — order, wording, and the
 
 The second option's parenthetical is load-bearing: it is the only place the user learns that declining has a downstream cost.
 
+**Where the artifact has no §3.4 row, present this array instead** — a frame-set index is the case, and `/frames` the producer:
+
+    choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (nothing downstream reads this, so no command stops on it)", "Cancel"]
+
+Only the second option's parenthetical differs, and it differs for the same reason §4.1 resolves `<next-phase-clause>` three ways rather than one: declining costs the operator nothing here, and the array is where they decide. Promising a stop that cannot happen tells them to expect a refusal they will not meet — and the run then contradicts itself, because §4.1's own third clause correctly reports that nothing downstream reads it. The choice and the outcome line must agree, and the producer knows which artifact it just wrote.
+
 **What each option means.** Option 1 runs `handoff-to-main` (§2). Options 2 and 3 both decline it: the deliverable stays written and uncommitted, and the producer emits §4.1's "Declined by the user" line either way. They differ only in recorded intent — option 2 states the user will handle git themselves, option 3 states nothing — so a caller must not infer from option 3 that the artifact is unwanted, and must never delete or revert it. **Neither option stops the run's emitter tail**: feedback → follow-ups → cost → `resume.md` → `commit-artifacts` still executes, because that tail commits only `$SPECS_PATH`'s bounded session-artifact paths (`specs-repo-git.md` §2.1), never the deliverable this choice governs.
 
 ### 4.4 Stop contract

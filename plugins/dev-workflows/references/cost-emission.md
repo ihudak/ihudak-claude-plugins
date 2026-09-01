@@ -596,7 +596,7 @@ because the earlier run is over.
 [
   {"command": "/prompt-grill-me", "phase": "inferred", "role": "inferred",
    "target_command": "/document", "key": "PRODUCT-1234", "epic": null,
-   "source": "specs", "plugin_version": "3.16.1",
+   "source": "specs", "plugin_version": "3.17.1",
    "ceded_at": "2026-09-01T10:04:00Z"}
 ]
 ```

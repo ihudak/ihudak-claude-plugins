@@ -4,6 +4,23 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.17.1] — 2026-09-01
+
+### Fixed — the review leftovers, cleared rather than carried
+
+**The leftovers, cleared rather than carried.** Every remaining finding across the five reviewer
+reports is fixed in this release, including the ones that were only MINOR: `docs/reference/session-cost.md`
+said `date` is when an entry's window ended, which is false for a deferred entry (dated when its run
+ceded, near the *start* of what it measures); `docs/roles-and-phases.md` said only the commands listed
+there emit a phase directly, while listing two that never do; `docs/reference/references.md` described
+`cost-emission.md` as cited by "every PRD-lifecycle command's terminal Session cost phase", wrong on
+both counts; and neither command's documentation page mentioned the cost entry it now produces or
+linked the page explaining it. Two **never-fails** violations were also fixed — a non-string `model`
+in a transcript reached `sorted()` and a dict key and raised, and an unreadable price file raised out
+of `open()` — both pre-existing on `main`, both a hard failure in a script whose contract is that it
+never fails. The script now also reports a `notes` line distinguishing "no boundary in this window"
+from "namespace could not be resolved", which previously looked identical from outside.
+
 ## [3.17.0] — 2026-09-01
 
 ### Added — `/idea` reads more of the source it was given

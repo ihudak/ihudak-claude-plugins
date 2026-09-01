@@ -82,7 +82,11 @@ def load_prices(path):
     stack = [(-1, root)]
     if not path or not os.path.isfile(path):
         return root
-    with open(path, encoding="utf-8", errors="replace") as fh:
+    try:
+        fh_prices = open(path, encoding="utf-8", errors="replace")
+    except OSError:
+        return root
+    with fh_prices as fh:
         for raw in fh:
             line = raw.split("#", 1)[0].rstrip()
             if not line.strip():
@@ -110,7 +114,13 @@ def extract_usage(obj):
     usage = msg.get("usage")
     if not isinstance(usage, dict):
         return None, None
-    return (msg.get("model") or "unknown"), usage
+    model = msg.get("model")
+    # Coerced to str deliberately: a transcript is not a schema we control, and a
+    # non-string model (a number, a dict) used to reach sorted() and acc[] and
+    # raise -- a hard failure in a script whose contract is that it never fails.
+    if not isinstance(model, str):
+        model = "unknown" if model is None else repr(model)
+    return (model or "unknown"), usage
 
 
 def add_usage(acc, model, usage):
@@ -158,6 +168,11 @@ def load_command_names(commands_dir):
     which disables boundary detection entirely rather than guessing."""
     if not commands_dir or not os.path.isdir(commands_dir):
         return None, None
+    # Every *.md here is taken as a command name. A stray file would therefore
+    # become a possible boundary -- but it cannot survive into a release: it would
+    # be counted as a command by check-docs.sh, which gates the command inventory
+    # in both directions and the prose counts that state its size. Verified by
+    # dropping a NOTES.md into commands/ and watching the gate go red.
     names = set()
     for fp in glob.glob(os.path.join(commands_dir, "*.md")):
         base = os.path.basename(fp)[:-3]
@@ -574,6 +589,8 @@ def selftest():
           "a FOREIGN namespace (/superpowers:implement) is not a boundary")
     check(len(names) == 4,
           "a marker quoted mid-message is not a boundary (anchored match)")
+    check([b["line_offset"] for b in whole["command_boundaries"]] == [2, 4, 12, 15],
+          "each boundary reports the transcript line it was found on")
     check(whole["plugin_namespace"] == "dev-workflows",
           "the namespace is read from plugin.json, not from the parent directory")
     check(tokens(whole["models"]) == 11500,
@@ -757,6 +774,14 @@ def main():
 
     matched, unmatched = match_claims(args.claim, boundaries)
 
+    notes = []
+    if args.claim and known_commands is None:
+        notes.append("no --commands-dir resolved: boundary detection is off, so "
+                     "every claim is unmatched")
+    elif args.claim and not boundaries:
+        notes.append("no command boundary found in this window (namespace "
+                     "resolved as %r)" % (plugin_name,))
+
     # Partition every buffered record into exactly one bucket: a claimed segment,
     # or the remainder that stays with this run. Disjoint by construction, and
     # exhaustive -- so the slices always sum to the whole window, and an unmatched
@@ -815,6 +840,7 @@ def main():
         "cost_statusline_usd": cost_statusline,
         "duration_s": duration_s,
         "plugin_namespace": plugin_name,
+        "notes": notes,
         "command_boundaries": boundaries,
         "claims": claims_out,
         "unmatched_claims": unmatched,

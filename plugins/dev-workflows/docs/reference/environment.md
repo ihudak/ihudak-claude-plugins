@@ -89,7 +89,7 @@ The five directory-valued variables above expect this layout. `$GIT_USER_INITIAL
 ```
 
 $SPECS_PATH/                        # shared, team-visible store
-  specifications/<KEY>-<slug>/      # the Product Requirements Document, the ARD, specification.md, design.md
+  specifications/PRD-<KEY>-<slug>/  # prd.md, ard.md, release-notes.md, and EPIC-<KEY>-NN-<eslug>/ below it
     dev-workflows/                  # bookkeeping: feedback, cost, resume.md, follow-ups
 
 $REPOS_PATH/                        # code clones, one directory or a colon-separated list (default /workspace)

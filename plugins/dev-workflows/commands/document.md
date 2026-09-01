@@ -18,7 +18,7 @@ For small one-off doc edits, use direct mode (below). For writing child Epic dra
 
 `/document` has **two modes**, selected by the first argument token:
 
-- **Keyed mode (Mode A)** — the first token is a **single positional address**: a `<KEY>` matching `references/addressing.md` §1's grammar, or an `@<path>` naming a folder in the specs tree. `resolve-address` (§3) turns it into a folder; `status: absent` means no such folder exists, and `ambiguous` is a stop naming every match.
+- **Keyed mode (Mode A)** — the first token is a **single positional address**: a `<KEY>` matching `references/addressing.md` §1's grammar, or an `@<path>` naming a folder in the specs tree. `resolve-address` (§3) turns it into a folder; `ambiguous` is a stop naming every match. **`status: absent` is a stop, not a folder to create** — it surfaces the `key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`choices: ["Re-enter key", "Cancel"]`), the same rule Phase 3 surfaces for a folder that exists and holds no PRD, and names `/dev-workflows:create-prd <KEY>` as the run that creates a `PRD-` folder. It never falls through to direct mode: an address that resolved to nothing is a typo to correct, not a prose prompt to document.
 - **Direct mode (Mode B)** — no positional address: a leading `@file` token, free-text prose, or a directory that is not in the specs tree, which Mode B handles via its existing "anything else" path.
 
 **The mode test is the presence of an address**, which is what replaces the retired shared front-end's own mode return. Mode B is unchanged in every other respect — a direct-mode run is byte-identical to before.
@@ -323,17 +323,17 @@ From the **implementation record** — the `implementation.md` blocks in the res
    - **Multiple matches** (e.g. `cluster` and `cluster-repo`, both pointing at the same upstream) — auto-prefer basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last; show all candidates at plan approval so the user can override.
    - **Zero matches** — record the slug as **missing** and defer it to the consolidated repo gate in step 5 (do NOT escalate per slug).
    Record each resolution as `repo_slug → repo_path` for Phase 5.
-5. **Consolidated repo gate.** From step 4, compute `expected` = the unique in-scope repo slugs, `mounted` = those that resolved to a path, and `missing` = the zero-match slugs. This is the earliest point the repo set is known (it depends on the Phase 3 the folder read PR links) and it runs before any diff work.
+5. **Consolidated repo gate.** From step 4, compute `expected` = the unique in-scope repo slugs, `mounted` = those that resolved to a path, and `missing` = the zero-match slugs. This is the earliest point the repo set is known (it depends on the implementation record read at the top of this phase) and it runs before any diff work.
    - **`missing` is empty** — print one line and continue with no gate:
      ```
-     Resolved <M>/<N> repositories from the recorded PRs.
+     Resolved <M>/<N> repositories from the implementation record.
      ```
    - **`missing` is non-empty** — present ONE consolidated gate (not one prompt per slug):
      ```
-     This PRD's recorded PRs span <N> repositories. <M> mounted, <K> missing:
+     This PRD's implementation record spans <N> repositories. <M> mounted, <K> missing:
 
        ✓ <mounted slug>            ✓ <mounted slug>
-       ✗ <missing slug>            (<n> <status> PRs — not found under $REPOS_PATH)
+       ✗ <missing slug>            (<n> recorded refs — not found under $REPOS_PATH)
 
      Missing repos are skipped: their code won't be diff-summarised or checked
      against the PRD's requirements, so the discrepancy analysis will be partial.
@@ -342,10 +342,10 @@ From the **implementation record** — the `implementation.md` blocks in the res
      ```
      Choice semantics follow the `Repo unresolved (zero matches) — /document` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`, applied to the whole missing set at once:
      - **Mount now & re-scan** (≈ the rule's "I'll clone it — wait") — pause until the user confirms the clones are present under `$REPOS_PATH`, then re-run step 3's scan and re-render this gate. Loop until `missing` is empty or the user picks another option. This is how the operator gets per-repo control: mount whichever repos are available, re-scan, then choose "Proceed" for whatever remains.
-     - **Proceed without them** (≈ the rule's "Skip and continue without its PRs") — record every currently-missing repo's PRs as `unresolved`, out of scope; continue. Identical downstream state to the previous per-slug skip.
+     - **Proceed without them** (≈ the rule's "Skip and continue without its PRs") — record every currently-missing repo's refs as `unresolved`, out of scope; continue. Identical downstream state to the previous per-slug skip.
      - **Cancel** — abort the run.
      - **Specify a different absolute path for a missing repo** (≈ the rule's "Specify a different absolute path") — record the given path as that slug's `repo_path`, move it from `missing` to `mounted`, and re-render.
-6. If any PRs had `host: other` (unsupported host), record them as `unresolved` and carry them into the Phase 9 report; do not block.
+6. A `refs[]` element carries no host and needs none — the diff is taken locally. Where a run was additionally given a genuine PR URL as `pr_refs` enrichment and its `host` is `other` (unsupported), record that element as `unresolved` and carry it into the Phase 9 report; do not block.
 
 ---
 
@@ -362,7 +362,7 @@ For each repo, in the same Agent message:
   >
   > repo_path:     <resolved absolute path for this repo from Phase 4>
   > repo_url_slug: <repo slug, e.g. "cluster">
-  > pr_refs:     [ ... full PR entries from the folder read handoff, filtered to this repo (and, when focus_key is set, to focus_items) ... ]
+  > refs:        [ ... the {branch_from, branch_to, title} elements Phase 4 built for this repo from `implementation.md` and the commit scan (and, when focus_key is set, restricted to focus_items) ... ]
   > context:    |
   >   [1–2 sentences: PRD goal + themes relevant to this repo]
   > keys_hierarchy:

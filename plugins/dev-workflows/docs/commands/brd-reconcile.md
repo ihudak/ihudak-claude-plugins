@@ -284,7 +284,7 @@ markdown file under the parent, which is exactly why the carve-out has to be wri
 
 This is where the BRD-to-PRD route **hands over**, not where it ends. A reconciled BRD — decisions
 frozen, dependents swept, every artifact under the parent checked — is the state the PRD pipeline
-was waiting for, and Phase 14 offers all three the BRD route entry points against the same
+was waiting for, and Phase 14 offers all three of the route's entry points into the PRD pipeline against the same
 `<SLICE-KEY>` — **on a slice, on a run that left nothing to re-enter for**, and each under the
 precondition the offered command actually enforces:
 

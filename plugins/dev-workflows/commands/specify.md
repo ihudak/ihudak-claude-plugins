@@ -150,10 +150,10 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
      stop above.
 
    **On the BRD route the feature folder is the resolved `PRD-` slice folder**, and it is never
-   created here: resolve it with `resolve-address`
-   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), which already searches both levels — step 0
-   is what refuses the container the upper level holds — or read an explicit BRD-directory path when
-   one was given.
+   created here. There is no second resolution for that route and no `<BRD-dir>` argument to read:
+   the single positional address was resolved once with `resolve-address`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), step 0 refused the container the upper
+   level holds, and the folder that survives both **is** the slice.
    **The write location then follows `focus_key`, by the same two cases as above and not by a rule of its
    own.** A slice is a `PRD-` folder, so `focus_key` is null when the run starts and `specification.md`
    is written flat inside the slice folder, beside the BRD artifacts it was derived from — the ordinary
@@ -164,14 +164,13 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
    Epic directly — `/dev-workflows:specify <EPIC-KEY>` — resolves an `EPIC-` folder, which carries no
    `brd-link.md`, so it is not the BRD route at all and takes the `focus_key`-set case above with nothing
    route-specific about it.
-   `absent` is a graceful stop, not a folder to create — and it names **both** ways a BRD folder comes
-   into being rather than picking one, because nothing on disk says whether this key names a BRD with
-   a source document or a slice of one, and a key's segment count is a naming convention, never a
-   depth declaration (§1):
-   `SPECIFY_BRD_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
-   Where an explicit BRD-directory path was supplied and is not an existing directory, the same stop
-   substitutes that path for the search clause — `no BRD folder at <path> (supplied with the BRD route)` —
-   because "both levels searched" would describe a search this run did not perform.
+   `absent` is a graceful stop, not a folder to create — and the remedy it names is the one that
+   produces a folder this command accepts, since step 0 refuses the `BRD-` container a
+   `/dev-workflows:brd-intake` run would leave behind:
+   `SPECIFY_BRD_NOT_FOUND: no folder found for <ADDRESS> under $SPECS_PATH/specifications/ (every level addressing.md §3 bounds, plus §5's legacy fallback) — check the address. /specify writes into a PRD- folder, never the BRD- container above it: a slice is created by /dev-workflows:brd-split on its parent BRD, and a parent BRD is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file> and then grounded and split before any slice exists.`
+   Where the address was an **`@<path>`** the same stop substitutes that path for the search clause —
+   `no folder at <path> (given as a path)` — because "every level addressing.md §3 bounds" would
+   describe a search a verbatim path never performs.
 
 4. **Detect a prior run.** If a `_session.md` exists in the resolved feature folder, record that a
    resume is available — Phase 1 asks the user resume-vs-fresh. If no `_session.md` exists, this is a
@@ -187,7 +186,7 @@ when the specs repo is clean and on its default branch. If a guard fires, emit i
 it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
 `commit-artifacts` step skips on it.
 
-**Gate the PRD — on every route, with no branch.** The folder gated is **the PRD folder this run resolved**: the resolved folder itself when the address named a `PRD-` folder, its parent when the address named an `EPIC-` folder, and — on the BRD route — the resolved `PRD-` slice folder, which *is* that route's PRD folder (§4.1). One rule, one path expression, no route test. Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against the PRD file in that folder (written below as `specifications/<PRD>-<vslug>/`, the shape it takes on a keyed-route run) — **resolve its actual name on the ref first**: `git -C "$SPECS_PATH" ls-tree --name-only "origin/<default>" "specifications/<PRD>-<vslug>/"` and take `prd.md` when the listing carries it, falling back to a `<PRD>_*.md` entry only when it does not — the keyless `prd.md` is what `/create-prd` and `/update-prd` write, and the `<KEY>_<slug>.md` form is the pre-rename shape a specs repo written before increment A still holds (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §5). **Gating the legacy glob alone was a defect**: it matches nothing in a current repo, so the gate returned `absent` for every PRD that was present and the rows D/E stop could never fire. A human-adjusted slug is a supported state — `/create-prd` and this command's own Phase 2 reader both locate the PRD by glob plus frontmatter, and the feature folder is matched by key-number for the same reason — so gating an exact derived filename would report `absent` for a PRD that is present, and would let a slug-drifted file on a plugin branch escape the rows D/E stop entirely. Map its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4. Otherwise (`stopped: false`): on `pass`/`pass_amending`, proceed — Phase 2 still reads the resolved folder exactly as today; the merged PRD is a grounding confirmation, not a new content source; on `absent`, `/specify`'s existing specs-tree behaviour is unaffected — but report it: *"No authored PRD on `<default>` for `<PRD>` — specifying from the resolved folder at `<path>`. If a PRD exists on a branch, this run would have stopped; it does not, so none does."*; on `unmanaged`, behave exactly as before this feature — reachable here even after step 2's own `$SPECS_PATH` check, since that check only rejects an unset value, never an invalid path or a non-git directory.
+**Gate the PRD — on every route, with no branch.** The folder gated is **the PRD folder this run resolved**: the resolved folder itself when the address named a `PRD-` folder, its parent when the address named an `EPIC-` folder, and — on the BRD route — the resolved `PRD-` slice folder, which *is* that route's PRD folder (§4.1). One rule, one path expression, no route test. Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against the PRD file in that folder (written below as `specifications/<PRD>-<vslug>/` for brevity; the folder on disk carries its kind prefix — `PRD-<PRD>-<vslug>/` on a current tree, the unprefixed form only through §5's legacy fallback — and it is always the folder Phase 0 resolved, never a path re-derived here) — **resolve its actual name on the ref first**: `git -C "$SPECS_PATH" ls-tree --name-only "origin/<default>" "specifications/<PRD>-<vslug>/"` and take `prd.md` when the listing carries it, falling back to a `<PRD>_*.md` entry only when it does not — the keyless `prd.md` is what `/create-prd` and `/update-prd` write, and the `<KEY>_<slug>.md` form is the pre-rename shape a specs repo written before increment A still holds (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §5). **Gating the legacy glob alone was a defect**: it matches nothing in a current repo, so the gate returned `absent` for every PRD that was present and the rows D/E stop could never fire. A human-adjusted slug is a supported state — `/create-prd` and this command's own Phase 2 reader both locate the PRD by glob plus frontmatter, and the feature folder is matched by key-number for the same reason — so gating an exact derived filename would report `absent` for a PRD that is present, and would let a slug-drifted file on a plugin branch escape the rows D/E stop entirely. Map its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4. Otherwise (`stopped: false`): on `pass`/`pass_amending`, proceed — Phase 2 still reads the resolved folder exactly as today; the merged PRD is a grounding confirmation, not a new content source; on `absent`, `/specify`'s existing specs-tree behaviour is unaffected — but report it: *"No authored PRD on `<default>` for `<PRD>` — specifying from the resolved folder at `<path>`. If a PRD exists on a branch, this run would have stopped; it does not, so none does."*; on `unmanaged`, behave exactly as before this feature — reachable here even after step 2's own `$SPECS_PATH` check, since that check only rejects an unset value, never an invalid path or a non-git directory.
 
 **The BRD route runs this gate too, and the `absent` branch is what makes that safe.** It did not, and
 the rationale it carried was coherent while the route could resolve a `BRD-` container: the PRD "may not
@@ -451,7 +450,7 @@ folder does hold. Then:
 - **`grounding/code-grounding.md`** and **`grounding/design-grounding.md`** — the `[CG#n]` and
   `[DG#n]` finding records, per `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §2 — **and, in
   the first of the two, the derivation matrix.** The matrix is not a file of its own and is not inside
-  `spec-seed.md`: `/dev-workflows:brd-ground` appends its rows to `<BRD-dir>/grounding/code-grounding.md`
+  `spec-seed.md`: `/dev-workflows:brd-ground` appends its rows to the slice folder's `grounding/code-grounding.md`
   (that command's Phase 8), classed per `grounding-format.md` §7
   (`EXISTS | DERIVED | NEW-CAPTURE | NEW-CONFIG | PARTNER | DEFERRED | DEPENDENCY`). It is
   implementation-altitude by construction, which is why this command is the one that reads it — and
@@ -520,8 +519,8 @@ Resolve any ARD for this item by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-re
    resolved folder's `implementation.md` records (`${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md`
    §1 — its `repo` entries), build a candidate repo-slug list. There is no PR list to read: nothing here
    reads a tracker or a pull-request API. **Under
-   the BRD route there is no implementation record either; derive the list from
-   `<BRD-dir>/grounding/baselines.md` instead**, which already records repository → pinned commit for
+   the BRD route there is no implementation record either; derive the list from the resolved slice
+   folder's `grounding/baselines.md` instead**, which already records repository → pinned commit for
    every repo `/dev-workflows:brd-ground` read, plus the Phase 2 themes. That is a stronger starting
    set than a theme guess, and the rest of this phase treats it identically — step 3 resolves each
    entry against the slug map and step 4's soft gate handles one that is not mounted. A finding's

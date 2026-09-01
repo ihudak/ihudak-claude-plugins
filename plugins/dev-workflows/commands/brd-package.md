@@ -794,7 +794,7 @@ still move*; and the repo→SHA table. Emit its §4.1 outcome line in the final 
 
 The BRD-to-PRD route's next command is `/brd-reconcile`, which takes the returned review and turns
 each confirmed answer into a `[CD#n]` — and it is offered, named for what it needs, because it
-cannot run until a review actually comes back. the BRD route on `/create-prd`, which carries a decided,
+cannot run until a review actually comes back. The BRD route on `/create-prd`, which carries a decided,
 reconciled BRD into a PRD, **ships** — and it is still not offered here, for a reason about this
 state rather than about the plugin. This run packaged a BRD whose customer round is *open*: every
 `[C]` it just rendered into the prompt, and every open `[AS#n]` it carried in, is a register item

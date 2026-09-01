@@ -4,6 +4,124 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.14.0] — 2026-09-01
+
+### Changed — increment E: the BRD is a container
+
+**D5 and D6 are now enforced structurally rather than assumed.** A `BRD-` folder is refused by
+`/create-prd`, `/create-ard`, `/specify` and `/epics` on the **resolved folder's kind, before a
+single coverage-ledger row is read** (`CREATE_PRD_BRD_NOT_SLICED`, `CREATE_ARD_BRD_NOT_SLICED`,
+`SPECIFY_BRD_NOT_SLICED`, `EPICS_BRD_NOT_SLICED`), and each refusal's remedy is a directory listing
+of the `PRD-` slices under it — never a ledger read, and never a command whose output the refusal
+would then refuse. `/create-prd` stopped arguing *for* the behaviour the design forbids: the
+paragraph justifying an unsliced BRD's PRD cited an escape valve deleted in 3.5.0, and its two data
+refusals are now slice-only.
+
+**Epics come from a PRD only, and `/epics <EPIC-KEY>` re-refines.** `/epics` accepts a `PRD-` folder
+(draft) or an `EPIC-` folder with a PRD above it (re-refine) and refuses a stand-alone `EPIC-` folder
+(`EPICS_EPIC_NOT_UNDER_PRD`) and a `BRD-` container. **The accept gate is `prd.md`'s own `kind: prd`,
+never the folder's asserted kind** — a slice folder is `PRD-`-prefixed and asserts `kind: brd`, so an
+asserted-kind gate would refuse every slice and accept nothing. `focus_key` is derived from the
+resolved `EPIC-` folder, which revives a refine path that was written and unreachable. `/create-ard`
+and `/specify` no longer auto-create an absent `EPIC-` folder: `/epics` is the only command that
+creates one, and the *stand-alone top-level Epic* case is retired.
+
+**The two routes are identical from the PRD onward.** The PRD `require-on-main` gate runs on every
+route in `/create-ard` and `/specify`, and its `absent` branch reports and proceeds, so `/create-prd`
+remains a prerequisite for neither. Both read the authored `prd.md`; the BRD seed, register and
+findings are read *in addition*. `/create-ard`'s optionality advisory is one rule over the union of
+what the folder holds, with the PRD winning the gauge where a slice carries both.
+
+**`/brd-split` resolves in bulk.** Phase 4 gains a Step 1 uniform-answer offer that writes one
+disposition across every remaining `unallocated` row behind a single confirmation, naming each row
+first and refusable per row; the one-at-a-time walk stays the default and is where a declined or
+unparsed answer lands. A forty-row BRD resolved to a single slice costs 2 confirmations instead of
+80 prompts.
+
+**The round-trip that no command performs is gone.** `key` is written by `/create-prd` on **both**
+routes, set to the resolved folder's own key. `release_versions`, `change_type` and
+`release_notes_category` are authored fields, not importer returns. Two-key offer forms
+(`/specify <PRD> <Epic>` and its five siblings) are retired everywhere a user reads them, not only
+where they were parsed (D4). `/idea` no longer claims to relocate anything (D7).
+
+### Fixed — the closing sweep
+
+- **`diff-summarizer`'s handoff contradicted its own agent, and `/document` dispatched the stale
+  one.** `references/handoff/diff-summarizer.md` declared only `pr_refs` and refused any input
+  lacking it; the agent declares `refs:` as the ordinary shape because that is what
+  `implementation.md` records — no URL, no host, no PR id. The handoff now carries `refs`, the
+  `refs`-or-`pr_refs` refusal, and per-element output fields that a `refs` element can actually fill
+  (`ref`, `resolved_via: local_ref`). `/document` Phase 5 passed `pr_refs: [… from the folder read
+  handoff …]` while Phases 3/4 built `refs[]` from the implementation record — it now passes what it
+  built, and the PR-shaped vocabulary around it (a "recorded PRs" gate, a `host: other` filter on
+  elements that carry no host) says what the run actually holds. `/release-notes` Phases 4–5 the
+  same.
+- **Four commands could report a state with no way out of it.** `/epics`, `/ready`,
+  `/release-notes`, `/update-prd` and `/document` (keyed mode) each answered `resolve-address`'s
+  `absent` with "the folder does not exist" and named nothing — no error code, no remedy, no command
+  that creates one. `/epics` gains `EPICS_NOT_FOUND`; the others surface `escalation-rules.md`'s
+  `key dir not found` rule and name the run that creates the folder.
+- **Three stops named a remedy this increment had just made insufficient.**
+  `CREATE_PRD_BRD_NOT_FOUND`, `CREATE_ARD_BRD_NOT_FOUND` and `SPECIFY_BRD_NOT_FOUND` offered
+  `/brd-intake <BRD-KEY> @<brd-file>` as a way to produce the folder — which produces the `BRD-`
+  container all three now refuse. They name `/brd-split` on the parent, and say a parent BRD must be
+  grounded and split before any slice exists. `CREATE_ARD_BRD_NOT_FOUND` is retired outright: the
+  BRD route has one resolution and takes `CREATE_ARD_NOT_FOUND` like every other route.
+- **`/epics`' `EPICS_FOCUS_NOT_FOUND` was unreachable and offered a retired argument form.**
+  `focus_key` is derived from the resolved folder, so it cannot disagree with `prd_dir`; the check
+  and its *"Re-enter the Epic key"* choice belonged to the two-key grammar D4 removed.
+- **`/ready` read a `<prd_dir>/<KEY>-index.md` that nothing writes.** A tracker export wrote it; the
+  status peek is retired rather than reconstructed, since D8 derives the phase from artifacts and
+  `--claimed` is the only status anyone declares. `/implement`'s input-classification table
+  recognised a specs folder by `*-index.md` / `KEY.md` — both export shapes, and both keyed
+  filenames D3 forbids — and now recognises it by the `key:` a keyless artifact asserts.
+- **`/epics` handed `epic-writer` a `current_body_path` of `<prd_dir>/<EPIC-KEY>/<EPIC-KEY>.md`**,
+  the shape that agent explicitly forbids, so every refine run regenerated instead of iterating. It
+  is `<prd_dir>/EPIC-<EPIC-KEY>-<eslug>/epic.md`, matching what the agent writes.
+- **`workflow-states.md` described a refine mode that cannot happen** — a PE pre-creating empty Epic
+  folders per team, with drafts keyed `<EPIC-KEY>.md`. `/epics` is the only command that creates an
+  `EPIC-` folder (D6) and filenames carry no key (D3); the note now describes refine as §6.3 defines
+  it.
+- **`docs/roles-and-phases.md` said `/brd-reconcile` offers all three PRD-pipeline commands "against
+  the same BRD key", and `/create-ard` and `/specify` "unconditionally, since neither gates a PRD".**
+  All three refuse a `BRD-` container, the offers are made off a slice key, and both commands now run
+  the PRD gate.
+- **Three frontmatter `description:` fields named a folder shape that does not exist** —
+  `$SPECS_PATH/specifications/<KEY>-<slug>/` for `/create-prd`, `/create-ard` and `/update-prd`,
+  unprefixed since increment A. Same in `docs/reference/environment.md`'s tree, `docs/workflow.md`
+  and `docs/getting-started.md`. `/create-prd` also carried **two different texts for one
+  `CREATE_PRD_NEEDS_KEY`**, one of which told the operator to "create an address first to get the
+  ID" — an act with no counterpart since the cut.
+- **`handoff-to-main`'s declined-handoff line promised a stop that does not happen.** Declining
+  writes no branch and no commit, so the next phase's gate reads row F — which *delegates*. §4.1 now
+  resolves the clause from §3.4's row for that artifact: a stop where the input is a prerequisite,
+  and report-and-proceed for the `/create-prd` idea ladder and the PRD read in `/create-ard` and
+  `/specify`.
+- **`/design` named `mgd-specifications` as the handoff surface** — another edition's repository, in
+  the canonical edition — and its no-spec stop named `/dev-workflows:specify` with no address (D4).
+- **Residual importer vocabulary, live on four surfaces.** `release-notes-writer`'s handoff and agent
+  declared `imported_change_type` "from the imported PRD frontmatter", its own `description` sourced
+  the category label "from the imported `release_notes_category`", and both carried the empty
+  `{{#context}}` gap left by the macro's retirement ("a  label", "the  line"). `/update-prd` twice
+  ruled that "the import wins" three paragraphs after its own step 4 states there is nothing to
+  import. `release-note-types.md` §7 read "the category label label".
+- **`references/branch-naming.md`'s vendor tokens are now framed once, where a reader meets the
+  first one.** `<JIRA-ISSUE-KEY>` is quoted from a repository's own `CONTRIBUTING.md` and matched, not
+  written — and it is deliberately **not** genericised: the recognition table is what makes the
+  plugin honour a team's documented convention, and a swept list would drop such a repo into §1.4's
+  no-convention branch and give it a branch name its team does not use. `/upgrade` separately said
+  "the run's Jira key" of a key the plugin mints itself.
+- **`grilling-technique.md`** justified `/brd-split`'s ≤5 cap with "a walk that visits every row
+  anyway", which predates E5's Step 1; **`2026-08-29-brd-to-prd-workflow-design.md`** R18/R24/R25 and
+  §9.3, and `CLAUDE.md`'s BRD-route line, still described a slice's walk as "four resolutions instead
+  of five" — the parent's picker lost `covered-here` in 3.5.0, so both walks offer four and differ in
+  one member.
+- `CLAUDE.md` records the two traps this increment turns on: a slice folder is `PRD-`-prefixed while
+  asserting `kind: brd`, and PRD-eligibility is a folder-kind question before it is a ledger
+  question.
+
+Counts unchanged: **27 commands / 37 agents / 105 reference files.**
+
 ## [3.13.0] — 2026-09-01
 
 ### Fixed — the whole-design review, round 1

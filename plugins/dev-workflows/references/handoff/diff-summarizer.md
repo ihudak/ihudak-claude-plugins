@@ -4,8 +4,12 @@
 
 ```yaml
 repo_path:   <absolute path to a local clone, e.g. /workspace/<repo-name>>
-repo_url_slug: <repo slug from the PR URL, e.g. "cluster"; optional, enables upstream cross-check>
-pr_refs:
+repo_url_slug: <repo slug, e.g. "cluster"; optional, enables upstream cross-check>
+refs:                              # the ordinary shape: what implementation.md records
+  - branch_from: <the feature branch, or the commit sha, this run wrote>
+    branch_to:   <the base it was branched from>
+    title:       <one line naming the work; optional>
+pr_refs:                           # optional enrichment, only where a PR URL is genuinely known
   - url:         <full PR URL>
     host:        github_cloud | bitbucket_cloud | bitbucket_server | other
     repo:        <repo name>
@@ -35,7 +39,14 @@ model_routing:
   gate_tests_on_review: false
 ```
 
-Refuse to run without `repo_path` and at least one element in `pr_refs`.
+Refuse to run without `repo_path` and at least one element in **`refs` or `pr_refs`**.
+
+**`refs` is the shape the callers actually have.** `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §1
+records `repo` / `branch` / `base` / `commit` / `pushed` — no URL, no host, no PR id — so a caller
+holding only that record could satisfy neither a `pr_refs`-only requirement nor the host routing the
+agent applies to one. Every host-specific strategy is skipped for a `refs` element and the diff is
+taken directly (`git -C <repo_path> diff <branch_to>...<branch_from>`, `branch_from` accepted as a
+commit sha when the branch is gone). `pr_refs` still routes by host where a URL is known.
 
 When `repo_url_slug` is provided, before summarising run
 `git -C <repo_path> remote get-url origin`, strip a trailing `.git`, and compare
@@ -60,10 +71,11 @@ prep:
   ref_committed_at: <ISO-8601 timestamp of the ref's newest commit>
   head_divergence:  { branch: <working-tree branch>, ahead: <n>, behind: <n> }
 
-per_pr:
-  - pr_id:          <id>
-    url:            <url>
-    resolved_via:   pr_ref | branch_search | merge_commit | key_commits | gh_cli | unresolved
+per_pr:                        # one entry per input element, whether it came from refs or pr_refs
+  - pr_id:          <id; null for a refs element, which has none>
+    url:            <url; null for a refs element>
+    ref:            <"<branch_to>...<branch_from>" for a refs element; null for a pr_refs one>
+    resolved_via:   local_ref | pr_ref | branch_search | merge_commit | key_commits | gh_cli | unresolved
     base:           <sha | null>
     head:           <sha | null>
     files_changed:  <count>
@@ -73,11 +85,12 @@ per_pr:
     summary: |
       <prose; 3–8 sentences>
 
-unresolved_prs:
-  - pr_id:      <id>
-    url:        <url>
+unresolved_prs:                # unresolved input elements, from either list
+  - pr_id:      <id; null for a refs element>
+    url:        <url; null for a refs element>
+    ref:        <"<branch_to>...<branch_from>" for a refs element; null otherwise>
     candidates: [<"<sha> <first line of commit message>", ...>]   # from Strategy 4 if any; else []
-    reason:     <e.g. "no PR ref; branch not found; multiple merge candidates">
+    reason:     <e.g. "no PR ref; branch not found; multiple merge candidates; neither branch nor sha resolves">
 
 aggregate_summary: |
   <1–2 paragraphs: what this repo contributed to the feature>
@@ -93,5 +106,5 @@ aggregate_summary: |
 | `REPO_MISSING`      | `repo_path` does not exist or is not a git repo.                              |
 | `DIRTY_TREE`        | Working tree is dirty and refresh was requested, on a **writable** mount; orchestrator must escalate. A read-only mount never returns this. |
 | `REFRESH_BLOCKED`   | `git fetch` or `git pull` genuinely failed (auth, network, non-fast-forward); orchestrator escalates. A read-only mount is NOT a cause — resolution proceeds at `prep.scanned_ref` with `prep.read_only: true`. |
-| `NO_PRS_RESOLVED`   | None of the provided PRs could be resolved; `unresolved_prs` lists all of them.|
-| `PARTIAL`           | Some PRs resolved, some unresolved; both `per_pr` and `unresolved_prs` populated. |
+| `NO_PRS_RESOLVED`   | None of the provided elements — `refs` or `pr_refs` — could be resolved; `unresolved_prs` lists all of them.|
+| `PARTIAL`           | Some elements resolved, some unresolved; both `per_pr` and `unresolved_prs` populated. |

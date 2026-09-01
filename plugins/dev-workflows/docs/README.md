@@ -5,7 +5,7 @@
 | install this and set it up | [Getting started](getting-started.md) |
 | understand the whole pipeline first | [Workflow overview](workflow.md) |
 | know what my role is responsible for | [Roles and phases](roles-and-phases.md) |
-| see all six commands of the BRD-to-PRD route as one diagram, plus the three the BRD route edges it hands over on, with a parameter table | [BRD workflow](brd-workflow.md) |
+| see all six commands of the BRD-to-PRD route as one diagram, plus the three edges it hands over on, with a parameter table | [BRD workflow](brd-workflow.md) |
 | turn a customer BRD into a grounded inventory with every requirement allocated | [`/brd-intake`](commands/brd-intake.md), [`/brd-ground`](commands/brd-ground.md), [`/brd-split`](commands/brd-split.md) |
 | decide an allocated BRD's open questions without asking the wrong party | [`/brd-interview`](commands/brd-interview.md) |
 | package a decided BRD for a customer whose reviewer has nothing installed | [`/brd-package`](commands/brd-package.md) |

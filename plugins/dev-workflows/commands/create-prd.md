@@ -1,6 +1,6 @@
 ---
 name: create-prd
-description: PRD-creation workflow (PM phase, sub-project 2 of the PRD-creation flow). Turns a refined idea.md + a user-supplied address into a high-quality Product Requirements Document document (spine + adapt-in profiles --lean|--hybrid|--full), authored via a relentless grill against references/prd-format.md, gated by the Opus prd-reviewer, written to $SPECS_PATH/specifications/<KEY>-<slug>/. Product-level (no code scan). the BRD route seeds the run from a reconciled BRD instead of an idea: it reads that BRD folder's product-altitude prd-seed.md and decisions.md, defaults the profile to --full, refuses a BRD- container outright, before any ledger row is read, because a BRD is never the folder a PRD is authored in, and on the PRD- slice folder a split produces refuses one whose coverage-ledger rows are not all allocated and one whose ledger holds no covered-here row (the rows read are that slice's own ledger rows, narrowed by its brd-link.md claims:), freezes every [VD#n]/[CD#n] against the grill, and writes brd_key, brd_parent (always present on this route, since the route now resolves a slice) and depends_on into the PRD frontmatter. Offers /release-notes and /create-ard as next steps.
+description: PRD-creation workflow (PM phase, sub-project 2 of the PRD-creation flow). Turns a refined idea.md + a user-supplied address into a high-quality Product Requirements Document document (spine + adapt-in profiles --lean|--hybrid|--full), authored via a relentless grill against references/prd-format.md, gated by the Opus prd-reviewer, written as prd.md into $SPECS_PATH/specifications/PRD-<KEY>-<slug>/. Product-level (no code scan). the BRD route seeds the run from a reconciled BRD instead of an idea: it reads that BRD folder's product-altitude prd-seed.md and decisions.md, defaults the profile to --full, refuses a BRD- container outright, before any ledger row is read, because a BRD is never the folder a PRD is authored in, and on the PRD- slice folder a split produces refuses one whose coverage-ledger rows are not all allocated and one whose ledger holds no covered-here row (the rows read are that slice's own ledger rows, narrowed by its brd-link.md claims:), freezes every [VD#n]/[CD#n] against the grill, and writes brd_key, brd_parent (always present on this route, since the route now resolves a slice) and depends_on into the PRD frontmatter. Offers /release-notes and /create-ard as next steps.
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 
@@ -18,7 +18,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
 
 ## Phase 0 — Resolve inputs
 
-1. **The address (mandatory).** Parse the first non-flag token and validate it with `key-valid`. If absent or malformed, **stop gracefully**: `CREATE_PRD_NEEDS_KEY: /create-prd needs a key — create an address first to get the ID, then re-run '/dev-workflows:create-prd <KEY> @<idea.md>'.` (Format only — zero external API, so existence is not verified.)
+1. **The address (mandatory).** Parse the first non-flag token and validate it with `key-valid` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). If absent or malformed, **stop gracefully** with the one `CREATE_PRD_NEEDS_KEY` text below — there is one stop for this code, not two. (Shape only, and never checked against anything: the key is the operator's own and names a folder in `$SPECS_PATH`; nothing mints it and nothing verifies it.)
 
    **The BRD route is detected, not declared.** A folder carrying `brd-link.md` was produced by
    `/brd-split` and holds the seeds this command reads; the operator restates nothing on the command
@@ -58,23 +58,22 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    honoured, on rung 2's terms only (read where it sits, never relocated, never gated, reported once
    as out-of-contract) and as **additional grounding**, never as the seed. Without the BRD route the
    ladder runs exactly as it always has:
-   1. **in-contract** — `specifications/<KEY>-<slug>/idea.md`, resolved from `<KEY>`. Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against it, mapping its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4. Otherwise (`stopped: false`): on `pass`/`pass_amending`, use it — **do not relocate**, `/idea` already did; on `absent`, fall through to rung 2 — likewise on `unmanaged`: this ladder runs before step 4 validates `$SPECS_PATH`, so `unmanaged` (the §3.1 gate could not run) is reachable here, and it behaves as `absent` because there is nothing to verify; step 4 still stops immediately afterward on an unset `$SPECS_PATH`, so nothing is lost by not stopping here;
+   1. **in-contract** — `idea.md` in the folder `<KEY>` resolves to (`PRD-<KEY>-<slug>/` on a current tree; §5's unprefixed form on a legacy one). Execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against it, mapping its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4. Otherwise (`stopped: false`): on `pass`/`pass_amending`, use it — **do not relocate**, `/idea` already did; on `absent`, fall through to rung 2 — likewise on `unmanaged`: this ladder runs before step 4 validates `$SPECS_PATH`, so `unmanaged` (the §3.1 gate could not run) is reachable here, and it behaves as `absent` because there is nothing to verify; step 4 still stops immediately afterward on an unset `$SPECS_PATH`, so nothing is lost by not stopping here;
    2. **out-of-contract `@path`** — explicit `@path` argument; read the idea where it sits, **never move it**, and do not gate it. Report once: *"out-of-contract: reading `<path>` in place; it will not be relocated or gated."*;
    3. **same-session** — if `/idea` ran earlier in this session, use its recorded output path (confirm with the user) — out-of-contract, as rung 2;
    4. *(retired — the discover rung searched a personal store for a stray `idea.md`. `/idea` writes into the resolved folder now, so rung 1 finds it.)* — out-of-contract, as rung 2;
    5. prompt for a path, or — last resort — proceed with **no idea** and grill the PRD from scratch. **`/idea` is not a prerequisite for `/create-prd`** — an `absent` in-contract idea must reach this rung, never a stop.
 4. **`$SPECS_PATH` (required).** Already established in step 2b, which had to run before step 3's gate; nothing re-checks it here.
-5. **Feature folder. On the BRD route this is the resolved BRD folder** — which, once step 5a's
-   container refusal has run, is always the `PRD-` slice folder `/brd-split` carved — and it is never
-   created here: resolve it with `resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3),
-   which already searches both levels, or read an explicit BRD-directory path when one was given. The
+5. **Feature folder. On the BRD route this is the resolved `PRD-` slice folder** — the one
+   `/brd-split` carved, which is what step 5a's container refusal leaves standing — and it is never
+   created here. There is no second resolution for that route and no `<BRD-dir>` argument to read:
+   the single positional address was resolved once with `resolve-address`
+   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). The
    PRD this run authors is written **into that folder** as `prd.md`, beside the BRD
    artifacts it was derived from. `absent` is a graceful stop, not a folder to
-   create — and it names **both** ways a BRD folder comes into being rather than picking one,
-   because nothing on disk says whether this key names a BRD with a source document or a slice of
-   one and a key's segment count is a naming convention, never a depth declaration (§1). This is the
-   same stop `/brd-split` takes on the same resolution, worded the same way for the same reason:
-   `CREATE_PRD_BRD_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
+   create — and the remedy it names is the one that produces a folder this command accepts, since
+   step 5a refuses the `BRD-` container a `/dev-workflows:brd-intake` run would leave behind:
+   `CREATE_PRD_BRD_NOT_FOUND: no folder found for <ADDRESS> under $SPECS_PATH/specifications/ (every level addressing.md §3 bounds, plus §5's legacy fallback) — check the address. /create-prd authors into a PRD- folder, never the BRD- container above it: a slice is created by /dev-workflows:brd-split on its parent BRD, and a parent BRD is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file> and then grounded and split before any slice exists.`
    Without the BRD route, unchanged in substance: resolve the folder with `resolve-address <KEY>` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), which searches every level §3 bounds and carries §5's legacy fallback; no matching rule is written here, because a second copy of §5's is the drift §1 warns about. This is the resolution every mention of the feature folder in this command means, step 3's rung-1 `idea.md` included. On `status: absent` the folder is auto-created by the first write (Phase 5) as `PRD-<KEY>-<slug>/` per §2's convention, `<slug>` from the idea title (else a kebab of the PRD summary) — resolution honors a folder that already exists wherever it sits, and never proposes one.
 5a. **The container refusal — a `BRD-` folder is never a `/create-prd` target, on either route.**
    Take this the moment step 5 returns `status: found`, **before `coverage-ledger.md` is opened at
@@ -251,11 +250,13 @@ Use `choices` arrays; 2–4 options, and never author an "Other" option — the 
 1. **Confirm** the feature folder, the profile, and the resolved `idea.md` (or "none — grill from scratch"); on the BRD route, the resolved `PRD-` slice folder, the profile (`--full` unless a flag overrode it), and — instead of an idea — a `from BRD:` line naming `<SLICE-KEY>` and the `parent:` its `brd-link.md` records (always present — step 5a refuses the container), its `depends-on:` if any, how many of its gate-set rows (Phase 0 step 7) are `covered-here` out of how many, and whether `prd-seed.md` and `decisions.md` were found.
    - Show the `docs grounding:` line in the form `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build, staleness, or shadowing clause it carries (off switch: --no-docs).
 2. **Existing-PRD handling** (only if Phase 0 step 6 found a PRD for `<KEY>`):
-   - **the BRD route present** → "author this BRD's PRD" conflicts with "a PRD for this BRD already
-     exists here". `/update-prd` takes no the BRD route, so the redirect is honest about what it
-     drops: it refreshes the PRD already on disk, it does not re-read the seed.
+   - **the BRD route present** → "author this slice's PRD" conflicts with "a PRD for this slice
+     already exists here". **`/update-prd` has no BRD route** — it takes one address and refreshes
+     the `prd.md` it finds there — so the redirect is honest about what it drops: it refreshes the
+     PRD already on disk, it does not re-read the seed. It resolves the **same folder** this run did,
+     which is why one address serves both.
      ```
-     choices: ["Refresh the existing <BRD-KEY> PRD — /dev-workflows:update-prd <BRD-KEY> (the BRD seed is not re-read) (Recommended)", "Overwrite <BRD-KEY> as a fresh PRD authored from the BRD seed (archives the current one)", "Cancel"]
+     choices: ["Refresh the existing <SLICE-KEY> PRD — /dev-workflows:update-prd <SLICE-KEY> (the BRD seed is not re-read) (Recommended)", "Overwrite <SLICE-KEY> as a fresh PRD authored from the BRD seed (archives the current one)", "Cancel"]
      ```
    - **No `--from-prd`** → `/create-prd` is greenfield-only; **redirect**:
      ```
@@ -395,7 +396,7 @@ Carry both digests into Phase 3 with **grill-rank** consumption. When both are O
 
 Author `prd.md` live against `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md` for the selected profile, applying the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md`. Walk the **spine** in dependency order:
 
-1. Frontmatter — `relevant_for_release_notes` (defaults to `yes`; ask only to confirm a `no`); `sources` (propagated), `derived_from`, `seeded_from_prd` (only when `--from-prd` was used), and `key` — **written on every route**, set to the address this run resolved. On the `/idea` route that is the positional key the operator chose; on the BRD route it is the `<BRD-KEY>`, which is also the name of the folder this PRD is written into.
+1. Frontmatter — `relevant_for_release_notes` (defaults to `yes`; ask only to confirm a `no`); `sources` (propagated), `derived_from`, `seeded_from_prd` (only when `--from-prd` was used), and `key` — **written on every route**, set to the address this run resolved. On either route it is the `key:` the resolved folder asserts (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4) — the positional key the operator chose on the `/idea` route, and the slice's own key on the BRD route, which is also the name of the folder this PRD is written into.
 
    **Do NOT ask for `release_versions`, `change_type` or `release_notes_category` here.** They are
    authored fields now rather than tracker dropdowns returned by an import
@@ -553,17 +554,19 @@ On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/reference
 Offer these — clearly labeling the role handoff:
 
 ```
-choices: ["Draft the release note now — /dev-workflows:release-notes <ADDRESS> (PM) (Recommended)", "Hand to a Product Architect — /dev-workflows:create-ard <KEY> (PA, optional) <merge-clause>", "Hand to a Product Engineer — /dev-workflows:epics <ADDRESS> (PE)", "Stop here"]
+choices: ["Draft the release note now — /dev-workflows:release-notes <ADDRESS> (PM) (Recommended)", "Hand to a Product Architect — /dev-workflows:create-ard <ADDRESS> (PA, optional) <merge-clause>", "Hand to a Product Engineer — /dev-workflows:epics <ADDRESS> (PE)", "Stop here"]
 ```
 
-**Two keys appear in that array and they are not interchangeable.** `<KEY>` is the address this run
-was invoked with — it is the key the folder asserts, which is
-why `/dev-workflows:create-ard` can be handed it bare; on the BRD route it is a `<BRD-KEY>` naming a
-`$SPECS_PATH` folder, and the PA option takes the BRD route with it (see the PA paragraph below).
-There is one key now, and every option below takes it — the address this run was invoked with, which names the folder this run wrote into.
+**One address appears in that array, and every option takes the same one** — `<ADDRESS>`, this run's
+own resolved address, which is the `key:` the folder asserts and names the folder this run wrote
+into. There is no second key to keep straight and no flag to carry: `/dev-workflows:create-ard` and
+`/dev-workflows:epics` each resolve that folder through the same entry point, and on the BRD route
+the address is the `PRD-` slice's own key, which is what `/brd-split` carved and what step 5a's
+refusal leaves standing. (This paragraph once distinguished `<KEY>` from a second positional key and
+carried `--from-brd` into the PA option; D4 retired the pair and D18 retired the flag.)
 
 - **`/dev-workflows:release-notes <ADDRESS>`** (PM) — draft the customer-facing release note now (the cost model's `pm`/`prd-creation` inferred case: no spec/design yet).
-- **`/dev-workflows:create-ard <KEY>`** (PA, **optional**) — hand to a Product Architect to author the grounded architecture document. **On the `/idea` route** (on the BRD route, see the PA paragraph below) it gates this PRD on the specs repo's default branch (its own Phase 0), so it stops where this PRD reached a branch and falls back to the resolved folder — reported, never silently — where it reached none. `<merge-clause>` is the placeholder `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` owns, resolved from this run's own `Phase handoff:` outcome line (§4.1) and never written as the unconditional "once the pull request above is merged": a declined handoff, a failed push and a nothing-to-commit run each leave a different wait, and two of them open no pull request to wait on. It is a placeholder, not an instruction to reword an option, so the array is still presented verbatim per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
+- **`/dev-workflows:create-ard <ADDRESS>`** (PA, **optional**) — hand to a Product Architect to author the grounded architecture document. **On the `/idea` route** (on the BRD route, see the PA paragraph below) it gates this PRD on the specs repo's default branch (its own Phase 0), so it stops where this PRD reached a branch and falls back to the resolved folder — reported, never silently — where it reached none. `<merge-clause>` is the placeholder `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` owns, resolved from this run's own `Phase handoff:` outcome line (§4.1) and never written as the unconditional "once the pull request above is merged": a declined handoff, a failed push and a nothing-to-commit run each leave a different wait, and two of them open no pull request to wait on. It is a placeholder, not an instruction to reword an option, so the array is still presented verbatim per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
 - **`/dev-workflows:epics <ADDRESS>`** (PE) — hand to a Product Engineer to split the PRD into Epics (or author a PRD-level spec → `/dev-workflows:specify <ADDRESS>`, which resolves the same folder through the same entry point).
 
 The other two options carry no clause, and that is checked, not assumed: `/dev-workflows:release-notes` runs no `require-on-main` at all, and `/dev-workflows:epics` gates only `<PRD-dir>/specification.md` — a file this run does not write.
@@ -598,7 +601,7 @@ Guidance only — nothing is auto-run. See `${CLAUDE_PLUGIN_ROOT}/references/ses
 
 Terminal phase — runs after Phase 6, NEVER interrupts an earlier phase.
 
-**Capture-at-block invariant.** If an EARLIER phase **halts on a plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked), `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating. NEVER `emit-block` for an environment / user halt (missing key, unset `$SPECS_PATH`, cancellation) or a work-quality review BLOCK. **The two the BRD route refusals are of that second class, not the first**: `CREATE_PRD_BRD_UNALLOCATED` and `CREATE_PRD_BRD_NOT_ELIGIBLE` report the state of the operator's own BRD tree, not a capability this plugin lacks, so neither `emit-block`s. `CREATE_PRD_BRD_NOT_FOUND` and `CREATE_PRD_TWO_SEEDS` are the same.
+**Capture-at-block invariant.** If an EARLIER phase **halts on a plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked), `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating. NEVER `emit-block` for an environment / user halt (missing key, unset `$SPECS_PATH`, cancellation) or a work-quality review BLOCK. **The three BRD-route refusals are of that second class, not the first**: `CREATE_PRD_BRD_NOT_SLICED` (structural, step 5a), `CREATE_PRD_BRD_UNALLOCATED` and `CREATE_PRD_BRD_NOT_ELIGIBLE` (slice-only, step 7) each report the state of the operator's own BRD tree, not a capability this plugin lacks, so none of them `emit-block`s. `CREATE_PRD_NEEDS_KEY`, `CREATE_PRD_BRD_NOT_FOUND` and `CREATE_PRD_TWO_SEEDS` are the same.
 
 **Session-hygiene invariant.** End Phase 6 with a `### Context hygiene` block per
 `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the

@@ -25,9 +25,15 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
    `kind: brd`, so narrowing the resolution by kind would refuse on one route the very folder it
    resolves on the other (`addressing.md` §3, `resolve-key` step 1). The kind gate is step 1b's, and
    it is taken on what the resolved folder **holds**.
-   `status: found` → carry its `path`, `kind` and `key` forward; `absent` → the
-   folder does not exist and there is nothing to partition; `ambiguous` → stop,
-   naming every match and `@<path>` as the way through.
+   `status: found` → carry its `path`, `kind` and `key` forward; `ambiguous` → stop,
+   naming every match and `@<path>` as the way through. **`absent` is a graceful stop, not a folder
+   to create** — `/epics` partitions a PRD folder that exists and creates no PRD folder of its own:
+   ```
+   EPICS_NOT_FOUND: no folder found for <ADDRESS> under $SPECS_PATH/specifications/ (every level addressing.md §3 bounds, plus §5's legacy fallback) — check the address. /epics partitions an existing PRD folder and creates none. A PRD folder is created by /dev-workflows:idea <KEY> or /dev-workflows:create-prd <KEY> on the idea route, and by /dev-workflows:brd-split on its parent BRD on the BRD route; an EPIC- folder is created by this command and by no other, so an Epic address that resolves to nothing was never drafted here.
+   ```
+   Every command that stop names creates the folder it claims to, and none of them is a command this
+   one would then refuse: `/idea` and `/create-prd` each write `PRD-<KEY>-<slug>/` on their first
+   write, and `/brd-split` carves the `PRD-` slice — all three `PRD-` folders that pass step 1a.
 
    `/epics` is **address-required**: with no positional address, stop with
    `EPICS_NEEDS_KEY: /epics needs a PRD or Epic address — a key, or an @<path> to its folder.` —
@@ -335,17 +341,21 @@ Identify the Epics that already exist — the `EPIC-` folders directly under the
 **What refine means now, because it changed.** Refine used to fill in *empty Epics somebody else had created in a tracker* — shells that existed so that linking one to a PRD would surface the PRD on that team's dashboard. That was an artefact of one organisation's tooling and has no analogue here: nothing creates an empty Epic. **Refine now means iterating on an Epic that exists** — re-grounding it, sharpening it after the specification moved, or splitting it. Do not read the phases below as though they were still filling in a shell.
 
 **Refinement target (`focus_key`).** `/epics` always reads and analyses the whole PRD
-(the partition and non-duplication logic are inherently PRD-holistic). When `focus_key`
-is set (Phase 0 step 1b — the address resolved to an `EPIC-` folder and `prd_dir` is its parent),
-validate it is among the linked Epics; if it is not,
-surface `EPICS_FOCUS_NOT_FOUND: <focus_key> is not a linked Epic of <KEY>.` and
-offer `choices: ["Proceed PRD-level (draft the full partition)", "Re-enter the Epic key", "Cancel"]`.
-When present, treat `focus_key` as the **single refinement target**: Phase 6 re-drafts
-only that Epic's definition, and Phase 7 reviews only that file. The non-duplication
-set (`existing_epics`) is the *other* linked Epics — exclude the focus Epic so Phase 6
-re-emits it rather than skipping it as a duplicate. When `focus_key` is null, behaviour
+(the partition and non-duplication logic are inherently PRD-holistic). `focus_key` is **derived, not
+typed** (Phase 0 step 1b — the address resolved to an `EPIC-` folder and `prd_dir` is its parent), so
+**there is nothing left to validate here and no stop to raise**: the focus Epic is by construction an
+`EPIC-` folder directly under `prd_dir`, which is exactly the set this phase enumerates. The old
+`EPICS_FOCUS_NOT_FOUND` check and its *"Re-enter the Epic key"* choice belonged to the two-key
+grammar, where the second key arrived independently of the first and could disagree with it; D4
+removed the second key, and with it the disagreement. A focus Epic that the enumeration cannot see
+would mean the resolved folder is not under the folder resolution said it was — a tree defect, not
+an operator error, and `addressing.md` §3's ambiguity stop is where that is reported.
+Treat `focus_key` as the **single refinement target**: Phase 6 re-drafts
+only that Epic's `epic.md`, and Phase 7 reviews only that file. The non-duplication
+set (`existing_epics`) is the *other* `EPIC-` folders under `prd_dir` — exclude the focus Epic so
+Phase 6 re-emits it rather than skipping it as a duplicate. When `focus_key` is null, behaviour
 is unchanged (draft the full partition of new Epics).
-When `focus_key` is set, `mode = refine` and `refinement_targets = [the focus Epic]` — Phase 6 iterates on its current imported content (see `epic-writer` refinement mode) rather than regenerating from the PRD alone.
+When `focus_key` is set, `mode = refine` and `refinement_targets = [the focus Epic]` — Phase 6 iterates on that Epic's current `epic.md` (see `epic-writer` refinement mode) rather than regenerating from the PRD alone.
 
 **Refinement candidates.** From those same `EPIC-` folders, read each `epic.md`'s `refinement_candidate`, `team`, and `scope_hint` (emitted by the folder read at `prd-plus-epics`). Collect `refinement_candidates` = every linked Epic with `refinement_candidate: true`. These are empty/almost-empty team-Epic shells the PE pre-created to encode team boundaries — refinement *targets to fill in*, not non-duplication constraints. This set drives the Phase 3.5 gate.
 
@@ -449,7 +459,7 @@ Handle per-repo status after the batch returns:
 
 The drafting is delegated to the **`epic-writer`** subagent (pinned to the §2.1 Sonnet detection chain for MODERATE; §2 Opus only if the run is SIGNIFICANT/HIGH-RISK — see `classification.md` §9.2). The orchestrator prepares a handoff and dispatches; it does not write Epics itself, and **nothing commits in this phase** (still true — `/epics` never branches, and the Epic drafts it writes are never committed; git hygiene of the write target is the user's responsibility. The run commits only inside `$SPECS_PATH`, and only its bounded session-artifact paths, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
 
-1. **Write the handoff file.** Create a temp file (`mktemp` — never a repo, never the specs tree) containing the `epic-writer` input contract: `folder_read`, `code_scanner_outputs` (empty if no scan), `scope` (Phase 2 in/out of scope), `existing_epics` (non-duplication), `prd_dir` (the resolved PRD folder), `vi_goal`, `key`, `requirements` + `requirements_source` (from Phase 3), `applicable_ard` (the Phase 2.5 invariants + guidance_summary, or omit when status was none), `existing_epic_themes` (themes of the already-linked Epics), `mode` (`generate` | `refine` | `both` — from Phase 3.5; `generate` when 3.5 skipped), `refinement_targets` (list of `{key, team, scope_hint, current_body_path}`, where `current_body_path = <prd_dir>/<EPIC-KEY>/<EPIC-KEY>.md`; empty in `generate` mode), and `docs_grounding` (the Phase 3.6 digest, or omit when OFF/EMPTY). Record its absolute path. When `focus_key` is set (the Phase 3 refinement target), set `scope` in-scope to just the focus Epic and `existing_epics` to the *other* linked Epics, so `epic-writer` re-drafts the single focus Epic's `epic.md`; the PRD folder is unchanged.
+1. **Write the handoff file.** Create a temp file (`mktemp` — never a repo, never the specs tree) containing the `epic-writer` input contract: `folder_read`, `code_scanner_outputs` (empty if no scan), `scope` (Phase 2 in/out of scope), `existing_epics` (non-duplication), `prd_dir` (the resolved PRD folder), `vi_goal`, `key`, `requirements` + `requirements_source` (from Phase 3), `applicable_ard` (the Phase 2.5 invariants + guidance_summary, or omit when status was none), `existing_epic_themes` (themes of the already-linked Epics), `mode` (`generate` | `refine` | `both` — from Phase 3.5; `generate` when 3.5 skipped), `refinement_targets` (list of `{key, team, scope_hint, current_body_path}`, where `current_body_path = <prd_dir>/EPIC-<EPIC-KEY>-<eslug>/epic.md` — the keyed folder, keyless filename shape `epic-writer` writes and `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §2/§4 define; empty in `generate` mode), and `docs_grounding` (the Phase 3.6 digest, or omit when OFF/EMPTY). Record its absolute path. When `focus_key` is set (the Phase 3 refinement target), set `scope` in-scope to just the focus Epic and `existing_epics` to the *other* linked Epics, so `epic-writer` re-drafts the single focus Epic's `epic.md`; the PRD folder is unchanged.
 
 2. **Dispatch the writer:**
 

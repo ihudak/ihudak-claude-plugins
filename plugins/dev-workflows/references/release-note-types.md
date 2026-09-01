@@ -180,7 +180,7 @@ does not already state.
    enum label**. This was the fallback rung and is now the ordinary one: nothing supplies the field
    from outside, so most runs reach it.
 
-**the category label label — one rung.** It is your organization's product/solution taxonomy (e.g. `Platform`,
+**The category label — one rung.** It is your organization's product/solution taxonomy (e.g. `Platform`,
 `Application Observability | Distributed Tracing`, `Infrastructure Observability | Kubernetes`) and it
 is exactly the PRD's `release_notes_category`:
 

@@ -39,7 +39,7 @@ Run this whenever you want the latest command, agent, hook, and reference conten
 
 ### `SPECS_PATH`
 
-The **shared, team-visible repository for the AI-authored documents** — the Product Requirements Document, the ARD, `specification.md`, and `design.md`, each under `specifications/<KEY>-<slug>/`. This is the reason a second store exists at all: it is the medium through which one role hands work to the next. A producing command lands its artifact on the specs repo's default branch, and the next command in the chain refuses to start expensive work until it finds that artifact there — not merely written to disk, and not merely committed to a branch of its own. See [Roles and phases](roles-and-phases.md) for what each seam hands over and what happens when an artifact is missing or stuck on an unmerged branch.
+The **shared, team-visible repository for the AI-authored documents** — the Product Requirements Document, the ARD, `specification.md`, and `design.md`, each under a kind-prefixed folder — `specifications/PRD-<KEY>-<slug>/`, with `EPIC-` folders below it. This is the reason a second store exists at all: it is the medium through which one role hands work to the next. A producing command lands its artifact on the specs repo's default branch, and the next command in the chain refuses to start expensive work until it finds that artifact there — not merely written to disk, and not merely committed to a branch of its own. See [Roles and phases](roles-and-phases.md) for what each seam hands over and what happens when an artifact is missing or stuck on an unmerged branch.
 
 ### `REPOS_PATH`
 

@@ -996,8 +996,8 @@ decisions is `/dev-workflows:brd-interview`, preparing the customer package is
 `/dev-workflows:brd-package`, and freezing the returned review is `/dev-workflows:brd-reconcile`;
 only the first of those three is the step *after this one*, so only it is offered here. Naming a
 child's grounding and this BRD's interview in one list is deliberate — they are different keys, and
-an operator who created children has both to do. the BRD route on `/create-prd`, `/create-ard` and
-`/specify` all **ship**, and none of the three is offered on either path — for the same reason
+an operator who created children has both to do. The BRD route on `/create-prd`, `/create-ard` and
+`/specify` all **ships**, and none of the three is offered on either path — for the same reason
 `/dev-workflows:brd-package` and `/dev-workflows:brd-reconcile` are not, that they sit further down
 the route than the step after this one. All three read an altitude seed and this BRD's decision
 register out of its folder, `/dev-workflows:brd-interview` is the command that writes that register,

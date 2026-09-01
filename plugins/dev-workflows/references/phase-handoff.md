@@ -227,8 +227,18 @@ Exactly one, prefixed `Phase handoff:`.
 | Push failed | `Phase handoff: committed <sha7> on <branch> — push FAILED (<reason>). The phase is NOT handed off.` |
 | Nothing to commit | `Phase handoff: no deliverable changes to commit on <branch>` |
 | Branch name substituted | append `; branch name <intended> was taken, used <actual>` |
-| Declined by the user | `Phase handoff: skipped at your request — <artifact> is written but not on <default>; the next phase will stop until it is.` |
+| Declined by the user | `Phase handoff: skipped at your request — <artifact> is written but not on <default>. <next-phase-clause>` |
 | Gate failed | `Phase handoff: NOT handed off — <reason>` |
+
+**`<next-phase-clause>` is resolved from §3.4's row for this artifact, and it is not always a stop.**
+Declining writes no branch and no commit, so the next phase's gate reads **row F** — which delegates.
+Where §3.4's row for that consumer says *stops*, the clause is
+`the next phase will stop until it is.` Where the row preserves a pre-existing absent behaviour — the
+`/create-prd` idea ladder, and the PRD read in `/create-ard` and `/specify` — the clause is
+`the next phase does not stop on that: it reports the artifact as un-landed and proceeds from the
+resolved folder.` Printing the stop clause on a seam that does not stop tells the operator to expect
+a refusal they will not meet, and the two sentences cost nothing to tell apart: the producer knows
+which artifact it just wrote.
 
 ### 4.2 The no-`gh` fallback text
 

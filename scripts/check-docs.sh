@@ -999,6 +999,19 @@ selftest() {
     "printf -- '\n\`\`\`text\n<name>/<JIRA-ISSUE-KEY>-<slug>\n\`\`\`\n' >> $(cmd_file $PLUGIN_REL alpha)"
   expect_pass_after "a vendor token in a MARKED fenced block is accepted" \
     "printf -- '\n\`\`\`text <!-- vendor-token-ok: fixture quote -->\n<name>/<JIRA-ISSUE-KEY>-<slug>\n\`\`\`\n' >> $(cmd_file $PLUGIN_REL alpha)"
+  # The scan covers every TEXT file under the plugin, not just *.md -- a tracker name
+  # leaks as readily through a hook script or a config file as through prose. Each red
+  # case is PAIRED with a green one in the same file: an implementation that widened the
+  # file set but dropped the marker logic outside markdown would pass every red case and
+  # fail every green one, so only the pair discriminates.
+  expect_fail "an unmarked vendor token in a HOOK SCRIPT is rejected" 13 \
+    "printf -- '\n# The hook reads the Jira ticket key from the branch.\n' >> $PLUGIN_REL/hooks/notify-fixture.sh"
+  expect_pass_after "a marked vendor token in a hook script is accepted" \
+    "printf -- '\n# Matching a foreign branch convention: JIRA-123  # vendor-token-ok: fixture quote\n' >> $PLUGIN_REL/hooks/notify-fixture.sh"
+  expect_fail "an unmarked vendor token in a CONFIG file is rejected" 13 \
+    "printf -- '\n# jira rates go here\n' >> $PLUGIN_REL/references/cost-prices.yaml"
+  expect_pass_after "a marked vendor token in a config file is accepted" \
+    "printf -- '\n# quoting a foreign key shape: JIRA-1  # vendor-token-ok: fixture quote\n' >> $PLUGIN_REL/references/cost-prices.yaml"
 
   # The cost subsystem (check 8, and check 9's cost-emitting-commands sentence) does not
   # exist in every edition -- check_cost_attribution and that half of check_prose_counts
@@ -1152,12 +1165,26 @@ PYEOF
 #     cites the shipped defects it was created to remove and cannot quote them otherwise.
 # Each has to write the vendor's name in order to match, illustrate, or attribute it.
 #
-# Scope is *.md, and that is narrower than the reasoning supports. A tracker name
-# leaks as readily through plugin.json's user-visible `description` or a hook
-# script comment as through prose -- which is exactly the argument check 14 makes
-# for reading every text file. The non-.md tree is clean today, so this is a gap in
-# coverage rather than a live violation; widening it means deciding what a fixture
-# or a vendored reference may legitimately say, which check 14 already had to.
+# SCOPE IS EVERY TEXT FILE UNDER THE PLUGIN, not just *.md, and the widening was
+# measured before it was made. A tracker name leaks as readily through plugin.json's
+# user-visible `description` -- the text every installing user reads -- or a hook
+# script comment as through prose, which is exactly the argument check 14 makes for
+# reading every text file. Scoped to *.md, this check could not see either.
+#
+# MEASURED: 17 non-.md text files under the plugin (plugin.json, hooks.json, four
+# hook scripts, three Python scripts, a statusline script, LICENSE, and the yaml/txt
+# under references/), and the widened scan fires on NONE of them. That is the
+# evidence the widening rests on -- this repo rejects a widening that fires only on
+# correct content (check 11's was measured twice and rejected), and accepts this one
+# because it fires on nothing while closing a surface the reasoning always covered.
+# Binaries cannot reach awk: `grep -rIl ''` enumerates text files only.
+#
+# The vendored third-party references under references/api-guidelines/ and
+# references/fix-vuln/ are IN scope and always were -- they are markdown. They pass
+# because the token set is tracker names only, which a REST-API style guide and an
+# NVD reference have no reason to contain. A vendored file that did quote one would
+# take the same `vendor-token-ok:` marker as any other quoted foreign text; nothing
+# about being vendored exempts it.
 #
 # What this deliberately does NOT catch, stated so nobody mistakes green for safe: it matches
 # NAMES, so a tracker-shaped CONCEPT wearing a neutral name -- a `team:` field an Epic no
@@ -1168,7 +1195,10 @@ check_vendor_tokens() {
   local root="$1" p="$1/$PLUGIN_REL" files hits h
   [ -n "$VENDOR_TOKENS" ] \
     || { fail 13 "VENDOR_TOKENS is empty -- this check would examine nothing"; return; }
-  files=$(find "$p" -name '*.md' ! -name 'CHANGELOG.md' 2>/dev/null | sort)
+  # EVERY text file under the plugin, not just *.md. `grep -rIl ''` lists text files and
+  # skips binaries by -I, so a compiled artifact or an image cannot reach awk. CHANGELOG.md
+  # stays excluded, as history.
+  files=$(grep -rIl '' "$p" 2>/dev/null | grep -v '/CHANGELOG\.md$' | sort)
   [ -f "$root/CLAUDE.md" ] && files=$(printf '%s\n%s\n' "$files" "$root/CLAUDE.md")
   [ -n "$files" ] \
     || { fail 13 "no markdown under $PLUGIN_REL to scan -- this check would examine nothing"; return; }

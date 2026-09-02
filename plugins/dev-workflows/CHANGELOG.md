@@ -4,6 +4,36 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.23.0] — 2026-09-02
+
+### Changed — vendor neutrality now covers every text file, not just markdown
+
+`check-docs.sh` check 13 scanned `*.md` only, so the two surfaces a tracker name most easily reaches
+were outside it: **`plugin.json`'s `description`** — the text every installing user reads, and which
+this repo already documents as a field that drifts — and the **shipped hook and helper scripts**. Its
+sibling check 14 reads every text file, and gives check 13's own reasoning for doing so; the two
+disagreed about the same argument.
+
+**Measured before widening, because this repo rejects a widening that fires only on correct content.**
+Check 11's was measured twice and rejected on exactly that ground. Here the widened scan was run first:
+**17 non-markdown text files under the plugin** — `plugin.json`, `hooks.json`, four hook scripts, three
+Python scripts, a statusline script, `LICENSE`, and the yaml/txt under `references/` — and it fires on
+**none** of them. The widening closes a surface the reasoning always covered while changing no verdict
+on today's tree, which is the opposite of check 11's result and why this one was taken.
+
+Enumeration is `grep -rIl ''`, so binaries never reach the scanner; `CHANGELOG.md` stays excluded as
+history. The vendored third-party references under `references/api-guidelines/` and
+`references/fix-vuln/` were always in scope, being markdown, and pass because the token set is tracker
+names only — which a REST-API style guide and an NVD reference have no reason to carry. Nothing about
+being vendored exempts a file: one that quoted a tracker would take the same `vendor-token-ok:` marker
+as any other quoted foreign text.
+
+**Four new selftest cases, in two red/green pairs** — a hook script and a config file, each with an
+unmarked violation that must fire and a marked one that must not. The pairing is the point: an
+implementation that widened the file set but dropped the marker logic outside markdown passes every red
+case and fails every green one, so only the pair discriminates. Verified in both directions — with the
+old `*.md`-only file set restored, both new red cases pass silently, which is precisely the gap.
+
 ## [3.22.0] — 2026-09-02
 
 ### Fixed — review round 4 (continued): two gate assertions that could not fail

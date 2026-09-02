@@ -17,7 +17,11 @@ set -uo pipefail
 # THE ONLY PART OF THIS FILE THAT DIFFERS BETWEEN EDITIONS. Never copy it across.
 # Everything below is byte-identical in ihudak-claude-plugins, mgd-claude-plugins
 # and ihudak-copilot-plugins, so a fix to the gate ports by plain `cp` of the body.
-PLUGIN_REL="plugins/dev-workflows"   # copilot: dev-workflows
+# Space-separated; the dispatch loop sets PLUGIN_REL from it per iteration, so every
+# check function below is unchanged and still reads a single PLUGIN_REL. A one-element
+# list behaves exactly as the old scalar did, which is what keeps this body portable to
+# editions that ship one plugin.
+PLUGIN_RELS="${PLUGIN_RELS:-plugins/dev-workflows plugins/guideline-reviewers}"   # copilot: dev-workflows
 CMD_DIR="commands"                   # copilot: skills
 CMD_SUFFIX=".md"                     # copilot: /SKILL.md
 CMD_EXCLUDE=""                       # copilot: _shared
@@ -33,6 +37,12 @@ CLI_REQUIRED="marketplace add|marketplace update"   # copilot: marketplace add|u
                                      # of CLI_VERBS; differs per edition because Copilot
                                      # updates with `plugin update --all`, not a marketplace verb.
 HAS_COST=1                           # copilot: 0 -- no cost subsystem exists there
+
+# Which plugins ship the subsystems checks 8 and 11 examine. Applicability is declared,
+# never inferred from a missing file: absence-implies-skip would let a genuine regression
+# in a plugin that DOES ship them pass silently.
+COST_PLUGIN_RELS="${COST_PLUGIN_RELS:-plugins/dev-workflows}"        # copilot: ""
+HANDOFF_PLUGIN_RELS="${HANDOFF_PLUGIN_RELS:-plugins/dev-workflows}"  # copilot: ""
 
 # RUNTIME_VARS is a SILENCER: every name in it kills both directions of check 5 (env-var doc
 # agreement) for that variable, permanently -- no mutation of the fixture tree can reveal a
@@ -468,6 +478,21 @@ check_cost_attribution() {
   done < <(cmd_names "$p")
 }
 
+# COST_PLUGIN_RELS is a declared list, not an inferred one -- but a declaration only guards
+# the LOUD direction (a plugin wrongly listed runs check 8 against a subsystem it has
+# nothing to attribute). The QUIET direction was unguarded: a plugin that DOES ship
+# $REF_DIR/cost-emission.md but is missing from the list has check 8 silently skipped for
+# it -- deleting every row from the section-7 table left the whole tree green. This asserts
+# the other half: presence of the file implies membership in the list.
+check_cost_applicability() {
+  local root="$1" p="$1/$PLUGIN_REL"
+  [ -f "$p/$REF_DIR/cost-emission.md" ] || return
+  case " $COST_PLUGIN_RELS " in
+    *" $PLUGIN_REL "*) : ;;
+    *) fail 8 "$PLUGIN_REL ships $REF_DIR/cost-emission.md but is not a member of COST_PLUGIN_RELS -- check 8 never runs for it" ;;
+  esac
+}
+
 # ------------------------------------------------------------------- check 9
 # Prose counts. check 4 gates the INVENTORIES in both directions, but not the sentences
 # that state their size. A 22nd command with a page and an index link passes check 4 while
@@ -757,6 +782,19 @@ check_merge_clause() {
   [ "$req_n" -gt 0 ] || fail 11 "no offer in the '$glob' family names a command whose require-on-main target that offer's own run writes -- either the route stopped handing off to itself or the EXTRACTOR drifted; fix the parser, never the offers"
 }
 
+# HANDOFF_PLUGIN_RELS is a declared list, not an inferred one -- same asymmetry as
+# COST_PLUGIN_RELS above. A plugin that DOES ship $REF_DIR/next-phase-offer.md but is
+# missing from the list has check 11 silently skipped for it. This asserts the other
+# half: presence of the file implies membership in the list.
+check_handoff_applicability() {
+  local root="$1" p="$1/$PLUGIN_REL"
+  [ -f "$p/$REF_DIR/next-phase-offer.md" ] || return
+  case " $HANDOFF_PLUGIN_RELS " in
+    *" $PLUGIN_REL "*) : ;;
+    *) fail 11 "$PLUGIN_REL ships $REF_DIR/next-phase-offer.md but is not a member of HANDOFF_PLUGIN_RELS -- check 11 never runs for it" ;;
+  esac
+}
+
 # ------------------------------------------------------------------ selftest
 # One passing fixture tree; each check gets a mutation of a fresh copy. Asserting
 # the exit code alone would let a mutation that trips a DIFFERENT check register
@@ -765,6 +803,10 @@ selftest() {
   local here fixture tmp rc=0
   here=$(cd "$(dirname "$0")" && pwd)
   fixture="$here/fixtures/docs/pass"
+  # The fixture tree ships two plugins so the dispatch loop is exercised by more than
+  # one element. A one-element run cannot distinguish "the loop works" from "the loop
+  # runs once and the body ignores it".
+  export PLUGIN_RELS="plugins/dev-workflows plugins/fixture-two"
   [ -d "$fixture" ] || { echo "SELFTEST FAIL: fixture tree missing at $fixture" >&2; exit 2; }
 
   expect_pass() {
@@ -1031,6 +1073,26 @@ selftest() {
   else
     printf 'skip  5 cost cases (this edition has no cost subsystem)\n'
   fi
+
+  expect_fail "second plugin's command page is checked too" 4 \
+    'rm plugins/fixture-two/docs/commands/omega.md'
+  # A plain `[dangling](nowhere.md)` link fires check 1 (missing file), not check 2 --
+  # verified empirically while writing this case. A bare #anchor link is what actually
+  # exercises the ANCHOR half of check_links_and_anchors (check 2) against the second
+  # plugin's docs index, which is the coverage this case's name promises.
+  expect_fail "second plugin's docs index is checked too" 2 \
+    'printf "\n[dangling](#no-such-heading-here)\n" >> plugins/fixture-two/docs/README.md'
+
+  # check_cost_applicability / check_handoff_applicability guard the QUIET direction: a
+  # plugin that ships the capability file but was never added to the declaring list has
+  # its check silently skipped. plugins/fixture-two ships neither file and is a member of
+  # neither list, so simply CREATING the file there -- no config edit needed at runtime --
+  # is the mutation: undeclared-but-present is exactly the state the reviewer proved was
+  # invisible by deleting every row from the section-7 table.
+  expect_fail "a plugin shipping cost-emission.md undeclared in COST_PLUGIN_RELS is rejected" 8 \
+    "mkdir -p plugins/fixture-two/$REF_DIR && printf -- '# Cost emission (fixture)\n\n## 7. Attribution (phase / role)\n\n| Command | phase | role |\n|---------|-------|------|\n' > plugins/fixture-two/$REF_DIR/cost-emission.md"
+  expect_fail "a plugin shipping next-phase-offer.md undeclared in HANDOFF_PLUGIN_RELS is rejected" 11 \
+    "mkdir -p plugins/fixture-two/$REF_DIR && printf -- '# Next-phase offer (fixture)\n' > plugins/fixture-two/$REF_DIR/next-phase-offer.md"
 
   if [ "$rc" -eq 0 ]; then echo "SELFTEST PASS"; else echo "SELFTEST FAIL"; fi
   exit "$rc"
@@ -1299,6 +1361,11 @@ check_index_membership() {
 }
 
 # ---------------------------------------------------------------------- main
+# selftest() runs before the dispatch loop below ever assigns PLUGIN_REL per iteration,
+# and its fixture mutations reference the bare (singular) $PLUGIN_REL directly -- so it
+# needs a value now. The first list element is generic, not edition data: with today's
+# one-plugin list it is exactly the old scalar, which is the behaviour this preserves.
+PLUGIN_REL="${PLUGIN_RELS%% *}"
 [ "${1:-}" = "--selftest" ] && selftest
 
 ROOT="."
@@ -1308,26 +1375,33 @@ if [ "${1:-}" = "--root" ]; then
 fi
 [ -d "$ROOT" ] || { echo "Usage: $0 [--root <dir>] | --selftest" >&2; exit 2; }
 ROOT="$(cd "$ROOT" && pwd)"
-[ -d "$ROOT/$PLUGIN_REL/docs" ] || { fail 4 "$PLUGIN_REL/docs does not exist"; echo "FAIL: $FAILURES problem(s)" >&2; exit 1; }
-
 [ "$HAVE_PY" = 1 ] || note "python3 not found; falling back to ASCII slugs -- anchors whose heading contains a non-ASCII letter cannot be verified here"
-check_links_and_anchors "$ROOT"
-check_orphans           "$ROOT"
-check_inventory         "$ROOT"
-check_env_vars          "$ROOT"
-check_table_cells       "$ROOT"
-check_install_block     "$ROOT"
-check_cost_attribution  "$ROOT"
-check_prose_counts      "$ROOT"
-check_identity_quarantine "$ROOT"
-check_merge_clause      "$ROOT"
-check_choices_arity     "$ROOT"
-check_vendor_tokens     "$ROOT"
-check_foreign_identity  "$ROOT"
-check_index_membership  "$ROOT"
+
+for PLUGIN_REL in $PLUGIN_RELS; do
+  if [ ! -d "$ROOT/$PLUGIN_REL/docs" ]; then
+    fail 4 "$PLUGIN_REL/docs does not exist"
+    continue
+  fi
+  check_links_and_anchors   "$ROOT"
+  check_orphans             "$ROOT"
+  check_inventory           "$ROOT"
+  check_env_vars            "$ROOT"
+  check_table_cells         "$ROOT"
+  check_install_block       "$ROOT"
+  check_cost_applicability   "$ROOT"
+  case " $COST_PLUGIN_RELS "    in *" $PLUGIN_REL "*) check_cost_attribution "$ROOT" ;; esac
+  check_prose_counts        "$ROOT"
+  check_identity_quarantine "$ROOT"
+  check_handoff_applicability "$ROOT"
+  case " $HANDOFF_PLUGIN_RELS " in *" $PLUGIN_REL "*) check_merge_clause     "$ROOT" ;; esac
+  check_choices_arity       "$ROOT"
+  check_vendor_tokens       "$ROOT"
+  check_foreign_identity    "$ROOT"
+  check_index_membership    "$ROOT"
+done
 
 if [ "$FAILURES" -gt 0 ]; then
-  echo "FAIL: $FAILURES problem(s) under $PLUGIN_REL" >&2
+  echo "FAIL: $FAILURES problem(s) under $PLUGIN_RELS" >&2
   exit 1
 fi
-echo "PASS: docs are consistent with the plugin under $PLUGIN_REL"
+echo "PASS: docs are consistent with the plugin(s) under $PLUGIN_RELS"

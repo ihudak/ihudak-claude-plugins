@@ -9,8 +9,8 @@
   "plugins": [
     {
       "name": "dev-workflows",
-      "version": "3.24.3",
-      "description": "Twenty-eight slash commands for the product lifecycle — /idea → /create-prd → /create-ard → /specify → /design → /epics → /implement → /document → /release-notes → /ready — plus a six-command BRD-to-PRD route (/brd-intake → /brd-ground → /brd-split → /brd-interview → /brd-package → /brd-reconcile) that grounds a customer's requirements document, settles it with them, and seeds the PRD, ARD and specification. /frames indexes exported design frame sets so they can be read. Thirty-eight subagents, four hooks. Opus-backed gates review every artifact — plans, code, docs, Epics, specs, designs, ARDs, PRDs, readiness. One markdown tree is the system of record; no tracker is read. Each phase hands its artifact to the next on the specs repo's default branch: the producer opens a PR, the consumer waits for it to land. Optional read-only grounding on product docs and code.",
+      "version": "3.25.0",
+      "description": "Twenty-six slash commands for the product lifecycle — /idea → /create-prd → /create-ard → /specify → /design → /epics → /implement → /document → /release-notes → /ready — plus a six-command BRD-to-PRD route (/brd-intake → /brd-ground → /brd-split → /brd-interview → /brd-package → /brd-reconcile) that grounds a customer's requirements document, settles it with them, and seeds the PRD, ARD and specification. /frames indexes exported design frame sets so they can be read. Thirty-six subagents, four hooks. Opus-backed gates review every artifact — plans, code, docs, Epics, specs, designs, ARDs, PRDs, readiness. One markdown tree is the system of record; no tracker is read. Each phase hands its artifact to the next on the specs repo's default branch: the producer opens a PR, the consumer waits for it to land. Optional read-only grounding on product docs and code.",
       "author": {
         "name": "Ivan Gudak",
         "email": "ihudak@gmail.com"
@@ -54,6 +54,18 @@
       "category": "development",
       "source": "./plugins/acli",
       "homepage": "https://github.com/ihudak/ihudak-claude-plugins/tree/main/plugins/acli"
+    },
+    {
+      "name": "guideline-reviewers",
+      "version": "1.0.0",
+      "description": "Reviews an OpenAPI specification against bundled REST API and IAM permission-naming guidance, and reviews application code or UI against bundled public design-system and accessibility standards. Ships the guidance it reviews against — Google AIP, Zalando, Microsoft REST, OpenAPI 3.1 and ~20 RFCs for APIs; Apple HIG, Material Design 3, Microsoft Fluent 2, W3C WCAG 2.2, ARIA APG and NN/g for interfaces — plus a Spectral ruleset that runs against a spec directly. Standalone: it consumes no workflow artefact and produces none.",
+      "author": {
+        "name": "Ivan Gudak",
+        "email": "ihudak@gmail.com"
+      },
+      "category": "productivity",
+      "source": "./plugins/guideline-reviewers",
+      "homepage": "https://github.com/ihudak/ihudak-claude-plugins"
     }
   ]
 }

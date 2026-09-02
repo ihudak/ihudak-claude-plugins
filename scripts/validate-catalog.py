@@ -18,6 +18,14 @@ once:
      by hand; a release that bumps one and forgets the other ships a catalog
      pointing at the wrong version. Has shipped four times.
 
+  3. A plugin manifest with no catalog entry at all. Every check above is
+     forward-only: it starts from a ``marketplace.json`` entry and asks
+     whether the ``plugin.json`` it names exists. Nothing asked the reverse --
+     whether every ``plugin.json`` under the repository is named by some
+     catalog. A plugin built this way (a valid manifest, no row in any
+     ``marketplace.json``) passed every gate and shipped to nobody, because
+     Claude Code and Copilot CLI both install only what a catalog advertises.
+
 Note on what is deliberately NOT checked: the ``description`` in a catalog
 entry and in the matching ``plugin.json`` are not required to be identical.
 They are independently authored in practice -- Copilot's ``prose-style``
@@ -61,7 +69,15 @@ DESCRIPTION_MAX = 1024
 # as an outage.
 DESCRIPTION_WARN = 900
 
-SKIP_DIRS = {".git", "node_modules", ".superpowers", ".idea"}
+SKIP_DIRS = {
+    ".git", "node_modules", ".superpowers", ".idea",
+    # scripts/fixtures/docs/pass/ ships a synthetic plugin.json (fixture-two) that
+    # exists solely as check-docs.sh --selftest scaffolding -- it names no real,
+    # installable plugin and is deliberately absent from every marketplace.json.
+    # Without this exclusion the reverse "every manifest is advertised" assertion
+    # below fires on it, which would be reporting a defect that does not exist.
+    "fixtures",
+}
 
 
 def find_files(root: Path, name: str) -> list[Path]:
@@ -137,6 +153,11 @@ def validate_repo(root: Path) -> tuple[int, int]:
         print("  ERROR no marketplace.json found in this repository")
         errors += 1
 
+    # Every catalog entry's name, across every marketplace.json in the repository --
+    # a plugin advertised by ANY catalog counts. Populated below as entries are
+    # walked, then checked against `manifests` once every catalog has been read.
+    advertised: set[str] = set()
+
     for catalog_path in catalogs:
         data = load(catalog_path)
         if data is None:
@@ -152,6 +173,7 @@ def validate_repo(root: Path) -> tuple[int, int]:
         for index, entry in enumerate(entries):
             name = entry.get("name", f"<unnamed #{index}>")
             label = f"{rel} plugins[{index}] ({name})"
+            advertised.add(name)
 
             e, w = check_description(label, entry.get("description", ""))
             errors += e
@@ -178,6 +200,20 @@ def validate_repo(root: Path) -> tuple[int, int]:
                 )
                 errors += 1
 
+    # The reverse of the loop above: every manifest found on disk must be named by
+    # some catalog, not just every catalog entry must have a manifest. No
+    # suppression mechanism -- a plugin that is deliberately unadvertised is a
+    # decision to make when that plugin exists, not a standing escape hatch.
+    for name, (manifest_path, manifest_data) in manifests.items():
+        if name not in advertised:
+            manifest_rel = manifest_path.relative_to(root)
+            print(
+                f"  ERROR {manifest_rel}: plugin {manifest_data.get('name')!r} "
+                f"has a plugin.json but is not listed in any marketplace.json "
+                f"in this repository"
+            )
+            errors += 1
+
     if errors == 0 and warnings == 0:
         print("  OK")
     return errors, warnings
@@ -188,7 +224,7 @@ def _selftest() -> int:
     import tempfile
 
     def build(root: Path, *, version: str = "1.0.0", catalog_version: str | None = None,
-              description: str = "A fixture plugin.") -> None:
+              description: str = "A fixture plugin.", ghost_manifest: bool = False) -> None:
         plugin = root / "plugins" / "fixture" / ".claude-plugin"
         plugin.mkdir(parents=True)
         (plugin / "plugin.json").write_text(json.dumps(
@@ -201,6 +237,14 @@ def _selftest() -> int:
                          "version": catalog_version or version,
                          "description": description}],
         }), encoding="utf-8")
+        if ghost_manifest:
+            # A valid manifest with no catalog entry anywhere -- the state check 3
+            # (the reverse-advertisement assertion) exists to catch.
+            ghost = root / "plugins" / "ghost" / ".claude-plugin"
+            ghost.mkdir(parents=True)
+            (ghost / "plugin.json").write_text(json.dumps(
+                {"name": "ghost", "version": "1.0.0", "description": "An unadvertised fixture plugin."}),
+                encoding="utf-8")
 
     rc = 0
 
@@ -234,6 +278,8 @@ def _selftest() -> int:
          description="x" * (DESCRIPTION_MAX + 1))
     case("a description past the warning threshold is reported", True, "WARN",
          description="x" * (DESCRIPTION_WARN + 1))
+    case("a plugin.json with no catalog entry anywhere is rejected", False,
+         "is not listed in any marketplace.json", ghost_manifest=True)
 
     print("SELFTEST PASS" if rc == 0 else "SELFTEST FAIL")
     return rc

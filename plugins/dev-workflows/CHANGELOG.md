@@ -4,6 +4,18 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.25.0] — 2026-09-02
+
+### Removed — the guideline reviewers moved to their own plugin
+
+**Action required:** updating the marketplace does not install the new plugin. `/api-guideline-reviewer` and `/guideline-reviewer` disappear from `dev-workflows` on upgrade until you separately run `claude plugin install guideline-reviewers@ihudak-plugins`.
+
+The two commands, their two agents, and the 38 reference files they read now ship as **`guideline-reviewers`**. Once it is installed the bare command names keep working; only the namespaced form `/dev-workflows:guideline-reviewer` is gone.
+
+They were the one part of this plugin that shared nothing with the rest: no shared reference, no shared agent, and not even model routing, which `CLAUDE.md` already exempted them from. They carried 38 of 105 reference files — 36% of the bundled weight — for two commands nothing else called.
+
+This is the first increment of the marketplace split designed in `docs/superpowers/specs/2026-09-02-marketplace-split-design.md`. It deliberately proves the multi-plugin machinery — catalogue registration, a per-plugin documentation tree, and a gate that iterates plugins rather than assuming one — on the extraction that needs no dependency, no shared-reference loader and no citation rewrite. Those arrive with `workflows-core` in increment 2. `4.0.0` is reserved for the end state of the split — this increment stays a `3.x` minor bump rather than spending a major version on an intermediate step.
+
 ## [3.24.3] — 2026-09-02
 
 ### Fixed — Sonnet 5 was billed at 50% over its published rate

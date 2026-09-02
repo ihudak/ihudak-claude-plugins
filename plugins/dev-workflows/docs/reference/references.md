@@ -1,6 +1,6 @@
 # References reference
 
-`dev-workflows` bundles 105 files under `references/` — 44 top-level markdown files, `cost-prices.yaml`, one file under `model-routing/`, and six bundled subtrees. This page enumerates every file a command or agent actually cites by name (46 of the 105 — the 44 top-level files plus `cost-prices.yaml` plus `model-routing/classification.md`), grouped by concern below, then counts the six subtrees rather than listing each file inside them. The arithmetic: 44 + 1 + 1 = 46 named individually, plus 24 + 11 + 9 + 5 + 3 + 2 = 54 markdown pages counted (not enumerated) across the six subtrees — 46 + 54 = 100 accounted for, against 105 files on disk. The remaining five are non-markdown data or templates inside those same subtrees, deliberately not listed as reference pages: `api-guidelines/template/openapi-template.yaml`, `api-guidelines/spectral/ruleset.yaml`, `docs-profiles/docs-profile.default.yml`, `docs-profiles/default-owners.txt`, and `guidelines/check_guidelines.py` — a template, a Spectral ruleset, a defaults file, an owners list, and a lint script, none of them prose a reader would open. The 54-file subtree figures below are markdown-page counts specifically; the five files above already sit inside those same subtrees and are not part of that count, so nobody should later "correct" a subtree figure by adding them back in.
+`dev-workflows` bundles 67 files under `references/` — 44 top-level markdown files, `cost-prices.yaml`, one file under `model-routing/`, and four bundled subtrees. This page enumerates every file a command or agent actually cites by name (46 of the 67 — the 44 top-level files plus `cost-prices.yaml` plus `model-routing/classification.md`), grouped by concern below, then counts the four subtrees rather than listing each file inside them. The arithmetic: 44 + 1 + 1 = 46 named individually, plus 9 + 5 + 3 + 2 = 19 markdown pages counted (not enumerated) across the four subtrees — 46 + 19 = 65 accounted for, against 67 files on disk. The remaining two are non-markdown data or templates inside the same subtree, deliberately not listed as reference pages: `docs-profiles/docs-profile.default.yml` and `docs-profiles/default-owners.txt` — a defaults file and an owners list, neither of them prose a reader would open. The 19-file subtree figures below are markdown-page counts specifically; the two files above already sit inside that same subtree and are not part of that count, so nobody should later "correct" a subtree figure by adding them back in.
 
 ## Authoring formats
 
@@ -80,16 +80,14 @@ What the plugin needs installed or configured around it, independent of any sing
 
 ## Bundled reference sets
 
-Six subtrees carry bundled guidance too large or too domain-specific to enumerate file-by-file; each is counted here instead.
+Four subtrees carry bundled guidance too large or too domain-specific to enumerate file-by-file; each is counted here instead.
 
-- `api-guidelines/` (24) — REST API and IAM permission-naming guidance distilled from public sources (Google AIP, Zalando, Microsoft, OpenAPI 3.1, RFCs), consulted by `/api-guideline-reviewer`; also carries `spectral/ruleset.yaml`, the executable Spectral ruleset that command lints with when a Spectral CLI is available.
-- `guidelines/` (11) — UI design-system and accessibility rules distilled from public standards (Apple HIG, Material Design, Fluent, W3C WCAG/ARIA), consulted by `/guideline-reviewer`.
 - `handoff/` (9) — one input/output document-format contract per agent, usually read by the agent itself rather than by the dispatching command — `handoff/test-baseliner.md` is the exception, read by `vuln-fixer` and `upgrade-executor`, which dispatch it.
 - `docs-profiles/` (5) — docs-profile authoring conventions for the built-in `example-docs` worked example (frontmatter, changelog, anchors, render verification, the docs-profile schema), consulted by `/docs-profile`, `/document`, and the `docs-frontmatter` skill.
 - `upgrade/` (3) — component-specific upgrade guidance, consulted by `upgrade-planner` and `upgrade-executor`.
 - `fix-vuln/` (2) — CVE-remediation guidance, consulted by `vuln-research` and `vuln-fixer`.
 
-Three of these subtrees (`api-guidelines/`, `guidelines/`, `docs-profiles/`) also hold the data or template files named in the introduction above, so their `*.md` count here is smaller than `find <dir> -type f` would report; `handoff/`, `upgrade/`, and `fix-vuln/` are markdown only, and for those the two counts agree.
+One of these subtrees (`docs-profiles/`) also holds the data or template files named in the introduction above, so its `*.md` count here is smaller than `find <dir> -type f` would report; `handoff/`, `upgrade/`, and `fix-vuln/` are markdown only, and for those the two counts agree.
 
 ## Skills
 

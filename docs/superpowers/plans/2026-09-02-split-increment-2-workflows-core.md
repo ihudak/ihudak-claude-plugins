@@ -103,9 +103,9 @@ plugins/workflows-core/
   references/          (25 flat + handoff/2 + model-routing/1 + cost-prices.yaml)
   skills/model-routing/SKILL.md     ← moved verbatim
   skills/reference/SKILL.md         ← new loader
-  scripts/session-cost.py           ← moved in Task 3 (with cost-emission.md), extended in Task 7
+  scripts/session-cost.py           ← moved in Task 3 (with cost-emission.md), extended in Task 6
   scripts/command-namespaces.json   ← new manifest (Task 7)
-  scripts/statusline-command.sh     ← moved in Task 5 (with /statusline)
+  scripts/statusline-command.sh     ← moved in Task 3 (with /statusline)
   docs/README.md, getting-started.md, workflow.md
   docs/commands/       (6)
   docs/reference/agents.md, references.md, environment.md,
@@ -257,22 +257,24 @@ git commit -m "test(gate): let checks 8, 9 and 11 resolve their shared reference
 
 ---
 
-### Task 3: Move the references and agents into core
+### Task 3: Move everything into core
 
 **Files:**
-- Move (`git mv`): 28 reference files + `cost-prices.yaml` + `scripts/session-cost.py`, 5 agent files — lists in *The measured allocation*
+- Move (`git mv`): 28 reference files + `cost-prices.yaml`, 5 agent files, 6 command files, `skills/model-routing/`, `scripts/session-cost.py`, `scripts/statusline-command.sh`, 6 `docs/commands/` pages, 6 `docs/reference/` pages — lists in *The measured allocation*
 - Modify: `scripts/check-docs.sh` (`CORE_PLUGIN_REL`, `COST_PLUGIN_RELS`, `HANDOFF_PLUGIN_RELS`)
-- Modify: both plugins' `docs/reference/{agents,references,environment}.md` and prose counts
+- Modify: both plugins' `docs/README.md`, `docs/workflow.md`, `docs/reference/{agents,references,environment}.md`, plugin `README.md`, `docs/roles-and-phases.md`
 
 **Interfaces:**
 - Consumes: Task 2's `CORE_PLUGIN_REL`
-- Produces: core's reference corpus and agent set, at their final paths
+- Produces: core's complete content at its final paths; `dev-workflows` at 20 commands, 31 agents, 36 reference files
 
-**This task deliberately leaves the tree red.** `dev-workflows` is left citing 767 paths that no longer exist; Task 4 rewrites them. Do not attempt partial rewrites here — a half-swept tree is harder to reason about than a fully broken one.
+**One task, not two, and the reason is a conflict the pre-flight scan found.** Moving the six commands *after* the sweep would have the sweep rewrite their citations into loader calls, and then move them into the very plugin whose files cite by plain path — leaving six commands calling a loader to read their own plugin's references. Everything that moves, moves here; Task 4 then sweeps only what stayed.
+
+**This task deliberately leaves the tree red.** `dev-workflows` is left citing 767 paths that no longer exist. Do not attempt partial rewrites here — a half-swept tree is harder to reason about than a fully broken one.
 
 - [ ] **Step 1: Move the files with `git mv`**, preserving `references/handoff/` and `references/model-routing/` as directories inside core. Move `cost-prices.yaml` alongside `cost-emission.md`.
 
-**`scripts/session-cost.py` moves in this task, not with the other script in Task 5.** `cost-emission.md` cites it as `${CLAUDE_PLUGIN_ROOT}/scripts/session-cost.py`, and that path is correct only while the two sit in the same plugin — so the script travels with its citing reference. `statusline-command.sh` is cited by `commands/statusline.md` and travels with *it*, in Task 5, for exactly the same reason. Nothing gates a script path, so both pairings are held by this instruction alone.
+Each script travels with the file that cites it: `session-cost.py` with `references/cost-emission.md` (which cites `${CLAUDE_PLUGIN_ROOT}/scripts/session-cost.py`), `statusline-command.sh` with `commands/statusline.md`. Both land in core in this task, so both pairings hold. Nothing gates a script path — this pairing is held by this instruction alone.
 
 - [ ] **Step 2: Flip the gate config**
 
@@ -292,18 +294,26 @@ Both subsystems are now shipped by core *and* still called from `dev-workflows`,
 
 Check 5 runs in both directions, so this move fires it **twice**. Re-derive each plugin's variable set from what its files now read — `$SPECS_PATH`, `$REPOS_PATH`, `$DOCS_PATH` and the rest follow their references — and write only what is read.
 
-- [ ] **Step 5: Update every prose count** in both plugins' `docs/README.md` and plugin `README.md`: agents, reference files, skills, commands.
+- [ ] **Step 5: Fill core's `docs/workflow.md` mermaid diagram**
 
-- [ ] **Step 6: Verify the move landed, then commit**
+Check 15 asserts every command appears **inside the diagram**, not in prose below it. All six, by name.
+
+- [ ] **Step 6: Remove the six commands from `dev-workflows`'s three listing surfaces** — `docs/README.md`, the plugin `README.md`, and `docs/workflow.md`'s mermaid diagram. Check 15 is **forward-only**: a diagram still naming a departed command passes silently, so this is by hand.
+
+- [ ] **Step 7: Update every prose count** in both plugins' `docs/README.md` and plugin `README.md`: `20 slash commands` / `6 slash commands`, agents, reference files, skills, and the cost-emitting-set size.
+
+- [ ] **Step 8: Verify the move landed, then commit**
 
 ```bash
 ls plugins/workflows-core/references/*.md | wc -l          # expect 25
 ls plugins/workflows-core/references/handoff/*.md | wc -l  # expect 2
 ls plugins/workflows-core/agents/*.md | wc -l              # expect 5
+ls plugins/workflows-core/commands/*.md | wc -l            # expect 6
+ls plugins/dev-workflows/commands/*.md | wc -l             # expect 20
 ls plugins/dev-workflows/agents/*.md | wc -l               # expect 31
 find plugins/dev-workflows/references -name '*.md' | wc -l # expect 36
-git add -A plugins/workflows-core plugins/dev-workflows scripts/check-docs.sh
-git commit -m "refactor(core): move the shared reference corpus and five agents into workflows-core"
+git add -A plugins/ scripts/check-docs.sh
+git commit -m "refactor(core): move the shared corpus, five agents and six commands into workflows-core"
 ```
 
 The gate is expected to FAIL after this commit. Record the failure count in the ledger; Task 4 must return it to zero.
@@ -314,11 +324,11 @@ The gate is expected to FAIL after this commit. Record the failure count in the 
 
 **Files:**
 - Create: `plugins/workflows-core/skills/reference/SKILL.md`
-- Modify: every `plugins/dev-workflows/commands/*.md` and `agents/*.md` carrying a core citation (52 files, 767 sites), plus 55 sites inside the references that stayed
+- Modify: every **remaining** `plugins/dev-workflows/commands/*.md` and `agents/*.md` carrying a core citation, plus the sites inside the references that stayed. The six moved commands and five moved agents are **out of scope** — they are core's own files now and cite by plain path
 - Modify: 9 sites inside moved core references that now point at files left behind
 
 **Interfaces:**
-- Consumes: Task 3's moved corpus
+- Consumes: Task 3's completed move
 - Produces: a green tree; the `workflows-core:reference` skill contract every later plugin uses
 
 - [ ] **Step 1: Write the loader skill**
@@ -410,13 +420,22 @@ grep -rn 'dev-workflows:\(code-scanner\|doc-fixer\|docs-grounder\|frame-describe
 
 This also catches the `/dev-workflows:<agent>` prose mentions, which is correct — they name the same thing.
 
-- [ ] **Step 6: Sweep the prose that describes what left**
+- [ ] **Step 6: Rewrite the `model-routing` skill namespace**
+
+Every pipeline command invokes it by name; all call sites move with the skill:
+
+```bash
+grep -rl 'dev-workflows:model-routing' plugins/ | xargs -r sed -i 's|dev-workflows:model-routing|workflows-core:model-routing|g'
+grep -rn 'dev-workflows:model-routing' plugins/ | wc -l   # expect 0
+```
+
+- [ ] **Step 7: Sweep the prose that describes what left**
 
 Ungated failure mode, per spec §6. In `plugins/dev-workflows/docs/**` and `plugins/dev-workflows/README.md`, find every sentence describing a moved agent, reference or command and rewrite it to name the plugin that now ships it. Search by name, not by line number.
 
-- [ ] **Step 7: Run the gates.** Expected: all PASS — this is the task that returns the tree to green.
+- [ ] **Step 8: Run the gates.** Expected: all PASS — this is the task that returns the tree to green.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
 git add -A plugins/
@@ -425,46 +444,7 @@ git commit -m "refactor(core): route every cross-plugin reference read through t
 
 ---
 
-### Task 5: Move the six commands, the model-routing skill and the statusline script
-
-**Files:**
-- Move: 6 command files, `skills/model-routing/`, `scripts/statusline-command.sh`, 6 `docs/commands/` pages, 6 `docs/reference/` pages
-- Modify: both plugins' `docs/README.md`, `docs/workflow.md`, plugin `README.md`, `docs/roles-and-phases.md`
-
-**Interfaces:**
-- Consumes: Task 4's green tree
-- Produces: `dev-workflows` at 20 commands, core at 6
-
-- [ ] **Step 1: `git mv` the commands and their documentation pages**, then the `model-routing` skill directory and `scripts/statusline-command.sh` (`session-cost.py` moved in Task 3).
-
-- [ ] **Step 2: Fix the `model-routing` skill invocation namespace**
-
-Every pipeline command invokes it by name. All 21 call sites move:
-
-```bash
-grep -rl 'skill: "dev-workflows:model-routing"' plugins/ | xargs -r sed -i 's|dev-workflows:model-routing|workflows-core:model-routing|g'
-```
-
-- [ ] **Step 3: Update core's `docs/workflow.md` mermaid diagram**
-
-Check 15 asserts every command appears **inside the diagram**, not in prose below it. All six, by name.
-
-- [ ] **Step 4: Remove the six commands from `dev-workflows`'s three listing surfaces** — `docs/README.md`, the plugin `README.md`, and `docs/workflow.md`'s mermaid diagram. Check 15 is **forward-only**: a diagram still naming a departed command passes silently, so this is by hand.
-
-- [ ] **Step 5: Update every count sentence** in both plugins: `20 slash commands` / `6 slash commands`, skills, agents, references, and the cost-emitting-set size.
-
-- [ ] **Step 6: Run the gates.** Expected: all PASS.
-
-- [ ] **Step 7: Commit**
-
-```bash
-git add -A plugins/
-git commit -m "refactor(core): move the six utility commands and model-routing into core"
-```
-
----
-
-### Task 6: The loader-contract gate
+### Task 5: The loader-contract gate
 
 **Files:**
 - Modify: `scripts/check-docs.sh` (new check + its selftest cases, and the check count in the header comment)
@@ -475,7 +455,9 @@ git commit -m "refactor(core): move the six utility commands and model-routing i
 
 - [ ] **Step 1: Write the check, both directions**
 
-Every `args:` string passed to `workflows-core:reference` names a reference that exists in `$CORE_PLUGIN_REL/references/` (first token, plus `.md`), and every markdown file in `$CORE_PLUGIN_REL/references/` is named by at least one caller across `PLUGIN_RELS`. Parse the first whitespace-separated token of the argument, so the entry-point form is handled by the same code path.
+Every `args:` string passed to `workflows-core:reference` names a reference that exists in `$CORE_PLUGIN_REL/references/` (first token, plus `.md`), and every markdown file in `$CORE_PLUGIN_REL/references/` is reached by at least one citation. Parse the first whitespace-separated token of the argument, so the entry-point form is handled by the same code path.
+
+**The reverse direction counts any citation, not only a loader call** — a plain `${CLAUDE_PLUGIN_ROOT}/references/<name>.md` from inside core counts. Requiring a *loader* call would fail on every core reference that only core's own files read: `instruction-file-maintenance.md` is cited by `impl-maintenance.md` alone, and `handoff/code-scanner.md` by `code-scanner.md` alone — both now core-internal, both correct, and neither will ever appear in an `args:` string. A reverse direction that demanded a loader call would report the two most obviously correct files in the corpus.
 
 - [ ] **Step 2: Selftest cases, paired red and green** — an unresolvable argument fires; an unreferenced core reference fires; the entry-point form does **not** fire; a correct tree passes. The entry-point green case is the discriminator: an implementation that matches the whole argument string instead of its first token passes both red cases and fails that one.
 
@@ -492,7 +474,7 @@ git commit -m "test(gate): assert the loader contract in both directions"
 
 ---
 
-### Task 7: The cost boundary fix (spec §8)
+### Task 6: The cost boundary fix (spec §8)
 
 **Files:**
 - Create: `plugins/workflows-core/scripts/command-namespaces.json`
@@ -501,7 +483,7 @@ git commit -m "test(gate): assert the loader contract in both directions"
 - Modify: `scripts/check-docs.sh` (manifest-equals-inventory check, inside the existing loop)
 
 **Interfaces:**
-- Consumes: Task 5's moved `session-cost.py`
+- Consumes: Task 3's moved `session-cost.py`
 - Produces: a boundary detector that resolves `<any known plugin>:<that plugin's known command>`
 
 The defect, reproduced in the spec: a deferred claim replayed by core's own `/prompt` swallows an intervening `/dev-workflows:vuln` segment, because a sibling plugin's boundary is invisible to a single-plugin detector. 9000 tokens claimed where 5000 is correct.
@@ -550,7 +532,7 @@ git commit -m "fix(cost): resolve a deferred boundary against every plugin's own
 
 ---
 
-### Task 8: Declare the dependency and close the increment
+### Task 7: Declare the dependency and close the increment
 
 **Files:**
 - Modify: `plugins/dev-workflows/.claude-plugin/plugin.json`, `CHANGELOG.md`

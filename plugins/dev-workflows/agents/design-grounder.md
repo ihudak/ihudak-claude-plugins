@@ -63,6 +63,20 @@ guess, not a citation.
    `index.md` beside it rather than edit a file whose shape it never fixed. `index.md` is the name
    every writer of this format writes, so it is the one a reader can attribute.
 
+2a. **Verify the index's rows still resolve to frames that are there.** An index whose every row
+   names a frame no longer in the directory is the one absence the two statuses above do not cover —
+   `frame_set_dir` exists, so it is not `FRAME_SET_MISSING`, and an index is present, so it is not
+   `NO_INDEX` — and reading it produces findings from descriptions of frames nobody can look at.
+   `grounding-format.md` §6.2 step 1a explains how the state arises: on a set whose frames were all
+   moved out, step 6 forbids writing and step 5 cannot drop rows, so the index is left standing with
+   every row a promise that resolves to nothing.
+
+   Skip any row whose frame is absent and name it. **If NO row resolves to a frame that is present,
+   return `status: STALE_INDEX`** with the index path and the row count, and produce no finding —
+   the same discipline as `NO_INDEX`, for the same reason: a `[DG#n]` must rest on something a human
+   can open. A partially stale index still grounds, on the rows that resolve, with the skipped ones
+   named.
+
 3. **Read the index** to build the frame inventory: for each frame, what screen/report/state it
    depicts, and which fields or columns it shows. Read each frame image the index names before
    citing it — a frame is evidence only once actually looked at, the same discipline `code-grounder`
@@ -98,7 +112,7 @@ guess, not a citation.
 ## Output
 
 ```yaml
-status: OK | INPUT_MISSING | FRAME_SET_MISSING | NO_INDEX
+status: OK | INPUT_MISSING | FRAME_SET_MISSING | NO_INDEX | STALE_INDEX
 frame_set_dir: <absolute path as received>
 index_file: <relative path to the index file found>
 findings:
@@ -128,6 +142,10 @@ notes: |
 - `status: OK` — the frame set was indexed and every requirement/frame was reconciled, including a
   run that produced zero findings because everything agreed.
 - `status: INPUT_MISSING` — `frame_set_dir` or `inventory` was missing; no reconciliation performed.
+- `status: STALE_INDEX` — an index was present but not one of its rows named a frame still in the
+  directory; no finding was produced. Distinct from `NO_INDEX`, which means no index at all: here the
+  descriptions survive and only the frames are gone, so the remedy is restoring them (or re-running
+  `/dev-workflows:frames` once they are back), not re-indexing.
 - `status: FRAME_SET_MISSING` — `frame_set_dir` did not resolve to a directory; no reconciliation
   performed.
 - `status: NO_INDEX` — `frame_set_dir` held no index file; no reconciliation performed. The caller

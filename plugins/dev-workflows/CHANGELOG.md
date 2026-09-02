@@ -4,6 +4,25 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.23.1] — 2026-09-02
+
+### Fixed — a stale frame index had no status, so it was read as valid
+
+**The reader half of a finding whose writer half shipped in 3.22.0.** That release made
+`/frames` report a frame set whose images had all been moved out, since §6.2's steps 5 and 6 leave its
+`index.md` standing with every row a promise that resolves to nothing. The consumer was left unchanged,
+and it is the consumer that acts on it: `design-grounder` has `FRAME_SET_MISSING` for a missing
+directory and `NO_INDEX` for a missing index, and **neither covers an index whose rows all name frames
+that are gone** — the directory exists and an index is present, so it proceeded to read frames nobody
+can open and would have produced `[DG#n]` findings resting on them. It now skips a row whose frame is
+absent and names it, and returns a new `STALE_INDEX` when no row resolves at all.
+
+The remedy is deliberately **not** the one `NO_INDEX` names. Re-running `/frames` on an emptied
+directory writes nothing (§6.2 step 6 forbids it), so routing there would send the operator to a no-op;
+the descriptions are intact and only the frames are missing, so the repair is restoring them. Found by
+re-auditing my own dispositions rather than by a reviewer: 3.22.0 fixed the half that reports and left
+the half that acts.
+
 ## [3.23.0] — 2026-09-02
 
 ### Changed — vendor neutrality now covers every text file, not just markdown

@@ -21,7 +21,7 @@
 - **`${CLAUDE_PLUGIN_ROOT}` does not expand in slash-command bodies** — commands reach bundled content through a skill. (CLAUDE.md)
 - Every `[PREFIX#N]` requirement ID stays bracketed; `./scripts/check-id-grammar.sh --root .` must pass. (CLAUDE.md)
 - Prose is never hard-wrapped: one unbroken line per paragraph. (`references/prose-formatting.md`)
-- All four gates green before the PR: `./scripts/check-docs.sh --root .`, `./scripts/check-docs.sh --selftest`, `./scripts/check-id-grammar.sh --root .` (and `--selftest`), `python3 scripts/validate-catalog.py`.
+- **All SEVEN gate invocations green before the PR — take the list from `.github/workflows/validate-catalog.yml`, never from this plan.** Six are the familiar `check-docs.sh --root .` / `--selftest`, `check-id-grammar.sh --root .` / `--selftest`, `validate-catalog.py` / `--selftest`. The seventh is the one this plan originally omitted and every task through Task 5 therefore skipped: the session-cost selftest, which CI discovers by path rather than hardcoding. It was **red from Task 4 through Task 5** — a namespace sweep had rewritten a constant inside its own fixture — and no task noticed, because every task ran the six gates the plan named. A plan's gate list is a copy, and this one was already stale when it was written.
 - `CLAUDE.md` is updated in the same commit as the change it describes. (spec §7 "Every increment")
 
 ---

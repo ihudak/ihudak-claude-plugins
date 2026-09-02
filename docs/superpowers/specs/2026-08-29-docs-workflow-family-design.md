@@ -12,7 +12,7 @@
 >
 > **Everything else is independent of the packaging** and stands as written: the coverage model (§5), the four frozen contracts (§8), the visibility model (§9), the per-command designs (§6, §7, §10, §11), and the operating procedure (§14).
 >
-> A second design is also mid-flight — `2026-08-31-specs-native-pipeline-design.md`, which removes the tracker round-trip. **§19 records the six places it replaces machinery this document describes.** None of them changes a decision here; all of them change a description.
+> A second design — `2026-08-31-specs-native-pipeline-design.md` — has since **completed**, removing the tracker round-trip and `$VAULT_PATH`. **§19 records what it changed for this design.** It changed six descriptions and no decision, and two of the six turned out in this design's favour.
 >
 > Re-derive every count against the tree you are actually changing. This document has already carried a stale set once — written against 21 commands and 33 agents, while 27 and 39 were the reality by the time it was reviewed.
 
@@ -821,14 +821,14 @@ For each surface, diff `sources[].ref` → `HEAD` restricted to the surface's ev
 
 ### 13.3 Gate impact, stated up front
 
-Re-derived against the tree at `5d13020`, after specs-native increment B deleted `jira-reader` and `jira-input-resolution.md`. Increment D has not landed and moves them again (§19).
+Re-derived against the tree at `v3.24.1` (dev-workflows 3.24.1), with the specs-native pipeline complete. Re-derive again at implementation time — these move on almost every release, and nothing gates a number written in prose.
 
 | Inventory | Now | After the family |
 |---|---|---|
-| Commands | 27 | 35 |
+| Commands | 28 | 36 |
 | Agents | 38 | 42 |
-| Reference files | 104 | 104 + `references/docs-workflow/*` |
-| `docs/` pages | 41 | 54 |
+| Reference files | 105 | 105 + `references/docs-workflow/*` |
+| `docs/` pages | 43 | 56 |
 | Skills | 2 | 2 |
 | Hooks | 5 | 5 |
 
@@ -840,7 +840,7 @@ Check 11 gates `choices:` placeholders for the `/brd-*` family only, and `CLAUDE
 
 Feedback and cost follow the existing ladders in `references/feedback-emission.md` and `references/cost-emission.md` unchanged **whenever a PRD is in scope** — a `/document` run against a PRD keeps writing under that PRD's directory, and nothing about it changes.
 
-The gap is the run with no PRD, which for this family is the normal case. Today such a run resolves to `$SPECS_PATH/dev-workflows-feedback/<KEY-or-date>.md` for feedback, and for cost to **pending** — parked awaiting reconciliation into a PRD directory. Documentation work often has no PRD and never will, so those pending entries accumulate forever and reconcile against nothing.
+The gap is the run with no PRD, which for this family is the normal case. The specs-native work collapsed the ladder to four specs-first tiers with no vault rung, but **tier 2 is still `pending`** — parked awaiting reconciliation into a PRD directory. Documentation work often has no PRD and never will, so those pending entries accumulate forever and reconcile against nothing. The collapse did not close this gap; it left it exactly where it was.
 
 **One new rung, inserted before pending** (D19):
 
@@ -1005,7 +1005,7 @@ flowchart TD
 
 ### 15.4 Counts to update in the same change
 
-`check-docs.sh` cross-checks six inventories plus the cost-emitting set against prose counts scattered across the tree, and each must move together: commands 27 → 35, agents 38 → 42, reference files 104 → 104 plus `references/docs-workflow/*`, docs pages 41 → 54 (8 command pages, 4 reference pages, 1 route page). `CLAUDE.md`'s command list, agent list and workflow map are updated in the same commit, and every new command handing `emit-cost` a fixed `phase`/`role` pair needs its matching row in `references/cost-emission.md` §7 — check 8 fails in both directions.
+`check-docs.sh` cross-checks six inventories plus the cost-emitting set against prose counts scattered across the tree, and each must move together: commands 28 → 36, agents 38 → 42, reference files 105 → 105 plus `references/docs-workflow/*`, docs pages 43 → 56 (8 command pages, 4 reference pages, 1 route page). `CLAUDE.md`'s command list, agent list and workflow map are updated in the same commit, and every new command handing `emit-cost` a fixed `phase`/`role` pair needs its matching row in `references/cost-emission.md` §7 — check 8 fails in both directions.
 
 **Do not copy these numbers forward without re-deriving them.** This document already carried a stale set once: it was written against a tree with 21 commands and 33 agents, and by the time it was reviewed the repository had 27 and 39. `CLAUDE.md` says it plainly — nothing gates any number written in prose, so re-derive against the tree you are actually changing.
 
@@ -1038,7 +1038,7 @@ flowchart TD
 | Internal content leaks into the public build | Two output-level gates (§9.3), asserting on built HTML rather than on source paths or contributor discipline |
 | **The backlog and the pages disagree** — a second source of truth | `unit:` in frontmatter is the link in both directions. `/docs-audit --refresh` reconciles both ways and **never silently deletes a unit**: one whose surface vanished is marked `blocked_by: [surface-removed]` and reported, because a surface disappearing is as likely to be a failed scan as a real removal |
 | **The generated `nav:` drifts from the files** | Nav is regenerated from frontmatter `order` on every write, and the public build already runs `strict: true` with `validation.nav.omitted_files: warn` — so a page missing from the nav fails the build rather than going quietly unreachable |
-| 35 commands is a maintainability **and** discoverability problem | All nine docs commands share the `/docs-*` namespace; `docs/docs-workflow.md` gives the family one route page; the README role row gives it one entry point. The new references stay in their own directory so a later extraction is a move, not an untangling — revisit after Spec 2 |
+| 36 commands is a maintainability **and** discoverability problem | All nine docs commands share the `/docs-*` namespace; `docs/docs-workflow.md` gives the family one route page; the README role row gives it one entry point. The new references stay in their own directory so a later extraction is a move, not an untangling — revisit after Spec 2 |
 | Python toolchain in a Ruby/Node shop is resented | The docs repo is a separate repo with its own toolchain; D9 keeps the generator choice reversible behind the profile, and VitePress is the named Node alternative |
 | The backlog goes stale as a file | `/docs-drift` (Spec 3) is what keeps it live. Until Spec 3 ships, `--refresh` is manual and that limitation is stated rather than papered over |
 
@@ -1051,21 +1051,23 @@ flowchart TD
 
 ---
 
-## 19. Intersections with the specs-native pipeline
+## 19. What the specs-native pipeline changed here
 
-This design was written against the tree at `641981f`. A separate design — [`2026-08-31-specs-native-pipeline-design.md`](2026-08-31-specs-native-pipeline-design.md) — is mid-flight, removing the tracker round-trip from the plugin. Its increments **A and B have landed** — B merged as PR #33, minutes before this document itself merged — and **C and D have not**. Six places in this document described machinery that work replaces; two were already false the day it merged, and are corrected in the body above rather than left standing.
+This design was written against a tree that no longer exists. [`2026-08-31-specs-native-pipeline-design.md`](2026-08-31-specs-native-pipeline-design.md) has since **completed** — all its increments have shipped, the tracker round-trip is gone, and `$VAULT_PATH` survives only in a changelog entry. It touched six things this document describes.
 
-**None of them changes a decision here. All of them change a description.** They are recorded now, before implementation, so this document does not go on asserting a mechanism that no longer exists — the failure mode `CLAUDE.md` names as a note left standing beside the thing that falsified it.
+**It changed six descriptions and no decisions.** Two of the six turned out in this design's favour, which is the part worth carrying forward: they make the implementation smaller than specified, not larger.
 
-| # | Here | What replaces it | Effect on this design |
+| # | What this document assumed | What shipped | Consequence |
 |---|---|---|---|
-| 1 | `jira-reader` as an optional `/docs-audit` input (§4, §11 Phase 2, §13.1) | **Already deleted** — increment B removed the agent and `jira-input-resolution.md`; one-address resolution against the tree replaces them | **Corrected in the body.** The audit loses nothing: its evidence is code and specs artefacts, never a tracker export |
-| 2 | The `release` surface reads `/release-notes` drafts grouped by version (§5.1, §6 Phase 3) | One `release-notes.md` per PRD folder, Change Type selecting a **section** rather than a destination (§7.5) | **Simpler than designed.** The three sections each What's-new page wants already exist in the source file. `release-note-types.md` stays the authority for per-type shape and the end-of-life rule, so §6 Phase 3's citation stands. What must be re-derived is the **grouping**: this design needs one page per major version and the source is per PRD folder, so the audit aggregates across folders on whichever release-version field survives §7.4's mirror-field inference |
-| 3 | Drift diffs `sources[].ref → HEAD` (§12.4) | `implementation.md` records, per repo, the branch, base and commit where work landed; `/document` and `/release-notes` diff from it plus a commit scan | **A better anchor than the one designed.** Read `implementation.md` first and fall back to `sources[].ref` — a recorded landing commit beats a re-derived scan ref |
-| 4 | The bookkeeping rung, described against today's cost/feedback ladder (§13.4) | Increment D collapses all four emitter ladders to `$SPECS_PATH` and rewrites `followup-emission.md` around `follow-ups.md` | **The rung survives; its surroundings do not.** It is already a `$SPECS_PATH` path and the per-docs-repo attribution argument is unchanged, but re-derive the insertion point against the collapsed ladder, not the vault-and-pending one described here |
-| 5 | Inventory counts (§13.3, §15.4) | B removed `jira-reader`, `jira-input-resolution.md` and `handoff/jira-reader.md`: 39 → 38 agents, 106 → 104 references. D still removes `vault-prior-art-finder`, `vault-prior-art.md` and every `$VAULT_PATH` reference — 37 files still carry one | **Body corrected to the post-B tree.** D moves them once more, so re-derive again at implementation time |
-| 6 | Open question 2 — Jira/GitHub projection of the backlog (§18) | The plugin is removing its tracker dependency entirely | The question stands, but a **Jira** projection is now against the direction of travel. The live answer is GitHub issues, or nothing |
+| 1 | `jira-reader` is an optional `/docs-audit` input | The agent and `jira-input-resolution.md` were deleted; one address resolves against the tree | **Corrected in the body.** The audit lost nothing — its evidence was always code and specs artefacts, never a tracker export |
+| 2 | The `release` surface reads `/release-notes` drafts grouped by version | Verified: the three destinations are now **three sections of one `release-notes.md` in the PRD folder** | **Simpler than designed.** The section split each What's-new page wanted already exists in the source file, and `release-note-types.md` remains its authority. Only the *grouping* still needs deriving — this design wants one page per major version, and the source is per PRD folder |
+| 3 | Drift diffs `sources[].ref → HEAD` | Verified: `implementation.md` ships and is read by `/implement`, `/document`, `/release-notes` and `/ready` | **A better anchor than designed.** It records the branch, base and commit where work actually landed. Read it first; fall back to `sources[].ref` |
+| 4 | The bookkeeping rung slots into the old cost/feedback ladder | Verified: the ladder collapsed to four specs-first tiers and the vault rung is gone — but **tier 2 is still `pending`** | **The gap D19 identified is still open.** The collapse did not close it; it left it exactly where it was, so §13.4's rung is still the fix and still slots in before tier 2 |
+| 5 | Inventory counts | Everything moved: 28 commands, 38 agents, 105 references, 43 documentation pages at `v3.24.1` | §13.3 and §15.4 refreshed once. They will move again — re-derive at implementation time rather than tracking them per release |
+| 6 | Open question 2 proposes a Jira projection of the backlog | The plugin removed its tracker dependency entirely | A **Jira** projection is now against the direction of travel. The live answer is GitHub issues, or nothing |
 
-**What is unaffected, stated so it is not re-examined:** the coverage model (§5, apart from the `release` surface's source shape), all four frozen contracts (§8), the visibility model (§9), every per-command design (§6, §7, §10, §11), the operating procedure (§14), and all twenty-two decisions in §3.
+**Unaffected, stated so it is not re-examined:** the coverage model (§5), all four frozen contracts (§8), the visibility model (§9), every per-command design (§6, §7, §10, §11), the operating procedure (§14), and all twenty-two decisions in §3.
 
-One decision deserves an explicit note because its *rationale* mentions the tracker while its *conclusion* does not depend on it. **D4** — the screenshot pass belongs to `/docs-verify`, never `/document` — argues from `/document` Mode A requiring "a PRD key, a Jira export and PR URLs". After increment B that becomes a PRD key and `implementation.md`. The conclusion is unchanged, because it rests on `/document` documenting a **delta**, which the specs-native design preserves rather than removes.
+One decision needs a note because its *rationale* cites the tracker while its *conclusion* never depended on it. **D4** — the screenshot pass belongs to `/docs-verify`, never `/document` — argues from `/document` Mode A requiring "a PRD key, a Jira export and PR URLs". That is now a PRD key and `implementation.md`. The conclusion stands unchanged, because it rests on `/document` documenting a **delta**, which the specs-native design preserved rather than removed.
+
+**A new command arrived that this design has never considered: `/frames`.** It is the 28th command and postdates every section here. Nothing in this design depends on it, but the split that precedes implementation will have to allocate it.

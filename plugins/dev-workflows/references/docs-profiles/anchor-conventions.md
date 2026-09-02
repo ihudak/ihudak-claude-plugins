@@ -1,5 +1,7 @@
 # Anchor conventions (example-docs)
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 How `/document` authors, links, and verifies heading anchors on example-docs
 pages — the `{:#id}` syntax, the link forms that reference an anchor, the
 `docstack` tool that validates them, and the rule for reconciling a docs anchor
@@ -86,7 +88,7 @@ If the docs anchor genuinely cannot be made to match the product's deep link
 (for example, the target section was restructured and no single heading
 maps to it), do not resolve the mismatch silently — record it and route it
 through the normal Phase 5.8 discrepancy-escalation path (see
-`${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7 for the protocol:
+`workflows-core:source-truth` §7 for the protocol:
 present the analysis, ask the user, and record the decision — never
 auto-resolve).
 

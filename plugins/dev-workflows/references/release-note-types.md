@@ -1,5 +1,7 @@
 # Release-note destinations & shapes — source of truth
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 Consulted by `release-notes-writer` to decide **where a release note lands and what shape it must
 take**. This file is the single authority for the section map, the per-section draft shape,
 the per-section prose rules, the deprecation-note rule, and Change Type sourcing. The
@@ -108,7 +110,7 @@ Fixed an issue where the **GET account audits** endpoint of the Account Manageme
   - **PM phase** — no `specification.md` and no `design.md` under the PRD's specs dir. The feature is
     not built and the documentation does not exist yet. **Omit the link entirely**; do not ask for one.
   - **Dev phase** — either file is present (the same signal
-    `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` §7 uses to infer `phase`/`role`). The author
+    `workflows-core:cost-emission` §7 uses to infer `phase`/`role`). The author
     can supply a redirect short link that will later point at the page `/document` publishes.
   **Never invent a URL** at either phase.
 - Editorial hierarchy — lead with the new or recommended path; demote a deprecated, legacy, or
@@ -193,4 +195,4 @@ is exactly the PRD's `release_notes_category`:
 **Both used to be dropdowns set outside the plugin and returned by an import**, which is why this
 ladder's first rung was authoritative and its second was a fallback. Nothing returns them now, so the
 PRD is the only place either can come from, and an absent field is a question rather than a silence
-(see `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`).
+(see `workflows-core:prd-format`).

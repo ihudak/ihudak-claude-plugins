@@ -6,6 +6,8 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 
 Verify readiness for AI-driven development: $ARGUMENTS
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 `/ready` is the **artifact-anchored readiness gate**. Given a PRD or Epic address, it reads the
 artifacts present — and, with `--claimed "<status>"`, compares them against a status the operator declares — and checks whether the
 ARD/spec/design artifacts that actually exist, taken together, justify that status and the *next*
@@ -13,9 +15,9 @@ transition, against the rubric in `${CLAUDE_PLUGIN_ROOT}/references/workflow-sta
 `SUPPORTED` / `PARTIAL` / `NOT-SUPPORTED` with a requirement coverage roll-up and named gaps, gated on
 the Opus `readiness-reviewer`.
 
-Key distinction from every other pipeline command: `/ready` **authors nothing** in the PRD/Epic/ARD/spec/design sense — it never writes any of those, and it never writes a status. Its only authored write is an overwritten `_readiness.md` snapshot under `$SPECS_PATH`, and it branches only via the `phase-handoff.md` §4.3 consent choice to hand that snapshot off, creating `ready/<KEY>-<slug>` — `specs-preflight` itself still creates none, switching `$SPECS_PATH` only between branches that already exist and are plugin-created (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2). `_readiness.md` is likewise committed only through that same §4.3 choice, never automatically — declining leaves it uncommitted; the terminal `commit-artifacts` step commits ONLY the run's bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1), which `_readiness.md` is not. Where `/design`'s repo gate is a **strict, hard-stop** mount check because it is about to ground code decisions, `/ready`'s repo check is **best-effort presence only** — it never scans code, it only notes whether a needed repo is mounted.
+Key distinction from every other pipeline command: `/ready` **authors nothing** in the PRD/Epic/ARD/spec/design sense — it never writes any of those, and it never writes a status. Its only authored write is an overwritten `_readiness.md` snapshot under `$SPECS_PATH`, and it branches only via the `workflows-core:phase-handoff` §4.3 consent choice to hand that snapshot off, creating `ready/<KEY>-<slug>` — `specs-preflight` itself still creates none, switching `$SPECS_PATH` only between branches that already exist and are plugin-created (`workflows-core:specs-repo-git` §2.2). `_readiness.md` is likewise committed only through that same §4.3 choice, never automatically — declining leaves it uncommitted; the terminal `commit-artifacts` step commits ONLY the run's bounded session-artifact paths (`workflows-core:specs-repo-git` §2.1), which `_readiness.md` is not. Where `/design`'s repo gate is a **strict, hard-stop** mount check because it is about to ground code decisions, `/ready`'s repo check is **best-effort presence only** — it never scans code, it only notes whether a needed repo is mounted.
 
-Key distinction from every other consumer of `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3 (`require-on-main`) and `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md`: every other caller stops when a gated ARD/spec/design resolves off the specs repo's default branch; `/ready` **never** does. That state becomes a readiness finding — "authored but not handed off" — that caps the eventual verdict at `PARTIAL`; an artifact that is absent outright is recorded as missing in the coverage roll-up, exactly as before this feature. Reporting readiness is `/ready`'s whole function, so a run that stops instead of reporting has failed at the one thing it exists to do.
+Key distinction from every other consumer of `workflows-core:phase-handoff` §3 (`require-on-main`) and `workflows-core:ard-resolution`: every other caller stops when a gated ARD/spec/design resolves off the specs repo's default branch; `/ready` **never** does. That state becomes a readiness finding — "authored but not handed off" — that caps the eventual verdict at `PARTIAL`; an artifact that is absent outright is recorded as missing in the coverage roll-up, exactly as before this feature. Reporting readiness is `/ready`'s whole function, so a run that stops instead of reporting has failed at the one thing it exists to do.
 
 Key distinction from `/design`'s Epic-picker behavior: a **`PRD-` address** is a first-class
 **PRD-level** check (workflow-states.md's PRD ladder), not something that must be resolved down to a
@@ -28,13 +30,13 @@ single Epic. Address an `EPIC-` folder to scope the check to one Epic
 
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a
    folder or a file inside one — and resolve it with `resolve-address`
-   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). `status: found` → carry its `path`, `kind`
-   and `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/dev-workflows:idea <KEY>` or `/dev-workflows:create-prd <KEY>` on the idea route and from `/dev-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/dev-workflows:epics <PRD-ADDRESS>` and from no other command.
+   (`workflows-core:addressing` §3). `status: found` → carry its `path`, `kind`
+   and `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `workflows-core:escalation-rules` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/dev-workflows:idea <KEY>` or `/dev-workflows:create-prd <KEY>` on the idea route and from `/dev-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/dev-workflows:epics <PRD-ADDRESS>` and from no other command.
 
    **The kind decides the altitude, replacing the two-key grammar.** A `PRD-` folder is a PRD-level
    run (`<EPIC>` is `null`); an `EPIC-` folder is an Epic-level run, and its PRD folder is its
    parent. Two positional keys are no longer accepted, because the second was always derivable from
-   the first — `addressing.md` §4's `key` is what supplies both.
+   the first — `workflows-core:addressing` §4's `key` is what supplies both.
 
    `/ready` is **address-required**: with no positional address, stop with
    `READY_NEEDS_KEY: /ready needs a PRD or Epic address — a key, or an @<path> to its folder.` —
@@ -56,8 +58,7 @@ single Epic. Address an `EPIC-` folder to scope the check to one Epic
    under `$SPECS_PATH/specifications/`. If `$SPECS_PATH` is unset, stop with a clear error naming
    `SPECS_PATH`: `choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`.
 
-**Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
-`specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier run,
+**Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier run,
 retry an artifact commit that failed to push, and settle the branch. Prompt-free and silent when the
 specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
 `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal `commit-artifacts`
@@ -72,9 +73,9 @@ step skips on it.
    - Clean `main`/`master` → proceed silently.
 
 4. **Map onto the specs repo (PRD dir + optional Epic subdir).** Resolve the PRD dir with
-   `resolve-address <PRD>` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), which searches
+   `resolve-address <PRD>` (`workflows-core:addressing` §3), which searches
    every level §3 bounds and carries §5's legacy fallback; `status: absent` means none exists, and
-   `ambiguous` is a stop naming every match. The same entry point resolves what `ard-resolution.md`
+   `ambiguous` is a stop naming every match. The same entry point resolves what `workflows-core:ard-resolution`
    and `/design` resolve, which is what keeps the three from drifting apart. When `focus_key` is set, additionally resolve the per-Epic subdir
    `<PRD-dir>/EPIC-<EPIC>-<eslug>/` by the same tolerance. **Unlike `/design`, a missing dir is NOT a hard
    stop** — an early-lifecycle PRD (e.g. `Open` / `Problem stated`) legitimately has no specs-repo
@@ -88,7 +89,7 @@ best-effort-checks repos under `$REPOS_PATH`; cwd need not be inside either.
 
 ## Phase 1 — Clarify + artifact inventory
 
-**Rule: Ask, don't guess. This rule is absolute.** Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0).
+**Rule: Ask, don't guess. This rule is absolute.** Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0).
 
 1. **Confirm the resolved scope.**
    `choices: ["Use <PRD dir> [+ <Epic subdir>] (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]`
@@ -97,7 +98,7 @@ best-effort-checks repos under `$REPOS_PATH`; cwd need not be inside either.
    - **PRD-level** (`focus_key` null) — locate `<PRD-dir>/ard.md` (resolved via Phase 2.5, not here) and `<PRD-dir>/specification.md` (a PRD-level spec is optional per `workflow-states.md`); then enumerate **every** Epic subdirectory under `<PRD-dir>` that matches a key-number pattern, and for each locate `{ard.md, specification.md, design.md}` — this is per-Epic and plural, because a PRD's "Ready for Implementation" status requires **every in-scope Epic** to carry spec + design (`workflow-states.md`'s PRD row).
    - **Epic-level** (`focus_key` set) — locate the PRD-level `<PRD-dir>/ard.md` (inherited invariants) plus the single focus Epic's `{ard.md, specification.md, design.md}` under `<PRD-dir>/EPIC-<EPIC>-<eslug>/`.
 
-   For each `specification.md` and `design.md` path located above (the `ard.md` files are handled by Phase 2.5's `ard-resolution.md`, not here), execute `require-on-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3) against its repo-relative path and map its §3.7 return value by `stopped` first, never by `on_main` alone — never a stop, per this command's defining trait: `stopped: false` with `on_main: pass`/`pass_amending` → **present** (with its absolute path); `stopped: false` with `on_main: absent` → **missing**, exactly as before this feature (§3.4's `/ready` row — this is row F only, never rows D/E, which also read `absent` on `origin/<default>` but return `stopped: true`); `stopped: false` with `on_main: unmanaged` → fall back to a raw filesystem presence check, exactly as before this feature (row H's own silent-skip contract); `stopped: true` → still never a stop for `/ready` — map the row to exactly one of three ⚠ reasons, never conflating them, because they are three different repository states, not one: rows D/E → ⚠ **authored only on `<branch>`, not merged** (naming the branch and any open PR); rows C′/C″/C after a failed retry → ⚠ **on `<default>` but your local checkout is stale or dirty, so it could not be confirmed** — C″ belongs here and not with G/I: it is a local divergence (an uncommitted edit, or since 3.21.0 a committed-but-unpushed one) on the default branch, which is the same *state* C′ and C describe and a different one from "no ref to verify against". There are **seven** stopping rows and each must land in exactly one reason; mapping six left C″ with none, and the never-conflate rule forbids the obvious fallback; rows G/I (including the run's own `specs_git: blocked`) → ⚠ **could not be verified against any ref** (naming the returned `degraded` clause where present). Each is recorded verbatim as a readiness finding — `/ready` itself never asks a further question, retries, or stops on top of what came back: row C's own prompt-once-and-re-test-once (`phase-handoff.md` §3.3 row C and its prompt-once-then-re-test-once rule) and row C′'s own immediate stop naming the blocking files are `require-on-main`'s contract, already executed synchronously inside this very step; `/ready` only records whichever `stopped`/`degraded` state the call returned. Record each ARD as present (with its absolute path) or absent — its on-main state is Phase 2.5's job. Do not open/read file contents yet beyond what's needed for these checks — full reads happen in Phase 4 via the reviewer.
+   For each `specification.md` and `design.md` path located above (the `ard.md` files are handled by Phase 2.5's `workflows-core:ard-resolution`, not here), execute `require-on-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against its repo-relative path and map its §3.7 return value by `stopped` first, never by `on_main` alone — never a stop, per this command's defining trait: `stopped: false` with `on_main: pass`/`pass_amending` → **present** (with its absolute path); `stopped: false` with `on_main: absent` → **missing**, exactly as before this feature (§3.4's `/ready` row — this is row F only, never rows D/E, which also read `absent` on `origin/<default>` but return `stopped: true`); `stopped: false` with `on_main: unmanaged` → fall back to a raw filesystem presence check, exactly as before this feature (row H's own silent-skip contract); `stopped: true` → still never a stop for `/ready` — map the row to exactly one of three ⚠ reasons, never conflating them, because they are three different repository states, not one: rows D/E → ⚠ **authored only on `<branch>`, not merged** (naming the branch and any open PR); rows C′/C″/C after a failed retry → ⚠ **on `<default>` but your local checkout is stale or dirty, so it could not be confirmed** — C″ belongs here and not with G/I: it is a local divergence (an uncommitted edit, or since 3.21.0 a committed-but-unpushed one) on the default branch, which is the same *state* C′ and C describe and a different one from "no ref to verify against". There are **seven** stopping rows and each must land in exactly one reason; mapping six left C″ with none, and the never-conflate rule forbids the obvious fallback; rows G/I (including the run's own `specs_git: blocked`) → ⚠ **could not be verified against any ref** (naming the returned `degraded` clause where present). Each is recorded verbatim as a readiness finding — `/ready` itself never asks a further question, retries, or stops on top of what came back: row C's own prompt-once-and-re-test-once (`workflows-core:phase-handoff` §3.3 row C and its prompt-once-then-re-test-once rule) and row C′'s own immediate stop naming the blocking files are `require-on-main`'s contract, already executed synchronously inside this very step; `/ready` only records whichever `stopped`/`degraded` state the call returned. Record each ARD as present (with its absolute path) or absent — its on-main state is Phase 2.5's job. Do not open/read file contents yet beyond what's needed for these checks — full reads happen in Phase 4 via the reviewer.
 
 3. **The status peek is retired, and nothing replaces it.** It read a
    `| Key | Type | Status | Summary | Role |` table out of a per-key index file that a tracker export
@@ -112,7 +113,7 @@ best-effort-checks repos under `$REPOS_PATH`; cwd need not be inside either.
    `$SPECS_PATH`; the artifact inventory table from step 2; and any `--claimed` value verbatim, marked
    as the operator's claim rather than as this run's finding.
 
-No branching context is shown — nothing here branches this run; the only branch `/ready` ever creates is `ready/<KEY>-<slug>`, and only later, at Phase 5's handoff, and only on the §4.3 consent choice. `specs-preflight` itself still creates none, switching `$SPECS_PATH` only between branches that already exist and are plugin-created, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2.
+No branching context is shown — nothing here branches this run; the only branch `/ready` ever creates is `ready/<KEY>-<slug>`, and only later, at Phase 5's handoff, and only on the §4.3 consent choice. `specs-preflight` itself still creates none, switching `$SPECS_PATH` only between branches that already exist and are plugin-created, per `workflows-core:specs-repo-git` §2.2.
 
 ---
 
@@ -127,7 +128,7 @@ the coverage chain spans many Epics/repos. State the classification and a one-se
 `/ready` has **no delegated writer/implementation subagent** — the Phase 3 skeleton is deterministic and
 orchestrator-inline, and the only judgment-heavy delegate is the `readiness-reviewer` gate (Opus,
 frontmatter-pinned, mandatory regardless of tier). Resolve the per-step routing per
-`${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §9:
+`workflows-core:model-routing/classification` §9:
 
 ```yaml
 model_routing:
@@ -170,18 +171,18 @@ it.
 
 ## Phase 2.5 — Resolve ARD
 
-Resolve any applicable ARD by citing `${CLAUDE_PLUGIN_ROOT}/references/ard-resolution.md` with
+Resolve any applicable ARD by invoking `Skill(skill: "workflows-core:reference", args: "ard-resolution")` and running its resolution with
 `prd = key`, `epic = focus_key` (may be `null`), and `$SPECS_PATH`.
 
 - **`status: none`** (including `$SPECS_PATH` unset/unresolvable) → the ARD dimension is **inactive** for
   this run — no prompt, no extra output, `readiness-reviewer`'s ARD-conformance dimension is skipped
-  entirely (no-regression, per `ard-resolution.md`).
+  entirely (no-regression, per `workflows-core:ard-resolution`).
 - **`status: found`** → carry the returned `invariants` (`AD#N` list, PRD-level inherited +
   Epic-level when in scope) forward to Phase 4 as `applicable_ard`. `/ready` never edits the ARD and
   never authors a deviation record itself — it only checks whether one already exists in the artifacts
   it reads (an artifact that violates an `AD#N` **without** a matching
   `- ARD deviation: … flag: architect` line is a BLOCKER per the reviewer's ARD-conformance dimension).
-- **`status: unmerged`** → **never stop**, the one exemption `ard-resolution.md`'s no-regression rule names. Carry the returned `invariants` forward to Phase 4 as `applicable_ard` exactly as `found` does, and additionally carry the returned `branch`/`pr` forward as a readiness finding — "ARD authored, not handed off" — into Phase 3(b)'s status-expectation table, so it reaches `readiness-reviewer` and caps the eventual verdict at `PARTIAL` rather than letting a not-yet-merged ARD read as equivalent to a merged one.
+- **`status: unmerged`** → **never stop**, the one exemption `workflows-core:ard-resolution`'s no-regression rule names. Carry the returned `invariants` forward to Phase 4 as `applicable_ard` exactly as `found` does, and additionally carry the returned `branch`/`pr` forward as a readiness finding — "ARD authored, not handed off" — into Phase 3(b)'s status-expectation table, so it reaches `readiness-reviewer` and caps the eventual verdict at `PARTIAL` rather than letting a not-yet-merged ARD read as equivalent to a merged one.
 
 ---
 
@@ -318,10 +319,9 @@ plugin-gap halt (see Invariants).
    see this run's terminal report for the outcome.
    ```
 
-3. **Hand off** `_readiness.md` (commit-when-asked — never automatic). Present
-   `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's consent choice verbatim:
+3. **Hand off** `_readiness.md` (commit-when-asked — never automatic). Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 consent choice verbatim:
    `choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]`.
-   On the first choice, execute `handoff-to-main` (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2)
+   On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2)
    with `prefix: ready`; `feature_folder` = the PRD dir or Epic subdir step 2 wrote into;
    `deliverable_paths` = `_readiness.md`; `title: <PRD|EPIC> Update readiness snapshot`; and `body_facts` =
    the verdict, the coverage roll-up (N/M, P%), and the derived phase(s). Because `_readiness.md`
@@ -383,25 +383,25 @@ plugin-gap halt (see Invariants).
    The next phase runs once it is merged." or the declined/gate-failed/nothing-to-commit variant]
 
    ### Next step
-   [Per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked. SUPPORTED → `/dev-workflows:implement <ADDRESS>` — the same single address this run judged (D4), no handoff. PARTIAL / NOT-SUPPORTED → resolve the named gaps above and update the
+   [Per `workflows-core:next-phase-offer` — guidance only, never auto-invoked. SUPPORTED → `/dev-workflows:implement <ADDRESS>` — the same single address this run judged (D4), no handoff. PARTIAL / NOT-SUPPORTED → resolve the named gaps above and update the
    any status you keep elsewhere to match the artifacts, then re-run `/dev-workflows:ready <ADDRESS>`.]
 
    ### Context hygiene
    The resume pointer is written in the terminal cost phase (Phase 8), per
-   `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1, recording the readiness
+   `workflows-core:session-hygiene` §1, recording the readiness
    verdict as a carry-forward line. Then:
 
    - **SUPPORTED → `/dev-workflows:implement <ADDRESS>` (still Dev)?** → run **`/compact`** — context stays relevant.
    - **PARTIAL / NOT-SUPPORTED → resolving the gaps yourself now?** → **`/compact`**.
    - Consider **`/rename <PRD-ID>-<slug>-dev`** to relocate this session later.
 
-   Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
+   Guidance only — see `workflows-core:session-hygiene`.
    ```
 
 `/ready` **NEVER** writes outside `$SPECS_PATH`. It commits and hands off
-`_readiness.md` only through step 3's `phase-handoff.md` §4.3 consent choice — declining leaves it
+`_readiness.md` only through step 3's `workflows-core:phase-handoff` §4.3 consent choice — declining leaves it
 uncommitted; that handoff is independent of the terminal `commit-artifacts` step, which stages ONLY the
-run's bounded session-artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1) and
+run's bounded session-artifact paths (`workflows-core:specs-repo-git` §2.1) and
 never `_readiness.md` itself. Phases 6–8 below append their own short trailing notices after this
 report; they do not reopen or restate it.
 
@@ -417,7 +417,7 @@ a. `project_root` = `$SPECS_PATH` for this run (where `_readiness.md` was writte
    just to report what changed. Phase 5 step 3 already ran the only commit `_readiness.md` ever gets, so
    this diff is clean if the user consented there and still shows `_readiness.md` if they declined; this
    phase itself commits nothing beyond the bounded artifact paths the terminal `commit-artifacts` step
-   stages (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
+   stages (`workflows-core:specs-repo-git` §2.1).
 b. Compose a **change summary block**:
 
 ```
@@ -487,8 +487,7 @@ concurrently.
 > - Project root: [resolved project_root]"
 
 **Persist plugin feedback (automatic).** After Agent 4 (`impl-maintenance`) returns, project its
-plugin-facing slice into the specs repo by citing
-`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its `emit-auto` entry point (§6).
+plugin-facing slice into the specs repo by invoking `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and calling its `emit-auto` entry point (§6).
 Pass Agent 4's Lessons Learned report, `command: /ready`, the run's `key` and `source`, and
 `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto` renders
 only the report's **Command workflow improvements**, **New agents / skills**, and plugin **Reference
@@ -509,7 +508,7 @@ Emit this phase's own short output:
 
 ADDITIVE — this phase NEVER fails the run and NEVER commits its own output (still true — it writes only
 the maintenance/feedback artifacts, which the terminal `commit-artifacts` step in Phase 8 commits, per
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4; the only commit this run makes before Phase 8 is
+`workflows-core:specs-repo-git` §4; the only commit this run makes before Phase 8 is
 Phase 5 step 3's `_readiness.md` handoff, which is unrelated), and NEVER writes into
 `prd_dir`, or the current working directory.
 
@@ -518,8 +517,7 @@ Phase 5 step 3's `_readiness.md` handoff, which is unrelated), and NEVER writes 
 ## Phase 7 — Emit follow-up tasks
 
 Terminal phase — runs AFTER the Phase 5 report is composed; NEVER interrupts an earlier phase. Persist
-the run's manual-step / out-of-scope follow-ups by citing
-`${CLAUDE_PLUGIN_ROOT}/references/followup-emission.md` and executing its steps inline.
+the run's manual-step / out-of-scope follow-ups by invoking `Skill(skill: "workflows-core:reference", args: "followup-emission")` and executing its steps inline.
 
 1. **Collect** the qualifying follow-ups: the **named readiness gaps** from Phase 4's Findings that a
    `PARTIAL` / `NOT-SUPPORTED` verdict surfaced (each gap → one follow-up: "resolve <gap>, see
@@ -541,7 +539,7 @@ Emit this phase's own short output:
 ADDITIVE — the follow-ups also remain in the Phase 5 report's Findings/coverage sections. This
 phase NEVER fails the run and NEVER commits its own output (still true — it only writes follow-up
 files, which the terminal `commit-artifacts` step in Phase 8 commits, per
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4; unrelated to Phase 5 step 3's `_readiness.md`
+`workflows-core:specs-repo-git` §4; unrelated to Phase 5 step 3's `_readiness.md`
 handoff, the only commit this run makes before Phase 8), and NEVER writes into
 `prd_dir`, or the current working directory.
 
@@ -550,8 +548,7 @@ handoff, the only commit this run makes before Phase 8), and NEVER writes into
 ## Phase 8 — Session cost
 
 Terminal phase — runs after Phase 7 and NEVER interrupts an earlier phase. Records this command's
-token-cost contribution to the PRD by citing `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and
-calling its single `emit-cost` entry point. **Cost ALWAYS runs** — it never "writes nothing".
+token-cost contribution to the PRD by invoking `Skill(skill: "workflows-core:reference", args: "cost-emission emit-cost")` and calling its single `emit-cost` entry point. **Cost ALWAYS runs** — it never "writes nothing".
 
 Call `emit-cost` with `command: /ready`, `phase: readiness`, `role: dev`, the run's `key` (or
 `null`) and `source`, and `plugin_version` (read from
@@ -569,13 +566,11 @@ Emit this phase's own short output:
 [persisted path, OR the report-only / pending notice]
 ```
 
-**Then write the resume pointer.** Cite `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and
-write/overwrite `<PRD-dir>/dev-workflows/resume.md` now — after the cost entry above, so the pointer
+**Then write the resume pointer.** Invoke `Skill(skill: "workflows-core:reference", args: "session-hygiene")` and, per its §1, write/overwrite `<PRD-dir>/dev-workflows/resume.md` now — after the cost entry above, so the pointer
 reflects the completed run, and before the commit step below, so it is included in it. Redact per §1.
 Silent; the printed `### Context hygiene` guidance already appeared in the Phase 5 report.
 
-**Then commit session artifacts (terminal).** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`
-and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY
+**Then commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY
 the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits `<KEY> Add dev-workflows session artifacts
 (/ready)`, and pushes per §4 step 5. It NEVER touches a code/docs repo, or the current working directory; NEVER force-pushes; NEVER fails the run; and skips entirely when the
 run carries `specs_git: blocked` (§3.3 G0), re-emitting that notice. Because the Phase 5 report was
@@ -595,22 +590,22 @@ whatever branch Phase 5 left checked out), and NEVER writes into
 
 - NEVER write a status anywhere — this command reports and never sets
 - NEVER write into a code or docs repository
-- Branches only via the Phase 5 step 3 `phase-handoff.md` §4.3 consent choice, creating
+- Branches only via the Phase 5 step 3 `workflows-core:phase-handoff` §4.3 consent choice, creating
   `ready/<KEY>-<slug>` — `specs-preflight` itself still creates no branch, a hard invariant: it only
   switches `$SPECS_PATH` between branches that already exist, and only plugin-created ones, per
-  `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2
+  `workflows-core:specs-repo-git` §2.2
 - NEVER auto-commit `_readiness.md` — the commit is offered at that same §4.3 choice, never automatic;
   declining leaves `_readiness.md` uncommitted (still true — `_readiness.md` is the deliverable, an
   OTHER path the terminal `commit-artifacts` step never stages, §2.1)
-- NEVER stop on a `require-on-main` or `ard-resolution.md` outcome for a gated ARD/spec/design (Phase 1
+- NEVER stop on a `require-on-main` or `workflows-core:ard-resolution` outcome for a gated ARD/spec/design (Phase 1
   step 2, Phase 2.5) — `/ready` is the one caller these gates never stop: an artifact off `<default>`
   becomes a readiness finding ("authored, not handed off") that caps the verdict at `PARTIAL`; an absent
   artifact is recorded as missing in the coverage roll-up, exactly as before this feature
-- ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
+- ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `workflows-core:specs-repo-git`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - doc-only — repo check is presence-only, no scanning (Phase 3c; never dispatches `code-scanner`)
-- ALWAYS end with a `### Next step` per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never
+- ALWAYS end with a `### Next step` per `workflows-core:next-phase-offer` — guidance only, never
   auto-invoked
-- ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a
+- ALWAYS `emit-block` (per `workflows-core:feedback-emission`) before escalating a halt caused by a
   **plugin / skill / command / reference gap** — a `readiness-reviewer` run that cannot get a verdict
   because the plugin lacked something it needed still records it. NEVER for the reviewer's own
   `PARTIAL`/`NOT-SUPPORTED` verdict (a finding about the *work*, not the plugin) or an environment/user
@@ -628,10 +623,10 @@ whatever branch Phase 5 left checked out), and NEVER writes into
 - ALWAYS pass `Change type: docs` in the Phase 6 change summary block
 - ALWAYS pass `Command run: /ready` in the Phase 6 Agent 4 session handoff
 - ALWAYS spawn Phase 6's four maintenance agents in a single message — never sequentially
-- ALWAYS use `choices` arrays for decision points; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0)
+- ALWAYS use `choices` arrays for decision points; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0)
 - ARD steps (Phase 2.5, the reviewer's `applicable_ard`, the report's ARD-conformance section) are
   ADDITIVE and guarded on `status: found` or `status: unmerged` — a run with no ARD (`status: none`) is
   byte-identical to before
 - ALL written claims trace to a resolved key or to artifact paths actually read; never
   invent content the sources don't contain
-- ALWAYS end with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write — carrying the verdict as carry-forward — runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a same-role `/compact` suggestion + `/rename <PRD-ID>-<slug>-dev`; guidance only, never auto-run.
+- ALWAYS end with a `### Context hygiene` block per `workflows-core:session-hygiene` — prepare-first (the `resume.md` write — carrying the verdict as carry-forward — runs later, in the terminal cost phase, per `workflows-core:session-hygiene` §1 — this block prints the guidance only), then a same-role `/compact` suggestion + `/rename <PRD-ID>-<slug>-dev`; guidance only, never auto-run.

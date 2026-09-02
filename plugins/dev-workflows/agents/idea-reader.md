@@ -4,6 +4,8 @@ description: Ingests one idea source (inline prompt, a markdown file with links/
 tools: ["Read", "Glob", "Grep"]
 ---
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 Ingest one idea source and return a structured digest. Read-only — never modify any file.
 
 Invoked from `/idea` (Phase 2). The caller has already classified the source type (Phase 1); this
@@ -84,7 +86,7 @@ the product does today.
 
 **An image read here is CONTEXT, never grounded evidence.** It informs `raw_context` and the questions the
 caller's grill puts to the operator. It is **not** a `[DG#n]` design-grounding finding, it needs **no** index
-file, and it gets **no** verifier pass. `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §6's frame-set
+file, and it gets **no** verifier pass. `workflows-core:grounding-format` §6's frame-set
 rules — the reserved `design/` subdirectory, the mandatory index, `design-grounder`, the four reconciliation
 classes — govern *evidence*, and none of them reaches here: this agent is not a grounder and does not become
 one by rendering a picture. §6.1 requires an index because a *filename* is not a reliable statement of what a

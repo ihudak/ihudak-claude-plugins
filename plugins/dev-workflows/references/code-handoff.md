@@ -1,5 +1,7 @@
 # Code-repo handoff — Shared Reference
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 Single source of truth for the step that turns finished work in a **code repository** into a commit on its own branch, pushes that branch, and opens a pull request where the host allows one: the `finish-code-branch` entry point (§2). Consumed by `/implement`, `/vuln`, and `/upgrade` — the three commands that create a branch in a code repo and write into it.
 
 **The principle.** Work that exists only in a working tree is one `git checkout` away from gone, and a command that created the branch it was written on owns getting it committed before the run ends. Committing is local and reversible, so it is not the user's to approve. Pushing and opening a pull request leave the machine, so they are.
@@ -10,11 +12,11 @@ Single source of truth for the step that turns finished work in a **code reposit
 
 | Reference | Repository | Scope |
 |---|---|---|
-| `specs-repo-git.md` | `$SPECS_PATH` | bookkeeping — session artifacts, cost, feedback |
-| `phase-handoff.md` | `$SPECS_PATH` | phase deliverables — idea, PRD, ARD, specification, design, readiness, BRD artifacts |
+| `workflows-core:specs-repo-git` | `$SPECS_PATH` | bookkeeping — session artifacts, cost, feedback |
+| `workflows-core:phase-handoff` | `$SPECS_PATH` | phase deliverables — idea, PRD, ARD, specification, design, readiness, BRD artifacts |
 | **this file** | the **code** repo (under `$REPOS_PATH`, or the working clone) | the code the run just wrote |
 
-This file never writes into `$SPECS_PATH` and neither of the others ever writes into a code repo; the two that share `$SPECS_PATH` are separated by *which paths* they stage, not by repository (`specs-repo-git.md` §2.1's bounded bookkeeping set versus the caller's own declared deliverable paths). A single run may execute all three against different targets, and the outcome lines — `Specs repo:`, `Phase handoff:`, `Code repo:` — are what keep them attributable in its output.
+This file never writes into `$SPECS_PATH` and neither of the others ever writes into a code repo; the two that share `$SPECS_PATH` are separated by *which paths* they stage, not by repository (`workflows-core:specs-repo-git` §2.1's bounded bookkeeping set versus the caller's own declared deliverable paths). A single run may execute all three against different targets, and the outcome lines — `Specs repo:`, `Phase handoff:`, `Code repo:` — are what keep them attributable in its output.
 
 ---
 
@@ -24,11 +26,11 @@ This file never writes into `$SPECS_PATH` and neither of the others ever writes 
 2. **Never the default branch.** The commit lands on the run's own branch or it does not land. This entry point never commits to `main` / `master` / `develop`, and never pushes to one.
 3. **Never destructive.** No `push --force`, no `push -f`, no `branch -D`, no `merge`, no `rebase`, no `reset`, no `checkout --`, no `commit --amend`, and never delete an `index.lock`. It also never *drops* a stash: a stash the caller pushed at branch time is the user's, and §2.2 carve-out 2 says so.
 4. **Never fatal.** Every failure is reported and the run's remaining phases still execute — including the caller's terminal `commit-artifacts` step, which commits a different repository.
-5. **The commit is prompt-free; the push and the pull request are not.** This is the same rule as `phase-handoff.md` §1 rule 7, drawn one step later: there, nothing at all happens without consent because the deliverable is already safe on disk. Here the work is *not* safe until it is committed, and a prompt that can be answered "no" is exactly the failure mode this file was written to remove. So the commit runs unconditionally and §2.4's choice governs only what leaves the machine.
+5. **The commit is prompt-free; the push and the pull request are not.** This is the same rule as `workflows-core:phase-handoff` §1 rule 7, drawn one step later: there, nothing at all happens without consent because the deliverable is already safe on disk. Here the work is *not* safe until it is committed, and a prompt that can be answered "no" is exactly the failure mode this file was written to remove. So the commit runs unconditionally and §2.4's choice governs only what leaves the machine.
 
-**The one opt-out, and it is typed rather than clicked.** `/implement` and `/upgrade` take `--no-commit`, which skips this entry point entirely and leaves the work in the tree. That does not contradict rule 5: the rule is about a prompt a tired operator clicks past at the end of a long run, not about someone who deliberately asked. A caller running under it says once, in its report, what the choice costs — the work is recoverable only on this machine, and `/document` and `/release-notes` will not find it later (`${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §4) — and does not argue it twice. `/vuln` has no such flag.
+**The one opt-out, and it is typed rather than clicked.** `/implement` and `/upgrade` take `--no-commit`, which skips this entry point entirely and leaves the work in the tree. That does not contradict rule 5: the rule is about a prompt a tired operator clicks past at the end of a long run, not about someone who deliberately asked. A caller running under it says once, in its report, what the choice costs — the work is recoverable only on this machine, and `/document` and `/release-notes` will not find it later (`workflows-core:implementation-format` §4) — and does not argue it twice. `/vuln` has no such flag.
 
-**Where this reference deliberately differs from its siblings.** Both `specs-repo-git.md` (§1 rule 2) and `phase-handoff.md` (§1 rule 2) forbid `git add -A` at repository scope: there, the repository holds artifacts belonging to many runs and to the user, so only enumerated paths may be staged. **This entry point stages at repository scope on purpose** (§2.2), because in a code repo the run branched off a verified-clean tree and the whole diff *is* the deliverable — staging an enumerated subset would commit part of an implementation and silently drop the rest, which is the failure this file exists to prevent. The bound is moved rather than dropped: it is the **clean-tree precondition plus §2.2's `pre_existing_dirty` carve-out** that keeps somebody else's work out of the commit, and where that precondition does not hold, §2.2 falls back to staging by enumeration exactly as the siblings do. A reader who "corrects" §2.2 to match the siblings breaks this contract; a reader who carries §2.2's repository-scope staging back into either sibling breaks theirs.
+**Where this reference deliberately differs from its siblings.** Both `workflows-core:specs-repo-git` (§1 rule 2) and `workflows-core:phase-handoff` (§1 rule 2) forbid `git add -A` at repository scope: there, the repository holds artifacts belonging to many runs and to the user, so only enumerated paths may be staged. **This entry point stages at repository scope on purpose** (§2.2), because in a code repo the run branched off a verified-clean tree and the whole diff *is* the deliverable — staging an enumerated subset would commit part of an implementation and silently drop the rest, which is the failure this file exists to prevent. The bound is moved rather than dropped: it is the **clean-tree precondition plus §2.2's `pre_existing_dirty` carve-out** that keeps somebody else's work out of the commit, and where that precondition does not hold, §2.2 falls back to staging by enumeration exactly as the siblings do. A reader who "corrects" §2.2 to match the siblings breaks this contract; a reader who carries §2.2's repository-scope staging back into either sibling breaks theirs.
 
 ---
 
@@ -45,9 +47,9 @@ Resolve the base branch (§2.8) **first** — the gate's last check needs its va
 3. That name is **not** the resolved base branch.
 4. That name **equals the caller's `branch` input**. `git commit` writes to HEAD while `git push -u origin <branch>` pushes the ref *named* `<branch>`; if the two differ both succeed and the run reports a push that never happened. Mismatch is a gate failure naming both values, never a silent correction.
 
-**Writability is not pre-probed.** Attempt the commit and let a real `Read-only file system` error be the trigger (`${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md` §1's own secondary trigger). That file's `test -w` probe is written for a *scanner*, where it says in as many words that a false positive is benign because the agent just reads at a ref instead. Here the same probe would decide whether finished work is committed at all, and a false positive strands it — and note that a genuinely read-only mount would have failed the caller's Write/Edit tools hours earlier, so nearly every firing of a pre-probe here is a false positive.
+**Writability is not pre-probed.** Attempt the commit and let a real `Read-only file system` error be the trigger (`workflows-core:read-only-repos` §1's own secondary trigger). That file's `test -w` probe is written for a *scanner*, where it says in as many words that a false positive is benign because the agent just reads at a ref instead. Here the same probe would decide whether finished work is committed at all, and a false positive strands it — and note that a genuinely read-only mount would have failed the caller's Write/Edit tools hours earlier, so nearly every firing of a pre-probe here is a false positive.
 
-A failed gate is reported through §3.1's `NOT committed` line and the run continues. Detached HEAD is worth naming rather than merely reporting: it is the same blocking state `specs-repo-git.md` §3.3 G0 names, for the same reason — a commit made there is reachable from no ref. Report it; never create a branch to escape it, because the branch this run was supposed to be on is not the one this step gets to choose.
+A failed gate is reported through §3.1's `NOT committed` line and the run continues. Detached HEAD is worth naming rather than merely reporting: it is the same blocking state `workflows-core:specs-repo-git` §3.3 G0 names, for the same reason — a commit made there is reachable from no ref. Report it; never create a branch to escape it, because the branch this run was supposed to be on is not the one this step gets to choose.
 
 **No `origin` remote is not a gate failure.** §2.8's ladder is unresolvable without one, so checks 3 and 4 fall back to comparing HEAD against the caller's `branch` input alone, the commit proceeds, and §2.5 reports that there was nothing to push. A local-only clone is a legitimate setup and must never cost the user their commit.
 
@@ -71,19 +73,19 @@ Three carve-outs:
 
 ### 2.3 Commit
 
-**Subject.** Every commit this entry point makes ends with `[<key>]` where the run resolved a key, and carries a `Work-Item: <workitem_key>` trailer where the resolved folder has one — `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §3, this plugin's own documented convention, binding on all three callers. **This is where the plugin writes that convention rather than merely teaching it.**
+**Subject.** Every commit this entry point makes ends with `[<key>]` where the run resolved a key, and carries a `Work-Item: <workitem_key>` trailer where the resolved folder has one — `workflows-core:implementation-format` §3, this plugin's own documented convention, binding on all three callers. **This is where the plugin writes that convention rather than merely teaching it.**
 
-Everything the convention leaves open comes from the repository, never from habit: read `git -C "<repo>" log --oneline -20` and match what it shows. A conventional-commits log gets `feat:` / `fix:` / `chore:` matching the type the run's own branch prefix already expresses (`${CLAUDE_PLUGIN_ROOT}/references/branch-naming.md` §2.4 lists each command's fallback prefix, but a repo with its own documented convention may have supplied a different one — read what the run resolved, not the fallback table); a log with no discernible convention gets a plain imperative subject. A caller with a full template of its own overrides this paragraph — `/vuln`'s "Git Workflow → Commit message" is the one that exists today — and passes it as `commit_template`.
+Everything the convention leaves open comes from the repository, never from habit: read `git -C "<repo>" log --oneline -20` and match what it shows. A conventional-commits log gets `feat:` / `fix:` / `chore:` matching the type the run's own branch prefix already expresses (`workflows-core:branch-naming` §2.4 lists each command's fallback prefix, but a repo with its own documented convention may have supplied a different one — read what the run resolved, not the fallback table); a log with no discernible convention gets a plain imperative subject. A caller with a full template of its own overrides this paragraph — `/vuln`'s "Git Workflow → Commit message" is the one that exists today — and passes it as `commit_template`.
 
-**A run with no key writes no suffix.** `/implement` in direct mode and `/vuln` on a bare `CVE-ID` both resolve no folder; the subject is the bare imperative and the trailer is absent. Never invent a key to satisfy the convention — the scan in `implementation-format.md` §4 searches for tokens the run already holds, and a minted one matches nothing.
+**A run with no key writes no suffix.** `/implement` in direct mode and `/vuln` on a bare `CVE-ID` both resolve no folder; the subject is the bare imperative and the trailer is absent. Never invent a key to satisfy the convention — the scan in `workflows-core:implementation-format` §4 searches for tokens the run already holds, and a minted one matches nothing.
 
-**Body.** What changed and why — one line per notable item — plus the review verdict where the caller has one, and the test result where the caller ran tests. **Trailers.** `Co-Authored-By: Claude <noreply@anthropic.com>`, plus `Work-Item:` where the folder supplies one; a caller's own template may add more. This diverges from `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §1 rule 6, which forbids the trailer, and follows `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §1 rule 6 instead, for the same reason: a bookkeeping file is plugin-generated, and code is authored.
+**Body.** What changed and why — one line per notable item — plus the review verdict where the caller has one, and the test result where the caller ran tests. **Trailers.** `Co-Authored-By: Claude <noreply@anthropic.com>`, plus `Work-Item:` where the folder supplies one; a caller's own template may add more. This diverges from `workflows-core:specs-repo-git` §1 rule 6, which forbids the trailer, and follows `workflows-core:phase-handoff` §1 rule 6 instead, for the same reason: a bookkeeping file is plugin-generated, and code is authored.
 
 **Write the whole message to a file and commit with `-F`:**
 
     git -C "<repo>" commit -F <msg-path>
 
-`<msg-path>` is a `mktemp -t` path **outside any repo tree** (§5). This is `phase-handoff.md` §2.7's rule applied to the commit message, and it is not stylistic: `-m "…"` inside a double-quoted shell string command-substitutes `$(…)` and backticks before git ever sees the text, and `/vuln`'s template interpolates an NVD CVE description — free text, routinely containing shell metacharacters and version expressions — straight into it. `/upgrade` interpolates component names and `/implement` a free-text summary, with the same exposure. `-F` also preserves the multi-line body and trailer that `-m` would mangle.
+`<msg-path>` is a `mktemp -t` path **outside any repo tree** (§5). This is `workflows-core:phase-handoff` §2.7's rule applied to the commit message, and it is not stylistic: `-m "…"` inside a double-quoted shell string command-substitutes `$(…)` and backticks before git ever sees the text, and `/vuln`'s template interpolates an NVD CVE description — free text, routinely containing shell metacharacters and version expressions — straight into it. `/upgrade` interpolates component names and `/implement` a free-text summary, with the same exposure. `-F` also preserves the multi-line body and trailer that `-m` would mangle.
 
 Never `--amend` (§1 rule 3): an amend rewrites a commit that may already be pushed, and this step is reachable more than once per run.
 
@@ -115,7 +117,7 @@ There is deliberately no `Cancel`: the commit has already happened, so there is 
 
     gh pr list -R "<owner_repo>" --head <branch> --state open --json number,url
 
-One already open ⇒ the push in §2.5 has already updated it. Report it through §3.1's *pushed to existing PR* row — not the rows for a pull request this run opened, which would assert something that did not happen (§2.10) and would leave that row reachable by nothing — and do **not** call `gh pr create`, which would fail on the duplicate and send the run down §3.2 telling the user to open a pull request that exists. This is `phase-handoff.md` §3.5's primitive, applied here.
+One already open ⇒ the push in §2.5 has already updated it. Report it through §3.1's *pushed to existing PR* row — not the rows for a pull request this run opened, which would assert something that did not happen (§2.10) and would leave that row reachable by nothing — and do **not** call `gh pr create`, which would fail on the duplicate and send the run down §3.2 telling the user to open a pull request that exists. This is `workflows-core:phase-handoff` §3.5's primitive, applied here.
 
 A `gh pr create` that exits 0 but prints nothing parseable as a number or URL is **not** treated as a failure — the pull request very likely exists, and falling back to §3.2 would tell the user to open a second one. Report it with the dedicated §3.1 row instead.
 
@@ -180,7 +182,7 @@ Never fatal (§1 rule 4). Every failure is reported, and no report may imply a s
 | `branch` | the branch the caller created or adopted — §2.1 check 4 verifies HEAD is actually on it |
 | `pre_existing_dirty` | porcelain paths dirty before the run's first edit, or `null` |
 | `stash_ref` | the stash the caller pushed at branch time, or `null` |
-| `key` | the resolved folder's `key` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4), or `null` |
+| `key` | the resolved folder's `key` (`workflows-core:addressing` §4), or `null` |
 | `workitem_key` | the resolved folder's `workitem_key`, or `null` |
 | `title` | the commit subject and pull-request title |
 | `body_facts` | what §2.7 renders into the body file |
@@ -259,7 +261,7 @@ Four obligations. Omitting any one is a defect, not a style choice.
 
 ## 5. What this entry point never does
 
-- Never touches `$SPECS_PATH` — that repository belongs to `specs-repo-git.md` (bookkeeping) and `phase-handoff.md` (deliverables) — and never touches a docs repo, which belongs to `finish-and-handoff.md`. `$DOCS_PATH` is a read-only grounding base and is nobody's to commit.
+- Never touches `$SPECS_PATH` — that repository belongs to `workflows-core:specs-repo-git` (bookkeeping) and `workflows-core:phase-handoff` (deliverables) — and never touches a docs repo, which belongs to `finish-and-handoff.md`. `$DOCS_PATH` is a read-only grounding base and is nobody's to commit.
 - Never merges a pull request, and never approves one.
 - Never calls a REST API over HTTPS. `git push` is git-protocol; `gh` wraps the API (§2.6).
 - Never writes a file into the repository it is committing. Everything it needs — the pull-request body included — is written outside the tree.

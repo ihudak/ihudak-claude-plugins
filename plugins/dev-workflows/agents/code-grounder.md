@@ -4,9 +4,11 @@ description: Grounds specific BRD claims against a single code repository at a p
 tools: ["Read", "Glob", "Grep", "Bash"]
 ---
 
-Read `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` for the `[CG#n]` finding record, the
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
+Invoke `Skill(skill: "workflows-core:reference", args: "grounding-format")` and read it for the `[CG#n]` finding record, the
 six verdicts, the `baseline-integrity` procedure, and the horizons. Follow that reference; do not
-restate it here. Read `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md` for the read-only
+restate it here. Invoke `Skill(skill: "workflows-core:reference", args: "read-only-repos")` and read it for the read-only
 posture toward a mounted repository.
 
 Ground a list of specific `[BR#n]` claims against one code repository, pinned to one commit. The
@@ -49,10 +51,10 @@ repository, a commit, or a claim to have something to ground.
    way.
 
 3. **Establish read/write posture.** Test whether `repo_path` and `repo_path/.git` are writable per
-   `read-only-repos.md` §1. This agent never writes regardless of the mount — no branch switch, no
+   `workflows-core:read-only-repos` §1. This agent never writes regardless of the mount — no branch switch, no
    pull, no fetch — so the only consequence of the posture is which read primitives it uses in step
    4: native `Read`/`Glob`/`Grep` on a writable mount or one already sitting at `commit`, and the
-   `read-only-repos.md` §4 ref primitives (`git show <commit>:<path>`, `git grep -n <pattern>
+   `workflows-core:read-only-repos` §4 ref primitives (`git show <commit>:<path>`, `git grep -n <pattern>
    <commit>`, `git ls-tree -r --name-only <commit>`) otherwise, so every citation describes content
    at the pinned commit rather than an unrelated working tree.
 
@@ -63,7 +65,7 @@ repository, a commit, or a claim to have something to ground.
    **A cited line must be re-read for what it actually does before it is cited** — the failure this
    agent exists to prevent is inferring a plausible mechanism and citing something adjacent to it.
 
-5. **Decide the verdict** from the closed set in `grounding-format.md` §3. Do not restate the
+5. **Decide the verdict** from the closed set in `workflows-core:grounding-format` §3. Do not restate the
    definitions here; apply them as written there.
 
    **`NOT-PROVABLE` is a legitimate, final answer, not a shortfall.** When a claim genuinely cannot
@@ -86,7 +88,7 @@ repository, a commit, or a claim to have something to ground.
    folded into the claim's `evidence` alongside the real evidence that actually settles the claim
    — but never silently.
 
-6. **Assign `altitude` and `horizon`** per `grounding-format.md` §2 and §5. `horizon: will-change`
+6. **Assign `altitude` and `horizon`** per `workflows-core:grounding-format` §2 and §5. `horizon: will-change`
    names the specific prerequisite decision that overturns the finding, not merely the prerequisite
    BRD; if no prerequisite's decisions are frozen yet — frozen being `status: decided` and nothing
    else, per that section — the finding stays `current`.
@@ -138,7 +140,7 @@ notes: |
 - NEVER cite a line without having read what it actually does. A token match is a lead, not
   evidence; evidence is a line re-read and confirmed to bear on the specific claim under test.
 - NEVER leave `evidence` blank, including for `NOT-PROVABLE` findings or findings that assert an
-  absence. State what was searched and why it fell short, per `grounding-format.md` §2.
+  absence. State what was searched and why it fell short, per `workflows-core:grounding-format` §2.
 - NEVER report a `FALSE-FRIEND` as though it were the claim's real support. When a plausibly-named
   decoy is the only thing found, the verdict names it as a decoy, not as confirmation.
 - NEVER invent a claim's verdict without evidence, and never suppress `NOT-PROVABLE` in favor of a

@@ -6,6 +6,8 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 
 Turn the decided BRD into a package a customer can actually review: $ARGUMENTS
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 `/brd-package` is the **fifth command of the BRD-to-PRD flow** (PM phase) — it takes the register
 `/brd-interview` wrote and the `[C]` questions it held, attacks the package before the customer
 does, and renders a bundle for a reviewer with **a vanilla agent and nothing installed**. Its whole
@@ -17,7 +19,7 @@ happen, not to restate it.
 Usage: `/brd-package <BRD-KEY> [--depends-on <BRD-KEY>…]`
 
 Runs at either of the two levels `<BRD-KEY>` can name
-(`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §6) — a BRD that owns its source document, or
+(`workflows-core:addressing` §6) — a BRD that owns its source document, or
 one of its slices. It refuses neither and behaves identically at both: a slice holds its own
 register, its own `[C]` question set and its own findings, and it is packaged from those and no
 others. The bundle this run builds is the bundle of the BRD it was given.
@@ -33,7 +35,7 @@ structural rather than aspirational.
 **This command takes no `--no-docs`, and it does no documentation grounding at all. That is a
 decision, not an omission.** `/brd-intake` and `/brd-ground` already ground this BRD against the
 shipped product documentation when `$DOCS_PATH` resolves (D22,
-`${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md`), and `/brd-interview` deliberately does none
+`workflows-core:docs-grounding`), and `/brd-interview` deliberately does none
 for the same reason this command does none: it works on **decisions already taken**. This command
 goes one step further — it establishes no claim of its own at all. It renders what other commands
 recorded, and a documentation page cannot change a decision that is already in the register or a
@@ -49,7 +51,7 @@ there is no baseline gate here, no dirty-tree stop, and no `$REPOS_PATH` require
 `baseline-integrity` commands are not re-run by this command — they are **handed to the customer's
 reviewer**, written out with the repository and the commit substituted, so the customer re-derives
 the pin against their own checkout rather than taking the package's word for it
-(`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §4).
+(`workflows-core:grounding-format` §4).
 
 ---
 
@@ -98,7 +100,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
 ## Phase 0 — Resolve inputs and gate the decided BRD
 
 1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `key-valid`
-   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). If absent or invalid, stop:
+   (`workflows-core:addressing` §1). If absent or invalid, stop:
    `BRD_PACKAGE_NEEDS_KEY: /brd-package needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/dev-workflows:brd-package <KEY>'.`
 2. **`--depends-on <BRD-KEY>`.** Repeatable, each consuming the next token; validate each with
    `key-valid` and drop (warn, do not stop the run) any that fail shape — the same handling
@@ -109,22 +111,21 @@ cannot review, and they will not tell you that — they will review it anyway, b
    business.
 3. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`, per the
    `Required path environment variable unset` rule in
-   `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
+   `workflows-core:escalation-rules`:
    ```
    choices: ["Set SPECS_PATH (enter the path)", "Cancel"]
    ```
-4. **Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute
-   its `specs-preflight` entry point (§3) inline, **before** the gate below — `require-on-main`
-   performs no fetch of its own (`phase-handoff.md` §3.2) and relies on this step's best-effort one,
+4. **Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline, **before** the gate below — `require-on-main`
+   performs no fetch of its own (`workflows-core:phase-handoff` §3.2) and relies on this step's best-effort one,
    the same ordering `/brd-interview` uses and for the same reason. Prompt-free and silent when the
    specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run.
-5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`addressing.md` §3), which searches
-   `specifications/` and the levels below it that `resolve-address` searches (three, per `addressing.md` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent
+5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`workflows-core:addressing` §3), which searches
+   `specifications/` and the levels below it that `resolve-address` searches (three, per `workflows-core:addressing` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent
    → stop, without asserting which command would have created it:
    `BRD_PACKAGE_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
 6. **Gate the decision register on main.** This command **consumes** a `$SPECS_PATH` deliverable it
-   did not write, so per `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §5 rule 2 it executes
+   did not write, so per `workflows-core:phase-handoff` §5 rule 2 it executes
    `require-on-main` (§3) here, before anything else reads a file. Execute it against the resolved
    folder's `decisions.md`. Every deliverable one `handoff-to-main` run stages lands in a single
    commit (§2.3), so its presence on `origin/<default>` implies the round records and
@@ -143,7 +144,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
      opens a new round only on a changed finding, a changed verifier outcome or a moved decision, so
      on an unchanged BRD it takes the no-new-round path, reaches its handoff phase with nothing
      staged, reports `nothing to commit` and opens no pull request — `handoff-to-main` stages only
-     the paths *that* run declared (`${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.3), and the
+     the paths *that* run declared (`workflows-core:phase-handoff` §2.3), and the
      register already on disk is not among them. What is needed is the register already written,
      landed:
      `BRD_PACKAGE_REGISTER_NOT_HANDED_OFF: <BRD-KEY>'s decision register is written at <path> but is on no branch — its handoff was declined. Commit and merge decisions.md and the interview/ round records to the specs repo's default branch, then re-run; do not re-run /dev-workflows:brd-interview, whose no-new-round path stages nothing on an unchanged BRD.`
@@ -175,7 +176,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
    new round only on a changed finding, a changed verifier outcome, or a moved decision, and reports
    plainly that there is nothing to ask otherwise. Sending an operator there on an unchanged BRD is a
    next-step offer pointing at a no-op, which is the thing
-   `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` exists to keep out of this route. The
+   `workflows-core:next-phase-offer` exists to keep out of this route. The
    condition itself is that phase's to state and is cited, never restated here; what this message
    owes the operator is the **one action that can satisfy it**, which is a grounding pass, and the
    plain fact that stopping is a legitimate outcome.
@@ -356,18 +357,18 @@ choices: ["Fixed — the package has been corrected; say what changed", "Accepte
 ```
 
 **This is not an escalation choice list**, and it is not one of the arrays
-`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` owns: its four options are the four
+`workflows-core:escalation-rules` owns: its four options are the four
 disposition values `agents/brd-package-reviewer.md` fixes, drawn from that agent's own contract the
 same way `/brd-interview`'s will-change picker draws its three resolutions from
 `decision-register-format.md` §6. Its vocabulary is closed, and holding it closed is
 required rather than merely permitted: the disposition vocabulary is exactly four values, and a
-fifth would be a disposition nothing downstream can read — which is why `escalation-rules.md` names
+fifth would be a disposition nothing downstream can read — which is why `workflows-core:escalation-rules` names
 this picker in its *Closed-vocabulary pickers must normalise the free-text answer* section, so a
 free-text answer that lands on none of the four re-asks rather than becoming a value no consumer
 handles. The array is those four values
 and nothing else: **there is no listed `Cancel`**, because the harness always supplies a free-text
 option and an abort is reachable through it without spending one of the four slots
-(`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0). Aborting the walk stops the run with
+(`workflows-core:escalation-rules` §0). Aborting the walk stops the run with
 every disposition already taken still written, so nobody is trapped and nothing is lost — say that
 where the walk is introduced, not in an option nobody can be shown.
 
@@ -415,7 +416,7 @@ to. Then:
 
 - **No repository in `baselines.md` at all** → the tier is **Documents only**, and the answer is
   determined, so no list is presented. Use the inline-confirmation form the
-  `When a choice list fires` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` defines,
+  `When a choice list fires` rule in `workflows-core:escalation-rules` defines,
   and proceed: `Shipping at the documents-only tier — this package cites no repository, so there is nothing to pin. Say so if the customer can in fact be given one.`
 - **Otherwise** → ask, once, for the whole bundle:
 
@@ -428,11 +429,11 @@ to. Then:
   neither the prompt, which must state the tier and the evidence sentence §3's table pairs with it,
   nor a returned review's own section 1, which is written against that sentence. Its vocabulary is closed, and holding it
   closed is **required rather than merely permitted**, which is why
-  `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` names this picker among the six whose
+  `workflows-core:escalation-rules` names this picker among the six whose
   free-text answer is normalised into their own vocabulary rather than written through. Nobody is
   trapped: that free-text option is always present, and an answer that lands on none of the listed
   values re-asks rather than inventing a value no consumer handles. No `(Recommended)` marker, and the reason is stated beside
-  the list per the `When no option is safe to recommend` guidance in `escalation-rules.md`: which
+  the list per the `When no option is safe to recommend` guidance in `workflows-core:escalation-rules`: which
   tier is right is not a judgement at all, it is a fact about what this customer can be given, and a
   marker would invite the run to ship at Full because Full is better.
 
@@ -505,7 +506,7 @@ scope (`coverage-ledger-format.md` §5).
 **Part 4 — Code baselines and the verification procedure.** One row per repository: the repository,
 the commit it is pinned to, and how that pin was verified. Then the three `baseline-integrity`
 commands, **written out with the repository and the commit substituted**, as an instruction to run
-rather than a reference to follow — `grounding-format.md` §4 is the authority for them and is not
+rather than a reference to follow — `workflows-core:grounding-format` §4 is the authority for them and is not
 citable in the customer's copy, which is exactly why they are inlined:
 
 ```
@@ -772,13 +773,13 @@ acknowledged cost is a derived duplicate in the repository, and it is deliberate
 
 ## Phase 9 — Handoff
 
-Present `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's choice array verbatim:
+Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim:
 
 ```
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
 
-On the first choice, execute `handoff-to-main` (`phase-handoff.md` §2) with `prefix: brd` (§2.9's
+On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd` (§2.9's
 table, where `brd` is the prefix every `/brd-*` command shares), `feature_folder` as resolved in the
 *Resolve inputs and gate the decided BRD* phase, `deliverable_paths` = every file this run wrote
 under `<BRD-dir>` (`self-review-<YYYYMMDD>.md`, `customer-review-prompt-<YYYYMMDD>.md`,
@@ -812,13 +813,13 @@ choices: ["Stop here — the package is written and, if you handed it off, commi
 
 **No option carries a `(Recommended)` marker, and that omission is deliberate**, per the
 `When no option is safe to recommend` guidance in
-`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`: whether to send is a delivery judgement this
+`workflows-core:escalation-rules`: whether to send is a delivery judgement this
 command has no basis for — a package shipped at the documents-only tier with three `accepted-risk`
 findings may be exactly right to send today or exactly right to hold, and only the operator knows
 which. The reason is stated here, beside the list, rather than folded into a conditional marker the
 orchestrator would then have to evaluate.
 
-Say plainly what remains, per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — names only,
+Say plainly what remains, per `workflows-core:next-phase-offer` — names only,
 never behaviour a command of its own owns: the round holding each `[C]` stays open until the
 customer's answer comes back and `/dev-workflows:brd-reconcile` records it, and what happens between
 this run and that one is not the plugin's to do — the package has to reach a customer and the
@@ -827,7 +828,7 @@ customer has to answer.
 ### Context hygiene
 
 The resume pointer is written in the terminal cost phase, per
-`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Re-packaging the same BRD after a
+`workflows-core:session-hygiene` §1. Re-packaging the same BRD after a
 correction? → run **`/compact`**. Moving to a different BRD or slice? → run **`/clear`**. Guidance
 only — nothing is auto-run.
 
@@ -838,7 +839,7 @@ only — nothing is auto-run.
 Terminal phase — runs after *Next steps*, and NEVER interrupts an earlier phase.
 
 **Capture-at-block invariant.** If an EARLIER phase halts on a plugin / skill / command / reference
-gap, `emit-block` (`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) fires at that halt before
+gap, `emit-block` (`workflows-core:feedback-emission`) fires at that halt before
 escalating. Two of this command's stops **do** qualify and are the reason the invariant is named
 here: `BRD_PACKAGE_SCHEMA_BOUNDARY` and `BRD_PACKAGE_PROMPT_LEAK` are both reference-integrity gaps —
 a rendered authority whose boundary moved, and a package artifact carrying a citation that should
@@ -853,22 +854,17 @@ either — it is the gate working.
    the `[SR#n]` dispositions, a re-dispatch after a `fixed` correction, a prompt-leak stop, a
    prerequisite with no package on file — or "none"); workarounds; test result N/A; project root =
    the BRD folder.
-2. **Persist plugin feedback (automatic).** Cite
-   `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6)
+2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6)
    with the Lessons Learned report, `command: /brd-package`, the run's `key` (the `<BRD-KEY>`),
    `source`, and `plugin_version` (read from
    `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Surface the persisted path (or "no
    plugin-facing signal — nothing persisted").
-3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and call
-   its `emit-cost` entry point with `command: /brd-package`, `phase: brd-to-prd`, `role: pm`, the
+3. **Session cost (ALWAYS runs).** Invoke `Skill(skill: "workflows-core:reference", args: "cost-emission emit-cost")` and call its `emit-cost` entry point with `command: /brd-package`, `phase: brd-to-prd`, `role: pm`, the
    run's `key`, `source`, and `plugin_version`. Surface the persisted path (or the report-only
    notice).
-4. **Write the resume pointer.** Cite `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and
-   write/overwrite `<BRD-dir>/dev-workflows/resume.md` now — after the cost entry, before the commit
+4. **Write the resume pointer.** Invoke `Skill(skill: "workflows-core:reference", args: "session-hygiene")` and, per its §1, write/overwrite `<BRD-dir>/dev-workflows/resume.md` now — after the cost entry, before the commit
    step below. Redact per §1. Silent.
-5. **Commit session artifacts (terminal).** Cite
-   `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `commit-artifacts` entry
-   point (§4) inline — the LAST action of the run. Stages ONLY the §2.1 bounded artifact paths inside
+5. **Commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. Stages ONLY the §2.1 bounded artifact paths inside
    `$SPECS_PATH`, commits `<BRD-KEY> Add dev-workflows session artifacts (/brd-package)` with no
    `Co-Authored-By` trailer, and pushes to the branch the handoff phase created. NEVER touches a code
    repo, a docs repo, the vault, or the current working directory; NEVER force-pushes; NEVER fails the
@@ -893,8 +889,8 @@ after a `fixed` correction and what it added; the counts the prompt carries — 
 move***, with whether it resolved, whether its decisions are customer-reviewed, and whether a
 package of its own was copied in; the four artifacts written, by path; **the delivery note, printed
 in full**; the archive command, with an absolute path; the feedback + cost paths; the
-`Phase handoff:` outcome line (`phase-handoff.md` §4.1); the `Specs repo:` outcome line
-(`specs-repo-git.md` §6); the next-step recommendation; and — before the ledger line — the
+`Phase handoff:` outcome line (`workflows-core:phase-handoff` §4.1); the `Specs repo:` outcome line
+(`workflows-core:specs-repo-git` §6); the next-step recommendation; and — before the ledger line — the
 **repo→SHA table**:
 
 ```
@@ -916,7 +912,7 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 
 `/brd-package` never changes a ledger disposition — the line simply reports where allocation stands.
 **Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree via
-`resolve-address` (`addressing.md` §3), per `coverage-ledger-format.md` §6.1 — a child on a BRD that
+`resolve-address` (`workflows-core:addressing` §3), per `coverage-ledger-format.md` §6.1 — a child on a BRD that
 owns its source document, a sibling or the parent on a slice (§3); a ledger that cannot be
 read there contributes `unresolved`, never `covered` (§6.2). A slice does **not** always reach this with
 nothing to resolve. `covered-by` is legal on a slice (`coverage-ledger-format.md` §3), where it

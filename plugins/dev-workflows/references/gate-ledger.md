@@ -1,5 +1,7 @@
 # Gate ledger (shared)
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 Single source of truth for how a command records whether each of its verification gates actually ran.
 
 Consumed by `/document` (both modes), and by the two agents that read the ledger it produces: `doc-reviewer` (§4 and §6, for its verification-gate-integrity dimension) and `docs-style-checker`. Written generically so other commands can adopt it — see §6.
@@ -63,7 +65,7 @@ gate_ledger:
 | Gate id | Phase | Precondition | Primary | Fallback |
 |---|---|---|---|---|
 | `toolchain_preflight` | 0 | always (runs after profile resolution) | `command -v` / `test -d` over the required set (`toolchain-preflight.md` §2) | none |
-| `source_truth_verification` | 5.8 | ≥1 entry in `code_repos` | claim-class verification per `source-truth.md` §2–§3 | one supplementary direct grep against the resolved local path |
+| `source_truth_verification` | 5.8 | ≥1 entry in `code_repos` | claim-class verification per `workflows-core:source-truth` §2–§3 | one supplementary direct grep against the resolved local path |
 | `style_check` | 6.4 | ≥1 file written | the repo linter ladder **plus** `prose-style-checker` complementary | `prose-style-checker` alone |
 | `repo_checklist` | 6.4 | the repo publishes authoring/verification guidance | `repo_verification_gates` applied to the written files | none |
 | `build_check` | 6.5 S1 | write context is a buildable repo | `commands.per_space.<space>.build` for every space in the render verification set (`docs-profiles/render-verification.md` §2), else whole-repo `commands.build` | the Step 2 dev-server boot |
@@ -92,7 +94,7 @@ Direct mode has no `doc-planner`, so its orchestrator extracts `repo_verificatio
 
 `UNAVAILABLE` means the precondition was met and neither the primary nor the fallback ran — a real
 coverage hole. The orchestrator converts it before the run continues, with a choice list bound by the
-"Choice lists are presented verbatim" rule in `escalation-rules.md`:
+"Choice lists are presented verbatim" rule in `workflows-core:escalation-rules`:
 
 ```
 choices: ["Install <named tool> and retry this gate", "Proceed without this check — record my decision", "Cancel the run"]

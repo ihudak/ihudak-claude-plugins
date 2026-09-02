@@ -5,6 +5,8 @@ model: opus
 tools: ["Read", "Glob", "Grep"]
 ---
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 Deep post-implementation code reviewer for SIGNIFICANT / HIGH-RISK tasks. Uses
 the strongest available reasoning model (Claude Opus).
 
@@ -76,7 +78,7 @@ Refuse to review without a diff - ask the caller to produce one.
 
 If, after reading the diff, you conclude the task does NOT actually meet the
 SIGNIFICANT / HIGH-RISK criteria from
-`${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` (absolute
+`workflows-core:model-routing/classification` (absolute
 path — your working directory is the caller's project, not this repo; use
 `Read` to open the file if needed), return a short `### Re-classification`
 section INSTEAD of the full dimension-by-dimension report. State the level

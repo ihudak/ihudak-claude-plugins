@@ -1,9 +1,11 @@
 # Finish & handoff (/document — keyed mode)
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 The mechanics for Phase 6.2's inline-profiling-branch handling and Phase 8.5's
 finish & handoff (squash → opt-in push → copy-paste PR draft). Generic git +
 PR-draft logic; the command cites this so it stays lean. Read repo specifics
-from the resolved `profile`. This flow does not open the pull request itself: docs repos here are Bitbucket-hosted, and Bitbucket offers no CLI that can create one. Where a host does — the GitHub-hosted specs repo — the plugin opens it via `gh`; see `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.6.
+from the resolved `profile`. This flow does not open the pull request itself: docs repos here are Bitbucket-hosted, and Bitbucket offers no CLI that can create one. Where a host does — the GitHub-hosted specs repo — the plugin opens it via `gh`; see `workflows-core:phase-handoff` §2.6.
 
 ## 1. The branch entering Phase 8.5
 
@@ -40,7 +42,7 @@ Offer `["Push <branch> to origin now", "Skip — I'll push later", "Cancel"]`.
   git-protocol, not the REST API the zero-external-API invariant forbids.
 - **Skip** → "Branch `<branch>` ready with N commit(s). Push when ready."
 - **Cancel** → stop and summarise.
-Never force-push. Never call a REST API over HTTPS from this flow. (The `gh` CLI wraps the API rather than calling it over HTTPS and is permitted where a host provides one — but that allowance belongs to pull-request creation, which this docs-repo flow does not perform; see §5 and `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §2.6.)
+Never force-push. Never call a REST API over HTTPS from this flow. (The `gh` CLI wraps the API rather than calling it over HTTPS and is permitted where a host provides one — but that allowance belongs to pull-request creation, which this docs-repo flow does not perform; see §5 and `workflows-core:phase-handoff` §2.6.)
 
 ## 4. Host detection
 
@@ -70,4 +72,4 @@ Compose the draft and BOTH write and show it:
     `gh pr create --title "<title>" --body-file <pr-draft path>`.
   - other → "Open a pull request in your host and paste the title + body above."
 
-For a Bitbucket-hosted docs repo the plugin cannot open the pull request — there is no CLI for it — so it writes the draft and the user opens it. This is a host capability limit, not a policy: on a host with a CLI — the GitHub-hosted specs repo — the plugin does open the pull request, but that is a separate flow against `$SPECS_PATH`, never this docs repo (`phase-handoff.md` §2.6).
+For a Bitbucket-hosted docs repo the plugin cannot open the pull request — there is no CLI for it — so it writes the draft and the user opens it. This is a host capability limit, not a policy: on a host with a CLI — the GitHub-hosted specs repo — the plugin does open the pull request, but that is a separate flow against `$SPECS_PATH`, never this docs repo (`workflows-core:phase-handoff` §2.6).

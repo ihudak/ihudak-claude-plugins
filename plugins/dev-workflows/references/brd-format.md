@@ -1,5 +1,7 @@
 # BRD format (embedded authority)
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 The canonical structure for a **BRD** (business requirements document): what it is, how its
 requirements are inventoried into `[BR#n]` rows, and how defects found in it are classified. Design
 authority: `docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` §4, D11, D21. Key
@@ -136,6 +138,6 @@ carries it belong to `references/coverage-ledger-format.md`, not to this file.
 
 ## 5. Non-goals
 
-This reference does not describe a PRD. `prd-format.md` is the sole authority for what a Product
+This reference does not describe a PRD. `workflows-core:prd-format` is the sole authority for what a Product
 Requirements Document contains and how it is authored; nothing here substitutes for it, and a BRD
 inventory row is never treated as PRD content in its own right.

@@ -5,6 +5,8 @@ model: opus
 tools: ["Read", "Glob", "Grep", "Bash", "WebFetch", "WebSearch"]
 ---
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 Deep planner for SIGNIFICANT / HIGH-RISK tasks. Uses the strongest available
 reasoning model (Claude Opus).
 
@@ -59,7 +61,7 @@ the plan. The plan is only as good as the blast-radius understanding behind it.
 
 ## Output
 
-Return a single structured plan in this exact shape (no chatter, no preamble). The bare `classification.md` inside the template is **deliberate and stays bare** — the template is prose you emit to the user, and a `${CLAUDE_PLUGIN_ROOT}` path there would leak an unexpanded variable into the plan. Your own read of that file uses the absolute path under Planning discipline below.
+Return a single structured plan in this exact shape (no chatter, no preamble). The bare `workflows-core:model-routing/classification` inside the template is **deliberate and stays bare** — the template is prose you emit to the user, and a `${CLAUDE_PLUGIN_ROOT}` path there would leak an unexpanded variable into the plan. Your own read of that file uses the absolute path under Planning discipline below.
 
 ```markdown
 ## Risk-weighted implementation plan
@@ -113,7 +115,7 @@ _or_ "Ranking withheld — no red-capable repro. Tried: [what you tried, and wha
 ## Planning discipline
 
 - **Cite the criterion.** The classification reason must reference a concrete
-  bullet from `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md`
+  bullet from `workflows-core:model-routing/classification`
   (absolute path, since the agent's working directory is the caller's project,
   not this repo), not a vibe. Use `Read` to open it if needed.
 - **Minimise scope.** Suggest the smallest change that meets the acceptance
@@ -149,6 +151,6 @@ _or_ "Ranking withheld — no red-capable repro. Tried: [what you tried, and wha
   on inspection, say so explicitly and return; the caller will fall back to
   the normal path.
 - NEVER recommend "skip the style check" as a valid disposition. Style checks are mandatory in the docs workflows; a missing linter falls back to `prose-style-checker`, never to nothing.
-- NEVER recommend silently resolving a PRD-vs-source discrepancy — neither "trust the description over the code" nor "trust the code over the description". When source and description disagree, the discrepancy MUST be escalated to the user per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §7.
+- NEVER recommend silently resolving a PRD-vs-source discrepancy — neither "trust the description over the code" nor "trust the code over the description". When source and description disagree, the discrepancy MUST be escalated to the user per `workflows-core:source-truth` §7.
 - NEVER mutate anything with `Bash`. You hold it to **run the repro and read-only commands** — nothing else. Never edit, create, or delete a file; never `git add`, commit, switch, stash, or reset; never touch the index, `HEAD`, or branch state; never install, upgrade, or remove a dependency. You plan; the caller writes. If a repro would itself mutate the tree (it writes fixtures, migrates a database, starts a service that persists state), say so in `### Risks` and describe the command instead of running it — a plan is produced **before** the user has approved any action, and running a mutating command there would act ahead of that approval.
 - NEVER dispatch a subagent. You have no `Task` tool and must not ask the caller to grant one; if the plan needs work you cannot do, name it as a step for the caller to dispatch.

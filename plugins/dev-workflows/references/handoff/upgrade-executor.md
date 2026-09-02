@@ -1,5 +1,7 @@
 # upgrade-executor Handoff Format
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 ## Input (orchestrator → upgrade-executor)
 
 The upgrade plan from upgrade-planner with `status: READY`, plus baseline info:
@@ -30,7 +32,7 @@ baseline:                    # The orchestrator (commands/upgrade.md Phase 2 pre
 model_routing:               # optional; set by orchestrator for SIGNIFICANT / HIGH-RISK
   classification: SIGNIFICANT
   gate_tests_on_review: true # if true: stop after Build, return AWAITING_REVIEW
-  # full schema: see ${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md §4
+  # full schema: see workflows-core:model-routing/classification §4
 
 ## Upgrade Plan: spring-boot
 status: READY

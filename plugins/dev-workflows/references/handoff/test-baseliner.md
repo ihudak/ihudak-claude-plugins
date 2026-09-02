@@ -1,5 +1,7 @@
 # test-baseliner Handoff Format
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 ## Input
 
 ```markdown
@@ -14,7 +16,7 @@ baseline:                  # required only for mode: verify
     - com.example.BarTest#testLogin
 model_routing:             # optional; informational only — test-baseliner
   classification: SIGNIFICANT  # ignores routing and runs under whichever
-  # model the caller selected. See `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` for the model-routing block schema.
+  # model the caller selected. See `workflows-core:model-routing/classification` for the model-routing block schema.
 ```
 
 ## Output — capture mode

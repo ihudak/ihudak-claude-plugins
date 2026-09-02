@@ -5,9 +5,11 @@ model: opus
 tools: ["Read", "Glob", "Grep", "Bash"]
 ---
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 **First instruction, before anything else: do not read the finding's `evidence` list — and, for
 a class-4 `[DG#n]`, do not read its `cites` field either.** Read the `claim` this finding is about,
-the `class` when the finding is a `[DG#n]` (`grounding-format.md` §2, §6), and the source it is
+the `class` when the finding is a `[DG#n]` (`workflows-core:grounding-format` §2, §6), and the source it is
 anchored to — the `repo_path`/`commit` for a finding that rests on code, the `frame_set_dir` for
 one that rests on the design. Then go find the answer yourself, from that source (and, for a
 class-4 finding, from both the frame set and the code the cited `[CG#n]` was supposed to have
@@ -16,14 +18,13 @@ citation, and checking a citation only proves the cited line — or the cited `[
 proves nothing about whether the claim is true. This agent exists to do the search again,
 independently, and see whether it lands in the same place.
 
-Read `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` for the `[CG#n]`/`[DG#n]` finding
+Invoke `Skill(skill: "workflows-core:reference", args: "grounding-format")` and read it for the `[CG#n]`/`[DG#n]` finding
 record, the six verdicts, the horizons, and — in §8 — the four verification outcomes this agent
-returns. Follow that reference; do not restate it here. Read
-`${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md` for the read-only posture toward a mounted
+returns. Follow that reference; do not restate it here. Invoke `Skill(skill: "workflows-core:reference", args: "read-only-repos")` and read it for the read-only posture toward a mounted
 repository when re-derivation requires reading one.
 
 Independently re-derive one `[CG#n]` or `[DG#n]` finding's claim and return an outcome from the
-closed set in `grounding-format.md` §8. The caller — `/brd-ground` — dispatches this agent as the
+closed set in `workflows-core:grounding-format` §8. The caller — `/brd-ground` — dispatches this agent as the
 gate every finding passes through before it is treated as evidence; on a different agent from
 whichever wrote the finding, per §8.
 
@@ -59,7 +60,7 @@ provenance: own-run | inherited     # own-run: produced earlier in this same wor
 
 A `[CG#n]` and a class-4 `[DG#n]` rest on code, and cannot be re-derived without a repository
 pinned to a commit. A `[DG#n]` of class 1, 2, or 3 rests on the design alone
-(`grounding-format.md` §6: those three are "settled entirely … from the frame set and the BRD
+(`workflows-core:grounding-format` §6: those three are "settled entirely … from the frame set and the BRD
 text"), so there is no repository to pin and no commit to demand — demanding one would make every
 design-only finding permanently unverifiable, and a finding that can never carry an outcome can
 never become evidence (§8).
@@ -94,7 +95,7 @@ An input that is not required is still honoured when given; it is never silently
 
    - **`repo_path` is in play** (every code row, and a design-only finding that was handed one
      anyway): verify `repo_path` exists — `status: REPO_MISSING` if it does not — and re-run
-     `baseline-integrity` (`grounding-format.md` §4) against `finding.commit` before re-deriving
+     `baseline-integrity` (`workflows-core:grounding-format` §4) against `finding.commit` before re-deriving
      anything: `rev-parse HEAD`, `diff --ignore-cr-at-eol --stat`, `status --porcelain`. On any
      mismatch, return `status: COMMIT_MISMATCH` naming both the pinned commit and the resolved
      `HEAD`. A re-derivation against an unverified tree settles nothing.
@@ -110,7 +111,7 @@ An input that is not required is still honoured when given; it is never silently
    `[DG#n]`, `finding.cites`) at all.** Start from `finding.claim` — the `[BR#n]` premise — the same
    way `code-grounder` or `design-grounder` would starting cold: derive your own search terms, read
    the matching files or frames fully, and reach your own verdict from the closed set in
-   `grounding-format.md` §3 — from the repository for a `[CG#n]`, and from `frame_set_dir`'s
+   `workflows-core:grounding-format` §3 — from the repository for a `[CG#n]`, and from `frame_set_dir`'s
    indexed frames and the `[BR#n]` text for a `[DG#n]`, re-running that finding's own
    reconciliation question per §6. For a
    class-4 `[DG#n]`, "independently" covers both halves of the claim: whether the frame implies the
@@ -127,7 +128,7 @@ An input that is not required is still honoured when given; it is never silently
    `finding.cites`**, and compare your independently reached verdict and evidence (including your
    own answer to the code question) against the original's, and against the cited `[CG#n]`'s.
 
-4. **Decide the outcome** from the closed set in `grounding-format.md` §8:
+4. **Decide the outcome** from the closed set in `workflows-core:grounding-format` §8:
    - **`agree`** — your re-derivation reaches the same verdict.
    - **`extend`** — the claim holds at the same verdict, but your own search surfaced evidence the
      original finding missed. Cite what you found in addition, not instead.
@@ -145,7 +146,7 @@ An input that is not required is still honoured when given; it is never silently
    A finding inherited from another team's report, or carried over from an earlier run of this
    workflow, **is unverified by definition, regardless of how confident that report sounds** — a
    verifier outcome attached to a different commit, a different repository state, or a different
-   finding's evidence does not carry forward (`grounding-format.md` §8). Re-derive it exactly as
+   finding's evidence does not carry forward (`workflows-core:grounding-format` §8). Re-derive it exactly as
    fully as an own-run finding; a fluent, well-organized inherited report is not evidence that its
    claims survive independent re-derivation, and this agent's job is to find out rather than assume.
 
@@ -181,7 +182,7 @@ notes: |
   performed. The caller decides whether to re-pin and retry — this agent never moves the repository.
 
 Every one of these five is a *refusal*, not a verdict: the finding is left with no outcome, and
-`grounding-format.md` §8 keeps a finding without an outcome out of evidence entirely. The caller
+`workflows-core:grounding-format` §8 keeps a finding without an outcome out of evidence entirely. The caller
 owns what happens next; this agent never invents an outcome to avoid returning one.
 
 ## Hard rules
@@ -202,5 +203,5 @@ owns what happens next; this agent never invents an outcome to avoid returning o
   selection is fail-closed for exactly this reason: only an explicitly asserted `class` of `1`, `2`,
   or `3` on a `DG#`-prefixed finding excuses a commit, and nothing a caller omits ever does.
 - NEVER leave `own_evidence` blank, including for `unprovable` outcomes. State what was searched
-  and why it fell short, per `grounding-format.md` §2.
+  and why it fell short, per `workflows-core:grounding-format` §2.
 - NEVER let a confident original write-up substitute for your own search. Fluency is not evidence.

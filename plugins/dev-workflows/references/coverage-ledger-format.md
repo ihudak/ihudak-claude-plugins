@@ -1,5 +1,7 @@
 # Coverage ledger format (embedded authority)
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 The canonical shape of the **coverage ledger** (`coverage-ledger.md`): the row a BRD (business
 requirements document) keeps per requirement, the states that row can carry, and the rule that
 blocks a split until every row has one. Design authority:
@@ -329,7 +331,7 @@ that carves the slices.
   removed as a standing empty child holds no illegal row at all — every row is legally `deferred-to`,
   `rejected` or `superseded-by`, and nothing is owed to anybody. That is an **ending**, and a
   consumer reporting it names no command for the decision to un-defer a requirement, which is taken
-  with the customer (`escalation-rules.md`, *When no option is safe to recommend*). It must not,
+  with the customer (`workflows-core:escalation-rules`, *When no option is safe to recommend*). It must not,
   however, report it as a state with no exit: once that decision is taken it is carried out by the
   same two repairs, in the same order — the one row moved back to `unallocated` by hand so
   `/brd-split` has a row to walk, or the `/brd-intake` re-run that reopens every row.
@@ -429,7 +431,7 @@ stops. The container refusal must therefore be taken one step earlier, at 1a, on
 the other three use. A rule stated as covering three consumers while a fourth needed it is how that
 dead end shipped.
 
-A prefixed tree never reaches this test at all, exactly as it never reaches `addressing.md` §5.
+A prefixed tree never reaches this test at all, exactly as it never reaches `workflows-core:addressing` §5.
 
 ### 5.2 Offering `/create-prd` — three refusals, not one
 

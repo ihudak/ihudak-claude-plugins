@@ -4,7 +4,9 @@ description: Reconciles a BRD against an exported design frame set — one [DG#n
 tools: ["Read", "Glob", "Grep"]
 ---
 
-Read `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` for the `[DG#n]` finding record —
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
+Invoke `Skill(skill: "workflows-core:reference", args: "grounding-format")` and read it for the `[DG#n]` finding record —
 including the design-grounding-only `class` and `cites` fields fixed in §2 — the six verdicts, the
 `baseline-integrity` procedure, the horizons, and — in §6 — the four design reconciliation classes
 this agent applies. Follow that reference; do not restate it here.
@@ -58,7 +60,7 @@ guess, not a citation.
 2. **Verify an index file is present** inside `frame_set_dir` per the refusal above. If none is
    found, return `status: NO_INDEX` and stop — no finding is produced. **Where more than one index
    is present, `index.md` is the one to read**, and say in the report that another was found and not
-   read. That state is reachable and sanctioned: `grounding-format.md` §6.2 has a writer that meets a
+   read. That state is reachable and sanctioned: `workflows-core:grounding-format` §6.2 has a writer that meets a
    foreign index — a manifest, a captions file, a README — leave it byte-for-byte alone and write
    `index.md` beside it rather than edit a file whose shape it never fixed. `index.md` is the name
    every writer of this format writes, so it is the one a reader can attribute.
@@ -67,7 +69,7 @@ guess, not a citation.
    names a frame no longer in the directory is the one absence the two statuses above do not cover —
    `frame_set_dir` exists, so it is not `FRAME_SET_MISSING`, and an index is present, so it is not
    `NO_INDEX` — and reading it produces findings from descriptions of frames nobody can look at.
-   `grounding-format.md` §6.2 step 1a explains how the state arises: on a set whose frames were all
+   `workflows-core:grounding-format` §6.2 step 1a explains how the state arises: on a set whose frames were all
    moved out, step 6 forbids writing and step 5 cannot drop rows, so the index is left standing with
    every row a promise that resolves to nothing.
 
@@ -83,7 +85,7 @@ guess, not a citation.
    applies to a `file:line`.
 
 4. **Reconcile every `[BR#n]` requirement against the frame inventory**, and every frame against
-   the requirements, using the four classes in `grounding-format.md` §6. Classes 1–3 are settled
+   the requirements, using the four classes in `workflows-core:grounding-format` §6. Classes 1–3 are settled
    entirely by this agent, from the frame set and the BRD text — do not consult code for them.
 
 5. **Class 4 is different: it cites, never asserts.** When a frame implies a capture — an actor, a
@@ -97,10 +99,10 @@ guess, not a citation.
      Record the gap in `notes` instead — name the frame, the implied capture, and that it is
      pending a `code-grounder` pass — and let the caller close the gap and re-run this agent. This
      agent never fabricates the code answer to complete a finding it wants to file.
-   - A `[DG#n]` of this class carrying no `[CG#n]` citation is incomplete, per `grounding-format.md`
+   - A `[DG#n]` of this class carrying no `[CG#n]` citation is incomplete, per `workflows-core:grounding-format`
      §6 — that rule is enforced here, not merely noted.
 
-6. **Assign `altitude` and `horizon`** per `grounding-format.md` §2 and §5. A class-4 finding's
+6. **Assign `altitude` and `horizon`** per `workflows-core:grounding-format` §2 and §5. A class-4 finding's
    `horizon` and `commit` follow the cited `[CG#n]`'s own — this agent does not re-derive a horizon
    or pin a commit of its own for a claim it did not settle.
 

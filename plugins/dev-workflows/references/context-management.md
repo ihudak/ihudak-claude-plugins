@@ -1,5 +1,7 @@
 # Long-run context management (embedded — shared reference)
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 Strategies for an implementation run whose step list is too long to complete in one context window
 without degrading. Apply when the plan/step list is large or the run is nearing its context budget.
 
@@ -21,7 +23,7 @@ genuinely independent; decompose only when a single unit still overflows. "Hand 
 orthogonal — apply it whenever you dispatch a sub-agent, whichever offload strategy you chose.
 
 At each **checkpoint**, a long-run command may additionally suggest **`/compact`** to free
-context before continuing the next scope/Epic — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §3
+context before continuing the next scope/Epic — see `workflows-core:session-hygiene` §3
 (mid-command → `/compact` only, never `/clear`; guidance-only).
 
 ## The read-failure contract
@@ -42,7 +44,7 @@ base, a suite at the wrong commit) and then reports success over it.
 invariant set, a spec-scope block). An unreadable context path **degrades to absent**: proceed exactly
 as if the input had not been passed — any dimension or section conditional on it stands down as it
 already does — and **record the degradation in the output** so the skip is attributed rather than
-silent. This matches `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §3.4 (an absent optional input
+silent. This matches `workflows-core:phase-handoff` §3.4 (an absent optional input
 falls back to pre-existing behaviour, never becomes a new prerequisite) and
 `${CLAUDE_PLUGIN_ROOT}/references/gate-ledger.md` (no skip goes unattributed).
 

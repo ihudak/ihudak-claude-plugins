@@ -6,6 +6,8 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 
 Draft release notes for the resolved PRD: $ARGUMENTS
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 `/release-notes` produces a **customer-facing release-notes draft** for a resolved
 Product Requirements Document (or any ticket) from the resolved PRD folder.
 It optionally grounds the prose in merged PR diffs, renders the example-docs authored
@@ -31,16 +33,14 @@ This command makes **zero external API calls** and **never writes into the docs 
 
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a
    folder or a file inside one — and resolve it with `resolve-address`
-   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). Carry the resolved `path`, `kind` and
-   `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/dev-workflows:idea <KEY>` or `/dev-workflows:create-prd <KEY>` on the idea route and from `/dev-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/dev-workflows:epics <PRD-ADDRESS>` and from no other command.
+   (`workflows-core:addressing` §3). Carry the resolved `path`, `kind` and
+   `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `workflows-core:escalation-rules` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/dev-workflows:idea <KEY>` or `/dev-workflows:create-prd <KEY>` on the idea route and from `/dev-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/dev-workflows:epics <PRD-ADDRESS>` and from no other command.
 
    With no positional address, stop with
    `RELEASE_NOTES_NEEDS_KEY: /release-notes needs a PRD or Epic address — a key, or an @<path> to its folder.` —
    this command has no direct-prompt behavior.
 
-**Specs-repo preflight.** Cite
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
-`specs-preflight` entry point (§3) inline: flush any leftover session
+**Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session
 artifacts from an earlier run, retry an artifact commit that failed to push,
 and settle the branch. This runs against `$SPECS_PATH` only — `git -C
 "$SPECS_PATH"`, never a `cd`, so the code/docs repo this run is working
@@ -53,7 +53,7 @@ run — the terminal `commit-artifacts` step skips on it.
 
 ## Phase 1 — Clarification
 
-**Rule: Ask, don't guess.** Group questions; use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0).
+**Rule: Ask, don't guess.** Group questions; use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0).
 
 - **Diff grounding** (default OFF — the PRD is usually enough for release notes):
   ```
@@ -122,7 +122,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
    sibling fields**: this step used to read an import and was told explicitly *never* to read the
    authored PRD. Nothing imports anything now, so that instruction made the field permanently absent
    and the stop below unreachable — a PRD marked `false` had a release note drafted for it anyway.
-   The PRD is the only place the field can come from (`${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`).
+   The PRD is the only place the field can come from (`workflows-core:prd-format`).
    Read it directly here rather than waiting for Phase 3's folder read, which runs later.
    - **`false` / `no`** → stop:
      `RELEASE_NOTES_NOT_RELEVANT: <KEY> is flagged not relevant for release notes; the PRD's status rule does not require one.`
@@ -135,7 +135,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 
    `release_versions` plays no part in this gate.
 
-2. **Plan.** Before presenting the plan, run `resolve-docs-grounding release-notes` per `${CLAUDE_PLUGIN_ROOT}/references/docs-grounding.md` — this is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve here, before Phase 3's the folder read and Phase 4/5's diff resolution do any of the run's real work. Present: resolved `key`, destination, diff-grounding on/off (+ `$REPOS_PATH` and repos to scan when on), style-check choice, and the `docs grounding:` line that `resolve-docs-grounding` returned, verbatim — including its `retrieval:` value and any index-build, staleness, or shadowing clause (off switch: --no-docs). Ask:
+2. **Plan.** Before presenting the plan, run `resolve-docs-grounding release-notes` per `workflows-core:docs-grounding` — this is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve here, before Phase 3's the folder read and Phase 4/5's diff resolution do any of the run's real work. Present: resolved `key`, destination, diff-grounding on/off (+ `$REPOS_PATH` and repos to scan when on), style-check choice, and the `docs grounding:` line that `resolve-docs-grounding` returned, verbatim — including its `retrieval:` value and any index-build, staleness, or shadowing clause (off switch: --no-docs). Ask:
    ```
    choices: ["Approve & continue (Recommended)", "Revise plan", "Cancel"]
    ```
@@ -144,12 +144,11 @@ Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routi
 
 ## Phase 3 — Read the PRD folder
 
-**Read the resolved folder directly.** The PRD alone when diff grounding is OFF; the PRD plus the folder's `implementation.md` when ON, which is where the refs the diff grounding needs are recorded (`${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §1).
+**Read the resolved folder directly.** The PRD alone when diff grounding is OFF; the PRD plus the folder's `implementation.md` when ON, which is where the refs the diff grounding needs are recorded (`workflows-core:implementation-format` §1).
 
 **Read the resolved folder directly.** Read its `prd.md` for the product content.
 
-**Resolve the diff sources — two of them, merged.** **Only when diff grounding is ON** (Phase 1): it is opt-in and advisory here, so a run that declined it skips this step entirely and grounds its prose in the PRD alone. When it is on, follow
-`${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §4:
+**Resolve the diff sources — two of them, merged.** **Only when diff grounding is ON** (Phase 1): it is opt-in and advisory here, so a run that declined it skips this step entirely and grounds its prose in the PRD alone. When it is on, invoke `Skill(skill: "workflows-core:reference", args: "implementation-format")` and follow its §4:
 
 1. **The record.** Read `implementation.md` in the resolved folder. **Read only the blocks appended since the last section was written to `release-notes.md`** — a second release must not re-describe the first one's work, and with no imported release field that file's own last-written date is the only honest boundary. **Name the blocks this run used**, so a wrong boundary is visible rather than silent.
 2. **The scan.** For each repository — those `implementation.md` names, or, when it names none, the
@@ -191,7 +190,7 @@ Capture `change_type` and `release_notes_category` from the resolved folder's `p
 carries them (null when absent). **Read them from the PRD, which is the reversal**: these were
 dropdowns set outside the plugin and returned by an import, so this step used to read the import and
 was told explicitly *not* to read the authored PRD. Nothing returns them now, and the PRD is the only
-place either can come from (`${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`).
+place either can come from (`workflows-core:prd-format`).
 
 **`release_versions` — `--version <v>`, else ask.** The flag takes the release this note belongs to.
 Absent, the grill asks once; declined, the draft omits it. **Never invent one.** It is not parsed
@@ -215,7 +214,7 @@ Spawn `diff-summarizer` in batches of up to 4 concurrent agents per Agent messag
 **Per-repo summarizer status.** Handle each returned status before continuing:
 
 - `OK` / `PARTIAL` / `NO_PRS_RESOLVED` — use the result; record unresolved refs in the run report.
-- `REPO_MISSING` — escalate per the `Repo missing (after resolution)` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
+- `REPO_MISSING` — escalate per the `Repo missing (after resolution)` rule in `workflows-core:escalation-rules`.
 - `DIRTY_TREE` — escalate per the `Dirty working tree` rule in the same file.
 - `REFRESH_BLOCKED` — escalate per the `Refresh blocked` rule in the same file.
 - `prep.read_only: true` — not a failure. Resolution ran at `prep.scanned_ref`. Escalate per the `Read-only mount — ref stale or diverged` rule **only** when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`; otherwise proceed silently.
@@ -234,10 +233,10 @@ Diff grounding is opt-in and advisory here: a repo the user skips degrades the g
 
 **Resolve `run_phase`.** `/release-notes` runs at two points in a PRD's life, and the
 `release-note-types.md` §4 documentation-link rule depends on which. Reuse the existing signal from
-`${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` §7 — resolve the PRD's specs dir
-by calling `resolve-address <KEY>` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3), then glob it for `specification.md` and `design.md`. That entry point searches every level §3 bounds and carries §5's legacy fallback; §7 records why this command is one of its adopters.
+`workflows-core:cost-emission` §7 — resolve the PRD's specs dir
+by calling `resolve-address <KEY>` (`workflows-core:addressing` §3), then glob it for `specification.md` and `design.md`. That entry point searches every level §3 bounds and carries §5's legacy fallback; §7 records why this command is one of its adopters.
 A flat glob alone would also be **narrower than the signal this step says it reuses**: §7 defers to
-the specs-dir matching `feedback-emission.md` and `followup-emission.md` perform, whose pattern
+the specs-dir matching `workflows-core:feedback-emission` and `workflows-core:followup-emission` perform, whose pattern
 already spans both levels.
 
 - **neither present** → `run_phase: pm`. The feature is not built and its documentation does not
@@ -277,7 +276,7 @@ State the inference, then ask:
 choices: ["<proposed type> — <its shape>, under <its section> (Recommended)", "Feature update — titled section with a docs link, under ## Feature updates", "Breaking change — titled section with remediation steps, under ## Breaking changes", "Fix — one self-contained sentence, under ## Fixes"]
 ```
 
-The array is presented as written — the first option carries the proposal, so it never duplicates another (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`: there is no permitted adjustment). Apply the choice to
+The array is presented as written — the first option carries the proposal, so it never duplicates another (`workflows-core:escalation-rules`: there is no permitted adjustment). Apply the choice to
 `release_notes_block.change_type` (Feature update → `New technology support`, Breaking change →
 `Breaking change`, Fix → `Bug fix`) + `destination` and **re-render** the draft in the chosen shape —
 switching between `fixes` and a titled destination changes the body structure, not just a label. The
@@ -300,7 +299,7 @@ When `release-notes-writer` returns `gaps[]` entries that have `prd_phrasing` an
    choices: ["Decide per discrepancy (Recommended)", "Document ALL as actual (code)", "Document ALL as intended (PRD)", "Skip ALL and report (drafts a bug report)"]
    ```
 3. Apply the decision to the draft prose: `document-as-code` → use source phrasing; `document-as-spec` → use PRD phrasing (no marker in release notes prose — the gap is recorded only in the gaps file); `skip-and-report` → omit the claim.
-4. For `document-as-spec` or `skip-and-report`: resolve `bug_report_destination` to the resolved PRD folder. Write/append `<bug_report_destination>/<KEY>-implementation-gaps.md` using the §7.5 format from `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md`, setting `Spec phrasing:` to `(no spec)` (this flow has no spec).
+4. For `document-as-spec` or `skip-and-report`: resolve `bug_report_destination` to the resolved PRD folder. Write/append `<bug_report_destination>/<KEY>-implementation-gaps.md` using the §7.5 format from `workflows-core:source-truth`, setting `Spec phrasing:` to `(no spec)` (this flow has no spec).
 
 Pass `code_repos` (the Phase-4 resolved map) to the writer when diff-grounding is on.
 
@@ -338,17 +337,17 @@ If `prose-style` is not installed, skip this phase and note "style check skipped
    - Reminder: paste this wherever your release notes are published — the docs automation adds the {{#internal-note}} metadata and emits it into example-docs.
 
    ### Next step
-   [leaf/closure per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` — guidance only, never auto-invoked: the release note is drafted. If earlier pipeline phases remain, continue — hand to PA → `/dev-workflows:create-ard <PRD>` or PE → `/dev-workflows:epics <PRD>`; if the change is already built and documented, the PRD is fully processed.]
+   [leaf/closure per `workflows-core:next-phase-offer` — guidance only, never auto-invoked: the release note is drafted. If earlier pipeline phases remain, continue — hand to PA → `/dev-workflows:create-ard <PRD>` or PE → `/dev-workflows:epics <PRD>`; if the change is already built and documented, the PRD is fully processed.]
 
    ### Context hygiene
 
-   The resume pointer is written in the terminal cost phase (Phase 11), per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1. Then:
+   The resume pointer is written in the terminal cost phase (Phase 11), per `workflows-core:session-hygiene` §1. Then:
 
    - **Release note drafted and the PRD fully processed?** → nothing to suggest — you're done.
    - **A PA/PE phase still pending for this PRD (e.g. `/dev-workflows:create-ard`, `/dev-workflows:epics`), even yourself?** → run **`/clear`** before switching roles.
    - Consider **`/rename <PRD-ID>-<slug>-<role>`** to relocate this session later — `<role>` is this run's inferred lane (`pm` on the early run, `dev` once a spec or design exists).
 
-   Guidance only — see `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`.
+   Guidance only — see `workflows-core:session-hygiene`.
    ```
 
 ---
@@ -372,9 +371,7 @@ persists the plugin-facing slice of its report as session feedback.
    > - Test result: N/A (no tests in /release-notes)
    > - Project root: [the resolved prd_dir or the destination directory]"
 2. **Persist plugin feedback (automatic).** Project the report's plugin-facing
-   slice into the specs repo by citing
-   `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and calling its
-   `emit-auto` entry point (§6). Pass the Lessons Learned report,
+   slice into the specs repo by invoking `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and calling its `emit-auto` entry point (§6). Pass the Lessons Learned report,
    `command: /release-notes`, the run's `key` and `source`, and
    `plugin_version` (read from
    `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). `emit-auto` renders only
@@ -389,7 +386,7 @@ persists the plugin-facing slice of its report as session feedback.
 ADDITIVE — this phase NEVER fails the run, NEVER commits (still true — this
 phase only writes the feedback file; those writes are committed by the terminal
 `commit-artifacts` step in Phase 11, per
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), NEVER makes an
+`workflows-core:specs-repo-git` §4), NEVER makes an
 external API call, and NEVER writes into a docs repo or the current working
 directory.
 
@@ -399,8 +396,7 @@ directory.
 
 Terminal phase — runs AFTER the Phase 8 report and the Phase 9 feedback phase;
 NEVER interrupts an earlier phase. Persist the run's manual-step follow-ups by
-citing `${CLAUDE_PLUGIN_ROOT}/references/followup-emission.md` and executing
-its steps inline.
+invoking `Skill(skill: "workflows-core:reference", args: "followup-emission")` and executing its steps inline.
 
 1. **Collect** the qualifying follow-ups: the mandatory manual publish step
    ("paste this release-notes draft wherever your release notes are published")
@@ -414,7 +410,7 @@ its steps inline.
 ADDITIVE — the follow-ups also remain in the Phase 8 report. This phase NEVER
 fails the run, NEVER commits (still true — this phase only writes follow-up
 files; those writes are committed by the terminal `commit-artifacts` step in
-Phase 11, per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §4), NEVER
+Phase 11, per `workflows-core:specs-repo-git` §4), NEVER
 makes an external API call, and NEVER writes into a docs repo or the current
 working directory.
 
@@ -424,9 +420,7 @@ working directory.
 
 Terminal phase — the NEW final operational phase; runs after Phase 10
 (follow-ups) and NEVER interrupts an earlier phase. Records this command's
-token-cost contribution to the PRD by citing
-`${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and calling its single
-`emit-cost` entry point. Unlike feedback, **cost ALWAYS runs**.
+token-cost contribution to the PRD by invoking `Skill(skill: "workflows-core:reference", args: "cost-emission emit-cost")` and calling its single `emit-cost` entry point. Unlike feedback, **cost ALWAYS runs**.
 
 `/release-notes` runs at two different phases by two roles (a PM's early bare-PRD
 run and a dev's documenting re-run), so DO NOT pass a fixed phase/role: call
@@ -444,16 +438,13 @@ statusline cross-check (§5), and appends one entry to
 the pending / report-only tiers.** Surface the persisted path (or the
 report-only notice) as this phase's only output.
 
-**Then write the resume pointer.** Cite
-`${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and write/overwrite
+**Then write the resume pointer.** Invoke `Skill(skill: "workflows-core:reference", args: "session-hygiene")` and, per its §1, write/overwrite
 `<PRD-dir>/dev-workflows/resume.md` now — after the cost entry above, so the
 pointer reflects the completed run, and before the commit step below, so it
 is included in it. Redact per §1. Silent; the printed `### Context hygiene`
 guidance already appeared in the Phase 8 report.
 
-**Then commit session artifacts (terminal).** Cite
-`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its
-`commit-artifacts` entry point (§4) inline — the LAST action of the run. It
+**Then commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It
 stages ONLY the §2.1 bounded artifact paths inside `$SPECS_PATH`, commits
 `<KEY> Add dev-workflows session artifacts (/release-notes)`, and pushes per
 §4 step 5. It NEVER writes into a docs repo — the release-note draft is
@@ -473,7 +464,7 @@ current working directory; no user name is ever written (§10).
 
 ## Invariants (always enforced)
 
-- ALWAYS `emit-block` (per `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation).
+- ALWAYS `emit-block` (per `workflows-core:feedback-emission`) before escalating a halt caused by a **plugin / skill / command / reference gap** (a capability the run needed but the plugin lacked) — so a run abandoned at the block still records it. NEVER for a work-quality review BLOCK or an environment / user halt (repo-missing, dirty-tree, key-not-found, cancellation).
 - ZERO external API calls — PR URLs are identifiers only; all resolution is local `git`.
 - Every read of the specs tree is read-only.
 - The draft contains NO identifiers, NO PR links, and NO `{{#internal-note}}` block.
@@ -481,8 +472,8 @@ current working directory; no user name is ever written (§10).
 - The category label IS the PRD's `release_notes_category`, used verbatim; when the PRD carries none the line is OMITTED. Change Type is sourced `change_type` → infer, and is confirmed with the user ONLY when it was inferred with low confidence — by shape and destination, never by enum label. Neither field is ever asked for by enum label.
 - The run is GATED on the PRD's own `relevant_for_release_notes`: an explicit `false` stops with `RELEASE_NOTES_NOT_RELEVANT` (overridable); absent proceeds silently.
 - NEVER write into a docs repo; the default destination is persistent (never `/tmp`).
-- ALWAYS use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` §0).
-- Light gate only — no Opus review, no tests, no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.2); it creates none), and no commit of the draft or of anything in a docs/code repo or the current working directory. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` §2.1).
-- ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
-- ALWAYS end the Phase 8 report with a `### Next step` recommendation (per `${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`) — guidance only, never auto-invoked; the pipeline leaf (adaptive: continue any pending PA/PE phase, else the PRD is fully processed).
-- ALWAYS end the Phase 8 report with a `### Context hygiene` block per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 — this block prints the guidance only), then a leaf-aware suggestion (done → nothing; pending role → `/clear`) + `/rename <PRD-ID>-<slug>-<role>` using this run's inferred lane (`pm` or `dev`, per the Phase 6 inference); guidance only, never auto-run.
+- ALWAYS use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0).
+- Light gate only — no Opus review, no tests, no branch (still true — `specs-preflight` switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`workflows-core:specs-repo-git` §2.2); it creates none), and no commit of the draft or of anything in a docs/code repo or the current working directory. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`workflows-core:specs-repo-git` §2.1).
+- ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `workflows-core:specs-repo-git`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
+- ALWAYS end the Phase 8 report with a `### Next step` recommendation (per `workflows-core:next-phase-offer`) — guidance only, never auto-invoked; the pipeline leaf (adaptive: continue any pending PA/PE phase, else the PRD is fully processed).
+- ALWAYS end the Phase 8 report with a `### Context hygiene` block per `workflows-core:session-hygiene` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `workflows-core:session-hygiene` §1 — this block prints the guidance only), then a leaf-aware suggestion (done → nothing; pending role → `/clear`) + `/rename <PRD-ID>-<slug>-<role>` using this run's inferred lane (`pm` or `dev`, per the Phase 6 inference); guidance only, never auto-run.

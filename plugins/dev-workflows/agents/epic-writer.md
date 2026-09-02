@@ -4,6 +4,8 @@ description: Writes child Epic-definition files for /epics from a structured han
 tools: ["Read", "Glob", "Grep", "Write", "Edit"]
 ---
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 Epic-definition writer for `/epics` Phase 6. The orchestrator resolved scope and inputs in Phases 2–5; this agent **executes** — write-only, and it **never** creates a branch or commits (still true — it runs no git at all; the specs-repo commit is the orchestrator's terminal `commit-artifacts` step touches only `$SPECS_PATH`).
 
 ## Inputs
@@ -39,9 +41,9 @@ Return `status: BLOCKED` with the specific gap when: the handoff file is missing
 
 ## Write mechanics
 
-Apply the no-hard-wrap prose convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md` to every prose field (Goal, Business value, narrative bullets) below.
+Apply the no-hard-wrap prose convention in `workflows-core:prose-formatting` to every prose field (Goal, Business value, narrative bullets) below.
 
-For each new Epic, create `EPIC-<key>-<eslug>/` under the handoff `prd_dir` and emit `epic.md` inside it, carrying `kind: epic` and `key:` frontmatter (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §4):
+For each new Epic, create `EPIC-<key>-<eslug>/` under the handoff `prd_dir` and emit `epic.md` inside it, carrying `kind: epic` and `key:` frontmatter (`workflows-core:addressing` §4):
 
 ```markdown
 # <Epic title>
@@ -115,7 +117,7 @@ the draft INSTEAD of silently guessing. Rules:
 When `mode` is `refine` or `both`, treat every entry in `refinement_targets[]` as an Epic to **fill in**, not a duplicate to avoid:
 
 - **Iterate, don't regenerate.** Read the target's `current_body_path` (that Epic's existing draft) first. Preserve any real scope/acceptance content already there; fill the gaps and improve — never blow away existing substance.
-- **Keyless filename, keyed folder.** Write each Epic to `EPIC-<key>-<eslug>/epic.md` — the folder carries the key and the filename carries the kind (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §2). Never `<key>.md` (e.g. `PROJ-12573.md`) — NOT a slug. Slug-named files (`<slug>.md`) are reserved for net-new Epics with no work-item ID yet.
+- **Keyless filename, keyed folder.** Write each Epic to `EPIC-<key>-<eslug>/epic.md` — the folder carries the key and the filename carries the kind (`workflows-core:addressing` §2). Never `<key>.md` (e.g. `PROJ-12573.md`) — NOT a slug. Slug-named files (`<slug>.md`) are reserved for net-new Epics with no work-item ID yet.
 - **Partition the PRD.** Distribute the PRD `requirements[]` across the refinement targets; each target's `## Covers` lists only its slice. Two targets must not silently claim the same requirement.
 - **Inter-target dependencies are expected.** When one refined Epic depends on another (e.g. a framework Epic that must land first), name the other Epic by key in `## Dependencies`. Such inter-target dependencies are legal (they encode build order) — do not suppress them.
 - **Undrawable boundaries** → a `[NEEDS CLARIFICATION]` marker in the affected Epic + a `clarifications_needed[]` entry (subject to the ≤3-per-Epic cap).

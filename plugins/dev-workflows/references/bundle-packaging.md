@@ -1,5 +1,7 @@
 # Bundle packaging (embedded authority)
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 How the customer-facing bundle for a BRD→PRD package is built, what it may and may not contain, the
 three degradation tiers a bundle can ship at and what each obliges the reviewer to state, the
 delivery note's hard length rule, and where the rendered bundle lands and why it is committed.
@@ -242,7 +244,7 @@ under `dev-workflows/**` — a bundle is under none of them, so `commit-artifact
 was never meant to. A reader sent to the wrong entry point finds the bundle missing from §2.1 and
 reaches for the plausible repair, which is to widen those path shapes; that would let the prompt-free
 bookkeeping step commit a customer-facing deliverable with no consent choice in front of it, which is
-exactly the boundary the two references were split to hold (`phase-handoff.md` §1 rule 7).
+exactly the boundary the two references were split to hold (`workflows-core:phase-handoff` §1 rule 7).
 
 **"Committed" therefore means "committed where the operator accepted the handoff".** Declining §4.3's
 choice leaves the bundle written and uncommitted, and the run says so — D18 is what the accepted path

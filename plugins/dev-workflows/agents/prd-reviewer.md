@@ -5,9 +5,11 @@ model: opus
 tools: ["Read", "Glob", "Grep"]
 ---
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 Read-only whole-PRD reviewer for drafts produced by `/create-prd` or `/update-prd`. Uses the strongest available reasoning
 model (Claude Opus). Reads the **whole** `prd.md` and checks it against the per-section
-rules in `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md` plus the checks below. Never edits the PRD.
+rules in `workflows-core:prd-format` plus the checks below. Never edits the PRD.
 
 Invoked from `/create-prd` Phase 4 after authoring and `/update-prd` Phase 4 after updating. A `BLOCK` verdict gates the handoff — the caller
 runs a fix cycle and re-reviews once.
@@ -20,16 +22,16 @@ runs a fix cycle and re-reviews once.
 ## Review method
 
 1. Read the PRD end-to-end before judging.
-2. Verify frontmatter: `kind: prd`; `key` matches `^[A-Z][A-Z0-9_]*(-\d+)+$` — **the one grammar, which fixes no depth** (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). There is one key namespace and no second, narrower grammar: nothing mints keys any more, so a three-segment slice key such as `EPIC-008-01` is exactly as valid here as `EPIC-008`, and a PRD carrying one is correct rather than a finding. **`key` is required on every route, including the BRD route**, where it is the `<BRD-KEY>` naming this PRD's own folder — an absent `key` IS a finding, because `addressing.md` §4 resolves a folder's identity from an artifact carrying both `kind:` and `key:`, and a `prd.md` missing one leaves the folder resolving as whatever else is in it.
+2. Verify frontmatter: `kind: prd`; `key` matches `^[A-Z][A-Z0-9_]*(-\d+)+$` — **the one grammar, which fixes no depth** (`workflows-core:addressing` §1). There is one key namespace and no second, narrower grammar: nothing mints keys any more, so a three-segment slice key such as `EPIC-008-01` is exactly as valid here as `EPIC-008`, and a PRD carrying one is correct rather than a finding. **`key` is required on every route, including the BRD route**, where it is the `<BRD-KEY>` naming this PRD's own folder — an absent `key` IS a finding, because `workflows-core:addressing` §4 resolves a folder's identity from an artifact carrying both `kind:` and `key:`, and a `prd.md` missing one leaves the folder resolving as whatever else is in it.
 2a. **`brd_parent` beside `brd_key`.** A PRD carrying `brd_key` was authored on the BRD route, which
    resolves a `PRD-` slice folder and refuses a `BRD-` container before any seed is read
    (`commands/create-prd.md` Phase 0 step 5a). A slice always carries a `parent:`, so
    `brd_parent` is **always present** on such a PRD
-   (`${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`). An absent `brd_parent` beside a present
+   (`workflows-core:prd-format`). An absent `brd_parent` beside a present
    `brd_key` IS a finding — `MAJOR` — and not a legitimate omission: it is the signature of a PRD
    authored from a root BRD, which is the container a PRD may never be authored in. `depends_on` is
    a different case and is legitimately absent when the customer committed to no prerequisite.
-3. Apply every spine rule from `${CLAUDE_PLUGIN_ROOT}/references/prd-format.md`; for each adapt-in section present, apply its rule.
+3. Apply every spine rule from `workflows-core:prd-format`; for each adapt-in section present, apply its rule.
 4. Apply the dimension checks below.
 5. Record each finding in the severity schema; route gaps needing product knowledge to **needs product input**; never fabricate a fix.
 

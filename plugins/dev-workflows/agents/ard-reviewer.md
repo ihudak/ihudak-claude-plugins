@@ -5,6 +5,8 @@ model: opus
 tools: ["Read", "Glob", "Grep"]
 ---
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 Read-only whole-ARD reviewer for drafts produced by `/create-ard`. Uses the strongest available
 reasoning model (Claude Opus). Reads the **whole** ARD and checks it against the rules in
 `${CLAUDE_PLUGIN_ROOT}/references/ard-format.md` plus the dimensions below. Never edits the ARD.
@@ -20,7 +22,7 @@ runs a fix cycle and re-reviews once.
 ## Review method
 
 1. Read the ARD end-to-end before judging.
-2. Verify frontmatter: `scope`; `prd` matches `^[A-Z][A-Z0-9_]*(-\d+)+$` — the grammar `${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1 fixes, a superset of the two-segment form, so that an ARD authored by `/create-ard` on the BRD route carries a well-formed key rather than a finding: on that route `prd` holds a BRD key (the BRD's own, or its parent's for a slice) and `epic` holds the slice's, either of which may carry a third numeric segment; `grounded_repos` present; Epic-level has `epic` + (if a PRD-level ARD exists) `inherits`. `derived_from` names the PRD the ARD was built from, or — on the BRD route, in a folder that holds no PRD — the `ard-seed.md` it was actually authored from; neither is a finding.
+2. Verify frontmatter: `scope`; `prd` matches `^[A-Z][A-Z0-9_]*(-\d+)+$` — the grammar `workflows-core:addressing` §1 fixes, a superset of the two-segment form, so that an ARD authored by `/create-ard` on the BRD route carries a well-formed key rather than a finding: on that route `prd` holds a BRD key (the BRD's own, or its parent's for a slice) and `epic` holds the slice's, either of which may carry a third numeric segment; `grounded_repos` present; Epic-level has `epic` + (if a PRD-level ARD exists) `inherits`. `derived_from` names the PRD the ARD was built from, or — on the BRD route, in a folder that holds no PRD — the `ard-seed.md` it was actually authored from; neither is a finding.
 3. For each "as-is" claim in Grounding findings, confirm it cites a `file:line` in a `grounded_repos` entry — spot-check that the cited path plausibly exists (Glob/Grep). An uncited or clearly-fabricated claim → BLOCKER.
 4. Apply the dimensions below; record findings in the severity schema; route gaps needing human input to **needs architect input**; never fabricate a fix.
 

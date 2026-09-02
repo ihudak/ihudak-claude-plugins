@@ -4,6 +4,8 @@ description: Renders an example-docs release-notes draft (the authored body only
 tools: ["Read", "Glob", "Grep"]
 ---
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 Render a release-notes draft for a resolved Product Requirements Document in the
 example-docs feature-update format. You produce only the **authored body** that a
 PM publishes wherever release notes are published; the docs team's automation adds
@@ -116,7 +118,7 @@ When `docs_grounding` is present, use its `docs_references` for terminology and 
 
      The rendered `prose` field carries this shaped body (prose and/or list/`> Note:`);
      it stays plain customer-facing content with no identifiers and no PR links, and follows the
-     no-hard-wrap convention in `${CLAUDE_PLUGIN_ROOT}/references/prose-formatting.md` — each
+     no-hard-wrap convention in `workflows-core:prose-formatting` — each
      paragraph is one unbroken line.
 
 7. **Render.** For a **titled** destination (`breaking-changes`, `feature-updates`), render the
@@ -139,7 +141,7 @@ When `docs_grounding` is present, use its `docs_references` for terminology and 
    `Release-notes category:` line, and NO `--- Summary ---` divider — the whole output is the text the
    PM publishes wherever release notes are published.
 
-8. **Source-truth check (when `code_repos` is provided).** Verify the specific option/label/count claims the draft makes against the source (per `${CLAUDE_PLUGIN_ROOT}/references/source-truth.md` §3). Do NOT auto-resolve: when a claim is contradicted, record a `gaps[]` entry with `field: prose`, `prd_phrasing`, `source_phrasing`, `source_location`, and `recommended_action: "ask user"`. Keep the draft prose in the PRD phrasing for now; the command resolves it.
+8. **Source-truth check (when `code_repos` is provided).** Verify the specific option/label/count claims the draft makes against the source (per `workflows-core:source-truth` §3). Do NOT auto-resolve: when a claim is contradicted, record a `gaps[]` entry with `field: prose`, `prd_phrasing`, `source_phrasing`, `source_location`, and `recommended_action: "ask user"`. Keep the draft prose in the PRD phrasing for now; the command resolves it.
 
 ## Output
 

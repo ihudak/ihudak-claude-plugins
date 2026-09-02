@@ -6,6 +6,8 @@ allowed-tools: Read Edit Write Bash Glob Grep Task Skill
 
 Split the grounded BRD into slices and allocate every requirement: $ARGUMENTS
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 `/brd-split` is the **third command of the BRD-to-PRD flow** (PM phase) — it
 takes the findings `/brd-ground` verified and forces every `[BR#n]` in this BRD's coverage ledger
 to a recorded fate: built here, built by a named child, deferred, rejected, or superseded. This is
@@ -30,7 +32,7 @@ defer the rest` is a sentence this command can act on, and the picker it acts on
 four-resolution one.
 
 - **`split_mode: allocate-only`** — a slice. Nesting is capped at one level
-  (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §6), so **no child may be created below a
+  (`workflows-core:addressing` §6), so **no child may be created below a
   slice**: Phases 2 and 3 are skipped entirely and the walk offers **four** resolutions, without
   `covered-by`. That last part is about **who writes** the disposition, not about whether a slice
   may carry it: a slice's `covered-by` names a sibling or the parent and records a provisional
@@ -45,7 +47,7 @@ four-resolution one.
 ## Phase 0 — Resolve inputs and gate on verification
 
 1. **`<BRD-KEY>` (mandatory).** Parse the first non-flag token; validate with `key-valid`
-   (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §1). If absent or invalid, stop:
+   (`workflows-core:addressing` §1). If absent or invalid, stop:
    `BRD_SPLIT_NEEDS_KEY: /brd-split needs a BRD key (shape ^[A-Z][A-Z0-9_]*(-\d+)+$) — re-run '/dev-workflows:brd-split <KEY>'.`
 1a. **`<instruction>` (optional).** Every **non-flag** token after the key, joined verbatim, is a
    slicing instruction in the operator's own words — `cover orders and measurements in the first
@@ -58,23 +60,22 @@ four-resolution one.
    for exactly that reason. The instruction is **never validated against anything**: it is prose, and
    what it means is settled in Phase 1.5 against this BRD's own rows, never by pattern.
 2. **`$SPECS_PATH` (required).** If unset, stop naming `SPECS_PATH`, per the
-   `Required path environment variable unset` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`:
+   `Required path environment variable unset` rule in `workflows-core:escalation-rules`:
    ```
    choices: ["Set SPECS_PATH (enter the path)", "Cancel"]
    ```
-3. **Specs-repo preflight.** Cite `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute
-   its `specs-preflight` entry point (§3) inline. Prompt-free and silent when the specs repo is
+3. **Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline. Prompt-free and silent when the specs repo is
    clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
    `commit-artifacts` step skips on it.
-4. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`addressing.md` §3), which searches
-   `specifications/` and the levels below it that `resolve-address` searches (three, per `addressing.md` §3) (§2 step 2) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent → stop, without asserting which command would create it, because nothing on disk
+4. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`workflows-core:addressing` §3), which searches
+   `specifications/` and the levels below it that `resolve-address` searches (three, per `workflows-core:addressing` §3) (§2 step 2) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent → stop, without asserting which command would create it, because nothing on disk
    says whether this key names a BRD with a source document or a slice of one:
    `BRD_SPLIT_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
 5. **Resolve the run mode.** Read the resolved folder's `brd-link.md` and branch on its `parent:`
    field — the same signal `/brd-ground` Phase 0 uses to tell a slice from a root, and the only
    reliable one: a key's segment count is a naming convention, never a depth declaration
-   (`addressing.md` §1).
+   (`workflows-core:addressing` §1).
    - **No `brd-link.md`, or one with no `parent:`** → this BRD owns its source document. Set
      `split_mode: full`; carry it for the whole run. Nothing is announced — this is the ordinary
      case.
@@ -85,7 +86,7 @@ four-resolution one.
      `BRD_SPLIT_ON_SLICE (notice, not a stop): <BRD-KEY> is a slice of <PARENT-KEY>. This run allocates <BRD-KEY>'s ledger but creates no children: nesting is capped at one level, so Phases 2-3 are skipped and no child BRD can exist below a slice. The Phase 4 walk offers its own four resolutions — the same count as full mode, a different set: covered-by is not one this walk can choose — on a slice it names a sibling or the parent, records a provisional claim the parent's own walk withdrew, and is written by that walk, so every row carrying it is already terminal here.`
    **This is a cap on nesting, not on allocation.** A grandchild would inherit `brd/source/` and a
    defect log from a parent that holds neither, so its inventory header would name a path that does
-   not exist (`addressing.md` §6, `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1) — that
+   not exist (`workflows-core:addressing` §6, `${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1) — that
    is what child creation is refused for. A slice's own ledger has no such problem: its rows are
    this BRD's to allocate, and refusing to walk them would leave every one of them `unallocated`
    forever, which is the allocation deadlock this command exists to prevent
@@ -95,7 +96,7 @@ four-resolution one.
    always the source-owning root (`brd-format.md` §4). Phase 4 states it where it is used.
 6. **Gate the grounding deliverable on main.** `/brd-split` **consumes** a `$SPECS_PATH`
    deliverable it did not write (`/brd-ground`'s findings, and — transitively — `/brd-intake`'s
-   ledger), so per `phase-handoff.md` §5 rule 2 it executes `require-on-main` (§3) here in Phase 0,
+   ledger), so per `workflows-core:phase-handoff` §5 rule 2 it executes `require-on-main` (§3) here in Phase 0,
    before anything else reads a file. Execute it against the resolved BRD folder's
    `grounding/code-grounding.md` — every deliverable a `handoff-to-main` run stages lands in one
    commit (§2.3), so this file's presence on `origin/<default>` implies `grounding/design-grounding.md`
@@ -118,7 +119,7 @@ four-resolution one.
      `BRD_SPLIT_EMPTY_INVENTORY (split_mode: allocate-only): <BRD-KEY> is a slice of <PARENT-KEY> and its inventory holds no [BR#n] row — it claims nothing, so there is nothing to ground and nothing to allocate. Do not run /dev-workflows:brd-ground, and do not run /dev-workflows:brd-intake on a slice; it has no source document of its own. Re-run '/dev-workflows:brd-split <PARENT-KEY>': it resolves every standing empty child, so it will offer to remove this slice or to keep it against its recorded reason, and it will offer covered-by against it for any row on the parent's ledger that is still unallocated. If the parent's ledger has no unallocated row left, removal is the only thing that can change this slice's state — /brd-split never re-allocates a row that already carries a fate.`
    `unmanaged` → proceed as before this feature.
 7. **Gate on verification.** Every `[CG#n]`/`[DG#n]` finding carries a verifier `outcome` (one of
-   the four in `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §8 — `agree`, `extend`,
+   the four in `workflows-core:grounding-format` §8 — `agree`, `extend`,
    `contradict`, `unprovable`) once `/brd-ground` Phase 7 has run over it; a finding without one
    "is not evidence and cannot be recorded as `consumed_by` anything" (§8), and this command must
    never propose a slice or offer `covered-here` against a claim nobody has actually verified.
@@ -158,7 +159,7 @@ four-resolution one.
    (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §3); this step never looks for
    them and never needs to, because they are terminal already. In `full` mode: list every immediate subdirectory of `<BRD-dir>` that
    **contains a `brd-link.md` carrying a `parent:` field naming this BRD**. Each match is a child a
-   previous `/brd-split` run already created, nested per `addressing.md` §6, and remains a valid
+   previous `/brd-split` run already created, nested per `workflows-core:addressing` §6, and remains a valid
    `covered-by` target in Phase 4 even when this run proposes no new slice of its own.
 
    **A positive test, not a name match.** Matching a subdirectory by name and then reading an
@@ -251,7 +252,7 @@ that placement and never re-reads the instruction, so an instruction is interpre
 
 Read each unallocated row's `text` and `source_anchor` from `brd/brd-inventory.md` and place every
 row the instruction plainly determines. **This step raises no prompt of any kind.** It is
-`${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md`'s fact-vs-decision split applied before the
+`workflows-core:grilling-technique`'s fact-vs-decision split applied before the
 grill rather than inside it: a question answerable from the artifact is not a question, and a row
 whose text names what the instruction names is placed, not asked about.
 
@@ -276,7 +277,7 @@ restated here. This command's **depth is bounded**, and the bound has two parts:
    in these six rows?* That is the reference's *force terminology precision* rule, and it is the
    whole reason this grill exists.
 2. **A hard cap of five questions**, after which the phase stops whatever remains. The cap is
-   stated because `grilling-technique.md` defines bounded depth as "a capped set … then stop", so a
+   stated because `workflows-core:grilling-technique` defines bounded depth as "a capped set … then stop", so a
    caller declaring bounded owes a number; and it is **five** rather than ten because the residue
    here has a free fallback that `/idea`'s does not.
 
@@ -311,7 +312,7 @@ whose walk is the whole of an `allocate-only` run. Everything below is `full`-mo
 
 Read `<BRD-dir>/brd/brd-inventory.md`, `coverage-ledger.md`, `grounding/code-grounding.md`, and
 `grounding/design-grounding.md`. For every `[BR#n]` still `unallocated`, read its findings'
-`verdict` and `horizon` (`grounding-format.md` §2–§3, §5): a requirement whose findings are all
+`verdict` and `horizon` (`workflows-core:grounding-format` §2–§3, §5): a requirement whose findings are all
 `CONFIRMED`/`AMENDED` at `horizon: current` is **buildable now**; one carrying `REWRITTEN` or
 `FALSE-FRIEND` needs reconsidering before it is buildable at all; one carrying `NOT-PROVABLE` or a
 `will-change` horizon is **blocked** or **dependent** on the named prerequisite decision. Cluster
@@ -332,7 +333,7 @@ choices: ["Include them anyway — this slice carries rows that are not buildabl
 ```
 
 No option carries a `(Recommended)` marker, per the *When no option is safe to recommend* guidance
-in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`: whether a slice should carry a blocked row
+in `workflows-core:escalation-rules`: whether a slice should carry a blocked row
 is a delivery judgement about this iteration, and the run has just been told in the operator's own
 words that they want these rows together. **The operator's grouping wins where they confirm it, and
 never wins silently** — a slice that quietly mixed a `NOT-PROVABLE` row in with buildable ones would
@@ -372,7 +373,7 @@ resolves to *"Make this whole BRD one slice"*.
 **Why a container, rather than letting a BRD hold its own PRD** — the namespace argument now lives
 in `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5, the authority every PRD-eligibility
 refusal cites, and is not restated here: a BRD that could be split *and* be PRD-eligible itself would
-hold PRD folders and its own Epic folders as siblings, which `addressing.md` §2's second invariant
+hold PRD folders and its own Epic folders as siblings, which `workflows-core:addressing` §2's second invariant
 forbids and which Phase 0 step 9 would then have to tell apart. What this phase contributes to it is
 the guarantee: one slice always existing means the requirements always land somewhere a PRD can be
 written, and that somewhere is always one level down.
@@ -389,22 +390,22 @@ For every slice Phase 2 confirmed:
 1. **Take a key.** Propose a default of the parent's key plus the next unused two-digit segment
    (e.g. `<PARENT-KEY>-01`, `<PARENT-KEY>-02`, …, skipping any segment an existing child from
    Phase 0 step 9 already uses) and let the operator accept it or supply their own. Validate
-   whatever is used with `key-valid` (`addressing.md` §1); an invalid key is re-prompted,
+   whatever is used with `key-valid` (`workflows-core:addressing` §1); an invalid key is re-prompted,
    never silently coerced.
-2. **Create the folder inside the folder this run resolved**, per `addressing.md` §6 — the folder a
+2. **Create the folder inside the folder this run resolved**, per `workflows-core:addressing` §6 — the folder a
    slice gets **is** the folder its PRD will be authored in, and it is never a sibling of its BRD.
    On a current tree that is
    `specifications/BRD-<PARENT-KEY>-<parent-slug>/PRD-<CHILD-KEY>-<child-slug>/`, the parent
    carrying the `BRD-` prefix `/brd-intake` writes (`commands/brd-intake.md` Phase 0 step 7,
-   `addressing.md` §2). `<child-slug>` is a kebab of the slice's working name from Phase 2.
+   `workflows-core:addressing` §2). `<child-slug>` is a kebab of the slice's working name from Phase 2.
 
    **The parent half of that path is the resolved folder's actual name, never a path re-derived
-   from `<PARENT-KEY>`.** A parent that resolved through `addressing.md` §5's legacy fallback is
+   from `<PARENT-KEY>`.** A parent that resolved through `workflows-core:addressing` §5's legacy fallback is
    unprefixed on disk, and writing the prefixed form for it would create a second, empty `BRD-`
    folder beside it and orphan the slice inside it — the parent's inventory, ledger and defect log
    would all be one directory away. The child is created with the `PRD-` prefix either way: §5's
    fallback honors a legacy folder that already exists and never proposes one, and a command that
-   creates the folder it did not find still creates it with the §2 prefix (`addressing.md` §7,
+   creates the folder it did not find still creates it with the §2 prefix (`workflows-core:addressing` §7,
    *Adoption is additive*).
 
    **It is a `PRD-` folder from the moment it is created, before any PRD exists in it.** A slice
@@ -415,7 +416,7 @@ For every slice Phase 2 confirmed:
    Phase 0 step 9 applies, not the prefix.
 3. **Write the child's `brd-link.md`**: `kind: brd`, `key: <CHILD-KEY>`, `parent: <BRD-KEY>` and
    `claims:` — the first two are how the new folder asserts its own identity from the moment it
-   exists (`addressing.md` §4), and `brd-link.md` is the folder's only artifact until Phase 3 step 4
+   exists (`workflows-core:addressing` §4), and `brd-link.md` is the folder's only artifact until Phase 3 step 4
    writes its inventory. Then the slice's `[BR#n]`
    rows as currently proposed. This is provisional: Phase 4's walk is the step that actually moves
    a row's disposition, and a row proposed here for this child but resolved differently there (for
@@ -437,7 +438,7 @@ For every slice Phase 2 confirmed:
    is why §2.1 makes the header carry that path. The child likewise gets no
    `brd/brd-defect-log.md`: a `[DEF#n]` on a copied row is the parent's, and any reader who has to
    resolve one while standing on the child looks it up in the parent's log (`brd-format.md` §4).
-   That resolution is always one hop, never a chase: the cap in `addressing.md` §6 makes this
+   That resolution is always one hop, never a chase: the cap in `workflows-core:addressing` §6 makes this
    child's parent — this BRD — the source-owning root.
 5. **Write the child's `coverage-ledger.md`** — one row per `[BR#n]` in the inventory just written,
    `disposition: unallocated` on every one, per
@@ -460,8 +461,8 @@ unclustered.
 **About the child's key.** The default proposed in step 1 — the parent's key plus the next unused
 two-digit segment — is a naming convention that keeps sibling slices distinguishable and reads as
 what it is. It buys the child no resolution depth and needs none: `resolve-address` searches
-`specifications/` and the levels below it that `resolve-address` searches (three, per `addressing.md` §3), which is where this folder sits regardless of how
-many segments its key carries (`addressing.md` §1, §3). So an operator-supplied key with no
+`specifications/` and the levels below it that `resolve-address` searches (three, per `workflows-core:addressing` §3), which is where this folder sits regardless of how
+many segments its key carries (`workflows-core:addressing` §1, §3). So an operator-supplied key with no
 additional segment resolves exactly as the default does, and nothing about either choice makes the
 child sliceable — no key shape lifts the one-level cap (§3).
 
@@ -486,7 +487,7 @@ and where it is declined, nothing is written by it.**
 than a corner of it. In that shape every row on the parent takes `covered-by: <the one slice>`, and
 every row on that slice then takes `covered-here`: two walks whose answer the shape of the split
 settled before either opened a ledger. Asking once per row for an answer the run can already state
-is the defect `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` names under *When a choice list
+is the defect `workflows-core:escalation-rules` names under *When a choice list
 fires* — a list written for a question whose answer is already determined spends a user turn on a
 formality. A forty-row BRD resolved to a single slice costs **eighty** prompts across the two runs
 without this step and **two** with it.
@@ -545,7 +546,7 @@ instruction placed each on, rather than absorbing them.
 
 **The list.** `<N>`, `<CHILD-KEY>` and the disposition are substituted exactly as `<BRD-KEY>` and
 `<recommended>` are substituted elsewhere in this phase; the array is otherwise presented verbatim
-(`escalation-rules.md`, *Choice lists are presented verbatim*), and it is three options, inside §0's
+(`workflows-core:escalation-rules`, *Choice lists are presented verbatim*), and it is three options, inside §0's
 two-to-four cap, with the free-text answer the harness supplies handled below.
 
 **`split_mode: full`:**
@@ -563,12 +564,12 @@ choices: ["Write covered-here on all <N> rows now (Recommended — every row thi
 **Why one list carries a marker and the other does not** — the same rule both times, applied to what
 each picker already says. The `allocate-only` picker recommends `covered-here` on every row it
 shows, unconditionally and for a reason no instruction changes, so recommending it once here is that
-marker printed once: a reason annotation, honoured verbatim, of the kind `escalation-rules.md`
+marker printed once: a reason annotation, honoured verbatim, of the kind `workflows-core:escalation-rules`
 admits explicitly. The `full` picker carries **no** marker unless an instruction placed the row,
 because which resolution is right is a fact about the row in front of the operator — and there being
 one slice does not change that. So the `full` offer carries none either, and says so beside the
 list: *no option here is recommended — this run knows which slice a delegated row would go to, not
-whether this row is one to delegate.* That is `escalation-rules.md`'s *When no option is safe to
+whether this row is one to delegate.* That is `workflows-core:escalation-rules`'s *When no option is safe to
 recommend*, not an omission.
 
 **Answering.**
@@ -626,7 +627,7 @@ choices: ["Assign to a named slice — covered-by<recommended>", "Defer to this 
 than stylistic.** Which resolution is right is a fact about the row in front of the operator — a row
 that clusters into a slice takes `covered-by`, one this BRD still owes takes `deferred-to`, one the
 customer has withdrawn takes `rejected` — and the list is shown once per row, so no marker could be
-true across the runs that reach it. `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` covers
+true across the runs that reach it. `workflows-core:escalation-rules` covers
 exactly this under *When no option is safe to recommend*: omit the marker and say so in prose beside
 the list. **A conditional marker is not the alternative.** `(Recommended when nothing clusters)`
 reads as guidance and is malformed by that file's *The `(Recommended)` marker is unconditional*
@@ -654,7 +655,7 @@ choices: ["Build here — covered-here<recommended>", "Defer to this slice — d
 State once, before the first row of an `allocate-only` walk: *"`covered-by` is not offered here.
 On this slice it would name a sibling under the same parent, or that parent — never a child, since
 nesting is capped at one level and no child can exist below a slice — only its Epics
-(`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §6). It is written by the **parent's** walk,
+(`workflows-core:addressing` §6). It is written by the **parent's** walk,
 on a provisional claim that walk withdrew, and every row carrying it is terminal before this run
 opens the file (`coverage-ledger-format.md` §2, §3). Every row this walk stands on is a row this
 slice claims — a row the parent allocated **here** — so there is nothing for this picker to
@@ -677,10 +678,10 @@ records what it decides to do with it.
 
 **`<recommended>` is a placeholder this run resolves per row, and resolving it is not a rewording.**
 It is substituted in the option strings exactly as `<BRD-KEY>` and `<merge-clause>` are, so the array
-is still presented verbatim per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`'s *Choice
+is still presented verbatim per `workflows-core:escalation-rules`'s *Choice
 lists are presented verbatim* — a command that instead told the orchestrator to *adjust the wording*
 of an option would be contradicting that convention, which is why the variation lives in a
-placeholder (`${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md` states the same for its own).
+placeholder (`workflows-core:next-phase-offer` states the same for its own).
 It resolves, for each row:
 
 | This row's state | `<recommended>` resolves to |
@@ -701,7 +702,7 @@ option never carries a written marker. **The no-instruction run is unchanged** �
 resolves to the same sentence that used to be typed there.
 
 **The reason is carried, not just the marker.** `(Recommended — <why>)` is a reason annotation, which
-`escalation-rules.md` admits explicitly; a bare `(Recommended)` here would assert a recommendation
+`workflows-core:escalation-rules` admits explicitly; a bare `(Recommended)` here would assert a recommendation
 whose only basis is a sentence the operator typed several phases ago and can no longer see. Naming
 what in the instruction placed the row is what lets them disagree with it on this row without
 abandoning the instruction.
@@ -715,7 +716,7 @@ what keeps that run's picker byte-for-byte what it was.
 
 **A recommendation is not batching, and Step 1 is not a recommendation.** Resolving `<recommended>`
 changes what a prompt says, never how many rows it carries: rows in this step are presented **one at
-a time**, unchanged; `${CLAUDE_PLUGIN_ROOT}/references/grilling-technique.md` asks for a recommended
+a time**, unchanged; `workflows-core:grilling-technique` asks for a recommended
 answer on every question for the same reason this phase carries one — an operator reacting to a
 proposal is doing something different from an operator facing a blank picker, and neither is the
 same as being handed five rows at once. Step 1 *does* hand the operator many rows at once, which is
@@ -921,13 +922,13 @@ one-line note naming the run that removed it — and touches no other block.
 
 ## Phase 6 — Handoff
 
-Present `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md` §4.3's choice array verbatim:
+Invoke `Skill(skill: "workflows-core:reference", args: "phase-handoff")` and present its §4.3 choice array verbatim:
 
 ```
 choices: ["Branch + commit + push + open PR to main (Recommended)", "Just write the files — I'll handle git (the next phase will stop until this is on main)", "Cancel"]
 ```
 
-On the first choice, execute `handoff-to-main` (`phase-handoff.md` §2) with `prefix: brd` (§2.9's
+On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff handoff-to-main")`, §2) with `prefix: brd` (§2.9's
 table already lists `brd` as shared by every `/brd-*` command), `feature_folder` as resolved
 in Phase 0, `deliverable_paths` = every file this run wrote, updated, or removed under `<BRD-dir>`
 — **in `allocate-only` mode that is exactly two, this slice's own `coverage-ledger.md` and
@@ -1003,13 +1004,13 @@ choices: ["Ground each non-empty child created above, one run per child — /dev
 ```
 
 **Every merge clause in this phase is the `<merge-clause>` placeholder**, resolved per
-`${CLAUDE_PLUGIN_ROOT}/references/next-phase-offer.md`'s *A next-step offer that names a downstream
+`workflows-core:next-phase-offer`'s *A next-step offer that names a downstream
 command must also name the merge* rule, which owns the §4.1 outcome map and is not restated here.
 The rule governs **every** mention of the merge in this phase — both choice arrays and the prose
 below — because this command reaches three outcomes that open no pull request: the no-op, the
 Phase 4.5-only path where a standing empty child was kept unchanged, and a declined handoff. It is a
 placeholder and not an instruction to reword an option, so the arrays are still presented verbatim
-per `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`.
+per `workflows-core:escalation-rules`.
 
 **Say what the child's own route looks like when offering it**: after `/brd-ground <CHILD-KEY>`,
 `/brd-split <CHILD-KEY>` runs in `allocate-only` mode (Phase 0 step 5) — it allocates that child's
@@ -1043,7 +1044,7 @@ three are offered, each under the precondition its own Phase 0 enforces.
 
 ### Context hygiene
 
-Per `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md`, the resume pointer is written in the
+Per `workflows-core:session-hygiene`, the resume pointer is written in the
 terminal cost phase (Phase 8), after the cost entry and before the commit step. **The offer above
 spans both roles, so both branches are printed** (§2's *Next options span both* bullet): grounding a
 child created above is a hand to PA, even when the same person does it → run **`/clear`**;
@@ -1059,7 +1060,7 @@ Terminal phase — runs after Phase 7, NEVER interrupts an earlier phase, and ru
 no-op path step 10 decides exactly as on any other, in either run mode, and on the Phase 4.5-only path too.
 
 **Capture-at-block invariant.** If an EARLIER phase halts on a plugin / skill / command / reference
-gap, `emit-block` (`${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) fires at that halt
+gap, `emit-block` (`workflows-core:feedback-emission`) fires at that halt
 before escalating. None of Phase 0's stops qualify — a missing key, an unresolved BRD, an ungated
 or missing grounding deliverable, an inventory carrying no claim at all
 (`BRD_SPLIT_EMPTY_INVENTORY`, in either mode — a fact about the customer's document or about what
@@ -1075,21 +1076,16 @@ never a capability this plugin lacks.
    confirmed and keyed, the ledger walk's tally, `slices.md`); key events (the run mode, the no-op
    path, a cancelled walk with N rows left, a rejected `covered-by` key — or "none"); workarounds; test
    result N/A; project root = the BRD folder.
-2. **Persist plugin feedback (automatic).** Cite
-   `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md` and call its `emit-auto` entry point (§6)
+2. **Persist plugin feedback (automatic).** Invoke `Skill(skill: "workflows-core:reference", args: "feedback-emission emit-auto")` and call its `emit-auto` entry point (§6)
    with the Lessons Learned report, `command: /brd-split`, the run's `key` (the `<BRD-KEY>`),
    `source`, and `plugin_version` (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`).
    Surface the persisted path (or "no plugin-facing signal — nothing persisted").
-3. **Session cost (ALWAYS runs).** Cite `${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md` and call
-   its `emit-cost` entry point with `command: /brd-split`, `phase: brd-to-prd`, `role: pm`, the
+3. **Session cost (ALWAYS runs).** Invoke `Skill(skill: "workflows-core:reference", args: "cost-emission emit-cost")` and call its `emit-cost` entry point with `command: /brd-split`, `phase: brd-to-prd`, `role: pm`, the
    run's `key`, `source`, and `plugin_version`. Surface the persisted path (or the report-only
    notice).
-4. **Write the resume pointer.** Cite `${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md` §1 and
-   write/overwrite `<BRD-dir>/dev-workflows/resume.md` now — after the cost entry above, and before
+4. **Write the resume pointer.** Invoke `Skill(skill: "workflows-core:reference", args: "session-hygiene")` and, per its §1, write/overwrite `<BRD-dir>/dev-workflows/resume.md` now — after the cost entry above, and before
    the commit step below. Redact per §1. Silent.
-5. **Commit session artifacts (terminal).** Cite
-   `${CLAUDE_PLUGIN_ROOT}/references/specs-repo-git.md` and execute its `commit-artifacts` entry
-   point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths
+5. **Commit session artifacts (terminal).** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git commit-artifacts")` and execute its `commit-artifacts` entry point (§4) inline — the LAST action of the run. It stages ONLY the §2.1 bounded artifact paths
    inside `$SPECS_PATH`, commits `<BRD-KEY> Add dev-workflows session artifacts (/brd-split)` with
    no `Co-Authored-By` trailer, and pushes to the branch Phase 6's handoff created. It NEVER touches
    a code repo, a docs repo, or the current working directory; NEVER force-pushes; NEVER
@@ -1123,8 +1119,8 @@ walk's resolution tally by disposition, with every new `covered-by` key and ever
 (Phase 4's reconcile step), so a withdrawal is reported rather than only visible by re-reading two
 files; the `slices.md` path (or that it was skipped on the
 no-op path); the feedback + cost paths; the `Phase handoff:` outcome line from `handoff-to-main`
-(`phase-handoff.md` §4.1); the `Specs repo:` outcome line from `commit-artifacts`
-(`specs-repo-git.md` §6); the next-step recommendation; and end with the ledger line, exactly per
+(`workflows-core:phase-handoff` §4.1); the `Specs repo:` outcome line from `commit-artifacts`
+(`workflows-core:specs-repo-git` §6); the next-step recommendation; and end with the ledger line, exactly per
 `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §6:
 
 ```
@@ -1132,7 +1128,7 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 ```
 
 **Computing it reads one ledger per `covered-by` row**, one hop, from the working tree via
-`resolve-address` (`${CLAUDE_PLUGIN_ROOT}/references/addressing.md` §3). In `full` mode those are
+`resolve-address` (`workflows-core:addressing` §3). In `full` mode those are
 the children this run created in Phase 3 and reconciled in Phase 4, and any it found already nested
 in Phase 0 step 9; in `allocate-only` they are the siblings and the parent this slice's orphan rows
 name (`coverage-ledger-format.md` §3), each of which `resolve-address` finds at its own level.

@@ -4,6 +4,8 @@ description: Reads a single code repository's PR diff(s) and returns a documenta
 tools: ["Read", "Glob", "Grep", "Bash"]
 ---
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 Read `${CLAUDE_PLUGIN_ROOT}/references/handoff/diff-summarizer.md` for the exact input/output document format.
 
 Summarise a single code repository's PR diff(s) from a documentation-consumer's point of view. One instance per repo; the caller (the `/document` command) spawns up to 4 concurrent instances per batch.
@@ -40,7 +42,7 @@ refresh:
 
 Refuse to run without `repo_path` and at least one element in **`refs` or `pr_refs`**.
 
-**`refs` is the shape the callers actually have**, and the refusal used to name `pr_refs` alone. `${CLAUDE_PLUGIN_ROOT}/references/implementation-format.md` §1 records `repo` / `branch` / `base` / `commit` / `pushed` — no URL, no host, no PR id — because nothing in this plugin reads a tracker or a pull-request API any more. A caller holding only that record could satisfy neither the required field nor the host routing below, so every host-specific strategy is skipped for a `refs` element (`resolved_via: local_ref`) and the diff is taken directly: `git -C <repo_path> diff <branch_to>...<branch_from>`, with `branch_from` accepted as a commit sha when the branch is gone (`implementation-format.md` §1 records both for exactly that reason). `pr_refs` still routes by host where a URL is known.
+**`refs` is the shape the callers actually have**, and the refusal used to name `pr_refs` alone. `workflows-core:implementation-format` §1 records `repo` / `branch` / `base` / `commit` / `pushed` — no URL, no host, no PR id — because nothing in this plugin reads a tracker or a pull-request API any more. A caller holding only that record could satisfy neither the required field nor the host routing below, so every host-specific strategy is skipped for a `refs` element (`resolved_via: local_ref`) and the diff is taken directly: `git -C <repo_path> diff <branch_to>...<branch_from>`, with `branch_from` accepted as a commit sha when the branch is gone (`workflows-core:implementation-format` §1 records both for exactly that reason). `pr_refs` still routes by host where a URL is known.
 
 When `repo_url_slug` is provided, before summarising run
 `git -C <repo_path> remote get-url origin`, strip a trailing `.git`, and compare
@@ -108,10 +110,10 @@ If all four strategies fail: record the PR under `unresolved_prs` and continue. 
 Before resolving any PR:
 
 1. **Verify repo exists.** If `repo_path` is not a directory, return `status: REPO_MISSING`.
-2. **Read-only detection.** Per `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md` §1, test whether `repo_path` and `repo_path/.git` are writable. On a read-only mount, skip items 3–5 entirely and follow that reference — §2 for what to skip, §3 for ref resolution, §4 for reading at the ref, §5 for when to escalate. `refresh.fetch` writes refs and `refresh.pull` writes the working tree, so neither can run; PR resolution proceeds against the object database as it stands. A read-only mount is NOT `DIRTY_TREE` and NOT `REFRESH_BLOCKED`.
+2. **Read-only detection.** Per `workflows-core:read-only-repos` §1, test whether `repo_path` and `repo_path/.git` are writable. On a read-only mount, skip items 3–5 entirely and follow that reference — §2 for what to skip, §3 for ref resolution, §4 for reading at the ref, §5 for when to escalate. `refresh.fetch` writes refs and `refresh.pull` writes the working tree, so neither can run; PR resolution proceeds against the object database as it stands. A read-only mount is NOT `DIRTY_TREE` and NOT `REFRESH_BLOCKED`.
 3. **Clean-tree check.** `git status --porcelain`; if non-empty AND `refresh.fetch` is true, return `status: DIRTY_TREE`.
-4. **Fetch.** If `refresh.fetch` is true: `git fetch origin`. On failure, if the error contains `Read-only file system`, abandon the writable path and continue in read-only mode per `read-only-repos.md` §1; on any other failure return `status: REFRESH_BLOCKED` with a one-line reason.
-5. **Pull.** If `refresh.pull` is true (default false): resolve the default branch via `git symbolic-ref --short refs/remotes/origin/HEAD` (with the usual fallback chain — `git remote set-head origin --auto`; then try `main`, then `master`); `git switch <default>` + `git pull --ff-only`. On a failure whose error contains `Read-only file system`, enter read-only mode per `read-only-repos.md` §1 and continue there; on any other failure return `status: REFRESH_BLOCKED`.
+4. **Fetch.** If `refresh.fetch` is true: `git fetch origin`. On failure, if the error contains `Read-only file system`, abandon the writable path and continue in read-only mode per `workflows-core:read-only-repos` §1; on any other failure return `status: REFRESH_BLOCKED` with a one-line reason.
+5. **Pull.** If `refresh.pull` is true (default false): resolve the default branch via `git symbolic-ref --short refs/remotes/origin/HEAD` (with the usual fallback chain — `git remote set-head origin --auto`; then try `main`, then `master`); `git switch <default>` + `git pull --ff-only`. On a failure whose error contains `Read-only file system`, enter read-only mode per `workflows-core:read-only-repos` §1 and continue there; on any other failure return `status: REFRESH_BLOCKED`.
 
 ## Per-PR summary content
 
@@ -180,4 +182,4 @@ aggregate_summary: |
 - NEVER fabricate diff content. If a PR cannot be resolved by any strategy, record it in `unresolved_prs`.
 - If `resolved_via == key_commits`, the `summary` MUST carry the explicit caveat — omitting it would silently degrade content trust.
 - On `REPO_MISSING`, `DIRTY_TREE`, `REFRESH_BLOCKED`: return immediately with the status; do NOT partially resolve any PRs.
-- On a read-only mount, NEVER `git fetch`, `git pull`, `git switch`, or `git remote set-head` — all write. Follow `${CLAUDE_PLUGIN_ROOT}/references/read-only-repos.md` instead of returning `REFRESH_BLOCKED`.
+- On a read-only mount, NEVER `git fetch`, `git pull`, `git switch`, or `git remote set-head` — all write. Invoke `Skill(skill: "workflows-core:reference", args: "read-only-repos")` and follow it instead of returning `REFRESH_BLOCKED`.

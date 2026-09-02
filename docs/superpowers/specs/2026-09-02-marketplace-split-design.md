@@ -24,8 +24,8 @@ Measured at `v3.24.1`. Agents attributed by `subagent_type` dispatch (transitive
 
 | Plugin | Commands | Agents | References |
 |---|---|---|---|
-| `workflows-core` | 5 | 4 | 30 |
-| `pm-workflows` | 13 | 13 | 9 |
+| `workflows-core` | 6 | 4 | 31 |
+| `pm-workflows` | 12 | 13 | 8 |
 | `dev-workflows` | 5 | 12 | 14 |
 | `docs-workflows` | 3 | 7 | 14 |
 | `guideline-reviewers` | 2 | 2 | 38 |
@@ -54,6 +54,10 @@ The totals reconcile exactly against the tree, with no remainder. Two findings s
 | S9 | **Build order: guidelines → core → docs → pm**, with `dev-workflows` as the remainder. | Separates two unknowns that a core-first order conflates. Guidelines needs no loader, no dependency and no citation rewrite, so it proves the multi-plugin plumbing — marketplace registration, the gate loop, per-plugin docs, installation — at zero risk. Core then introduces the genuinely new mechanisms against a repo where that plumbing is known to work. |
 | S10 | **The namespaced sweep is a first-class step, gated in both directions.** | `subagent_type: "dev-workflows:<agent>"` and `/dev-workflows:<cmd>` appear throughout the commands, `CLAUDE.md`'s workflow map, 43 documentation pages and the next-phase-offer machinery. It is the largest mechanical risk in the job, and it is grep-able, which is what makes it safe rather than merely large. |
 | S11 | **The cost boundary detector resolves against a namespace → command-set map shipped as a static manifest in core, and the deferred record carries its ceding plugin.** Both are required work inside increment 2, not follow-ups. | `cost-emission.md` §13.2 accepts a boundary only as `<this plugin>:<known command>`, and `session-cost.py`'s `load_command_names()` returns exactly one plugin's command set and one namespace from its own `plugin.json`. Both ceding commands — `/prompt-grill-me` and `/prompt-brainstorm` — land in `workflows-core` (S3). A cross-plugin replay then drops the claim (safe); a same-plugin replay matches it and swallows any intervening sibling's segment (§8.2, reproduced). A namespace list is insufficient because line 262 resolves both halves at once. See §8. |
+| S12 | **`prose-style` becomes a declared dependency of `pm-workflows` and `docs-workflows`, and the graceful-skip branches are deleted.** | Its optionality is an artefact of plugin dependencies not existing when it was written, not a design intent — for `/epics` it is the **primary** style checker, so "skipped gracefully" means no style check at all. A declared dependency makes presence a guarantee (an unsatisfied one disables the plugin), which makes 22 skip branches across 18 files unreachable. Keeping unreachable branches is its own defect. Core does not declare it: core does not use it. |
+| S13 | **`/frames` goes to `workflows-core`, and `grounding-format.md` with it.** | Design frame sets are already needed by the pm route and will be needed by dev — a bug-fix route, and screenshots arriving mid-implementation. That makes it a two-group surface, which is S4's rule. `design-grounder` stays in `pm-workflows` for now, because its only consumer today is `/brd-ground`; it moves to core when dev actually adopts it, not in anticipation. The two are coupled through an artefact in `$SPECS_PATH`, not through code, so they can sit in different plugins. |
+| S14 | **The split is a breaking change requiring user action, and the CHANGELOG says so in a migration note.** | `claude plugin marketplace update` refreshes what is installed; it does not install plugins newly added to a catalogue. A user with `dev-workflows` installed gets `workflows-core` automatically (a declared dependency) and **loses** `/idea`, `/create-prd`, `/document` and the rest until they install `pm-workflows` and `docs-workflows` explicitly. The note lists every moved command and its new plugin. |
+| S15 | **The root README becomes a marketplace index**, and each plugin's `getting-started.md` carries its own install block. | With five plugins there is no single front page. Check 7 becomes per-plugin: each plugin's install block must match *its* row in the root index (§6). |
 
 ---
 
@@ -169,7 +173,7 @@ flowchart TD
 
 ### Increment 1 — `guideline-reviewers`
 
-Move `/api-guideline-reviewer`, `/guideline-reviewer`, their two agents, and `references/api-guidelines/**` plus `references/guidelines/**`. Register in `marketplace.json`. Give it its own `docs/` tree. `guidelines/accessibility.md` moves with the rest of the corpus. It is the one file the documentation family will later want — `/docs-brand` contrast-checks against it — but that family does not exist yet, so nothing is copied pre-emptively for a consumer that has no code. The decision is deferred to the point it becomes real (§10 Q1).
+Move `/api-guideline-reviewer`, `/guideline-reviewer`, their two agents, and `references/api-guidelines/**` plus `references/guidelines/**`. Register in `marketplace.json`. Give it its own `docs/` tree. `guidelines/accessibility.md` moves with the rest of the corpus. It is the one file the documentation family will later want — `/docs-brand` contrast-checks against it — but that family does not exist yet, so nothing is copied pre-emptively for a consumer that has no code. The decision is deferred to **increment 3**, where `docs-workflows` is created and the need becomes real — pinned to an increment rather than left in the open-questions list, so it cannot be forgotten.
 
 **Nothing here needs the loader, a dependency, or a citation rewrite.** That is the point: it proves plugin creation, registration, the `check-docs.sh` loop, per-plugin documentation and installation, with no coupling in play.
 
@@ -177,7 +181,7 @@ Move `/api-guideline-reviewer`, `/guideline-reviewer`, their two agents, and `re
 
 ### Increment 2 — `workflows-core`
 
-Create the plugin with the four core agents, the thirty core references, the five utility commands, the `model-routing` skill and the new loader skill. `dev-workflows` declares `"dependencies": ["workflows-core"]`.
+Create the plugin with the four core agents, the thirty-one core references, the six commands it carries (the five utilities plus `/frames`, S13), the `model-routing` skill and the new loader skill. `dev-workflows` declares `"dependencies": ["workflows-core"]`.
 
 Then the sweep (S10): every `${CLAUDE_PLUGIN_ROOT}/references/<core-ref>` citation becomes a loader invocation, and every `subagent_type: "dev-workflows:<core-agent>"` becomes `"workflows-core:<core-agent>"`. Add the loader gate.
 
@@ -195,11 +199,27 @@ Move `/document`, `/docs-profile`, `/release-notes`, their seven agents and four
 
 ### Increment 4 — `pm-workflows`
 
-The largest: thirteen commands, thirteen agents, nine references. `dev-workflows` is then simply what remains — no fifth step.
+The largest: twelve commands, thirteen agents, eight references. `dev-workflows` is then simply what remains — no fifth step.
 
 The BRD route hands off to `/create-prd` → `/create-ard` → `/specify` → `/design`, and that last arrow crosses from pm into dev. It works because `phase-handoff.md` is a core reference reached through the loader by both sides, but it is the one place where a phase boundary and a plugin boundary coincide, and it deserves an explicit end-to-end test rather than a gate.
 
 *Verification:* the full pipeline runs across three plugins — a PRD authored in `pm-workflows`, designed in `dev-workflows`, documented in `docs-workflows`.
+
+### Before increment 1, and after the specs are approved
+
+**Re-tag.** `v3.24.1` marks the tree before the design existed; the rollback point that matters is the **last agreed state of the specs**, since that is where a restarted attempt would begin. Merging the specs changes no plugin code, so the plugin version does not move and `v3.24.1` cannot be reused — the marker is therefore a purpose-named annotated tag, `pre-split`, rather than a version tag. `v3.24.1` stays what it is: a release marker.
+
+### The migration note (S14)
+
+The split is a **breaking change requiring user action**, and the CHANGELOG says so rather than leaving it to be discovered. `claude plugin marketplace update` refreshes what is installed; it does not install plugins newly added to a catalogue. Concretely, a user with `dev-workflows` installed and nothing else, after updating:
+
+- **gains** `workflows-core` automatically — it is a declared dependency
+- **keeps** `/design`, `/implement`, `/ready`, `/vuln`, `/upgrade`
+- **loses** `/idea`, `/create-prd`, `/document`, every `/brd-*`, and the rest, until they install `pm-workflows` and `docs-workflows` explicitly
+
+Bare command names are unaffected — `/idea` still resolves once its plugin is installed. Only the namespaced form moves. The note lists every command and its new plugin, and names the one-line install for each.
+
+An **umbrella plugin** depending on all five would remove the manual step for people who want everything. It is deliberately **not** in this design — a sixth plugin whose only purpose is to undo the split's install story needs its own justification, and nobody has asked for it yet. Worth revisiting if the migration note proves annoying in practice.
 
 ### Every increment
 
@@ -326,4 +346,4 @@ The review's four probe transcripts are adopted as fixtures rather than writing 
 
 1. **How does the documentation family reach `guidelines/accessibility.md`?** It moves into `guideline-reviewers` with the rest of the corpus, and `/docs-brand`'s contrast check will need it. Three answers are open — copy the one file, promote it to core, or have `docs-workflows` depend on `guideline-reviewers` — and the right one depends on whether a second shared file ever appears. Settle it when the docs family is built, not before.
 2. **Where does `/frames` sit long-term?** It is allocated to `pm-workflows` because it indexes design frame sets under BRD, PRD and Epic folders. If `design-grounder` ever serves `dev-workflows` too, both move to core.
-3. **Does the root README become a marketplace index** rather than one plugin's front page? Check 7's rework touches this, and the answer decides whether each plugin's `getting-started.md` links back to it.
+*(The root-README question is settled by S15. The `accessibility.md` question is pinned to increment 3 rather than listed here.)*

@@ -1,5 +1,7 @@
 # Architecture Requirements/Decision Document (ARD) format (embedded authority)
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 The canonical structure and rules for an ARD authored by `/create-ard`. `ard-reviewer` reviews against
 this file, and `/ready` reads its `grounded_repos:` frontmatter. The ARD is **architecture** — invariants, grounded as-is findings, and cross-cutting
 decisions — NOT product requirements (that is the PRD) and NOT a per-Epic implementation plan (that is
@@ -31,11 +33,11 @@ derived_from: <path to the PRD file, canonical prd.md — or, in a BRD folder th
 ---
 ```
 
-**Unknown frontmatter keys are preserved.** Every command that rewrites this file keeps fields it does not recognise, in place and unmodified — the same rule `references/prd-format.md` states for a PRD, and for the same reason: a user's own field must survive a run that did not author it. `workitem_key` is the documented example, and it is reserved rather than special-cased.
+**Unknown frontmatter keys are preserved.** Every command that rewrites this file keeps fields it does not recognise, in place and unmodified — the same rule `workflows-core:prd-format` states for a PRD, and for the same reason: a user's own field must survive a run that did not author it. `workitem_key` is the documented example, and it is reserved rather than special-cased.
 
 **`prd`, `epic` and `derived_from` are widened for the BRD route, and the widening is confined to
 them.** Under `/create-ard` on the BRD route the run holds a **BRD key**, which addresses a folder under
-`$SPECS_PATH` and may carry a third numeric segment (`references/addressing.md` §1 fixes no
+`$SPECS_PATH` and may carry a third numeric segment (`workflows-core:addressing` §1 fixes no
 depth), so `prd` and `epic` are validated against that grammar — `^[A-Z][A-Z0-9_]*(-\d+)+$` — rather
 than any narrower form; `ard-reviewer` applies exactly this and `commands/create-ard.md` writes
 exactly this, from one resolution rather than two. `scope` follows the same pairing it always did: a

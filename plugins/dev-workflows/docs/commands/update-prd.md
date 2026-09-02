@@ -55,8 +55,8 @@ Three subagents are dispatched: `workflows-core:docs-grounder` (Phase 2, read-on
 ## Gates
 
 - **Phase 3.5 — Prose style check**, mirroring [`/create-prd`](create-prd.md) exactly: `prose-style:prose-style-checker` applies MAJOR fixes inline and re-runs once; a non-gating quality pass, skipped gracefully when the `prose-style` plugin is not installed.
-- **Phase 3.6 — Structural pre-lint** (`../../references/pre-lint.md`), advisory only — mechanical findings fixed inline, content gaps left for the grill.
-- **Phase 4 — `prd-reviewer`**, Opus-pinned by frontmatter (`model: opus`, no override), reviewing the whole updated PRD against `../../references/prd-format.md`. `PASS` / `PASS WITH RECOMMENDATIONS` proceeds. `BLOCK` triggers one inline fix cycle and one re-review; a persistent `BLOCK` is escalated per `../../references/escalation-rules.md`'s "Review verdict BLOCK" choices, exactly as in [`/create-prd`](create-prd.md).
+- **Phase 3.6 — Structural pre-lint** (`workflows-core:pre-lint`), advisory only — mechanical findings fixed inline, content gaps left for the grill.
+- **Phase 4 — `prd-reviewer`**, Opus-pinned by frontmatter (`model: opus`, no override), reviewing the whole updated PRD against `workflows-core:prd-format`. `PASS` / `PASS WITH RECOMMENDATIONS` proceeds. `BLOCK` triggers one inline fix cycle and one re-review; a persistent `BLOCK` is escalated per `workflows-core:escalation-rules`'s "Review verdict BLOCK" choices, exactly as in [`/create-prd`](create-prd.md).
 
 ## Example
 

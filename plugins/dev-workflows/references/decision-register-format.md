@@ -1,5 +1,7 @@
 # Decision register format (embedded authority)
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 The canonical shape of the BRD→PRD workflow's **decision register**: the record every `[VD#n]`
 (delivery-team decision) and `[CD#n]` (customer decision) carries, the five statuses one can hold,
 the rule that makes `argumentation` mandatory, the rule that makes reopening explicit, what
@@ -10,10 +12,10 @@ D14 and D19 in §3.
 
 Three neighbouring rules are owned elsewhere and cited, not restated: the `horizon` a grounding
 finding carries and the `[CG#n]`/`[DG#n]` finding record itself belong to
-`references/grounding-format.md` (§5 and §2); the `[G]`/`[V]`/`[C]` tag that decides which register
+`workflows-core:grounding-format` (§5 and §2); the `[G]`/`[V]`/`[C]` tag that decides which register
 a question's answer lands in, and the rounds a decision is stamped with, belong to
 `references/interview-tagging.md` (§1 and §5); the `<BRD-KEY>` grammar a `conditional_on` uses
-belongs to `references/addressing.md` §1.
+belongs to `workflows-core:addressing` §1.
 
 **Consumed by `commands/brd-interview.md`**, which writes `[VD#n]` and `[AS#n]` records against this
 shape and enforces §6; by `agents/brd-package-reviewer.md`, which reads them; and by
@@ -49,11 +51,11 @@ round: 2
 | `options_considered` | what was actually on the table, including the one chosen |
 | `chosen` | exactly one member of `options_considered` |
 | `argumentation` | why — **mandatory**, §2 |
-| `evidence` | the `[CG#n]`/`[DG#n]` findings the decision rests on, per `references/grounding-format.md` §2; the list is what §6 inspects |
+| `evidence` | the `[CG#n]`/`[DG#n]` findings the decision rests on, per `workflows-core:grounding-format` §2; the list is what §6 inspects |
 | `altitude` | which level the decision sits at, so the spec's §7 altitude routing can send it to the right downstream artifact |
 | `conditional_on` | omitted unless the decision depends on a prerequisite — §5 |
 | `status` | one of the five in §3 |
-| `consumed_by` | the same field, values, and starting-at-`none` rule as `references/grounding-format.md` §2, applied to a decision instead of a finding |
+| `consumed_by` | the same field, values, and starting-at-`none` rule as `workflows-core:grounding-format` §2, applied to a decision instead of a finding |
 | `round` | the interview round that produced the decision, per `references/interview-tagging.md` §5 |
 
 **Which prefix a decision gets is fixed by the tag of the question it answers, not by who typed it.**
@@ -122,7 +124,7 @@ identified, still carrying the reason it was withdrawn, and it is no longer requ
 **Only two things may reopen a decision:**
 
 1. **A new grounding finding** that bears on it — including a finding that supersedes one already in
-   the decision's `evidence` list (`references/grounding-format.md` §3).
+   the decision's `evidence` list (`workflows-core:grounding-format` §3).
 2. **An incoming customer decision** that contradicts or constrains it.
 
 Nothing else. Not a later reader's discomfort, not a fresh idea, not a review pass that would have
@@ -145,7 +147,7 @@ something that can drift underneath them. Bounding reopening to two external cau
 
 `conditional_on: <BRD-KEY>/<decision-id>` records that **this decision is correct only while a named
 decision of a named prerequisite BRD holds.** The key follows the grammar in
-`references/addressing.md` §1; the second half names one specific decision in that BRD's own
+`workflows-core:addressing` §1; the second half names one specific decision in that BRD's own
 register, never the BRD as a whole — a prerequisite carries many decisions and only one of them is
 the one this position rests on.
 
@@ -170,7 +172,7 @@ person taking it; a sweep cannot infer the dependency from a `statement` that ne
 ## 6. The will-change rule (D19)
 
 **A decision may not rest solely on a `will-change` finding.** Where *every* finding in a decision's
-`evidence` list carries `horizon: will-change` (`references/grounding-format.md` §5), the decision
+`evidence` list carries `horizon: will-change` (`workflows-core:grounding-format` §5), the decision
 may not be closed as `decided`, and `/brd-interview` refuses to close it.
 
 The reason is the one D19 states: a finding is true of a pinned commit, and a `will-change` finding
@@ -214,7 +216,7 @@ detail an author may settle for themselves. All eleven are accounted for here.
 | `round` | **As-is**: the interview round the assumption was recorded in |
 
 **`evidence` is the field that carries the why-no-evidence explanation.** This is the same
-discipline `references/grounding-format.md` §2 applies to a finding asserting an absence — an
+discipline `workflows-core:grounding-format` §2 applies to a finding asserting an absence — an
 explicit statement of what was searched and why it fell short, rather than an empty field — applied
 to the record whose whole content is an absence. It does not go in `statement`, which holds the
 assumption and nothing else, and it does not go in `argumentation`, which answers a different

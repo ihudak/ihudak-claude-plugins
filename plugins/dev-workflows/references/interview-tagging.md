@@ -1,12 +1,14 @@
 # Interview tagging (embedded authority)
 
+**Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.
+
 The canonical tagging rule for the BRD→PRD workflow's interview: the three tags every question
 carries **before it is asked**, the rule each tag fixes about who may answer it, what happens to a
 `[G]` that grounding cannot settle, why a question carrying two tags is a defect in the question
 rather than a gap in the taxonomy, and how a round opens and closes. Design authority:
 `docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` §6.1 and decision rows D8, D9 and
 D14 in §3. The `NOT-PROVABLE` verdict and the finding record a re-tagged `[G]` produces are defined
-once in `references/grounding-format.md` §3 — cited here, not restated; requirement identifiers
+once in `workflows-core:grounding-format` §3 — cited here, not restated; requirement identifiers
 (`[BR#n]`) are defined once in `references/brd-format.md`.
 
 **Consumed by `commands/brd-interview.md`**, which tags every question against §1 and applies §3–§5
@@ -90,7 +92,7 @@ to prefer.
 
 **A `[G]` that grounding cannot settle does not silently become a question.** It becomes a
 `NOT-PROVABLE` finding — a complete and legitimate terminal verdict, per
-`references/grounding-format.md` §3 — and the question is then **re-tagged**, usually to `[V]`.
+`workflows-core:grounding-format` §3 — and the question is then **re-tagged**, usually to `[V]`.
 
 Usually `[V]`, because of what a `NOT-PROVABLE` verdict actually reports: the repository does not
 answer this, so somebody must now choose. Choosing, with reasons, in a domain the delivery team

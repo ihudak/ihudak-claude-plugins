@@ -12,7 +12,7 @@ It emits a session-cost entry all the same, with `phase`/`role` inferred from th
 
 [`grounding-format.md`](../../references/grounding-format.md) §6.1 makes a frame set's index **mandatory and its absence unrecoverable**: `design-grounder` returns `NO_INDEX` rather than reading a set without one, because a filename is not a reliable statement of what a frame shows.
 
-That is strict on purpose, and it left the obvious workflow with no way out. A human exports the frames of a screen flow, drops the folder into `design/`, and has a set the plugin refuses to read — recoverable only by hand-authoring an index. [`/idea`](idea.md) writes one for the images it vendors, and nothing else did. `/frames` is the repair.
+That is strict on purpose, and it left the obvious workflow with no way out. A human exports the frames of a screen flow, drops the folder into `design/`, and has a set the plugin refuses to read — recoverable only by hand-authoring an index. `/idea` writes one for the images it vendors, and nothing else did. `/frames` is the repair.
 
 ## Synopsis
 
@@ -42,7 +42,7 @@ flowchart TD
 
 ## What it produces
 
-One `index.md` per frame set, in the format [`grounding-format.md`](../../references/grounding-format.md) §6.2 fixes — the same format and the same reconciliation contract [`/idea`](idea.md) Phase 4.5 follows, so two writers never leave one directory holding an index neither would have written. The index is rebuilt from the set **as it stands on disk**: every existing row whose image is still there is preserved verbatim — with one exception, and it is the whole convergence mechanism for a capped set: a row carrying `_no description on record_` holds no description to preserve, so the next writer that can obtain one fills it — a row is appended for each frame this run described, a row whose image is gone is dropped and reported, and a frame the run could not account for gets `_no description on record_` and is reported.
+One `index.md` per frame set, in the format [`grounding-format.md`](../../references/grounding-format.md) §6.2 fixes — the same format and the same reconciliation contract `/idea` Phase 4.5 follows, so two writers never leave one directory holding an index neither would have written. The index is rebuilt from the set **as it stands on disk**: every existing row whose image is still there is preserved verbatim — with one exception, and it is the whole convergence mechanism for a capped set: a row carrying `_no description on record_` holds no description to preserve, so the next writer that can obtain one fills it — a row is appended for each frame this run described, a row whose image is gone is dropped and reported, and a frame the run could not account for gets `_no description on record_` and is reported.
 
 Descriptions come from the `frame-describer` agent, which looks at the frames and returns one plain-language description each — an agent whose whole tool list is `Read`, `Glob`, `Grep`, so it cannot write the index it describes into. The command hands the frames to it rather than opening them itself, so every description in an index is one that something which actually saw the frame produced, and "transcribed, never inferred" is a rule about copying rather than a hope about restraint.
 
@@ -50,9 +50,9 @@ The indexes are deliverables, so they reach the default branch through the [phas
 
 ## The cap
 
-**Forty frames described per run**, counted across every set the run touches. [`/idea`](idea.md) caps at six because reading a mockup is incidental to writing a brief; this command is invoked *to* index, so six would make it useless on the first real export it met.
+**Forty frames described per run**, counted across every set the run touches. `/idea` caps at six because reading a mockup is incidental to writing a brief; this command is invoked *to* index, so six would make it useless on the first real export it met.
 
-**What counts as a frame** is the extension set [`grounding-format.md`](../../references/grounding-format.md) §6.2 fixes — `.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`. One vocabulary, shared with [`/idea`](idea.md), because two writers of one index listing by two different sets would each drop the other's rows as frames that had gone missing. Anything else in the directory is not a frame, gets no row, and is named once in the report so it is visibly not indexed rather than invisibly absent.
+**What counts as a frame** is the extension set [`grounding-format.md`](../../references/grounding-format.md) §6.2 fixes — `.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`. One vocabulary, shared with `/idea`, because two writers of one index listing by two different sets would each drop the other's rows as frames that had gone missing. Anything else in the directory is not a frame, gets no row, and is named once in the report so it is visibly not indexed rather than invisibly absent.
 
 **Where nothing is written, nothing is created.** A folder with no `design/`, a `design/` holding no subdirectory, and a frame set holding no frames are all clean outcomes reported as such — no directory is created, no index is written, and no handoff is offered, because there would be nothing to open a pull request for. Images dropped *directly* into `design/` rather than into a set are called out with the fix: a set is a subdirectory of `design/`.
 
@@ -66,9 +66,9 @@ No reviewer, and nothing to review — an index states what a directory holds. T
 
 ## What it is not
 
-**Indexing makes frames readable; grounding makes them `[DG#n]` findings.** `/frames` dispatches no `design-grounder`, produces no finding, cites no requirement, and never reaches `grounding-verifier`. Design grounding on the `/idea` route remains deliberately unbuilt — §6.1 says so, and this command keeps it true. The one command that grounds a frame set is [`/brd-ground`](brd-ground.md), on the BRD route.
+**Indexing makes frames readable; grounding makes them `[DG#n]` findings.** `/frames` dispatches no `design-grounder`, produces no finding, cites no requirement, and never reaches `grounding-verifier`. Design grounding on the `/idea` route remains deliberately unbuilt — §6.1 says so, and this command keeps it true. The one command that grounds a frame set is `/brd-ground`, on the BRD route.
 
-It is also not `/design-index`, deliberately. [`/design`](design.md) is the engineering-design workflow, and a name adjacent to it would send an operator who wanted an index into the wrong command. *Frame set* and *frame* are §6.1's own vocabulary.
+It is also not `/design-index`, deliberately. `/design` is the engineering-design workflow, and a name adjacent to it would send an operator who wanted an index into the wrong command. *Frame set* and *frame* are §6.1's own vocabulary.
 
 ## Example
 
@@ -81,7 +81,7 @@ Resolves `PRD-ACME-77-<slug>/`, finds `design/checkout-flow/` holding eleven PNG
 ## See also
 
 - [`grounding-format.md`](../../references/grounding-format.md) — §6.1 reserves `design/` and makes each set's index mandatory; §6.2 is the index format and the reconciliation contract both writers execute.
-- [`/idea`](idea.md) — the other writer: it indexes the images it vendors into `design/idea-sources/`, and leaves a `_no description on record_` row for any frame it cannot speak for.
-- [`/brd-ground`](brd-ground.md) — the one command that *reads* a frame set as evidence, through `design-grounder`.
+- `/idea` (in the `dev-workflows` plugin) — the other writer: it indexes the images it vendors into `design/idea-sources/`, and leaves a `_no description on record_` row for any frame it cannot speak for.
+- `/brd-ground` (in the `dev-workflows` plugin) — the one command that *reads* a frame set as evidence, through `design-grounder`.
 - [Agents](../reference/agents.md) — `frame-describer`, the bounded read this command dispatches once per set.
 - [`addressing.md`](../../references/addressing.md) — the resolver that turns one address into a folder of any kind.

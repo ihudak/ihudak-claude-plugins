@@ -18,11 +18,8 @@
 | build the thing | [`/implement`](commands/implement.md) |
 | document it, then announce it | [`/document`](commands/document.md), [`/release-notes`](commands/release-notes.md) |
 | check whether a ticket is really ready | [`/ready`](commands/ready.md) |
-| make a folder of exported design frames readable | [`/frames`](commands/frames.md) |
 | fix a CVE or upgrade a dependency | [`/vuln`](commands/vuln.md), [`/upgrade`](commands/upgrade.md) |
-| tell the plugin it got something wrong | [`/feedback`](commands/feedback.md), [`/prompt`](commands/prompt.md) |
-| see live cost and context while you work | [`/statusline`](commands/statusline.md) — **run this first** |
-| understand what a run cost | [Session cost](reference/session-cost.md), [`/statusline`](commands/statusline.md) |
+| understand what a run cost | [Session cost](reference/session-cost.md) |
 
 Four pages orient you before you touch a command: [Getting started](getting-started.md) installs the plugin and sets your environment variables; [Workflow overview](workflow.md) shows the whole pipeline as one diagram; [BRD workflow](brd-workflow.md) shows the second route into a PRD — from a customer-supplied BRD to a grounded, allocated, decided inventory, back out through a customer review the plugin waits on, and on into the PRD pipeline through the BRD route — as its own diagram; [Roles and phases](roles-and-phases.md) says what each role owns and hands off. Every other page below documents one command, one shared subsystem, or — for [Agents](reference/agents.md) and [References](reference/references.md) — one whole inventory.
 
@@ -40,17 +37,11 @@ Four pages orient you before you touch a command: [Getting started](getting-star
 - [`/docs-profile`](commands/docs-profile.md) — scan a docs repository and write or refresh the machine-readable profile `/document` consumes.
 - [`/document`](commands/document.md) — write or update product documentation: a one-shot direct edit, or the full keyed feature-documentation workflow.
 - [`/epics`](commands/epics.md) — break a Product Requirements Document into reviewed child Epic drafts.
-- [`/feedback`](commands/feedback.md) — log a note about the plugin itself, for the maintainer to aggregate.
-- [`/frames`](commands/frames.md) — (re)build the index every `design/<frame-set>/` of one resolved folder must carry before anything can read it.
 - [`/idea`](commands/idea.md) — refine a raw prompt, file, community post, or existing PRD into a one-page idea brief.
 - [`/implement`](commands/implement.md) — classify, plan, implement, test, and review a code change end to end.
-- [`/prompt`](commands/prompt.md) — log a correction you just made to a command's output, then apply the fix directly.
-- [`/prompt-brainstorm`](commands/prompt-brainstorm.md) — log a correction, then hand off to `superpowers:brainstorming` to redesign it together.
-- [`/prompt-grill-me`](commands/prompt-grill-me.md) — log a correction, then grill the fix inline with a bounded interrogation.
 - [`/ready`](commands/ready.md) — derive the workflow phase from the ARD/spec/design record and report what is missing to leave it; `--claimed` checks a status you declare against it.
 - [`/release-notes`](commands/release-notes.md) — draft a release-notes Summary for a ticket, shaped by the destination it resolves to.
 - [`/specify`](commands/specify.md) — author an org-standard specification for one item through a relentless grill.
-- [`/statusline`](commands/statusline.md) — install the plugin's multi-line status line into your Claude Code settings.
 - [`/update-prd`](commands/update-prd.md) — refresh an existing Product Requirements Document.
 - [`/upgrade`](commands/upgrade.md) — plan and execute a library, framework, runtime, or build-tool upgrade.
 - [`/vuln`](commands/vuln.md) — research and fix a CVE, one dependency or code change at a time.
@@ -59,7 +50,7 @@ Four pages orient you before you touch a command: [Getting started](getting-star
 
 - [Agents](reference/agents.md) — the subagent inventory: what each helper agent does and which command calls it.
 - [References](reference/references.md) — the reference-doc inventory under `references/`, grouped by subtree.
-- [Skills](reference/references.md#skills) — the two bundled skills: what each is for, and which is user-invocable.
+- [Skills](reference/references.md#skills) — the one bundled skills entry that stays here, `docs-frontmatter`: what it is for, and whether it is user-invocable. The `model-routing` skill every pipeline command loads at its classification step ships in `workflows-core` now, alongside the classification reference it resolves.
 - [Environment](reference/environment.md) — every environment variable the plugin reads, and what it configures.
 - [Hooks](reference/hooks.md) — the bundled hooks and what each one does.
 - [Commit convention](reference/commit-convention.md) — end your commit subject with `[<key>]`, and what that buys you when `/document` and `/release-notes` look for the diff.

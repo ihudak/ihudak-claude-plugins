@@ -18,11 +18,14 @@ set -uo pipefail
 # Everything below is byte-identical in ihudak-claude-plugins, mgd-claude-plugins
 # and ihudak-copilot-plugins, so a fix to the gate ports by plain `cp` of the body.
 #
-# THE BODY REQUIRES EVERY NAME BELOW TO EXIST. `set -u` is on, so a ported edition
-# whose hand-written config block omits one aborts at the dispatch loop rather than
-# skipping a check. PLUGIN_RELS, COST_PLUGIN_RELS, HANDOFF_PLUGIN_RELS and
-# CORE_PLUGIN_REL arrived with multi-plugin support and are the ones a config block
-# copied from an older edition will be missing.
+# THE BODY REQUIRES EVERY NAME BELOW TO EXIST. `set -u` is on, so a ported edition whose
+# hand-written config block omits one ABORTS rather than skipping a check -- which is the
+# property that matters, though not everywhere at the same moment. The three LIST variables
+# the dispatch loop expands (PLUGIN_RELS, COST_PLUGIN_RELS, HANDOFF_PLUGIN_RELS) abort at
+# that loop; CORE_PLUGIN_REL is read only inside check bodies, so it aborts at the first one
+# that reads it -- check_handoff_applicability, which runs for every listed plugin. All four
+# arrived with multi-plugin support and are the ones a config block copied from an older
+# edition will be missing.
 # Space-separated; the dispatch loop sets PLUGIN_REL from it per iteration, so every
 # check function below is unchanged and still reads a single PLUGIN_REL. A one-element
 # list behaves exactly as the old scalar did, which is what keeps this body portable to
@@ -45,18 +48,22 @@ CLI_REQUIRED="marketplace add|marketplace update"   # copilot: marketplace add|u
 HAS_COST=1                           # copilot: 0 -- no cost subsystem exists there
 
 # Which plugins ship the subsystems checks 8 and 11 examine. Applicability is declared,
-# never inferred from a missing file: absence-implies-skip would let a genuine regression
-# in a plugin that DOES ship them pass silently.
-COST_PLUGIN_RELS="${COST_PLUGIN_RELS:-plugins/dev-workflows}"        # copilot: ""
+# never inferred: absence-implies-skip would let a genuine regression in a plugin that DOES
+# ship them pass silently. Membership is guarded in both directions -- the dispatch loop
+# skips an undeclared plugin, and check_cost_applicability / check_handoff_applicability
+# assert that a plugin holding the CALL SITES is declared. The trigger is the call sites and
+# not the reference file: the corpus extraction separated the two, and a file-presence
+# trigger got both directions wrong at once (see those two functions).
+COST_PLUGIN_RELS="${COST_PLUGIN_RELS:-plugins/dev-workflows plugins/workflows-core}"        # copilot: ""
 HANDOFF_PLUGIN_RELS="${HANDOFF_PLUGIN_RELS:-plugins/dev-workflows}"  # copilot: ""
 
 # The plugin that holds the shared reference corpus. Checks 8, 9 and 11 read a reference
-# from HERE and their call sites from $PLUGIN_REL -- once the corpus is extracted into its
-# own plugin those are different directories, and a check that resolved both halves against
-# the plugin under check would report a MISSING reference for every plugin that merely reads
-# it. Point it at the plugin under check while the two halves still live together; that is
-# byte-for-byte the behaviour this variable replaces.
-CORE_PLUGIN_REL="${CORE_PLUGIN_REL:-plugins/dev-workflows}"          # copilot: dev-workflows
+# from HERE and their call sites from $PLUGIN_REL -- the corpus now lives in its own plugin,
+# so those are different directories, and a check that resolved both halves against the
+# plugin under check would report a MISSING reference for every plugin that merely reads it.
+# An edition whose corpus and call sites still live together points this at that one plugin,
+# which is byte-for-byte the behaviour this variable replaces.
+CORE_PLUGIN_REL="${CORE_PLUGIN_REL:-plugins/workflows-core}"         # copilot: dev-workflows
 
 # RUNTIME_VARS is a SILENCER: every name in it kills both directions of check 5 (env-var doc
 # agreement) for that variable, permanently -- no mutation of the fixture tree can reveal a
@@ -519,16 +526,31 @@ check_cost_attribution() {
 
 # COST_PLUGIN_RELS is a declared list, not an inferred one -- but a declaration only guards
 # the LOUD direction (a plugin wrongly listed runs check 8 against a subsystem it has
-# nothing to attribute). The QUIET direction was unguarded: a plugin that DOES ship
-# $REF_DIR/cost-emission.md but is missing from the list has check 8 silently skipped for
-# it -- deleting every row from the section-7 table left the whole tree green. This asserts
-# the other half: presence of the file implies membership in the list.
+# nothing to attribute). The QUIET direction was unguarded: a plugin that emits but is
+# missing from the list has check 8 silently skipped for it -- deleting every row from the
+# section-7 table left the whole tree green. This asserts the other half.
+#
+# THE TRIGGER IS THE CALL SITES, NOT THE REFERENCE FILE, and that is a correction. It used
+# to fire on a plugin shipping $REF_DIR/cost-emission.md, on the premise that shipping the
+# reference implies shipping the emitters. Extracting the corpus falsified that premise in
+# both directions at once: the plugin that kept twenty emitting commands stopped shipping
+# the reference, so its assertion went SILENT -- drop it from COST_PLUGIN_RELS afterwards
+# and nothing catches it -- while the corpus plugin was forced into the list by a file it
+# merely holds. What check 8 is about is the emitters, so that is what this asks for.
+# `cost_role_marker` is the same predicate check 8 itself uses for "this command owes a
+# section-7 row": an emit-cost call, or a section-13 intent a later run replays.
 check_cost_applicability() {
-  local root="$1" p="$1/$PLUGIN_REL"
-  [ -f "$p/$REF_DIR/cost-emission.md" ] || return
+  local root="$1" p="$1/$PLUGIN_REL" cn f n=0
+  [ "$HAS_COST" = 1 ] || return
+  while IFS= read -r cn; do
+    [ -n "$cn" ] || continue
+    f=$(cmd_file "$p" "$cn"); [ -f "$f" ] || continue
+    [ -n "$(cost_role_marker "$f")" ] && n=$((n + 1))
+  done < <(cmd_names "$p")
+  [ "$n" -gt 0 ] || return
   case " $COST_PLUGIN_RELS " in
     *" $PLUGIN_REL "*) : ;;
-    *) fail 8 "$PLUGIN_REL ships $REF_DIR/cost-emission.md but is not a member of COST_PLUGIN_RELS -- check 8 never runs for it" ;;
+    *) fail 8 "$PLUGIN_REL ships $n command(s) that call emit-cost or record a section-13 intent but is not a member of COST_PLUGIN_RELS -- check 8 never runs for it" ;;
   esac
 }
 
@@ -840,15 +862,41 @@ check_merge_clause() {
 }
 
 # HANDOFF_PLUGIN_RELS is a declared list, not an inferred one -- same asymmetry as
-# COST_PLUGIN_RELS above. A plugin that DOES ship $REF_DIR/next-phase-offer.md but is
-# missing from the list has check 11 silently skipped for it. This asserts the other
-# half: presence of the file implies membership in the list.
+# COST_PLUGIN_RELS above, and the same correction. A plugin that ships commands of the
+# family the <merge-clause> rule binds, but is missing from the list, has check 11 silently
+# skipped for it. This asserts the other half.
+#
+# THE TRIGGER IS THE CALL SITES, NOT THE REFERENCE FILE. It used to fire on a plugin
+# shipping $REF_DIR/next-phase-offer.md; extracting the corpus made the corpus plugin ship
+# that reference and not one command of the family, so the old form FORCED it into the list,
+# whereupon check 11 ran for it, derived an empty family and failed -- with neither branch
+# green, because "a relation that comes up empty fails" is the property that must not be
+# relaxed. The family is derived exactly as check_merge_clause derives it, from
+# $CORE_PLUGIN_REL's copy of the reference and qualified by the plugin under check, so the
+# two can never disagree about which commands the rule binds.
+#
+# NOT the alternative fixes. Making the dispatch guard skip a plugin with no family command,
+# or exempting $CORE_PLUGIN_REL there, are both absence-implies-skip at the dispatch site:
+# under either, a plugin whose family commands were RENAMED drops out of check 11 entirely
+# and the route_n vacuity guard cannot catch it, because the check never runs at all.
+# Re-basing the trigger keeps that direction loud.
 check_handoff_applicability() {
-  local root="$1" p="$1/$PLUGIN_REL"
-  [ -f "$p/$REF_DIR/next-phase-offer.md" ] || return
+  local root="$1" p="$1/$PLUGIN_REL" ref="$1/$CORE_PLUGIN_REL/$REF_DIR/next-phase-offer.md"
+  local qual="/${PLUGIN_REL##*/}:" glob y n=0
+  # An absent or family-less reference is not degraded to a skip HERE only because it is
+  # already loud THERE: check_merge_clause fails on both for every declared plugin, and
+  # HANDOFF_PLUGIN_RELS is non-empty in every edition that ships the subsystem.
+  [ -f "$ref" ] || return
+  glob=$(grep -oE "$qual[a-z][a-z0-9-]*\*" "$ref" 2>/dev/null | head -1 | sed "s|^$qual||")
+  [ -n "$glob" ] || return
+  while IFS= read -r y; do
+    [ -n "$y" ] || continue
+    case "$y" in $glob) n=$((n + 1)) ;; esac
+  done < <(cmd_names "$p")
+  [ "$n" -gt 0 ] || return
   case " $HANDOFF_PLUGIN_RELS " in
     *" $PLUGIN_REL "*) : ;;
-    *) fail 11 "$PLUGIN_REL ships $REF_DIR/next-phase-offer.md but is not a member of HANDOFF_PLUGIN_RELS -- check 11 never runs for it" ;;
+    *) fail 11 "$PLUGIN_REL ships $n command(s) of the '$glob' family that $CORE_PLUGIN_REL/$REF_DIR/next-phase-offer.md binds the <merge-clause> rule to, but is not a member of HANDOFF_PLUGIN_RELS -- check 11 never runs for it" ;;
   esac
 }
 
@@ -864,6 +912,16 @@ selftest() {
   # one element. A one-element run cannot distinguish "the loop works" from "the loop
   # runs once and the body ignores it".
   export PLUGIN_RELS="plugins/dev-workflows plugins/fixture-two"
+  # The other three plugin-set variables are fixture edition config too, and they became so
+  # the moment the repository's corpus moved out of plugins/dev-workflows: the fixture tree
+  # keeps its corpus and its call sites in ONE plugin -- a legitimate edition shape, and the
+  # one every edition had before the extraction -- so a CORE_PLUGIN_REL inherited from the
+  # repository would name a plugin the fixture does not contain, and every green case would
+  # go red reporting a missing reference. Cases that need the split shape override
+  # CORE_PLUGIN_REL per run (see expect_fail_env / expect_pass_after_env below).
+  export CORE_PLUGIN_REL="plugins/dev-workflows"
+  export COST_PLUGIN_RELS="plugins/dev-workflows"
+  export HANDOFF_PLUGIN_RELS="plugins/dev-workflows"
   [ -d "$fixture" ] || { echo "SELFTEST FAIL: fixture tree missing at $fixture" >&2; exit 2; }
 
   expect_pass() {
@@ -1259,15 +1317,46 @@ selftest() {
     'printf "\n[dangling](#no-such-heading-here)\n" >> plugins/fixture-two/docs/README.md'
 
   # check_cost_applicability / check_handoff_applicability guard the QUIET direction: a
-  # plugin that ships the capability file but was never added to the declaring list has
-  # its check silently skipped. plugins/fixture-two ships neither file and is a member of
-  # neither list, so simply CREATING the file there -- no config edit needed at runtime --
-  # is the mutation: undeclared-but-present is exactly the state the reviewer proved was
-  # invisible by deleting every row from the section-7 table.
-  expect_fail "a plugin shipping cost-emission.md undeclared in COST_PLUGIN_RELS is rejected" 8 \
-    "mkdir -p plugins/fixture-two/$REF_DIR && printf -- '# Cost emission (fixture)\n\n## 7. Attribution (phase / role)\n\n| Command | phase | role |\n|---------|-------|------|\n' > plugins/fixture-two/$REF_DIR/cost-emission.md"
-  expect_fail "a plugin shipping next-phase-offer.md undeclared in HANDOFF_PLUGIN_RELS is rejected" 11 \
-    "mkdir -p plugins/fixture-two/$REF_DIR && printf -- '# Next-phase offer (fixture)\n' > plugins/fixture-two/$REF_DIR/next-phase-offer.md"
+  # plugin that ships the CALL SITES but was never added to the declaring list has its check
+  # silently skipped -- exactly the state the reviewer proved was invisible by deleting every
+  # row from the section-7 table. plugins/fixture-two is a member of neither list, so it is
+  # where both directions are exercised; no config edit is needed at runtime.
+  #
+  # Each direction needs a PAIR. The trigger used to be the reference FILE, and the corpus
+  # extraction falsified that premise both ways at once -- the plugin that kept the emitters
+  # stopped shipping the reference (assertion goes silent), and the corpus plugin was forced
+  # into a list by a file it merely holds (check runs, derives nothing, fails). So the red
+  # case alone would be satisfied by the OLD implementation too, wherever the mutation
+  # happens to create both; only the green case -- a plugin holding the reference and no call
+  # site, which must PASS -- separates a call-site trigger from a file-presence one.
+  #
+  # give_two_refs is what makes the green cases possible at all: dropping a reference file
+  # into a plugin with no references/ tree reddens check 4 (no inventory row), check 3 (the
+  # new index page is unreachable) and check 9 (no file-count sentence), none of which is the
+  # case being made. It gives fixture-two the minimum tree those three demand, with the count
+  # DERIVED from what it just wrote.
+  give_two_refs() { # <reference-basename>... -- run from inside the copied tree
+    local f
+    mkdir -p "plugins/fixture-two/$REF_DIR" "plugins/fixture-two/docs/reference"
+    for f in "$@"; do printf -- '# %s (fixture copy)\n' "$f" > "plugins/fixture-two/$REF_DIR/$f"; done
+    { printf -- '# References\n\n'
+      for f in "$@"; do printf -- '- `%s`\n' "$f"; done
+      printf -- '\nThe fixture ships %s files.\n' "$(find "plugins/fixture-two/$REF_DIR" -type f | wc -l | tr -d ' ')"
+    } > plugins/fixture-two/docs/reference/references.md
+    printf -- '\n- [References](reference/references.md)\n' >> plugins/fixture-two/docs/README.md
+  }
+
+  expect_fail "a plugin with an emit-cost call site undeclared in COST_PLUGIN_RELS is rejected" 8 \
+    "printf -- '\nCall \`emit-cost\` with \`command: /omega\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' >> plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  expect_pass_after "a plugin holding cost-emission.md with no emit-cost call site is accepted" \
+    "give_two_refs cost-emission.md"
+  # The handoff family is qualified by the plugin under check, so the reference has to NAME
+  # fixture-two's family before fixture-two can be in it -- which is the real shape: the
+  # family belongs to whichever plugin ships those commands, and the reference says so.
+  expect_fail "a plugin with a family command undeclared in HANDOFF_PLUGIN_RELS is rejected" 11 \
+    "printf -- '\nThe \`/fixture-two:omega*\` commands write their offers to the same convention.\n' >> $PLUGIN_REL/$REF_DIR/next-phase-offer.md"
+  expect_pass_after "a plugin holding next-phase-offer.md with no family command is accepted" \
+    "give_two_refs next-phase-offer.md"
 
   if [ "$rc" -eq 0 ]; then echo "SELFTEST PASS"; else echo "SELFTEST FAIL"; fi
   exit "$rc"

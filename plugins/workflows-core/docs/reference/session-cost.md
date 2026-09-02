@@ -1,0 +1,33 @@
+# Session cost
+
+Cost attribution is one of the subsystems this plugin exists to hold: `references/cost-emission.md` and the `cost-prices.yaml` price table beside it are what every plugin in the family reads, and `scripts/session-cost.py` is what does the arithmetic. This page documents the subsystem from the side that invokes it — what a command has to declare, what it gets back, and what the commands *in this plugin* charge to.
+
+## What a command declares
+
+Every cost-emitting command passes a `phase` and a `role` label at the point it calls the shared entry point, and `references/cost-emission.md` §7 carries one attribution row per command. A command that cannot label itself in advance passes `phase: inferred, role: inferred` and lets the cost phase resolve the real values from the run's own context.
+
+Five commands emit a cost entry here: `/feedback`, `/frames`, `/prompt`, `/prompt-brainstorm` and `/prompt-grill-me`. None of the five carries a fixed pair — each infers, either from the folder it resolved (`/frames`) or from the target command it is correcting (the other four). [Roles and phases](../roles-and-phases.md) says what those resolved labels mean. `/statusline` is the one command in this plugin that emits nothing: it sets a configuration value rather than running a task.
+
+## How cost is computed
+
+`scripts/session-cost.py` reads the assistant-turn `usage` and `model` fields already present in the session's main transcript, plus every subagent transcript dispatched during the window being measured, sums token counts per model, and multiplies by the price table in effect for that run. Claude Code stores no dollar figure of its own in the transcript — cost is always **computed** from token usage against a price table, which makes it an estimate that drifts from Claude Code's own accounting by exactly the accuracy of that table.
+
+The price table lives at `${CLAUDE_PLUGIN_ROOT}/references/cost-prices.yaml`, keyed by model id. Override it with `$DEV_WORKFLOWS_COST_PRICES`; see [Environment](environment.md) for the resolution order. An unknown model is still recorded with its token counts, priced `cost_usd: null` and tagged `note: unpriced-model` — the run never fails on it.
+
+The window a figure covers is **chained, not fixed**: a small local checkpoint file, keyed by session id and never committed, records where the last cost phase left off, and the next one picks up exactly there. Three commands run back to back produce three entries whose windows are contiguous.
+
+## Spend a command cannot measure itself
+
+`/prompt-brainstorm` and `/prompt-grill-me` hand control to something else at their Phase 3 — a brainstorming skill, or a long interactive grill — and never get it back. Neither can run a cost phase after its own expensive work, because there is no "after" that it controls, and one placed before the hand-off would price the logging prologue alone. So the run that cedes records the labels it would have claimed into a local, transient, never-committed file beside the checkpoint, and **the next cost-emitting run in the session writes the entry on its behalf** (`references/cost-emission.md` §13).
+
+The boundary between the two runs is not guessed. A transcript already records every slash-command invocation, so the replaying run splits its own measurement window: the ceded run gets the segment from its own invocation to the next command of any kind, and everything else stays with the replaying run. The slices are disjoint and sum to what that run would otherwise have claimed whole.
+
+Two details there are doing real work. The ceded run is found **by name**, not by counting invocations — a window often contains commands that emit no cost entry at all, and an interrupted run leaves a mark too, so counting positions would shift every attribution by one. And a command invocation is recognised by its whole envelope rather than by one tag, because Claude Code writes built-in and plugin commands in two different tag orders. If a recorded intent matches no invocation, nothing is written for it — its spend stays with the replaying run, and the run says so rather than attaching it to a neighbour.
+
+The replaying run may be in **another plugin**, and usually is: the deferred claim is resolved from whichever cost-emitting command runs next in the session, wherever it ships from.
+
+## Where cost files land
+
+Cost writes to a `cost/` subdirectory with one file per session — `<PRD-dir>/dev-workflows/cost/<sid8>.md`, named after the first eight characters of the session id — so no two engineers' commands can collide in one file. Where no folder resolves, the entry goes to a pending file under `$SPECS_PATH` and is offered for relocation once a real key is known; where nothing resolves at all, it stays in the run's printed output. The plugin never writes into your current working directory, since it may be a code repository.
+
+The full mechanics — the resolution ladder, the entry format, the status-line cross-check, and the §7 attribution table itself — live in `references/cost-emission.md`, which is the single source of truth this page describes rather than restates.

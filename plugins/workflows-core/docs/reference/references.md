@@ -1,6 +1,78 @@
 # References
 
-This plugin bundles 0 files under `references/` yet. It is an empty, registered skeleton; later tasks in the marketplace split move a reference corpus into it from `dev-workflows`, and each subtree and file will be listed here as it lands.
+`workflows-core` bundles 29 files under `references/` — 25 top-level markdown files, `cost-prices.yaml`, one file under `model-routing/`, and one bundled subtree. This page enumerates every file a command or agent cites by name (27 of the 29 — the 25 top-level files plus `cost-prices.yaml` plus `model-routing/classification.md`), grouped by concern below, then counts the one subtree rather than listing each file inside it. The arithmetic: 27 named individually, plus 2 markdown pages counted (not enumerated) in `handoff/` — 27 + 2 = 29, against 29 files on disk. `model-routing/` is not a subtree row: its single markdown file is inventoried above as an ordinary entry, because it is a reference page a reader opens rather than a bundled set counted in bulk.
 
-| Subtree | Markdown files | What it holds |
-|---------|-------|---------------|
+This is the corpus the whole `dev-workflows` plugin family reads. A sibling plugin cites a file here by name rather than copying it, which is the reason the corpus was extracted at all: one copy, one place a rule is stated, and every plugin bound by the same version of it.
+
+## Addressing and artifact formats
+
+How a command finds the folder it is about, and the one artifact format that is shared rather than owned by a single authoring command.
+
+- `addressing.md` — the key grammar, the kind-prefixed directory convention (`<KIND>-<KEY>-<slug>/`, kind `BRD`/`PRD`/`EPIC`), the two address forms a command accepts, the rule that a folder's kind and key are read from frontmatter and never parsed out of its directory name, the register of reserved subdirectory names resolution passes over, and the deprecated unprefixed layout resolution falls back to only after the prefixed glob has missed. Every command that addresses a folder in the specs tree calls its `resolve-address` entry point.
+- `prd-format.md` — canonical structure and per-section rules for a Product Requirements Document — one **prd.md** per PRD folder, its identity carried by the folder rather than by its own name — plus the `kind:`/`key:` frontmatter every artifact carries so its folder asserts its own identity.
+- `ard-resolution.md` — given a resolved item, resolves any applicable ARD(s) into a normalized context (or `none`), reaching the folder through `addressing.md`'s `resolve-address` and finding the files inside it by name rather than by a key-glob; cited by every command that must honor an ARD's invariants as implementation guardrails.
+- `grounding-format.md` — the grounding finding contract: the finding record shape, the six verdicts, the `baseline-integrity` procedure, the `current`/`will-change` horizons, the design-grounding reconciliation classes, the optional derivation matrix, and the four verification outcomes. Its §6.1 fixes where exported design frame sets live and §6.2 fixes the index format every writer of one executes, which is why two different commands write the same file rather than two.
+- `prose-formatting.md` — the line-wrapping rule every authoring command and agent applies: never hard-wrap prose, write each paragraph or prose block as one unbroken line.
+- `grilling-technique.md` — the one-question-at-a-time interview technique its callers use to refine an artifact, and the **bounded / relentless** depth each one declares. Embedded so callers carry no runtime dependency: it is adapted from an upstream skill rather than depending on it, and the file records where the two deliberately diverge.
+- `doc-structure-conventions.md` — three product-docs authoring conventions: the traceability boundary, callout scope and adjacency, and component-pattern fidelity.
+
+## Git, handoff and the next step
+
+The entry points that bound every write into the specs repo and every phase boundary, plus the offer a command makes when its own phase is done.
+
+- `specs-repo-git.md` — the two git entry points every bookkeeping write against the specs repo runs through: a start-of-run preflight and a terminal artifact commit, both bounded to plugin-created branches and enumerated paths, never fatal.
+- `phase-handoff.md` — the two phase-boundary git entry points: a producer step that lands a phase's deliverable on the specs repo's default branch, and a consumer gate that requires the deliverable be there before expensive work starts.
+- `branch-naming.md` — how a command that branches in a code repo decides a branch name: the target repo's own documented convention always wins, and this doc supplies one only when the repo documents none.
+- `read-only-repos.md` — how to detect a read-only repository mount, what to skip when one is found, and how to resolve a ref and read from it without ever attempting a write.
+- `implementation-format.md` — the append-only implementation record a keyed run writes: one block per run, one entry per repository, holding refs and never a summary. Its §3 owns the commit convention, and its §4 the two-source read a documenting run performs over that record plus a commit-message scan.
+- `next-phase-offer.md` — the family-wide contract for the next-phase offer every pipeline command surfaces at the end of its run, naming the natural next command(s), including the `<merge-clause>` placeholder and its overflow rule.
+
+## Review, triage and escalation
+
+The shared discipline between a reviewer's findings and a fixer's edits, and the shape every stop-and-ask prompt takes.
+
+- `finding-triage.md` — the step between a reviewer's findings and a fixer's edits: verify each finding at the location it names, record every dismissal with a reason, and hand the fixer survivors only.
+- `escalation-rules.md` — the canonical `choices:` arrays for escalation decision points. Its §0 owns the shape every array in the family must have: **2–4 options, and never an authored "Other"**, because the question tool renders at most four and supplies the free-text escape itself.
+- `pre-lint.md` — deterministic, grep-expressible structural checks a reviewer-gated command runs against a just-authored artifact before spending an Opus review pass on mechanical structure.
+- `source-truth.md` — the Implementation-vs-Description discrepancy-escalation protocol: how to verify a user-visible claim against shipped source, and what to do when the written description and the source disagree.
+- `epic-picker.md` — the progress-aware Epic picker the Epic-unit commands share: enumerate the child folders under a resolved PRD folder, mark each from the artifacts present rather than from a declared status, and never pick silently. *The cap* is the half no static check can reach, because the array is built from a directory listing.
+- `instruction-file-maintenance.md` — the verification discipline for changes to agent-instruction files: verify every command claim against what actually runs it, itemise a narrowed rule as a deletion, and never retire a rule on "it looks derivable."
+
+## Grounding
+
+Read-only, advisory context-gathering — never a gate, never a write into the source it reads.
+
+- `docs-grounding.md` — the resolution gate, retrieval procedure, and consumption modes for optional `$DOCS_PATH` documentation grounding; read-only and advisory, never a gate or reviewer BLOCKER.
+
+## Session artifacts
+
+The bookkeeping every long-running command emits around its actual work.
+
+- `cost-emission.md` — the session-cost subsystem: how a run's dollar cost is computed, attributed, and persisted, including the §7 attribution table and the §13 deferred-claim protocol for a command that cedes the session before it can write its own entry.
+- `cost-prices.yaml` — the default per-model token-price table session-cost reporting prices against; user-overridable via `$DEV_WORKFLOWS_COST_PRICES` or a repo-local file of the same shape.
+- `feedback-emission.md` — the session-feedback emitter every long-running command's automatic maintenance phase cites to capture friction about the plugin itself.
+- `followup-emission.md` — the follow-up task and journal emitter a terminal "Emit follow-up tasks" phase cites.
+- `session-hygiene.md` — the family-wide contract for session-hygiene suggestions: flush resume-critical state to disk, then suggest the right context action, after a big command finishes or a long run checkpoints.
+
+## Environment and routing
+
+What the family needs configured around it, and how a command chooses the model it runs on.
+
+- `dependencies.md` — how this plugin family relates to companion plugins with no hard dependency: convention plus runtime-resolve plus graceful fallback.
+- `classification.md` — lives under `model-routing/`, not the top level; the single source of truth for task-complexity classification, the model fallback chain, the mandatory Opus code-review checklist, and the `model_routing` handoff block every pipeline command loads at its own classification step.
+
+## Bundled reference sets
+
+One subtree carries per-agent document-format contracts, counted here rather than enumerated file-by-file.
+
+- `handoff/` (2) — one input/output document-format contract per agent this plugin ships that needs one, read by the agent itself rather than by the dispatching command.
+
+Every file in `references/` is markdown except `cost-prices.yaml`, which is a data file rather than a reference page and is named above for exactly that reason: it is user-overridable, so a reader has cause to open it.
+
+## Skills
+
+One skill ships under `skills/` — reusable guidance packaged for the `Skill` tool, distinct from a `references/` file that a command or agent reads directly by path.
+
+| Skill | Invocable | What it's for |
+|---|---|---|
+| `model-routing` | No — loaded internally, at the classification step, by the pipeline commands whose bodies cannot expand `${CLAUDE_PLUGIN_ROOT}` themselves | Resolves the classification reference and hands the caller the task-complexity classification rules and the model fallback chain. |

@@ -6,7 +6,7 @@ Installs the plugin's multi-line status line into your Claude Code settings, ena
 
 `/statusline` runs outside the role pipeline — no role, no cost-attribution phase. [Workflow overview](../workflow.md#cross-cutting-commands) groups it under Setup and review utilities, and recommends running it first: install it once, right after installing the plugin, so the cost snapshot it enables is already in place before your first pipeline command runs.
 
-**Claude Code ships its own built-in `/statusline` command** (backed by its own `statusline-setup` agent). The bare `/statusline` always resolves to that built-in, never to this one — **always type the qualified form, `/dev-workflows:statusline`.** Two other commands in this plugin collide with a Claude Code built-in the same way: [`/release-notes`](release-notes.md) and [`/upgrade`](upgrade.md). See [Workflow overview](../workflow.md) for the full three-name collision list.
+**Claude Code ships its own built-in `/statusline` command** (backed by its own `statusline-setup` agent). The bare `/statusline` always resolves to that built-in, never to this one — **always type the qualified form, `/dev-workflows:statusline`.** Two other commands in this plugin collide with a Claude Code built-in the same way: `/release-notes` and `/upgrade`. See [Workflow overview](../workflow.md) for the full three-name collision list.
 
 ## Synopsis
 
@@ -41,4 +41,4 @@ Run this once, first, right after installing the plugin. It backs up any existin
 
 - [Workflow overview](../workflow.md) — the three-way command-name collision (`/release-notes`, `/upgrade`, `/statusline`) and where this command sits among the setup utilities.
 - [Session cost](../reference/session-cost.md) — the Option B cost snapshot this command enables.
-- [`/release-notes`](release-notes.md) and [`/upgrade`](upgrade.md) — the other two commands whose bare form also reaches a Claude Code built-in.
+- `/release-notes` and `/upgrade`, in the `dev-workflows` plugin — the other two commands whose bare form also reaches a Claude Code built-in.

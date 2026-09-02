@@ -1,6 +1,17 @@
 # Agents
 
-This plugin bundles 0 agents yet. It is an empty, registered skeleton; later tasks in the marketplace split move agents into it from `dev-workflows`, and each one will appear here as a table row.
+`workflows-core` bundles five agents under `agents/`, dispatched internally by the invoking command via `subagent_type: "workflows-core:<name>"` — none of them is a user entry point, and each is dispatched by commands in this plugin, in `dev-workflows`, or in both. None carries a `model:` frontmatter pin, so every one is assigned a tier by the dispatching command per the task-complexity classification in `references/model-routing/classification.md`.
 
-| Agent | Dispatched by | What it does |
-|-------|---------------|--------------|
+They live here rather than beside any one pipeline because more than one plugin dispatches each of them: a scanner, a fixer and a grounder are the same job whichever pipeline needs it, and a second copy is a second thing to keep true.
+
+| Agent | Model | Tools | What it does | Used by |
+|---|---|---|---|---|
+| `code-scanner` | per routing | Read, Glob, Grep, Bash | Scans one code repository for existing capabilities and gaps relative to a set of themes; pure filesystem search, designed for parallel per-repo invocation capped at 4 concurrent. | `/create-ard`, `/design`, `/epics`, `/idea`, `/implement`, `/specify` |
+| `doc-fixer` | per routing | Read, Glob, Grep, Write, Edit | Applies targeted fixes for surviving BLOCKER/MAJOR findings from a doc or Epic reviewer, or for violations from a style checker; the docs-domain counterpart of a code review fixer. | `/document`, `/epics` |
+| `docs-grounder` | per routing | Read, Glob, Grep, Bash | Read-only `$DOCS_PATH` grounding — retrieves the most relevant existing product-doc pages and returns a bounded digest of positive references plus reconciliation challenges. | `/brd-ground`, `/brd-intake`, `/create-ard`, `/create-prd`, `/epics`, `/idea`, `/release-notes`, `/specify`, `/update-prd` |
+| `frame-describer` | per routing | Read, Glob, Grep | Reads the frames of one exported design frame set and returns a plain-language description of each — what it depicts and what is on it. Reconciles nothing, cites nothing, emits no finding. | `/frames` |
+| `impl-maintenance` | per routing | Read, Glob, Grep | Reads what happened during a session and produces a structured Lessons Learned report — instruction-file, reference-doc, hook, and workflow suggestions; suggest-only, writes nothing itself. | Every long-running command in the family |
+
+One of the five, `docs-grounder`, is dispatched indirectly: its calling commands invoke a named procedure (`dispatch-docs-grounder`) defined in `references/docs-grounding.md` rather than writing a `subagent_type:` inline, but that procedure resolves to exactly the `subagent_type` above.
+
+`/frames`, this plugin's own command, is the only one here that dispatches an agent of its own — `frame-describer`, one per frame set. The other four commands dispatch none.

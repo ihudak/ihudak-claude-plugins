@@ -58,7 +58,7 @@ The bookkeeping every long-running command emits around its actual work.
 
 What the family needs configured around it, and how a command chooses the model it runs on.
 
-- `dependencies.md` — how this plugin family relates to companion plugins with no hard dependency: convention plus runtime-resolve plus graceful fallback.
+- `dependencies.md` — the two kinds of relationship a plugin here can have with another: a declared, host-resolved `dependencies` entry inside this family (an unsatisfied one disables the plugin), and an optional companion outside it resolved at runtime with graceful fallback.
 - `classification.md` — lives under `model-routing/`, not the top level; the single source of truth for task-complexity classification, the model fallback chain, the mandatory Opus code-review checklist, and the `model_routing` handoff block every pipeline command loads at its own classification step.
 
 ## Bundled reference sets

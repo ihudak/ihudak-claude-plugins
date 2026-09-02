@@ -2,7 +2,7 @@
 name: reference
 description: Read a shared workflows-core reference by name, and optionally execute one of its entry points.
 user-invocable: false
-allowed-tools: Read
+allowed-tools: Read, Bash
 ---
 
 The invocation arguments name one reference file and, optionally, one entry

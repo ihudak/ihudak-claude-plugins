@@ -48,9 +48,11 @@ carrying an unverified claim is how the claim gets adopted.
 1. Read the session handoff.
 2. Read `CLAUDE.md` in the project root (if present) and `~/.claude/CLAUDE.md`
    (global) to understand what rules already exist — avoid suggesting duplicates.
-3. Read the relevant command file(s) from `${CLAUDE_PLUGIN_ROOT}/commands/`
-   (if accessible) to understand the workflow that was used. Focus on the
-   section most relevant to the session's events.
+3. Read the relevant command file(s) from **the dispatching plugin's** `commands/`
+   (if accessible) to understand the workflow that was used — not
+   `${CLAUDE_PLUGIN_ROOT}/commands/`, which resolves to this plugin and carries only
+   the family-meta utility commands. Focus on the section most relevant to the
+   session's events.
 4. Scan `${CLAUDE_PLUGIN_ROOT}/agents/` and the dispatching plugin's `hooks/`
    and `agents/` (if accessible) to understand what tooling already exists.
 5. For each key event in the handoff, ask:

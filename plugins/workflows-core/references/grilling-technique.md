@@ -61,10 +61,11 @@ grill. It is not adopted because `/dev-workflows:brd-split`'s ledger walk — th
 a grilling caller and a never-batch caller — presents rows one at a time by its own rule, and
 because a cadence that differs by caller is worse than one that is merely debatable.
 
-**Adopting it wholesale would also cost the plugin its self-containment.**
-`references/dependencies.md` states that no command hard-requires another plugin, because
-`plugin.json` cannot express a dependency; a missing companion must degrade a feature, never break a
-run. Grilling is **mid-run in eight commands**, which is a different risk from
+**Adopting it wholesale would make a plugin outside this family a mid-run dependency.**
+`references/dependencies.md` is the authority on which relationships are allowed and draws the line
+in one place: a hard, host-resolved `dependencies` entry is for another plugin *of this family*
+(`dev-workflows` on `workflows-core`), while everything outside it is an optional companion resolved
+at runtime, where a miss must degrade one feature and never break a run. Grilling is **mid-run in eight commands**, which is a different risk from
 `/prompt-brainstorm`'s single terminal hand-off to `superpowers:brainstorming`.
 
 **Read upstream for ideas, not for parity — and three have already been taken.** Its *frontier*

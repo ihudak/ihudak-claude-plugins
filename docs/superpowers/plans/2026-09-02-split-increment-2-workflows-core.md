@@ -375,6 +375,37 @@ The gate is expected to FAIL after this commit. Record the failure count in the 
 - Consumes: Task 3's completed move
 - Produces: a green tree; the `workflows-core:reference` skill contract every later plugin uses
 
+- [ ] **Step 0: Anchor check 11's family extraction to the scope paragraph — BEFORE step 6a runs**
+
+Step 6a rewrites `next-phase-offer.md:210`'s `/dev-workflows:prompt*` to `/workflows-core:prompt*`. That line sits under `## Not pipeline nodes` — a list of commands that carry **no** offer — and check 11 extracts its family with `head -1` over a `grep` of the **whole file**. So the moment step 6a runs, the extractor hands `workflows-core` the family `prompt*`, core is found to ship three commands matching it, and every branch is red:
+
+```
+FAIL check 11: plugins/workflows-core ships 3 command(s) of the 'prompt*' family … but is not a member of HANDOFF_PLUGIN_RELS
+```
+and, once declared:
+```
+FAIL check 11: no offer in the 'prompt*' family names a command whose require-on-main target that offer's own run writes
+```
+
+That is verbatim the trap R7 was written to remove, reappearing for a different reason. **`head -1` was never the contract** — `CLAUDE.md` has always said the family is derived from *"the first such phrase in `references/next-phase-offer.md`'s scope paragraph"*, and whole-file `head -1` was a proxy that held only while the scope paragraph happened to come first.
+
+Anchor both extraction sites — `check_merge_clause` and `check_handoff_applicability` use the same idiom — to the scope paragraph, the single unwrapped line beginning `**Where this rule applies:`:
+
+```bash
+glob=$(grep '^\*\*Where this rule applies:' "$ref" 2>/dev/null \
+       | grep -oE "$qual[a-z][a-z0-9-]*\*" | head -1 | sed "s|^$qual||")
+```
+
+**Measured, not argued** — the same three qualifier/file combinations, before and after:
+
+| | whole-file `head -1` | scope-anchored |
+|---|---|---|
+| `/dev-workflows:` today | `brd-*` | `brd-*` |
+| `/workflows-core:` today | *(empty)* | *(empty)* |
+| `/workflows-core:` after step 6a | **`prompt*`** ← the trap | *(empty)* ← correct |
+
+So the change is **behaviour-preserving today** and eliminates the trap. It also makes the check strictly stronger in the way `CLAUDE.md` asks for: a reworded scope sentence now empties the glob and turns the build red, where before any stray phrase elsewhere in the file would silently stand in for it. Keep both existing empty-glob dispositions exactly as they are — `fail 11` in `check_merge_clause`, the early `return` in `check_handoff_applicability`, which is safe only because the other is loud. Add a `--selftest` case pairing a reworded scope sentence (must fail) with a stray `$qual<family>*` phrase added under another heading (must still pass).
+
 - [ ] **Step 1: Write the loader skill**
 
 `plugins/workflows-core/skills/reference/SKILL.md`, exactly as spec §5 fixes it:
@@ -495,6 +526,10 @@ Eight sites across seven `dev-workflows` command files — `ready.md`, `implemen
 This is the step that returns the gate to zero, and it is **not** reachable by Step 2's `sed`: the 53 residual failures are markdown links under `docs/`, not `${CLAUDE_PLUGIN_ROOT}` citations. They cluster in `docs/commands/` (`brd-ground.md` 9, `idea.md` 6, `epics.md` 4, `document.md` 4, `brd-split.md` 4, and eleven more pages with 1–3 each) with **two outside it** — `docs/brd-workflow.md` carries 2 — which are the easy ones to miss.
 
 A link into another plugin's docs cannot be repaired with a URL: check 10 forbids naming the marketplace or the container repo, and a hardcoded URL is wrong in anyone's fork. De-link each one to a plain code span naming the reference and, where it helps the reader, the plugin that now owns it. Then sweep the surrounding prose the same way, including `plugins/dev-workflows/README.md`.
+
+**Sweep `plugins/workflows-core/docs/**` too, not only `dev-workflows`'s.** Task 3 de-linked twelve dangling links on core's side but stopped at the link and did not follow through to the sentence around it — `plugins/workflows-core/docs/commands/statusline.md:9` still says *"Two other commands in **this plugin** collide with a Claude Code built-in the same way: `/release-notes` and `/upgrade`"*, and both halves are now false: those two ship in `dev-workflows`, and core's `workflow.md` no longer carries a three-name list. Nothing else in the plan owns core's documentation prose.
+
+**`dev-workflows`'s `docs/reference/session-feedback.md` needs a rewrite, not a cut.** It documents two capture paths, and only the interactive one left with `/feedback`; the automatic path is still live, cited by nineteen `dev-workflows` commands through `feedback-emission.md`. Over-cutting it would delete documentation for behaviour the plugin still has.
 
 Ungated failure mode, per spec §6. In `plugins/dev-workflows/docs/**` and `plugins/dev-workflows/README.md`, find every sentence describing a moved agent, reference or command and rewrite it to name the plugin that now ships it. Search by name, not by line number.
 

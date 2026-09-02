@@ -951,7 +951,8 @@ no reporting line behind it.
   `IDEA_NEEDS_KEY` before Phase 1 — while the sentence under it said "the run validates the key". The
   example now carries one, and a second example shows a markdown source with a linked mockup.
 - **The same page listed four subagents and then said "All three run at the caller's
-  `detection_model`".**
+  `detection_model`".** Four are dispatched — `idea-reader`, `docs-grounder`, `code-scanner` and
+  `impl-maintenance` — and the sentence now reads "All four".
 
 ## [3.16.1] — 2026-09-01
 

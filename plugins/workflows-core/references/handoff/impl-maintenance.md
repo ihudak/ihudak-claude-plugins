@@ -56,7 +56,7 @@ Return this exact shape (no preamble, no chatter):
 - _or_ "No new hooks suggested"
 
 #### Reference docs
-- **File**: [path, e.g. ${CLAUDE_PLUGIN_ROOT}/references/upgrade/compatibility.md]
+- **File**: [path, e.g. ${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md]
   **Change**: [what to add or update]
   **Rationale**: [what was missing that caused the workaround or ambiguity]
 - ...

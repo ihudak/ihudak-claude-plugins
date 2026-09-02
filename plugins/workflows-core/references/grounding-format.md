@@ -276,7 +276,7 @@ create or repair, rather than about a finding, which neither makes.
 ### 6.2 The frame-set index
 
 **The format §6.1 makes mandatory is fixed here, once, and every writer cites it.** It lived in
-`${CLAUDE_PLUGIN_ROOT}/references/idea-format.md` while `/idea` was its only author; `/frames` is a
+`references/idea-format.md` while `/idea` was its only author; `/frames` is a
 second author, and one format with two authorities is the defect family this plugin keeps paying for.
 That file now states only what `/idea` contributes to a row and cites this section for everything
 else. It belongs here rather than there because it is the *satisfaction* of §6.1's requirement, and a

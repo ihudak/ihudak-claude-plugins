@@ -51,8 +51,8 @@ carrying an unverified claim is how the claim gets adopted.
 3. Read the relevant command file(s) from `${CLAUDE_PLUGIN_ROOT}/commands/`
    (if accessible) to understand the workflow that was used. Focus on the
    section most relevant to the session's events.
-4. Scan `${CLAUDE_PLUGIN_ROOT}/hooks/` and `${CLAUDE_PLUGIN_ROOT}/agents/`
-   (if accessible) to understand what tooling already exists.
+4. Scan `${CLAUDE_PLUGIN_ROOT}/agents/` and the dispatching plugin's `hooks/`
+   and `agents/` (if accessible) to understand what tooling already exists.
 5. For each key event in the handoff, ask:
    - Could a new **CLAUDE.md rule** have prevented this issue or misunderstanding?
    - Could a new or updated **hook** automate a manual step?
@@ -97,7 +97,7 @@ Return this exact shape (no preamble, no chatter):
 - _or_ "No new hooks suggested"
 
 #### Reference docs
-- **File**: [path, e.g. ${CLAUDE_PLUGIN_ROOT}/references/upgrade/compatibility.md]
+- **File**: [path, e.g. ${CLAUDE_PLUGIN_ROOT}/references/session-hygiene.md]
   **Change**: [what to add or update]
   **Rationale**: [what was missing that caused the workaround or ambiguity]
 - ...

@@ -38,7 +38,7 @@ In order, stopping at the first that succeeds:
 **Rungs 2–3 are existence probes, not name sources.** `rev-parse` prints a 40-character SHA, so a
 caller that takes its stdout records a SHA where §6 defines `scanned_ref` as a ref *name* (`origin/main`).
 Redirect the output and use the literal name you probed — the same rule
-`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.8 states for its own ladder.
+`references/code-handoff.md` §2.8 states for its own ladder.
 
 `git remote set-head origin --auto` is **not** part of this chain — it writes. An exhausted chain is a genuine `REFRESH_BLOCKED` with reason `cannot resolve default branch on a read-only mount`.
 

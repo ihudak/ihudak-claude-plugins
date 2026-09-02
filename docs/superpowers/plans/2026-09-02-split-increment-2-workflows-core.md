@@ -298,6 +298,8 @@ HANDOFF_PLUGIN_RELS="${HANDOFF_PLUGIN_RELS:-plugins/dev-workflows}"
 
 - [ ] **Step 2a: Re-base both applicability checks on the call sites, not the reference file (R7)**
 
+While in the header, correct one sentence it now overstates: the required-config note says a ported edition omitting one of these variables *aborts at the dispatch loop*, which is true of the three list variables the loop expands but not of `CORE_PLUGIN_REL`, which is read only inside check bodies.
+
 `check_cost_applicability` and `check_handoff_applicability` both trigger on a plugin **shipping the reference** — `cost-emission.md` and `next-phase-offer.md` respectively. This move falsifies that premise in both directions at once, and the two failures look nothing alike:
 
 - `dev-workflows` keeps twenty cost-emitting commands and stops shipping `cost-emission.md`, so its assertion **goes silent**. Drop it from `COST_PLUGIN_RELS` afterwards and nothing catches it — a gate that quietly stopped guarding the plugin it was written for.
@@ -310,9 +312,15 @@ Both are the same defect: shipping the reference no longer implies shipping the 
 
 The "declared, never inferred from a missing file" property is untouched — the shipped-test simply now asks the right question. Each direction needs a paired red/green `--selftest` case: a plugin with call sites and no declaration must fail, and a plugin holding only the reference must pass.
 
+**Do not instead narrow the dispatch guard.** Two other fixes suggest themselves — making check 11 run only for a plugin that is both declared *and* has commands matching the family, or exempting `$CORE_PLUGIN_REL` — and both are absence-implies-skip at the dispatch site. Under either, a plugin whose family commands were renamed drops out of check 11 entirely, and the `route_n > 0` guard cannot catch it because the check never runs at all. Re-basing the trigger keeps the loud direction loud; narrowing the guard trades a hard failure for a silent one.
+
 - [ ] **Step 3: Author core's own `docs/reference/` pages, and move none**
 
-Per R6, no `docs/reference/` page moves. `dev-workflows` keeps all six of its subsystem pages and every inbound link to them stays valid. Core authors only what its own gate obligations require — determine that set by running `./scripts/check-docs.sh --root .` and reading the failures, never by copying `dev-workflows`'s page list. At minimum that is `agents.md` and `references.md` (check 4) and a `session-cost.md` carrying the cost-emitting-set count sentence (check 9), because core ships two cost-emitting commands of its own.
+Per R6, no `docs/reference/` page moves. `dev-workflows` keeps all six of its subsystem pages and every inbound link to them stays valid. Core authors only what its own gate obligations require — determine that set by running `./scripts/check-docs.sh --root .` and reading the failures, never by copying `dev-workflows`'s page list. At minimum that is `agents.md` and `references.md` (check 4) and a `session-cost.md` carrying the cost-emitting-set count sentence (check 9).
+
+**Core's cost-emitting set is FIVE, not two** — verified against the extractor, not counted by eye: `/feedback`, `/frames` and `/prompt` carry an `emit-cost` call; `/prompt-brainstorm` and `/prompt-grill-me` yield a triple through their §13 `defer` marker, because they cede the session before they can write their own entry. Only `/statusline` emits nothing and correctly has no §7 row. Write `five`, or check 9 reddens on the page this step just authored.
+
+Correspondingly, `dev-workflows`'s own sentence at `docs/reference/session-cost.md:32` goes from `Twenty-two` to **`Seventeen`**, its command list loses those five names, and its `Sixteen … six infer it` sub-counts and its whole `/frames` sentence must be re-derived — `/frames` is core's now.
 
 - [ ] **Step 4: Update both inventories**
 

@@ -775,6 +775,10 @@ selftest() {
   local here fixture tmp rc=0
   here=$(cd "$(dirname "$0")" && pwd)
   fixture="$here/fixtures/docs/pass"
+  # The fixture tree ships two plugins so the dispatch loop is exercised by more than
+  # one element. A one-element run cannot distinguish "the loop works" from "the loop
+  # runs once and the body ignores it".
+  export PLUGIN_RELS="plugins/dev-workflows plugins/fixture-two"
   [ -d "$fixture" ] || { echo "SELFTEST FAIL: fixture tree missing at $fixture" >&2; exit 2; }
 
   expect_pass() {
@@ -1041,6 +1045,15 @@ selftest() {
   else
     printf 'skip  5 cost cases (this edition has no cost subsystem)\n'
   fi
+
+  expect_fail "second plugin's command page is checked too" 4 \
+    'rm plugins/fixture-two/docs/commands/omega.md'
+  # A plain `[dangling](nowhere.md)` link fires check 1 (missing file), not check 2 --
+  # verified empirically while writing this case. A bare #anchor link is what actually
+  # exercises the ANCHOR half of check_links_and_anchors (check 2) against the second
+  # plugin's docs index, which is the coverage this case's name promises.
+  expect_fail "second plugin's docs index is checked too" 2 \
+    'printf "\n[dangling](#no-such-heading-here)\n" >> plugins/fixture-two/docs/README.md'
 
   if [ "$rc" -eq 0 ]; then echo "SELFTEST PASS"; else echo "SELFTEST FAIL"; fi
   exit "$rc"

@@ -1,0 +1,6 @@
+{
+  "name": "fixture-two",
+  "version": "1.0.0",
+  "description": "Second fixture plugin. Exists so the gate's plugin loop is exercised by more than one element.",
+  "author": { "name": "Fixture" }
+}

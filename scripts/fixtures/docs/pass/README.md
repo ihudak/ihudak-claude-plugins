@@ -10,3 +10,5 @@ claude plugin marketplace update fixture-plugins
 ```
 
 See the [dev-workflows plugin](plugins/dev-workflows/README.md) for details.
+
+claude plugin install fixture-two@fixture-plugins

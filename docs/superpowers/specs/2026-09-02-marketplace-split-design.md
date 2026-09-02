@@ -53,6 +53,7 @@ The totals reconcile exactly against the tree, with no remainder. Two findings s
 | S8 | **`dev-workflows` goes to 4.0.0; the four new plugins start at 1.0.0.** | Moving commands out breaks every `/dev-workflows:<cmd>` invocation, which is a major change. `pm-workflows` starting at 1.0.0 reads oddly given it inherits most of the history, but a version describes a plugin's own interface, not the provenance of its files. |
 | S9 | **Build order: guidelines → core → docs → pm**, with `dev-workflows` as the remainder. | Separates two unknowns that a core-first order conflates. Guidelines needs no loader, no dependency and no citation rewrite, so it proves the multi-plugin plumbing — marketplace registration, the gate loop, per-plugin docs, installation — at zero risk. Core then introduces the genuinely new mechanisms against a repo where that plumbing is known to work. |
 | S10 | **The namespaced sweep is a first-class step, gated in both directions.** | `subagent_type: "dev-workflows:<agent>"` and `/dev-workflows:<cmd>` appear throughout the commands, `CLAUDE.md`'s workflow map, 43 documentation pages and the next-phase-offer machinery. It is the largest mechanical risk in the job, and it is grep-able, which is what makes it safe rather than merely large. |
+| S11 | **The cost boundary detector must resolve against the marketplace's plugin namespaces, and the deferred record must carry its ceding plugin.** Both are required work inside increment 2, not follow-ups. | `cost-emission.md` §13.2 accepts a boundary only as `<this plugin>:<known command>`, and `session-cost.py`'s `load_command_names()` returns exactly one plugin's command set and one namespace from its own `plugin.json`. Both ceding commands — `/prompt-grill-me` and `/prompt-brainstorm` — land in `workflows-core` (S3), so after the split **every** deferred claim is replayed by a command in a different plugin and no longer resolves. See §11. |
 
 ---
 
@@ -161,7 +162,9 @@ Then the sweep (S10): every `${CLAUDE_PLUGIN_ROOT}/references/<core-ref>` citati
 
 **This is the increment where everything unknown happens** — dependency resolution and auto-install, the loader, cross-plugin agent dispatch, and the largest sweep. Doing it second means the multi-plugin plumbing underneath is already proven.
 
-*Verification:* a command that reads a core reference behaves identically to its pre-split run; the loader gate passes in both directions; installing `dev-workflows` alone pulls in `workflows-core`.
+**It also carries the cost-boundary fix (§8), which is required work here, not a follow-up.** Both ceding commands move into core in this increment, so the moment it lands every deferred claim becomes cross-plugin.
+
+*Verification:* a command that reads a core reference behaves identically to its pre-split run; the loader gate passes in both directions; installing `dev-workflows` alone pulls in `workflows-core`; and — replayed empirically, not reasoned about — a deferred `/prompt-grill-me` claim resolves when replayed from a *different* plugin, and its segment terminates at an intervening sibling-plugin boundary rather than running through it.
 
 ### Increment 3 — `docs-workflows`
 
@@ -183,7 +186,50 @@ Gates green before the PR; the tree consistent at each step; independently rever
 
 ---
 
-## 8. Non-goals
+## 8. The cost boundary detector (found by testing, not by reasoning)
+
+A review of this design replayed a deferred cost claim through a simulated post-split plugin and got:
+
+```
+namespace        : docs-workflows
+boundaries found : []
+unmatched        : ['/prompt-grill-me']
+notes            : ["no command boundary found in this window (namespace resolved as 'docs-workflows')"]
+```
+
+**The finding is correct**, and it is confirmed at two levels. `cost-emission.md` §13.2 accepts a boundary only as `<this plugin>:<known command>`, "the namespace checked against the `name` in the plugin's own `plugin.json`". And `session-cost.py`'s `load_command_names(commands_dir)` returns exactly one plugin's command names and one namespace. The detector is single-plugin by construction.
+
+It bites universally rather than occasionally: **both** ceding commands — `/prompt-grill-me` and `/prompt-brainstorm`, the only two that write §13.1's intent file — land in `workflows-core` under S3. So after the split every deferred claim is replayed by a command in a different plugin.
+
+### 8.1 A second-order failure the report did not reach
+
+The reported symptom errs safe: an unmatched claim is reported and dropped (§13.4), the spend stays with the replaying run, and the run says so. But §13.3 also says each claim gets "exactly the segment from its own boundary to **the next boundary of any kind**".
+
+Sibling-plugin boundaries are invisible to a single-plugin detector. So where a claim *does* match — a core command replaying a core claim, which is the common case once both ceding commands live in core — its segment runs **past** any intervening `pm-workflows` or `docs-workflows` invocation and swallows that command's spend. Since that command already self-measured and wrote its own entry, the same tokens are counted twice.
+
+That is silent misattribution rather than a safe drop, and it is the more dangerous half. **It is a reading of the specification and the code, not a tested result** — it deserves the same empirical replay the first finding got, and §9's increment-2 verification requires exactly that before the increment closes.
+
+### 8.2 Why "make the cost subsystem shared" is necessary but not sufficient
+
+One proposed remedy was to make the cost subsystem shared infrastructure rather than per-plugin. Under this design it already is — `cost-emission.md`, `cost-prices.yaml` and `session-cost.py` are core references and core scripts. **Moving the code changes nothing**, because the defect is in what the detector resolves *against*, not where it lives.
+
+### 8.3 The fix, in two parts
+
+**Part one — the record carries its ceding plugin.** §13.1's record already carries `command`, `plugin_version`, `target_command`, `key`, `epic` and `source`, and states the principle plainly: *"each is here because a replay cannot re-derive it once the run is over."* After the split the ceding plugin's **name** joins that set — the replaying run knows its own name, never the ceder's. So:
+
+```json
+{"command": "/prompt-grill-me", "plugin": "workflows-core", "plugin_version": "1.0.0", …}
+```
+
+and a claim resolves against `<record.plugin>:<record.command>` rather than `<this plugin>:<command>`. This is not a new principle; it is §13.1's own rule applied to a fact that only becomes unre-derivable once the plugin boundary exists.
+
+**Part two — the accepted namespace set widens from one plugin to the marketplace's plugins.** Segment termination needs *every* sibling boundary visible, so the detector accepts `<any marketplace plugin>:<command>`, with the five names declared once in core. Both safety properties that forced the namespace rule survive intact: bare names stay rejected, so Claude Code's built-in `/upgrade` still cannot mint a boundary for the command this marketplace also ships; and an unrelated plugin's `/superpowers:implement` is still rejected, because `superpowers` is not in the declared set. It remains `specs-repo-git.md` §3.5's discipline — resolve against the set you hold, never parse — with the set correctly widened rather than abandoned.
+
+`session-cost.py --selftest` gains a case per part, each paired with the broken implementation it exists to catch, as §13.2 already requires of its three existing disciplines.
+
+---
+
+## 9. Non-goals
 
 - **No behaviour changes.** Every command does exactly what it did at `v3.24.1`. A split that also improves something cannot be bisected when it breaks.
 - **No per-plugin git tags** (S6). Revisit if ranged dependencies are ever wanted.
@@ -193,7 +239,7 @@ Gates green before the PR; the tree consistent at each step; independently rever
 
 ---
 
-## 9. Risks
+## 10. Risks
 
 | Risk | Mitigation |
 |---|---|
@@ -203,11 +249,12 @@ Gates green before the PR; the tree consistent at each step; independently rever
 | **A core reference is actually two concerns**, one per plugin | Nothing splits a reference in this design. If one turns out to need splitting, that is a separate change, made deliberately and not during a move |
 | **Increment 4 leaves the pm→dev handoff broken** | It is the one place a phase boundary and a plugin boundary coincide; it gets an explicit end-to-end test rather than reliance on a gate |
 | **Someone's saved `/dev-workflows:idea` breaks** | True and intended — hence 4.0.0 (S8). The migration note names every moved command and its new namespace |
+| **The cost boundary fix is incomplete**, and spend is silently double-counted rather than dropped | §8.1 is a reading, not a measurement, so increment 2 does not close until both halves are replayed empirically — the same method that found the first half. Two `--selftest` cases, each paired with the broken implementation it catches |
 | **Rollback is needed mid-way** | `v3.24.1`, plus four independently revertible increments |
 
 ---
 
-## 10. Open questions
+## 11. Open questions
 
 1. **How does the documentation family reach `guidelines/accessibility.md`?** It moves into `guideline-reviewers` with the rest of the corpus, and `/docs-brand`'s contrast check will need it. Three answers are open — copy the one file, promote it to core, or have `docs-workflows` depend on `guideline-reviewers` — and the right one depends on whether a second shared file ever appears. Settle it when the docs family is built, not before.
 2. **Where does `/frames` sit long-term?** It is allocated to `pm-workflows` because it indexes design frame sets under BRD, PRD and Epic folders. If `design-grounder` ever serves `dev-workflows` too, both move to core.

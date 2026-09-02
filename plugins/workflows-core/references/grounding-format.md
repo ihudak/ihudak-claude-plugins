@@ -11,9 +11,9 @@ mounted repository is defined once in `references/read-only-repos.md` and applie
 every repository grounding reads.
 
 **Consumed by** the three grounding agents that write against the contract fixed here —
-`agents/code-grounder.md`, `agents/design-grounder.md`, and `agents/grounding-verifier.md` — and by
-the two commands that read what they produce: `commands/brd-ground.md`, which orchestrates all
-three, and `commands/brd-split.md`, whose Phase 0 gate turns on §8's verification outcomes.
+`dev-workflows:code-grounder`, `dev-workflows:design-grounder`, and `dev-workflows:grounding-verifier` — and by
+the two commands that read what they produce: `/dev-workflows:brd-ground`, which orchestrates all
+three, and `/dev-workflows:brd-split`, whose Phase 0 gate turns on §8's verification outcomes.
 
 ## 1. What grounding is, and is not
 
@@ -56,7 +56,7 @@ what the four classes mean and why the fourth requires a citation; this table fi
 names, where they apply, and when `cites` is required.
 
 **`commit` is the third field whose applicability is not universal, and saying so is load-bearing.**
-§8's verification is fail-closed on exactly this: `agents/grounding-verifier.md`'s Inputs table puts
+§8's verification is fail-closed on exactly this: `dev-workflows:grounding-verifier`'s Inputs table puts
 a `[DG#n]` in the design-only row **only** where its `class` positively reads 1, 2 or 3, and demands
 `repo_path` and `commit` everywhere else. A design-only finding that carried a `commit` anyway would
 be honoured — that agent uses a commit it is given rather than ignoring it — and would then be
@@ -451,7 +451,7 @@ evidence, and returns one of four outcomes, each with its own evidence.
 
 **Which source that is follows from the finding, not from the verifier's convenience.** Which
 finding rests on what, and which anchor inputs are therefore required of a caller, is the table in
-`agents/grounding-verifier.md`'s Inputs section — the single owner of that matrix, including its
+`dev-workflows:grounding-verifier`'s Inputs section — the single owner of that matrix, including its
 fail-closed treatment of an absent or unreadable `class`. It is not restated here. What this
 section fixes is the consequence that makes the matrix necessary: demanding a commit of a
 design-only finding would leave it permanently unverifiable, and a finding that can never carry an

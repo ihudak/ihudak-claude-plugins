@@ -366,7 +366,7 @@ each, and all three commands refuse the container itself
 
 **Branch on Phase 3's result.** A BRD whose inventory holds no `[BR#n]` row is refused by every
 downstream command on the route, so offering one here would name a run that stops on its own Phase 0
-— the offer `Skill(skill: "workflows-core:reference", args: "next-phase-offer")` exists to prevent.
+— the offer `workflows-core:next-phase-offer` exists to prevent.
 
 **One or more `[BR#n]` rows — the ordinary case:**
 
@@ -393,7 +393,7 @@ design repos. It will not start reading this BRD's artifacts until they are on t
 default branch — its own Phase 0 gates `coverage-ledger.md` on `origin/<default>` and stops with
 `BRD_GROUND_NEEDS_INTAKE` otherwise — so offering it here is the next step, not an instruction to
 run it before that lands. **State the wait as `<merge-clause>` resolves it** from this run's own
-`Phase handoff:` outcome line (`workflows-core:next-phase-offer`): a declined
+`Phase handoff:` outcome line (`Skill(skill: "workflows-core:reference", args: "next-phase-offer")`): a declined
 handoff opened no pull request, so telling the operator to wait for one would name a thing that does
 not exist. Guidance only — never auto-invokes another command.
 Per `workflows-core:next-phase-offer`.

@@ -94,7 +94,7 @@ The run resolves `EPIC-008-01`'s folder one level under `specifications/`, reads
 - [Roles and phases](../roles-and-phases.md) — what the `pa` role owns, an optional phase in the pipeline.
 - [`/create-prd`](create-prd.md) — the upstream command that authors the PRD `/create-ard` reads.
 - [`/epics`](epics.md), [`/specify`](specify.md), and [`/design`](design.md) — the downstream commands `/create-ard`'s Phase 7 offers, each of which consults the merged ARD once it lands.
-- [`/ready`](ready.md) and [`/implement`](implement.md) — the two remaining consumers of `[AD#N]` invariants via `ard-resolution.md`.
+- [`/ready`](ready.md) and [`/implement`](implement.md) — the two remaining consumers of `[AD#N]` invariants via `workflows-core:ard-resolution`.
 - [Model routing](../reference/model-routing.md) — the classification and Opus fallback chain `ard-reviewer` runs under, plus the tiered hard model gate `/create-ard` applies for `SIGNIFICANT`/`HIGH-RISK` runs.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Resume and checkpoints](../reference/resume-and-checkpoints.md) — the terminal Phase 8 bookkeeping every run emits.
 - [`ard-format.md`](../../references/ard-format.md) — the canonical structure the ARD is authored and reviewed against.

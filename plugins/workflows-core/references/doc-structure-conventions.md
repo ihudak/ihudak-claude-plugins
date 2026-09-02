@@ -27,7 +27,7 @@ where a `[[KEY]]` wikilink is the native idiom, resolves, and is the required tr
 | Run handoff / final report | Per-claim attribution to resolved keys and PR URLs. |
 
 A changelog entry is reader-visible "what changed on this page" prose, so it is covered by the rule
-above: a key never belongs in it. `doc-writer.md`, `doc-planner.md`, and `commands/document.md`
+above: a key never belongs in it. `doc-writer.md`, `doc-planner.md`, and `/dev-workflows:document`
 each state that instance; this section is their authority — they are instances of this rule, not
 competing ones.
 

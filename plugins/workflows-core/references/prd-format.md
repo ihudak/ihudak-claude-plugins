@@ -42,17 +42,17 @@ workitem_key: <optional — your own tracker's identity for this work; the plugi
 `brd_key`, `brd_parent` and `depends_on` are written only by `/create-prd` on the BRD route, from the BRD's
 own `brd-link.md`, and are never asked of the PM. **`brd_parent` is present on every PRD that carries
 `brd_key`.** The BRD route resolves a `PRD-` slice folder and refuses a `BRD-` container before any
-seed is read (`commands/create-prd.md` Phase 0 step 5a), and a slice always carries a
+seed is read (`/dev-workflows:create-prd` Phase 0 step 5a), and a slice always carries a
 `parent:` — so the earlier "omitted when it owns its source document" case describes a PRD the route
 can no longer author. An absent `brd_parent` beside a present `brd_key` is therefore a **finding**,
-not a legitimate omission, and `agents/prd-reviewer.md` raises it. **`/update-prd` preserves all three and authors
+not a legitimate omission, and `dev-workflows:prd-reviewer` raises it. **`/update-prd` preserves all three and authors
 none of them** — on a PRD that carries them it copies each through the refresh unchanged, and on a
 PRD that does not it writes none — so the *written only by* rule above still reads exactly as it
 says: carrying an existing value forward mints no new one, and `/update-prd` reads no BRD tree it
 could mint one from. They record, on the PRD itself, the BRD identity and the prerequisites the
 customer committed to — and **no command consumes them yet** — which is a claim about *behaviour*, not about
 every read. Neither `/epics` nor `/ready` reads any of the three, and nothing branches on them. But
-`brd_key` and `brd_parent` do have a reader: `agents/prd-reviewer.md`'s review method raises a finding
+`brd_key` and `brd_parent` do have a reader: `dev-workflows:prd-reviewer`'s review method raises a finding
 when one is present without the other, exactly as this file says six lines above. That is an integrity
 check on the pair, not a consumer of what they record, and the distinction matters in both directions —
 an increment scoped on "these have no reader" would be scoped against a check that already ships and
@@ -70,14 +70,14 @@ folder name built from it, against §1's grammar rather than a narrower one. **T
 
 **`key` is written by `/create-prd`, on both routes, and by nothing else.** It is set to the key of
 the folder the run resolved — the positional key on the idea route, the `PRD-` slice's own key on the
-BRD route (`commands/create-prd.md` Phase 3, the frontmatter step) — and `/update-prd` carries it
+BRD route (`/dev-workflows:create-prd` Phase 3, the frontmatter step) — and `/update-prd` carries it
 forward unchanged rather than re-deriving it. **It was for a time deferred on the BRD route** to a
 tracker step that minted a second identity and wrote it back; that step is gone, nothing replaced it,
 and the field simply stayed unset — which left a folder whose only `kind:`+`key:` carrier was
 `brd-link.md` (`kind: brd`) resolving as a BRD rather than a PRD (`references/addressing.md` §4), and
 left `/document` and `/release-notes` grepping commits for an empty key. There is no second identity
 to keep straight: one namespace, one grammar, and the folder's key is the key. **So there is no
-legitimate state in which `brd_key` stands beside an absent `key`** — `agents/prd-reviewer.md` raises
+legitimate state in which `brd_key` stands beside an absent `key`** — `dev-workflows:prd-reviewer` raises
 one as a finding on every route.
 
 **`workitem_key` is reserved, documented, and never written by the plugin.**

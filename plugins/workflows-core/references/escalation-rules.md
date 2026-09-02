@@ -57,12 +57,12 @@ above … There is no fourth disposition and no 'skip on my own judgement' path 
 
 | Array | Its closed vocabulary | Owner |
 |---|---|---|
-| the candidate-confirmation picker | `confirm` / `correct` / `reject` / `ask-the-customer` | `commands/brd-reconcile.md`, *Confirm every candidate* |
-| the missing-reason picker | ask the customer, or freeze `status: open` | `commands/brd-reconcile.md`, *Confirm every candidate* |
-| the propagation-sweep picker | `inherited-unchanged` / `reverted` / `reopened` / `withdrawn` | `commands/brd-reconcile.md`, *The propagation sweep* |
-| the will-change resolution picker | the exactly three resolutions of `dev-workflows:decision-register-format` §6 | `commands/brd-interview.md` |
-| the `[SR#n]` disposition picker | `fixed` / `accepted-risk` / `escalated-to-customer` / `rejected-with-reason` | `commands/brd-package.md` |
-| the degradation-tier picker | `Full` / `Partial` / `Documents only` — the three rows of `dev-workflows:bundle-packaging` §3 | `commands/brd-package.md` |
+| the candidate-confirmation picker | `confirm` / `correct` / `reject` / `ask-the-customer` | `/dev-workflows:brd-reconcile`, *Confirm every candidate* |
+| the missing-reason picker | ask the customer, or freeze `status: open` | `/dev-workflows:brd-reconcile`, *Confirm every candidate* |
+| the propagation-sweep picker | `inherited-unchanged` / `reverted` / `reopened` / `withdrawn` | `/dev-workflows:brd-reconcile`, *The propagation sweep* |
+| the will-change resolution picker | the exactly three resolutions of `dev-workflows:decision-register-format` §6 | `/dev-workflows:brd-interview` |
+| the `[SR#n]` disposition picker | `fixed` / `accepted-risk` / `escalated-to-customer` / `rejected-with-reason` | `/dev-workflows:brd-package` |
+| the degradation-tier picker | `Full` / `Partial` / `Documents only` — the three rows of `dev-workflows:bundle-packaging` §3 | `/dev-workflows:brd-package` |
 
 **The first three are load-bearing beyond tidiness, and the reason is worth carrying.** They are the
 pickers through which a customer's authority enters the decision register, and D14 exists because
@@ -210,7 +210,7 @@ In `/brd-ground` Phase 1 step 4 the *Proceed without code scan* entry is omitted
 and *scan* reads *check*, for the reason the `— /brd-ground` heading above gives. The dropped
 option is not a shortening: grounding has nothing to check a claim against without at least one
 mounted repository, which is why that command already refuses to start with none
-(`commands/brd-ground.md` Phase 0 step 7) — an option offering to proceed anyway would name an
+(`/dev-workflows:brd-ground` Phase 0 step 7) — an option offering to proceed anyway would name an
 outcome the command cannot deliver.
 
 ## Repo missing (after resolution)

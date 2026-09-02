@@ -681,7 +681,7 @@ It is substituted in the option strings exactly as `<BRD-KEY>` and `<merge-claus
 is still presented verbatim per `workflows-core:escalation-rules`'s *Choice
 lists are presented verbatim* — a command that instead told the orchestrator to *adjust the wording*
 of an option would be contradicting that convention, which is why the variation lives in a
-placeholder (`Skill(skill: "workflows-core:reference", args: "next-phase-offer")` states the same for its own).
+placeholder (`workflows-core:next-phase-offer` states the same for its own).
 It resolves, for each row:
 
 | This row's state | `<recommended>` resolves to |
@@ -1004,7 +1004,7 @@ choices: ["Ground each non-empty child created above, one run per child — /dev
 ```
 
 **Every merge clause in this phase is the `<merge-clause>` placeholder**, resolved per
-`workflows-core:next-phase-offer`'s *A next-step offer that names a downstream
+`Skill(skill: "workflows-core:reference", args: "next-phase-offer")`'s *A next-step offer that names a downstream
 command must also name the merge* rule, which owns the §4.1 outcome map and is not restated here.
 The rule governs **every** mention of the merge in this phase — both choice arrays and the prose
 below — because this command reaches three outcomes that open no pull request: the no-op, the

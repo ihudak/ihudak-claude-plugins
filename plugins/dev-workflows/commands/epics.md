@@ -817,7 +817,7 @@ MODERATE — Epic drafting for a single PRD
 The project root has uncommitted changes. `/epics` never commits the project root — git management there is your responsibility. (This run's `$SPECS_PATH` session artifacts are committed separately by the terminal step — see its outcome line at the end of the run.)
 
 ### Next step
-[Per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")` — guidance only, never auto-invoked. For each Epic just drafted, author its spec → `/dev-workflows:specify <EPIC>` (PE) — one address, the Epic's own (D4); `/specify` resolves that folder and, finding no `brd-link.md` in it, looks one level up, so a slice-derived Epic keeps the BRD-route contract on this address exactly as it does through the picker; the **Epic fan-out** (depth vs breadth) applies from the spec/design stage on. Optionally a Product Architect adds an Epic-level ARD first → `/dev-workflows:create-ard <EPIC>`. If the review BLOCKED, resolve that first.]
+[Per `workflows-core:next-phase-offer` — guidance only, never auto-invoked. For each Epic just drafted, author its spec → `/dev-workflows:specify <EPIC>` (PE) — one address, the Epic's own (D4); `/specify` resolves that folder and, finding no `brd-link.md` in it, looks one level up, so a slice-derived Epic keeps the BRD-route contract on this address exactly as it does through the picker; the **Epic fan-out** (depth vs breadth) applies from the spec/design stage on. Optionally a Product Architect adds an Epic-level ARD first → `/dev-workflows:create-ard <EPIC>`. If the review BLOCKED, resolve that first.]
 
 ### Context hygiene
 
@@ -921,7 +921,7 @@ user name is ever written (§10 privacy).
 - ALWAYS spawn Phase 8 agents in a single message — never sequentially
 - ALWAYS use `choices` arrays for decision points; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0)
 - ALWAYS produce the Phase 9 report as the final output
-- ALWAYS end the Phase 9 report with a `### Next step` recommendation (per `workflows-core:next-phase-offer`) — guidance only, never auto-invoked
+- ALWAYS end the Phase 9 report with a `### Next step` recommendation (per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`) — guidance only, never auto-invoked
 - ALL written claims must be traceable to a resolved key (from the folder read) or code paths (from `code-scanner`); do not invent content the sources don't contain. `[[KEY]]` wikilinks in the draft are correct here and stay: `/epics` writes markdown that Obsidian and IntelliJ both render, where a wikilink resolves. `workflows-core:doc-structure-conventions` §1 — which bans in-page provenance — governs **rendered product-docs pages** (`/document`'s write targets), not Epic definitions; do not apply it to them
 - NEVER run `docs-style-checker` — Epic definitions are specs-tree content and not subject to product-docs prose linting. Prose style is checked via `prose-style-checker` in Phase 6.2 instead.
 - ALWAYS have `epic-writer` write `_coverage.md` to the PRD folder itself (PRD-holistic, even in focus mode); it is NOT an Epic definition and is never published

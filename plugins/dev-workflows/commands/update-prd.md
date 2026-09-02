@@ -1,6 +1,6 @@
 ---
 name: update-prd
-description: PRD-update workflow (PM phase) — refresh/re-do an existing Product Requirements Document. Resolves the PRD from the specs tree (the only copy), grounds on the PRD + any ARD/spec/transcript, updates it via a relentless grill against references/prd-format.md, gated by the Opus prd-reviewer, and writes canonical + archived revisions into $SPECS_PATH/specifications/PRD-<KEY>-<slug>/. Product-level (no code scan).
+description: PRD-update workflow (PM phase) — refresh/re-do an existing Product Requirements Document. Resolves the PRD from the specs tree (the only copy), grounds on the PRD + any ARD/spec/transcript, updates it via a relentless grill against workflows-core:prd-format, gated by the Opus prd-reviewer, and writes canonical + archived revisions into $SPECS_PATH/specifications/PRD-<KEY>-<slug>/. Product-level (no code scan).
 allowed-tools: Read Edit Write Bash Glob Grep Task Skill WebFetch
 ---
 

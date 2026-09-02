@@ -1,7 +1,7 @@
 ---
 name: epic-writer
 description: Writes child Epic-definition files for /epics from a structured handoff file — one file per Epic, following the Epic template, traceable to the folder read handoff and code-scanner evidence. Write-only — writes into the PRD folder, never commits (still true — it runs no git at all). Returns the list of Epic files written. The orchestrator pins it to the §2.1 Sonnet detection chain for MODERATE runs (§2 Opus only if SIGNIFICANT/HIGH-RISK).
-tools: ["Read", "Glob", "Grep", "Write", "Edit"]
+tools: ["Read", "Glob", "Grep", "Write", "Edit", "Skill"]
 ---
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.

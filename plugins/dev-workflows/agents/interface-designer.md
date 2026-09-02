@@ -1,7 +1,7 @@
 ---
 name: interface-designer
 description: Produces ONE interface proposal for ONE contested interface under ONE named design constraint, for `/design`'s Phase 5 fan-out. Dispatched three times in parallel with different constraints so the takes diverge; the caller compares them on depth, locality, and seam placement. Read-only — proposes an interface, never writes one. Model tier assigned by the caller per the model-routing policy (no fixed pin).
-tools: ["Read", "Glob", "Grep", "Bash"]
+tools: ["Read", "Glob", "Grep", "Bash", "Skill"]
 ---
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.

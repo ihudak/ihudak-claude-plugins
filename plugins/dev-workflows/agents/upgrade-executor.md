@@ -8,7 +8,7 @@ description: >
   NOT triggered by direct user prompts. Leaves all changes uncommitted for the
   orchestrator, which commits each component in /upgrade step 6.5 and pushes the
   branch once in step 7.5.
-tools: ["Read", "Glob", "Grep", "Bash", "Edit", "Task"]
+tools: ["Read", "Glob", "Grep", "Bash", "Edit", "Task", "Skill"]
 ---
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.

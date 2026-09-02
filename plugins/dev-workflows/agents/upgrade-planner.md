@@ -7,7 +7,7 @@ description: >
   with all other components in the repo. Invoked in parallel by the upgrade
   orchestrator — NOT triggered by direct user prompts. Returns a structured
   upgrade plan (ready to hand off to upgrade-executor) or a conflict report.
-tools: ["Read", "Glob", "Grep", "WebFetch"]
+tools: ["Read", "Glob", "Grep", "WebFetch", "Skill"]
 ---
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.

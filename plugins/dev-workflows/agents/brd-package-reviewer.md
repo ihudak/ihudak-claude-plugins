@@ -2,7 +2,7 @@
 name: brd-package-reviewer
 description: Adversarially reviews a BRD package before it goes to the customer — attacks the position rather than summarising it, and returns [SR#n] findings each requiring a disposition. Read-only. Uses Claude Opus.
 model: opus
-tools: ["Read", "Glob", "Grep"]
+tools: ["Read", "Glob", "Grep", "Skill"]
 ---
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.

@@ -2,7 +2,7 @@
 name: ard-reviewer
 description: Reviews an Architecture Requirements/Decision Document (ARD) authored by /create-ard for grounding integrity (every as-is claim cites a real file:line), AD#N well-formedness (Binds/Prevents/testable Rule), non-contradiction of inherited PRD-level invariants, altitude purity (no per-repo solutions at PRD level), and recorded open questions. Read-only; returns findings + a PASS / PASS WITH RECOMMENDATIONS / BLOCK verdict. Uses Claude Opus.
 model: opus
-tools: ["Read", "Glob", "Grep"]
+tools: ["Read", "Glob", "Grep", "Skill"]
 ---
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.

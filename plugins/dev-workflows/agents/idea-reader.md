@@ -1,7 +1,7 @@
 ---
 name: idea-reader
 description: Ingests one idea source (inline prompt, a markdown file with links/images, a community post, or a saved file) from a path the caller supplies and returns a structured source digest for /idea. Follows links of either syntax up to two levels deep under one total-file cap with cycle protection, reads linked images as context and describes what each frame shows, enumerates (never opens) links to anything that is neither markdown nor an image, captures community-post demand signals, and summarises each followed reference so the caller need not re-read it. Read-only; never modifies files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
-tools: ["Read", "Glob", "Grep"]
+tools: ["Read", "Glob", "Grep", "Skill"]
 ---
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.

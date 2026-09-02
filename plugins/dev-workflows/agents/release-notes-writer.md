@@ -1,7 +1,7 @@
 ---
 name: release-notes-writer
 description: Renders an example-docs release-notes draft (the authored body only) for a resolved PRD/ticket from the folder read the orchestrator hands it, plus optional diff summaries. Emits exactly ONE Summary. Resolves the note's destination (breaking-changes / feature-updates / fixes) to pick the draft's shape — a category label + H3 title + prose, or a single bare sentence for fixes — and never writes the Change Type as text. Sources the category label from the resolved PRD's release_notes_category and omits it when absent. Emits NO identifiers, NO PR links, and NO {{#internal-note}} block (the docs automation adds those). Does NOT write files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
-tools: ["Read", "Glob", "Grep"]
+tools: ["Read", "Glob", "Grep", "Skill"]
 ---
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.

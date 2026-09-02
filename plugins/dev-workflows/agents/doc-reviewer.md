@@ -2,7 +2,7 @@
 name: doc-reviewer
 description: Reviews product documentation written by /document for correctness, completeness, and fitness for purpose. Returns PASS / PASS WITH RECOMMENDATIONS / BLOCK. Uses Claude Opus. Epic drafts are reviewed by epic-reviewer (a separate agent); this reviewer is product-docs-only.
 model: opus
-tools: ["Read", "Glob", "Grep"]
+tools: ["Read", "Glob", "Grep", "Skill"]
 ---
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.

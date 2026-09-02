@@ -2,7 +2,7 @@
 name: grounding-verifier
 description: Independently re-derives a grounding finding from its own source — the pinned repository for a [CG#n] or a class-4 [DG#n], the exported frame set for a design-only [DG#n] — and returns agree / extend / contradict / unprovable with its own evidence. It does NOT check citations — checking a citation only proves the cited line exists. A finding is not evidence until this agent has re-derived it. Read-only. Uses Claude Opus.
 model: opus
-tools: ["Read", "Glob", "Grep", "Bash"]
+tools: ["Read", "Glob", "Grep", "Bash", "Skill"]
 ---
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.

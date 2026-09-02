@@ -2,7 +2,7 @@
 name: prd-reviewer
 description: Reviews a Product Requirements Document (prd.md) authored by /create-prd or /update-prd for goal crispness, user-story/acceptance-criteria testability, scope concreteness, internal consistency (no self-contradiction), measurable metrics, product-level purity (no implementation detail), downstream-contract frontmatter, and profile completeness. Read-only; returns findings + a PASS / PASS WITH RECOMMENDATIONS / BLOCK verdict. Uses Claude Opus.
 model: opus
-tools: ["Read", "Glob", "Grep"]
+tools: ["Read", "Glob", "Grep", "Skill"]
 ---
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.

@@ -1,7 +1,7 @@
 ---
 name: design-grounder
 description: Reconciles a BRD against an exported design frame set — one [DG#n] finding per divergence, in four classes: a frame shows a field the BRD never requires; the BRD requires a field no frame shows; a frame contradicts BRD text; a frame implies a capture the code cannot perform. Read-only. Model tier assigned by the caller per the model-routing policy (no fixed pin).
-tools: ["Read", "Glob", "Grep"]
+tools: ["Read", "Glob", "Grep", "Skill"]
 ---
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.

@@ -1,7 +1,7 @@
 ---
 name: doc-planner
 description: Synthesises PRD content, per-repo diff summaries, and confirmed write targets into a documentation checklist the writer follows and the reviewer checks against. Detects the repo's image policy (local vs CDN-upload) and annotates per-screenshot placement. Does NOT write content. Model tier assigned by the caller per the model-routing policy (no fixed pin).
-tools: ["Read", "Glob", "Grep"]
+tools: ["Read", "Glob", "Grep", "Skill"]
 ---
 
 **Core references.** A citation of the form `workflows-core:<name>` names a shared reference in the `workflows-core` plugin. Load it with `Skill(skill: "workflows-core:reference", args: "<name>")` — never by path: `${CLAUDE_PLUGIN_ROOT}` resolves to this plugin, which does not carry it.

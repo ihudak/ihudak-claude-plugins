@@ -473,11 +473,32 @@ grep -rl 'dev-workflows:model-routing' plugins/ | xargs -r sed -i 's|dev-workflo
 grep -rn 'dev-workflows:model-routing' plugins/ | wc -l   # expect 0
 ```
 
-- [ ] **Step 7: Sweep the prose that describes what left**
+- [ ] **Step 6a: Rewrite every `/dev-workflows:<moved-command>` reference — 33 sites in 17 files**
+
+Step 5 rewrites moved *agents*; this is the moved *commands*, a separate category and a larger one. Every one of these names a command that no longer resolves under that namespace:
+
+```bash
+for c in feedback frames prompt prompt-brainstorm prompt-grill-me statusline; do
+  grep -rl "dev-workflows:$c\b" plugins/ | xargs -r sed -i "s|dev-workflows:$c\b|workflows-core:$c|g"
+done
+grep -rn 'dev-workflows:\(feedback\|frames\|prompt\|prompt-brainstorm\|prompt-grill-me\|statusline\)\b' plugins/ | wc -l   # expect 0
+```
+
+Measured distribution: `/statusline` 12 sites, `/frames` 11, `/prompt` 5, `/prompt-grill-me` 2, `/feedback` 2, `/prompt-brainstorm` 1. **Use a word boundary** — `prompt` is a prefix of `prompt-brainstorm` and `prompt-grill-me`, so an unanchored substitution corrupts the two longer names. Note that `next-phase-offer.md`, now core's own, is among the files carrying these: it names `/dev-workflows:prompt*` and `/dev-workflows:frames`, harmless today only because check 11's family derivation takes the first matching phrase.
+
+- [ ] **Step 6b: Resolve the eight bare `scripts/session-cost.py` prose sites**
+
+Eight sites across seven `dev-workflows` command files — `ready.md`, `implement.md`, `document.md` (×2), `release-notes.md`, `epics.md`, `design.md`, `specify.md` — describe running `scripts/session-cost.py` **without** a `${CLAUDE_PLUGIN_ROOT}` prefix, so neither Step 2's substitution nor its assertion grep sees them. The script is core's now, and a `dev-workflows` command cannot run it by path at all: reword each to say the work happens through the cost-emission entry point it already invokes, naming no path. `CHANGELOG.md` is excluded — it is history.
+
+- [ ] **Step 7: Sweep the prose and the documentation links that describe what left**
+
+This is the step that returns the gate to zero, and it is **not** reachable by Step 2's `sed`: the 53 residual failures are markdown links under `docs/`, not `${CLAUDE_PLUGIN_ROOT}` citations. They cluster in `docs/commands/` (`brd-ground.md` 9, `idea.md` 6, `epics.md` 4, `document.md` 4, `brd-split.md` 4, and eleven more pages with 1–3 each) with **two outside it** — `docs/brd-workflow.md` carries 2 — which are the easy ones to miss.
+
+A link into another plugin's docs cannot be repaired with a URL: check 10 forbids naming the marketplace or the container repo, and a hardcoded URL is wrong in anyone's fork. De-link each one to a plain code span naming the reference and, where it helps the reader, the plugin that now owns it. Then sweep the surrounding prose the same way, including `plugins/dev-workflows/README.md`.
 
 Ungated failure mode, per spec §6. In `plugins/dev-workflows/docs/**` and `plugins/dev-workflows/README.md`, find every sentence describing a moved agent, reference or command and rewrite it to name the plugin that now ships it. Search by name, not by line number.
 
-- [ ] **Step 8: Run the gates.** Expected: all PASS — this is the task that returns the tree to green.
+- [ ] **Step 8: Run the gates.** Expected: all PASS, and `check-docs --root .` at **zero** failures — this is the task that returns the tree to green.
 
 - [ ] **Step 9: Commit**
 

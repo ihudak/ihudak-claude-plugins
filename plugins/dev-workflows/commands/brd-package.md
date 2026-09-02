@@ -223,7 +223,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
 
 ## Phase 1 — Classify + model routing
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`), then record:
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`), then record:
 
 ```yaml
 model_routing:
@@ -848,7 +848,7 @@ BRD, an ungated or absent register, an unsettled round, a bundle directory that 
 an unset `$SPECS_PATH` are environment or sequencing halts. `BRD_PACKAGE_UNDISPOSED` is not one
 either — it is the gate working.
 
-1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model:
+1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model>`) with a compact handoff: command `/brd-package`; what was produced (the
    self-review, the prompt, the delivery note, the bundle); key events (the tier assigned and why,
    the `[SR#n]` dispositions, a re-dispatch after a `fixed` correction, a prompt-leak stop, a

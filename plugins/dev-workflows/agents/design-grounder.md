@@ -147,7 +147,7 @@ notes: |
 - `status: STALE_INDEX` — an index was present but not one of its rows named a frame still in the
   directory; no finding was produced. Distinct from `NO_INDEX`, which means no index at all: here the
   descriptions survive and only the frames are gone, so the remedy is restoring them (or re-running
-  `/dev-workflows:frames` once they are back), not re-indexing.
+  `/workflows-core:frames` once they are back), not re-indexing.
 - `status: FRAME_SET_MISSING` — `frame_set_dir` did not resolve to a directory; no reconciliation
   performed.
 - `status: NO_INDEX` — `frame_set_dir` held no index file; no reconciliation performed. The caller

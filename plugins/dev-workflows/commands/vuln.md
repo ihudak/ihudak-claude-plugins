@@ -14,7 +14,7 @@ Each argument token is either `ADDRESS:CVE-ID` (e.g. `PROJ-2423:CVE-2023-46604`)
 
 ## Step 0 — Classify & Route (mandatory)
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the classification rules, then classify **per CVE**, based on the size of the required repository change — not the CVE category alone.
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`) to load the classification rules, then classify **per CVE**, based on the size of the required repository change — not the CVE category alone.
 
 Default heuristics:
 

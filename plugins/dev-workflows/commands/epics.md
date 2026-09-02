@@ -269,7 +269,7 @@ No branching context is shown — this command never branches (still true — `s
 
 ## Phase 1.5 — Classify
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the classification rules, then classify the task as exactly one of: `SIMPLE`, `MODERATE`, `SIGNIFICANT`, or `HIGH-RISK`. Epic writing is typically **MODERATE** (bounded scope, single PRD, specs-tree output). State the classification and a one-sentence reason.
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`) to load the classification rules, then classify the task as exactly one of: `SIMPLE`, `MODERATE`, `SIGNIFICANT`, or `HIGH-RISK`. Epic writing is typically **MODERATE** (bounded scope, single PRD, specs-tree output). State the classification and a one-sentence reason.
 
 MODERATE → no separate Opus planner; the `epic-reviewer` gate (Opus, frontmatter-pinned) is mandatory. Resolve the per-step routing per `workflows-core:model-routing/classification` §9:
 
@@ -487,7 +487,7 @@ Spawn `code-scanner` instances in **batches of up to 4 concurrent agents** per A
 
 For each repo in the batch:
 
-→ Agent (subagent_type: "dev-workflows:code-scanner", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
+→ Agent (subagent_type: "workflows-core:code-scanner", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
   > "Scan this repo for the brief:
   >
   > repo_path:     <resolved absolute path for this repo from Phase 4>
@@ -581,7 +581,7 @@ Act on the return:
 - **`status: OK`** — zero violations. Proceed to Phase 7.
 - **`status: VIOLATIONS_FOUND`** — invoke `doc-fixer` with the violations treated as per their severity. After `doc-fixer` completes, re-run `prose-style-checker` once:
 
-  → Agent (subagent_type: "dev-workflows:doc-fixer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
+  → Agent (subagent_type: "workflows-core:doc-fixer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
     > "Fix the style violations for this brief:
     >
     > Task description: [Epic drafting for <KEY>]
@@ -637,7 +637,7 @@ Act on the verdict (same shape as `/document` keyed mode Phase 7):
 
 - **PASS WITH RECOMMENDATIONS** — invoke `doc-fixer` for MAJOR findings only:
 
-  → Agent (subagent_type: "dev-workflows:doc-fixer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
+  → Agent (subagent_type: "workflows-core:doc-fixer", model: `<detection_model — §9 / §2.1 Sonnet chain>`):
     > "Fix the review findings for this brief:
     >
     > Task description: [Epic drafting for <KEY>]
@@ -708,7 +708,7 @@ Then spawn all four maintenance agents in a **single Agent message**. They are i
 > If YES: apply minimal, additive, scoped changes only.
 > Return: what was changed and why, OR 'no update required'."
 
-**Agent 4 — Session maintenance** (dev-workflows:impl-maintenance):
+**Agent 4 — Session maintenance** (workflows-core:impl-maintenance):
 > "Analyse this session and return a Lessons Learned report.
 >
 > Session handoff:
@@ -867,7 +867,7 @@ Call `emit-cost` with `command: /epics`, `phase: epic-refinement`, `role: pe`,
 the run's `key` (or `null`) and `source`, and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the session
 transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),
-runs `scripts/session-cost.py` to compute the per-model token-cost delta against
+computes the per-model token-cost delta against
 the price table (§4), records the optional statusline cross-check (§5), and
 appends one per-invocation entry to `<PRD-dir>/dev-workflows/cost/<sid8>.md` via
 the specs-first ladder (§8) — pending + opportunistic move-then-delete

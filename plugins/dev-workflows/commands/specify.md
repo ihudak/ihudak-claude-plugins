@@ -317,7 +317,7 @@ route that resolved a container and had no PRD folder to name, which Phase 0 ste
 
 ## Phase 1.5 — Classify
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`), then classify as `SIMPLE` / `MODERATE` / `SIGNIFICANT` / `HIGH-RISK`. Specification authoring is typically **MODERATE**. Resolve per-step routing per `workflows-core:model-routing/classification` §9:
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`), then classify as `SIMPLE` / `MODERATE` / `SIGNIFICANT` / `HIGH-RISK`. Specification authoring is typically **MODERATE**. Resolve per-step routing per `workflows-core:model-routing/classification` §9:
 
 ```yaml
 model_routing:
@@ -634,7 +634,7 @@ contradicting existing behaviour, not a full reuse audit.
 
 For each repo in the batch:
 
-→ Agent (subagent_type: "dev-workflows:code-scanner", model: `<detection_model — §2.1 Sonnet chain>`):
+→ Agent (subagent_type: "workflows-core:code-scanner", model: `<detection_model — §2.1 Sonnet chain>`):
   > "Scan this repo for the brief:
   >
   > repo_path:     <resolved absolute path for this repo from Phase 3>
@@ -855,7 +855,7 @@ same way and commits under `NOISSUE` when there is none, per
 `workflows-core:specs-repo-git` §4 step 4. The `<BRD-KEY>` is never passed as a
 `key` — a folder key in a tracker-key field is the confusion the two fields exist to keep apart.
 
-1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
+1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
    > "Analyse this session and return a Lessons Learned report.
    >
    > Session handoff:
@@ -896,7 +896,7 @@ Call `emit-cost` with `command: /specify`, `phase: specification`, `role: pe`,
 the run's `key` (or `null`) and `source`, and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the session
 transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),
-runs `scripts/session-cost.py` to compute the per-model token-cost delta against
+computes the per-model token-cost delta against
 the price table (§4), records the optional statusline cross-check (§5), and
 appends one per-invocation entry to `<PRD-dir>/dev-workflows/cost/<sid8>.md` via
 the specs-first ladder (§8) — pending + opportunistic move-then-delete

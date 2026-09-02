@@ -479,7 +479,7 @@ def _st_rows():
             rec["timestamp"] = ts
         return rec
 
-    G = "/dev-workflows:prompt-grill-me"
+    G = "/workflows-core:prompt-grill-me"
     return [
         asst("2026-09-01T10:00:00.000Z", 1000),          # prior activity
         builtin("2026-09-01T10:00:30.000Z", "/upgrade"),  # BARE built-in, name we ship

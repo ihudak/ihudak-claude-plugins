@@ -38,7 +38,7 @@ Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless 
    **Accepted cost:** an abandoned idea leaves a folder in `specifications/`. Reintroducing a staging
    area to avoid that would restore the relocation step this removes.
 2. **Resolve model routing.** Invoke the `model-routing` skill (Skill tool,
-   `skill: "dev-workflows:model-routing"`), then record:
+   `skill: "workflows-core:model-routing"`), then record:
    ```yaml
    model_routing:
      classification: MODERATE          # idea refinement is typically MODERATE
@@ -170,7 +170,7 @@ Runs only when `--ground-code` was given; otherwise take the OFF branch at the e
 
 **2. Round 1 — broad.** Spawn `code-scanner` on the confirmed set in **batches of up to 4 concurrent agents per Agent message**, on `detection_model` per `workflows-core:model-routing/classification` §8.3. For each repo in the batch:
 
-→ Agent (subagent_type: "dev-workflows:code-scanner", model: `<detection_model — §2.1 Sonnet chain>`):
+→ Agent (subagent_type: "workflows-core:code-scanner", model: `<detection_model — §2.1 Sonnet chain>`):
   > "Scan this repo for the brief:
   >
   > repo_path:        <resolved absolute path>
@@ -296,7 +296,7 @@ repairs where `idea.md` points.
    design grounding has shipped** — nothing here dispatches `design-grounder`, produces a `[DG#n]`, or
    reaches a verifier, and that capability remains deliberately unbuilt (§6.1 says so; this phase keeps
    it true). A set left with rows the run could not describe is repaired by
-   `/dev-workflows:frames <KEY>`, which reads the frames themselves and fills exactly those rows.
+   `/workflows-core:frames <KEY>`, which reads the frames themselves and fills exactly those rows.
 4. **Rewrite `idea.md`'s links onto the copies** — `[[wikilinks]]`, `![[embeds]]`, `[text](path)` and
    `![alt](path)`, absolute and relative alike — replacing the target, preserving the display text, and
    **writing every rewritten link as standard markdown**. `$SPECS_PATH` is a git repo read on a forge and
@@ -459,7 +459,7 @@ source-not-found, cancellation).
 `workflows-core:session-hygiene` — a same-role `/compact` suggestion
 (no `resume.md`, no `/rename`: pre-PRD, short PM phase). Guidance only, never auto-run.
 
-1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
+1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
    > "Analyse this session and return a Lessons Learned report.
    >
    > Session handoff:

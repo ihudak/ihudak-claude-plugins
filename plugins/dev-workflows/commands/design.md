@@ -111,7 +111,7 @@ resolved `$SPECS_PATH`; resolved `$REPOS_PATH`.
 
 ## Phase 1.5 — Classify + tiered model gate
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`), then classify as
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`), then classify as
 `SIMPLE` / `MODERATE` / `SIGNIFICANT` / `HIGH-RISK`. This single classification scales **grill depth**,
 `design.md` **section-inclusion** (per `design-format.md`), and **`design-reviewer` rigor** together.
 Resolve per-step routing per `workflows-core:model-routing/classification` §9:
@@ -190,7 +190,7 @@ Spawn `code-scanner` instances in **batches of up to 4 concurrent agents** per A
 **all** confirmed, mounted repos (the scan runs over the full set regardless of classification — only
 grill depth / sections / review scale by tier). Wait for each batch before the next.
 
-→ Agent (subagent_type: "dev-workflows:code-scanner", model: `<detection_model — §2.1 Sonnet chain>`):
+→ Agent (subagent_type: "workflows-core:code-scanner", model: `<detection_model — §2.1 Sonnet chain>`):
   > "Scan this repo for the brief:
   >
   > repo_path:     <resolved absolute path for this repo from Phase 3>
@@ -374,7 +374,7 @@ persists the plugin-facing slice of its report as session feedback.
 guidance only), then a
 same-role `/compact` suggestion + `/rename <PRD-ID>-<slug>-dev`. Guidance only, never auto-run.
 
-1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
+1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
    > "Analyse this session and return a Lessons Learned report.
    >
    > Session handoff:
@@ -415,7 +415,7 @@ Call `emit-cost` with `command: /design`, `phase: planning`, `role: dev`, the
 run's `key` (or `null`) and `source`, and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the session
 transcript + subagents (§1), loads and **advances the chained checkpoint** (§3),
-runs `scripts/session-cost.py` to compute the per-model token-cost delta against
+computes the per-model token-cost delta against
 the price table (§4), records the optional statusline cross-check (§5), and
 appends one per-invocation entry to `<PRD-dir>/dev-workflows/cost/<sid8>.md` via
 the specs-first ladder (§8) — pending + opportunistic move-then-delete

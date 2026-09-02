@@ -64,10 +64,10 @@ The half you don't see is the **cost cross-check**. Session-cost reporting works
 See [Session cost](reference/session-cost.md) for what the report contains and where it lands. The command is idempotent, backs up anything it would overwrite, and changes no workflow-command behaviour.
 
 ```
-/dev-workflows:statusline
+/workflows-core:statusline
 ```
 
-Claude Code ships its own built-in `/statusline` command, so typing the bare form reaches that instead of this plugin's — always use the qualified `/dev-workflows:statusline`.
+Claude Code ships its own built-in `/statusline` command, so typing the bare form reaches that instead of this plugin's — always use the qualified `/workflows-core:statusline`.
 
 ## Your first run
 

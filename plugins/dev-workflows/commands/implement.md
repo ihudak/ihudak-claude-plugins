@@ -149,7 +149,7 @@ If **nothing** is ambiguous, skip directly to Phase 1.5.
 
 ## Phase 1.5 — Classify task complexity
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the classification rules, then classify the task as exactly one of:
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`) to load the classification rules, then classify the task as exactly one of:
 
 - **SIMPLE** — local, trivial, clearly reversible; no mandatory Opus steps
 - **MODERATE** — bounded scope, few files, clear requirements; no mandatory Opus steps
@@ -221,7 +221,7 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
 
 3. **Fan out `code-scanner` — one per repo, single response, cap 4 concurrent.** Spawn all repo scanners in **one** message (batch in groups of 4 if there are more than 4 repos). For each code repo:
 
-   → Agent (subagent_type: "dev-workflows:code-scanner", model: `<detection_model — §2.1 Sonnet chain>`):
+   → Agent (subagent_type: "workflows-core:code-scanner", model: `<detection_model — §2.1 Sonnet chain>`):
      > "repo_path: <absolute repo path>
      >  capability_themes: <themes from steps 1–2 + the implementation spec>
      >  context: <3–5 sentences: the implementation goal and what the change must accomplish>
@@ -593,7 +593,7 @@ Then spawn all four agents. They are independent and can run in any order — sp
 > If YES: apply minimal, additive, scoped changes only — do not rewrite sections wholesale.
 > Return: what was changed and why, OR 'no update required'."
 
-**Agent 4 — Session maintenance** (dev-workflows:impl-maintenance):
+**Agent 4 — Session maintenance** (workflows-core:impl-maintenance):
 > "Analyse this session and return a Lessons Learned report.
 >
 > Session handoff:
@@ -798,8 +798,7 @@ Call `emit-cost` with `command: /implement`, `phase: implementation`,
 `role: dev`, the run's `key` (or `null`) and `source`, and `plugin_version`
 (read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the
 session transcript + subagents (§1), loads and **advances the chained
-checkpoint** (§3), runs `scripts/session-cost.py` to compute the per-model
-token-cost delta against the price table (§4), records the optional statusline
+checkpoint** (§3), computes the per-model token-cost delta against the price table (§4), records the optional statusline
 cross-check (§5), and appends one per-invocation entry to
 `<PRD-dir>/dev-workflows/cost/<sid8>.md` via the specs-first ladder (§8) — pending
 + opportunistic move-then-delete reconciliation (§9) when no PRD key resolves.

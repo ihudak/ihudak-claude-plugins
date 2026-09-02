@@ -88,7 +88,7 @@ the run's `model_routing` — the `detection_model` §2.1 Sonnet chain is the
 default for this retrieval agent):
 
 ```
-→ Agent (subagent_type: "dev-workflows:docs-grounder", model: <detection_model>):
+→ Agent (subagent_type: "workflows-core:docs-grounder", model: <detection_model>):
   > "Ground this work in the product docs and return the digest:
   >
   > docs_path:       <docs_root>

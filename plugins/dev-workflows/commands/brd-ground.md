@@ -225,7 +225,7 @@ switches a branch, fetches, or pulls any repository it resolves here; Phase 3 re
 
 ## Phase 2 — Classify + model routing
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`), then record:
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`), then record:
 
 ```yaml
 model_routing:
@@ -474,7 +474,7 @@ fourth reconciliation class cites a `[CG#n]`, so the findings it needs must alre
 Handle `status`: `OK` → collect `findings` (may be empty — agreement produces none). `INPUT_MISSING`
 / `FRAME_SET_MISSING` → should not occur; stop and name the gap if it does. `NO_INDEX` → this
 frame set cannot be reconciled without an index file; report it and skip that directory rather
-than guessing at frame identity — and name the repair, `/dev-workflows:frames <this run's KEY>`,
+than guessing at frame identity — and name the repair, `/workflows-core:frames <this run's KEY>`,
 which writes the index and lets a re-run ground the set. Renumber into one BRD-wide `[DG#n]` sequence the same way as
 `[CG#n]` above, continuing from the highest `DG#n` already on file.
 
@@ -604,7 +604,7 @@ finding carrying no outcome is not evidence and blocks `/brd-split` for as long 
   or unusable (a repository unmounted mid-run, a frame set removed or exported without an index
   since it was ground). Stop, naming the finding and the path the agent reported — and, per the
   four-part stop contract, the command that resolves it: on `NO_INDEX` that is
-  `/dev-workflows:frames <this run's KEY>`, then re-run this command. **On `STALE_INDEX` it is
+  `/workflows-core:frames <this run's KEY>`, then re-run this command. **On `STALE_INDEX` it is
   not** — the index is there and its descriptions are intact; the frames are gone. Re-running
   `/frames` on an empty directory writes nothing (`workflows-core:grounding-format` §6.2 step 6 forbids it), so
   naming it would send the operator to a no-op. Name the missing frames instead: restore them to the
@@ -753,7 +753,7 @@ halts, never a plugin capability gap. `BRD_GROUND_DIRTY_TREE`, `BRD_GROUND_NEEDS
 7's `INPUT_MISSING`, which is this command getting its own dispatch contract wrong and does fire
 `emit-block`.
 
-1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model:
+1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model>`) with a compact handoff: command `/brd-ground`; what was produced (baselines,
    code/design findings, verifier tally, prerequisite readiness, documentation divergences); key
    events (a dirty-tree stop, a rebaseline, a skipped design pass, an unresolved repo, docs

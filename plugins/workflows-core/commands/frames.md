@@ -47,7 +47,7 @@ adjacent to it would invite an operator who wanted an index into the wrong comma
    inside one. **Pass no `<KIND>`**: `design/` is reserved at every level, so a BRD folder, a PRD
    folder and an Epic folder are all valid targets and narrowing the resolution would refuse two of
    the three. Absent or malformed → stop:
-   `FRAMES_NEEDS_ADDRESS: /frames needs the folder whose frame sets it should index — a key (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. ACME-77) or '@<path>' to the folder. Re-run '/dev-workflows:frames <KEY>|@<path>'.`
+   `FRAMES_NEEDS_ADDRESS: /frames needs the folder whose frame sets it should index — a key (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. ACME-77) or '@<path>' to the folder. Re-run '/workflows-core:frames <KEY>|@<path>'.`
 
    Handle the resolution record exactly as it comes back:
    - `status: invalid` → the same stop above, naming the token that failed the grammar.
@@ -63,7 +63,7 @@ adjacent to it would invite an operator who wanted an index into the wrong comma
    §3's path branch checks a supplied `<KIND>` against the folder's own and nothing else, so with none
    supplied *any* directory resolves. `kind` must be one of `brd`, `prd`, `epic`; anything else — or a
    folder asserting no `kind:` at all — is a stop:
-   `FRAMES_NOT_A_SPEC_FOLDER: <path> is not a BRD, PRD or Epic folder (it asserts <kind, or 'no kind'>). A design/<frame-set>/ directory is one of the sets this command indexes, not the folder that holds them. Re-run against the folder above it — '/dev-workflows:frames <KEY>' or '@<path to that folder>'.`
+   `FRAMES_NOT_A_SPEC_FOLDER: <path> is not a BRD, PRD or Epic folder (it asserts <kind, or 'no kind'>). A design/<frame-set>/ directory is one of the sets this command indexes, not the folder that holds them. Re-run against the folder above it — '/workflows-core:frames <KEY>' or '@<path to that folder>'.`
    **The reachable case is the documented one**: `@<path>` to a frame image resolves to its parent — the
    frame-set directory — whose `index.md` asserts `kind: frame-set-index` (§6.2's frontmatter). Without
    this gate the run would look for `design/` *inside* a frame set, report "no design/ subdirectory"
@@ -72,7 +72,7 @@ adjacent to it would invite an operator who wanted an index into the wrong comma
    refusal exists.
 
 2. **Resolve model routing.** Invoke the `model-routing` skill (Skill tool,
-   `skill: "dev-workflows:model-routing"`), then record:
+   `skill: "workflows-core:model-routing"`), then record:
    ```yaml
    model_routing:
      classification: MODERATE          # a bounded read plus a mechanical reconciliation
@@ -203,7 +203,7 @@ For each frame set, in directory order:
 
    Otherwise dispatch once per set, never per frame:
 
-   → Agent (subagent_type: "dev-workflows:frame-describer", model: `<detection_model — §2.1 Sonnet chain>`):
+   → Agent (subagent_type: "workflows-core:frame-describer", model: `<detection_model — §2.1 Sonnet chain>`):
      > "Describe these frames and return the structured result:
      >
      > frame_set_dir: [absolute path of this design/<frame-set>/ directory]
@@ -311,7 +311,7 @@ gap** (a capability the run needed but the plugin lacked), `emit-block` (per
 `${CLAUDE_PLUGIN_ROOT}/references/feedback-emission.md`) at that halt **before** escalating. NEVER
 `emit-block` for an environment / user halt (an address that resolves to nothing, a cancellation).
 
-1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
+1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model: `<detection_model — §2.1 Sonnet chain>`):
    > "Analyse this session and return a Lessons Learned report.
    >
    > Session handoff:
@@ -365,7 +365,7 @@ other than `index.md`, with the fact that `index.md` now sits beside it. Report,
 sitting directly in `design/` outside every set (Phase 1 step 2a).
 
 **Report the cap explicitly whenever it bit** — how many frames were described, how many were left,
-and that `/dev-workflows:frames <the same address>` describes the next 40 and converges. State the
+and that `/workflows-core:frames <the same address>` describes the next 40 and converges. State the
 count even when it did not bite ("all N frames described; the 40-frame cap did not apply"), because
 the absence of a truncation notice is only informative once the run is known to print one.
 

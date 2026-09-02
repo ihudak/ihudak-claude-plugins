@@ -33,7 +33,7 @@ No reviewer and no branch of its own. The only two checkpoints are the specs-rep
 ## Example
 
 ```
-/dev-workflows:feedback "The /specify grill re-asked a question I'd already answered in the ticket description"
+/workflows-core:feedback "The /specify grill re-asked a question I'd already answered in the ticket description"
 ```
 
 The command confirms the inferred `command` (`/specify`) and `category`, appends the entry to that PRD's `<KEY>-feedback.md`, and commits it to the specs repo.

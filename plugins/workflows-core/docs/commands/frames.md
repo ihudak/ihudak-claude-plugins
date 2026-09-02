@@ -73,7 +73,7 @@ It is also not `/design-index`, deliberately. `/design` is the engineering-desig
 ## Example
 
 ```
-/dev-workflows:frames ACME-77
+/workflows-core:frames ACME-77
 ```
 
 Resolves `PRD-ACME-77-<slug>/`, finds `design/checkout-flow/` holding eleven PNGs and no index, describes all eleven, and writes `design/checkout-flow/index.md` with eleven rows — then offers to open a pull request for that one file.

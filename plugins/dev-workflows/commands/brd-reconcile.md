@@ -229,7 +229,7 @@ write would re-ask a question already answered.
 
 ## Phase 1 — Classify + model routing
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`), then record:
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`), then record:
 
 ```yaml
 model_routing:
@@ -1301,7 +1301,7 @@ an unset `$SPECS_PATH` are environment or sequencing halts. `BRD_RECONCILE_UNCON
 `BRD_RECONCILE_UNDISPOSED_CORRECTION` and `BRD_RECONCILE_UNSWEPT` are not either — they are the gates
 working.
 
-1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model:
+1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model>`) with a compact handoff: command `/brd-reconcile`; what was produced (the
    canonicalised review, the frozen `[CD#n]`, the banners, the reconciliation record); key events
    (the mode the review arrived in, a candidate sent back to the customer, a reason left `not

@@ -180,7 +180,7 @@ and nothing downstream can tell the difference afterwards.
 
 ## Phase 1 — Classify + model routing
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`), then record:
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`), then record:
 
 ```yaml
 model_routing:
@@ -728,7 +728,7 @@ capability gap. `BRD_INTERVIEW_NO_SUCH_ROUND` is not one either: it is an argume
 that does not exist, and neither is `BRD_INTERVIEW_ALL_DELEGATED` — a BRD that kept no requirement of
 its own is an allocation outcome this command reports correctly, not a capability it lacks.
 
-1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model:
+1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model>`) with a compact handoff: command `/brd-interview`; what was produced (the round
    worked, the register entries written, the `[C]` set held); key events (a re-opened round and its
    cause, a question that needed grounding, a will-change resolution, a cancelled `[V]` queue, the

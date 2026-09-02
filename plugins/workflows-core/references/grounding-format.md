@@ -230,7 +230,7 @@ a frame shows, and a finding citing a frame the agent cannot actually identify i
 finding. The index may be named by whatever the frame-set convention uses — a manifest, a captions
 file, a README enumerating the frames — but something must map frame to subject.
 
-**The way out is `/dev-workflows:frames <ADDRESS>`**, which looks at the frames of every set in one
+**The way out is `/workflows-core:frames <ADDRESS>`**, which looks at the frames of every set in one
 resolved folder and writes the index this section requires. Any command or agent that reports
 `NO_INDEX` to a human names it: a refusal whose remedy is not stated reads as a dead end, and the
 hand-export it fires on is the ordinary way a frame set arrives.

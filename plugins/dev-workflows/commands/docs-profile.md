@@ -48,7 +48,7 @@ For one-off doc edits use direct mode; for keyed feature documentation use `/doc
 
 ## Phase 1 — Model routing
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load `workflows-core:model-routing/classification`. Slash-command bodies cannot expand `${CLAUDE_PLUGIN_ROOT}` themselves, so the skill is what makes the policy text available.
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`) to load `workflows-core:model-routing/classification`. Slash-command bodies cannot expand `${CLAUDE_PLUGIN_ROOT}` themselves, so the skill is what makes the policy text available.
 
 Profiling is **SIGNIFICANT** — it is a cross-cutting synthesis of the whole repository whose output (`docs-profile.yml`) steers every later `/document` run, so a wrong profile has a large blast radius. State the classification and a one-line reason.
 

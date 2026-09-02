@@ -207,8 +207,8 @@ array carries every option.
 
 ## Not pipeline nodes
 
-`/dev-workflows:vuln`, `/dev-workflows:upgrade`, `/dev-workflows:feedback`, `/dev-workflows:prompt*`, `/dev-workflows:docs-profile`, `/dev-workflows:statusline`, `/dev-workflows:frames`, and the reviewer
-commands are NOT part of the linear PRD→docs pipeline and carry no next-phase offer. `/dev-workflows:frames`
+`/dev-workflows:vuln`, `/dev-workflows:upgrade`, `/workflows-core:feedback`, `/workflows-core:prompt*`, `/dev-workflows:docs-profile`, `/workflows-core:statusline`, `/workflows-core:frames`, and the reviewer
+commands are NOT part of the linear PRD→docs pipeline and carry no next-phase offer. `/workflows-core:frames`
 repairs a folder's frame-set indexes and advances no phase; it makes the §4.3 handoff offer its
 deliverables require and no next-phase offer at all, so no `<merge-clause>` arises — nothing runs
 `require-on-main` on a frame-set index.

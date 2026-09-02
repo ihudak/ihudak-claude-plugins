@@ -196,7 +196,7 @@ four-resolution one.
 
 ## Phase 1 — Classify + model routing
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`), then record:
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`), then record:
 
 ```yaml
 model_routing:
@@ -1071,7 +1071,7 @@ continues through it. Neither is anything in Phase 1.5 — an instruction that p
 that reached its cap, and a `Cancel` mid-grill are all readings of a sentence the operator typed,
 never a capability this plugin lacks.
 
-1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model:
+1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model>`) with a compact handoff: command `/brd-split`; what was produced (slices
    confirmed and keyed, the ledger walk's tally, `slices.md`); key events (the run mode, the no-op
    path, a cancelled walk with N rows left, a rejected `covered-by` key — or "none"); workarounds; test

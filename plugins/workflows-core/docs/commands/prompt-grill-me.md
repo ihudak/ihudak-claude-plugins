@@ -32,7 +32,7 @@ No reviewer — the bounded grill itself is the only structure, and it is bounde
 ## Example
 
 ```
-/dev-workflows:prompt-grill-me "the /epics draft put an acceptance criterion under the wrong Epic"
+/workflows-core:prompt-grill-me "the /epics draft put an acceptance criterion under the wrong Epic"
 ```
 
 The command logs the corrective triple, commits it to the specs repo immediately, then interrogates the fix inline — at most 5 questions — following the embedded grilling technique.

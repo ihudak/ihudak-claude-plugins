@@ -111,7 +111,7 @@ Also display: the resolved PRD folder, its `key`, `$REPOS_PATH` (or "N/A — PRD
 
 ## Phase 1.5 — Classify
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`), then classify the task. Release-notes drafting is **MODERATE** (bounded prose synthesis from a single ticket; no Opus planning or review gate). State the classification and a one-sentence reason.
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`), then classify the task. Release-notes drafting is **MODERATE** (bounded prose synthesis from a single ticket; no Opus planning or review gate). State the classification and a one-sentence reason.
 
 ---
 
@@ -359,7 +359,7 @@ an earlier phase. `/release-notes` has no built-in maintenance agent, so this
 phase invokes `impl-maintenance` on the Sonnet detection chain and then
 persists the plugin-facing slice of its report as session feedback.
 
-1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model: `<Sonnet detection chain — claude-sonnet-5, fallback claude-sonnet-4-6 / 4-5>`):
+1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model: `<Sonnet detection chain — claude-sonnet-5, fallback claude-sonnet-4-6 / 4-5>`):
    > "Analyse this session and return a Lessons Learned report.
    >
    > Session handoff:
@@ -430,8 +430,7 @@ the run's `key` (or `null`) and `source`, and `plugin_version` (read from
 inference: **no `specification.md` or `design.md` under the PRD's specs dir ->
 `phase: prd-creation`, `role: pm`; either present -> `phase: documenting`, `role:
 dev`.** Epic presence is deliberately NOT part of the signal. It then resolves
-the transcript + subagents (§1), **advances the chained checkpoint** (§3), runs
-`scripts/session-cost.py` against the price table (§4), records the optional
+the transcript + subagents (§1), **advances the chained checkpoint** (§3), prices the run against the price table (§4), records the optional
 statusline cross-check (§5), and appends one entry to
 `<PRD-dir>/dev-workflows/cost/<sid8>.md` via the specs-first ladder (§8) — pending
 + reconciliation (§9) when no PRD key resolves. **The checkpoint advances even in

@@ -6,12 +6,12 @@ Installs the plugin's multi-line status line into your Claude Code settings, ena
 
 `/statusline` runs outside the role pipeline — no role, no cost-attribution phase. [Workflow overview](../workflow.md#cross-cutting-commands) groups it under Setup and review utilities, and recommends running it first: install it once, right after installing the plugin, so the cost snapshot it enables is already in place before your first pipeline command runs.
 
-**Claude Code ships its own built-in `/statusline` command** (backed by its own `statusline-setup` agent). The bare `/statusline` always resolves to that built-in, never to this one — **always type the qualified form, `/dev-workflows:statusline`.** Two other commands in this plugin collide with a Claude Code built-in the same way: `/release-notes` and `/upgrade`. See [Workflow overview](../workflow.md) for the full three-name collision list.
+**Claude Code ships its own built-in `/statusline` command** (backed by its own `statusline-setup` agent). The bare `/statusline` always resolves to that built-in, never to this one — **always type the qualified form, `/workflows-core:statusline`.** Two other commands in this plugin collide with a Claude Code built-in the same way: `/release-notes` and `/upgrade`. See [Workflow overview](../workflow.md) for the full three-name collision list.
 
 ## Synopsis
 
 ```
-/dev-workflows:statusline
+/workflows-core:statusline
 ```
 
 Takes no arguments. Phase 4 shows the exact settings change and asks you to confirm (`Install / Cancel / Other…`) before writing anything.
@@ -32,7 +32,7 @@ No reviewer, no branch, no commit. The one checkpoint is Phase 4's explicit conf
 ## Example
 
 ```
-/dev-workflows:statusline
+/workflows-core:statusline
 ```
 
 Run this once, first, right after installing the plugin. It backs up any existing `statusLine` block or installed script, installs the script, merges the new block into `~/.claude/settings.json` on confirmation, and reports the paths touched. The status line takes effect on the next render or new session.

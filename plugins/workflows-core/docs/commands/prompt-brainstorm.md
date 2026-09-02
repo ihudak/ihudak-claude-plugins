@@ -32,7 +32,7 @@ No reviewer of its own — the brainstorming skill's own interactive exploration
 ## Example
 
 ```
-/dev-workflows:prompt-brainstorm "the /create-ard repo-confirmation prompt keeps re-asking about repos I already declined"
+/workflows-core:prompt-brainstorm "the /create-ard repo-confirmation prompt keeps re-asking about repos I already declined"
 ```
 
 The command logs the corrective triple, commits it to the specs repo immediately, and then hands the session to `superpowers:brainstorming` to work out the right fix together.

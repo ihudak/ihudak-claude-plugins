@@ -35,7 +35,7 @@ No reviewer and no fix cycle — `/prompt` **is** the fix, applied once, directl
 ## Example
 
 ```
-/dev-workflows:prompt "design.md skipped the Alternatives considered section — add it back, listing the constraint each declined take optimised for"
+/workflows-core:prompt "design.md skipped the Alternatives considered section — add it back, listing the constraint each declined take optimised for"
 ```
 
 The command applies the fix to `design.md` directly, confirms the inferred `command` (`/design`), and logs the corrective triple — Friction, your verbatim request, and the one-line Resolution — to the PRD's feedback file.

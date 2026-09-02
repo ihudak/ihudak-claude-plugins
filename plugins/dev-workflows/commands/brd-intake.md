@@ -143,7 +143,7 @@ choices: ["Proceed with <folder> (Recommended)", "Use a different key or path (y
 
 ## Phase 1.5 — Classify + model routing
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`), then record:
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`), then record:
 
 ```yaml
 model_routing:
@@ -418,7 +418,7 @@ halt **before** escalating. None of Phase 0's stops qualify — a missing key, a
 non-markdown source, and an unset `$SPECS_PATH` are all environment / user halts, never a plugin
 capability gap, so `emit-block` never fires from this command's own Phase 0.
 
-1. **Invoke `impl-maintenance`** (subagent_type: "dev-workflows:impl-maintenance", model:
+1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model — §2.1 Sonnet chain>`) with a compact handoff: command `/brd-intake`; what was
    produced (the inventory, the confirmed defect log, the ledger skeleton); key events (a rejected
    PDF, an `EMPTY` read, unresolved candidates left `open`, docs grounding OFF or a docs-raised

@@ -119,7 +119,7 @@ No branching context is shown — nothing here branches this run; the only branc
 
 ## Phase 1.5 — Classify
 
-Invoke the `model-routing` skill (Skill tool, `skill: "dev-workflows:model-routing"`) to load the
+Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-routing"`) to load the
 classification rules, then classify the task as exactly one of: `SIMPLE`, `MODERATE`, `SIGNIFICANT`, or
 `HIGH-RISK`. Readiness verification is typically **MODERATE** (bounded scope, a single PRD or Epic,
 read-only, no code changes) — escalate to `SIGNIFICANT` only for an unusually large multi-Epic PRD where
@@ -473,7 +473,7 @@ concurrently.
 > If YES: apply minimal, additive, scoped changes only.
 > Return: what was changed and why, OR 'no update required'."
 
-**Agent 4 — Session maintenance** (dev-workflows:impl-maintenance):
+**Agent 4 — Session maintenance** (workflows-core:impl-maintenance):
 > "Analyse this session and return a Lessons Learned report.
 >
 > Session handoff:
@@ -553,8 +553,7 @@ token-cost contribution to the PRD by invoking `Skill(skill: "workflows-core:ref
 Call `emit-cost` with `command: /ready`, `phase: readiness`, `role: dev`, the run's `key` (or
 `null`) and `source`, and `plugin_version` (read from
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). It resolves the session transcript + subagents
-(§1), loads and **advances the chained checkpoint** (§3), runs `scripts/session-cost.py` to compute the
-per-model token-cost delta against the price table (§4), records the optional statusline cross-check
+(§1), loads and **advances the chained checkpoint** (§3), computes the per-model token-cost delta against the price table (§4), records the optional statusline cross-check
 (§5), and appends one per-invocation entry to `<PRD-dir>/dev-workflows/cost/<sid8>.md` via the
 specs-first ladder (§8) — pending + opportunistic move-then-delete reconciliation (§9) when no PRD key
 resolves. **The checkpoint advances even in the pending / report-only tiers.**

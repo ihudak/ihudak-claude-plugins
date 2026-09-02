@@ -229,7 +229,7 @@ that drifts.
 **What `/idea` contributes is one row of §6.2's writer table.** The frames it accounts for are the
 images it copied into `design/idea-sources/` this run; a new row's description is `idea-reader`'s
 per-image `description`, transcribed verbatim and never invented, and its `Linked from` is that
-image's `linked_from` in the digest. An image the reader did not read carries no `description`, is not
+image's `from` in the digest. An image the reader did not read carries no `description`, is not
 copied, and is accounted for nowhere — so a frame an earlier run vendored, or something other than an
 `/idea` run dropped in, lands on §6.2 step 4 and is reported rather than described. `written_by` is
 `/idea`; `frame_set` is `idea-sources`; `key` is the key the run was invoked with, which is the
@@ -300,14 +300,14 @@ in Obsidian, so converting loses nothing and gains the capability.
 
 **The map this decision runs on, and where both halves come from.** Deciding on the resolved file means
 holding, per copied entry, the target **as written** *and* the destination its copy landed at. The digest
-carries the written form on every link array — `images[].target` beside its `path` and `linked_from`,
+carries the written form on every link array — `images[].target` beside its `path` and `from`,
 `wikilinks_followed[].target` beside its `from` and `path`, and the same field on
 `wikilinks_not_followed[]`, `wikilinks_broken[]` and `links_other[]` — and the copy step knows the name the
 collision rule minted. Pair them:
 
 | Key | Value |
 |---|---|
-| the `target` as written, together with the `linked_from`/`from` it was written in | the path of that entry's copy, relative to the PRD folder |
+| the `target` as written, together with the `from` it was written in | the path of that entry's copy, relative to the PRD folder |
 | that same entry's resolved absolute `path` | the same copy |
 
 **Two key forms, because a brief may cite either.** Section 5 tells the author to cite a source as the

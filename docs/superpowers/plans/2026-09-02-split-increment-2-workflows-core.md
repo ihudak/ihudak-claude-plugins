@@ -559,9 +559,21 @@ Every `args:` string passed to `workflows-core:reference` names a reference that
 
 **The forward direction must exclude the documentation placeholder.** The preamble line added to 58 files quotes the invocation form literally, `args: "<name>"`, as documentation of the convention. A gate that resolves every `args:` string it finds will try to open `<name>.md`, fail, and report 58 defects on entirely correct content — the single most likely way to get this check wrong. Skip any argument that is not a plausible reference name (it is bracketed), and add a green selftest case containing exactly such a preamble line, so a naive implementation is caught by the suite rather than by a reviewer.
 
+**Relation 3 — every citing file carries the preamble — is scoped to `commands/`, `agents/` and `references/`, and nothing else.** Measured on the tree it will run against: 58 files carry the preamble, but **89** carry a `workflows-core:` citation. The other 31 are all correct content — 30 human-facing pages under `docs/` and one shell hook, none of which should carry a runtime loader instruction. A gate implementing the relation as "every file that cites" fires 31 times on a correct tree.
+
+**Do not append `.md` blindly when resolving a citation.** The token set includes `workflows-core:cost-prices.yaml`, a data file that moved with `cost-emission.md`. A resolver that assumes `.md` reports it as unresolvable.
+
 **The reverse direction counts any citation, not only a loader call** — a plain `${CLAUDE_PLUGIN_ROOT}/references/<name>.md` from inside core counts. Requiring a *loader* call would fail on every core reference that only core's own files read: `instruction-file-maintenance.md` is cited by `impl-maintenance.md` alone, and `handoff/code-scanner.md` by `code-scanner.md` alone — both now core-internal, both correct, and neither will ever appear in an `args:` string. A reverse direction that demanded a loader call would report the two most obviously correct files in the corpus.
 
 **The tree's measured state, so the gate is written against facts rather than guesses:** 219 loader invocations carrying **17 distinct `args:` strings**, every real one of which already resolves to a core reference. The reverse direction has exactly **one** unreached file — `dependencies.md` — which Step 0 below fixes.
+
+- [ ] **Step 0a: Give the loader skill the tools its own body promises (R9)**
+
+`plugins/workflows-core/skills/reference/SKILL.md` declares `allowed-tools: Read`, while its body says *"When a second argument is present, execute that entry point of it inline."* **Measured: 100 of the 158 real invocations are two-argument entry-point calls** — `specs-repo-git specs-preflight`, `specs-repo-git commit-artifacts`, `phase-handoff handoff-to-main`, `phase-handoff require-on-main`, `feedback-emission emit-auto`, `cost-emission emit-cost` — and every one of them runs `git -C "$SPECS_PATH" …` or `python3 …/session-cost.py`. A majority of call sites therefore cannot do what the skill says they do.
+
+This is inherited from the design's §5 block, which fixed the skill text before anyone enumerated the entry points; the sibling `model-routing` skill declares `Read` correctly, because it only ever reads. Declare `allowed-tools: Read, Bash`, matching this repo's own convention — `docs-frontmatter` and `prose-style-rules` both declare `Bash` for the same reason.
+
+Whether `allowed-tools` actually constrains the invoking turn is not settled by reading; **the verification phase must exercise a two-argument invocation on a live machine**, and that step already exists. Declaring the tool is the cheap side of the bet: harmless if unenforced, and the difference between working and silently broken if enforced.
 
 - [ ] **Step 0: Correct `dependencies.md`, and give it a real citation (R3, overdue)**
 
@@ -572,6 +584,12 @@ Rewrite it to describe what actually ships: a declared `dependencies` field, aut
 - [ ] **Step 2: Selftest cases, paired red and green** — an unresolvable argument fires; an unreferenced core reference fires; the entry-point form does **not** fire; a correct tree passes. The entry-point green case is the discriminator: an implementation that matches the whole argument string instead of its first token passes both red cases and fails that one.
 
 - [ ] **Step 3: Update the check count** in the script header and in `CLAUDE.md`'s enumeration of what the gate checks.
+
+- [ ] **Step 3a: Two carried-over repairs while you are in these files**
+
+`check_merge_clause`'s empty-glob message says the reference *"no longer names the command family … (expected a `/<plugin>:<family>*` phrase)"*. Since Step 0 of Task 4 that phrase can be present and the check still fire, because it is not on the scope-paragraph line — a maintainer would grep, find it, and conclude the gate is broken. Name the anchor line in the message.
+
+`plugins/workflows-core/agents/impl-maintenance.md:51` step 3 still says to read command files from `${CLAUDE_PLUGIN_ROOT}/commands/`, which now resolves to core's six utility commands rather than the `dev-workflows` command that dispatched the agent. The `hooks/` line beside it was fixed; this one was missed because it is not a dangling path — core does ship `commands/` — so no assertion sees it.
 
 - [ ] **Step 4: Run the gates.** Expected: all PASS.
 

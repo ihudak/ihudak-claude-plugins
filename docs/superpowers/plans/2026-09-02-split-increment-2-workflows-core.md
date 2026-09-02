@@ -44,7 +44,9 @@ Derived from the tree at `52d47ed` by the rule above: dispatch edges are `subage
 
 **Scripts (2):** `session-cost.py`, `statusline-command.sh`
 
-**Documentation pages (6 command pages + 6 reference pages):** `docs/commands/{feedback,frames,prompt,prompt-brainstorm,prompt-grill-me,statusline}.md`; `docs/reference/{model-routing,session-cost,session-feedback,follow-ups,resume-and-checkpoints,commit-convention}.md`
+**Documentation pages (6 command pages only):** `docs/commands/{feedback,frames,prompt,prompt-brainstorm,prompt-grill-me,statusline}.md`
+
+**No `docs/reference/` page moves — see R6.**
 
 ### Stays in `dev-workflows` (36 reference files)
 
@@ -65,6 +67,14 @@ Also staying: the `docs-frontmatter` skill (`/docs-profile` only), `specificatio
 **R3 — `dependencies.md` moves to core and is corrected in the same commit.** It is loaded by nothing (`grilling-technique.md` names it in prose) but its subject is cross-plugin dependency convention, which is now core's. Its standing claim — that no command hard-requires another plugin "since Claude Code plugins express no dependency-manifest field" — is **false as of this increment**, which declares exactly such a field. This is the CLAUDE.md "a note saying a feature does not ship, left standing beside the now-shipped feature" case.
 
 **R4 — a citation that would dangle after the move is demoted to a bare name, never promoted.** Nine sites, all pointer-shaped, listed in Task 4 step 4.
+
+**R6 — the six documentation *reference* pages stay in `dev-workflows`; core authors its own.** Measured before deciding: `docs/reference/{model-routing,session-cost,session-feedback,follow-ups,resume-and-checkpoints,commit-convention}.md` carry **about ninety inbound links** from `dev-workflows` pages that are not moving — `session-cost.md` alone is linked from 27 of them, `session-feedback.md` from 24. Moving those pages breaks every one of those links (check 1), and check 10 forbids the obvious repair, because a link into another plugin's docs would have to name the marketplace or the container repo. The mirror problem is real too: `commit-convention.md` links out to five *command* pages that stay.
+
+The deeper reason is that these pages do not document core in the first place — they document a subsystem **from the invoking side**, and the invoking side is exactly what stays. A `dev-workflows` user still emits cost, still gets feedback prompts, still resumes a checkpointed run; the page describing that belongs with the commands that do it. What moves is the *mechanism* — `cost-emission.md`, `feedback-emission.md`, `followup-emission.md`, `session-hygiene.md` — which is a reference, not a documentation page.
+
+So `workflows-core` **authors** whatever `docs/reference/` pages its own gate obligations require, rather than inheriting `dev-workflows`'s list. Derive that set by running the gate, not by copying: core ships cost-emitting commands of its own (`/feedback`, `/prompt`), so check 9's cost-emitting-set count sentence needs a home in core, and check 4 needs `agents.md` and `references.md` to inventory what core actually ships. Do not duplicate a page core has no obligation to carry — a second copy of an explanatory page is a second copy to keep true.
+
+Cost if wrong: some prose is stated twice across two plugins' documentation trees. That is the cheaper error. The alternative — ninety dangling links, repairable only by a URL a fork would have to rewrite — is the expensive one.
 
 ---
 
@@ -260,7 +270,7 @@ git commit -m "test(gate): let checks 8, 9 and 11 resolve their shared reference
 ### Task 3: Move everything into core
 
 **Files:**
-- Move (`git mv`): 28 reference files + `cost-prices.yaml`, 5 agent files, 6 command files, `skills/model-routing/`, `scripts/session-cost.py`, `scripts/statusline-command.sh`, 6 `docs/commands/` pages, 6 `docs/reference/` pages — lists in *The measured allocation*
+- Move (`git mv`): 28 reference files + `cost-prices.yaml`, 5 agent files, 6 command files, `skills/model-routing/`, `scripts/session-cost.py`, `scripts/statusline-command.sh`, 6 `docs/commands/` pages — lists in *The measured allocation*; **no `docs/reference/` page moves (R6)**
 - Modify: `scripts/check-docs.sh` (`CORE_PLUGIN_REL`, `COST_PLUGIN_RELS`, `HANDOFF_PLUGIN_RELS`)
 - Modify: both plugins' `docs/README.md`, `docs/workflow.md`, `docs/reference/{agents,references,environment}.md`, plugin `README.md`, `docs/roles-and-phases.md`
 
@@ -286,7 +296,11 @@ HANDOFF_PLUGIN_RELS="${HANDOFF_PLUGIN_RELS:-plugins/dev-workflows plugins/workfl
 
 Both subsystems are now shipped by core *and* still called from `dev-workflows`, so both plugins are declared. The both-directions applicability assertion added in increment 1 checks exactly this.
 
-- [ ] **Step 3: Update both inventories**
+- [ ] **Step 3: Author core's own `docs/reference/` pages, and move none**
+
+Per R6, no `docs/reference/` page moves. `dev-workflows` keeps all six of its subsystem pages and every inbound link to them stays valid. Core authors only what its own gate obligations require — determine that set by running `./scripts/check-docs.sh --root .` and reading the failures, never by copying `dev-workflows`'s page list. At minimum that is `agents.md` and `references.md` (check 4) and a `session-cost.md` carrying the cost-emitting-set count sentence (check 9), because core ships two cost-emitting commands of its own.
+
+- [ ] **Step 4: Update both inventories**
 
 `plugins/workflows-core/docs/reference/agents.md` gains a `` | `<name>` `` row per moved agent. `references.md` gains a row per **flat** file plus one subtree row, `` `handoff/` (2) `` — N is the **markdown-only** count, so `cost-prices.yaml` is counted nowhere.
 
@@ -294,19 +308,21 @@ Both subsystems are now shipped by core *and* still called from `dev-workflows`,
 
 `plugins/dev-workflows/docs/reference/*` loses exactly the moved rows, and its `` `handoff/` `` row drops from 9 to **7** (`test-baseliner`, `upgrade-executor`, `upgrade-planner`, `vuln-fixer`, `vuln-research`, `diff-summarizer`, `release-notes-writer`). Its `upgrade/` (3), `fix-vuln/` (2) and `docs-profiles/` (5) rows are unchanged. `REF_FLAT_EXTRA` is global config across every plugin in `PLUGIN_RELS`, and needs no edit: after the move `dev-workflows` simply has no `references/model-routing/` directory, and the `ls` behind it is already error-suppressed.
 
-- [ ] **Step 4: Update `environment.md` on both sides**
+- [ ] **Step 5: Update `environment.md` on both sides**
 
 Check 5 runs in both directions, so this move fires it **twice**. Re-derive each plugin's variable set from what its files now read — `$SPECS_PATH`, `$REPOS_PATH`, `$DOCS_PATH` and the rest follow their references — and write only what is read.
 
-- [ ] **Step 5: Fill core's `docs/workflow.md` mermaid diagram**
+- [ ] **Step 6: Fill core's `docs/workflow.md` mermaid diagram**
 
 Check 15 asserts every command appears **inside the diagram**, not in prose below it. All six, by name.
 
-- [ ] **Step 6: Remove the six commands from `dev-workflows`'s three listing surfaces** — `docs/README.md`, the plugin `README.md`, and `docs/workflow.md`'s mermaid diagram. Check 15 is **forward-only**: a diagram still naming a departed command passes silently, so this is by hand.
+- [ ] **Step 7: Remove the six commands from `dev-workflows`'s three listing surfaces** — `docs/README.md`, the plugin `README.md`, and `docs/workflow.md`'s mermaid diagram. Check 15 is **forward-only**: a diagram still naming a departed command passes silently, so this is by hand.
 
-- [ ] **Step 7: Update every prose count** in both plugins' `docs/README.md` and plugin `README.md`: `20 slash commands` / `6 slash commands`, agents, reference files, skills, and the cost-emitting-set size.
+- [ ] **Step 8: Update every prose count** in both plugins' `docs/README.md` and plugin `README.md`: `20 slash commands` / `6 slash commands`, agents, reference files, skills, and the cost-emitting-set size.
 
-- [ ] **Step 8: Verify the move landed, then commit**
+Also reword the repo-root `README.md` plugin-table row for `workflows-core`. Task 1 trimmed it to 181 of check 6's 200 characters and, in doing so, dropped the six utility commands `plugin.json` names. They exist now, so the row can name them truthfully — within the cap.
+
+- [ ] **Step 9: Verify the move landed, then commit**
 
 ```bash
 ls plugins/workflows-core/references/*.md | wc -l          # expect 25

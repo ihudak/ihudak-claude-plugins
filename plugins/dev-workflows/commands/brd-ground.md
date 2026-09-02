@@ -600,11 +600,15 @@ finding carrying no outcome is not evidence and blocks `/brd-split` for as long 
   without its `class` or its `frame_set_dir`). Stop, quoting the field and row the agent named, and
   fire `emit-block` per Phase 11's capture-at-block invariant — a dispatch this command controls
   getting the contract wrong is a plugin gap, unlike Phase 0's environment halts.
-- **`REPO_MISSING` / `FRAME_SET_MISSING` / `NO_INDEX`** — the source this finding rests on is gone
+- **`REPO_MISSING` / `FRAME_SET_MISSING` / `NO_INDEX` / `STALE_INDEX`** — the source this finding rests on is gone
   or unusable (a repository unmounted mid-run, a frame set removed or exported without an index
   since it was ground). Stop, naming the finding and the path the agent reported — and, per the
   four-part stop contract, the command that resolves it: on `NO_INDEX` that is
-  `/dev-workflows:frames <this run's KEY>`, then re-run this command.
+  `/dev-workflows:frames <this run's KEY>`, then re-run this command. **On `STALE_INDEX` it is
+  not** — the index is there and its descriptions are intact; the frames are gone. Re-running
+  `/frames` on an empty directory writes nothing (`grounding-format.md` §6.2 step 6 forbids it), so
+  naming it would send the operator to a no-op. Name the missing frames instead: restore them to the
+  directory, then re-run this command — and `/frames` only if the set changed while they were away.
 
 **Nothing reaches Phase 8 unverified.** Any stop above happens before Phase 8's first write, so a
 finding without an outcome is never written into the package; whatever was on file from a previous

@@ -288,7 +288,11 @@ Both subsystems are now shipped by core *and* still called from `dev-workflows`,
 
 - [ ] **Step 3: Update both inventories**
 
-`plugins/workflows-core/docs/reference/agents.md` gains a `` | `<name>` `` row per moved agent; `references.md` gains a row per **flat** file plus `` `handoff/` (2) `` and `` `model-routing/` (1) `` — N is the **markdown-only** count, so `cost-prices.yaml` is counted nowhere. `plugins/dev-workflows/docs/reference/*` loses exactly those rows.
+`plugins/workflows-core/docs/reference/agents.md` gains a `` | `<name>` `` row per moved agent. `references.md` gains a row per **flat** file plus one subtree row, `` `handoff/` (2) `` — N is the **markdown-only** count, so `cost-prices.yaml` is counted nowhere.
+
+**`model-routing/` is NOT a subtree row.** `check-docs.sh` sets `REF_FLAT_EXTRA="model-routing"`, which makes check 4 inventory `references/model-routing/*.md` **file by file, as flat rows**, and skip it in the subtree loop. Core's `references.md` therefore carries `` `classification.md` `` as an ordinary flat row and no `` `model-routing/` `` row at all. Writing the subtree row instead fails check 4 twice over — once for a claimed subtree the loop never counts, once for a flat file nothing names.
+
+`plugins/dev-workflows/docs/reference/*` loses exactly the moved rows, and its `` `handoff/` `` row drops from 9 to **7** (`test-baseliner`, `upgrade-executor`, `upgrade-planner`, `vuln-fixer`, `vuln-research`, `diff-summarizer`, `release-notes-writer`). Its `upgrade/` (3), `fix-vuln/` (2) and `docs-profiles/` (5) rows are unchanged. `REF_FLAT_EXTRA` is global config across every plugin in `PLUGIN_RELS`, and needs no edit: after the move `dev-workflows` simply has no `references/model-routing/` directory, and the `ls` behind it is already error-suppressed.
 
 - [ ] **Step 4: Update `environment.md` on both sides**
 

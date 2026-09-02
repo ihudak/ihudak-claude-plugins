@@ -21,7 +21,6 @@
 | make a folder of exported design frames readable | [`/frames`](commands/frames.md) |
 | fix a CVE or upgrade a dependency | [`/vuln`](commands/vuln.md), [`/upgrade`](commands/upgrade.md) |
 | tell the plugin it got something wrong | [`/feedback`](commands/feedback.md), [`/prompt`](commands/prompt.md) |
-| review an API spec or a UI against guidelines | [`/api-guideline-reviewer`](commands/api-guideline-reviewer.md), [`/guideline-reviewer`](commands/guideline-reviewer.md) |
 | see live cost and context while you work | [`/statusline`](commands/statusline.md) — **run this first** |
 | understand what a run cost | [Session cost](reference/session-cost.md), [`/statusline`](commands/statusline.md) |
 
@@ -29,7 +28,6 @@ Four pages orient you before you touch a command: [Getting started](getting-star
 
 ## Commands
 
-- [`/api-guideline-reviewer`](commands/api-guideline-reviewer.md) — review an OpenAPI spec against the bundled REST API and IAM permission naming guidelines.
 - [`/brd-ground`](commands/brd-ground.md) — pin every mounted repository, ground the BRD's requirements against code and design, and independently re-derive every finding on Opus.
 - [`/brd-intake`](commands/brd-intake.md) — intake a customer BRD verbatim, extract its requirement inventory, and write a coverage ledger with every row unallocated.
 - [`/brd-interview`](commands/brd-interview.md) — tag every open question `[G]`/`[V]`/`[C]` before it is asked, answer the `[G]`s from the findings, and record the delivery team's decisions.
@@ -44,7 +42,6 @@ Four pages orient you before you touch a command: [Getting started](getting-star
 - [`/epics`](commands/epics.md) — break a Product Requirements Document into reviewed child Epic drafts.
 - [`/feedback`](commands/feedback.md) — log a note about the plugin itself, for the maintainer to aggregate.
 - [`/frames`](commands/frames.md) — (re)build the index every `design/<frame-set>/` of one resolved folder must carry before anything can read it.
-- [`/guideline-reviewer`](commands/guideline-reviewer.md) — review app code and UI against the bundled UI design-system and accessibility guidelines.
 - [`/idea`](commands/idea.md) — refine a raw prompt, file, community post, or existing PRD into a one-page idea brief.
 - [`/implement`](commands/implement.md) — classify, plan, implement, test, and review a code change end to end.
 - [`/prompt`](commands/prompt.md) — log a correction you just made to a command's output, then apply the fix directly.

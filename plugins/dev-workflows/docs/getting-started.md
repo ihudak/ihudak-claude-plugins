@@ -35,7 +35,7 @@ Run this whenever you want the latest command, agent, hook, and reference conten
 
 ## What you set on your machine
 
-`dev-workflows` reads seven environment variables. One is required for the pipeline to have anywhere to write (`SPECS_PATH`); the rest are optional and each degrades to a documented default or a silent skip.
+`dev-workflows` reads five environment variables. One is required for the pipeline to have anywhere to write (`SPECS_PATH`); the rest are optional and each degrades to a documented default or a silent skip.
 
 ### `SPECS_PATH`
 
@@ -53,17 +53,9 @@ A **read-only** clone of your shipped product documentation. It matters most to 
 
 Your branch identifier. Branch naming is **repo-rule-first**: every branch-creating command reads the target repo's own documented convention and follows it as written. Where that convention has a name-or-initials segment, `GIT_USER_INITIALS` fills it; where it does not, the convention is followed without it, and this variable is simply unused for that repo.
 
-### `UI_GUIDELINES_PATH`
-
-Your organization's own UI rules, as a directory of `.md` files. The bundled guidelines are a vendor-neutral baseline distilled from public standards (Apple HIG, Material Design 3, Fluent 2, WCAG 2.2, the ARIA APG); rules specific to your design system have no public equivalent and should not ship in a public plugin, so `/guideline-reviewer` layers this directory over the baseline instead. Unset is the normal case and degrades silently to the baseline alone.
-
-### `API_GUIDELINES_PATH`
-
-The same idea for `/api-guideline-reviewer` — your own scope grammar, header spellings, or error-envelope contract, layered over the bundled public-source baseline. This governs the *prose* rules; the executable half is separate, where your repo's own `.spectral.yaml` takes precedence over the bundled Spectral ruleset. Unset degrades silently.
-
 ### `DEV_WORKFLOWS_COST_PRICES`
 
-An optional path to your own price table, overriding the bundled `references/cost-prices.yaml` that session-cost reporting prices tokens against. It is the variable of the seven you are least likely ever to set — the bundled defaults are used until you do.
+An optional path to your own price table, overriding the bundled `references/cost-prices.yaml` that session-cost reporting prices tokens against. It is the variable of the five you are least likely ever to set — the bundled defaults are used until you do.
 
 ## Install the status line
 

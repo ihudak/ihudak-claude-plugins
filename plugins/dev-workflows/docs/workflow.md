@@ -35,7 +35,7 @@ flowchart TD
     subgraph ANY["Anytime — improve the plugin & utilities"]
         improve["/feedback · /prompt · /prompt-brainstorm · /prompt-grill-me"]
         maint["/vuln · /dev-workflows:upgrade"]
-        tooling["/dev-workflows:statusline · /docs-profile · /api-guideline-reviewer · /guideline-reviewer"]
+        tooling["/dev-workflows:statusline · /docs-profile"]
         framesidx["/dev-workflows:frames — (re)build a design/ frame-set index"]
     end
 
@@ -109,5 +109,5 @@ These run outside the role pipeline above, at any time:
 
 - **Plugin improvement.** `/feedback` logs a note about the plugin itself; `/prompt`, `/prompt-brainstorm`, and `/prompt-grill-me` turn a correction you just made into logged feedback plus a fix.
 - **Standalone maintenance.** `/vuln` (CVE remediation) and `/upgrade` (dependency / runtime upgrades) run on their own, outside the PRD pipeline.
-- **Setup and review utilities.** `/statusline` (install the status line — run this first), `/docs-profile` (bootstrap a docs repo's profile), `/api-guideline-reviewer` and `/guideline-reviewer` (API / UI compliance reviews).
+- **Setup and review utilities.** `/statusline` (install the status line — run this first), `/docs-profile` (bootstrap a docs repo's profile).
 - **Specs-tree repair.** [`/frames`](commands/frames.md) (re)builds the frame-set index of any folder holding exported design frames — a BRD, PRD, or Epic folder alike — so a set somebody dropped in by hand becomes readable. It advances no phase and grounds nothing.

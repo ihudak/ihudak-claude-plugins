@@ -384,8 +384,7 @@ not attempt to infer it from anything else.
   Treat it as the `n/a` case below.
 - **Target is `n/a`, or a command with no row above -> `phase: plugin-feedback`,
   `role: n/a`.** The second case covers `/vuln`, `/upgrade`, `/docs-profile`,
-  `/statusline`, and the two guideline reviewers, none of which emits cost and so
-  has nothing to inherit.
+  and `/statusline`, none of which emits cost and so has nothing to inherit.
 - **Target is `/frames` -> resolve ITS inference first**, then inherit the result,
   exactly as for `/release-notes`. One level only. Where no folder resolves — which
   for `/frames` means the run never started — treat it as the `n/a` case.
@@ -399,12 +398,12 @@ not attempt to infer it from anything else.
 than guessed, and aggregation should treat it as unattributed rather than folding
 it into `dev`.
 
-**`/vuln`, `/upgrade`, `/docs-profile` and the two reviewer commands emit no cost entry, and that is
+**`/vuln`, `/upgrade`, and `/docs-profile` emit no cost entry, and that is
 a decision about what the number is for.** A cost entry measures **AI investment in a product
 increment**, and the rule is: *a cost entry attaches to a run that advances a PRD- or BRD-scoped
-artifact.* A CVE remediation, a library version bump, a docs-profile refresh and a standalone
-guideline review advance none — they are noise against a PRD or a BRD, and a metric that averages
-the two answers a question nobody asked.
+artifact.* A CVE remediation, a library version bump, and a docs-profile refresh advance none —
+they are noise against a PRD or a BRD, and a metric that averages the two answers a question
+nobody asked.
 
 **This is restated here because it lived only on the command pages.** `docs/commands/vuln.md` and
 `docs/commands/upgrade.md` have carried the reason all along — *"runs outside the PRD pipeline: no
@@ -689,8 +688,8 @@ first, and the script partitions the window:
 
 **Matching by name is the whole point, and positional pairing is the trap.** A
 window routinely holds boundaries no claim corresponds to: `/vuln`, `/upgrade`,
-`/docs-profile`, `/statusline` and the two guideline reviewers are real commands
-that emit no cost entry, and an interrupted run leaves a boundary too. Pair the
+`/docs-profile`, and `/statusline` are real commands that emit no cost entry,
+and an interrupted run leaves a boundary too. Pair the
 k-th claim with the k-th boundary and a single `/vuln` in the window shifts every
 claim by one — filing a security run's spend under a PRD lifecycle phase, which
 is the exact misattribution this section exists to remove.

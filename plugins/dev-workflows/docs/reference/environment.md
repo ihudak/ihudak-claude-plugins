@@ -1,6 +1,6 @@
 # Environment reference
 
-[Getting started](../getting-started.md) says what each variable is *for* and what to export before your first run. This page says what each variable **is** — its default, where that default comes from, what happens when it is unset, what happens when it points somewhere the plugin cannot read or write, and the directory layout it expects underneath it. The plugin reads seven user-settable variables. The rest of the names the plugin's own inventory check encounters while scanning for `$VAR` reads are never user-settable and stay out of scope here: `CLAUDE_PLUGIN_ROOT` and `ARGUMENTS` are runtime plumbing Claude Code itself sets for every plugin invocation, and `OSTYPE`, `BASH_SOURCE`, `BASH_REMATCH`, `ROOT`, and `OWNER_REPO` are shell built-ins or internal template/hook-local names, not plugin configuration.
+[Getting started](../getting-started.md) says what each variable is *for* and what to export before your first run. This page says what each variable **is** — its default, where that default comes from, what happens when it is unset, what happens when it points somewhere the plugin cannot read or write, and the directory layout it expects underneath it. The plugin reads five user-settable variables. The rest of the names the plugin's own inventory check encounters while scanning for `$VAR` reads are never user-settable and stay out of scope here: `CLAUDE_PLUGIN_ROOT` and `ARGUMENTS` are runtime plumbing Claude Code itself sets for every plugin invocation, and `OSTYPE`, `BASH_SOURCE`, `BASH_REMATCH`, `ROOT`, and `OWNER_REPO` are shell built-ins or internal template/hook-local names, not plugin configuration.
 
 ## `$SPECS_PATH`
 
@@ -56,35 +56,15 @@
 
 **Resolution.** First-found-wins, three tiers: `$DEV_WORKFLOWS_COST_PRICES` (a path) → a repo-local `cost-prices.yaml` → the bundled `${CLAUDE_PLUGIN_ROOT}/references/cost-prices.yaml`. Whichever file resolves must carry a top-level `models:` map keyed by model id (`input`/`output`/`cache_read`/`cache_write_5m`/`cache_write_1h`, in USD per million tokens) — a file missing that wrapper, whether it is the override or the shipped default, prices every model as `cost_usd: null` rather than raising an error.
 
-**When unset.** Resolution falls straight through to the repo-local file, then the bundled default — this is the variable of the seven most users never touch — though `$REPOS_PATH`, `$DOCS_PATH`, and `$GIT_USER_INITIALS` all have working fallbacks too.
+**When unset.** Resolution falls straight through to the repo-local file, then the bundled default — this is the variable of the five most users never touch — though `$REPOS_PATH`, `$DOCS_PATH`, and `$GIT_USER_INITIALS` all have working fallbacks too.
 
 **When it points somewhere unreadable.** An unreadable or missing path at this tier is treated the same as "not set at this tier" — resolution continues down the same first-found-wins chain to the next tier rather than failing the run.
 
 **Directory layout.** Not applicable — this variable names one file, not a directory tree.
 
-## `$UI_GUIDELINES_PATH`
-
-**What it is.** An absolute path to a directory of `.md` files carrying **your organization's own UI rules** — a proprietary design system's component contract, internal terminology, anything with no public equivalent. `/guideline-reviewer` layers it over the bundled vendor-neutral baseline in `references/guidelines/`.
-
-**Default.** Unset. There is no default path.
-
-**Unset, or pointing somewhere unreadable.** A silent, non-blocking fall-through: the reviewer resolves `--rules <path>` first, then `<repo-root>/.dev-workflows/ui-guidelines/`, then this variable, then the bundled baseline alone. A miss at every order is the normal case and is never reported as a problem — the run's `rules_source:` line records what actually resolved.
-
-**Layout.** A flat directory of `.md` files. A file whose name matches a bundled one (`datatable.md`, `accessibility.md`, …) layers over it and wins on conflict; a file matching none is an additional rule source. An `## Allowed` section suppresses matching baseline rules. First hit wins across the orders above — two overlays are never merged.
-
-## `$API_GUIDELINES_PATH`
-
-**What it is.** The same mechanism for `/api-guideline-reviewer`: a directory of `.md` files carrying your own API rules — an internal scope grammar, a required header spelling, an error-envelope contract — layered over the bundled baseline in `references/api-guidelines/`.
-
-**Default.** Unset. There is no default path.
-
-**Unset, or pointing somewhere unreadable.** Silent fall-through, in the same order: `--rules <path>`, then `<repo-root>/.dev-workflows/api-guidelines/`, then this variable, then the bundled baseline.
-
-**Layout.** As above. Note this variable governs the **prose** rules the LLM passes read. The **executable** half has its own precedence and does not use this variable: a repository's own `.spectral.yaml` / `.spectral.yml` / `.spectral.json` wins over the bundled Spectral ruleset, which an organization is expected to `extend` from its own file rather than edit in place.
-
 ## Directory layout
 
-The five directory-valued variables above expect this layout. `$GIT_USER_INITIALS` holds a string, not a path, and `$DEV_WORKFLOWS_COST_PRICES` names one file rather than a directory, so neither appears here.
+The three directory-valued variables above expect this layout. `$GIT_USER_INITIALS` holds a string, not a path, and `$DEV_WORKFLOWS_COST_PRICES` names one file rather than a directory, so neither appears here.
 
 ```
 

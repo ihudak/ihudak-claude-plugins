@@ -71,8 +71,9 @@ Every file in `references/` is markdown except `cost-prices.yaml`, which is a da
 
 ## Skills
 
-One skill ships under `skills/` — reusable guidance packaged for the `Skill` tool, distinct from a `references/` file that a command or agent reads directly by path.
+Two skills ship under `skills/` — reusable guidance packaged for the `Skill` tool, distinct from a `references/` file that a command or agent reads directly by path. Both exist for the same reason: a slash-command body cannot expand `${CLAUDE_PLUGIN_ROOT}` itself, and a command or agent in a *sibling* plugin could not expand it into this plugin's tree even if it could — its own `${CLAUDE_PLUGIN_ROOT}` names the sibling. A skill invoked by namespaced name resolves the path on the caller's behalf either way.
 
 | Skill | Invocable | What it's for |
 |---|---|---|
 | `model-routing` | No — loaded internally, at the classification step, by the pipeline commands whose bodies cannot expand `${CLAUDE_PLUGIN_ROOT}` themselves | Resolves the classification reference and hands the caller the task-complexity classification rules and the model fallback chain. |
+| `reference` | No — loaded internally, wherever a command or agent must read a shared reference or run one of its entry points | Takes a reference name and an optional entry point, and hands the caller that file's contents to follow as written. Every dependent plugin reads the corpus through it. |

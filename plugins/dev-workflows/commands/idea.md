@@ -121,8 +121,8 @@ gets reported instead. **Carry each entry whole, `target` included.** Every link
 `idea.md` back to the copy it belongs to, and dropping it would force that phase to resolve links itself —
 which it is forbidden to do.
 
-**What the digest now carries, and what it is worth.** The reader follows wikilinks **two levels
-deep** under one total-file cap and **reads** the images the source links, returning a
+**What the digest now carries, and what it is worth.** The reader follows links **two levels
+deep**, in either syntax, under one total-file cap and **reads** the images the source links, returning a
 `description` of what each frame shows rather than a bare path. Both are **context**: they inform the
 grill and the prose Phase 4 writes. Neither is grounded evidence — an image here is never a `[DG#n]`
 finding and gets no verifier pass (`${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md`
@@ -465,7 +465,7 @@ source-not-found, cancellation).
    > Session handoff:
    > - Command run: /idea
    > - What was done: [one-paragraph summary of the idea refined + source type]
-   > - Key events: [source-detection corrections, unresolved clarifications, broken wikilinks, links the traversal did not reach, images that were not read, links to files the reader does not open, sources that failed to vendor — or 'none']
+   > - Key events: [source-detection corrections, unresolved clarifications, broken links, links the traversal did not reach, images that were not read, links to files the reader does not open, sources that failed to vendor — or 'none']
    > - Workarounds used: [manual steps not automated by the workflow — or 'none']
    > - Review verdict: N/A (no reviewer in /idea)
    > - Test result: N/A (no tests in /idea)
@@ -498,8 +498,8 @@ ADDITIVE — this phase NEVER fails the run, NEVER commits the deliverable (idea
 
 Report: the `idea.md` path + `status` (refined / draft with N open clarifications); the source type and
 `sources`; the count of `[NEEDS CLARIFICATION]` items and Assumptions; any source-detection correction
-or broken wikilinks; **what the source read cost and what it left** — how many files the wikilink
-traversal read (and at which depths), every `wikilinks_not_followed` entry with its `cap`/`depth`
+or broken links; **what the source read cost and what it left** — how many files the traversal
+read (and at which depths), every `wikilinks_not_followed` entry with its `cap`/`depth`
 reason, how many linked images were read, and every image left with `read: false` and why. Report
 these even when nothing was excluded ("all N linked images read; no link left unfollowed"), because
 the absence of a truncation notice is only informative once the run is known to print one; **what the

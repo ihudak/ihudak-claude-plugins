@@ -52,7 +52,7 @@ insufficient. No proposed solution, no technology detail.
 ## Section 5 — Signals & evidence
 
 `## Signals & evidence` — demand evidence grounding the idea: RFE reference, community-post
-requesters/upvotes, wikilinked docs, and image references. Cite sources; never fabricate.
+requesters/upvotes, linked docs, and image references. Cite sources; never fabricate.
 
 **A linked image is cited by path, and what it shows is described only where the grill settled it.**
 `idea-reader` reads the images an idea source links and returns a short description of each frame, but
@@ -379,5 +379,5 @@ must follow beats an embed nobody's reader expands. It is written down here so n
 believing the conversion was an oversight.
 
 **The copies themselves are never edited.** A copy is a verbatim record of what was read, and
-rewriting the links *inside* one would falsify that record. A copied page's own wikilinks therefore
+rewriting the links *inside* one would falsify that record. A copied page's own links therefore
 still point at the tree it came from; that is correct, and it is not a defect to repair.

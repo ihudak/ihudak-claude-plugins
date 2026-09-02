@@ -34,6 +34,7 @@ claude plugin install dev-workflows@ihudak-plugins
 claude plugin install prose-style@ihudak-plugins
 claude plugin install obsidian-llm-wiki@ihudak-plugins
 claude plugin install acli@ihudak-plugins
+claude plugin install guideline-reviewers@ihudak-plugins
 ```
 
 ### 3. Configure environment variables

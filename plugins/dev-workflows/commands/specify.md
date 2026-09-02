@@ -132,6 +132,12 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
    `SPECIFY_NEEDS_KEY: /specify needs a PRD or Epic address — a key, or an @<path> to its folder.` — `/specify` has no
    direct-prompt behavior.
 
+**Resolve the address only after `$SPECS_PATH` is settled.** `resolve-key` globs under it, so a
+resolution taken first returns `absent` whenever the variable is unset — and this command resolves
+**once**, so that stale `absent` survives the operator supplying the path at the next step and the run
+stops with `SPECIFY_BRD_NOT_FOUND` naming a folder that exists. `/create-ard` and `/create-prd` state
+the same ordering for the same reason.
+
 2. **Resolve `$SPECS_PATH`.** `/specify` writes specifications under `$SPECS_PATH/specifications/`
    (exact layout resolved in step 3) — the specs repo. If `$SPECS_PATH` is unset, stop
    with a clear error naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`) —
@@ -191,8 +197,19 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
    picker can set `focus_key` to one of them here exactly as it does under any other PRD folder, and the
    feature folder is then re-pointed to that Epic's subfolder (Step A's *Re-pointing*). Addressing such an
    Epic directly — `/dev-workflows:specify <EPIC-KEY>` — resolves an `EPIC-` folder, which carries no
-   `brd-link.md`, so it is not the BRD route at all and takes the `focus_key`-set case above with nothing
-   route-specific about it.
+   `brd-link.md` of its own. **Look one level up before concluding this is not the BRD route.** Where the
+   `EPIC-` folder's containing directory is a `PRD-` slice carrying `brd-link.md`, this run **is** on the
+   BRD route, with that slice as the BRD folder and this Epic as the focus — read `decisions.md`, the
+   grounding files and the derivation matrix from the slice exactly as the picker path does, apply the
+   freeze rule, and write `consumed_by: specification` back there.
+
+   **Deciding it on the resolved folder alone was a silent contract loss, and the plugin recommends the
+   address that triggered it.** `/epics` ends by offering `/dev-workflows:specify <EPIC>`; taken on a
+   slice-derived Epic, that run skipped the whole BRD-route block — the implementation-altitude `[VD#n]`
+   and `[CD#n]` the customer signed did not constrain the spec, the freeze rule did not apply, and every
+   one of those decisions stayed `consumed_by: none` forever. The same Epic reached through
+   `/specify <SLICE-KEY>` and the picker kept all of it. `prd-format.md` forbids implementation detail in
+   the PRD, so the parent `prd.md` carries none of it and nothing else recovers the loss.
    `absent` is a graceful stop, not a folder to create — the same stop the PRD-dir bullet of step 3
    takes, and **one stop for both routes**, since a folder that resolved to nothing carries no
    `brd-link.md` to say which route it would have been on. Its code keeps the `_BRD_` segment it was
@@ -478,7 +495,7 @@ folder does hold. Then:
 
 **Additionally** read the `PRD-` slice folder Phase 0 step 3 resolved — additionally, because Steps A and B have already read that same folder's `prd.md` and its `EPIC-` subfolders, or reported the PRD's absence. What follows is what a slice carries and a keyed-route PRD folder does not, and it is the whole of the divergence this route is entitled to. Read exactly these, and no other seed:
 
-- **`spec-seed.md`** — implementation-altitude content, when the folder holds any. **No `/brd-*` command writes this file on the normal route** — the one writer is
+- **`spec-seed.md`** — implementation-altitude content, when the folder holds any. **Where to look, and it is two places.** The resolved slice first. Then, when the slice holds none, the **parent BRD folder** named by `brd-link.md`'s `parent:` — that is where `--sort-existing` actually writes all three seeds, because slices do not exist when intake runs. A seed found there is BRD-wide content, not slice-scoped: read it as context for this slice, say which folder it came from, and never treat it as though it were written for this slice alone. Finding neither remains the ordinary case. **No `/brd-*` command writes this file on the normal route** — the one writer is
   `/dev-workflows:brd-intake --sort-existing`, a one-time migration path for a package authored
   by hand before this route existed. Its absence is therefore the **ordinary** case, not a
   degraded one, and is reported rather than treated as a gap; what the route actually carries at
@@ -507,7 +524,7 @@ folder does hold. Then:
   here is a decision, not an omission — `/dev-workflows:create-prd` on the BRD route is where that gate
   lives, and this command is reachable without it.
 
-  **Two places do open both, and neither gates anything this run does**: Phase 3 Step A's
+  **Two places do open both, and neither gates anything this run does**: Phase 2 Step A's
   zero-Epics choice, and the `### Next step` offer. Each decides only whether
   `/dev-workflows:create-prd <SLICE-KEY>` can be *named* at all, since that command refuses three
   shapes and not one (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5.2). Reading a

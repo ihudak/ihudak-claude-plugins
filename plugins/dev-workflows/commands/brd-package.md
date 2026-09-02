@@ -320,7 +320,7 @@ sentences.
 
 **This command does not dispose of anything here, and it does not read a verdict.** The agent
 returns `status`, a `findings` list of `[SR#n]` records each carrying `disposition: undisposed`, a
-per-class `passes` account, and optional `notes`. **There is no PASS/BLOCK verdict, deliberately**,
+per-class `passes` account, and optional `notes` — **which are recorded in the self-review file alongside the findings**, never dropped: they name a document that could not be read or a pass whose coverage was partial, and a partial pass written into a customer package as though it were complete is the one failure this review exists to prevent. **There is no PASS/BLOCK verdict, deliberately**,
 and nothing below waits for one: the gate is the next phase, and a run that looked for a verdict
 would sit forever on an agent designed never to emit one.
 

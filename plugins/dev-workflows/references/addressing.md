@@ -268,7 +268,11 @@ to, which is why the adopter count and the command count differ:
   found an ARD in a nested directory.
 **Twelve files, twelve commands** — and the two matching is a coincidence of this moment, not a rule.
 One command adopts it purely **by delegation** and appears nowhere in the table: `/implement`, which
-resolves no PRD directory of its own and reaches an ARD solely by citing `ard-resolution.md`. Counting
+reaches an ARD solely by citing `ard-resolution.md`. It is not in the table for the same reason the
+`/brd-*` commands are not — it resolves its own single positional address with `resolve-address` (§3),
+which already searches every level, so §5's fallback is reached without adopting anything. (It once
+resolved no folder of its own, and this sentence still said so after that changed; the delegation half
+was always the real reason it appears nowhere here.) Counting
 files rather than commands is what keeps both facts visible — a reader who counted only the table would
 conclude `/implement` was left flat, and one who counted only commands would miss a shared authority
 that needed the fallback in its own right.

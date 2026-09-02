@@ -50,8 +50,13 @@ none of them** — on a PRD that carries them it copies each through the refresh
 PRD that does not it writes none — so the *written only by* rule above still reads exactly as it
 says: carrying an existing value forward mints no new one, and `/update-prd` reads no BRD tree it
 could mint one from. They record, on the PRD itself, the BRD identity and the prerequisites the
-customer committed to — and **no command consumes them yet.** Neither `/epics` nor `/ready` reads any
-of the three, and none of them has a reader anywhere in the plugin.
+customer committed to — and **no command consumes them yet** — which is a claim about *behaviour*, not about
+every read. Neither `/epics` nor `/ready` reads any of the three, and nothing branches on them. But
+`brd_key` and `brd_parent` do have a reader: `agents/prd-reviewer.md`'s review method raises a finding
+when one is present without the other, exactly as this file says six lines above. That is an integrity
+check on the pair, not a consumer of what they record, and the distinction matters in both directions —
+an increment scoped on "these have no reader" would be scoped against a check that already ships and
+already gates every PRD on both routes.
 **Nothing consumes the prerequisites these fields record.** Wiring a consumer is new behaviour on
 commands used heavily by non-BRD routes and belongs in its own increment with its own review. They are
 written, and preserved through a refresh, because provenance recorded at authoring time is the

@@ -225,9 +225,25 @@ Runs after Phase 1.6 and replaces the single Phase 2B exploration subagent for m
      > "repo_path: <absolute repo path>
      >  capability_themes: <themes from steps 1–2 + the implementation spec>
      >  context: <3–5 sentences: the implementation goal and what the change must accomplish>
-     >  search_hints: <symbols/paths/keywords derived from the spec, if any>"
+     >  search_hints: <symbols/paths/keywords derived from the spec, if any>
+     >  refresh:      { switch_to_default_branch: false, pull: false }"
 
-   Wait for all scanners in the batch to return. A scanner returning `REPO_MISSING` — the path is not a directory — escalates per the `Repo missing (after resolution)` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`; `DIRTY_TREE` escalates per the `Dirty working tree` rule and `REFRESH_BLOCKED` per the `Refresh blocked` rule in the same file. None is ever hidden, and none is merely announced — each offers the user a way forward (§8.4). A scanner returning `prep.read_only: true` is not a failure — it scanned at `prep.scanned_ref`; escalate per the `Read-only mount — ref stale or diverged` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` only when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`, and cite evidence at `prep.scanned_ref`.
+   **`refresh` is pinned off here, and it is the one input this dispatch must not omit.**
+   `code-scanner`'s declared default is `{switch_to_default_branch: true, pull: true}`, and Phase 0
+   classifies **the cwd itself** as a code repo and therefore a Phase 1.7 scan target (`repo_count` =
+   cwd + referenced repos). Leaving `refresh` unset therefore ran `git switch <default>` and
+   `git pull --ff-only` **in the repository this command is about to branch and modify**, before
+   Pre-Phase 3 has created that branch — silently relocating a user who invoked `/implement` from a
+   feature branch, and pulling into their working repo with no consent step anywhere in this command.
+   It also made Pre-Phase 3 step 4 unreachable on every fan-out run: that step offers *"Branch from
+   current position — continue on this work"* only when HEAD is **not** on the default branch, and the
+   scan had already moved it there, so the option a user with committed work would pick could never be
+   shown. `/implement` scans repositories it may write to, which is exactly what the other five
+   `code-scanner` callers do not do; `/idea` pins the same two values for the same reason.
+
+   Wait for all scanners in the batch to return. A scanner returning `REPO_MISSING` — the path is not a directory — escalates per the `Repo missing (after resolution)` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md`; `DIRTY_TREE` **cannot occur here** — `code-scanner` gates it on `refresh.pull`, which this dispatch
+   pins false, so no scanner stashes anything in a repo whose pre-existing changes Pre-Phase 3 is about
+   to record as `stash_ref`. It escalates per the `Dirty working tree` rule and `REFRESH_BLOCKED` per the `Refresh blocked` rule in the same file. None is ever hidden, and none is merely announced — each offers the user a way forward (§8.4). A scanner returning `prep.read_only: true` is not a failure — it scanned at `prep.scanned_ref`; escalate per the `Read-only mount — ref stale or diverged` rule in `${CLAUDE_PLUGIN_ROOT}/references/escalation-rules.md` only when `prep.ref_committed_at` is more than 14 days old or `prep.head_divergence.ahead > 0`, and cite evidence at `prep.scanned_ref`.
 
    **Round 2 — narrow and seeded (§8.5).** Apply `${CLAUDE_PLUGIN_ROOT}/references/model-routing/classification.md` §8.5. A theme is **inconclusive** when its round-1 `classification` is `partial`, `absent`, or `error`, or when **two or more** scanners' per-theme `capability_map[].gap_summary` texts point at each other's repo in a cycle, or at a component/subsystem that no scanned repo covers — the shape that yields confident answers which together say nothing. For every inconclusive theme that round 1 left at least one evidence anchor for, dispatch `code-scanner` again on `detection_model` with `capability_themes` holding exactly **one** question — the single thing round 1 failed to settle, not the broad theme — and `search_hints.paths`/`.symbols`/`.keywords` seeded from that round's verified `evidence[].path` and `.symbols`; where an evidence entry carries `lines`, name the anchor as `<path>:<line>` in the `context` prose. Cap **4 dispatches, one round only** — there is no round 3. This matters more here than where §8.5 was first adopted: `/idea`'s summary feeds a grill with a human in it, while this one feeds a planner whose output becomes code. **A theme round 1 left with no evidence anchor never enters round 2** — it stays inconclusive with no round-2 attempt possible, and that absence of an attempt is not itself a resolution.
 

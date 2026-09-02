@@ -53,7 +53,17 @@ this stage). Zero external calls.
    command line, and a flag that could disagree with the folder it names is one more disagreement to
    have. Print which route the run entered before doing anything else.
 
-1a. **Refuse a `BRD-` container — on either route, and the moment step 1 returns `status: found`.**
+1a. **Refuse a `BRD-` container — on either route, and the moment the address resolves.**
+
+   **Resolution waits on `$SPECS_PATH`, and there is exactly one of them.** `resolve-key` globs
+   `specifications/**/*-<KEY>-*`, so it needs `$SPECS_PATH`; run step 1's resolution only after step 2
+   has settled it, and let step 3 **reuse that same resolution** rather than taking a second one. With
+   the old ordering `/create-ard ACME-77` against an unset `$SPECS_PATH` resolved `absent` at step 1 —
+   so this refusal did not fire and the route printed as the idea route — then step 2 stopped, the
+   operator supplied the path, and step 3 re-resolved and *found the `BRD-` container* with nothing
+   testing it. The run authored `ard.md` into the container, which is the exact state this step exists
+   to prevent. `/create-prd` states the same rule for the same reason ("**Detection therefore waits on
+   resolution**"); the two must not diverge on it.
    A `BRD-` folder is **not** a fourth altitude, and this command used to route one onto the BRD
    route. **This test is not part of the BRD-route branch and must not be folded into it**: that
    route is detected from a `brd-link.md`, and a root BRD folder need not carry one — `/brd-intake`
@@ -243,7 +253,11 @@ and an idea-route folder does not, and it supplies the `(prd, epic)` pair the in
 uses. What it no longer does is stand in for the PRD read — Phase 0 step 1a means the BRD route resolves
 a `PRD-` folder, so there is a `prd.md` to look for in exactly the place the idea route looks.
 "Epic-level run" in the paragraphs immediately below means a run whose single address resolved to an
-`EPIC-` folder, which the BRD route never does — that route resolves a `PRD-` slice folder — so a slice's
+`EPIC-` folder. That folder carries no `brd-link.md` of its own, but **look one level up before
+concluding the run is off the BRD route**: where its containing directory is a `PRD-` slice carrying
+`brd-link.md`, this is the BRD route with that slice as the BRD folder and this Epic as the focus, and
+the seed and the decision register are still read from the slice. (An Epic-level ARD also inherits the
+PRD-level one, which softens the loss here where it does not in `/specify`.) Route aside, a slice's
 `scope: epic` frontmatter (Phase 4) is a statement about altitude and inheritance, not about this phase's
 run mode.
 
@@ -273,7 +287,7 @@ additionally, because the PRD read above already ran against that same folder an
 reported its absence. These are what a slice carries and an idea-route PRD folder does not, and they are
 the whole of the divergence this route is entitled to. Read exactly these, and no other seed:
 
-- **`ard-seed.md`** — architecture-altitude content, when the folder holds any. **No `/brd-*` command writes this file on the normal route** — the one writer is
+- **`ard-seed.md`** — architecture-altitude content, when the folder holds any. **Where to look, and it is two places.** The resolved slice first. Then, when the slice holds none, the **parent BRD folder** named by `brd-link.md`'s `parent:` — that is where `--sort-existing` actually writes all three seeds, because slices do not exist when intake runs. A seed found there is BRD-wide content, not slice-scoped: read it as context for this slice, say which folder it came from, and never treat it as though it were written for this slice alone. Finding neither remains the ordinary case. **No `/brd-*` command writes this file on the normal route** — the one writer is
   `/dev-workflows:brd-intake --sort-existing`, a one-time migration path for a package authored
   by hand before this route existed. Its absence is therefore the **ordinary** case, not a
   degraded one, and is reported rather than treated as a gap; what the route actually carries at

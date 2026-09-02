@@ -1,13 +1,19 @@
 # dev-workflows session-cost price table. USD per MILLION tokens, keyed by model id.
 # Rates sourced from https://platform.claude.com/docs/en/about-claude/pricing (standard
-# first-party Claude API, retrieved 2026-08-10). Batch / fast-mode / data-residency
+# first-party Claude API, Sonnet/Opus/Haiku/Fable re-verified live 2026-09-02). Batch / fast-mode / data-residency
 # modifiers are NOT applied (interactive Claude Code sessions bill at standard rates).
 #
 # PERMANENT (standard) rates only -- never promotional/introductory rates. Cost figures
-# must stay comparable across PRDs over time: a temporary promo (e.g. Sonnet 5's $2/$10
-# introductory price through 2026-08-31) would make identical work look cheaper now and
-# dearer later, distorting cross-PRD efficiency comparisons. So Sonnet 5 is keyed at its
-# standard $3/$15, matching Sonnet 4.5/4.6.
+# must stay comparable across PRDs over time, so a rate that is advertised as temporary is
+# not keyed here while it is temporary.
+#
+# Sonnet 5 was keyed at $3/$15 on exactly that reasoning, because $2/$10 was introductory
+# "through 2026-08-31". The window closed and the rate did not move: the published rate on
+# 2026-09-02 is still $2/$10, so it is the standard rate and is keyed as such. The hedge
+# was right to make and wrong to keep -- a table that bills at a rate nobody charges is not
+# comparable to anything, it is just wrong in one direction. Comparability across PRDs is
+# served by recording WHEN a rate changed, which this comment now does, not by declining to
+# follow it.
 #
 # Keys cover every model the plugin's routing policy can reach: the Opus chain (§2),
 # the Sonnet chain (§2.1: claude-sonnet-5 -> 4-6 -> 4-5), and Haiku. The engine
@@ -44,13 +50,14 @@ models:
     cache_read: 0.5
     cache_write_5m: 6.25
     cache_write_1h: 10.0
-  # Sonnet chain (§2.1). Sonnet 5 (standard/permanent) and Sonnet 4.5/4.6 all bill at $3 / $15.
+  # Sonnet chain (§2.1). Sonnet 5 bills at $2 / $10 since 2026-09-02 (see the header);
+  # Sonnet 4.5/4.6 remain at $3 / $15.
   claude-sonnet-5:
-    input: 3.0
-    output: 15.0
-    cache_read: 0.3
-    cache_write_5m: 3.75
-    cache_write_1h: 6.0
+    input: 2.0
+    output: 10.0
+    cache_read: 0.2
+    cache_write_5m: 2.5
+    cache_write_1h: 4.0
   claude-sonnet-4-6:
     input: 3.0
     output: 15.0
@@ -63,6 +70,15 @@ models:
     cache_read: 0.3
     cache_write_5m: 3.75
     cache_write_1h: 6.0
+  # Fable. Not reachable by the routing policy (§2/§2.1 never select it), but a session may
+  # RUN on it, and an unpriced session records tokens with a null cost. The undated key is a
+  # prefix of claude-fable-5-1, so the longest-prefix rule prices both from this one entry.
+  claude-fable-5:
+    input: 10.0
+    output: 50.0
+    cache_read: 1.0
+    cache_write_5m: 12.5
+    cache_write_1h: 20.0
   # Haiku.
   claude-haiku-4-5:
     input: 1.0

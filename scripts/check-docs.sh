@@ -798,7 +798,7 @@ check_merge_clause() {
   [ -f "$ph" ]  || { fail 11 "$CORE_PLUGIN_REL/$REF_DIR/phase-handoff.md is missing -- its row-F table is where each command's require-on-main target is declared"; return; }
 
   glob=$(scope_family "$ref" "$qual")
-  [ -n "$glob" ] || { fail 11 "$CORE_PLUGIN_REL/$REF_DIR/next-phase-offer.md no longer names the command family the <merge-clause> rule binds (expected a \`$qual<family>*\` phrase) -- with no family, this check would examine no offer at all"; return; }
+  [ -n "$glob" ] || { fail 11 "$CORE_PLUGIN_REL/$REF_DIR/next-phase-offer.md no longer names the command family the <merge-clause> rule binds -- the family is read ONLY from the scope-paragraph line, the single line beginning \`**Where this rule applies:\`, and that line carries no \`$qual<family>*\` phrase. A phrase of that shape elsewhere in the file does NOT count and will not silence this; with no family, the check would examine no offer at all"; return; }
 
   # targets: one `<command>|<artifact-basename>` line per row-F table cell. Column 2 only --
   # column 3 routinely cites reference FILES that are not gate targets.

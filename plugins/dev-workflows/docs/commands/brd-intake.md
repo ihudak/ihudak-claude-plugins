@@ -132,13 +132,13 @@ commit, push, and open a pull request.
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pm` role owns and hands off.
-- [`addressing.md`](../../references/addressing.md) — the `<BRD-KEY>` grammar and folder
+- `workflows-core:addressing` — the `<BRD-KEY>` grammar and folder
   resolution this command uses by name (`key-valid`, `resolve-address`).
 - [`brd-format.md`](../../references/brd-format.md) — the `[BR#n]` row shape, the immutability rule,
   and the six defect classes this command confirms against.
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the ledger row shape,
   the six dispositions, and the ledger line every `/brd-*` command's final report ends with.
-- [`docs-grounding.md`](../../references/docs-grounding.md) — the `$DOCS_PATH` resolution gate,
+- `workflows-core:docs-grounding` — the `$DOCS_PATH` resolution gate,
   the `docs grounding:` line this command shows verbatim, and the grill-rank consumption mode.
 - [Agents](../reference/agents.md) — `brd-reader`'s and `docs-grounder`'s full contracts.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md),

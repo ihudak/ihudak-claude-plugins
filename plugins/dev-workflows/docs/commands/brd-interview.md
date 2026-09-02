@@ -232,9 +232,9 @@ later, with its cause recorded:
 - [`decision-register-format.md`](../../references/decision-register-format.md) — the `[VD#n]` /
   `[CD#n]` / `[AS#n]` record, the five statuses, the mandatory `argumentation`, `conditional_on`, and
   the will-change rule this command enforces.
-- [`grounding-format.md`](../../references/grounding-format.md) — the finding record, the six
+- `workflows-core:grounding-format` — the finding record, the six
   verdicts, the two horizons, and §8's verification outcomes the Phase 0 gate depends on.
-- [`addressing.md`](../../references/addressing.md) — the `<BRD-KEY>` grammar and folder
+- `workflows-core:addressing` — the `<BRD-KEY>` grammar and folder
   resolution this command uses by name (`key-valid`, `resolve-address`).
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the dispositions the
   allocation gate reads, and §6's ledger line the final report ends with.

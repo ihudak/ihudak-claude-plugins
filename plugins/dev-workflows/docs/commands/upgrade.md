@@ -72,4 +72,4 @@ Upgrade a framework to its latest stable release and a runtime to its latest LTS
 - [Session feedback](../reference/session-feedback.md) — how the terminal `emit-auto` step persists plugin-facing lessons from this run.
 - [Resume and checkpoints](../reference/resume-and-checkpoints.md) — why `/upgrade` writes no `resume.md` and gets a plain end-of-run `/compact` suggestion instead.
 - [Model routing](../reference/model-routing.md) — the per-component classification rules and the Opus fallback chain `risk-planner`/`code-review` resolve against.
-- [`finding-triage.md`](../../references/finding-triage.md) — the triage step run between `code-review` and `review-fixer`.
+- `workflows-core:finding-triage` — the triage step run between `code-review` and `review-fixer`.

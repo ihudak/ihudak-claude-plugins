@@ -109,5 +109,5 @@ The run resolves `EPIC-008-01`'s folder one level under `specifications/`, reads
 - [Model routing](../reference/model-routing.md) — the classification rules and the `spec-reviewer` Opus pin.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Resume and checkpoints](../reference/resume-and-checkpoints.md) — the terminal Phase 8–9 bookkeeping every run emits.
 - [`specification-format.md`](../../references/specification-format.md) — the canonical structure `specification.md` is authored and reviewed against.
-- [`ard-resolution.md`](../../references/ard-resolution.md) — how the optional ARD is resolved and inherited.
+- `workflows-core:ard-resolution` — how the optional ARD is resolved and inherited.
 - [The BRD-to-PRD route](../brd-workflow.md) — the `/brd-*` commands that produce the register, findings and derivation matrix the BRD route reads, and the customer sign-off that makes those decisions unreopenable here. They produce no `spec-seed.md`: the only writer of a seed file is `/brd-intake --sort-existing`, a migration path, so a reconciled BRD normally holds none and the implementation altitude arrives through the register, the findings and the matrix.

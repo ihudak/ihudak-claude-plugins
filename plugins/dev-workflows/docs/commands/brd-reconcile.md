@@ -185,7 +185,7 @@ unmatched row can be told apart from a question set nobody passed.
   is unconfirmed. The four values are `confirm`, `correct`, `reject` and `ask-the-customer`; the
   picker carries no bulk confirmation, and a free-text answer is **normalised into those four or the
   candidate is re-asked** — never written through as a fifth value.
-  [`escalation-rules.md`](../../references/escalation-rules.md) names this picker for that reason:
+  `workflows-core:escalation-rules` names this picker for that reason:
   the prompt's free-text option is supplied by the harness and no picker can decline it, so the one
   picker through which customer authority enters the register is protected by what the run does with
   the answer rather than by what the array leaves out. Aborting the walk stops the run with **nothing
@@ -315,7 +315,7 @@ Each takes **one** address: a second positional token is refused (`CREATE_ARD_ON
 so neither of the optional two is ever offered with an Epic beside it. The three are **alternatives,
 not a sequence** — neither of the unconditional two waits on the PRD — and none of them carries the
 `<merge-clause>` placeholder, because none runs `require-on-main` against anything this command
-writes ([`next-phase-offer.md`](../../references/next-phase-offer.md)). No option in either of
+writes (`workflows-core:next-phase-offer`). No option in either of
 Phase 14's arrays carries `(Recommended)`: which one is right depends entirely on what the reconciliation left behind,
 so each option states its own condition in its own text.
 

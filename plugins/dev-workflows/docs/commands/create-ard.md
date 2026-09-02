@@ -98,5 +98,5 @@ The run resolves `EPIC-008-01`'s folder one level under `specifications/`, reads
 - [Model routing](../reference/model-routing.md) — the classification and Opus fallback chain `ard-reviewer` runs under, plus the tiered hard model gate `/create-ard` applies for `SIGNIFICANT`/`HIGH-RISK` runs.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Resume and checkpoints](../reference/resume-and-checkpoints.md) — the terminal Phase 8 bookkeeping every run emits.
 - [`ard-format.md`](../../references/ard-format.md) — the canonical structure the ARD is authored and reviewed against.
-- [`ard-resolution.md`](../../references/ard-resolution.md) — how the six downstream commands resolve and inherit `[AD#N]` invariants.
+- `workflows-core:ard-resolution` — how the six downstream commands resolve and inherit `[AD#N]` invariants.
 - [The BRD-to-PRD route](../brd-workflow.md) — the `/brd-*` commands that produce the register and findings the BRD route reads, and the customer sign-off that makes those decisions unreopenable here. They produce no `ard-seed.md`: the only writer of a seed file is `/brd-intake --sort-existing`, a migration path, so a reconciled BRD normally holds none and the architecture altitude arrives through the register and the findings.

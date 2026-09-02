@@ -102,5 +102,5 @@ The run resolves `EPIC-008-01`'s `PRD-` slice folder one level under `specificat
 - [`/create-ard`](create-ard.md) and [`/epics`](epics.md) — the two role handoffs `/create-prd`'s Phase 6 offers.
 - [Model routing](../reference/model-routing.md) — the classification and Opus fallback chain `prd-reviewer` runs under.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Resume and checkpoints](../reference/resume-and-checkpoints.md) — the terminal Phase 7 bookkeeping every run emits.
-- [`prd-format.md`](../../references/prd-format.md) — the canonical structure the PRD is authored and reviewed against.
+- `workflows-core:prd-format` — the canonical structure the PRD is authored and reviewed against.
 - [The BRD-to-PRD route](../brd-workflow.md) — the six `/brd-*` commands that produce the `decisions.md` the BRD route reads, and the customer sign-off that makes those decisions unreopenable here. They produce no `prd-seed.md`: the only writer of a seed file is `/brd-intake --sort-existing`, a migration path, so a reconciled BRD normally holds none and the register is the whole of what the BRD route is seeded from.

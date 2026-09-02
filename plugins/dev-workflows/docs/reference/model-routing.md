@@ -1,6 +1,6 @@
 # Model routing reference
 
-Every pipeline command classifies its own task before doing real work, and that classification decides how much planning, authoring, and review rigor the rest of the run applies — and, for two commands, which model the session itself must be running on. This page covers the four things a user can observe or influence about that; the full policy — including the mechanics agents don't need restated here — lives in `classification.md` and is linked at the end.
+Every pipeline command classifies its own task before doing real work, and that classification decides how much planning, authoring, and review rigor the rest of the run applies — and, for two commands, which model the session itself must be running on. This page covers the four things a user can observe or influence about that; the full policy — including the mechanics agents don't need restated here — lives in `workflows-core:model-routing/classification`, named again at the end.
 
 ## What gets classified
 
@@ -44,4 +44,4 @@ Every `SIGNIFICANT`/`HIGH-RISK` Opus step resolves against the same ordered list
 
 ---
 
-The full policy — the classification triggers in detail, the `model_routing` handoff block, the mid-tier detection chain used for mechanical steps, the mandatory Opus code-review checklist, and the large-input scan fan-out — is authoritative in [`../../references/model-routing/classification.md`](../../references/model-routing/classification.md). This page is a summary of it, not a substitute for it.
+The full policy — the classification triggers in detail, the `model_routing` handoff block, the mid-tier detection chain used for mechanical steps, the mandatory Opus code-review checklist, and the large-input scan fan-out — is authoritative in `workflows-core:model-routing/classification`, a reference the companion `workflows-core` plugin ships rather than this one. This page is a summary of it, not a substitute for it.

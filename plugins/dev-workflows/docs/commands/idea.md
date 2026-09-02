@@ -66,9 +66,9 @@ sources it actually read into the same PRD folder and rewrites `idea.md`'s links
   word for word and appending its own — a later run holds no description for a frame an earlier one
   vendored, so a row it cannot reproduce is one it does not touch. The index is rewritten whenever the set
   holds a frame, so a re-run that copies nothing leaves it correct rather than empty. That contract is
-  [`grounding-format.md`](../../references/grounding-format.md) §6.2's, shared with [`/frames`](frames.md).
+  `workflows-core:grounding-format` §6.2's, shared with `/workflows-core:frames`.
 - **A frame `/idea` cannot speak for gets a `_no description on record_` row and is reported.** An image
-  the reader never opened carries no description and this command will not invent one. [`/frames`](frames.md)
+  the reader never opened carries no description and this command will not invent one. `/workflows-core:frames`
   is what fills those rows: it looks at the frames themselves.
 - **Nothing else, ever.** No PDF, no archive, no other binary. A linked file the reader does not open —
   not markdown, not an image — keeps its link exactly as written and is named in the final report, with
@@ -168,6 +168,6 @@ Here the reader walks that note's links two levels out, opens the images it link
 - [Model routing](../reference/model-routing.md) — the classification and model-fallback rules `/idea` applies in Phase 0.
 - [Session cost](../reference/session-cost.md) and [Session feedback](../reference/session-feedback.md) — the terminal Phase 6 bookkeeping every run emits.
 - [`idea-format.md`](../../references/idea-format.md) — the canonical structure `idea.md` is authored against, and the *Vendored sources* rules for `attachments/`, `design/idea-sources/`, the collision suffix, and the link rewriting. The frame-set index format is not its — that moved to `grounding-format.md` §6.2 when `/frames` became a second writer.
-- [`grounding-format.md`](../../references/grounding-format.md) — §6.1 reserves `design/` for exported frame sets and makes each set's index mandatory, which is why `/idea` writes one for the images it vendors; §6.2 is that index's format and the reconciliation contract both writers execute.
-- [`/frames`](frames.md) — the other writer of that index, and the way to fill any row `/idea` had to leave as `_no description on record_`.
-- [`docs-grounding.md`](../../references/docs-grounding.md) — the documentation-grounding resolution gate and how a grill command consumes its digest.
+- `workflows-core:grounding-format` — §6.1 reserves `design/` for exported frame sets and makes each set's index mandatory, which is why `/idea` writes one for the images it vendors; §6.2 is that index's format and the reconciliation contract both writers execute.
+- `/workflows-core:frames` — the other writer of that index, and the way to fill any row `/idea` had to leave as `_no description on record_`. It ships in the companion `workflows-core` plugin.
+- `workflows-core:docs-grounding` — the documentation-grounding resolution gate and how a grill command consumes its digest.

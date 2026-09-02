@@ -76,5 +76,5 @@ The run resolves `EPIC-98760` with `resolve-address`; its folder's own `kind: ep
 - [`/create-ard`](create-ard.md) and [`/specify`](specify.md) — the upstream commands whose ARD and `specification.md` `/ready` verifies (via `design.md`, whose upstream is `/design`, in the same chain).
 - [Model routing](../reference/model-routing.md) — the classification rules and the `readiness-reviewer` Opus pin, including its Sonnet-floor fallback.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Follow-ups](../reference/follow-ups.md) — the terminal Phase 6–8 bookkeeping every run emits.
-- [`phase-handoff.md`](../../references/phase-handoff.md) and [`ard-resolution.md`](../../references/ard-resolution.md) — the gates `/ready` reads but is the one caller that never stops on.
+- `workflows-core:phase-handoff` and `workflows-core:ard-resolution` — the gates `/ready` reads but is the one caller that never stops on.
 - [`workflow-states.md`](../../references/workflow-states.md) — the PRD and Epic status ladders, expected-artifacts columns, and readiness targets `readiness-reviewer` applies.

@@ -38,7 +38,7 @@ is the second command of that route, after [`/brd-intake`](brd-intake.md) and be
   is present. Frame sets live in the resolved folder's reserved **design/** subdirectory, one
   subdirectory per set — images plus an index file naming what each frame depicts, which
   `design-grounder` refuses to run without, since a filename is not a reliable statement of what a
-  frame shows ([`grounding-format.md`](../../references/grounding-format.md) §6.1). No **design/**
+  frame shows (`workflows-core:grounding-format` §6.1). No **design/**
   folder means the pass is skipped and the run says so.
 - **`--no-docs`** (optional) — turn documentation grounding off for this run.
 - **`--rebaseline`** (optional) — re-run grounding against code that has moved since the last
@@ -161,12 +161,12 @@ the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch p
   Each repository's outcome is recorded as a `[CG#n]` finding like any other and is verified like
   any other — but it answers a question about a *repository* rather than about a `[BR#n]`, so it is
   never `consumed_by` anything, and the downstream reports that list what is still unconsumed
-  exclude it ([`grounding-format.md`](../../references/grounding-format.md) §4.1). Counting it would
+  exclude it (`workflows-core:grounding-format` §4.1). Counting it would
   put one item per repository into every such report forever, with no action that could close one.
 - **Phase 4.5 — documentation is a lead and a divergence, never evidence.** No `[CG#n]` or
   `[DG#n]` may cite a documentation page in its `evidence`, under any verdict, in any phase.
   Grounding answers whether a claim is true of a *specific commit*
-  ([`grounding-format.md`](../../references/grounding-format.md) §1), and a document is a claim
+  (`workflows-core:grounding-format` §1), and a document is a claim
   *about* behaviour rather than the behaviour: citing one would let a confident, stale page satisfy
   a claim the code does not — exactly the failure the `NOT-PROVABLE` verdict exists to make
   sayable. The digest is therefore never passed into `code-grounder`, `design-grounder`, or
@@ -176,7 +176,7 @@ the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch p
   in Phase 8. A divergence gets **no identifier of its own** — it names the verified `[CG#n]` it
   diverges from instead, because a divergence is not an answer to a `[BR#n]` premise, and a new
   prefix would sit permanently unverified in a namespace where an unverified id blocks
-  [`/brd-split`](brd-split.md) ([`grounding-format.md`](../../references/grounding-format.md) §8).
+  [`/brd-split`](brd-split.md) (`workflows-core:grounding-format` §8).
 - **Phase 7 — `grounding-verifier` over every finding, pinned to Opus.** A finding without a
   verifier outcome is never treated as evidence. A `contradict` outcome rewrites the finding
   in place — same id, replaced verdict and evidence — so an existing citation keeps resolving; an
@@ -184,7 +184,7 @@ the specs repo's default branch under the shared `brd/<BRD-KEY>-<slug>` branch p
   appends the additional evidence the verifier's own search turned up). Which anchor each finding
   is verified against depends on what it rests on: a `[CG#n]` and a class-4 `[DG#n]` are re-derived
   against the pinned repository, a class-1/2/3 `[DG#n]` against the frame set it was reconciled
-  from — see [`grounding-format.md`](../../references/grounding-format.md) §8. A verifier that
+  from — see `workflows-core:grounding-format` §8. A verifier that
   refuses rather than verifying (a moved `HEAD`, a repository or frame set no longer resolvable)
   stops the run before Phase 8 writes anything, so no finding is ever written without an outcome —
   which is what keeps `/brd-split`'s own verification gate reachable.
@@ -210,18 +210,18 @@ because nesting is capped at one level. `/brd-split` is not where the route ends
 ## See also
 
 - [Roles and phases](../roles-and-phases.md) — what the `pa` role owns and hands off.
-- [`addressing.md`](../../references/addressing.md) — the `<BRD-KEY>` grammar and folder
+- `workflows-core:addressing` — the `<BRD-KEY>` grammar and folder
   resolution this command uses by name (`key-valid`, `resolve-address`), including how a slice
   nests inside its parent.
-- [`grounding-format.md`](../../references/grounding-format.md) — the authority for the finding
+- `workflows-core:grounding-format` — the authority for the finding
   record, the six verdicts, the two horizons, the `baseline-integrity` procedure this command's
   Phase 3 runs, and the four verification outcomes this command's Phase 7 acts on.
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the ledger line every
   `/brd-*` command's final report ends with.
-- [`docs-grounding.md`](../../references/docs-grounding.md) — the `$DOCS_PATH` resolution gate,
+- `workflows-core:docs-grounding` — the `$DOCS_PATH` resolution gate,
   the `docs grounding:` line this command shows verbatim, and the lead-only consumption mode this
   command's Phase 4.5 applies.
-- [`read-only-repos.md`](../../references/read-only-repos.md) — the read-only posture this command
+- `workflows-core:read-only-repos` — the read-only posture this command
   holds toward every repository it resolves.
 - [Agents](../reference/agents.md) — the full contracts for `docs-grounder`, `code-grounder`,
   `design-grounder`, and `grounding-verifier`.

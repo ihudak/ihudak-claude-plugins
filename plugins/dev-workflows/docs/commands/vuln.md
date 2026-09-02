@@ -69,4 +69,4 @@ Both CVEs are researched in parallel via `vuln-research`; each `READY` result is
 - [Session feedback](../reference/session-feedback.md) — how the terminal `emit-auto` step persists plugin-facing lessons from this run.
 - [Resume and checkpoints](../reference/resume-and-checkpoints.md) — why `/vuln` writes no `resume.md` and gets a plain end-of-run `/compact` suggestion instead.
 - [Model routing](../reference/model-routing.md) — the per-CVE classification rules and the Opus fallback chain `code-review` resolves against.
-- [`finding-triage.md`](../../references/finding-triage.md) — the triage step run between `code-review` and `review-fixer`.
+- `workflows-core:finding-triage` — the triage step run between `code-review` and `review-fixer`.

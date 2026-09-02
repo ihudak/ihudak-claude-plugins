@@ -16,7 +16,7 @@ Drafts a customer-facing release-notes summary for a resolved Product Requiremen
 /release-notes <ADDRESS> [--version <v>] [--no-docs]
 ```
 
-`/release-notes` is **address-required** — there is no free-text or `@file` input; a prompt with no positional address stops with `RELEASE_NOTES_NEEDS_KEY`. The address is a `<KEY>`, or an `@<path>` naming a folder in the specs tree; [`addressing.md`](../../references/addressing.md) §3 resolves either.
+`/release-notes` is **address-required** — there is no free-text or `@file` input; a prompt with no positional address stops with `RELEASE_NOTES_NEEDS_KEY`. The address is a `<KEY>`, or an `@<path>` naming a folder in the specs tree; `workflows-core:addressing` §3 resolves either.
 
 ## How it runs
 
@@ -95,4 +95,4 @@ Byte for byte the same command, and every step above happens the same way. The s
 - [Model routing](../reference/model-routing.md) — the classification rules; `/release-notes` is always `MODERATE`.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Follow-ups](../reference/follow-ups.md) — the terminal Phase 9–11 bookkeeping every run emits.
 - [`release-note-types.md`](../../references/release-note-types.md) — the section map, the per-section draft shape and prose rules, and the deprecation-note rule `release-notes-writer` applies.
-- [`cost-emission.md`](../../references/cost-emission.md) — §7's full phase/role inference this page's `## Who runs it` section is derived from.
+- `workflows-core:cost-emission` — §7's full phase/role inference this page's `## Who runs it` section is derived from.

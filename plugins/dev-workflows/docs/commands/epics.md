@@ -12,7 +12,7 @@ Reads a Product Requirements Document from the resolved folder in the specs tree
 /epics <ADDRESS> [--no-docs]
 ```
 
-The positional input is a **single address** — a `<KEY>`, or an `@<path>` naming a folder in the specs tree — resolved by [`addressing.md`](../../references/addressing.md) §3.
+The positional input is a **single address** — a `<KEY>`, or an `@<path>` naming a folder in the specs tree — resolved by `workflows-core:addressing` §3.
 
 **`/epics` accepts exactly two shapes and refuses everything else.** A `PRD-` folder partitions into new Epics; an `EPIC-` folder **that has a PRD above it** re-refines that Epic. A **stand-alone `EPIC-` folder** — one with no PRD above it — is refused (`EPICS_EPIC_NOT_UNDER_PRD`), and so is a **`BRD-` container** (`EPICS_BRD_NOT_SLICED`, taken on the directory prefix before any read, naming the `PRD-` slices under it, one set of Epics each). Where the folder resolved through the legacy unprefixed fallback and carries no prefix to read, the same refusal is taken on positive evidence that the folder is a BRD — it carries `coverage-ledger.md` or `brd/brd-inventory.md` and no `brd-link.md` naming a `parent:` — the one rule `/create-prd`, `/create-ard` and `/specify` share, stated in [`coverage-ledger-format.md`](../reference/references.md) §5.1. A legacy **idea-route** PRD folder carries neither file, so the refusal does not fire on it. **Epics come from a PRD only**, and `/epics` is the only command in the plugin that creates an `EPIC-` folder — [`/create-ard`](create-ard.md) and [`/specify`](specify.md) both stop on an absent one rather than minting it.
 
@@ -54,7 +54,7 @@ Six `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 3.6, read-o
 
 One `EPIC-<PRD-KEY>-NN-<eslug>/` folder per new or refined Epic under the resolved PRD folder, each holding `epic.md`. The key is minted as the next unused two-digit segment, proposed and overridable, validated and re-prompted rather than coerced. `_coverage.md` is PRD-holistic and lands beside `prd.md`, never inside an Epic folder.
 
-**`/epics` never creates a branch.** Its git writes are confined to `$SPECS_PATH`, and only to its bounded session-artifact paths — the Epic drafts themselves are never committed by this command at all; git hygiene of the write target is the user's own responsibility. This is unlike the fifteen commands that do offer a branch + commit + push + pull-request handoff for their own deliverable — [`/idea`](idea.md), [`/create-prd`](create-prd.md), [`/update-prd`](update-prd.md), [`/create-ard`](create-ard.md), [`/specify`](specify.md), [`/design`](design.md), [`/implement`](implement.md), [`/ready`](ready.md), [`/frames`](frames.md), and the six commands of the BRD-to-PRD route.
+**`/epics` never creates a branch.** Its git writes are confined to `$SPECS_PATH`, and only to its bounded session-artifact paths — the Epic drafts themselves are never committed by this command at all; git hygiene of the write target is the user's own responsibility. This is unlike the fifteen commands that do offer a branch + commit + push + pull-request handoff for their own deliverable — [`/idea`](idea.md), [`/create-prd`](create-prd.md), [`/update-prd`](update-prd.md), [`/create-ard`](create-ard.md), [`/specify`](specify.md), [`/design`](design.md), [`/implement`](implement.md), [`/ready`](ready.md), `/workflows-core:frames` (which ships in the companion plugin), and the six commands of the BRD-to-PRD route.
 
 ## Gates
 
@@ -79,5 +79,5 @@ The run resolves the PRD, asks for the output directory and whether to scan code
 - [`/specify`](specify.md) — the downstream command normally run once per drafted Epic; a PRD with 0 Epics that reaches `/specify` first is itself offered a link back to `/epics`, but nothing gates the order.
 - [Model routing](../reference/model-routing.md) — the classification rules and the `epic-reviewer` Opus pin.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Follow-ups](../reference/follow-ups.md) — the terminal Phase 9–11 bookkeeping every run emits.
-- [`ard-resolution.md`](../../references/ard-resolution.md) — how the optional PRD-level ARD is resolved and inherited.
-- [`finding-triage.md`](../../references/finding-triage.md) — the triage step run between `epic-reviewer` and `doc-fixer`.
+- `workflows-core:ard-resolution` — how the optional PRD-level ARD is resolved and inherited.
+- `workflows-core:finding-triage` — the triage step run between `epic-reviewer` and `doc-fixer`.

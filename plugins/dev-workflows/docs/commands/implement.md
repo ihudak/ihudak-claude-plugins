@@ -12,7 +12,7 @@ Classifies a task's risk, creates a branch, plans and implements the change, wri
 /implement <ADDRESS> | <prompt> [@file…] [@spec-folder] [@repo…] [--no-commit]
 ```
 
-`$ARGUMENTS` resolves to one of two modes: **keyed** when a positional address is present — a `<KEY>`, or an `@<path>` naming a folder in the specs tree — and **direct** otherwise (free-text or `@file`). The keyed branch resolves through [`addressing.md`](../../references/addressing.md) §3, the same entry point `/document` uses.
+`$ARGUMENTS` resolves to one of two modes: **keyed** when a positional address is present — a `<KEY>`, or an `@<path>` naming a folder in the specs tree — and **direct** otherwise (free-text or `@file`). The keyed branch resolves through `workflows-core:addressing` §3, the same entry point `/document` uses.
 
 `/implement` implements **one Epic per run**. When the resolved item already names a focus Epic (a bare Epic key — the folder's own `kind` sets the altitude, and no second positional is accepted), that Epic is the scope. When the PRD is bare, a cheap folder read classifies it: a PRD with exactly one Epic sets that Epic as the scope automatically; a PRD with two or more Epics renders a **progress-aware picker** — each row showing the Epic's own artifacts (`specification.md` but no `design.md` → ○ not started; `design.md` present but no `implementation.md` → ◐ in progress, selectable and where the default cursor lands, since a merged design is exactly what this command wants; `implementation.md` present → ● done, greyed and not default-selectable, and selecting it offers to implement again), plus the explicit choice to implement one broad PRD-level slice instead; a PRD with no Epics offers to split with `/dev-workflows:epics` first, or to implement a broad PRD-level slice. Selecting an Epic scopes that run only — there is no "next Epic" loop, because code-writing is heavy and branchy enough that each run targets one Epic.
 
@@ -79,5 +79,5 @@ The run resolves `EPIC-98760` as the focus Epic, gates its in-scope `specificati
 - [`/document`](document.md) — the downstream command, run once every Epic under the PRD is implemented.
 - [Model routing](../reference/model-routing.md) — the classification rules, the multi-source floor, and the Opus fallback chain `risk-planner` and `code-review` resolve against.
 - [Session cost](../reference/session-cost.md), [Session feedback](../reference/session-feedback.md), and [Follow-ups](../reference/follow-ups.md) — the terminal Phase 5–7 bookkeeping every run emits.
-- [`finding-triage.md`](../../references/finding-triage.md) — the triage step run between `code-review` and `review-fixer`.
-- [`ard-resolution.md`](../../references/ard-resolution.md) — how the optional ARD is resolved and inherited as implementation guardrails.
+- `workflows-core:finding-triage` — the triage step run between `code-review` and `review-fixer`.
+- `workflows-core:ard-resolution` — how the optional ARD is resolved and inherited as implementation guardrails.

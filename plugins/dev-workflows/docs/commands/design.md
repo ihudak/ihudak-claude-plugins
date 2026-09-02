@@ -81,4 +81,4 @@ The run resolves `EPIC-98760` as the focus Epic within PRD `PRODUCT-1234`, gates
 - [Model routing](../reference/model-routing.md) — the classification, the Opus fallback chain, and why `/design`'s tiered gate stops rather than degrades.
 - [Session cost](../reference/session-cost.md) and [Session feedback](../reference/session-feedback.md) — the terminal Phase 8–9 bookkeeping every run emits.
 - [`design-format.md`](../../references/design-format.md) — the canonical structure `design.md` is authored against, including the `## Seams` section's contested-interface signals.
-- [`ard-resolution.md`](../../references/ard-resolution.md) — how the optional ARD is resolved and inherited.
+- `workflows-core:ard-resolution` — how the optional ARD is resolved and inherited.

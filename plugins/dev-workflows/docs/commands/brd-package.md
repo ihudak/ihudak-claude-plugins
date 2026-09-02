@@ -256,7 +256,7 @@ archive command with an absolute path, the repo→SHA table, and the ledger line
   customer.
 - [`interview-tagging.md`](../../references/interview-tagging.md) — the `[C]` tag, and the rule that
   a customer question reaches the customer only through this package.
-- [`grounding-format.md`](../../references/grounding-format.md) — the finding record and the
+- `workflows-core:grounding-format` — the finding record and the
   `baseline-integrity` commands the prompt hands the customer to re-run.
 - [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) — the dispositions the
   review-scope part reads, and §6's ledger line the final report ends with.

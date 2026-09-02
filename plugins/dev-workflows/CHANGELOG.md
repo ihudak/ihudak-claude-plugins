@@ -953,6 +953,10 @@ no reporting line behind it.
 - **The same page listed four subagents and then said "All three run at the caller's
   `detection_model`".** Four are dispatched — `idea-reader`, `docs-grounder`, `code-scanner` and
   `impl-maintenance` — and the sentence now reads "All four".
+- **`idea-reader`'s own `description` named one source form twice and lost another** — it read
+  "a community post, **or or a saved community post**", a duplicated conjunction that also left the
+  saved-file form unnamed. It is the frontmatter a user meets in `/help`, so the defect was on the
+  most-read line the agent has. It now reads "a community post, or a saved file".
 
 ## [3.16.1] — 2026-09-01
 

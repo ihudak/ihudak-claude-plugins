@@ -75,6 +75,19 @@ So the cost of the split is **not** duplicated invariants. It is one mechanism f
 
 ## 5. The loader skill
 
+**The property S5 rests on is verified, not assumed.** A plugin skill was invoked with arguments it does not declare, and the observed expansion was:
+
+```
+Base directory for this skill: …/ihudak-plugins/dev-workflows/3.24.1/skills/model-routing
+… /home/…/.claude/plugins/cache/ihudak-plugins/dev-workflows/3.24.1/references/model-routing/classification.md
+ARGUMENTS: PROBE_SENTINEL_7Q alpha beta gamma
+```
+
+Two facts, both load-bearing:
+
+- **`${CLAUDE_PLUGIN_ROOT}` expands to the plugin that *owns* the skill**, as an absolute path — not to the caller's plugin. That is exactly what makes a core loader work: it reads core's references no matter which plugin's command invoked it.
+- **Arguments reach a plugin skill body**, appended as a trailing `ARGUMENTS:` line — the documented append-fallback, now observed.
+
 `workflows-core/skills/reference/SKILL.md`:
 
 ```markdown
@@ -85,9 +98,13 @@ user-invocable: false
 allowed-tools: Read
 ---
 
-Read `${CLAUDE_PLUGIN_ROOT}/references/$0.md` and treat it as the single source
-of truth for the current step. When `$1` is present, execute that entry point of
-it inline. Never paraphrase, summarise, or cache its contents.
+The invocation arguments name one reference file and, optionally, one entry
+point within it.
+
+Read `${CLAUDE_PLUGIN_ROOT}/references/<the first argument>.md` and treat it as
+the single source of truth for the current step. When a second argument is
+present, execute that entry point of it inline. Never paraphrase, summarise, or
+cache its contents.
 ```
 
 Invoked from any dependent plugin:
@@ -97,7 +114,9 @@ Skill(skill: "workflows-core:reference", args: "finding-triage")
 Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")
 ```
 
-Positional arguments are what let one skill serve both shapes of reference — the documents a command reads (`prd-format`, `prose-formatting`) and the procedures it executes (`specs-repo-git specs-preflight`, `phase-handoff require-on-main`). Without `$1` the procedures would each need their own wrapper, and the hybrid this replaces would be back.
+**The body deliberately does not use `$ARGUMENTS` or `$N` substitution.** Those are documented, but no skill on a live machine carries a placeholder, so the branch is unverified — and a purpose-built probe could not test it because **skill discovery is bound to session start**: a skill written into an installed plugin returns `Unknown skill` until a fresh session begins. The append-fallback needs no substitution and *is* verified, so the design depends only on the branch that has been observed. (The session-start constraint is itself a fact increment 2's verification plan must accommodate — see §7.)
+
+**There is no plugin-to-plugin call here that could fail.** The model is the invoker in both directions; `Skill(skill: "<plugin>:<skill>")` is identical whether the instruction came from core's own command or another plugin's. The only genuinely uncertain part was argument delivery, and that is now settled.
 
 **`model-routing` keeps its own named skill.** It is invoked by name at a fixed point in every pipeline command, its own description documents that contract, and collapsing it into the loader would lose a call site that is already correct.
 
@@ -114,7 +133,9 @@ Two need real thought rather than a loop:
 - **Check 7** (`getting-started.md`'s install commands match the repo-root README verbatim) assumes one plugin. With five, the root README carries five install lines and each plugin's getting-started carries its own. The check becomes per-plugin: each plugin's install block must match *its* line in the root README.
 - **Check 11** (the `/brd-*` `choices:` placeholder rule) follows the BRD commands into `pm-workflows`, and its family derivation reads `next-phase-offer.md`, which lands in core. The check must resolve a core reference from outside the plugin it is checking — a script-level concern, not a runtime one, since the gate reads the repository directly.
 
-**A new check: the loader contract, in both directions.** Every `args:` string passed to `workflows-core:reference` must name a reference that exists in core, and every core reference must be reached by at least one caller. This is what buys back the typo-safety a named wrapper would have given, and it is the same both-directions shape the inventory checks already use.
+**A new check: the loader contract, in both directions.** Every `args:` string passed to `workflows-core:reference` must name a reference that exists in core, and every core reference must be reached by at least one caller.
+
+The justification is narrower than first stated. Because the argument arrives as a trailing line rather than being substituted into a path, **a typo surfaces as a file-not-found when the loader reads it — observable, not a silent misfire.** So the gate is not rescuing a dangerous failure mode; it is catching an unresolvable argument and an unreferenced core reference at build time instead of at run time. Still worth having, for the same reason every other inventory check here is, and it is the same both-directions shape.
 
 **`check-id-grammar.sh` and `validate-catalog.py` need no change** — both are plugin-agnostic today (zero references to `dev-workflows` in either).
 
@@ -164,7 +185,7 @@ Then the sweep (S10): every `${CLAUDE_PLUGIN_ROOT}/references/<core-ref>` citati
 
 **It also carries the cost-boundary fix (§8), which is required work here, not a follow-up.** Both ceding commands move into core in this increment, so the moment it lands every deferred claim becomes cross-plugin.
 
-*Verification:* a command that reads a core reference behaves identically to its pre-split run; the loader gate passes in both directions; installing `dev-workflows` alone pulls in `workflows-core`; and the four §8.6 probe fixtures pass — a deferred claim resolving from a different plugin, its segment terminating at an intervening sibling boundary, and both safety cases still rejecting a bare `/upgrade` and an unrelated plugin's namespace.
+*Verification:* a command that reads a core reference behaves identically to its pre-split run; the loader gate passes in both directions; installing `dev-workflows` alone pulls in `workflows-core`; and the four §8.6 probe fixtures pass. **Skill discovery is bound to session start** (§5), so any check of a newly installed skill runs in a fresh session — a step the verification plan states explicitly rather than discovering as an `Unknown skill`. Verification also covers a deferred claim resolving from a different plugin, its segment terminating at an intervening sibling boundary, and both safety cases still rejecting a bare `/upgrade` and an unrelated plugin's namespace.
 
 ### Increment 3 — `docs-workflows`
 
@@ -255,11 +276,24 @@ Building the map at runtime needs every sibling plugin's command set, and instal
 
 So: **core ships the map as a static manifest beside the script it feeds.** Every plugin in this marketplace is authored in one repository, so the five namespaces and their command sets are known at authoring time — no runtime discovery, no path assumption, and no cross-plugin file access, because `session-cost.py` lives in core alongside the manifest it reads.
 
-The obvious objection — a manifest drifts from the tree — is answered the way this repository answers every other inventory: **a both-directions gate**. Every command in every plugin appears in the manifest, and every manifest entry names a command that exists. `check-docs.sh` already fails on inventory drift in six places; this is a seventh of the same shape.
+**Verified, not reasoned.** The same two fixtures were replayed with a manifest in place of the faked sibling directories, and every result is identical:
+
+| | sibling dirs | manifest |
+|---|---|---|
+| second-order claim / remainder | 5000 / 4800 | 5000 / 4800 |
+| `/vuln` boundary seen | yes | yes |
+| bare `/upgrade` rejected | yes | yes |
+| `superpowers:implement` rejected | yes | yes |
+| cross-plugin claim matched | yes | yes |
+
+Two riders came back with it, and both make the design smaller:
+
+- **The manifest is derived, not hand-maintained.** A hand-maintained list is the exact defect class `CLAUDE.md` warns about — but `check-docs.sh` already computes `cmd_names` per plugin, and S7 makes it loop over the plugin list, so "manifest equals derived inventory, in both directions" is **a few lines inside the existing loop**, not a seventh gate.
+- **The manifest is also what fix part two resolves against.** `record.plugin` needs a set of valid plugin names, and the manifest's keys are exactly that set. The two halves of §8.4 compose into **one structure**, not two.
 
 ### 8.6 Verification
 
-The review offers four probe transcripts, and increment 2 adopts them as fixtures rather than writing new ones. Two are already **discriminating**: an implementation that widens namespaces without widening the name sets passes both safety cases and fails the segment case — which is precisely the `--selftest` contract §13.2 already imposes on its three existing disciplines, a case paired with the broken implementation it exists to catch.
+The review's four probe transcripts are adopted as fixtures rather than writing new ones. Two **discriminate**: `split2.jsonl` (the segment case) and `split3.jsonl` (both safety cases) — an implementation that widens namespaces without widening the per-namespace name sets **passes `split3` and fails `split2`**. That is precisely the `--selftest` contract §13.2 already imposes on its three existing disciplines: a case paired with the broken implementation it exists to catch.
 
 ---
 
@@ -292,5 +326,4 @@ The review offers four probe transcripts, and increment 2 adopts them as fixture
 
 1. **How does the documentation family reach `guidelines/accessibility.md`?** It moves into `guideline-reviewers` with the rest of the corpus, and `/docs-brand`'s contrast check will need it. Three answers are open — copy the one file, promote it to core, or have `docs-workflows` depend on `guideline-reviewers` — and the right one depends on whether a second shared file ever appears. Settle it when the docs family is built, not before.
 2. **Where does `/frames` sit long-term?** It is allocated to `pm-workflows` because it indexes design frame sets under BRD, PRD and Epic folders. If `design-grounder` ever serves `dev-workflows` too, both move to core.
-3. **Is the §8.5 manifest generated or hand-maintained?** A generated one cannot drift but adds a build step to a repository that has none; a hand-maintained one is gated in both directions like every other inventory here. The gate makes either safe, so this is a taste question — settle it in increment 2 with the code in front of you.
-4. **Does the root README become a marketplace index** rather than one plugin's front page? Check 7's rework touches this, and the answer decides whether each plugin's `getting-started.md` links back to it.
+3. **Does the root README become a marketplace index** rather than one plugin's front page? Check 7's rework touches this, and the answer decides whether each plugin's `getting-started.md` links back to it.

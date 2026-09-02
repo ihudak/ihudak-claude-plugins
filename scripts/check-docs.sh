@@ -6,6 +6,12 @@
 # in the two restructures this one follows (a sibling managed-plugins repo,
 # ai-containers#78).
 #
+# SIXTEEN checks, numbered 1-16 in the order their functions appear below. The number is
+# written here and nowhere else in this file, and nothing gates it -- re-derive it with
+# `grep -oE '\bfail [0-9]+ ' "$0" | awk '{print $2}' | sort -un` -- the numbers a fail() call
+# can actually report -- rather than trusting this sentence, and update it in the commit that
+# adds a check. Counting the banner comments instead gives 15: checks 1 and 2 share one.
+#
 # --selftest mutates a copy of the passing fixture once per check and asserts the
 # gate rejects it. Without that, the fixtures are decorative: a gate that cannot
 # be shown to fail proves nothing when it passes. ai-containers' equivalent gate
@@ -57,13 +63,21 @@ HAS_COST=1                           # copilot: 0 -- no cost subsystem exists th
 COST_PLUGIN_RELS="${COST_PLUGIN_RELS:-plugins/dev-workflows plugins/workflows-core}"        # copilot: ""
 HANDOFF_PLUGIN_RELS="${HANDOFF_PLUGIN_RELS:-plugins/dev-workflows}"  # copilot: ""
 
-# The plugin that holds the shared reference corpus. Checks 8, 9 and 11 read a reference
+# The plugin that holds the shared reference corpus. Checks 8, 9, 11 and 16 read a reference
 # from HERE and their call sites from $PLUGIN_REL -- the corpus now lives in its own plugin,
 # so those are different directories, and a check that resolved both halves against the
 # plugin under check would report a MISSING reference for every plugin that merely reads it.
 # An edition whose corpus and call sites still live together points this at that one plugin,
 # which is byte-for-byte the behaviour this variable replaces.
 CORE_PLUGIN_REL="${CORE_PLUGIN_REL:-plugins/workflows-core}"         # copilot: dev-workflows
+
+# The skill a dependent plugin reads that corpus THROUGH, as it is written at a call site.
+# It is edition config in its own right and NOT derived from CORE_PLUGIN_REL, deliberately:
+# the corpus can be relocated (the selftest does exactly that) without the call sites being
+# rewritten, and a derived name would silently stop matching them. Empty means this edition
+# has no loader -- its corpus and its call sites ship in one plugin, so ${CLAUDE_PLUGIN_ROOT}
+# reaches every reference by path and check 16 has nothing to assert.
+LOADER_SKILL="${LOADER_SKILL:-workflows-core:reference}"             # copilot: "" -- one plugin, no loader
 
 # RUNTIME_VARS is a SILENCER: every name in it kills both directions of check 5 (env-var doc
 # agreement) for that variable, permanently -- no mutation of the fixture tree can reveal a
@@ -944,6 +958,10 @@ selftest() {
   # go red reporting a missing reference. Cases that need the split shape override
   # CORE_PLUGIN_REL per run (see expect_fail_env / expect_pass_after_env below).
   export CORE_PLUGIN_REL="plugins/dev-workflows"
+  # The loader skill is edition config in its own right, NOT derived from CORE_PLUGIN_REL:
+  # the relocation helper below moves the corpus without rewriting a single call site, which
+  # is the real shape too, and a derived name would stop matching them the moment it moved.
+  export LOADER_SKILL="dev-workflows:reference"
   export COST_PLUGIN_RELS="plugins/dev-workflows"
   export HANDOFF_PLUGIN_RELS="plugins/dev-workflows"
   [ -d "$fixture" ] || { echo "SELFTEST FAIL: fixture tree missing at $fixture" >&2; exit 2; }
@@ -980,7 +998,7 @@ selftest() {
     rm -rf "$tmp"
   }
 
-  # ...and the same two, with EDITION CONFIG overridden for the child run. Checks 8, 9 and 11
+  # ...and the same two, with EDITION CONFIG overridden for the child run. Checks 8, 9, 11 and 16
   # each read a shared reference from $CORE_PLUGIN_REL and their call sites from $PLUGIN_REL,
   # and there is no way to exercise that split without running the gate against a config in
   # which the two differ. The assignments are eval'd rather than word-split, because
@@ -1004,7 +1022,7 @@ selftest() {
     rm -rf "$tmp"
   }
 
-  # Moves part of the reference corpus into a SECOND plugin -- the shape checks 8, 9 and 11
+  # Moves part of the reference corpus into a SECOND plugin -- the shape checks 8, 9, 11 and 16
   # have to survive: the reference in one plugin, the call sites in another. Every case that
   # calls it runs the gate with CORE_PLUGIN_REL pointed at plugins/fixture-core.
   #
@@ -1287,6 +1305,85 @@ selftest() {
     "printf -- '\n# jira rates go here\n' >> $PLUGIN_REL/references/cost-prices.yaml"
   expect_pass_after "a marked vendor token in a config file is accepted" \
     "printf -- '\n# quoting a foreign key shape: JIRA-1  # vendor-token-ok: fixture quote\n' >> $PLUGIN_REL/references/cost-prices.yaml"
+
+  # Check 16 -- the loader contract. The UNMUTATED fixture already exercises three of the
+  # four relations and is the only place two of them are proven: fixture-two/$CMD_DIR/omega
+  # carries the preamble and makes a real loader call (relations 1 and 3, green), and the
+  # corpus is reached through BOTH non-loader citation forms -- `gamma.md` by the bare
+  # backticked form ALONE and `handoff/one.md`, `handoff/two.md` and
+  # `model-routing/classification.md` by the ${CLAUDE_PLUGIN_ROOT} form alone. An
+  # implementation that counted only the loader `args:` string, or only two of the three
+  # forms, turns the baseline case red rather than needing a case of its own.
+  #
+  # Every mutation below rewrites through a temp file rather than with `sed -i.bak`, and that
+  # is not style: this check walks every file under $CMD_DIR/, agents/ and $REF_DIR/, so a
+  # `.bak` sibling still carrying the citation or the call the case just removed keeps the
+  # relation satisfied and the case passes for the wrong reason. Two of these cases were
+  # written with `-i.bak` first and came back green against a deliberately broken tree.
+  expect_fail "an unresolvable loader argument is rejected" 16 \
+    "sed 's|args: \"phase-handoff\"|args: \"no-such-reference\"|' plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX > c16.tmp && mv c16.tmp plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  # THE DISCRIMINATOR for the forward direction. A second argument is an entry point WITHIN
+  # the reference, not part of its name; 141 of the live tree's 270 real invocations carry
+  # one. An implementation matching the whole argument string passes both red cases above
+  # and below and fails only this one.
+  expect_pass_after "the two-argument entry-point form resolves on its first token" \
+    "sed 's|args: \"phase-handoff\"|args: \"phase-handoff handoff-to-main\"|' plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX > c16.tmp && mv c16.tmp plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  # ...and the extension guard. `cost-prices.yaml` is a corpus member that is not markdown,
+  # and the pressure to namespace it alongside its cost-emission.md neighbour recurs. An
+  # implementation appending `.md` unconditionally reports it unresolvable.
+  expect_pass_after "a loader argument that already carries an extension is accepted" \
+    "printf -- '\nPrices come from \`Skill(skill: \"dev-workflows:reference\", args: \"cost-prices.yaml\")\`.\n' >> plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  # The REVERSE direction. gamma.md is reached by exactly one citation -- the bare backticked
+  # form in alpha -- so demoting it to a prose name leaves the reference unreached. This is
+  # also what proves the reverse direction is not satisfied by a mere mention: the file name
+  # still appears on the line, without the form that resolves it.
+  expect_fail "a core reference nothing cites is rejected" 16 \
+    "sed 's|\`references/gamma.md\`|the gamma reference|' $(cmd_file $PLUGIN_REL alpha) > c16.tmp && mv c16.tmp $(cmd_file $PLUGIN_REL alpha)"
+  # ...and the two citation forms, separately. gamma.md is reached by the BARE backticked form
+  # alone and handoff/one.md by the ${CLAUDE_PLUGIN_ROOT} form alone, so each case converts one
+  # to the other and must stay green. An implementation that dropped either form turns the
+  # unmutated fixture red; these two make WHICH form was dropped attributable.
+  expect_pass_after "the plugin-root citation form reaches a reference" \
+    "sed 's|\`references/gamma.md\`|\`\${CLAUDE_PLUGIN_ROOT}/references/gamma.md\`|' $(cmd_file $PLUGIN_REL alpha) > c16.tmp && mv c16.tmp $(cmd_file $PLUGIN_REL alpha)"
+  expect_pass_after "the bare backticked citation form reaches a reference" \
+    "sed 's|\`\${CLAUDE_PLUGIN_ROOT}/references/handoff/one.md\`|\`references/handoff/one.md\`|' $(cmd_file $PLUGIN_REL alpha) > c16.tmp && mv c16.tmp $(cmd_file $PLUGIN_REL alpha)"
+  # Relation 3, and its SCOPE, which is the half a red case cannot prove. Measured on the
+  # live tree: within $CMD_DIR/, agents/ and $REF_DIR/ the match is exact (64 files cite a
+  # core reference, 64 carry the preamble), while 28 files OUTSIDE them cite one -- docs
+  # pages and a shell hook -- and none of them should carry a runtime loader instruction. An
+  # implementation reading "every file that cites" fires 28 times on a correct tree; here it
+  # turns the green case red.
+  expect_fail "a consuming file that cites core without the preamble is rejected" 16 \
+    "sed '/^\*\*Core references\.\*\*/d' plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX > c16.tmp && mv c16.tmp plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  expect_pass_after "a docs page citing core without the preamble is accepted" \
+    "printf -- '\nThis page describes what \`dev-workflows:phase-handoff\` does, for a reader.\n' >> plugins/fixture-two/docs/$DOC_CMD_DIR/omega.md"
+  # Relation 4 -- the fence, earned rather than designed: a fix round put a loader call
+  # inside a report TEMPLATE, a block the command prints to the user, where it would be read
+  # as text and never executed. It is invisible to every other relation, because the call is
+  # well-formed and its argument resolves. The GREEN case is what discriminates: a checker
+  # that simply ignores fenced content passes neither, but one that flags any core mention
+  # inside a fence passes the red case and breaks on the bare tokens that correctly sit in
+  # report templates today.
+  expect_fail "a loader call inside a fenced block is rejected" 16 \
+    "printf -- '\n\`\`\`text\nSkill(skill: \"dev-workflows:reference\", args: \"phase-handoff\")\n\`\`\`\n' >> plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  expect_pass_after "a bare core reference NAME inside a fenced block is accepted" \
+    "printf -- '\n\`\`\`text\nHandoff: per dev-workflows:phase-handoff, <outcome>\n\`\`\`\n' >> plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  # The vacuity guard. The forward direction reads ONE syntax; a repo-wide rewording of it
+  # would leave relations 1 and 4 examining nothing while every message stayed silent. The
+  # preamble is the evidence that the syntax is still meant to be in use, so documenting it
+  # while calling it nowhere is the state that must be loud.
+  expect_fail "a documented loader that is never actually invoked is rejected" 16 \
+    "sed '/args: \"phase-handoff\"/d' plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX > c16.tmp && mv c16.tmp plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  # ...and the CORE_PLUGIN_REL vacuity guard, check 16's twin of the ones checks 8 and 11
+  # carry: the corpus moved and the config was not repointed at it. No env override here --
+  # that is the point. Every loader argument must go on resolving against the CONFIGURED
+  # corpus, so a mis-set corpus path is red rather than a silently narrowed check.
+  expect_fail "a corpus CORE_PLUGIN_REL does not point at is rejected by check 16" 16 "relocate_corpus"
+  # ...and the cross-plugin red, whose green half is the relocation case above: with the
+  # corpus in a plugin of its own, an unresolvable argument must still be caught there.
+  expect_fail_env "an unresolvable loader argument is rejected with the corpus in another plugin" 16 \
+    "CORE_PLUGIN_REL=plugins/fixture-core" \
+    "relocate_corpus && sed 's|args: \"phase-handoff\"|args: \"no-such-reference\"|' plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX > c16.tmp && mv c16.tmp plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
 
   # The cost subsystem (check 8, and check 9's cost-emitting-commands sentence) does not
   # exist in every edition -- check_cost_attribution and that half of check_prose_counts
@@ -1664,6 +1761,226 @@ check_index_membership() {
   done
 }
 
+# ------------------------------------------------------------------ check 16
+# The loader contract. $CORE_PLUGIN_REL holds the shared reference corpus; every other
+# plugin reads it through ONE argument-taking skill, because ${CLAUDE_PLUGIN_ROOT} resolves
+# to the READING plugin and a dependent plugin therefore cannot open core's files by path.
+# One skill instead of one wrapper per reference is a deliberate trade: a typo in an
+# argument misfires silently where a named wrapper could not compile. This check is the
+# other half of that trade. Without it the loader is a string nothing validates.
+#
+# FOUR RELATIONS, all derived, none written in here:
+#   1. FORWARD  -- every real `args:` string resolves to a file under
+#                  $CORE_PLUGIN_REL/$REF_DIR/. The FIRST whitespace token is the reference;
+#                  a second token is an entry point WITHIN it (`specs-repo-git
+#                  specs-preflight`), and 141 of this tree's 270 real invocations carry one.
+#                  An implementation matching the whole argument string reports every one of
+#                  them as unresolvable.
+#   2. REVERSE  -- every markdown file in the corpus is reached by at least one citation.
+#   3. PREAMBLE -- every consuming file that cites a core reference documents the loader
+#                  form, so a reader meeting the citation is not left to invent a path.
+#   4. FENCE    -- no real loader call sits inside a fenced block.
+#
+# THE PLACEHOLDER TRAP, which is the single most likely way to get this wrong. The preamble
+# quotes the invocation form literally -- `args: "<name>"` -- as documentation of the
+# convention, on 64 files in this tree. A forward direction that resolves every `args:`
+# string it finds opens `<name>.md`, fails, and reports 64 defects on entirely correct
+# content. A bracketed first token is therefore the PREAMBLE MARKER, not an argument: it is
+# what relation 3 looks for, and it is skipped by relations 1 and 4. Anything else that is
+# not a plausible reference name is still reported -- skipping "implausible" arguments
+# wholesale would let a genuinely malformed one through under the same exemption.
+#
+# WHY .md IS NOT APPENDED BLINDLY. `cost-prices.yaml` is a data file in the corpus, and the
+# pressure to namespace it alongside its `cost-emission.md` neighbour recurs every time
+# someone reads the citation convention and applies it uniformly. A token that already
+# carries an extension is used as it stands.
+#
+# RELATION 2 COUNTS THREE CITATION FORMS, NOT TWO, and the third is not optional. A core
+# reference is reached by (a) a loader `args:` string from any scanned plugin, (b) a
+# `${CLAUDE_PLUGIN_ROOT}/$REF_DIR/<name>` path inside core, or (c) a bare backticked
+# `` `$REF_DIR/<name>` `` inside core. Form (c) became unambiguous when the outward-pointing
+# bare names were rewritten as `<other-plugin>:<name>`, so inside core that form now means
+# core's own file and nothing else. Counting only (a) and (b) reports dependencies.md as
+# unreached while grilling-technique.md cites it perfectly well. Requiring a LOADER call
+# would be worse still: instruction-file-maintenance.md is cited by impl-maintenance.md
+# alone and handoff/code-scanner.md by code-scanner.md alone -- both core-internal, both
+# correct, and neither will ever appear in an `args:` string.
+#
+# SCOPE IS $CMD_DIR/, agents/ and $REF_DIR/, and the bound is measured rather than tasteful.
+# Relation 3 over those three directories is an EXACT match on this tree -- 64 files cite a
+# core reference, 64 carry the preamble -- while 28 further files cite one from OUTSIDE them
+# (human-facing pages under docs/ and one shell hook), and not one of them should carry a
+# runtime loader instruction. A relation-3 implemented as "every file that cites" fires 28
+# times on a correct tree. The same bound is what keeps relation 2 falsifiable: core's own
+# docs/reference/references.md enumerates every reference file by name, so admitting docs/
+# as a citation source would make the reverse direction unfalsifiable by construction.
+# CHANGELOG.md is excluded for the same reason it is excluded everywhere else -- history
+# keeps the words it shipped with, and a retired reference must not stay "reached" by them.
+#
+# WHAT THIS DELIBERATELY DOES NOT GATE, stated so nobody mistakes green for safe:
+#   * The BARE-BASENAME class. A scan for an unqualified `<name>.md` inside core produces
+#     ~27 hits of which most are false: `design.md`, `idea.md`, `epics.md` and `ready.md`
+#     are artifact filenames in the specs tree as well as command basenames, so the form is
+#     undecidable by pattern. Resolving an identifier against a known set is this repo's
+#     rule; parsing one out of free text is what that rule forbids. Left to review.
+#   * skills/. No skill in any consuming plugin cites a core reference today, so including
+#     it would assert nothing; a skill that starts to is review's to catch.
+#   * WHETHER the loaded content is used correctly. This validates that the argument names
+#     a real file and that the call is reachable, nothing about what the run then does.
+check_loader_contract() {
+  local root="$1" out h
+  [ -n "$LOADER_SKILL" ] \
+    || { note "check 16 not applicable: this edition declares no loader skill (its corpus and its call sites ship in one plugin)"; return; }
+  out=$(python3 - "$root" "$CORE_PLUGIN_REL" "$CMD_DIR" "$REF_DIR" "$LOADER_SKILL" "$PLUGIN_RELS" <<'PYEOF'
+import io, os, re, sys
+
+root, core_rel, cmd_dir, ref_dir, loader, plugin_list = sys.argv[1:7]
+plugins = plugin_list.split()
+if core_rel not in plugins:
+    plugins = plugins + [core_rel]
+scan_dirs = (cmd_dir, 'agents', ref_dir)
+core_ref_root = os.path.join(root, core_rel, ref_dir)
+out = []
+
+# The corpus: every FILE under the core reference dir, keyed by its path relative to that
+# dir, so `handoff/code-scanner.md` and `model-routing/classification.md` are ordinary
+# members rather than special cases.
+corpus = set()
+for dirpath, _dirs, names in os.walk(core_ref_root):
+    for n in names:
+        corpus.add(os.path.relpath(os.path.join(dirpath, n), core_ref_root).replace(os.sep, '/'))
+md_corpus = sorted(r for r in corpus if r.endswith('.md'))
+
+NAME = re.compile(r'^[A-Za-z0-9][A-Za-z0-9_.-]*(/[A-Za-z0-9][A-Za-z0-9_.-]*)*$')
+def resolve(tok):
+    """A reference name -> its corpus path, or None. `.md` is appended only when the token
+    carries no extension of its own: cost-prices.yaml is a corpus member too."""
+    if '..' in tok or not NAME.match(tok):
+        return None
+    cand = tok if os.path.splitext(tok)[1] else tok + '.md'
+    return cand if cand in corpus else None
+
+CALL = re.compile(r'"' + re.escape(loader) + r'"\s*,\s*args:\s*"([^"]*)"')
+core_name = os.path.basename(core_rel)
+TOKEN = re.compile(r'(?<![A-Za-z0-9_-])' + re.escape(core_name) + r':([A-Za-z0-9][A-Za-z0-9_./-]*)')
+FENCE = re.compile(r'^[ \t]*(```|~~~)')
+PATHCITE = re.compile(r'\$\{CLAUDE_PLUGIN_ROOT\}/' + re.escape(ref_dir) + r'/([A-Za-z0-9][A-Za-z0-9_./-]*)')
+BARECITE = re.compile(r'`' + re.escape(ref_dir) + r'/([A-Za-z0-9][A-Za-z0-9_./-]*)`')
+
+def files_under(rel):
+    for d in scan_dirs:
+        base = os.path.join(root, rel, d)
+        for dirpath, _dirs, names in os.walk(base):
+            for n in sorted(names):
+                if n == 'CHANGELOG.md':
+                    continue
+                yield os.path.join(dirpath, n)
+
+reached = dict((r, 0) for r in md_corpus)
+preamble_files = 0
+real_calls = 0
+
+for rel in plugins:
+    consumer = (rel != core_rel)
+    for path in files_under(rel):
+        try:
+            text = io.open(path, encoding='utf-8').read()
+        except Exception:
+            continue
+        show = os.path.relpath(path, root)
+        self_ref = None
+        if path.startswith(os.path.join(root, core_rel, ref_dir) + os.sep):
+            self_ref = os.path.relpath(path, core_ref_root).replace(os.sep, '/')
+        has_preamble = False
+        cites_core = False
+        infence = False
+        for lineno, line in enumerate(text.split('\n'), 1):
+            if FENCE.match(line):
+                infence = not infence
+                continue
+            for m in CALL.finditer(line):
+                arg = m.group(1)
+                parts = arg.split()
+                tok = parts[0] if parts else ''
+                if tok.startswith('<'):
+                    # The documentation placeholder: this line IS the preamble.
+                    has_preamble = True
+                    continue
+                real_calls += 1
+                cites_core = True
+                target = resolve(tok)
+                if target is None:
+                    out.append("%s:%d loads '%s' through %s, which names no file under "
+                               "%s/%s/ -- the reference is the FIRST whitespace token, plus "
+                               "'.md' unless it already carries an extension"
+                               % (show, lineno, arg, loader, core_rel, ref_dir))
+                elif target != self_ref:
+                    reached[target] = reached.get(target, 0) + 1
+                if infence:
+                    out.append("%s:%d puts a %s call inside a fenced block -- a run PRINTS a "
+                               "fenced block, it never executes it, so this reference is "
+                               "never loaded. Name it in the block and make the call in prose"
+                               % (show, lineno, loader))
+            for m in TOKEN.finditer(line):
+                # Trailing sentence punctuation is not part of the name. Stripped HERE and not
+                # inside resolve(), because in a loader `args:` string a trailing dot is a typo
+                # to report rather than noise to forgive.
+                if resolve(m.group(1).rstrip('./-')) is not None:
+                    cites_core = True
+            if rel == core_rel:
+                for pat in (PATHCITE, BARECITE):
+                    for m in pat.finditer(line):
+                        c = m.group(1)
+                        if c in reached and c != self_ref:
+                            reached[c] += 1
+        if has_preamble:
+            preamble_files += 1
+        if consumer and cites_core and not has_preamble:
+            out.append("%s cites a %s reference but carries no loader preamble -- the line "
+                       "documenting Skill(skill: \"%s\", args: \"<name>\"), which is what "
+                       "tells a run to read it through the loader instead of by a "
+                       "${CLAUDE_PLUGIN_ROOT} path that resolves to this plugin"
+                       % (show, core_rel, loader))
+
+if not md_corpus:
+    out.append("%s/%s/ holds no markdown -- the corpus every loader argument resolves "
+               "against is missing or empty, and this check would examine nothing"
+               % (core_rel, ref_dir))
+else:
+    for r in md_corpus:
+        if reached[r] == 0:
+            out.append("%s/%s/%s is reached by no citation -- no loader args: string names "
+                       "it, and no file inside %s's %s/, agents/ or %s/ cites it as "
+                       "${CLAUDE_PLUGIN_ROOT}/%s/%s or `%s/%s`. An unreached reference is "
+                       "either dead or cited in a form nothing resolves"
+                       % (core_rel, ref_dir, r, core_rel, cmd_dir, ref_dir,
+                          ref_dir, r, ref_dir, r))
+
+# Vacuity: the forward direction reads one syntax, and a repo-wide rewording of it would
+# make relations 1 and 4 examine nothing while every message above stayed silent. The
+# preamble count is the evidence that the syntax is still meant to be in use.
+if preamble_files > 0 and real_calls == 0:
+    out.append("%d file(s) document the %s preamble but no real invocation of it was found "
+               "anywhere under %s -- the call syntax was reworded and the forward direction "
+               "now examines nothing; fix the extractor, never the call sites"
+               % (preamble_files, loader, ' '.join(plugins)))
+
+for line in out:
+    print(line)
+print("__CHECK16_RAN__")
+PYEOF
+)
+  case "$out" in
+    *__CHECK16_RAN__*) : ;;
+    *) fail 16 "the loader-contract scan did not complete (python3 absent, or the scan itself errored) -- this check would examine nothing"; return ;;
+  esac
+  while IFS= read -r h; do
+    [ -n "$h" ] || continue
+    [ "$h" = "__CHECK16_RAN__" ] && continue
+    fail 16 "$h"
+  done <<<"$out"
+}
+
 # ---------------------------------------------------------------------- main
 # selftest() runs before the dispatch loop below ever assigns PLUGIN_REL per iteration,
 # and its fixture mutations reference the bare (singular) $PLUGIN_REL directly -- so it
@@ -1703,6 +2020,15 @@ for PLUGIN_REL in $PLUGIN_RELS; do
   check_foreign_identity    "$ROOT"
   check_index_membership    "$ROOT"
 done
+
+# Check 16 sits OUTSIDE the loop, unlike every check above it. The loader contract is a
+# relation between the corpus plugin and all of its consumers at once -- the reverse
+# direction asks whether a reference is reached by ANY of them -- so a per-plugin dispatch
+# would either report the same unreached reference once per plugin or need a latch to
+# suppress the repeats. It derives its own plugin set from $PLUGIN_RELS plus
+# $CORE_PLUGIN_REL, which is the same set the loop walks plus the corpus when that is not a
+# documented plugin of its own.
+check_loader_contract     "$ROOT"
 
 if [ "$FAILURES" -gt 0 ]; then
   echo "FAIL: $FAILURES problem(s) under $PLUGIN_RELS" >&2

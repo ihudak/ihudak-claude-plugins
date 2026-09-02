@@ -12,3 +12,5 @@ docs gate reads.
 ## 8. Persistence
 
 Not modelled in the fixture.
+
+The handoff that precedes a cost entry is `${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md`.

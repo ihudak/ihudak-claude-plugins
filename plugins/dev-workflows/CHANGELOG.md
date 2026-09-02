@@ -4,6 +4,40 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.24.0] — 2026-09-02
+
+Recovered from a stale branch that never opened a pull request, and finished. The branch
+`iv-gu/idea-images-and-depth` outlived the PR that merged it (#51) and carried one further commit
+nobody landed: a cap-accounting rule worth keeping, and a schema rename done on one line out of
+seven. Merging it as it stood would have split the producer from every consumer.
+
+### Fixed — an unreadable file consumed one of the six image slots
+
+`idea-reader` reads at most six linked images, and the cap counted *attempts* rather than reads: a
+`.png` that is really a PDF, or a path that will not open, spent a slot and left a readable frame
+past the bound reported as `cap`. The expensive thing this bound exists to limit is looking at a
+picture; a file nothing looked at cost nothing to skip. **`unreadable` and `not_an_image` no longer
+consume a slot**, so a mislabelled file cannot cost a readable frame its place.
+
+### Changed — `images[].linked_from` is now `images[].from`, everywhere at once
+
+One concept was spelled two ways: `images[]` said `linked_from` while `wikilinks_followed[]`,
+`wikilinks_not_followed[]` and `links_other[]` all said `from` — and the digest's own argument for
+carrying the field at all is that *every* link array carries it. The rename now covers the schema and
+all six consumers in the same commit: `idea-reader`'s two prose rules, `/idea` Phase 4.5's map
+paragraph, and `idea-format.md`'s writer-table sentence, map paragraph and map table. A rename landed
+on the schema alone would have left every consumer reading a field the producer no longer emits,
+which is the split this plugin has paid for before.
+
+**`doc-location-finder` and `doc-planner` keep their own `linked_from` untouched.** It is a different
+schema for a different thing — pages that should cross-link *to* a documentation target — and sharing
+a word is not sharing a contract.
+
+### Fixed — a bound named after a syntax it no longer follows
+
+`## Bounding`'s first entry still read "Wikilink depth" after 3.20.0 taught the traversal to follow
+standard markdown links to `.md` pages as well. It bounds link depth in either syntax, and says so.
+
 ## [3.23.1] — 2026-09-02
 
 ### Fixed — a stale frame index had no status, so it was read as valid

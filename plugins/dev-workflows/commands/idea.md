@@ -310,8 +310,8 @@ repairs where `idea.md` points.
    a surviving `[[rollout]]` is the signal that the cap bit and the author may want to vendor that file by
    hand. The copies themselves are never edited.
    **Rewrite from the digest's own written-form → copy map, and re-resolve nothing.** Every link array
-   carries the target **as written** beside the path it resolved to — `images[].target` with its
-   `linked_from`, `wikilinks_followed[].target` with its `from` — and step 2 knows the name each copy took;
+   carries the target **as written** beside the path it resolved to — `images[].target` and
+   `wikilinks_followed[].target`, each beside its own `from` — and step 2 knows the name each copy took;
    pair them and match `idea.md`'s links against **both** key forms that file defines — the target as
    written, and the entry's resolved absolute path — because Section 5 lets a bullet cite either, splitting
    a trailing `#anchor` off before matching and re-appending it after. This phase opens no path of its own,

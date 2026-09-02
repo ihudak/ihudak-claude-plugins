@@ -126,9 +126,13 @@ Note unresolved wikilinks/images in `wikilinks_broken` and continue — a broken
 
 ## Bounding
 
-- **Wikilink depth — 2 levels.** The source's own links, and theirs. Depth 3 is some other document's neighbourhood, not this idea's context.
+- **Link depth — 2 levels.** The source's own links, and theirs, in either syntax. Depth 3 is some other document's neighbourhood, not this idea's context.
 - **Total files read — 12, the source counting as the first.** A **total** across the whole traversal, never a per-level allowance: at two levels the fan-out is the product of two branching factors, so a per-level bound is not a bound at all. Twelve rather than the 8 pages `docs-grounder` reads, because that traversal prunes a ranked candidate set while this one starts from a file the operator named — depth 1 *is* the source's own context, and a tighter cap would spend the whole budget there and never reach depth 2, which is the capability this bound exists to permit.
 - **Images read — 6.** An image is the most expensive item per unit of information in this digest. Six takes a short screen flow whole, which is the shape a linked mockup set usually has, and keeps the image budget under the twelve-file text budget beside it.
+- **A slot is spent only on a frame actually described.** `unreadable` and `not_an_image` do not
+  consume one of the six, so a file that merely *looks* like an image — a `.png` that is really a PDF,
+  a path that will not open — never costs a readable frame its place. The cap bounds the expensive
+  work, which is looking at a picture; a file nothing looked at cost nothing to skip.
 - **`description` per read image — ≤ 60 words.** What the frame shows, no more. Anything longer belongs in `raw_context`, which is what the grill actually consumes.
 
 Every bound that bites is reported — `reason: cap` on the item it stopped. A cap is never a silent
@@ -155,7 +159,7 @@ signals:
 images:
   - target:      <the image link target exactly as written in the file that linked it>
     path:        <absolute path to the linked image>
-    linked_from: <absolute path of the .md file that linked it>
+    from:        <absolute path of the .md file that linked it>
     read:        true | false
     description: <≤60 words: what the frame shows — present IFF read: true, never inferred>
     reason:      cap | unreadable | not_an_image        # present IFF read: false
@@ -192,8 +196,9 @@ to *the file that string reached* — and it holds only what this digest returns
 alone, the only way back to the link is to resolve it a second time, which is precisely the work the caller
 is forbidden to redo. So: **`target` is the link target verbatim** — never normalised, never expanded to an
 absolute path, never made relative to anything, and never carrying an alias's display half (`[[notes|see this]]`
-has `target: notes`). `linked_from` (images) and `from` (wikilinks) name the file the string was written in,
-which is what distinguishes two entries that share a `target` and resolved to different files. That is a real
+has `target: notes`). **`from` names the file the string was written in, and every array spells it the
+same way** — one concept, one field name, on `images[]` exactly as on the four link arrays. It is what
+distinguishes two entries that share a `target` and resolved to different files. That is a real
 state — two directories holding `toggle-01.png`, each linked by name from its own page — and it is never
 collapsed into one entry.
 
@@ -202,7 +207,7 @@ collapsed into one entry.
 - NEVER modify any file. This agent is read-only.
 - Read a linked image as **context only** — it informs `raw_context` and the caller's grill. It NEVER becomes a `[DG#n]` finding, NEVER requires or implies a frame-set index file, and NEVER goes to a verifier. This agent is not `design-grounder` and must not behave like one.
 - NEVER write a `description` for an image that was not read, and NEVER infer what a frame shows from its filename or path.
-- NEVER normalise, resolve, complete, or otherwise rewrite a `target`: it is the link exactly as it appears in the file that carried it. A caller that repoints links compares written forms, so a tidied `target` silently points a link at the wrong file. Two entries sharing a `target` with different `linked_from`/`from` are two entries, never one.
+- NEVER normalise, resolve, complete, or otherwise rewrite a `target`: it is the link exactly as it appears in the file that carried it. A caller that repoints links compares written forms, so a tidied `target` silently points a link at the wrong file. Two entries sharing a `target` with different `from` are two entries, never one.
 - NEVER reach out over HTTPS to any host — operate purely on the inline prompt and the file the caller named.
 - NEVER fabricate demand signals, requesters, or sources not present in the input.
 - Follow links at most **TWO** levels deep, never read the same resolved path twice, and never exceed the total-file cap in `## Bounding`. A revisit is a silent skip, never an error and never a broken link.

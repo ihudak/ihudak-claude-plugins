@@ -58,6 +58,7 @@ The totals reconcile exactly against the tree, with no remainder. Two findings s
 | S13 | **`/frames` goes to `workflows-core`, and `grounding-format.md` with it.** | Design frame sets are already needed by the pm route and will be needed by dev — a bug-fix route, and screenshots arriving mid-implementation. That makes it a two-group surface, which is S4's rule. `design-grounder` stays in `pm-workflows` for now, because its only consumer today is `/brd-ground`; it moves to core when dev actually adopts it, not in anticipation. The two are coupled through an artefact in `$SPECS_PATH`, not through code, so they can sit in different plugins. |
 | S14 | **The split is a breaking change requiring user action, and the CHANGELOG says so in a migration note.** | `claude plugin marketplace update` refreshes what is installed; it does not install plugins newly added to a catalogue. A user with `dev-workflows` installed gets `workflows-core` automatically (a declared dependency) and **loses** `/idea`, `/create-prd`, `/document` and the rest until they install `pm-workflows` and `docs-workflows` explicitly. The note lists every moved command and its new plugin. |
 | S15 | **The root README becomes a marketplace index**, and each plugin's `getting-started.md` carries its own install block. | With five plugins there is no single front page. Check 7 becomes per-plugin: each plugin's install block must match *its* row in the root index (§6). |
+| S16 | **A file or agent moves to core when its second consumer group actually exists, never in anticipation of one.** Applied to `guidelines/accessibility.md` and to `design-grounder`. | S4 puts a two-group surface in core, and the question each time is *when* the second group arrives. `accessibility.md` has one consumer group today (`guideline-reviewers`) and gains a second only when `/docs-brand` is built; `design-grounder` has one (`pm-workflows`) and gains a second when a dev route adopts it. Both therefore move with their current owner and are promoted later — a move made for a consumer that has no code is a guess, and this rule is what keeps S13's two halves consistent with each other. |
 
 ---
 
@@ -344,6 +345,12 @@ The review's four probe transcripts are adopted as fixtures rather than writing 
 
 ## 11. Open questions
 
-1. **How does the documentation family reach `guidelines/accessibility.md`?** It moves into `guideline-reviewers` with the rest of the corpus, and `/docs-brand`'s contrast check will need it. Three answers are open — copy the one file, promote it to core, or have `docs-workflows` depend on `guideline-reviewers` — and the right one depends on whether a second shared file ever appears. Settle it when the docs family is built, not before.
-2. **Where does `/frames` sit long-term?** It is allocated to `pm-workflows` because it indexes design frame sets under BRD, PRD and Epic folders. If `design-grounder` ever serves `dev-workflows` too, both move to core.
-*(The root-README question is settled by S15. The `accessibility.md` question is pinned to increment 3 rather than listed here.)*
+**None remain.** All three this design opened have been settled, and they are listed here rather than deleted so that a reader who remembers them can see where each went:
+
+| Question | Settled by |
+|---|---|
+| Where `/frames` sits long-term | **S13** — `workflows-core`, with `grounding-format.md`. It is a two-group surface once a dev route needs design frames, which is S4's rule rather than a new one |
+| How the documentation family reaches `guidelines/accessibility.md` | **S16** — it moves with `guideline-reviewers` now and is promoted to core when `/docs-brand` exists to be its second consumer. Not a test to run during implementation: a decision, and the rule that decides it already existed |
+| Whether the root README becomes a marketplace index | **S15** — it does, and check 7 goes per-plugin |
+
+Two things are deliberately *decided but deferred in execution*, which is not the same as open: the `accessibility.md` promotion happens in increment 3 (pinned there, not to this list), and `design-grounder`'s promotion happens whenever a dev route adopts it — both governed by S16.

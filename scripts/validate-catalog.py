@@ -69,15 +69,22 @@ DESCRIPTION_MAX = 1024
 # as an outage.
 DESCRIPTION_WARN = 900
 
-SKIP_DIRS = {
-    ".git", "node_modules", ".superpowers", ".idea",
-    # scripts/fixtures/docs/pass/ ships a synthetic plugin.json (fixture-two) that
-    # exists solely as check-docs.sh --selftest scaffolding -- it names no real,
-    # installable plugin and is deliberately absent from every marketplace.json.
-    # Without this exclusion the reverse "every manifest is advertised" assertion
-    # below fires on it, which would be reporting a defect that does not exist.
-    "fixtures",
-}
+SKIP_DIRS = {".git", "node_modules", ".superpowers", ".idea"}
+
+# scripts/fixtures/ ships a synthetic plugin.json (fixture-two) that exists solely as
+# check-docs.sh --selftest scaffolding: it names no real, installable plugin and is
+# deliberately absent from every marketplace.json. Without an exclusion the reverse
+# "every manifest is advertised" assertion below fires on it, reporting a defect that
+# does not exist.
+#
+# This is a PATH prefix, not a SKIP_DIRS entry, and the distinction is load-bearing.
+# SKIP_DIRS matches a bare directory NAME at any depth, which is safe for `.git` and
+# `node_modules` -- names nothing legitimate is ever called -- but "fixtures" is a
+# common word. As a SKIP_DIRS entry it silently hid any manifest nested under a
+# directory named `fixtures` anywhere in the tree, including a real plugin's own test
+# corpus, from BOTH directions of the advertisement check. Anchored here instead, it
+# excludes exactly the one directory it was written for.
+SKIP_PREFIXES = (("scripts", "fixtures"),)
 
 
 def find_files(root: Path, name: str) -> list[Path]:
@@ -92,6 +99,10 @@ def find_files(root: Path, name: str) -> list[Path]:
         p
         for p in root.rglob(name)
         if not any(part in SKIP_DIRS for part in p.parts)
+        and not any(
+            p.relative_to(root).parts[: len(prefix)] == prefix
+            for prefix in SKIP_PREFIXES
+        )
     )
 
 

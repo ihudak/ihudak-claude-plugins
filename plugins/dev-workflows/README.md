@@ -18,7 +18,7 @@ Every command owns one role's step in the pipeline and hands a concrete artifact
 | Dev | [`/design`](docs/commands/design.md), [`/implement`](docs/commands/implement.md), [`/ready`](docs/commands/ready.md), [`/document`](docs/commands/document.md), `/release-notes` *(final run)* | Design against the spec, implement it under review gates, verify readiness against the artifacts, document the result, and draft the final [`/release-notes`](docs/commands/release-notes.md) note. |
 | Anytime — maintenance | [`/vuln`](docs/commands/vuln.md), [`/upgrade`](docs/commands/upgrade.md), [`/docs-profile`](docs/commands/docs-profile.md), [`/statusline`](docs/commands/statusline.md) | Remediate a CVE, upgrade a dependency, profile a docs repo, or install the status line. |
 | Anytime — specs-tree repair | [`/frames`](docs/commands/frames.md) | (Re)build the index every exported design frame set must carry before anything can read it. |
-| Anytime — guideline review | Moved to the [`guideline-reviewers`](../guideline-reviewers/README.md) plugin | Review an OpenAPI spec or app UI against bundled guidelines. |
+| Anytime — guideline review | Moved to the sibling `guideline-reviewers` plugin | Review an OpenAPI spec or app UI against bundled guidelines. |
 | Anytime — plugin feedback | [`/feedback`](docs/commands/feedback.md), [`/prompt`](docs/commands/prompt.md), [`/prompt-brainstorm`](docs/commands/prompt-brainstorm.md), [`/prompt-grill-me`](docs/commands/prompt-grill-me.md) | Log friction about the plugin itself, or capture and act on a correction. |
 
 [`/release-notes`](docs/commands/release-notes.md) is the one command in two rows — the same command run at two points in a Product Requirements Document's life, attributed by inference rather than a fixed role.

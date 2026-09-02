@@ -4,6 +4,22 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.24.3] — 2026-09-02
+
+### Fixed — Sonnet 5 was billed at 50% over its published rate
+
+`references/cost-prices.yaml` keyed `claude-sonnet-5` at **$3 / $15** per million tokens. The published rate is **$2 / $10**, so every Sonnet-routed session — the §2.1 detection chain, which is most subagent dispatch — was costed half again over what it actually cost.
+
+The wrong number was a deliberate choice that outlived its reason, which is why nothing caught it. The table's own header explained it: $2/$10 was introductory "through 2026-08-31", and keying a promotional rate would make identical work look cheaper now and dearer later, distorting cross-PRD comparisons. That was sound while the promo ran. The window then closed and the rate did not move — verified live on 2026-09-02 — so $2/$10 is simply the rate, and the hedge became the error it was written to prevent.
+
+The header now records **when** a rate changed rather than declining to follow it, which is what actually serves comparability: a table that bills at a rate nobody charges is not comparable to anything.
+
+### Added — a Fable price key, so a Fable session is not unpriced
+
+`claude-fable-5` at $10 / $50. The routing policy never selects it — neither §2 nor §2.1 can reach it — but a session may *run* on it, and an unpriced model records tokens with a null cost, which reads as free rather than as unknown. The undated key is a prefix of `claude-fable-5-1`, so the longest-prefix rule prices both from one entry.
+
+Opus 5, Haiku 4.5 and the cache multipliers were re-verified unchanged. Legacy keys (Opus 4.6–4.8, Sonnet 4.5/4.6) were not re-verified — they are absent from the current-generation pricing table and keep their existing rates.
+
 ## [3.24.2] — 2026-09-02
 
 ### Fixed — two documentation pages named a phase that no longer exists

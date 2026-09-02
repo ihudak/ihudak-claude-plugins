@@ -291,10 +291,24 @@ Each script travels with the file that cites it: `session-cost.py` with `referen
 ```bash
 CORE_PLUGIN_REL="${CORE_PLUGIN_REL:-plugins/workflows-core}"
 COST_PLUGIN_RELS="${COST_PLUGIN_RELS:-plugins/dev-workflows plugins/workflows-core}"
-HANDOFF_PLUGIN_RELS="${HANDOFF_PLUGIN_RELS:-plugins/dev-workflows plugins/workflows-core}"
+HANDOFF_PLUGIN_RELS="${HANDOFF_PLUGIN_RELS:-plugins/dev-workflows}"
 ```
 
-Both subsystems are now shipped by core *and* still called from `dev-workflows`, so both plugins are declared. The both-directions applicability assertion added in increment 1 checks exactly this.
+`COST_PLUGIN_RELS` holds both because both ship cost-emitting commands — core's `/feedback`, `/prompt`, `/frames` and the two ceding grill commands, and `dev-workflows`'s twenty. `HANDOFF_PLUGIN_RELS` holds `dev-workflows` **alone**: the `/brd-*` family stays there until increment 4, and core ships not one command of it.
+
+- [ ] **Step 2a: Re-base both applicability checks on the call sites, not the reference file (R7)**
+
+`check_cost_applicability` and `check_handoff_applicability` both trigger on a plugin **shipping the reference** — `cost-emission.md` and `next-phase-offer.md` respectively. This move falsifies that premise in both directions at once, and the two failures look nothing alike:
+
+- `dev-workflows` keeps twenty cost-emitting commands and stops shipping `cost-emission.md`, so its assertion **goes silent**. Drop it from `COST_PLUGIN_RELS` afterwards and nothing catches it — a gate that quietly stopped guarding the plugin it was written for.
+- `workflows-core` starts shipping `next-phase-offer.md` and ships no `/brd-*` command, so it is **forced into** `HANDOFF_PLUGIN_RELS`, whereupon check 11 runs for it, derives an empty family, and fails — with neither branch green, because "relations fail when empty" is the property that must not be relaxed.
+
+Both are the same defect: shipping the reference no longer implies shipping the call sites the check is about. Re-base each trigger on the call sites:
+
+- **cost:** a plugin whose `commands/` contain an `emit-cost` call site must be declared in `COST_PLUGIN_RELS`.
+- **handoff:** a plugin whose `commands/` contain at least one command of the family derived from `$CORE_PLUGIN_REL/references/next-phase-offer.md` must be declared in `HANDOFF_PLUGIN_RELS`.
+
+The "declared, never inferred from a missing file" property is untouched — the shipped-test simply now asks the right question. Each direction needs a paired red/green `--selftest` case: a plugin with call sites and no declaration must fail, and a plugin holding only the reference must pass.
 
 - [ ] **Step 3: Author core's own `docs/reference/` pages, and move none**
 
@@ -319,6 +333,8 @@ Check 15 asserts every command appears **inside the diagram**, not in prose belo
 - [ ] **Step 7: Remove the six commands from `dev-workflows`'s three listing surfaces** — `docs/README.md`, the plugin `README.md`, and `docs/workflow.md`'s mermaid diagram. Check 15 is **forward-only**: a diagram still naming a departed command passes silently, so this is by hand.
 
 - [ ] **Step 8: Update every prose count** in both plugins' `docs/README.md` and plugin `README.md`: `20 slash commands` / `6 slash commands`, agents, reference files, skills, and the cost-emitting-set size.
+
+`dev-workflows`'s `docs/reference/session-cost.md` stays put under R6 but its cost-emitting-set sentence counts six departed commands — check 9 goes red on it until it is rewritten. Core's own `session-cost.md`, authored in Step 3, carries the count for core's emitters.
 
 Also reword the repo-root `README.md` plugin-table row for `workflows-core`. Task 1 trimmed it to 181 of check 6's 200 characters and, in doing so, dropped the six utility commands `plugin.json` names. They exist now, so the row can name them truthfully — within the cap.
 

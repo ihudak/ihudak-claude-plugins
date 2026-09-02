@@ -4,6 +4,16 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.24.2] — 2026-09-02
+
+### Fixed — two documentation pages named a phase that no longer exists
+
+`docs/commands/prompt-brainstorm.md` and `docs/commands/prompt-grill-me.md` each opened by saying the deferred cost record is written in **Phase 2.5**. Neither command has a Phase 2.5. The deferral was introduced there in 3.16.0 and **moved back inside Phase 2 by 3.16.1's review round**, precisely so it would sit ahead of `commit-artifacts` and keep six sentences across `specs-repo-git.md`, `session-hygiene.md` and `CLAUDE.md` true; the two lead sentences were not swept with it. Each page's own "What it writes" section, two paragraphs below, said "Phase 2" correctly the whole time — so each page contradicted itself, and a reader sent to Phase 2.5 finds no such heading in the command.
+
+Nothing gates this: `check-docs.sh` verifies links, anchors, inventories and counts, but a phase number named in prose is matched against nothing. Found by porting the same feature to a sibling edition, where writing the correct phase into the target required reading the command rather than the page.
+
+Swept for the whole class rather than the two known instances — every `Phase N.N` named on a command page, checked against that command's own phase headings. Four sites, two of them these. The other two are correct cross-references to a *different* command's phase (`frames.md` cites `/idea` Phase 4.5, `release-notes.md` cites `/document` (keyed mode) Phase 5.8), and both of those phases exist.
+
 ## [3.24.1] — 2026-09-02
 
 ### Fixed — the traversal was described two ways in one chain

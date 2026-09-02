@@ -17,7 +17,11 @@ set -uo pipefail
 # THE ONLY PART OF THIS FILE THAT DIFFERS BETWEEN EDITIONS. Never copy it across.
 # Everything below is byte-identical in ihudak-claude-plugins, mgd-claude-plugins
 # and ihudak-copilot-plugins, so a fix to the gate ports by plain `cp` of the body.
-PLUGIN_REL="plugins/dev-workflows"   # copilot: dev-workflows
+# Space-separated; the dispatch loop sets PLUGIN_REL from it per iteration, so every
+# check function below is unchanged and still reads a single PLUGIN_REL. A one-element
+# list behaves exactly as the old scalar did, which is what keeps this body portable to
+# editions that ship one plugin.
+PLUGIN_RELS="${PLUGIN_RELS:-plugins/dev-workflows}"   # copilot: dev-workflows
 CMD_DIR="commands"                   # copilot: skills
 CMD_SUFFIX=".md"                     # copilot: /SKILL.md
 CMD_EXCLUDE=""                       # copilot: _shared
@@ -33,6 +37,12 @@ CLI_REQUIRED="marketplace add|marketplace update"   # copilot: marketplace add|u
                                      # of CLI_VERBS; differs per edition because Copilot
                                      # updates with `plugin update --all`, not a marketplace verb.
 HAS_COST=1                           # copilot: 0 -- no cost subsystem exists there
+
+# Which plugins ship the subsystems checks 8 and 11 examine. Applicability is declared,
+# never inferred from a missing file: absence-implies-skip would let a genuine regression
+# in a plugin that DOES ship them pass silently.
+COST_PLUGIN_RELS="${COST_PLUGIN_RELS:-plugins/dev-workflows}"        # copilot: ""
+HANDOFF_PLUGIN_RELS="${HANDOFF_PLUGIN_RELS:-plugins/dev-workflows}"  # copilot: ""
 
 # RUNTIME_VARS is a SILENCER: every name in it kills both directions of check 5 (env-var doc
 # agreement) for that variable, permanently -- no mutation of the fixture tree can reveal a
@@ -1299,6 +1309,11 @@ check_index_membership() {
 }
 
 # ---------------------------------------------------------------------- main
+# selftest() runs before the dispatch loop below ever assigns PLUGIN_REL per iteration,
+# and its fixture mutations reference the bare (singular) $PLUGIN_REL directly -- so it
+# needs a value now. The first list element is generic, not edition data: with today's
+# one-plugin list it is exactly the old scalar, which is the behaviour this preserves.
+PLUGIN_REL="${PLUGIN_RELS%% *}"
 [ "${1:-}" = "--selftest" ] && selftest
 
 ROOT="."
@@ -1308,26 +1323,31 @@ if [ "${1:-}" = "--root" ]; then
 fi
 [ -d "$ROOT" ] || { echo "Usage: $0 [--root <dir>] | --selftest" >&2; exit 2; }
 ROOT="$(cd "$ROOT" && pwd)"
-[ -d "$ROOT/$PLUGIN_REL/docs" ] || { fail 4 "$PLUGIN_REL/docs does not exist"; echo "FAIL: $FAILURES problem(s)" >&2; exit 1; }
-
 [ "$HAVE_PY" = 1 ] || note "python3 not found; falling back to ASCII slugs -- anchors whose heading contains a non-ASCII letter cannot be verified here"
-check_links_and_anchors "$ROOT"
-check_orphans           "$ROOT"
-check_inventory         "$ROOT"
-check_env_vars          "$ROOT"
-check_table_cells       "$ROOT"
-check_install_block     "$ROOT"
-check_cost_attribution  "$ROOT"
-check_prose_counts      "$ROOT"
-check_identity_quarantine "$ROOT"
-check_merge_clause      "$ROOT"
-check_choices_arity     "$ROOT"
-check_vendor_tokens     "$ROOT"
-check_foreign_identity  "$ROOT"
-check_index_membership  "$ROOT"
+
+for PLUGIN_REL in $PLUGIN_RELS; do
+  if [ ! -d "$ROOT/$PLUGIN_REL/docs" ]; then
+    fail 4 "$PLUGIN_REL/docs does not exist"
+    continue
+  fi
+  check_links_and_anchors   "$ROOT"
+  check_orphans             "$ROOT"
+  check_inventory           "$ROOT"
+  check_env_vars            "$ROOT"
+  check_table_cells         "$ROOT"
+  check_install_block       "$ROOT"
+  case " $COST_PLUGIN_RELS "    in *" $PLUGIN_REL "*) check_cost_attribution "$ROOT" ;; esac
+  check_prose_counts        "$ROOT"
+  check_identity_quarantine "$ROOT"
+  case " $HANDOFF_PLUGIN_RELS " in *" $PLUGIN_REL "*) check_merge_clause     "$ROOT" ;; esac
+  check_choices_arity       "$ROOT"
+  check_vendor_tokens       "$ROOT"
+  check_foreign_identity    "$ROOT"
+  check_index_membership    "$ROOT"
+done
 
 if [ "$FAILURES" -gt 0 ]; then
-  echo "FAIL: $FAILURES problem(s) under $PLUGIN_REL" >&2
+  echo "FAIL: $FAILURES problem(s) under $PLUGIN_RELS" >&2
   exit 1
 fi
-echo "PASS: docs are consistent with the plugin under $PLUGIN_REL"
+echo "PASS: docs are consistent with the plugin(s) under $PLUGIN_RELS"

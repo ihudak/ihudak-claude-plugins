@@ -6,7 +6,7 @@ is not, the finding record every `[CG#n]`/`[DG#n]` carries, the six verdicts, th
 design-grounding reconciliation classes, the optional derivation matrix, and the four verification
 outcomes. Design authority: `docs/superpowers/specs/2026-08-29-brd-to-prd-workflow-design.md` §5
 (all subsections) and decision rows D6, D7, D19 in §3. Requirement identifiers (`[BR#n]`) are
-defined once in `references/brd-format.md` — cited here, not restated; the read-only posture for a
+defined once in `dev-workflows:brd-format` — cited here, not restated; the read-only posture for a
 mounted repository is defined once in `references/read-only-repos.md` and applies unchanged to
 every repository grounding reads.
 
@@ -194,7 +194,7 @@ them is the one that overturns this particular finding; the finding names that s
 
 Grounding reads only a prerequisite's **frozen** decisions, never speculation, a draft position, or
 an interview answer still open for revision. **"Frozen" is a field, not a judgement: it means
-`status: decided`**, the second of the five statuses `references/decision-register-format.md` §3
+`status: decided`**, the second of the five statuses `dev-workflows:decision-register-format` §3
 fixes, and nothing else qualifies — `open` and `reopened` may not be consumed downstream at all,
 `superseded` and `withdrawn` describe a position no longer held, and an `[AS#n]` never reaches
 `decided` (§7 there). A reader that weighed how settled a record *sounds* instead of reading its
@@ -276,7 +276,7 @@ create or repair, rather than about a finding, which neither makes.
 ### 6.2 The frame-set index
 
 **The format §6.1 makes mandatory is fixed here, once, and every writer cites it.** It lived in
-`references/idea-format.md` while `/idea` was its only author; `/frames` is a
+`dev-workflows:idea-format` while `/idea` was its only author; `/frames` is a
 second author, and one format with two authorities is the defect family this plugin keeps paying for.
 That file now states only what `/idea` contributes to a row and cites this section for everything
 else. It belongs here rather than there because it is the *satisfaction* of §6.1's requirement, and a

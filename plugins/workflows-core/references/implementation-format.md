@@ -61,7 +61,7 @@ appears, and the difference matters:
 
 | Command | What it does with the code | What it does about the convention |
 |---|---|---|
-| `/implement` | branches, then commits and pushes through `references/code-handoff.md`'s `finish-code-branch` (Phase 4.6) | **writes the subject itself** |
+| `/implement` | branches, then commits and pushes through `dev-workflows:code-handoff`'s `finish-code-branch` (Phase 4.6) | **writes the subject itself** |
 | `/upgrade` | branches, commits each component in step 6.5, pushes once in step 7.5 | **writes the subject itself** |
 | `/vuln` | `vuln-fixer` branches and applies the fix; the orchestrator commits and pushes in Step 3.9, using its own template | **writes the subject itself**, from the template in `/vuln`'s Git Workflow |
 

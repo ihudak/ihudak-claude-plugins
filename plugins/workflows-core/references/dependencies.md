@@ -15,7 +15,7 @@ companion degrades the feature, never breaks the run.
 ## Attribution, not a companion
 
 **`mattpocock-skills` is not a dependency of this plugin and does not belong in the table above.**
-`references/grilling-technique.md` and `references/bug-diagnosis.md` are both **adapted from** that
+`references/grilling-technique.md` and `dev-workflows:bug-diagnosis` are both **adapted from** that
 author's `grilling` and `diagnosing-bugs`, and both say so. Since those skills now ship in the
 official marketplace, the distinction is worth stating outright: nothing here resolves them at
 runtime, nothing degrades when they are absent, and installing them changes no behaviour of this

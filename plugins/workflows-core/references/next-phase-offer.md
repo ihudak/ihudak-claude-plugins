@@ -140,7 +140,7 @@ array carries every option.
   that command's next-step phase offers all three off **a slice key** — never off a root BRD key. A
   BRD is a container and each of the three refuses a `BRD-` folder in its own Phase 0
   (`CREATE_PRD_BRD_NOT_SLICED`, `CREATE_ARD_BRD_NOT_SLICED`, `SPECIFY_BRD_NOT_SLICED`;
-  `references/coverage-ledger-format.md` §5), so naming one against a root hands over a run that
+  `dev-workflows:coverage-ledger-format` §5), so naming one against a root hands over a run that
   stops on its first phase. **A root's advance is its slices instead** — `/dev-workflows:brd-ground
   <SLICE-KEY>` once per non-empty slice, each re-entering the route in its own right and reaching
   this same hand-over on its own key. That one **does** carry `<merge-clause>`, because
@@ -150,10 +150,10 @@ array carries every option.
   re-enter for.** Advance and re-entry are separate arrays there, not one: where that run reopened a
   decision, left a `[C]` held for the customer, left a finding for a `--rebaseline` pass, or could
   only record a dependent's sweep, all three advance options are dropped, because a `reopened` record
-  may not be consumed downstream (`references/decision-register-format.md` §3) and all three consume
+  may not be consumed downstream (`dev-workflows:decision-register-format` §3) and all three consume
   the register. On an advancing slice run, `/dev-workflows:create-prd <SLICE-KEY>` carries the further
   condition that the reconciled ledger leaves no row `unallocated` and at least one `covered-here`
-  (`references/coverage-ledger-format.md` §5, the two refusals its Phase 0 raises); the other two
+  (`dev-workflows:coverage-ledger-format` §5, the two refusals its Phase 0 raises); the other two
   carry none of their own: neither reads the ledger, and although both now run the PRD gate on every
   route, that gate's `absent` branch proceeds — a slice holding no authored `prd.md` is the ordinary
   state for both, since `/dev-workflows:create-prd` is a prerequisite for neither. **That difference is where the conditions come from, and it matters:**
@@ -185,7 +185,7 @@ array carries every option.
   run**: it refuses three shapes and not one, so on a BRD-route slice the two data refusals on that
   slice's own ledger are tested first and the offer resolves to `/dev-workflows:brd-split` against
   one of two keys, or to no option at all, where either fails
-  (`references/coverage-ledger-format.md` §5.2, the authority, applied by each offering command). An
+  (`dev-workflows:coverage-ledger-format` §5.2, the authority, applied by each offering command). An
   offer whose run stops the moment it starts is the same defect the `<merge-clause>` rules below
   exist to prevent, one command further on: a next step the operator cannot take from the state the
   report describes.

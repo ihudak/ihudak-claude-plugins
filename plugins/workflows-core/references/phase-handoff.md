@@ -60,7 +60,7 @@ Staging is by enumeration, never by glob — the same discipline as `specs-repo-
 reported path against the declaration, so a directory in the list would leave every file under it
 ambiguous — matched by a reader who expands it, OTHER by one who does not. A caller whose phase writes
 a set of files rather than one (`/idea` vendors its sources into `attachments/` and
-`design/<frame-set>/` — `references/idea-format.md`, *Vendored sources*;
+`design/<frame-set>/` — `dev-workflows:idea-format`, *Vendored sources*;
 `/frames` writes one `index.md` per `design/*/` set of the folder it resolved —
 `${CLAUDE_PLUGIN_ROOT}/references/grounding-format.md` §6.2) enumerates every one of them literally. The consequence of leaving one out is silent and total: it is
 classified OTHER, never staged, and never reaches the default branch, while the deliverable that links
@@ -94,7 +94,7 @@ Otherwise: derive the repository, run a cheap `gh auth status` pre-check purely 
     gh pr create -R "$OWNER_REPO" --base <default> --head <branch> \
                  --title "<title>" --body-file <body-path>
 
-**The host is kept, not stripped** — the same rule as `references/code-handoff.md` §2.6, and for the same reason. `gh -R` accepts `[HOST/]OWNER/REPO`, and `gh auth status` succeeds whenever the user is authenticated to *any* host, so a bare `OWNER/REPO` derived from a GitHub Enterprise remote resolves against **github.com** — silently opening the phase's pull request on an unrelated public repository if one happens to sit at that path, with the capability probe catching nothing because the call succeeded. Only `github.com` may drop the host. Validate the slug against `^[^/]+/[^/]+$` before calling `gh`; anything else (a Bitbucket `scm/proj/repo`, a nested GitLab group) is not a `gh` target — skip to §4.2. §3.5's `gh pr list -R "$OWNER_REPO"` uses the same value and mistargets identically without this.
+**The host is kept, not stripped** — the same rule as `dev-workflows:code-handoff` §2.6, and for the same reason. `gh -R` accepts `[HOST/]OWNER/REPO`, and `gh auth status` succeeds whenever the user is authenticated to *any* host, so a bare `OWNER/REPO` derived from a GitHub Enterprise remote resolves against **github.com** — silently opening the phase's pull request on an unrelated public repository if one happens to sit at that path, with the capability probe catching nothing because the call succeeded. Only `github.com` may drop the host. Validate the slug against `^[^/]+/[^/]+$` before calling `gh`; anything else (a Bitbucket `scm/proj/repo`, a nested GitLab group) is not a `gh` target — skip to §4.2. §3.5's `gh pr list -R "$OWNER_REPO"` uses the same value and mistargets identically without this.
 
 
 The expressions strip a scheme, a `user@`, and a host with an optional `:port` terminated by `/` or `:` (the scp-like `git@host:Org/repo` form uses a colon), then a trailing slash and `.git`. The earlier two-expression form handled only `git@host:` and `https://host/`, and passed an `ssh://git@host/Org/repo.git` remote through unchanged — `gh` then failed on a repository argument that was a whole URL. Do not simplify it back.

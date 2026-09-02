@@ -24,7 +24,7 @@ decision.
 
 **Which notation is used is the artifact's choice, not the depth's.** Use whatever the caller's own
 format authority defines: `[NEEDS CLARIFICATION]` for `idea.md`
-(`references/idea-format.md`) — including under `--deep`, which changes the
+(`dev-workflows:idea-format`) — including under `--deep`, which changes the
 depth but never the file format — and `- [ ]` for the PRD / ARD / specification / design artifacts
 whose formats define it. Keying the notation on depth was a defect: `/idea --deep` is the one caller
 whose depth changes at runtime, and writing `- [ ]` into an `idea.md` would leave zero

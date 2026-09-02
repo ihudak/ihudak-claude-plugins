@@ -144,6 +144,25 @@ Four need real thought rather than a loop. Increment 1 shipped with only the fir
 
 Increment 1 also proved a related point empirically: **checks 8 and 11 hard-fail on a plugin that ships neither subsystem**, which is why applicability became per-plugin config data (`COST_PLUGIN_RELS`, `HANDOFF_PLUGIN_RELS`) with membership guards at the dispatch loop, plus a both-directions assertion that a plugin shipping the file is actually declared. A third check, **check 15**, hard-fails on a missing `docs/workflow.md` with a mermaid diagram and is **forward-only** — nothing catches a diagram still naming a command the plugin no longer ships.
 
+### What a new plugin must ship to pass the gate
+
+Increment 1 discovered this list one failure at a time. It is recorded so increment 2's `workflows-core`, and increments 3 and 4, do not rediscover it:
+
+| Requirement | Enforced by | The trap |
+|---|---|---|
+| `docs/README.md`, reachable from it: every other page | checks 1, 2 | — |
+| `docs/getting-started.md` with install lines that are a **subset** of the repo-root README's, and that install **this** plugin | check 7 | The root README must gain the line first, or the subset test fails |
+| `docs/workflow.md` containing a **mermaid** block, with every command named **inside the diagram** | check 15 | Prose below the diagram does not count. And the check is **forward-only** — a diagram naming a departed command passes silently |
+| Plugin-root `README.md` — a different file from `docs/README.md` | check 15 | Easy to conflate |
+| `<n> slash commands` in the plugin README, `<n> bundled skills` in `docs/README.md` | check 9 | The accepted word list runs `one`…`ten` plus a few compounds. **"zero" is not in it** — an empty plugin must write the digit `0` |
+| `docs/reference/agents.md` with a row matching `^\| \`<name>\`` per agent | check 4 | A prose mention is not a row |
+| `docs/reference/references.md` with a row per **flat** reference file, and `` `<subtree>/` (N) `` per subtree | check 4 | N is the **markdown-only** count. Vendored non-markdown data is deliberately excluded, so a total-file count fails |
+| `docs/reference/environment.md` documenting every variable the plugin reads — and **only** those | check 5 | Runs both directions, so a move fires it **twice**: the receiving plugin reads what it does not document, the losing plugin documents what it no longer reads |
+| Membership in `PLUGIN_RELS`, **and** in `COST_PLUGIN_RELS` / `HANDOFF_PLUGIN_RELS` only if it ships those subsystems | checks 8, 11 | Declared, never inferred from a missing file |
+| An entry in `marketplace.json` | `validate-catalog.py` | Now asserted in both directions — a manifest nobody advertises is an error |
+
+Two failure modes remain **ungated** and must be handled by hand at every move: a `subagent_type` prefix still naming the old plugin (nothing verifies a dispatch target resolves), and prose anywhere describing content that left (only the gated inventories are checked, not the sentences around them).
+
 **A new check: the loader contract, in both directions.** Every `args:` string passed to `workflows-core:reference` must name a reference that exists in core, and every core reference must be reached by at least one caller.
 
 The justification is narrower than first stated. Because the argument arrives as a trailing line rather than being substituted into a path, **a typo surfaces as a file-not-found when the loader reads it — observable, not a silent misfire.** So the gate is not rescuing a dangerous failure mode; it is catching an unresolvable argument and an unreferenced core reference at build time instead of at run time. Still worth having, for the same reason every other inventory check here is, and it is the same both-directions shape.

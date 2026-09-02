@@ -22,7 +22,7 @@ Key distinction from `/document` (keyed mode): the PRD being Epic-ized is **not 
 
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an
    `@<path>` naming a folder or a file inside one — and resolve it with
-   `resolve-address` (`workflows-core:addressing` §3), **with no `<KIND>`
+   `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), **with no `<KIND>`
    argument**: a slice folder is `PRD-`-prefixed while the `brd-link.md` inside it asserts
    `kind: brd`, so narrowing the resolution by kind would refuse on one route the very folder it
    resolves on the other (`workflows-core:addressing` §3, `resolve-key` step 1). The kind gate is step 1b's, and
@@ -220,7 +220,7 @@ terminal `commit-artifacts` step skips on it.
 
 **Rule: Ask, don't guess. This rule is absolute.**
 
-Group questions where possible; use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0).
+Group questions where possible; use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`Skill(skill: "workflows-core:reference", args: "escalation-rules")` §0).
 
 Ask about:
 
@@ -291,7 +291,7 @@ Each subagent dispatch below cites its chain (§9 role→chain map). **No relaun
 
 ## Phase 2 — Plan + approval
 
-**Documentation grounding (optional, independent of code scan).** Before presenting the plan below, run `resolve-docs-grounding epics` per `workflows-core:docs-grounding` — this is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve here, before Phase 3's the folder read, Phase 4's repo resolution, and Phase 5's parallel code scan do any of the run's real work. This runs ahead of Phase 2.5/2.6's `require-on-main`/`workflows-core:ard-resolution` gates — a deliberate exception to `workflows-core:phase-handoff` §5 rule 2's ordering, kept here rather than moved because `resolve-docs-grounding`'s only expensive step is itself behind its own consent prompt (`workflows-core:docs-grounding` step 3.5), and an index build it produces is a durable, run-independent artifact, not per-run work a later stop would waste.
+**Documentation grounding (optional, independent of code scan).** Before presenting the plan below, run `resolve-docs-grounding epics` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` — this is the run's only consent-bearing step (an index build or a capped refresh), so it must resolve here, before Phase 3's the folder read, Phase 4's repo resolution, and Phase 5's parallel code scan do any of the run's real work. This runs ahead of Phase 2.5/2.6's `require-on-main`/`workflows-core:ard-resolution` gates — a deliberate exception to `workflows-core:phase-handoff` §5 rule 2's ordering, kept here rather than moved because `resolve-docs-grounding`'s only expensive step is itself behind its own consent prompt (`workflows-core:docs-grounding` step 3.5), and an index build it produces is a durable, run-independent artifact, not per-run work a later stop would waste.
 
 Present a concise plan:
 
@@ -339,8 +339,7 @@ If a PRD-level specification exists, fold its requirements into the coverage
 inventory. **Additive, zero-cost when absent** — the common case, since
 `/specify` usually runs per-Epic *after* `/epics`.
 
-1. **Resolve the PRD dir:** call `resolve-address <PRD>` (`workflows-core:addressing`
-   §3), which searches every level §3 bounds and carries §5's legacy fallback. `status: found` →
+1. **Resolve the PRD dir:** call `resolve-address <PRD>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), which searches every level §3 bounds and carries §5's legacy fallback. `status: found` →
    use its `path`; `status: absent` → none exists; `status: ambiguous` → stop, naming every match
    and `@<path>` as the way through. No matching rule is written here: a second copy of the one §5
    states is the drift §1 warns about. If `$SPECS_PATH` is
@@ -599,8 +598,7 @@ If `prose-style-checker` is unavailable (agent file not found), proceed directly
 
 ## Phase 6.3 — Structural pre-lint
 
-Before the review gate, run the deterministic checks in
-`workflows-core:pre-lint` against each drafted Epic file: the **Universal checks**,
+Before the review gate, run the deterministic checks in `Skill(skill: "workflows-core:reference", args: "pre-lint")` against each drafted Epic file: the **Universal checks**,
 the **key-collision** check (run on the whole Epic file — the template has no frontmatter), and
 the **Epic** block (required headings incl. `## Independent Test`; Given/When/Then acceptance
 criteria; `[NEEDS CLARIFICATION]` ≤ 3 per Epic; `_coverage.md` present). Surface every finding;
@@ -819,7 +817,7 @@ MODERATE — Epic drafting for a single PRD
 The project root has uncommitted changes. `/epics` never commits the project root — git management there is your responsibility. (This run's `$SPECS_PATH` session artifacts are committed separately by the terminal step — see its outcome line at the end of the run.)
 
 ### Next step
-[Per `workflows-core:next-phase-offer` — guidance only, never auto-invoked. For each Epic just drafted, author its spec → `/dev-workflows:specify <EPIC>` (PE) — one address, the Epic's own (D4); `/specify` resolves that folder and, finding no `brd-link.md` in it, looks one level up, so a slice-derived Epic keeps the BRD-route contract on this address exactly as it does through the picker; the **Epic fan-out** (depth vs breadth) applies from the spec/design stage on. Optionally a Product Architect adds an Epic-level ARD first → `/dev-workflows:create-ard <EPIC>`. If the review BLOCKED, resolve that first.]
+[Per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")` — guidance only, never auto-invoked. For each Epic just drafted, author its spec → `/dev-workflows:specify <EPIC>` (PE) — one address, the Epic's own (D4); `/specify` resolves that folder and, finding no `brd-link.md` in it, looks one level up, so a slice-derived Epic keeps the BRD-route contract on this address exactly as it does through the picker; the **Epic fan-out** (depth vs breadth) applies from the spec/design stage on. Optionally a Product Architect adds an Epic-level ARD first → `/dev-workflows:create-ard <EPIC>`. If the review BLOCKED, resolve that first.]
 
 ### Context hygiene
 

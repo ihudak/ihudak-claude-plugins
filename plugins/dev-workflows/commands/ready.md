@@ -29,9 +29,8 @@ single Epic. Address an `EPIC-` folder to scope the check to one Epic
 ## Phase 0 — Resolve input
 
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a
-   folder or a file inside one — and resolve it with `resolve-address`
-   (`workflows-core:addressing` §3). `status: found` → carry its `path`, `kind`
-   and `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `workflows-core:escalation-rules` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/dev-workflows:idea <KEY>` or `/dev-workflows:create-prd <KEY>` on the idea route and from `/dev-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/dev-workflows:epics <PRD-ADDRESS>` and from no other command.
+   folder or a file inside one — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). `status: found` → carry its `path`, `kind`
+   and `key` forward; `ambiguous` → stop, naming every match. **`absent` is a stop, not a folder to create** — this command creates no folder in the specs tree. Surface the `key dir not found` rule in `Skill(skill: "workflows-core:reference", args: "escalation-rules")` (`choices: ["Re-enter key", "Cancel"]`) and name what does create one: a `PRD-` folder comes from `/dev-workflows:idea <KEY>` or `/dev-workflows:create-prd <KEY>` on the idea route and from `/dev-workflows:brd-split` on its parent BRD on the BRD route; an `EPIC-` folder comes from `/dev-workflows:epics <PRD-ADDRESS>` and from no other command.
 
    **The kind decides the altitude, replacing the two-key grammar.** A `PRD-` folder is a PRD-level
    run (`<EPIC>` is `null`); an `EPIC-` folder is an Epic-level run, and its PRD folder is its
@@ -73,7 +72,7 @@ step skips on it.
    - Clean `main`/`master` → proceed silently.
 
 4. **Map onto the specs repo (PRD dir + optional Epic subdir).** Resolve the PRD dir with
-   `resolve-address <PRD>` (`workflows-core:addressing` §3), which searches
+   `resolve-address <PRD>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), which searches
    every level §3 bounds and carries §5's legacy fallback; `status: absent` means none exists, and
    `ambiguous` is a stop naming every match. The same entry point resolves what `workflows-core:ard-resolution`
    and `/design` resolve, which is what keeps the three from drifting apart. When `focus_key` is set, additionally resolve the per-Epic subdir
@@ -602,7 +601,7 @@ whatever branch Phase 5 left checked out), and NEVER writes into
   artifact is recorded as missing in the coverage roll-up, exactly as before this feature
 - ALWAYS run `specs-preflight` at Phase 0 and `commit-artifacts` as the run's last action (per `workflows-core:specs-repo-git`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - doc-only — repo check is presence-only, no scanning (Phase 3c; never dispatches `code-scanner`)
-- ALWAYS end with a `### Next step` per `workflows-core:next-phase-offer` — guidance only, never
+- ALWAYS end with a `### Next step` per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")` — guidance only, never
   auto-invoked
 - ALWAYS `emit-block` (per `workflows-core:feedback-emission`) before escalating a halt caused by a
   **plugin / skill / command / reference gap** — a `readiness-reviewer` run that cannot get a verdict

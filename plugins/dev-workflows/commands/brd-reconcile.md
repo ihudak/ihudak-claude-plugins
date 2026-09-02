@@ -154,7 +154,7 @@ write would re-ask a question already answered.
    the same ordering `/brd-package` uses and for the same reason. Prompt-free and silent when the
    specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run.
-5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`workflows-core:addressing` §3), which searches
+5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), which searches
    `specifications/` and the levels below it that `resolve-address` searches (three, per `workflows-core:addressing` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent
    → stop, without asserting which command would have created it:
    `BRD_RECONCILE_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
@@ -902,7 +902,7 @@ why `workflows-core:escalation-rules`'s *Closed-vocabulary pickers must normalis
 picker among the six whose free-text answer must be normalised into their own vocabulary rather than
 written through. No `(Recommended)`
 marker, and the reason is stated beside the list per the
-`When no option is safe to recommend` guidance in `workflows-core:escalation-rules`: which one is right is a
+`When no option is safe to recommend` guidance in `Skill(skill: "workflows-core:reference", args: "escalation-rules")`: which one is right is a
 judgement about a position in another BRD, taken by whoever owns it, and a marker would invite the
 run to inherit-unchanged its way through a sweep whose whole purpose is to find what did move.
 
@@ -1267,7 +1267,7 @@ waits on is the *dependent's* register reaching the default branch, while the pl
 `Phase handoff:` outcome line — a different merge, which is why the condition is written in the
 option's own text like every other one in the list.
 
-Say plainly what remains, per `workflows-core:next-phase-offer` — names only,
+Say plainly what remains, per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")` — names only,
 never behaviour a command of its own owns: a `[C]` the review did not answer keeps its round open and
 travels in the next package; a decision this run reopened is settled by another interview round; a
 challenged code claim is settled by a grounding pass and by nothing here; and a dependent BRD
@@ -1355,7 +1355,7 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 ```
 
 **Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree via
-`resolve-address` (`workflows-core:addressing` §3), per `coverage-ledger-format.md` §6.1 — a child on a BRD that
+`resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), per `coverage-ledger-format.md` §6.1 — a child on a BRD that
 owns its source document, a sibling or the parent on a slice (§3); a ledger that cannot be
 read there contributes `unresolved`, never `covered` (§6.2). Every term is a **resolved** count, and
 the `unallocated` term does not track the allocation gate — a non-zero one here is a row this BRD

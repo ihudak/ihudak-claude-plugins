@@ -141,7 +141,7 @@ When `docs_grounding` is present, use its `docs_references` for terminology and 
    `Release-notes category:` line, and NO `--- Summary ---` divider — the whole output is the text the
    PM publishes wherever release notes are published.
 
-8. **Source-truth check (when `code_repos` is provided).** Verify the specific option/label/count claims the draft makes against the source (per `workflows-core:source-truth` §3). Do NOT auto-resolve: when a claim is contradicted, record a `gaps[]` entry with `field: prose`, `prd_phrasing`, `source_phrasing`, `source_location`, and `recommended_action: "ask user"`. Keep the draft prose in the PRD phrasing for now; the command resolves it.
+8. **Source-truth check (when `code_repos` is provided).** Verify the specific option/label/count claims the draft makes against the source (per `Skill(skill: "workflows-core:reference", args: "source-truth")` §3). Do NOT auto-resolve: when a claim is contradicted, record a `gaps[]` entry with `field: prose`, `prd_phrasing`, `source_phrasing`, `source_location`, and `recommended_action: "ask user"`. Keep the draft prose in the PRD phrasing for now; the command resolves it.
 
 ## Output
 

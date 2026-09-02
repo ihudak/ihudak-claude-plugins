@@ -57,7 +57,7 @@ The caller passes:
 5. **Skip all NIT findings entirely.** Do not mention them in the fix report.
 6. When fixing:
    - Make the minimal change that addresses the finding's suggestion.
-   - Apply the **patch gate** (`workflows-core:finding-triage`): the fix must add no
+   - Apply the **patch gate** (`Skill(skill: "workflows-core:reference", args: "finding-triage")`): the fix must add no
      public surface and **guard no state the finding did not demonstrate**. If the smallest correct fix
      would add such a guard, defer it as `DEFERRED — needs human decision` with that as the reason,
      rather than adding speculative defence.

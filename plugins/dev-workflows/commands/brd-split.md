@@ -68,7 +68,7 @@ four-resolution one.
    clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
    `commit-artifacts` step skips on it.
-4. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`workflows-core:addressing` §3), which searches
+4. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), which searches
    `specifications/` and the levels below it that `resolve-address` searches (three, per `workflows-core:addressing` §3) (§2 step 2) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent → stop, without asserting which command would create it, because nothing on disk
    says whether this key names a BRD with a source document or a slice of one:
    `BRD_SPLIT_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
@@ -333,7 +333,7 @@ choices: ["Include them anyway — this slice carries rows that are not buildabl
 ```
 
 No option carries a `(Recommended)` marker, per the *When no option is safe to recommend* guidance
-in `workflows-core:escalation-rules`: whether a slice should carry a blocked row
+in `Skill(skill: "workflows-core:reference", args: "escalation-rules")`: whether a slice should carry a blocked row
 is a delivery judgement about this iteration, and the run has just been told in the operator's own
 words that they want these rows together. **The operator's grouping wins where they confirm it, and
 never wins silently** — a slice that quietly mixed a `NOT-PROVABLE` row in with buildable ones would
@@ -681,7 +681,7 @@ It is substituted in the option strings exactly as `<BRD-KEY>` and `<merge-claus
 is still presented verbatim per `workflows-core:escalation-rules`'s *Choice
 lists are presented verbatim* — a command that instead told the orchestrator to *adjust the wording*
 of an option would be contradicting that convention, which is why the variation lives in a
-placeholder (`workflows-core:next-phase-offer` states the same for its own).
+placeholder (`Skill(skill: "workflows-core:reference", args: "next-phase-offer")` states the same for its own).
 It resolves, for each row:
 
 | This row's state | `<recommended>` resolves to |
@@ -1128,7 +1128,7 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 ```
 
 **Computing it reads one ledger per `covered-by` row**, one hop, from the working tree via
-`resolve-address` (`workflows-core:addressing` §3). In `full` mode those are
+`resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). In `full` mode those are
 the children this run created in Phase 3 and reconciled in Phase 4, and any it found already nested
 in Phase 0 step 9; in `allocate-only` they are the siblings and the parent this slice's orphan rows
 name (`coverage-ledger-format.md` §3), each of which `resolve-address` finds at its own level.

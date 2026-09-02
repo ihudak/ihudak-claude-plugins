@@ -52,8 +52,7 @@ Usage: `/brd-intake <BRD-KEY> @<brd-file> [--sort-existing <dir>] [--no-docs]`
    clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
    `commit-artifacts` step skips on it.
-7. **Resolve or derive the BRD folder** via `resolve-address <BRD-KEY>`
-   (`workflows-core:addressing` §3). Found → this is an existing BRD folder
+7. **Resolve or derive the BRD folder** via `resolve-address <BRD-KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). Found → this is an existing BRD folder
    and this invocation is a re-run over it; use it. **A slice is never a legitimate target here** —
    it has no source document of its own to intake, and its inventory and ledger are the parent's
    `/brd-split` to write (`${CLAUDE_PLUGIN_ROOT}/references/brd-format.md` §2.1,
@@ -125,7 +124,7 @@ Show, and confirm before writing anything:
 - The `docs grounding:` line in the form `workflows-core:docs-grounding`
   resolved — `ON <root> (retrieval: …)` or `OFF (<reason>)` — verbatim, including any index-build,
   staleness, or shadowing clause it carries (off switch: --no-docs). Run
-  `resolve-docs-grounding brd-intake` per that reference to obtain it; it runs **exactly once per
+  `resolve-docs-grounding brd-intake` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` to obtain it; it runs **exactly once per
   run**, here, and Phase 3.5 consumes the cached result rather than re-resolving.
 
 **The `/epics` consent-ordering exception does not apply to this command.** `/epics` resolves docs
@@ -367,7 +366,7 @@ each, and all three commands refuse the container itself
 
 **Branch on Phase 3's result.** A BRD whose inventory holds no `[BR#n]` row is refused by every
 downstream command on the route, so offering one here would name a run that stops on its own Phase 0
-— the offer `workflows-core:next-phase-offer` exists to prevent.
+— the offer `Skill(skill: "workflows-core:reference", args: "next-phase-offer")` exists to prevent.
 
 **One or more `[BR#n]` rows — the ordinary case:**
 
@@ -384,7 +383,7 @@ choices: ["Re-run this intake with a corrected source — /dev-workflows:brd-int
 
 Neither option on that second list carries a `(Recommended)` marker, and the omission is deliberate
 per the `When no option is safe to recommend` guidance in
-`workflows-core:escalation-rules`: whether the source was mis-converted, was
+`Skill(skill: "workflows-core:reference", args: "escalation-rules")`: whether the source was mis-converted, was
 the wrong file, or genuinely states no requirement is a judgement about the customer's document, and
 only the operator who has read it can take it. Say beside the list which conversion or file this run
 actually read, so that judgement has something to stand on.

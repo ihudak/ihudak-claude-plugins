@@ -58,7 +58,7 @@ export GIT_USER_INITIALS="iv-gu"       # optional: branch prefix for every branc
 
 ### 4. Run `/workflows-core:statusline` first
 
-After installing, run `/workflows-core:statusline` once — the command ships in `workflows-core`, which `dev-workflows` installs alongside itself. It installs the family's multi-line status line (session identity, git, context, cost, tokens, rate limits) into `~/.claude/settings.json` and enables the Option-B snapshot used by session-cost reporting. It is idempotent and backs up anything it would overwrite, and it changes no workflow-command behavior.
+After installing, run `/workflows-core:statusline` once. The command ships in `workflows-core`, so install that plugin too (step 2 above lists it). It installs the family's multi-line status line (session identity, git, context, cost, tokens, rate limits) into `~/.claude/settings.json` and enables the Option-B snapshot used by session-cost reporting. It is idempotent and backs up anything it would overwrite, and it changes no workflow-command behavior.
 
 ```
 /workflows-core:statusline

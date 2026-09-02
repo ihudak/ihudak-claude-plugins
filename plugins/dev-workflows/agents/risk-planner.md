@@ -61,14 +61,14 @@ the plan. The plan is only as good as the blast-radius understanding behind it.
 
 ## Output
 
-Return a single structured plan in this exact shape (no chatter, no preamble). The bare `workflows-core:model-routing/classification` inside the template is **deliberate and stays bare** — the template is prose you emit to the user, and a `${CLAUDE_PLUGIN_ROOT}` path there would leak an unexpanded variable into the plan. Your own read of that file uses the absolute path under Planning discipline below.
+Return a single structured plan in this exact shape (no chatter, no preamble). The bare `workflows-core:model-routing/classification` inside the template is **deliberate and stays bare** — the template is prose you emit to the user, and a loader call there would be read as text rather than executed. Your own read of that file goes through the loader call under Planning discipline below.
 
 ```markdown
 ## Risk-weighted implementation plan
 
 ### Classification
 - **Level**: [SIGNIFICANT | HIGH-RISK]
-- **Reason**: [one sentence citing the specific criterion from classification.md]
+- **Reason**: [one sentence citing the specific criterion from workflows-core:model-routing/classification]
 
 ### Goal
 [one-sentence summary of the outcome]
@@ -115,9 +115,9 @@ _or_ "Ranking withheld — no red-capable repro. Tried: [what you tried, and wha
 ## Planning discipline
 
 - **Cite the criterion.** The classification reason must reference a concrete
-  bullet from `workflows-core:model-routing/classification`
-  (absolute path, since the agent's working directory is the caller's project,
-  not this repo), not a vibe. Use `Read` to open it if needed.
+  bullet from `Skill(skill: "workflows-core:reference", args: "model-routing/classification")`,
+  not a vibe. That reference ships in the companion plugin, so no path — absolute
+  or otherwise — reaches it from here; the loader call is how you open it.
 - **Minimise scope.** Suggest the smallest change that meets the acceptance
   checks. Do NOT introduce abstractions, feature flags, or cleanup for
   unrelated code.

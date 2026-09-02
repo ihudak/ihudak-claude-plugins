@@ -32,8 +32,7 @@ Flags: `--design-twice` forces the Phase 5 interface fan-out on the run's load-b
    never an address.
 
    Parse the **single positional address** from the stripped `$ARGUMENTS` — a `<KEY>`, or an
-   `@<path>` naming a folder or a file inside one — and resolve it with `resolve-address`
-   (`workflows-core:addressing` §3). Carry forward:
+   `@<path>` naming a folder or a file inside one — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). Carry forward:
    - `<PRD>` — the resolved **PRD folder's** `key`: the folder itself when the address named a
      `PRD-` folder, its parent when the address named an `EPIC-` folder.
    - `<EPIC>` — the resolved `EPIC-` folder's `key`, or `null` when the address named a `PRD-`
@@ -59,7 +58,7 @@ it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run �
 *(The preflight runs here, before the gate below, because `require-on-main` performs **no** `fetch` of its own — §3.2 — and relies on this step's best-effort one. Gating first would test never-fetched refs: a just-merged artifact would be missed on `origin/<default>` while the stale remote-tracking ref for its deleted branch still carries it, producing a false row D/E stop. `specs-preflight` self-gates on `$SPECS_PATH`, so it is safe this early.)*
 
 3. **Map onto the specs repo + require the spec on main.** Derive provisional kebab-case slugs from the relevant title(s): `<vslug>` for `<PRD>`, and `<eslug>` for `<EPIC>` when `focus_key` is set.
-   - **Resolve the PRD dir:** call `resolve-address <PRD>` (`workflows-core:addressing` §3) and use its `path`; on `ambiguous`, stop naming every match and `@<path>` as the way through. No matching rule is written here — §5 owns it, and it carries the legacy fallback. Use a freshly derived `PRD-<PRD>-<vslug>` only on `status: absent`. Every later `specifications/<PRD>-<vslug>/` in this command — the Epic-enumeration ref test included — names the dir resolved here.
+   - **Resolve the PRD dir:** call `resolve-address <PRD>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3) and use its `path`; on `ambiguous`, stop naming every match and `@<path>` as the way through. No matching rule is written here — §5 owns it, and it carries the legacy fallback. Use a freshly derived `PRD-<PRD>-<vslug>` only on `status: absent`. Every later `specifications/<PRD>-<vslug>/` in this command — the Epic-enumeration ref test included — names the dir resolved here.
    - **Resolve the feature folder** by case:
      - **`focus_key` set** → the per-Epic home `specifications/<PRD>-<vslug>/EPIC-<EPIC>-<eslug>/` (same honor-existing tolerance on the `EPIC-<EPIC>-<eslug>` segment); the target is `specification.md` there.
      - **`focus_key` null** → resolved in step 4 (Granularity): either the flat PRD dir (a broad PRD-level spec) or a per-Epic subfolder the picker selects.
@@ -74,7 +73,7 @@ it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run �
      - it holds a **flat `specification.md`** (a broad PRD-level spec — the only shape that puts one at PRD level, now that a top-level `EPIC-` folder with no PRD above it is retired: `/dev-workflows:epics` writes every `EPIC-` folder under a PRD folder and is the only command that writes one) → one design; the feature folder is the PRD dir itself. Skip the picker; go to step 5 (step 3's gate re-applies against this flat path).
      - it holds **Epic subfolders** → enumerate the **spec'd** ones using the ref test `git -C "$SPECS_PATH" cat-file -e "origin/<default>:specifications/<PRD>-<vslug>/EPIC-<EPIC>-<eslug>/specification.md" 2>/dev/null` (exit 0 = present on `<default>`; the `2>/dev/null` is required — git writes `fatal:` to stderr on absence) — never a worktree file-existence check, which would list a branch-only Epic as designable for a user to select before step 3's gate stops on it. A subfolder that fails the test is excluded from the actionable set and counted in the excluded-count report, with the reason distinguished: *"N Epic(s) excluded — no specification.md; M excluded — specification.md not yet merged to `<default>`."* Then branch on count — this is the reusable **progress-aware Epic-picker pattern** in `workflows-core:epic-picker`, applied here with `/design`'s own done-predicate and enumerated from the specs repo, which is now the only place any command enumerates Epics from:
        - **exactly 1 spec'd Epic** → no picker; auto-select it; re-point the feature folder to its per-Epic subfolder; emit a one-line notice.
-       - **≥2 spec'd Epics** → render the picker per `workflows-core:epic-picker`, listing every spec'd Epic as prose and letting the array carry at most three rows plus *"Another Epic from the list above — name its key"* (that file's *The cap* section — four spec'd Epics already overflow the prompt, and a typed key is resolved against the keys just listed, never parsed). Compute each Epic's state from `/design`'s **done-predicate** against that Epic's resolved folder:
+       - **≥2 spec'd Epics** → render the picker per `Skill(skill: "workflows-core:reference", args: "epic-picker")`, listing every spec'd Epic as prose and letting the array carry at most three rows plus *"Another Epic from the list above — name its key"* (that file's *The cap* section — four spec'd Epics already overflow the prompt, and a typed key is resolved against the keys just listed, never parsed). Compute each Epic's state from `/design`'s **done-predicate** against that Epic's resolved folder:
          - **○ not started** — a `specification.md` exists there but no `design.md` and no `_design-session.md` → selectable.
          - **◐ in progress** — a `_design-session.md` exists there but no `design.md` → selectable as a resume (per-Epic stage resume then runs in Phase 5 from that `_design-session.md`).
          - **● done** — a `design.md` exists there → shown greyed, **not** default-selectable; selecting offers *revise*.
@@ -92,7 +91,7 @@ scans repos under `$REPOS_PATH`; cwd need not be inside either.
 
 ## Phase 1 — Configure
 
-**Rule: Ask, don't guess. This rule is absolute.** Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0).
+**Rule: Ask, don't guess. This rule is absolute.** Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`Skill(skill: "workflows-core:reference", args: "escalation-rules")` §0).
 
 1. **Feature folder.** Confirm the path resolved in Phase 0:
    `choices: ["Use <feature_folder> (Recommended)", "Use a different path (you'll be prompted)", "Cancel"]`
@@ -222,11 +221,10 @@ Handle per-repo status after the batch returns:
 
 ## Phase 5 — Grill: challenge + design
 
-**Interview technique (grilling — embedded; no runtime dependency).** Conduct the design as a **relentless** interview per `workflows-core:grilling-technique` — one question at a time, recommend each answer, explore the Phase 4 code scan / spec to self-answer (fact-vs-decision), walk the design tree in dependency order, continue to shared understanding then write the section.
+**Interview technique (grilling — embedded; no runtime dependency).** Conduct the design as a **relentless** interview per `Skill(skill: "workflows-core:reference", args: "grilling-technique")` — one question at a time, recommend each answer, explore the Phase 4 code scan / spec to self-answer (fact-vs-decision), walk the design tree in dependency order, continue to shared understanding then write the section.
 
 Run **two intertwined tracks**, authoring `design.md` live against
-`${CLAUDE_PLUGIN_ROOT}/references/design-format.md`, applying the no-hard-wrap prose convention in
-`workflows-core:prose-formatting`, sections scaled by the Phase 1.5 classification:
+`${CLAUDE_PLUGIN_ROOT}/references/design-format.md`, applying the no-hard-wrap prose convention in `Skill(skill: "workflows-core:reference", args: "prose-formatting")`, sections scaled by the Phase 1.5 classification:
 
 - **Challenge the spec.** Interrogate testability, seams, scope realism, missing cases, and feasibility
   against the real code. Record every substantive challenge **into `specification.md`**: add/extend an
@@ -303,8 +301,7 @@ takes in `### Alternatives considered` (take, constraint, why it lost) per
 
 ## Phase 5.5 — Structural pre-lint
 
-Before the review gate, run the deterministic checks in
-`workflows-core:pre-lint` against the drafted `design.md`: the **Universal checks**
+Before the review gate, run the deterministic checks in `Skill(skill: "workflows-core:reference", args: "pre-lint")` against the drafted `design.md`: the **Universal checks**
 plus the **design** block (core headings present; a MODERATE+ design has `## Seams` or a `_N/A — why_`;
 report the `## Open questions` `- [ ]` count). Surface every finding; inline-fix the mechanical ones
 (delete a stray placeholder token); leave content gaps for the grill/author. **Advisory** — never
@@ -459,7 +456,7 @@ The report always states exactly one of the Phase 5 interface fan-out outcomes w
 
 ### Next step
 
-End the report with a `### Next step` recommendation per `workflows-core:next-phase-offer` (guidance only — never auto-invoked): → `/dev-workflows:implement <EPIC>` (depth, still Dev) `<merge-clause>`, which stops rather than proceeding wherever this design reached a branch (`workflows-core:phase-handoff` §3.3 rows D/E) and is unaffected wherever it reached none (§3.4's `/implement` row); the **Epic fan-out** `/dev-workflows:design <SIBLING-EPIC>` designs a sibling Epic (breadth, no merge wait — a different Epic's design). Each is **one** address — the Epic's own key encodes its ancestry, so no command here takes a `<PRD> <Epic>` pair (D4). If the run BLOCKED or `design.md` has open questions, recommend resolving those first.
+End the report with a `### Next step` recommendation per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")` (guidance only — never auto-invoked): → `/dev-workflows:implement <EPIC>` (depth, still Dev) `<merge-clause>`, which stops rather than proceeding wherever this design reached a branch (`workflows-core:phase-handoff` §3.3 rows D/E) and is unaffected wherever it reached none (§3.4's `/implement` row); the **Epic fan-out** `/dev-workflows:design <SIBLING-EPIC>` designs a sibling Epic (breadth, no merge wait — a different Epic's design). Each is **one** address — the Epic's own key encodes its ancestry, so no command here takes a `<PRD> <Epic>` pair (D4). If the run BLOCKED or `design.md` has open questions, recommend resolving those first.
 
 `<merge-clause>` is the placeholder `workflows-core:next-phase-offer` owns, resolved from this run's own `Phase handoff:` outcome line (§4.1) and never written as the unconditional "once the pull request above is merged" — the handoff offered above reaches a declined, a push-failed and a nothing-to-commit outcome, and two of the three open no pull request to wait on. This offer is prose rather than a `choices:` array, so `scripts/check-docs.sh` check 11 cannot see it: it is held by review alone, even though `design.md` is exactly the intersection that check looks for.
 

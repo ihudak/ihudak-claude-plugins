@@ -120,7 +120,7 @@ cannot review, and they will not tell you that — they will review it anyway, b
    the same ordering `/brd-interview` uses and for the same reason. Prompt-free and silent when the
    specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run.
-5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`workflows-core:addressing` §3), which searches
+5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), which searches
    `specifications/` and the levels below it that `resolve-address` searches (three, per `workflows-core:addressing` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent
    → stop, without asserting which command would have created it:
    `BRD_PACKAGE_NOT_FOUND: no BRD folder found for <BRD-KEY> under $SPECS_PATH/specifications/ (both levels searched) — check the key. A BRD with a source document of its own is created by /dev-workflows:brd-intake <BRD-KEY> @<brd-file>; a slice is created by /dev-workflows:brd-split on its parent.`
@@ -433,7 +433,7 @@ to. Then:
   free-text answer is normalised into their own vocabulary rather than written through. Nobody is
   trapped: that free-text option is always present, and an answer that lands on none of the listed
   values re-asks rather than inventing a value no consumer handles. No `(Recommended)` marker, and the reason is stated beside
-  the list per the `When no option is safe to recommend` guidance in `workflows-core:escalation-rules`: which
+  the list per the `When no option is safe to recommend` guidance in `Skill(skill: "workflows-core:reference", args: "escalation-rules")`: which
   tier is right is not a judgement at all, it is a fact about what this customer can be given, and a
   marker would invite the run to ship at Full because Full is better.
 
@@ -819,7 +819,7 @@ findings may be exactly right to send today or exactly right to hold, and only t
 which. The reason is stated here, beside the list, rather than folded into a conditional marker the
 orchestrator would then have to evaluate.
 
-Say plainly what remains, per `workflows-core:next-phase-offer` — names only,
+Say plainly what remains, per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")` — names only,
 never behaviour a command of its own owns: the round holding each `[C]` stays open until the
 customer's answer comes back and `/dev-workflows:brd-reconcile` records it, and what happens between
 this run and that one is not the plugin's to do — the package has to reach a customer and the
@@ -912,7 +912,7 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 
 `/brd-package` never changes a ledger disposition — the line simply reports where allocation stands.
 **Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree via
-`resolve-address` (`workflows-core:addressing` §3), per `coverage-ledger-format.md` §6.1 — a child on a BRD that
+`resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), per `coverage-ledger-format.md` §6.1 — a child on a BRD that
 owns its source document, a sibling or the parent on a slice (§3); a ledger that cannot be
 read there contributes `unresolved`, never `covered` (§6.2). A slice does **not** always reach this with
 nothing to resolve. `covered-by` is legal on a slice (`coverage-ledger-format.md` §3), where it

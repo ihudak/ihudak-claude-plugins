@@ -36,7 +36,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
 2. **Profile.** `--lean | --hybrid | --full`; default `--hybrid` — **or `--full` when the BRD route is present** and no profile flag was given, per the design's *Profile default* section (§7.4): that profile is the one carrying `## Functional requirements` (`[FR#N]`), `## API specification`, `## UX prototype / UI mockups` and the full `## Assumptions & open questions` Contradictions Log, so considerably more BRD-derived content has a legitimate **product-altitude** home than `--hybrid` allows. An explicit `--lean`/`--hybrid` still wins: the default is a default, not an override.
 2a. **`--from-prd <PRD-KEY|path>` (optional seed).** When present, this run authors a **new** PRD (the
     positional `<KEY>`) seeded read-only by another PRD. Resolve the seed via
-    `resolve-address` (`workflows-core:addressing` §3) and read that folder's
+    `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3) and read that folder's
     `prd.md` for a key, or read the given path directly. The seed is **grounding, not content**
     (Phase 3 adapts it; it is never copied wholesale).
 
@@ -73,8 +73,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
 5. **Feature folder. On the BRD route this is the resolved `PRD-` slice folder** — the one
    `/brd-split` carved, which is what step 5a's container refusal leaves standing — and it is never
    created here. There is no second resolution for that route and no `<BRD-dir>` argument to read:
-   the single positional address was resolved once with `resolve-address`
-   (`workflows-core:addressing` §3). The
+   the single positional address was resolved once with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). The
    PRD this run authors is written **into that folder** as `prd.md`, beside the BRD
    artifacts it was derived from.
 
@@ -96,7 +95,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    `/epics`' `EPICS_EPIC_NOT_UNDER_PRD` each name `/dev-workflows:create-prd <KEY>` as the run that
    **creates** a `PRD-` folder where none exists; were the stop the live reading, all four would be
    naming a command that refuses them.
-   Without the BRD route, unchanged in substance: resolve the folder with `resolve-address <KEY>` (`workflows-core:addressing` §3), which searches every level §3 bounds and carries §5's legacy fallback; no matching rule is written here, because a second copy of §5's is the drift §1 warns about. This is the resolution every mention of the feature folder in this command means, step 3's rung-1 `idea.md` included. On `status: absent` the folder is auto-created by the first write (Phase 5) as `PRD-<KEY>-<slug>/` per §2's convention, `<slug>` from the idea title (else a kebab of the PRD summary) — resolution honors a folder that already exists wherever it sits, and never proposes one.
+   Without the BRD route, unchanged in substance: resolve the folder with `resolve-address <KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), which searches every level §3 bounds and carries §5's legacy fallback; no matching rule is written here, because a second copy of §5's is the drift §1 warns about. This is the resolution every mention of the feature folder in this command means, step 3's rung-1 `idea.md` included. On `status: absent` the folder is auto-created by the first write (Phase 5) as `PRD-<KEY>-<slug>/` per §2's convention, `<slug>` from the idea title (else a kebab of the PRD summary) — resolution honors a folder that already exists wherever it sits, and never proposes one.
 5a. **The container refusal — a `BRD-` folder is never a `/create-prd` target, on either route.**
    Take this the moment step 5 returns `status: found`, **before `coverage-ledger.md` is opened at
    all** and before step 6 reads a prior PRD. **It is not part of the BRD gate below and must not be
@@ -244,7 +243,7 @@ Usage: `/create-prd <ADDRESS> [@idea.md] [--from-prd <PRD-KEY|path>] [--lean|--h
    `covered-here` one. Un-deferring a requirement is a decision the operator takes with the customer,
    not a command; naming one here would send the reader into a run that does nothing. Per the
    *When no option is safe to recommend* guidance in
-   `workflows-core:escalation-rules`, nothing on that stop is marked
+   `Skill(skill: "workflows-core:reference", args: "escalation-rules")`, nothing on that stop is marked
    `(Recommended)`.
 
    **None of the three refusals carries a merge clause — step 5a's container refusal included — and
@@ -402,7 +401,7 @@ exists to prevent.
 
 Dispatch both grounding agents **in a single response** so they run in parallel. Each is independent; either being OFF never suppresses the other.
 
-**Docs.** Run `resolve-docs-grounding create-prd` per `workflows-core:docs-grounding`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the idea's problem/goal + PRD themes, `key` = `<KEY>`, and `themes` from the idea. When OFF, skip silently.
+**Docs.** Run `resolve-docs-grounding create-prd` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the idea's problem/goal + PRD themes, `key` = `<KEY>`, and `themes` from the idea. When OFF, skip silently.
 
 **On the BRD route both agents run unchanged; only their inputs are substituted**, because there is
 no `idea.md` to take them from. `feature_summary` and `themes` come from `prd-seed.md` (falling back
@@ -417,9 +416,9 @@ Carry both digests into Phase 3 with **grill-rank** consumption. When both are O
 
 ## Phase 3 — Author via grill
 
-**Interview technique (grilling — embedded; no runtime dependency).** Conduct a **relentless** interview per `workflows-core:grilling-technique` — one question at a time, recommend each answer, fact-vs-decision split (look up facts from the idea/sources; put only decisions to the user), walk the design tree in dependency order, continue to shared understanding then write each section. Rank every `docs_challenges` entry from Phase 2.5 into the grill's question order; a challenge competes for attention, it never suspends the spine below.
+**Interview technique (grilling — embedded; no runtime dependency).** Conduct a **relentless** interview per `Skill(skill: "workflows-core:reference", args: "grilling-technique")` — one question at a time, recommend each answer, fact-vs-decision split (look up facts from the idea/sources; put only decisions to the user), walk the design tree in dependency order, continue to shared understanding then write each section. Rank every `docs_challenges` entry from Phase 2.5 into the grill's question order; a challenge competes for attention, it never suspends the spine below.
 
-Author `prd.md` live against `workflows-core:prd-format` for the selected profile, applying the no-hard-wrap prose convention in `workflows-core:prose-formatting`. Walk the **spine** in dependency order:
+Author `prd.md` live against `Skill(skill: "workflows-core:reference", args: "prd-format")` for the selected profile, applying the no-hard-wrap prose convention in `Skill(skill: "workflows-core:reference", args: "prose-formatting")`. Walk the **spine** in dependency order:
 
 1. Frontmatter — `relevant_for_release_notes` (defaults to `yes`; ask only to confirm a `no`); `sources` (propagated), `derived_from`, `seeded_from_prd` (only when `--from-prd` was used), and `key` — **written on every route**, set to the address this run resolved. On either route it is the `key:` the resolved folder asserts (`workflows-core:addressing` §4) — the positional key the operator chose on the `/idea` route, and the slice's own key on the BRD route, which is also the name of the folder this PRD is written into.
 
@@ -517,8 +516,7 @@ plugin is not installed), **skip this phase gracefully** and note
 
 ## Phase 3.6 — Structural pre-lint
 
-Before the review gate, run the deterministic checks in
-`workflows-core:pre-lint` against the drafted `prd.md`: the
+Before the review gate, run the deterministic checks in `Skill(skill: "workflows-core:reference", args: "pre-lint")` against the drafted `prd.md`: the
 **Universal checks**, the **key-collision** check (run on the PRD body below the frontmatter),
 and the **PRD** block. Surface every finding; inline-fix the mechanical ones
 (renumber a duplicate `[US#N]`/`[AC#N]`/`[SM#N]`, delete a stray placeholder token); leave content gaps
@@ -604,7 +602,7 @@ withhold — the offer says what it always meant to say, one phase earlier.
 **The PA option reads `/dev-workflows:create-ard <ADDRESS>` on both routes.** It resolves the folder
 with `resolve-address` and reads what that folder holds — an `ard-seed.md` where the BRD route left
 one, the PRD otherwise. It carries **no** merge clause where the run it offers gates nothing this run
-wrote, per `workflows-core:next-phase-offer`'s resolution table.
+wrote, per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`'s resolution table.
 
 Guidance only — never auto-invokes another command. Per `workflows-core:next-phase-offer`.
 

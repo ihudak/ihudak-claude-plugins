@@ -25,7 +25,7 @@ Implement the following: $ARGUMENTS
 
 **Address resolution.** Before the per-`@path` classification above, look for a **single positional
 address** in `$ARGUMENTS` — a `<KEY>`, or an `@<path>` naming a folder in the specs tree. Present →
-resolve it with `resolve-address` (`workflows-core:addressing` §3) and the run
+resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3) and the run
 is **keyed**; absent → the run is **direct** (free-text / `@file`, this command's existing flow).
 That is the whole mode test, and it unifies the input grammar with `/document`.
 
@@ -45,7 +45,7 @@ resolved `path`, `kind` and `key`, and `specs` forward.
   `/dev-workflows:epics` is the only command that creates an `EPIC-` folder and it writes every one
   of them under a PRD folder, so an Epic address is always the bullet above.
   - **PRD with exactly 1 Epic** → no picker; set `focus_key` to that Epic and proceed.
-  - **PRD with ≥2 Epics** → render the picker per `workflows-core:epic-picker`,
+  - **PRD with ≥2 Epics** → render the picker per `Skill(skill: "workflows-core:reference", args: "epic-picker")`,
     honouring that file's *The cap*: every Epic listed as prose, the array carrying at most three rows
     plus *"Another Epic from the list above — name its key"*. **`/implement`'s done-predicate is now the artifacts
     present in each Epic folder**, which is the mechanism `/design`'s own Epic picker already uses:
@@ -138,7 +138,7 @@ Before producing a plan, analyze the description for:
 
 If **any** ambiguity exists, ask the user. Rules:
 - Use `choices` arrays for every question — never plain text questions
-- Every `choices` array carries 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0), which is what allows free-text
+- Every `choices` array carries 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`Skill(skill: "workflows-core:reference", args: "escalation-rules")` §0), which is what allows free-text
 - When a clearly superior default exists, make it the first choice and label it `"(Recommended)"`
 - Group related decisions into a single question (minimize total questions)
 - Do **not** proceed until all questions are answered
@@ -158,7 +158,7 @@ Invoke the `model-routing` skill (Skill tool, `skill: "workflows-core:model-rout
 
 State the classification and the specific criterion that triggered it. When in doubt between MODERATE and SIGNIFICANT, pick SIGNIFICANT.
 
-**Resolve the per-step routing.** Invoking `Skill(skill: "workflows-core:reference", args: "model-routing/classification")` and, following its §9, record a `model_routing` block resolving each model against the fallback chains:
+**Resolve the per-step routing.** Invoke `Skill(skill: "workflows-core:reference", args: "model-routing/classification")` and, following its §9, record a `model_routing` block resolving each model against the fallback chains:
 
 ```yaml
 model_routing:
@@ -852,7 +852,7 @@ directory; no user name is ever written (§10 privacy).
 - ALWAYS spawn Phase 4 agents in a single message — never sequentially
 - ALWAYS use `choices` arrays for decision points; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0)
 - ALWAYS produce the Phase 5 report as the final output
-- ALWAYS end the Phase 5 report with a `### Next step` recommendation (per `workflows-core:next-phase-offer`) — guidance only, never auto-invoked; omitted in direct mode (no PRD/Epic pipeline context)
+- ALWAYS end the Phase 5 report with a `### Next step` recommendation (per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`) — guidance only, never auto-invoked; omitted in direct mode (no PRD/Epic pipeline context)
 - ALWAYS pass `Command run: /implement` in the Phase 4 Agent 4 session handoff
 - ALWAYS pass `Change type: code` in the Phase 4 change summary block (scopes the four maintenance agents' suggestions to code-change territory — docs variants use `docs`)
 - AFTER one review-fixer pass + one re-review, if verdict is still BLOCK: stop and surface to user — do NOT loop

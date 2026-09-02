@@ -185,7 +185,7 @@ attack.
   supplies a free-text option, so the picker cannot decline one — what protects the closed vocabulary
   is what the run *does* with the answer: a free-text reply is normalised into one of the four, or the
   finding is re-asked. It is never written through, because a fifth disposition is one nothing
-  downstream can read ([`escalation-rules.md`](../reference/references.md) §0).
+  downstream can read ([`workflows-core:escalation-rules`](../reference/references.md) §0).
 - **Phase 4 — a `fixed` correction re-opens the review, exactly once.** Correcting the package
   changes what the review was written against, so the reviewer runs again over the corrected package
   with the first pass in `prior_reviews`. Once, not until clean: an unbounded loop trades the

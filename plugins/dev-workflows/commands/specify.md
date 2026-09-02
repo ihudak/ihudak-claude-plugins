@@ -111,8 +111,7 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
      saying only that the dispositions are replaced is not the disclosure.
 
 1. **Resolve the address.** Parse the **single positional address** from `$ARGUMENTS` — a `<KEY>`,
-   or an `@<path>` naming a folder or a file inside one — and resolve it with `resolve-address`
-   (`workflows-core:addressing` §3). Carry forward:
+   or an `@<path>` naming a folder or a file inside one — and resolve it with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). Carry forward:
    - `<PRD>` — the resolved **PRD folder's** `key`: the folder itself when the address named a
      `PRD-` folder, its parent when it named an `EPIC-` folder.
    - `<EPIC>` — the `EPIC-` folder's `key`, or `null` when the address named a `PRD-` folder.
@@ -150,8 +149,7 @@ the same ordering for the same reason.
    provisional slug is enough to check for existing folders now): `<vslug>` for the `<PRD>` title, and
    `<eslug>` for the `<EPIC>` title when `focus_key` is set.
 
-   - **Resolve/derive the PRD (top-level) dir:** call `resolve-address <PRD>`
-     (`workflows-core:addressing` §3), which searches every level §3 bounds and
+   - **Resolve/derive the PRD (top-level) dir:** call `resolve-address <PRD>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), which searches every level §3 bounds and
      carries §5's legacy fallback — including a slug a human has adjusted. No matching rule is
      written here; §5 owns it. **`status: absent` is a stop, not a folder to create** — this command
      creates no folder in the specs tree, on either route, and the stop it takes is the one written
@@ -188,8 +186,7 @@ the same ordering for the same reason.
 
    **On the BRD route the feature folder is the resolved `PRD-` slice folder**, and it is never
    created here. There is no second resolution for that route and no `<BRD-dir>` argument to read:
-   the single positional address was resolved once with `resolve-address`
-   (`workflows-core:addressing` §3), step 0 refused the container the upper
+   the single positional address was resolved once with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), step 0 refused the container the upper
    level holds, and the folder that survives both **is** the slice.
    **The write location then follows `focus_key`, by the same two cases as above and not by a rule of its
    own.** A slice is a `PRD-` folder, so `focus_key` is null when the run starts and `specification.md`
@@ -269,7 +266,7 @@ prefix like any other and carries no such discipline.
 
 **Rule: Ask, don't guess. This rule is absolute.**
 
-Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0).
+Use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`Skill(skill: "workflows-core:reference", args: "escalation-rules")` §0).
 
 1. **Feature folder.** Confirm the path resolved in Phase 0:
    ```
@@ -416,7 +413,7 @@ is the only command that writes one at all.
   - **● done** — `specification.md` exists there → shown greyed, **not** default-selectable;
     selecting it offers *revise*.
   Default cursor = the first actionable row (in-progress before not-started). Render per
-  `workflows-core:epic-picker`: every Epic listed as prose above the prompt, and
+  `Skill(skill: "workflows-core:reference", args: "epic-picker")`: every Epic listed as prose above the prompt, and
   the array carrying **at most two** Epic rows (marker + key + title), the explicit
   **"Author one broad PRD-level spec instead"** choice, and *"Another Epic from the list above — name
   its key"*. That file's *The cap* section is why the Epic rows are the ones that give way: the
@@ -651,7 +648,7 @@ For each repo in the batch:
   >   switch_to_default_branch: [true if Phase 1 chose 'fetch + pull default branch' (default) or 'fetch only'; false if 'no refresh']
   >   pull: [true if 'fetch + pull default branch'; false otherwise]"
 
-**Documentation grounding (optional).** Run `resolve-docs-grounding specify` per `workflows-core:docs-grounding`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the scoped Epic/PRD goal, `key` = the focus key, `themes` = the Phase 2 capability themes. Carry the digest into the Phase 5 grill with **grill-rank** consumption. When OFF, skip silently.
+**Documentation grounding (optional).** Run `resolve-docs-grounding specify` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")`. When `docs_grounding: ON`, `dispatch-docs-grounder` with `feature_summary` = the scoped Epic/PRD goal, `key` = the focus key, `themes` = the Phase 2 capability themes. Carry the digest into the Phase 5 grill with **grill-rank** consumption. When OFF, skip silently.
 
 Handle per-repo status after the batch returns:
 
@@ -673,9 +670,9 @@ Handle per-repo status after the batch returns:
 
 ## Phase 5 — Author via grill
 
-**Interview technique (grilling — embedded; no runtime dependency).** Conduct each stage as a **relentless** interview per `workflows-core:grilling-technique` — one question at a time, recommend each answer, explore the Phase 4 code scan / PRD content to self-answer (fact-vs-decision), walk the design tree in dependency order, continue to shared understanding then write that stage's section.
+**Interview technique (grilling — embedded; no runtime dependency).** Conduct each stage as a **relentless** interview per `Skill(skill: "workflows-core:reference", args: "grilling-technique")` — one question at a time, recommend each answer, explore the Phase 4 code scan / PRD content to self-answer (fact-vs-decision), walk the design tree in dependency order, continue to shared understanding then write that stage's section.
 
-Walk the stages in order, authoring `specification.md` live against `${CLAUDE_PLUGIN_ROOT}/references/specification-format.md`, applying the no-hard-wrap prose convention in `workflows-core:prose-formatting`:
+Walk the stages in order, authoring `specification.md` live against `${CLAUDE_PLUGIN_ROOT}/references/specification-format.md`, applying the no-hard-wrap prose convention in `Skill(skill: "workflows-core:reference", args: "prose-formatting")`:
 
 1. Header + **Problem statement**
 2. **Scope** (In/Out)
@@ -736,8 +733,7 @@ prescribes.
 
 ## Phase 5.5 — Structural pre-lint
 
-Before finalizing, run the deterministic checks in
-`workflows-core:pre-lint` against the drafted `specification.md`: the **Universal
+Before finalizing, run the deterministic checks in `Skill(skill: "workflows-core:reference", args: "pre-lint")` against the drafted `specification.md`: the **Universal
 checks** plus the **spec** block (incl. the `- **Open questions**: N` header equalling the `- [ ]`
 count). Surface every finding; inline-fix the mechanical ones (renumber a duplicate `[Uxx]`/`[ACxx]`/
 `[TCxx]`, correct the open-questions count, delete a stray placeholder token); leave content gaps for
@@ -949,7 +945,7 @@ was not.
 
 ### Next step
 
-End the report with a `### Next step` recommendation per `workflows-core:next-phase-offer` (guidance only — never auto-invoked): **Epic-level spec** (the address resolved an `EPIC-` folder) → hand to Dev → `/dev-workflows:design <EPIC>` `<merge-clause>`, which will not start until this spec is on the default branch — on every path, since `workflows-core:phase-handoff` §3.4's `/design` row is a stop even for a spec that reached no branch — and the **Epic fan-out** `/dev-workflows:specify <SIBLING-EPIC>` for a sibling Epic (breadth), which waits on nothing this run produced and carries no clause; **PRD-level spec** (the address resolved a `PRD-` folder) → `/dev-workflows:epics <PRD>` (PE) `<merge-clause>`, which stops rather than skipping wherever this spec reached a branch (§3.3 rows D/E) and skips exactly as it did before wherever it reached none (§3.4's `/epics` row). If the run BLOCKED or left open `- [ ]` items, recommend resolving those first.
+End the report with a `### Next step` recommendation per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")` (guidance only — never auto-invoked): **Epic-level spec** (the address resolved an `EPIC-` folder) → hand to Dev → `/dev-workflows:design <EPIC>` `<merge-clause>`, which will not start until this spec is on the default branch — on every path, since `workflows-core:phase-handoff` §3.4's `/design` row is a stop even for a spec that reached no branch — and the **Epic fan-out** `/dev-workflows:specify <SIBLING-EPIC>` for a sibling Epic (breadth), which waits on nothing this run produced and carries no clause; **PRD-level spec** (the address resolved a `PRD-` folder) → `/dev-workflows:epics <PRD>` (PE) `<merge-clause>`, which stops rather than skipping wherever this spec reached a branch (§3.3 rows D/E) and skips exactly as it did before wherever it reached none (§3.4's `/epics` row). If the run BLOCKED or left open `- [ ]` items, recommend resolving those first.
 
 **One precondition governs every `/dev-workflows:epics` option above, on both routes.** `/epics` accepts
 a folder holding a `prd.md` that asserts `kind: prd` and refuses one that does not
@@ -986,7 +982,7 @@ option costs it no arity — it says what it can honestly recommend and why the 
 
 **On the BRD route the same offers apply, on the same terms.**
 `/dev-workflows:design` and `/dev-workflows:epics` both resolve a folder in the specs tree with
-`resolve-address` (`workflows-core:addressing` §3) — the same tree, and often
+`resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3) — the same tree, and often
 the same folder, this run has just written into:
 
 - **`/dev-workflows:design <ADDRESS>` `<merge-clause>`** — it gates the `specification.md` this run

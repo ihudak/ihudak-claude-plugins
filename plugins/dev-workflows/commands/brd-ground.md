@@ -49,7 +49,7 @@ behaviour, not the behaviour.
    one, the same ordering `/design` Phase 0 uses and for the same reason. Prompt-free and silent
    when the specs repo is clean and on its default branch. If it returns `specs_git: blocked`
    (§3.3 G0), carry that flag for the whole run.
-5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`workflows-core:addressing` §3), which searches
+5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), which searches
    `specifications/` and the levels below it that `resolve-address` searches (three, per `workflows-core:addressing` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it.
    Absent → stop, without asserting which command would create it: no folder exists, so no
    `brd-link.md` exists either, and nothing on disk says whether this key names a BRD with a source
@@ -184,7 +184,7 @@ BRDs carry no PR links to auto-derive a repo list from (unlike `/epics`), so thi
 the manual path:
 
 0. **Resolve documentation grounding, once, before prompting.** Run
-   `resolve-docs-grounding brd-ground` per `workflows-core:docs-grounding` and
+   `resolve-docs-grounding brd-ground` per `Skill(skill: "workflows-core:reference", args: "docs-grounding resolve-docs-grounding")` and
    surface the `docs grounding:` line it returns — `ON <root> (retrieval: …)` or `OFF (<reason>)` —
    **verbatim**, including any index-build, staleness, or shadowing clause it carries (off switch:
    --no-docs), alongside the repo prompt below. It runs **exactly once per run**, here; Phase 4.5
@@ -206,7 +206,7 @@ the manual path:
 3. Resolve each named repo against the map: one match → use it; multiple matches → auto-prefer
    basename ending `-repo`, then `_repo`/`_fast`, then alphabetically last (show candidates before
    proceeding); zero matches → escalate per the `Repo unresolved (zero matches) — /brd-ground` rule
-   in `workflows-core:escalation-rules`:
+   in `Skill(skill: "workflows-core:reference", args: "escalation-rules")`:
    ```
    choices: ["Skip and continue without this repo", "I'll clone it — wait", "Cancel", "Specify a different absolute path for this repo"]
    ```
@@ -707,7 +707,7 @@ order, since it refuses a ledger that still holds an unallocated row. `/brd-spli
 until this phase's findings are on the specs repo's default branch — its own Phase 0 gates
 `grounding/code-grounding.md` on `origin/<default>`; **which words state that wait are
 `<merge-clause>`'s**, resolved from this run's own `Phase handoff:` outcome line per
-`workflows-core:next-phase-offer`, since a declined handoff opened no pull
+`Skill(skill: "workflows-core:reference", args: "next-phase-offer")`, since a declined handoff opened no pull
 request to wait on — and it carries its own role and
 cost-attribution row (`docs/roles-and-phases.md`). Guidance only, per
 `workflows-core:next-phase-offer` — names only that `/brd-split` exists and
@@ -807,7 +807,7 @@ going into `/brd-split`.
 BRD it names — a child on a BRD that owns its source document, a sibling or the parent on a slice
 (`coverage-ledger-format.md` §3) — so this report resolves each `covered-by: <BRD-KEY>` row one hop
 into that BRD's own `coverage-ledger.md`, resolved from the
-working tree by `resolve-address` (`workflows-core:addressing` §3). **This adds
+working tree by `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). **This adds
 no precondition and no gate.** A child folder that is absent from the tree this run is standing in —
 its split not yet merged, most commonly — makes that row `unresolved` in the line and nothing more:
 grounding this BRD does not depend on any child, and a run must never stop, degrade, or withhold its

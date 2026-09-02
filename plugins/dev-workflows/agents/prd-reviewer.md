@@ -31,7 +31,7 @@ runs a fix cycle and re-reviews once.
    `brd_key` IS a finding — `MAJOR` — and not a legitimate omission: it is the signature of a PRD
    authored from a root BRD, which is the container a PRD may never be authored in. `depends_on` is
    a different case and is legitimately absent when the customer committed to no prerequisite.
-3. Apply every spine rule from `workflows-core:prd-format`; for each adapt-in section present, apply its rule.
+3. Apply every spine rule from `Skill(skill: "workflows-core:reference", args: "prd-format")`; for each adapt-in section present, apply its rule.
 4. Apply the dimension checks below.
 5. Record each finding in the severity schema; route gaps needing product knowledge to **needs product input**; never fabricate a fix.
 

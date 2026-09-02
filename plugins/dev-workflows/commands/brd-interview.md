@@ -119,7 +119,7 @@ and nothing downstream can tell the difference afterwards.
    the same ordering `/brd-ground` uses and for the same reason. Prompt-free and silent when the
    specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if it returns
    `specs_git: blocked` (§3.3 G0), carry that flag for the whole run.
-5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`workflows-core:addressing` §3), which searches
+5. **Resolve the BRD folder.** `resolve-address <BRD-KEY>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), which searches
    `specifications/` and the levels below it that `resolve-address` searches (three, per `workflows-core:addressing` §3) — either level a `<BRD-KEY>` can name — a BRD folder directly under `specifications/`, or the `PRD-` folder of a slice inside it. Absent
    → stop, without asserting which command would have created it, because nothing on disk says
    whether this key names a BRD with a source document or a slice of one:
@@ -678,7 +678,7 @@ choices: ["Stop here — every question was settled from the findings and this B
 
 **No option carries a `(Recommended)` marker, and that omission is deliberate**, per the
 `When no option is safe to recommend` guidance in
-`workflows-core:escalation-rules`: which one is right depends entirely on what
+`Skill(skill: "workflows-core:reference", args: "escalation-rules")`: which one is right depends entirely on what
 this round left behind. What the gate above decides is only **whether `/brd-package` appears at
 all**; it never promotes an option to recommended. A BRD both cited gates pass is ready to package;
 one either gate refuses is not — which is why it is not shown the option rather than shown it with a
@@ -694,7 +694,7 @@ nothing to commit and opens no pull request. **The other two lists name
 command gates on `coverage-ledger.md` (`commands/brd-ground.md` Phase 0 step 6), which this run never
 writes, so no handoff of this run's can hold it up and there is no wait to state.
 
-Say plainly what remains, per `workflows-core:next-phase-offer` — names only,
+Say plainly what remains, per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")` — names only,
 never behaviour a command of its own owns: a round still holding a `[C]` stays open, because the
 answer arrives through a package and is recorded by `/dev-workflows:brd-reconcile` once it comes
 back. A
@@ -781,7 +781,7 @@ ledger: <N> requirements — <covered> covered, <deferred> deferred, <rejected> 
 
 `/brd-interview` never changes a ledger disposition — the line simply reports where allocation
 stands. **Reporting it reads one ledger per `covered-by` row**, one hop, from the working tree
-via `resolve-address` (`workflows-core:addressing` §3), per `coverage-ledger-format.md` §6.1 — a child on a BRD
+via `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), per `coverage-ledger-format.md` §6.1 — a child on a BRD
 that owns its source document, a sibling or the parent on a slice (§3); a ledger that cannot
 be read there contributes `unresolved`, never `covered` (§6.2). This adds no precondition and no
 gate: the allocation gate in *Resolve inputs and gate the grounded BRD* is decided on this BRD's own

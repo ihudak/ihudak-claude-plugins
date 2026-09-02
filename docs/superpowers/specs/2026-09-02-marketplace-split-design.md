@@ -59,6 +59,7 @@ The totals reconcile exactly against the tree, with no remainder. Two findings s
 | S14 | **The split is a breaking change requiring user action, and the CHANGELOG says so in a migration note.** | `claude plugin marketplace update` refreshes what is installed; it does not install plugins newly added to a catalogue. A user with `dev-workflows` installed gets `workflows-core` automatically (a declared dependency) and **loses** `/idea`, `/create-prd`, `/document` and the rest until they install `pm-workflows` and `docs-workflows` explicitly. The note lists every moved command and its new plugin. |
 | S15 | **The root README becomes a marketplace index**, and each plugin's `getting-started.md` carries its own install block. | With five plugins there is no single front page. Check 7 becomes per-plugin: each plugin's install block must match *its* row in the root index (§6). |
 | S16 | **A file or agent moves to core when its second consumer group actually exists, never in anticipation of one.** Applied to `guidelines/accessibility.md` and to `design-grounder`. | S4 puts a two-group surface in core, and the question each time is *when* the second group arrives. `accessibility.md` has one consumer group today (`guideline-reviewers`) and gains a second only when `/docs-brand` is built; `design-grounder` has one (`pm-workflows`) and gains a second when a dev route adopts it. Both therefore move with their current owner and are promoted later — a move made for a consumer that has no code is a guess, and this rule is what keeps S13's two halves consistent with each other. |
+| S17 | **Each increment of the split is a minor bump on `dev-workflows`; 4.0.0 marks the end state, not an intermediate step.** S8 stands for the split as a whole and is not applied per increment. | S8 says moving commands out is a major change, and it is right about the user impact: verified against the CLI documentation, `claude plugin marketplace update` *"refreshes … to retrieve new plugins and version updates"* — it refreshes the **catalogue**, so a newly split-out plugin becomes discoverable but is **not installed**, and its commands are gone until the user runs `claude plugin install` explicitly. What settles it is that the increments are not separately consumed: the marketplace owner ships all four before updating any machine, so no user ever installs an intermediate version. Four consecutive majors would communicate four upgrades that nobody performs, while one major at the end names the single upgrade everybody performs. **Each increment's CHANGELOG entry carries the required install command in its first sentence** — that, not the version number, is what tells a reader mid-split what to do. Revisit immediately if any increment is ever published for consumption on its own; the reasoning does not survive that. |
 
 ---
 
@@ -133,10 +134,34 @@ Three of the repository's checks are plugin-aware and one new check is needed.
 
 **`check-docs.sh` — parameterise `PLUGIN_REL`.** It is a single constant at line 20 driving eleven checks over 51 selftest cases. It becomes a list, and each check runs per plugin. Most checks already work per plugin unchanged: inventories in both directions, orphan pages, environment variables, table cells, prose counts.
 
-Two need real thought rather than a loop:
+Four need real thought rather than a loop. Increment 1 shipped with only the first two identified; the other two were found by the whole-branch review and are recorded here so increment 2 does not meet them cold:
 
 - **Check 7** (`getting-started.md`'s install commands match the repo-root README verbatim) assumes one plugin. With five, the root README carries five install lines and each plugin's getting-started carries its own. The check becomes per-plugin: each plugin's install block must match *its* line in the root README.
 - **Check 11** (the `/brd-*` `choices:` placeholder rule) follows the BRD commands into `pm-workflows`, and its family derivation reads `next-phase-offer.md`, which lands in core. The check must resolve a core reference from outside the plugin it is checking — a script-level concern, not a runtime one, since the gate reads the repository directly.
+
+- **Check 8** (`emit-cost` phase/role pairs against `cost-emission.md` §7) has exactly check 11's shape and was missed for the same reason. It reads the §7 table from `$PLUGIN_REL/references/cost-emission.md` and the call sites from `$PLUGIN_REL/commands/`, then asserts both directions between them. After increment 2 the table lives in `workflows-core` while the emitting commands are spread across `pm-workflows`, `docs-workflows` and `dev-workflows`, so its reverse loop fires on every row.
+- **Check 9's cost-emitting-set count** is the same story one layer down: it counts `emit-cost` call sites in one plugin and asserts a prose number in that plugin's `docs/reference/session-cost.md`. Both halves separate in increment 2.
+
+Increment 1 also proved a related point empirically: **checks 8 and 11 hard-fail on a plugin that ships neither subsystem**, which is why applicability became per-plugin config data (`COST_PLUGIN_RELS`, `HANDOFF_PLUGIN_RELS`) with membership guards at the dispatch loop, plus a both-directions assertion that a plugin shipping the file is actually declared. A third check, **check 15**, hard-fails on a missing `docs/workflow.md` with a mermaid diagram and is **forward-only** — nothing catches a diagram still naming a command the plugin no longer ships.
+
+### What a new plugin must ship to pass the gate
+
+Increment 1 discovered this list one failure at a time. It is recorded so increment 2's `workflows-core`, and increments 3 and 4, do not rediscover it:
+
+| Requirement | Enforced by | The trap |
+|---|---|---|
+| `docs/README.md`, reachable from it: every other page | checks 1, 2 | — |
+| `docs/getting-started.md` with install lines that are a **subset** of the repo-root README's, and that install **this** plugin | check 7 | The root README must gain the line first, or the subset test fails |
+| `docs/workflow.md` containing a **mermaid** block, with every command named **inside the diagram** | check 15 | Prose below the diagram does not count. And the check is **forward-only** — a diagram naming a departed command passes silently |
+| Plugin-root `README.md` — a different file from `docs/README.md` | check 15 | Easy to conflate |
+| `<n> slash commands` in the plugin README, `<n> bundled skills` in `docs/README.md` | check 9 | The accepted word list runs `one`…`ten` plus a few compounds. **"zero" is not in it** — an empty plugin must write the digit `0` |
+| `docs/reference/agents.md` with a row matching `^\| \`<name>\`` per agent | check 4 | A prose mention is not a row |
+| `docs/reference/references.md` with a row per **flat** reference file, and `` `<subtree>/` (N) `` per subtree | check 4 | N is the **markdown-only** count. Vendored non-markdown data is deliberately excluded, so a total-file count fails |
+| `docs/reference/environment.md` documenting every variable the plugin reads — and **only** those | check 5 | Runs both directions, so a move fires it **twice**: the receiving plugin reads what it does not document, the losing plugin documents what it no longer reads |
+| Membership in `PLUGIN_RELS`, **and** in `COST_PLUGIN_RELS` / `HANDOFF_PLUGIN_RELS` only if it ships those subsystems | checks 8, 11 | Declared, never inferred from a missing file |
+| An entry in `marketplace.json` | `validate-catalog.py` | Now asserted in both directions — a manifest nobody advertises is an error |
+
+Two failure modes remain **ungated** and must be handled by hand at every move: a `subagent_type` prefix still naming the old plugin (nothing verifies a dispatch target resolves), and prose anywhere describing content that left (only the gated inventories are checked, not the sentences around them).
 
 **A new check: the loader contract, in both directions.** Every `args:` string passed to `workflows-core:reference` must name a reference that exists in core, and every core reference must be reached by at least one caller.
 

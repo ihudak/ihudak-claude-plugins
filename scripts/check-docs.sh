@@ -17,6 +17,12 @@ set -uo pipefail
 # THE ONLY PART OF THIS FILE THAT DIFFERS BETWEEN EDITIONS. Never copy it across.
 # Everything below is byte-identical in ihudak-claude-plugins, mgd-claude-plugins
 # and ihudak-copilot-plugins, so a fix to the gate ports by plain `cp` of the body.
+#
+# THE BODY REQUIRES EVERY NAME BELOW TO EXIST. `set -u` is on, so a ported edition
+# whose hand-written config block omits one aborts at the dispatch loop rather than
+# skipping a check. PLUGIN_RELS, COST_PLUGIN_RELS and HANDOFF_PLUGIN_RELS arrived
+# with multi-plugin support and are the ones a config block copied from an older
+# edition will be missing.
 # Space-separated; the dispatch loop sets PLUGIN_REL from it per iteration, so every
 # check function below is unchanged and still reads a single PLUGIN_REL. A one-element
 # list behaves exactly as the old scalar did, which is what keeps this body portable to

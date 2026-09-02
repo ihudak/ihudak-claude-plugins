@@ -69,4 +69,16 @@ jobs:
         run: ./scripts/check-docs.sh --root .
 
       - name: Self-test the session-cost window splitter
-        run: python3 plugins/dev-workflows/scripts/session-cost.py --selftest
+        # Discovered, not hardcoded: the cost subsystem moves between plugins as the
+        # marketplace is split, and a hardcoded path would either 404 the step or --
+        # worse -- keep self-testing a stale copy left behind at the old location.
+        # Exactly one match is required, so both a move and an accidental duplicate
+        # fail loudly here rather than silently changing what is tested.
+        run: |
+          mapfile -t hits < <(find plugins -type f -name session-cost.py | sort)
+          if [ "${#hits[@]}" -ne 1 ]; then
+            echo "expected exactly one session-cost.py under plugins/, found ${#hits[@]}:" >&2
+            printf '  %s\n' "${hits[@]}" >&2
+            exit 1
+          fi
+          python3 "${hits[0]}" --selftest

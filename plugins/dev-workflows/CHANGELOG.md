@@ -10,8 +10,8 @@ Versions follow semver at the plugin level.
 
 3.20.0 taught `idea-reader` to follow standard markdown links to `.md` pages as well as `[[wikilinks]]`,
 because a page reached only by the second form was followed by nothing, copied by nothing and reported
-by nothing. The paragraph announcing that landed; **thirteen sentences elsewhere still said the reader
-follows wikilinks** — including the one a user meets first, `/idea`'s own "The reader follows wikilinks
+by nothing. The paragraph announcing that landed; **nineteen mentions elsewhere in the chain still
+said the reader follows wikilinks** — including the one a user meets first, `/idea`'s own "The reader follows wikilinks
 two levels deep", the agent's `description` (its `/help` text), the `agents.md` inventory row, and the
 schema comments on `wikilinks_followed[].target` and `wikilinks_not_followed[].target`. A reader
 comparing the two would have to guess which was current, and the wrong guess is that a markdown-linked

@@ -8,7 +8,7 @@ Ivan Gudak's open-source Claude Code plugin marketplace.
 |--------|-------------|
 | [dev-workflows](plugins/dev-workflows/) | Twenty slash commands for the PM → PA → PE → Dev pipeline, with Opus-backed planning and review gates. Needs `workflows-core`. [Docs](plugins/dev-workflows/docs/README.md) |
 | [guideline-reviewers](plugins/guideline-reviewers/) | Two standalone commands: `/api-guideline-reviewer` reviews OpenAPI specs against bundled REST/IAM guidance; `/guideline-reviewer` reviews code/UI against bundled design-system and a11y standards. |
-| [workflows-core](plugins/workflows-core/) | Shared foundation for the `dev-workflows` family — addressing, git handoff, model routing, emission — plus `/feedback`, `/frames`, `/prompt`, `/prompt-brainstorm`, `/prompt-grill-me`, `/statusline`. |
+| [workflows-core](plugins/workflows-core/) | Shared foundation for the `dev-workflows` family — addressing, git handoff, model routing, emission — plus six utility commands. [Docs](plugins/workflows-core/docs/README.md) |
 | [prose-style](plugins/prose-style/) | Pluggable prose style enforcement: `/prose-review-pr`, `/prose-review-docs`, `/prose-style-refresh`, plus sub-agents `dev-workflows` uses for Epics and docs. Vendor-neutral, overridable baseline. |
 | [obsidian-llm-wiki](plugins/obsidian-llm-wiki/) | Ten slash commands for compiling Obsidian vault knowledge into a persistent, cross-referenced wiki with task management; supports Claude Code and GitHub Copilot. |
 | [acli](plugins/acli/) | Atlassian CLI (`acli`) skill for Jira and Confluence — search, work items, comments, attachments, boards, sprints, pages. From [pi-skill-acli](https://github.com/ziegenberg/pi-skill-acli) (MIT). |

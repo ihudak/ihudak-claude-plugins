@@ -1328,10 +1328,17 @@ selftest() {
   # and below and fails only this one.
   expect_pass_after "the two-argument entry-point form resolves on its first token" \
     "sed 's|args: \"phase-handoff\"|args: \"phase-handoff handoff-to-main\"|' plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX > c16.tmp && mv c16.tmp plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
-  # ...and the extension guard. `cost-prices.yaml` is a corpus member that is not markdown,
-  # and the pressure to namespace it alongside its cost-emission.md neighbour recurs. An
-  # implementation appending `.md` unconditionally reports it unresolvable.
-  expect_pass_after "a loader argument that already carries an extension is accepted" \
+  # ...and the extension guard, which points the OTHER way and was wrong here first. The
+  # skill body reads `${CLAUDE_PLUGIN_ROOT}/references/<the first argument>.md`, appending
+  # `.md` UNCONDITIONALLY, so an argument naming the corpus's one non-markdown member reads
+  # cost-prices.yaml.md and finds nothing. This case used to assert the opposite and pass,
+  # which made the gate and the runtime it gates state contradictory contracts -- latent,
+  # because no live argument carries an extension, and durable, because a green case pinned
+  # it. The pressure to namespace that data file alongside its cost-emission.md neighbour
+  # recurs every time someone applies the citation convention uniformly; this is what now
+  # meets it. The CITATION path stays extension-tolerant -- `<core>:cost-prices.yaml` in
+  # prose names a real corpus member -- and the two resolvers must stay separate.
+  expect_fail "a loader argument carrying its own extension is rejected" 16 \
     "printf -- '\nPrices come from \`Skill(skill: \"dev-workflows:reference\", args: \"cost-prices.yaml\")\`.\n' >> plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
   # The REVERSE direction. gamma.md is reached by exactly one citation -- the bare backticked
   # form in alpha -- so demoting it to a prose name leaves the reference unreached. This is
@@ -1368,6 +1375,29 @@ selftest() {
     "printf -- '\n\`\`\`text\nSkill(skill: \"dev-workflows:reference\", args: \"phase-handoff\")\n\`\`\`\n' >> plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
   expect_pass_after "a bare core reference NAME inside a fenced block is accepted" \
     "printf -- '\n\`\`\`text\nHandoff: per dev-workflows:phase-handoff, <outcome>\n\`\`\`\n' >> plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  # Relation 5 -- the wrong-plugin path, which is the defect the loader exists to prevent and
+  # the one every other relation is silent on: the call is not a loader call, the file is
+  # reached by core's own citations anyway, and the citing file carries the preamble. Both
+  # path forms get a red case, because they fail for different reasons -- ${CLAUDE_PLUGIN_ROOT}
+  # opens nothing in the reading plugin, while the bare form sends a READER to the wrong
+  # directory -- and an implementation covering one and not the other passes half the suite.
+  expect_fail "a consumer citing a core reference by plugin-root path is rejected" 16 \
+    "printf -- '\nLoad \`\${CLAUDE_PLUGIN_ROOT}/references/phase-handoff.md\` directly.\n' >> plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  expect_fail "a consumer citing a core reference by bare path is rejected" 16 \
+    "printf -- '\nSee \`references/phase-handoff.md\`.\n' >> plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+  # ...and the two greens, which are what keep it from being a check on the two path forms
+  # themselves. Inside core those SAME forms are correct and are what relation 2 counts, so
+  # an implementation that flagged them everywhere turns the whole corpus red.
+  expect_pass_after "a core-internal citation by the same path form is accepted" \
+    "printf -- '\nSee \`\${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md\`.\n' >> $PLUGIN_REL/$REF_DIR/gamma.md"
+  # ...and the own-reference carve-out: only a name that belongs to core and NOT to the
+  # citing plugin fires. give_two_refs gives fixture-two a cost-emission.md of its own, after
+  # which its plugin-root citation of that name is unambiguous and correct. Without the
+  # carve-out this case goes red, and so would every future consumer that legitimately ships
+  # a reference whose basename core also uses.
+  expect_pass_after "a consumer citing a same-named reference IT ships is accepted" \
+    "give_two_refs cost-emission.md && printf -- '\nPrices: \`\${CLAUDE_PLUGIN_ROOT}/references/cost-emission.md\`.\n' >> plugins/fixture-two/$CMD_DIR/omega$CMD_SUFFIX"
+
   # The vacuity guard. The forward direction reads ONE syntax; a repo-wide rewording of it
   # would leave relations 1 and 4 examining nothing while every message stayed silent. The
   # preamble is the evidence that the syntax is still meant to be in use, so documenting it
@@ -1780,6 +1810,17 @@ check_index_membership() {
 #   3. PREAMBLE -- every consuming file that cites a core reference documents the loader
 #                  form, so a reader meeting the citation is not left to invent a path.
 #   4. FENCE    -- no real loader call sits inside a fenced block.
+#   5. WRONG-PLUGIN PATH -- no CONSUMER file cites a core reference by either path form.
+#                  ${CLAUDE_PLUGIN_ROOT} resolves to the READING plugin, so that path opens
+#                  nothing there, and a bare `$REF_DIR/<name>` sends a reader to a directory
+#                  that does not hold the file. This is the defect the loader exists to
+#                  prevent -- the class Task 4 swept by hand across 787 sites -- and every
+#                  other relation is silent on it: such a citation is not a loader call, its
+#                  file is reached by core's own citations anyway, and the citing file
+#                  carries the preamble. Only a name that is in core's corpus and NOT in the
+#                  citing plugin's own $REF_DIR/ fires, so a plugin shipping its own
+#                  `<name>.md` and citing it is never touched; the two trees have zero name
+#                  collisions today, which is a fact to re-derive rather than to trust.
 #
 # THE PLACEHOLDER TRAP, which is the single most likely way to get this wrong. The preamble
 # quotes the invocation form literally -- `args: "<name>"` -- as documentation of the
@@ -1817,12 +1858,30 @@ check_index_membership() {
 # CHANGELOG.md is excluded for the same reason it is excluded everywhere else -- history
 # keeps the words it shipped with, and a retired reference must not stay "reached" by them.
 #
+# RELATION 5'S SCOPE WAS MEASURED BEFORE IT WAS TAKEN, because this repo has twice rejected a
+# widening that fired only on correct content. Over $CMD_DIR/, agents/ and $REF_DIR/ it fires
+# on NOTHING: Task 4 swept all 787 sites and the tree is clean, so it starts green and exists
+# to keep a constraint that currently holds by discipline from quietly stopping to hold --
+# the same profile as check 14, not the profile of the two rejected widenings, which produced
+# false positives. Widening it to the whole plugin fires ONCE, on correct content:
+# docs/reference/session-cost.md names the companion plugin's `references/cost-prices.yaml`
+# while explaining in the same sentence why it is named as a path and not in the loader's
+# form. One false positive and zero true ones is the result on which the other widenings were
+# refused, so the scope stops where relation 3's does.
+#
 # WHAT THIS DELIBERATELY DOES NOT GATE, stated so nobody mistakes green for safe:
-#   * The BARE-BASENAME class. A scan for an unqualified `<name>.md` inside core produces
-#     ~27 hits of which most are false: `design.md`, `idea.md`, `epics.md` and `ready.md`
-#     are artifact filenames in the specs tree as well as command basenames, so the form is
-#     undecidable by pattern. Resolving an identifier against a known set is this repo's
-#     rule; parsing one out of free text is what that rule forbids. Left to review.
+#   * The BARE-BASENAME class -- an unqualified `<name>.md` with no directory in front of
+#     it. NO COUNT IS GIVEN HERE, deliberately: the figure this comment used to carry ("~27
+#     hits") was reproducible under no reading of the tree, and the case for the exclusion
+#     never rested on it. It rests on a collision that can be checked in one command:
+#     `code-scanner.md` and `impl-maintenance.md` each name BOTH a file in the corpus
+#     (handoff/) and an agent in the same plugin, so a bare mention of either is undecidable
+#     by pattern -- which is precisely why Task 4's `8d20345` had to qualify those two by
+#     hand after a basename scan could not see them. The form carries no directory context
+#     at all, so it equally names an artifact in the specs tree, a repo file, or a docs
+#     page. Resolving an identifier against a known set is this repo's rule; parsing one out
+#     of free text is what that rule forbids. Left to review. (Relation 5 above gates the
+#     PREFIXED forms, which do carry the context that makes them decidable.)
 #   * skills/. No skill in any consuming plugin cites a core reference today, so including
 #     it would assert nothing; a skill that starts to is review's to catch.
 #   * WHETHER the loaded content is used correctly. This validates that the argument names
@@ -1852,9 +1911,30 @@ for dirpath, _dirs, names in os.walk(core_ref_root):
 md_corpus = sorted(r for r in corpus if r.endswith('.md'))
 
 NAME = re.compile(r'^[A-Za-z0-9][A-Za-z0-9_.-]*(/[A-Za-z0-9][A-Za-z0-9_.-]*)*$')
-def resolve(tok):
-    """A reference name -> its corpus path, or None. `.md` is appended only when the token
-    carries no extension of its own: cost-prices.yaml is a corpus member too."""
+
+# TWO resolvers, and they must stay two. They were one, extension-tolerant on both paths,
+# and that made the gate BLESS a call the runtime cannot serve: skills/reference/SKILL.md
+# reads `${CLAUDE_PLUGIN_ROOT}/references/<the first argument>.md`, appending `.md`
+# UNCONDITIONALLY, so `args: "cost-prices.yaml"` reads cost-prices.yaml.md and finds
+# nothing. A green selftest case pinned the tolerant behaviour, which would have made the
+# divergence durable. Latent -- no live argument carries an extension -- which is exactly
+# why it would have survived.
+def arg_target(tok):
+    """A loader `args:` first token -> (corpus path or None, the candidate tried). `.md` is
+    appended unconditionally, because that is what the skill body does. An argument carrying
+    its own extension is therefore a DEFECT, not a tolerated form: the loader serves
+    reference prose, and the corpus's one non-markdown member is read by the script that
+    prices with it, never loaded."""
+    cand = tok + '.md'
+    if '..' in tok or not NAME.match(tok):
+        return None, cand
+    return (cand if cand in corpus else None), cand
+
+def cite_target(tok):
+    """A CITATION token -> its corpus path, or None. Extension-tolerant, and deliberately so:
+    a prose citation of the data file (`<core>:cost-prices.yaml`) names a real corpus member
+    and must resolve, even though the loader could never serve it. Do not merge this with
+    arg_target() again -- the two answer different questions about the same corpus."""
     if '..' in tok or not NAME.match(tok):
         return None
     cand = tok if os.path.splitext(tok)[1] else tok + '.md'
@@ -1876,12 +1956,25 @@ def files_under(rel):
                     continue
                 yield os.path.join(dirpath, n)
 
+def own_refs(rel):
+    """The reference files THIS plugin ships, by corpus-relative name. Relation 5 flags a
+    consumer-side path citation only where the name belongs to core and NOT to the citing
+    plugin: a plugin that ships its own `<name>.md` is citing its own, unambiguously, and
+    the two trees have zero name collisions today (re-derive rather than trust that)."""
+    base = os.path.join(root, rel, ref_dir)
+    got = set()
+    for dirpath, _dirs, names in os.walk(base):
+        for n in names:
+            got.add(os.path.relpath(os.path.join(dirpath, n), base).replace(os.sep, '/'))
+    return got
+
 reached = dict((r, 0) for r in md_corpus)
 preamble_files = 0
 real_calls = 0
 
 for rel in plugins:
     consumer = (rel != core_rel)
+    mine = own_refs(rel) if consumer else set()
     for path in files_under(rel):
         try:
             text = io.open(path, encoding='utf-8').read()
@@ -1908,12 +2001,16 @@ for rel in plugins:
                     continue
                 real_calls += 1
                 cites_core = True
-                target = resolve(tok)
+                target, cand = arg_target(tok)
                 if target is None:
-                    out.append("%s:%d loads '%s' through %s, which names no file under "
-                               "%s/%s/ -- the reference is the FIRST whitespace token, plus "
-                               "'.md' unless it already carries an extension"
-                               % (show, lineno, arg, loader, core_rel, ref_dir))
+                    out.append("%s:%d loads '%s' through %s, which resolves to %s/%s/%s -- "
+                               "no such file. The reference is the FIRST whitespace token "
+                               "(a second is an entry point WITHIN it) and the loader "
+                               "appends '.md' unconditionally, so an argument carrying its "
+                               "own extension cannot resolve: a non-markdown corpus member "
+                               "is cited as a path and read by whatever consumes it, never "
+                               "loaded through the loader"
+                               % (show, lineno, arg, loader, core_rel, ref_dir, cand))
                 elif target != self_ref:
                     reached[target] = reached.get(target, 0) + 1
                 if infence:
@@ -1923,16 +2020,31 @@ for rel in plugins:
                                % (show, lineno, loader))
             for m in TOKEN.finditer(line):
                 # Trailing sentence punctuation is not part of the name. Stripped HERE and not
-                # inside resolve(), because in a loader `args:` string a trailing dot is a typo
-                # to report rather than noise to forgive.
-                if resolve(m.group(1).rstrip('./-')) is not None:
+                # inside cite_target(), because in a loader `args:` string a trailing dot is a
+                # typo to report rather than noise to forgive.
+                if cite_target(m.group(1).rstrip('./-')) is not None:
                     cites_core = True
-            if rel == core_rel:
-                for pat in (PATHCITE, BARECITE):
-                    for m in pat.finditer(line):
-                        c = m.group(1)
+            for pat, form in ((PATHCITE, '${CLAUDE_PLUGIN_ROOT}/%s/<name>' % ref_dir),
+                              (BARECITE, '`%s/<name>`' % ref_dir)):
+                for m in pat.finditer(line):
+                    c = m.group(1)
+                    if rel == core_rel:
+                        # Inside core these two forms are what relation 2 counts.
                         if c in reached and c != self_ref:
                             reached[c] += 1
+                    elif c in corpus and c not in mine:
+                        # RELATION 5. Outside core the same two forms are the defect the
+                        # loader exists to prevent: ${CLAUDE_PLUGIN_ROOT} resolves to the
+                        # READING plugin, so this path opens nothing, and the bare form
+                        # sends a reader to a directory that does not hold the file.
+                        cites_core = True
+                        out.append("%s:%d cites the %s reference '%s' as %s, which resolves "
+                                   "to THIS plugin's %s/ and not to the corpus -- that is the "
+                                   "defect the loader exists to prevent. Name it '%s:%s' in "
+                                   "prose, and load it with Skill(skill: \"%s\", args: \"%s\")"
+                                   % (show, lineno, core_rel, c, form, ref_dir,
+                                      core_name, c[:-3] if c.endswith('.md') else c,
+                                      loader, c[:-3] if c.endswith('.md') else c))
         if has_preamble:
             preamble_files += 1
         if consumer and cites_core and not has_preamble:

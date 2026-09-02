@@ -714,6 +714,30 @@ check_identity_quarantine() {
 }
 
 # ------------------------------------------------------------------ check 11
+# The family glob, read out of ONE line: next-phase-offer.md's scope paragraph, the single
+# unwrapped line beginning `**Where this rule applies:`. Both readers below call this, so the
+# two can never disagree about which commands the rule binds.
+#
+# WHY NOT `head -1` OVER THE WHOLE FILE, which is what this was. That was a proxy, and it held
+# only while the scope paragraph happened to be the first `<plugin>:<family>*` phrase in the
+# file. CLAUDE.md has always said the family comes from the scope paragraph; the proxy agreed
+# with it by accident of line order. The file also carries a `## Not pipeline nodes` list --
+# commands that print NO offer -- and the moment a phrase there qualifies for the plugin under
+# check, the proxy hands that plugin a family the rule never bound: check_handoff_applicability
+# forces it into HANDOFF_PLUGIN_RELS, check_merge_clause then finds no offer of it anywhere,
+# and NEITHER branch is green. Anchoring is behaviour-preserving on a file whose scope
+# paragraph does come first, and it is strictly stronger in the direction CLAUDE.md asks for: a
+# reworded scope sentence now empties the glob and turns the build red, where before any stray
+# phrase elsewhere in the file would silently stand in for it.
+#
+# The two empty-glob dispositions stay exactly as they are -- `fail 11` in check_merge_clause,
+# an early `return` in check_handoff_applicability. The quiet one is safe only because the
+# loud one exists.
+scope_family() { # <next-phase-offer.md> <qualifier>  -> the family glob, or empty
+  grep '^\*\*Where this rule applies:' "$1" 2>/dev/null \
+    | grep -oE "$2[a-z][a-z0-9-]*\*" | head -1 | sed "s|^$2||"
+}
+
 # Merge-clause adoption. An offer that names a downstream command whose Phase 0 gate
 # targets an artifact THIS run writes must carry the `<merge-clause>` placeholder, because
 # that command stops while this phase's pull request is open. The placeholder and its
@@ -773,7 +797,7 @@ check_merge_clause() {
   [ -f "$ref" ] || { fail 11 "$CORE_PLUGIN_REL/$REF_DIR/next-phase-offer.md is missing -- it owns the <merge-clause> placeholder, its resolution table, and the command family the rule binds"; return; }
   [ -f "$ph" ]  || { fail 11 "$CORE_PLUGIN_REL/$REF_DIR/phase-handoff.md is missing -- its row-F table is where each command's require-on-main target is declared"; return; }
 
-  glob=$(grep -oE "$qual[a-z][a-z0-9-]*\*" "$ref" 2>/dev/null | head -1 | sed "s|^$qual||")
+  glob=$(scope_family "$ref" "$qual")
   [ -n "$glob" ] || { fail 11 "$CORE_PLUGIN_REL/$REF_DIR/next-phase-offer.md no longer names the command family the <merge-clause> rule binds (expected a \`$qual<family>*\` phrase) -- with no family, this check would examine no offer at all"; return; }
 
   # targets: one `<command>|<artifact-basename>` line per row-F table cell. Column 2 only --
@@ -887,7 +911,7 @@ check_handoff_applicability() {
   # already loud THERE: check_merge_clause fails on both for every declared plugin, and
   # HANDOFF_PLUGIN_RELS is non-empty in every edition that ships the subsystem.
   [ -f "$ref" ] || return
-  glob=$(grep -oE "$qual[a-z][a-z0-9-]*\*" "$ref" 2>/dev/null | head -1 | sed "s|^$qual||")
+  glob=$(scope_family "$ref" "$qual")
   [ -n "$glob" ] || return
   while IFS= read -r y; do
     [ -n "$y" ] || continue
@@ -1155,6 +1179,20 @@ selftest() {
   # nothing, which must be RED: a gate that has stopped being able to fail proves nothing green.
   expect_fail "a reworded family-scope sentence is rejected" 11 \
     "sed 's|/${PLUGIN_REL##*/}:alpha\*|the family|' $PLUGIN_REL/$REF_DIR/next-phase-offer.md > np.tmp && mv np.tmp $PLUGIN_REL/$REF_DIR/next-phase-offer.md"
+  # ...and the PAIR that discriminates the scope-paragraph anchor from whole-file `head -1`.
+  # Neither case proves anything alone. RED: the scope sentence is reworded away AND a stray
+  # `$qual<family>*` phrase is added under another heading -- exactly the `## Not pipeline
+  # nodes` shape the live reference carries. Under `head -1` the stray stands in for the
+  # reworded sentence and the tree comes back green, so this case FAILs; anchored, the glob
+  # empties and check 11 fires. GREEN: a stray phrase naming a DIFFERENT family, placed
+  # BEFORE the scope paragraph so `head -1` would reach it first. Under `head -1` the glob
+  # becomes `zulu*`, which matches no command, and this case goes red; anchored, the scope
+  # paragraph still wins and the tree stays green. Verified red before / green after by
+  # stashing scope_family.
+  expect_fail "a reworded scope sentence is rejected even with a stray family phrase elsewhere" 11 \
+    "sed 's|^\*\*Where this rule applies:.*|**Where this rule applies:** every offer this plugin prints.|' $PLUGIN_REL/$REF_DIR/next-phase-offer.md > np.tmp && mv np.tmp $PLUGIN_REL/$REF_DIR/next-phase-offer.md && printf -- '\n## Not pipeline nodes\n\n\`/${PLUGIN_REL##*/}:alpha*\` prints no offer.\n' >> $PLUGIN_REL/$REF_DIR/next-phase-offer.md"
+  expect_pass_after "a stray family phrase under another heading does not become the family" \
+    "{ printf -- '## Not pipeline nodes\n\n\`/${PLUGIN_REL##*/}:zulu*\` prints no offer.\n\n'; cat $PLUGIN_REL/$REF_DIR/next-phase-offer.md; } > np.tmp && mv np.tmp $PLUGIN_REL/$REF_DIR/next-phase-offer.md"
   expect_fail "a family glob matching no command is rejected" 11 \
     "sed 's|alpha\*|zulu*|' $PLUGIN_REL/$REF_DIR/next-phase-offer.md > np.tmp && mv np.tmp $PLUGIN_REL/$REF_DIR/next-phase-offer.md"
   expect_fail "a row-F table with no gated artifact is rejected" 11 \
@@ -1352,9 +1390,11 @@ selftest() {
     "give_two_refs cost-emission.md"
   # The handoff family is qualified by the plugin under check, so the reference has to NAME
   # fixture-two's family before fixture-two can be in it -- which is the real shape: the
-  # family belongs to whichever plugin ships those commands, and the reference says so.
+  # family belongs to whichever plugin ships those commands, and the reference says so. The
+  # phrase is added INSIDE the scope paragraph, because that is the one line scope_family
+  # reads; appended anywhere else it would be the stray the anchoring pair above rejects.
   expect_fail "a plugin with a family command undeclared in HANDOFF_PLUGIN_RELS is rejected" 11 \
-    "printf -- '\nThe \`/fixture-two:omega*\` commands write their offers to the same convention.\n' >> $PLUGIN_REL/$REF_DIR/next-phase-offer.md"
+    "sed 's|^\*\*Where this rule applies:.*|& The \`/fixture-two:omega*\` commands write their offers to the same convention.|' $PLUGIN_REL/$REF_DIR/next-phase-offer.md > np.tmp && mv np.tmp $PLUGIN_REL/$REF_DIR/next-phase-offer.md"
   expect_pass_after "a plugin holding next-phase-offer.md with no family command is accepted" \
     "give_two_refs next-phase-offer.md"
 

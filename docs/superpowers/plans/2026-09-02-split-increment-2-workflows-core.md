@@ -504,9 +504,9 @@ The defect, reproduced in the spec: a deferred claim replayed by core's own `/pr
 
 Its purpose is **uniqueness, not resolvability** — matching by bare name across five plugins is unambiguous only because S1 gives each command one home, and this field makes that a guarantee rather than a coincidence. Update `cost-emission.md` §13.1 and §13.2 to state the widened rule and the new field.
 
-- [ ] **Step 4: Adopt the four probe fixtures**
+- [ ] **Step 4: Author the four probe fixtures**
 
-Add the spec's four transcripts as `--selftest` fixtures. Two discriminate: the segment case (`split2`) and the two safety cases (`split3`). Assert the exact numbers the spec recorded:
+**The spec's four transcripts were never committed** — §8.6 records their *numbers*, not their files, and nothing matching `split*.jsonl` exists anywhere in the tree. So they are authored here, not adopted. Follow the existing pattern rather than shipping data files: `selftest()` already builds every fixture programmatically into a `tempfile.mkdtemp()` directory, and the four new cases join it the same way. Two discriminate: the segment case (`split2`) and the two safety cases (`split3`). Assert the exact numbers spec §8.2 and §8.4 recorded:
 
 | Fixture | Assertion |
 |---|---|

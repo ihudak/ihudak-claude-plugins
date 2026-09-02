@@ -4,6 +4,31 @@ All notable changes to the **dev-workflows** plugin are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 
+## [3.24.1] — 2026-09-02
+
+### Fixed — the traversal was described two ways in one chain
+
+3.20.0 taught `idea-reader` to follow standard markdown links to `.md` pages as well as `[[wikilinks]]`,
+because a page reached only by the second form was followed by nothing, copied by nothing and reported
+by nothing. The paragraph announcing that landed; **nineteen mentions elsewhere in the chain still
+said the reader follows wikilinks** — including the one a user meets first, `/idea`'s own "The reader follows wikilinks
+two levels deep", the agent's `description` (its `/help` text), the `agents.md` inventory row, and the
+schema comments on `wikilinks_followed[].target` and `wikilinks_not_followed[].target`. A reader
+comparing the two would have to guess which was current, and the wrong guess is that a markdown-linked
+page is out of scope.
+
+**The rule is now written where the exception lives.** The three array names — `wikilinks_followed`,
+`wikilinks_not_followed`, `wikilinks_broken` — keep "wikilink" and carry links of either syntax, because
+renaming a field every consumer reads buys nothing. Everywhere else, prose about what the traversal
+follows, reaches, or fails to resolve says **link**, and "wikilink" is reserved for the `[[...]]`
+syntax itself — which the rewriting rules genuinely are about, and which is why the word has to survive
+at all.
+
+Nothing outside `/idea`'s chain was touched. `/brd-package` and `bundle-packaging.md` rewrite wikilinks
+for the customer bundle, the docs agents match them in a docs repo, and `pre-lint.md` discards a
+tracker-shaped hit inside one: all of those are about the syntax, all of them correct, and all of them
+left alone.
+
 ## [3.24.0] — 2026-09-02
 
 Recovered from a stale branch that never opened a pull request, and finished. The branch

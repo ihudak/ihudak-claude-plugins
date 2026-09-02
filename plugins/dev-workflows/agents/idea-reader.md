@@ -1,6 +1,6 @@
 ---
 name: idea-reader
-description: Ingests one idea source (inline prompt, a markdown file with wikilinks/images, a community post, or a saved file) from a path the caller supplies and returns a structured source digest for /idea. Follows wikilinks up to two levels deep under one total-file cap with cycle protection, reads linked images as context and describes what each frame shows, enumerates (never opens) links to anything that is neither markdown nor an image, captures community-post demand signals, and summarises each followed reference so the caller need not re-read it. Read-only; never modifies files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
+description: Ingests one idea source (inline prompt, a markdown file with links/images, a community post, or a saved file) from a path the caller supplies and returns a structured source digest for /idea. Follows links of either syntax up to two levels deep under one total-file cap with cycle protection, reads linked images as context and describes what each frame shows, enumerates (never opens) links to anything that is neither markdown nor an image, captures community-post demand signals, and summarises each followed reference so the caller need not re-read it. Read-only; never modifies files. Model tier assigned by the caller per the model-routing policy (no fixed pin).
 tools: ["Read", "Glob", "Grep"]
 ---
 
@@ -26,7 +26,7 @@ Distill it into `raw_context`; `source_refs: []`.
 
 **markdown / community-post** (`provenance_hint: markdown | community-post`) — resolve `argument` to an
 existing `.md` file (accept an absolute path, or one relative to the caller's working directory). Read it,
-then traverse its wikilinks and read its linked images, both under the caps in **`## Bounding`** below.
+then traverse its links and read its linked images, both under the caps in **`## Bounding`** below.
 For a community post (a markdown file under a `Projects/Products/` path, or with a thread/comment shape),
 additionally extract **demand signals** — requester names/handles, upvote/vote counts, recurring asks —
 into `signals`.
@@ -48,6 +48,12 @@ written outside a vault uses the second form, and a `.md` page reached only by i
 followed by nothing, copied by nothing and reported by nothing — which is exactly the state
 "a link nothing copied and nothing reported is indistinguishable from a link that was never there"
 forbids. `wikilinks_followed` keeps its name and carries both.
+
+**So the three array names are the one place "wikilink" still means something narrower than "link".**
+They are kept because renaming a field every consumer reads buys nothing, and their contents are links
+of either syntax. Everywhere else in this file and in `/idea`'s chain, prose about what the traversal
+follows, reaches, or fails to resolve says **link** — reserve "wikilink" for the `[[...]]` syntax
+itself, which the rewriting rules genuinely are about.
 
 Traverse **breadth-first**, in document order within each file — the source's links first in the order they
 appear, then each depth-1 page's links the same way. The order is deterministic, so two runs over the same
@@ -87,7 +93,7 @@ the mockup over themselves. So: never cite an image as proof of shipped behaviou
 frame become a factual claim in `raw_context` that the source's prose does not also carry.
 
 **Past the cap, and where a file will not read, note it and continue — never fatal**, the same handling a
-broken wikilink already gets:
+broken link already gets:
 
 - **Past the cap** — the image is still listed, with `read: false` and `reason: cap`.
 - **Unreadable** — the file exists but cannot be rendered (corrupt, empty, an unsupported or mislabelled
@@ -122,7 +128,7 @@ Then split by provenance:
 - **`rfe`** — product feedback (a `Product Need`). Distill the ticket summary/description into `raw_context`; put requester / customer-demand info into `signals`, as today.
 - **`prd`** — an existing Product Requirements Document, supplied as a path. This is **prior art the user supplied**, not demand evidence.
 
-Note unresolved wikilinks/images in `wikilinks_broken` and continue — a broken link is never fatal.
+Note unresolved links/images in `wikilinks_broken` and continue — a broken link is never fatal.
 
 ## Bounding
 
@@ -164,14 +170,14 @@ images:
     description: <≤60 words: what the frame shows — present IFF read: true, never inferred>
     reason:      cap | unreadable | not_an_image        # present IFF read: false
 wikilinks_followed:
-  - target:          <the wikilink target exactly as written in the file that linked it>
+  - target:          <the link target exactly as written in the file that linked it>
     from:            <absolute path of the file that linked it>
     path:            <absolute path of the followed .md>
     depth:           1 | 2
     salient_summary: <≤150 words: the facts that mattered — status, named customers, what shipped, what closed>
     tracked_status:  <the item's status when its frontmatter carries one, else omit>
 wikilinks_not_followed:
-  - target: <the wikilink target as written>
+  - target: <the link target as written>
     from:   <absolute path of the file that linked it>
     reason: cap | depth
 wikilinks_broken:
@@ -216,4 +222,4 @@ collapsed into one entry.
 - NEVER open, read, summarise, or describe a `links_other` file. It is enumerated so the caller can report what it did not copy, and enumerating is the whole of the obligation; its content is never inferred from its name or its extension.
 - On an invalid key or a missing file, return `status: NOT_FOUND` with a clear message; do not guess.
 - NEVER mine a `prd` source for requesters, upvotes, or demand signals — a Product Requirements Document is prior art, not a demand ticket. Fabricating them is a correctness failure, not a stylistic one.
-- A `salient_summary` summarises **only** what was actually read; never infer content for a broken wikilink.
+- A `salient_summary` summarises **only** what was actually read; never infer content for a broken link.

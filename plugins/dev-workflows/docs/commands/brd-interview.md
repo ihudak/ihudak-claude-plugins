@@ -85,7 +85,7 @@ flowchart TD
 ```
 
 A run that finds every round closed and nothing changed since the last one proposes no new round: it
-reports that plainly and reaches the handoff with nothing to commit. `impl-maintenance` runs in the
+reports that plainly and reaches the handoff with nothing to commit. `workflows-core:impl-maintenance` runs in the
 terminal phase for session lessons-learned; no other subagent is dispatched — every finding this
 command reads was already independently re-derived by `/brd-ground`'s own verifier pass.
 

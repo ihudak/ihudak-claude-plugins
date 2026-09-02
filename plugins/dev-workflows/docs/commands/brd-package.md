@@ -70,7 +70,7 @@ flowchart TD
 ```
 
 `brd-package-reviewer` is dispatched on Opus for the adversarial pass, and once more when a `fixed`
-disposition changed the package the review was written against. `impl-maintenance` runs in the
+disposition changed the package the review was written against. `workflows-core:impl-maintenance` runs in the
 terminal phase for session lessons-learned. No other subagent is dispatched.
 
 ## What it needs

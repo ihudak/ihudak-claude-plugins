@@ -47,10 +47,10 @@ flowchart TD
     p8 --> p9["Phase 9 — Session maintenance, feedback & cost"]
 ```
 
-Two `dev-workflows` subagents are dispatched: `brd-reader` (Phase 3, frontmatter-pinned to Sonnet —
-its extraction work is mechanical) and `docs-grounder` (Phase 3.5, read-only grounding on the
+Two subagents are dispatched: `brd-reader` (Phase 3, frontmatter-pinned to Sonnet —
+its extraction work is mechanical) and `workflows-core:docs-grounder` (Phase 3.5, read-only grounding on the
 shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate).
-`impl-maintenance` also runs, in Phase 9, for session lessons-learned.
+`workflows-core:impl-maintenance` also runs, in Phase 9, for session lessons-learned.
 
 ## What it needs
 

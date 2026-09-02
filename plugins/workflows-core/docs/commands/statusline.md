@@ -4,9 +4,9 @@ Installs the plugin's multi-line status line into your Claude Code settings, ena
 
 ## Who runs it
 
-`/statusline` runs outside the role pipeline — no role, no cost-attribution phase. [Workflow overview](../workflow.md#cross-cutting-commands) groups it under Setup and review utilities, and recommends running it first: install it once, right after installing the plugin, so the cost snapshot it enables is already in place before your first pipeline command runs.
+`/statusline` runs outside the role pipeline — no role, no cost-attribution phase. [Workflow overview](../workflow.md#cross-cutting-commands) groups it under Setup, and recommends running it first: install it once, right after installing the plugin, so the cost snapshot it enables is already in place before your first pipeline command runs.
 
-**Claude Code ships its own built-in `/statusline` command** (backed by its own `statusline-setup` agent). The bare `/statusline` always resolves to that built-in, never to this one — **always type the qualified form, `/workflows-core:statusline`.** Two other commands in this plugin collide with a Claude Code built-in the same way: `/release-notes` and `/upgrade`. See [Workflow overview](../workflow.md) for the full three-name collision list.
+**Claude Code ships its own built-in `/statusline` command** (backed by its own `statusline-setup` agent). The bare `/statusline` always resolves to that built-in, never to this one — **always type the qualified form, `/workflows-core:statusline`.** Two commands in the companion `dev-workflows` plugin collide with a Claude Code built-in the same way — `/release-notes` and `/upgrade` — and are qualified there for the same reason. No other command in this plugin is known to collide.
 
 ## Synopsis
 
@@ -39,6 +39,6 @@ Run this once, first, right after installing the plugin. It backs up any existin
 
 ## See also
 
-- [Workflow overview](../workflow.md) — the three-way command-name collision (`/release-notes`, `/upgrade`, `/statusline`) and where this command sits among the setup utilities.
+- [Workflow overview](../workflow.md) — where this command sits among the cross-cutting commands, and why its qualified form is the only one that reaches it.
 - [Session cost](../reference/session-cost.md) — the Option B cost snapshot this command enables.
 - `/release-notes` and `/upgrade`, in the `dev-workflows` plugin — the other two commands whose bare form also reaches a Claude Code built-in.

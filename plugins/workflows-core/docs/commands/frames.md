@@ -42,7 +42,7 @@ flowchart TD
 
 ## What it produces
 
-One `index.md` per frame set, in the format [`grounding-format.md`](../../references/grounding-format.md) §6.2 fixes — the same format and the same reconciliation contract `/idea` Phase 4.5 follows, so two writers never leave one directory holding an index neither would have written. The index is rebuilt from the set **as it stands on disk**: every existing row whose image is still there is preserved verbatim — with one exception, and it is the whole convergence mechanism for a capped set: a row carrying `_no description on record_` holds no description to preserve, so the next writer that can obtain one fills it — a row is appended for each frame this run described, a row whose image is gone is dropped and reported, and a frame the run could not account for gets `_no description on record_` and is reported.
+One `index.md` per frame set, in the format [`grounding-format.md`](../../references/grounding-format.md) §6.2 fixes — the same format and the same reconciliation contract `/dev-workflows:idea` Phase 4.5 follows — that command ships in the sibling pipeline plugin, and this is the one file the two write in common, so two writers never leave one directory holding an index neither would have written. The index is rebuilt from the set **as it stands on disk**: every existing row whose image is still there is preserved verbatim — with one exception, and it is the whole convergence mechanism for a capped set: a row carrying `_no description on record_` holds no description to preserve, so the next writer that can obtain one fills it — a row is appended for each frame this run described, a row whose image is gone is dropped and reported, and a frame the run could not account for gets `_no description on record_` and is reported.
 
 Descriptions come from the `frame-describer` agent, which looks at the frames and returns one plain-language description each — an agent whose whole tool list is `Read`, `Glob`, `Grep`, so it cannot write the index it describes into. The command hands the frames to it rather than opening them itself, so every description in an index is one that something which actually saw the frame produced, and "transcribed, never inferred" is a rule about copying rather than a hope about restraint.
 
@@ -66,9 +66,9 @@ No reviewer, and nothing to review — an index states what a directory holds. T
 
 ## What it is not
 
-**Indexing makes frames readable; grounding makes them `[DG#n]` findings.** `/frames` dispatches no `design-grounder`, produces no finding, cites no requirement, and never reaches `grounding-verifier`. Design grounding on the `/idea` route remains deliberately unbuilt — §6.1 says so, and this command keeps it true. The one command that grounds a frame set is `/brd-ground`, on the BRD route.
+**Indexing makes frames readable; grounding makes them `[DG#n]` findings.** `/frames` dispatches no `design-grounder`, produces no finding, cites no requirement, and never reaches `grounding-verifier` — both of those agents ship in the sibling `dev-workflows` plugin and are dispatched only by its `/brd-ground`. Design grounding on the `/idea` route remains deliberately unbuilt — §6.1 says so, and this command keeps it true. The one command that grounds a frame set is `/brd-ground`, on the BRD route.
 
-It is also not `/design-index`, deliberately. `/design` is the engineering-design workflow, and a name adjacent to it would send an operator who wanted an index into the wrong command. *Frame set* and *frame* are §6.1's own vocabulary.
+It is also not `/design-index`, deliberately. `/dev-workflows:design` is the engineering-design workflow, and a name adjacent to it would send an operator who wanted an index into the wrong command. *Frame set* and *frame* are §6.1's own vocabulary.
 
 ## Example
 

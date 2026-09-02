@@ -32,7 +32,7 @@ flowchart TD
     p6 --> p7["Phase 7 — Session maintenance, feedback & cost"]
 ```
 
-Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 2, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `prd-reviewer` (Phase 4, Opus-pinned), and `impl-maintenance` (Phase 7, session lessons-learned), each against the model recorded in `model_routing`. A fourth agent, `prose-style:prose-style-checker`, runs in Phase 3.5 exactly as it does in [`/create-prd`](create-prd.md) — a non-gating quality pass from a separate plugin, not counted in the dispatch total above.
+Three subagents are dispatched: `workflows-core:docs-grounder` (Phase 2, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `prd-reviewer` (Phase 4, Opus-pinned), and `workflows-core:impl-maintenance` (Phase 7, session lessons-learned), each against the model recorded in `model_routing`. A fourth agent, `prose-style:prose-style-checker`, runs in Phase 3.5 exactly as it does in [`/create-prd`](create-prd.md) — a non-gating quality pass from an optional plugin that may not be installed, and so not counted in the dispatch total above. The count is of dispatches, not of shipping plugins: two of the three above ship in the companion `workflows-core` plugin, which is a hard prerequisite rather than an optional one.
 
 ## What it needs
 

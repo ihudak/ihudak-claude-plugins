@@ -77,7 +77,7 @@ flowchart TD
     p14 -.->|"on a root BRD — its slices advance instead"| grd["/brd-ground &lt;SLICE-KEY&gt; (PA)"]
 ```
 
-`customer-review-reader` is dispatched once, on the detection chain. `impl-maintenance` runs in the
+`customer-review-reader` is dispatched once, on the detection chain. `workflows-core:impl-maintenance` runs in the
 terminal phase for session lessons-learned. No other subagent is dispatched.
 
 ## What it needs

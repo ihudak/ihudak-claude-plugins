@@ -63,12 +63,12 @@ flowchart TD
     p10 --> p11["Phase 11 — Session maintenance, feedback & cost"]
 ```
 
-Four `dev-workflows` subagents are dispatched, all read-only against every repository or root they
-touch: `docs-grounder` (Phase 4.5, read-only grounding on the shipped product docs — default ON
+Four subagents are dispatched, all read-only against every repository or root they
+touch: `workflows-core:docs-grounder` (Phase 4.5, read-only grounding on the shipped product docs — default ON
 when `$DOCS_PATH` resolves, advisory, never a gate), `code-grounder` (Phase 5, one per repository,
 ≤4 concurrent), `design-grounder` (Phase 5, one per exported frame set, after every `code-grounder`
 instance has returned — its fourth reconciliation class cites a `[CG#n]`), and
-`grounding-verifier` (Phase 7, one per finding, pinned to Opus). `impl-maintenance` also runs, in
+`grounding-verifier` (Phase 7, one per finding, pinned to Opus). `workflows-core:impl-maintenance` also runs, in
 Phase 11, for session lessons-learned.
 
 ## What it needs

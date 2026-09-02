@@ -55,7 +55,7 @@ Your branch identifier. Branch naming is **repo-rule-first**: every branch-creat
 
 ## Install the status line
 
-**Worth doing before your first real run.** Two things come out of it.
+**Worth doing before your first real run.** The command that installs it ships in the companion `workflows-core` plugin rather than this one, which is why every form below is qualified. Two things come out of it.
 
 The visible half is a permanent multi-line status line at the bottom of your terminal — session identity, git state, context usage, running cost, tokens, and rate limits — so you can see a long command spending your budget while it spends it, rather than finding out in the final report.
 
@@ -67,7 +67,7 @@ See [Session cost](reference/session-cost.md) for what the report contains and w
 /workflows-core:statusline
 ```
 
-Claude Code ships its own built-in `/statusline` command, so typing the bare form reaches that instead of this plugin's — always use the qualified `/workflows-core:statusline`.
+Claude Code ships its own built-in `/statusline` command, so typing the bare form reaches that instead of the companion plugin's — always use the qualified `/workflows-core:statusline`.
 
 ## Your first run
 

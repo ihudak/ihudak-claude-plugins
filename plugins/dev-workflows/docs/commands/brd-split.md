@@ -119,7 +119,7 @@ holds no child standing empty** — a two-part test taken in Phase 0's last step
 nothing to commit. Holding one, it is not a no-op — Phase 0 skips the walk it has no rows for and
 runs Phase 4.5 alone, which is what keeps a child kept empty by an earlier run reachable by the one
 command that can remove it. Deciding the no-op on the ledger alone made that child unreachable in
-every run after the one that created it. `impl-maintenance` runs in
+every run after the one that created it. `workflows-core:impl-maintenance` runs in
 Phase 8 for session lessons-learned; no other subagent is dispatched — every finding this command
 reads was already independently verified by `/brd-ground`'s own agents.
 

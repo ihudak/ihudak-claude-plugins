@@ -40,7 +40,7 @@ flowchart TD
 
 The `d1` fork is the Phase 1 diff-grounding choice, default OFF — the PRD alone is usually enough for a release note; it decides the folder read's `depth` before Phase 3 even runs (`prd-only` when off, `full` when on, so PR links are collected), and only Phase 4's repo resolution and Phase 5's `diff-summarizer` batches are actually skipped on the "off" path.
 
-Three `dev-workflows` subagents are dispatched: `docs-grounder` (Phase 5.5, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `release-notes-writer` (Phase 6, the sole author of the rendered draft), and `impl-maintenance` (Phase 9, alongside no other maintenance agents — `/release-notes` has none of `/document`'s or `/implement`'s three general-purpose maintenance dispatches). `diff-summarizer` (Phase 5) is a fifth agent, dispatched only when diff grounding is on. `prose-style-checker` and `prose-fixer` (Phase 7) belong to the separate `prose-style` plugin and run only when it's installed.
+Three subagents are dispatched: `workflows-core:docs-grounder` (Phase 5.5, read-only grounding on the shipped product docs — default ON when `$DOCS_PATH` resolves, advisory, never a gate), `release-notes-writer` (Phase 6, the sole author of the rendered draft), and `workflows-core:impl-maintenance` (Phase 9, alongside no other maintenance agents — `/release-notes` has none of `/document`'s or `/implement`'s three general-purpose maintenance dispatches). `diff-summarizer` (Phase 5) is a fifth agent, dispatched only when diff grounding is on. `prose-style-checker` and `prose-fixer` (Phase 7) belong to the separate `prose-style` plugin and run only when it's installed.
 
 ## What it needs
 

@@ -56,6 +56,6 @@ Four pages orient you before you touch a command: [Getting started](getting-star
 - [Commit convention](reference/commit-convention.md) — end your commit subject with `[<key>]`, and what that buys you when `/document` and `/release-notes` look for the diff.
 - [Model routing](reference/model-routing.md) — the task-complexity classification and model fallback chain commands apply before acting.
 - [Session cost](reference/session-cost.md) — how a run's dollar cost is computed, attributed, and persisted.
-- [Session feedback](reference/session-feedback.md) — two different signals about the plugin itself: `/feedback` logs what you tell it, while `/prompt*` captures a bad result, your correction, and the good result that came out of it.
+- [Session feedback](reference/session-feedback.md) — two different signals about the plugin itself: this plugin's own automatic capture, and the companion plugin's `/workflows-core:feedback`, which logs what you tell it, and `/workflows-core:prompt*`, which captures a bad result, your correction, and the good result that came out of it.
 - [Follow-ups](reference/follow-ups.md) — how a command records follow-ups in the specs tree.
 - [Resume and checkpoints](reference/resume-and-checkpoints.md) — session hygiene: checkpointing state and resuming a long-running command.

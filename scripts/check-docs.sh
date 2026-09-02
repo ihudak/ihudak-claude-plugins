@@ -478,6 +478,21 @@ check_cost_attribution() {
   done < <(cmd_names "$p")
 }
 
+# COST_PLUGIN_RELS is a declared list, not an inferred one -- but a declaration only guards
+# the LOUD direction (a plugin wrongly listed runs check 8 against a subsystem it has
+# nothing to attribute). The QUIET direction was unguarded: a plugin that DOES ship
+# $REF_DIR/cost-emission.md but is missing from the list has check 8 silently skipped for
+# it -- deleting every row from the section-7 table left the whole tree green. This asserts
+# the other half: presence of the file implies membership in the list.
+check_cost_applicability() {
+  local root="$1" p="$1/$PLUGIN_REL"
+  [ -f "$p/$REF_DIR/cost-emission.md" ] || return
+  case " $COST_PLUGIN_RELS " in
+    *" $PLUGIN_REL "*) : ;;
+    *) fail 8 "$PLUGIN_REL ships $REF_DIR/cost-emission.md but is not a member of COST_PLUGIN_RELS -- check 8 never runs for it" ;;
+  esac
+}
+
 # ------------------------------------------------------------------- check 9
 # Prose counts. check 4 gates the INVENTORIES in both directions, but not the sentences
 # that state their size. A 22nd command with a page and an index link passes check 4 while
@@ -767,6 +782,19 @@ check_merge_clause() {
   [ "$req_n" -gt 0 ] || fail 11 "no offer in the '$glob' family names a command whose require-on-main target that offer's own run writes -- either the route stopped handing off to itself or the EXTRACTOR drifted; fix the parser, never the offers"
 }
 
+# HANDOFF_PLUGIN_RELS is a declared list, not an inferred one -- same asymmetry as
+# COST_PLUGIN_RELS above. A plugin that DOES ship $REF_DIR/next-phase-offer.md but is
+# missing from the list has check 11 silently skipped for it. This asserts the other
+# half: presence of the file implies membership in the list.
+check_handoff_applicability() {
+  local root="$1" p="$1/$PLUGIN_REL"
+  [ -f "$p/$REF_DIR/next-phase-offer.md" ] || return
+  case " $HANDOFF_PLUGIN_RELS " in
+    *" $PLUGIN_REL "*) : ;;
+    *) fail 11 "$PLUGIN_REL ships $REF_DIR/next-phase-offer.md but is not a member of HANDOFF_PLUGIN_RELS -- check 11 never runs for it" ;;
+  esac
+}
+
 # ------------------------------------------------------------------ selftest
 # One passing fixture tree; each check gets a mutation of a fresh copy. Asserting
 # the exit code alone would let a mutation that trips a DIFFERENT check register
@@ -1054,6 +1082,17 @@ selftest() {
   # plugin's docs index, which is the coverage this case's name promises.
   expect_fail "second plugin's docs index is checked too" 2 \
     'printf "\n[dangling](#no-such-heading-here)\n" >> plugins/fixture-two/docs/README.md'
+
+  # check_cost_applicability / check_handoff_applicability guard the QUIET direction: a
+  # plugin that ships the capability file but was never added to the declaring list has
+  # its check silently skipped. plugins/fixture-two ships neither file and is a member of
+  # neither list, so simply CREATING the file there -- no config edit needed at runtime --
+  # is the mutation: undeclared-but-present is exactly the state the reviewer proved was
+  # invisible by deleting every row from the section-7 table.
+  expect_fail "a plugin shipping cost-emission.md undeclared in COST_PLUGIN_RELS is rejected" 8 \
+    "mkdir -p plugins/fixture-two/$REF_DIR && printf -- '# Cost emission (fixture)\n\n## 7. Attribution (phase / role)\n\n| Command | phase | role |\n|---------|-------|------|\n' > plugins/fixture-two/$REF_DIR/cost-emission.md"
+  expect_fail "a plugin shipping next-phase-offer.md undeclared in HANDOFF_PLUGIN_RELS is rejected" 11 \
+    "mkdir -p plugins/fixture-two/$REF_DIR && printf -- '# Next-phase offer (fixture)\n' > plugins/fixture-two/$REF_DIR/next-phase-offer.md"
 
   if [ "$rc" -eq 0 ]; then echo "SELFTEST PASS"; else echo "SELFTEST FAIL"; fi
   exit "$rc"
@@ -1349,9 +1388,11 @@ for PLUGIN_REL in $PLUGIN_RELS; do
   check_env_vars            "$ROOT"
   check_table_cells         "$ROOT"
   check_install_block       "$ROOT"
+  check_cost_applicability   "$ROOT"
   case " $COST_PLUGIN_RELS "    in *" $PLUGIN_REL "*) check_cost_attribution "$ROOT" ;; esac
   check_prose_counts        "$ROOT"
   check_identity_quarantine "$ROOT"
+  check_handoff_applicability "$ROOT"
   case " $HANDOFF_PLUGIN_RELS " in *" $PLUGIN_REL "*) check_merge_clause     "$ROOT" ;; esac
   check_choices_arity       "$ROOT"
   check_vendor_tokens       "$ROOT"

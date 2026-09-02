@@ -4,7 +4,7 @@ Reviews OpenAPI specification files against the bundled REST API and IAM permiss
 
 ## Who runs it
 
-`/api-guideline-reviewer` is **standalone**: outside the role pipeline, no role, no cost-attribution phase, and exempt from the [model-routing](../reference/model-routing.md) classification the pipeline commands apply — the command file carries no classification step, no `model_routing` block, and no Opus/Sonnet chain reference. [Workflow overview](../workflow.md#cross-cutting-commands) groups it under Setup and review utilities, alongside [`/guideline-reviewer`](guideline-reviewer.md), its sibling reviewer for app code and UI rather than API specs.
+`/api-guideline-reviewer` is **standalone**: it consumes no workflow artifact and produces none, needs no `$SPECS_PATH` and opens no branch, and runs no LLM-model classification step — the command file carries no classification phase, no `model_routing` block, and no Opus/Sonnet chain reference. [Workflow overview](../workflow.md) shows it alongside [`/guideline-reviewer`](guideline-reviewer.md), its sibling reviewer for app code and UI rather than API specs.
 
 ## Synopsis
 
@@ -70,7 +70,7 @@ There is no review gate here in the pipeline sense — **this command is the rev
 ## Example
 
 ```
-/dev-workflows:api-guideline-reviewer specs/openapi.yaml
+/guideline-reviewers:api-guideline-reviewer specs/openapi.yaml
 ```
 
 Lints `specs/openapi.yaml` with the bundled ruleset where a Spectral CLI is available, then dispatches `api-guideline-reviewer` for the passes the linter cannot make, and prints the merged verdict.
@@ -78,5 +78,5 @@ Lints `specs/openapi.yaml` with the bundled ruleset where a Spectral CLI is avai
 ## See also
 
 - [`/guideline-reviewer`](guideline-reviewer.md) — the sibling standalone reviewer for app code and UI instead of OpenAPI specs.
-- [Model routing](../reference/model-routing.md) — the classification policy this command is exempt from.
-- [Workflow overview](../workflow.md#cross-cutting-commands) — where the two standalone reviewers sit relative to the role pipeline.
+- [Workflow overview](../workflow.md) — where the two standalone reviewers sit relative to each other.
+- [Environment](../reference/environment.md) — `$API_GUIDELINES_PATH`, the one variable this command reads.

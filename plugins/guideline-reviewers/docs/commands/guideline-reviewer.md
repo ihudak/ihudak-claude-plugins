@@ -6,7 +6,7 @@ Accessibility findings are reported in a machine-checkable vocabulary: each rule
 
 ## Who runs it
 
-`/guideline-reviewer` is **standalone**: outside the role pipeline, no role, no cost-attribution phase, and exempt from the [model-routing](../reference/model-routing.md) classification the pipeline commands apply — the command file carries no classification step, no `model_routing` block, and no Opus/Sonnet chain reference. [Workflow overview](../workflow.md#cross-cutting-commands) groups it under Setup and review utilities, alongside [`/api-guideline-reviewer`](api-guideline-reviewer.md), its sibling reviewer for OpenAPI specs rather than app code and UI.
+`/guideline-reviewer` is **standalone**: it consumes no workflow artifact and produces none, needs no `$SPECS_PATH` and opens no branch, and runs no LLM-model classification step — the command file carries no classification phase, no `model_routing` block, and no Opus/Sonnet chain reference. [Workflow overview](../workflow.md) shows it alongside [`/api-guideline-reviewer`](api-guideline-reviewer.md), its sibling reviewer for OpenAPI specs rather than app code and UI.
 
 ## Synopsis
 
@@ -29,7 +29,7 @@ The `guideline-reviewer` subagent's verdict against the mandatory design-system 
 
 ## Deterministic accessibility check
 
-Runs **before** the subagent's review passes, and wraps the target repo's own configuration rather than re-encoding a rule set — the same reasoning the [`docs-style-checker`](../reference/agents.md) agent applies to a docs repo's Vale. Detection is read-only and follows a fixed order; the first match sets the reported `a11y_check` value.
+Runs **before** the subagent's review passes, and wraps the target repo's own configuration rather than re-encoding a rule set — the same reasoning the sibling `dev-workflows` plugin's `docs-style-checker` agent applies to a docs repo's Vale. Detection is read-only and follows a fixed order; the first match sets the reported `a11y_check` value.
 
 | Order | Detected | What happens | `a11y_check` |
 |---|---|---|---|
@@ -65,7 +65,7 @@ There is no review gate here in the pipeline sense — **this command is the rev
 ## Example
 
 ```
-/dev-workflows:guideline-reviewer app/src/pages/SettingsPage.tsx
+/guideline-reviewers:guideline-reviewer app/src/pages/SettingsPage.tsx
 ```
 
 Dispatches `guideline-reviewer` against the named file and prints its verdict against the guideline checklist.
@@ -73,5 +73,5 @@ Dispatches `guideline-reviewer` against the named file and prints its verdict ag
 ## See also
 
 - [`/api-guideline-reviewer`](api-guideline-reviewer.md) — the sibling standalone reviewer for OpenAPI specs instead of app code and UI.
-- [Model routing](../reference/model-routing.md) — the classification policy this command is exempt from.
-- [Workflow overview](../workflow.md#cross-cutting-commands) — where the two standalone reviewers sit relative to the role pipeline.
+- [Workflow overview](../workflow.md) — where the two standalone reviewers sit relative to each other.
+- [Environment](../reference/environment.md) — `$UI_GUIDELINES_PATH`, the one variable this command reads.

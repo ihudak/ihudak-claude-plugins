@@ -12,7 +12,7 @@ If `$ARGUMENTS` is empty, ask the user which files or components to review.
 
 Dispatch the review to the `guideline-reviewer` subagent:
 
-→ Agent (subagent_type: "dev-workflows:guideline-reviewer"):
+→ Agent (subagent_type: "guideline-reviewers:guideline-reviewer"):
   > "Review the following app code and UI for compliance with public UI design-system and accessibility standards: $ARGUMENTS
   >
   > Run the deterministic accessibility check first, per your `## Deterministic Accessibility Check` section: detect the target repo's own `eslint-plugin-jsx-a11y` configuration and, if it is configured, run the repo's own lint scoped to the files under review; otherwise detect a runtime axe harness (`jest-axe`, `cypress-axe`, `@axe-core/playwright`, `@axe-core/cli`) and record it WITHOUT running it — a review has no rendered app. Neither configured ⇒ skip silently and review as normal. Never install anything, never prompt, never fail the run over missing tooling.

@@ -12,7 +12,7 @@ If `$ARGUMENTS` is empty, ask the user which OpenAPI spec file(s) to review.
 
 Dispatch the review to the `api-guideline-reviewer` subagent:
 
-→ Agent (subagent_type: "dev-workflows:api-guideline-reviewer"):
+→ Agent (subagent_type: "guideline-reviewers:api-guideline-reviewer"):
   > "Review the following OpenAPI spec file(s) against the guidelines: $ARGUMENTS"
 
 Surface the subagent's verdict to the user.

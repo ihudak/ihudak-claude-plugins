@@ -158,57 +158,70 @@ MARKER_CLOSE = "</command-name>"
 MARKER_MSG = "<command-message>"
 
 
-def load_command_names(commands_dir):
-    """This plugin's command names and its own namespace, read off the shipped
-    commands/ dir.
+# The namespace manifest ships BESIDE this script, and is read with no flag and no
+# path assumption. Building the map at runtime would need every sibling plugin's
+# commands/ dir, which lives at <cache>/<marketplace>/<plugin>/<version>/ -- a layout
+# CLAUDE.md forbids hardcoding. Every plugin of this marketplace is authored in one
+# repository, so the namespaces and their command sets are known at authoring time.
+DEFAULT_NAMESPACE_MAP = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "command-namespaces.json")
 
-    Returns (names, plugin_name) -- bare names ("implement") plus the directory
-    the commands live under, which IS the namespace a user may type
-    ("dev-workflows:implement"). (None, None) when no directory was supplied,
-    which disables boundary detection entirely rather than guessing."""
-    if not commands_dir or not os.path.isdir(commands_dir):
-        return None, None
-    # Every *.md here is taken as a command name. A stray file would therefore
-    # become a possible boundary -- but it cannot survive into a release: it would
-    # be counted as a command by check-docs.sh, which gates the command inventory
-    # in both directions and the prose counts that state its size. Verified by
-    # dropping a NOTES.md into commands/ and watching the gate go red.
-    names = set()
-    for fp in glob.glob(os.path.join(commands_dir, "*.md")):
-        base = os.path.basename(fp)[:-3]
-        if base:
-            names.add(base)
-    if not names:
-        return None, None
-    # The namespace is the plugin's declared name. It is NOT the parent directory:
-    # installed content lives at <cache>/<marketplace>/<plugin>/<version>/, so the
-    # parent of commands/ is the VERSION there and only the plugin name in a dev
-    # tree. plugin.json is authoritative in both.
-    root = os.path.dirname(os.path.abspath(commands_dir))
-    plugin_name = None
+
+def load_namespace_map(path):
+    """Every plugin namespace in this marketplace, mapped to that plugin's OWN
+    command names.
+
+    Returns {namespace: frozenset(names)}, or None when nothing usable resolved --
+    which disables boundary detection entirely rather than guessing.
+
+    It is a MAP and not a list of namespaces, and that distinction is the whole
+    fix. A boundary resolves BOTH halves at once, so a detector that widened the
+    accepted namespaces while still holding one plugin's command names would go on
+    rejecting `/dev-workflows:vuln` -- reproduced, and measured: the claim then
+    swallows the sibling run's segment (9000 tokens claimed where 5000 is correct).
+
+    It is equally NOT read off any plugin's commands/ directory. The run doing the
+    reading is routinely a DIFFERENT plugin from the one that ships this script and
+    the reference that invokes it, so a ${CLAUDE_PLUGIN_ROOT}/commands path resolves
+    to the WRONG plugin's command set -- the reference's own six utility commands
+    while the emitting run is one of a sibling's twenty. That was live, and no
+    assertion could see it: the path resolved, just to the wrong files.
+
+    The manifest is DERIVED, never hand-maintained: scripts/check-docs.sh asserts it
+    equals the tree's per-plugin command inventory, in both directions."""
+    if not path or not os.path.isfile(path):
+        return None
     try:
-        with open(os.path.join(root, ".claude-plugin", "plugin.json"),
-                  encoding="utf-8", errors="replace") as fh:
-            plugin_name = (json.load(fh) or {}).get("name") or None
-    except (OSError, ValueError, TypeError, AttributeError):
-        plugin_name = None
-    if not plugin_name:
-        plugin_name = os.path.basename(root)
-    return names, plugin_name
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            raw = json.load(fh)
+    except (OSError, ValueError):
+        return None
+    if not isinstance(raw, dict):
+        return None
+    # Tolerant by entry, never fatal: a malformed entry drops out and the rest of the
+    # map still resolves, exactly as a malformed transcript line does not fail a run.
+    ns_map = {}
+    for ns, names in raw.items():
+        if not isinstance(ns, str) or not ns or not isinstance(names, list):
+            continue
+        good = frozenset(n for n in names if isinstance(n, str) and n)
+        if good:
+            ns_map[ns] = good
+    return ns_map or None
 
 
-def command_marker(obj, known, plugin_name=None):
+def command_marker(obj, ns_map):
     """The command name if obj is a transcript record for a slash-command
-    invocation of a KNOWN plugin command, else None.
+    invocation of a command KNOWN to this marketplace, else None.
 
     Two disciplines, both deliberate. The marker must START the message content:
     the same `<command-name>` text appears inside quoted file content elsewhere in
-    a transcript, and an unanchored search matches that too. And the name is
-    RESOLVED against the known set, never parsed -- a marker records what the user
-    typed, which may be bare (`/implement`) or namespaced
-    (`/dev-workflows:implement`), and only the set can say which reading is real.
-    An unknown name (`/compact`, `/login`, another plugin's command) returns None,
-    so it never becomes a cost boundary."""
+    a transcript, and an unanchored search matches that too. And BOTH halves of the
+    name are RESOLVED against a held set, never parsed -- a marker records what the
+    user typed, which may be bare (`/implement`) or namespaced
+    (`/dev-workflows:implement`), and only the map can say which reading is real.
+    A name outside the map (`/compact`, `/login`, a plugin from another
+    marketplace) returns None, so it never becomes a cost boundary."""
     if not isinstance(obj, dict) or obj.get("type") != "user":
         return None
     msg = obj.get("message")
@@ -243,28 +256,36 @@ def command_marker(obj, known, plugin_name=None):
     if not raw.startswith("/"):
         return None
     typed = raw[1:].strip()
-    if not typed or known is None:
+    if not typed or not ns_map:
         return None
     # The namespace is REQUIRED, and that is a deliberate asymmetry with how a
     # user thinks about these commands. Two facts force it. Claude Code's own
     # built-ins are always written bare, and one of them -- `/upgrade` -- collides
-    # with a command name this plugin also ships, so accepting a bare name mints a
-    # boundary from a subscription command the plugin never ran (observed on real
-    # transcripts). And a namespace is resolved, never discarded: stripping it
-    # would read another installed plugin's `/superpowers:implement` as this
-    # plugin's `/implement`. Requiring `<this plugin>:<known command>` excludes
-    # both, and errs safe -- an invocation missed becomes an unmatched claim,
-    # reported and dropped (section 13.4), where a phantom one silently files one
-    # command's spend under another's phase.
+    # with a command name this marketplace also ships, so accepting a bare name
+    # mints a boundary from a subscription command no plugin here ever ran
+    # (observed on real transcripts). And a namespace is resolved, never discarded:
+    # stripping it would read another marketplace's `/superpowers:implement` as
+    # this family's `/implement`.
+    #
+    # What WIDENED is which namespaces are accepted, and nothing else. It used to be
+    # `<this plugin>:<this plugin's command>`, which made every SIBLING plugin's
+    # invocation invisible -- and section 13.3 gives a claim the segment up to the
+    # next boundary OF ANY KIND, so an invisible sibling boundary is swallowed whole
+    # into the claim. It is now `<any plugin of this marketplace>:<that plugin's own
+    # command>`: both halves still resolve against a held set, so both safety
+    # properties survive intact. It errs safe either way -- an invocation missed
+    # becomes an unmatched claim, reported and dropped (section 13.4), where a
+    # phantom one silently files one command's spend under another's phase.
     if ":" not in typed:
         return None
     ns, rest = typed.split(":", 1)
-    if plugin_name and ns == plugin_name and rest in known:
+    names = ns_map.get(ns)
+    if names and rest in names:
         return rest
     return None
 
 
-def scan_main(path, line_offset, known_commands, plugin_name=None):
+def scan_main(path, line_offset, ns_map):
     """Single pass over main-transcript lines [line_offset, EOF).
 
     Buffers each usage record with its timestamp instead of accumulating
@@ -294,7 +315,7 @@ def scan_main(path, line_offset, known_commands, plugin_name=None):
             except (ValueError, TypeError):
                 continue
             ts = parse_ts(obj.get("timestamp") if isinstance(obj, dict) else None)
-            name = command_marker(obj, known_commands, plugin_name)
+            name = command_marker(obj, ns_map)
             if name is not None and ts is not None:
                 # The raw stamp is kept, not iso_z's whole-second form: segment
                 # edges are compared against record timestamps, and flooring the
@@ -441,6 +462,34 @@ default: null
 """
 
 
+def _st_asst(ts, out):
+    rec = {"type": "assistant",
+           "message": {"role": "assistant", "model": "claude-opus-5",
+                       "usage": {"input_tokens": 0, "output_tokens": out,
+                                 "cache_read_input_tokens": 0,
+                                 "cache_creation_input_tokens": 0}}}
+    if ts:
+        rec["timestamp"] = ts
+    return rec
+
+
+def _st_builtin(ts, name):          # built-ins: name-first AND bare
+    return {"type": "user", "timestamp": ts,
+            "message": {"role": "user", "content":
+                        MARKER_OPEN + name + MARKER_CLOSE +
+                        "\n  <command-message>x</command-message>"}}
+
+
+def _st_plugin_cmd(ts, name, as_blocks=False):   # plugin commands: message-first
+    body = (MARKER_MSG + name.lstrip("/") + "</command-message>\n"
+            + MARKER_OPEN + name + MARKER_CLOSE + "\n<command-args></command-args>")
+    content = ([{"type": "text", "text": body}] if as_blocks else body)
+    rec = {"type": "user", "message": {"role": "user", "content": content}}
+    if ts:
+        rec["timestamp"] = ts
+    return rec
+
+
 def _st_rows():
     """A window carrying every trap this splitter has actually fallen into.
 
@@ -453,33 +502,19 @@ def _st_rows():
     ceding twice (a cursor that does not advance pairs both claims to one
     boundary); SUB-SECOND boundary and record stamps (flooring the edge moves
     records between runs); records sitting exactly ON a boundary (edge
-    inclusivity); and a usage record with no timestamp at all."""
-    def asst(ts, out):
-        rec = {"type": "assistant",
-               "message": {"role": "assistant", "model": "claude-opus-5",
-                           "usage": {"input_tokens": 0, "output_tokens": out,
-                                     "cache_read_input_tokens": 0,
-                                     "cache_creation_input_tokens": 0}}}
-        if ts:
-            rec["timestamp"] = ts
-        return rec
+    inclusivity); a usage record with no timestamp at all; and TWO PLUGINS'
+    namespaces in one window (a single-plugin detector sees only its own, and the
+    ceding command and the run that replays it ship from different plugins)."""
+    asst, builtin, plugin_cmd = _st_asst, _st_builtin, _st_plugin_cmd
 
-    def builtin(ts, name):          # built-ins: name-first AND bare
-        return {"type": "user", "timestamp": ts,
-                "message": {"role": "user", "content":
-                            MARKER_OPEN + name + MARKER_CLOSE +
-                            "\n  <command-message>x</command-message>"}}
-
-    def plugin_cmd(ts, name, as_blocks=False):   # plugin commands: message-first
-        body = (MARKER_MSG + name.lstrip("/") + "</command-message>\n"
-                + MARKER_OPEN + name + MARKER_CLOSE + "\n<command-args></command-args>")
-        content = ([{"type": "text", "text": body}] if as_blocks else body)
-        rec = {"type": "user", "message": {"role": "user", "content": content}}
-        if ts:
-            rec["timestamp"] = ts
-        return rec
-
-    G = "/dev-workflows:prompt-grill-me"
+    # The ceding command is namespaced to the plugin that actually ships it, which is
+    # NOT the plugin whose command replays it at the end of this window. That is the
+    # ordinary post-split shape, and it is the fixture's business to model it: both
+    # namespaces must resolve, out of one manifest, for a single boundary list to come
+    # back. Keep this name, the manifest built in selftest(), and the replaying
+    # `/dev-workflows:implement` below consistent with each other -- a sweep that
+    # rewrote this constant alone once left eight assertions failing.
+    G = "/workflows-core:prompt-grill-me"
     return [
         asst("2026-09-01T10:00:00.000Z", 1000),          # prior activity
         builtin("2026-09-01T10:00:30.000Z", "/upgrade"),  # BARE built-in, name we ship
@@ -503,6 +538,52 @@ def _st_rows():
     ]
 
 
+def _st_split_rows():
+    """The defect the marketplace split introduced, reproduced as a window.
+
+    The deferring command ships from THIS plugin; the `/vuln` that runs between the
+    cede and the replay ships from a SIBLING; the replaying `/prompt` is this
+    plugin's own. Section 13.3 gives a claim the segment up to the next boundary OF
+    ANY KIND, so a detector that cannot see the sibling's boundary hands the claim
+    the sibling's 4000 as well: 9000 claimed where 5000 is correct, 800 left in the
+    remainder where 4800 is correct. Measured, both before and after.
+
+    It carries BOTH safety rows too, because the widening is what could plausibly
+    have broken them: a bare `/upgrade` (a Claude Code built-in whose name a plugin
+    of this marketplace also ships) and a `/superpowers:implement` (a real namespace,
+    but from another marketplace, over a bare name this one ships). Neither may mint
+    a boundary, and an implementation that widens the accepted NAMESPACES without
+    widening the per-namespace NAME sets passes exactly this pair while failing the
+    segment numbers above -- which is why the two travel together."""
+    asst, builtin, plugin_cmd = _st_asst, _st_builtin, _st_plugin_cmd
+    return [
+        plugin_cmd("2026-09-01T10:00:00.000Z", "/workflows-core:prompt-grill-me"),
+        asst("2026-09-01T10:00:30.000Z", 5000),          # the ceded run's own spend
+        plugin_cmd("2026-09-01T10:01:00.000Z", "/dev-workflows:vuln"),  # SIBLING
+        asst("2026-09-01T10:01:30.000Z", 4000),          # /vuln's spend -- remainder
+        builtin("2026-09-01T10:02:00.000Z", "/upgrade"),                # safety
+        plugin_cmd("2026-09-01T10:02:10.000Z", "/superpowers:implement"),  # safety
+        plugin_cmd("2026-09-01T10:02:30.000Z", "/workflows-core:prompt"),  # replays
+        asst("2026-09-01T10:03:00.000Z", 800),           # the replaying run's spend
+    ]
+
+
+def _st_crossplugin_rows():
+    """A cede replayed by a command from ANOTHER plugin -- the commoner half.
+
+    Before the widening this claim did not resolve at all: the replaying run held
+    only its own plugin's set, so the ceding invocation was invisible, the claim came
+    back unmatched, and the spend stayed with the replaying run (section 13.4 -- it
+    errs safe, but the attribution was lost every time)."""
+    asst, plugin_cmd = _st_asst, _st_plugin_cmd
+    return [
+        plugin_cmd("2026-09-01T10:00:00.000Z", "/workflows-core:prompt-brainstorm"),
+        asst("2026-09-01T10:00:30.000Z", 2000),          # the ceded run's own spend
+        plugin_cmd("2026-09-01T10:01:00.000Z", "/dev-workflows:implement"),
+        asst("2026-09-01T10:01:30.000Z", 1000),          # the replaying run's spend
+    ]
+
+
 def selftest():
     import subprocess
     import tempfile
@@ -521,22 +602,30 @@ def selftest():
     with open(tpath, "w", encoding="utf-8") as fh:
         for r in _st_rows():
             fh.write(json.dumps(r) + "\n")
+    t2path = os.path.join(tmp, "t-split.jsonl")
+    with open(t2path, "w", encoding="utf-8") as fh:
+        for r in _st_split_rows():
+            fh.write(json.dumps(r) + "\n")
+    t3path = os.path.join(tmp, "t-crossplugin.jsonl")
+    with open(t3path, "w", encoding="utf-8") as fh:
+        for r in _st_crossplugin_rows():
+            fh.write(json.dumps(r) + "\n")
     ppath = os.path.join(tmp, "prices.yaml")
     with open(ppath, "w", encoding="utf-8") as fh:
         fh.write(SELFTEST_PRICES)
-    proot = os.path.join(tmp, "plugin-root")
-    cdir = os.path.join(proot, "commands")
-    os.makedirs(cdir)
-    os.makedirs(os.path.join(proot, ".claude-plugin"))
-    with open(os.path.join(proot, ".claude-plugin", "plugin.json"), "w",
-              encoding="utf-8") as fh:
-        json.dump({"name": "dev-workflows", "version": "0.0.0"}, fh)
-    # `/prompt` is shipped and is a strict PREFIX of the two deferring commands:
-    # a claim matcher using startswith instead of equality mispairs on it.
-    for n in ("implement", "prompt-grill-me", "prompt-brainstorm", "vuln",
-              "specify", "prompt", "upgrade"):
-        with open(os.path.join(cdir, n + ".md"), "w", encoding="utf-8") as fh:
-            fh.write("x\n")
+    # The fixture's OWN manifest, never the shipped one: a fixture that read the real
+    # map would assert nothing about the map it was written against, and would go red
+    # the day a command is renamed. Two namespaces, DISJOINT, allocated exactly as the
+    # marketplace allocates them -- the deferring commands ship from the plugin that
+    # holds this script, the work commands from a sibling. `prompt` is shipped and is a
+    # strict PREFIX of the two deferring commands: a claim matcher using startswith
+    # instead of equality mispairs on it. `upgrade` is shipped too, which is what makes
+    # the bare-built-in row below a real trap rather than a name nothing knows.
+    nspath = os.path.join(tmp, "command-namespaces.json")
+    with open(nspath, "w", encoding="utf-8") as fh:
+        json.dump({"dev-workflows": ["implement", "specify", "upgrade", "vuln"],
+                   "workflows-core": ["feedback", "prompt", "prompt-brainstorm",
+                                      "prompt-grill-me"]}, fh, indent=2, sort_keys=True)
     sdir = os.path.join(tmp, "subagents")
     os.makedirs(sdir)
     with open(os.path.join(sdir, "agent-1.jsonl"), "w", encoding="utf-8") as fh:
@@ -559,12 +648,15 @@ def selftest():
 
     def run(*extra, **kw):
         cmd = [sys.executable, os.path.abspath(__file__),
-               "--transcript", tpath, "--prices", ppath,
+               "--transcript", kw.get("transcript", tpath), "--prices", ppath,
                "--now-ts", "2026-09-01T10:05:00.000Z"]
         if kw.get("subagents", True):
             cmd += ["--subagents-dir", sdir]
-        if kw.get("commands", True):
-            cmd += ["--commands-dir", cdir]
+        # `namespaces=False` points the flag at a path that does not exist rather than
+        # omitting it: omitting it now resolves the SHIPPED manifest beside this script,
+        # and a fixture silently measured against real command names proves nothing.
+        cmd += ["--namespaces", nspath if kw.get("namespaces", True)
+                else os.path.join(tmp, "no-such-manifest.json")]
         cmd += ["--snapshot", snap, "--checkpoint", ckpt] + list(extra)
         out = subprocess.run(cmd, capture_output=True, text=True)
         if out.returncode != 0:
@@ -591,8 +683,9 @@ def selftest():
           "a marker quoted mid-message is not a boundary (anchored match)")
     check([b["line_offset"] for b in whole["command_boundaries"]] == [2, 4, 12, 15],
           "each boundary reports the transcript line it was found on")
-    check(whole["plugin_namespace"] == "dev-workflows",
-          "the namespace is read from plugin.json, not from the parent directory")
+    check(whole["namespaces"] == ["dev-workflows", "workflows-core"],
+          "the accepted namespaces come from the manifest -- EVERY plugin of this "
+          "marketplace, not the one plugin that happens to be reading")
     check(tokens(whole["models"]) == 11500,
           "unclaimed, the window is 11500 tok (out-of-window subagents excluded)")
     check(abs(whole["cost_computed_usd"] - 0.2875) < 1e-9,
@@ -639,11 +732,42 @@ def selftest():
     check(nosub is not None and abs(nosub["claims"][0]["cost_computed_usd"] - 0.0325) < 1e-9,
           "subagent spend lands in the segment it ran in, not elsewhere")
 
-    bare = run(commands=False)
+    bare = run(namespaces=False)
     check(bare is not None and bare["command_boundaries"] == [],
-          "without --commands-dir no boundary is reported (nothing is guessed)")
+          "with no manifest resolved, no boundary is reported (nothing is guessed)")
     check(bare is not None and tokens(bare["models"]) == tokens(whole["models"]),
           "boundary detection never changes the cost figure")
+
+    # ---------------------------------------------------------- the split cases
+    # Their own transcripts, and no subagent dir: the shared subagent entries sit at
+    # timestamps inside these windows too, and would silently move the token figures
+    # these cases exist to pin.
+    seg = run("--claim", "/prompt-grill-me", transcript=t2path, subagents=False)
+    segn = [b["command"] for b in seg["command_boundaries"]] if seg else []
+    check(segn == ["/prompt-grill-me", "/vuln", "/prompt"],
+          "a SIBLING plugin's /vuln is a boundary in a window whose other two "
+          "boundaries belong to this one (got %r)" % (segn,))
+    check(seg is not None and seg["unmatched_claims"] == [] and len(seg["claims"]) == 1
+          and tokens(seg["claims"][0]["models"]) == 5000,
+          "the claim gets 5000 -- its own segment, ending at the SIBLING's boundary, "
+          "not the 9000 that swallows the sibling's run as well")
+    check(seg is not None and tokens(seg["models"]) == 4800,
+          "the remainder keeps /vuln's 4000 and the replaying run's 800 (4800), "
+          "not the 800 a swallowed sibling segment leaves behind")
+    check("/upgrade" not in segn,
+          "widening the namespaces does not admit a BARE built-in whose name a "
+          "plugin of this marketplace ships")
+    check("/implement" not in segn,
+          "widening the namespaces does not admit /superpowers:implement -- a real "
+          "namespace, but not one of this marketplace's")
+
+    xp = run("--claim", "/prompt-brainstorm", transcript=t3path, subagents=False)
+    check(xp is not None and xp["unmatched_claims"] == [] and len(xp["claims"]) == 1
+          and tokens(xp["claims"][0]["models"]) == 2000,
+          "a claim whose ceding run ships from a DIFFERENT plugin than the run "
+          "replaying it matches (2000)")
+    check(xp is not None and tokens(xp["models"]) == 1000,
+          "...and that replaying run keeps exactly its own 1000")
 
     if failures:
         print("SELFTEST FAIL (%d)" % len(failures))
@@ -716,11 +840,13 @@ def main():
     ap.add_argument("--checkpoint", default="")
     ap.add_argument("--snapshot", default="")
     ap.add_argument("--now-ts", default="")
-    ap.add_argument("--commands-dir", default="",
-                    help="The plugin commands/ dir. Supplies the known-command set "
-                         "that command boundaries are resolved against, and this "
-                         "plugin's own namespace; without it no boundaries are "
-                         "reported.")
+    ap.add_argument("--namespaces", default=DEFAULT_NAMESPACE_MAP,
+                    help="The command-namespace manifest boundaries are resolved "
+                         "against. Defaults to command-namespaces.json beside this "
+                         "script, which is the only correct answer at a call site: a "
+                         "caller-supplied plugin path names whichever plugin READ the "
+                         "reference, not the one that ran. Point it elsewhere only to "
+                         "test; where it resolves to nothing, no boundary is reported.")
     ap.add_argument("--claim", action="append", default=[], metavar="/COMMAND",
                     help="A deferred run to carve out of this window, oldest "
                          "first (cost-emission.md section 13). Repeatable. Each "
@@ -763,11 +889,11 @@ def main():
     last_dt = parse_ts(checkpoint["last_ts"])
 
     prices = load_prices(args.prices)
-    known_commands, plugin_name = load_command_names(args.commands_dir)
+    ns_map = load_namespace_map(args.namespaces)
 
     records = []
     new_line_offset, main_first_ts, boundaries, main_records = scan_main(
-        args.transcript, line_offset, known_commands, plugin_name
+        args.transcript, line_offset, ns_map
     )
     records.extend(main_records)
     sub_first_ts = read_subagents(args.subagents_dir, last_dt, now_dt, records)
@@ -775,12 +901,12 @@ def main():
     matched, unmatched = match_claims(args.claim, boundaries)
 
     notes = []
-    if args.claim and known_commands is None:
-        notes.append("no --commands-dir resolved: boundary detection is off, so "
-                     "every claim is unmatched")
+    if args.claim and ns_map is None:
+        notes.append("no command-namespace manifest resolved at %r: boundary "
+                     "detection is off, so every claim is unmatched" % (args.namespaces,))
     elif args.claim and not boundaries:
-        notes.append("no command boundary found in this window (namespace "
-                     "resolved as %r)" % (plugin_name,))
+        notes.append("no command boundary found in this window (namespaces "
+                     "known: %s)" % (", ".join(sorted(ns_map)),))
 
     # Partition every buffered record into exactly one bucket: a claimed segment,
     # or the remainder that stays with this run. Disjoint by construction, and
@@ -839,7 +965,7 @@ def main():
         "cost_computed_usd": cost_computed,
         "cost_statusline_usd": cost_statusline,
         "duration_s": duration_s,
-        "plugin_namespace": plugin_name,
+        "namespaces": sorted(ns_map) if ns_map else [],
         "notes": notes,
         "command_boundaries": boundaries,
         "claims": claims_out,

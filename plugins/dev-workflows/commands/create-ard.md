@@ -277,7 +277,7 @@ supported, and it is the state the gate's row in
 the frame and themes below come from whatever else the folder carries — which on the BRD route is the
 seed, the register and the findings the section at the end of this phase reads.
 
-For an **Epic-level** run always dispatch the folder read this way (`depth: full`, scoped to `focus_key`) for the Epic's scope — the authored-PRD-file check above only applies PRD-level. Resolve any PRD-level ARD via `workflows-core:ard-resolution` (`prd: <PRD>`, `epic: null`, `$SPECS_PATH`). On `status: found`, load its `AD#N` invariants to **inherit read-only**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr`. On `status: none`, proceed unchanged — there is no PRD-level ARD to inherit.
+For an **Epic-level** run always dispatch the folder read this way (`depth: full`, scoped to `focus_key`) for the Epic's scope — the authored-PRD-file check above only applies PRD-level. Resolve any PRD-level ARD by invoking `Skill(skill: "workflows-core:reference", args: "ard-resolution")` and running its resolution with `prd: <PRD>`, `epic: null`, `$SPECS_PATH`. On `status: found`, load its `AD#N` invariants to **inherit read-only**. On `status: unmerged`, **stop**, naming the returned `branch` and any `pr`. On `status: none`, proceed unchanged — there is no PRD-level ARD to inherit.
 
 Extract the problem/goal/scope frame + capability themes — the raw material for grounding + the grill.
 

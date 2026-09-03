@@ -249,8 +249,9 @@ report — never hard-block.
 
 ## Phase 3 — Baseline integrity gate
 
-Run `baseline-integrity` (`workflows-core:grounding-format` §4) **once per
-resolved repository, before any finding is written**:
+Invoke `Skill(skill: "workflows-core:reference", args: "grounding-format")` and run its
+`baseline-integrity` procedure (§4) **once per resolved repository, before any finding is
+written**:
 
 ```bash
 git -C "<repo>" rev-parse HEAD

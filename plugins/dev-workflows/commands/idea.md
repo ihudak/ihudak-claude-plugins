@@ -29,7 +29,8 @@ Flags: `--deep` switches the grill from bounded (≤10 questions) to relentless 
 
    **The key is an argument because there is nowhere keyless to write.** `idea.md` lands in its final
    folder on the first write — `PRD-<KEY>-<slug>/` under `$SPECS_PATH/specifications/`, resolved with
-   `resolve-address` and created there when absent (`workflows-core:addressing` §2, §3). It is never relocated
+   `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3)
+   and created there when absent (`workflows-core:addressing` §2). It is never relocated
    afterwards, and `/create-prd <KEY>` finds it there.
 
    **Validated for shape and checked against nothing**, exactly as `/brd-intake <BRD-KEY>` already

@@ -706,6 +706,10 @@ Bare name, tracking latest (S6). Mirror it in the plugin's `marketplace.json` en
 
 Then list every moved command and its new plugin. Note that a declared dependency is auto-installed, so the explicit install is belt-and-braces for a machine that has not refreshed the catalogue.
 
+**`workflows-core` 1.0.0's entry must record one breaking change of its own, which no task has written down yet:** `session-cost.py`'s `--commands-dir` flag is **removed**, not deprecated. It existed to supply one plugin's command set, which is precisely the assumption §8 had to abandon — a boundary now resolves against a namespace→command-set manifest covering every plugin. The removal is loud (an unknown flag is an error, not a silent misread) but it is real, and anyone invoking the script directly is affected. Say so plainly rather than letting it be discovered.
+
+**Also record the cost-boundary fix itself in user-facing terms**: before it, a deferred claim replayed by a core command could absorb the spend of an intervening command from another plugin — never double-billing and never corrupting an entry already written, but silently misattributing between two entries of the same replay.
+
 - [ ] **Step 4: Update `CLAUDE.md`**
 
 **Ten reference paths in it are already stale** — measured, not estimated. Each names `plugins/dev-workflows/references/<f>.md` for a file now in `workflows-core`: `doc-structure-conventions`, `docs-grounding`, `finding-triage`, `implementation-format`, `instruction-file-maintenance`, `phase-handoff`, `prose-formatting`, `read-only-repos`, `source-truth`, `specs-repo-git`. Six others in the same file are correct and must not be touched: `bug-diagnosis`, `code-handoff`, `gate-ledger`, `release-note-types`, `repo-verification-gates`, `toolchain-preflight`. Re-derive rather than trusting this list — nothing gates a path in this file, which is why ten went stale unnoticed.

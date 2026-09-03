@@ -753,6 +753,10 @@ Two defects found while using pre-split `dev-workflows`, recorded here because b
 
 **PS2 — `/frames` cannot adopt an existing index under another name.** An operator who already keeps one must hand-convert it or lose it. `/frames` and `grounding-format.md` are both core's as of this increment (S13).
 
+**PS3 — a foreign marketplace's command between a cede and its replay has its spend absorbed** (spec §8.7). Found by increment 2's review of its own cost fix, and deliberately not fixed there. **Pre-existing, not split-caused**: the pre-split selftest asserts the same behaviour as intended. **Not blocked by the split either** — the cost subsystem is entirely in `workflows-core` from increment 2 onward and moves in neither remaining increment. Needs a decision before a patch: may a foreign command cut a window without being claimable? One test answers both questions today and they pull opposite ways.
+
+**All three of PS1, PS2 and PS3 live in `workflows-core` and are unblocked the moment this increment merges.** None waits on increments 3 or 4.
+
 ## Verification (after the branch is green, before the merge)
 
 These cannot run inside the implementation session and are not subagent tasks.

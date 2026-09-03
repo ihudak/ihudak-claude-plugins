@@ -128,9 +128,7 @@ mount / permission) drops to the next tier with the same notice.
 - **Attribution:** `author` from `git config user.email` run in the specs repo
   (best-effort; `unknown` if unset). The *commit* author gives a second,
   authoritative layer once the engineer commits and pushes the specs.
-  `plugin_version` is read at run time from
-  `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`
-  (`python3 -c "import json;print(json.load(open('<path>'))['version'])"`).
+  `plugin_version` is **supplied by the caller** — the version of the plugin whose command ran, read at run time from **that plugin's** `.claude-plugin/plugin.json` (`python3 -c "import json;print(json.load(open('<path>'))['version'])"`), which is exactly what every calling command already passes in. It is **not** resolved here: this reference is read through the loader skill, so a `${CLAUDE_PLUGIN_ROOT}` written *in this file* resolves to the plugin that **ships this reference**, and nineteen of the twenty-four callers ship from a sibling — their entries would silently take this plugin's version number instead of their own, beside a `command:` naming a command this plugin does not ship.
 
 ## 4. Plugin-facing predicate — what persists
 

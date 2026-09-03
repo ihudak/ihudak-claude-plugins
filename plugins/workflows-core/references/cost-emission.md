@@ -539,8 +539,7 @@ Inputs:
   source for it, and the entry would silently fall back to
   `plugin-feedback`/`n/a`, quietly mis-attributing every correction.
 - `key` (or `null`), `source` (`specs | directory | none`).
-- `plugin_version` — read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`
-  (`python3 -c "import json;print(json.load(open('<path>'))['version'])"`).
+- `plugin_version` — the version of **the plugin whose command ran**: the one that ships the command named in `command:`, read from **that plugin's** `.claude-plugin/plugin.json` (`python3 -c "import json;print(json.load(open('<path>'))['version'])"`). It is **supplied by the caller and never resolved here**, and the distinction is not pedantic: this reference is read through the loader skill, so a `${CLAUDE_PLUGIN_ROOT}` written *in this file* resolves to the plugin that **ships this reference**, and a run of a sibling's command would file its entry under this plugin's version. Each calling command already reads the value from its own `${CLAUDE_PLUGIN_ROOT}`, which resolves correctly there, and passes it in. Two things make the emitter's convenience the wrong trade. The field sits beside `command:`, so an entry pairing one plugin's command with another plugin's version describes no artifact that ever shipped. And every entry already on disk carries the version series of the plugin whose command ran — silently re-basing that series onto a different counter destroys exactly the comparability the field exists for. A §13 replay uses the **record's own** `plugin_version` (§13.1), never the replaying run's.
 
 Behavior:
 1. Resolve session artifacts (§1) and the price table (§4).
@@ -618,14 +617,14 @@ because the earlier run is over.
   {"command": "/prompt-grill-me", "plugin": "workflows-core",
    "phase": "inferred", "role": "inferred",
    "target_command": "/document", "key": "PRODUCT-1234", "epic": null,
-   "source": "specs", "plugin_version": "3.17.1",
+   "source": "specs", "plugin_version": "1.0.0",
    "ceded_at": "2026-09-01T10:04:00Z"}
 ]
 ```
 
 No field is a measurement — the spend has not happened yet — and each is here
 because a replay cannot re-derive it once the run is over. `command` and
-`plugin_version` build the entry (§6). **`plugin` is the plugin that ships the ceding command** — its `name` from the same `.claude-plugin/plugin.json` `plugin_version` is read from, and necessarily one of the §2 manifest's keys. What it protects is **uniqueness, not resolvability**: §13.3 matches a claim to a boundary by bare command name, which is unambiguous only because each command has exactly one home in this marketplace. Recording the home turns that from a property of today's allocation into one the record itself carries, so a command that ever moves cannot silently pair a claim with a namesake. It is not what makes a cross-plugin claim resolve — the §2 manifest already does that, and a replay in any plugin matches without reading this field. `target_command` resolves `phase`/`role`
+`plugin_version` build the entry (§6). **`plugin` is the plugin that ships the ceding command** — its `name` from the same `.claude-plugin/plugin.json` that ceding run reads its own `plugin_version` from, and necessarily one of the §2 manifest's keys. The pair travels together and describes the **ceding** run, never the replaying one: a replay in another plugin builds the entry from these two, so the entry names the command that ran and the version it ran at. The two commands that write this record ship from the same plugin as this reference, which is why the example above reads `workflows-core` and that plugin's own version. What it protects is **uniqueness, not resolvability**: §13.3 matches a claim to a boundary by bare command name, which is unambiguous only because each command has exactly one home in this marketplace. Recording the home turns that from a property of today's allocation into one the record itself carries, so a command that ever moves cannot silently pair a claim with a namesake. It is not what makes a cross-plugin claim resolve — the §2 manifest already does that, and a replay in any plugin matches without reading this field. `target_command` resolves `phase`/`role`
 through §7 at replay time; the two are carried literally as `inferred` because
 that is the marker §11's contract takes, and carrying them keeps the record a
 complete §11 input rather than one the replay must patch. `key`, `epic` and

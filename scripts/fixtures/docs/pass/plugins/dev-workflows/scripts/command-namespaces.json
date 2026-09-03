@@ -1,0 +1,9 @@
+{
+  "dev-workflows": [
+    "alpha",
+    "alpha-two"
+  ],
+  "fixture-two": [
+    "omega"
+  ]
+}

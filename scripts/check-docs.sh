@@ -53,6 +53,13 @@ CLI_REQUIRED="marketplace add|marketplace update"   # copilot: marketplace add|u
                                      # updates with `plugin update --all`, not a marketplace verb.
 HAS_COST=1                           # copilot: 0 -- no cost subsystem exists there
 
+# The command-namespace manifest session-cost.py resolves every cost boundary against,
+# repo-relative. Empty means this edition ships none, and check 4's manifest assertion is
+# skipped. It is NOT derived from CORE_PLUGIN_REL: the manifest sits beside the script,
+# and a corpus that relocates without the script would silently stop being checked.
+NS_MAP_REL="${NS_MAP_REL:-plugins/workflows-core/scripts/command-namespaces.json}"
+                                     # copilot: "" -- no cost subsystem, so no manifest
+
 # Which plugins ship the subsystems checks 8 and 11 examine. Applicability is declared,
 # never inferred: absence-implies-skip would let a genuine regression in a plugin that DOES
 # ship them pass silently. Membership is guarded in both directions -- the dispatch loop
@@ -239,8 +246,102 @@ $abs"
 # user-overridable and therefore user-facing.
 # Every inventory is derived from the edition being checked, never from a number
 # written into a page.
+# Set once the namespace-manifest assertion below has run. It is a RUN-level assertion
+# about ONE file describing EVERY plugin, dispatched from a per-plugin loop -- the same
+# shape as check 8's reverse direction, and it needs the same latch. It deliberately walks
+# every plugin directory in the tree rather than $PLUGIN_RELS: the manifest covers every
+# plugin of the marketplace that ships commands, and a plugin with no docs/ tree of its own
+# is exactly the one whose entry nothing else would ever look at.
+NS_MAP_DONE=0
+
+# The manifest session-cost.py resolves cost boundaries against equals the tree's own
+# per-plugin command inventory, in both directions. It is a data file with no reader that
+# would notice it going stale: a missing entry costs that plugin's invocations their
+# boundary -- a deferred claim then swallows the whole segment, measured at 9000 tokens
+# where 5000 was correct -- and a phantom entry mints a boundary for a command nobody can
+# run. DERIVED, NEVER HAND-MAINTAINED is the property this enforces, and cmd_names is
+# already the edition's own command enumeration, so the two cannot drift apart in silence.
+check_namespace_map() {
+  local root="$1" out h d rel n
+  [ -n "$NS_MAP_REL" ] || { note "check 4 manifest assertion not applicable: this edition ships no command-namespace manifest"; return; }
+  [ "$NS_MAP_DONE" = 0 ] || return
+  NS_MAP_DONE=1
+  # The reader is passed with -c and the derived inventory arrives on the PIPE. It cannot be
+  # a `python3 - <<HEREDOC` the way check 16's is: a heredoc redirection wins over the pipe,
+  # so the program would be read from the heredoc and the inventory would never arrive --
+  # observed here as a manifest whose every namespace was reported as naming no plugin.
+  local prog
+  prog=$(cat <<'NSEOF'
+import json, os, sys
+
+root, rel = sys.argv[1], sys.argv[2]
+
+# The namespace is the plugin's DECLARED name, not its directory: installed content lives
+# at <cache>/<marketplace>/<plugin>/<version>/, so the parent of commands/ is the version
+# there and only the plugin name in a dev tree. This is the same reading session-cost.py's
+# own manifest loader documents, basename fallback included.
+derived = {}
+for line in sys.stdin:
+    line = line.rstrip("\n")
+    if not line:
+        continue
+    d, name = line.split("\t", 1)
+    ns = os.path.basename(d)
+    try:
+        with open(os.path.join(root, d, ".claude-plugin", "plugin.json"),
+                  encoding="utf-8", errors="replace") as fh:
+            ns = (json.load(fh) or {}).get("name") or ns
+    except (OSError, ValueError, TypeError, AttributeError):
+        pass
+    derived.setdefault(ns, set()).add(name)
+
+try:
+    with open(os.path.join(root, rel), encoding="utf-8", errors="replace") as fh:
+        manifest = json.load(fh)
+except OSError:
+    print("%s does not exist -- session-cost.py resolves every cost boundary against it" % rel)
+    sys.exit(0)
+except ValueError as exc:
+    print("%s is not valid JSON (%s)" % (rel, exc))
+    sys.exit(0)
+if not isinstance(manifest, dict):
+    print("%s is not a JSON object mapping a plugin namespace to its command names" % rel)
+    sys.exit(0)
+
+for ns in sorted(set(manifest) - set(derived)):
+    print("%s names namespace '%s', which is no plugin in this tree that ships commands"
+          % (rel, ns))
+for ns in sorted(set(derived) - set(manifest)):
+    print("plugin namespace '%s' ships %d command(s) and has no entry in %s -- every one "
+          "of its invocations mints no cost boundary" % (ns, len(derived[ns]), rel))
+for ns in sorted(set(derived) & set(manifest)):
+    got = manifest[ns]
+    if not isinstance(got, list) or not all(isinstance(x, str) for x in got):
+        print("%s entry '%s' is not a list of command names" % (rel, ns))
+        continue
+    for n in sorted(set(got) - derived[ns]):
+        print("%s lists '%s:%s', which is not a command of that plugin" % (rel, ns, n))
+    for n in sorted(derived[ns] - set(got)):
+        print("%s omits '%s:%s' -- that invocation mints no cost boundary" % (rel, ns, n))
+NSEOF
+)
+  out=$(for d in "$root"/plugins/*/; do
+          [ -d "$d" ] || continue
+          rel="${d#$root/}"; rel="${rel%/}"
+          while IFS= read -r n; do
+            [ -n "$n" ] && printf '%s\t%s\n' "$rel" "$n"
+          done < <(cmd_names "${d%/}")
+        done | python3 -c "$prog" "$root" "$NS_MAP_REL")
+  while IFS= read -r h; do
+    [ -n "$h" ] || continue
+    fail 4 "$h"
+  done <<<"$out"
+}
+
 check_inventory() {
   local root="$1" p="$1/$PLUGIN_REL" d="$1/$PLUGIN_REL/docs" n
+
+  check_namespace_map "$root"
 
   # commands <-> docs/$DOC_CMD_DIR/
   while IFS= read -r n; do
@@ -963,6 +1064,10 @@ selftest() {
   # is the real shape too, and a derived name would stop matching them the moment it moved.
   export LOADER_SKILL="dev-workflows:reference"
   export COST_PLUGIN_RELS="plugins/dev-workflows"
+  # The manifest is edition config too, and the fixture ships its own: pointed at the
+  # repository's would make every case below assert against real command names, and the
+  # green cases are worthless if anything outside the mutation can redden them.
+  export NS_MAP_REL="plugins/dev-workflows/scripts/command-namespaces.json"
   export HANDOFF_PLUGIN_RELS="plugins/dev-workflows"
   [ -d "$fixture" ] || { echo "SELFTEST FAIL: fixture tree missing at $fixture" >&2; exit 2; }
 
@@ -1050,6 +1155,43 @@ selftest() {
   # was not making. That is the real shape too: the corpus is extracted as a whole.
   relocate_corpus() { relocate_refs cost-emission.md next-phase-offer.md phase-handoff.md; }
 
+  # Rebuilds the namespace manifest from the tree. The two fixture-GROWING cases below add real
+  # commands, and check 4 asserts the manifest equals the tree in both directions -- so a case
+  # that grew one without the other would go red for a reason it is not making, and the green
+  # cases are worthless if anything but their own subject can redden them. DERIVED here for the
+  # same reason the gate demands it of the repository: a hand-written list in the mutation would
+  # be a second place to keep the command set, and the two would drift.
+  ns_map_regen() { # run from inside the copied tree
+    [ -n "$NS_MAP_REL" ] || return 0
+    local d rel n
+    for d in plugins/*/; do
+      rel="${d%/}"
+      while IFS= read -r n; do
+        [ -n "$n" ] && printf '%s\t%s\n' "$rel" "$n"
+      done < <(cmd_names "$rel")
+    done | python3 -c '
+import json, os, sys
+out = {}
+for line in sys.stdin:
+    line = line.rstrip("\n")
+    if not line:
+        continue
+    d, name = line.split("\t", 1)
+    ns = os.path.basename(d)
+    pj = os.path.join(d, ".claude-plugin", "plugin.json")
+    if os.path.isfile(pj):
+        try:
+            with open(pj, encoding="utf-8", errors="replace") as fh:
+                ns = (json.load(fh) or {}).get("name") or ns
+        except (OSError, ValueError, TypeError, AttributeError):
+            pass
+    out.setdefault(ns, []).append(name)
+with open(sys.argv[1], "w", encoding="utf-8") as fh:
+    json.dump({k: sorted(v) for k, v in out.items()}, fh, indent=2, sort_keys=True)
+    fh.write("\n")
+' "$NS_MAP_REL"
+  }
+
   expect_pass "the unmutated fixture passes every check"
   expect_fail "a broken relative link is rejected"  1 "sed -i.bak 's|(reference/hooks.md)|(reference/nope.md)|' $PLUGIN_REL/docs/README.md"
   expect_fail "a broken link in the plugin README is rejected" 1 "sed -i.bak 's|(docs/README.md)|(docs/NOPE.md)|' $PLUGIN_REL/README.md"
@@ -1058,6 +1200,21 @@ selftest() {
   expect_fail "an undocumented command is rejected" 4 "mkdir -p $(dirname $(cmd_file $PLUGIN_REL delta)) 2>/dev/null; printf -- '---\nname: delta\n---\n' > $(cmd_file $PLUGIN_REL delta)"
   expect_fail "a drifted subtree count is rejected" 4 "sed -i.bak 's|\`handoff/\` (2)|\`handoff/\` (3)|' $PLUGIN_REL/docs/reference/references.md"
   expect_fail "an undocumented skill is rejected"    4 "mkdir -p $PLUGIN_REL/skills/epsilon && printf -- '---\nname: epsilon\n---\n' > $PLUGIN_REL/skills/epsilon/SKILL.md"
+  # The command-namespace manifest, in both directions and on both axes. Every mutation
+  # REWRITES the file whole rather than editing a line out of it: deleting a name with sed
+  # leaves a dangling comma, and the invalid-JSON message would then stand in for the
+  # missing-name one -- same check number, different failure mode, a case proving nothing.
+  # The tree is left untouched in all four, so the manifest assertion is the only check 4
+  # failure any of them can produce.
+  expect_fail "a command missing from the namespace manifest is rejected" 4 \
+    "printf '{\"dev-workflows\": [\"alpha\"], \"fixture-two\": [\"omega\"]}\n' > $NS_MAP_REL"
+  expect_fail "a manifest name that is no command is rejected" 4 \
+    "printf '{\"dev-workflows\": [\"alpha\", \"alpha-two\", \"phantom\"], \"fixture-two\": [\"omega\"]}\n' > $NS_MAP_REL"
+  expect_fail "a command-shipping plugin with no manifest entry is rejected" 4 \
+    "printf '{\"dev-workflows\": [\"alpha\", \"alpha-two\"]}\n' > $NS_MAP_REL"
+  expect_fail "a manifest namespace naming no plugin is rejected" 4 \
+    "printf '{\"dev-workflows\": [\"alpha\", \"alpha-two\"], \"fixture-two\": [\"omega\"], \"ghost\": [\"x\"]}\n' > $NS_MAP_REL"
+  expect_fail "a missing namespace manifest is rejected" 4 "rm -f $NS_MAP_REL"
   expect_fail "an undocumented env var is rejected" 5 "printf 'Reads \$NEW_SETTABLE_VAR here.\n' >> $(cmd_file $PLUGIN_REL alpha)"
   expect_fail "an over-long table cell is rejected" 6 "awk 'BEGIN{s=\"\"; while(length(s)<260) s=s \"x\"; printf \"\\n| a | %s |\\n|---|---|\\n| b | c |\\n\", s}' >> $PLUGIN_REL/docs/reference/hooks.md"
   expect_fail "a drifted install block is rejected" 7 "sed -i.bak 's|$CLI plugin install ${PLUGIN_REL##*/}@fixture-plugins|$CLI plugin install ${PLUGIN_REL##*/}@drifted|' $PLUGIN_REL/docs/getting-started.md"
@@ -1111,7 +1268,7 @@ selftest() {
   # Verified red (this case FAILs: "no count sentence found") with the word2num/alternation
   # additions stashed, green with them applied.
   expect_pass_after "a correctly-worded seventeen-command count is accepted" \
-    "for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && sed -i.bak 's|two slash commands|seventeen slash commands|' $PLUGIN_REL/README.md && for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15; do printf -- '\nCommand: \`/%s\`.\n' \$n >> $PLUGIN_REL/README.md; done && { printf -- '\n\`\`\`mermaid\nflowchart TD\n'; for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15; do printf -- '    x%s[\"/%s\"]\n' \$n \$n; done; printf -- '\`\`\`\n'; } >> $PLUGIN_REL/docs/workflow.md"
+    "for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && sed -i.bak 's|two slash commands|seventeen slash commands|' $PLUGIN_REL/README.md && for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15; do printf -- '\nCommand: \`/%s\`.\n' \$n >> $PLUGIN_REL/README.md; done && { printf -- '\n\`\`\`mermaid\nflowchart TD\n'; for n in cmd01 cmd02 cmd03 cmd04 cmd05 cmd06 cmd07 cmd08 cmd09 cmd10 cmd11 cmd12 cmd13 cmd14 cmd15; do printf -- '    x%s[\"/%s\"]\n' \$n \$n; done; printf -- '\`\`\`\n'; } >> $PLUGIN_REL/docs/workflow.md && ns_map_regen"
   # The same proof for the OTHER gated alternation. The case above exercises the commands
   # alternation only; the cost-emitting-commands alternation in check 9 has its own word list,
   # and until this case existed nothing exercised it -- a word missing from it would have failed
@@ -1125,7 +1282,7 @@ selftest() {
   # applied -- and the seventeen-command case above stays green throughout, which is what shows
   # the two cases cover different alternations.
   expect_pass_after "a correctly-worded seventeen cost-emitting-command count is accepted" \
-    "for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '\nCall \`emit-cost\` with \`command: /%s\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' \$n >> \$(cmd_file $PLUGIN_REL \$n); done && { printf -- '# Cost emission (fixture)\n\n## 7. Attribution (phase / role)\n\n| Command | phase | role |\n|---------|-------|------|\n| \`/alpha\` | fixture-phase | pm |\n'; for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '| \`/%s\` | fixture-phase | pm |\n' \$n; done; printf -- '\n## 8. Persistence\n\nNot modelled in the fixture.\n'; } > $PLUGIN_REL/$REF_DIR/cost-emission.md && sed -i.bak 's|two slash commands|eighteen slash commands|' $PLUGIN_REL/README.md && sed -i.bak 's|One commands emit a cost entry|Seventeen commands emit a cost entry|' $PLUGIN_REL/docs/reference/session-cost.md && for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '\nCommand: \`/%s\`.\n' \$n >> $PLUGIN_REL/README.md; done && { printf -- '\n\`\`\`mermaid\nflowchart TD\n'; for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '    x%s[\"/%s\"]\n' \$n \$n; done; printf -- '\`\`\`\n'; } >> $PLUGIN_REL/docs/workflow.md"
+    "for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do mkdir -p \$(dirname \$(cmd_file $PLUGIN_REL \$n)) 2>/dev/null; printf -- '---\nname: %s\n---\n' \$n > \$(cmd_file $PLUGIN_REL \$n); printf -- '# /%s\n\nPage.\n' \$n > $PLUGIN_REL/docs/$DOC_CMD_DIR/\$n.md; printf -- '\n- [%s](%s/%s.md)\n' \$n $DOC_CMD_DIR \$n >> $PLUGIN_REL/docs/README.md; done && for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '\nCall \`emit-cost\` with \`command: /%s\`, \`phase: fixture-phase\`, \`role: pm\`, done.\n' \$n >> \$(cmd_file $PLUGIN_REL \$n); done && { printf -- '# Cost emission (fixture)\n\n## 7. Attribution (phase / role)\n\n| Command | phase | role |\n|---------|-------|------|\n| \`/alpha\` | fixture-phase | pm |\n'; for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '| \`/%s\` | fixture-phase | pm |\n' \$n; done; printf -- '\n## 8. Persistence\n\nNot modelled in the fixture.\n'; } > $PLUGIN_REL/$REF_DIR/cost-emission.md && sed -i.bak 's|two slash commands|eighteen slash commands|' $PLUGIN_REL/README.md && sed -i.bak 's|One commands emit a cost entry|Seventeen commands emit a cost entry|' $PLUGIN_REL/docs/reference/session-cost.md && for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '\nCommand: \`/%s\`.\n' \$n >> $PLUGIN_REL/README.md; done && { printf -- '\n\`\`\`mermaid\nflowchart TD\n'; for n in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec; do printf -- '    x%s[\"/%s\"]\n' \$n \$n; done; printf -- '\`\`\`\n'; } >> $PLUGIN_REL/docs/workflow.md && ns_map_regen"
   expect_fail "a wrong non-ASCII anchor is rejected"           2 "printf '\n[bad](#uber-config)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
   expect_fail "a wrong duplicate-heading index is rejected"    2 "printf '\n[bad](#notes-2)\n' >> $PLUGIN_REL/docs/$DOC_CMD_DIR/alpha.md"
   # Check 14 is asserted through the same decoder the check uses, so the fixture carries the

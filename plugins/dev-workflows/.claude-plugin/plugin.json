@@ -23,7 +23,6 @@
     "dependencies",
     "value-increment",
     "update-prd",
-    "brd",
-    "frames"
+    "brd"
   ]
 }

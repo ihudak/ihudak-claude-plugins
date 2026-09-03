@@ -32,7 +32,7 @@ Because the required fix is not known up front, start with a provisional `MODERA
 
 ## Step 1 — Prepare
 
-1. **Parse** — Extract the optional address and the CVE ID from each token. The address is a key resolved against `$SPECS_PATH` (`workflows-core:addressing` §3), never a tracker lookup; a token may carry none.
+1. **Parse** — Extract the optional address and the CVE ID from each token. The address is a key resolved against `$SPECS_PATH` with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3), never a tracker lookup; a token may carry none.
 2. **Determine the no-address placeholder** — Scan recent branch names and commit history for `NOISSUE` / `NOJIRA` / `NO-JIRA`; use whichever the project already writes when a token carries no address. <!-- vendor-token-ok: literals a repo's own branch/commit history may contain, matched rather than minted -->
 3. **Filter** — Skip non-CVE IDs (`CWE-*`, OWASP patterns) with a warning.
 4. **Snapshot repo context** — Note the repo path and, when obvious, the primary ecosystem so the research agent can disambiguate detection.
@@ -269,7 +269,7 @@ interactive tools, even when one is listed in their `tools:`. When it returns
 
 ### Branch naming
 
-Resolve the branch name per `workflows-core:branch-naming` — **the repo's own documented convention wins**. The orchestrator reads the repo's `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`, `CLAUDE.md` for a branch-naming section (§1.1), fills its segments (§1.2) — **identity** from the §2 ladder (`$GIT_USER_INITIALS` → `git config user.initials` → inference → the §2.5 prompt), **issue key** from the CVE's address when the token carried one (else the documented no-issue literal, or the placeholder detected in Step 1 step 2), **description** from the CVE ID — and hands the resolved name to `vuln-fixer`. Never add an identity segment the pattern does not ask for.
+Resolve the branch name by invoking `Skill(skill: "workflows-core:reference", args: "branch-naming")` and following it — **the repo's own documented convention wins**. The orchestrator reads the repo's `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`, `CLAUDE.md` for a branch-naming section (§1.1), fills its segments (§1.2) — **identity** from the §2 ladder (`$GIT_USER_INITIALS` → `git config user.initials` → inference → the §2.5 prompt), **issue key** from the CVE's address when the token carried one (else the documented no-issue literal, or the placeholder detected in Step 1 step 2), **description** from the CVE ID — and hands the resolved name to `vuln-fixer`. Never add an identity segment the pattern does not ask for.
 
 When the repo documents no convention (§1.4), `<prefix>` comes from the §2 ladder with fallback `fix/`:
 
@@ -278,7 +278,7 @@ When the repo documents no convention (§1.4), `<prefix>` comes from the §2 lad
 
 ### Commit message
 
-Applied by the orchestrator in Step 3.9, never by `vuln-fixer` — it is passed to `finish-code-branch` as `commit_template` and used verbatim (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.3). Use the project's existing style. **End the subject with `[<key>]`** where the run resolved one, and carry a `Work-Item:` trailer where the resolved folder has one (`workflows-core:implementation-format` §3). Default template:
+Applied by the orchestrator in Step 3.9, never by `vuln-fixer` — it is passed to `finish-code-branch` as `commit_template` and used verbatim (`${CLAUDE_PLUGIN_ROOT}/references/code-handoff.md` §2.3). Use the project's existing style. **End the subject with `[<key>]`** where the run resolved one, and carry a `Work-Item:` trailer where the resolved folder has one (`Skill(skill: "workflows-core:reference", args: "implementation-format")`, §3). Default template:
 
 **With an address:**
 ```

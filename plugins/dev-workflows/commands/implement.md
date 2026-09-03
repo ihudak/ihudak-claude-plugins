@@ -369,7 +369,7 @@ Before writing any file:
 
    A clean tree records `pre_existing_dirty: null` and `stash_ref: null` — the state Phase 4.6's precondition assumes.
 
-2. **Resolve the branch name** per `workflows-core:branch-naming` — **the repo's own documented convention wins**. Read the target repo's `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`, `CLAUDE.md` (+ `.claude/`) for a branch-naming section (§1.1); if one is found, classify its segments (§1.2) and fill them: an **identity** placeholder (`<your-name-or-initials>`, `<user>`, …) from the §2 ladder (`$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → the §2.5 prompt), an **issue-key** segment from the `key` resolved in Phase 0 (or the pattern's documented no-issue literal in direct mode), and the **description** segment from step 3's slug. A pattern with no identity segment gets none — never inject initials into a convention that does not ask for one. Only when the repo documents no convention (§1.4) build `<prefix>/<slug>` with `<prefix>` from the §2 ladder, whose fallback here is `feat/`.
+2. **Resolve the branch name** by invoking `Skill(skill: "workflows-core:reference", args: "branch-naming")` and following it — **the repo's own documented convention wins**. Read the target repo's `CONTRIBUTING.md`, `CONTRIBUTION.md`, `README.md`, `DOCUMENTATION-GUIDELINES.md`, `CLAUDE.md` (+ `.claude/`) for a branch-naming section (§1.1); if one is found, classify its segments (§1.2) and fill them: an **identity** placeholder (`<your-name-or-initials>`, `<user>`, …) from the §2 ladder (`$GIT_USER_INITIALS` → `git config user.initials` → inference from existing branches → the §2.5 prompt), an **issue-key** segment from the `key` resolved in Phase 0 (or the pattern's documented no-issue literal in direct mode), and the **description** segment from step 3's slug. A pattern with no identity segment gets none — never inject initials into a convention that does not ask for one. Only when the repo documents no convention (§1.4) build `<prefix>/<slug>` with `<prefix>` from the §2 ladder, whose fallback here is `feat/`.
 
 3. **Generate slug** — derive from the implementation description: lowercase, hyphens, max 40 chars, strip punctuation and special chars. Example: "Add user authentication to login page" → `add-user-authentication-login-page`. When a `key` is resolved and the chosen shape has no separate issue-key segment, prefix it: `<KEY>-<slug>`.
 
@@ -673,9 +673,10 @@ Record what this phase actually did — the commit sha, and whether the push hap
 **Skipped entirely when `mode: direct`** — there is no resolved folder to append to, and a
 directly-implemented change has no block, exactly as before.
 
-**Write `implementation.md`** in the resolved folder, appending one block per run against
-`workflows-core:implementation-format` §1: one entry per repository this run
-touched, each naming `repo`, `branch`, `base`, `commit` and `pushed`. Append-only — never edit or
+**Write `implementation.md`** in the resolved folder. Invoke
+`Skill(skill: "workflows-core:reference", args: "implementation-format")` and append one block per
+run against its §1: one entry per repository this run touched, each naming `repo`, `branch`,
+`base`, `commit` and `pushed`. Append-only — never edit or
 remove an earlier block, and a re-run adds a block rather than replacing one.
 
 **It records refs and nothing else.** No summary of what was implemented: a summary is a

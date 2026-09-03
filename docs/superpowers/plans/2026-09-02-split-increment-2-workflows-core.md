@@ -624,6 +624,10 @@ The defect, reproduced in the spec: a deferred claim replayed by core's own `/pr
 
 `plugins/workflows-core/scripts/command-namespaces.json` — namespace → sorted command-name list, one entry per plugin in this marketplace that ships commands. It is **derived, never hand-maintained**: Step 5 makes the gate assert it against the tree in both directions.
 
+- [ ] **Step 1a: Fix `cost-emission.md`'s own `--commands-dir`, which now points at the wrong plugin**
+
+Line 78 passes `--commands-dir "${CLAUDE_PLUGIN_ROOT}/commands"`. That file is core's, and it is read **through the loader**, so `${CLAUDE_PLUGIN_ROOT}` expands to **core's** root — six utility commands — while the run emitting the entry is one of `dev-workflows`'s twenty. The boundary set is therefore resolved against the wrong plugin today. It is the same class as the `impl-maintenance.md` `${CLAUDE_PLUGIN_ROOT}/commands/` defect Task 5 repaired, and no assertion sees either, because core genuinely ships a `commands/` directory and the path resolves — just to the wrong six files. The §8 manifest supersedes the flag's purpose, so fix the two together rather than patching the flag and leaving the map to contradict it.
+
 - [ ] **Step 2: Resolve against the map, not one plugin's set**
 
 `command_marker` currently accepts a boundary only when `ns == plugin_name and rest in known`. It becomes: `ns` is a key of the manifest **and** `rest` is in that namespace's list. Both halves still resolve against a held set — nothing is parsed out of free text, which is what keeps the two safety properties intact.
@@ -675,7 +679,16 @@ git commit -m "fix(cost): resolve a deferred boundary against every plugin's own
 - Consumes: everything above
 - Produces: the increment's user-visible contract
 
-- [ ] **Step 1: Declare the dependency**
+- [ ] **Step 1: Declare the dependency — and verify it, because a shipped file already asserts it**
+
+**This step is load-bearing for a claim already in the tree.** Task 5 rewrote `workflows-core/references/dependencies.md` to state that `dev-workflows` *declares* `workflows-core` in `dependencies` — present tense, chosen over "will declare" to avoid the note-that-goes-stale class. No manifest carries the field today, so **that sentence is false until this step lands, and nothing gates it**: `validate-catalog.py` never reads a `dependencies` key and `check-docs.sh` does not compare prose to a manifest. The one earlier ruling in this increment that was written as prose rather than a checkbox (R3, the same file) was missed for two whole tasks. Verify explicitly after editing:
+
+```bash
+python3 -c "import json;d=json.load(open('plugins/dev-workflows/.claude-plugin/plugin.json'));print(d.get('dependencies','ABSENT'))"   # expect ['workflows-core']
+```
+
+Note that `dev-workflows`'s `keywords` list already contains the word "dependencies", so a bare `grep '"dependencies"'` reports a false positive. Test the parsed key, never the raw text.
+
 
 ```json
 "dependencies": ["workflows-core"]
@@ -694,6 +707,9 @@ Bare name, tracking latest (S6). Mirror it in the plugin's `marketplace.json` en
 Then list every moved command and its new plugin. Note that a declared dependency is auto-installed, so the explicit install is belt-and-braces for a machine that has not refreshed the catalogue.
 
 - [ ] **Step 4: Update `CLAUDE.md`**
+
+**Ten reference paths in it are already stale** — measured, not estimated. Each names `plugins/dev-workflows/references/<f>.md` for a file now in `workflows-core`: `doc-structure-conventions`, `docs-grounding`, `finding-triage`, `implementation-format`, `instruction-file-maintenance`, `phase-handoff`, `prose-formatting`, `read-only-repos`, `source-truth`, `specs-repo-git`. Six others in the same file are correct and must not be touched: `bug-diagnosis`, `code-handoff`, `gate-ledger`, `release-note-types`, `repo-verification-gates`, `toolchain-preflight`. Re-derive rather than trusting this list — nothing gates a path in this file, which is why ten went stale unnoticed.
+
 
 The workflow map, the command/agent/reference/skill counts, the "Active plugin" paragraph (now two active plugins), the reference-authority paragraphs that name paths inside `dev-workflows` for files that moved, and the citation convention under *Internal reference convention*. Re-derive every number against the tree; nothing in `CLAUDE.md` is gated.
 

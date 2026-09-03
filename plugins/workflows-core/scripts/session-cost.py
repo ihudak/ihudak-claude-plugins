@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""session-cost.py — compute the token-cost delta for one dev-workflows command.
+"""session-cost.py — compute the token-cost delta for one command of this family.
 
 Pure computation, Python standard library only (json, argparse, glob, os,
 datetime). Given a chained checkpoint (or none) it reads the current session's
@@ -144,7 +144,7 @@ def add_usage(acc, model, usage):
 MARKER_OPEN = "<command-name>"
 MARKER_CLOSE = "</command-name>"
 # Claude Code writes a slash-command invocation in one of TWO envelope orders,
-# and the difference is not cosmetic -- it decides whether this plugin's own
+# and the difference is not cosmetic -- it decides whether plugin-provided
 # commands are visible at all:
 #   built-ins        <command-name>/compact</command-name><command-message>...
 #   plugin-provided  <command-message>foo:bar</command-message><command-name>/foo:bar</command-name>...
@@ -495,7 +495,7 @@ def _st_rows():
 
     Each row exists for a defect, not for coverage: a MESSAGE-FIRST plugin
     envelope (anchoring on <command-name> alone made the feature inert); a bare
-    built-in `/upgrade`, whose name this plugin also ships (accepting bare names
+    built-in `/upgrade`, whose name a plugin of this marketplace ships (accepting bare names
     minted boundaries from a subscription command); a `/vuln` boundary between the
     ceding run and the replaying one (positional pairing filed its spend under a
     PRD phase); a FOREIGN namespace over a shared bare name; the SAME command
@@ -554,7 +554,13 @@ def _st_split_rows():
     but from another marketplace, over a bare name this one ships). Neither may mint
     a boundary, and an implementation that widens the accepted NAMESPACES without
     widening the per-namespace NAME sets passes exactly this pair while failing the
-    segment numbers above -- which is why the two travel together."""
+    segment numbers above -- which is why the two travel together.
+
+    A THIRD degradation has its own row: a map read as one FLAT set of every plugin's
+    names, so that `/workflows-core:vuln` -- a real namespace paired with another
+    plugin's command -- is accepted. Nothing else here pairs the two that way, and an
+    implementation reading the map that way passes every other assertion in this
+    file."""
     asst, builtin, plugin_cmd = _st_asst, _st_builtin, _st_plugin_cmd
     return [
         plugin_cmd("2026-09-01T10:00:00.000Z", "/workflows-core:prompt-grill-me"),
@@ -565,6 +571,13 @@ def _st_split_rows():
         plugin_cmd("2026-09-01T10:02:10.000Z", "/superpowers:implement"),  # safety
         plugin_cmd("2026-09-01T10:02:30.000Z", "/workflows-core:prompt"),  # replays
         asst("2026-09-01T10:03:00.000Z", 800),           # the replaying run's spend
+        # A KNOWN namespace paired with a command belonging to a DIFFERENT plugin. This
+        # row pins the `<that plugin's OWN command>` half of the rule: without it, a map
+        # read as one FLAT set of every plugin's names -- namespace checked, name checked
+        # against the union -- passes every other case in this file. It carries no usage
+        # and closes no segment, so it moves no figure above; only an implementation that
+        # mints it turns the boundary list red.
+        plugin_cmd("2026-09-01T10:03:30.000Z", "/workflows-core:vuln"),
     ]
 
 
@@ -675,7 +688,8 @@ def selftest():
     check(names == ["/vuln", "/prompt-grill-me", "/prompt-grill-me", "/implement"],
           "boundaries are the four plugin invocations, in order (got %r)" % (names,))
     check("/upgrade" not in names,
-          "a BARE built-in is not a boundary, even when this plugin ships that name")
+          "a BARE built-in is not a boundary, even when a plugin of this "
+          "marketplace ships that name")
     check("/compact" not in names, "/compact is not a boundary")
     check(names.count("/implement") == 1,
           "a FOREIGN namespace (/superpowers:implement) is not a boundary")
@@ -747,6 +761,10 @@ def selftest():
     check(segn == ["/prompt-grill-me", "/vuln", "/prompt"],
           "a SIBLING plugin's /vuln is a boundary in a window whose other two "
           "boundaries belong to this one (got %r)" % (segn,))
+    check(segn.count("/vuln") == 1,
+          "a command resolves against ITS OWN plugin's names: /workflows-core:vuln "
+          "pairs a real namespace with a real command of the marketplace that is not "
+          "that namespace's, and mints nothing")
     check(seg is not None and seg["unmatched_claims"] == [] and len(seg["claims"]) == 1
           and tokens(seg["claims"][0]["models"]) == 5000,
           "the claim gets 5000 -- its own segment, ending at the SIBLING's boundary, "
@@ -833,7 +851,8 @@ def price_block(acc, prices):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Compute a dev-workflows session-cost delta.")
+    ap = argparse.ArgumentParser(
+        description="Compute a session-cost delta for one command of this family.")
     ap.add_argument("--transcript", default="")
     ap.add_argument("--subagents-dir", default="")
     ap.add_argument("--prices", default="")
